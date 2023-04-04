@@ -8,6 +8,8 @@
     session_start();
 
     $VERSION = "0.0.1";
+
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
     $ROOT_APP = __DIR__ . "/$VERSION";
 
     include $ROOT_APP."/utility/array.php";
@@ -22,16 +24,12 @@
     
     include $ROOT_APP."/function/function.php";
 
-    if (isset($BACKEND) && $BACKEND) {
-        include $ROOT_APP.'/function/backend/function.php';
-    }
-
-    if (isset($FRONTEND) && $FRONTEND) {
-        include $ROOT_APP.'/function/frontend/function.php';
-    }
+    if (isset($BACKEND) && $BACKEND) { include $ROOT_APP.'/function/backend/function.php'; }
+    if (isset($FRONTEND) && $FRONTEND) { include $ROOT_APP.'/function/frontend/function.php'; }
     
     include $ROOT."/custom/function/function.php";
 
+    // ! Le tabelle non devono essere costruite sempre
     include $ROOT_APP."/build/build/table.php";
     include $ROOT_APP."/build/build/row.php";
 
