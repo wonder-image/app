@@ -1,21 +1,21 @@
 <link rel="shortcut icon" href="https://www.wonderimage.it/favicon.ico" type="image/x-icon">
 
 <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
 
 <!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css">
 
 <!-- JQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <!-- DataTables -->
-<script type='text/javascript' src='https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js'></script>
-<script type='text/javascript' src='https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js'></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
 
 <!-- Summernote css/js -->
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+<link href="<?=$PATH->app?>/lib/summernote-0.8.18/summernote-bs4.min.css" rel="stylesheet">
+<script src="<?=$PATH->app?>/lib/summernote-0.8.18/summernote-bs4.min.js"></script>
 <script src="<?=$PATH->app?>/lib/summernote/lang/summernote-it-IT.min.js"></script>
 
 <!-- Bootstrap Datepicker -->
@@ -59,7 +59,7 @@
 <script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
 
 <!-- Autonumeric -->
-<script src="https://cdn.jsdelivr.net/npm/autonumeric@4.2.0"></script>
+<script src="<?=$PATH->app?>/lib/autonumeric/4.8.1/autoNumeric.js"></script>
 
 <!-- Default .css - .js -->
 <script>
