@@ -41,22 +41,22 @@
 </script>
 
 <!-- FullCalendar -->
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/core/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/daygrid/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/timegrid/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/list/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/web-component/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/interaction/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/core/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/daygrid/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/timegrid/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/list/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/web-component/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/interaction/index.global.js"></script>
 
 <!-- FullCalendar => Bootstrap 5 translator -->
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/bootstrap5/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
 
 <!-- FullCalendar => Moment -->
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/moment/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/moment-timezone/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/moment/index.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/moment-timezone/index.global.js"></script>
 
 <!-- FullCalendar => IT translator -->
-<script src="<?=$PATH->app?>/lib/fullcalendar-6.1.5/packages/core/locales/it.global.js"></script>
+<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
 
 <!-- Autonumeric -->
 <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.2.0"></script>
