@@ -1,0 +1,22 @@
+{
+    "name": "wonder-image/app",
+    "description": "Wonder Image",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andrea Marinoni",
+            "email": "marinoni@wonderimage.it"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "WonderImage\\App\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "fpdf/fpdf": "^1.85"
+    }
+}
