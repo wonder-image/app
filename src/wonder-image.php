@@ -8,7 +8,7 @@
     session_start();
 
     $VERSION = "0.0.1";
-    $ROOT_APP = __DIR__ . "/app/$VERSION";
+    $ROOT_APP = __DIR__ . "/$VERSION";
 
     include $ROOT_APP."/utility/array.php";
     include $ROOT_APP."/utility/alert.php";
