@@ -3,13 +3,12 @@
     ini_set ('display_errors', 1);
     ini_set ('display_startup_errors', 1);
     ini_set ('session.autostart', 1);
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     error_reporting (E_ALL);
 
     session_start();
 
-    $VERSION = "0.0.2";
-    $ROOT_APP = "$ROOT/app/$VERSION";
+    $VERSION = "0.0.1";
+    $ROOT_APP = __DIR__ . "/app/$VERSION";
 
     include $ROOT_APP."/utility/array.php";
     include $ROOT_APP."/utility/alert.php";

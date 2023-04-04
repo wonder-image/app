@@ -15,10 +15,7 @@
     "autoload": {
         "psr-4": {
             "WonderImage\\App\\": "src/"
-        },
-        "files": [
-            "src/wonder-image.php"
-        ]
+        }
     },
     "require": {
         "php": ">=8.0",
