@@ -1,8 +1,10 @@
 {
     "name": "wonder-image/app",
     "description": "Wonder Image",
-    "type": "library",
+    "homepage": "https://www.wonderimage.it/",
+    "keywords": ["Wonder Image", "Wonderimage"],
     "license": "MIT",
+    "type": "library",
     "authors": [
         {
             "name": "Andrea Marinoni",
