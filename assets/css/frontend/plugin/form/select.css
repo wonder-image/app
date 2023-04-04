@@ -1,0 +1,53 @@
+.wi-input-container.wi-list-active  {
+z-index: 10;
+}
+.wi-input-container.wi-list-active .wi-input {
+border-radius: var(--input-border-radius) var(--input-border-radius) 0 0;
+}
+.wi-input-container .wi-input-list {
+position: absolute;
+float: left;
+top: calc(56px + var(--input-border-top));
+width: calc(100% - var(--input-border-left) - var(--input-border-right));
+max-height: 0px;
+color: var(--input-tx-color);
+background: var(--input-bg-color);
+border-top: 0px solid var(--input-border-focus);
+border-left: var(--input-border-bottom) solid var(--input-border-focus);
+border-right: var(--input-border-bottom) solid var(--input-border-focus);
+border-bottom: 0px solid var(--input-border-focus);
+border-radius: 0 0 var(--input-border-radius) var(--input-border-radius);
+transition: .3s;
+overflow: hidden;
+z-index: 2;
+}
+.wi-input-container.wi-list-active .wi-input-list {
+border-top: var(--input-border-bottom) solid var(--input-border-focus);
+border-bottom: var(--input-border-bottom) solid var(--input-border-focus);
+max-height: 120px;
+overflow: scroll;
+z-index: 2;
+transition: .3s;
+}
+.wi-input-container .wi-input-list .wi-input-list-value {
+width: calc(100% - 32px);
+font-size: 16px;
+height: 16px;
+line-height: 16px;
+padding: 8px 16px;
+cursor: pointer;
+background: var(--input-bg-color);
+transition: .3s;
+}
+.wi-input-container .wi-input-list .wi-input-list-value:hover {
+background: var(--input-select-hover);
+}
+.wi-input-container .wi-input-list .wi-input-list-value:last-child { 
+border: none 
+}
+.wi-input-container .wi-input.select-selected {
+cursor: pointer;
+}
+.wi-input-container .wi-input-list .same-as-selected {
+font-weight: 500;
+}

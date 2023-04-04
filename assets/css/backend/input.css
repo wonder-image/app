@@ -1,0 +1,49 @@
+/* File */
+.wi-container-files .wi-card-file.wi-first-file .wi-arrow-up {
+display: none;
+}
+.wi-container-files .wi-card-file.wi-last-file .wi-arrow-down {
+display: none;
+}
+
+/* Summernote */
+.note-modal .modal-dialog .modal-content .modal-header .modal-title{
+position: absolute
+}
+.note-editor.note-frame.panel.panel-default{
+background: white;
+border: 1px solid #ced4da;
+border-radius: .25rem;
+}
+
+/* FullCalendar */
+.fc-header-toolbar h2 {
+font-size: calc(1.275rem + .3vw) !important;
+text-transform: capitalize;
+}
+.fc-header-toolbar .btn,
+.fc-event {
+background: #212529;
+border-color: #212529;
+padding: 0.25rem 0.5rem;
+font-size: 0.875rem;
+border-radius: 0.25rem;
+}
+.fc-header-toolbar .btn:hover {
+background: #424649;
+border-color: #373b3e;
+}
+.fc-header-toolbar .btn:disabled {
+background: #212529;
+border-color: #212529;
+}
+.fc-header-toolbar .btn.active,
+.fc-header-toolbar .btn.active:active,
+.fc-header-toolbar .btn.active:checked,
+.fc-header-toolbar .btn.active:checked {
+background: #4d5154;
+border-color: #373b3e;
+}
+.fc-view-harness th {
+text-transform: capitalize;
+}

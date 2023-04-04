@@ -1,0 +1,50 @@
+.d-grid.row-max { grid-auto-rows: max-content !important; }
+.d-grid.row-min { grid-auto-rows: min-content !important; }
+
+.d-grid.col-1 { grid-template-columns: repeat(1, 1fr); }
+.d-grid.col-2 { grid-template-columns: repeat(2, 1fr); }
+.d-grid.col-3 { grid-template-columns: repeat(3, 1fr); }
+.d-grid.col-4 { grid-template-columns: repeat(4, 1fr); }
+.d-grid.col-5 { grid-template-columns: repeat(5, 1fr); }
+.d-grid.col-6 { grid-template-columns: repeat(6, 1fr); }
+.d-grid.col-7 { grid-template-columns: repeat(7, 1fr); }
+.d-grid.col-8 { grid-template-columns: repeat(8, 1fr); }
+.d-grid.col-9 { grid-template-columns: repeat(9, 1fr); }
+.d-grid.col-10 { grid-template-columns: repeat(10, 1fr); }
+.d-grid.col-11 { grid-template-columns: repeat(11, 1fr); }
+.d-grid.col-12 { grid-template-columns: repeat(12, 1fr); }
+
+.gap-0 { gap: calc(var(--spacer) * 0); }
+.gap-1 { gap: calc(var(--spacer) * 1); }
+.gap-2 { gap: calc(var(--spacer) * 2); }
+.gap-3 { gap: calc(var(--spacer) * 3); }
+.gap-4 { gap: calc(var(--spacer) * 4); }
+.gap-5 { gap: calc(var(--spacer) * 5); }
+.gap-6 { gap: calc(var(--spacer) * 6); }
+.gap-7 { gap: calc(var(--spacer) * 7); }
+.gap-8 { gap: calc(var(--spacer) * 8); }
+.gap-9 { gap: calc(var(--spacer) * 9); }
+.gap-10 { gap: calc(var(--spacer) * 10); }
+.gap-11 { gap: calc(var(--spacer) * 11); }
+.gap-12 { gap: calc(var(--spacer) * 12); }
+
+.r-gap-0 { row-gap: calc(var(--spacer) * 0); }
+.r-gap-1 { row-gap: calc(var(--spacer) * 1); }
+.r-gap-2 { row-gap: calc(var(--spacer) * 2); }
+.r-gap-3 { row-gap: calc(var(--spacer) * 3); }
+.r-gap-4 { row-gap: calc(var(--spacer) * 4); }
+.r-gap-5 { row-gap: calc(var(--spacer) * 5); }
+.r-gap-6 { row-gap: calc(var(--spacer) * 6); }
+.r-gap-7 { row-gap: calc(var(--spacer) * 7); }
+.r-gap-8 { row-gap: calc(var(--spacer) * 8); }
+.r-gap-9 { row-gap: calc(var(--spacer) * 9); }
+.r-gap-10 { row-gap: calc(var(--spacer) * 10); }
+.r-gap-11 { row-gap: calc(var(--spacer) * 11); }
+.r-gap-12 { row-gap: calc(var(--spacer) * 12); }
+
+.col-1 { grid-column: span 1; }
+.col-2 { grid-column: span 2; }
+.col-3 { grid-column: span 3; }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+.col-5 { grid-column: span 5; }

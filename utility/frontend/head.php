@@ -1,0 +1,193 @@
+<!-- Google Tag Manager -->
+<script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','<?=$TAG_MANAGER?>');
+</script>
+<!-- End Google Tag Manager -->
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Inizio SEO -->
+
+    <title><?=$SEO->title?></title>
+
+    <!-- Google -->
+    <meta name="title" content="<?=$SEO->title?>">
+    <meta name="description" content="<?=$SEO->description?>">
+    <meta name="author" content="<?=$SEO->author?>">
+    <meta name="copyright" content="<?=$SEO->copyright?>">
+    <meta http-equiv="Reply-to" content="<?=$SEO->reply?>">
+    <meta http-equiv="content-language" content="IT">
+    <meta http-equiv="Content-Type" content="text/html; iso-8859-7">
+    <meta name="robots" content="INDEX,FOLLOW">
+    <meta name="creation_Date" content="<?=$SEO->date?>">
+    <meta name="revisit-after" content="1 days">
+
+    <!-- Open Graph Protocol -->
+    <meta property="og:title" content="<?=$SEO->title?>">
+    <meta property="og:description" content="<?=$SEO->description?>">
+    <meta property="og:image" content="<?=$SEO->image?>">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?=$SEO->url?>">
+
+    <!-- Twitter -->
+    <meta property="twitter:title" content="<?=$SEO->title?>" />
+    <meta property="twitter:description" content="<?=$SEO->description?>" />
+    <meta property="twitter:image" content="<?=$SEO->image?>" />
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="<?=$SEO->url?>" />
+    <meta name="twitter:creator" content="@<?=$SEO->creator?>" />
+
+<!-- Fine SEO -->
+
+<!-- Start fundamental file  -->
+
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    
+    <!--  Moment.js  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js" referrerpolicy="no-referrer"></script>
+
+    <!-- JQuery - Datepicker -->
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+
+    <!-- JQuery - Timepicker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.js" integrity="sha512-s5u/JBtkPg+Ff2WEr49/cJsod95UgLHbC00N/GglqdQuLnYhALncz8ZHiW/LxDRGduijLKzeYb7Aal9h3codZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.css" integrity="sha512-LT9fy1J8pE4Cy6ijbg96UkExgOjCqcxAC7xsnv+mLJxSvftGVmmc236jlPTZXPcBRQcVOWoK1IJhb1dAjtb4lQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="<?=$FONT->title_link?>" rel="stylesheet">
+    <link href="<?=$FONT->subtitle_link?>" rel="stylesheet">
+    <link href="<?=$FONT->text_link?>" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+    <!-- Animazioni AOS -->
+    <link id="aos-css" href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Slider swiper.js -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
+    <!-- Video.js -->
+    <link href="https://unpkg.com/video.js@7/dist/video-js.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/@videojs/themes@1/dist/city/index.css" rel="stylesheet">
+    <link href="https://unpkg.com/@videojs/themes@1/dist/fantasy/index.css" rel="stylesheet">
+    <link href="https://unpkg.com/@videojs/themes@1/dist/forest/index.css" rel="stylesheet">
+    <link href="https://unpkg.com/@videojs/themes@1/dist/sea/index.css" rel="stylesheet">
+
+    <!-- Typed.js -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+
+    <!-- Autonumeric -->
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.2.0"></script>
+
+    <!-- CountUp -->
+    <script src="<?=$PATH->lib?>/countup/countUp.umd.js"></script>
+
+    <script>
+
+        const pathSite = '<?=$PATH->site?>';
+        const pathApp = '<?=$PATH->app?>';
+
+        var NO_INTERNET_ALERT = null;
+        
+        $.ajax({
+            type: "POST",
+            url: pathApp+'/api/alert.php',
+            data: { 
+                post: 'true',
+                frontend: 'true',
+                alert: 801
+            }, 
+            success: function (data) {
+                NO_INTERNET_ALERT = data;
+            }
+        });
+
+    </script>
+
+    <style>
+        :root {
+            --title-family: <?=$FONT->title_family?>;
+            --subtitle-family: <?=$FONT->subtitle_family?>;
+            --text-family: <?=$FONT->text_family?>;
+            --title-weight: <?=$FONT->title_weight?>;
+            --subtitle-weight: <?=$FONT->subtitle_weight?>;
+            --text-weight: <?=$FONT->text_weight?>;
+            --white-color: <?=$COLOR->white?>;
+            --black-color: <?=$COLOR->black?>;
+            --primary-color: <?=$COLOR->primary?>;
+            --secondary-color: <?=$COLOR->secondary?>;
+            --bg-color: <?=$COLOR->bg?>;
+            --tx-color: <?=$COLOR->tx?>;
+            --success-color: <?=$COLOR->success?>;
+            --danger-color: <?=$COLOR->danger?>;
+            --info-color: <?=$COLOR->info?>;
+            --light-color: <?=$COLOR->light?>;
+            --dark-color: <?=$COLOR->dark?>;
+            --white-color-rgb: <?=hexToRgb($COLOR->white)?>;
+            --black-color-rgb: <?=hexToRgb($COLOR->black)?>;
+            --primary-color-rgb: <?=hexToRgb($COLOR->primary)?>;
+            --secondary-color-rgb: <?=hexToRgb($COLOR->secondary)?>;
+            --bg-color-rgb: <?=hexToRgb($COLOR->bg)?>;
+            --tx-color-rgb: <?=hexToRgb($COLOR->tx)?>;
+            --success-color-rgb: <?=hexToRgb($COLOR->success)?>;
+            --danger-color-rgb: <?=hexToRgb($COLOR->danger)?>;
+            --info-color-rgb: <?=hexToRgb($COLOR->info)?>;
+            --light-color-rgb: <?=hexToRgb($COLOR->light)?>;
+            --dark-color-rgb: <?=hexToRgb($COLOR->dark)?>;
+            --default-image: url('<?=$DEFAULT->image?>');
+        }
+    </style>
+
+    <!-- Fundamental .js -->
+    <script src="<?=$PATH->app?>/assets/js/frontend/utility.js"></script>
+    <script src="<?=$PATH->app?>/assets/js/frontend/scroll.js"></script>
+    <script src="<?=$PATH->app?>/assets/js/frontend/form/list.js"></script>
+    <script src="<?=$PATH->app?>/assets/js/frontend/form/input.js"></script>
+
+    <!-- Custom .css -->
+    <link rel="stylesheet" href="<?=$PATH->css?>/set-up.css">
+
+    <!-- Fundamental .css -->
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/root/color.css">
+
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/lib.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/main.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/resize.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/position.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/grid.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/color.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/margin.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/padding.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/section.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/dimension.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/function.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/text.css">
+
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/alert.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/modal.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/button.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/dropdown.css">
+
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/input.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/date.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/checkbox.css">
+    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/select.css">
+
+<!-- End fundamental file  -->
+
+<?php include $ROOT.'/custom/utility/frontend/head.php'; ?>
