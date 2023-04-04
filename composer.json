@@ -14,7 +14,7 @@
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
-            "WonderImage\\App\\": "src/"
+            "WonderImage\\App\\": "src/wonder-image.php"
         }
     },
     "require": {
