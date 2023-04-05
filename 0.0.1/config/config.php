@@ -5,7 +5,7 @@
     require_once $ROOT_APP."/config/alert.php";
 
     # Configurazioni CUSTOM
-    require_once $ROOT_APP."/custom/config/config.php";
+    require_once $ROOT."/custom/config/config.php";
 
     // Database
         $DB->hostname = $_ENV['DB_HOSTNAME'];
@@ -16,7 +16,7 @@
     // Path
         $PATH->site = $_ENV['APP_SITE'];
         $PATH->backend = $PATH->site."/backend";
-        $PATH->app = $PATH->site."/app/".$VERSION;
+        $PATH->app = $PATH->site."/vendor/wonder-image/app/".$VERSION;
 
         $PATH->lib = $PATH->app."/lib";
 
