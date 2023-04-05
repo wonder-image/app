@@ -1,3 +1,14 @@
+<?php
+
+    $BACKEND = true;
+    $PERMIT = [];
+    $PRIVATE = true;
+
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+
+    include $ROOT.'/app/wonder-image.php';
+    
+?>
 <!DOCTYPE html>
 <html lang="it">
 <head>

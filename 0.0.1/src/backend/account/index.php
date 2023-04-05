@@ -1,5 +1,14 @@
 <?php
 
+    $PRIVATE = true;
+    $PERMIT = [];
+    
+    $BACKEND = true;
+
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+
+    include $ROOT.'/app/wonder-image.php';
+    
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Account";
     $INFO_PAGE->table = "user";

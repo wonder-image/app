@@ -1,7 +1,5 @@
 <?php
 
-    require $ROOT."/custom/config/permissions.php";
-    
     $PERMITS = [
         "backend" => [
             "admin" => [
@@ -28,8 +26,9 @@
         "frontend" => []
     ];
 
-    foreach ($CUSTOM_PERMITS as $key => $value) {
-        foreach ($value as $k => $v) { $PERMITS[$key][$k] = $v; }
-    }
+    # Permessi CUSTOM
+    require $ROOT."/custom/config/permissions.php";
+    
+    foreach ($CUSTOM_PERMITS as $key => $value) { foreach ($value as $k => $v) { $PERMITS[$key][$k] = $v; } }
 
 ?>

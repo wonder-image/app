@@ -1,5 +1,12 @@
 <?php
 
+    $BACKEND = true;
+    $PRIVATE = false;
+
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+
+    include $ROOT.'/app/wonder-image.php';
+    
     // Control link validity
         $time = strtotime("now");
         $restriction = $_GET['r'];

@@ -16,6 +16,7 @@
     require_once $ROOT_APP . "/config/array.php";
     require_once $ROOT_APP . "/config/alert.php";
     require_once $ROOT_APP . "/config/permissions.php";
+    require_once $ROOT_APP . "/config/table.php";
 
     // require_once $ROOT_APP . "/custom/config/config.php";
 

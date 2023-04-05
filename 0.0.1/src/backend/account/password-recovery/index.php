@@ -1,5 +1,12 @@
 <?php
 
+    $BACKEND = true;
+    $PRIVATE = false;
+
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+
+    include $ROOT.'/app/wonder-image.php';
+    
     if (isset($_POST['recovery'])) {
 
         $VALUES = $_POST;

@@ -1,5 +1,12 @@
 <?php
 
+    $BACKEND = true;
+    $PERMIT = ['admin'];
+    $PRIVATE = true;
+
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+
+    include $ROOT.'/app/wonder-image.php';
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Seo";
     $INFO_PAGE->table = "seo";
