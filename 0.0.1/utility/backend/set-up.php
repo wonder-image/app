@@ -33,6 +33,12 @@
                     'authority' => ['admin']
                 ],
                 [
+                    'title' => 'Analitica',
+                    'folder' => 'analytics',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
                     'title' => 'Utenti',
                     'folder' => 'user',
                     'file' => 'list.php',
@@ -47,6 +53,50 @@
                 [
                     'title' => 'Download',
                     'folder' => 'download',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+            ]
+        ],
+        [
+            'title' => 'Stile',
+            'folder' => 'set-up',
+            'icon' => 'bi-award',
+            'authority' => ['admin'],
+            'subnavs' => [
+                [
+                    'title' => 'Default',
+                    'folder' => 'css-default',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Font',
+                    'folder' => 'css-font',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Colori',
+                    'folder' => 'css-color',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Testi',
+                    'folder' => 'css-text',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Bottoni',
+                    'folder' => 'css-button',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Input',
+                    'folder' => 'css-input',
                     'file' => '',
                     'authority' => ['admin']
                 ],

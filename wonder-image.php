@@ -5,6 +5,8 @@
     ini_set ('session.autostart', 1);
     error_reporting (E_ALL);
 
+    session_start();
+
     $VERSION = "0.0.1";
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
