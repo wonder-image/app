@@ -14,14 +14,14 @@
 <script id="aos-js" src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <!-- Disabilita AOS mobile -->
-<script src="<?=$PATH->app?>/assets/js/frontend/aos.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/aos.js"></script>
 
 <!-- Default .css - .js -->
-<script src="<?=$PATH->app?>/assets/js/frontend/alert.js"></script>
-<script src="<?=$PATH->app?>/assets/js/frontend/dropdown.js"></script>
-<script src="<?=$PATH->app?>/assets/js/frontend/modal.js"></script>
-<script src="<?=$PATH->app?>/assets/js/frontend/form/select.js"></script>
-<script src="<?=$PATH->app?>/assets/js/frontend/pageSetUp.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/alert.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/dropdown.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/modal.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/form/select.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/pageSetUp.js"></script>
 
 <!-- Custom .css - .js  -->
 <?php include $ROOT.'/custom/utility/frontend/body-end.php'; ?>

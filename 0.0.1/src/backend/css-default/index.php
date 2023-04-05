@@ -48,40 +48,83 @@
                 <h3><?=$INFO_PAGE->title?></h3>
             </wi-card>
 
-            <wi-card class="col-9">
-                <div class="col-12">
-                    <h6>Font</h6>
-                </div>
-                <div class="col-6">
-                    <?php
+            <div class="col-9">
+                <div class="row g-3">
 
-                        $FONTS = [];
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Default Font</h6>
+                        </div>
+                        <div class="col-4">
+                            <?php
 
-                        foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = $row['name']; }
+                                $FONTS = [];
 
-                        echo select('Font', 'font_id', $FONTS, null, 'required'); 
+                                foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = $row['font_family']; }
 
-                    ?>
-                </div>
-                <div class="col-3">
-                    <?=text('Font size', 'font_size', 'required'); ?>
-                </div>
-                <div class="col-3">
-                    <?=text('Font weight', 'font_weight', 'required'); ?>
-                </div>
-            </wi-card>
+                                echo select('Font family', 'font_id', $FONTS, null, 'required'); 
 
-            <wi-card class="col-3">
-                <div class="col-12">
-                    <h6>Spazio</h6>
+                            ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Font weight', 'font_weight', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Font size', 'font_size', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Line height', 'line_height', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Colore', 'tx_color', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+
                 </div>
-                <div class="col-12">
-                    <?=text('Spaziatore', 'spacer', 'required'); ?>
+            </div>
+
+            <div class="col-3">
+                <div class="row g-3">
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Bottoni</h6>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Raggio bordi', 'button_border_radius', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Spessore bordi', 'button_border_width', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Badge</h6>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Raggio bordi', 'badge_border_radius', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Spessore bordi', 'badge_border_width', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Spazio</h6>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Spaziatore', 'spacer', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=submit('Modifica CSS', 'modify'); ?>
+                        </div>
+                    </wi-card>
+                    
                 </div>
-                <div class="col-12">
-                    <?=submit('Modifica CSS', 'modify'); ?>
-                </div>
-            </wi-card>
+            </div>
 
         </div>
     </form>

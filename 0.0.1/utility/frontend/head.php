@@ -154,39 +154,39 @@
     </style>
 
     <!-- Fundamental .js -->
-    <script src="<?=$PATH->app?>/assets/js/frontend/utility.js"></script>
-    <script src="<?=$PATH->app?>/assets/js/frontend/scroll.js"></script>
-    <script src="<?=$PATH->app?>/assets/js/frontend/form/list.js"></script>
-    <script src="<?=$PATH->app?>/assets/js/frontend/form/input.js"></script>
+    <script src="<?=$PATH->appJs?>/frontend/utility.js"></script>
+    <script src="<?=$PATH->appJs?>/frontend/scroll.js"></script>
+    <script src="<?=$PATH->appJs?>/frontend/form/list.js"></script>
+    <script src="<?=$PATH->appJs?>/frontend/form/input.js"></script>
 
     <!-- Custom .css -->
-    <link rel="stylesheet" href="<?=$PATH->css?>/set-up.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/set-up.php">
 
     <!-- Fundamental .css -->
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/root/color.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/color.css">
 
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/lib.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/main.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/resize.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/position.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/grid.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/color.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/margin.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/padding.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/section.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/dimension.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/function.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/class/text.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/main.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/resize.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/position.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/grid.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/color.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/section.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/dimension.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/function.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/text.css">
 
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/alert.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/modal.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/button.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/dropdown.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/alert.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/modal.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/button.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/dropdown.css">
 
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/input.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/date.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/checkbox.css">
-    <link rel="stylesheet" href="<?=$PATH->app?>/assets/css/frontend/plugin/form/select.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/input.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/date.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/checkbox.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/select.css">
 
 <!-- End fundamental file  -->
 
