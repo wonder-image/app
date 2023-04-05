@@ -27,13 +27,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista <?=$TEXT->titleP?></title>
 
-    <!-- Files to include -->
-    <?php include $ROOT_APP.'/utility/backend/include-top.php'; ?>
+    <?php include $ROOT_APP."/utility/backend/head.php"; ?>
 
 </head>
 <body>
     
-    <?php include $ROOT_APP.'/utility/backend/header.php' ?>
+    <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
+    <?php include $ROOT_APP."/utility/backend/header.php"; ?>
 
     <div class="row g-3">
 
@@ -379,8 +379,8 @@
 
     </div>
 
-    <?php include $ROOT_APP.'/utility/backend/footer.php' ?>
-    <?php include $ROOT_APP.'/utility/backend/include-bottom.php' ?>
+    <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
+    <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
 
 </body>
 </html>

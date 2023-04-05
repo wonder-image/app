@@ -14,14 +14,14 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
 
 <!-- Summernote css/js -->
-<link href="<?=$PATH->app?>/lib/summernote-0.8.18/summernote-bs4.min.css" rel="stylesheet">
-<script src="<?=$PATH->app?>/lib/summernote-0.8.18/summernote-bs4.min.js"></script>
-<script src="<?=$PATH->app?>/lib/summernote/lang/summernote-it-IT.min.js"></script>
+<link href="<?=$PATH->lib?>/summernote-0.8.18/summernote-bs4.min.css" rel="stylesheet">
+<script src="<?=$PATH->lib?>/summernote-0.8.18/summernote-bs4.min.js"></script>
+<script src="<?=$PATH->lib?>/summernote/lang/summernote-it-IT.min.js"></script>
 
 <!-- Bootstrap Datepicker -->
-<script src="<?=$PATH->app?>/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
-<script src="<?=$PATH->app?>/lib/bootstrap-datepicker/locales/bootstrap-datepicker.it.min.js" rel="stylesheet"></script>
-<link rel="stylesheet" href="<?=$PATH->app?>/lib/bootstrap-datepicker/css/bootstrap-datepicker3.css">
+<script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
+<script src="<?=$PATH->lib?>/bootstrap-datepicker/locales/bootstrap-datepicker.it.min.js" rel="stylesheet"></script>
+<link rel="stylesheet" href="<?=$PATH->lib?>/bootstrap-datepicker/css/bootstrap-datepicker3.css">
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@^3"></script>
@@ -41,25 +41,25 @@
 </script>
 
 <!-- FullCalendar -->
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/core/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/daygrid/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/timegrid/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/list/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/web-component/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/interaction/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/daygrid/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/timegrid/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/list/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/web-component/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/interaction/index.global.js"></script>
 
 <!-- FullCalendar => Bootstrap 5 translator -->
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
 
 <!-- FullCalendar => Moment -->
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/moment/index.global.js"></script>
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/moment-timezone/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment/index.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment-timezone/index.global.js"></script>
 
 <!-- FullCalendar => IT translator -->
-<script src="<?=$PATH->app?>/lib/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
 
 <!-- Autonumeric -->
-<script src="<?=$PATH->app?>/lib/autonumeric/4.8.1/autoNumeric.js"></script>
+<script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.js"></script>
 
 <!-- Default .css - .js -->
 <script>
@@ -84,10 +84,10 @@
 
 </script>
 
-<link rel="stylesheet" href="<?=$PATH->app?>/assets/css/backend/header.css">
-<link rel="stylesheet" href="<?=$PATH->app?>/assets/css/backend/input.css">
-<link rel="stylesheet" href="<?=$PATH->app?>/assets/css/backend/list.css">
-<link rel="stylesheet" href="<?=$PATH->app?>/assets/css/backend/order.css">
+<link rel="stylesheet" href="<?=$PATH->css?>/backend/header.css">
+<link rel="stylesheet" href="<?=$PATH->css?>/backend/input.css">
+<link rel="stylesheet" href="<?=$PATH->css?>/backend/list.css">
+<link rel="stylesheet" href="<?=$PATH->css?>/backend/order.css">
 
 <!-- Custom .css - .js  -->
-<?php include $ROOT.'/custom/utility/backend/include-top.php';?>
+<?php include $ROOT.'/custom/utility/backend/head.php';?>

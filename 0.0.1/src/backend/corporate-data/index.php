@@ -48,13 +48,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?=$INFO_PAGE->title?></title>
 
-    <!-- Files to include -->
-    <?php include $ROOT_APP.'/utility/backend/include-top.php'; ?>
+    <?php include $ROOT_APP."/utility/backend/head.php"; ?>
 
 </head>
 <body>
     
-    <?php include $ROOT_APP.'/utility/backend/header.php' ?>
+    <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
+    <?php include $ROOT_APP."/utility/backend/header.php"; ?>
     
     <form class="col-12" action="" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
         <div class="row g-3">
@@ -217,10 +217,8 @@
         </div>
     </form>
 
-
-    <?php include $ROOT_APP.'/utility/backend/footer.php' ?>
-    <?php include $ROOT_APP.'/utility/backend/include-bottom.php' ?>
-
+    <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
+    <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
 
 </body>
 </html>

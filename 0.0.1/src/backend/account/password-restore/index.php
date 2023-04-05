@@ -70,11 +70,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cambio password</title>
 
-    <!-- Files to include -->
-    <?php include $ROOT_APP.'/utility/backend/include-top.php'; ?>
+    <?php include $ROOT_APP."/utility/backend/head.php"; ?>
     
 </head>
 <body>
+
+    <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
 
     <div class="position-absolute w-75 top-50 start-50 translate-middle" style="max-width: 400px">
         <form method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
@@ -107,8 +108,7 @@
 
     </div>
 
-    <!-- Files to include -->
-    <?php include $ROOT_APP.'/utility/backend/include-bottom.php'; ?>
+    <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
 
 </body>
 </html>
