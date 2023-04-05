@@ -20,6 +20,7 @@
     "require": {
         "php": ">=8.0",
         "composer/composer": "^2.5",
-        "fpdf/fpdf": "^1.85"
+        "fpdf/fpdf": "^1.85",
+        "vlucas/phpdotenv": "^5.5"
     }
 }
