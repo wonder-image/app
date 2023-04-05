@@ -5,12 +5,19 @@
     ini_set ('session.autostart', 1);
     error_reporting (E_ALL);
 
-    session_start();
-
     $VERSION = "0.0.1";
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     $ROOT_APP = __DIR__ . "/$VERSION";
+
+    // Load .env file
+        $ENV_FILE = Dotenv\Dotenv::createImmutable(__DIR__);
+        $ENV_FILE->load();
+    // 
+
+    session_start();
+
+    echo $_ENV['APP_URL'];
 
     require $ROOT_APP."/utility/array.php";
     require $ROOT_APP."/utility/alert.php";
