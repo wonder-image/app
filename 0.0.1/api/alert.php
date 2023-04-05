@@ -1,16 +1,14 @@
 <?php
 
-    $PRIVATE = false;
-
     if (isset($_POST['backend'])) { $BACKEND = true; }
     if (isset($_POST['frontend'])) { $FRONTEND = true; }
 
-    $ROOT = $_SERVER['DOCUMENT_ROOT'].'/';
+    $PRIVATE = false;
+    $PERMIT = [];
 
-    include $ROOT.'app/wonder-image.php';
+    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    if ($_POST['post']) {
-        echo alertTheme($_POST['alert']);
-    }
+    if ($_POST['post']) { echo alertTheme($_POST['alert']); }
 
 ?>

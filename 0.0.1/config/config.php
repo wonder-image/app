@@ -14,7 +14,7 @@
         $DB->database = $_ENV['DB_DATABASE'];
         
     // Path
-        $PATH->site = $_ENV['APP_SITE'];
+        $PATH->site = $_ENV['APP_URL'];
         $PATH->backend = $PATH->site."/backend";
         $PATH->app = $PATH->site."/vendor/wonder-image/app/".$VERSION;
 
