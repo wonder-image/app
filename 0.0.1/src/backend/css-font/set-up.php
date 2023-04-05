@@ -38,6 +38,6 @@
         ]
     ];
 
-    $FILTER_SEARCH = ['var', 'name'];
+    $FILTER_SEARCH = ['font_family', 'name'];
 
 ?>

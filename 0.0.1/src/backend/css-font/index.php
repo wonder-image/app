@@ -40,16 +40,16 @@
 
             <wi-card class="col-9">
                 <div class="col-4">
-                    <?=text('Var', 'var', 'required'); ?>
+                    <?=text('Font family', 'font_family', 'required'); ?>
                 </div>
                 <div class="col-8">
-                    <?=text('Nome', 'name', 'required'); ?>
+                    <?=url('Link', 'link', 'required'); ?>
                 </div>
             </wi-card>
 
             <wi-card class="col-3">
                 <div class="col-12">
-                    <?=color('Colore', 'color', 'required'); ?>
+                    <?=text('Nome', 'name', 'required'); ?>
                 </div>
                 <div class="col-12"> 
                     <?=submitAdd()?>

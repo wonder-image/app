@@ -57,7 +57,7 @@
 
                         $FONTS = [];
 
-                        foreach (sqlSelect('font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = $row['name']; }
+                        foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = $row['name']; }
 
                         echo select('Font', 'font_id', $FONTS, null, 'required'); 
 

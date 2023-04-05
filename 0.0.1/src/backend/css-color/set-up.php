@@ -27,7 +27,7 @@
     $TABLE_FIELD = [
         "var" => [
             "label" => "Var",
-            "dimension" => "medium",
+            "dimension" => "big",
             "phone" => false
         ],
         "name" => [
