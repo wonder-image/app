@@ -1,8 +1,8 @@
 <?php
 
     $TEXT = (object) array();
-    $TEXT->titleS = "colore";
-    $TEXT->titleP = "colori";
+    $TEXT->titleS = "font";
+    $TEXT->titleP = "font";
     $TEXT->last = 'ultimi'; // $TEXT->last 50 $TEXT->titleP
     $TEXT->all = 'tutti'; // Lista $TEXT->all $TEXT->article $titlePageP
     $TEXT->article = 'i'; // Lista $TEXT->all $TEXT->article $titlePageP
@@ -11,28 +11,30 @@
     $TEXT->this = 'questo'; // Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS
 
     $NAME = (object) array();
-    $NAME->table = "css_color";
-    $NAME->folder = "css-color";
+    $NAME->table = "css_font";
+    $NAME->folder = "css-font";
 
     $BUTTON_ADD = true;
 
     $FILTER_TYPE = 'limit';
 
-    $PAGE_TABLE = $TABLE->CSS_COLOR;
+    $PAGE_TABLE = $TABLE->CSS_FONT;
 
     $TABLE_ACTION = [ 
-        'modify' => true
+        'modify' => true,
+        'visible' => true
     ];
 
     $TABLE_FIELD = [
-        "var" => [
-            "label" => "Var",
-            "dimension" => "medium",
-            "phone" => false
-        ],
         "name" => [
             "label" => "Nome",
             "href" => "modify",
+        ],
+        "visible" => [
+            "function" => [
+                "name" => "visible",
+                "return" => "automaticResize"
+            ]
         ]
     ];
 

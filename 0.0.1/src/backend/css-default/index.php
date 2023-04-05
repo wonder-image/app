@@ -8,19 +8,18 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     $INFO_PAGE = (object) array();
-    $INFO_PAGE->title = "Analitica";
-    $INFO_PAGE->table = $TABLE->ANALYTICS;
-    $INFO_PAGE->tableName = "analytics";
+    $INFO_PAGE->title = "Impostazioni CSS";
+    $INFO_PAGE->table = "css_default";
 
-    $SQL = sqlSelect($INFO_PAGE->tableName, ['id' => 1], 1);
+    $SQL = sqlSelect($INFO_PAGE->table, ['id' => 1], 1);
     $VALUES = $SQL->row;
 
     if (isset($_POST['modify'])) {
         
-        $VALUES = formToArray($INFO_PAGE->tableName, $_POST, $INFO_PAGE->table);
+        $VALUES = formToArray($INFO_PAGE->table, $_POST, $TABLE->SEO);
         
         if (empty($ALERT)) {
-            sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1);
+            sqlModify($INFO_PAGE->table, $VALUES, 'id', 1);
         }
 
     }
@@ -51,16 +50,36 @@
 
             <wi-card class="col-9">
                 <div class="col-12">
-                    <h6>Google</h6>
+                    <h6>Font</h6>
                 </div>
                 <div class="col-6">
-                    <?=text('TAG MANAGER', 'tag_manager', 'required'); ?>
+                    <?php
+
+                        $FONTS = [];
+
+                        foreach (sqlSelect('font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = $row['name']; }
+
+                        echo select('Font', 'font_id', $FONTS, null, 'required'); 
+
+                    ?>
+                </div>
+                <div class="col-3">
+                    <?=text('Font size', 'font_size', 'required'); ?>
+                </div>
+                <div class="col-3">
+                    <?=text('Font weight', 'font_weight', 'required'); ?>
                 </div>
             </wi-card>
 
             <wi-card class="col-3">
                 <div class="col-12">
-                    <?=submit('Modifica', 'modify'); ?>
+                    <h6>Spazio</h6>
+                </div>
+                <div class="col-12">
+                    <?=text('Spaziatore', 'spacer', 'required'); ?>
+                </div>
+                <div class="col-12">
+                    <?=submit('Modifica CSS', 'modify'); ?>
                 </div>
             </wi-card>
 
