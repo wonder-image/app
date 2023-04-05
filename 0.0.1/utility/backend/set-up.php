@@ -83,18 +83,6 @@
                     'authority' => ['admin']
                 ],
                 [
-                    'title' => 'Testi',
-                    'folder' => 'css-text',
-                    'file' => '',
-                    'authority' => ['admin']
-                ],
-                [
-                    'title' => 'Bottoni',
-                    'folder' => 'css-button',
-                    'file' => '',
-                    'authority' => ['admin']
-                ],
-                [
                     'title' => 'Input',
                     'folder' => 'css-input',
                     'file' => '',

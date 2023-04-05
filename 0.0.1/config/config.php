@@ -60,16 +60,6 @@
                 "color" => "#ffffff"
             ],
             [
-                "var" => "--bg-color",
-                "name" => "Sfondo",
-                "color" => "#ffffff"
-            ],
-            [
-                "var" => "--tx-color",
-                "name" => "Testo",
-                "color" => "#000000"
-            ],
-            [
                 "var" => "--success-color",
                 "name" => "Successo",
                 "color" => "#28a745"

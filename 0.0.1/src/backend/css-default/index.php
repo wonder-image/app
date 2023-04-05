@@ -55,7 +55,7 @@
                         <div class="col-12">
                             <h6>Default Font</h6>
                         </div>
-                        <div class="col-4">
+                        <div class="col-5">
                             <?php
 
                                 $FONTS = [];
@@ -66,7 +66,7 @@
 
                             ?>
                         </div>
-                        <div class="col-2">
+                        <div class="col-3">
                             <?=text('Font weight', 'font_weight', 'required'); ?>
                         </div>
                         <div class="col-2">
@@ -75,17 +75,115 @@
                         <div class="col-2">
                             <?=text('Line height', 'line_height', 'required'); ?>
                         </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Titolo grande</h6>
+                        </div>
+                        <div class="col-5">
+                            <?=select('Font family', 'title_big_font_id', $FONTS, null, 'required');?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Font weight', 'title_big_font_weight', 'required'); ?>
+                        </div>
                         <div class="col-2">
-                            <?=text('Colore', 'tx_color', 'required'); ?>
+                            <?=text('Font size', 'title_big_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Line height', 'title_big_line_height', 'required'); ?>
                         </div>
                     </wi-card>
 
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Titolo</h6>
+                        </div>
+                        <div class="col-5">
+                            <?=select('Font family', 'title_font_id', $FONTS, null, 'required');?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Font weight', 'title_font_weight', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Font size', 'title_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Line height', 'title_line_height', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Sottotitolo</h6>
+                        </div>
+                        <div class="col-5">
+                            <?=select('Font family', 'subtitle_font_id', $FONTS, null, 'required');?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Font weight', 'subtitle_font_weight', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Font size', 'subtitle_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Line height', 'subtitle_line_height', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Testo</h6>
+                        </div>
+                        <div class="col-5">
+                            <?=select('Font family', 'text_font_id', $FONTS, null, 'required');?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Font weight', 'text_font_weight', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Font size', 'text_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Line height', 'text_line_height', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Testo piccolo</h6>
+                        </div>
+                        <div class="col-5">
+                            <?=select('Font family', 'text_small_font_id', $FONTS, null, 'required');?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Font weight', 'text_small_font_weight', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Font size', 'text_small_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=text('Line height', 'text_small_line_height', 'required'); ?>
+                        </div>
+                    </wi-card>
 
                 </div>
             </div>
 
             <div class="col-3">
                 <div class="row g-3">
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Colore</h6>
+                        </div>
+                        <div class="col-2">
+                            <?=color('Testo', 'tx_color', 'required'); ?>
+                        </div>
+                        <div class="col-2">
+                            <?=color('Sfondo', 'bg_color', 'required'); ?>
+                        </div>
+                    </wi-card>
 
                     <wi-card class="col-12">
                         <div class="col-12">
