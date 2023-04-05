@@ -1,12 +1,11 @@
 <?php
 
     $BACKEND = true;
-    $PERMIT = ['admin'];
     $PRIVATE = true;
+    $PERMIT = ['admin'];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
-
-    include $ROOT.'/app/wonder-image.php';
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Scarica tabelle";

@@ -1,13 +1,13 @@
 <?php
 
     $BACKEND = true;
-    $PERMIT = ['admin'];
     $PRIVATE = true;
+    $PERMIT = ['admin'];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
-
-    include $ROOT.'/app/wonder-image.php';
-    include "set-up.php";
-    include $ROOT_APP."/html/backend/list.php";
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
+    
+    require_once "set-up.php";
+    require_once $ROOT_APP."/html/backend/list.php";
     
 ?>

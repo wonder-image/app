@@ -1,13 +1,11 @@
 <?php
 
-    $PRIVATE = true;
-    $PERMIT = [];
-    
     $BACKEND = true;
+    $PRIVATE = false;
+    $PERMIT = [];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
-
-    include $ROOT.'/app/wonder-image.php';
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Account";

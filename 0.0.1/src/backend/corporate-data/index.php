@@ -1,13 +1,12 @@
 <?php
 
     $BACKEND = true;
-    $PERMIT = ['admin'];
     $PRIVATE = true;
+    $PERMIT = ['admin'];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    include $ROOT.'/app/wonder-image.php';
-    
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Dati aziendali";
     $INFO_PAGE->table = ["society", "society_address", "society_legal_address", "society_social"];

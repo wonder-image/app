@@ -1,13 +1,13 @@
 <?php
 
     $BACKEND = true;
-    $PERMIT = ['admin'];
     $PRIVATE = true;
+    $PERMIT = ['admin'];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    include $ROOT.'/app/wonder-image.php';
-    include "set-up.php";
+    require_once "set-up.php";
     
     if (!empty($_GET['modify'])) {
         $TITLE = "Modifica $TEXT->titleS";

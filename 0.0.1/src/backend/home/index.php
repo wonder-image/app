@@ -1,12 +1,11 @@
 <?php
 
     $BACKEND = true;
-    $PERMIT = [];
     $PRIVATE = true;
+    $PERMIT = [];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
-
-    include $ROOT.'/app/wonder-image.php';
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
 ?>
 <!DOCTYPE html>

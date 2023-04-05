@@ -2,10 +2,10 @@
 
     $BACKEND = true;
     $PRIVATE = false;
+    $PERMIT = [];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
-
-    include $ROOT.'/app/wonder-image.php';
+    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
     // Control link validity
         $time = strtotime("now");
