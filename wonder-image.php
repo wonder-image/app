@@ -18,12 +18,12 @@
     
     require_once $ROOT_APP."/function/function.php";
 
-    // $PAGE = infoPage();
-    // $SOCIETY = infoSociety();
+    $PAGE = infoPage();
+    $SOCIETY = infoSociety();
 
-    // require_once $ROOT_APP."/utility/authorize.php";
+    require_once $ROOT_APP."/utility/authorize.php";
 
-    // if (isset($BACKEND) && $BACKEND) { require_once $ROOT_APP . "/utility/backend/set-up.php"; }
-    // if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP . "/utility/frontend/set-up.php"; }
+    if (isset($BACKEND) && $BACKEND) { require_once $ROOT_APP."/utility/backend/set-up.php"; }
+    if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP."/utility/frontend/set-up.php"; }
 
 ?>

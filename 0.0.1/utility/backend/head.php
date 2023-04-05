@@ -16,7 +16,7 @@
 <!-- Summernote css/js -->
 <link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
 <script src="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.js"></script>
-<script src="<?=$PATH->lib?>/summernote/lang/summernote-it-IT.min.js"></script>
+<script src="<?=$PATH->lib?>/summernote/0.8.18/lang/summernote-it-IT.min.js"></script>
 
 <!-- Bootstrap Datepicker -->
 <script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
