@@ -14,8 +14,8 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
 
 <!-- Summernote css/js -->
-<link href="<?=$PATH->lib?>/summernote-0.8.18/summernote-bs4.min.css" rel="stylesheet">
-<script src="<?=$PATH->lib?>/summernote-0.8.18/summernote-bs4.min.js"></script>
+<link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
+<script src="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.js"></script>
 <script src="<?=$PATH->lib?>/summernote/lang/summernote-it-IT.min.js"></script>
 
 <!-- Bootstrap Datepicker -->
@@ -84,10 +84,10 @@
 
 </script>
 
-<link rel="stylesheet" href="<?=$PATH->css?>/backend/header.css">
-<link rel="stylesheet" href="<?=$PATH->css?>/backend/input.css">
-<link rel="stylesheet" href="<?=$PATH->css?>/backend/list.css">
-<link rel="stylesheet" href="<?=$PATH->css?>/backend/order.css">
+<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/header.css">
+<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/input.css">
+<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/list.css">
+<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/order.css">
 
 <!-- Custom .css - .js  -->
 <?php include $ROOT.'/custom/utility/backend/head.php';?>
