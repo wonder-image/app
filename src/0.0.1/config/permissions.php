@@ -1,5 +1,7 @@
 <?php
 
+    require $ROOT."/custom/config/permissions.php";
+    
     $PERMITS = [
         "backend" => [
             "admin" => [

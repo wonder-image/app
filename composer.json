@@ -12,11 +12,6 @@
         }
     ],
     "minimum-stability": "stable",
-    "autoload": {
-        "files": [
-            "src/wonder-image.php"
-        ]
-    },
     "require": {
         "php": ">=8.0",
         "composer/composer": "^2.5",
