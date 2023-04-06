@@ -97,7 +97,7 @@
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
 
     <!-- Autonumeric -->
-    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.2.0"></script>
+    <script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
 
     <!-- CountUp -->
     <script src="<?=$PATH->lib?>/countup/countUp.umd.js"></script>

@@ -59,7 +59,7 @@
 <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
 
 <!-- Autonumeric -->
-<script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.js"></script>
+<script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
 
 <!-- Default .css - .js -->
 <script>

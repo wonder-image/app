@@ -9,17 +9,18 @@
 
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Impostazioni CSS";
-    $INFO_PAGE->table = "css_default";
+    $INFO_PAGE->table = $TABLE->CSS_DEFAULT;
+    $INFO_PAGE->tableName = "css_default";
 
-    $SQL = sqlSelect($INFO_PAGE->table, ['id' => 1], 1);
+    $SQL = sqlSelect($INFO_PAGE->tableName, ['id' => 1], 1);
     $VALUES = $SQL->row;
 
     if (isset($_POST['modify'])) {
         
-        $VALUES = formToArray($INFO_PAGE->table, $_POST, $TABLE->SEO);
+        $VALUES = formToArray($INFO_PAGE->tableName, $_POST, $INFO_PAGE->table);
         
         if (empty($ALERT)) {
-            sqlModify($INFO_PAGE->table, $VALUES, 'id', 1);
+            sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1);
         }
 
     }

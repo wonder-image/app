@@ -33,9 +33,16 @@ function lengthCount(event) {
 
 }
 
-function checkColor(value, id) {
+function checkColor(event) {
 
-    document.getElementById(id).style.color = 'rgba('+value+')';
+    var val = event.target.value;
+    var container =  event.target.parentElement;
+
+    if (val.includes('#')) {
+        container.querySelector('.wi-show-color').style.color = val;
+    } else {
+        container.querySelector('.wi-show-color').el.style.color = 'rgba('+val+')';
+    }
     
 }
 

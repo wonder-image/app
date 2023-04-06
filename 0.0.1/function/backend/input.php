@@ -86,19 +86,14 @@
             $value = $VALUES[$name];
         }
 
-        $script = "";
-        if (!empty($value)) {
-            $script = "<script>checkColor('$value','$id-color');</script>";
-        }
+        $color = !empty($value) ? "style='color: $value;'" : '';
 
         return "
         <label for='$id' class='form-label'>$label</label>
         <div class='input-group'>
-            <span class='input-group-text'><i id='$id-color' class='bi bi-circle-fill'></i></span>
-            <input type='text' class='form-control' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' onkeyup=\"checkColor(this.value,'$id-color')\" $attribute>
-        </div>
-        $script
-        ";
+            <span class='input-group-text'><i id='$id-color' class='bi bi-circle-fill' $color></i></span>
+            <input type='text' class='form-control' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
+        </div>";
 
     }
 
