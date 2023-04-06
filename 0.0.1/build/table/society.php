@@ -165,7 +165,7 @@
                     "extensions" => ['ico'],
                     "max_size" => 1,
                     "max_file" => 1,
-                    "dir" => '../../../favicon'
+                    "dir" => '/../../../favicon'
                 ]
             ]
         ]

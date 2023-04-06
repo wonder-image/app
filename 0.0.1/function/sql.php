@@ -500,14 +500,18 @@
                                 if (empty($ALERT)) {
 
                                     if (substr($DIR, -1) != '/') {
+                                        
                                         $NEW_NAME = explode('/', $DIR);
                                         $lastKey = array_key_last($NEW_NAME);
-                                        $NEW_NAME = $NEW_NAME[$lastKey].''.$EXTENSION;
-                                    } else {
-                                        $NEW_NAME = code(10, 'all').'.'.$EXTENSION;
-                                    }
+                                        $NEW_NAME = $NEW_NAME[$lastKey].'.'.$EXTENSION;
+                                        $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.'.'.$EXTENSION;
 
-                                    $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
+                                    } else {
+
+                                        $NEW_NAME = code(10, 'all').'.'.$EXTENSION;
+                                        $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
+
+                                    }
 
                                     if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
                                         $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME;

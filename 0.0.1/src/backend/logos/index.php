@@ -12,15 +12,18 @@
     $INFO_PAGE->table = $TABLE->LOGOS;
     $INFO_PAGE->tableName = "logos";
 
+    $NAME = (object) array();
     $NAME->table = $INFO_PAGE->tableName;
     $NAME->folder = $INFO_PAGE->tableName;
+
+    $PAGE_TABLE = $INFO_PAGE->table;
 
     $SQL = sqlSelect($INFO_PAGE->tableName, ['id' => 1], 1);
     $VALUES = $SQL->row;
 
     if (isset($_POST['modify'])) {
         
-        $VALUES = formToArray($INFO_PAGE->tableName, $_POST, $INFO_PAGE->table);
+        $VALUES = formToArray($INFO_PAGE->tableName, $_FILES, $INFO_PAGE->table);
         
         if (empty($ALERT)) {
             sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1);
@@ -66,7 +69,7 @@
                             <?=inputFile('Logo nero', 'black', 'png'); ?>
                         </div>
                     </wi-card>
-                    
+
                     <wi-card class="col-12">
                         <div class="col-12">
                             <?=inputFile('Logo bianco', 'white', 'png'); ?>
@@ -93,7 +96,7 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <?=submit('Modifica modal', 'modify'); ?>
+                            <?=submit('Modifica loghi', 'modify'); ?>
                         </div>
                     </wi-card>
 
