@@ -72,13 +72,15 @@
         $var = sanitize($value['var']);
         $name = sanitize($value['name']);
         $color = sanitize($value['color']);
+        $contrast = sanitize($value['contrast']);
         
         if (sqlSelect('css_color', ['var' => $var], 1)->Nrow == 0) {
             
             $values = [
                 "var" => $var,
                 "name" => $name,
-                "color" => $color
+                "color" => $color,
+                "contrast" => $contrast
             ];
     
             sqlInsert('css_color', $values);

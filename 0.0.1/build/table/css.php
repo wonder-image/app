@@ -62,7 +62,8 @@
             ]
         ],
         "name" => [],
-        "color" => []
+        "color" => [],
+        "contrast" => []
     ];
 
 ?>

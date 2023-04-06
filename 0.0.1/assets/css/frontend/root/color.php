@@ -70,4 +70,27 @@
 
     echo "}";
 
+    foreach (sqlSelect('css_color')->row as $key => $row) {
+        
+        $var = $row["var"];
+        $contrast = $row["contrast"];
+
+        echo "
+        .badge.badge-$var,
+        .btn.btn-$var {
+        border-color: var(--$var-color-100);
+        background: var(--$var-color-100);
+        color: $contrast;
+        }
+        .badge.badge-$var-o,
+        .btn.btn-$var-o {
+        border-color: var(--$var-color);
+        background: var(--$var-color-0);
+        color: var(--$var-color-100);
+        }
+        .btn.btn-$var:hover { background: var(--$var-color-90); }
+        .btn.btn-$var-o:hover { background: var(--$var-color-10); }";
+        
+    }
+
 ?>

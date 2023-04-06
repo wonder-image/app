@@ -83,7 +83,7 @@
         $SQL = sqlSelect($table, [$column => $value], 1);
         
         $RETURN = (object) array();
-        foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? $value : ''; }
+        foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? sanitizeEcho($value) : ''; }
         
         return $RETURN;
         

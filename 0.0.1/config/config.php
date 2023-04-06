@@ -52,47 +52,56 @@
             [
                 "var" => "primary",
                 "name" => "Primario",
-                "color" => "#000000"
+                "color" => "#000000",
+                "contrast" => "#ffffff"
             ],
             [
                 "var" => "secondary",
                 "name" => "Secondario",
-                "color" => "#ffffff"
+                "color" => "#ffffff",
+                "contrast" => "#000000"
             ],
             [
                 "var" => "success",
                 "name" => "Successo",
-                "color" => "#28a745"
+                "color" => "#28a745",
+                "contrast" => "#ffffff"
             ],
             [
                 "var" => "info",
                 "name" => "Informazione",
-                "color" => "#17a2b8"
+                "color" => "#17a2b8",
+                "contrast" => "#ffffff"
             ],
             [
                 "var" => "danger",
                 "name" => "Pericolo",
-                "color" => "#dc3545"
+                "color" => "#dc3545",
+                "contrast" => "#ffffff"
             ],
             [
                 "var" => "dark",
                 "name" => "Scuro",
-                "color" => "#343a40"
+                "color" => "#343a40",
+                "contrast" => "var(--light-color)"
             ],
             [
                 "var" => "light",
                 "name" => "Chiaro",
-                "color" => "#f8f9fa"
+                "color" => "#f8f9fa",
+                "contrast" => "var(--dark-color)"
             ],
             [
                 "var" => "black",
                 "name" => "Nero",
-                "color" => "#000000"
+                "color" => "#000000",
+                "contrast" => "#ffffff"
             ],
             [
                 "var" => "white",
                 "name" => "Bianco",
-                "color" => "#ffffff"
+                "color" => "#ffffff",
+                "contrast" => "#000000"
             ]
         ];
 
