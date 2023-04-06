@@ -17,6 +17,9 @@ max-width: 700px;
 .content.content-little { 
 max-width: 500px; 
 }
+header .content {
+height: 100%;
+}
 .content.content-small { 
 max-width: 400px; 
 }

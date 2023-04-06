@@ -25,29 +25,29 @@
 <body>
 
     <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
+    <?php include $ROOT.'/docs/utility/header.php' ?>
 
-    <section>
-        <div class="content">
-            <div class="d-grid gap-4 w-100">
-                <div class="title-big">
-                    .title-big
-                </div>
-                <div class="title">
-                    .title
-                </div>
-                <div class="subtitle">
-                    .subtitle
-                </div>
-                <div class="text">
-                    .text
-                </div>
-                <div class="text-small">
-                    .text-small
-                </div>
+    <div class="w-100">
+        <div class="d-grid gap-4 w-100">
+            <div class="title-big">
+                .title-big
+            </div>
+            <div class="title">
+                .title
+            </div>
+            <div class="subtitle">
+                .subtitle
+            </div>
+            <div class="text">
+                .text
+            </div>
+            <div class="text-small">
+                .text-small
             </div>
         </div>
-    </section>
+    </div>
 
+    <?php include $ROOT.'/docs/utility/footer.php' ?>
     <?php include $ROOT_APP.'/utility/frontend/body-end.php' ?>
     
 </body>
