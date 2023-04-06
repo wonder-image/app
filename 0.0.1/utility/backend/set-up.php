@@ -71,6 +71,12 @@
                     'authority' => ['admin']
                 ],
                 [
+                    'title' => 'Logo',
+                    'folder' => 'logos',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
                     'title' => 'Font',
                     'folder' => 'css-font',
                     'file' => 'list.php',
