@@ -119,40 +119,6 @@
 
     </script>
 
-    <style>
-        :root {
-            --title-family: <?=$FONT->title_family?>;
-            --subtitle-family: <?=$FONT->subtitle_family?>;
-            --text-family: <?=$FONT->text_family?>;
-            --title-weight: <?=$FONT->title_weight?>;
-            --subtitle-weight: <?=$FONT->subtitle_weight?>;
-            --text-weight: <?=$FONT->text_weight?>;
-            --white-color: <?=$COLOR->white?>;
-            --black-color: <?=$COLOR->black?>;
-            --primary-color: <?=$COLOR->primary?>;
-            --secondary-color: <?=$COLOR->secondary?>;
-            --bg-color: <?=$COLOR->bg?>;
-            --tx-color: <?=$COLOR->tx?>;
-            --success-color: <?=$COLOR->success?>;
-            --danger-color: <?=$COLOR->danger?>;
-            --info-color: <?=$COLOR->info?>;
-            --light-color: <?=$COLOR->light?>;
-            --dark-color: <?=$COLOR->dark?>;
-            --white-color-rgb: <?=hexToRgb($COLOR->white)?>;
-            --black-color-rgb: <?=hexToRgb($COLOR->black)?>;
-            --primary-color-rgb: <?=hexToRgb($COLOR->primary)?>;
-            --secondary-color-rgb: <?=hexToRgb($COLOR->secondary)?>;
-            --bg-color-rgb: <?=hexToRgb($COLOR->bg)?>;
-            --tx-color-rgb: <?=hexToRgb($COLOR->tx)?>;
-            --success-color-rgb: <?=hexToRgb($COLOR->success)?>;
-            --danger-color-rgb: <?=hexToRgb($COLOR->danger)?>;
-            --info-color-rgb: <?=hexToRgb($COLOR->info)?>;
-            --light-color-rgb: <?=hexToRgb($COLOR->light)?>;
-            --dark-color-rgb: <?=hexToRgb($COLOR->dark)?>;
-            --default-image: url('<?=$DEFAULT->image?>');
-        }
-    </style>
-
     <!-- Fundamental .js -->
     <script src="<?=$PATH->appJs?>/frontend/utility.js"></script>
     <script src="<?=$PATH->appJs?>/frontend/scroll.js"></script>
@@ -160,11 +126,10 @@
     <script src="<?=$PATH->appJs?>/frontend/form/input.js"></script>
 
     <!-- Custom .css -->
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/set-up.php">
-
-    <!-- Fundamental .css -->
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/set-up.php">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/color.css">
 
+    <!-- Fundamental .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/main.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/resize.css">
