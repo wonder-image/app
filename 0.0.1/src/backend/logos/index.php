@@ -27,6 +27,7 @@
         
         if (empty($ALERT)) {
             sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1);
+            header("Refresh: 0");
         }
 
     }
