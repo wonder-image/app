@@ -88,6 +88,24 @@
                     'file' => '',
                     'authority' => ['admin']
                 ],
+                [
+                    'title' => 'Modal',
+                    'folder' => 'css-modal',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Dropdown',
+                    'folder' => 'css-dropdown',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
+                [
+                    'title' => 'Alert',
+                    'folder' => 'css-alert',
+                    'file' => '',
+                    'authority' => ['admin']
+                ],
             ]
         ]
     ];

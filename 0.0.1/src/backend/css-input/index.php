@@ -66,7 +66,7 @@
                             <?=text('Raggio', 'border_radius', 'required'); ?>
                         </div>
                         <div class="col-12">
-                            <h6>Larghezza bordi</h6>
+                            <h6>Spessore bordi</h6>
                         </div>
                         <div class="col-3">
                             <?=text('Alto', 'border_top', 'required'); ?>
@@ -129,7 +129,7 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <h6>Input</h6>
+                            <h6>Colori</h6>
                         </div>
                         <div class="col-6">
                             <?=color('Testo', 'tx_color', 'required'); ?>
@@ -137,8 +137,8 @@
                         <div class="col-6">
                             <?=color('Sfondo', 'bg_color', 'required'); ?>
                         </div>
-                        <div class="col-6">
-                            <?=color('Disabilitato', 'disabled_bg_color', 'required'); ?>
+                        <div class="col-12">
+                            <?=color('Sfondo disabilitato', 'disabled_bg_color', 'required'); ?>
                         </div>
                     </wi-card>
 

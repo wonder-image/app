@@ -8,7 +8,7 @@ border-radius: var(--input-border-radius) var(--input-border-radius) 0 0;
 position: absolute;
 float: left;
 top: calc(56px + var(--input-border-top));
-width: calc(100% - var(--input-border-left) - var(--input-border-right));
+width: calc(100% - var(--input-border-bottom) - var(--input-border-bottom));
 max-height: 0px;
 color: var(--input-tx-color);
 background: var(--input-bg-color);
