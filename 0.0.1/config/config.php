@@ -20,9 +20,9 @@
 
         $PATH->lib = $PATH->app."/lib";
 
-        $PATH->appAssets = $PATH->app."/assets/";
-        $PATH->appCss = $PATH->appAssets."/css/";
-        $PATH->appJs = $PATH->appAssets."/js/";
+        $PATH->appAssets = $PATH->app."/assets";
+        $PATH->appCss = $PATH->appAssets."/css";
+        $PATH->appJs = $PATH->appAssets."/js";
 
         $PATH->assets = $PATH->site."/assets/".$_ENV['ASSETS_VERSION'];
         $PATH->css = $PATH->assets."/css";

@@ -19,7 +19,7 @@
     require_once $ROOT_APP."/function/function.php";
 
     $PAGE = infoPage();
-    $SOCIETY = infoSociety();
+    if (sqlTableExists('society')) { $SOCIETY = infoSociety(); }
 
     require_once $ROOT_APP."/utility/authorize.php";
 

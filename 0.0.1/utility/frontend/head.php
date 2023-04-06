@@ -1,6 +1,6 @@
 <?php 
 
-    $TAG_MANAGER = sqlSelect('analytics', ['id' => '1'])->row['tag_manager'];
+    $TAG_MANAGER = sqlSelect('analytics', ['id' => '1'], 1)->row['tag_manager'];
 
     if ($TAG_MANAGER != '') { 
 

@@ -177,10 +177,10 @@
                         <div class="col-12">
                             <h6>Colore</h6>
                         </div>
-                        <div class="col-2">
+                        <div class="col-6">
                             <?=color('Testo', 'tx_color', 'required'); ?>
                         </div>
-                        <div class="col-2">
+                        <div class="col-6">
                             <?=color('Sfondo', 'bg_color', 'required'); ?>
                         </div>
                     </wi-card>
