@@ -1,3 +1,10 @@
+<?php 
+
+    $TAG_MANAGER = sqlSelect('analytics', ['id' => '1'])->row['tag_manager'];
+
+    if ($TAG_MANAGER != '') { 
+
+?>
 <!-- Google Tag Manager -->
 <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -7,6 +14,7 @@
     })(window,document,'script','dataLayer','<?=$TAG_MANAGER?>');
 </script>
 <!-- End Google Tag Manager -->
+<?php } ?>
 
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -61,13 +69,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.js" integrity="sha512-s5u/JBtkPg+Ff2WEr49/cJsod95UgLHbC00N/GglqdQuLnYhALncz8ZHiW/LxDRGduijLKzeYb7Aal9h3codZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.css" integrity="sha512-LT9fy1J8pE4Cy6ijbg96UkExgOjCqcxAC7xsnv+mLJxSvftGVmmc236jlPTZXPcBRQcVOWoK1IJhb1dAjtb4lQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
-
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="<?=$FONT->title_link?>" rel="stylesheet">
-    <link href="<?=$FONT->subtitle_link?>" rel="stylesheet">
-    <link href="<?=$FONT->text_link?>" rel="stylesheet">
+    <?php foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { echo "<link href='{$row['link']}' rel='stylesheet'>"; } ?>
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
@@ -127,7 +132,7 @@
 
     <!-- Custom .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/set-up.php">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/color.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/color.php">
 
     <!-- Fundamental .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">
@@ -155,4 +160,4 @@
 
 <!-- End fundamental file  -->
 
-<?php include $ROOT.'/custom/utility/frontend/head.php'; ?>
+<?php include $ROOT."/custom/utility/frontend/head.php"; ?>

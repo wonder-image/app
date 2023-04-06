@@ -8,8 +8,6 @@
     session_start();
 
     $VERSION = "0.0.1";
-
-    $ROOT = $_SERVER['DOCUMENT_ROOT'];
     $ROOT_APP = __DIR__."/$VERSION";
 
     require_once $ROOT."/vendor/autoload.php";

@@ -11,7 +11,7 @@
 
     echo ":root {";
 
-    foreach (sqlSelect('css_color') as $key => $row) {
+    foreach (sqlSelect('css_color', ['id' => '1'])->row as $key => $row) {
         
         $var = $row["var"];
         $colorHEX = $row["color"];
@@ -31,7 +31,7 @@
         
     }
 
-    foreach (sqlSelect('css_default') as $key => $row) {
+    foreach (sqlSelect('css_default', ['id' => '1'])->row as $key => $row) {
         
         $var = 'tx';
         $colorHEX = $row["tx_color"];
