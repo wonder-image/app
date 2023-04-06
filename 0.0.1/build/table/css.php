@@ -66,4 +66,54 @@
         "contrast" => []
     ];
 
+    $TABLE->CSS_INPUT = [
+        "tx_color" => [],
+        "bg_color" => [],
+        "disabled_bg_color" => [],
+        "label_color" => [],
+        "label_color_focus" => [],
+        "label_weight" => [],
+        "label_weight_focus" => [],
+        "select_hover" => [],
+        "border_color" => [],
+        "border_color_focus" => [],
+        "border_radius" => [],
+        "border_top" => [],
+        "border_right" => [],
+        "border_bottom" => [],
+        "border_left" => [],
+        "date_default" => [],
+        "date_active" => [],
+        "date_bg" => [],
+        "date_bg_hover" => [],
+        "date_border_radius" => []
+    ];
+
+    $TABLE->CSS_MODAL = [
+        "tx" => [],
+        "bg" => [],
+        "border_color" => [],
+        "border_width" => [],
+        "border_radius" => []
+    ];
+
+    $TABLE->CSS_DROPDOWN = [
+        "tx" => [],
+        "bg" => [],
+        "bg_hover" => [],
+        "border_color" => [],
+        "border_width" => [],
+        "border_radius" => []
+    ];
+
+    $TABLE->CSS_ALERT = [
+        "tx" => [],
+        "bg" => [],
+        "top" => [],
+        "right" => [],
+        "border_color" => [],
+        "border_width" => [],
+        "border_radius" => []
+    ];
+
 ?>

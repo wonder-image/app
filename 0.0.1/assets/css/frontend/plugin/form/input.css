@@ -90,8 +90,8 @@ overflow: hidden;
 height: 12px;
 line-height: 12px;
 font-size: 12px;
-color: var(--input-label-compiled-color);
-font-weight: var(--input-label-compiled-weight);
+color: var(--input-label-focus-color);
+font-weight: var(--input-label-focus-weight);
 margin: 8px 16px;
 cursor: default;
 }

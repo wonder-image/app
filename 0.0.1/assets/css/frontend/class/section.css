@@ -2,8 +2,13 @@ section {
 position: relative;
 float: left;
 width: 100%;
-padding: 40px 0;
+padding: cacl(var(--spacer) * 10) 0;
 overflow: hidden;
+}
+header {
+width: 100%;
+box-sizing: border-box;
+z-index: 99;
 }
 .content {
 width: calc(100% - 80px);

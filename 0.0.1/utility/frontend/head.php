@@ -133,6 +133,7 @@
     <!-- Custom .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/set-up.php">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/color.php">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/input.php">
 
     <!-- Fundamental .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">

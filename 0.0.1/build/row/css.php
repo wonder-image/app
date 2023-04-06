@@ -89,4 +89,78 @@
 
     }
 
+    if (sqlSelect('css_input', ['id' => 1], 1)->Nrow == 0) {
+                    
+        $values = [
+            "tx_color" => "#000000",
+            "bg_color" => "#ffffff",
+            "disabled_bg_color" => "#eeeeee",
+            "label_color" => "#626262",
+            "label_color_focus" => "#626262",
+            "label_weight" => 300,
+            "label_weight_focus" => 400,
+            "select_hover" => "#f6f6f6",
+            "border_color" => "#DEDEDE",
+            "border_color_focus" => "#626262",
+            "border_radius" => 5,
+            "border_top" => 1,
+            "border_right" => 1,
+            "border_bottom" => 1,
+            "border_left" => 1,
+            "date_default" => "#DEDEDE",
+            "date_active" => "#626262",
+            "date_bg" => "#f6f6f6",
+            "date_bg_hover" => "#eeeeee",
+            "date_border_radius" => 5
+        ];
+
+        sqlInsert('css_input', $values);
+
+    }
+
+    if (sqlSelect('css_modal', ['id' => 1], 1)->Nrow == 0) {
+                    
+        $values = [
+            "tx" => "#000000",
+            "bg" => "#ffffff",
+            "border_color" => "#DEDEDE",
+            "border_width" => 1,
+            "border_radius" => 5
+        ];
+
+        sqlInsert('css_modal', $values);
+
+    }
+
+    if (sqlSelect('css_dropdown', ['id' => 1], 1)->Nrow == 0) {
+                    
+        $values = [
+            "tx" => "#000000",
+            "bg" => "#ffffff",
+            "bg_hover" => "rgba(0,0,0,.02)",
+            "border_color" => "#DEDEDE",
+            "border_width" => 1,
+            "border_radius" => 5
+        ];
+
+        sqlInsert('css_dropdown', $values);
+
+    }
+
+    if (sqlSelect('css_alert', ['id' => 1], 1)->Nrow == 0) {
+                    
+        $values = [
+            "tx" => "var(--dark-color)",
+            "bg" => "var(--light-color)",
+            "top" => "calc(var(--spacer) * 5)",
+            "right" => "calc(var(--spacer) * 5)",
+            "border_color" => "#DEDEDE",
+            "border_width" => 1,
+            "border_radius" => 5
+        ];
+
+        sqlInsert('css_alert', $values);
+
+    }
+
 ?>

@@ -500,7 +500,7 @@
                                 if (empty($ALERT)) {
 
                                     $NEW_NAME = code(10, 'all').'.'.$EXTENSION;
-                                    $NEW_PATH = $PATH->r_upload.'/'.$NAME->folder.$DIR.$NEW_NAME;
+                                    $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
 
                                     if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
                                         $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME;

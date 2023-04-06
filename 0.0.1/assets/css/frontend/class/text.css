@@ -11,38 +11,38 @@ a { cursor: pointer; }
 
 .title-big {
 width: 100%;
-font-size: 40px !important;
-line-height: 40px !important;
-font-family: var(--title-family) !important;
-font-weight: var(--title-weight) !important;
+font-size: var(--title-big-font-size) !important;
+line-height: var(--title-big-line-height) !important;
+font-family: var(--title-big-font-family) !important;
+font-weight: var(--title-big-font-weight) !important;
 }
 .title {
 width: 100%;
-font-size: 32px !important;
-line-height: 32px !important;
-font-family: var(--title-family) !important;
-font-weight: var(--title-weight) !important;
+font-size: var(--title-font-size) !important;
+line-height: var(--title-line-height) !important;
+font-family: var(--title-font-family) !important;
+font-weight: var(--title-font-weight) !important;
 }
 .subtitle {
 width: 100%;
-font-size: 24px !important;
-line-height: 24px !important;
-font-family: var(--subtitle-family) !important;
-font-weight: var(--subtitle-weight) !important;
+font-size: var(--subtitle-font-size) !important;
+line-height: var(--subtitle-line-height) !important;
+font-family: var(--subtitle-font-family) !important;
+font-weight: var(--subtitle-font-weight) !important;
 }
 .text {
 width: 100%;
-font-size: 16px !important;
-line-height: 20px !important;
-font-family: var(--text-family) !important;
-font-weight: var(--text-weight) !important;
+font-size: var(--text-font-size) !important;
+line-height: var(--text-line-height) !important;
+font-family: var(--text-font-family) !important;
+font-weight: var(--text-font-weight) !important;
 }
 .text-small {
 width: 100%;
-font-size: 12px !important;
-line-height: 12px !important;
-font-family: var(--text-family) !important;
-font-weight: var(--text-weight) !important;
+font-size: var(--text-small-font-size) !important;
+line-height: var(--text-small-line-height) !important;
+font-family: var(--text-small-font-family) !important;
+font-weight: var(--text-small-font-weight) !important;
 }
 
 /* Align */

@@ -178,10 +178,10 @@
                         <div class="col-12">
                             <h6>Colore</h6>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <?=color('Testo', 'tx_color', 'required'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <?=color('Sfondo', 'bg_color', 'required'); ?>
                         </div>
                     </wi-card>
@@ -190,19 +190,19 @@
                         <div class="col-12">
                             <h6>Bottoni</h6>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Font size', 'button_font_size', 'required'); ?>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Line height', 'button_line_height', 'required'); ?>
                         </div>
                         <div class="col-12">
                             <?=text('Font weight', 'button_font_weight', 'required'); ?>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Raggio bordi', 'button_border_radius', 'required'); ?>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Spessore bordi', 'button_border_width', 'required'); ?>
                         </div>
                     </wi-card>
@@ -211,19 +211,19 @@
                         <div class="col-12">
                             <h6>Badge</h6>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Font size', 'badge_font_size', 'required'); ?>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Line height', 'badge_line_height', 'required'); ?>
                         </div>
                         <div class="col-12">
                             <?=text('Font weight', 'badge_font_weight', 'required'); ?>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Raggio bordi', 'badge_border_radius', 'required'); ?>
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <?=text('Spessore bordi', 'badge_border_width', 'required'); ?>
                         </div>
                     </wi-card>

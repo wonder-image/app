@@ -11,9 +11,9 @@ border-width: var(--dropdown-border-width);
 }
 .wi-dropdown-box .wi-dropdown-title {
 width: 100%;
-height: 16px;
-line-height: 16px;
-font-size: 16px;
+height: var(--line-height);
+line-height: var(--line-height);
+font-size: var(--font-size);
 transition: .3s;
 color: var(--modal-tx);
 cursor: pointer;
@@ -27,9 +27,9 @@ user-select: none !important;
 .wi-dropdown-box .wi-dropdown-title i {
 position: relative;
 float: right;
-height: 16px;
-line-height: 16px;
-font-size: 16px;
+height: var(--line-height);
+line-height: var(--line-height);
+font-size: var(--font-size);
 opacity: .7;
 color: var(--modal-tx);
 transition: .3s;
@@ -82,8 +82,8 @@ overflow: visible;
 position: relative;
 float: left;
 width: calc(100% - 20px);
-font-size: 14px;
-line-height: 16px;
+font-size: var(--font-size);
+line-height: var(--line-height);
 padding: 7.5px 10px;
 text-decoration: none;
 color: var(--dropdown-tx);
@@ -91,7 +91,7 @@ background: transparent;
 transition: .3s;
 }
 .wi-dropdown-btn .wi-dropdown-list .wi-dropdown-item:hover {
-background: var(--dropdown-hover);
+background: var(--dropdown-bg-hover);
 }
 .wi-dropdown-btn .wi-dropdown-list .wi-dropdown-divider {
 position: relative;

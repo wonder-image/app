@@ -31,49 +31,67 @@
         
     }
 
-    foreach (sqlSelect('css_default', ['id' => '1'])->row as $key => $row) {
+    $CSS_DEFAULT = info('css_default', 'id', '1');
+
+    echo "--tx-color: ".$CSS_DEFAULT->tx_color.";";
+    echo "--tx-color-rgb: ".hexToRgb($CSS_DEFAULT->tx_color).";";
+
+    for ($i=0; $i < 11; $i++) { 
+
+        $opacity = $i * 10;
+        $opacityCSS = $i / 10;
         
-        $var = 'tx';
-        $colorHEX = $row["tx_color"];
-        $colorRGB = hexToRgb($colorHEX);
+        echo "--tx-color-$opacity: rgba(var(--tx-color-rgb), $opacityCSS);";
 
+    }
 
-        echo "--$var-color: $colorHEX;";
-        echo "--$var-color-rgb: $colorRGB;";
+    echo "--bg-color: ".$CSS_DEFAULT->bg_color.";";
+    echo "--bg-color-rgb: ".hexToRgb($CSS_DEFAULT->bg_color).";";
 
-        for ($i=0; $i < 11; $i++) { 
+    for ($i=0; $i < 11; $i++) { 
 
-            $opacity = $i * 10;
-            $opacityCSS = $i / 10;
-            
-            echo "--$var-color-$opacity: rgba(var(--$var-color-rgb), $opacityCSS);";
-
-        }
-
-        $var = 'bg';
-        $colorHEX = $row["bg_color"];
-        $colorRGB = hexToRgb($colorHEX);
-
-        echo "--$var-color: $colorHEX;";
-        echo "--$var-color-rgb: $colorRGB;";
-
-        for ($i=0; $i < 11; $i++) { 
-
-            $opacity = $i * 10;
-            $opacityCSS = $i / 10;
-            
-            echo "--$var-color-$opacity: rgba(var(--$var-color-rgb), $opacityCSS);";
-
-        }
+        $opacity = $i * 10;
+        $opacityCSS = $i / 10;
         
+        echo "--bg-color-$opacity: rgba(var(--bg-color-rgb), $opacityCSS);";
+
     }
 
     echo "}";
+    echo "";
+    echo "";
+    echo "";
+
+    echo ".tx-color: var(--tx-color) !important;";
+    echo ".bg-color: var(--bg-color) !important;";
+
+    for ($i=0; $i < 11; $i++) { 
+
+        $opacity = $i * 10;
+        
+        echo ".bg-bg-$opacity { background: var(--bg-color-$opacity) !important; }";
+
+    }
+    
+    echo "";
+    echo "";
 
     foreach (sqlSelect('css_color')->row as $key => $row) {
         
         $var = $row["var"];
         $contrast = $row["contrast"];
+
+        echo "/* $var */
+        .tx-$var { color: var(--$var-color) !important; }
+        .bg-$var { background: var(--$var-color) !important; }";
+
+        for ($i=0; $i < 11; $i++) { 
+
+            $opacity = $i * 10;
+            
+            echo ".bg-$var-$opacity { background: var(--$var-color-$opacity) !important; }";
+
+        }
 
         echo "
         .badge.badge-$var,
