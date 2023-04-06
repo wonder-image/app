@@ -51,6 +51,18 @@
                 <div class="col-12">
                     <?=text('Nome', 'name', 'required'); ?>
                 </div>
+                <div class="col-12">
+                    <?php
+
+                        $checkbox = [
+                            'true' => "Visibile",
+                            'false' => "Nascosto",
+                        ];
+
+                        echo select('Stato', 'visible', $checkbox, 'old', 'required');
+
+                    ?>
+                </div>
                 <div class="col-12"> 
                     <?=submitAdd()?>
                 </div>
