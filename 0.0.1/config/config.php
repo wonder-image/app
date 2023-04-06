@@ -34,9 +34,10 @@
         $PATH->rUpload = $ROOT."/assets/upload";
         $PATH->rTemp = $ROOT."/assets/temp";
 
-        $PATH->logo = $PATH->assets."/logo/".$_ENV['APP_LOGO'];
-        $PATH->logoWhite = $PATH->assets."/logos/".$_ENV['APP_LOGO_WHITE'];
-        $PATH->icon = $PATH->assets."/logo/".$_ENV['APP_ICON'];
+        $PATH->logo = $PATH->upload."/logos/Logo.png";
+        $PATH->logoWhite = $PATH->upload."/logos/Logo-White.png";
+        $PATH->logoBlack = $PATH->upload."/logos/Logo-Black.png";
+        $PATH->logoIcon = $PATH->upload."/logo/Logo-Icon.png";
         
     // Default
         $DEFAULT->image = $PATH->assets."/images/Default.png";

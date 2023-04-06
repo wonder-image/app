@@ -120,7 +120,8 @@
                     "file" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
-                    "max_file" => 1
+                    "max_file" => 1,
+                    "dir" => '/Logo'
                 ]
             ]
         ],
@@ -131,7 +132,8 @@
                     "file" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
-                    "max_file" => 1
+                    "max_file" => 1,
+                    "dir" => '/Logo-Black'
                 ]
             ]
         ],
@@ -142,7 +144,8 @@
                     "file" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
-                    "max_file" => 1
+                    "max_file" => 1,
+                    "dir" => '/Logo-White'
                 ]
             ]
         ],
@@ -153,7 +156,8 @@
                     "file" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
-                    "max_file" => 1
+                    "max_file" => 1,
+                    "dir" => '/Logo-Icon'
                 ]
             ]
         ],
@@ -165,7 +169,7 @@
                     "extensions" => ['ico'],
                     "max_size" => 1,
                     "max_file" => 1,
-                    "dir" => '/../../../../favicon'
+                    "dir" => '/../../../favicon'
                 ]
             ]
         ]
