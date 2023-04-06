@@ -56,13 +56,10 @@
                         <div class="col-12">
                             <h6>Bordi</h6>
                         </div>
-                        <div class="col-3">
-                            <?=color('Colore', 'border_color', 'required'); ?>
+                        <div class="col-4">
+                            <?=text('Spessore', 'border_width', 'required'); ?>
                         </div>
-                        <div class="col-3">
-                            <?=color('Spessore', 'border_width', 'required'); ?>
-                        </div>
-                        <div class="col-3">
+                        <div class="col-4">
                             <?=text('Raggio', 'border_radius', 'required'); ?>
                         </div>
                     </wi-card>
@@ -77,14 +74,17 @@
                         <div class="col-12">
                             <h6>Colore</h6>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <?=color('Testo', 'tx', 'required'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <?=color('Sfondo', 'bg', 'required'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <?=color('Sfondo hover', 'bg_hover', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=color('Bordi', 'border_color', 'required'); ?>
                         </div>
                         <div class="col-12">
                             <?=submit('Modifica dropdown', 'modify'); ?>

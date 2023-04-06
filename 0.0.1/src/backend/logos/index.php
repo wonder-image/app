@@ -8,9 +8,12 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     $INFO_PAGE = (object) array();
-    $INFO_PAGE->title = "Stile input";
-    $INFO_PAGE->table = $TABLE->CSS_MODAL;
-    $INFO_PAGE->tableName = "css_modal";
+    $INFO_PAGE->title = "Loghi";
+    $INFO_PAGE->table = $TABLE->LOGOS;
+    $INFO_PAGE->tableName = "logos";
+
+    $NAME->table = $INFO_PAGE->tableName;
+    $NAME->folder = $INFO_PAGE->tableName;
 
     $SQL = sqlSelect($INFO_PAGE->tableName, ['id' => 1], 1);
     $VALUES = $SQL->row;
@@ -54,13 +57,31 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <h6>Bordi</h6>
+                            <?=inputFile('Logo', 'main', 'png'); ?>
                         </div>
-                        <div class="col-4">
-                            <?=text('Spessore', 'border_width', 'required'); ?>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <?=inputFile('Logo nero', 'black', 'png'); ?>
                         </div>
-                        <div class="col-4">
-                            <?=text('Raggio', 'border_radius', 'required'); ?>
+                    </wi-card>
+                    
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <?=inputFile('Logo bianco', 'white', 'png'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <?=inputFile('Icon', 'icon', 'png'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <?=inputFile('Favicon', 'favicon', 'ico'); ?>
                         </div>
                     </wi-card>
 
@@ -72,22 +93,9 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <h6>Colore</h6>
-                        </div>
-                        <div class="col-12">
-                            <?=color('Testo', 'tx', 'required'); ?>
-                        </div>
-                        <div class="col-12">
-                            <?=color('Sfondo', 'bg', 'required'); ?>
-                        </div>
-                        <div class="col-12">
-                            <?=color('Bordi', 'border_color', 'required'); ?>
-                        </div>
-                        <div class="col-12">
                             <?=submit('Modifica modal', 'modify'); ?>
                         </div>
                     </wi-card>
-
 
                 </div>
             </div>

@@ -111,5 +111,64 @@
             ]
         ]
     ];
+
+    $TABLE->LOGOS = [
+        "main" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 1,
+                    "max_file" => 1
+                ]
+            ]
+        ],
+        "black" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 1,
+                    "max_file" => 1
+                ]
+            ]
+        ],
+        "white" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 1,
+                    "max_file" => 1
+                ]
+            ]
+        ],
+        "icon" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 1,
+                    "max_file" => 1
+                ]
+            ]
+        ],
+        "favicon" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['ico'],
+                    "max_size" => 1,
+                    "max_file" => 1,
+                    "dir" => '../../../favicon'
+                ]
+            ]
+        ]
+    ];
     
 ?>

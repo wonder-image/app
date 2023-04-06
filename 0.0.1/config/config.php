@@ -16,7 +16,7 @@
     // Path
         $PATH->site = $_ENV['APP_URL'];
         $PATH->backend = $PATH->site."/backend";
-        $PATH->app = $PATH->site."/vendor/wonder-image/app/".$VERSION;
+        $PATH->app = $PATH->site."/vendor/wonder-image/app/".$APP_VERSION;
 
         $PATH->lib = $PATH->app."/lib";
 

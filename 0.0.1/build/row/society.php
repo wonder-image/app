@@ -6,6 +6,7 @@
         sqlInsert('society_address', []);
         sqlInsert('society_legal_address', []);
         sqlInsert('society_social', []);
+        sqlInsert('logos', []);
 
     }
 
