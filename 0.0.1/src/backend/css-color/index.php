@@ -51,6 +51,9 @@
                 <div class="col-12">
                     <?=color('Colore', 'color', 'required'); ?>
                 </div>
+                <div class="col-12">
+                    <?=color('Contrasto', 'contrast', 'required'); ?>
+                </div>
                 <div class="col-12"> 
                     <?=submitAdd()?>
                 </div>
