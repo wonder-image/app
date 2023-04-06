@@ -20,6 +20,8 @@
         include $ROOT_APP.'/utility/frontend/head.php';
         
     ?>
+    
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/docs/index.css">
 
 </head>
 <body>

@@ -21,6 +21,8 @@
         
     ?>
 
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/docs/index.css">
+
 </head>
 <body>
 
