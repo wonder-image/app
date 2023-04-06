@@ -190,6 +190,15 @@
                             <h6>Bottoni</h6>
                         </div>
                         <div class="col-12">
+                            <?=text('Font size', 'button_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Line height', 'button_line_height', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Font weight', 'button_font_weight', 'required'); ?>
+                        </div>
+                        <div class="col-12">
                             <?=text('Raggio bordi', 'button_border_radius', 'required'); ?>
                         </div>
                         <div class="col-12">
@@ -200,6 +209,15 @@
                     <wi-card class="col-12">
                         <div class="col-12">
                             <h6>Badge</h6>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Font size', 'badge_font_size', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Line height', 'badge_line_height', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Font weight', 'badge_font_weight', 'required'); ?>
                         </div>
                         <div class="col-12">
                             <?=text('Raggio bordi', 'badge_border_radius', 'required'); ?>

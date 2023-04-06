@@ -50,47 +50,47 @@
 
         $DEFAULT->color = [
             [
-                "var" => "--primary-color",
+                "var" => "primary",
                 "name" => "Primario",
                 "color" => "#000000"
             ],
             [
-                "var" => "--secondary-color",
+                "var" => "secondary",
                 "name" => "Secondario",
                 "color" => "#ffffff"
             ],
             [
-                "var" => "--success-color",
+                "var" => "success",
                 "name" => "Successo",
                 "color" => "#28a745"
             ],
             [
-                "var" => "--info-color",
+                "var" => "info",
                 "name" => "Informazione",
                 "color" => "#17a2b8"
             ],
             [
-                "var" => "--danger-color",
+                "var" => "danger",
                 "name" => "Pericolo",
                 "color" => "#dc3545"
             ],
             [
-                "var" => "--dark-color",
+                "var" => "dark",
                 "name" => "Scuro",
                 "color" => "#343a40"
             ],
             [
-                "var" => "--light-color",
+                "var" => "light",
                 "name" => "Chiaro",
                 "color" => "#f8f9fa"
             ],
             [
-                "var" => "--black-color",
+                "var" => "black",
                 "name" => "Nero",
                 "color" => "#000000"
             ],
             [
-                "var" => "--white-color",
+                "var" => "white",
                 "name" => "Bianco",
                 "color" => "#ffffff"
             ]
