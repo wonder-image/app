@@ -494,6 +494,9 @@
         } elseif ($file == "png") {
             $ACCEPT = "image/png";
             $EXTENSIONS_ACCEPT = ".png";
+        } elseif ($file == "ico") {
+            $ACCEPT = "image/ico";
+            $EXTENSIONS_ACCEPT = ".ico";
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";
             $EXTENSIONS_ACCEPT = ".mp4";
@@ -521,9 +524,14 @@
 
                 $dir = isset($TABLE['format']['dir']) ? $TABLE['format']['dir'] : '/'; 
 
-                $link = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
+                if (substr($dir, -1) != '/') {
+                    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$extension;
+                } else {
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
+                }
 
-                if ($file == "image" || $file == "png") {
+                if ($file == "image" || $file == "png" || $file == "ico") {
                     $image = "<img class='w-100 object-fit-contain' src='$link' height='200' lazyload>";
                 } else {
                     $image = "";
