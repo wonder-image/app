@@ -22,7 +22,6 @@
             
             $UPLOAD = user($_POST, $USER->id);
             $VALUES = $UPLOAD->values; 
-
             if (empty($ALERT)) { $ALERT = 604; }
 
         }else{

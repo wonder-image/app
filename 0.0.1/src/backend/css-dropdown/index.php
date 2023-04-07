@@ -19,9 +19,8 @@
         
         $VALUES = formToArray($INFO_PAGE->tableName, $_POST, $INFO_PAGE->table);
         
-        if (empty($ALERT)) {
-            sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1);
-        }
+        if (empty($ALERT)) { sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1); }
+        if (empty($ALERT)) { header("Location: ?alert=664"); }
 
     }
 

@@ -26,6 +26,56 @@
             "title" => "Aggiunto al carrello",
             "text" => "Il carrello è stato aggiornato correttamente"
         ], 
+        650 => [
+            "type" => "success",
+            "title" => "Modificato",
+            "text" => "Modifiche effettuate con successo."
+        ],
+        651 => [
+            "type" => "success",
+            "title" => "Dati modificati",
+            "text" => "Dati aziendali modificati con successo."
+        ],
+        652 => [
+            "type" => "success",
+            "title" => "SEO modificata",
+            "text" => "SEO modificata con successo."
+        ],
+        653 => [
+            "type" => "success",
+            "title" => "Analitica modificata",
+            "text" => "I tag sono stati modificati con successo."
+        ],
+        660 => [
+            "type" => "success",
+            "title" => "CSS modificati",
+            "text" => "Impostazioni CSS modificati con successo."
+        ],
+        661 => [
+            "type" => "success",
+            "title" => "Loghi aggiornati",
+            "text" => "I loghi sono stati aggiornati con successo."
+        ],
+        662 => [
+            "type" => "success",
+            "title" => "Input modificati",
+            "text" => "Input modificati con successo."
+        ],
+        663 => [
+            "type" => "success",
+            "title" => "Modal modificati",
+            "text" => "Modal modificati con successo."
+        ],
+        664 => [
+            "type" => "success",
+            "title" => "Dropdown modificati",
+            "text" => "Dropdown modificati con successo."
+        ],
+        665 => [
+            "type" => "success",
+            "title" => "Alert modificati",
+            "text" => "Alert modificati con successo."
+        ],
         700 => [
             "type" => "danger",
             "title" => "Errore 700",

@@ -31,10 +31,9 @@
 
             $VALUES = array_merge($VALUES, $VALUE);
      
-            if (empty($ALERT)) {
-                sqlModify($table, $VALUE, 'id', 1);
-            }
-    
+            if (empty($ALERT)) { sqlModify($table, $VALUE, 'id', 1); }
+            if (empty($ALERT)) { header("Location: ?alert=651"); }
+            
         }
 
     }

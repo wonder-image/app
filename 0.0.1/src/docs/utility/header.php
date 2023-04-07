@@ -19,10 +19,10 @@
 
         <div class="left-bar d-grid col-1 gap-2 h-100">
 
-            <a href="../button/" class="btn btn-sm btn-dark-o b-0 h-fit">BOTTONI</a>
-            <a href="../alert/" class="btn btn-sm btn-dark-o b-0 h-fit">ALERT</a>
-            <a href="../text/" class="btn btn-sm btn-dark-o b-0 h-fit">TESTI</a>
-            <a href="../input/" class="btn btn-sm btn-dark-o b-0 h-fit">INPUT</a>
+            <a href="<?=$PATH->site?>/docs/button/" class="btn btn-sm btn-dark-o b-0 h-fit">BOTTONI</a>
+            <a href="<?=$PATH->site?>/docs/alert/" class="btn btn-sm btn-dark-o b-0 h-fit">ALERT</a>
+            <a href="<?=$PATH->site?>/docs/text/" class="btn btn-sm btn-dark-o b-0 h-fit">TESTI</a>
+            <a href="<?=$PATH->site?>/docs/input/" class="btn btn-sm btn-dark-o b-0 h-fit">INPUT</a>
 
         </div>
 
