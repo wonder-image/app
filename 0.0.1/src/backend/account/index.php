@@ -1,7 +1,7 @@
 <?php
 
     $BACKEND = true;
-    $PRIVATE = false;
+    $PRIVATE = true;
     $PERMIT = [];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];

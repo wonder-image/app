@@ -108,6 +108,7 @@ function deleteFile(selectorContainer, selectorData) {
 
     var el = document.querySelector(selectorContainer+' '+selectorData);
 
+    var folder = el.dataset.wiFolder;
     var table = el.dataset.wiDbTable;
     var column = el.dataset.wiDbColumn;
     var rowId = el.dataset.wiDbRow;
@@ -119,7 +120,7 @@ function deleteFile(selectorContainer, selectorData) {
     var fileName = el.dataset.wiFileName;
 
     var text = "Sei sicuro di eliminare il file <b>"+fileName+"</b>?";
-    var link = pathApp+'/api/backend/file/delete.php?table='+table+'&column='+column+'&row_id='+rowId+'&file_id='+fileId;
+    var link = pathApp+'/api/backend/file/delete.php?folder='+folder+'&table='+table+'&column='+column+'&row_id='+rowId+'&file_id='+fileId;
 
     var onSuccess = '{ "function" : "removeFile", "parameters": { "container" : "'+selectorContainer+'", "data" : "'+selectorData+'", "nFile" : "'+nFile+'", "position" : "'+oldPosition+'"} }';
 

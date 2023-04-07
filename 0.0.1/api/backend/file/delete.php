@@ -9,6 +9,7 @@
 
     if ($_POST['post']) {
 
+        $folder = $_GET['folder'];
         $table = $_GET['table'];
         $column = $_GET['column'];
         $rowId = $_GET['row_id'];
@@ -28,15 +29,15 @@
 
                 // Delete image
                 $t = strtoupper($table);
-                $TABLE = $TABLE->$t;
+                $TABLE = $TABLE->$t[$column]['input'];
 
                 $dir = isset($TABLE['format']['dir']) ? $TABLE['format']['dir'] : '/'; 
 
                 if (substr($dir, -1) != '/') {
-                    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                    $link = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
+                    $extension = pathinfo($image, PATHINFO_EXTENSION);
+                    $link = $PATH->upload.'/'.$folder.$dir.'.'.$extension;
                 } else {
-                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$image;
+                    $link = $PATH->upload.'/'.$folder.$dir.$image;
                 }
 
                 unlink($link);
