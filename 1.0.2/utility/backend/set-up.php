@@ -60,7 +60,7 @@
         ],
         [
             'title' => 'Stile',
-            'folder' => 'set-up',
+            'folder' => 'css',
             'icon' => 'bi-award',
             'authority' => ['admin'],
             'subnavs' => [
