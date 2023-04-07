@@ -27,7 +27,6 @@
         </div>
     </section>
     
-    <?php include $ROOT.'/docs/utility/footer.php' ?>
     <?php include $ROOT_APP.'/utility/frontend/body-end.php' ?>
     
 </body>
