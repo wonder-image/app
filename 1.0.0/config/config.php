@@ -37,7 +37,7 @@
         $PATH->logo = $PATH->upload."/logos/Logo.png";
         $PATH->logoWhite = $PATH->upload."/logos/Logo-White.png";
         $PATH->logoBlack = $PATH->upload."/logos/Logo-Black.png";
-        $PATH->logoIcon = $PATH->upload."/logo/Logo-Icon.png";
+        $PATH->logoIcon = $PATH->upload."/logos/Logo-Icon.png";
         
     // Default
         $DEFAULT->image = $PATH->assets."/images/Default.png";

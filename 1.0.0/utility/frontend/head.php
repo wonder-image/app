@@ -94,7 +94,7 @@
     <link href="https://unpkg.com/@videojs/themes@1/dist/sea/index.css" rel="stylesheet">
 
     <!-- Typed.js -->
-    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script src="https://unpkg.com/typed.js@2.0.15/dist/typed.umd.js"></script>
 
     <!-- Autonumeric -->
     <script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
@@ -142,7 +142,6 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/resize.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/position.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/grid.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/color.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/section.css">
