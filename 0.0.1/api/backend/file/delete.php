@@ -18,8 +18,31 @@
 
         $NEW_ARRAY = [];
 
-        foreach ($files as $id => $image) {
-            if ($id != $fileId) { array_push($NEW_ARRAY, $image); }
+        foreach ($files as $id => $image) { 
+
+            if ($id != $fileId) { 
+
+                array_push($NEW_ARRAY, $image); 
+
+            } else {
+
+                // Delete image
+                $t = strtoupper($table);
+                $TABLE = $TABLE->$t;
+
+                $dir = isset($TABLE['format']['dir']) ? $TABLE['format']['dir'] : '/'; 
+
+                if (substr($dir, -1) != '/') {
+                    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
+                } else {
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$image;
+                }
+
+                unlink($link);
+
+            }
+
         }
 
         $JSON_ARRAY = json_encode($NEW_ARRAY);

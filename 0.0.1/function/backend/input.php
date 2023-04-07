@@ -526,7 +526,7 @@
 
                 if (substr($dir, -1) != '/') {
                     $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$extension;
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
                 } else {
                     $link = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
                 }
