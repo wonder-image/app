@@ -15,6 +15,7 @@
 
         $PAGE->root = $_SERVER['DOCUMENT_ROOT'];
         $PAGE->url = $url;
+        $PAGE->domain = parse_url($url)['host'];
         $PAGE->base64 = base64_encode($url);
         $PAGE->uriBase64 = base64_encode($_SERVER['REQUEST_URI']);
 

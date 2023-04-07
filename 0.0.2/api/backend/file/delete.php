@@ -35,9 +35,9 @@
 
                 if (substr($dir, -1) != '/') {
                     $extension = pathinfo($image, PATHINFO_EXTENSION);
-                    $link = $PATH->upload.'/'.$folder.$dir.'.'.$extension;
+                    $link = $PATH->rUpload.'/'.$folder.$dir.'.'.$extension;
                 } else {
-                    $link = $PATH->upload.'/'.$folder.$dir.$image;
+                    $link = $PATH->rUpload.'/'.$folder.$dir.$image;
                 }
 
                 unlink($link);

@@ -53,7 +53,7 @@
                     <h6>Google</h6>
                 </div>
                 <div class="col-6">
-                    <?=text('TAG MANAGER', 'tag_manager', 'required'); ?>
+                    <?=text('Tag manager', 'tag_manager', ''); ?>
                 </div>
             </wi-card>
 
