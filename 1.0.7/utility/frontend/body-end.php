@@ -7,6 +7,9 @@
     </div>
 </section>
 
+<!-- Swiper.js -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-element-bundle.min.js"></script>
+
 <!-- Video.js -->
 <script src="https://vjs.zencdn.net/7.18.1/video.min.js"></script>
 
