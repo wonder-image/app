@@ -1,6 +1,6 @@
 <?php
 
-    function textInput($label, $name, $value = null, $attribute = '', $error = false){
+    function text($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -26,7 +26,7 @@
 
     }
 
-    function numberInput($label, $name, $value = null, $attribute = '', $error = false){
+    function number($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -51,7 +51,7 @@
 
     }
 
-    function priceInput($label, $name, $value = null, $attribute = '', $error = false){
+    function price($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -87,7 +87,7 @@
 
     }
 
-    function percentigeInput($label, $name, $value = null, $attribute = '', $error = false){
+    function percentige($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -123,7 +123,7 @@
 
     }
 
-    function emailInput($label, $name, $value = null, $attribute = '', $error = false){
+    function email($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -148,7 +148,7 @@
 
     }
 
-    function textareaInput($label, $name, $value = null, $attribute = '', $error = false){
+    function textarea($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -173,7 +173,7 @@
 
     }
 
-    function passwordInput($label, $name, $value = null, $attribute = '', $error = false) {
+    function password($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -201,7 +201,7 @@
         
     }
 
-    function dateInput($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function date($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -323,7 +323,7 @@
 
     }
 
-    function dateRangeInput($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function dateRange($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
 
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
@@ -466,7 +466,7 @@
 
     }
 
-    function dateTimeRangeInput($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function dateTimeRange($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
 
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
@@ -612,7 +612,7 @@
 
     }
 
-    function textListInput($label, $name, $options, $value = null, $attribute = '') {
+    function textList($label, $name, $options, $value = null, $attribute = '') {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -675,21 +675,21 @@
 
     }
 
-    function countryInput($continent, $label, $name, $value = null, $attribute = '') {
+    function countryList($continent, $label, $name, $value = null, $attribute = '') {
 
         $country = geoCountry($continent);
-        return textListInput($label, $name, $country, $value, $attribute);
+        return textList($label, $name, $country, $value, $attribute);
 
     }
 
-    function provinceInput($country, $label, $name, $value = null, $attribute = '') {
+    function provinceList($country, $label, $name, $value = null, $attribute = '') {
 
         $country = geoProvince($country);
-        return textListInput($label, $name, $country, $value, $attribute);
+        return textList($label, $name, $country, $value, $attribute);
 
     }
 
-    function selectInput($label, $name, $option, $value = null, $attribute = '') {
+    function select($label, $name, $option, $value = null, $attribute = '') {
         
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -741,7 +741,7 @@
 
     }
 
-    function checkboxInput($label, $name, $option, $type = 'checkbox', $value = null) {
+    function checkbox($label, $name, $option, $type = 'checkbox', $value = null) {
 
         if ($type == 'checkbox') { $name .= "[]"; }
 
@@ -804,7 +804,7 @@
 
     }
 
-    function inputSubmit($label, $name, $class = 'btn-success', $onclick = null) {
+    function submit($label, $name, $class = 'btn-success', $onclick = null) {
 
         $id = strtolower(code(10, 'letters', 'button_'));
 
@@ -815,18 +815,6 @@
         }
 
         return "<button $action id='$id' class='btn $class wi-submit' name='$name' disabled>$label</button>";
-
-    }
-
-    function loading() {
-
-        echo "
-        <section id='loading-upload'>
-            <div class='content'>
-                <img src='https://www.wonderimage.it/shared/icons/lib/loader.svg' alt='Loading...'>
-            </div>
-        </section>
-        ";
 
     }
 
