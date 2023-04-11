@@ -149,6 +149,9 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/function.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/text.css">
 
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/hamburger.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/nav-mobile.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/alert.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/modal.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/button.css">

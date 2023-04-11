@@ -1,0 +1,26 @@
+header {
+position: fixed;
+width: 100%;
+height: var(--header-height);
+padding: calc(var(--spacer) * 4) 0;
+box-sizing: border-box;
+z-index: 99;
+}
+header .content {
+height: 100%;
+}
+header .nav-list {
+line-height: calc(var(--header-height) - (var(--spacer) * 8));
+}
+header .nav-list .nav {
+position: relative;
+float: left;
+padding: 0 calc(var(--spacer) * 3);
+text-decoration: none;
+}
+header .nav-list .nav:first-child {
+padding-left: 0;
+}
+header .nav-list .nav:last-child {
+padding-right: 0;
+}

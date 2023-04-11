@@ -58,6 +58,8 @@
     --badge-border-radius: <?=$CSS_DEFAULT->badge_border_radius?>px;
     --badge-border-width: <?=$CSS_DEFAULT->badge_border_width?>px;
 
+    --header-height: <?=$CSS_DEFAULT->header_height?>px;
+
     --default-image: url('<?=$DEFAULT->image?>');
 
 }

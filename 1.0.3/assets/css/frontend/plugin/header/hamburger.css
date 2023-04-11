@@ -1,0 +1,52 @@
+
+#hamburger {
+position: relative;
+float: left;
+width: 30px;
+height: 18px;
+margin: 16px 0;
+cursor: pointer;
+}
+#hamburger .bar{
+position: absolute;
+width: 30px;
+height: 3px;
+background: #ffffff;
+}
+#hamburger.click .bar-1,
+#hamburger.click .bar-2,
+#hamburger.click .bar-3{
+width: 0px;
+}
+#hamburger .bar-1 {
+margin-top: 0;
+transition: .2s;
+}
+#hamburger .bar-2 {
+margin-top: 7.5px;
+transition: .4s;
+}
+#hamburger .bar-3 {
+margin-top: 15px;
+transition: .6s;
+}
+#hamburger .bar-4,
+#hamburger .bar-5{
+left: 50%;
+top: 50%;
+width: 0;
+transition-duration: .3s;
+transition-delay: 0s;
+}
+#hamburger.click .bar-4,
+#hamburger.click .bar-5{
+width: 30px;
+transition-duration: .3s;
+transition-delay: .6s;
+}
+#hamburger .bar-4 {
+transform: translate(-50%, -50%) rotate(45deg);
+}
+#hamburger .bar-5 {
+transform: translate(-50%, -50%) rotate(-45deg);
+}

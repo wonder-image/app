@@ -229,10 +229,13 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <h6>Spazio</h6>
+                            <h6>Altro</h6>
                         </div>
                         <div class="col-12">
                             <?=text('Spaziatore', 'spacer', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Altezza header', 'header_height', 'required'); ?>
                         </div>
                         <div class="col-12">
                             <?=submit('Modifica CSS', 'modify'); ?>

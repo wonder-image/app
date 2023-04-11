@@ -5,11 +5,6 @@ width: 100%;
 padding: calc(var(--spacer) * 10) 0;
 overflow: hidden;
 }
-header {
-width: 100%;
-box-sizing: border-box;
-z-index: 99;
-}
 .content {
 width: calc(100% - 80px);
 max-width: 1200px;
@@ -21,9 +16,6 @@ max-width: 700px;
 }
 .content.content-little { 
 max-width: 500px; 
-}
-header .content {
-height: 100%;
 }
 .content.content-small { 
 max-width: 400px; 
@@ -37,10 +29,10 @@ height: calc(100% - 80px);
 margin: 40px 0;
 }
 section.intro {
-margin-top: 80px; 
+margin-top: var(--header-height); 
 }
 section.full-page.intro { 
-height: calc(100% - 80px);
+height: calc(100% - var(--header-height));
 }
 
 @media (max-width: 768px) {

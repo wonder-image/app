@@ -37,7 +37,12 @@
         "badge_border_width" => [],
         "tx_color" => [],
         "bg_color" => [],
-        "spacer" => []
+        "spacer" => [],
+        "header_height" => [
+            "sql" => [
+                "default" => "80"
+            ]
+        ]
     ];
 
     $TABLE->CSS_FONT = [
