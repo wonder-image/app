@@ -5,27 +5,9 @@
         "legal_name" => [],
         "email" => [],
         "pec" => [],
-        "tel" => [
-            "input" => [
-                "format" => [
-                    "number" => true
-                ]
-            ]
-        ],
-        "cel" => [
-            "input" => [
-                "format" => [
-                    "number" => true
-                ]
-            ]
-        ],
-        "pi" => [
-            "input" => [
-                "format" => [
-                    "number" => true
-                ]
-            ]
-        ],
+        "tel" => [],
+        "cel" => [],
+        "pi" => [],
         "cf" => [],
         "rea" => [],
         "share_capital" => [
