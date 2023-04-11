@@ -4,6 +4,7 @@ width: 100%;
 height: var(--header-height);
 padding: calc(var(--spacer) * 4) 0;
 box-sizing: border-box;
+box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 z-index: 99;
 }
 header .content {

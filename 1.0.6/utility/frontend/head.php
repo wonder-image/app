@@ -151,7 +151,7 @@
 
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/header.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/hamburger.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/nav-mobile.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/mobile-nav.css">
 
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/alert.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/modal.css">
