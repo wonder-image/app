@@ -27,7 +27,7 @@ padding: 0;
 }
 section.full-page .content { 
 height: calc(100% - 80px);
-margin: 40px 0;
+margin: calc(var(--spacer) * 10) 0;
 }
 section.intro {
 margin-top: var(--header-height); 
@@ -37,5 +37,5 @@ height: calc(100% - var(--header-height));
 }
 
 @media (max-width: 768px) {
-.content { width: calc(100% - 40px); }
+.content { width: calc(100% - calc(var(--spacer) * 10)); }
 }
