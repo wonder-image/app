@@ -201,7 +201,7 @@
         
     }
 
-    function date($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function selectDate($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
