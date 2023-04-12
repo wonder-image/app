@@ -27,6 +27,7 @@
 <body>
 
     <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
+    <?php include $ROOT.'/docs/utility/header.php' ?>
 
     <section id="modal-test" class="wi-modal no-interaction">
 
@@ -99,8 +100,6 @@
         </div>
 
     </section>
-
-    <?php include $ROOT.'/docs/utility/header.php' ?>
 
     <div class="w-100">
         <div class="title mb-4">

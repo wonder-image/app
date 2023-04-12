@@ -52,8 +52,7 @@
         <div class='form-floating'>
             <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -64,7 +63,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) {
-            $value = $VALUES[$name];
+            $value = date('Y-m-d', strtotime($VALUES[$name]));
         }
 
         return "

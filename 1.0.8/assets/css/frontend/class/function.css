@@ -13,6 +13,27 @@
 .b-1 { border: 1px solid currentColor !important; }
 .b-2 { border: 2px solid currentColor !important; }
 .b-3 { border: 3px solid currentColor !important; }
+
+.bt-0 { border-top: none !important; }
+.bt-1 { border-top: 1px solid currentColor !important; }
+.bt-2 { border-top: 2px solid currentColor !important; }
+.bt-3 { border-top: 3px solid currentColor !important; }
+
+.br-0 { border-right: none !important; }
+.br-1 { border-right: 1px solid currentColor !important; }
+.br-2 { border-right: 2px solid currentColor !important; }
+.br-3 { border-right: 3px solid currentColor !important; }
+
+.bb-0 { border-bottom: none !important; }
+.bb-1 { border-bottom: 1px solid currentColor !important; }
+.bb-2 { border-bottom: 2px solid currentColor !important; }
+.bb-3 { border-bottom: 3px solid currentColor !important; }
+
+.br-0 { border-right: none !important; }
+.br-1 { border-right: 1px solid currentColor !important; }
+.br-2 { border-right: 2px solid currentColor !important; }
+.br-3 { border-right: 3px solid currentColor !important; }
+
 .b-shadow { box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; }
 .b-r { border-radius: 50% !important; }
 .b-r-1 { border-radius: 1px !important; }

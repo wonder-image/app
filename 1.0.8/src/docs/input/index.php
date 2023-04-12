@@ -31,18 +31,21 @@
 
     <div class="w-100">
         <form class="w-100 d-grid col-2 gap-5">
-            <?=textInput("Text", 'text', '', 'required', false)?>
-            <?=numberInput("Number", 'number', '', 'required', false)?>
+            <?=text("Text", 'text', '', 'required', false)?>
+            <?=number("Number", 'number', '', 'required', false)?>
             <div class="col-2">
-                <?=emailInput("Email", 'email', '', 'required', false)?>
+                <?=email("Email", 'email', '', 'required', false)?>
             </div>
             <div class="col-2">
-                <?=passwordInput("Password", 'password', '', 'required', false)?>
+                <?=password("Password", 'password', '', 'required', false)?>
             </div>
-            <?=dateInput("Date", 'date', '21/03/2001', 'required',  date('d/m/Y', strtotime("-100 years")), date('d/m/Y', strtotime("-18 years")), false)?>
-            <?=countryInput('EU', 'Stato', 'state', '', '')?>
+            <?=selectDate("Date", 'date', '21/03/2001', 'required',  date('d/m/Y', strtotime("-100 years")), date('d/m/Y', strtotime("-18 years")), false)?>
+            <?=countryList('EU', 'Stato', 'state', '', '')?>
             <div class="col-2">
-                <?=dateRangeInput("Daterange", 'daterange', '', 'required', date('d/m/Y'))?>
+                <?=dateRange("Daterange", 'daterange', '', 'required', date('d/m/Y'))?>
+            </div>
+            <div class="col-2">
+                <?=dateTimeRange("Datetimerange", 'datetimerange', '', 'required', date('d/m/Y'))?>
             </div>
             <div class="col-2">
             <?php
@@ -55,20 +58,20 @@
                     5 => 'Prova-5',
                 ];
 
-                echo selectInput('Seleziona', 'select', $option, '', 'required');
+                echo select('Seleziona', 'select', $option, '', 'required');
                 
             ?>
             </div>
             <div class="col-2">
-                <?=textareaInput("Descrizione", 'description', '', '', false)?>
+                <?=textarea("Descrizione", 'description', '', '', false)?>
             </div>
-            <?=checkboxInput('Checkbox', 'checkbox', $option, 'checkbox');?>
-            <?=checkboxInput('Radio', 'radio', $option, 'radio');?>
+            <?=checkbox('Checkbox', 'checkbox', $option, 'checkbox');?>
+            <?=checkbox('Radio', 'radio', $option, 'radio');?>
             <div class="col-2">
-                <?=checkboxInput('', 'checkbox', ["true" => ["label" => "Iscrivendoti alla newsletter, accetti la <a href='' target='_blank' rel='noopener noreferrer'>Politica sulla privacy</a> della nostra azienda.", "attribute" => "required"]], 'checkbox', '');?>
+                <?=checkbox('', 'checkbox', ["true" => ["label" => "Iscrivendoti alla newsletter, accetti la <a href='' target='_blank' rel='noopener noreferrer'>Politica sulla privacy</a> della nostra azienda.", "attribute" => "required"]], 'checkbox', '');?>
             </div>
             <div class="col-2">
-                <?=inputSubmit('INVIA', 'upload', 'btn-success f-end')?>
+                <?=submit('INVIA', 'upload', 'btn-success f-end')?>
             </div>
         </form>
     </div>

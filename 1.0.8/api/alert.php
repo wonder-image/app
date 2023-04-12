@@ -9,6 +9,6 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    if ($_POST['post']) { echo alertTheme($_POST['alert']); }
+    if ($_POST['post'] && !empty($_POST['alert'])) { echo alertTheme($_POST['alert']); }
 
 ?>

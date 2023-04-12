@@ -55,7 +55,7 @@
 
         <?php
 
-            if (!empty($FILTER_SEARCH) || !empty($FILTER_CUSTOM) || !empty($BUTTON_ADD)) {
+            if (!empty($FILTER_SEARCH) || !empty($FILTER_CUSTOM) || !empty($BUTTON_ADD) || !empty($BUTTON_CUSTOM)) {
                 
                 echo "<wi-card class='col-12'>";
 
@@ -63,11 +63,23 @@
                     echo "<div class='col-4'>$SEARCH</div>";
                 }
 
-                if (!empty($FILTER_CUSTOM) || !empty($BUTTON_ADD)) {
+                if (!empty($FILTER_CUSTOM) || !empty($BUTTON_ADD) || !empty($BUTTON_CUSTOM)) {
 
                     echo "<div class='col-8 d-flex gap-2 justify-content-end'>";
                     if (!empty($FILTER_CUSTOM)) { echo $CUSTOM->button; }
                     if (!empty($BUTTON_ADD)) { echo $BUTTON_ADD; }
+                    if (!empty($BUTTON_CUSTOM)) {
+                        foreach ($BUTTON_CUSTOM as $key => $v) {
+
+                            $value = isset($v['value']) ? $v['value'] : '';
+                            $action = isset($v['action']) ? $v['action'] : '';
+                            $color = isset($v['color']) ? $v['color'] : 'dark';
+
+                            echo "<a $action type='button' class='btn btn-$color btn-sm'>$value</a>";
+                            
+                        }
+                        
+                    }
                     echo "</div>";
 
                 }
