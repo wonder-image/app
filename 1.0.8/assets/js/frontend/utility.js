@@ -29,15 +29,15 @@ function loadingSpinner() {
 
         spinner.classList.remove('d-none');
         spinner.classList.remove('no-interaction');
-        
-        enableScroll();
 
+        disableScroll();
+        
     } else {
 
         spinner.classList.add('d-none');
         spinner.classList.add('no-interaction');
-
-        disableScroll();
+        
+        enableScroll();
 
     }
     
