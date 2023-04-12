@@ -1,6 +1,8 @@
 header {
 position: fixed;
 width: 100%;
+top: 0;
+left: 0;
 height: var(--header-height);
 padding: calc(var(--spacer) * 4) 0;
 box-sizing: border-box;
