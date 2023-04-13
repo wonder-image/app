@@ -121,8 +121,10 @@
 
     function sanitizeEcho($str) {
 
-        $str = htmlspecialchars_decode($str, ENT_QUOTES);
-        $str = str_replace('<br />', '', $str);
+        if (!empty($str)) {
+            $str = htmlspecialchars_decode($str, ENT_QUOTES);
+            $str = str_replace('<br />', '', $str);
+        }
 
         return $str;
 
@@ -130,8 +132,10 @@
 
     function printPDF($str){
 
-        $str = htmlspecialchars_decode($str, ENT_QUOTES);
-        $str = iconv('UTF-8', 'windows-1252', $str);
+        if (!empty($str)) {
+            $str = htmlspecialchars_decode($str, ENT_QUOTES);
+            $str = iconv('UTF-8', 'windows-1252', $str);
+        }
         
         return $str;
 
