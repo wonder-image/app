@@ -16,9 +16,13 @@
         $var = $row["var"];
         $colorHEX = $row["color"];
         $colorRGB = hexToRgb($colorHEX);
+        $contrastHEX = $row["contrast"];
+        $contrastRGB = hexToRgb($contrastHEX);
 
         echo "--$var-color: $colorHEX;";
+        echo "--$var-o-color: $contrastHEX;";
         echo "--$var-color-rgb: $colorRGB;";
+        echo "--$var-o-color-rgb: $contrastRGB;";
 
         for ($i=0; $i < 11; $i++) { 
 
@@ -26,6 +30,7 @@
             $opacityCSS = $i / 10;
             
             echo "--$var-color-$opacity: rgba(var(--$var-color-rgb), $opacityCSS);";
+            echo "--$var-o-color-$opacity: rgba(var(--$var-o-color-rgb), $opacityCSS);";
 
         }
         
@@ -79,17 +84,19 @@
     foreach (sqlSelect('css_color')->row as $key => $row) {
         
         $var = $row["var"];
-        $contrast = $row["contrast"];
 
         echo "/* $var */
         .tx-$var { color: var(--$var-color) !important; }
-        .bg-$var { background: var(--$var-color) !important; }";
+        .tx-$var-o { color: var(--$var-o-color) !important; }
+        .bg-$var { background: var(--$var-color) !important; }
+        .bg-$var-o { background: var(--$var-o-color) !important; }";
 
         for ($i=0; $i < 11; $i++) { 
 
             $opacity = $i * 10;
             
             echo ".bg-$var-$opacity { background: var(--$var-color-$opacity) !important; }";
+            echo ".bg-$var-o-$opacity { background: var(--$var-o-color-$opacity) !important; }";
 
         }
 
@@ -98,7 +105,7 @@
         .btn.btn-$var {
         border-color: var(--$var-color-100);
         background: var(--$var-color-100);
-        color: $contrast;
+        color: var(--$var-o-color);
         }
         .badge.badge-$var-o,
         .btn.btn-$var-o {

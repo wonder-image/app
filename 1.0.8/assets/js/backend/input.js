@@ -191,6 +191,12 @@ function firstLastFile(selectorContainer, nFile) {
 
 }
 
+function generateCode(selector) {
+
+    document.querySelector(selector).value = code();
+    
+}
+
 function disableInput(type) {
 
     if (type == 'user') {

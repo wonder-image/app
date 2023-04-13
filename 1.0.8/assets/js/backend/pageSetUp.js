@@ -39,6 +39,45 @@ function checkInput() {
         element.addEventListener("change", checkColor);
     });
 
+    document.querySelectorAll("[data-wi-number='true']").forEach(element => {
+
+        new AutoNumeric('#'+element.id, {
+            caretPositionOnFocus: 'end',
+            decimalPlacesShownOnFocus: 2,
+            digitGroupSeparator: '',
+            outputFormat: '.'
+        });
+
+    });
+
+    document.querySelectorAll("[data-wi-price='true']").forEach(element => {
+        
+        new AutoNumeric('#'+element.id, {
+            caretPositionOnFocus: 'end',
+            decimalPlacesShownOnFocus: 2,
+            digitGroupSeparator: '',
+            onInvalidPaste: 'truncate',
+            outputFormat: 'number',
+            currencySymbol: '€',
+            currencySymbolPlacement: 's'
+        });
+
+    });
+
+    document.querySelectorAll("[data-wi-price='true']").forEach(element => {
+        
+        new AutoNumeric('#'+element.id, {
+            caretPositionOnFocus: 'end',
+            decimalPlacesShownOnFocus: 2,
+            digitGroupSeparator: '',
+            onInvalidPaste: 'truncate',
+            outputFormat: 'number',
+            currencySymbol: '%',
+            currencySymbolPlacement: 's'
+        });
+
+    });
+
     check();
 
 }

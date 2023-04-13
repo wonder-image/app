@@ -56,6 +56,27 @@
 
     }
 
+    function textGenerator($label, $name, $attribute = null, $value = null){
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && !isset($value)) {
+            $value = $VALUES[$name];
+        }
+
+        return "
+        <div class='form-floating'>
+            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <label for='$id'>$label</label>
+            <div class='btn btn-sm btn-dark text-light position-absolute top-50 end-0 me-2 translate-middle-y' onclick=\"generateCode('#$id')\">
+                GENERA
+            </div>
+        </div>";
+
+    }
+
     function textDate($label, $name, $attribute = null, $value = null){
 
         global $VALUES;
@@ -109,17 +130,9 @@
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-number='true' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
-        </div>
-        <script>
-            new AutoNumeric('#$id', {
-                caretPositionOnFocus: 'end',
-                decimalPlacesShownOnFocus: 2,
-                digitGroupSeparator: '',
-                outputFormat: '.'
-            });
-        </script>";
+        </div>";
 
     }
 
@@ -135,20 +148,9 @@
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' data-wi-check='true' placeholder='$label' $attribute>
+            <input type='text' class='form-control' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-price='true' placeholder='$label' $attribute>
             <label for='$id'>$label</label>
-        </div>
-        <script>
-            new AutoNumeric('#$id', {
-                caretPositionOnFocus: 'end',
-                decimalPlacesShownOnFocus: 2,
-                digitGroupSeparator: '',
-                onInvalidPaste: 'truncate',
-                outputFormat: 'number',
-                currencySymbol: '€',
-                currencySymbolPlacement: 's'
-            });
-        </script>";
+        </div>";
 
     }
 
@@ -164,20 +166,9 @@
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' data-wi-check='true' placeholder='$label' $attribute>
+            <input type='text' class='form-control' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-percentige='true' placeholder='$label' $attribute>
             <label for='$id'>$label</label>
-        </div>
-        <script>
-            new AutoNumeric('#$id', {
-                caretPositionOnFocus: 'end',
-                decimalPlacesShownOnFocus: 2,
-                digitGroupSeparator: '',
-                onInvalidPaste: 'truncate',
-                outputFormat: 'number',
-                currencySymbol: '%',
-                currencySymbolPlacement: 's'
-            });
-        </script>";
+        </div>";
 
     }
 

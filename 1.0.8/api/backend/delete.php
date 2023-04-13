@@ -26,6 +26,12 @@
                 "deleted" => "true"
             ];
 
+        } else {
+
+            $values = [
+                "deleted" => "true"
+            ];
+
         }
 
         $sql = sqlModify($table, $values, 'id', $id);
