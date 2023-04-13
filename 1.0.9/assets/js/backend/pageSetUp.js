@@ -64,7 +64,7 @@ function checkInput() {
 
     });
 
-    document.querySelectorAll("[data-wi-price='true']").forEach(element => {
+    document.querySelectorAll("[data-wi-percentige='true']").forEach(element => {
         
         new AutoNumeric('#'+element.id, {
             caretPositionOnFocus: 'end',
