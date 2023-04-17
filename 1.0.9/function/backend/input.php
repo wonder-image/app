@@ -597,6 +597,20 @@
 
     }
 
+    function countryList($continent, $label, $name, $attribute = '', $value = null) {
+
+        $country = geoCountry($continent);
+        return check($label, $name, $country, $attribute, 'radio', true, $value);
+
+    }
+
+    function provinceList($country, $label, $name, $value = null, $attribute = '') {
+
+        $province = geoProvince($country);
+        return check($label, $name, $province, $attribute, 'radio', true, $value);
+
+    }
+
     function submit($label, $name, $class = null){
 
         $id = strtolower(code(10, 'letters', 'input_'));

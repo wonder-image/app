@@ -1,5 +1,6 @@
 <?php
 
+    require_once $ROOT_APP."/function/utility.php";
     require_once $ROOT_APP."/function/arrayTo.php";
     require_once $ROOT_APP."/function/sql.php";
     require_once $ROOT_APP."/function/string.php";
@@ -10,6 +11,7 @@
     require_once $ROOT_APP."/function/color.php";
     require_once $ROOT_APP.'/function/user.php';
 
+    require_once $ROOT_APP."/function/other/function.php";
     require_once $ROOT_APP."/function/file/function.php";
     require_once $ROOT_APP."/function/password/function.php";
 
