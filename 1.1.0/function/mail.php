@@ -3,12 +3,14 @@
     function sendMail($from, $to, $object, $content){
 
         global $SOCIETY;
-        global $PATH;
+
+        $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);
+        $SOCIETY_LEGAL_NAME = sanitizeEcho($SOCIETY->legal_name);
 
         // Imposto gli headers
             $headers[] = 'MIME-Version: 1.0';
             $headers[] = 'Content-type: text/html; charset=utf-8';
-            $headers[] = "From: $SOCIETY->name <$from>";
+            $headers[] = "From: $SOCIETY_NAME <$from>";
 
         // Testo
             $text = "
@@ -24,18 +26,14 @@
                 
                 <div class='container' style='@import url(https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap);font-family: Roboto, sans-serif;position: relative;float: left;width: 90%;max-width: 500px;border: 1px solid #e5e4e2;left: 50%;transform: translateX(-50%);margin-top: 2%;background: #ffffff;color: #000000;'>
 
-                    <div class='logo' style='position: relative;float: left;width: 90%;padding: 5%;'>
-                        <img src='$PATH->logo' alt='$SOCIETY->name' style='position: relative;float: left;width: 30%;'>
-                    </div>
-
-                    <div class='text' style='position: relative;float: left;width: 90%;padding: 5%;padding-top: 0;font-size: 14px;line-height: 17px;'>
+                    <div class='text' style='position: relative;float: left;width: 90%;padding: 5%;font-size: 14px;line-height: 17px;'>
                         $content
                     </div>
 
                     <div class='line' style='position: relative;float: left;width: 100%;height: 1px;background: #e5e4e2;'></div>
 
                     <div class='text' style='position: relative;float: left;width: 90%;padding: 5%;text-align: center;font-size: 12px;line-height: 12px;'>
-                        Copyright © $SOCIETY->legal_name . Tutti i diritti riservati.
+                        Copyright © $SOCIETY_LEGAL_NAME. Tutti i diritti riservati.
                     </div>
 
                 </div>
@@ -45,8 +43,7 @@
                 </div>
 
             </body>
-            </html>
-            ";
+            </html>";
         
         // Invio email
             if (mail($to, $object, $text, implode("\r\n", $headers))) {
