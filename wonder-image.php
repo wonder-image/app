@@ -7,7 +7,7 @@
 
     session_start();
 
-    $APP_VERSION = "1.1.0";
+    $APP_VERSION = "1.1.1";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
