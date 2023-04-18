@@ -301,7 +301,7 @@
                                                 $href = $href;
                                             }
 
-                                            $VALUE = "<a href='$href' class='text-dark'>".$VALUE."</a>";
+                                            $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";
 
                                         }
 
