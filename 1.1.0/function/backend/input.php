@@ -369,7 +369,11 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$nameReal]) && $value == null) {
-            $value = $VALUES[$nameReal];
+            if ($checkbox == 'checkbox') {
+                $value = json_decode($VALUES[$nameReal], true);
+            } else {
+                $value = $VALUES[$nameReal];
+            }
         }
 
         $checkHTML = "";

@@ -6,6 +6,11 @@
         $FILTER = filterDate();
     }
 
+    if (!isset($PAGE_TABLE)) {
+        $table = strtoupper($NAME->table);
+        $PAGE_TABLE = $TABLE->$table;
+    }
+
     if ($BUTTON_ADD) {
         $BUTTON_ADD = createAddButton($TEXT->titleS);
     }

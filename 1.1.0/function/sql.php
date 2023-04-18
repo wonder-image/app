@@ -413,138 +413,151 @@
                     $OLD_VALUE = $OLD_VALUES[$name];
                 }
 
-                if (isset($RULES['format']['lower']) && $RULES['format']['lower'] === true) {
-                    $VALUE = strtolower($VALUE);
-                }
+                if (is_array($VALUE)) {
+                    
+                    if (isset($RULES['format']['file']) && $RULES['format']['file'] === true && count($VALUE['name']) > 0) {
 
-                if (isset($RULES['format']['upper']) && $RULES['format']['upper'] === true) {
-                    $VALUE = strtoupper($VALUE);
-                }
+                        $MAX_FILE = isset($RULES['format']['max_file']) ? $RULES['format']['max_file'] : 1;
+                        $MAX_SIZE = isset($RULES['format']['max_size']) ? $RULES['format']['max_size'] * 1000000 : 2000000;
+                        $EXTENSIONS = $RULES['format']['extensions'];
+                        $DIR = isset($RULES['format']['dir']) ? $RULES['format']['dir'] : '/';
 
-                if (isset($RULES['format']['ucwords']) && $RULES['format']['ucwords'] === true) {
-                    $VALUE = ucwords($VALUE);
-                }
+                        if (isset($OLD_VALUE)) {
+                            $ARRAY_VALUES = json_decode($OLD_VALUE, true);
+                        } else {
+                            $ARRAY_VALUES = [];
+                        }
 
-                if (isset($RULES['format']['unique']) && $RULES['format']['unique'] === true) {
-                    if ($OLD_VALUES == null) {
-                        $VALUE = unique($VALUE, $table, $name);
-                    } else {
-                        $VALUE = unique($VALUE, $table, $name, $OLD_VALUES['id']);
-                    }
-                }
+                        $N_OLD_FILE = count($ARRAY_VALUES);
+                        $N_NEW_FILE = count($VALUE['name']);
+                        $N_FILE = $N_NEW_FILE + $N_OLD_FILE;
 
-                if (isset($RULES['format']['link']) && $RULES['format']['link'] === true) {
-                    $VALUE = create_link($VALUE);
-                }
+                        if ($N_FILE <= $MAX_FILE) {
+                            
+                            for ($i=0; $i < $N_NEW_FILE; $i++) { 
 
-                if (isset($RULES['format']['link_unique']) && $RULES['format']['link_unique'] === true) {
-                    if ($OLD_VALUES == null) {
-                        $VALUE = create_link($VALUE, $table, $name);
-                    } else {
-                        $VALUE = create_link($VALUE, $table, $name, $OLD_VALUES['id']);
-                    }
-                }
+                                $TEMPORARY = $VALUE['tmp_name'][$i];
 
-                if (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false) {
-                    $VALUE = sanitize($VALUE);
-                }
+                                if (!empty($TEMPORARY)) {
 
-                if (isset($RULES['format']['sanitizeFirst']) && $RULES['format']['sanitizeFirst'] === true) {
-                    $VALUE = sanitizeFirst($VALUE);
-                }
+                                    $FILE_NAME = strtolower($VALUE['name'][$i]);
+                                    $EXTENSION = pathinfo($FILE_NAME, PATHINFO_EXTENSION);
+                                    $SIZE = $VALUE['size'][$i];
 
-                if (isset($RULES['format']['date']) && $RULES['format']['date'] === true) {
-                    $VALUE = str_replace('/', '-',$VALUE);
-                    $VALUE = date('Y-m-d H:i:s', strtotime($VALUE));
-                }
+                                    if (!in_array($EXTENSION, $EXTENSIONS)) { $ALERT = 921; }
+                                    if (empty($ALERT) && $SIZE >= $MAX_SIZE) { $ALERT = 922; }
 
-                if (isset($RULES['format']['number']) && $RULES['format']['number'] === true) {
-                    $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('€', '', $VALUE);
-                    $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace(',', '.', $VALUE);
-                    $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : number_format($VALUE, 0, '.', '');
-                }
+                                    if (empty($ALERT)) {
 
-                if (isset($RULES['format']['decimals']) && !empty($RULES['format']['decimals'])) {
-                    $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('€', '', $VALUE);
-                    $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace(',', '.', $VALUE);
-                    $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : number_format($VALUE, $RULES['format']['decimals'], '.', '');
-                }
+                                        if (substr($DIR, -1) != '/') {
+                                            
+                                            $NEW_NAME = explode('/', $DIR);
+                                            $lastKey = array_key_last($NEW_NAME);
+                                            $NEW_NAME = $NEW_NAME[$lastKey].'.'.$EXTENSION;
+                                            $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.'.'.$EXTENSION;
 
-                if (isset($RULES['format']['file']) && $RULES['format']['file'] === true && count($VALUE['name']) > 0) {
+                                        } else {
 
-                    $MAX_FILE = isset($RULES['format']['max_file']) ? $RULES['format']['max_file'] : 1;
-                    $MAX_SIZE = isset($RULES['format']['max_size']) ? $RULES['format']['max_size'] * 1000000 : 2000000;
-                    $EXTENSIONS = $RULES['format']['extensions'];
-                    $DIR = isset($RULES['format']['dir']) ? $RULES['format']['dir'] : '/';
+                                            $NEW_NAME = code(10, 'all').'.'.$EXTENSION;
+                                            $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
 
-                    if (isset($OLD_VALUE)) {
-                        $ARRAY_VALUES = json_decode($OLD_VALUE, true);
-                    } else {
-                        $ARRAY_VALUES = [];
-                    }
+                                        }
 
-                    $N_OLD_FILE = count($ARRAY_VALUES);
-                    $N_NEW_FILE = count($VALUE['name']);
-                    $N_FILE = $N_NEW_FILE + $N_OLD_FILE;
-
-                    if ($N_FILE <= $MAX_FILE) {
-                        
-                        for ($i=0; $i < $N_NEW_FILE; $i++) { 
-
-                            $TEMPORARY = $VALUE['tmp_name'][$i];
-
-                            if (!empty($TEMPORARY)) {
-
-                                $FILE_NAME = strtolower($VALUE['name'][$i]);
-                                $EXTENSION = pathinfo($FILE_NAME, PATHINFO_EXTENSION);
-                                $SIZE = $VALUE['size'][$i];
-
-                                if (!in_array($EXTENSION, $EXTENSIONS)) { $ALERT = 921; }
-                                if (empty($ALERT) && $SIZE >= $MAX_SIZE) { $ALERT = 922; }
-
-                                if (empty($ALERT)) {
-
-                                    if (substr($DIR, -1) != '/') {
-                                        
-                                        $NEW_NAME = explode('/', $DIR);
-                                        $lastKey = array_key_last($NEW_NAME);
-                                        $NEW_NAME = $NEW_NAME[$lastKey].'.'.$EXTENSION;
-                                        $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.'.'.$EXTENSION;
-
-                                    } else {
-
-                                        $NEW_NAME = code(10, 'all').'.'.$EXTENSION;
-                                        $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
-
+                                        if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
+                                            $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME;
+                                        } else {
+                                            $ALERT = 920;
+                                        }
+                                    
                                     }
 
-                                    if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
-                                        $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME;
-                                    } else {
-                                        $ALERT = 920;
-                                    }
-                                
                                 }
 
-                            }
+                                $N_OLD_FILE++;
 
-                            $N_OLD_FILE++;
+                            }
+                            
+                        } else {
+
+                            $ALERT = 923;
 
                         }
-                        
+
+                        $VALUE = json_encode($ARRAY_VALUES);
+                    
                     } else {
 
-                        $ALERT = 923;
+                        $VALUE = json_encode($VALUE);
 
                     }
+                    
+                } else {
+                    
+                    if (isset($RULES['format']['lower']) && $RULES['format']['lower'] === true) {
+                        $VALUE = strtolower($VALUE);
+                    }
+    
+                    if (isset($RULES['format']['upper']) && $RULES['format']['upper'] === true) {
+                        $VALUE = strtoupper($VALUE);
+                    }
+    
+                    if (isset($RULES['format']['ucwords']) && $RULES['format']['ucwords'] === true) {
+                        $VALUE = ucwords($VALUE);
+                    }
+    
+                    if (isset($RULES['format']['unique']) && $RULES['format']['unique'] === true) {
+                        if ($OLD_VALUES == null) {
+                            $VALUE = unique($VALUE, $table, $name);
+                        } else {
+                            $VALUE = unique($VALUE, $table, $name, $OLD_VALUES['id']);
+                        }
+                    }
+    
+                    if (isset($RULES['format']['link']) && $RULES['format']['link'] === true) {
+                        $VALUE = create_link($VALUE);
+                    }
+    
+                    if (isset($RULES['format']['link_unique']) && $RULES['format']['link_unique'] === true) {
+                        if ($OLD_VALUES == null) {
+                            $VALUE = create_link($VALUE, $table, $name);
+                        } else {
+                            $VALUE = create_link($VALUE, $table, $name, $OLD_VALUES['id']);
+                        }
+                    }
+    
+                    if (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false) {
+                        $VALUE = sanitize($VALUE);
+                    }
+    
+                    if (isset($RULES['format']['sanitizeFirst']) && $RULES['format']['sanitizeFirst'] === true) {
+                        $VALUE = sanitizeFirst($VALUE);
+                    }
+    
+                    if (isset($RULES['format']['date']) && $RULES['format']['date'] === true) {
+                        $VALUE = str_replace('/', '-',$VALUE);
+                        $VALUE = date('Y-m-d H:i:s', strtotime($VALUE));
+                    }
+    
+                    if (isset($RULES['format']['number']) && $RULES['format']['number'] === true) {
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('€', '', $VALUE);
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('%', '', $VALUE);
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace(',', '.', $VALUE);
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : number_format($VALUE, 0, '.', '');
+                    }
+    
+                    if (isset($RULES['format']['decimals']) && !empty($RULES['format']['decimals'])) {
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('€', '', $VALUE);
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('%', '', $VALUE);
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace(',', '.', $VALUE);
+                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : number_format($VALUE, $RULES['format']['decimals'], '.', '');
+                    }
 
-                    $VALUE = json_encode($ARRAY_VALUES);
-                
                 }
 
                 $VALUES[$name] = $VALUE;
 
             } elseif ($name == 'position') {
+
                 if (!empty($RULES['filter'])) {
 
                     $columnName = $RULES['filter'];
@@ -580,6 +593,7 @@
                     $VALUES['position'] = sqlSelect($table, ['deleted' => 'false'])->Nrow;
 
                 }
+
             }
 
         }
