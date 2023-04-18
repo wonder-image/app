@@ -95,6 +95,61 @@
         ";
 
     }
+    
+    function dateInput($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null){
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && !isset($value)) {
+            $value = date('d/m/Y', strtotime($VALUES[$name]));
+        }
+
+        $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
+        $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
+
+        return "
+        <div class='form-floating'>
+            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-date='true' $min $max $attribute>
+            <label for='$id'>$label</label>
+        </div>";
+
+    }
+
+    function dateRange($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
+        
+        $idFrom = strtolower(code(10, 'letters', 'input_'));
+        $idTo = strtolower(code(10, 'letters', 'input_'));
+
+        $nameFrom = $name."_from";
+        $nameTo = $name."_to";
+
+        if (isset($VALUES[$nameFrom]) && isset($VALUES[$nameTo]) && !isset($value)) {
+            $valueFrom = date('d/m/Y', strtotime($VALUES[$nameFrom]));
+            $valueTo = date('d/m/Y', strtotime($VALUES[$nameTo]));
+        } elseif (isset($value)) {
+            $valueFrom = date('d/m/Y', strtotime($value[0]));
+            $valueTo = date('d/m/Y', strtotime($value[1]));
+        } else {
+            $valueFrom = "";
+            $valueTo = "";
+        }
+
+        $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
+        $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
+
+        return "
+        <h6>$label</h6>
+        <div class='input-group input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
+            <span class='input-group-text'>Dal</span>
+            <input id='$idFrom' type='text' class='form-control' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
+            <span class='input-group-text'>Al</span>
+            <input id='$idTo' type='text' class='form-control' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
+        </div>";
+
+    }
+
 
     function color($label, $name, $attribute = null, $value = null){
 
@@ -109,7 +164,7 @@
         $color = !empty($value) ? "style='color: $value;'" : '';
 
         return "
-        <label for='$id' class='form-label'>$label</label>
+        <h6>$label</h6>
         <div class='input-group'>
             <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
             <input type='text' class='form-control' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>

@@ -534,8 +534,10 @@
                     }
     
                     if (isset($RULES['format']['date']) && $RULES['format']['date'] === true) {
-                        $VALUE = str_replace('/', '-',$VALUE);
-                        $VALUE = date('Y-m-d H:i:s', strtotime($VALUE));
+                        if (!empty($VALUE)) {
+                            $VALUE = str_replace('/', '-',$VALUE);
+                            $VALUE = date('Y-m-d H:i:s', strtotime($VALUE));
+                        }
                     }
     
                     if (isset($RULES['format']['number']) && $RULES['format']['number'] === true) {

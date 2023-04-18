@@ -78,6 +78,52 @@ function checkInput() {
 
     });
 
+    document.querySelectorAll("[data-wi-date-range='true']").forEach(element => {
+        
+        $(element).datepicker({
+            format: "dd/mm/yyyy",
+            language: "it",  
+            orientation: "bottom left"
+        });
+
+        // Max e Min Non funzionano
+        if (element.dataset.wiMinDate != null) {
+            $(element).datepicker({
+                minDate: element.dataset.wiMinDate
+            });
+        }
+
+        if (element.dataset.wiMaxDate != null) {
+            $(element).datepicker({
+                maxDate: element.dataset.wiMaxDate
+            });
+        }
+
+    });
+
+    document.querySelectorAll("[data-wi-date='true']").forEach(element => {
+        
+        $(element).datepicker({
+            format: "dd/mm/yyyy",
+            language: "it",  
+            orientation: "bottom left"
+        });
+
+        // Max e Min Non funzionano
+        if (element.dataset.wiMinDate != null) {
+            $(element).datepicker({
+                minDate: element.dataset.wiMinDate
+            });
+        }
+
+        if (element.dataset.wiMaxDate != null) {
+            $(element).datepicker({
+                maxDate: element.dataset.wiMaxDate
+            });
+        }
+
+    });
+
     check();
 
 }
