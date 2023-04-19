@@ -17,6 +17,8 @@
         }
 
         $RETURN->area = isset($RETURN->area) ? json_decode($RETURN->area, true) : [];
+        $RETURN->fullName = isset($RETURN->name) ? $RETURN->name.' '.$RETURN->surname : '';
+        $RETURN->prettyCreation = isset($RETURN->creation) ? date('d/m/Y', strtotime($RETURN->creation)).' alle '.date('H:i', strtotime($RETURN->creation)) : '';
 
         return $RETURN;
 
