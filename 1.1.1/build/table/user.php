@@ -34,7 +34,11 @@
         "password" => [],
         "authority" => [],
         "area" => [],
-        "active" => []
+        "active" => [
+            "sql" => [
+                "default" => "true"
+            ]
+        ]
     ];
 
 ?>

@@ -29,6 +29,10 @@ cursor: pointer;
 -ms-user-select: none !important;
 user-select: none !important; 
 }
+.btn.btn-lg {
+line-height: 24px !important;
+padding: 16px !important;
+}
 .btn.btn-sm {
 padding: 5px 6px !important;
 

@@ -3,7 +3,7 @@ function check() {
     document.querySelectorAll("form .wi-submit").forEach(button => {
  
         button.removeAttribute("disabled");
-
+        
         var inputList = button.form.elements;
 
         for (let i = 0; i < inputList.length; i++) {

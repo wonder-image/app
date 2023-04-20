@@ -33,9 +33,17 @@
 
         if (isset($POST['name'])) { $UPLOAD['name'] = sanitizeFirst($POST['name']); }
         if (isset($POST['surname'])) { $UPLOAD['surname'] = sanitizeFirst($POST['surname']); }
-        if (isset($POST['email'])) { $UPLOAD['email'] = unique($POST['email'], 'user', 'email', $MODIFY_ID); }
-        if (isset($POST['username'])) { $UPLOAD['username'] = unique($POST['username'], 'user', 'username', $MODIFY_ID); }
         if (isset($POST['active'])) { $UPLOAD['active'] = $POST['active']; }
+        
+        if (isset($POST['email'])) { 
+            $UPLOAD['email'] = sanitize(strtolower($POST['email'])); 
+            if (!unique($POST['email'], 'user', 'email', $MODIFY_ID)) { $ALERT = 906; }
+        }
+        
+        if (isset($POST['username'])) { 
+            $UPLOAD['username'] = sanitize(strtolower($POST['username']));
+            if (!unique($POST['username'], 'user', 'username', $MODIFY_ID)) { $ALERT = 907; } 
+        }
 
         if ($MODIFY_ID == null) {
 
@@ -48,7 +56,7 @@
             $UPLOAD['authority'] = json_encode($authority);
             $UPLOAD['area'] = json_encode($area);
 
-            if (empty($UPLOAD['username'])) { $UPLOAD['username'] = create_link(substr($UPLOAD['email'], 0, strpos($UPLOAD['email'], '@')), 'user', 'username'); }
+            if (!isset($UPLOAD['username'])) { $UPLOAD['username'] = create_link(substr($UPLOAD['email'], 0, strpos($UPLOAD['email'], '@')), 'user', 'username'); }
             if (isset($POST['password'])) { $UPLOAD['password'] = hashPassword($POST['password']); }
 
             if (empty($ALERT)) { 

@@ -59,9 +59,9 @@
 
     function unique($str, $table, $column, $id = null) {
 
-        global $ALERT;
+        // global $ALERT;
 
-        $found = false;
+        $unique = true;
 
         if ($id != null) {
             $QUERY = "`id` != '$id' AND ";
@@ -80,18 +80,18 @@
         $SQL = sqlSelect($table, $QUERY);
 
         if ($SQL->exists) {
-            $found = true;
+            $unique = false;
         }
 
-        if ($found) {
-            if ($column == 'link') { $ALERT = 971;} 
-            elseif ($column == 'code') { $ALERT = 972;}
-            elseif ($column == 'email') { $ALERT = 973;}
-            elseif ($column == 'username') { $ALERT = 974;}
-            else { $ALERT = 970;}
-        }
+        // if (!$unique) {
+        //     if ($column == 'link') { $ALERT = 971;} 
+        //     elseif ($column == 'code') { $ALERT = 972;}
+        //     elseif ($column == 'email') { $ALERT = 973;}
+        //     elseif ($column == 'username') { $ALERT = 974;}
+        //     else { $ALERT = 970;}
+        // }
 
-        return $str;
+        return $unique;
 
     }
 

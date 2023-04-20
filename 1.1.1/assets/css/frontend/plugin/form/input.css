@@ -47,6 +47,11 @@ resize: none;
 height: 40px;
 }
 
+/* Input submit */
+.btn.wi-submit {
+font-size: 16px !important;
+border-width: var(--input-border-bottom) !important;
+}
 
 /* Input error */
 .wi-input-container.input-error .wi-input {
@@ -131,7 +136,6 @@ padding: 14px 12px 14px 16px;
 right: var(--input-border-right);
 padding: 14px 16px 14px 12px; 
 }
-
 
 /* Input status */
 .wi-input-container .wi-input:disabled { background: var(--input-disabled-bg); }
