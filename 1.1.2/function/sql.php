@@ -506,11 +506,17 @@
                     }
     
                     if (isset($RULES['format']['unique']) && $RULES['format']['unique'] === true) {
-                        if ($OLD_VALUES == null) {
-                            $VALUE = unique($VALUE, $table, $name);
-                        } else {
-                            $VALUE = unique($VALUE, $table, $name, $OLD_VALUES['id']);
+
+                        $id = ($OLD_VALUES == null) ? null : $OLD_VALUES['id'];
+
+                        if (!unique($VALUE, $table, $name, $id)) {
+                            if ($name == 'link') { $ALERT = 971;} 
+                            elseif ($name == 'code') { $ALERT = 972;}
+                            elseif ($name == 'email') { $ALERT = 973;}
+                            elseif ($name == 'username') { $ALERT = 974;}
+                            else { $ALERT = 970;}
                         }
+
                     }
     
                     if (isset($RULES['format']['link']) && $RULES['format']['link'] === true) {
