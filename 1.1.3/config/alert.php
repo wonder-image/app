@@ -21,6 +21,16 @@
             "title" => "Account modificato",
             "text" => "Account modificato con successo."
         ],
+        605 => [
+            "type" => "success",
+            "title" => "Email modificato",
+            "text" => "Email modificato con successo."
+        ],
+        606 => [
+            "type" => "success",
+            "title" => "Username modificato",
+            "text" => "Username modificato con successo."
+        ],
         610 => [
             "type" => "success",
             "title" => "Aggiunto al carrello",

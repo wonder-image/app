@@ -168,6 +168,13 @@
 
     }
 
+    function prettyPhone($number) {
+
+        $number = str_replace(" ", "", $number);
+        return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 2).' '.substr($number, 8, 2);
+
+    }
+
     function prettyPrint($array) {
 
         print("<pre>".print_r($array,true)."</pre>");

@@ -543,6 +543,8 @@
                         if (!empty($VALUE)) {
                             $VALUE = str_replace('/', '-',$VALUE);
                             $VALUE = date('Y-m-d H:i:s', strtotime($VALUE));
+                        } else {
+                            $VALUE = '';
                         }
                     }
     
