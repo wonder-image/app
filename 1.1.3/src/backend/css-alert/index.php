@@ -95,7 +95,7 @@
                             <?=color('Bordi', 'border_color', 'required'); ?>
                         </div>
                         <div class="col-12">
-                            <?=submit('Modifica modal', 'modify'); ?>
+                            <?=submit('Modifica alert', 'modify'); ?>
                         </div>
                     </wi-card>
 
