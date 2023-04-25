@@ -107,7 +107,7 @@
                         <tr>
                             <?php
 
-                                if ($FILTER->arrow) {
+                                if ($FILTER->arrow && $FILTER->selected_lines > 1) {
                                     echo "<th scope='col' class='phone-none little'></th>";
                                     echo "<th scope='col' class='phone-none little'></th>";
                                 }
@@ -158,7 +158,7 @@
                     </thead>
                     <tbody class="table-group-divider">
                         <?php
-
+                        
                             $SQL = sqlSelect($NAME->table, $FILTER->query);
 
                             $lineN = 1;
