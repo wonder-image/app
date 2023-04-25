@@ -684,8 +684,8 @@
 
     function provinceList($country, $label, $name, $value = null, $attribute = '') {
 
-        $country = geoProvince($country);
-        return textList($label, $name, $country, $value, $attribute);
+        $province = geoProvince($country);
+        return textList($label, $name, $province, $value, $attribute);
 
     }
 
