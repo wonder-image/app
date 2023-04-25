@@ -41,7 +41,7 @@ function checkInput() {
 
     document.querySelectorAll("[data-wi-number='true']").forEach(element => {
 
-        new AutoNumeric('#'+element.id, {
+        new AutoNumeric(element, {
             caretPositionOnFocus: 'end',
             decimalPlacesShownOnFocus: 2,
             digitGroupSeparator: '',
@@ -52,7 +52,7 @@ function checkInput() {
 
     document.querySelectorAll("[data-wi-price='true']").forEach(element => {
         
-        new AutoNumeric('#'+element.id, {
+        new AutoNumeric(element, {
             caretPositionOnFocus: 'end',
             decimalPlacesShownOnFocus: 2,
             digitGroupSeparator: '',
@@ -66,7 +66,7 @@ function checkInput() {
 
     document.querySelectorAll("[data-wi-percentige='true']").forEach(element => {
         
-        new AutoNumeric('#'+element.id, {
+        new AutoNumeric(element, {
             caretPositionOnFocus: 'end',
             decimalPlacesShownOnFocus: 2,
             digitGroupSeparator: '',
