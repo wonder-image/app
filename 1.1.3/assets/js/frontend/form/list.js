@@ -17,16 +17,22 @@ function searchInput(event) {
 
 }
 
-function checkInput(checkboxId) {
+function checkInput(event) {
     
-    var checkbox = document.getElementById(checkboxId);
+    var container = event.target;
+
+    if (container.localName == 'div') {
+        var checkbox = container.querySelector('input');
+    } else {
+        var checkbox = container;
+    }
+
     var inputId = checkbox.dataset.wiInput;
 
     checkbox.checked = true;
 
     var input = document.querySelector('#'+inputId);
     input.value = checkbox.dataset.wiName;
-    input.focus();
 
 }
 

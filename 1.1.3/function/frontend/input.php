@@ -639,7 +639,7 @@
             array_push($listValues, $nm);
 
             $optionHTML .= "
-            <div class='wi-input-list-value $checked' onmousedown=\"checkInput('$code')\">
+            <div class='wi-input-list-value $checked' data-wi-list-value='true'>
                 <input id='$code' data-wi-keyword='$nm $vl' data-wi-input='$id' data-wi-name='$nm' type='radio' name='$name' value='$vl' $checked>
                 $nm
             </div>
@@ -665,7 +665,7 @@
         return "
         <div class='wi-input-container text-list$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-input-list='true' data-wi-list-array='$listValues' onfocus $attribute>
+            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-list-input='true' data-wi-list-array='$listValues' onfocus $attribute>
             $alert
             <div id='list_$id' class='wi-input-list no-scrollbar'>
                 $optionHTML

@@ -122,13 +122,18 @@ function setInput() {
         element.addEventListener("focusout", check);
     });
 
-    document.querySelectorAll("[data-wi-input-list='true']").forEach(element => {
+    document.querySelectorAll("[data-wi-list-input='true']").forEach(element => {
         element.addEventListener("keyup", searchInput);
         element.addEventListener("focusin", searchInput);
         element.addEventListener("keyup", showList);
         element.addEventListener("focusout", hideList);
         element.addEventListener("change", controlList);
         element.addEventListener("focusout", controlList);
+    });
+
+    document.querySelectorAll("[data-wi-list-value='true']").forEach(element => {
+        element.addEventListener("click", checkInput);
+        element.addEventListener("mousedown", checkInput);
     });
 
     check();
