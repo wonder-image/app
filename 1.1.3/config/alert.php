@@ -31,6 +31,21 @@
             "title" => "Username modificato",
             "text" => "Username modificato con successo."
         ],
+        607 => [
+            "type" => "success",
+            "title" => "Indirizzo aggiunto",
+            "text" => "Indirizzo aggiunto con successo."
+        ],
+        608 => [
+            "type" => "success",
+            "title" => "Indirizzo modificato",
+            "text" => "Indirizzo modificato con successo."
+        ],
+        609 => [
+            "type" => "success",
+            "title" => "Indirizzo eliminato",
+            "text" => "Indirizzo eliminato con successo."
+        ],
         610 => [
             "type" => "success",
             "title" => "Aggiunto al carrello",
