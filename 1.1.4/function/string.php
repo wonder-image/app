@@ -57,6 +57,17 @@
 
     }
 
+    function create_number($str, $decimals = 0) {
+
+        $str = ($str == '' && $str != 0) ? '' : str_replace('€', '', $str);
+        $str = ($str == '' && $str != 0) ? '' : str_replace('%', '', $str);
+        $str = ($str == '' && $str != 0) ? '' : str_replace(',', '.', $str);
+        $str = ($str == '' && $str != 0) ? '' : number_format($str, $decimals, '.', '');
+
+        return $str;
+
+    }
+
     function unique($str, $table, $column, $id = null) {
 
         // global $ALERT;

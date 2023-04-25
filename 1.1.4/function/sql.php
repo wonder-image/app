@@ -549,17 +549,11 @@
                     }
     
                     if (isset($RULES['format']['number']) && $RULES['format']['number'] === true) {
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('€', '', $VALUE);
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('%', '', $VALUE);
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace(',', '.', $VALUE);
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : number_format($VALUE, 0, '.', '');
+                        $VALUE = create_number($VALUE, 0);
                     }
     
                     if (isset($RULES['format']['decimals']) && !empty($RULES['format']['decimals'])) {
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('€', '', $VALUE);
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace('%', '', $VALUE);
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : str_replace(',', '.', $VALUE);
-                        $VALUE = ($VALUE == '' && $VALUE != 0) ? '' : number_format($VALUE, $RULES['format']['decimals'], '.', '');
+                        $VALUE = create_number($VALUE, $RULES['format']['decimals']);
                     }
 
                 }
