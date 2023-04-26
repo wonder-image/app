@@ -150,7 +150,6 @@
 
     }
 
-
     function color($label, $name, $attribute = null, $value = null){
 
         global $VALUES;
