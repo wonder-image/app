@@ -34,23 +34,6 @@ function checkInput() {
         element.addEventListener("focusout", check);
     });
 
-    document.querySelectorAll("[data-wi-check-color='true']").forEach(element => {
-        element.addEventListener("keyup", checkColor);
-        element.addEventListener("change", checkColor);
-    });
-
-    document.querySelectorAll("[data-wi-number='true']").forEach(element => {
-        new AutoNumeric(element, AUTONUMERIC_NUMBER);
-    });
-
-    document.querySelectorAll("[data-wi-price='true']").forEach(element => {        
-        new AutoNumeric(element, AUTONUMERIC_PRICE);
-    });
-
-    document.querySelectorAll("[data-wi-percentige='true']").forEach(element => {        
-        new AutoNumeric(element, AUTONUMERIC_PERCENTIGE);
-    });
-
     document.querySelectorAll("[data-wi-date-range='true']").forEach(element => {
         
         $(element).datepicker({
@@ -97,6 +80,7 @@ function checkInput() {
 
     });
 
+    setAutonumeric();
     check();
 
 }
