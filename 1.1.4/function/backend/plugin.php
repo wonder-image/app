@@ -126,7 +126,7 @@
 
     }
 
-    function isEmpty($tables, $column, $id, $multiple = true) {
+    function isEmpty($tables, $column, $id, $multiple = false) {
 
         global $TEXT;
 
@@ -161,7 +161,7 @@
 
                     if (!empty($value)) {
                         
-                        $values = explode(",", str_replace(' ', '', $value));
+                        $values = json_decode($value, true);
 
                         foreach ($values as $key => $v) {
                             if (!in_array($v, $ARRAY)) {

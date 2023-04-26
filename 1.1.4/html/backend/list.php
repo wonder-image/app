@@ -251,7 +251,7 @@
 
                                             if ($functionName == "empty") {
 
-                                                $FUNCTION = isEmpty($value['function']['tables'], $value['function']['column'], $row['id'], $value['function']['multiple']);
+                                                $FUNCTION = isEmpty($value['function']['tables'], $value['function']['column'], $row['id'], isset($value['function']['multiple']) ? $value['function']['multiple'] : false);
                                                 $VALUE = $FUNCTION->icon;
                                                 if (!$FUNCTION->return) { $DELETE_BUTTON = false; }
 
