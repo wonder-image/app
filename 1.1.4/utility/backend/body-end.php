@@ -15,7 +15,9 @@
 <!-- Default .css - .js -->
 <script src="<?=$PATH->appJs?>/backend/utility.js"></script>
 <script src="<?=$PATH->appJs?>/backend/ajax.js"></script>
-<script src="<?=$PATH->appJs?>/backend/input.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/input.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/file.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/autonumeric.js"></script>
 <script src="<?=$PATH->appJs?>/backend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/backend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>
