@@ -27,3 +27,31 @@ padding-left: 0;
 header .nav-list .nav:last-child {
 padding-right: 0;
 }
+
+.scroll-line {
+width: 2px; 
+height: 40px;
+left: 50%;
+transform: translateX(-50%);
+}
+
+.scroll-line:after {
+content: '';
+position: absolute;
+float: left;
+left: 0;
+bottom: 0;
+width: 100%;
+height: 100%;
+background: #ffffff;
+animation-name: scroll-line;
+animation-duration: 1s;
+animation-delay: .3s;
+animation-iteration-count: infinite;
+animation-direction: alternate;
+}
+
+@keyframes scroll-line {
+from { height: 100%; }
+to { height: 40%; }
+}
