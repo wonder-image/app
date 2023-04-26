@@ -40,42 +40,15 @@ function checkInput() {
     });
 
     document.querySelectorAll("[data-wi-number='true']").forEach(element => {
-
-        new AutoNumeric(element, {
-            caretPositionOnFocus: 'end',
-            decimalPlacesShownOnFocus: 2,
-            digitGroupSeparator: '',
-            outputFormat: '.'
-        });
-
+        new AutoNumeric(element, AUTONUMERIC_NUMBER);
     });
 
-    document.querySelectorAll("[data-wi-price='true']").forEach(element => {
-        
-        new AutoNumeric(element, {
-            caretPositionOnFocus: 'end',
-            decimalPlacesShownOnFocus: 2,
-            digitGroupSeparator: '',
-            onInvalidPaste: 'truncate',
-            outputFormat: 'number',
-            currencySymbol: '€',
-            currencySymbolPlacement: 's'
-        });
-
+    document.querySelectorAll("[data-wi-price='true']").forEach(element => {        
+        new AutoNumeric(element, AUTONUMERIC_PRICE);
     });
 
-    document.querySelectorAll("[data-wi-percentige='true']").forEach(element => {
-        
-        new AutoNumeric(element, {
-            caretPositionOnFocus: 'end',
-            decimalPlacesShownOnFocus: 2,
-            digitGroupSeparator: '',
-            onInvalidPaste: 'truncate',
-            outputFormat: 'number',
-            currencySymbol: '%',
-            currencySymbolPlacement: 's'
-        });
-
+    document.querySelectorAll("[data-wi-percentige='true']").forEach(element => {        
+        new AutoNumeric(element, AUTONUMERIC_PERCENTIGE);
     });
 
     document.querySelectorAll("[data-wi-date-range='true']").forEach(element => {

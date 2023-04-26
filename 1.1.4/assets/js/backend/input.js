@@ -232,3 +232,30 @@ function enabledInput(type) {
     
 }
 
+// AutoNumeric data
+const AUTONUMERIC_NUMBER = {
+    caretPositionOnFocus: 'end',
+    decimalPlacesShownOnFocus: 2,
+    digitGroupSeparator: '',
+    outputFormat: '.'
+};
+
+const AUTONUMERIC_PRICE = {
+    caretPositionOnFocus: 'end',
+    decimalPlacesShownOnFocus: 2,
+    digitGroupSeparator: '',
+    onInvalidPaste: 'truncate',
+    outputFormat: 'number',
+    currencySymbol: '€',
+    currencySymbolPlacement: 's'
+};
+
+const AUTONUMERIC_PERCENTIGE = {
+    caretPositionOnFocus: 'end',
+    decimalPlacesShownOnFocus: 2,
+    digitGroupSeparator: '',
+    onInvalidPaste: 'truncate',
+    outputFormat: 'number',
+    currencySymbol: '%',
+    currencySymbolPlacement: 's'
+};
