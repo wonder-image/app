@@ -40,6 +40,7 @@
 <script src="<?=$PATH->appJs?>/frontend/dropdown.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/form/select.js"></script>
+<script src="<?=$PATH->appJs?>/frontend/form/send.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/pageSetUp.js"></script>
 
 <!-- Custom .css - .js  -->

@@ -6,7 +6,7 @@ function formToArray(formElements) {
 
         var add = false;
 
-        var input = formInput[i];
+        var input = formElements[i];
 
         if (input.type == 'checkbox' || input.type == 'radio') {
             if (input.checked == true) { var add = true; }
@@ -45,12 +45,16 @@ function formToArray(formElements) {
         }
 
     }
+
+    return ARRAY;
     
 }
 
 function prettyFormResponse(data) {
 
     if (data != '') {
+        
+        console.log('ERRORE FORM: '+data);
 
         var container = document.querySelector("#loading-spinner .center");
         container.classList.add("w-80");
