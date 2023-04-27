@@ -96,3 +96,45 @@ display: -webkit-box;
 -webkit-box-orient: vertical;  
 overflow: hidden;
 }
+.max-line-6 {
+display: -webkit-box;
+-webkit-line-clamp: 6;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
+.max-line-7 {
+display: -webkit-box;
+-webkit-line-clamp: 7;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
+.max-line-8 {
+display: -webkit-box;
+-webkit-line-clamp: 8;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
+.max-line-9 {
+display: -webkit-box;
+-webkit-line-clamp: 9;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
+.max-line-10 {
+display: -webkit-box;
+-webkit-line-clamp: 10;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
+.max-line-11 {
+display: -webkit-box;
+-webkit-line-clamp: 11;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
+.max-line-12 {
+display: -webkit-box;
+-webkit-line-clamp: 12;
+-webkit-box-orient: vertical;  
+overflow: hidden;
+}
