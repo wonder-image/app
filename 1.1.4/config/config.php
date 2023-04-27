@@ -17,14 +17,17 @@
         $PATH->site = $_ENV['APP_URL'];
         $PATH->backend = $PATH->site."/backend";
         $PATH->app = $PATH->site."/vendor/wonder-image/app/".$APP_VERSION;
-
+        
         $PATH->lib = $PATH->app."/lib";
 
         $PATH->appAssets = $PATH->app."/assets";
+
+        $PATH->appApi = $PATH->app."/api";
         $PATH->appCss = $PATH->appAssets."/css";
         $PATH->appJs = $PATH->appAssets."/js";
 
         $PATH->assets = $PATH->site."/assets/".$_ENV['ASSETS_VERSION'];
+        $PATH->api = $PATH->site."/api";
         $PATH->css = $PATH->assets."/css";
         $PATH->js = $PATH->assets."/js";
 
