@@ -201,3 +201,20 @@ background-position: bottom !important;
 object-position: left !important;
 background-position: left !important;
 }
+
+@media (max-width: 768px) {
+div.bg-img-f {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 101%;
+height: 101%;
+background-size: cover;
+background-image: var(--default-image);
+background-color: #fff;
+background-position: center;
+background-repeat: no-repeat;
+background-attachment: unset;
+}
+}

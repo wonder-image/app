@@ -10,12 +10,13 @@ display: table-cell;
 .pc-none { display: none !important; }
 
 @media (max-width: 1000px) {
+.pc-none { display: block !important; }
 .tablet-none { display: none !important; }
 }
 
 @media (max-width: 768px) {
-.phone-none { display: none !important; }
 .pc-none { display: block !important; }
+.phone-none { display: none !important; }
 th.pc-none,
 td.pc-none {
 display: table-cell !important;
