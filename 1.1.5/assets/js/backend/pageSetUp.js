@@ -34,6 +34,11 @@ function checkInput() {
         element.addEventListener("focusout", check);
     });
 
+    document.querySelectorAll("[data-wi-check-color='true']").forEach(element => {
+        element.addEventListener("keyup", checkColor);
+        element.addEventListener("change", checkColor);
+    });
+
     document.querySelectorAll("[data-wi-date-range='true']").forEach(element => {
         
         $(element).datepicker({

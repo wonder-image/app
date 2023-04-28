@@ -164,7 +164,7 @@
 
         return "
         <h6>$label</h6>
-        <div class='input-group'>
+        <div class='input-group mt-1'>
             <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
             <input type='text' class='form-control' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
         </div>";
