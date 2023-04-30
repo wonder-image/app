@@ -1,5 +1,24 @@
 <?php
 
+    if (isset($USER_FILTER->authority) && isset($USER_FILTER->area)) {
+
+        $QUERY_CUSTOM = "";
+
+        if (!empty($USER_FILTER->authority)) {
+            $QUERY_CUSTOM .= "`authority` LIKE '%$USER_FILTER->authority%'";
+        }
+
+
+        if (!empty($USER_FILTER->authority) && !empty($USER_FILTER->area)) {
+            $QUERY_CUSTOM .= " AND ";
+        }
+
+        if (!empty($USER_FILTER->area)) {
+            $QUERY_CUSTOM .= "`area` LIKE '%$USER_FILTER->area%'";
+        }
+        
+    }
+
     if ($FILTER_TYPE == 'limit') {
         $FILTER = filterLimit();
     } elseif ($FILTER_TYPE == 'date') {
@@ -351,6 +370,7 @@
                                             elseif ($ACTION == 'active') { $BUTTONS .= active($row['active'], $row['id'])->button; }
                                             elseif ($ACTION == 'visible') { $BUTTONS .= visible($row['visible'], $row['id'])->button; }
                                             elseif ($ACTION == 'delete' && $DELETE_BUTTON) { $BUTTONS .= delete($row['id'])->button; }
+                                            elseif ($ACTION == 'authority' && $DELETE_BUTTON && isset($USER_FILTER->authority) && isset($USER_FILTER->area)) { $BUTTONS .= removeAuthorization($row['id'], $USER_FILTER->authority, $USER_FILTER->area)->button; }
 
                                         } elseif (is_array($link)) {
 

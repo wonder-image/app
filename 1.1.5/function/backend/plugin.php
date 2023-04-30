@@ -126,6 +126,27 @@
 
     }
 
+    function removeAuthorization($id, $authority, $area) {
+
+        global $NAME;
+        global $TEXT;
+        global $PATH;
+
+        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->app/api/backend/authority.php?table=$NAME->table&id=$id";
+        
+        if ($authority != '') { $action .= "&authority=$authority')\""; }
+        if ($area != '') { $action .= "&area=$area')\""; }
+
+        $return = (object) array();
+        $return->action = $action;
+        $return->button = "
+        <div class='dropdown-divider'></div>
+        <a class='dropdown-item text-danger' $action role='button'>Elimina</a>";
+
+        return $return;
+
+    }
+
     function isEmpty($tables, $column, $id, $multiple = false) {
 
         global $TEXT;

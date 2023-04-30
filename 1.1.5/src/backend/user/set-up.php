@@ -14,7 +14,9 @@
     $NAME->table = "user";
     $NAME->folder = "user";
 
-    $QUERY_CUSTOM = "`area` LIKE '%backend%' ";
+    $USER_FILTER = (object) array();
+    $USER_FILTER->area = "backend";
+    $USER_FILTER->authority = "";
 
     $FILTER_TYPE = 'limit';
 
@@ -44,7 +46,7 @@
     $TABLE_ACTION = [
         'modify' => true,
         'active' => true,
-        'delete' => true
+        'authority' => true
     ];
 
     $TABLE_FIELD = [
