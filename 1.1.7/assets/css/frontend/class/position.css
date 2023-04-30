@@ -91,3 +91,7 @@ padding-top: calc((100% / 9) * 16);
 .j-content-start { justify-content: start; }
 .j-content-center { justify-content: center; }
 .j-content-end { justify-content: end; }
+
+/* Flex position */
+.flex-wrap { flex-wrap: wrap; }
+.flex-wrap-reverse { flex-wrap: wrap-reverse; }
