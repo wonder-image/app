@@ -134,8 +134,10 @@
 
         $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->app/api/backend/authority.php?table=$NAME->table&id=$id";
         
-        if ($authority != '') { $action .= "&authority=$authority')\""; }
-        if ($area != '') { $action .= "&area=$area')\""; }
+        if ($authority != '') { $action .= "&authority=$authority"; }
+        if ($area != '') { $action .= "&area=$area"; }
+
+        $action .= "')\"";
 
         $return = (object) array();
         $return->action = $action;

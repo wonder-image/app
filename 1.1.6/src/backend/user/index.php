@@ -29,7 +29,15 @@
 
     if (isset($_POST['upload'])) {
 
-        $UPLOAD = user($_POST, isset($_GET['modify']) ? $_GET['modify'] : null); 
+        if (isset($_GET['modify'])) {
+            $MODIFY_ID = $_GET['modify'];
+        } else if (isset($_POST['user_id']) && !empty($_POST['user_id'])) {
+            $MODIFY_ID = $_POST['user_id'];
+        } else {
+            $MODIFY_ID = null;
+        }
+
+        $UPLOAD = user($_POST, $MODIFY_ID); 
         $VALUES = $UPLOAD->values;
 
         if (empty($ALERT)) {
@@ -93,20 +101,54 @@
                 <h3><a href="<?=$REDIRECT?>" type="button" class="text-dark"><i class="bi bi-arrow-left-short"></i></a> <?=$TITLE?></h3>
             </wi-card>
 
-            <wi-card class="col-9">
-                <div class="col-4">
-                    <?=text('Nome', 'name', 'required'); ?>
+            <div class="col-9">
+                <div class="row g-3">
+
+                    <?php if (empty($_GET['modify'])) { ?>
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <h6>Crea utente da email già esistente</h6>
+                        </div>
+                        <div class="col-6">
+                            <?php
+
+                                $OPTION = [
+                                    '' => 'No'
+                                ];
+
+                                foreach (sqlSelect('user', "`area` NOT LIKE '%backend%' and `deleted` = 'false'")->row as $key => $value) {
+
+                                    $id = $value['id'];
+                                    $username = $value['username'];
+
+                                    $OPTION[$id] = $username;
+
+                                }
+
+                                echo check('Username', 'user_id', $OPTION, "onclick=\"if (this.value != '') { disableInput('user'); } else { enabledInput('user'); }\"", 'radio', true); 
+                                
+                            ?>
+                        </div>
+                    </wi-card>
+                    <?php } ?>
+                    
+                    <wi-card class="col-12">
+                        <div class="col-4">
+                            <?=text('Nome', 'name', 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=text('Cognome', 'surname', 'required'); ?>
+                        </div>
+                        <div class="col-6">
+                            <?=text('Username', 'username', 'required'); ?>
+                        </div>
+                        <div class="col-6">
+                            <?=email('Email', 'email', 'required'); ?>
+                        </div>
+                    </wi-card>
+
                 </div>
-                <div class="col-4">
-                    <?=text('Cognome', 'surname', 'required'); ?>
-                </div>
-                <div class="col-6">
-                    <?=text('Username', 'username', 'required'); ?>
-                </div>
-                <div class="col-6">
-                    <?=email('Email', 'email', 'required'); ?>
-                </div>
-            </wi-card>
+            </div>
 
             <wi-card class="col-3">
                 <div class="col-12">

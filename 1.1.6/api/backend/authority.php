@@ -28,7 +28,7 @@
             } else {
                 $AREA = [];
                 foreach ($USER_AREA as $key => $v) {
-                    if ($v != 'area') {
+                    if ($v != $area) {
                         array_push($AREA, $v);
                     }
                 }
@@ -45,7 +45,8 @@
             } else {
                 $AUTHORITY = [];
                 foreach ($USER_AUTHORITY as $key => $v) {
-                    if ($v != 'authority') {
+                    if ($v != $authority) {
+                        echo $v;
                         array_push($AUTHORITY, $v);
                     }
                 }

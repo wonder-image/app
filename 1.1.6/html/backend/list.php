@@ -287,7 +287,14 @@
                                             } else if ($functionName == "active" || $functionName == "visible") {
 
                                                 $functionReturn = $value['function']['return'];
-                                                $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $row['id']])->$functionReturn;
+
+                                                if ($NAME->table == 'user') {
+                                                    if (count(json_decode($row['area'], true)) <= 1 || count(json_decode($row['authority'], true)) <= 1) {
+                                                        $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $row['id']])->$functionReturn; 
+                                                    }
+                                                } else {
+                                                    $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $row['id']])->$functionReturn; 
+                                                }
 
                                             } else {
 
@@ -367,10 +374,18 @@
                                             if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->view' role='button'>Visualizza</a>"; }
                                             elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->modify' role='button'>Modifica</a>"; }
                                             elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->download'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
-                                            elseif ($ACTION == 'active') { $BUTTONS .= active($row['active'], $row['id'])->button; }
                                             elseif ($ACTION == 'visible') { $BUTTONS .= visible($row['visible'], $row['id'])->button; }
                                             elseif ($ACTION == 'delete' && $DELETE_BUTTON) { $BUTTONS .= delete($row['id'])->button; }
                                             elseif ($ACTION == 'authority' && $DELETE_BUTTON && isset($USER_FILTER->authority) && isset($USER_FILTER->area)) { $BUTTONS .= removeAuthorization($row['id'], $USER_FILTER->authority, $USER_FILTER->area)->button; }
+                                            elseif ($ACTION == 'active') { 
+                                                if ($NAME->table == 'user') {
+                                                    if (count(json_decode($row['area'], true)) <= 1 || count(json_decode($row['authority'], true)) <= 1) {
+                                                        $BUTTONS .= active($row['active'], $row['id'])->button; 
+                                                    }
+                                                } else {
+                                                    $BUTTONS .= active($row['active'], $row['id'])->button; 
+                                                }
+                                            }
 
                                         } elseif (is_array($link)) {
 

@@ -93,7 +93,19 @@
 
             if (isset($POST['area']) && $POST['area'] == 'backend') {
                 if (isset($POST['authority']) && !in_array($POST['authority'], $authority)) { 
-                    $authority = [$POST['authority']]; 
+                    
+                    $new_authority = [];
+
+                    foreach ($authority as $k => $v) {
+                        if (permissions($v)->area != 'backend') {
+                            array_push($new_authority, $v);
+                        }
+                    }
+
+                    array_push($new_authority, $POST['authority']);
+                    
+                    $authority = $new_authority;
+
                 }
             } else if (isset($POST['area']) && $POST['area'] == 'frontend') {
                 if (isset($POST['authority']) && !in_array($POST['authority'], $authority)) { array_push($authority, $POST['authority']); }
