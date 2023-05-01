@@ -56,7 +56,7 @@ function labelPosition(event) {
 
     var container = event.target.parentElement;
 
-    if (event.target.value == '') {
+    if (event.target.value == '' && event.target !== document.activeElement) {
         container.classList.remove('compiled');
     } else {
         container.classList.add('compiled');

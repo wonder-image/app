@@ -15,8 +15,8 @@
 :root {
 
     --input-tx-color: <?=$CSS_INPUT->tx_color?>;
-    --input-tx-family: var(--text-family);
-    --input-tx-weight: var(--text-weight);
+    --input-tx-family: var(--font-family);
+    --input-tx-weight: var(--font-weight);
 
     --input-bg-color: <?=$CSS_INPUT->bg_color?>;
     --input-disabled-bg: <?=$CSS_INPUT->disabled_bg_color?>;
