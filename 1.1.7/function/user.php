@@ -56,7 +56,7 @@
             $UPLOAD['authority'] = json_encode($authority);
             $UPLOAD['area'] = json_encode($area);
 
-            if (!isset($UPLOAD['username'])) { $UPLOAD['username'] = create_link(substr($UPLOAD['email'], 0, strpos($UPLOAD['email'], '@')), 'user', 'username'); }
+            if (!isset($UPLOAD['username']) || empty($UPLOAD['username'])) { $UPLOAD['username'] = create_link(substr($UPLOAD['email'], 0, strpos($UPLOAD['email'], '@')), 'user', 'username'); }
             if (isset($POST['password'])) { $UPLOAD['password'] = hashPassword($POST['password']); }
 
             if (empty($ALERT)) { 
@@ -124,7 +124,7 @@
                
                 if (isset($POST['authority']) && !empty(permissions($POST['authority'])->functionModify)) {
                     
-                    $AUTHORITY_UPLOAD = call_user_func_array(permissions($POST['authority'])->functionModify, [$POST, $UPLOAD, $M_USER, $MODIFY_ID]);
+                    $AUTHORITY_UPLOAD = call_user_func_array(permissions($POST['authority'])->functionModify, [$POST, $UPLOAD, $RETURN->user, $MODIFY_ID]);
                     $RETURN->values = array_merge($AUTHORITY_UPLOAD->values, $UPLOAD);
                     $RETURN->user = $AUTHORITY_UPLOAD->user;
 
