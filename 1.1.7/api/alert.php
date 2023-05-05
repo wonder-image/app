@@ -1,5 +1,7 @@
 <?php
 
+    header('Access-Control-Allow-Origin: *');
+    
     if (isset($_POST['backend'])) { $BACKEND = true; }
     if (isset($_POST['frontend'])) { $FRONTEND = true; }
 

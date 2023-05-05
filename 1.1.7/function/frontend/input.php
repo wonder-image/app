@@ -70,20 +70,9 @@
         return "
         <div class='wi-input-container text$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input a-r' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-number='true' $attribute>
+            <input type='text' id='$id' class='wi-input a-r' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-price='true' $attribute>
             $alert
-        </div>
-        <script>
-            new AutoNumeric('#$id', {
-                caretPositionOnFocus: 'end',
-                decimalPlacesShownOnFocus: 2,
-                digitGroupSeparator: '',
-                onInvalidPaste: 'truncate',
-                outputFormat: 'number',
-                currencySymbol: '€',
-                currencySymbolPlacement: 's'
-            });
-        </script>";
+        </div>";
 
     }
 
@@ -106,20 +95,9 @@
         return "
         <div class='wi-input-container text$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input a-r' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-number='true' $attribute>
+            <input type='text' id='$id' class='wi-input a-r' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-percentige='true' $attribute>
             $alert
-        </div>
-        <script>
-            new AutoNumeric('#$id', {
-                caretPositionOnFocus: 'end',
-                decimalPlacesShownOnFocus: 2,
-                digitGroupSeparator: '',
-                onInvalidPaste: 'truncate',
-                outputFormat: 'number',
-                currencySymbol: '%',
-                currencySymbolPlacement: 's'
-            });
-        </script>";
+        </div>";
 
     }
 

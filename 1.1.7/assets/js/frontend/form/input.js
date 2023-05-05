@@ -104,10 +104,6 @@ function checkLabel() {
 
 function setInput() {
     
-    document.querySelectorAll("[data-wi-number='true']").forEach(element => {
-        element.addEventListener("input", checkNumber);
-    });
-
     document.querySelectorAll("[data-wi-label='true']").forEach(element => {
         element.addEventListener("input", labelPosition);
         element.addEventListener("change", labelPosition);
@@ -137,5 +133,6 @@ function setInput() {
     });
 
     check();
+    setAutonumeric();
 
 }
