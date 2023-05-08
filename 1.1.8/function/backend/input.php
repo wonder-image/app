@@ -548,6 +548,9 @@
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";
             $EXTENSIONS_ACCEPT = ".mp4";
+        } elseif ($file == "jpg") {
+            $ACCEPT = "image/jpeg";
+            $EXTENSIONS_ACCEPT = ".jpg - .jpeg";
         } else {
             $ACCEPT = "";
             $EXTENSIONS_ACCEPT = "";
@@ -579,7 +582,7 @@
                     $link = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
                 }
 
-                if ($file == "image" || $file == "png" || $file == "ico") {
+                if ($file == "image" || $file == "png" || $file == "ico" || $file == "jpg") {
                     $image = "<img class='w-100 object-fit-contain' src='$link' height='200' lazyload>";
                 } else {
                     $image = "";
