@@ -12,9 +12,7 @@ function canvasFullPage(elementId, draw = false) {
 
     fullPage(element);
 
-    window.addEventListener('resize', () => {
-        fullPage(element)
-    });
+    window.addEventListener('resize', () => { fullPage(element) });
 
     if (draw) { canvasDraw(element); }
 
