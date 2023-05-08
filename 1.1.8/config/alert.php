@@ -50,7 +50,12 @@
             "type" => "success",
             "title" => "Aggiunto al carrello",
             "text" => "Il carrello è stato aggiornato correttamente"
-        ], 
+        ],
+        611 => [
+            "type" => "success",
+            "title" => "Password impostata",
+            "text" => "Password impostata con successo.<br>Prova a accedere!"
+        ],
         650 => [
             "type" => "success",
             "title" => "Modificato",
