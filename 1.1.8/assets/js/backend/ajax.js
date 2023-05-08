@@ -38,18 +38,6 @@ function ajaxRequest(link, onSuccess = reloadPage) {
 
 }
 
-function ajaxRequestError(request) {
-    
-    if (request.readyState == 4) {
-        alertToast(802);
-    } else if (request.readyState == 0) {
-        alertToast(801);
-    } else {
-        alertToast(800);
-    }
-
-}
-
 function reloadPage() {
 
     location.reload();

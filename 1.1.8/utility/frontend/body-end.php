@@ -35,6 +35,9 @@
 <script src="<?=$PATH->appJs?>/frontend/aos.js"></script>
 
 <!-- Default .css - .js -->
+<script src="<?=$PATH->appJs?>/global/utility.js"></script>
+<script src="<?=$PATH->appJs?>/global/canvas.js"></script>
+
 <script src="<?=$PATH->appJs?>/frontend/header.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/dropdown.js"></script>
