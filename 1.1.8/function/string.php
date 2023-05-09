@@ -182,7 +182,12 @@
     function prettyPhone($number) {
 
         $number = str_replace(" ", "", $number);
-        return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 2).' '.substr($number, 8, 2);
+
+        if (substr($number, 0, 3) == '+39') {
+            return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 3).' '.substr($number, 9, 4);
+        } else {
+            return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
+        }
 
     }
 
