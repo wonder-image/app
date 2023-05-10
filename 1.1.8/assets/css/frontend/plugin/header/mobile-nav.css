@@ -64,3 +64,16 @@ transition: .3s;
 #nav-mobile.show .nav-list .nav:nth-child(5) { transition-delay: .7s; }
 #nav-mobile.show .nav-list .nav:nth-child(6) { transition-delay: .8s; }
 #nav-mobile.show .nav-list .nav:nth-child(7) { transition-delay: .9s; }
+#nav-mobile.show .nav-list .nav:nth-child(8) { transition-delay: 1s; }
+#nav-mobile.show .nav-list .nav:nth-child(9) { transition-delay: 1.05s; }
+#nav-mobile.show .nav-list .nav:nth-child(10) { transition-delay: 1.10s; }
+#nav-mobile.show .nav-list .nav:nth-child(11) { transition-delay: 1.15s; }
+#nav-mobile.show .nav-list .nav:nth-child(12) { transition-delay: 1.20s; }
+#nav-mobile.show .nav-list .nav:nth-child(13) { transition-delay: 1.25s; }
+#nav-mobile.show .nav-list .nav:nth-child(14) { transition-delay: 1.30s; }
+#nav-mobile.show .nav-list .nav:nth-child(15) { transition-delay: 1.35s; }
+#nav-mobile.show .nav-list .nav:nth-child(16) { transition-delay: 1.40s; }
+#nav-mobile.show .nav-list .nav:nth-child(17) { transition-delay: 1.45s; }
+#nav-mobile.show .nav-list .nav:nth-child(18) { transition-delay: 1.50s; }
+#nav-mobile.show .nav-list .nav:nth-child(19) { transition-delay: 1.55s; }
+#nav-mobile.show .nav-list .nav:nth-child(20) { transition-delay: 1.60s; }
