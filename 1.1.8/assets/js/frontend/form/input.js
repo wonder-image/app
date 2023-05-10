@@ -127,6 +127,11 @@ function setInput() {
         element.addEventListener("focusout", controlList);
     });
 
+    document.querySelectorAll("[data-wi-search-input='true']").forEach(element => {
+        element.addEventListener("focusin", showList);
+        element.addEventListener("focusout", hideList);
+    });
+
     document.querySelectorAll("[data-wi-list-value='true']").forEach(element => {
         element.addEventListener("click", checkInput);
         element.addEventListener("mousedown", checkInput);

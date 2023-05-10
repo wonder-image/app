@@ -643,13 +643,42 @@
         return "
         <div class='wi-input-container text-list$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-list-input='true' data-wi-list-array='$listValues' onfocus $attribute>
+            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-list-input='true' data-wi-list-array='$listValues' $attribute>
             $alert
             <div id='list_$id' class='wi-input-list no-scrollbar'>
                 $optionHTML
             </div>
         </div>
         ";
+
+    }
+
+    function searchText($label, $name, $url, $value = null, $attribute = '') {
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $inputValue = "";
+
+        $class = "";
+
+        if (!empty($value)) { $class .= " compiled"; }
+        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        return "
+        <div class='wi-input-container search-url$class'>
+            <label for='$id' class='wi-label'>$label</label>
+            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-search-url='$url' data-wi-search-input='true' $attribute>
+            <span class='alert-error'></span>
+            <div id='list_$id' class='wi-input-list no-scrollbar'>
+                <div class='wi-input-list-value' data-wi-list-value='true'>
+                    <input id='' data-wi-keyword='Prova' data-wi-input='$id' type='radio' name='$name' value=''>
+                        Prova
+                </div>
+                <div class='wi-input-list-footer'>
+                    Prova
+                </div>
+            </div>
+        </div>";
 
     }
 
