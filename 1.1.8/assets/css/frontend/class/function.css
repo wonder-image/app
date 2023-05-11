@@ -97,12 +97,12 @@ scrollbar-width: none !important;
 .greyscale { filter: grayscale(1) !important; }
 
 .blur-1 { 
+-webkit-backdrop-filter: blur(calc(var(--spacer) * 1)) !important; 
 backdrop-filter: blur(calc(var(--spacer) * 1)) !important; 
--webkit-backdrop-filter: blur(var(--spacer) * 1) !important; 
 }
 .blur-2 { 
-backdrop-filter: blur(calc(var(--spacer) * 2)) !important; 
 -webkit-backdrop-filter: blur(calc(var(--spacer) * 2)) !important; 
+backdrop-filter: blur(calc(var(--spacer) * 2)) !important; 
 }
 .blur-3 { 
 backdrop-filter: blur(calc(var(--spacer) * 3)) !important; 
