@@ -671,11 +671,11 @@
             <span class='alert-error'></span>
             <div id='list_$id' class='wi-input-list no-scrollbar'>
                 <div class='wi-input-list-value' data-wi-list-value='true'>
-                    <input id='' data-wi-keyword='Prova' data-wi-input='$id' type='radio' name='$name' value=''>
+                    <input id='' data-wi-keyword='Prova' data-wi-input='$id' type='radio' name='$name' wi-name='$name' value=''>
                         Prova
                 </div>
                 <div class='wi-input-list-footer'>
-                    Prova
+                    Cerca qualcosa
                 </div>
             </div>
         </div>";

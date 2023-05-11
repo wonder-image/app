@@ -29,7 +29,11 @@ overflow: scroll;
 z-index: 2;
 transition: .3s;
 }
-.wi-input-container .wi-input-list .wi-input-list-value {
+.wi-input-container.search-url.wi-list-active .wi-input-list {
+max-height: 80%;
+}
+.wi-input-container .wi-input-list .wi-input-list-value,
+.wi-input-container .wi-input-list .wi-input-list-footer {
 width: calc(100% - 32px);
 font-size: 16px;
 height: 16px;
@@ -38,6 +42,13 @@ padding: 8px 16px;
 cursor: pointer;
 background: var(--input-bg-color);
 transition: .3s;
+}
+.wi-input-container .wi-input-list .wi-input-list-footer {
+border-top: var(--input-border-bottom) solid var(--input-border-focus);
+background: var(--input-select-hover);
+font-size: 14px;
+height: 14px;
+line-height: 14px;
 }
 .wi-input-container .wi-input-list .wi-input-list-value:hover {
 background: var(--input-select-hover);
