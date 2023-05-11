@@ -58,6 +58,17 @@
         $RETURN->addressLegal = "$RETURN->legal_street $RETURN->legal_number, $RETURN->legal_cap $RETURN->legal_city ($RETURN->legal_province)";
         $RETURN->prettyLegalAddress = "$RETURN->legal_street $RETURN->legal_number, <br> $RETURN->legal_city ($RETURN->legal_province)";
 
+        $RETURN->prettyLegal = "";
+
+        if (!empty($RETURN->legal_name)) { $RETURN->prettyLegal .= $RETURN->legal_name; }
+
+        if (!empty($RETURN->pi) && !empty($RETURN->cf)) {
+            $RETURN->prettyLegal .= ' - P.Iva e C.Fiscale '.$RETURN->pi;
+        } elseif (!empty($RETURN->pi) || !empty($RETURN->cf)) {
+            if (!empty($RETURN->pi)) { $RETURN->prettyLegal .= ' - P.Iva '.$RETURN->pi; } 
+            elseif (!empty($RETURN->cf)) { $RETURN->prettyLegal .= ' - C.Fiscale '.$RETURN->cf; }
+        }
+
         return $RETURN;
 
     }
