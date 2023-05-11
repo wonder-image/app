@@ -174,7 +174,7 @@
         902 => [
             "type" => "danger",
             "title" => "Errore 902",
-            "text" => "Questa email è già collegata a un'altro account.<br>Se è tua, prova a accedere!"
+            "text" => "Questa email è già collegata a un'altro account.<br>Se è tua, prova a accedere"
         ],
         903 => [
             "type" => "danger",
@@ -240,6 +240,11 @@
             "type" => "danger",
             "title" => "Errore 915",
             "text" => "Non hai i permessi per accedere in questo reparto!"
+        ],
+        916 => [
+            "type" => "danger",
+            "title" => "Errore 916",
+            "text" => "Questo account ha una password già impostata.<br>Prova a accedere"
         ],
         920 => [
             "type" => "danger",
