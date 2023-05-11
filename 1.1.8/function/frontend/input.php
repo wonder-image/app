@@ -667,15 +667,38 @@
         return "
         <div class='wi-input-container search-url$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-search-url='$url' data-wi-search-input='true' $attribute>
+            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-name='$name-text' name='$name' data-wi-search-url='$url' data-wi-search-text='true' $attribute>
             <span class='alert-error'></span>
             <div id='list_$id' class='wi-input-list no-scrollbar'>
-                <div class='wi-input-list-value' data-wi-list-value='true'>
-                    <input id='' data-wi-keyword='Prova' data-wi-input='$id' type='radio' name='$name' wi-name='$name' value=''>
-                        Prova
-                </div>
+                <div class='w-100 wi-input-list-body'></div>
                 <div class='wi-input-list-footer'>
-                    Cerca qualcosa
+                    Cosa stai cercando?
+                </div>
+            </div>
+        </div>";
+
+    }
+
+    function searchRadio($label, $name, $url, $value = null, $attribute = '') {
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $inputValue = "";
+
+        $class = "";
+
+        if (!empty($value)) { $class .= " compiled"; }
+        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        return "
+        <div class='wi-input-container search-url$class'>
+            <label for='$id' class='wi-label'>$label</label>
+            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-name='$name-text' data-wi-search-url='$url' data-wi-search-radio='true' $attribute>
+            <span class='alert-error'></span>
+            <div id='list_$id' class='wi-input-list no-scrollbar'>
+                <div class='w-100 wi-input-list-body'></div>
+                <div class='wi-input-list-footer'>
+                    Cosa stai cercando?
                 </div>
             </div>
         </div>";

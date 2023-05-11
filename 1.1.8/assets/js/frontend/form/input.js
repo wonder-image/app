@@ -128,7 +128,21 @@ function setInput() {
     });
 
     document.querySelectorAll("[data-wi-search-input='true']").forEach(element => {
-        element.addEventListener("focusin", showList);
+        element.addEventListener("keyup", showList);
+        element.addEventListener("keyup", searchResults);
+        element.addEventListener("change", controlList);
+        element.addEventListener("focusout", hideList);
+    });
+
+    document.querySelectorAll("[data-wi-search-text='true']").forEach(element => {
+        element.addEventListener("keyup", showList);
+        element.addEventListener("keyup", searchText);
+        element.addEventListener("focusout", hideList);
+    });
+
+    document.querySelectorAll("[data-wi-search-radio='true']").forEach(element => {
+        element.addEventListener("keyup", showList);
+        element.addEventListener("keyup", searchRadio);
         element.addEventListener("focusout", hideList);
     });
 

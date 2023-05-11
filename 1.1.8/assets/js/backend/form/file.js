@@ -23,8 +23,6 @@ function moveFile(selectorContainer, selectorData, action) {
             action: action
         },
         success: function (data) {
-
-            console.log(data);
             
             if (action == 'up') {
                 var newPosition = oldPosition - 1;

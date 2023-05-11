@@ -236,6 +236,9 @@
             if (is_array($query)) {
 
                 foreach ($query as $label => $value) {
+
+                    if (is_array($label)) { $label = $label; }
+
                     if (is_array($value)) {
     
                         $filter .= "`$label` IN (";
@@ -245,7 +248,7 @@
     
                         $filter .= ") AND ";
     
-                    }else{
+                    } else {
                         $filter .= "`$label` = '$value' AND ";
                     }
                 }

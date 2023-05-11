@@ -74,10 +74,80 @@ function controlList(event) {
 
 }
 
-function showList(event) {
-    event.target.parentElement.classList.add('wi-list-active');
-}
+function showList(event) { event.target.parentElement.classList.add('wi-list-active'); }
 
-function hideList(event) {
-    event.target.parentElement.classList.remove('wi-list-active');
+function hideList(event) { event.target.parentElement.classList.remove('wi-list-active'); }
+
+function searchText(event) { searchResults(event, "text"); }
+
+function searchRadio(event) { searchResults(event, "radio"); }
+
+function searchResults(event, result) {
+
+    var input = event.target;
+
+    var container = input.parentElement;
+
+    var list = container.querySelector('.wi-input-list');
+    var listValue = list.querySelector('.wi-input-list-body');
+    var listFooter = list.querySelector('.wi-input-list-footer');
+
+    var inputId = input.id;
+    var inputName = input.dataset.wiName;
+    var inputValue = input.value.toLowerCase();
+
+    var inputUrl = input.dataset.wiSearchUrl;
+
+    if (result == 'radio') {
+        var radioName = "name='"+inputName+"'";
+    } else {
+        var radioName = "";
+    }
+
+    $.ajax({
+        type: "POST",
+        url: inputUrl,
+        data: { 
+            post: 'true',
+            search: inputValue
+        }, 
+        success: function (data) {
+
+            const response = JSON.parse(data);
+            const nResponse = response.length;
+            
+            var listHTML = "";
+
+            for (let index = 0; index < nResponse; index++) {
+
+                const value = response[index]['value'];
+                const label = response[index]['label'];
+                const inputValue = response[index]['input-value'];
+
+                listHTML += "<div class='wi-input-list-value' data-wi-list-value='true'><input data-wi-input='"+inputId+"' type='radio' "+radioName+" data-wi-name='"+inputValue+"' value='"+value+"'>"+label+"</div>";
+
+            }
+
+            if (inputValue == '') {
+                listFooter.innerHTML = "Cosa stai cercando?";
+            } else if (nResponse == 1) {
+                listFooter.innerHTML = nResponse+" risultato";
+            } else if (nResponse != 1) {
+                listFooter.innerHTML = nResponse+" risultati";
+            }
+
+            listValue.innerHTML = listHTML;
+
+            document.querySelectorAll("[data-wi-list-value='true']").forEach(element => {
+                element.addEventListener("click", checkInput);
+                element.addEventListener("mousedown", checkInput);
+            });
+
+        },
+        error: function (XMLHttpRequest) {
+            ajaxRequestError(XMLHttpRequest);
+            loadingSpinner();
+        }
+    });
+
 }
