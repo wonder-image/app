@@ -2,7 +2,11 @@
 
     function infoUser($value, $filter = 'id') {
 
-        $SQL = sqlSelect('user', [$filter => $value], 1);
+        if ($filter == 'id') {
+            $SQL = sqlSelect('user', [$filter => $value], 1);
+        } else {
+            $SQL = sqlSelect('user', [$filter => $value, 'deleted' => 'false'], 1);
+        }
         
         $RETURN = (object) array();
         $RETURN->exists = $SQL->exists;
