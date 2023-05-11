@@ -70,8 +70,6 @@
 
     function unique($str, $table, $column, $id = null) {
 
-        // global $ALERT;
-
         $unique = true;
 
         if ($id != null) {
@@ -90,17 +88,7 @@
 
         $SQL = sqlSelect($table, $QUERY);
 
-        if ($SQL->exists) {
-            $unique = false;
-        }
-
-        // if (!$unique) {
-        //     if ($column == 'link') { $ALERT = 971;} 
-        //     elseif ($column == 'code') { $ALERT = 972;}
-        //     elseif ($column == 'email') { $ALERT = 973;}
-        //     elseif ($column == 'username') { $ALERT = 974;}
-        //     else { $ALERT = 970;}
-        // }
+        if ($SQL->exists) { $unique = false; }
 
         return $unique;
 
