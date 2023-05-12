@@ -1,6 +1,6 @@
 const AUTONUMERIC_NUMBER = {
     caretPositionOnFocus: 'end',
-    decimalPlacesShownOnFocus: 0,
+    decimalPlaces: 0,
     digitGroupSeparator: '',
     outputFormat: '.'
 };
