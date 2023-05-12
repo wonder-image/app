@@ -27,6 +27,9 @@ for (i = 0; i < l; i++) {
         c.setAttribute("class", "wi-input-list-value");
         c.innerHTML = selElmnt.options[j].innerHTML;
 
+        // Se è impostato un valore di default selezionalo
+        if (selElmnt.value != undefined) { if (c.id == selElmnt.value) { c.classList.add("same-as-selected"); } }
+
         c.addEventListener("click", function(e) {
 
             // When an item is clicked, update the original select box, and the selected item:
@@ -53,6 +56,10 @@ for (i = 0; i < l; i++) {
             h.click();
 
         });
+
+        // Passa le funzioni onchange dal select alle nuove opzioni
+        c.onclick = selElmnt.onchange;
+        c.mousedown = selElmnt.onchange;
 
         b.appendChild(c);
 
