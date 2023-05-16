@@ -9,24 +9,32 @@
 
     header("Content-type: text/css");
 
-    for ($i=0; $i <= 150; $i + 5) { 
-        echo ".w-$i { width: $i% !important; }";
-        echo ".max-w-$i { max-width: $i% !important; }";
-        echo ".h-$i { height: $i% !important; }";
-        echo ".max-h-$i { max-height: $i% !important; }";
-        echo "@media (max-width: 1000px) {";
-        echo ".w-t-$i { width: $i% !important; }";
-        echo ".max-w-t-$i { max-width: $i% !important; }";
-        echo ".h-t-$i { height: $i% !important; }";
-        echo ".max-h-t-$i { max-height: $i% !important; }";
-        echo "}";
-        echo "@media (max-width: 768px) {";
-        echo ".w-p-$i { width: $i% !important; }";
-        echo ".max-w-p-$i { max-width: $i% !important; }";
-        echo ".h-p-$i { height: $i% !important; }";
-        echo ".max-h-p-$i { max-height: $i% !important; }";
-        echo "}";
+    $PC = "";
+    $TABLET = "";
+    $PHONE = "";
+
+    for ($i=0; $i <= 150; $i+=5) { 
+
+        $PC .= ".w-$i { width: $i% !important; }";
+        $PC .= ".max-w-$i { max-width: $i% !important; }";
+        $PC .= ".h-$i { height: $i% !important; }";
+        $PC .= ".max-h-$i { max-height: $i% !important; }";
+
+        $TABLET .= ".w-t-$i { width: $i% !important; }";
+        $TABLET .= ".max-w-t-$i { max-width: $i% !important; }";
+        $TABLET .= ".h-t-$i { height: $i% !important; }";
+        $TABLET .= ".max-h-t-$i { max-height: $i% !important; }";
+
+        $PHONE .= ".w-p-$i { width: $i% !important; }";
+        $PHONE .= ".max-w-p-$i { max-width: $i% !important; }";
+        $PHONE .= ".h-p-$i { height: $i% !important; }";
+        $PHONE .= ".max-h-p-$i { max-height: $i% !important; }";
+        
     }
+
+    echo "$PC";
+    echo "@media (max-width: 1000px) { $TABLET }";
+    echo "@media (max-width: 768px) { $PHONE }";
 
 ?>
 .w-auto { width: auto !important; }
