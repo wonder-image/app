@@ -9,7 +9,7 @@
 
     header("Content-type: text/css");
 
-    for ($i=0; $i <= 130; $i + 5) { 
+    for ($i=0; $i <= 150; $i + 5) { 
         echo ".w-$i { width: $i% !important; }";
         echo ".max-w-$i { max-width: $i% !important; }";
         echo ".h-$i { height: $i% !important; }";
