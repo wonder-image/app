@@ -143,10 +143,10 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/resize.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/position.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/grid.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.php">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.php">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/section.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/dimension.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/dimension.php">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/function.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/text.css">
 
