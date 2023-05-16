@@ -10,12 +10,20 @@ line-height: var(--line-height);
 background: var(--bg-color);
 color: var(--tx-color);
 }
- 
+
 body.block-scroll {
 overflow: hidden
 }
 
-header, footer, div, img, table {
+header, 
+footer,
+header div,
+header img,
+footer div,
+footer img,
+section div,
+section img,
+section table {
 position: relative;
 float: left;
 }
