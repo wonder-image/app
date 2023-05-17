@@ -185,4 +185,21 @@
 
     }
 
+    function calcYear($initialDate, $finalDate = null) {
+
+        $initialDate = new DateTime($initialDate);
+
+        if ($finalDate == null) { 
+            $finalDate = new DateTime(date('Y-m-d'));
+        } else {
+            $finalDate = new DateTime($finalDate);
+        }
+
+        $diff = $initialDate->diff($finalDate);
+        $year = $diff->format('%y');
+
+        return $year;
+
+    }
+    
 ?>
