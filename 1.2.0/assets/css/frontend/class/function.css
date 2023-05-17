@@ -202,6 +202,15 @@ object-position: left !important;
 background-position: left !important;
 }
 
+.skeleton {
+animation: skeleton-loading 1s linear infinite alternate;
+}
+
+@keyframes skeleton-loading {
+0% { background-color: hsl(10, 0%, 85%); }
+100% { background-color: hsl(10, 0%, 95%); }
+}
+
 @media (max-width: 768px) {
 div.bg-img-f {
 position: absolute;
