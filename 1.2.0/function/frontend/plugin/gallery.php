@@ -69,7 +69,7 @@
 
                 $RETURN .= "
                 <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
-                    <img src='$src' alt='$alt' class='p-r f-start w-100' loading='lazy'>
+                    <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton' loading='lazy' style='min-height: 120px'>
                 </a>";             
             }
 
@@ -92,7 +92,7 @@
 
                 $RETURN .= "
                 <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
-                    <img src='$src' alt='$alt' class='p-r f-start w-100' loading='lazy'>
+                    <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton' loading='lazy' style='min-height: 120px'>
                 </a>"; 
             
             }
@@ -116,7 +116,7 @@
 
                 $RETURN .= "
                 <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
-                    <img src='$src' alt='$alt' class='p-r f-start w-100' loading='lazy'>
+                    <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton' loading='lazy' style='min-height: 80px'>
                 </a>"; 
             
             }
