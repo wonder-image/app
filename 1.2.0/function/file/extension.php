@@ -4,7 +4,7 @@
 
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-        $mime_type = array( 
+        $mime_type = [ 
             'txt' => 'text/plain',
             'htm' => 'text/html',
             'html' => 'text/html',
@@ -60,7 +60,7 @@
             // open office
             'odt' => 'application/vnd.oasis.opendocument.text',
             'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
-        );
+        ];
 
         if (isset( $mime_type[$extension] )) {
         return $mime_type[$extension];
