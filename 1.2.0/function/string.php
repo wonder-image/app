@@ -187,15 +187,16 @@
 
     function calcYear($initialDate, $finalDate = null) {
 
-        $initialDate = new DateTime($initialDate);
+        $initialDate = str_replace('/', '-', $initialDate);
+        $initialDate = date('Y-m-d', strtotime($initialDate));
 
         if ($finalDate == null) { 
-            $finalDate = new DateTime(date('Y-m-d'));
+            $finalDate = date('Y-m-d');
         } else {
-            $finalDate = new DateTime($finalDate);
+            $finalDate = date('Y-m-d', strtotime($finalDate));
         }
 
-        $diff = $initialDate->diff($finalDate);
+        $diff = date_diff(date_create($initialDate), date_create($finalDate));
         $year = $diff->format('%y');
 
         return $year;
