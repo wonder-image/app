@@ -87,6 +87,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
 
+    <!-- Panzoom -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/panzoom/panzoom.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/panzoom/panzoom.css">
+
     <!-- Video.js -->
     <link href="https://unpkg.com/video.js@7/dist/video-js.min.css" rel="stylesheet">
     <link href="https://unpkg.com/@videojs/themes@1/dist/city/index.css" rel="stylesheet">
