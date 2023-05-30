@@ -19,6 +19,8 @@ right: var(--alert-right);
 }
 .wi-alert .wi-alert-header,
 .wi-alert .wi-alert-body {
+position: relative;
+float: left;
 width: 100%;
 padding: calc(var(--spacer) * 3); 
 box-sizing: border-box;
