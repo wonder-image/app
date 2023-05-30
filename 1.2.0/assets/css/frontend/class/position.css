@@ -2,10 +2,12 @@
 .p-r { position: relative !important; }
 .p-a { position: absolute !important; }
 .p-f { position: fixed !important; }
+.p-u { position: unset !important; }
 
 /* Float */
 .f-start { float: left !important; }
 .f-end { float: right !important; }
+.f-none { float: none !important; }
 
 /* Absolut position */
 .top { top: 0 !important; }
@@ -85,6 +87,9 @@ padding-top: calc((100% / 9) * 16);
 .d-grid { display: grid !important; }
 .d-table { display: table !important; }
 .d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-inline-flex { display: inline-flex !important; }
+.d-inline-table { display: inline-table !important; }
 
 /* Justify */
 .j-content-start { justify-content: start; }
@@ -100,10 +105,12 @@ padding-top: calc((100% / 9) * 16);
 .p-t-r { position: relative !important; }
 .p-t-a { position: absolute !important; }
 .p-t-f { position: fixed !important; }
+.p-t-u { position: unset !important; }
 
 /* Float */
 .f-t-start { float: left !important; }
 .f-t-end { float: right !important; }
+.f-t-none { float: none !important; }
 
 /* Absolut position */
 .t-top { top: 0 !important; }
@@ -182,10 +189,12 @@ padding-top: calc((100% / 9) * 16);
 .p-p-r { position: relative !important; }
 .p-p-a { position: absolute !important; }
 .p-p-f { position: fixed !important; }
+.p-p-u { position: unset !important; }
 
 /* Float */
 .f-p-start { float: left !important; }
 .f-p-end { float: right !important; }
+.f-p-none { float: none !important; }
 
 /* Absolut position */
 .p-top { top: 0 !important; }
