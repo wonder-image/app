@@ -94,6 +94,7 @@ scrollbar-width: none !important;
 .no-interaction { pointer-events: none !important; }
 
 .multiply { mix-blend-mode: multiply !important; }
+.overlay { mix-blend-mode: overlay !important; }
 .greyscale { filter: grayscale(1) !important; }
 
 .blur-1 { 
