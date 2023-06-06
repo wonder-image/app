@@ -56,6 +56,21 @@
             "title" => "Password impostata",
             "text" => "Password impostata con successo.<br>Prova a accedere!"
         ],
+        612 => [
+            "type" => "success",
+            "title" => "Rimosso dal carrello",
+            "text" => "Il carrello è stato aggiornato correttamente"
+        ],
+        613 => [
+            "type" => "danger",
+            "title" => "Prodotto non disponibile",
+            "text" => "Il prodotto non è disponibile"
+        ],
+        614 => [
+            "type" => "danger",
+            "title" => "Prodotto non disponibile",
+            "text" => "Il prodotto non è disponibile nella quantità desiderata"
+        ],
         650 => [
             "type" => "success",
             "title" => "Modificato",
