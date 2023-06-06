@@ -23,13 +23,9 @@
             $found = false;
             $link = $str;
 
-            if ($id != null) {
-                $QUERY = "`id` != '$id' AND ";
-            }else{
-                $QUERY = "";
-            }
-
             for ($i=1; $i > 0 && !$found; $i++) {
+
+                $QUERY = ($id != null) ? "`id` != '$id' AND " : "";
 
                 if (sqlColumnExists($table, 'deleted')) {
 
@@ -41,7 +37,7 @@
 
                 $SQL = sqlSelect($table, $QUERY);
 
-                if ($SQL->Nrow == 1) {
+                if ($SQL->exists) {
                     $link = $str.'-'.$i;
                 }else{
                     $found = true;
