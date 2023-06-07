@@ -71,6 +71,16 @@
             "title" => "Prodotto non disponibile",
             "text" => "Il prodotto non è disponibile nella quantità desiderata"
         ],
+        615 => [
+            "type" => "danger",
+            "title" => "Prodotto non disponibili",
+            "text" => "Un prodotto è stato rimossi dal tuo carrello perchè non è più disponibile"
+        ],
+        616 => [
+            "type" => "danger",
+            "title" => "Prodotti non disponibili",
+            "text" => "Alcuni prodotti sono stati rimossi dal tuo carrello perchè non sono più disponibili"
+        ],
         650 => [
             "type" => "success",
             "title" => "Modificato",
