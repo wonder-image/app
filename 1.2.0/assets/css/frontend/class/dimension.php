@@ -17,18 +17,24 @@
 
         $PC .= ".w-$i { width: $i% !important; }";
         $PC .= ".max-w-$i { max-width: $i% !important; }";
+        $PC .= ".min-w-$i { min-width: $i% !important; }";
         $PC .= ".h-$i { height: $i% !important; }";
         $PC .= ".max-h-$i { max-height: $i% !important; }";
+        $PC .= ".min-h-$i { min-height: $i% !important; }";
 
         $TABLET .= ".w-t-$i { width: $i% !important; }";
         $TABLET .= ".max-w-t-$i { max-width: $i% !important; }";
+        $TABLET .= ".min-w-t-$i { min-width: $i% !important; }";
         $TABLET .= ".h-t-$i { height: $i% !important; }";
         $TABLET .= ".max-h-t-$i { max-height: $i% !important; }";
+        $TABLET .= ".min-h-t-$i { min-height: $i% !important; }";
 
         $PHONE .= ".w-p-$i { width: $i% !important; }";
         $PHONE .= ".max-w-p-$i { max-width: $i% !important; }";
+        $PHONE .= ".min-w-p-$i { min-width: $i% !important; }";
         $PHONE .= ".h-p-$i { height: $i% !important; }";
         $PHONE .= ".max-h-p-$i { max-height: $i% !important; }";
+        $PHONE .= ".min-h-p-$i { min-height: $i% !important; }";
         
     }
 
