@@ -100,6 +100,12 @@
                 "contrast" => "var(--dark-color)"
             ],
             [
+                "var" => "gray",
+                "name" => "Grigio",
+                "color" => "#cccccc",
+                "contrast" => "#000000"
+            ],
+            [
                 "var" => "black",
                 "name" => "Nero",
                 "color" => "#000000",
