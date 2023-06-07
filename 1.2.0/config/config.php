@@ -102,7 +102,7 @@
             [
                 "var" => "gray",
                 "name" => "Grigio",
-                "color" => "#cccccc",
+                "color" => "#eeeeee",
                 "contrast" => "#000000"
             ],
             [
