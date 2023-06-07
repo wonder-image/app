@@ -101,7 +101,7 @@
                     'authority' => ['admin']
                 ],
                 [
-                    'title' => 'Dropdown',
+                    'title' => 'Box',
                     'folder' => 'css-dropdown',
                     'file' => '',
                     'authority' => ['admin']
