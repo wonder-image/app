@@ -32,7 +32,7 @@ function alertToast(alert) {
 
         container.innerHTML += NO_INTERNET_ALERT;
 
-    }else{
+    } else {
 
         $.ajax({
             type: "POST",
