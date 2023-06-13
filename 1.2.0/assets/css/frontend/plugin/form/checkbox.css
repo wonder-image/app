@@ -17,7 +17,7 @@ padding: 0px calc(16px + var(--input-border-right)) 0px calc(16px + var(--input-
 }
 .wi-input-container .wi-checkbox-container {
 width: 100%;
-margin-top: 6px;
+margin-top: calc(var(--spacer) * 4);
 }
 .wi-input-container .wi-checkbox-container:first-child {
 margin: 0;
@@ -27,35 +27,36 @@ width: 24px;
 height: 24px;
 line-height: 24px;
 border-radius: var(--input-border-radius);
-border: 2px solid var(--input-border-color);
+border: var(--input-border-bottom) solid var(--input-border-color);
 background: var(--input-bg-color);
 transition: .1s;
 cursor: pointer;
 z-index: 3;
 }
 .wi-input-container .wi-checkbox-container .wi-checkbox:hover {
-border: 2px solid var(--input-border-focus);
+border: var(--input-border-bottom) solid var(--input-border-focus);
 }
 .wi-input-container .wi-checkbox-container .wi-checkbox:checked {
-border: 2px solid var(--input-border-focus);
+border: var(--input-border-bottom) solid var(--input-border-focus);
 z-index: 1;
 }
 .wi-input-container .wi-checkbox-container .wi-checkbox-label {
 width: calc(100% - 30px);
 margin-left: 6px;
-line-height: 24px;
-font-size: 16px;
+margin-top: calc((24px - var(--text-line-height)) / 2);
+line-height: var(--text-line-height);
+font-size: var(--text-font-size);
+font-weight: var(--text-font-weight);
 cursor: pointer;
 } 
 .wi-input-container .wi-checkbox-container .wi-checkbox-icon {
 position: absolute;
-width: 20px;
-height: 20px;
-line-height: 20px;
+width: calc(22px + (var(--input-border-bottom) * 2));
+height: calc(22px + (var(--input-border-bottom) * 2));
+line-height: calc(22px + (var(--input-border-bottom) * 2));
 text-align: center;
 color: var(--input-border-focus);
-font-size: 12px;
-margin: 2px 0px 0 2px;
+font-size: 13px;
 pointer-events: none;
 z-index: 2;
 }
