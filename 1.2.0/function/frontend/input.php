@@ -639,6 +639,7 @@
 
         $listValues = implode("|",$listValues);
         $listValues = str_replace("'", "",$listValues);
+        $listValues = strtolower($listValues);
 
         return "
         <div class='wi-input-container text-list$class'>

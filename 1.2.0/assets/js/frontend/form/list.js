@@ -43,7 +43,7 @@ function controlList(event) {
     var spanAlert = container.querySelector('.alert-error');
     
     var l = element.dataset.wiListArray.split('|');
-    var v = element.value;
+    var v = element.value.toLowerCase();
 
     if (v != '') {
         if (l.includes(v)) {
@@ -51,8 +51,10 @@ function controlList(event) {
             spanAlert.innerHTML = "";
             container.classList.remove('input-error');
             element.setCustomValidity('');
+
             container.querySelectorAll('input[type=radio]').forEach(e => {
-                if (e.dataset.name == v) {
+                var name = e.dataset.wiName;
+                if (name.toLowerCase() == v) {
                     e.checked = true;
                 }else{
                     e.checked = false;
