@@ -786,18 +786,18 @@
             if ($value != null) {
                 if ($type == 'checkbox') {
                     if (in_array($vl, $value)) {
-                        $attribute = " checked";
+                        $attribute = "checked ";
                     }
                 }else{
                     if ($value == $vl) {
-                        $attribute = " checked";
+                        $attribute = "checked ";
                     }
                 }
             }
 
             if (is_array($nm)) {
                 $checkboxLabel = $nm['label'];
-                $attribute = $nm['attribute'];
+                $attribute .= $nm['attribute'];
             } else {
                 $checkboxLabel = $nm;
             }
@@ -812,7 +812,7 @@
                 <div class='wi-checkbox-icon'>
                     <i class='bi bi-check-lg'></i>
                 </div>
-                <label for='$id' class='wi-checkbox-label'>$checkboxLabel</label>
+                <label for='$id' class='wi-checkbox-label unselectable'>$checkboxLabel</label>
             </div>";
 
             $i++;
