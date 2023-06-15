@@ -11,16 +11,18 @@
         } else {
 
             $RETURN = (object) array();
-            $RETURN->color = $array[$key]['color'];
-            $RETURN->name = $array[$key]['name'];
-            $RETURN->text = $array[$key]['text'];
-            $RETURN->classIcon = $array[$key]['icon'];
+
+            foreach ($array[$key] as $k => $v) { $RETURN->$k = $v; }
+
+            $RETURN->color = isset($RETURN->color) ? $RETURN->color : '';
+            $RETURN->name = isset($RETURN->name) ? $RETURN->name : '';
+            $RETURN->text = isset($RETURN->text) ? $RETURN->text : '';
+            $RETURN->classIcon = isset($RETURN->icon) ? $RETURN->icon : '';
 
             $RETURN->icon = "<i class='$RETURN->classIcon'></i>";
             $RETURN->tooltip = "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'></i>";
-            $RETURN->badge = "<span class='badge text-bg-$RETURN->bootstrapColor'>$RETURN->name</span>";
-            $RETURN->badgeIcon = "<span class='badge text-bg-$RETURN->bootstrapColor'>$RETURN->icon</span>";
-
+            $RETURN->badge = "<span class='badge text-bg-$RETURN->color'>$RETURN->name</span>";
+            $RETURN->badgeIcon = "<span class='badge text-bg-$RETURN->color'>$RETURN->icon</span>";
 
         }
 
