@@ -113,6 +113,8 @@
         global $SOCIETY;
 
         $RETURN = "";
+        
+        $body = sanitizeEcho($body);
 
         if ($template == 'basic') {
 
