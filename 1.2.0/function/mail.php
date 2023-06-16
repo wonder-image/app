@@ -10,9 +10,9 @@
             $boundary = "==Multipart_Boundary_x".md5(time())."x";
 
         // Intestazioni dell'email
-            $headers = "From: $SOCIETY_NAME <$from>\n";
-            $headers .= "MIME-Version: 1.0\n";
-            $headers .= "Content-Type: multipart/mixed; boundary=\"".$boundary."\"\n";
+            $headers = "From: $SOCIETY_NAME <$from>\r\n";
+            $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: multipart/mixed; boundary=\"".$boundary."\"\r\n";
 
         // Contenuto HTML
             $message = "--$boundary\n";
