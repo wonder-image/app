@@ -234,7 +234,7 @@
                 $ALERT = 905; 
             }
         } else {
-            $ALERT = 901;   
+            $ALERT = ($KEY == 'email') ? 904 : 901;
         }
         
     }

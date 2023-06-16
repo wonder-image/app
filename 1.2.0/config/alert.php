@@ -209,7 +209,7 @@
         904 => [
             "type" => "danger",
             "title" => "Errore 904",
-            "text" => "Questa email non coincide con la password che hai inserito"
+            "text" => "Questa email non esiste"
         ],
         905 => [
             "type" => "danger",
