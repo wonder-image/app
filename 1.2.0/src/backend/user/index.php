@@ -47,7 +47,7 @@
                 $authority = permissions($_POST['authority'])->name;
 
                 $content = "
-                Ciao <b>".$_POST['name']."</b>, benvenuto/a nello staff. <br>
+                Ciao ".$_POST['name'].", benvenuto/a nello staff. <br>
                 <br>
                 Queste sono le tue credenziali: <br>
                 Link accesso: <a href='$PATH->backend'>Clicca qui</a> <br>
