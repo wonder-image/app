@@ -166,8 +166,8 @@
         if ($USER_ID == null) {
                 
             header("Location: $login_redirect");
-            exit();
-            
+            exit;
+
         } else {
 
             $USER = infoUser($USER_ID);
@@ -257,9 +257,7 @@
                 if ($USER->active == 'true') {
                     if ($AREA == null ||in_array($AREA, $USER->area)) {
                         if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $USER->authority)) {
-
                             $RETURN->response = true;
-
                         } else {
                             $ALERT = 915;
                         }
