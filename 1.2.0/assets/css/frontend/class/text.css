@@ -138,3 +138,79 @@ display: -webkit-box;
 -webkit-box-orient: vertical;  
 overflow: hidden;
 }
+
+@media (max-width: 1000px) {
+.t-title-big {
+width: 100%;
+font-size: var(--title-big-font-size) !important;
+line-height: var(--title-big-line-height) !important;
+font-family: var(--title-big-font-family) !important;
+font-weight: var(--title-big-font-weight) !important;
+}
+.t-title {
+width: 100%;
+font-size: var(--title-font-size) !important;
+line-height: var(--title-line-height) !important;
+font-family: var(--title-font-family) !important;
+font-weight: var(--title-font-weight) !important;
+}
+.t-subtitle {
+width: 100%;
+font-size: var(--subtitle-font-size) !important;
+line-height: var(--subtitle-line-height) !important;
+font-family: var(--subtitle-font-family) !important;
+font-weight: var(--subtitle-font-weight) !important;
+}
+.t-text {
+width: 100%;
+font-size: var(--text-font-size) !important;
+line-height: var(--text-line-height) !important;
+font-family: var(--text-font-family) !important;
+font-weight: var(--text-font-weight) !important;
+}
+.t-text-small {
+width: 100%;
+font-size: var(--text-small-font-size) !important;
+line-height: var(--text-small-line-height) !important;
+font-family: var(--text-small-font-family) !important;
+font-weight: var(--text-small-font-weight) !important;
+}
+}
+
+@media (max-width: 768px) {
+.p-title-big {
+width: 100%;
+font-size: var(--title-big-font-size) !important;
+line-height: var(--title-big-line-height) !important;
+font-family: var(--title-big-font-family) !important;
+font-weight: var(--title-big-font-weight) !important;
+}
+.p-title {
+width: 100%;
+font-size: var(--title-font-size) !important;
+line-height: var(--title-line-height) !important;
+font-family: var(--title-font-family) !important;
+font-weight: var(--title-font-weight) !important;
+}
+.p-subtitle {
+width: 100%;
+font-size: var(--subtitle-font-size) !important;
+line-height: var(--subtitle-line-height) !important;
+font-family: var(--subtitle-font-family) !important;
+font-weight: var(--subtitle-font-weight) !important;
+}
+.p-text {
+width: 100%;
+font-size: var(--text-font-size) !important;
+line-height: var(--text-line-height) !important;
+font-family: var(--text-font-family) !important;
+font-weight: var(--text-font-weight) !important;
+}
+.p-text-small {
+width: 100%;
+font-size: var(--text-small-font-size) !important;
+line-height: var(--text-small-line-height) !important;
+font-family: var(--text-small-font-family) !important;
+font-weight: var(--text-small-font-weight) !important;
+}
+}
