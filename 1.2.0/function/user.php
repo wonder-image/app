@@ -166,7 +166,8 @@
         if ($USER_ID == null) {
                 
             header("Location: $login_redirect");
-
+            exit();
+            
         } else {
 
             $USER = infoUser($USER_ID);
