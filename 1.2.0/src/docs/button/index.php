@@ -26,9 +26,6 @@
 </head>
 <body>
 
-    <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
-    <?php include $ROOT.'/docs/utility/header.php' ?>
-
     <section id="modal-test" class="wi-modal no-interaction">
 
         <div class="bg wi-close-modal"></div>
@@ -75,15 +72,9 @@
             <form action="" class="wi-modal-form" method="post" enctype="multipart/form-data">
                 <div class="wi-modal-body no-scrollbar text">
                     <div class="w-100 d-grid col-1 gap-5">
-                        <?=textInput("Testo", 'text', '')?>
-                        <?=numberInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
-                        <?=textareaInput("Numero", 'date', '')?>
+                        <?=text("Testo", 'text', '')?>
+                        <?=number("Numero", 'number', '')?>
+                        <?=textarea("Campo libero", 'textarea', '')?>
                     </div>
                 </div>
                 <div class="wi-modal-footer">
@@ -100,6 +91,9 @@
         </div>
 
     </section>
+
+    <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
+    <?php include $ROOT.'/docs/utility/header.php' ?>
 
     <div class="w-100">
         <div class="title mb-4">
