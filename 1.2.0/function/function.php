@@ -7,8 +7,6 @@
     require_once $ROOT_APP."/function/info.php";
     require_once $ROOT_APP."/function/date.php";
     require_once $ROOT_APP."/function/mail.php";
-    require_once $ROOT_APP."/function/geo.php";
-    require_once $ROOT_APP."/function/color.php";
     require_once $ROOT_APP.'/function/user.php';
 
     require_once $ROOT_APP."/function/other/function.php";
