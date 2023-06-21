@@ -6,7 +6,7 @@
             
             $RETURN = [];
 
-            foreach ($array as $key => $value) { $RETURN[$key] = $value['text']; }
+            foreach ($array as $key => $value) { $RETURN[$key] = $value; }
 
         } else {
 
