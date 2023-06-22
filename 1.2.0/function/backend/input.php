@@ -462,36 +462,22 @@
             $script = "";
         }
 
-        if ($checkbox == 'checkbox') {
-            $name = $nameReal.'[]';
-        }else{
-            $name = $nameReal;
-        }
+        $name = ($checkbox == 'checkbox') ? $nameReal.'[]' : $nameReal;
 
         foreach ($option as $nm => $vl) {
 
             if (is_array($value)) {
-                if (in_array($nm, $value)) {
-                    $att = "checked";
-                }else{
-                    $att = "";
-                }
+                $att = in_array($nm, $value) ? "checked" : "";
             }else{
-                if ($nm == $value) {
-                    $att = "checked";
-                }else{
-                    $att = "";
-                }
+                $att = ($nm == $value) ? "checked" : "";
             }
 
             if (is_array($vl)) {
 
-                $filter = $vl['filter'];
+                $filter = isset($vl['filter']) ? $vl['filter'] : [];
                 $vl = $vl['name'];
 
-                foreach ($filter as $key => $v) {
-                    $dataFilter .= "data-$key='$v' ";
-                }
+                foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
 
             }
 
