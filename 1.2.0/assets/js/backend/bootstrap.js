@@ -16,3 +16,10 @@ function bootstrapTooltip() {
     });
 
 }
+
+
+function setUpBootstrap() {
+    
+    bootstrapTooltip();
+
+}

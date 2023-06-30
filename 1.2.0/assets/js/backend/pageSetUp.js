@@ -99,7 +99,10 @@ function pageRemove(element) {
 }
 
 async function setUpPage() {
+
     await createCard();
     checkInput();
-    bootstrapTooltip();
+    setUpBootstrap();
+    setUpJquery();
+
 };

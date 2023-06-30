@@ -24,6 +24,7 @@
 <script src="<?=$PATH->appJs?>/backend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/backend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>
+<script src="<?=$PATH->appJs?>/backend/jquery.js"></script>
 <script src="<?=$PATH->appJs?>/backend/pageSetUp.js"></script>
 
 <!-- Custom .css - .js  -->

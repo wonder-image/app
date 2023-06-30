@@ -3,7 +3,10 @@
     function filterLimit() {
 
         global $QUERY_CUSTOM;
+
         global $QUERY_ORDER;
+        global $QUERY_DIRECTION;
+
         global $TEXT;
         global $NAME;
 
@@ -38,9 +41,19 @@
             }
 
             if (isset($QUERY_ORDER) && !empty($QUERY_ORDER)) {
+
                 $QUERY .= "ORDER BY $QUERY_ORDER ";
+
+                if (isset($QUERY_DIRECTION) && !empty($QUERY_DIRECTION)) {
+                    $QUERY .= "$QUERY_DIRECTION ";
+                } else {
+                    $QUERY .= "ASC ";
+                }
+
             } else {
+
                 $QUERY .= "ORDER BY `creation` DESC ";
+
             }
 
             $QUERY .= "LIMIT $LIMIT";
@@ -105,8 +118,14 @@
     function filterDate() {
 
         global $QUERY_CUSTOM;
+
+        global $QUERY_ORDER;
+        global $QUERY_DIRECTION;
+
         global $FILTER_COLUMN;
+
         global $HOW_MANY_DAYS;
+
         global $TEXT;
         global $NAME;
 
@@ -224,7 +243,23 @@
             list($day,$month,$year) = explode("/", $to);
             $SQL_to = "$year-$month-$day";
 
-            $QUERY .= "AND `$COLUMN` BETWEEN '$SQL_from 00:00:00' AND '$SQL_to 23:59:59'";
+            $QUERY .= "AND `$COLUMN` BETWEEN '$SQL_from 00:00:00' AND '$SQL_to 23:59:59' ";
+
+            if (isset($QUERY_ORDER) && !empty($QUERY_ORDER)) {
+
+                $QUERY .= "ORDER BY $QUERY_ORDER ";
+
+                if (isset($QUERY_DIRECTION) && !empty($QUERY_DIRECTION)) {
+                    $QUERY .= "$QUERY_DIRECTION ";
+                } else {
+                    $QUERY .= "ASC ";
+                }
+
+            } else {
+
+                $QUERY .= "ORDER BY `creation` DESC ";
+                
+            }
 
             $limitAllOutline = "-outline";
 
@@ -258,7 +293,7 @@
         }
 
         $RETURN = (object) array();
-        $RETURN->selected_lines = !empty($SELECTED_LINES) ? $SELECTED_LINES : sqlSelect($NAME->table, $QUERY, null, $COLUMN, 'DESC')->Nrow;
+        $RETURN->selected_lines = !empty($SELECTED_LINES) ? $SELECTED_LINES : sqlSelect($NAME->table, $QUERY)->Nrow;
         $RETURN->lines = $LINES;
         $RETURN->from = $from;
         $RETURN->to = $to;
@@ -273,7 +308,7 @@
         $RETURN->html = "
         <div class='col-5 p-0'>
             <form method='get'>
-                <div class='input-group input-group-sm input-daterange'>
+                <div class='input-group input-group-sm input-daterange wi-daterange-filter'>
                     <span class='input-group-text'>Da</span>
                     <input type='text' class='form-control bg-transparent' name='from' value='$from' readonly>
                     <span class='input-group-text'>A</span>
@@ -321,6 +356,8 @@
         global $NAME;
         global $TEXT;
         global $FILTER_SEARCH;
+        global $FILTER_ORDER;
+        global $FILTER_DIRECTION;
         global $QUERY_CUSTOM;
 
         $ARROW = true;
@@ -347,6 +384,22 @@
 
         }
 
+        if (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
+
+            $QUERY .= "ORDER BY `$FILTER_ORDER` ";
+
+            if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
+                $QUERY .= "$FILTER_DIRECTION ";
+            } else {
+                $QUERY .= "ASC ";
+            }
+
+        } else {
+
+            $QUERY .= "ORDER BY `creation` DESC ";
+
+        }
+
         $SQL = sqlSelect($NAME->table, $QUERY);
         
         $RETURN = (object) array();
@@ -364,6 +417,8 @@
         global $NAME;
         global $TEXT;
         global $FILTER_CUSTOM;
+        global $FILTER_ORDER;
+        global $FILTER_DIRECTION;
         global $QUERY_CUSTOM;
 
         $ARROW = true;
@@ -493,7 +548,23 @@
         }
         
         if ($ARROW == true && sqlColumnExists($NAME->table, 'position')) {
+
             $QUERY .= "ORDER BY `position` ASC ";
+
+        } elseif (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
+
+            $QUERY .= "ORDER BY `$FILTER_ORDER` ";
+
+            if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
+                $QUERY .= "$FILTER_DIRECTION ";
+            } else {
+                $QUERY .= "ASC ";
+            }
+
+        } else {
+
+            $QUERY .= "ORDER BY `creation` DESC ";
+
         }
 
         $SQL = sqlSelect($NAME->table, $QUERY);
