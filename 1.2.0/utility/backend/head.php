@@ -84,6 +84,9 @@
 
 </script>
 
+<!-- Input Row -->
+<link rel="stylesheet" href="<?=$PATH->appJs?>/backend/form/inputRow.css">
+
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/header.css">
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/input.css">
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/list.css">
