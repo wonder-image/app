@@ -85,7 +85,7 @@
 </script>
 
 <!-- Input Row -->
-<link rel="stylesheet" href="<?=$PATH->appJs?>/backend/form/inputRow.css">
+<script src="<?=$PATH->appJs?>/backend/form/inputRow.js"></script>
 
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/header.css">
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/input.css">
