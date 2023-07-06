@@ -119,6 +119,8 @@
 
     function dateRange($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
         
+        global $VALUES;
+        
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
 
