@@ -372,6 +372,7 @@
 
         if (!empty($searchValue)) {
 
+            #4 Modifica la query della funzione filterSearch() con CONCAT_WS(' ', column_1, column_2...)
             $QUERY .= "AND (";
 
             foreach ($FILTER_SEARCH as $key => $value) {

@@ -223,6 +223,8 @@
 
     }
 
+    #1 Modifica funzione sqlSelect per selezionare in più tabelle
+
     function sqlSelect($table, $query = null, $limit = null, $order = null, $orderDirection = null) {
 
         global $mysqli;
