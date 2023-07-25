@@ -2,6 +2,8 @@
 
     session_start();
 
+    error_reporting(E_ALL);
+
     if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
 
     $APP_VERSION = "1.2.1";
