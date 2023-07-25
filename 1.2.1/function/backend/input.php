@@ -119,8 +119,6 @@
 
     function dateRange($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
         
-        global $VALUES;
-        
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
 
@@ -434,6 +432,7 @@
 
         $checkHTML = "";
         $dataFilter = "";
+        $inputHidden = "";
 
         if ($searchBar) {
             $bar =  "
@@ -464,22 +463,37 @@
             $script = "";
         }
 
-        $name = ($checkbox == 'checkbox') ? $nameReal.'[]' : $nameReal;
+        if ($checkbox == 'checkbox') {
+            $name = $nameReal.'[]';
+            $inputHidden = "<input type='hidden' name='$name'>";
+        }else{
+            $name = $nameReal;
+        }
 
         foreach ($option as $nm => $vl) {
 
             if (is_array($value)) {
-                $att = in_array($nm, $value) ? "checked" : "";
+                if (in_array($nm, $value)) {
+                    $att = "checked";
+                }else{
+                    $att = "";
+                }
             }else{
-                $att = ($nm == $value) ? "checked" : "";
+                if ($nm == $value) {
+                    $att = "checked";
+                }else{
+                    $att = "";
+                }
             }
 
             if (is_array($vl)) {
 
-                $filter = isset($vl['filter']) ? $vl['filter'] : [];
+                $filter = $vl['filter'];
                 $vl = $vl['name'];
 
-                foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
+                foreach ($filter as $key => $v) {
+                    $dataFilter .= "data-$key='$v' ";
+                }
 
             }
 
@@ -495,6 +509,7 @@
         <div id='container-$id' class='w-100 wi-container-$checkbox'>
             <h6>$label</h6>
             $bar
+            $inputHidden
             <div class='card overflow-auto mt-1' style='height: 120px;'>
                 <div class='card-body p-2'>
                 $checkHTML

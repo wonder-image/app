@@ -419,7 +419,6 @@
                     $CONTINUE = true;
                 }
             }
-            
 
             if (isset($post[$name]) && $CONTINUE) {
 
@@ -503,7 +502,8 @@
                     
                     } else {
 
-                        $VALUE = json_encode($VALUE);
+                        foreach ($VALUE as $k => $v) { if (empty($v)) { unset($VALUE[$k]); } }
+                        $VALUE = json_encode(array_values($VALUE));
 
                     }
                     
