@@ -239,11 +239,30 @@
 
                 foreach ($query as $label => $value) {
 
-                    if (is_array($label)) { $label = $label; }
+                    if (is_array(json_decode($label, true))) { 
+
+                        # Se come colonna c'è un array in JSON converire e creare la query tramite CONCAT_WS
+
+                        $label = json_decode($label, true);
+                        $labelConcat = "CONCAT_WS(' ', ";
+
+                        foreach ($label as $key => $l) {
+                            $labelConcat .= "$l, ";
+                        }
+
+                        $labelConcat = substr($labelConcat, 0, -2).")";
+
+                        $label = $labelConcat; 
+
+                    } else {
+
+                        $label = "`$label`"; 
+
+                    }
 
                     if (is_array($value)) {
     
-                        $filter .= "`$label` IN (";
+                        $filter .= "$label IN (";
     
                         foreach ($value as $v) {$filter .= "'$v', ";}
                         $filter = substr($filter, 0, -2); 
@@ -251,7 +270,9 @@
                         $filter .= ") AND ";
     
                     } else {
-                        $filter .= "`$label` = '$value' AND ";
+
+                        $filter .= "$label = '$value' AND ";
+
                     }
                 }
     
@@ -266,17 +287,9 @@
 
         }  
 
-        if ($order != null) {
-            $filter .= " ORDER BY $order";
-        }
-
-        if ($orderDirection != null) {
-            $filter .= " $orderDirection";
-        }
-
-        if ($limit != null) {
-            $filter .= " LIMIT $limit";
-        }
+        if ($order != null) { $filter .= " ORDER BY $order"; }
+        if ($orderDirection != null) { $filter .= " $orderDirection"; }
+        if ($limit != null) { $filter .= " LIMIT $limit"; }
 
         $sql = "SELECT * FROM `$table` $filter";
         $result = $mysqli->query($sql);

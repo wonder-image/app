@@ -372,14 +372,13 @@
 
         if (!empty($searchValue)) {
 
-            #4 Modifica la query della funzione filterSearch() con CONCAT_WS(' ', column_1, column_2...)
-            $QUERY .= "AND (";
+            $QUERY .= "AND CONCAT_WS(' ',";
 
             foreach ($FILTER_SEARCH as $key => $value) {
-                $QUERY .= "`$value` LIKE '%$searchValue%' OR ";
+                $QUERY .= "`$value`, ";
             }
 
-            $QUERY = substr($QUERY, 0, -4).') ';
+            $QUERY = substr($QUERY, 0, -2).") LIKE '%$searchValue%' ";
 
             $ARROW = false;
 
