@@ -6,7 +6,7 @@
 
     if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
 
-    $APP_VERSION = "1.2.1";
+    $APP_VERSION = "1.2.2";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
