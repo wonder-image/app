@@ -1,13 +1,13 @@
 <?php
 
-    if ($DB_STATS != 'false') {
-
+    if (is_array($DB->database) && array_key_exists('stats', $DB->database)) {
+        
         $TABLE->VISITORS_LOG = [
-            "MYSQLI" => $DB_STATS,
+            "DATABASE" => 'stats',
             "visitor_id" => [],
             "session_id" => [],
             "registered_user" => [],
-            "url" => [],
+            "user_id" => [],
             "page_title" => [],
             "path" => [],
             "oracle_home" => [],
@@ -52,7 +52,7 @@
             "request_time_float" => [],
             "request_time" => []
         ];
-        
+
     }
 
 ?>
