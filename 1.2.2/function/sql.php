@@ -51,6 +51,18 @@
     function sqlTable($TABLE, $COLUMN, $ENGINE = "MyISAM", $CHARSET = "latin1") {
 
         global $mysqli;
+        global $MYSQLI_CONNECTION;
+
+        $def_mysqli = $mysqli;
+
+        if (isset($COLUMN['DATABASE'])) {
+
+            // Errore nel cambio del database! Quando si cambia non si riesce più a tornare indietro
+
+            $mysqli = $MYSQLI_CONNECTION[$COLUMN['DATABASE']];
+            unset($COLUMN['DATABASE']);
+
+        }
 
         if (sqlTableExists($TABLE)) {
 
@@ -94,7 +106,7 @@
 
             }
 
-        }else{
+        } else {
 
             $QUERY = "CREATE TABLE IF NOT EXISTS `$TABLE` ";
             $QUERY .= "( ";
@@ -149,6 +161,8 @@
             }
 
         }
+
+        $mysqli = $def_mysqli;
 
     }
 
@@ -379,6 +393,16 @@
 
         $result = $mysqli->query("SHOW TABLES LIKE '$TABLE'");
         return (mysqli_num_rows($result)) ? true : false;
+        
+    }
+
+    function sqlDatabaseExists($DATABASE) {
+
+        global $mysqli;
+
+        $result = $mysqli->query("SHOW DATABASES LIKE '$DATABASE'");
+        return (mysqli_num_rows($result)) ? true : false;
+
         
     }
 

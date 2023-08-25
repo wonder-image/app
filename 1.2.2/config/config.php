@@ -7,13 +7,36 @@
     # Configurazioni CUSTOM
     require_once $ROOT."/custom/config/config.php";
 
-    // Database
+    # Database
         $DB->hostname = $_ENV['DB_HOSTNAME'];
         $DB->username = $_ENV['DB_USERNAME'];
         $DB->password = $_ENV['DB_PASSWORD'];
-        $DB->database = $_ENV['DB_DATABASE'];
+        $DB->database = explode(',', $_ENV['DB_DATABASE']);
+
+        # Trasformo in un array leggibile i dettagli passati dal file .env 
+
+            if (count($DB->database) > 1) {
+
+                $DATABASE_ARRAY = [];
+                
+                foreach ($DB->database as $key => $value) {
+                    
+                    $A_VALUES = explode(':', str_replace(' ', '', $value));
+                    $DATABASE_ARRAY[$A_VALUES[0]] = $A_VALUES[1];
+
+                }
+
+                $DB->database = $DATABASE_ARRAY;
+
+            } else {
+
+                $DB->database = $DB->database[0];
+
+            }
+
+        #
         
-    // Path
+    # Path
         $PATH->site = $_ENV['APP_URL'];
         $PATH->backend = $PATH->site."/backend";
         $PATH->app = $PATH->site."/vendor/wonder-image/app/".$APP_VERSION;
@@ -42,8 +65,9 @@
         $PATH->logoBlack = $PATH->upload."/logos/Logo-Black.png";
         $PATH->logoIcon = $PATH->upload."/logos/Logo-Icon.png";
         
-    // Default
+    # Default
         $DEFAULT->image = $PATH->assets."/images/Default.png";
+
         $DEFAULT->font = [
             [
                 "name" => "Roboto",
@@ -56,6 +80,7 @@
                 "font-family" => "'Montserrat', sans-serif"
            ] 
         ];
+
         $DEFAULT->color = [
             [
                 "var" => "primary",

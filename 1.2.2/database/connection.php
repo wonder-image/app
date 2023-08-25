@@ -1,40 +1,31 @@
 <?php
 
+    $MYSQLI_CONNECTION = [];
+
     if (is_array($DB->database)) {
-        
-        if (isset($DB->database['main'])) {
 
-            $main = $DB->database['main'];
-            $DB_MAIN = new mysqli($DB->hostname, $DB->username, $DB->password, $main);
-            if ($DB_MAIN->connect_errno) { echo "Connessione a MySQL fallita: ($DB_MAIN->connect_errno) $DB_MAIN->connect_error"; }
+        foreach ($DB->database as $key => $database) {
 
-            $mysqli = $DB_MAIN;
-    
-        } else {
+            $MYSQLI_CONNECTION[$key] = new mysqli($DB->hostname, $DB->username, $DB->password, $database);
 
-            echo "<b>Errore</b> database main non creato";
+            if ($MYSQLI_CONNECTION[$key]->connect_errno) { 
+                echo "Connessione a MySQL fallita: ({$MYSQLI_CONNECTION[$key]->connect_errno}) {$MYSQLI_CONNECTION[$key]->connect_error}"; 
+            }
 
         }
 
-        if (isset($DB->database['stats'])) {
-            
-            $stats = $DB->database['stats'];
-            $DB_STATS = new mysqli($DB->hostname, $DB->username, $DB->password, $stats);
-            if ($mysqli->connect_errno) { echo "Connessione a MySQL fallita: ($DB_STATS->connect_errno) $DB_STATS->connect_error"; }
-
-        } else {
-
-            $DB_STATS = false;
-
-        }
+        $mysqli = $MYSQLI_CONNECTION['main'];
         
     } else {
 
-        $DB_MAIN = new mysqli($DB->hostname, $DB->username, $DB->password, $DB->database);
-        if ($DB_MAIN->connect_errno) { echo "Connessione a MySQL fallita: ($DB_MAIN->connect_errno) $DB_MAIN->connect_error"; }
+        $MYSQLI_CONNECTION['main'] = new mysqli($DB->hostname, $DB->username, $DB->password, $DB->database);
 
-        $mysqli = $DB_MAIN;
+        if ($MYSQLI_CONNECTION['main']->connect_errno) { 
+            echo "Connessione a MySQL fallita: ({$MYSQLI_CONNECTION['main']->connect_errno}) {$MYSQLI_CONNECTION['main']->connect_error}"; 
+        }
 
     }
+
+    $mysqli = $MYSQLI_CONNECTION['main'];
 
 ?>
