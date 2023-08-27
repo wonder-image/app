@@ -53,6 +53,149 @@
             "request_time" => []
         ];
 
+        $TABLE->VISITORS_UNIQUE_LOG = [
+            "DATABASE" => 'stats',
+            "visitor_id" => []
+        ];
+
+        $TABLE->SESSIONS_UNIQUE_LOG = [
+            "DATABASE" => 'stats',
+            "session_id" => []
+        ];
+
+        // Creo tabelle per le statistiche HBH - DBD - MBM - YBY
+
+            $table = [
+                "views_recap_" => [
+                    "DATABASE" => 'stats',
+                    "visitors" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "sessions" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "visitors_unique" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "registered_users" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "https" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ]
+                ],
+                "uri_VR_" => [
+                    "DATABASE" => 'stats',
+                    "uri" => [],
+                    "visitors" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "sessions" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "visitors_unique" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "registered_users" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "https" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ]
+                ],
+                "url_VR_" => [
+                    "DATABASE" => 'stats',
+                    "url" => [],
+                    "visitors" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "sessions" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "visitors_unique" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "registered_users" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "https" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ]
+                ],
+                "page_title_VR_" => [
+                    "DATABASE" => 'stats',
+                    "page_title" => [],
+                    "visitors" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "sessions" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "visitors_unique" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "registered_users" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ],
+                    "https" => [
+                        "sql" => [ 
+                            "type" => "int" 
+                        ]
+                    ]
+                ]
+            ];
+
+            $frequencies = ['HBH', 'DBD', 'MBM', 'YBY'];
+
+            foreach ($table as $table_name => $column) {
+                foreach ($frequencies as $frequency) {
+
+                    $tb_name = strtoupper($table_name.$frequency);
+                    $TABLE->$tb_name = $column;
+
+                }
+            }
+
+        // 
+
     }
 
 ?>
