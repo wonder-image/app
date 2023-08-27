@@ -57,8 +57,6 @@
 
         if (isset($COLUMN['DATABASE'])) {
 
-            // Errore nel cambio del database! Quando si cambia non si riesce più a tornare indietro
-
             $mysqli = $MYSQLI_CONNECTION[$COLUMN['DATABASE']];
             unset($COLUMN['DATABASE']);
 
@@ -152,10 +150,15 @@
                 $RETURN->table = $TABLE;
                 $RETURN->query = $QUERY;
     
+                $mysqli = $def_mysqli;
+                
                 return $RETURN;
                 
             } else {
-    
+                
+
+                $mysqli = $def_mysqli;
+
                 sqlError('sqlTable', $TABLE, $QUERY, $mysqli->errno, $mysqli->error);
     
             }
