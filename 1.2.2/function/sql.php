@@ -240,7 +240,7 @@
 
     }
 
-    function sqlSelect($table, $query = null, $limit = null, $order = null, $orderDirection = null) {
+    function sqlSelect($table, $query = null, $limit = null, $order = null, $orderDirection = null, $attributes = '*') {
 
         global $mysqli;
 
@@ -306,7 +306,7 @@
         if ($orderDirection != null) { $filter .= " $orderDirection"; }
         if ($limit != null) { $filter .= " LIMIT $limit"; }
 
-        $sql = "SELECT * FROM `$table` $filter";
+        $sql = "SELECT $attributes FROM `$table` $filter";
         $result = $mysqli->query($sql);
         $Nrow = mysqli_num_rows($result);
 
