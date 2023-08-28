@@ -3,6 +3,7 @@
     session_start();
 
     error_reporting(E_ALL);
+    date_default_timezone_set('Europe/Rome');
 
     if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
 
