@@ -53,16 +53,6 @@
             "request_time" => []
         ];
 
-        $TABLE->VISITORS_UNIQUE_LOG = [
-            "DATABASE" => 'stats',
-            "visitor_id" => []
-        ];
-
-        $TABLE->SESSIONS_UNIQUE_LOG = [
-            "DATABASE" => 'stats',
-            "session_id" => []
-        ];
-
         // Creo tabelle per le statistiche HBH - DBD - MBM - YBY
 
             $table = [
