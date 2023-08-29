@@ -2,25 +2,37 @@
 
     function infoPage() {
 
+        global $PATH;
+
         $PAGE = (object) array();
 
-        if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
-            $url = "https://";  
-        }else{
-            $url = "http://";
+        if (isset($_SERVER['HTTP_HOST'])) {
+
+            if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+                $url = "https://";  
+            } else {
+                $url = "http://";
+            }
+            
+            $url .= $_SERVER['HTTP_HOST'];
+            $url .= $_SERVER['REQUEST_URI'];
+    
+        } else {
+
+            $url = "";
+
         }
-        
-        $url.= $_SERVER['HTTP_HOST'];
-        $url.= $_SERVER['REQUEST_URI'];
 
-        $PAGE->root = $_SERVER['DOCUMENT_ROOT'];
+        $PAGE->root = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '';
+
         $PAGE->url = $url;
-        $PAGE->path = parse_url($url)['path'];
-        $PAGE->domain = parse_url($url)['host'];
-        $PAGE->base64 = base64_encode($url);
-        $PAGE->uriBase64 = base64_encode($_SERVER['REQUEST_URI']);
+        $PAGE->path = empty($url) ? '' : parse_url($url)['path'];
+        $PAGE->domain = empty($url) ? '' : parse_url($url)['host'];
 
-        if (!empty($_GET['redirect'])) { 
+        $PAGE->base64 = base64_encode($url);
+        $PAGE->uriBase64 = base64_encode(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
+
+        if (isset($_GET['redirect'])) { 
             $PAGE->redirectBase64 = $_GET['redirect']; 
             $PAGE->redirect = base64_decode($PAGE->redirectBase64); 
         }
@@ -83,8 +95,9 @@
         foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? $value : ''; }
         
         $RETURN->image = $PATH->logo;
-        $RETURN->url = $PATH->site.$_SERVER['REQUEST_URI'];
-        $RETURN->date = date('d/m/Y',strtotime("-1 days"));;
+        $RETURN->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';;
+        $RETURN->url = $PATH->site.$RETURN->uri;
+        $RETURN->date = date('d/m/Y',strtotime("-1 days"));
 
         return $RETURN;
 
