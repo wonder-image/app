@@ -7,6 +7,7 @@
     $ROOT = "../../..";
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    header("Location: $ROOT_APP/generator/stats/?frequency=hourly");
-    
+    $FREQUENCY = "hourly";
+    require_once $ROOT_APP."/generator/stats/index.php";
+
 ?>
