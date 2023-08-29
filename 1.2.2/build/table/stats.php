@@ -173,7 +173,7 @@
                 ]
             ];
 
-            $frequencies = ['HBH', 'DBD', 'MBM', 'YBY'];
+            $frequencies = ['HBH', 'DBD', 'MBM'];
 
             foreach ($table as $table_name => $column) {
                 foreach ($frequencies as $frequency) {
