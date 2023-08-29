@@ -4,7 +4,7 @@
     $PRIVATE = false;
     $PERMIT = [];
 
-    $ROOT = $_SERVER['DOCUMENT_ROOT'];
+    $ROOT = "../../..";
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     header("Location: $ROOT_APP/generator/stats/?frequency=monthly");
