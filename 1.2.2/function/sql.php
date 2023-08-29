@@ -319,12 +319,12 @@
 
             if ($limit == 1) {
                 while ($row = $result->fetch_assoc()) {
-                    $return->id = $row['id'];
+                    $return->id = isset($row['id']) ? $row['id'] : "";
                     $return->row = $row;
                 }
-            }else {
+            } else {
                 while ($row = $result->fetch_assoc()) {
-                    $return->id = $row['id'];
+                    $return->id = isset($row['id']) ? $row['id'] : "";
                     array_push($return->row, $row);
                 }
             }
