@@ -256,6 +256,7 @@
     <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
     <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
 
+    <?php if (is_array($DB->database) && array_key_exists('stats', $DB->database)) { ?>
     <script>
 
         $(document).ready(function () {
@@ -270,6 +271,7 @@
         });
 
     </script>
+    <?php } ?>
 
 </body>
 </html>

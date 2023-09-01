@@ -82,7 +82,7 @@
             <wi-card>
                 
                 <div class="d-grid col-12 mx-auto">
-                    <img class="position-relative w-75 start-50 translate-middle-x" src="<?=$PATH->app?>/assets/logos/Wonder-Image.png" alt="Wonder Image">
+                    <img class="position-relative w-75 start-50 translate-middle-x" src="<?=$PATH->app?>/assets/logos/Wonder-Image-White.png" alt="Wonder Image">
                 </div>
 
                 <div class="col-12">

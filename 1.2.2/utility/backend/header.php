@@ -159,23 +159,10 @@
 
     <script>
 
-        if (localStorage.theme !== 'undefined') {
-
+        if (localStorage.theme !== undefined) {
             bootstrapTheme(localStorage.theme);
-
-            } else {
-
-            // var d = new Date();
-            // var hour = d.getHours();
-
-            // if (hour >= 20 || hour <= 7) {
-            //     bootstrapTheme('dark');
-            // } else {
-            //     bootstrapTheme('light');
-            // }
-                
+        } else {
             bootstrapTheme('dark');
-
         }
 
     </script>
