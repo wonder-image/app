@@ -4,7 +4,7 @@
             
         $mysqli = $MYSQLI_CONNECTION['stats'];
 
-        if ($_GET['frequency'] == 'hourly') {
+        if ($FREQUENCY == 'hourly') {
             
             $TB_VR = "visitors_recap_hbh";
             $TB_URI_VR = "uri_vr_hbh";
@@ -14,7 +14,7 @@
             $FROM = date('Y-m-d H', strtotime('-1 hours')).':00:00';
             $TO = date('Y-m-d H').':00:00';
 
-        } elseif ($_GET['frequency'] == 'daily') {
+        } elseif ($FREQUENCY == 'daily') {
             
             $TB_VR = "visitors_recap_dbd";
             $TB_URI_VR = "uri_vr_dbd";
@@ -24,7 +24,7 @@
             $FROM = date('Y-m-d', strtotime('-1 day')).' 00:00:00';
             $TO = date('Y-m-d', strtotime('-1 day')).' 23:59:59';
 
-        } elseif ($_GET['frequency'] == 'monthly') {
+        } elseif ($FREQUENCY == 'monthly') {
             
             $TB_VR = "visitors_recap_mbm";
             $TB_URI_VR = "uri_vr_mbm";
