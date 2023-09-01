@@ -2,7 +2,7 @@
 <div class="wrapper">
 
     <!-- Sidebar Holder -->
-    <nav id="sidebar" class="bg-dark">
+    <nav id="sidebar" class="bg-body-secondary border-end">
 
         <ul class="list-unstyled components">
 
@@ -102,8 +102,8 @@
     
                         echo "
                         <li class='$activeNav'>
-                            <div class='line'></div>
-                            <a $subnavsToggle>       
+                            <div class='line bg-body'></div>
+                            <a $subnavsToggle class='text-body-emphasis'>       
                                 <i class='bi $iconNav$fillImg'></i>
                                 <span>$titleNav</span>
                             </a>
@@ -121,27 +121,64 @@
 
     </nav>
 
-    <nav id="topbar" class="bg-light border-bottom">
+    <nav id="topbar" class="bg-body border-bottom">
 
-        <a href='<?=$PATH->site?>/backend/account' type='button' class='btn btn-outline-dark btn-sm mr-1'>
-            <i class='bi bi-person-fill'></i>
-        </a>
+        <div class="dropdown float-start">
+            <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear-wide-connected"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="<?=$PATH->site?>/backend/account" class="dropdown-item" type="button"><i class="bi bi-person-fill me-2"></i> Profilo</a></li>
+                <div class="dropdown-divider"></div>
+                <li><a href="<?=$PATH->site?>/backend" class="dropdown-item text-danger" type="button"><i class="bi bi-box-arrow-left me-2"></i> Esci</a></li>
+            </ul>
+        </div>
 
         <a href="https://www.wonderimage.it" target="_blank" rel="noopener noreferrer" class="position-absolute top-50 start-50 translate-middle" style="height: 30px;">
-            <img src="<?=$PATH->app?>/assets/logos/Wonder-Image.png" class="h-100" alt="">
-        </a>
-        
-        <a href="<?=$PATH->site?>/backend" type="button" class="btn btn-outline-danger btn-sm float-end phone-none">
-            Esci
+            <img id="wonder-image-black" src="<?=$PATH->app?>/assets/logos/Wonder-Image.png" class="h-100" alt="Wonder Image"><img id="wonder-image-white" src="<?=$PATH->app?>/assets/logos/Wonder-Image-White.png" class="h-100" alt="Wonder Image">
         </a>
 
-        <div id="menu" class="pc-none" onclick="menu()">
+        <div id="menu" class="pc-none ms-2" onclick="menu()">
             <div class="bar bar-1 bg-dark"></div>
             <div class="bar bar-2 bg-dark"></div>
             <div class="bar bar-3 bg-dark"></div>
         </div>
 
+
+        <div class="dropdown float-end">
+            <button id="bs-theme" class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-sun-fill light-theme"></i> <i class="bi bi-moon-stars-fill dark-theme"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" onclick="bootstrapTheme(this.getAttribute('data-bs-theme-value'))"> <i class="bi bi-sun-fill me-2 opacity-75"></i> Light </button></li>
+                <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" onclick="bootstrapTheme(this.getAttribute('data-bs-theme-value'))"> <i class="bi bi-moon-stars-fill me-2 opacity-75"></i> Dark </button></li>
+            </ul>
+        </div>
+
     </nav>
+
+    <script>
+
+        if (localStorage.theme !== 'undefined') {
+
+            bootstrapTheme(localStorage.theme);
+
+            } else {
+
+            // var d = new Date();
+            // var hour = d.getHours();
+
+            // if (hour >= 20 || hour <= 7) {
+            //     bootstrapTheme('dark');
+            // } else {
+            //     bootstrapTheme('light');
+            // }
+                
+            bootstrapTheme('dark');
+
+        }
+
+    </script>
 
     <!-- Open Page Content -->
     <div id="content">

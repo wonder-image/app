@@ -4,6 +4,7 @@ function createCard() {
 
         var card = document.createElement("div");
         card.classList.add('card');
+        card.classList.add('border');
         var cardBody = document.createElement("div");
         cardBody.classList.add('card-body');
         cardBody.classList.add('row');
