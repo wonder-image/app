@@ -4,7 +4,9 @@
 
         if (isset($BACKEND) && $BACKEND) {
 
-            $USER = authorizeUser('backend', $PERMIT, isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+            if (empty($_POST)) {
+                $USER = authorizeUser('backend', $PERMIT, isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+            }
 
         } elseif (isset($FRONTEND) && $FRONTEND) {
 
