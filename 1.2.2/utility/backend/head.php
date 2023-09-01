@@ -1,3 +1,7 @@
+<script>     
+    document.querySelector("html").setAttribute("data-bs-theme", "dark");
+</script>
+
 <link rel="shortcut icon" href="https://www.wonderimage.it/favicon.ico" type="image/x-icon">
 
 <!-- Bootstrap CSS -->
