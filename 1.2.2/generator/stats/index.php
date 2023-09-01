@@ -1,12 +1,5 @@
 <?php
 
-    $FRONTEND = true;
-    $PRIVATE = false;
-    $PERMIT = [];
-
-    $ROOT = $_SERVER['DOCUMENT_ROOT'];
-    require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
-
     if (is_array($DB->database) && array_key_exists('stats', $DB->database)) {
             
         $mysqli = $MYSQLI_CONNECTION['stats'];
