@@ -6,7 +6,7 @@
 
         if ($FREQUENCY == 'hourly') {
             
-            $TB_VR = "visitors_recap_hbh";
+            $TB_VR = "views_recap_hbh";
             $TB_URI_VR = "uri_vr_hbh";
             $TB_URL_VR = "url_vr_hbh";
             $TB_PAGE_TITLE_VR = "page_title_vr_hbh";
@@ -16,7 +16,7 @@
 
         } elseif ($FREQUENCY == 'daily') {
             
-            $TB_VR = "visitors_recap_dbd";
+            $TB_VR = "views_recap_dbd";
             $TB_URI_VR = "uri_vr_dbd";
             $TB_URL_VR = "url_vr_dbd";
             $TB_PAGE_TITLE_VR = "page_title_vr_dbd";
@@ -26,7 +26,7 @@
 
         } elseif ($FREQUENCY == 'monthly') {
             
-            $TB_VR = "visitors_recap_mbm";
+            $TB_VR = "views_recap_mbm";
             $TB_URI_VR = "uri_vr_mbm";
             $TB_URL_VR = "url_vr_mbm";
             $TB_PAGE_TITLE_VR = "page_title_vr_mbm";
