@@ -20,25 +20,17 @@
             $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
         }
 
-        $SQL = sqlSelect($NAME->table, $QUERY);
-        $LINES = $SQL->Nrow;
+        $LINES = sqlCount($NAME->table, $QUERY, 'id', true);
 
         if ($LIMIT != 'all') {
 
             $SQL_LIMIT = 'LIMIT ';
-            if (empty($LIMIT)) {
-                $LIMIT = 25;
-            }
+            $LIMIT = empty($LIMIT) ? 25 : $LIMIT;
             $SQL_LIMIT .= $LIMIT;
+
             $TITLE = ucwords($TEXT->last)." $LIMIT $TEXT->titleP";
 
-            if ($SQL->Nrow < $LIMIT) {
-                $SELECTED_LINES = $SQL->Nrow;
-                $LINES = $SQL->Nrow;
-            }else{
-                $SELECTED_LINES = $LIMIT;
-                $LINES = $SQL->Nrow;
-            }
+            $SELECTED_LINES = ($LINES < $LIMIT) ? $LINES : $LIMIT;
 
             if (isset($QUERY_ORDER) && !empty($QUERY_ORDER)) {
 
@@ -150,55 +142,104 @@
             $ARRAY_MONTH = [];
             $ARRAY_YEAR = [];
             $BUTTONS_MONTH = "";
+            $OTHER_BUTTONS_MONTH = "";
             $BUTTONS_YEAR = "";
+            $OTHER_BUTTONS_YEAR = "";
 
-            $SQL = sqlSelect($NAME->table, $QUERY);
-            $LINES = $SQL->Nrow;
+            $TABLE_INFO = sqlTableInfo($NAME->table);
+            $LINES = sqlCount($NAME->table, $QUERY, 'id', true);
+            
+            $im = 1;
+            $iy = 1;
 
-            foreach ($SQL->row as $key => $row){
+            $firstDate = strtotime($TABLE_INFO->create_time);
+            $lastDate = strtotime(date('Y-m-d'));
 
-                $m = date("F", strtotime($row[$COLUMN]));
-                $y = date("Y", strtotime($row[$COLUMN]));
+            while ($lastDate >= $firstDate) {
 
-                $date = "$m $y";
+                $month = date("F", $lastDate);
+                $year = date("Y", $lastDate);
 
-                if (!in_array($date, $ARRAY_MONTH)) {
-                    array_push($ARRAY_MONTH, $date);
+                $date = "$month $year";
+                array_push($ARRAY_MONTH, $date);
 
-                    $mese = translateDate($m, 'month');
+                $mese = translateDate("01-$month-$year", 'month');
 
-                    if ($m == $MONTH && $y == $YEAR) {
-                        $outline = "";
-                    }else{
-                        $outline = "-outline";
-                    }
+                if (isset($_GET['month']) && isset($_GET['year']) && $month == $_GET['month'] && $year == $_GET['year']) {
+                    $outline = "";
+                    $active = "active";
+                }else{
+                    $outline = "-outline";
+                    $active = "";
+                }
 
-                    $BUTTONS_MONTH .= "
-                    <a href='?month=$m&year=$y' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'>
-                        $mese $y
-                    </a>
-                    ";
+                if ($im < 5) {
+                    $BUTTONS_MONTH .= "<a href='?month=$month&year=$year' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
+                } else {
+                    $OTHER_BUTTONS_MONTH .= "<a href='?month=$month&year=$year' class='dropdown-item $active'>$mese $year</a>";
+                }
+                
+                $im++;
+
+                $lastDate = strtotime("-1 month", $lastDate);
+
+            }
+
+            $first = date('Y', strtotime($TABLE_INFO->create_time));
+            $last = date('Y');
+
+            while ($last >= $first) {
+
+                $year = $last;
+                array_push($ARRAY_YEAR, $year);
+
+                if (isset($_GET['year']) && $year == $_GET['year'] && empty($_GET['month'])) {
+                    $outline = "";
+                    $active = "active";
+                }else{
+                    $outline = "-outline";
+                    $active = "";
+                }
+
+                if ($iy < 5) {
+                    $BUTTONS_YEAR .= "<a href='?year=$year' class='btn btn$outline-dark btn-sm col'' tabindex='-1' role='button'> $year </a>";
+                } else {
+                    $OTHER_BUTTONS_YEAR .= "<a href='?year=$year' class='dropdown-item $active'>$year</a>";
+                }
+
+                $iy++;
+
+                $last--;
+
+            }
+
+            if (!empty($OTHER_BUTTONS_MONTH)) {
                     
-                }
+                $BUTTONS_MONTH .= "
+                <div class='dropdown col p-0'>
+                    <button type='button' class='btn btn-outline-dark btn-sm dropdown-toggle' data-bs-toggle='dropdown' aria-expanded='false'>
+                        Altro
+                    </button>
+                    <div class='dropdown-menu'>
+                        $OTHER_BUTTONS_MONTH
+                    </div>
+                </div>
+                ";
 
-                if (!in_array($y, $ARRAY_YEAR)) {
+            }
 
-                    array_push($ARRAY_YEAR, $y);
-
-                    if ($y == $YEAR && empty($MONTH)) {
-                        $outline = "";
-                    }else{
-                        $outline = "-outline";
-                    }
-
-                    $BUTTONS_YEAR .= "
-                    <a href='?year=$y' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'>
-                        $y
-                    </a>
-                    ";
-
-                }
-
+            if (!empty($OTHER_BUTTONS_YEAR)) {
+                    
+                $BUTTONS_YEAR .= "
+                <div class='dropdown col p-0' role='group'>
+                    <button type='button' class='btn btn-outline-dark btn-sm dropdown-toggle' data-bs-toggle='dropdown' aria-expanded='false'>
+                        Altro
+                    </button>
+                    <div class='dropdown-menu'>
+                        $OTHER_BUTTONS_YEAR
+                    </div>
+                </div>";
+                
             }
 
         //
@@ -227,16 +268,20 @@
     
             if (empty($from) && empty($to)) {
 
-                $from = date('d/m/Y',mktime(0,0,0,date('m'),date('d')-$DAYS,date('Y')));
-                $to = date('d/m/Y',mktime(0,0,0,date('m'),date('d'),date('Y')));
+                $from = date('d/m/Y', strtotime("-$DAYS days"));
+                $to = date('d/m/Y');
 
-                $TITLE = ucwords($TEXT->titleP)." ultimi $DAYS giorni";
+                $DAYS++;
+
+                if ($DAYS == 1) {
+                    $TITLE = ucwords($TEXT->titleP)." di oggi";
+                } else {
+                    $TITLE = ucwords($TEXT->titleP)." ultimi $DAYS giorni";
+                }
 
             }
 
-            if (empty($TITLE)) {
-                $TITLE = ucwords($TEXT->titleP)." dal $from al $to";
-            }
+            $TITLE = empty($TITLE) ? ucwords($TEXT->titleP)." dal $from al $to" : $TITLE;
     
             list($day,$month,$year) = explode("/", $from);
             $SQL_from = "$year-$month-$day";
@@ -265,11 +310,8 @@
 
         } else {
 
-            $first = sqlSelect($NAME->table, null, 1, $COLUMN, 'ASC')->row[$COLUMN];
-            $last = sqlSelect($NAME->table, null, 1, $COLUMN, 'DESC')->row[$COLUMN];
-            
-            $from = date("d/m/Y", strtotime($first));
-            $to = date("d/m/Y", strtotime($last));
+            $from = date("d/m/Y", strtotime($TABLE_INFO->create_time));
+            $to = date("d/m/Y", strtotime(date('Y-m-d')));
             
             if (!empty($_GET['q'])) {
                 $filter = filterSearch();

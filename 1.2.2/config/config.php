@@ -14,11 +14,10 @@
         $DB->database = explode(',', $_ENV['DB_DATABASE']);
 
         # Trasformo in un array leggibile i dettagli passati dal file .env 
-
+            $DATABASE_ARRAY = [];
+                
             if (count($DB->database) > 1) {
 
-                $DATABASE_ARRAY = [];
-                
                 foreach ($DB->database as $key => $value) {
                     
                     $A_VALUES = explode(':', str_replace(' ', '', $value));
@@ -30,9 +29,19 @@
 
             } else {
 
-                $DB->database = $DB->database[0];
+                $VALUES = explode(':', str_replace(' ', '', $DB->database[0]));
+
+                if (isset($VALUES[1])) {
+                    $DATABASE_ARRAY['main'] = $VALUES[1];
+                } else {
+                    $DATABASE_ARRAY['main'] = $DB->database[0];
+                }
+
+                $DB->database = $DATABASE_ARRAY;
 
             }
+
+            $DB->database['information_schema'] = "INFORMATION_SCHEMA";
 
         #
         

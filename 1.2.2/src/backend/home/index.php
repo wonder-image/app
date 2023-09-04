@@ -7,7 +7,7 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    if (is_array($DB->database) && array_key_exists('stats', $DB->database)) {
+    if (array_key_exists('stats', $DB->database)) {
 
         $mysqli = $MYSQLI_CONNECTION['stats'];
 
@@ -117,7 +117,7 @@
         <div class="col-9">
             <div class="row g-3">
 
-                <?php if (is_array($DB->database) && array_key_exists('stats', $DB->database)) { ?>
+                <?php if (array_key_exists('stats', $DB->database)) { ?>
                 <wi-card class="col-12">
                     <div class="col-12">
                         <h6>Ultime 24 ore</h6>

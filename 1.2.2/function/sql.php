@@ -390,6 +390,38 @@
 
     }
 
+    function sqlCount($table, $query = null, $column = '*', $distinct = false) {
+
+        $DISTINCT = $distinct ? "DISTINCT " : "";
+        $ATTRIBUTES = "COUNT($DISTINCT$column)";
+        return sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+
+    }
+
+    function sqlTableInfo($table, $database = 'main') {
+
+        global $DB;
+        global $mysqli;
+        global $MYSQLI_CONNECTION;
+
+        $def_mysqli = $mysqli;
+
+        $DATABASE = $DB->database[$database];
+        $mysqli = $MYSQLI_CONNECTION['information_schema'];
+
+        $RETURN = (object) array();;
+
+        foreach (sqlSelect('TABLES', [ 'TABLE_SCHEMA' => $DATABASE, 'TABLE_NAME' => $table ])->row[0] as $column => $value) {
+            $column = strtolower($column);
+            $RETURN->$column = $value;
+        }
+
+        $mysqli = $def_mysqli;
+
+        return $RETURN;
+
+    }
+
     function sqlTableExists($TABLE) {
 
         global $mysqli;
