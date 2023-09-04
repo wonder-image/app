@@ -488,12 +488,10 @@
 
             if (is_array($vl)) {
 
-                $filter = $vl['filter'];
+                $filter = isset($vl['filter']) ? $vl['filter'] : [];
                 $vl = $vl['name'];
 
-                foreach ($filter as $key => $v) {
-                    $dataFilter .= "data-$key='$v' ";
-                }
+                foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
 
             }
 
