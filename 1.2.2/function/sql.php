@@ -295,7 +295,11 @@
 
             }else{
 
-                $filter .= "$query";
+                if (str_contains($query, "WHERE") || str_contains($query, "where")) {
+                    $filter = $query;
+                } else {
+                    $filter .= $query;
+                }
 
             }
              
