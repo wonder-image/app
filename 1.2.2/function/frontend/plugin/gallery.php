@@ -32,6 +32,7 @@
 
             $src = $value['src'];
             $alt = $value['alt'];
+            $caption = isset($value['caption']) ? "data-caption='".$value['caption']."'" : '';
             
             array_push($IMG['desktop'][$desktop], $value);
             array_push($IMG['tablet'][$tablet], $value);
@@ -47,7 +48,7 @@
             if ($mobile == $colMobile) {$mobile = 0;}
 
             $RETURN .= "
-            <a data-fancybox='gallery' data-src='$src'></a>";
+            <a data-fancybox='gallery' data-src='$src' $caption></a>";
             
         }
 
