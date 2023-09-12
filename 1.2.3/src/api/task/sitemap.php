@@ -121,6 +121,6 @@
     fwrite($file, $XML);
     fclose($file);
 
-    require_once $ROOT_APP."/generator/sitemap/runcrawl.php";
+    include $ROOT_APP."/generator/sitemap/runcrawl.php";
 
 ?>
