@@ -85,8 +85,12 @@
         "xs_htmlsort" => "0",
         "xs_htmlstruct" => "0",
         "xs_imginfo" => "1",
+        "xs_imgincmask" => "",
+        "xs_img_allow_domains" => "",
         "xs_rssinfo" => "1",
+        "xs_rssincmask" => "",
         "xs_makemob" => "1",
+        "xs_mobileincmask" => "",
         "xs_autoresume" => "",
         "xs_ref_list_store" => "",
         "xs_no_cookies" => "0",
@@ -104,11 +108,7 @@
         "xs_utf8" => "1",
         "xs_inc_ajax" => "0",
         "xs_lastmod_notparsed" => "0",
-        "xs_debug" => "0",
-        "xs_imgincmask" => "",
-        "xs_img_allow_domains" => "",
-        "xs_rssincmask" => "",
-        "xs_mobileincmask" => ""
+        "xs_debug" => "0"
     ];
 
     $XML = "<xmlsitemaps_settings>\n";
