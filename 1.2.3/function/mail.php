@@ -106,7 +106,6 @@
         // Fine
     
     }
-
     function emailTemplate($body = '', $template = 'basic') {
 
         global $PATH;
