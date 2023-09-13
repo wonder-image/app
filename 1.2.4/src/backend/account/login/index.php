@@ -55,7 +55,6 @@
                 <div class="d-grid col-8 mx-auto">
                     <?=submit('Accedi', 'login'); ?>
                 </div>
-
             </wi-card>
         </form>
 
