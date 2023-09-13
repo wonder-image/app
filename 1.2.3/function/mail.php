@@ -117,42 +117,33 @@
 
         if ($template == 'basic') {
 
-            $RETURN = "
-            <html>
+            $RETURN = '
+            <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+            <html style="font-family:\'Roboto\', sans-serif;-webkit-text-size-adjust:100%;background-color:#ffffff;color:#414042;font-size:14px;">
                 <head>
-        
-                    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
-                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                    <meta name='x-apple-disable-message-reformatting'>
-        
-                    <style type='text/css'>
+                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta name="x-apple-disable-message-reformatting">
+                    <style type="text/css">
+                        @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
                     </style>
-                    
-                    <!--[if !mso]><!--><link href='https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap' rel='stylesheet' type='text/css'><!--<![endif]-->
-        
                 </head>
-                <body style='margin: 0;padding: 0;-webkit-text-size-adjust: 100%;background-color: #ffffff;color: #414042'>
-                    <div class='container' style='font-family: Roboto, sans-serif;position: relative;float: left;width: calc(100% - 40px);max-width: 500px;left: 50%;transform: translateX(-50%);background: #ffffff;color: #414042;font-size: 14px;'>
-                        
-                        <div class='row' style='position: relative;float: left;width: calc(100% - 20px); padding: 20px 10px;'>
-                            <img src='$PATH->logo' style='position: relative;float: left;width: auto;height: 40px;'>
+                <body style="margin:0;padding:0;border:0;font-family:\'Roboto\', sans-serif;-webkit-text-size-adjust:100%;background-color:#ffffff;color:#414042;font-size:14px;">
+                    <div class="container" style="margin:0;padding:0;border:0;position:relative;width:calc(100% - 40px);max-width:800px;margin:0 auto;">
+                        <div class="header row" style="margin:0;padding:0;border:0;position:relative;float:left;width:calc(100% - 20px);padding:20px 10px;">
+                            <img src="'.$PATH->logo.'" style="margin:0;padding:0;border:0;position: relative;float: left;width: auto;height: 40px;">
                         </div>
-        
-                        <div class='line' style='position: relative;float: left;width: 100%; height: 1px;background: #e5e4e2;'></div>
-        
-                        <div id='email-body' class='row' style='position: relative;float: left;font-family: Roboto, sans-serif;width: calc(100% - 20px); padding: 20px 10px;'>
-                            $body
+                        <div class="line" style="margin:0;padding:0;border:0;position:relative;float:left;width:100%;height:1px;background:#e5e4e2;"></div>
+                        <div class="body row" style="margin:0;padding:0;border:0;position:relative;float:left;width:calc(100% - 20px);padding:20px 10px;">
+                        '.$body.'
                         </div>
-        
-                        <div class='line' style='position: relative;float: left;width: 100%; height: 1px;background: #e5e4e2;'></div>
-        
-                        <div class='row' style='position: relative;float: left;font-family: Roboto, sans-serif;width: calc(100% - 20px); padding: 20px 10px; text-align: center;font-size: 12px;'>
-                            Copyright © $SOCIETY->legal_name. Tutti i diritti riservati.
+                        <div class="line" style="margin:0;padding:0;border:0;position:relative;float:left;width:100%;height:1px;background:#e5e4e2;"></div>
+                        <div class="footer row" style="margin:0;padding:0;border:0;position:relative;float:left;width:calc(100% - 20px);padding:20px 10px;font-size:12px;text-align:center;">
+                            Copyright © '.$SOCIETY->legal_name.'. Tutti i diritti riservati.
                         </div>
-        
                     </div>
                 </body>
-            </html>";
+            </html>';
 
         }
 
