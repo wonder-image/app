@@ -1,7 +1,8 @@
 <?php
 
     $TABLE->ANALYTICS = [
-        "tag_manager" => []
+        "tag_manager" => [],
+        "pixel_facebook" => [],
     ];
 
 ?>

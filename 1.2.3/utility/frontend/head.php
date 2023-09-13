@@ -1,43 +1,6 @@
 <?php 
 
     // Statistiche
-        // Imposto un codice univoco al visitatore
-
-            if (isset($_COOKIE['visitor_id'])) {
-
-                $VISITOR_ID = $_COOKIE['visitor_id'];
-
-            } else {
-                
-                $VISITOR_ID = strtolower(code(25, 'letters'));
-
-                setcookie(
-                    "visitor_id",
-                    $VISITOR_ID,
-                    time() + (10 * 365 * 24 * 60 * 60)
-                );
-
-            }
-
-        // 
-
-        // Controllo se l'utente è registrato
-
-            if (isset($_SESSION['user_id'])) {
-
-                $USER_ID = $_SESSION['user_id'];
-                $REGISTERED_USER = in_array("frontend", infoUser($_SESSION['user_id'])->area) ? "true" : "false";
-
-            } else {
-
-                $USER_ID = "";
-                $REGISTERED_USER = "false";
-
-            }
-
-        // 
-
-        $SESSION_ID = session_id();
         
         if (is_array($DB->database) && array_key_exists('stats', $DB->database)) {
 
@@ -271,3 +234,29 @@
 <!-- End fundamental file  -->
 
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
+
+<?php
+
+    $PIXEL_FACEBOOK = sqlSelect('analytics', ['id' => '1'], 1)->row['pixel_facebook'];
+
+    if ($PIXEL_FACEBOOK != '') { 
+
+?>
+<!-- Meta Pixel Code -->
+<script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '<?=$PIXEL_FACEBOOK?>');
+    fbq('track', 'PageView');
+</script>
+<noscript>
+    <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?=$PIXEL_FACEBOOK?>&ev=PageView&noscript=1" />
+</noscript>
+<!-- End Meta Pixel Code -->
+<?php } ?>

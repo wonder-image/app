@@ -15,12 +15,12 @@
                 <div class="title a-c">
                     SITO IN COSTRUZIONE
                 </div>
-                <div class="subtitle tx-primary a-c mt-3">
+                <div class="subtitle a-c mt-3">
                     <?=$PAGE->domain?>
                 </div>
             </div>
             <div class="p-a w-100 bottom">
-                <div class="text tx-primary a-c">
+                <div class="text a-c">
                     Credit by <a href="https://www.wonderimage.it" target="_blank" rel="noopener noreferrer">Wonder Image</a>
                 </div>
             </div>

@@ -20,9 +20,79 @@
 
     }
 
+    $TIMETABLES = [];
+
+    $TIME = empty($VALUES['timetable']) ? [] : json_decode($VALUES['timetable'], true);
+
+    $i = 1;
+
+    foreach ($TIME as $day => $value) {
+        foreach ($value as $k => $v) {
+
+            array_push($TIMETABLES, [
+                'position' => $i,
+                'time-day' => $day,
+                'time-from' => $v['from'],
+                'time-to' => $v['to'],
+            ]);
+
+            $i++;
+
+        }
+    }
+
     if (isset($_POST['modify'])) {
 
         $VALUES = [];
+
+        $TIMETABLES = [];
+        $JSON_TIMETABLES = [];
+
+        foreach ($_POST['time-day'] as $key => $day) {
+            if (!empty($_POST['time-from'][$key]) && !empty($_POST['time-to'][$key])) {
+
+                $position = $_POST['position'][$key];
+                $from = $_POST['time-from'][$key];
+                $to = $_POST['time-to'][$key];
+
+                $TIMETABLES[$position] = [
+                    'position' => $position,
+                    'time-day' => $day,
+                    'time-from' => $from,
+                    'time-to' => $to,
+                ];
+        
+            }
+        }
+
+        # Ordino per posizione
+            ksort($TIMETABLES);
+
+        # Creo array per SQL
+            foreach ($TIMETABLES as $key => $value) {
+                
+                $day = $value['time-day'];
+                $from = $value['time-from'];
+                $to = $value['time-to'];
+
+                $TIME = [
+                    'from' => $from,
+                    'to' => $to
+                ];
+
+                if (!array_key_exists($day, $JSON_TIMETABLES)) { $JSON_TIMETABLES[$day] = []; }
+
+                array_push($JSON_TIMETABLES[$day], $TIME);
+
+            }
+
+            $_POST['timetable'] = json_encode($JSON_TIMETABLES, true);
+
+        unset($_POST['id']);
+        unset($_POST['position']);
+        unset($_POST['time-day']);
+        unset($_POST['time-from']);
+        unset($_POST['time-to']);
 
         foreach ($INFO_PAGE->table  as $key => $table) {
             
@@ -75,10 +145,10 @@
                         <div class="col-6">
                             <?=text('Email', 'email'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-3">
                             <?=text('Telefono', 'tel'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-3">
                             <?=text('Cellulare', 'cel'); ?>
                         </div>
                     </wi-card>
@@ -97,17 +167,19 @@
                             <?=text('Pec', 'pec'); ?>
                         </div>
                         <div class="col-4">
+                            <?=text('SDI', 'sdi'); ?>
+                        </div>
+                        <div class="col-4">
                             <?=text('R.E.A.', 'rea'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <?=text('P.Iva', 'pi'); ?>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <?=text('C.Fiscale', 'cf'); ?>
                         </div>
                     </wi-card>
                     
-
                     <wi-card class="col-6">
                         <div class="col-12">
                             <h6>Indirizzo legale</h6>
@@ -186,6 +258,41 @@
                         <div class="col-12">
                             <?=url('Link gmaps', 'gmaps'); ?>
                         </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <?php
+
+                            $DAY = [ "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" ];
+                            $DAY_OPTION = [];
+
+                            foreach ($DAY as $day) { $DAY_OPTION[$day] = translateDate($day, 'day'); }
+
+                            $INPUT = [
+                                'time-day' => [
+                                    'label' => 'Giorno',
+                                    'type' => 'select',
+                                    'option' => $DAY_OPTION,
+                                    'attribute' => 'required',
+                                    'col' => 3
+                                ],
+                                'time-from' => [
+                                    'label' => 'Da (08:00)',
+                                    'type' => 'text',
+                                    'attribute' => 'required',
+                                    'col' => 3
+                                ],
+                                'time-to' => [
+                                    'label' => 'A (17:30)',
+                                    'type' => 'text',
+                                    'attribute' => 'required',
+                                    'col' => 3
+                                ],
+                            ];
+
+                            echo sortableInput('Orari', 'list-copy', $INPUT, isset($TIMETABLES) ? $TIMETABLES : null);
+                            
+                        ?>
                     </wi-card>
 
                 </div>

@@ -53,7 +53,16 @@
                     <h6>Google</h6>
                 </div>
                 <div class="col-6">
-                    <?=text('Tag manager', 'tag_manager', ''); ?>
+                    <?=text('Tag manager', 'tag_manager'); ?>
+                </div>
+            </wi-card>
+
+            <wi-card class="col-9">
+                <div class="col-12">
+                    <h6>Facebook</h6>
+                </div>
+                <div class="col-6">
+                    <?=text('ID Pixel', 'pixel_facebook'); ?>
                 </div>
             </wi-card>
 

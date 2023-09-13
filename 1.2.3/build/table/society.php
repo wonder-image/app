@@ -9,6 +9,13 @@
         "cel" => [],
         "pi" => [],
         "cf" => [],
+        "sdi" => [
+            "input" => [
+                "format" => [
+                    "upper" => true
+                ]
+            ]
+        ],
         "rea" => [],
         "share_capital" => [
             "input" => [
@@ -37,7 +44,14 @@
         "street" => [],
         "number" => [],
         "more" => [],
-        "gmaps" => []
+        "gmaps" => [],
+        "timetable" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                ]
+            ]
+        ],
     ];
 
     $TABLE->SOCIETY_LEGAL_ADDRESS = [
