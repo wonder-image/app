@@ -2,6 +2,8 @@
 
     function curl($url, $action = null, $values = null, $username = null, $password = null) {
 
+        $action = ($action == null) ? null : strtoupper($action);
+
         if ($action == 'GET' && is_array($values)) {
             
             $url .= "?".http_build_query($values);
@@ -18,7 +20,7 @@
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         # Post
-            if ($action == 'post') {
+            if ($action == 'POST') {
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $values);
             }
