@@ -33,15 +33,21 @@
                     'authority' => ['admin']
                 ],
                 [
+                    'title' => 'Utenti',
+                    'folder' => 'user',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ],
+                [
                     'title' => 'Analitica',
                     'folder' => 'analytics',
                     'file' => '',
                     'authority' => ['admin']
                 ],
                 [
-                    'title' => 'Utenti',
-                    'folder' => 'user',
-                    'file' => 'list.php',
+                    'title' => 'Editor',
+                    'folder' => 'configuration-file',
+                    'file' => '',
                     'authority' => ['admin']
                 ],
                 [

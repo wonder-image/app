@@ -81,6 +81,21 @@
             elseif (!empty($RETURN->cf)) { $RETURN->prettyLegal .= ' - C.Fiscale '.$RETURN->cf; }
         }
 
+        $RETURN->timetable = empty($RETURN->timetable) ? [] : json_decode($RETURN->timetable, true);
+
+        $RETURN->prettyTime = "";
+        
+        foreach ($RETURN->timetable as $day => $value) {
+
+            $RETURN->prettyTime .= "<b>".translateDate($day, 'day').":</b> ";
+
+            foreach ($value as $key => $value) {
+                $RETURN->prettyTime .= "dalle ".$value['from']." ";
+                $RETURN->prettyTime .= "alle ".$value['to']."<br>";
+            }
+
+        }
+
         return $RETURN;
 
     }

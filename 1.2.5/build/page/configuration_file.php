@@ -18,7 +18,7 @@
         $FILE_TXT .= "  <FilesMatch \"\\.(js|css|html|htm|ico)$\">\n";
         $FILE_TXT .= "      Header set Cache-Control \"max-age=0, public\"\n";
         $FILE_TXT .= "  </FilesMatch>\n";
-        $FILE_TXT .= " </IfModule>\n";
+        $FILE_TXT .= "</IfModule>\n";
         $FILE_TXT .= "\n";
         $FILE_TXT .= "## Redirect Error\n";
         $FILE_TXT .= "ErrorDocument 400 /error/?err=400\n";

@@ -101,6 +101,11 @@
             "title" => "Analitica modificata",
             "text" => "I tag sono stati modificati con successo."
         ],
+        654 => [
+            "type" => "success",
+            "title" => "File modificati",
+            "text" => "I file di configurazione sono stati modificati con successo."
+        ],
         660 => [
             "type" => "success",
             "title" => "CSS modificati",

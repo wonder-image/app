@@ -7,20 +7,26 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    $INFO_PAGE = (object) array();
-    $INFO_PAGE->title = "Analitica";
-    $INFO_PAGE->table = $TABLE->ANALYTICS;
-    $INFO_PAGE->tableName = "analytics";
+    $HTACCESS_PATH = $ROOT."/.htaccess";
+    $ROBOTS_PATH = $ROOT."/robots.txt";
 
-    $SQL = sqlSelect($INFO_PAGE->tableName, ['id' => 1], 1);
-    $VALUES = $SQL->row;
+    $INFO_PAGE = (object) array();
+    $INFO_PAGE->title = "Modifica i file di configurazione";
 
     if (isset($_POST['modify'])) {
         
-        $VALUES = formToArray($INFO_PAGE->tableName, $_POST, $INFO_PAGE->table);
-        
-        if (empty($ALERT)) { sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1); }
-        if (empty($ALERT)) { header("Location: ?alert=653"); }
+        $htaccess = $_POST['htaccess'];
+        $robots = $_POST['robots'];
+
+        $FILE = fopen($HTACCESS_PATH, "w");
+        fwrite($FILE, $htaccess);
+        fclose($FILE);
+
+        $FILE = fopen($ROBOTS_PATH, "w");
+        fwrite($FILE, $robots);
+        fclose($FILE);
+
+        header("Location: ?alert=654");
 
     }
 
@@ -53,19 +59,19 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <h6>Google</h6>
+                            <h6>File .htaccess</h6>
                         </div>
-                        <div class="col-6">
-                            <?=text('Tag manager', 'tag_manager'); ?>
+                        <div class="col-12">
+                            <?=textarea('Editor', 'htaccess', null, null, file_get_contents($HTACCESS_PATH)) ?>
                         </div>
                     </wi-card>
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <h6>Facebook</h6>
+                            <h6>File robots.txt</h6>
                         </div>
-                        <div class="col-6">
-                            <?=text('ID Pixel', 'pixel_facebook'); ?>
+                        <div class="col-12">
+                            <?=textarea('Editor', 'robots', null, null, file_get_contents($ROBOTS_PATH)) ?>
                         </div>
                     </wi-card>
 
@@ -89,6 +95,15 @@
 
     <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
     <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
+
+    <script>
+        $(document).ready(function () {
+
+            document.querySelector("textarea[name='htaccess']").style.height = '500px';
+            document.querySelector("textarea[name='robots']").style.height = '500px';
+
+        });
+    </script>
 
 </body>
 </html>
