@@ -2,7 +2,7 @@
 
     // Statistiche
         
-        if (is_array($DB->database) && array_key_exists('stats', $DB->database)) {
+        if (is_array($DB->database) && array_key_exists('stats', $DB->database) && $ACTIVE_STATISTICS == true) {
 
             $VALUES = [
                 "visitor_id" => $VISITOR_ID,
@@ -64,7 +64,7 @@
 
     $TAG_MANAGER = sqlSelect('analytics', ['id' => '1'], 1)->row['tag_manager'];
 
-    if ($TAG_MANAGER != '') { 
+    if ($TAG_MANAGER != '' && $ACTIVE_STATISTICS == true) { 
 
 ?>
 <!-- Google Tag Manager -->
@@ -239,7 +239,7 @@
 
     $PIXEL_FACEBOOK = sqlSelect('analytics', ['id' => '1'], 1)->row['pixel_facebook'];
 
-    if ($PIXEL_FACEBOOK != '') { 
+    if ($PIXEL_FACEBOOK != '' && $ACTIVE_STATISTICS == true) { 
 
 ?>
 <!-- Meta Pixel Code -->

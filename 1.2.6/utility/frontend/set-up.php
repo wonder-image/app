@@ -40,6 +40,8 @@
 
     $SESSION_ID = session_id();
 
+    $ACTIVE_STATISTICS = isset($ACTIVE_STATISTICS) ? $ACTIVE_STATISTICS : true;
+
     include $ROOT.'/custom/utility/frontend/set-up.php';
 
 ?>
