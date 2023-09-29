@@ -346,6 +346,16 @@
             "title" => "Valore duplicato",
             "text" => "Username già presente nella tabella"
         ],
+        975 => [
+            "type" => "danger",
+            "title" => "Valore duplicato",
+            "text" => "Numero di telefono già presente nella tabella"
+        ],
+        976 => [
+            "type" => "danger",
+            "title" => "Valore duplicato",
+            "text" => "Numero di cellulare già presente nella tabella"
+        ],
         999 => [
             "type" => "danger",
             "title" => "Errore 999",

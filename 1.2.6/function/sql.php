@@ -593,6 +593,8 @@
                             elseif ($name == 'code') { $ALERT = 972;}
                             elseif ($name == 'email') { $ALERT = 973;}
                             elseif ($name == 'username') { $ALERT = 974;}
+                            elseif ($name == 'tel' || $name == 'tell') { $ALERT = 975;}
+                            elseif ($name == 'phone' || $name == 'cel' || $name == 'cell') { $ALERT = 976;}
                             else { $ALERT = 970;}
                         }
 
