@@ -83,6 +83,22 @@
 
         $RETURN->timetable = empty($RETURN->timetable) ? [] : json_decode($RETURN->timetable, true);
 
+        $RETURN->timeGroup = [];
+        
+        foreach ($RETURN->timetable as $day => $value) {
+
+            $X = "";
+            
+            foreach ($value as $key => $hour) { $X .= $hour['from'].'=>'.$hour['to'].'/'; }
+
+            $X = substr($X, 0, -1);
+            
+            if (!array_key_exists($X, $RETURN->timeGroup)) { $RETURN->timeGroup[$X] = []; }
+            
+            array_push($RETURN->timeGroup[$X], $day);
+
+        }
+
         $RETURN->prettyTime = "";
         
         foreach ($RETURN->timetable as $day => $value) {
@@ -93,6 +109,27 @@
                 $RETURN->prettyTime .= "dalle ".$value['from']." ";
                 $RETURN->prettyTime .= "alle ".$value['to']."<br>";
             }
+
+        }
+
+        $RETURN->prettyTimeGroup = "";
+        
+        foreach ($RETURN->timeGroup as $hour => $day) {
+
+            foreach ($day as $key => $d) {
+                $RETURN->prettyTimeGroup .= '<b>'.substr(translateDate($d, 'day'), 0, 3).'</b>, ';
+            }
+
+            $RETURN->prettyTimeGroup = substr($RETURN->prettyTimeGroup, 0, -2).': ';
+
+            $h = explode('/', $hour);
+
+            foreach ($h as $k => $v) {
+                $v = explode('=>', $v);
+                $RETURN->prettyTimeGroup .= 'dalle '.$v[0].' alle '.$v[1].' | '; 
+            }
+
+            $RETURN->prettyTimeGroup = substr($RETURN->prettyTimeGroup, 0, -3).'<br>';
 
         }
 
