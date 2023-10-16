@@ -48,6 +48,7 @@ html[data-bs-theme="dark"] .btn-dark {
 
 html[data-bs-theme="dark"] {
 --bs-dark-rgb: var(--bs-light-rgb);
+--bs-light-rgb: var(--bs-dark-rgb);
 }
 
 .dropdown-menu {

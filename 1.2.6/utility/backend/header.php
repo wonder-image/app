@@ -157,6 +157,8 @@
 
     </nav>
 
+    <script> bootstrapTheme(localStorage.theme); </script>
+
     <!-- Open Page Content -->
     <div id="content">
         
