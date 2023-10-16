@@ -1,5 +1,10 @@
-<script>     
-    document.querySelector("html").setAttribute("data-bs-theme", "dark");
+<script>
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").setAttribute("data-bs-theme", "dark");
+        localStorage.setItem('theme', 'dark');
+    } else {
+        localStorage.setItem('theme', 'light');
+    }
 </script>
 
 <link rel="shortcut icon" href="https://www.wonderimage.it/favicon.ico" type="image/x-icon">

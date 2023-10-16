@@ -157,16 +157,6 @@
 
     </nav>
 
-    <script>
-
-        if (localStorage.theme !== undefined) {
-            bootstrapTheme(localStorage.theme);
-        } else {
-            bootstrapTheme('dark');
-        }
-
-    </script>
-
     <!-- Open Page Content -->
     <div id="content">
         
