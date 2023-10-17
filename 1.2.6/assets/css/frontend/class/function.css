@@ -165,7 +165,8 @@ background-position: center;
 background-repeat: no-repeat;
 background-attachment: fixed;
 }
-img.bg {
+img.bg,
+iframe.bg {
 position: absolute;
 top: 50%;
 left: 50%;
