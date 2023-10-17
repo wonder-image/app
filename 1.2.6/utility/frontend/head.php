@@ -218,7 +218,8 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/text.css">
 
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/header.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/hamburger.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/hamburger/hamburger.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/hamburger/hamburger-1.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/mobile-nav.css">
 
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/alert.css">
