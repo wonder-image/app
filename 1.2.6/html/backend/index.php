@@ -17,6 +17,7 @@
     } else {
 
         $TITLE = "Aggiungi $TEXT->titleS";
+        $VALUES = [];
 
     }
 
@@ -49,6 +50,7 @@
             } else {
                 header("Location: $REDIRECT");
             }
+            exit;
         }
 
     }
