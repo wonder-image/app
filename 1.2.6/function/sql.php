@@ -643,7 +643,7 @@
 
             } elseif ($name == 'position') {
 
-                if (!empty($RULES['filter'])) {
+                if (isset($RULES['filter']) && !empty($RULES['filter'])) {
 
                     $columnName = $RULES['filter'];
                     $columnValue = isset($post[$columnName]) ? $post[$columnName] : '';
