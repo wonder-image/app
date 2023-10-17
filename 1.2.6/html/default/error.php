@@ -1,6 +1,7 @@
 <?php
     
     $ERROR = $_GET['err'];
+    http_response_code($ERROR);
 
 ?>
 <!DOCTYPE html>
@@ -17,20 +18,20 @@
 </head>
 <body>
 
-    <div id='contenitore'>
-        <div class='titolo'>
+    <div id="contenitore'"
+        <div class="titolo">
             ERRORE <?=$ERROR?>
         </div>
-        <div class='testo'>
+        <div class="testo">
             Oooppsss un errore, stiamo investigando... <br>
             Continua la tua navigazione
         </div>
         <a href ="<?=$PATH->site?>">
-            <div class='btn'>
+            <div class="btn">
                 TORNA AL SITO
             </div>
         </a>
-        <div id='background'></div>
+        <div id="background"></div>
     </div>
 
 </body>
