@@ -21,11 +21,7 @@
 
     }
 
-    if (!empty($PAGE->redirect)) {
-        $REDIRECT = $PAGE->redirect;
-    } else {
-        $REDIRECT = "$PATH->backend/$NAME->folder/list.php";
-    }
+    $REDIRECT = !empty($PAGE->redirect) ? $PAGE->redirect : "$PATH->backend/$NAME->folder/list.php";
 
     if (isset($_POST['upload']) || isset($_POST['upload-add'])) {
 
@@ -45,12 +41,11 @@
         }
 
         if (empty($ALERT)) {
-            if (isset($_POST['upload-add'])) {
-                header("Location: $PATH->backend/$NAME->folder/index.php?redirect=$PAGE->redirectBase64");
-            } else {
-                header("Location: $REDIRECT");
-            }
+
+            $LOCATION = isset($_POST['upload-add']) ? "$PATH->backend/$NAME->folder/index.php?redirect=$PAGE->redirectBase64" : $REDIRECT;
+            header("Location: $LOCATION");
             exit;
+
         }
 
     }
