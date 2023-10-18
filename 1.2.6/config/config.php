@@ -18,9 +18,9 @@
                 
             if (count($DB->database) > 1) {
 
-                foreach ($DB->database as $key => $value) {
+                foreach ($DB->database as $k => $v) {
                     
-                    $A_VALUES = explode(':', str_replace(' ', '', $value));
+                    $A_VALUES = explode(':', str_replace(' ', '', $v));
                     $DATABASE_ARRAY[$A_VALUES[0]] = $A_VALUES[1];
 
                 }
@@ -29,13 +29,8 @@
 
             } else {
 
-                $VALUES = explode(':', str_replace(' ', '', $DB->database[0]));
-
-                if (isset($VALUES[1])) {
-                    $DATABASE_ARRAY['main'] = $VALUES[1];
-                } else {
-                    $DATABASE_ARRAY['main'] = $DB->database[0];
-                }
+                $DATABASE = explode(':', str_replace(' ', '', $DB->database[0]));
+                $DATABASE_ARRAY['main'] = isset($DATABASE[1]) ? $DATABASE[1] : $DB->database[0];
 
                 $DB->database = $DATABASE_ARRAY;
 
