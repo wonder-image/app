@@ -1,5 +1,35 @@
 <?php
 
+    function returnBadge($text, $classIcon, $bootstrapColor) {
+
+        $RETURN = (object) array();
+        $RETURN->color = bootstrapColor($bootstrapColor);
+        $RETURN->bootstrapColor = $bootstrapColor;
+        $RETURN->text = $text;
+        $RETURN->classIcon = $classIcon;
+
+        $RETURN->icon = "<i class='$RETURN->classIcon'></i>";
+        $RETURN->tooltip = "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'></i>";
+        $RETURN->badge = "<span class='badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span>";
+        $RETURN->badgeIcon = "<span class='badge bg-$RETURN->bootstrapColor'>$RETURN->icon</span>";
+        $RETURN->automaticResize = "<span class='phone-none badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span><span class='pc-none badge bg-$RETURN->bootstrapColor'>$RETURN->icon</span>";
+
+        return $RETURN;
+
+    }
+
+    function returnButton($text, $action, $bootstrapColor = "", $line = false) {
+
+        $RETURN = (object) array();
+        $bootstrapColor = empty($bootstrapColor) ? "" : "text-".$bootstrapColor;
+        $RETURN->action = $action;
+        $RETURN->button = $line ? "<div class='dropdown-divider'></div>" : "";
+        $RETURN->button .= "<a class='dropdown-item $bootstrapColor' $action role='button'>$text</a>";
+
+        return $RETURN;
+
+    }
+
     function createAddButton($title) {
 
         global $PATH;
@@ -25,37 +55,22 @@
 
         if ($visible == 'true') {
 
-            $name = "Visibile";
-            $button = "Nascondi";
-            $icon = "<i class='bi bi-eye'></i>";
-            $bg = "bg-success";
-            $tx = "tx-light";
-            $color = "success";
+            $text = "Visibile";
+            $textButton = "Nascondi";
+            $classIcon = "bi bi-eye";
+            $bootstrapColor = "success";
 
-        }else{
+        } else {
 
-            $name = "Nascosto";
-            $button = "Mostra";
-            $icon = "<i class='bi bi-eye-slash'></i>";
-            $bg = "bg-danger";
-            $tx = "tx-light";
-            $color = "danger";
+            $text = "Nascosto";
+            $textButton = "Mostra";
+            $classIcon = "bi bi-eye-slash";
+            $bootstrapColor = "danger";
 
         }
 
-        $RETURN = (object) array();
-        $RETURN->action = $action;
-        $RETURN->icon = $icon;
-        $RETURN->name = $name;
-        $RETURN->bg = $bg;
-        $RETURN->tx = $tx;
-        $RETURN->color = $color;
-        $RETURN->button = "<a class='dropdown-item' $RETURN->action role='button'>$button</a>";
-        $RETURN->badge = "<a $RETURN->action role='button'class='badge $RETURN->bg $RETURN->tx'>$RETURN->name</a>";
-        $RETURN->badgeIcon = "<a $RETURN->action role='button' class='badge $RETURN->bg $RETURN->tx'>$RETURN->icon</a>";
-
-        $RETURN->automaticResize = "<a $RETURN->action role='button'class='phone-none badge $RETURN->bg $RETURN->tx text-decoration-none'>$RETURN->name</a><a $RETURN->action role='button' class='pc-none badge $RETURN->bg $RETURN->tx'>$RETURN->icon</a>";
-
+        $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
+    
         return $RETURN;
 
     }
@@ -67,42 +82,24 @@
 
         $action = "onclick=\"ajaxRequest('$PATH->app/api/backend/active.php?table=$NAME->table&id=$id')\"";
 
-        $return = (object) array();
-        $return->action = $action;
-
         if ($active == 'true') {
 
-            $name = "Abilitato";
-            $button = "Disabilita";
-            $icon = "<i class='bi bi-check-circle'></i>";
-            $bg = "bg-success";
-            $tx = "tx-light";
-            $color = "success";
+            $text = "Abilitato";
+            $textButton = "Disabilita";
+            $classIcon = "bi bi-check-circle";
+            $bootstrapColor = "success";
 
         }else{
 
-            $name = "Disabilitato";
-            $button = "Abilita";
-            $icon = "<i class='bi bi-x-circle'></i>";
-            $bg = "bg-danger";
-            $tx = "tx-light";
-            $color = "danger";
+            $text = "Disabilitato";
+            $textButton = "Abilita";
+            $classIcon = "bi bi-x-circle";
+            $bootstrapColor = "danger";
 
         }
 
-        $RETURN = (object) array();
-        $RETURN->action = $action;
-        $RETURN->icon = $icon;
-        $RETURN->name = $name;
-        $RETURN->bg = $bg;
-        $RETURN->tx = $tx;
-        $RETURN->color = $color;
-
-        $RETURN->button = "<a class='dropdown-item' $action role='button'>$button</a>";
-        $RETURN->badge = "<a $RETURN->action role='button' class='badge text-bg-$RETURN->color text-decoration-none'>$RETURN->name</a>";
-        $RETURN->badgeIcon = "<a $RETURN->action role='button' class='badge text-bg-$RETURN->color text-decoration-none'>$RETURN->icon</a>";
-
-        $RETURN->automaticResize = "<a $RETURN->action role='button' class='phone-none badge text-bg-$RETURN->color text-decoration-none'>$RETURN->name</a><a $RETURN->action role='button' class='pc-none badge text-bg-$RETURN->color text-decoration-none'>$RETURN->icon</a>";
+        
+        $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
 
         return $RETURN;
 
@@ -116,13 +113,9 @@
 
         $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->app/api/backend/delete.php?table=$NAME->table&id=$id')\"";
 
-        $return = (object) array();
-        $return->action = $action;
-        $return->button = "
-        <div class='dropdown-divider'></div>
-        <a class='dropdown-item text-danger' $action role='button'>Elimina</a>";
+        $RETURN = returnButton("Elimina", $action, 'danger', true);
 
-        return $return;
+        return $RETURN;
 
     }
 
@@ -139,13 +132,9 @@
 
         $action .= "')\"";
 
-        $return = (object) array();
-        $return->action = $action;
-        $return->button = "
-        <div class='dropdown-divider'></div>
-        <a class='dropdown-item text-danger' $action role='button'>Elimina</a>";
+        $RETURN = returnButton("Elimina", $action, 'danger', true);
 
-        return $return;
+        return $RETURN;
 
     }
 
