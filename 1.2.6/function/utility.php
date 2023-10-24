@@ -16,7 +16,7 @@
 
             $RETURN->color = isset($RETURN->color) ? $RETURN->color : '';
             $RETURN->name = isset($RETURN->name) ? $RETURN->name : '';
-            $RETURN->text = isset($RETURN->text) ? $RETURN->text : '';
+            $RETURN->text = isset($RETURN->text) ? $RETURN->text : $RETURN->name;
             $RETURN->classIcon = isset($RETURN->icon) ? $RETURN->icon : '';
 
             $RETURN->icon = "<i class='$RETURN->classIcon'></i>";

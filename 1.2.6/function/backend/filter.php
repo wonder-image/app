@@ -928,7 +928,7 @@
                 
             }
 
-            if (count($checkbox) > 3) {
+            if (count($checkbox) > 5) {
                 $HTML = check($name, $table, $checkbox, '', $type, $search, $value);
             } else {
                 $HTML = select($name, $table, $checkbox, 'old', null, $value);

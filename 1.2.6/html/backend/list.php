@@ -30,17 +30,9 @@
         $PAGE_TABLE = $TABLE->$table;
     }
 
-    if ($BUTTON_ADD) {
-        $BUTTON_ADD = createAddButton($TEXT->titleS);
-    }
-
-    if (!empty($FILTER_SEARCH)) {
-        $SEARCH = createSearchBar();
-    }
-
-    if (!empty($FILTER_CUSTOM)) {
-        $CUSTOM = createFilterCustom();
-    }
+    if ($BUTTON_ADD) { $BUTTON_ADD = createAddButton($TEXT->titleS); }
+    if (!empty($FILTER_SEARCH)) { $SEARCH = createSearchBar(); }
+    if (!empty($FILTER_CUSTOM)) { $CUSTOM = createFilterCustom(); }
 
 ?>
 <!DOCTYPE html>
@@ -323,6 +315,9 @@
                                                 $href = $LINK->view;
                                             } elseif ($href == 'mailto') {
                                                 $href = "mailto:$VALUE";
+                                            } elseif ($href == 'tel') {
+                                                $href = "tel:$VALUE";
+                                                $VALUE = prettyPhone($VALUE);
                                             } else {
                                                 $href = $href;
                                             }
