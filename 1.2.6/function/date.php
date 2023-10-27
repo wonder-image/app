@@ -140,4 +140,22 @@
 
     }
 
+    function calcYear($initialDate, $finalDate = null) {
+
+        $initialDate = str_replace('/', '-', $initialDate);
+        $initialDate = date('Y-m-d', strtotime($initialDate));
+
+        if ($finalDate == null) { 
+            $finalDate = date('Y-m-d');
+        } else {
+            $finalDate = date('Y-m-d', strtotime($finalDate));
+        }
+
+        $diff = date_diff(date_create($initialDate), date_create($finalDate));
+        $year = $diff->format('%y');
+
+        return $year;
+
+    }
+
 ?>
