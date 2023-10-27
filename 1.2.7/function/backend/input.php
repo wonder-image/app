@@ -7,7 +7,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -25,7 +25,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -43,7 +43,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -60,7 +60,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -80,7 +80,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d', strtotime($VALUES[$name])); }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -98,7 +98,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('d/m/Y', strtotime($VALUES[$name])); }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
         $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
@@ -112,6 +112,8 @@
     }
 
     function dateRange($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
+        
+        global $VALUES;
         
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
@@ -130,7 +132,7 @@
             $valueTo = "";
         }
 
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
         $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
@@ -153,7 +155,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $color = !empty($value) ? "style='color: $value;'" : '';
 
@@ -174,7 +176,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -191,7 +193,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -208,7 +210,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -225,7 +227,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -244,7 +246,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         if ($version == "basic" || $version == "advanced" || $version == "all") {
 
@@ -364,7 +366,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $optionHTML = "";
 
@@ -419,7 +421,7 @@
             }
         }
 
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $checkHTML = "";
         $dataFilter = "";
@@ -519,7 +521,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $TABLE = $PAGE_TABLE[$name]['input'];
         $maxFile = $TABLE['format']['max_file'];
