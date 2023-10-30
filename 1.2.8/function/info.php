@@ -65,20 +65,22 @@
         $RETURN->domain = empty($RETURN->site) ? '' : parse_url($RETURN->site)['host'];
 
         $RETURN->address = "$RETURN->street $RETURN->number, $RETURN->cap $RETURN->city ($RETURN->province)";
-        $RETURN->prettyAddress = "$RETURN->street $RETURN->number, <br> $RETURN->city ($RETURN->province)";
+        $RETURN->prettyAddress = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country)->pretty;
 
         $RETURN->addressLegal = "$RETURN->legal_street $RETURN->legal_number, $RETURN->legal_cap $RETURN->legal_city ($RETURN->legal_province)";
-        $RETURN->prettyLegalAddress = "$RETURN->legal_street $RETURN->legal_number, <br> $RETURN->legal_city ($RETURN->legal_province)";
+        $RETURN->prettyLegalAddress = prettyAddress($RETURN->legal_street, $RETURN->legal_number, $RETURN->legal_cap, $RETURN->legal_city, $RETURN->legal_province, $RETURN->legal_country)->pretty;
 
         $RETURN->prettyLegal = "";
 
         if (!empty($RETURN->legal_name)) { $RETURN->prettyLegal .= $RETURN->legal_name; }
 
-        if (!empty($RETURN->pi) && !empty($RETURN->cf)) {
-            $RETURN->prettyLegal .= ' - P.Iva e C.Fiscale '.$RETURN->pi;
-        } elseif (!empty($RETURN->pi) || !empty($RETURN->cf)) {
-            if (!empty($RETURN->pi)) { $RETURN->prettyLegal .= ' - P.Iva '.$RETURN->pi; } 
-            elseif (!empty($RETURN->cf)) { $RETURN->prettyLegal .= ' - C.Fiscale '.$RETURN->cf; }
+        if (!empty($RETURN->pi) || !empty($RETURN->cf)) {
+            if ($RETURN->pi == $RETURN->cf) {
+                $RETURN->prettyLegal .= ' - P.Iva e C.Fiscale '.$RETURN->pi;
+            } else {
+                if (!empty($RETURN->pi)) { $RETURN->prettyLegal .= ' - P.Iva '.$RETURN->pi; } 
+                if (!empty($RETURN->cf)) { $RETURN->prettyLegal .= ' - C.Fiscale '.$RETURN->cf; }
+            }
         }
 
         $RETURN->timetable = empty($RETURN->timetable) ? [] : json_decode($RETURN->timetable, true);
