@@ -81,7 +81,7 @@
             } else {
 
                 $RETURN->user = infoUser('');
-                $RETURN->values = $UPLOAD;
+                $RETURN->values = $POST;
 
             }
 
@@ -135,7 +135,7 @@
             } else {
 
                 $RETURN->user = infoUser('');
-                $RETURN->values = $UPLOAD;
+                $RETURN->values = $POST;
 
             };
 
