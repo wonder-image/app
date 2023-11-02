@@ -30,7 +30,8 @@
 
             $value['position'] = $i;
 
-            $src = $value['src'];
+            $srcPrewiew = $value['src'];
+            $src = isset($value['src-original']) ? $value['src-original'] : $srcPrewiew;
             $alt = $value['alt'];
             $caption = isset($value['caption']) ? "data-caption='".$value['caption']."'" : '';
             
@@ -47,8 +48,7 @@
             if ($tablet == $colTablet) {$tablet = 0;}
             if ($mobile == $colMobile) {$mobile = 0;}
 
-            $RETURN .= "
-            <a data-fancybox='gallery' data-src='$src' $caption></a>";
+            $RETURN .= "<a data-fancybox='gallery' data-src='$src' $caption></a>";
             
         }
 
@@ -72,7 +72,8 @@
                 $RETURN .= "
                 <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
                     <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 120px'>
-                </a>";             
+                </a>";
+
             }
 
             $RETURN .= "</div>
