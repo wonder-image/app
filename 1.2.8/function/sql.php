@@ -499,6 +499,7 @@
                         $MAX_SIZE = isset($RULES['format']['max_size']) ? $RULES['format']['max_size'] * 1000000 : 2000000;
                         $EXTENSIONS = $RULES['format']['extensions'];
                         $DIR = isset($RULES['format']['dir']) ? $RULES['format']['dir'] : '/';
+                        $RESIZE = isset($RULES['format']['resize']) ? $RULES['format']['resize'] : '';
 
                         if (isset($OLD_VALUE)) {
                             $ARRAY_VALUES = json_decode($OLD_VALUE, true);
@@ -540,9 +541,15 @@
                                             $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
 
                                         }
-
+                                        
                                         if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
+
                                             $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME;
+
+                                            if (!empty($RESIZE)) {
+                                                resizeImage($NEW_PATH, $RESIZE['width'], $RESIZE['height'], $PATH->rUpload.'/'.$NAME->folder.$DIR);
+                                            }
+
                                         } else {
                                             $ALERT = 920;
                                         }
