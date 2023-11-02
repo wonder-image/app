@@ -6,46 +6,24 @@
 
         if (!file_exists($filePath)) {
 
-            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+            $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
             if ($newName == null) {
-                $name = basename($filePath, '.'.$extension);
-            }else{
-                $name = create_link($newName);
+                $newName = basename($filePath, '.'.$extension);
+            } else{
+                $newName = create_link($newName);
             }
-            
-            $extension = strtolower($extension);
 
             if ($newPath == null) {
-                $path = "$newPath/$name.webp";
+                $newPath = "$newPath/$newName";
             } else {
-                $path = pathinfo($filePath, PATHINFO_DIRNAME);
-                $path = "/$name.webp";
+                $newPath = pathinfo($filePath, PATHINFO_DIRNAME);
+                $newPath = "/$newName";
             }
 
-            list($originalWidth, $originalHeight) = getimagesize($filePath);
-            if ($originalWidth >= $originalHeight) {
-                $width = $maxWidth;
-                $height = ($width / $originalWidth) * $originalHeight;
-            } else {
-                $height = $maxHeight;
-                $width = ($height / $originalHeight) * $originalWidth;
-            }
-
-            if ($extension == 'jpg' || $extension == 'jpeg') {
-
-                $image = imagecreatefromjpeg($filePath);
-                $imageResized = imagescale($image, $width, $height);
-                imagejpeg($imageResized, $path);
-
-
-            } elseif ($extension == 'png') {
-
-                $image = imagecreatefrompng($filePath);
-                $imageResized = imagescale($image, $width, $height);
-                imagepng($imageResized, $path);
-                
-            }
+            $image = new ImageResize($filePath);
+            $image->resizeToBestFit($maxWidth, $maxHeight);
+            $image->save($newPath);
 
         } else {
 

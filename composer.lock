@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "32583eb82f7aba4dbc661e6af4153ad7",
+    "content-hash": "d7ebdd587097df773e34812b275f3056",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -157,16 +157,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "2.6.2",
+            "version": "2.6.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "623e5e1de055e65bc6c3c61b8348dc4662d75e2b"
+                "reference": "4b0fe89db9e65b1e64df633a992e70a7a215ab33"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/623e5e1de055e65bc6c3c61b8348dc4662d75e2b",
-                "reference": "623e5e1de055e65bc6c3c61b8348dc4662d75e2b",
+                "url": "https://api.github.com/repos/composer/composer/zipball/4b0fe89db9e65b1e64df633a992e70a7a215ab33",
+                "reference": "4b0fe89db9e65b1e64df633a992e70a7a215ab33",
                 "shasum": ""
             },
             "require": {
@@ -251,7 +251,7 @@
                 "irc": "ircs://irc.libera.chat:6697/composer",
                 "issues": "https://github.com/composer/composer/issues",
                 "security": "https://github.com/composer/composer/security/policy",
-                "source": "https://github.com/composer/composer/tree/2.6.2"
+                "source": "https://github.com/composer/composer/tree/2.6.5"
             },
             "funding": [
                 {
@@ -267,7 +267,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-09-03T12:09:15+00:00"
+            "time": "2023-10-06T08:11:52+00:00"
         },
         {
             "name": "composer/metadata-minifier",
@@ -340,16 +340,16 @@
         },
         {
             "name": "composer/pcre",
-            "version": "3.1.0",
+            "version": "3.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/pcre.git",
-                "reference": "4bff79ddd77851fe3cdd11616ed3f92841ba5bd2"
+                "reference": "00104306927c7a0919b4ced2aaa6782c1e61a3c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/pcre/zipball/4bff79ddd77851fe3cdd11616ed3f92841ba5bd2",
-                "reference": "4bff79ddd77851fe3cdd11616ed3f92841ba5bd2",
+                "url": "https://api.github.com/repos/composer/pcre/zipball/00104306927c7a0919b4ced2aaa6782c1e61a3c9",
+                "reference": "00104306927c7a0919b4ced2aaa6782c1e61a3c9",
                 "shasum": ""
             },
             "require": {
@@ -391,7 +391,7 @@
             ],
             "support": {
                 "issues": "https://github.com/composer/pcre/issues",
-                "source": "https://github.com/composer/pcre/tree/3.1.0"
+                "source": "https://github.com/composer/pcre/tree/3.1.1"
             },
             "funding": [
                 {
@@ -407,7 +407,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-11-17T09:50:14+00:00"
+            "time": "2023-10-11T07:11:09+00:00"
         },
         {
             "name": "composer/semver",
@@ -752,17 +752,76 @@
             "time": "2023-02-25T20:23:15+00:00"
         },
         {
-            "name": "justinrainbow/json-schema",
-            "version": "5.2.12",
+            "name": "gumlet/php-image-resize",
+            "version": "2.0.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/justinrainbow/json-schema.git",
-                "reference": "ad87d5a5ca981228e0e205c2bc7dfb8e24559b60"
+                "url": "https://github.com/gumlet/php-image-resize.git",
+                "reference": "54165d97ebc3d4fc188761166b78e6702f605f59"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/ad87d5a5ca981228e0e205c2bc7dfb8e24559b60",
-                "reference": "ad87d5a5ca981228e0e205c2bc7dfb8e24559b60",
+                "url": "https://api.github.com/repos/gumlet/php-image-resize/zipball/54165d97ebc3d4fc188761166b78e6702f605f59",
+                "reference": "54165d97ebc3d4fc188761166b78e6702f605f59",
+                "shasum": ""
+            },
+            "require": {
+                "ext-fileinfo": "*",
+                "ext-gd": "*",
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "apigen/apigen": "^4.1",
+                "ext-exif": "*",
+                "ext-gd": "*",
+                "php-coveralls/php-coveralls": "^2.1",
+                "phpunit/phpunit": "^8.5"
+            },
+            "suggest": {
+                "ext-exif": "Auto-rotate jpeg files"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Gumlet\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Aditya Patadia",
+                    "homepage": "http://aditya.patadia.org/"
+                }
+            ],
+            "description": "PHP class to re-size and scale images",
+            "homepage": "https://github.com/gumlet/php-image-resize",
+            "keywords": [
+                "image",
+                "php",
+                "resize",
+                "scale"
+            ],
+            "support": {
+                "issues": "https://github.com/gumlet/php-image-resize/issues",
+                "source": "https://github.com/gumlet/php-image-resize/tree/2.0.4"
+            },
+            "time": "2023-10-11T14:16:03+00:00"
+        },
+        {
+            "name": "justinrainbow/json-schema",
+            "version": "v5.2.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/justinrainbow/json-schema.git",
+                "reference": "fbbe7e5d79f618997bc3332a6f49246036c45793"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/fbbe7e5d79f618997bc3332a6f49246036c45793",
+                "reference": "fbbe7e5d79f618997bc3332a6f49246036c45793",
                 "shasum": ""
             },
             "require": {
@@ -817,9 +876,9 @@
             ],
             "support": {
                 "issues": "https://github.com/justinrainbow/json-schema/issues",
-                "source": "https://github.com/justinrainbow/json-schema/tree/5.2.12"
+                "source": "https://github.com/justinrainbow/json-schema/tree/v5.2.13"
             },
-            "time": "2022-04-13T08:02:27+00:00"
+            "time": "2023-09-26T02:20:38+00:00"
         },
         {
             "name": "phpmailer/phpmailer",
@@ -1547,16 +1606,16 @@
         },
         {
             "name": "symfony/finder",
-            "version": "v6.3.3",
+            "version": "v6.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "9915db259f67d21eefee768c1abcf1cc61b1fc9e"
+                "reference": "a1b31d88c0e998168ca7792f222cbecee47428c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/9915db259f67d21eefee768c1abcf1cc61b1fc9e",
-                "reference": "9915db259f67d21eefee768c1abcf1cc61b1fc9e",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/a1b31d88c0e998168ca7792f222cbecee47428c4",
+                "reference": "a1b31d88c0e998168ca7792f222cbecee47428c4",
                 "shasum": ""
             },
             "require": {
@@ -1591,7 +1650,7 @@
             "description": "Finds files and directories via an intuitive fluent interface",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/finder/tree/v6.3.3"
+                "source": "https://github.com/symfony/finder/tree/v6.3.5"
             },
             "funding": [
                 {
@@ -1607,7 +1666,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-07-31T08:31:44+00:00"
+            "time": "2023-09-26T12:56:25+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -2325,16 +2384,16 @@
         },
         {
             "name": "symfony/string",
-            "version": "v6.3.2",
+            "version": "v6.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/string.git",
-                "reference": "53d1a83225002635bca3482fcbf963001313fb68"
+                "reference": "13d76d0fb049051ed12a04bef4f9de8715bea339"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/string/zipball/53d1a83225002635bca3482fcbf963001313fb68",
-                "reference": "53d1a83225002635bca3482fcbf963001313fb68",
+                "url": "https://api.github.com/repos/symfony/string/zipball/13d76d0fb049051ed12a04bef4f9de8715bea339",
+                "reference": "13d76d0fb049051ed12a04bef4f9de8715bea339",
                 "shasum": ""
             },
             "require": {
@@ -2391,7 +2450,7 @@
                 "utf8"
             ],
             "support": {
-                "source": "https://github.com/symfony/string/tree/v6.3.2"
+                "source": "https://github.com/symfony/string/tree/v6.3.5"
             },
             "funding": [
                 {
@@ -2407,7 +2466,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-07-05T08:41:27+00:00"
+            "time": "2023-09-18T10:38:32+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

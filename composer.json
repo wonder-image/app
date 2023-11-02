@@ -17,6 +17,7 @@
         "composer/composer": "^2.5",
         "fpdf/fpdf": "^1.85",
         "vlucas/phpdotenv": "^5.5",
-        "phpmailer/phpmailer": "^6.8"
+        "phpmailer/phpmailer": "^6.8",
+        "gumlet/php-image-resize": "2.0.4"
     }
 }
