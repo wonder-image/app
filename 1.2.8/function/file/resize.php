@@ -14,7 +14,7 @@
                 $name = create_link($newName);
             }
             
-            $estension = strtolower($extension);
+            $extension = strtolower($extension);
 
             if ($newPath == null) {
                 $path = "$newPath/$name.webp";
