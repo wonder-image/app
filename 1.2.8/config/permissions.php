@@ -20,7 +20,8 @@
             ],
             "links" => [
                 "login" => "$PATH->backend/account/login/",
-                "password-recovery" => "$PATH->backend/account/password-recovery/"
+                "password-recovery" => "$PATH->backend/account/password-recovery/",
+                "password-set" => "$PATH->backend/account/password-set/"
             ],
         ],
         "frontend" => []
