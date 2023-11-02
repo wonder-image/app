@@ -532,26 +532,47 @@
                                             
                                             $NEW_NAME = explode('/', $DIR);
                                             $lastKey = array_key_last($NEW_NAME);
-                                            $NEW_NAME = $NEW_NAME[$lastKey].'.'.$EXTENSION;
-                                            $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.'.'.$EXTENSION;
+
+                                            $PATH_UPLOAD = $PATH->rUpload.'/'.$NAME->folder.str_replace($NEW_NAME,'', $DIR);
+                                            $NEW_NAME = $NEW_NAME[$lastKey];
 
                                         } else {
 
-                                            $NEW_NAME = code(10, 'all').'.'.$EXTENSION;
-                                            $NEW_PATH = $PATH->rUpload.'/'.$NAME->folder.$DIR.$NEW_NAME;
+                                            $NEW_NAME = code(10, 'all');
+                                            $PATH_UPLOAD = $PATH->rUpload.'/'.$NAME->folder.$DIR;
 
                                         }
+
+                                        $NEW_PATH = $PATH_UPLOAD.$NEW_NAME.'.'.$EXTENSION;
                                         
                                         if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
 
-                                            $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME;
+                                            $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
 
                                             if (!empty($RESIZE)) {
-                                                resizeImage($NEW_PATH, $RESIZE['width'], $RESIZE['height'], $PATH->rUpload.'/'.$NAME->folder.$DIR);
+                                                if (is_array($RESIZE[0])) {
+                                                    foreach ($RESIZE as $k => $v) {
+
+                                                        $WIDTH = $v['width'];
+                                                        $HEIGHT = $v['height'];
+                                                        
+                                                        resizeImage($NEW_PATH, $v['width'], $v['height'], $PATH_UPLOAD, $WIDTH.'x'.$HEIGHT.'-'.$NEW_NAME);
+
+                                                    }
+                                                } else {
+
+                                                    $WIDTH = $RESIZE['width'];
+                                                    $HEIGHT = $RESIZE['height'];
+
+                                                    resizeImage($NEW_PATH, $RESIZE['width'], $HEIGHT, $PATH_UPLOAD, $WIDTH.'x'.$HEIGHT.'-'.$NEW_NAME);
+
+                                                }
                                             }
 
                                         } else {
+
                                             $ALERT = 920;
+                                            
                                         }
                                     
                                     }

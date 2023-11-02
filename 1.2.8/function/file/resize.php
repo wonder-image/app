@@ -4,24 +4,19 @@
 
         global $ALERT;
 
-        if (!file_exists($filePath)) {
+        if (file_exists($filePath)) {
 
             $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
             if ($newName == null) {
-                $newName = basename($filePath, '.'.$extension);
+                $newName = basename($filePath, '.'.$extension).".$extension";
             } else{
-                $newName = create_link($newName);
+                $newName = create_link($newName).".$extension";
             }
+            
+            $newPath = ($newPath == null) ? $newName : $newPath."/$newName";
 
-            if ($newPath == null) {
-                $newPath = "$newPath/$newName";
-            } else {
-                $newPath = pathinfo($filePath, PATHINFO_DIRNAME);
-                $newPath = "/$newName";
-            }
-
-            $image = new ImageResize($filePath);
+            $image = new \Gumlet\ImageResize($filePath);
             $image->resizeToBestFit($maxWidth, $maxHeight);
             $image->save($newPath);
 
