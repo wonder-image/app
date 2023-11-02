@@ -16,7 +16,7 @@
 
         foreach ($RETURN->authority as $key => $authority) {
             if (!empty(permissions($authority)->functionInfo)) {
-                $RETURN->$authority = call_user_func_array(permissions($authority)->functionInfo, [$RETURN->id]);
+                $RETURN->$authority = call_user_func_array(permissions($authority)->functionInfo, [ $RETURN->id ]);
             }
         }
 
@@ -67,13 +67,12 @@
 
                 $sql = sqlInsert('user', $UPLOAD); 
 
-                $USER = infoUser($sql->insert_id);
-                $RETURN->user = $USER;
+                $RETURN->user = infoUser($sql->insert_id);
                 $RETURN->values = $UPLOAD;
 
                 if (isset($POST['authority']) && !empty(permissions($POST['authority'])->functionCreation)) {
                     
-                    $AUTHORITY_UPLOAD = call_user_func_array(permissions($POST['authority'])->functionCreation, [$POST, $UPLOAD, $USER, $MODIFY_ID]);
+                    $AUTHORITY_UPLOAD = call_user_func_array(permissions($POST['authority'])->functionCreation, [$POST, $UPLOAD, $RETURN->user, $MODIFY_ID]);
                     $RETURN->values = array_merge($AUTHORITY_UPLOAD->values, $UPLOAD);
                     $RETURN->user = $AUTHORITY_UPLOAD->user;
 
@@ -115,7 +114,6 @@
                 if (isset($POST['authority']) && !in_array($POST['authority'], $authority)) { array_push($authority, $POST['authority']); }
             }
 
-
             $UPLOAD['authority'] = json_encode($authority);
             $UPLOAD['area'] = json_encode($area);
 
@@ -133,7 +131,6 @@
                     $RETURN->user = $AUTHORITY_UPLOAD->user;
 
                 }
-
 
             } else {
 
@@ -170,14 +167,14 @@
 
         } else {
 
-            $USER = infoUser($USER_ID);
+            $U = infoUser($USER_ID);
 
-            if ($USER->exists) {
-                if ($USER->deleted == 'false') {
-                    if ($USER->active == 'true'){
-                        if (in_array($AREA, $USER->area)) {
-                            if (count($PERMIT_REQUIRED) == 0 || count(array_intersect($PERMIT_REQUIRED, $USER->authority)) >= 1) {
-                                return $USER;
+            if ($U->exists) {
+                if ($U->deleted == 'false') {
+                    if ($U->active == 'true'){
+                        if (in_array($AREA, $U->area)) {
+                            if (count($PERMIT_REQUIRED) == 0 || count(array_intersect($PERMIT_REQUIRED, $U->authority)) >= 1) {
+                                return $U;
                             } else {
                                 $alert = 915;
                             }
@@ -209,15 +206,15 @@
         $VALUE = sanitize($VALUE);
         $PASSWORD = sanitize($PASSWORD);
 
-        $USER = infoUser($VALUE, $KEY);
+        $U = infoUser($VALUE, $KEY);
 
-        if ($USER->exists) {
-            if (checkPassword($PASSWORD, $USER->password)){
-                if ($USER->deleted == 'false') {
-                    if ($USER->active == 'true') {
-                        if (in_array($AREA, $USER->area)) {
-                            if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $USER->authority)) {
-                                $_SESSION['user_id'] = $USER->id;
+        if ($U->exists) {
+            if (checkPassword($PASSWORD, $U->password)){
+                if ($U->deleted == 'false') {
+                    if ($U->active == 'true') {
+                        if (in_array($AREA, $U->area)) {
+                            if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
+                                $_SESSION['user_id'] = $U->id;
                                 return true;
                             } else {
                                 $ALERT = 915;
@@ -246,17 +243,17 @@
 
         $VALUE = sanitize($VALUE);
 
-        $USER = infoUser($VALUE, $KEY);
+        $U = infoUser($VALUE, $KEY);
 
         $RETURN = (object) array();
-        $RETURN->user = $USER;
+        $RETURN->user = $U;
         $RETURN->response = false;
 
-        if ($USER->exists) {
-            if ($USER->deleted == 'false') {
-                if ($USER->active == 'true') {
-                    if ($AREA == null ||in_array($AREA, $USER->area)) {
-                        if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $USER->authority)) {
+        if ($U->exists) {
+            if ($U->deleted == 'false') {
+                if ($U->active == 'true') {
+                    if ($AREA == null || in_array($AREA, $U->area)) {
+                        if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
                             $RETURN->response = true;
                         } else {
                             $ALERT = 915;
