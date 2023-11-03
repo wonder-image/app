@@ -52,7 +52,7 @@ html[data-bs-theme="dark"] {
 }
 
 .dropdown-menu {
---bs-dropdown-padding-x: .25rem;
+--bs-dropdown-padding-x: .5rem;
 --bs-dropdown-padding-y: .5rem;
 }
 .dropdown-menu li + li {

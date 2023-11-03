@@ -75,6 +75,7 @@
         # Loghi backend
         $DEFAULT->BeLogoBlack = $PATH->app.'/assets/logos/Wonder-Image.png';
         $DEFAULT->BeLogoWhite = $PATH->app.'/assets/logos/Wonder-Image-White.png';
+        $DEFAULT->BeFavicon = 'https://www.wonderimage.it/favicon.ico';
 
         $DEFAULT->font = [
             [
