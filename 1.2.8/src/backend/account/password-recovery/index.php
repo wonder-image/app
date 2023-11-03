@@ -58,7 +58,7 @@
             <wi-card>
                 
                 <div class="d-grid col-12 mx-auto">
-                    <img class="position-relative w-75 start-50 translate-middle-x" src="<?=$PATH->app?>/assets/logos/Wonder-Image-White.png" alt="Wonder Image">
+                    <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="position-relative w-75 start-50 translate-middle-x" ><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="position-relative w-75 start-50 translate-middle-x d-none">
                 </div>
 
                 <div class="col-12">
@@ -68,6 +68,7 @@
                 <div class="d-grid col-8 mx-auto">
                     <?=submit('Recupera password', 'recovery'); ?>
                 </div>
+
             </wi-card>
         </form>
 
@@ -80,6 +81,8 @@
     </div>
 
     <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
+    
+    <script> $(document).ready(function () { bootstrapTheme(localStorage.theme); }); </script>
 
 </body>
 </html>

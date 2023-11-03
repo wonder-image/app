@@ -72,6 +72,10 @@
     # Default
         $DEFAULT->image = $PATH->assets."/images/Default.png";
 
+        # Loghi backend
+        $DEFAULT->BeLogoBlack = $PATH->app.'/assets/logos/Wonder-Image.png';
+        $DEFAULT->BeLogoWhite = $PATH->app.'/assets/logos/Wonder-Image-White.png';
+
         $DEFAULT->font = [
             [
                 "name" => "Roboto",
