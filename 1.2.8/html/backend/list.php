@@ -324,9 +324,9 @@
 
                                     // Set link to value
 
-                                        $href = !empty($value['href']) ? $value['href'] : '';
-                                        
-                                        if (!empty($href)) {
+                                        if (!empty($value['href'])) {
+
+                                            $href = $value['href'];
 
                                             if ($href == 'modify') {
                                                 $href = $LINK->modify;
@@ -337,8 +337,6 @@
                                             } elseif ($href == 'tel') {
                                                 $href = "tel:$VALUE";
                                                 $VALUE = prettyPhone($VALUE);
-                                            } else {
-                                                $href = $href;
                                             }
 
                                             $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";

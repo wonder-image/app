@@ -89,7 +89,7 @@
             $classIcon = "bi bi-check-circle";
             $bootstrapColor = "success";
 
-        }else{
+        } else {
 
             $text = "Disabilitato";
             $textButton = "Abilita";
@@ -97,7 +97,6 @@
             $bootstrapColor = "danger";
 
         }
-
         
         $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
 

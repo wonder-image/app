@@ -329,9 +329,9 @@
             $RETURN->functionModify = isset($ARRAY['function']['modify']) ? $ARRAY['function']['modify'] : '';
             $RETURN->functionInfo = isset($ARRAY['function']['info']) ? $ARRAY['function']['info'] : '';
 
-            $RETURN->badge = "<span class='badge $RETURN->bg $RETURN->tx'>$RETURN->name</span>";
+            $RETURN->badge = "<span class='badge $RETURN->bg $RETURN->tx'>".strtoupper($RETURN->name)."</span>";
             $RETURN->badgeIcon = "<span class='badge $RETURN->bg $RETURN->tx'>$RETURN->icon</span>";
-            $RETURN->automaticResize = "<span class='phone-none badge $RETURN->bg $RETURN->tx'>$RETURN->name</span><span class='pc-none badge $RETURN->bg $RETURN->tx'>$RETURN->icon</span>";
+            $RETURN->automaticResize = "<span class='phone-none badge $RETURN->bg $RETURN->tx'>".strtoupper($RETURN->name)."</span><span class='pc-none badge $RETURN->bg $RETURN->tx'>$RETURN->icon</span>";
 
         }
 
