@@ -35,6 +35,12 @@
         $RETURN = (object) array();
         $UPLOAD = [];
 
+        foreach ($POST as $column => $value) {
+            if (sqlColumnExists('user', $column)) {
+                $UPLOAD[$column] = $value;
+            }
+        }
+
         if (isset($POST['name'])) { $UPLOAD['name'] = sanitizeFirst($POST['name']); }
         if (isset($POST['surname'])) { $UPLOAD['surname'] = sanitizeFirst($POST['surname']); }
         if (isset($POST['active'])) { $UPLOAD['active'] = $POST['active']; }
