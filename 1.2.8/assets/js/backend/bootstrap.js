@@ -28,8 +28,8 @@ function bootstrapTheme(theme) {
         if (document.querySelector('#bs-theme i.light-theme')) { document.querySelector('#bs-theme i.light-theme').classList.remove('d-none'); }
         if (document.querySelector('#bs-theme i.dark-theme')) { document.querySelector('#bs-theme i.dark-theme').classList.add('d-none'); }
 
-        document.querySelector('#be-logo-white').classList.remove('d-none');
-        document.querySelector('#be-logo-black').classList.add('d-none');
+        document.querySelector('#be-logo-white').classList.add('d-none');
+        document.querySelector('#be-logo-black').classList.remove('d-none');
 
         element = document.querySelector('[data-bs-theme-value="light"]');
         el = document.querySelector('[data-bs-theme-value="dark"]');
@@ -47,8 +47,8 @@ function bootstrapTheme(theme) {
 
     }
 
-    el.classList.remove('active');
-    element.classList.add('active');
+    if (el) { el.classList.remove('active'); }
+    if (element) { element.classList.add('active'); }
 
 }
 

@@ -135,7 +135,7 @@
         </div>
 
         <a href="https://www.wonderimage.it" target="_blank" rel="noopener noreferrer" class="position-absolute top-50 start-50 translate-middle" style="height: 30px;">
-            <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="h-100"><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="h-100 d-none">
+            <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="h-100 d-none"><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="h-100 d-none">
         </a>
 
         <div id="menu" class="pc-none ms-2" onclick="menu()">
