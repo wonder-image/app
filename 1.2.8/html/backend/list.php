@@ -2,19 +2,38 @@
 
     if (isset($USER_FILTER->authority) && isset($USER_FILTER->area)) {
 
-        $QUERY_CUSTOM = "";
+        $QUERY_CUSTOM = isset($QUERY_CUSTOM) ? $QUERY_CUSTOM.' AND ' : '';
 
         if (!empty($USER_FILTER->authority)) {
-            $QUERY_CUSTOM .= "`authority` LIKE '%$USER_FILTER->authority%'";
-        }
+            if (is_array($USER_FILTER->authority)) {
 
+                $QUERY_CUSTOM .= '(';
+                foreach ($USER_FILTER->authority as $k => $v) { $QUERY_CUSTOM .= "`authority` LIKE '%$v%' OR "; }
+                $QUERY_CUSTOM = substr($QUERY_CUSTOM, 0, -4).')';
+
+            } else {
+
+                $QUERY_CUSTOM .= "`authority` LIKE '%$USER_FILTER->authority%'";
+
+            }
+        }
 
         if (!empty($USER_FILTER->authority) && !empty($USER_FILTER->area)) {
             $QUERY_CUSTOM .= " AND ";
         }
 
         if (!empty($USER_FILTER->area)) {
-            $QUERY_CUSTOM .= "`area` LIKE '%$USER_FILTER->area%'";
+            if (is_array($USER_FILTER->area)) {
+
+                $QUERY_CUSTOM .= '(';
+                foreach ($USER_FILTER->area as $k => $v) { $QUERY_CUSTOM .= "`area` LIKE '%$v%' OR "; }
+                $QUERY_CUSTOM = substr($QUERY_CUSTOM, 0, -4).')';
+
+            } else {
+
+                $QUERY_CUSTOM .= "`area` LIKE '%$USER_FILTER->area%'";
+                
+            }
         }
         
     }
@@ -371,7 +390,7 @@
                                             elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->download'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
                                             elseif ($ACTION == 'visible') { $BUTTONS .= visible($row['visible'], $row['id'])->button; }
                                             elseif ($ACTION == 'delete' && $DELETE_BUTTON) { $BUTTONS .= delete($row['id'])->button; }
-                                            elseif ($ACTION == 'authority' && $DELETE_BUTTON && isset($USER_FILTER->authority) && isset($USER_FILTER->area)) { $BUTTONS .= removeAuthorization($row['id'], $USER_FILTER->authority, $USER_FILTER->area)->button; }
+                                            elseif ($ACTION == 'authority' && $DELETE_BUTTON && isset($USER_FILTER->authority) && isset($USER_FILTER->area) && !is_array($USER_FILTER->area) && !is_array($USER_FILTER->authority)) { $BUTTONS .= removeAuthorization($row['id'], $USER_FILTER->authority, $USER_FILTER->area)->button; }
                                             elseif ($ACTION == 'active') { 
                                                 if ($NAME->table == 'user') {
                                                     if (count(json_decode($row['area'], true)) <= 1 || count(json_decode($row['authority'], true)) <= 1) {
