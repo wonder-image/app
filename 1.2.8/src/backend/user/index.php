@@ -160,7 +160,13 @@
                         foreach (permissionsBackend() as $key => $value) {
                             if (count(array_intersect(permissions($key)->creator, $USER->authority)) >= 1) {
                                 $A[$key] = $value;
-                                if (isset($VALUES['authority']) && in_array($key, json_decode($VALUES['authority'], true))) { $authority = $key; }
+                                if (isset($VALUES['authority'])) { 
+                                    if (is_array(json_decode($VALUES['authority'], true)) && in_array($key, json_decode($VALUES['authority'], true))) {
+                                        $authority = $key; 
+                                    } elseif ($key == $VALUES['authority']) {
+                                        $authority = $key; 
+                                    }
+                                }
                             }
                         }
 
