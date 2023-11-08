@@ -3,24 +3,7 @@ function toggleDropdown(container) {
     if (container.classList.contains('wi-show')) {
         closeDropdown(container);
     } else {
-
-        container.classList.add('wi-show'); 
-
-        if (container.querySelector('i.bi-chevron-down')) {
-            container.querySelector('i.bi-chevron-down').classList.add('bi-chevron-up');
-            container.querySelector('i.bi-chevron-down').classList.remove('bi-chevron-down');
-        }
-
-        if (container.querySelector('i.bi-plus')) {
-            container.querySelector('i.bi-plus').classList.add('bi-dash');
-            container.querySelector('i.bi-plus').classList.remove('bi-plus');
-        }
-
-        if (container.querySelector('i.bi-plus-lg')) {
-            container.querySelector('i.bi-plus-lg').classList.add('bi-dash-lg');
-            container.querySelector('i.bi-plus-lg').classList.remove('bi-plus-lg');
-        }
-
+        openDropdown(container);
     }
     
 }

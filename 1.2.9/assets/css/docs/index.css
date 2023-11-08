@@ -1,19 +1,85 @@
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@1,900,700,500,301,701,300,501,401,901,400,2&display=swap");
 :root {
---bg-color: #ffffff;
---tx-color: #000000;
---header-height: 80px;
+
+--spacer: 4px;
+--primary-color: #1e90ff;
+
+--font-family: 'Satoshi', sans-serif;
+--font-weight: 400;
+--font-size: 16px;
+--line-height: 16px;
+
+--title-big-font-family: var(--font-family);
+--title-big-font-weight: 900;
+--title-big-font-size: 40px;
+--title-big-line-height: 40px;
+
+--title-font-family: var(--font-family);
+--title-font-weight: 700;
+--title-font-size: 32px;
+--title-line-height: 32px;
+
+--subtitle-font-family: var(--font-family);
+--subtitle-font-weight: 500;
+--subtitle-font-size: 24px;
+--subtitle-line-height: 24px;
+
+--text-font-family: var(--font-family);
+--text-font-weight: 400;
+--text-font-size: 16px;
+--text-line-height: 16px;
+
+--text-small-font-family: var(--font-family);
+--text-small-font-weight: 300;
+--text-small-font-size: 12px;
+--text-small-line-height: 12px;
+
 }
 header {
 border-bottom: 2px solid var(--black-color);
 box-sizing: border-box;
 }
-.left-bar {
-width: 160px;
+#left-header {
+width: 200px;
 margin-right: 40px;
 }
+#left-header .wi-dropdown-box .wi-dropdown-title {
+margin-bottom: calc(var(--spacer) * 2);
+font-weight: 500 !important;
+}
+#left-header .wi-dropdown-box.wi-show .wi-dropdown-title {
+margin-bottom: calc(var(--spacer) * 2);
+}
+#left-header .wi-dropdown-box.wi-show .wi-dropdown-box.wi-show .wi-dropdown-title {
+margin-bottom: calc(var(--spacer) * 1);
+font-weight: 500 !important;
+}
+#left-header .wi-dropdown-box > .wi-dropdown-title,
+#left-header .wi-dropdown-box > .wi-dropdown-content {
+font-size: .9em;
+}
+#left-header .wi-dropdown-box > .wi-dropdown-content .wi-dropdown-title {
+font-size: 1em;
+}
+#left-header .wi-dropdown-box.wi-show .wi-dropdown-title {
+font-weight: 700 !important;
+}
+#left-header .wi-dropdown-box .wi-dropdown-content .wi-dropdown-title, 
+#left-header .wi-dropdown-box .wi-dropdown-content {
+font-weight: 400 !important;
+color: #262626;
+}
+#left-header .wi-dropdown-box.wi-show .wi-dropdown-content .wi-dropdown-box.wi-show .wi-dropdown-title {
+color: #000000;
+}
+#left-header .wi-dropdown-box .wi-dropdown-content .wi-dropdown-content {
+color: #3c3c3c;
+}
+#left-header .wi-dropdown-box .wi-dropdown-content .wi-dropdown-content .active {
+color: var(--primary-color);
+}
 .wrapped {
-width: calc(100% - 200px);
-overflow: scroll;
+width: calc(100% - 240px);
 }
 #hamburger {
 display: none;
@@ -23,7 +89,7 @@ display: none;
 #hamburger {
 display: block;
 }
-.left-bar {
+#left-header {
 position: fixed;
 width: 100%;
 top: -200%;
@@ -31,7 +97,7 @@ background: var(--bg-color);
 z-index: 98;
 transition: 1s;
 }
-.left-bar.show {
+#left-header.show {
 top: 0px;
 background: var(--bg-color);
 }

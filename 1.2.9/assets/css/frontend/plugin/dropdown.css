@@ -41,13 +41,16 @@ opacity: 1;
 .wi-dropdown-box .wi-dropdown-content {
 width: 100%;
 max-height: 0px;
+display: flex;
+flex-direction: column;
+box-sizing: border-box;
 overflow: hidden;
 transition: .3s;
 }
-.wi-dropdown-box.wi-show .wi-dropdown-title {
+.wi-dropdown-box.wi-show > .wi-dropdown-title {
 margin-bottom: 16px;
 }
-.wi-dropdown-box.wi-show .wi-dropdown-content {
+.wi-dropdown-box.wi-show > .wi-dropdown-content {
 max-height: 1000vh;
 }
 

@@ -1,6 +1,14 @@
 .d-grid.row-max { grid-auto-rows: max-content !important; }
 .d-grid.row-min { grid-auto-rows: min-content !important; }
 
+.d-flex.row-max { grid-auto-rows: max-content !important; }
+.d-flex.row-min { grid-auto-rows: min-content !important; }
+
+.d-flex.d-column { flex-direction: column !important; }
+.d-flex.d-row { flex-direction: row !important; }
+.d-flex.d-column-reverse { flex-direction: column-reverse !important; }
+.d-flex.d-row-reverse { flex-direction: row-reverse !important; }
+
 .d-grid.col-1 { grid-template-columns: repeat(1, 1fr); }
 .d-grid.col-2 { grid-template-columns: repeat(2, 1fr); }
 .d-grid.col-3 { grid-template-columns: repeat(3, 1fr); }
@@ -13,9 +21,6 @@
 .d-grid.col-10 { grid-template-columns: repeat(10, 1fr); }
 .d-grid.col-11 { grid-template-columns: repeat(11, 1fr); }
 .d-grid.col-12 { grid-template-columns: repeat(12, 1fr); }
-
-.d-flex.row-max { grid-auto-rows: max-content !important; }
-.d-flex.row-min { grid-auto-rows: min-content !important; }
 
 .d-flex.col-1 { grid-template-columns: repeat(1, 1fr); }
 .d-flex.col-2 { grid-template-columns: repeat(2, 1fr); }
@@ -73,6 +78,17 @@
 .col-12 { grid-column: span 12; }
 
 @media (max-width: 1000px) {
+.d-grid.row-t-max { grid-auto-rows: max-content !important; }
+.d-grid.row-t-min { grid-auto-rows: min-content !important; }
+
+.d-flex.row-t-max { grid-auto-rows: max-content !important; }
+.d-flex.row-t-min { grid-auto-rows: min-content !important; }
+
+.d-flex.d-t-column { flex-direction: column !important; }
+.d-flex.d-t-row { flex-direction: row !important; }
+.d-flex.d-t-column-reverse { flex-direction: column-reverse !important; }
+.d-flex.d-t-row-reverse { flex-direction: row-reverse !important; }
+
 .d-grid.col-t-1 { grid-template-columns: repeat(1, 1fr); }
 .d-grid.col-t-2 { grid-template-columns: repeat(2, 1fr); }
 .d-grid.col-t-3 { grid-template-columns: repeat(3, 1fr); }
@@ -143,6 +159,17 @@
 }
 
 @media (max-width: 768px) {
+.d-grid.row-p-max { grid-auto-rows: max-content !important; }
+.d-grid.row-p-min { grid-auto-rows: min-content !important; }
+
+.d-flex.row-p-max { grid-auto-rows: max-content !important; }
+.d-flex.row-p-min { grid-auto-rows: min-content !important; }
+
+.d-flex.d-p-column { flex-direction: column !important; }
+.d-flex.d-p-row { flex-direction: row !important; }
+.d-flex.d-p-column-reverse { flex-direction: column-reverse !important; }
+.d-flex.d-p-row-reverse { flex-direction: row-reverse !important; }
+
 .d-grid.col-p-1 { grid-template-columns: repeat(1, 1fr); }
 .d-grid.col-p-2 { grid-template-columns: repeat(2, 1fr); }
 .d-grid.col-p-3 { grid-template-columns: repeat(3, 1fr); }

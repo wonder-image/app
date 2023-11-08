@@ -27,3 +27,11 @@ section table {
 position: relative;
 float: left;
 }
+
+section table {
+border-collapse: collapse;
+}
+section table th,
+section table td {
+padding: 0 !important;
+}
