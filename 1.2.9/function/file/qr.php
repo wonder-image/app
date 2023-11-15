@@ -1,6 +1,6 @@
 <?php
 
-    function qrcode($data, $src = null) {
+    function createQrCode($data, $src = null) {
 
         $options = new chillerlan\QRCode\QROptions;   
         $options->imageTransparent = false;
@@ -9,7 +9,7 @@
         $qrcode->render($data, $src);
 
         return $qrcode;
-        
+
     }
 
 ?>
