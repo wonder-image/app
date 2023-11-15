@@ -18,6 +18,7 @@
         "fpdf/fpdf": "^1.85",
         "vlucas/phpdotenv": "^5.5",
         "phpmailer/phpmailer": "^6.8",
-        "gumlet/php-image-resize": "2.0.4"
+        "gumlet/php-image-resize": "2.0.4",
+        "chillerlan/php-qrcode": "^4.3"
     }
 }
