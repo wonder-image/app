@@ -75,6 +75,14 @@
 <!-- Autonumeric -->
 <script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
 
+<!-- Swiper.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+<!-- Fancybox -->
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
+
 <!-- Default .css - .js -->
 <script src="<?=$PATH->appJs?>/global/utility.js"></script>
 <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
