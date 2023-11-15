@@ -234,6 +234,20 @@
 
             $RETURN->prettyPDF = "$street $number, $cap\n$city ($province)$addressMore";
 
+        } else if (!empty($street) && !empty($cap) && !empty($city) && !empty($province)) {
+            
+            $RETURN->pretty = "
+            $street, $cap <br>
+            $city ($province)$addressMore";
+
+            $RETURN->prettyPDF = "$street, $cap\n$city ($province)$addressMore";
+
+        } else if (!empty($street) && !empty($city) && !empty($province)) {
+            
+            $RETURN->pretty = "$street, $city ($province)";
+
+            $RETURN->prettyPDF = "$street, $city ($province)";
+
         } else {
             
             $RETURN->line = "--";
