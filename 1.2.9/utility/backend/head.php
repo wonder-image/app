@@ -76,8 +76,15 @@
 <script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
 
 <!-- Swiper.js -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-shutters.min.css" />
+<link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-slicer.min.css" />
+<link rel="stylesheet" href="<?=$PATH->lib?>/swiper/swiper-gl.min.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="<?=$PATH->lib?>/swiper/effect-shutters.min.js"></script>
+<script src="<?=$PATH->lib?>/swiper/effect-slicer.min.js"></script>
+<script src="<?=$PATH->lib?>/swiper/swiper-gl.min.js"></script>
 
 <!-- Fancybox -->
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
