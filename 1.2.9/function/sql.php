@@ -550,7 +550,7 @@
                                             $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
 
                                             if (!empty($RESIZE)) {
-                                                if (is_array($RESIZE[0])) {
+                                                if (isset($RESIZE[0]) && is_array($RESIZE[0])) {
                                                     foreach ($RESIZE as $k => $v) {
 
                                                         $WIDTH = $v['width'];
