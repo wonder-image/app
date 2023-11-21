@@ -90,6 +90,24 @@
         ";
 
     }
+
+    function textDatetime($label, $name, $attribute = null, $value = null){
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d H:i', strtotime($VALUES[$name])); }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        return "
+        <div class='form-floating'>
+            <input type='datetime-local' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <label for='$id'>$label</label>
+        </div>
+        ";
+
+    }
     
     function dateInput($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null){
 
