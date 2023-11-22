@@ -243,7 +243,7 @@
                                     $VALUE = "";
                                     $CLASS = "";
 
-                                    // Set value
+                                    # Set value
 
                                         $v = isset($value['value']) ? $value['value'] : '';
                                         
@@ -275,7 +275,7 @@
 
                                         }
 
-                                        if (!empty($value['function'])) {
+                                        if (isset($value['function']) && !empty($value['function'])) {
 
                                             $functionName = $value['function']['name'];
 
@@ -320,11 +320,20 @@
                                             
                                         }
 
-                                    // 
+                                    # Set format
+                                        if (isset($value['format']) && !empty($value['format'])) {
 
-                                    // Set link to value
+                                            $format = $value['format'];
 
-                                        if (!empty($value['href'])) {
+                                            if ($format == 'image') {
+                                                $VALUE = "<div style='width: calc(((61.5px - 1rem) / 2) * 3); height: calc(61.5px - 1rem);'><img src='$VALUE' class='img-thumbnail'></div>";
+                                            }
+
+                                        }
+
+                                    # Set link to value
+
+                                        if (isset($value['href']) && !empty($value['href'])) {
 
                                             $href = $value['href'];
 
@@ -343,9 +352,7 @@
 
                                         }
 
-                                    // 
-                                    
-                                    // Column resize
+                                    # Column resize
                                     
                                         $phone = isset($value['phone']) ? $value['phone'] : true;
                                         $tablet = isset($value['tablet']) ? $value['tablet'] : true;
@@ -355,9 +362,7 @@
                                         if (!$tablet) { $CLASS .= 'tablet-none '; }
                                         if (!$pc) { $CLASS .= 'pc-none '; }
 
-                                    // 
-
-                                    // Column size
+                                    # Column size
 
                                         $dimension = !empty($value['dimension']) ? $value['dimension'] : '';
 
