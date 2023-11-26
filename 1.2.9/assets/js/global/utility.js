@@ -62,3 +62,17 @@ function ajaxRequestError(request) {
     }
 
 }
+
+function code(codeLength = 10) {
+
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var charactersLength = characters.length;
+
+    for ( var i = 0; i < codeLength; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
+
+}
