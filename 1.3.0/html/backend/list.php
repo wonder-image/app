@@ -407,7 +407,10 @@
                                         } elseif (is_array($link)) {
 
                                             $label = $link['label'];
-                                            $action = $link['action'];
+                                            $href = isset($link['href']) ? $link['href'] : '';
+                                            $action = isset($link['action']) ? $link['action'] : '';
+
+                                            if (!empty($href)) { $action = 'href="'.$href.'?redirect='.$PAGE->uriBase64.'&id='.$ROW_ID.'"'; }
 
                                             $BUTTONS .= "<a class='dropdown-item' $action role='button'>$label</a>";
 
