@@ -15,6 +15,8 @@ function createCard() {
         element.innerHTML = '';
         element.appendChild(card);
 
+        element.classList.add('d-block');
+
     });
     
 }
@@ -102,6 +104,7 @@ function pageRemove(element) {
 async function setUpPage() {
 
     await createCard();
+    document.getElementById('page-loading').classList.add('d-none')
     checkInput();
     setUpBootstrap();
     setUpJquery();

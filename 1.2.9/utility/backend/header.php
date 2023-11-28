@@ -138,12 +138,9 @@
             <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="h-100 d-none"><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="h-100 d-none">
         </a>
 
-        <div id="menu" class="pc-none ms-2" onclick="menu()">
-            <div class="bar bar-1 bg-dark"></div>
-            <div class="bar bar-2 bg-dark"></div>
-            <div class="bar bar-3 bg-dark"></div>
-        </div>
-
+        <button id="menu" class="btn btn-outline-dark btn-sm pc-none ms-2 float-end" type="button" onclick="menu()">
+            <i class="open-menu bi bi-list"></i><i class="close-menu bi bi-x-lg d-none"></i>
+        </button>
 
         <div class="dropdown float-end">
             <button id="bs-theme" class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -161,5 +158,11 @@
 
     <!-- Open Page Content -->
     <div id="content">
+
+        <div id="page-loading" class="position-absolute top-50 start-50 translate-middle text-center">
+            <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status"></div>
+        </div>
         
         <?=modal()?>
+
+        <div class="w-100" style="min-height: calc(100vh - (50px + 22.5px + 1rem + 20px));">

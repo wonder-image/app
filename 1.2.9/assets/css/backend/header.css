@@ -11,7 +11,6 @@ body {
 background-color: rgba(var(--bs-tertiary-bg-rgb),var(--bs-bg-opacity))!important;
 }
 h1, h2, h3, h4, h5, h6 { margin: 0; }
-.wrapper { display: flex; }
 
 html[data-bs-theme="dark"] .btn-outline-dark {
 --bs-btn-color: #fff;
@@ -63,21 +62,23 @@ border-radius: .25rem;
 }
 
 #content {
+position: relative;
+float: right;
 padding: 20px;
+top: 50px;
 width: calc(100% - 220px);
-margin-left: 220px;
-min-height: 100vh;
-margin-top: 50px;
+min-height: calc(100vh - 50px);
 transition: all 0.3s;
 }
 #sidebar {
 position: fixed;
+float: left;
+top: 50px;
 height: calc(100% - 50px);
 min-width: 220px;
 max-width: 220px;
 color: #fff;
 transform-origin: bottom left;
-margin-top: 50px;
 padding: 0;
 padding-top: 15px;
 overflow: scroll;
@@ -177,45 +178,29 @@ padding: 10px 20px;
 z-index: 9;
 }
 
-/* MENÙ MOBILE */
-#topbar #menu{position: relative;float: right;right: 0;top:0;width: 30px;margin-top: 6px;cursor: pointer;}
-#topbar #menu .bar{position: relative;float: left;width: 100%;height: 3px;transition: .3s;border-radius: 2px;}
-#topbar #menu .bar-2{margin: 5px 0;}
-#topbar #menu.click .bar-1{margin-top: 8px;transform: rotate(45deg);}
-#topbar #menu.click .bar-3{margin-top: -3px;transform: rotate(-45deg);}
-#topbar #menu.click .bar-2{display: none;}
+wi-card { display: none; }
 
 @media (max-width: 768px){
 #content{
 position: relative;
 width: 100%;
-min-height: auto;
-margin-left: 0px;
 }
-.col-1, .col-2{
-width: 50%;
-}
-.col-3, .col-4,.col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12{
-width: 100%;
-}
+.col-1, .col-2{ width: 50%; }
+.col-3, .col-4,.col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12{ width: 100%; }
 #sidebar{
 position: fixed;
 width: 100%;
 max-width: 100%;
 min-width: 100%;
 padding: 2% 0;
-margin-top: -250%;
+top: -250%;
 z-index: 8;
-transition: 1s;
+transition: .5s;
 }
-#sidebar ul li ul{
-margin-top: 0%;
-}
+#sidebar ul li ul{ margin-top: 0%; }
 #sidebar .components {
 position: relative;
 float: left;
 }
-#sidebar.show {
-margin-top: 50px;
-}
+#sidebar.show { top: 50px; }
 }

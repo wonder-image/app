@@ -326,7 +326,7 @@
                                             $format = $value['format'];
 
                                             if ($format == 'image') {
-                                                $VALUE = "<div style='width: calc(((61.5px - 1rem) / 2) * 3); height: calc(61.5px - 1rem);'><img src='$VALUE' class='img-thumbnail'></div>";
+                                                $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-cover' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
                                             }
 
                                         }
@@ -376,7 +376,7 @@
 
                                     // 
                                     
-                                    echo "<td scope='col' class='$CLASS'>$VALUE</td>";
+                                    echo "<td scope='col' class='$CLASS align-middle'>$VALUE</td>";
 
                                 }
 
@@ -417,7 +417,7 @@
 
                                     if (!empty($BUTTONS)) {
                                         echo "
-                                        <td scope='col' class='little'>
+                                        <td scope='col' class='little align-middle'>
                                             <div class='btn-group'>
                                                 <span class='badge text-dark' type='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
                                                     <i class='bi bi-three-dots'></i>
