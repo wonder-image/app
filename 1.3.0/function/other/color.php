@@ -57,13 +57,13 @@
 
         // Neutral if write black or white with this background
             $COLOR->neutral = (object) array();
-            if ($L <= 0.51) {
+            if ((($R * 0.299) + ($G * 0.587) + ($B * 0.114)) > 186) {
                 $COLOR->neutral->color = "black";
                 $COLOR->neutral->rgb = "0,0,0";
                 $COLOR->neutral->r = 0;
                 $COLOR->neutral->g = 0;
                 $COLOR->neutral->b = 0;
-            }else{
+            } else {
                 $COLOR->neutral->color = "white";
                 $COLOR->neutral->rgb = "255,255,255";
                 $COLOR->neutral->r = 255;

@@ -92,13 +92,15 @@
 
     function sanitize($str){
         
-        $str = str_replace('“','"',$str);
-        $str = str_replace('”','"',$str);
-        $str = str_replace('’',"'",$str);
-        $str = str_replace('…',"...",$str);
-        $str = trim($str);
-        $str = htmlspecialchars($str, ENT_QUOTES);
-        $str = addslashes($str);
+        if (!empty($str)) {
+            $str = str_replace('“','"',$str);
+            $str = str_replace('”','"',$str);
+            $str = str_replace('’',"'",$str);
+            $str = str_replace('…',"...",$str);
+            $str = trim($str);
+            $str = htmlspecialchars($str, ENT_QUOTES);
+            $str = addslashes($str);
+        }
 
         return $str;
         

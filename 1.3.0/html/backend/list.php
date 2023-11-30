@@ -327,6 +327,8 @@
 
                                             if ($format == 'image') {
                                                 $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-cover' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
+                                            } else {
+                                                $VALUE = $VALUE;
                                             }
 
                                         }
@@ -410,7 +412,25 @@
                                             $href = isset($link['href']) ? $link['href'] : '';
                                             $action = isset($link['action']) ? $link['action'] : '';
 
-                                            if (!empty($href)) { $action = 'href="'.$href.'?redirect='.$PAGE->uriBase64.'&id='.$ROW_ID.'"'; }
+                                            if (isset($link['key']) && !empty($link['key'])) {
+                                                foreach ($link['key'] as $q) {
+
+                                                    if ($q == 'table') {
+                                                        $query = "table=$NAME->table";
+                                                    } elseif ($q == 'id') {
+                                                        $query = "id=$ROW_ID";
+                                                    } elseif ($q == 'redirect') {
+                                                        $query = "redirect=$PAGE->uriBase64";
+                                                    }
+
+                                                    $url = parse_url($href);
+                                                    $href .= isset($url['query']) ? '&' : '?';
+                                                    $href .= $query;
+
+                                                }
+                                            }
+
+                                            if (!empty($href)) { $action = 'href="'.$href.'"'; }
 
                                             $BUTTONS .= "<a class='dropdown-item' $action role='button'>$label</a>";
 
