@@ -86,8 +86,7 @@
         <div class='form-floating'>
             <input type='date' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -104,8 +103,7 @@
         <div class='form-floating'>
             <input type='datetime-local' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
-        </div>
-        ";
+        </div>";
 
     }
     
@@ -562,6 +560,9 @@
         } elseif ($file == "jpg") {
             $ACCEPT = "image/jpeg";
             $EXTENSIONS_ACCEPT = ".jpg - .jpeg";
+        } elseif ($file == "font") {
+            $ACCEPT = "font/ttf";
+            $EXTENSIONS_ACCEPT = ".ttf";
         } else {
             $ACCEPT = "";
             $EXTENSIONS_ACCEPT = "";
