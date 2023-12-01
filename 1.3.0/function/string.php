@@ -127,16 +127,32 @@
 
     }
 
-    function printPDF($str){
+    function printPDF($str, $upper = false){
 
         if (!empty($str)) {
+
             $str = htmlspecialchars_decode($str, ENT_QUOTES);
+
+            if ($upper == true) {
+
+                $str = str_replace('à', 'À', $str);
+                $str = str_replace('è', 'È', $str);
+                $str = str_replace('ì', 'Ì', $str);
+                $str = str_replace('ò', 'Ò', $str);
+                $str = str_replace('ù', 'Ù', $str);
+                
+                $str = strtoupper($str);
+
+            }
+
             $str = iconv('UTF-8', 'windows-1252', $str);
+
         }
         
         return $str;
 
     }
+
 
     function code($lenght, $type, $first = null){
 
