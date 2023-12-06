@@ -388,12 +388,7 @@
 
         foreach ($option as $vl => $nm) {
 
-            if ($vl == $value) {
-                $att = "selected";
-            }else{
-                $att = "";
-            }
-
+            $att = ($vl === $value) ? "selected" : "";
             $optionHTML .= "<option value='$vl' $att >$nm</option>";
 
         }
