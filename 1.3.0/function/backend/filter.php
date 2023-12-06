@@ -479,7 +479,7 @@
 
             foreach ($FILTER_CUSTOM as $table => $value) {
                 
-                $column = $value['column'];
+                $column = isset($value['column']) ? $value['column'] : $table;
                 $filter = isset($_GET[$table]) ? $_GET[$table] : '';
 
                 if (!empty($filter)) {
@@ -929,7 +929,11 @@
             }
 
             if (count($checkbox) > 5) {
-                $HTML = check($name, $table, $checkbox, '', $type, $search, $value);
+                if ($type == 'checkbox' || $type == 'radio') {
+                    $HTML = check($name, $table, $checkbox, '', $type, $search, $value);
+                } else if ($type == 'select') {
+                    $HTML = select($name, $table, $checkbox, 'old', null, $value);
+                }
             } else {
                 $HTML = select($name, $table, $checkbox, 'old', null, $value);
             }
