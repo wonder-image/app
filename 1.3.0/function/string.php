@@ -108,9 +108,11 @@
 
     function sanitizeFirst($str){
 
-        $str = sanitize($str);
-        $str = strtolower($str);
-        $str = ucwords($str);
+        if (!empty($str)) {
+            $str = strtolower($str);
+            $str = ucwords($str);
+            $str = sanitize($str);
+        }
         
         return $str;
         
