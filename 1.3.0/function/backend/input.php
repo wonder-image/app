@@ -386,11 +386,20 @@
 
         $optionHTML = "";
 
+        $i = 1;
+        
         foreach ($option as $vl => $nm) {
 
-            $att = ($vl === $value) ? "selected" : "";
+            if ($value != null) {
+                $att = ($vl == $value) ? "selected" : "";
+            } else {
+                $att = ($i == 1) ? "selected" : "";
+            }
+
             $optionHTML .= "<option value='$vl' $att >$nm</option>";
 
+            $i++;
+            
         }
 
         if ($version == 'old') {
