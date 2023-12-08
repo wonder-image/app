@@ -100,7 +100,12 @@
 
                 if (!empty($FILTER_CUSTOM) || !empty($BUTTON_ADD) || !empty($BUTTON_CUSTOM)) {
 
-                    echo "<div class='col-8 d-flex gap-2 justify-content-end'>";
+                    if (!empty($FILTER_SEARCH)) {
+                        echo "<div class='col-8 d-flex gap-2 justify-content-end'>";
+                    } else {
+                        echo "<div class='col-12 d-flex gap-2 justify-content-end'>";
+                    }
+                    
                     if (!empty($FILTER_CUSTOM)) { echo $CUSTOM->button; }
                     if (!empty($BUTTON_ADD)) { echo $BUTTON_ADD; }
                     if (!empty($BUTTON_CUSTOM)) {
