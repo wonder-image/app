@@ -688,7 +688,7 @@
 
     }
 
-    function submit($label, $name, $class = null){
+    function submit($label = 'Salva', $name = 'upload', $class = null){
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
