@@ -77,13 +77,19 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <?=inputFile('Icon', 'icon', 'png'); ?>
+                            <?=inputFile('Icona', 'icon', 'png'); ?>
                         </div>
                     </wi-card>
 
                     <wi-card class="col-12">
                         <div class="col-12">
                             <?=inputFile('Favicon', 'favicon', 'ico'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
+                            <?=inputFile('Icona app', 'app_icon', 'png'); ?>
                         </div>
                     </wi-card>
 

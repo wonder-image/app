@@ -67,7 +67,7 @@
     if ($TAG_MANAGER != '' && $ACTIVE_STATISTICS == true) { 
 
 ?>
-<!-- Google Tag Manager -->
+<!-- Inizio Google Tag Manager -->
 <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -75,7 +75,7 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','<?=$TAG_MANAGER?>');
 </script>
-<!-- End Google Tag Manager -->
+<!-- Fine Google Tag Manager -->
 <?php } ?>
 
 <meta charset="UTF-8">
@@ -113,9 +113,29 @@
     <meta property="twitter:site" content="<?=$SEO->url?>" />
     <meta name="twitter:creator" content="@<?=$SEO->creator?>" />
 
+    <!-- Apple -->
+    <meta name="apple-mobile-web-app-title" content="<?=$SEO->title?>">
+
 <!-- Fine SEO -->
 
-<!-- Start fundamental file  -->
+<!-- Inizio icone -->
+
+    <link rel="icon" href="<?=$PATH->favicon?>">
+    <link rel="apple-touch-icon" href="<?=$PATH->appIcon?>">
+
+    <?php
+
+        foreach ($DEFAULT->appIcon as $size) {
+            
+            echo "<link rel='icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
+            echo "<link rel='apple-touch-icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
+        }
+
+    ?>
+    
+<!-- Fine icone -->
+
+<!-- Inizio file fondamentali  -->
 
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -239,7 +259,7 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/checkbox.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/select.css">
 
-<!-- End fundamental file  -->
+<!-- Fine file fondamentali  -->
 
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
 
@@ -250,7 +270,7 @@
     if ($PIXEL_FACEBOOK != '' && $ACTIVE_STATISTICS == true) { 
 
 ?>
-<!-- Meta Pixel Code -->
+<!-- Inizio Meta Pixel -->
 <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -266,5 +286,5 @@
 <noscript>
     <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?=$PIXEL_FACEBOOK?>&ev=PageView&noscript=1" />
 </noscript>
-<!-- End Meta Pixel Code -->
+<!-- Fine Meta Pixel -->
 <?php } ?>

@@ -68,6 +68,8 @@
         $PATH->logoWhite = $PATH->upload."/logos/Logo-White.png";
         $PATH->logoBlack = $PATH->upload."/logos/Logo-Black.png";
         $PATH->logoIcon = $PATH->upload."/logos/Logo-Icon.png";
+        $PATH->favicon = $PATH->site."/favicon.ico";
+        $PATH->appIcon = $PATH->upload."/logos/App-Icon.png";
         
     # Default
         $DEFAULT->image = $PATH->assets."/images/Default.png";
@@ -152,6 +154,8 @@
                 "contrast" => "#000000"
             ]
         ];
+
+        $DEFAULT->appIcon = [ '196',  '180', '152', '144', '120', '114', '76', '72', '57', '32', '16' ];
 
     require_once $ROOT_APP."/config/permissions.php";
     require_once $ROOT_APP."/config/table.php";

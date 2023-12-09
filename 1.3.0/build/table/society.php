@@ -108,6 +108,14 @@
         ]
     ];
 
+    $APP_ICON_RESIZE = [];
+    foreach ($DEFAULT->appIcon as $size) { 
+        array_push($APP_ICON_RESIZE, [ 
+            'width' => $size,
+            'height' => $size
+        ]);
+    }
+
     $TABLE->LOGOS = [
         "main" => [
             "input" => [
@@ -168,7 +176,20 @@
                     "dir" => '/../../../favicon'
                 ]
             ]
-        ]
+        ],
+        "app_icon" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 1,
+                    "max_file" => 1,
+                    "dir" => '/App-Icon',
+                    "resize" => $APP_ICON_RESIZE
+                ]
+            ]
+        ],
     ];
     
 ?>
