@@ -192,7 +192,7 @@
     <script src="https://unpkg.com/typed.js@2.0.15/dist/typed.umd.js"></script>
 
     <!-- Autonumeric -->
-    <script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.10.0/dist/autoNumeric.min.js"></script>
 
     <!-- CountUp -->
     <script src="<?=$PATH->lib?>/countup/countUp.umd.js"></script>

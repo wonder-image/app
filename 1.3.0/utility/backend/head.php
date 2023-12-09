@@ -73,7 +73,7 @@
 <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
 
 <!-- Autonumeric -->
-<script src="<?=$PATH->lib?>/autonumeric/4.8.1/autoNumeric.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/autonumeric@4.10.0/dist/autoNumeric.min.js"></script>
 
 <!-- Swiper.js -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -91,6 +91,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
 
 <!-- Default .css - .js -->
+<script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
 <script src="<?=$PATH->appJs?>/global/utility.js"></script>
 <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
 
@@ -98,7 +99,6 @@
 <script src="<?=$PATH->appJs?>/backend/ajax.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/input.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/file.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/autonumeric.js"></script>
 <script src="<?=$PATH->appJs?>/backend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/backend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>

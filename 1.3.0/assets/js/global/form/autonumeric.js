@@ -2,29 +2,35 @@ var AUTONUMERIC_NUMBER = {
     caretPositionOnFocus: 'end',
     decimalPlacesShownOnFocus: 2,
     digitGroupSeparator: '',
+    decimalCharacter: '.',
     onInvalidPaste: 'truncate',
-    outputFormat: '.',
-    currencySymbolPlacement: 's'
+    currencySymbolPlacement: 's',
+    outputFormat: 'number',
+    unformatOnSubmit: true
 };
 
 var AUTONUMERIC_PRICE = {
     caretPositionOnFocus: 'end',
     decimalPlacesShownOnFocus: 2,
     digitGroupSeparator: '',
+    decimalCharacter: '.',
     onInvalidPaste: 'truncate',
-    outputFormat: 'number',
     currencySymbol: '€',
-    currencySymbolPlacement: 's'
+    currencySymbolPlacement: 's',
+    outputFormat: 'number',
+    unformatOnSubmit: true
 };
 
 var AUTONUMERIC_PERCENTIGE = {
     caretPositionOnFocus: 'end',
     decimalPlacesShownOnFocus: 2,
     digitGroupSeparator: '',
+    decimalCharacter: '.',
     onInvalidPaste: 'truncate',
-    outputFormat: 'number',
     currencySymbol: '%',
-    currencySymbolPlacement: 's'
+    currencySymbolPlacement: 's',
+    outputFormat: 'number',
+    unformatOnSubmit: true
 };
 
 function customAutonumeric(element, autonumeric) {
@@ -44,6 +50,14 @@ function customAutonumeric(element, autonumeric) {
         }
     }
 
+    if (element.dataset.wiNumberDecimalSeparator != undefined) { 
+        option.decimalCharacter = element.dataset.wiNumberDecimalSeparator;
+    } else {
+        if (autonumeric.decimalCharacter != undefined) {
+            option.decimalCharacter = autonumeric.decimalCharacter;
+        }
+    }
+
     if (element.dataset.wiNumberGroupSeparator != undefined) { 
         option.digitGroupSeparator = element.dataset.wiNumberGroupSeparator;
     } else {
@@ -54,10 +68,6 @@ function customAutonumeric(element, autonumeric) {
 
     if (autonumeric.onInvalidPaste != undefined) { 
         option.onInvalidPaste = autonumeric.onInvalidPaste; 
-    }
-
-    if (autonumeric.outputFormat != undefined) { 
-        option.outputFormat = autonumeric.outputFormat; 
     }
 
     if (element.dataset.wiNumberSymbol != undefined) { 
@@ -74,6 +84,14 @@ function customAutonumeric(element, autonumeric) {
         if (autonumeric.currencySymbolPlacement != undefined) {
             option.currencySymbolPlacement = autonumeric.currencySymbolPlacement;
         }
+    }
+
+    if (autonumeric.outputFormat != undefined) { 
+        option.outputFormat = autonumeric.outputFormat; 
+    }
+
+    if (autonumeric.unformatOnSubmit != undefined) { 
+        option.unformatOnSubmit = autonumeric.unformatOnSubmit; 
     }
 
     return option;

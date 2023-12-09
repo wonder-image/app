@@ -17,6 +17,7 @@
 <script src="<?=$PATH->appJs?>/frontend/aos.js"></script>
 
 <!-- Default .css - .js -->
+<script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
 <script src="<?=$PATH->appJs?>/global/utility.js"></script>
 <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
 
@@ -25,7 +26,6 @@
 <script src="<?=$PATH->appJs?>/frontend/dropdown.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/form/select.js"></script>
-<script src="<?=$PATH->appJs?>/frontend/form/autonumeric.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/form/send.js"></script>
 <script src="<?=$PATH->appJs?>/frontend/pageSetUp.js"></script>
 
