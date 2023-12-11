@@ -246,6 +246,41 @@
 
         $filter = '';
 
+        if (is_array($table)) {
+
+            $tables = "";
+
+            $mainTable = "";
+            $mainKey = "";
+            
+            $i = 0;
+            foreach ($table as $t => $k) { 
+
+                if ($i == 0) {
+
+                    $tables .= $t;
+
+                    $mainTable = $t;
+                    $mainKey = $k;
+
+                } else {
+
+                    $tables .= " JOIN $t ON $mainTable.$mainKey = $t.$k"; 
+
+                }
+            
+                $i++;
+
+            }
+    
+            $table = $tables;
+            
+        } else {
+
+            $table = "`$table`";
+
+        }
+
         if ($query != null) {
 
             $filter .= "WHERE ";
@@ -271,7 +306,7 @@
 
                     } else {
 
-                        $label = "`$label`"; 
+                        $label = "$label"; 
 
                     }
 
@@ -310,7 +345,7 @@
         if ($orderDirection != null) { $filter .= " $orderDirection"; }
         if ($limit != null) { $filter .= " LIMIT $limit"; }
 
-        $sql = "SELECT $attributes FROM `$table` $filter";
+        $sql = "SELECT $attributes FROM $table $filter";
         $result = $mysqli->query($sql);
         $Nrow = mysqli_num_rows($result);
 
