@@ -29,9 +29,10 @@
         $VALUES = formToArray($NAME->table, $POST, $PAGE_TABLE, isset($VALUES) ? $VALUES : null);
         
         if (empty($ALERT)) {
-            if (!empty($_GET['modify'])) {
+            if (!empty($_GET['modify']) || !empty($_POST['modify']) ) {
 
-                sqlModify($NAME->table, $VALUES, 'id', $_GET['modify']);
+                $MODIFY_ID = empty($_GET['modify']) ? $_POST['modify'] : $_GET['modify'];
+                sqlModify($NAME->table, $VALUES, 'id', $MODIFY_ID);
 
             } else {
         
