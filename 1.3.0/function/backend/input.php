@@ -427,18 +427,14 @@
 
     }   
 
-    function check($label, $nameReal, $option, $attribute = null, $checkbox = 'checkbox', $searchBar = false, $value = null){
+    function check($label, $name, $option, $attribute = null, $checkbox = 'checkbox', $searchBar = false, $value = null){
 
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
-        if (isset($VALUES[$nameReal]) && $value == null) {
-            if ($checkbox == 'checkbox') {
-                $value = json_decode($VALUES[$nameReal], true);
-            } else {
-                $value = $VALUES[$nameReal];
-            }
+        if (isset($VALUES[$name]) && $value == null) {
+            $value = ($checkbox == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
         }
 
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
@@ -448,55 +444,22 @@
         $inputHidden = "";
 
         if ($searchBar) {
-            $bar =  "
-            <input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' onkeyup='$nameReal"."Search(this.value)' >";
-            $script = "
-            <script>
-                function $nameReal"."Search(value) {
-            
-                    var value = value.toLowerCase();
-                    
-                    document.querySelectorAll('label.$nameReal-label').forEach(element => {
-        
-                        var name = element.innerHTML;
-                        var name = name.toLowerCase();
-
-                        if (name.includes(value)) {
-                            element.parentElement.style.display = 'block';
-                        }else{
-                            element.parentElement.style.display = 'none';
-                        }
-        
-                    });
-                    
-                }
-            </script>";
+            $bar =  "<input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >";
         }else{
             $bar = "";
-            $script = "";
         }
 
         if ($checkbox == 'checkbox') {
-            $name = $nameReal.'[]';
+            $name .= '[]';
             $inputHidden = "<input type='hidden' name='$name'>";
-        }else{
-            $name = $nameReal;
         }
 
         foreach ($option as $nm => $vl) {
 
             if (is_array($value)) {
-                if (in_array($nm, $value)) {
-                    $att = "checked";
-                }else{
-                    $att = "";
-                }
-            }else{
-                if ($nm == $value) {
-                    $att = "checked";
-                }else{
-                    $att = "";
-                }
+                $att = in_array($nm, $value) ? "checked" : "";
+            } else {
+                $att = ($nm == $value) ? "checked" : "";
             }
 
             if (is_array($vl)) {
@@ -510,8 +473,8 @@
 
             $checkHTML .= "
             <div id='$name-$nm' class='form-check'>
-                <input class='form-check-input $nameReal' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
-                <label class='form-check-label $nameReal-label' for='$checkbox-$name-$nm'>$vl</label>
+                <input class='form-check-input' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
+                <label class='form-check-label wi-check-label' for='$checkbox-$name-$nm'>$vl</label>
             </div>";
 
         }
@@ -526,8 +489,7 @@
                 $checkHTML
                 </div>
             </div>
-        </div>
-        $script";
+        </div>";
 
     } 
 
@@ -698,7 +660,7 @@
 
     function submitAdd() {
 
-        $submit = submit('Salva', 'upload');;
+        $submit = submit('Salva', 'upload');
         $submitAdd = submit('Salva e aggiungi', 'upload-add');
 
         return "

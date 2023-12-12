@@ -86,3 +86,24 @@ function enabledInput(type) {
     }); 
     
 }
+
+function inputSearch(event) {
+
+    var container = event.target.parentElement;
+    var value = event.target.value.toLowerCase();
+                    
+    container.querySelectorAll('label.wi-check-label').forEach(element => {
+
+        var container = element.parentElement;
+        var name = element.innerHTML.toLowerCase();
+
+        if (name.includes(value)) {
+            element.parentElement.style.display = 'block';
+        } else if (container.querySelector('input').checked == false) {
+            element.parentElement.style.display = 'none';
+        }
+
+    });
+    
+    
+}

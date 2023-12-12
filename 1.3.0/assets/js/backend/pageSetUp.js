@@ -23,6 +23,10 @@ function createCard() {
 
 function checkInput() {
 
+    document.querySelectorAll("[data-wi-search='true']").forEach(element => {
+        element.addEventListener("keyup", inputSearch);
+    });
+
     document.querySelectorAll("[data-wi-counter='true']").forEach(element => {
         element.addEventListener("keyup", lengthCount);
         element.addEventListener("change", lengthCount);
