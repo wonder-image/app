@@ -89,21 +89,88 @@ function enabledInput(type) {
 
 function inputSearch(event) {
 
-    var container = event.target.parentElement;
-    var value = event.target.value.toLowerCase();
-                    
-    container.querySelectorAll('label.wi-check-label').forEach(element => {
+    var inputText = event.target;
 
-        var container = element.parentElement;
-        var name = element.innerHTML.toLowerCase();
+    var containerMaster = inputText.parentElement;
+    var container = containerMaster.querySelector('.card .card-body');
 
-        if (name.includes(value)) {
-            element.parentElement.style.display = 'block';
-        } else if (container.querySelector('input').checked == false) {
-            element.parentElement.style.display = 'none';
+    var value = inputText.value.toLowerCase();
+
+    if (inputText.dataset.wiSearchUrl != undefined) {
+
+        var url = inputText.dataset.wiSearchUrl;
+
+        if (inputText.dataset.wiSearchRadio != undefined) {
+            var type = "radio";
+        } else if (inputText.dataset.wiSearchCheckbox != undefined) {
+            var type = "checkbox";
         }
 
-    });
+        var footer = containerMaster.querySelector('.card .card-footer');
+        footer.innerHTML = 'Cerco...';
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { 
+                post: 'true',
+                search: value
+            }, 
+            success: function (data) {
+
+                const response = JSON.parse(data);
+                const nResponse = response.length;
+                
+                var listHTML = "";
+
+                for (let index = 0; index < nResponse; index++) {
+
+                    var code = code();
+
+                    const value = response[index]['value'];
+                    const label = response[index]['label'];
+                    const inputValue = response[index]['input-value'];
+
+                    listHTML += "<div class='form-check'><input id='"+code+"' type='"+type+"' class='form-check-input' value='"+value+"' data-wi-check='true'><label class='form-check-label wi-check-label' for='"+code+"'>"+label+"</label></div>";
+
+                }
+
+                if (inputValue == '') {
+                    footer.innerHTML = "Cerca risultati";
+                } else if (nResponse == 1) {
+                    footer.innerHTML = nResponse+" risultato";
+                } else if (nResponse != 1) {
+                    footer.innerHTML = nResponse+" risultati";
+                }
+
+                container.innerHTML = listHTML;
+
+                
+
+            },
+            error: function (XMLHttpRequest) {
+
+                ajaxRequestError(XMLHttpRequest);
+                footer.innerHTML = 'Errore! Riprova la ricerca.';
+
+            }
+        });
+        
+    } else {
+                        
+        container.querySelectorAll('label.wi-check-label').forEach(element => {
     
+            var container = element.parentElement;
+            var name = element.innerHTML.toLowerCase();
+    
+            if (name.includes(value)) {
+                element.parentElement.style.display = 'block';
+            } else if (container.querySelector('input').checked == false) {
+                element.parentElement.style.display = 'none';
+            }
+    
+        });
+
+    }
     
 }

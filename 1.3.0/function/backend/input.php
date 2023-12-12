@@ -442,40 +442,40 @@
         $checkHTML = "";
         $dataFilter = "";
         $inputHidden = "";
-
-        if ($searchBar) {
-            $bar =  "<input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >";
-        }else{
-            $bar = "";
-        }
+        
+        $bar =  ($searchBar) ? "<input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
 
         if ($checkbox == 'checkbox') {
             $name .= '[]';
             $inputHidden = "<input type='hidden' name='$name'>";
         }
 
-        foreach ($option as $nm => $vl) {
+        if (is_array($option)) {
 
-            if (is_array($value)) {
-                $att = in_array($nm, $value) ? "checked" : "";
-            } else {
-                $att = ($nm == $value) ? "checked" : "";
+            foreach ($option as $nm => $vl) {
+    
+                if (is_array($value)) {
+                    $att = in_array($nm, $value) ? "checked" : "";
+                } else {
+                    $att = ($nm == $value) ? "checked" : "";
+                }
+    
+                if (is_array($vl)) {
+    
+                    $filter = isset($vl['filter']) ? $vl['filter'] : [];
+                    $vl = $vl['name'];
+    
+                    foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
+    
+                }
+    
+                $checkHTML .= "
+                <div id='$name-$nm' class='form-check'>
+                    <input class='form-check-input' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
+                    <label class='form-check-label wi-check-label' for='$checkbox-$name-$nm'>$vl</label>
+                </div>";
+    
             }
-
-            if (is_array($vl)) {
-
-                $filter = isset($vl['filter']) ? $vl['filter'] : [];
-                $vl = $vl['name'];
-
-                foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
-
-            }
-
-            $checkHTML .= "
-            <div id='$name-$nm' class='form-check'>
-                <input class='form-check-input' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
-                <label class='form-check-label wi-check-label' for='$checkbox-$name-$nm'>$vl</label>
-            </div>";
 
         }
 
@@ -487,6 +487,55 @@
             <div class='card overflow-auto mt-1' style='height: 120px;'>
                 <div class='card-body p-2'>
                 $checkHTML
+                </div>
+            </div>
+        </div>";
+
+    } 
+
+    function dynamicCheck($label, $name, $url, $attribute = null, $checkbox = 'checkbox', $value = null){
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && $value == null) {
+            $value = ($checkbox == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
+        }
+
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        $checkHTML = "";
+        $inputHidden = "";
+        
+        if ($checkbox == 'checkbox') {
+
+            $name .= '[]';
+            $inputHidden = "<input type='hidden' name='$name'>";
+
+            // foreach ($value as $key => $value) {
+    
+            //     $checkHTML .= "
+            //     <div id='$name-$nm' class='form-check'>
+            //         <input class='form-check-input' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
+            //         <label class='form-check-label wi-check-label' for='$checkbox-$name-$nm'>$vl</label>
+            //     </div>";
+
+            // }
+
+        }
+
+        return "
+        <div id='container-$id' class='w-100 wi-container-$checkbox'>
+            <h6>$label</h6>
+            <input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' data-wi-$checkbox='true' data-wi-search-url='$url'>
+            $inputHidden
+            <div class='card overflow-auto mt-1' style='height: 150px;'>
+                <div class='card-body p-2'>
+                $checkHTML
+                </div>
+                <div class='card-footer text-body-secondary'>
+                    Cerca risultati
                 </div>
             </div>
         </div>";
@@ -636,14 +685,14 @@
 
     }
 
-    function countryList($continent, $label, $name, $attribute = '', $value = null) {
+    function countryList($continent, $label, $name, $attribute = null, $value = null) {
 
         $country = geoCountry($continent);
         return check($label, $name, $country, $attribute, 'radio', true, $value);
 
     }
 
-    function provinceList($country, $label, $name, $value = null, $attribute = '') {
+    function provinceList($country, $label, $name, $value = null, $attribute = null) {
 
         $province = geoProvince($country);
         return check($label, $name, $province, $attribute, 'radio', true, $value);
