@@ -87,6 +87,104 @@ function enabledInput(type) {
     
 }
 
+function setDynamicSearch(element) {
+
+    var dataValue = element.dataset.wiValue;
+    var containerMaster = element.parentElement;
+    var container = containerMaster.querySelector('.card .card-body');
+
+    if (dataValue != '') {
+
+        var value = dataValue;
+        var url = element.dataset.wiSearchUrl;
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: { 
+                post: 'true',
+                id: value
+            }, 
+            success: function (data) {
+                createCheckbox(data, element, container, true);
+            },
+            error: function (XMLHttpRequest) {
+
+                ajaxRequestError(XMLHttpRequest);
+                footer.innerHTML = 'Errore!';
+
+            }
+        });
+        
+    }
+
+}
+
+function createCheckbox(array, element, container, checked = false) {
+
+    var name = element.dataset.wiName;
+
+    if (element.dataset.wiSearchRadio != undefined) {
+        var type = "radio";
+    } else if (element.dataset.wiSearchCheckbox != undefined) {
+        var type = "checkbox";
+    }
+
+    var containerMaster = container.parentElement;
+    var footer = containerMaster.querySelector('.card .card-footer');
+    footer.innerHTML = 'Cerco...';
+
+    const response = JSON.parse(array);
+    const nResponse = response.length;
+
+    var HTML_CHECKED = "";
+
+    container.querySelectorAll('input:checked').forEach(el => {
+
+        el.setAttribute('checked', true);
+        HTML_CHECKED += "<div class='form-check'>"+el.parentElement.innerHTML+"</div>";
+
+    });
+
+    container.innerHTML = "";
+
+    for (let index = 0; index < nResponse; index++) {
+
+        var idCode = code();
+        var HTML = "";
+        var att = "";
+
+        var value = response[index]['value'];
+        var label = response[index]['label'];
+        var inputValue = response[index]['input-value'];
+
+        if (checked) { var att = "checked"; }
+
+        if (HTML_CHECKED.search('value="'+value+'"') == '-1') {
+
+            HTML += "<div class='form-check'>";
+            HTML += "<input id='"+idCode+"' type='"+type+"' class='form-check-input' name='"+name+"' value='"+value+"' data-wi-check='true' "+att+" >";
+            HTML += "<label class='form-check-label wi-check-label' for='"+idCode+"'>"+label+"</label>";
+            HTML += "</div>";
+
+            container.insertAdjacentHTML("beforeend", HTML);
+
+        }
+
+    }
+
+    container.insertAdjacentHTML("beforeend", HTML_CHECKED);
+
+    if (inputValue == '') {
+        footer.innerHTML = "Cerca risultati";
+    } else if (nResponse == 1) {
+        footer.innerHTML = nResponse+" risultato";
+    } else if (nResponse != 1) {
+        footer.innerHTML = nResponse+" risultati";
+    }
+
+}
+
 function inputSearch(event) {
 
     var inputText = event.target;
@@ -94,17 +192,11 @@ function inputSearch(event) {
     var containerMaster = inputText.parentElement;
     var container = containerMaster.querySelector('.card .card-body');
 
-    var value = inputText.value.toLowerCase();
+    var inputValue = inputText.value.toLowerCase();
 
     if (inputText.dataset.wiSearchUrl != undefined) {
 
         var url = inputText.dataset.wiSearchUrl;
-
-        if (inputText.dataset.wiSearchRadio != undefined) {
-            var type = "radio";
-        } else if (inputText.dataset.wiSearchCheckbox != undefined) {
-            var type = "checkbox";
-        }
 
         var footer = containerMaster.querySelector('.card .card-footer');
         footer.innerHTML = 'Cerco...';
@@ -114,39 +206,10 @@ function inputSearch(event) {
             url: url,
             data: { 
                 post: 'true',
-                search: value
+                search: inputValue
             }, 
             success: function (data) {
-
-                const response = JSON.parse(data);
-                const nResponse = response.length;
-                
-                var listHTML = "";
-
-                for (let index = 0; index < nResponse; index++) {
-
-                    var code = code();
-
-                    const value = response[index]['value'];
-                    const label = response[index]['label'];
-                    const inputValue = response[index]['input-value'];
-
-                    listHTML += "<div class='form-check'><input id='"+code+"' type='"+type+"' class='form-check-input' value='"+value+"' data-wi-check='true'><label class='form-check-label wi-check-label' for='"+code+"'>"+label+"</label></div>";
-
-                }
-
-                if (inputValue == '') {
-                    footer.innerHTML = "Cerca risultati";
-                } else if (nResponse == 1) {
-                    footer.innerHTML = nResponse+" risultato";
-                } else if (nResponse != 1) {
-                    footer.innerHTML = nResponse+" risultati";
-                }
-
-                container.innerHTML = listHTML;
-
-                
-
+                createCheckbox(data, inputText, container);
             },
             error: function (XMLHttpRequest) {
 
@@ -163,7 +226,7 @@ function inputSearch(event) {
             var container = element.parentElement;
             var name = element.innerHTML.toLowerCase();
     
-            if (name.includes(value)) {
+            if (name.includes(inputValue)) {
                 element.parentElement.style.display = 'block';
             } else if (container.querySelector('input').checked == false) {
                 element.parentElement.style.display = 'none';

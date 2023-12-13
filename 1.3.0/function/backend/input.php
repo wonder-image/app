@@ -443,7 +443,7 @@
         $dataFilter = "";
         $inputHidden = "";
         
-        $bar =  ($searchBar) ? "<input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
+        $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
 
         if ($checkbox == 'checkbox') {
             $name .= '[]';
@@ -485,8 +485,9 @@
             $bar
             $inputHidden
             <div class='card overflow-auto mt-1' style='height: 120px;'>
-                <div class='card-body p-2'>
-                $checkHTML
+                $bar
+                <div class='card-body p-2' style='height: 120px;'>
+                    $checkHTML
                 </div>
             </div>
         </div>";
@@ -500,7 +501,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && $value == null) {
-            $value = ($checkbox == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
+            $value = ($checkbox == 'checkbox') ? $VALUES[$name] : json_encode([$VALUES[$name]]);
         }
 
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
@@ -513,26 +514,16 @@
             $name .= '[]';
             $inputHidden = "<input type='hidden' name='$name'>";
 
-            // foreach ($value as $key => $value) {
-    
-            //     $checkHTML .= "
-            //     <div id='$name-$nm' class='form-check'>
-            //         <input class='form-check-input' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
-            //         <label class='form-check-label wi-check-label' for='$checkbox-$name-$nm'>$vl</label>
-            //     </div>";
-
-            // }
-
         }
 
         return "
         <div id='container-$id' class='w-100 wi-container-$checkbox'>
             <h6>$label</h6>
-            <input type='text' class='form-control mt-1' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' data-wi-$checkbox='true' data-wi-search-url='$url'>
             $inputHidden
-            <div class='card overflow-auto mt-1' style='height: 150px;'>
-                <div class='card-body p-2'>
-                $checkHTML
+            <div class='card overflow-auto mt-1'>
+                <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$checkbox='true' data-wi-search-url='$url'>
+                <div class='card-body p-2 overflow-scroll' style='height: 120px;'>
+                    $checkHTML
                 </div>
                 <div class='card-footer text-body-secondary'>
                     Cerca risultati

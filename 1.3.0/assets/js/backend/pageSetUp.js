@@ -24,9 +24,16 @@ function createCard() {
 function checkInput() {
 
     document.querySelectorAll("[data-wi-search='true']").forEach(element => {
-        element.addEventListener("keyup", inputSearch);
-    });
 
+        element.addEventListener("keyup", inputSearch);
+        element.addEventListener("change", lengthCount);
+        element.addEventListener("focusin", lengthCount);
+        element.addEventListener("focusout", lengthCount);
+
+        if (element.dataset.wiSearchUrl != undefined) { setDynamicSearch(element); }
+
+    });
+    
     document.querySelectorAll("[data-wi-counter='true']").forEach(element => {
         element.addEventListener("keyup", lengthCount);
         element.addEventListener("change", lengthCount);
