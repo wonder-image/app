@@ -21,7 +21,7 @@ function createCard() {
     
 }
 
-function checkInput() {
+function setSearchInput() {
 
     document.querySelectorAll("[data-wi-search='true']").forEach(element => {
 
@@ -33,6 +33,10 @@ function checkInput() {
         if (element.dataset.wiSearchUrl != undefined) { setDynamicSearch(element); }
 
     });
+    
+}
+
+function checkInput() {
     
     document.querySelectorAll("[data-wi-counter='true']").forEach(element => {
         element.addEventListener("keyup", lengthCount);
@@ -119,6 +123,7 @@ async function setUpPage() {
     if (document.getElementById('page-loading')) { document.getElementById('page-loading').classList.add('d-none') }
 
     checkInput();
+    setSearchInput();
     setUpBootstrap();
     setUpJquery();
 

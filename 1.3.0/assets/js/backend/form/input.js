@@ -146,53 +146,62 @@ function createCheckbox(array, element, container, checked = false) {
     var footer = containerMaster.querySelector('.card .card-footer');
     footer.innerHTML = 'Cerco...';
 
-    const response = JSON.parse(array);
-    const nResponse = response.length;
+    try {
 
-    var HTML_CHECKED = "";
-
-    container.querySelectorAll('input:checked').forEach(el => {
-
-        el.setAttribute('checked', true);
-        HTML_CHECKED += "<div class='form-check'>"+el.parentElement.innerHTML+"</div>";
-
-    });
-
-    container.innerHTML = "";
-
-    for (let index = 0; index < nResponse; index++) {
-
-        var idCode = code();
-        var HTML = "";
-        var att = "";
-
-        var value = response[index]['value'];
-        var label = response[index]['label'];
-        var inputValue = response[index]['input-value'];
-
-        if (checked) { var att = "checked"; }
-
-        if (HTML_CHECKED.search('value="'+value+'"') == '-1') {
-
-            HTML += "<div class='form-check'>";
-            HTML += "<input id='"+idCode+"' type='"+type+"' class='form-check-input' name='"+name+"' value='"+value+"' data-wi-check='true' "+att+" >";
-            HTML += "<label class='form-check-label wi-check-label' for='"+idCode+"'>"+label+"</label>";
-            HTML += "</div>";
-
-            container.insertAdjacentHTML("beforeend", HTML);
-
+        const response = JSON.parse(array);
+        const nResponse = response.length;
+    
+        var HTML_CHECKED = "";
+    
+        container.querySelectorAll('input:checked').forEach(el => {
+    
+            el.setAttribute('checked', true);
+            HTML_CHECKED += "<div class='form-check'>"+el.parentElement.innerHTML+"</div>";
+    
+        });
+    
+        container.innerHTML = "";
+    
+        for (let index = 0; index < nResponse; index++) {
+    
+            var idCode = code();
+            var HTML = "";
+            var att = "";
+    
+            var value = response[index]['value'];
+            var label = response[index]['label'];
+            var inputValue = response[index]['input-value'];
+    
+            if (checked) { var att = "checked"; }
+    
+            if (HTML_CHECKED.search('value="'+value+'"') == '-1') {
+    
+                HTML += "<div class='form-check'>";
+                HTML += "<input id='"+idCode+"' type='"+type+"' class='form-check-input' name='"+name+"' value='"+value+"' data-wi-check='true' "+att+" >";
+                HTML += "<label class='form-check-label wi-check-label' for='"+idCode+"'>"+label+"</label>";
+                HTML += "</div>";
+    
+                container.insertAdjacentHTML("beforeend", HTML);
+    
+            }
+    
         }
 
-    }
+        container.insertAdjacentHTML("beforeend", HTML_CHECKED);
+    
+        if (inputValue == '') {
+            footer.innerHTML = "Cerca risultati";
+        } else if (nResponse == 1) {
+            footer.innerHTML = nResponse+" risultato";
+        } else if (nResponse != 1) {
+            footer.innerHTML = nResponse+" risultati";
+        }
+        
+    } catch {
 
-    container.insertAdjacentHTML("beforeend", HTML_CHECKED);
+        console.log(array);
+        footer.innerHTML = 'Errore nel file! Contatta assistenza';
 
-    if (inputValue == '') {
-        footer.innerHTML = "Cerca risultati";
-    } else if (nResponse == 1) {
-        footer.innerHTML = nResponse+" risultato";
-    } else if (nResponse != 1) {
-        footer.innerHTML = nResponse+" risultati";
     }
 
 }
