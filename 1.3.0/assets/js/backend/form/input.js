@@ -104,6 +104,8 @@ function setDynamicSearch(element) {
     var container = containerMaster.querySelector('.card .card-body');
     var footer = containerMaster.querySelector('.card .card-footer');
 
+    container.innerHTML = "";
+
     if (dataValue != '') {
 
         var value = dataValue;
