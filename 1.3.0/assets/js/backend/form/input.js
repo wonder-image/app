@@ -11,14 +11,24 @@ function check() {
             var input = inputList[i];
 
             if (input.required) {
-                if (input.value == "") {
-                    button.setAttribute("disabled", null);
+                if (input.type == 'checkbox' || input.type == 'radio') {
+                    if (input.checked == false) { button.setAttribute("disabled", null); }
+                } else {
+                    if (input.value == "") { button.setAttribute("disabled", null); }
                 }
             }
 
         }
 
-    })
+        var formElement = button.form;
+
+        formElement.querySelectorAll(".wi-checkbox-required, .wi-radio-required").forEach(checkboxContainer => {
+
+            if (checkboxContainer.querySelectorAll("input[type='checkbox']:checked, input[type='radio']:checked").length == 0) { button.setAttribute("disabled", null); }
+
+        });
+
+    });
 
 }
 
@@ -92,6 +102,7 @@ function setDynamicSearch(element) {
     var dataValue = element.dataset.wiValue;
     var containerMaster = element.parentElement;
     var container = containerMaster.querySelector('.card .card-body');
+    var footer = containerMaster.querySelector('.card .card-footer');
 
     if (dataValue != '') {
 
@@ -107,6 +118,7 @@ function setDynamicSearch(element) {
             }, 
             success: function (data) {
                 createCheckbox(data, element, container, true);
+                checkInput();
             },
             error: function (XMLHttpRequest) {
 
@@ -191,6 +203,7 @@ function inputSearch(event) {
 
     var containerMaster = inputText.parentElement;
     var container = containerMaster.querySelector('.card .card-body');
+    var footer = containerMaster.querySelector('.card .card-footer');
 
     var inputValue = inputText.value.toLowerCase();
 
@@ -210,6 +223,7 @@ function inputSearch(event) {
             }, 
             success: function (data) {
                 createCheckbox(data, inputText, container);
+                checkInput();
             },
             error: function (XMLHttpRequest) {
 

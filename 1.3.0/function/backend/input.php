@@ -427,17 +427,27 @@
 
     }   
 
-    function check($label, $name, $option, $attribute = null, $checkbox = 'checkbox', $searchBar = false, $value = null){
+    function check($label, $name, $option, $attribute = null, $type = 'checkbox', $searchBar = false, $value = null){
 
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && $value == null) {
-            $value = ($checkbox == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
+            $value = ($type == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { 
+
+            $label .= "*"; 
+            $attribute = str_replace('required', '', $attribute);
+            $required = "wi-$type-required";
+
+        } else {
+
+            $required = "";
+            
+        }
 
         $checkHTML = "";
         $dataFilter = "";
@@ -445,7 +455,7 @@
         
         $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
 
-        if ($checkbox == 'checkbox') {
+        if ($type == 'checkbox') {
             $name .= '[]';
             $inputHidden = "<input type='hidden' name='$name'>";
         }
@@ -471,8 +481,8 @@
     
                 $checkHTML .= "
                 <div id='$name-$nm' class='form-check'>
-                    <input class='form-check-input' type='$checkbox' name='$name' value='$nm' id='$checkbox-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
-                    <label class='form-check-label wi-check-label' for='$checkbox-$name-$nm'>$vl</label>
+                    <input class='form-check-input' type='$type' name='$name' value='$nm' id='$type-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
+                    <label class='form-check-label wi-check-label' for='$type-$name-$nm'>$vl</label>
                 </div>";
     
             }
@@ -480,11 +490,10 @@
         }
 
         return "
-        <div id='container-$id' class='w-100 wi-container-$checkbox'>
+        <div id='container-$id' class='w-100 wi-container-$type $required'>
             <h6>$label</h6>
-            $bar
             $inputHidden
-            <div class='card overflow-auto mt-1' style='height: 120px;'>
+            <div class='card overflow-auto mt-1'>
                 $bar
                 <div class='card-body p-2' style='height: 120px;'>
                     $checkHTML
@@ -494,22 +503,32 @@
 
     } 
 
-    function dynamicCheck($label, $name, $url, $attribute = null, $checkbox = 'checkbox', $value = null){
+    function dynamicCheck($label, $name, $url, $attribute = null, $type = 'checkbox', $value = null){
 
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && $value == null) {
-            $value = ($checkbox == 'checkbox') ? $VALUES[$name] : json_encode([$VALUES[$name]]);
+            $value = ($type == 'checkbox') ? $VALUES[$name] : json_encode([$VALUES[$name]]);
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { 
 
+            $label .= "*"; 
+            $attribute = str_replace('required', '', $attribute);
+            $required = "wi-$type-required";
+
+        } else {
+
+            $required = "";
+            
+        }
+        
         $checkHTML = "";
         $inputHidden = "";
         
-        if ($checkbox == 'checkbox') {
+        if ($type == 'checkbox') {
 
             $name .= '[]';
             $inputHidden = "<input type='hidden' name='$name'>";
@@ -517,11 +536,11 @@
         }
 
         return "
-        <div id='container-$id' class='w-100 wi-container-$checkbox'>
+        <div id='container-$id' class='w-100 wi-container-$type $required'>
             <h6>$label</h6>
             $inputHidden
             <div class='card overflow-auto mt-1'>
-                <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$checkbox='true' data-wi-search-url='$url'>
+                <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$type='true' data-wi-search-url='$url'>
                 <div class='card-body p-2 overflow-scroll' style='height: 120px;'>
                     $checkHTML
                 </div>
