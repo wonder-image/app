@@ -133,9 +133,9 @@
 
         if (!empty($str)) {
 
-            $str = htmlspecialchars_decode($str, ENT_QUOTES);
-
             if ($upper == true) {
+
+                $str = htmlspecialchars_decode(strtolower($str), ENT_QUOTES);
 
                 $str = str_replace('à', 'À', $str);
                 $str = str_replace('è', 'È', $str);
@@ -144,6 +144,10 @@
                 $str = str_replace('ù', 'Ù', $str);
                 
                 $str = strtoupper($str);
+
+            } else {
+
+                $str = htmlspecialchars_decode($str, ENT_QUOTES);
 
             }
 
