@@ -493,9 +493,9 @@
         <div id='container-$id' class='w-100 wi-container-$type $required'>
             <h6>$label</h6>
             $inputHidden
-            <div class='card overflow-auto mt-1'>
+            <div class='card mt-1'>
                 $bar
-                <div class='card-body p-2' style='height: 120px;'>
+                <div class='card-body overflow-scroll p-2' style='height: 120px;'>
                     $checkHTML
                 </div>
             </div>
@@ -539,9 +539,9 @@
         <div id='container-$id' class='w-100 wi-container-$type $required'>
             <h6>$label</h6>
             $inputHidden
-            <div class='card overflow-auto mt-1'>
+            <div class='card mt-1'>
                 <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$type='true' data-wi-search-url='$url'>
-                <div class='card-body p-2 overflow-scroll' style='height: 120px;'>
+                <div class='card-body overflow-scroll p-2' style='height: 120px;'>
                     $checkHTML
                 </div>
                 <div class='card-footer text-body-secondary'>
