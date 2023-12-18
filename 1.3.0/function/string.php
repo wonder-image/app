@@ -192,11 +192,12 @@
         if (!empty($number)) {
             $number = str_replace(" ", "", $number);
 
-            if (substr($number, 0, 3) == '+39') {
+            if (substr($number, 0, 3) == '+39' && substr($number, 0, 3) != '039') {
                 return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 3).' '.substr($number, 9, 4);
             } else {
                 return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
             }
+
         } else {
             return "";
         }
