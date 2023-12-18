@@ -493,7 +493,7 @@
         <div id='container-$id' class='w-100 wi-container-$type $required'>
             <h6>$label</h6>
             $inputHidden
-            <div class='card mt-1'>
+            <div class='card border mt-1'>
                 $bar
                 <div class='card-body overflow-scroll p-2' style='height: 120px;'>
                     $checkHTML
@@ -539,7 +539,7 @@
         <div id='container-$id' class='w-100 wi-container-$type $required'>
             <h6>$label</h6>
             $inputHidden
-            <div class='card mt-1'>
+            <div class='card border mt-1'>
                 <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$type='true' data-wi-search-url='$url'>
                 <div class='card-body overflow-scroll p-2' style='height: 120px;'>
                     $checkHTML
@@ -641,7 +641,7 @@
 
                 $OLD_FILES .=  "
                 <div id='card-file-$fileId' class='wi-card-file $cardClass col-4 order-$n' data-wi-order='$n' data-wi-n-file='$N_IMAGES' data-wi-db-table='$NAME->table' data-wi-db-column='$name' data-wi-db-row='$rowId' data-wi-folder='$NAME->folder' data-wi-file-id='$fileId' data-wi-file-name='$fileName'>
-                    <div class='card overflow-hidden'>
+                    <div class='card border overflow-hidden'>
                         $image
                         <div class='card-body'>
                             <p class='card-title'>$fileName</p>
