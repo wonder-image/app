@@ -11,7 +11,7 @@
 
         $COLOR = (object) array();
 
-        list($RED, $GREEN, $BLUE) = explode(",", $RGB);
+        list($RED, $GREEN, $BLUE) = explode(",", str_replace(" ", "", $RGB));
 
         $R = $RED / 255;
         $G = $GREEN / 255;
@@ -22,10 +22,10 @@
 
         $Δ = $Cmax - $Cmin;
 
-        // Lightness = Luminosità da 0 a 1 
-            $L = ($Cmax - $Cmin) / 2;
+        # Lightness = Luminosità da 0 a 1 
+            $lightness = ($Cmax - $Cmin) / 2;
 
-        // Hue = Tinta da 0 a 360
+        # Hue = Tinta da 0 a 360
             if ($Δ == 0) {
                 $H = 0;
             }elseif ($Cmax == $R) {
@@ -36,16 +36,19 @@
                 $H = 60 * ((($R - $G) / $Δ) + 4);
             }
 
-        // Saturation = Saturazione da 0 a 1
+        # Saturation = Saturazione da 0 a 1
             if ($Δ == 0) {
                 $S = 0;
             }else{
-                $x = 2 * $L - 1;
+                $x = 2 * $lightness - 1;
                 if ($x < 0) {
                     $x = -$x;
                 }
                 $S = $Δ / (1 - $x);
             }
+
+        # Brightness
+            $brightness = (($R * 299) + ($G * 587) + ($B * 114)) / 1000;
 
         $COLOR->rgb = $RGB;
         $COLOR->r = $RED;
@@ -53,11 +56,12 @@
         $COLOR->b = $BLUE;
         $COLOR->hue = $H;
         $COLOR->saturation = $S;
-        $COLOR->lightness = $L;
+        $COLOR->lightness = $lightness;
+        $COLOR->brightness = $brightness;
 
-        // Neutral if write black or white with this background
+        # Neutral if write black or white with this background
             $COLOR->neutral = (object) array();
-            if ((($R * 0.299) + ($G * 0.587) + ($B * 0.114)) > 186) {
+            if ($brightness > .6) {
                 $COLOR->neutral->color = "black";
                 $COLOR->neutral->rgb = "0,0,0";
                 $COLOR->neutral->r = 0;
