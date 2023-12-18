@@ -190,6 +190,7 @@
     function prettyPhone($number) {
 
         if (!empty($number)) {
+            
             $number = str_replace(" ", "", $number);
 
             if (substr($number, 0, 3) == '+39' && substr($number, 0, 3) != '039') {
