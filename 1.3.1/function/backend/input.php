@@ -544,7 +544,7 @@
                 <div class='card-body overflow-scroll p-2' style='height: 120px;'>
                     $checkHTML
                 </div>
-                <div class='card-footer text-body-secondary'>
+                <div class='card-footer border-top text-body-secondary'>
                     Cerca risultati
                 </div>
             </div>
