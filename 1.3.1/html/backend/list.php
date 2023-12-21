@@ -111,11 +111,16 @@
                     if (!empty($BUTTON_CUSTOM)) {
                         foreach ($BUTTON_CUSTOM as $key => $v) {
 
+                            $html = isset($v['html']) ? $v['html'] : false;
                             $value = isset($v['value']) ? $v['value'] : '';
                             $action = isset($v['action']) ? $v['action'] : '';
                             $color = isset($v['color']) ? $v['color'] : 'dark';
 
-                            echo "<a $action type='button' class='btn btn-$color btn-sm'>$value</a>";
+                            if ($html) {
+                                echo $value;
+                            } else {
+                                echo "<a $action type='button' class='btn btn-$color btn-sm'>$value</a>";
+                            }
                             
                         }
                         
