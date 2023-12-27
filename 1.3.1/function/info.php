@@ -2,8 +2,6 @@
 
     function infoPage() {
 
-        global $PATH;
-
         $PAGE = (object) array();
 
         if (isset($_SERVER['HTTP_HOST'])) {
@@ -64,11 +62,15 @@
 
         $RETURN->domain = empty($RETURN->site) ? '' : parse_url($RETURN->site)['host'];
 
+        $address = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country);
         $RETURN->address = "$RETURN->street $RETURN->number, $RETURN->cap $RETURN->city ($RETURN->province)";
-        $RETURN->prettyAddress = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country)->pretty;
+        $RETURN->prettyAddress = $address->pretty;
+        $RETURN->prettyAddressPDF = $address->prettyPDF;
 
+        $legalAddress = prettyAddress($RETURN->legal_street, $RETURN->legal_number, $RETURN->legal_cap, $RETURN->legal_city, $RETURN->legal_province, $RETURN->legal_country);
         $RETURN->addressLegal = "$RETURN->legal_street $RETURN->legal_number, $RETURN->legal_cap $RETURN->legal_city ($RETURN->legal_province)";
-        $RETURN->prettyLegalAddress = prettyAddress($RETURN->legal_street, $RETURN->legal_number, $RETURN->legal_cap, $RETURN->legal_city, $RETURN->legal_province, $RETURN->legal_country)->pretty;
+        $RETURN->prettyLegalAddress = $legalAddress->pretty;
+        $RETURN->prettyLegalAddressPDF = $legalAddress->prettyPDF;
 
         $RETURN->prettyLegal = "";
 
