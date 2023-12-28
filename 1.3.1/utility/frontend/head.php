@@ -166,11 +166,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-shutters.min.css" />
     <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-slicer.min.css" />
+    <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-carousel.min.css" />
     <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/swiper-gl.min.css" />
     
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script src="<?=$PATH->lib?>/swiper/effect-shutters.min.js"></script>
     <script src="<?=$PATH->lib?>/swiper/effect-slicer.min.js"></script>
+    <script src="<?=$PATH->lib?>/swiper/effect-carousel.min.js"></script>
     <script src="<?=$PATH->lib?>/swiper/swiper-gl.min.js"></script>
 
     <!-- Fancybox -->
