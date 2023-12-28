@@ -62,7 +62,10 @@
 
     //
 
-    $TAG_MANAGER = sqlSelect('analytics', ['id' => '1'], 1)->row['tag_manager'];
+    $SOCIETY_LOGOS = sqlSelect('logos', ['id' => '1'], 1)->row;
+    $ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
+
+    $TAG_MANAGER = $ANALYTICS['tag_manager'];
 
     if ($TAG_MANAGER != '' && $ACTIVE_STATISTICS == true) { 
 
@@ -119,20 +122,29 @@
 <!-- Fine SEO -->
 
 <!-- Inizio icone -->
-
-    <link rel="icon" href="<?=$PATH->favicon?>">
-    <link rel="apple-touch-icon" href="<?=$PATH->appIcon?>">
-
     <?php
 
-        foreach ($DEFAULT->appIcon as $size) {
+
+        if ($SOCIETY_LOGOS['favicon'] != "") {
+
+            echo "<link rel='icon' href='$PATH->favicon'>";
+
+        }
+
+        if ($SOCIETY_LOGOS['app_icon'] != "") {
+
+            echo "<link rel='apple-touch-icon' href='$PATH->appIcon'>";
+
+            foreach ($DEFAULT->appIcon as $size) {
+                
+                echo "<link rel='icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
+                echo "<link rel='apple-touch-icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
             
-            echo "<link rel='icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
-            echo "<link rel='apple-touch-icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
+            }
+
         }
 
     ?>
-    
 <!-- Fine icone -->
 
 <!-- Inizio file fondamentali  -->
@@ -267,7 +279,7 @@
 
 <?php
 
-    $PIXEL_FACEBOOK = sqlSelect('analytics', ['id' => '1'], 1)->row['pixel_facebook'];
+    $PIXEL_FACEBOOK = $ANALYTICS['pixel_facebook'];
 
     if ($PIXEL_FACEBOOK != '' && $ACTIVE_STATISTICS == true) { 
 
