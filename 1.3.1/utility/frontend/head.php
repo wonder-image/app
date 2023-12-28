@@ -66,8 +66,9 @@
     $ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
 
     $TAG_MANAGER = $ANALYTICS['tag_manager'];
+    $PIXEL_FACEBOOK = $ANALYTICS['pixel_facebook'];
 
-    if ($TAG_MANAGER != '' && $ACTIVE_STATISTICS == true) { 
+    if ($TAG_MANAGER != '' && $ACTIVE_STATISTICS == true) :
 
 ?>
 <!-- Inizio Google Tag Manager -->
@@ -79,7 +80,7 @@
     })(window,document,'script','dataLayer','<?=$TAG_MANAGER?>');
 </script>
 <!-- Fine Google Tag Manager -->
-<?php } ?>
+<?php endif; ?>
 
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -277,13 +278,7 @@
 
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
 
-<?php
-
-    $PIXEL_FACEBOOK = $ANALYTICS['pixel_facebook'];
-
-    if ($PIXEL_FACEBOOK != '' && $ACTIVE_STATISTICS == true) { 
-
-?>
+<?php if ($PIXEL_FACEBOOK != '' && $ACTIVE_STATISTICS == true) : ?>
 <!-- Inizio Meta Pixel -->
 <script>
     !function(f,b,e,v,n,t,s)
@@ -301,4 +296,4 @@
     <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?=$PIXEL_FACEBOOK?>&ev=PageView&noscript=1" />
 </noscript>
 <!-- Fine Meta Pixel -->
-<?php } ?>
+<?php endif; ?>
