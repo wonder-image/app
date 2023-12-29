@@ -51,6 +51,31 @@
 
     }
 
+    function phone($label, $name, $value = null, $attribute = '', $error = false){
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $class = "";
+
+        if (!empty($error)) {
+            $class .= " input-error";
+            $alert = "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> $error</span>";
+        } else {
+            $alert = "<span class='alert-error'></span>";
+        }
+
+        if (!empty($value) || $value == 0) { $class .= " compiled"; }
+        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        return "
+        <div class='wi-input-container text$class'>
+            <label for='$id' class='wi-label'>$label</label>
+            <input type='tel' id='$id' class='wi-input' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-number='true' data-wi-number-decimal='0' data-wi-number-group-separator='' $attribute>
+            $alert
+        </div>";
+
+    }
+
     function price($label, $name, $value = null, $attribute = '', $error = false){
 
         $id = strtolower(code(10, 'letters', 'input_'));
