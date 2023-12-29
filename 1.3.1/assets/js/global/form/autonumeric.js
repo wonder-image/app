@@ -6,7 +6,8 @@ var AUTONUMERIC_NUMBER = {
     onInvalidPaste: 'truncate',
     currencySymbolPlacement: 's',
     outputFormat: 'number',
-    unformatOnSubmit: true
+    unformatOnSubmit: true,
+    modifyValueOnWheel: false
 };
 
 var AUTONUMERIC_PRICE = {
@@ -18,7 +19,8 @@ var AUTONUMERIC_PRICE = {
     currencySymbol: '€',
     currencySymbolPlacement: 's',
     outputFormat: 'number',
-    unformatOnSubmit: true
+    unformatOnSubmit: true,
+    modifyValueOnWheel: false
 };
 
 var AUTONUMERIC_PERCENTIGE = {
@@ -30,7 +32,8 @@ var AUTONUMERIC_PERCENTIGE = {
     currencySymbol: '%',
     currencySymbolPlacement: 's',
     outputFormat: 'number',
-    unformatOnSubmit: true
+    unformatOnSubmit: true,
+    modifyValueOnWheel: false
 };
 
 function customAutonumeric(element, autonumeric) {
@@ -92,6 +95,10 @@ function customAutonumeric(element, autonumeric) {
 
     if (autonumeric.unformatOnSubmit != undefined) { 
         option.unformatOnSubmit = autonumeric.unformatOnSubmit; 
+    }
+
+    if (autonumeric.modifyValueOnWheel != undefined) { 
+        option.modifyValueOnWheel = autonumeric.modifyValueOnWheel; 
     }
 
     return option;
