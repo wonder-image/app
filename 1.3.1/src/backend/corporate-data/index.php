@@ -273,19 +273,19 @@
                                     'label' => 'Giorno',
                                     'type' => 'select',
                                     'option' => $DAY_OPTION,
-                                    'attribute' => 'required',
+                                    'attribute' => '',
                                     'col' => 3
                                 ],
                                 'time-from' => [
                                     'label' => 'Da (08:00)',
                                     'type' => 'text',
-                                    'attribute' => 'required',
+                                    'attribute' => '',
                                     'col' => 3
                                 ],
                                 'time-to' => [
                                     'label' => 'A (17:30)',
                                     'type' => 'text',
-                                    'attribute' => 'required',
+                                    'attribute' => '',
                                     'col' => 3
                                 ],
                             ];
