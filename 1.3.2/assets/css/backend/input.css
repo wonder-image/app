@@ -50,3 +50,69 @@ border-color: #373b3e;
 .fc-view-harness th {
 text-transform: capitalize;
 }
+
+
+/* Quill.js */
+.ql-snow .ql-stroke { stroke: var(--bs-body-color); }
+.ql-snow .ql-fill{ fill: var(--bs-body-color); }
+
+
+/* Editor.js */
+.tc-wrap {
+--color-background: var(--bs-card-bg);
+--color-text-secondary: var(--bs-secondary);
+--color-border: var(--bs-card-border-color);
+}
+.tc-toolbox {
+--toggler-dots-color: var(--bs-card-border-color);
+--toggler-dots-color-hovered: var(--bs-body-color);
+}
+.ce-popover,
+.tc-popover {
+--color-border: var(--bs-card-border-color);
+--color-shadow: none;
+--color-background: var(--bs-body-bg);
+--color-text-primary: var(--bs-body-color);
+--color-text-secondary: var(--bs-secondary);
+--color-border-icon: var(--bs-body-bg);
+--color-border-icon-disabled: var(--bs-secondary);
+--color-text-icon-active: var(--bs-success);
+--color-background-icon-active: var(--bs-secondary-bg);
+--color-background-item-focus: var(--bs-secondary-bg);
+--color-shadow-item-focus: var(--bs-secondary-bg);
+
+--color-background-hover: var(--bs-secondary-bg);
+--color-background-item-hover: var(--bs-secondary-bg);
+--color-background-confirm: var(--bs-danger);
+--color-background-item-confirm: var(--bs-danger);
+--color-background-confirm-hover: var(--bs-danger);
+--color-background-item-confirm-hover: var(--bs-danger);
+--color-text-confirm: #fff;
+}
+.codex-editor ::selection {
+background-color: var(--bs-secondary-bg);
+}
+.ce-toolbar__plus,
+.ce-toolbar__settings-btn {
+color: var(--bs-body-color);
+}
+.ce-toolbar__plus:hover,
+.ce-toolbar__settings-btn:hover {
+background: var(--bs-secondary-bg);
+}
+.ce-block.ce-block--selected .cdx-block {
+background: var(--bs-secondary-bg);
+}
+.ce-popover-item__icon {
+background: var(--color-background);
+}
+.cdx-search-field {
+background: none;
+}
+.ce-inline-toolbar {
+background-color: var(--bs-body-bg);
+border: 1px solid var(--bs-card-border-color);
+-webkit-box-shadow: none;
+box-shadow: none;
+border-radius: 6px;
+}

@@ -23,7 +23,7 @@ display: table-cell;
 }
 .pc-none { display: none !important; }
 
-@media (max-width: 1000px) {
+@media (max-width: 992px) {
 .tablet-none { display: none !important; }
 }
 @media (max-width: 768px) {

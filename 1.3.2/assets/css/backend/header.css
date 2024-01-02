@@ -54,12 +54,8 @@ html[data-bs-theme="dark"] {
 --bs-dropdown-padding-x: .5rem;
 --bs-dropdown-padding-y: .5rem;
 }
-.dropdown-menu li + li {
-margin-top: .25rem;
-}
-.dropdown-menu .dropdown-item {
-border-radius: .25rem;
-}
+.dropdown-menu li + li { margin-top: .25rem; }
+.dropdown-menu .dropdown-item { border-radius: .25rem; }
 
 #content {
 position: relative;
@@ -180,13 +176,15 @@ z-index: 9;
 
 wi-card { display: none; }
 
-@media (max-width: 768px){
+@media (max-width: 992px) {
+.col-1, .col-2{ width: 50%; }
+.col-3, .col-4,.col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12{ width: 100%; }
+}
+@media (max-width: 768px) {
 #content{
 position: relative;
 width: 100%;
 }
-.col-1, .col-2{ width: 50%; }
-.col-3, .col-4,.col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12{ width: 100%; }
 #sidebar{
 position: fixed;
 width: 100%;
