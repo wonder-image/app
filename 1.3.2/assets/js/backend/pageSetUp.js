@@ -21,21 +21,6 @@ function createCard() {
     
 }
 
-function setSearchInput() {
-
-    document.querySelectorAll("[data-wi-search='true']").forEach(element => {
-
-        element.addEventListener("keyup", inputSearch);
-        element.addEventListener("change", lengthCount);
-        element.addEventListener("focusin", lengthCount);
-        element.addEventListener("focusout", lengthCount);
-
-        if (element.dataset.wiSearchUrl != undefined) { setDynamicSearch(element); }
-
-    });
-    
-}
-
 function checkInput() {
     
     document.querySelectorAll("[data-wi-counter='true']").forEach(element => {
@@ -120,8 +105,10 @@ async function setUpPage() {
 
     await createCard();
 
+    setTextarea();
+    
     if (document.getElementById('page-loading')) { document.getElementById('page-loading').classList.add('d-none') }
-
+    
     checkInput();
     setSearchInput();
     setUpBootstrap();

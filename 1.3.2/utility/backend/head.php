@@ -32,6 +32,16 @@
 <script src="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.js"></script>
 <script src="<?=$PATH->lib?>/summernote/0.8.18/lang/summernote-it-IT.min.js"></script>
 
+<!-- Quill.js -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<!-- Editor.js -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@canburaks/text-align-editorjs@1.1.0/dist/text-align.umd.min.js"></script>
+
 <!-- Bootstrap Datepicker -->
 <script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
 <script src="<?=$PATH->lib?>/bootstrap-datepicker/locales/bootstrap-datepicker.it.min.js" rel="stylesheet"></script>
@@ -99,6 +109,8 @@
 <script src="<?=$PATH->appJs?>/backend/ajax.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/input.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/file.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/textarea.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/set.js"></script>
 <script src="<?=$PATH->appJs?>/backend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/backend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>

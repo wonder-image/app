@@ -6,12 +6,15 @@
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
+
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='password' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='password' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>
         ";
@@ -24,12 +27,15 @@
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
+
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='email' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='email' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>
         ";
@@ -41,13 +47,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -58,13 +67,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
             <div class='btn btn-sm btn-dark text-light position-absolute top-50 end-0 me-2 translate-middle-y' onclick=\"generateCode('#$id')\">
                 GENERA
@@ -78,13 +90,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d', strtotime($VALUES[$name])); }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='date' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='date' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -95,13 +110,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d H:i', strtotime($VALUES[$name])); }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='datetime-local' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='datetime-local' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -112,6 +130,9 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('d/m/Y', strtotime($VALUES[$name])); }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
@@ -121,7 +142,7 @@
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-date='true' $min $max $attribute>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-date='true' $min $max $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -133,6 +154,9 @@
         
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         $nameFrom = $name."_from";
         $nameTo = $name."_to";
@@ -157,9 +181,9 @@
         <h6>$label</h6>
         <div class='input-group input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
             <span class='input-group-text'>Dal</span>
-            <input id='$idFrom' type='text' class='form-control' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
+            <input id='$idFrom' type='text' class='$class' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
             <span class='input-group-text'>Al</span>
-            <input id='$idTo' type='text' class='form-control' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
+            <input id='$idTo' type='text' class='$class' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
         </div>";
 
     }
@@ -169,6 +193,9 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
@@ -179,24 +206,26 @@
         <h6>$label</h6>
         <div class='input-group mt-1'>
             <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
-            <input type='text' class='form-control' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
+            <input type='text' class='$class' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
         </div>";
 
     }
 
     function number($label, $name, $attribute = null, $value = null){
 
-        global $TABLE;
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-number='true' data-wi-check='true' $attribute>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-number='true' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -207,13 +236,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-price='true' placeholder='$label' $attribute>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-price='true' placeholder='$label' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -224,13 +256,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='text' class='form-control' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-percentige='true' placeholder='$label' $attribute>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-percentige='true' placeholder='$label' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
@@ -241,13 +276,16 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
-            <input type='url' class='form-control' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+            <input type='url' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>
         ";
@@ -264,7 +302,7 @@
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
-        if ($version == "basic" || $version == "advanced" || $version == "all") {
+        if ($version != null) {
 
             if ($version == 'basic') {
                 $TOOLTIP = "toolbar: [
@@ -285,10 +323,6 @@
 
             return "
             <div class='form-floating'>
-                <div class='w-100'>
-                    <label for='$id'>$label</label>
-                </div>
-                <textarea id='$id' name='$id' class='summernote' data-wi-check='true' $attribute>$value</textarea>
             </div>
             <script>
 
@@ -380,7 +414,7 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
-
+        
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
@@ -556,7 +590,7 @@
 
         global $PATH;
         global $NAME;
-        global $PAGE_TABLE;
+        global $TABLE;
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
@@ -564,8 +598,11 @@
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
-        $TABLE = $PAGE_TABLE[$name]['input'];
-        $maxFile = $TABLE['format']['max_file'];
+        $TABLE_NAME = strtoupper($NAME->table);
+        $PAGE_TABLE = $TABLE->$TABLE_NAME;
+
+        $TB = $PAGE_TABLE[$name]['input'];
+        $maxFile = $TB['format']['max_file'];
 
         if ($file == "image") {
             $ACCEPT = "image/png, image/jpeg";
@@ -610,7 +647,7 @@
 
                 $cardClass = "";
 
-                $dir = isset($TABLE['format']['dir']) ? $TABLE['format']['dir'] : '/'; 
+                $dir = isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
 
                 if (substr($dir, -1) != '/') {
                     $extension = pathinfo($fileName, PATHINFO_EXTENSION);
