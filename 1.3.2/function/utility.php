@@ -32,4 +32,24 @@
 
     }
 
+    function attributeSearchClass($attribute) {
+
+        $classValue = "";
+
+        if ($attribute != null && strpos($attribute, "class") !== false) { 
+
+            if (preg_match('/"([^"]+)"/', $attribute, $r)) {
+                $result = $r[1];
+            } elseif (preg_match("/'([^']+)'/", $attribute, $r)) {
+                $result = $r[1];
+            }
+
+            $classValue = strpos($result, "class=") ? "" : $result;   
+
+        }
+
+        return $classValue;
+
+    }
+
 ?>
