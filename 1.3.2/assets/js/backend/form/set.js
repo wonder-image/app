@@ -37,6 +37,8 @@ function setTextarea() {
 
         if (type == 'base' || type == 'plus' || type == 'pro') {
 
+            // Quill.js
+
             editor.classList.add('border-top-0');
             editor.classList.add('rounded-bottom');
     
@@ -49,7 +51,7 @@ function setTextarea() {
             } else if (type == 'plus') {
                 var option =  [['bold', 'italic', 'underline', 'strike'], ['link'], ['clean']];
             } else if (type == 'pro') {
-                var option =  [['bold', 'italic', 'underline', 'strike'], ['link'], [{ list: 'ordered' }, { list: 'bullet' }, 'align'], ['clean']];
+                var option =  [['bold', 'italic', 'underline', 'strike'], ['link'], [{ list: 'ordered' }, { list: 'bullet' }], ['clean']];
             }
 
             new Quill('#'+editorId, {
@@ -72,11 +74,13 @@ function setTextarea() {
             var editor = document.querySelector('#'+editorId+' .ql-editor');
 
             editor.innerHTML = textareaValue.replace("'", "\'");
-            
+
             editor.addEventListener('keydown', () => { textarea.value = editor.innerHTML; });
             editor.addEventListener('DOMNodeInserted', () => { textarea.value = editor.innerHTML; });
 
-        } else if (type == 'table') {
+        } else if (type == 'table' || type == 'blog') {
+
+            // Editor.js
 
             editor.classList.add('pt-3');
             editor.classList.add('rounded');
@@ -84,14 +88,15 @@ function setTextarea() {
 
             container.after(editor);
 
-            if (textareaValue == null || textareaValue == '') {
-                var data = '{"blocks":[{"id":"O3rAzVD6s8","type":"table","data":{"withHeadings":true,"content":[]}}]}';
-            } else {
-                var data = '{"blocks":'+textareaValue+'}';
-            }
+            if (type == 'table') {
+                
+                if (textareaValue == null || textareaValue == '') {
+                    var data = '{"blocks":[{"id":"O3rAzVD6s8","type":"table","data":{"withHeadings":true,"content":[]}}]}';
+                } else {
+                    var data = '{"blocks":'+textareaValue+'}';
+                }
 
-            new EditorJS({
-                tools: {
+                var tools = {
                     paragraph: false,
                     inlineCode: InlineCode,
                     table: {
@@ -99,8 +104,83 @@ function setTextarea() {
                         inlineToolbar: [ 'bold', 'link' ]
                     },
                     textAlign: TextAlign
-                },
-                // maxBlockCount: 1,
+                };
+
+            } else {
+
+                editor.style.maxHeight = '500px';
+
+                if (textareaValue == null || textareaValue == '') {
+                    var data = '{}';
+                } else {
+                    var data = '{"blocks":'+textareaValue+'}';
+                }
+
+                var tools = {
+                    header: {
+                        class: Header,
+                        inlineToolbar: true,
+                        config: {
+                          placeholder: 'Titolo...',
+                          levels: [1, 2, 4],
+                          defaultLevel: 2
+                        }
+                    },
+                    quote: {
+                        class: Quote,
+                        inlineToolbar: true,
+                        config: {
+                            quotePlaceholder: 'Scrivi una citazione...',
+                            captionPlaceholder: 'Autore',
+                        },
+                    },
+                    list: {
+                        class: NestedList,
+                        inlineToolbar: true,
+                        config: {
+                            defaultStyle: 'unordered'
+                        },
+                    },
+                    delimiter: Delimiter,
+                    table: {
+                        class: Table,
+                        inlineToolbar: ['link', 'italic', 'bold'],
+                    },
+                    // TODO: #12 Rimuovi i bottoni (withBorder, stretched, withBackground) quando si carica un'immagine
+                    image: {
+                        class: ImageTool,
+                        config: {
+                            captionPlaceholder: 'Caption...',
+                            endpoints: {
+                                byFile: pathSite+'/api/task/blog/image.php'
+                            },
+                            type: [ 'image/png', 'image/jpg', 'image/jpeg']
+                        }
+                    },
+                    // TODO: Rimuovi i bottoni (fit e slider)
+                    gallery: {
+                        class: ImageGallery,
+                        config: {
+                            captionPlaceholder: 'Caption galleria...',
+                            endpoints: {
+                                byFile: pathSite+'/api/task/blog/image.php'
+                            },
+                            type: [ 'image/png', 'image/jpg', 'image/jpeg']
+                        },
+                    },
+                    // TODO: #14 Aggiungi possibilità di caricare una gallery
+                    textAlign: TextAlign,
+                    Marker: Marker,
+                    inlineCode: InlineCode,
+                    code: CodeTool,
+                    // TODO: #13 embed non funziona. Trovare un modo per caricare iframe
+                    embed: Embed
+                };
+                
+            }
+
+            new EditorJS({
+                tools: tools,
                 holder: editorId, 
                 autofocus: true,
                 data: JSON.parse(data),
@@ -129,25 +209,41 @@ function setTextarea() {
                             },
                             "toolbar": {
                                 "toolbox": {
-                                    "Add": "Aggiungi"
+                                    "Add": "Aggiungi",
                                 }
                             }
                         },
                         toolNames: {
                             "Add": "Aggiungi",
+                            "Quote": "Citazione",
+                            "Delimiter": "Linea",
                             "Text": "Testo",
+                            "Heading": "Titolo",
                             "Table": "Tabella",
+                            "Code": "Codice",
+                            "List": "Elenco",
                             "Bold": "Grassetto",
                             "Italic": "Corsivo",
                             "InlineCode": "Codice",
                             "TextAlign": "Allineamento",
+                            "Gallery": "Galleria",
+                            "Image": "Immagine",
                         },
                         tools: {
+                            "header": {
+                                "Heading 1": "Titolo grande",
+                                "Heading 2": "Titolo",
+                                "Heading 4": "Sottotitolo"
+                            },
                             "link": {
                                 "Add a link": "Aggiungi link"
                             },
                             "code": {
                                 "Enter a code": "Inserisci codice",
+                            },
+                            "quote": {
+                                "Align Left": "Allinea a sinistra",
+                                "Align Center": "Allinea in centro",
                             },
                             "table": {
                                 "With headings": "Con intestazione",
@@ -158,6 +254,16 @@ function setTextarea() {
                                 "Add row below": "Aggiungi riga sotto",
                                 "Delete column": "Elimina colonna",
                                 "Delete row": "Elimina riga",
+                            },
+                            "list": {
+                                "Ordered": "Elenco numerato",
+                                "Unordered": "Elenco puntato",
+                            },
+                            "gallery": {
+                                "Select an Image": "Seleziona immagini",
+                            },
+                            "image": {
+                                "Select an Image": "Seleziona immagine",
                             },
                         },
                         blockTunes: {
