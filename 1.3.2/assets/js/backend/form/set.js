@@ -157,7 +157,7 @@ function setTextarea() {
                             type: [ 'image/png', 'image/jpg', 'image/jpeg']
                         }
                     },
-                    // TODO: Rimuovi i bottoni (fit e slider)
+                    // TODO: #16 Rimuovi i bottoni (fit e slider)
                     gallery: {
                         class: ImageGallery,
                         config: {
@@ -168,7 +168,6 @@ function setTextarea() {
                             type: [ 'image/png', 'image/jpg', 'image/jpeg']
                         },
                     },
-                    // TODO: #14 Aggiungi possibilità di caricare una gallery
                     textAlign: TextAlign,
                     Marker: Marker,
                     inlineCode: InlineCode,
