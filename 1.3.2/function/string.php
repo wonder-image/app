@@ -104,17 +104,39 @@
 
         return $str;
         
-    }
+    }      
 
-    function sanitizeJSON($array) {
+    function sanitizeArray($array) {
+
+        global $CHARACTERS;
 
         $newArray = [];
 
         foreach ($array as $key => $value) {
             if (is_array($value)) {
-                $newArray[$key] = sanitizeJSON($value);
+                $newArray[$key] = sanitizeArray($value);
             } else {
-                $newArray[$key] = addslashes($value);
+
+                if (!empty($value)) {
+
+                    foreach ($CHARACTERS as $k => $c) {
+                        
+                        $character = $c['character'];
+                        $html = $c['html'];
+
+                        if (!in_array($character, ['"', "'", ">", "<", " "])) {
+                            $value = str_replace($character, $html, $value);
+                        }
+                        
+                    }
+
+                    $value = trim($value);
+                    $value = addslashes($value);
+
+                }
+
+                $newArray[$key] = $value;
+                
             }
         }
 
