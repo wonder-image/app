@@ -124,7 +124,7 @@
                         $character = $c['character'];
                         $html = $c['html'];
 
-                        if (!in_array($character, ['"', "'", ">", "<", " "])) {
+                        if (!in_array($character, ['"', "'", ">", "<", " ", "&"])) {
                             $value = str_replace($character, $html, $value);
                         }
                         
