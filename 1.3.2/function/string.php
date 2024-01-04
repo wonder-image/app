@@ -106,6 +106,22 @@
         
     }
 
+    function sanitizeJSON($array) {
+
+        $newArray = [];
+
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $newArray[$key] = sanitizeJSON($value);
+            } else {
+                $newArray[$key] = addslashes($value);
+            }
+        }
+
+        return $newArray;
+        
+    }
+
     function sanitizeFirst($str){
 
         if (!empty($str)) {
