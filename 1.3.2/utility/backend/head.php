@@ -49,7 +49,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0/dist/embed.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@canburaks/text-align-editorjs@1.1.0/dist/text-align.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@1.0.3/dist/bundle.js"></script>
 <script src="<?=$PATH->lib?>/editorjs/gallery.js"></script>
 
 <!-- Bootstrap Datepicker -->

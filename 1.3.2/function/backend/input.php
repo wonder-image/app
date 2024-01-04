@@ -303,91 +303,16 @@
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         if ($version != null) {
-
-            if ($version == 'basic') {
-                $TOOLTIP = "toolbar: [
-                    ['font', ['bold', 'clear']],
-                    ['insert', ['link']],
-                    ['view', ['fullscreen', 'codeview']],
-                ],";
-            }if ($version == 'advanced') {
-                $TOOLTIP = "toolbar: [
-                    ['font', ['bold', 'italic', 'underline', 'clear']],
-                    ['insert', ['link']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['view', ['fullscreen', 'codeview']],
-                ],";
-            }elseif ($version == 'all') {
-                $TOOLTIP = "";
-            }
+            
+            $valueEncoded =  empty($value) ? "" : base64_encode($value);
 
             return "
             <div class='form-floating'>
-            </div>
-            <script>
+                <h6 class='mb-1'>$label</h6>
+                <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true'data-wi-textarea='$version' $attribute>$value</textarea>
+            </div>";
 
-                $(document).ready(function() {
-                    $('#$id.summernote').summernote(
-                        {
-                            lang: 'it-IT',
-                            dialogsInBody: true,
-                            height: 200,
-                            $TOOLTIP
-                            icons: {
-                                align: 'bi bi-text-left',
-                                alignCenter: 'bi bi-text-center',
-                                alignJustify: 'bi bi-justify',
-                                alignLeft: 'bi bi-text-left',
-                                alignRight: 'bi bi-text-right',
-                                indent: 'bi bi-text-indent-left',
-                                outdent: 'bi bi-text-indent-right',
-                                arrowsAlt: 'bi bi-arrows-move',
-                                bold: 'bi bi bi-type-bold',
-                                caret: 'bi bi-caret-down-fill',
-                                circle: 'bi bi-circle-fill',
-                                close: 'bi bi-x-lg',
-                                code: 'bi bi-code-slash',
-                                eraser: 'bi bi-eraser-fill',
-                                font: 'bi bi-fonts',
-                                italic: 'bi bi-type-italic',
-                                link: 'bi bi-link',
-                                unlink: 'bi bi-trash',
-                                magic: 'bi bi-magic',
-                                menuCheck: 'bi bi-check',
-                                minus: 'bi bi-dash',
-                                orderedlist: 'bi bi-list-ol',
-                                pencil: 'bi bi-pen',
-                                picture: 'bi bi-image',
-                                question: 'bi bi-question',
-                                redo: 'bi bi-arrow-clockwise',
-                                square: 'bi bi-app',
-                                strikethrough: 'bi bi-type-strikethrough',
-                                subscript: 'bi bi-',
-                                superscript: 'bi bi-',
-                                table: 'bi bi-grid-3x3',
-                                textHeight: 'bi bi-cursor-text',
-                                trash: 'bi bi-trash',
-                                underline: 'bi bi-type-underline',
-                                undo: 'bi bi-arrow-counterclockwise',
-                                unorderedlist: 'bi bi-list-ul',
-                                video: 'bi bi-camera-video-fill'
-                            },
-                            popover: {
-                                air: [
-                                  ['font', ['bold', 'underline', 'clear']],
-                                ],
-                                link: [
-                                    ['link', ['linkDialogShow', 'unlink']]
-                                ],
-                              }
-                        }
-                    );
-                });
-                    
-            </script>
-            ";
-
-        }else{
+        } else {
 
             $MAX_LENGHT = isset($PAGE_TABLE[$name]['sql']['lenght']) ? $PAGE_TABLE[$name]['sql']['lenght'] : 0;
 
