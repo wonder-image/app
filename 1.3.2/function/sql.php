@@ -700,6 +700,13 @@
                         $VALUE = create_number($VALUE, $RULES['format']['decimals']);
                     }
 
+                    if (isset($RULES['format']['json']) && $RULES['format']['json'] === true) {
+
+                        $ARRAY = sanitizeJSON(json_decode($VALUE, true));
+                        $VALUE = json_encode($ARRAY, JSON_PRETTY_PRINT);
+                        
+                    }
+
                 }
 
                 $VALUES[$name] = $VALUE;
