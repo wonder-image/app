@@ -112,6 +112,7 @@
 
 <!-- Default .css - .js -->
 <script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
+<script src="<?=$PATH->appJs?>/global/form/editor.js"></script>
 <script src="<?=$PATH->appJs?>/global/utility.js"></script>
 <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
 
