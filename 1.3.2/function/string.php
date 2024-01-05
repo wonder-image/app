@@ -119,6 +119,7 @@
 
                 if (!empty($value)) {
 
+                    $value = preg_replace('/(<br>)+$/', '', $value);
                     foreach ($CHARACTERS as $k => $c) {
                         
                         $character = $c['character'];

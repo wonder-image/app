@@ -45,11 +45,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.0/dist/delimiter.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/link@2.6.2/dist/link.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0/dist/embed.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@1.0.3/dist/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/attaches@1.3.0/dist/bundle.js"></script>
+<script src="<?=$PATH->lib?>/editorjs/hyperlink.js"></script>
 <script src="<?=$PATH->lib?>/editorjs/gallery.js"></script>
 
 <!-- Bootstrap Datepicker -->
@@ -110,9 +111,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
 
+<script>
+
+    const pathSite = '<?=$PATH->site?>';
+    const pathApp = '<?=$PATH->app?>';
+
+</script>
+
 <!-- Default .css - .js -->
 <script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
-<script src="<?=$PATH->appJs?>/global/form/editor.js"></script>
 <script src="<?=$PATH->appJs?>/global/utility.js"></script>
 <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
 
@@ -120,17 +127,14 @@
 <script src="<?=$PATH->appJs?>/backend/ajax.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/input.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/file.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/textarea.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/set.js"></script>
 <script src="<?=$PATH->appJs?>/backend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/backend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>
 <script src="<?=$PATH->appJs?>/backend/jquery.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/editor.js"></script>
 
 <script>
-
-    const pathSite = '<?=$PATH->site?>';
-    const pathApp = '<?=$PATH->app?>';
 
     var NO_INTERNET_ALERT = null;
     
