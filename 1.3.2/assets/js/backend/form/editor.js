@@ -91,7 +91,7 @@ var EDITORJS_TOOLS_BLOG = {
         config: {
             captionPlaceholder: 'Caption...',
             endpoints: {
-                byFile: pathSite+'/api/task/blog/image.php'
+                byFile: pathSite+'/api/task/article/image.php'
             },
             field: 'image',
             types: 'image/png, image/jpg, image/jpeg'
@@ -103,7 +103,7 @@ var EDITORJS_TOOLS_BLOG = {
         config: {
             captionPlaceholder: 'Caption galleria...',
             endpoints: {
-                byFile: pathSite+'/api/task/blog/image.php'
+                byFile: pathSite+'/api/task/article/image.php'
             },
             field: 'image',
             types: 'image/png, image/jpg, image/jpeg',
@@ -116,7 +116,7 @@ var EDITORJS_TOOLS_BLOG = {
     attaches: {
         class: AttachesTool,
         config: {
-            endpoint: pathSite+'/api/task/blog/file.php',
+            endpoint: pathSite+'/api/task/article/file.php',
             field: 'file',
         }
     },
@@ -126,7 +126,7 @@ var EDITORJS_TOOLS_BLOG = {
     //     config: {
     //         captionPlaceholder: 'Caption...',
     //         endpoints: {
-    //             byFile: pathSite+'/api/task/blog/file.php'
+    //             byFile: pathSite+'/api/task/article/file.php'
     //         },
     //         field: 'file',
     //         types: 'video/quicktime, video/mp4'
