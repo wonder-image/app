@@ -52,6 +52,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/attaches@1.3.0/dist/bundle.js"></script>
 <script src="<?=$PATH->lib?>/editorjs/hyperlink.js"></script>
 <script src="<?=$PATH->lib?>/editorjs/gallery.js"></script>
+<script src="<?=$PATH->lib?>/editorjs/video.js"></script>
 
 <!-- Bootstrap Datepicker -->
 <script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>

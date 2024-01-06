@@ -30,16 +30,7 @@ class CustomEmded extends Embed {
     
 }
 
-class VideoTool extends ImageTool {
-
-    // static get pasteConfig() {
-    //     return {
-    //         tags: ['VIDEO'],
-    //         files: {
-    //             mimeTypes: ['video/*']
-    //         }
-    //     }
-    // }
+class CustomVideoTool extends VideoTool {
     
     static get toolbox() {
         return {
@@ -122,11 +113,15 @@ var EDITORJS_TOOLS_BLOG = {
     },
     // TODO: Aggiungi caricamento video (potrebbe tornare utile la classe ImageTool)
     video: {
-        class: VideoTool,
+        class: CustomVideoTool,
         config: {
             captionPlaceholder: 'Caption...',
             endpoints: {
                 byFile: pathSite+'/api/task/article/file.php'
+            },
+            player: {
+                controls: true,
+                autoplay: false,
             },
             field: 'file',
             types: 'video/quicktime, video/mp4'
@@ -240,7 +235,7 @@ var EDITORJS_i18n_IT = {
                 "Select an Image": "Seleziona immagine",
             },
             "video": {
-                "Select an Image": "Seleziona video",
+                "Select an Video": "Seleziona video",
             },
             "attaches": {
                 "Select file to upload": "Seleziona file da allegare",
