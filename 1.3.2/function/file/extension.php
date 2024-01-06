@@ -63,9 +63,9 @@
         ];
 
         if (isset( $mime_type[$extension] )) {
-        return $mime_type[$extension];
+            return $mime_type[$extension];
         } else {
-        return 'application/octet-stream';
+            return 'application/octet-stream';
         }
 
     }
