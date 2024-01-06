@@ -32,14 +32,14 @@ class CustomEmded extends Embed {
 
 class VideoTool extends ImageTool {
 
-    static get pasteConfig() {
-        return {
-          tags: ['VIDEO'],
-          files: {
-            mimeTypes: ['video/*']
-          }
-        }
-      }
+    // static get pasteConfig() {
+    //     return {
+    //         tags: ['VIDEO'],
+    //         files: {
+    //             mimeTypes: ['video/*']
+    //         }
+    //     }
+    // }
     
     static get toolbox() {
         return {
@@ -121,18 +121,18 @@ var EDITORJS_TOOLS_BLOG = {
         }
     },
     // TODO: Aggiungi caricamento video (potrebbe tornare utile la classe ImageTool)
-    // video: {
-    //     class: VideoTool,
-    //     config: {
-    //         captionPlaceholder: 'Caption...',
-    //         endpoints: {
-    //             byFile: pathSite+'/api/task/article/file.php'
-    //         },
-    //         field: 'file',
-    //         types: 'video/quicktime, video/mp4'
-    //         // Forzo nel css la rimozione "display: none" di withBorder, stretched e withBackground
-    //     }
-    // },
+    video: {
+        class: VideoTool,
+        config: {
+            captionPlaceholder: 'Caption...',
+            endpoints: {
+                byFile: pathSite+'/api/task/article/file.php'
+            },
+            field: 'file',
+            types: 'video/quicktime, video/mp4'
+            // Forzo nel css la rimozione "display: none" di withBorder, stretched e withBackground
+        }
+    },
     // TODO: embed non funziona. Trovare un modo per caricare iframe
     // embed: {
     //     class: CustomEmded,
