@@ -1,6 +1,6 @@
 <?php
 
-    function password($label, $name, $attribute = null, $value = null){
+    function password($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -21,7 +21,7 @@
         
     }
 
-    function email($label, $name, $attribute = null, $value = null){
+    function email($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -42,7 +42,7 @@
 
     }
 
-    function text($label, $name, $attribute = null, $value = null){
+    function text($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -62,7 +62,7 @@
 
     }
 
-    function textGenerator($label, $name, $attribute = null, $value = null){
+    function textGenerator($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -85,7 +85,7 @@
 
     }
 
-    function textDate($label, $name, $attribute = null, $value = null){
+    function textDate($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -105,7 +105,7 @@
 
     }
 
-    function textDatetime($label, $name, $attribute = null, $value = null){
+    function textDatetime($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -125,7 +125,7 @@
 
     }
     
-    function dateInput($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null){
+    function dateInput($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -188,7 +188,7 @@
 
     }
 
-    function color($label, $name, $attribute = null, $value = null){
+    function color($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -211,7 +211,7 @@
 
     }
 
-    function number($label, $name, $attribute = null, $value = null){
+    function number($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -231,7 +231,7 @@
 
     }
 
-    function price($label, $name, $attribute = null, $value = null){
+    function price($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -251,7 +251,7 @@
 
     }
 
-    function percentige($label, $name, $attribute = null, $value = null){
+    function percentige($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -271,7 +271,7 @@
 
     }
 
-    function url($label, $name, $attribute = null, $value = null){
+    function url($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
 
@@ -292,7 +292,7 @@
 
     }
 
-    function textarea($label, $name, $attribute = null, $version = null, $value = null){
+    function textarea($label, $name, $attribute = null, $version = null, $value = null) {
 
         global $VALUES;
         global $PAGE_TABLE;
@@ -386,7 +386,7 @@
 
     }   
 
-    function check($label, $name, $option, $attribute = null, $type = 'checkbox', $searchBar = false, $value = null){
+    function check($label, $name, $option, $attribute = null, $type = 'checkbox', $searchBar = false, $value = null) {
 
         global $VALUES;
 
@@ -462,7 +462,7 @@
 
     } 
 
-    function dynamicCheck($label, $name, $url, $attribute = null, $type = 'checkbox', $value = null){
+    function dynamicCheck($label, $name, $url, $attribute = null, $type = 'checkbox', $value = null) {
 
         global $VALUES;
 
@@ -511,7 +511,7 @@
 
     } 
 
-    function inputFile($label, $name, $file = 'image', $attribute = null, $value = null){
+    function inputFile($label, $name, $file = 'image', $attribute = null, $value = null) {
 
         global $PATH;
         global $NAME;
@@ -671,7 +671,7 @@
 
     }
 
-    function submit($label = 'Salva', $name = 'upload', $class = null){
+    function submit($label = 'Salva', $name = 'upload', $class = null) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 

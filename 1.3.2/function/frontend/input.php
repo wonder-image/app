@@ -1,6 +1,6 @@
 <?php
 
-    function text($label, $name, $value = null, $attribute = '', $error = false){
+    function text($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -26,7 +26,7 @@
 
     }
 
-    function number($label, $name, $value = null, $attribute = '', $error = false){
+    function number($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -51,7 +51,7 @@
 
     }
 
-    function phone($label, $name, $value = null, $attribute = '', $error = false){
+    function phone($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -76,7 +76,7 @@
 
     }
 
-    function price($label, $name, $value = null, $attribute = '', $error = false){
+    function price($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -101,7 +101,7 @@
 
     }
 
-    function percentige($label, $name, $value = null, $attribute = '', $error = false){
+    function percentige($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -126,7 +126,7 @@
 
     }
 
-    function email($label, $name, $value = null, $attribute = '', $error = false){
+    function email($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -151,7 +151,7 @@
 
     }
 
-    function textarea($label, $name, $value = null, $attribute = '', $error = false){
+    function textarea($label, $name, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -204,7 +204,7 @@
         
     }
 
-    function selectDate($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function selectDate($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -326,7 +326,7 @@
 
     }
 
-    function dateRange($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function dateRange($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false) {
 
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
@@ -347,7 +347,7 @@
             $checkMin = 'false';
             $dateMin = '';
             $min = '';
-        }else{
+        } else {
             $checkMin = 'true';
             $min = "minDate: '$dateMin',";
         }
@@ -356,7 +356,7 @@
             $checkMax = 'false';
             $dateMax = '';
             $max = '';
-        }else{
+        } else {
             $checkMax = 'true';
             $max = "maxDate: '$dateMax',";
         }
@@ -464,12 +464,11 @@
                 $setUpDate
 
             });
-        </script>
-        ";
+        </script>";
 
     }
 
-    function dateTimeRange($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false){
+    function dateTimeRange($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false) {
 
         $idFrom = strtolower(code(10, 'letters', 'input_'));
         $idTo = strtolower(code(10, 'letters', 'input_'));
@@ -792,8 +791,7 @@
                 $optionHTML
             </select>
             $alert
-        </div>
-        ";
+        </div>";
 
     }
 
