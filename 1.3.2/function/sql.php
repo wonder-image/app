@@ -429,6 +429,17 @@
 
     }
 
+    function sqlTruncate($table) {
+        
+        global $mysqli;
+
+        $sql = "TRUNCATE TABLE `$table`";
+        $result = $mysqli->query($sql);
+
+        return $result;
+
+    }
+
     function sqlCount($table, $query = null, $column = '*', $distinct = false) {
 
         $DISTINCT = $distinct ? "DISTINCT " : "";
