@@ -420,7 +420,6 @@
         }
 
         $checkHTML = "";
-        $dataFilter = "";
         $inputHidden = "";
         
         $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
@@ -431,6 +430,8 @@
         }
 
         if (is_array($option)) {
+
+            $dataFilter = "";
 
             foreach ($option as $nm => $vl) {
     
