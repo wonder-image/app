@@ -106,7 +106,7 @@
         
     }      
 
-    function sanitizeArray($array) {
+    function sanitizeJSON($array) {
 
         global $CHARACTERS;
 
@@ -114,7 +114,7 @@
 
         foreach ($array as $key => $value) {
             if (is_array($value)) {
-                $newArray[$key] = sanitizeArray($value);
+                $newArray[$key] = sanitizeJSON($value);
             } else {
 
                 if (!empty($value)) {
