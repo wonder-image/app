@@ -137,6 +137,7 @@ function setDynamicSearch(element) {
 function createCheckbox(array, element, container, checked = false) {
 
     var name = element.dataset.wiName;
+    var attribute = element.dataset.wiAttribute;
 
     if (element.dataset.wiSearchRadio != undefined) {
         var type = "radio";
@@ -168,13 +169,13 @@ function createCheckbox(array, element, container, checked = false) {
     
             var idCode = code();
             var HTML = "";
-            var att = "";
+            var att = attribute;
     
             var value = response[index]['value'];
             var label = response[index]['label'];
             var inputValue = response[index]['input-value'];
     
-            if (checked) { var att = "checked"; }
+            if (checked) { var att = " checked"; }
     
             if (HTML_CHECKED.search('value="'+value+'"') == '-1') {
     

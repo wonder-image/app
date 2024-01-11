@@ -349,13 +349,24 @@
         
         foreach ($option as $vl => $nm) {
 
+            $dataFilter = "";
+
+            if (is_array($nm)) {
+    
+                $filter = isset($nm['filter']) ? $nm['filter'] : [];
+                $nm = $nm['name'];
+
+                foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
+
+            }
+
             if ($value != null) {
                 $att = ($vl == $value) ? "selected" : "";
             } else {
                 $att = ($i == 1) ? "selected" : "";
             }
 
-            $optionHTML .= "<option value='$vl' $att >$nm</option>";
+            $optionHTML .= "<option value='$vl' $att $dataFilter>$nm</option>";
 
             $i++;
             
@@ -484,7 +495,6 @@
             
         }
         
-        $checkHTML = "";
         $inputHidden = "";
         
         if ($type == 'checkbox') {
@@ -499,9 +509,8 @@
             <h6>$label</h6>
             $inputHidden
             <div class='card border mt-1'>
-                <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$type='true' data-wi-search-url='$url'>
+                <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$type='true' data-wi-search-url='$url' data-wi-attribute='$attribute'>
                 <div class='card-body overflow-scroll p-2' style='height: 120px;'>
-                    $checkHTML
                 </div>
                 <div class='card-footer border-top text-body-secondary'>
                     Cerca risultati
