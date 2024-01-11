@@ -175,7 +175,7 @@ function createCheckbox(array, element, container, checked = false) {
             var label = response[index]['label'];
             var inputValue = response[index]['input-value'];
     
-            if (checked) { var att = " checked"; }
+            if (checked) { var att = attribute+" checked"; }
     
             if (HTML_CHECKED.search('value="'+value+'"') == '-1') {
     
