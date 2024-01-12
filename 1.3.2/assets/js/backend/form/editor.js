@@ -76,7 +76,7 @@ var EDITORJS_TOOLS_BLOG = {
         class: Table,
         inlineToolbar: ['link', 'italic', 'bold'],
     },
-    code: CodeTool,
+    // code: CodeTool,
     image: {
         class: ImageTool,
         config: {
@@ -103,7 +103,6 @@ var EDITORJS_TOOLS_BLOG = {
     },
     Marker: Marker,
     inlineCode: InlineCode,
-    // TODO: Aggiungi caricamento file
     attaches: {
         class: AttachesTool,
         config: {
@@ -112,22 +111,22 @@ var EDITORJS_TOOLS_BLOG = {
         }
     },
     // TODO: Aggiungi caricamento video (potrebbe tornare utile la classe ImageTool)
-    video: {
-        class: CustomVideoTool,
-        config: {
-            captionPlaceholder: 'Caption...',
-            endpoints: {
-                byFile: pathSite+'/api/task/article/file.php'
-            },
-            player: {
-                controls: true,
-                autoplay: false,
-            },
-            field: 'file',
-            types: 'video/quicktime, video/mp4'
-            // Forzo nel css la rimozione "display: none" di withBorder, stretched e withBackground
-        }
-    },
+    // video: {
+    //     class: CustomVideoTool,
+    //     config: {
+    //         captionPlaceholder: 'Caption...',
+    //         endpoints: {
+    //             byFile: pathSite+'/api/task/article/file.php'
+    //         },
+    //         player: {
+    //             controls: true,
+    //             autoplay: false,
+    //         },
+    //         field: 'file',
+    //         types: 'video/quicktime, video/mp4'
+    //         // Forzo nel css la rimozione "display: none" di withBorder, stretched e withBackground
+    //     }
+    // },
     // TODO: embed non funziona. Trovare un modo per caricare iframe
     // embed: {
     //     class: CustomEmded,
