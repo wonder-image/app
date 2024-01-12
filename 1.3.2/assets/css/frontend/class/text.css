@@ -9,6 +9,13 @@ color: currentColor;
 
 a { cursor: pointer; }
 
+code {
+background: var(--secondary-color-40);
+color: var(--secondary-color-100);
+padding: 4px;
+border-radius: var(--button-border-radius);
+}
+
 .title-big {
 width: 100%;
 font-size: var(--title-big-font-size) !important;
