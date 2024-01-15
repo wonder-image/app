@@ -337,8 +337,8 @@
 
                                             if ($format == 'image') {
                                                 $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-cover' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
-                                            } else {
-                                                $VALUE = $VALUE;
+                                            } else if ($format == 'date') {
+                                                $VALUE = date('d/m/Y', strtotime($VALUE));
                                             }
 
                                         }
