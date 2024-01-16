@@ -710,6 +710,8 @@
 
         $dir = $PATH->upload.'/'.$NAME->folder;
         $dir .= isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
+
+        if (is_array($value)) { $value = ""; }
         
         return "
         <div id='container-$id' class='w-100'>

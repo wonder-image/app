@@ -10,6 +10,7 @@
     require_once "set-up.php";
     
     if (!empty($_GET['modify'])) {
+
         $TITLE = "Modifica $TEXT->titleS";
 
         $SQL = sqlSelect($NAME->table, ['id' => $_GET['modify']], 1);
@@ -37,7 +38,8 @@
             $MODIFY_ID = null;
         }
 
-        $UPLOAD = user($_POST, $MODIFY_ID); 
+        $POST = array_merge($_POST, $_FILES);
+        $UPLOAD = user($POST, $MODIFY_ID); 
         $VALUES = $UPLOAD->values;
 
         if (empty($ALERT)) {
@@ -155,7 +157,7 @@
                     
                     <wi-card>
                         <div class="col-12">
-                            <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'image', null)?>
+                            <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'png', null)?>
                         </div>
                     </wi-card>
 

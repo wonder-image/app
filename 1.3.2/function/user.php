@@ -31,12 +31,16 @@
     function user($POST, $MODIFY_ID = null) {
 
         global $ALERT;
+        global $PATH;
+        global $TABLE;
 
         $RETURN = (object) array();
         $UPLOAD = [];
+        
+        $PROTECTED_COLUMNS = ['name', 'surname', 'email', 'username', 'password', 'profile_picture', 'color', 'area', 'authority' ];
 
         foreach ($POST as $column => $value) {
-            if (sqlColumnExists('user', $column)) {
+            if (sqlColumnExists('user', $column) && !in_array($column,$PROTECTED_COLUMNS)) {
                 $UPLOAD[$column] = $value;
             }
         }
@@ -53,6 +57,11 @@
         if (isset($POST['username'])) { 
             $UPLOAD['username'] = sanitize(strtolower($POST['username']));
             if (!unique($POST['username'], 'user', 'username', $MODIFY_ID)) { $ALERT = 907; } 
+        }
+
+        if (isset($POST['profile_picture'])) { 
+            $RULES = isset($TABLE->USER['profile_picture']['input']['format']) ? $TABLE->USER['profile_picture']['input']['format'] : [];
+            $UPLOAD['profile_picture'] = uploadFiles($POST['profile_picture'], $RULES, $PATH->rUpload.'/user', []);
         }
 
         if ($MODIFY_ID == null) {

@@ -2,6 +2,8 @@
 
     function uploadFiles($FILES, $FORMAT, $PATH_DIR, $OLD_FILE = []) {
 
+        global $ALERT;
+        
         $MAX_FILE = isset($FORMAT['max_file']) ? $FORMAT['max_file'] : 1;
         $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1000000 : 2000000;
         $EXTENSIONS = $FORMAT['extensions'];

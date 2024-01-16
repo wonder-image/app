@@ -14,6 +14,7 @@
 <script src="https://unpkg.com/filepond@4.30.6/dist/filepond.js"></script>
 
 <!-- Default => .js -->
+<script src="<?=$PATH->appJs?>/backend/form/filepond.js"></script>
 <script src="<?=$PATH->appJs?>/backend/pageSetUp.js"></script>
 
 <!-- Custom => (.css, .js) -->

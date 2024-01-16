@@ -39,8 +39,23 @@
                     "extensions" => ['png'],
                     "max_size" => 1,
                     "max_file" => 1,
-                    "dir" => '../user/profile-picture/',
-                    "reset" => true
+                    "dir" => '/profile-picture/',
+                    "reset" => true,
+                    "resize" => [
+                        [
+                            "width" => 960,
+                            "height" => 960
+                        ],[
+                            "width" => 480,
+                            "height" => 480
+                        ],[
+                            "width" => 240,
+                            "height" => 240
+                        ],[
+                            "width" => 120,
+                            "height" => 120
+                        ]
+                    ]
                 ]
             ]
         ],
