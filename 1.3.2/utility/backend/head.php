@@ -14,7 +14,7 @@
 
 <link rel="shortcut icon" href="<?=$DEFAULT->BeFavicon?>" type="image/x-icon">
 
-<!-- Bootstrap CSS -->
+<!-- Bootstrap => .css -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 
 <!-- Bootstrap Icons -->
@@ -27,7 +27,7 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
 
-<!-- Summernote css/js -->
+<!-- Summernote -->
 <link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
 <script src="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.js"></script>
 <script src="<?=$PATH->lib?>/summernote/0.8.18/lang/summernote-it-IT.min.js"></script>
@@ -53,6 +53,11 @@
 <script src="<?=$PATH->lib?>/editorjs/hyperlink.js"></script>
 <script src="<?=$PATH->lib?>/editorjs/gallery.js"></script>
 <script src="<?=$PATH->lib?>/editorjs/video.js"></script>
+
+<!-- FilePond => .css -->
+<link href="https://unpkg.com/filepond@4.30.6/dist/filepond.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/filepond-plugin-image-preview@4.6.12/dist/filepond-plugin-image-preview.css">
+<link rel="stylesheet" href="https://unpkg.com/filepond-plugin-image-edit@1.6.3/dist/filepond-plugin-image-edit.css">
 
 <!-- Bootstrap Datepicker -->
 <script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
@@ -119,7 +124,7 @@
 
 </script>
 
-<!-- Default .css - .js -->
+<!-- Default => .js -->
 <script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
 <script src="<?=$PATH->appJs?>/global/utility.js"></script>
 <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
@@ -154,13 +159,13 @@
 
 </script>
 
-<!-- Input Row -->
 <script src="<?=$PATH->appJs?>/backend/form/inputRow.js"></script>
 
+<!-- Default => .css -->
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/header.css">
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/input.css">
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/list.css">
 <link rel="stylesheet" href="<?=$PATH->appCss?>/backend/order.css">
 
-<!-- Custom .css - .js  -->
+<!-- Custom => (.css, .js) -->
 <?php include $ROOT.'/custom/utility/backend/head.php';?>

@@ -240,3 +240,7 @@ background: var(--bs-danger);
 .wi-blog .image-gallery__tune[data-tune="slider"] {
 display: none;
 }
+
+/* FilePond */
+.filepond { margin: 0; }
+.filepond .filepond--credits { display: none; }
