@@ -157,7 +157,7 @@
                     
                     <wi-card>
                         <div class="col-12">
-                            <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'png', null)?>
+                            <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'image')?>
                         </div>
                     </wi-card>
 

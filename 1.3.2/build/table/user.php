@@ -36,7 +36,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
-                    "extensions" => ['png'],
+                    "extensions" => ['png', 'jpg', 'jpeg'],
                     "max_size" => 1,
                     "max_file" => 1,
                     "dir" => '/profile-picture/',
