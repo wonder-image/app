@@ -309,7 +309,7 @@
             return "
             <div class='form-floating'>
                 <h6 class='mb-1'>$label</h6>
-                <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true'data-wi-textarea='$version' $attribute>$value</textarea>
+                <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true' data-wi-textarea='$version' $attribute>$value</textarea>
             </div>";
 
         } else {
@@ -537,7 +537,7 @@
         $PAGE_TABLE = $TABLE->$TABLE_NAME;
 
         $TB = $PAGE_TABLE[$name]['input'];
-        $maxFile = $TB['format']['max_file'];
+        $maxFile = isset($TB['format']['max_file']) ? $TB['format']['max_file'] : 1;
 
         if ($file == "image") {
             $ACCEPT = "image/png, image/jpeg";
@@ -663,6 +663,60 @@
                 </small>
             </div>
             $OLD_FILES
+        </div>";
+
+    }
+
+    function inputFileDragDrop($label, $name, $type = 'classic', $file = 'image', $attribute = null, $value = null) {
+
+        global $PATH;
+        global $NAME;
+        global $TABLE;
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        $TABLE_NAME = strtoupper($NAME->table);
+        $PAGE_TABLE = $TABLE->$TABLE_NAME;
+
+        $TB = $PAGE_TABLE[$name]['input'];
+        $maxFile = isset($TB['format']['max_file']) ? $TB['format']['max_file'] : 1;
+        $maxSize = isset($TB['format']['max_size']) ? $TB['format']['max_size'] : 1;
+
+        if ($file == "image") {
+            $ACCEPT = "image/png, image/jpeg";
+        } elseif ($file == "pdf") {
+            $ACCEPT = "application/pdf";
+        } elseif ($file == "png") {
+            $ACCEPT = "image/png";
+        } elseif ($file == "ico") {
+            $ACCEPT = "image/ico";
+        } elseif ($file == "video") {
+            $ACCEPT = "video/mp4";
+        } elseif ($file == "jpg") {
+            $ACCEPT = "image/jpeg";
+        } elseif ($file == "font") {
+            $ACCEPT = "font/ttf";
+        } else {
+            $ACCEPT = "";
+        }
+
+        $x = $name.'[]';
+
+        $multiple = ($maxFile > 1) ? "multiple" : "";
+
+        $dir = $PATH->upload.'/'.$NAME->folder;
+        $dir .= isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
+        
+        return "
+        <div id='container-$id' class='w-100'>
+            <h6>$label</h6>
+            <div class='w-100 mt-1'>
+                <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-check='true' $multiple $attribute>
+            </div>
         </div>";
 
     }

@@ -106,6 +106,7 @@ async function setUpPage() {
     await createCard();
 
     setTextarea();
+    setUploader();
     
     if (document.getElementById('page-loading')) { document.getElementById('page-loading').classList.add('d-none') }
     

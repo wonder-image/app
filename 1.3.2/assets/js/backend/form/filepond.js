@@ -1,0 +1,10 @@
+FilePond.registerPlugin(
+    FilePondPluginFileValidateType,
+    FilePondPluginImageExifOrientation,
+    FilePondPluginImagePreview,
+    FilePondPluginImageCrop,
+    FilePondPluginImageResize,
+    FilePondPluginImageTransform,
+    FilePondPluginImageEdit,
+    FilePondPluginFileMetadata 
+);

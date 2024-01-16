@@ -13,6 +13,57 @@ function setSearchInput() {
     
 }
 
+function setUploader() {
+
+    document.querySelectorAll("[data-wi-uploader]").forEach(uploader => {
+
+        var type = uploader.dataset.wiUploader;
+        var dir = uploader.dataset.wiDir;
+        var value = uploader.dataset.wiValue;
+
+        var files = [];
+        
+        if (value != "") {
+
+            var value = JSON.parse(value);
+            
+            value.forEach(file => {
+                
+                var source = {
+                    source: dir+file
+                };
+
+                files.push(source);
+
+            });
+
+        }
+
+        if (type == 'classic') {
+
+            FilePond.create(uploader, {
+                storeAsFile: true,
+                labelIdle: `Trascina la tua immagine o <span class="filepond--label-action">Cerca</span>`
+            });
+            
+        } else if (type == 'profile') {
+
+            FilePond.create(uploader, {
+                storeAsFile: true,
+                labelIdle: `Trascina la tua immagine o <span class="filepond--label-action">Cerca</span>`,
+                imageCropAspectRatio: '1:1',
+                stylePanelLayout: 'compact circle',
+                styleLoadIndicatorPosition: 'center bottom',
+                styleButtonRemoveItemPosition: 'center bottom',
+                files: files
+            });
+            
+        }
+
+    });
+
+}
+
 function setTextarea() {
 
     document.querySelectorAll("[data-wi-textarea]").forEach(textarea => {
