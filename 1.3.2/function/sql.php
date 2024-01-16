@@ -541,101 +541,13 @@
                     
                     if (isset($RULES['format']['file']) && $RULES['format']['file'] === true && count($VALUE['name']) > 0) {
 
-                        $MAX_FILE = isset($RULES['format']['max_file']) ? $RULES['format']['max_file'] : 1;
-                        $MAX_SIZE = isset($RULES['format']['max_size']) ? $RULES['format']['max_size'] * 1000000 : 2000000;
-                        $EXTENSIONS = $RULES['format']['extensions'];
-                        $DIR = isset($RULES['format']['dir']) ? $RULES['format']['dir'] : '/';
-                        $RESIZE = isset($RULES['format']['resize']) ? $RULES['format']['resize'] : '';
-
                         if (isset($OLD_VALUE)) {
                             $ARRAY_VALUES = json_decode($OLD_VALUE, true);
                         } else {
                             $ARRAY_VALUES = [];
                         }
 
-                        $N_OLD_FILE = count($ARRAY_VALUES);
-                        $N_NEW_FILE = count($VALUE['name']);
-                        $N_FILE = $N_NEW_FILE + $N_OLD_FILE;
-
-                        if ($N_FILE <= $MAX_FILE) {
-                            
-                            for ($i=0; $i < $N_NEW_FILE; $i++) { 
-
-                                $TEMPORARY = $VALUE['tmp_name'][$i];
-
-                                if (!empty($TEMPORARY)) {
-
-                                    $FILE_NAME = strtolower($VALUE['name'][$i]);
-                                    $EXTENSION = pathinfo($FILE_NAME, PATHINFO_EXTENSION);
-                                    $SIZE = $VALUE['size'][$i];
-
-                                    if (!in_array($EXTENSION, $EXTENSIONS)) { $ALERT = 921; }
-                                    if (empty($ALERT) && $SIZE >= $MAX_SIZE) { $ALERT = 922; }
-
-                                    if (empty($ALERT)) {
-
-                                        if (substr($DIR, -1) != '/') {
-                                            
-                                            $NEW_NAME = explode('/', $DIR);
-                                            $lastKey = array_key_last($NEW_NAME);
-
-                                            $PATH_UPLOAD = $PATH->rUpload.'/'.$NAME->folder.str_replace($NEW_NAME,'', $DIR);
-                                            $NEW_NAME = $NEW_NAME[$lastKey];
-
-                                        } else {
-
-                                            $NEW_NAME = code(10, 'all');
-                                            $PATH_UPLOAD = $PATH->rUpload.'/'.$NAME->folder.$DIR;
-
-                                        }
-
-                                        $NEW_PATH = $PATH_UPLOAD.$NEW_NAME.'.'.$EXTENSION;
-                                        
-                                        if (move_uploaded_file($TEMPORARY, $NEW_PATH)) {
-
-                                            $ARRAY_VALUES[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
-
-                                            if (!empty($RESIZE)) {
-                                                if (isset($RESIZE[0]) && is_array($RESIZE[0])) {
-                                                    foreach ($RESIZE as $k => $v) {
-
-                                                        $WIDTH = $v['width'];
-                                                        $HEIGHT = $v['height'];
-                                                        
-                                                        resizeImage($NEW_PATH, $v['width'], $v['height'], $PATH_UPLOAD, $WIDTH.'x'.$HEIGHT.'-'.$NEW_NAME);
-
-                                                    }
-                                                } else {
-
-                                                    $WIDTH = $RESIZE['width'];
-                                                    $HEIGHT = $RESIZE['height'];
-
-                                                    resizeImage($NEW_PATH, $RESIZE['width'], $HEIGHT, $PATH_UPLOAD, $WIDTH.'x'.$HEIGHT.'-'.$NEW_NAME);
-
-                                                }
-                                            }
-
-                                        } else {
-
-                                            $ALERT = 920;
-                                            
-                                        }
-                                    
-                                    }
-
-                                }
-
-                                $N_OLD_FILE++;
-
-                            }
-                            
-                        } else {
-
-                            $ALERT = 923;
-
-                        }
-
-                        $VALUE = json_encode($ARRAY_VALUES);
+                        $VALUE = uploadFiles($VALUE, $RULES['format'], $PATH->rUpload.'/'.$NAME->folder, $ARRAY_VALUES);
                     
                     } else {
 
