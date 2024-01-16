@@ -31,6 +31,20 @@
                 ]
             ]
         ],
+        "profile_picture" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 1,
+                    "max_file" => 1,
+                    "dir" => '../user/profile-picture/',
+                    "reset" => true
+                ]
+            ]
+        ],
+        "color" => [],
         "password" => [],
         "authority" => [],
         "area" => [],

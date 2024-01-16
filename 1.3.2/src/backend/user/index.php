@@ -150,46 +150,58 @@
                 </div>
             </div>
 
-            <wi-card class="col-3">
-                <div class="col-12">
-                    <?php
+            <div class="col-3">
+                <div class="row g-3">
+                    
+                    <wi-card>
+                        <div class="col-12">
+                            <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'image', null)?>
+                        </div>
+                    </wi-card>
 
-                        $A = [];
-                        $authority = null;
+                    <wi-card>
+                        <div class="col-12">
+                            <?php
 
-                        foreach (permissionsBackend() as $key => $value) {
-                            if (count(array_intersect(permissions($key)->creator, $USER->authority)) >= 1) {
-                                $A[$key] = $value;
-                                if (isset($VALUES['authority'])) { 
-                                    if (is_array(json_decode($VALUES['authority'], true)) && in_array($key, json_decode($VALUES['authority'], true))) {
-                                        $authority = $key; 
-                                    } elseif ($key == $VALUES['authority']) {
-                                        $authority = $key; 
+                                $A = [];
+                                $authority = null;
+
+                                foreach (permissionsBackend() as $key => $value) {
+                                    if (count(array_intersect(permissions($key)->creator, $USER->authority)) >= 1) {
+                                        $A[$key] = $value;
+                                        if (isset($VALUES['authority'])) { 
+                                            if (is_array(json_decode($VALUES['authority'], true)) && in_array($key, json_decode($VALUES['authority'], true))) {
+                                                $authority = $key; 
+                                            } elseif ($key == $VALUES['authority']) {
+                                                $authority = $key; 
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
 
-                        echo select('Autorizzazione', 'authority', $A, 'old', 'required', $authority);
-                        
-                    ?>
+                                echo select('Autorizzazione', 'authority', $A, 'old', 'required', $authority);
+                                
+                            ?>
+                        </div>
+                        <div class="col-12">
+                            <?php
+
+                                $checkbox = [
+                                    'true' => "Abilitato",
+                                    'false' => "Disabilitato",
+                                ];
+
+                                echo select('Stato', 'active', $checkbox, 'old', 'required');
+
+                            ?>
+                        </div>
+                        <div class="col-12"> 
+                            <?=submitAdd()?>
+                        </div>
+                    </wi-card>
+
                 </div>
-                <div class="col-12">
-                    <?php
-
-                        $checkbox = [
-                            'true' => "Abilitato",
-                            'false' => "Disabilitato",
-                        ];
-
-                        echo select('Stato', 'active', $checkbox, 'old', 'required');
-
-                    ?>
-                </div>
-                <div class="col-12"> 
-                    <?=submitAdd()?>
-                </div>
-            </wi-card>
+            </div>
         
         </div>
     </form>
