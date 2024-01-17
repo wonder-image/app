@@ -675,6 +675,7 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        $class = "w-100";
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
@@ -712,11 +713,16 @@
         $dir .= isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
 
         if (is_array($value)) { $value = ""; }
+
+        if (!empty($label)) {
+            $label = "<h6>$label</h6>";
+            $class .= " mt-1";
+        }
         
         return "
         <div id='container-$id' class='w-100'>
-            <h6>$label</h6>
-            <div class='w-100 mt-1'>
+            $label
+            <div class='$class'>
                 <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-check='true' $multiple $attribute>
             </div>
         </div>";

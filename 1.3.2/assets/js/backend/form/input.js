@@ -65,7 +65,7 @@ function generateCode(selector) {
 function disableInput(type) {
 
     if (type == 'user') {
-        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], select[name=active]');
+        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], input[name=profile_picture], select[name=color], select[name=active]');
     }
 
     inputArray.forEach(element => {
@@ -74,7 +74,7 @@ function disableInput(type) {
         element.dataset.wiOldValue = element.value;
         element.dataset.wiOldRequired = element.required;
         
-        element.value  = null;
+        element.value = '';
         element.required = false;
 
     }); 
@@ -84,14 +84,30 @@ function disableInput(type) {
 function enabledInput(type) {
 
     if (type == 'user') {
-        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], select[name=active]'); 
+        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], input[name=profile_picture], select[name=color], select[name=active]');
     }
 
     inputArray.forEach(element => {
 
+        if (element.dataset.wiOldValue) {
+            var wiOldValue = element.dataset.wiOldValue;
+        } else {
+            if (element.name == 'active') {
+                var wiOldValue = "true";
+            } else {
+                var wiOldValue = "";
+            }
+        }
+        
+        if (element.dataset.wiOldRequired) {
+            var wiOldRequired = element.dataset.wiOldRequired;
+        } else {
+            var wiOldRequired = "";
+        }
+        
         element.disabled = false;
-        element.value = element.dataset.wiOldValue;
-        element.required = element.dataset.wiOldRequired;
+        element.value = wiOldValue;
+        element.required = wiOldRequired;
 
     }); 
     

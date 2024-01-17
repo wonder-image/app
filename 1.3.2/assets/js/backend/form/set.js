@@ -17,6 +17,7 @@ function setUploader() {
 
     document.querySelectorAll("[data-wi-uploader]").forEach(uploader => {
 
+        var id = uploader.id;
         var type = uploader.dataset.wiUploader;
         var dir = uploader.dataset.wiDir;
         var value = uploader.dataset.wiValue;
@@ -43,7 +44,9 @@ function setUploader() {
 
             FilePond.create(uploader, {
                 storeAsFile: true,
-                labelIdle: `Trascina la tua immagine o <span class="filepond--label-action">Cerca</span>`
+                labelIdle: `Trascina la tua immagine o <span class="filepond--label-action">Cerca</span>`,
+                onaddfile: () => { check(); },
+                onremovefile: () => { check(); }
             });
             
         } else if (type == 'profile') {
@@ -55,7 +58,9 @@ function setUploader() {
                 stylePanelLayout: 'compact circle',
                 styleLoadIndicatorPosition: 'center bottom',
                 styleButtonRemoveItemPosition: 'center bottom',
-                files: files
+                files: files,
+                onaddfile: () => { check(); },
+                onremovefile: () => { check(); }
             });
             
         }

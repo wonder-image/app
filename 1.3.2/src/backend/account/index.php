@@ -11,6 +11,10 @@
     $INFO_PAGE->title = "Account";
     $INFO_PAGE->table = "user";
 
+    $NAME = (object) array();
+    $NAME->table = "user";
+    $NAME->folder = "user";
+
     $SQL = sqlSelect($INFO_PAGE->table, ['id' => $USER->id], 1);
     $VALUES = $SQL->row;
 
@@ -20,7 +24,8 @@
 
         if (checkPassword($password, $VALUES['password'])) {
             
-            $UPLOAD = user($_POST, $USER->id);
+            $POST = array_merge($_POST, $_FILES);
+            $UPLOAD = user($POST, $USER->id);
             $VALUES = $UPLOAD->values; 
             if (empty($ALERT)) { $ALERT = 604; }
 
@@ -42,7 +47,7 @@
             sqlModify($INFO_PAGE->table, ['password' => $newPassword], 'id', $USER->id);
             if (empty($ALERT)) { $ALERT = 603; }
 
-        }else{
+        } else {
 
             $ALERT = 905;
                 
@@ -78,20 +83,49 @@
                 <div class="col-12">
                     <h6>Modifica dati</h6>
                 </div>
-                <div class="col-4">
-                    <?=text('Nome', 'name', 'required'); ?>
+                <div class="col-3">
+                    <div class="row g-3">
+
+                        <div class="col-12">
+                            <?=inputFileDragDrop('', 'profile_picture', 'profile', 'image')?>
+                        </div>
+                        
+                        <div class="col-12">
+                            <?php
+
+                                $option = [ '' => '--' ];
+
+                                foreach ($DEFAULT->colorUser as $key => $color) {
+                                    if ($color['active']) {
+                                        $option[$key] = $color['name'];
+                                    }
+                                }
+
+                                echo select('Colore', 'color', $option);
+
+                            ?>
+                        </div>
+
+                    </div>
                 </div>
-                <div class="col-4">
-                    <?=text('Cognome', 'surname', 'required'); ?>
-                </div>
-                <div class="col-6">
-                    <?=text('Username', 'username', 'required'); ?>
-                </div>
-                <div class="col-6">
-                    <?=email('Email', 'email', 'required'); ?>
-                </div>
-                <div class="col-6">
-                    <?=password('Password', 'password', 'required', ''); ?>
+                <div class="col-9">
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <?=text('Nome', 'name', 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=text('Cognome', 'surname', 'required'); ?>
+                        </div>
+                        <div class="col-6">
+                            <?=text('Username', 'username', 'required'); ?>
+                        </div>
+                        <div class="col-6">
+                            <?=email('Email', 'email', 'required'); ?>
+                        </div>
+                        <div class="col-6">
+                            <?=password('Password', 'password', 'required', ''); ?>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-12">
                     <?=submit('Modifica dati', 'modify'); ?>
