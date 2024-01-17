@@ -106,7 +106,7 @@
                         <div class="col-4">
                             <?php
 
-                                $option = [ '' => '--' ];
+                                $option = [];
 
                                 foreach ($DEFAULT->colorUser as $key => $color) {
                                     if ($color['active']) {

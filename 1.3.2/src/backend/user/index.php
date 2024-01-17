@@ -135,17 +135,46 @@
                     <?php } ?>
                     
                     <wi-card class="col-12">
-                        <div class="col-4">
-                            <?=text('Nome', 'name', 'required'); ?>
+
+                        <div class="col-3">
+                            <div class="row g-3">
+
+                                <div class="col-12">
+                                    <?=inputFileDragDrop('', 'profile_picture', 'profile', 'image')?>
+                                </div>
+
+                            </div>
                         </div>
-                        <div class="col-4">
-                            <?=text('Cognome', 'surname', 'required'); ?>
-                        </div>
-                        <div class="col-6">
-                            <?=text('Username', 'username', 'required'); ?>
-                        </div>
-                        <div class="col-6">
-                            <?=email('Email', 'email', 'required'); ?>
+                        <div class="col-9">
+                            <div class="row g-3">
+                                <div class="col-5">
+                                    <?=text('Nome', 'name', 'required'); ?>
+                                </div>
+                                <div class="col-5">
+                                    <?=text('Cognome', 'surname', 'required'); ?>
+                                </div>
+                                <div class="col-8">
+                                    <?=text('Username', 'username', 'required'); ?>
+                                </div>
+                                <div class="col-4">
+                                    <?php
+
+                                        $option = [];
+
+                                        foreach ($DEFAULT->colorUser as $key => $color) {
+                                            if ($color['active']) {
+                                                $option[$key] = $color['name'];
+                                            }
+                                        }
+
+                                        echo select('Colore', 'color', $option);
+
+                                    ?>
+                                </div>
+                                <div class="col-12">
+                                    <?=email('Email', 'email', 'required'); ?>
+                                </div>
+                            </div>
                         </div>
                     </wi-card>
 
@@ -154,27 +183,6 @@
 
             <div class="col-3">
                 <div class="row g-3">
-                    
-                    <wi-card>
-                        <div class="col-12">
-                            <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'image')?>
-                        </div>
-                        <div class="col-12">
-                            <?php
-
-                                $option = [ '' => '--' ];
-
-                                foreach ($DEFAULT->colorUser as $key => $color) {
-                                    if ($color['active']) {
-                                        $option[$key] = $color['name'];
-                                    }
-                                }
-
-                                echo select('Colore', 'color', $option);
-
-                            ?>
-                        </div>
-                    </wi-card>
 
                     <wi-card>
                         <div class="col-12">

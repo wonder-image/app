@@ -94,6 +94,8 @@ function enabledInput(type) {
         } else {
             if (element.name == 'active') {
                 var wiOldValue = "true";
+            } else if (element.name == 'color') {
+                var wiOldValue = "blue";
             } else {
                 var wiOldValue = "";
             }

@@ -2,6 +2,9 @@
 
     function infoUser($value, $filter = 'id') {
 
+        global $PATH;
+        global $DEFAULT;
+
         if ($filter == 'id') {
             $SQL = sqlSelect('user', [$filter => $value], 1);
         } else {
@@ -19,6 +22,25 @@
                 $RETURN->$authority = call_user_func_array(permissions($authority)->functionInfo, [ $RETURN->id ]);
             }
         }
+
+        if (empty($RETURN->color)) {
+            $RETURN->color = $DEFAULT->colorUser['blue']['color'];
+            $RETURN->colorContrast = $DEFAULT->colorUser['blue']['contrast'];
+        } else {
+            $color = $RETURN->color;
+            $RETURN->color = $DEFAULT->colorUser[$color]['color'];
+            $RETURN->colorContrast = $DEFAULT->colorUser[$color]['contrast'];
+        }
+
+        $RETURN->profile_picture = empty($RETURN->profile_picture) ? "" : (array) json_decode($RETURN->profile_picture);
+
+        if (empty($RETURN->profile_picture)) {
+            $image = "<div><div class='position-absolute top-50 start-50 translate-middle text-center'>".substr($RETURN->name, 0, 1).substr($RETURN->surname, 0, 1)."</div></div>";
+        } else {
+            $image = "<img class='position-absolute top-50 start-50 translate-middle w-100 h-100' src='$PATH->upload/user/profile-picture/960x960-{$RETURN->profile_picture[0]}' alt='$RETURN->username'>";
+        }
+
+        $RETURN->avatar = "<div class='ratio ratio-1x1 rounded-circle border overflow-hidden' style='background: $RETURN->color !important;color: $RETURN->colorContrast !important;' >$image</div>";
 
         $RETURN->area = isset($RETURN->area) ? json_decode($RETURN->area, true) : [];
         $RETURN->fullName = isset($RETURN->name) ? $RETURN->name.' '.$RETURN->surname : '';
