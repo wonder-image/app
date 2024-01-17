@@ -29,7 +29,7 @@
             $VALUES = $UPLOAD->values; 
             if (empty($ALERT)) { $ALERT = 604; }
 
-        }else{
+        } else {
 
             $ALERT = 905;
                 
@@ -89,8 +89,21 @@
                         <div class="col-12">
                             <?=inputFileDragDrop('', 'profile_picture', 'profile', 'image')?>
                         </div>
-                        
-                        <div class="col-12">
+
+                    </div>
+                </div>
+                <div class="col-9">
+                    <div class="row g-3">
+                        <div class="col-5">
+                            <?=text('Nome', 'name', 'required'); ?>
+                        </div>
+                        <div class="col-5">
+                            <?=text('Cognome', 'surname', 'required'); ?>
+                        </div>
+                        <div class="col-8">
+                            <?=text('Username', 'username', 'required'); ?>
+                        </div>
+                        <div class="col-4">
                             <?php
 
                                 $option = [ '' => '--' ];
@@ -104,20 +117,6 @@
                                 echo select('Colore', 'color', $option);
 
                             ?>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="col-9">
-                    <div class="row g-3">
-                        <div class="col-4">
-                            <?=text('Nome', 'name', 'required'); ?>
-                        </div>
-                        <div class="col-4">
-                            <?=text('Cognome', 'surname', 'required'); ?>
-                        </div>
-                        <div class="col-6">
-                            <?=text('Username', 'username', 'required'); ?>
                         </div>
                         <div class="col-6">
                             <?=email('Email', 'email', 'required'); ?>
