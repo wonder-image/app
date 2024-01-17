@@ -64,6 +64,10 @@
             $UPLOAD['profile_picture'] = uploadFiles($POST['profile_picture'], $RULES, $PATH->rUpload.'/user', []);
         }
 
+        if (isset($POST['color'])) { 
+            $UPLOAD['color'] = strtolower($POST['color']);
+        }
+
         if ($MODIFY_ID == null) {
 
             $authority = [];

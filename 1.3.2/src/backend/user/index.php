@@ -159,6 +159,21 @@
                         <div class="col-12">
                             <?=inputFileDragDrop('Foto profilo', 'profile_picture', 'profile', 'image')?>
                         </div>
+                        <div class="col-12">
+                            <?php
+
+                                $option = [ '' => '--' ];
+
+                                foreach ($DEFAULT->colorUser as $key => $color) {
+                                    if ($color['active']) {
+                                        $option[$key] = $color['name'];
+                                    }
+                                }
+
+                                echo select('Colore', 'color', $option);
+
+                            ?>
+                        </div>
                     </wi-card>
 
                     <wi-card>

@@ -72,13 +72,78 @@
         $PATH->favicon = $PATH->site."/favicon.ico";
         $PATH->appIcon = $PATH->upload."/logos/App-Icon.png";
         
-    # Default
-        $DEFAULT->image = $PATH->assets."/images/Default.png";
-
-        # Loghi backend
+    # Loghi backend
         $DEFAULT->BeLogoBlack = $PATH->app.'/assets/logos/Wonder-Image.png';
         $DEFAULT->BeLogoWhite = $PATH->app.'/assets/logos/Wonder-Image-White.png';
         $DEFAULT->BeFavicon = 'https://www.wonderimage.it/favicon.ico';
+
+    # Colori utenti
+        $DEFAULT->colorUser = [
+            'blue' => [
+                'name' => 'Blu',
+                'color' => '#0000ff',
+                'contrast' => '#ffffff',
+                'active' => true
+            ],
+            'green' => [
+                'name' => 'Verde',
+                'color' => '#008000',
+                'contrast' => '#ffffff',
+                'active' => true
+            ],
+            'purple' => [
+                'name' => 'Viola',
+                'color' => '#800080',
+                'contrast' => '#ffffff',
+                'active' => true
+            ],
+            'red' => [
+                'name' => 'Rosso',
+                'color' => '#FF0000',
+                'contrast' => '#000000',
+                'active' => true
+            ],
+            'yellow' => [
+                'name' => 'Giallo',
+                'color' => '#FFFF00',
+                'contrast' => '#000000',
+                'active' => true
+            ],
+            'pink' => [
+                'name' => 'Rosa',
+                'color' => '#FFC0CB',
+                'contrast' => '#000000',
+                'active' => true
+            ],
+            'orange' => [
+                'name' => 'Arancione',
+                'color' => '#FFA500',
+                'contrast' => '#000000',
+                'active' => true
+            ],
+            'turquoise' => [
+                'name' => 'Turchese',
+                'color' => '#40E0D0',
+                'contrast' => '#000000',
+                'active' => true
+            ],
+            'gold' => [
+                'name' => 'Oro',
+                'color' => '#FFD700',
+                'contrast' => '#000000',
+                'active' => true
+            ],
+            'silver' => [
+                'name' => 'Argento',
+                'color' => '#C0C0C0',
+                'contrast' => '#000000',
+                'active' => true
+            ]
+        ];
+
+    # Default
+        $DEFAULT->image = $PATH->assets."/images/Default.png";
+        
 
         $DEFAULT->font = [
             [
