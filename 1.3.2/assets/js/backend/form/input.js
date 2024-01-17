@@ -65,7 +65,7 @@ function generateCode(selector) {
 function disableInput(type) {
 
     if (type == 'user') {
-        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], input[name=profile_picture], select[name=color], select[name=active]');
+        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], input[name="profile_picture[]"], select[name=color], select[name=active]');
     }
 
     inputArray.forEach(element => {
@@ -84,7 +84,7 @@ function disableInput(type) {
 function enabledInput(type) {
 
     if (type == 'user') {
-        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], input[name=profile_picture], select[name=color], select[name=active]');
+        var inputArray = document.querySelectorAll('input[name=name], input[name=surname], input[name=username], input[name=email], input[name="profile_picture[]"], select[name=color], select[name=active]');
     }
 
     inputArray.forEach(element => {
