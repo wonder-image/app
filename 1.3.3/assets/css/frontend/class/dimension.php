@@ -15,6 +15,7 @@
 
     for ($i=0; $i <= 150; $i+=5) { 
 
+        # Percentuale
         $PC .= ".w-$i { width: $i% !important; }";
         $PC .= ".max-w-$i { max-width: $i% !important; }";
         $PC .= ".min-w-$i { min-width: $i% !important; }";
@@ -22,6 +23,15 @@
         $PC .= ".max-h-$i { max-height: $i% !important; }";
         $PC .= ".min-h-$i { min-height: $i% !important; }";
 
+        # Viewport
+        $PC .= ".vw-$i { width: {$i}vw !important; }";
+        $PC .= ".max-vw-$i { max-width: {$i}vw !important; }";
+        $PC .= ".min-vw-$i { min-width: {$i}vw !important; }";
+        $PC .= ".vh-$i { height: {$i}vh !important; }";
+        $PC .= ".max-vh-$i { max-height: {$i}vh !important; }";
+        $PC .= ".min-vh-$i { min-height: {$i}vh !important; }";
+
+        # Percentuale
         $TABLET .= ".w-t-$i { width: $i% !important; }";
         $TABLET .= ".max-w-t-$i { max-width: $i% !important; }";
         $TABLET .= ".min-w-t-$i { min-width: $i% !important; }";
@@ -29,12 +39,29 @@
         $TABLET .= ".max-h-t-$i { max-height: $i% !important; }";
         $TABLET .= ".min-h-t-$i { min-height: $i% !important; }";
 
+        # Viewport
+        $TABLET .= ".vw-t-$i { width: {$i}vw !important; }";
+        $TABLET .= ".max-vw-t-$i { max-width: {$i}vw !important; }";
+        $TABLET .= ".min-vw-t-$i { min-width: {$i}vw !important; }";
+        $TABLET .= ".vh-t-$i { height: {$i}vh !important; }";
+        $TABLET .= ".max-vh-t-$i { max-height: {$i}vh !important; }";
+        $TABLET .= ".min-vh-t-$i { min-height: {$i}vh !important; }";
+
+        # Percentuale
         $PHONE .= ".w-p-$i { width: $i% !important; }";
         $PHONE .= ".max-w-p-$i { max-width: $i% !important; }";
         $PHONE .= ".min-w-p-$i { min-width: $i% !important; }";
         $PHONE .= ".h-p-$i { height: $i% !important; }";
         $PHONE .= ".max-h-p-$i { max-height: $i% !important; }";
         $PHONE .= ".min-h-p-$i { min-height: $i% !important; }";
+
+        # Viewport
+        $PHONE .= ".vw-p-$i { width: {$i}vw !important; }";
+        $PHONE .= ".max-vw-p-$i { max-width: {$i}vw !important; }";
+        $PHONE .= ".min-vw-p-$i { min-width: {$i}vw !important; }";
+        $PHONE .= ".vh-p-$i { height: {$i}vh !important; }";
+        $PHONE .= ".max-vh-p-$i { max-height: {$i}vh !important; }";
+        $PHONE .= ".min-vh-p-$i { min-height: {$i}vh !important; }";
         
     }
 
