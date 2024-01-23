@@ -467,7 +467,7 @@
 
         if (empty($QUERY_CUSTOM)) {
             $QUERY = "`deleted` = 'false' ";
-        }else{
+        } else {
             $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
         }
 
@@ -482,6 +482,10 @@
                 $column = isset($value['column']) ? $value['column'] : $table;
                 $filter = isset($_GET[$table]) ? $_GET[$table] : '';
 
+                if ($value['type'] == "checkbox" && is_array($filter)) {
+                    unset($filter[0]);
+                }
+
                 if (!empty($filter)) {
 
                     if ($value['type'] == "checkbox") {
@@ -490,7 +494,7 @@
                         
                             if (empty($QUERY_CUSTOM)) {
                                 $Q = "`deleted` = 'false' ";
-                            }else{
+                            } else {
                                 $Q = $QUERY_CUSTOM." AND `deleted` = 'false' ";
                             }
 
@@ -897,11 +901,7 @@
 
                 if ($db) {
 
-                    if ($type == 'radio') {
-                        $checkbox = ['' => "Tutti"];
-                    }else{
-                        $checkbox = [];
-                    }
+                    $checkbox = ($type == 'radio') ? ['' => "Tutti"] : [];
 
                     $SQL = sqlSelect($table, ['deleted' => 'false'], null, 'name', 'ASC');
 
@@ -916,26 +916,25 @@
 
                 } elseif (!empty($f)) {
 
-                    if ($type == 'radio') {
-                        $checkbox = ['' => "Tutti"];
-                    }else{
-                        $checkbox = [];
-                    }
-
+                    $checkbox = ($type == 'radio') ? [ '' => "Tutti" ] : [];
                     $checkbox = array_merge($checkbox, call_user_func($f));
 
                 }
                 
             }
 
-            if (count($checkbox) > 5) {
+            if (count($checkbox) < 5 && $type == 'radio') {
+
+                $HTML = select($name, $table, $checkbox, 'old', null, $value);
+
+            } else {
+
                 if ($type == 'checkbox' || $type == 'radio') {
                     $HTML = check($name, $table, $checkbox, '', $type, $search, $value);
                 } else if ($type == 'select') {
                     $HTML = select($name, $table, $checkbox, 'old', null, $value);
                 }
-            } else {
-                $HTML = select($name, $table, $checkbox, 'old', null, $value);
+
             }
 
             $filter .= "
@@ -947,11 +946,7 @@
 
         $script .= "</script>";
 
-        if (isset($_GET['limit']) && $_GET['limit'] == 'all') {
-            $collapseShow = "show";
-        }else{
-            $collapseShow = "";
-        }
+        $collapseShow = (isset($_GET['limit']) && $_GET['limit'] == 'all') ? "show" : "";
 
         $HTML = "
         <div class='col-12 collapse $collapseShow filter-container mt-3 pt-3 border-top'>
