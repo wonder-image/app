@@ -288,6 +288,7 @@
                                         if (isset($value['function']) && !empty($value['function'])) {
 
                                             $functionName = $value['function']['name'];
+                                            $functionParameter = isset($value['function']['parameter']) ? $value['function']['parameter'] : 'id';
 
                                             if ($functionName == "empty") {
 
@@ -320,7 +321,22 @@
                                             } else {
 
                                                 $functionReturn = $value['function']['return'];
-                                                $VALUE = call_user_func_array($functionName, [$row['id']])->$functionReturn;
+
+                                                $args = [];
+
+                                                if (is_array($functionParameter)) {
+                                                    foreach ($functionParameter as $parameter) {
+                                                        if (isset($row[$parameter])) {
+                                                            array_push($args, $row[$parameter]);
+                                                        } else {
+                                                            array_push($args, $row[$parameter]);
+                                                        }
+                                                    }
+                                                } else {
+                                                    array_push($args, $row[$functionParameter]);
+                                                }
+
+                                                $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
 
                                             }
 
