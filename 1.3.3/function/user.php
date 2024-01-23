@@ -62,7 +62,7 @@
         $PROTECTED_COLUMNS = ['name', 'surname', 'email', 'username', 'password', 'profile_picture', 'color', 'area', 'authority' ];
 
         foreach ($POST as $column => $value) {
-            if (sqlColumnExists('user', $column) && !in_array($column,$PROTECTED_COLUMNS)) {
+            if (!in_array($column,$PROTECTED_COLUMNS) && sqlColumnExists('user', $column)) {
                 $UPLOAD[$column] = $value;
             }
         }
