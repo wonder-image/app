@@ -67,8 +67,8 @@
     echo "";
     echo "";
 
-    echo ".tx-color: var(--tx-color) !important;";
-    echo ".bg-color: var(--bg-color) !important;";
+    echo ".tx-color { color: var(--tx-color) !important; }";
+    echo ".bg-color { background: var(--bg-color) !important; }";
 
     for ($i=0; $i < 11; $i++) { 
 
