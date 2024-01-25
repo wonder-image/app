@@ -38,6 +38,10 @@
             "html" => "&quot;",
             "unicode" => "&#34;"
         ],[
+            "character" => "'",
+            "html" => "&apos;",
+            "unicode" => "&#39;"
+        ],[
             "character" => "“",
             "html" => "&ldquo;",
             "unicode" => "&#8220;"
@@ -219,10 +223,6 @@
             "unicode" => "&#237;"
         ],[
             "character" => "Í",
-            "html" => "&Iacute;",
-            "unicode" => "&#205;"
-        ],[
-            "character" => "ì",
             "html" => "&Iacute;",
             "unicode" => "&#205;"
         ],[
