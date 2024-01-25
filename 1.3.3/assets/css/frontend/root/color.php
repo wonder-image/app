@@ -75,6 +75,7 @@
         $opacity = $i * 10;
         
         echo ".bg-bg-$opacity { background: var(--bg-color-$opacity) !important; }";
+        echo ".bg-color-$opacity { background: var(--bg-color-$opacity) !important; }";
 
     }
     
