@@ -65,6 +65,10 @@
     $SOCIETY_LOGOS = sqlSelect('logos', ['id' => '1'], 1)->row;
     $ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
 
+    # Sanifico la SEO
+    $SEO->title = str_replace('<br />', '', $SEO->title);
+    $SEO->description = str_replace('<br />', '', $SEO->description);
+
     $TAG_MANAGER = $ANALYTICS['tag_manager'];
     $PIXEL_FACEBOOK = $ANALYTICS['pixel_facebook'];
 
