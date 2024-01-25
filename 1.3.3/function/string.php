@@ -114,7 +114,9 @@
 
         foreach ($array as $key => $value) {
             if (is_array($value)) {
+
                 $newArray[$key] = sanitizeJSON($value);
+
             } else {
 
                 if (!empty($value)) {
@@ -125,7 +127,7 @@
                         $character = $c['character'];
                         $html = $c['html'];
 
-                        if (!in_array($character, ['"', "'", ">", "<", " ", "&"])) {
+                        if (!in_array($character, ['"', ">", "<", " ", "&"])) {
                             $value = str_replace($character, $html, $value);
                         }
                         
