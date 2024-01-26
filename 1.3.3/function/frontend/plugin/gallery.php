@@ -68,9 +68,10 @@
                 $alt = $value['alt'];
                 $position = $value['position'];
                 $class = isset($value['class']) ? $value['class'] : '';
+                $attributes = isset($value['attributes']) ? $value['attributes'] : '';
 
                 $RETURN .= "
-                <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
+                <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
                     <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 120px'>
                 </a>";
 
@@ -93,9 +94,10 @@
                 $alt = $value['alt'];
                 $position = $value['position'];
                 $class = isset($value['class']) ? $value['class'] : '';
+                $attributes = isset($value['attributes']) ? $value['attributes'] : '';
 
                 $RETURN .= "
-                <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
+                <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
                     <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 120px'>
                 </a>"; 
             
@@ -118,9 +120,10 @@
                 $alt = $value['alt'];
                 $position = $value['position'];
                 $class = isset($value['class']) ? $value['class'] : '';
+                $attributes = isset($value['attributes']) ? $value['attributes'] : '';
 
                 $RETURN .= "
-                <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit'>
+                <a href='javascript:;' data-fancybox-trigger='gallery' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
                     <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 80px'>
                 </a>"; 
             
