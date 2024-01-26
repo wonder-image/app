@@ -31,14 +31,12 @@ border: var(--input-border-bottom) solid var(--input-border-color);
 background: var(--input-bg-color);
 transition: .1s;
 cursor: pointer;
-z-index: 3;
 }
 .wi-input-container .wi-checkbox-container .wi-checkbox:hover {
 border: var(--input-border-bottom) solid var(--input-border-focus);
 }
 .wi-input-container .wi-checkbox-container .wi-checkbox:checked {
 border: var(--input-border-bottom) solid var(--input-border-focus);
-z-index: 1;
 }
 .wi-input-container .wi-checkbox-container .wi-checkbox-label {
 width: calc(100% - 30px);
@@ -59,4 +57,9 @@ color: var(--input-border-focus);
 font-size: 13px;
 pointer-events: none;
 z-index: 2;
+transition: .1s;
+opacity: 0;
+}
+.wi-input-container .wi-checkbox-container:has(.wi-checkbox:checked) .wi-checkbox-icon {
+opacity: 1;
 }
