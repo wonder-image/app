@@ -437,6 +437,16 @@
                                             $label = $link['label'];
                                             $href = isset($link['href']) ? $link['href'] : '';
                                             $action = isset($link['action']) ? $link['action'] : '';
+                                            $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
+
+                                            if (!empty($href)) {
+                                                preg_match_all('/{(.*?)}/', $href, $listVar);
+                                                if (count($listVar) > 0) {
+                                                    foreach ($listVar[1] as $key => $var) {
+                                                        $href = str_replace('{'.$var.'}', $row[$var], $href);
+                                                    }
+                                                }
+                                            }
 
                                             if (isset($link['key']) && !empty($link['key'])) {
                                                 foreach ($link['key'] as $q) {
@@ -458,7 +468,7 @@
 
                                             if (!empty($href)) { $action = 'href="'.$href.'"'; }
 
-                                            $BUTTONS .= "<a class='dropdown-item' $action role='button'>$label</a>";
+                                            $BUTTONS .= "<a class='dropdown-item' $action role='button' $target>$label</a>";
 
                                         }
 
