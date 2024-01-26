@@ -76,3 +76,13 @@ function code(codeLength = 10) {
     return result;
 
 }
+
+function isMobile() {
+
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        return true;
+    } else {
+        return false;
+    }
+    
+}
