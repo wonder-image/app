@@ -239,6 +239,10 @@
     </script>
 
     <!-- Fundamental .js -->
+    <script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
+    <script src="<?=$PATH->appJs?>/global/utility.js"></script>
+    <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
+
     <script src="<?=$PATH->appJs?>/frontend/utility.js"></script>
     <script src="<?=$PATH->appJs?>/frontend/scroll.js"></script>
     <script src="<?=$PATH->appJs?>/frontend/form/list.js"></script>
