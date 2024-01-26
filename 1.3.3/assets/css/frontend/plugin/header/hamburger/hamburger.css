@@ -12,6 +12,13 @@ width: 30px;
 height: 3px;
 background: #ffffff;
 }
+#hamburger.thin {
+height: 17px;
+margin: 16.5px 0;
+}
+#hamburger.thin .bar {
+height: 2px;
+}
 #hamburger.click .bar-1,
 #hamburger.click .bar-2,
 #hamburger.click .bar-3{

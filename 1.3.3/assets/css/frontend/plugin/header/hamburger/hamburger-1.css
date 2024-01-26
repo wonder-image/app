@@ -14,6 +14,13 @@ border-radius: 1.5px;
 background: #ffffff;
 transition: .4s;
 }
+#hamburger-1.thin {
+height: 17px;
+margin: 16.5px 0;
+}
+#hamburger-1.thin .bar {
+height: 2px;
+}
 #hamburger-1:hover .bar {
 width: 30px;
 }
@@ -42,4 +49,8 @@ transform: translateY(-50%) rotate(-45deg);
 width: 30px;
 bottom: 50%;
 transform: translateY(50%) rotate(45deg);
+}
+#hamburger-1 .bar-4,
+#hamburger-1 .bar-5 {
+display: none;
 }
