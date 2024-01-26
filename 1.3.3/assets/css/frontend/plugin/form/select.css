@@ -1,5 +1,6 @@
 .wi-input-container.wi-list-active  {
 z-index: 10;
+overflow: unset;
 }
 .wi-input-container.wi-list-active .wi-input {
 border-radius: var(--input-border-radius) var(--input-border-radius) 0 0;
