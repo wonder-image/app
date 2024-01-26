@@ -2,13 +2,20 @@
 
     function create_link($str, $table = null, $column = null, $id = null){
 
-        $str = str_replace("à", "a", $str); 
-        $str = str_replace("è", "e", $str); 
-        $str = str_replace("à", "a", $str); 
-        $str = str_replace("ì", "i", $str); 
-        $str = str_replace("ù", "u", $str);
+        global $CHARACTERS;
+
+        foreach ($CHARACTERS as $k => $c) {
+                        
+            $character = $c['character'];
+            $url = $c['url'];
+            
+            $str = str_replace($character, $url, $str);
+            
+        }
+
         $str = preg_replace('/[^A-Za-z0-9\-]/', ' ', $str);
         $str = trim($str);
+        
         $str = str_replace('        ', ' ', $str); // 8 spazi
         $str = str_replace('       ', ' ', $str); // 7 spazi
         $str = str_replace('      ', ' ', $str); // 6 spazi
@@ -17,6 +24,10 @@
         $str = str_replace('   ', ' ', $str); // 3 spazi
         $str = str_replace('  ', ' ', $str); // 2 spazi
         $str = str_replace(' ', '-', $str); // 1 spazio
+
+        $str = str_replace('----', '-', $str);
+        $str = str_replace('---', '-', $str);
+        $str = str_replace('--', '-', $str);
 
         if ($table != null && $column != null) {
 
