@@ -77,6 +77,21 @@
             "html" => "&nbsp;",
             "unicode" => "&#160;"
         ],[
+            "character" => "​", # zero-width space ZWSP
+            "url" => "",
+            "html" => "&ZeroWidthSpace;",
+            "unicode" => "&#8203"
+        ],[
+            "character" => "‍", # zero-width joiner
+            "url" => "",
+            "html" => "&zwj;",
+            "unicode" => "&#8205;"
+        ],[
+            "character" => "‌", # zero-width non-joiner
+            "url" => "",
+            "html" => "&zwnj;",
+            "unicode" => "&#8204;"
+        ],[
             "character" => "¢",
             "url" => "c",
             "html" => "&cent;",
