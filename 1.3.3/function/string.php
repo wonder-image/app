@@ -132,7 +132,9 @@
 
                 if (!empty($value)) {
 
+                    $value = str_replace(["\r\n", "\n\r", "\n", "\r"], "",  $value);
                     $value = preg_replace('/(<br>)+$/', '', $value);
+                    
                     foreach ($CHARACTERS as $k => $c) {
                         
                         $character = $c['character'];
