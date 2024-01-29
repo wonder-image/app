@@ -204,6 +204,56 @@
         
     }
 
+    function inputFile($label, $name, $type = 'image', $maxSize = 1, $maxFile = 1, $value = null, $attribute = '', $error = false) {
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $class = "";
+
+        if (!empty($error)) {
+            $class .= " input-error";
+            $alert = "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> $error</span>";
+        } else {
+            $alert = "<span class='alert-error'></span>";
+        }
+
+        if ($type == "image") {
+            $ACCEPT = "image/png, image/jpeg";
+        } elseif ($type == "pdf") {
+            $ACCEPT = "application/pdf";
+        } elseif ($type == "png") {
+            $ACCEPT = "image/png";
+        } elseif ($type == "ico") {
+            $ACCEPT = "image/ico";
+        } elseif ($type == "video") {
+            $ACCEPT = "video/mp4";
+        } elseif ($type == "jpg") {
+            $ACCEPT = "image/jpeg";
+        } elseif ($type == "font") {
+            $ACCEPT = "font/ttf";
+        } else {
+            $ACCEPT = "";
+        }
+
+        if (!empty($value)) { $class .= " compiled"; }
+        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        $name .= '[]';
+
+        $multiple = ($maxFile == 1) ? "" : "multiple";
+
+        $maxSize = $maxSize * 1048576;
+
+        return "
+        <div class='wi-input-container file compiled$class'>
+            <label for='$id' class='wi-label'>$label</label>
+            <input class='wi-input' id='$id' type='file' accept='$ACCEPT' name='$name' data-wi-max-file='$maxFile' data-wi-max-size='$maxSize' data-wi-check='true' $multiple $attribute>
+            $alert
+        </div>
+        ";
+
+    }
+
     function selectDate($label, $name, $value = null, $attribute = '', $dateMin = null, $dateMax = null, $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));

@@ -102,7 +102,57 @@ function checkLabel() {
 
 }
 
+function checkInputFile(event) {
+
+    var input = event.target;
+
+    var inputContainer = input.parentElement;
+    var errorContainer = inputContainer.querySelector('.alert-error');
+
+    var maxFile = input.dataset.wiMaxFile;
+    var maxSize = input.dataset.wiMaxSize;
+    var prettyMaxSize = ((maxSize/1024)/1024).toFixed(2); // MB
+
+    var prettyErrorFile = "<i class='bi bi-exclamation-triangle'></i> Hai caricato troppi file! Puoi caricare massimo "+maxFile+" file";
+    var prettyErrorSize = "<i class='bi bi-exclamation-triangle'></i> Hai caricato file troppo grandi! Le dimensioni massime sono di "+prettyMaxSize+"Mb";
+
+    var files = input.files;
+
+    inputContainer.classList.remove('input-error');
+    errorContainer.innerHTML = '';
+
+    for (var x in files) {
+
+        if(files[x].size > maxSize){
+
+            inputContainer.classList.add('input-error');
+            errorContainer.innerHTML = prettyErrorSize;
+            input.value = "";
+            break;
+
+        }
+
+    }
+
+    if (files.length > maxFile) {
+
+        inputContainer.classList.add('input-error');
+        errorContainer.innerHTML = prettyErrorFile;
+        input.value = "";
+
+    }
+    
+}
+
 function setInput() {
+
+    document.querySelectorAll("[data-wi-max-file]").forEach(element => {
+        element.addEventListener("change", checkInputFile);
+    });
+
+    document.querySelectorAll("[data-wi-max-size]").forEach(element => {
+        element.addEventListener("change", checkInputFile);
+    });
     
     document.querySelectorAll("[data-wi-label='true']").forEach(element => {
         element.addEventListener("input", labelPosition);
