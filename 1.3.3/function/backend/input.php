@@ -431,9 +431,9 @@
 
         if (is_array($option)) {
 
-            $dataFilter = "";
-
             foreach ($option as $nm => $vl) {
+                
+                $dataFilter = "";
     
                 if (is_array($value)) {
                     $att = in_array($nm, $value) ? "checked" : "";
