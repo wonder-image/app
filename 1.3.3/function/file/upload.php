@@ -5,7 +5,7 @@
         global $ALERT;
         
         $MAX_FILE = isset($FORMAT['max_file']) ? $FORMAT['max_file'] : 1;
-        $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1000000 : 2000000;
+        $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1048576 : 2 * 1048576;
         $EXTENSIONS = $FORMAT['extensions'];
         $DIR = isset($FORMAT['dir']) ? $FORMAT['dir'] : '/';
         $RESIZE = isset($FORMAT['resize']) ? $FORMAT['resize'] : '';
