@@ -242,5 +242,7 @@ display: none;
 }
 
 /* FilePond */
-.filepond { margin: 0; }
-.filepond .filepond--credits { display: none; }
+.filepond, 
+.filepond--root { margin: 0; }
+.filepond .filepond--credits,
+.filepond--root .filepond--credits{ display: none; }
