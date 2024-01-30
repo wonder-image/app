@@ -923,7 +923,7 @@
                 
             }
 
-            if (count($checkbox) < 5 && $type == 'radio') {
+            if (count($checkbox) < 5 && $type == 'radio' && $search != true) {
 
                 $HTML = select($name, $table, $checkbox, 'old', null, $value);
 
