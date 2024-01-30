@@ -6,7 +6,7 @@
         
         $MAX_FILE = isset($FORMAT['max_file']) ? $FORMAT['max_file'] : 1;
         $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1048576 : 2 * 1048576;
-        $EXTENSIONS = $FORMAT['extensions'];
+        $EXTENSIONS = isset($FORMAT['extensions']) ? $FORMAT['extensions'] : '';
         $DIR = isset($FORMAT['dir']) ? $FORMAT['dir'] : '/';
         $RESIZE = isset($FORMAT['resize']) ? $FORMAT['resize'] : '';
         $RESET = isset($FORMAT['reset']) ? $FORMAT['reset'] : false;
@@ -29,7 +29,7 @@
                     $EXTENSION = pathinfo($FILE_NAME, PATHINFO_EXTENSION);
                     $SIZE = $FILES['size'][$i];
 
-                    if (!in_array($EXTENSION, $EXTENSIONS)) { $ALERT = 921; }
+                    if (!empty($EXTENSIONS) && !in_array($EXTENSION, $EXTENSIONS)) { $ALERT = 921; }
                     if (empty($ALERT) && $SIZE >= $MAX_SIZE) { $ALERT = 922; }
 
                     if (empty($ALERT)) {
