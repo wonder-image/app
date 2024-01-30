@@ -395,7 +395,55 @@
 
         }
 
-    }   
+    }
+
+    function createOption($option, $type, $name, $value, $attribute) {
+
+        $RETURN = "";
+
+        if (is_array($option)) {
+
+            foreach ($option as $optionValue => $optionName) {
+                
+                $optionAttribute = $attribute;
+                $optionChild = "";
+    
+                if (is_array($value)) {
+                    $optionAttribute .= in_array($optionValue, $value) ? " checked" : "";
+                } else {
+                    $optionAttribute .= ($optionValue == $value) ? " checked" : "";
+                }
+    
+                if (is_array($optionName)) {
+    
+                    $filter = isset($optionName['filter']) ? $optionName['filter'] : [];
+                    $child = isset($optionName['child']) ? $optionName['child'] : [];
+
+                    $optionName = $optionName['name'];
+    
+                    foreach ($filter as $key => $v) { $optionAttribute .= " data-$key='$v'"; }
+
+                    if (!empty($child)) {
+                        $optionChild  = '<div class="w-100 ps-3">'.createOption($child, $type, $name, $value, $attribute).'</div>';
+                    }
+    
+                }
+
+                $RETURN .= "<div class='w-100'>
+                    <div id='$name-$optionValue' class='form-check'>
+                        <input class='form-check-input' type='$type' name='$name' value='$optionValue' id='$type-$name-$optionValue' data-wi-check='true' $optionAttribute>
+                        <label class='form-check-label wi-check-label' for='$type-$name-$optionValue'>$optionName</label>
+                    </div>
+                    $optionChild
+                </div>";
+    
+            }
+
+        }
+
+        return $RETURN;
+
+    }
 
     function check($label, $name, $option, $attribute = null, $type = 'checkbox', $searchBar = false, $value = null) {
 
@@ -419,7 +467,7 @@
             
         }
 
-        $checkHTML = "";
+        $optionHTML = "";
         $inputHidden = "";
         
         $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
@@ -429,36 +477,7 @@
             $inputHidden = "<input type='hidden' name='$name'>";
         }
 
-        if (is_array($option)) {
-
-            foreach ($option as $nm => $vl) {
-                
-                $dataFilter = "";
-    
-                if (is_array($value)) {
-                    $att = in_array($nm, $value) ? "checked" : "";
-                } else {
-                    $att = ($nm == $value) ? "checked" : "";
-                }
-    
-                if (is_array($vl)) {
-    
-                    $filter = isset($vl['filter']) ? $vl['filter'] : [];
-                    $vl = $vl['name'];
-    
-                    foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
-    
-                }
-    
-                $checkHTML .= "
-                <div id='$name-$nm' class='form-check'>
-                    <input class='form-check-input' type='$type' name='$name' value='$nm' id='$type-$name-$nm' data-wi-check='true' $att $dataFilter $attribute>
-                    <label class='form-check-label wi-check-label' for='$type-$name-$nm'>$vl</label>
-                </div>";
-    
-            }
-
-        }
+        $optionHTML = createOption($option, $type, $name, $value, $attribute);
 
         return "
         <div id='container-$id' class='w-100 wi-container-$type $required'>
@@ -467,7 +486,7 @@
             <div class='card border mt-1'>
                 $bar
                 <div class='card-body overflow-scroll p-2' style='height: 120px;'>
-                    $checkHTML
+                    $optionHTML
                 </div>
             </div>
         </div>";
