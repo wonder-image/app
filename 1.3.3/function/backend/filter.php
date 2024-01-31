@@ -488,7 +488,7 @@
 
                 if (!empty($filter)) {
 
-                    if ($value['type'] == "checkbox") {
+                    if ($value['type'] == "checkbox" || $value['type'] == "tree") {
                         
                         if (isset($value['column_type']) && $value['column_type'] == "multiple") {
                         
@@ -930,9 +930,11 @@
             } else {
 
                 if ($type == 'checkbox' || $type == 'radio') {
-                    $HTML = check($name, $table, $checkbox, '', $type, $search, $value);
+                    $HTML = check($name, $table, $checkbox, null, $type, $search, $value);
                 } else if ($type == 'select') {
                     $HTML = select($name, $table, $checkbox, 'old', null, $value);
+                } else if ($type == 'tree') {
+                    $HTML = checkTree($name, $table, $checkbox, null, 'checkbox', true, $value);
                 }
 
             }

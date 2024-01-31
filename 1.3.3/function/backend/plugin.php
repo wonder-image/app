@@ -145,6 +145,9 @@
 
         foreach ($tables as $table => $filter) {
 
+            $column = isset($filter['column']) ? $filter['column'] : $column;
+            $multiple = isset($filter['multiple']) ? $filter['multiple'] : $multiple;
+
             if (sqlColumnExists($table, 'deleted')) {
                 $FILTER_SQL = " `deleted` = 'false' ";
             }else{
