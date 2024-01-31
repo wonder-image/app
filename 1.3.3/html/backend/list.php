@@ -327,7 +327,7 @@
                                                         if (isset($row[$parameter])) {
                                                             array_push($args, $row[$parameter]);
                                                         } else {
-                                                            array_push($args, $row[$parameter]);
+                                                            array_push($args, $parameter);
                                                         }
                                                     }
                                                 } else {
