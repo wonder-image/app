@@ -320,8 +320,6 @@
 
                                             } else {
 
-                                                $functionReturn = $value['function']['return'];
-
                                                 $args = [];
 
                                                 if (is_array($functionParameter)) {
@@ -336,7 +334,12 @@
                                                     array_push($args, $row[$functionParameter]);
                                                 }
 
-                                                $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
+                                                if (isset($value['function']['return']) && !empty($value['function']['return'])) {
+                                                    $functionReturn = $value['function']['return'];
+                                                    $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
+                                                } else {
+                                                    $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
+                                                }
 
                                             }
 

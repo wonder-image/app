@@ -246,3 +246,49 @@ display: none;
 .filepond--root { margin: 0; }
 .filepond .filepond--credits,
 .filepond--root .filepond--credits{ display: none; }
+.filepond .filepond--drop-label,
+.filepond--root .filepond--drop-label { color: inherit; }
+.filepond--panel-root {
+background-color: var(--bs-secondary-bg-subtle);
+border-radius: var(--bs-border-radius);
+}
+
+/* jsTree */
+.jstree .jstree-icon.jstree-checkbox { display: none; }
+.jstree li.jstree-node,
+.jstree li i.jstree-icon.jstree-ocl { background-image: none; }
+.jstree li i.jstree-icon.jstree-ocl::before {
+display: inline-block;
+font-family: bootstrap-icons !important;
+font-style: normal;
+font-weight: normal !important;
+font-variant: normal;
+text-transform: none;
+line-height: 1;
+vertical-align: -.125em;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+.jstree li[aria-expanded="false"] > i.jstree-icon.jstree-ocl::before { content: "\F285"; }
+.jstree li[aria-expanded="true"] > i.jstree-icon.jstree-ocl::before { content: "\F282"; }
+.jstree li[aria-expanded="true"] > a.jstree-anchor i.jstree-icon.jstree-themeicon.bi-folder:before { content: "\F3D8"; }
+.jstree li[aria-selected="true"] a.jstree-anchor.jstree-clicked i.jstree-icon.jstree-themeicon.bi-folder:before {
+content: "\F3D1";
+color: var(--bs-blue);
+}
+.jstree .jstree-search {
+color: inherit;
+font-weight: bold;
+font-style: italic;
+}
+.jstree .jstree-anchor {
+border-width: var(--bs-border-width) !important;
+border-color: transparent;
+border-radius: var(--bs-border-radius);
+}
+.jstree .jstree-anchor.jstree-hovered,
+.jstree .jstree-anchor.jstree-clicked.jstree-hovered {
+background: var(--bs-secondary-bg-subtle) !important;
+border-color: var(--bs-border-color);
+box-shadow: none;
+}

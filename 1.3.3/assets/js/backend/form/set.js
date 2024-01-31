@@ -192,3 +192,63 @@ function setTextarea() {
     });
 
 }
+
+function setJsTree() {
+            
+    document.querySelectorAll('[data-wi-tree]').forEach(element => {
+
+        var container = element.parentElement;
+
+        var type = element.dataset.wiTree;
+        var searchBar = container.querySelector('[data-wi-search="true"]');
+
+        var Tree = $(element).jstree({
+            core: {
+                check_callback: false
+            },
+            checkbox : {
+                keep_selected_style: false,
+                three_state: false,
+            },
+            types : {
+                default : {
+                    icon : "bi bi-folder"
+                }
+            },
+            plugins : [ "checkbox", "types", "search" ]
+        });
+
+        Tree.jstree('open_all');
+
+        if (searchBar != undefined) {
+            $(searchBar).keyup(function () {
+                var v = $(searchBar).val();
+                $(Tree).jstree(true).search(v);
+            });
+        }
+
+        $(element).on('click', '.jstree-anchor', function(e) {
+
+            var selectedNodes = $(element).jstree().get_checked();
+
+            container.querySelectorAll('input[type="checkbox"]:checked').forEach(element => { element.checked = false; });
+
+            if (type == 'radio') {
+
+                if (selectedNodes.length > 1) {
+                    $(element).jstree().uncheck_node(selectedNodes[0]);
+                }
+
+                var selectedNodes = $(element).jstree().get_checked();
+
+            }
+
+            selectedNodes.forEach(element => { container.querySelector('input[value="'+element+'"]').checked = true; });
+
+            check();
+
+        });
+
+    });
+
+}

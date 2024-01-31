@@ -397,21 +397,25 @@
 
     }
 
-    function createOption($option, $type, $name, $value, $attribute) {
+    function createOption($option, $type, $name, $value, $attribute, ) {
 
-        $RETURN = "";
+        $RETURN = ($type == 'list') ? "<ul>" : "";
 
         if (is_array($option)) {
 
             foreach ($option as $optionValue => $optionName) {
                 
                 $optionAttribute = $attribute;
+
                 $optionChild = "";
+                $listAttribute = "";
     
                 if (is_array($value)) {
-                    $optionAttribute .= in_array($optionValue, $value) ? " checked" : "";
+                    $optionAttribute .= ($value != null && in_array($optionValue, $value)) ? " checked" : "";
+                    $listAttribute .= ($value != null && in_array($optionValue, $value)) ? " data-jstree='{\"selected\": true }'" : "";
                 } else {
-                    $optionAttribute .= ($optionValue == $value) ? " checked" : "";
+                    $optionAttribute .= ($value != null && $optionValue == $value) ? " checked" : "";
+                    $listAttribute .= ($value != null && $optionValue == $value) ? " data-jstree='{\"selected\": true }'" : "";
                 }
     
                 if (is_array($optionName)) {
@@ -424,22 +428,36 @@
                     foreach ($filter as $key => $v) { $optionAttribute .= " data-$key='$v'"; }
 
                     if (!empty($child)) {
-                        $optionChild  = '<div class="w-100 ps-3">'.createOption($child, $type, $name, $value, $attribute).'</div>';
+
+                        $optionChild  .= ($type == 'list') ? "" : "<div class='w-100 ps-3'>";
+                        $optionChild  .= createOption($child, $type, $name, $value, $attribute);
+                        $optionChild  .= ($type == 'list') ? "" : "</div>";
+
                     }
     
                 }
 
-                $RETURN .= "<div class='w-100'>
-                    <div id='$name-$optionValue' class='form-check'>
-                        <input class='form-check-input' type='$type' name='$name' value='$optionValue' id='$type-$name-$optionValue' data-wi-check='true' $optionAttribute>
-                        <label class='form-check-label wi-check-label' for='$type-$name-$optionValue'>$optionName</label>
-                    </div>
-                    $optionChild
-                </div>";
+                if ($type == 'list') {
+                    
+                    $RETURN .= "<li id='$optionValue' $listAttribute><input class='d-none' type='checkbox' name='$name' value='$optionValue' $optionAttribute>$optionName$optionChild</li>";
+
+                } else {
+
+                    $RETURN .= "<div class='w-100'>
+                        <div id='$name-$optionValue' class='form-check'>
+                            <input class='form-check-input' type='$type' name='$name' value='$optionValue' id='$type-$name-$optionValue' data-wi-check='true' $optionAttribute>
+                            <label class='form-check-label wi-check-label' for='$type-$name-$optionValue'>$optionName</label>
+                        </div>
+                        $optionChild
+                    </div>";
+
+                }
     
             }
 
         }
+
+        $RETURN .= ($type == 'list') ? "</ul>" : "";
 
         return $RETURN;
 
@@ -486,6 +504,54 @@
             <div class='card border mt-1'>
                 $bar
                 <div class='card-body overflow-scroll p-2' style='height: 120px;'>
+                    $optionHTML
+                </div>
+            </div>
+        </div>";
+
+    } 
+
+    function checkTree($label, $name, $option, $attribute = null, $type = 'checkbox', $searchBar = false, $value = null) {
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && $value == null) {
+            $value = ($type == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
+        }
+
+        if ($attribute != null && strpos($attribute, "required") !== false) { 
+
+            $label .= "*"; 
+            $attribute = str_replace('required', '', $attribute);
+            $required = "wi-$type-required";
+
+        } else {
+
+            $required = "";
+            
+        }
+        
+        $inputHidden = "";
+        $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
+
+        if ($type == 'checkbox') {
+
+            $name .= '[]';
+            $inputHidden = "<input type='hidden' name='$name'>";
+
+        }
+
+        $optionHTML = createOption($option, 'list', $name, $value, $attribute);
+
+        return "
+        <div id='container-$id' class='w-100 wi-container-$type $required'>
+            <h6>$label</h6>
+            <div class='card border mt-1'>
+                $bar
+                $inputHidden
+                <div class='card-body overflow-scroll p-2' style='max-height: 300px;' data-wi-tree='$type'>
                     $optionHTML
                 </div>
             </div>

@@ -107,6 +107,7 @@ async function setUpPage() {
 
     setTextarea();
     setUploader();
+    setJsTree();
     
     if (document.getElementById('page-loading')) { document.getElementById('page-loading').classList.add('d-none') }
     
