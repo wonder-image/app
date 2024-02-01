@@ -37,21 +37,6 @@
 
     }
 
-    function childParent($table, $parentId, $child = []) {
-
-        $RETURN = "";
-
-        $SQL = sqlSelect($table, [ 'id' => $parentId, 'deleted' => 'false' ], 1);
-
-        if ($SQL->row['parent_id'] != '0') {
-            $RETURN = childParent($table, $SQL->row['parent_id'], []);
-            $RETURN = childParent($table, $SQL->row['parent_id']);
-        }
-
-        return $RETURN;
-
-    }
-
     function parentTree($table, $parentId, $tree = 'all') {
 
         $RETURN = (object) array();
