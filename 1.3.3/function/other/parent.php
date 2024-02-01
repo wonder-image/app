@@ -66,21 +66,23 @@
 
             foreach ($parentId as $key => $pId) {
 
-                if ($tree == 'all') {
+                if ($pId != '0') {
+                    if ($tree == 'all') {
 
-                    $SQL = sqlSelect($table, [ 'id' => $pId, 'deleted' => 'false' ]);
+                        $SQL = sqlSelect($table, [ 'id' => $pId, 'deleted' => 'false' ]);
 
-                    $RETURN->badge .= parentTree($table, $pId, $tree)->badge.'<br>';
+                        $RETURN->badge .= parentTree($table, $pId, $tree)->badge.'<br>';
 
-                } elseif ($tree == 'main') {
+                    } elseif ($tree == 'main') {
 
-                    $parentMain = parentMain($table, $pId);
+                        $parentMain = parentMain($table, $pId);
 
-                    if (!in_array($parentMain, $mainId)) {
-                        array_push($mainId, $parentMain);
-                        $RETURN->badge .= parentTree($table, $parentMain, $tree)->badge.'<br>';
+                        if (!in_array($parentMain, $mainId)) {
+                            array_push($mainId, $parentMain);
+                            $RETURN->badge .= parentTree($table, $parentMain, $tree)->badge.'<br>';
+                        }
+
                     }
-
                 }
 
             }
@@ -89,28 +91,32 @@
 
         } else {
 
-            $SQL = sqlSelect($table, [ 'id' => $parentId, 'deleted' => 'false' ]);
+            if ($parentId != '0') {
 
-            foreach ($SQL->row as $key => $row) {
+                $SQL = sqlSelect($table, [ 'id' => $parentId, 'deleted' => 'false' ]);
 
-                if ($tree == 'all') {
-                    
-                    if ($row['parent_id'] != '0') {
+                foreach ($SQL->row as $key => $row) {
+
+                    if ($tree == 'all') {
                         
-                        $RETURN->array = parentTree($table, $row['parent_id'], $tree)->array;
-                        $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
+                        if ($row['parent_id'] != '0') {
+                            
+                            $RETURN->array = parentTree($table, $row['parent_id'], $tree)->array;
+                            $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
 
-                    }
+                        }
 
-                    array_push($RETURN->array, $row['id']);
-                    $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
-
-                } elseif ($tree == 'main') {
-
-                    if ($row['parent_id'] == '0') {
+                        array_push($RETURN->array, $row['id']);
                         $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
-                    } else {
-                        $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
+
+                    } elseif ($tree == 'main') {
+
+                        if ($row['parent_id'] == '0') {
+                            $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
+                        } else {
+                            $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
+                        }
+
                     }
 
                 }
