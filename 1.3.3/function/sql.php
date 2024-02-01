@@ -551,7 +551,7 @@
                     
                     } else {
 
-                        foreach ($VALUE as $k => $v) { if (empty($v)) { unset($VALUE[$k]); } }
+                        foreach ($VALUE as $k => $v) { if (empty($v) && $v != 0) { unset($VALUE[$k]); } }
                         $VALUE = json_encode(array_values($VALUE));
 
                     }
