@@ -78,30 +78,28 @@
 
             if ($parentId != '0') {
 
-                $SQL = sqlSelect($table, [ 'id' => $parentId, 'deleted' => 'false' ]);
+                $SQL = sqlSelect($table, [ 'id' => $parentId, 'deleted' => 'false' ], 1);
 
-                foreach ($SQL->row as $key => $row) {
+                $row = $SQL->row;
 
-                    if ($tree == 'all') {
+                if ($tree == 'all') {
+                    
+                    if ($row['parent_id'] != '0') {
                         
-                        if ($row['parent_id'] != '0') {
-                            
-                            $RETURN->array = parentTree($table, $row['parent_id'], $tree)->array;
-                            $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
+                        $RETURN->array = parentTree($table, $row['parent_id'], $tree)->array;
+                        $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
 
-                        }
+                    }
 
-                        array_push($RETURN->array, $row['id']);
+                    array_push($RETURN->array, $row['id']);
+                    $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
+
+                } elseif ($tree == 'main') {
+
+                    if ($row['parent_id'] == '0') {
                         $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
-
-                    } elseif ($tree == 'main') {
-
-                        if ($row['parent_id'] == '0') {
-                            $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
-                        } else {
-                            $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
-                        }
-
+                    } else {
+                        $RETURN->badge .= parentTree($table, $row['parent_id'], $tree)->badge;
                     }
 
                 }
