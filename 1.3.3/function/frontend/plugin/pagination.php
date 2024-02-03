@@ -40,16 +40,15 @@
         
         $RETURN->html = "<div class='d-flex gap-3'>";
 
-        $url = parse_url($PAGE->url);
-        $href = $PATH->site.$url['path'];
+        $href = $PATH->site.$PAGE->path;
 
-        if (empty($url['query'])) {
+        if (empty($PAGE->query)) {
 
             $href .= ($scroll == null) ? '?page=' : '?scroll='.$scroll.'&page=';
 
         } else {
             
-            parse_str($url['query'], $query);
+            parse_str($PAGE->query, $query);
             
             unset($query['page']);
             unset($query['scroll']);
