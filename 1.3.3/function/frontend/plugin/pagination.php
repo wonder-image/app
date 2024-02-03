@@ -77,7 +77,7 @@
             $disabled = ($RETURN->page == 1) ? true : false;
             $RETURN->html .= paginationButton('<i class="bi bi-chevron-left"></i>', $href.$PAGE_BEFORE, $classArrow, false, $disabled);
 
-            if ($RETURN->max_page >= 2 && $RETURN->max_page <= 7) {
+            if ($RETURN->max_page >= 2 && $RETURN->max_page <= 5) {
                 for ($i=1; $i <= $RETURN->max_page; $i++) { 
                     $active = ($i == $RETURN->page) ? true : false;
                     $RETURN->html .= paginationButton($i, $href.$i, $classButton, $active);
