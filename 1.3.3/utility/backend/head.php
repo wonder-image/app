@@ -82,14 +82,7 @@
 </script>
 
 <!-- FullCalendar -->
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/index.global.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/daygrid/index.global.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/timegrid/index.global.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/list/index.global.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/web-component/index.global.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/interaction/index.global.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/rrule@2.6.4/dist/es5/rrule.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/rrule@6.1.10/index.global.min.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/index.global.min.js"></script>
 
 <!-- FullCalendar => Bootstrap 5 translator -->
 <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
