@@ -24,8 +24,14 @@
         $PAGE->root = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '';
 
         $PAGE->url = $url;
-        $PAGE->path = empty($url) ? '' : parse_url($url)['path'];
-        $PAGE->domain = empty($url) ? '' : parse_url($url)['host'];
+        $PAGE->path = empty($PAGE->url) ? '' : parse_url($url)['path'];
+        $PAGE->domain = empty($PAGE->url) ? '' : parse_url($url)['host'];
+
+        if (!empty($PAGE->url) && isset(parse_url($PAGE->url)['query'])) {
+            $PAGE->query = parse_url($PAGE->url)['query'];
+        } else {
+            $PAGE->query = "";
+        }
 
         $PAGE->base64 = base64_encode($url);
         $PAGE->uriBase64 = base64_encode(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
