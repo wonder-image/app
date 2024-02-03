@@ -828,11 +828,12 @@
 
     }
 
-    function submit($label = 'Salva', $name = 'upload', $class = null) {
+    function submit($label = 'Salva', $name = 'upload', $class = null, $onclick = null) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
+        $action = ($onclick == null) ? "type='submit'" : "type='button' onclick=\"$onclick\"";
 
-        return "<button type='submit' id='$id' name='$name' class='float-end btn btn-dark $class' disabled>$label</button>";
+        return "<button $action id='$id' name='$name' class='float-end btn btn-dark $class wi-submit' disabled>$label</button>";
 
     }
 

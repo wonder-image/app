@@ -1,6 +1,6 @@
 function check() {
     
-    document.querySelectorAll("form button[type='submit']").forEach(button => {
+    document.querySelectorAll("form button[type='submit'], form button.wi-submit").forEach(button => {
  
         button.removeAttribute("disabled");
 

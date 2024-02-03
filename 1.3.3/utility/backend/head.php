@@ -133,6 +133,7 @@
 <script src="<?=$PATH->appJs?>/backend/form/input.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/file.js"></script>
 <script src="<?=$PATH->appJs?>/backend/form/set.js"></script>
+<script src="<?=$PATH->appJs?>/backend/form/send.js"></script>
 <script src="<?=$PATH->appJs?>/backend/alert.js"></script>
 <script src="<?=$PATH->appJs?>/backend/modal.js"></script>
 <script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>
