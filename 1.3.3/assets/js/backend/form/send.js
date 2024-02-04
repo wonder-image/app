@@ -1,30 +1,14 @@
-function formUpload(form, url, responseFunction = null) {
-
-    loadingSpinner();
+async function formUpload(form, url, responseFunction = null) {
     
     var formData = new FormData(form);
     formData.append('post', 'true');
+
+    await postData(url, formData).then((data) => {
     
-    $.ajax({
-        type: "POST",
-        url: url,
-        data: formData,
-        contentType: false,
-        cache: false,
-        processData:false, 
-        success: function (data) {
-
-            if (responseFunction == null) {
-                loadingSpinner();
-            } else if (typeof responseFunction === 'function') {
-                responseFunction(data);
-            }
-
-        },
-        error: function (XMLHttpRequest) {
-            ajaxRequestError(XMLHttpRequest);
-            loadingSpinner();
+        if (data != false) {
+            if (typeof responseFunction === 'function') { responseFunction(data); }
         }
+
     });
 
 }
