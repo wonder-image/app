@@ -31,6 +31,7 @@ border-radius: 0.25rem;
 }
 .fc-event {
 background: none;
+overflow: hidden;
 }
 .fc-header-toolbar .btn:hover {
 background: #424649;
