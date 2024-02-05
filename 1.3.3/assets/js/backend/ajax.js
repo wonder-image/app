@@ -48,6 +48,10 @@ async function postData(url, data) {
 
     loadingSpinner();
 
+    if (data instanceof FormData === false) {
+        var data = createPostData(data)
+    }
+    
     await fetch(url, {
         method: "POST",
         body: data
@@ -95,5 +99,17 @@ async function postData(url, data) {
         console.log("Il file non risponde in JSON!");
 
     });
+
+}
+
+function createPostData(array = {}) {
+
+    var data = new FormData();
+
+    Object.keys(array).forEach(key => {
+        data.append(key, array[key]);
+    });
+
+    return data;
 
 }
