@@ -57,6 +57,19 @@ html[data-bs-theme="dark"] {
 .dropdown-menu li + li { margin-top: .25rem; }
 .dropdown-menu .dropdown-item { border-radius: .25rem; }
 
+.tooltip {
+--bs-tooltip-max-width: 250px;
+--bs-tooltip-font-size: .8em;
+--bs-tooltip-bg: rgba(var(--bs-secondary-bg-rgb), 1);
+--bs-tooltip-color: var(--bs-emphasis-color);
+--bs-tooltip-opacity: 1;
+--bs-tooltip-border-radius: var(--bs-border-radius);
+--bs-tooltip-arrow-width: 0; /* Def: 0.8rem */
+--bs-tooltip-arrow-height: 0; /* Def: 0.4rem */
+border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+border-radius: var(--bs-tooltip-border-radius);
+}
+
 #content {
 position: relative;
 float: right;
