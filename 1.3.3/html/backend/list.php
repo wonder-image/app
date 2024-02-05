@@ -140,7 +140,7 @@
         ?>
 
         <wi-card class="col-12">
-            <div class="col-12">
+            <div class="col-12 overflow-x-scroll">
 
                 <table class="table table-hover">
                     <thead>
