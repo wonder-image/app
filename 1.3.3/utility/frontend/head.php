@@ -192,6 +192,10 @@
     <script src="<?=$PATH->lib?>/swiper/effect-carousel.min.js"></script>
     <script src="<?=$PATH->lib?>/swiper/swiper-gl.min.js"></script>
 
+    <!-- Image Compare -->
+    <link rel="stylesheet" href="https://unpkg.com/image-compare-viewer@1.6.2/dist/image-compare-viewer.min.css">
+    <script src="https://unpkg.com/image-compare-viewer@1.6.2/dist/image-compare-viewer.min.js"></script>
+
     <!-- Fancybox -->
     <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
