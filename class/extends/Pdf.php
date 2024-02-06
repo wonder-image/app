@@ -1,6 +1,6 @@
 <?php
 
-    namespace Wonder;
+    namespace Pdf;
 
     use Fpdf\Fpdf;
 
