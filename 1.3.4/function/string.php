@@ -7,8 +7,10 @@
         foreach ($CHARACTERS as $k => $c) {
                         
             $character = $c['character'];
+            $html = $c['html'];
             $url = $c['url'];
             
+            $str = str_replace($html, $url, $str);
             $str = str_replace($character, $url, $str);
             
         }
