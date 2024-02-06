@@ -480,7 +480,7 @@
                                     if (!empty($BUTTONS)) {
                                         echo "
                                         <td scope='col' class='little align-middle'>
-                                            <div class='btn-group'>
+                                            <div class='position-static btn-group'>
                                                 <span class='badge text-dark' type='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
                                                     <i class='bi bi-three-dots'></i>
                                                 </span>
