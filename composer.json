@@ -20,5 +20,10 @@
         "phpmailer/phpmailer": "^6.8",
         "gumlet/php-image-resize": "2.0.4",
         "chillerlan/php-qrcode": "^4.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pdf": "class/extends"
+        }
     }
 }
