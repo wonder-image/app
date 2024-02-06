@@ -1,6 +1,6 @@
 <?php
 
-    namespace Pdf;
+    namespace Wonder;
 
     use Fpdf\Fpdf;
 
@@ -17,7 +17,7 @@
 
                 $path = explode('-', $regular);
                 $dir1 = $path[0];
-                $dir2 = $path[0];
+                $dir2 = $path[1];
                 
                 $this->AddFont($regular, "", $regular.'.php', $ROOT_APP.'/assets/font/'.$dir1.'/'.$dir2);
 
@@ -29,7 +29,7 @@
 
                 $path = explode('-', $bold);
                 $dir1 = $path[0];
-                $dir2 = $path[0];
+                $dir2 = $path[1];
 
                 $this->AddFont($bold, "B", $bold.'.php', $ROOT_APP.'/assets/font/'.$dir1.'/'.$dir2);
 
