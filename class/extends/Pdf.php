@@ -4,7 +4,7 @@
 
     use Fpdf\Fpdf;
 
-    class Pdf extends FPDF {
+    class Pdf extends Fpdf {
 
         private $FONT = "";
         private $FONT_BOLD = "";
