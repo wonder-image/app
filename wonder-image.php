@@ -1,12 +1,22 @@
 <?php
 
-    session_start();
+    # Imposto la durata delle sessioni
+        ini_set('session.gc_maxlifetime', 3600);
+        session_set_cookie_params(3600);
 
-    error_reporting(E_ALL);
-    date_default_timezone_set('Europe/Rome');
+    # Mostro tutti gli errori
+        error_reporting(E_ALL);
+    
+    # Imposto il timing basato su Roma
+        date_default_timezone_set('Europe/Rome');
 
-    if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
+    # Inizio la sessione
+        session_start();
 
+    # Imposto la sessione con utente non definito se non è impostato
+        if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
+
+    
     $APP_VERSION = "1.3.4";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
