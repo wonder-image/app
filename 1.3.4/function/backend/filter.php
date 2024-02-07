@@ -406,21 +406,25 @@
 
         if (empty($QUERY_CUSTOM)) {
             $QUERY = "`deleted` = 'false' ";
-        }else{
+        } else {
             $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
         }
 
-        $searchValue = isset($_GET['q']) ? trim($_GET['q']) : '';
+        $searchValue = isset($_GET['q']) ? sanitize($_GET['q']) : '';
 
         if (!empty($searchValue)) {
 
-            $QUERY .= "AND CONCAT_WS(' ',";
+            $QUERY_COLUMN = "AND CONCAT_WS(' ',";
 
-            foreach ($FILTER_SEARCH as $key => $value) {
-                $QUERY .= "`$value`, ";
-            }
+            foreach ($FILTER_SEARCH as $key => $value) { $QUERY_COLUMN .= "`$value`, "; }
 
-            $QUERY = substr($QUERY, 0, -2).") LIKE '%$searchValue%' ";
+            $QUERY_COLUMN = substr($QUERY_COLUMN, 0, -2).") LIKE";
+
+            $searchArray = explode(' ', $searchValue);
+
+            foreach ($searchArray as $key => $search) { $QUERY .= $QUERY_COLUMN." '%$search%' "; }
+
+            $QUERY = substr($QUERY, 0, -1);
 
             $ARROW = false;
 
@@ -627,7 +631,7 @@
 
     function createSearchBar() {
 
-        $value = isset($_GET['q']) ? $_GET['q'] : '';
+        $value = isset($_GET['q']) ? sanitize($_GET['q']) : '';
 
         $form = "
         <form action='' method='get' onsubmit='loadingSpinner()'>
