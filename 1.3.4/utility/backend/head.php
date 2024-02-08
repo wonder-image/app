@@ -82,7 +82,9 @@
 </script>
 
 <!-- FullCalendar -->
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.min.js"></script>
 <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/index.global.min.js"></script>
+<script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.global.min.js"></script>
 
 <!-- FullCalendar => Bootstrap 5 translator -->
 <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
