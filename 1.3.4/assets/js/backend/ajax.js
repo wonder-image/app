@@ -48,57 +48,25 @@ async function postData(url, data) {
 
     loadingSpinner();
 
-    if (data instanceof FormData === false) {
-        var data = createPostData(data)
+    if (data === undefined) {
+
+        console.error("Non è stato passato alcun dato alla funzione postData()");
+        
+    } else {
+
+        if (data instanceof FormData === false) {
+            var data = createPostData(data)
+        }
+        
+        await fetch(url, {
+            method: "POST",
+            body: data
+        })
+        .then((response) => { loadingSpinner(); return fetchResponse(response); })
+        .then((value) => { return fetchValue(value); })
+        .catch((error) => { fetchValue(error); });
+
     }
-    
-    await fetch(url, {
-        method: "POST",
-        body: data
-    })
-    .then((response) => {
-
-        loadingSpinner();
-
-        if (response.ok) {
-
-            return response.json();
-
-        } else {
-
-            alertToast(802);
-            console.log("Impossibile connettersi o trovare il file!");
-            return false;
-
-        }
-
-    })
-    .then((value) => {
-
-        if (value == false) {
-            
-            return false;
-            
-        } else {
-
-            if (value.status == 200) {
-                return value;
-            } else if (value.status == 401) {
-                alertToast(911);
-                return false;
-            } else {
-                alertToast(value.status);
-                return false;
-            }
-
-        }
-
-    }).catch((error) => {
-
-        alertToast(802);
-        console.log("Il file non risponde in JSON!");
-
-    });
 
 }
 
