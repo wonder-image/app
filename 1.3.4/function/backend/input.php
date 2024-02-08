@@ -446,7 +446,7 @@
                     $RETURN .= "<div class='w-100'>
                         <div id='$name-$optionValue' class='form-check'>
                             <input class='form-check-input' type='$type' name='$name' value='$optionValue' id='$type-$name-$optionValue' data-wi-check='true' $optionAttribute>
-                            <label class='form-check-label wi-check-label' for='$type-$name-$optionValue'>$optionName</label>
+                            <label class='form-check-label wi-check-label user-select-none' for='$type-$name-$optionValue'>$optionName</label>
                         </div>
                         $optionChild
                     </div>";
@@ -605,6 +605,99 @@
         </div>";
 
     } 
+
+    function checkbox($label, $name, $attribute = null, $value = null) {
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && $value == null) {
+            $value = $VALUES[$name];
+        }
+
+        if ($attribute != null && strpos($attribute, "required") !== false) { 
+
+            $label .= "*"; 
+            $attribute = str_replace('required', '', $attribute);
+            $required = "wi-checkbox-required";
+
+        } else {
+
+            $required = "";
+            
+        }
+        
+        $checked = ($value == 'true') ? 'checked' : '';
+
+        return "
+        <div id='container-$id' class='w-100 wi-container-checkbox $required'>
+            <input type='hidden' name='$name'>
+            <div class='input-group'>
+                <span class='input-group-text'><input class='form-check-input mt-0' type='checkbox' name='$name' id='$id' $attribute $checked></span>
+                <label for='$id' class='form-control user-select-none'>$label</label>
+            </div>
+        </div>";
+
+    }
+
+    function checkBoolean($label, $name, $attribute = null, $option = [ '', 'true', 'false'],  $value = null) {
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        if (isset($VALUES[$name]) && $value == null) {
+            $value = $VALUES[$name];
+        }
+
+        if ($attribute != null && strpos($attribute, "required") !== false) { 
+
+            $label .= "*"; 
+            $attribute = str_replace('required', '', $attribute);
+            $required = "wi-checkbox-required";
+
+        } else {
+
+            $required = "";
+            
+        }
+
+        # Check value
+            $valueNull = $option[0];
+            $valueTrue = $option[1];
+            $valueFalse = $option[2];
+
+            $idTrue = $name.'-'.$valueTrue;
+            $idFalse = $name.'-'.$valueFalse;
+
+            $checkedTrue = '';
+            $checkedFalse = '';
+
+            $classLabelTrue = '';
+            $classLabelFalse = '';
+
+            if ($valueTrue === $value) {
+                $checkedTrue = 'checked';
+                $classLabelTrue = 'btn-primary';
+            } elseif ($valueFalse === $value) {
+                $checkedFalse = 'checked';
+                $classLabelFalse = 'btn-primary';
+            }
+
+        return "
+        <div id='container-$id' class='w-100 wi-container-checkbox $required' data-wi-check-boolean='true'>
+            <input type='hidden' class='wi-none' name='$name' value='$valueNull'>
+            <input type='checkbox' class='btn-check wi-true' name='$name' value='$valueTrue' id='$idTrue' data-wi-check='true' $checkedTrue $attribute>
+            <input type='checkbox' class='btn-check wi-false' name='$name' value='$valueFalse' id='$idFalse' data-wi-check='true' $checkedFalse $attribute>
+            <div class='input-group'>
+                <span class='form-control'>$label</span>
+                <label class='btn border $classLabelTrue' for='$idTrue'>Si</label>
+                <label class='btn border $classLabelFalse' for='$idFalse'>No</label>
+            </div>
+        </div>";
+
+    }
 
     function inputFile($label, $name, $file = 'image', $attribute = null, $value = null) {
 

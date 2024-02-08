@@ -252,3 +252,45 @@ function setJsTree() {
     });
 
 }
+
+function setCheckBoolean() {
+    
+    document.querySelectorAll('[data-wi-check-boolean]').forEach(element => {
+
+        var inputTrue = element.querySelector('input.wi-true');
+        var labelTrue = inputTrue.labels[0];
+        var inputFalse = element.querySelector('input.wi-false');
+        var labelFalse = inputFalse.labels[0];
+
+        inputTrue.addEventListener("change", (el) => {
+
+            var checked = el.target.checked;
+
+            if (checked) { 
+                inputFalse.checked = false; 
+                labelFalse.classList.remove('btn-primary'); 
+                labelTrue.classList.add('btn-primary'); 
+            } else {
+                labelTrue.classList.remove('btn-primary'); 
+            }
+
+        });
+
+        inputFalse.addEventListener("change", (el) => {
+
+            var checked = el.target.checked;
+
+            if (checked) { 
+                inputTrue.checked = false; 
+                labelTrue.classList.remove('btn-primary'); 
+                labelFalse.classList.add('btn-primary'); 
+            } else {
+                labelFalse.classList.remove('btn-primary'); 
+            }
+
+        });
+
+
+    });
+
+}
