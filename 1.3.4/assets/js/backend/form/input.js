@@ -199,7 +199,7 @@ function createCheckbox(array, element, container, checked = false) {
     
                 HTML += "<div class='form-check'>";
                 HTML += "<input id='"+idCode+"' type='"+type+"' class='form-check-input' name='"+name+"' value='"+value+"' data-wi-check='true' "+att+" >";
-                HTML += "<label class='form-check-label wi-check-label' for='"+idCode+"'>"+label+"</label>";
+                HTML += "<label class='form-check-label wi-check-label user-select-none' for='"+idCode+"'>"+label+"</label>";
                 HTML += "</div>";
     
                 container.insertAdjacentHTML("beforeend", HTML);
@@ -279,5 +279,35 @@ function inputSearch(event) {
         });
 
     }
+    
+}
+
+function filterSelect(selectElement, dataName, value) {
+
+    selectElement.querySelectorAll('option').forEach(option => {
+
+        if (option.getAttribute('data-'+dataName)) {
+            
+            var filterValue = JSON.parse(option.getAttribute('data-'+dataName));
+
+            if ((Array.isArray(filterValue) && filterValue.includes(value)) || filterValue == value) {
+
+                option.disabled = false;
+                option.hidden = false;
+
+            } else {
+
+                if (option.selected == true) {
+                    selectElement.value = "";
+                }
+
+                option.disabled = true;
+                option.hidden = true;
+
+            }
+
+        }
+
+    });
     
 }
