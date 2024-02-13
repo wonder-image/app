@@ -145,7 +145,6 @@
     # Default
         $DEFAULT->image = $PATH->assets."/images/Default.png";
         
-
         $DEFAULT->font = [
             [
                 "name" => "Roboto",
