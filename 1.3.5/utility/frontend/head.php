@@ -129,14 +129,13 @@
 <!-- Inizio icone -->
     <?php
 
-
-        if ($SOCIETY_LOGOS['favicon'] != "") {
+        if ($SOCIETY_LOGOS['favicon'] != "" && !empty(json_decode($SOCIETY_LOGOS['favicon']))) {
 
             echo "<link rel='icon' href='$PATH->favicon'>";
 
         }
 
-        if ($SOCIETY_LOGOS['app_icon'] != "") {
+        if ($SOCIETY_LOGOS['app_icon'] != "" && !empty(json_decode($SOCIETY_LOGOS['app_icon']))) {
 
             echo "<link rel='apple-touch-icon' href='$PATH->appIcon'>";
 
