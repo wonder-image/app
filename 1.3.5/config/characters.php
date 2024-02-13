@@ -171,7 +171,37 @@
             "url" => "",
             "html" => "&yen;",
             "unicode" => "&#165;"
+        ],
+
+        # Combining Grave Accent  ̀
+        [
+            "character" => "à", 
+            "url" => "a",
+            "html" => "&agrave;",
+            "unicode" => "&#224;"
         ],[
+            "character" => "è",
+            "url" => "e",
+            "html" => "&egrave;",
+            "unicode" => "&#224;"
+        ],[
+            "character" => "ì",
+            "url" => "i",
+            "html" => "&igrave;",
+            "unicode" => "&#224;"
+        ],[
+            "character" => "ò",
+            "url" => "o",
+            "html" => "&ograve;",
+            "unicode" => "&#242;"
+        ],[
+            "character" => "ù",
+            "url" => "u",
+            "html" => "&ugrave;",
+            "unicode" => "&#249;"
+        ],
+        
+        [
             "character" => "á",
             "url" => "a",
             "html" => "&aacute;",
