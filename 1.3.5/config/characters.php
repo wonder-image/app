@@ -77,6 +77,11 @@
             "html" => "&nbsp;",
             "unicode" => "&#160;"
         ],[
+            "character" => " ",
+            "url" => " ",
+            "html" => "&nbsp;",
+            "unicode" => "&#160;"
+        ],[
             "character" => "​", # zero-width space ZWSP
             "url" => "",
             "html" => "&ZeroWidthSpace;",
