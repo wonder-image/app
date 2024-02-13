@@ -1,8 +1,8 @@
 <?php
 
-    # Imposto la durata delle sessioni
-        ini_set('session.gc_maxlifetime', 3600);
-        session_set_cookie_params(3600);
+    # Imposto la durata delle sessioni in secondi
+        ini_set('session.gc_maxlifetime', 14400); # 4 Ore
+        session_set_cookie_params(14400); # 4 Ore
 
     # Mostro tutti gli errori
         error_reporting(E_ALL);
