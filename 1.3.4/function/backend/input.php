@@ -295,7 +295,11 @@
     function textarea($label, $name, $attribute = null, $version = null, $value = null) {
 
         global $VALUES;
-        global $PAGE_TABLE;
+        global $NAME;
+        global $TABLE;
+
+        $TABLE_NAME = strtoupper($NAME->table);
+        $PAGE_TABLE = $TABLE->$TABLE_NAME;
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -309,7 +313,7 @@
             return "
             <div class='form-floating'>
                 <h6 class='mb-1'>$label</h6>
-                <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true' data-wi-textarea='$version' $attribute>$value</textarea>
+                <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true' data-wi-textarea='$version' data-wi-folder='$NAME->folder' $attribute>$value</textarea>
             </div>";
 
         } else {

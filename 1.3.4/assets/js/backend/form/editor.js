@@ -22,12 +22,43 @@ class CustomHyperlink extends Hyperlink {
 class CustomEmded extends Embed {
     
     static get toolbox() {
-        return {
-            title: 'Embed',
-            icon: '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 1 0-6M14 11a5 5 0 0 1 0 6"></path><line x1="14" y1="7" x2="14" y2="7"></line><line x1="10" y1="17" x2="10" y2="17"></line></svg>'
-        };
+      return {
+        title: 'Iframe',
+        icon: '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 1 0-6M14 11a5 5 0 0 1 0 6"></path><line x1="14" y1="7" x2="14" y2="7"></line><line x1="10" y1="17" x2="10" y2="17"></line></svg>'
+      };
+    }
+  
+    /**
+     * Render Embed tool content
+     *
+     * @returns {HTMLElement}
+     */
+    render() {
+      if (!this.data.service) {
+        const container = document.createElement('div');
+  
+        this.element = container;
+        const input = document.createElement('input');
+        input.classList.add('cdx-input');
+        input.placeholder = 'https://www.youtube.com/watch?v=w8vsuOXZBXc';
+        input.type = 'url';
+        input.addEventListener('paste', (event) => {
+          const url = event.clipboardData.getData('text');
+          const service = Object.keys(Embed.services).find((key) => Embed.services[key].regex.test(url));
+          if (service) {
+            this.onPaste({detail: {key: service, data: url}});
+          }
+        });
+        container.appendChild(input);
+  
+        return container;
+      }
+      return super.render();
     }
     
+    validate(savedData) {
+      return savedData.service && savedData.source ? true : false;
+    }
 }
 
 class CustomVideoTool extends VideoTool {
@@ -82,10 +113,12 @@ var EDITORJS_TOOLS_BLOG = {
         config: {
             captionPlaceholder: 'Caption...',
             endpoints: {
-                byFile: pathSite+'/api/task/article/image.php'
+                byFile: pathApp+'/api/backend/editorjs/image.php'
+                // Aggiungere cartella dove caricare i file
             },
             field: 'image',
-            types: 'image/png, image/jpg, image/jpeg'
+            types: 'image/png, image/jpg, image/jpeg',
+            additionalRequestHeaders: { dir: '' }
             // Forzo nel css la rimozione "display: none" di withBorder, stretched e withBackground
         }
     },
@@ -94,10 +127,12 @@ var EDITORJS_TOOLS_BLOG = {
         config: {
             captionPlaceholder: 'Caption galleria...',
             endpoints: {
-                byFile: pathSite+'/api/task/article/image.php'
+                byFile: pathApp+'/api/backend/editorjs/image.php'
+                // Aggiungere cartella dove caricare i file
             },
             field: 'image',
             types: 'image/png, image/jpg, image/jpeg',
+            additionalRequestHeaders: { dir: '' }
             // Forzo nel css la rimozione "display: none" di fit e slider
         },
     },
@@ -106,8 +141,10 @@ var EDITORJS_TOOLS_BLOG = {
     attaches: {
         class: AttachesTool,
         config: {
-            endpoint: pathSite+'/api/task/article/file.php',
+            endpoint: pathApp+'/api/backend/editorjs/file.php',
+            // Aggiungere cartella dove caricare i file
             field: 'file',
+            additionalRequestHeaders: { dir: '' }
         }
     },
     // TODO: Aggiungi caricamento video (potrebbe tornare utile la classe ImageTool)

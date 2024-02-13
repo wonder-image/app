@@ -138,6 +138,10 @@ function setTextarea() {
 
             // Editor.js
 
+            EDITORJS_TOOLS_BLOG.image.config.additionalRequestHeaders.dir = textarea.dataset.wiFolder+'/images';
+            EDITORJS_TOOLS_BLOG.gallery.config.additionalRequestHeaders.dir = textarea.dataset.wiFolder+'/images';
+            EDITORJS_TOOLS_BLOG.attaches.config.additionalRequestHeaders.dir = textarea.dataset.wiFolder+'/files';
+
             editor.classList.add('wi-'+type);
             editor.classList.add('pt-3');
             editor.classList.add('rounded');
