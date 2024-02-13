@@ -15,6 +15,8 @@
             
         }
 
+        $str = strtolower($str);
+
         $str = preg_replace('/[^A-Za-z0-9\-]/', ' ', $str);
         $str = trim($str);
         
