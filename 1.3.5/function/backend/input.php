@@ -848,7 +848,7 @@
         </div>";
 
     }
-
+    
     function inputFileDragDrop($label, $name, $type = 'classic', $file = 'image', $attribute = null, $value = null) {
 
         global $PATH;
@@ -871,20 +871,28 @@
 
         if ($file == "image") {
             $ACCEPT = "image/png, image/jpeg";
+            $ACCEPT_LABEL = "la tua immagine";
         } elseif ($file == "pdf") {
             $ACCEPT = "application/pdf";
+            $ACCEPT_LABEL = "il tuo PDF";
         } elseif ($file == "png") {
             $ACCEPT = "image/png";
+            $ACCEPT_LABEL = "la tua immagine";
         } elseif ($file == "ico") {
             $ACCEPT = "image/ico";
+            $ACCEPT_LABEL = "la tua immagine";
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";
+            $ACCEPT_LABEL = "il tuo video";
         } elseif ($file == "jpg") {
             $ACCEPT = "image/jpeg";
+            $ACCEPT_LABEL = "la tua immagine";
         } elseif ($file == "font") {
             $ACCEPT = "font/ttf";
+            $ACCEPT_LABEL = "il tuo font";
         } else {
             $ACCEPT = "";
+            $ACCEPT_LABEL = "il tuo file";
         }
 
         $x = $name.'[]';
@@ -905,7 +913,7 @@
         <div id='container-$id' class='w-100'>
             $label
             <div class='$class'>
-                <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-check='true' $multiple $attribute>
+                <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-uploader-label='$ACCEPT_LABEL' data-wi-check='true' $multiple $attribute>
             </div>
         </div>";
 

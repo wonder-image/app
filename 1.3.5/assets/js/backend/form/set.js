@@ -21,6 +21,14 @@ function setUploader() {
         var type = uploader.dataset.wiUploader;
         var dir = uploader.dataset.wiDir;
         var value = uploader.dataset.wiValue;
+        var label = uploader.dataset.wiUploaderLabel;
+        var accept = uploader.accept;
+
+        if (accept === '' || accept === '*') {
+            var validation = false;
+        } else {
+            var validation = true;
+        }
 
         var files = [];
         
@@ -44,7 +52,9 @@ function setUploader() {
 
             FilePond.create(uploader, {
                 storeAsFile: true,
-                labelIdle: `Trascina la tua immagine o <span class="filepond--label-action">Cerca</span>`,
+                labelIdle: `Trascina `+label+` o <span class="filepond--label-action">Cerca</span>`,
+                files: files,
+                allowFileTypeValidation: validation,
                 onaddfile: () => { check(); },
                 onremovefile: () => { check(); }
             });
@@ -53,12 +63,13 @@ function setUploader() {
 
             FilePond.create(uploader, {
                 storeAsFile: true,
-                labelIdle: `Trascina la tua immagine o <span class="filepond--label-action">Cerca</span>`,
+                labelIdle: `Trascina `+label+` o <span class="filepond--label-action">Cerca</span>`,
                 imageCropAspectRatio: '1:1',
                 stylePanelLayout: 'compact circle',
                 styleLoadIndicatorPosition: 'center bottom',
                 styleButtonRemoveItemPosition: 'center bottom',
                 files: files,
+                allowFileTypeValidation: validation,
                 onaddfile: () => { check(); },
                 onremovefile: () => { check(); }
             });
