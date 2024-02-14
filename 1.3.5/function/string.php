@@ -105,19 +105,29 @@
 
     function sanitize($str){
         
+        global $CHARACTERS;
+        
         if (!empty($str)) {
-            $str = str_replace('“','"',$str);
-            $str = str_replace('”','"',$str);
-            $str = str_replace('’',"'",$str);
-            $str = str_replace('…',"...",$str);
+
+            foreach ($CHARACTERS as $k => $c) {
+                        
+                $character = $c['character'];
+                $html = $c['html'];
+
+                if (!in_array($character, ['"', ">", "<", " ", "&"])) {
+                    $str = str_replace($character, $html, $str);
+                }
+                
+            }
+
             $str = trim($str);
-            $str = htmlspecialchars($str, ENT_QUOTES);
             $str = addslashes($str);
+
         }
 
         return $str;
         
-    }      
+    }    
 
     function sanitizeJSON($array) {
 
