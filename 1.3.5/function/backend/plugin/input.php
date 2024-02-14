@@ -21,15 +21,17 @@
 
         #
 
+        $RETURN = "<div class='row g-3'>";
+
         # Titolo
 
-            $RETURN = "<div class='col-12'> <h6>$TITLE</h6> </div>";
+            $RETURN .= "<div class='col-12'> <h5>$TITLE</h5> </div>";
 
         #
 
         # Apro il contenitore
 
-            $RETURN .= "<div class='col-12'> <div id='$ID' class='row g-3 mt-0'>";
+            $RETURN .= "<div class='col-12 mt-0'> <div id='$ID' class='row g-3 mt-0'>";
 
         #
 
@@ -66,6 +68,10 @@
                         $RETURN .= price($label, $name.'[]', $attribute, $value);
                     } elseif ($type == 'select') {
                         $RETURN .= select($label, $name.'[]', $option, $version, $attribute, $value);
+                    } elseif ($type == 'date') {
+                        $RETURN .= dateInput($label, $name.'[]', null, null, $attribute, $value);
+                    } elseif ($type == 'date-time') {
+                        $RETURN .= textDatetime($label, $name.'[]', $attribute, $value);
                     }
 
                     $RETURN .= "</div>";
@@ -107,6 +113,10 @@
                         $RETURN .= price($label, $name.'[]', $attribute, $value);
                     } elseif ($type == 'select') {
                         $RETURN .= select($label, $name.'[]', $option, $version, $attribute, $value);
+                    } elseif ($type == 'date') {
+                        $RETURN .= dateInput($label, $name.'[]', null, null, $attribute, $value);
+                    } elseif ($type == 'date-time') {
+                        $RETURN .= textDatetime($label, $name.'[]', $attribute, $value);
                     }
 
                     $RETURN .= "</div>";
@@ -148,6 +158,10 @@
                     $RETURN .= price($label, $name.'[]', 'data-wi-attribute="'.$attribute.'"', $value);
                 } elseif ($type == 'select') {
                     $RETURN .= select($label, $name.'[]', $option, $version, 'data-wi-attribute="'.$attribute.'"', $value);
+                } elseif ($type == 'date') {
+                    $RETURN .= dateInput($label, $name.'[]', null, null, 'data-wi-attribute="'.$attribute.'"', $value);
+                } elseif ($type == 'date-time') {
+                    $RETURN .= textDatetime($label, $name.'[]', 'data-wi-attribute="'.$attribute.'"', $value);
                 }
 
                 $RETURN .= "</div>";
@@ -173,6 +187,8 @@
             $RETURN .= "</div>";
 
         #
+
+        $RETURN .= "</div>";
 
         # Sistema le frecce 
 
