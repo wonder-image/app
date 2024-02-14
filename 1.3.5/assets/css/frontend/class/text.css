@@ -71,6 +71,7 @@ font-weight: var(--text-small-font-weight) !important;
 /* Decoration */
 .tx-none { text-decoration: none !important; }
 .tx-underline { text-decoration: underline !important; }
+.tx-upper { text-transform: uppercase !important; }
 
 /* Max line */
 .max-line-1 {
