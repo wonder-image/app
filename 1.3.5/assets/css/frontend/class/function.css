@@ -214,8 +214,49 @@ animation: skeleton-loading 1s linear infinite alternate;
 0% { background-color: hsl(10, 0%, 85%); }
 100% { background-color: hsl(10, 0%, 95%); }
 }
-
+@media (max-width: 1000px) {
+.o-t-center {
+object-position: center !important;
+background-position: center !important;
+}
+.o-t-top {
+object-position: top !important;
+background-position: top !important;
+}
+.o-t-right {
+object-position: right !important;
+background-position: right !important;
+}
+.o-t-bottom {
+object-position: bottom !important;
+background-position: bottom !important;
+}
+.o-t-left {
+object-position: left !important;
+background-position: left !important;
+}     
+}
 @media (max-width: 768px) {
+.o-p-center {
+object-position: center !important;
+background-position: center !important;
+}
+.o-p-top {
+object-position: top !important;
+background-position: top !important;
+}
+.o-p-right {
+object-position: right !important;
+background-position: right !important;
+}
+.o-p-bottom {
+object-position: bottom !important;
+background-position: bottom !important;
+}
+.o-p-left {
+object-position: left !important;
+background-position: left !important;
+}
 div.bg-img-f {
 position: absolute;
 top: 50%;
