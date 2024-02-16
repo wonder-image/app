@@ -27,7 +27,8 @@ function copyRow(container, element) {
     container.appendChild(copy);
     
     checkInput();
-    rowSetArrow(container)
+    rowSetArrow(container);
+    bootstrapTooltip();
 
 }
 
