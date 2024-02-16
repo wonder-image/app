@@ -6,5 +6,6 @@ FilePond.registerPlugin(
     FilePondPluginImageResize,
     FilePondPluginImageTransform,
     FilePondPluginImageEdit,
-    FilePondPluginFileMetadata 
+    FilePondPluginFileMetadata,
+    FilePondPluginGetFile
 );

@@ -55,6 +55,7 @@ function setUploader() {
                 labelIdle: `Trascina `+label+` o <span class="filepond--label-action">Cerca</span>`,
                 files: files,
                 allowFileTypeValidation: validation,
+                allowDownloadByUrl: true,
                 onaddfile: () => { check(); },
                 onremovefile: () => { check(); }
             });
@@ -70,6 +71,7 @@ function setUploader() {
                 styleButtonRemoveItemPosition: 'center bottom',
                 files: files,
                 allowFileTypeValidation: validation,
+                allowDownloadByUrl: true,
                 onaddfile: () => { check(); },
                 onremovefile: () => { check(); }
             });

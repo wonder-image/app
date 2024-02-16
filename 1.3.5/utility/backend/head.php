@@ -55,9 +55,10 @@
 <script src="<?=$PATH->lib?>/editorjs/video.js"></script>
 
 <!-- FilePond => .css -->
-<link href="https://unpkg.com/filepond@4.30.6/dist/filepond.css" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/filepond-plugin-image-preview@4.6.12/dist/filepond-plugin-image-preview.css">
-<link rel="stylesheet" href="https://unpkg.com/filepond-plugin-image-edit@1.6.3/dist/filepond-plugin-image-edit.css">
+<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/index.min.css">
+<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/plugin/image-preview/index.min.css">
+<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/plugin/image-edit/index.min.css">
+<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/plugin/get-file/index.min.css">
 
 <!-- Bootstrap Datepicker -->
 <script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
