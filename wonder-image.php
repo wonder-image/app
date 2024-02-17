@@ -1,8 +1,8 @@
 <?php
 
-    # Imposto la durata delle sessioni
-        ini_set('session.gc_maxlifetime', 3600);
-        session_set_cookie_params(3600);
+    # Imposto la durata delle sessioni in secondi
+        ini_set('session.gc_maxlifetime', 14400); # 4 Ore
+        session_set_cookie_params(14400); # 4 Ore
 
     # Mostro tutti gli errori
         error_reporting(E_ALL);
@@ -17,7 +17,7 @@
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
 
     
-    $APP_VERSION = "1.3.4";
+    $APP_VERSION = "1.3.5";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
