@@ -14,7 +14,7 @@
                     </div>
                     <div class='modal-footer'>
                         <button type='button' class='btn close' data-bs-dismiss='modal'></button>
-                        <button type='button' class='btn send'></button>
+                        <button type='button' class='btn send' data-bs-dismiss='modal'></button>
                     </div>
                 </div>
             </div>
