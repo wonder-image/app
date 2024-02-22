@@ -493,6 +493,7 @@
         return $RETURN;
 
     }
+
     function createFilterCustom() {
 
         global $FILTER_CUSTOM;
@@ -765,7 +766,15 @@
                 $HTML
             </div>";
 
-            if (isset($_GET[$table]) && !empty($_GET[$table])) { $FILTER_USED++; }
+            if (isset($_GET[$table]) && !empty($_GET[$table])) { 
+                if (is_array($_GET[$table])) {
+                    if (isset($_GET[$table][1])) {
+                        $FILTER_USED++; 
+                    }
+                } else {
+                    $FILTER_USED++; 
+                }
+            }
 
         }
 
