@@ -37,7 +37,7 @@
         global $PAGE;
         
         return "
-        <a href='$PATH->backend/$NAME->folder/?redirect=$PAGE->uriBase64' type='button' class='btn btn-success btn-sm'>
+        <a href='$PATH->backend/$NAME->folder/?redirect=$PAGE->uriBase64' type='button' class='btn btn-dark btn-sm float-end'>
             <i class='bi bi-plus-lg'></i> Aggiungi $title
         </a>";
 

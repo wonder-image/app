@@ -24,6 +24,7 @@
         $PAGE->root = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '';
 
         $PAGE->url = $url;
+        $PAGE->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         $PAGE->path = empty($PAGE->url) ? '' : parse_url($url)['path'];
         $PAGE->domain = empty($PAGE->url) ? '' : parse_url($url)['host'];
 
@@ -34,7 +35,7 @@
         }
 
         $PAGE->base64 = base64_encode($url);
-        $PAGE->uriBase64 = base64_encode(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
+        $PAGE->uriBase64 = base64_encode($PAGE->uri);
 
         if (isset($_GET['redirect'])) { 
             $PAGE->redirectBase64 = $_GET['redirect']; 

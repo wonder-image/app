@@ -1,3 +1,4 @@
+
 <?php
 
     if (isset($USER_FILTER->authority) && isset($USER_FILTER->area)) {
@@ -38,10 +39,10 @@
         
     }
 
-    if ($FILTER_TYPE == 'limit') {
-        $FILTER = filterLimit();
-    } elseif ($FILTER_TYPE == 'date') {
+    if ($FILTER_TYPE == 'date') {
         $FILTER = filterDate();
+    } else {
+        $FILTER = filter();
     }
 
     if (!isset($PAGE_TABLE)) {
@@ -49,9 +50,98 @@
         $PAGE_TABLE = $TABLE->$table;
     }
 
-    if ($BUTTON_ADD) { $BUTTON_ADD = createAddButton($TEXT->titleS); }
-    if (!empty($FILTER_SEARCH)) { $SEARCH = createSearchBar(); }
     if (!empty($FILTER_CUSTOM)) { $CUSTOM = createFilterCustom(); }
+
+    # Headers
+        $TABLE_COLUMNS = [];
+
+        $COLUMN_N = 0;
+
+        if ($FILTER->arrow && $FILTER->selected_lines > 1) {
+
+            array_push($TABLE_COLUMNS, [
+                'data' => 0,
+                'name' => 'position-up',
+                'title' => '',
+                'orderable' => false,
+                'className' => 'little'
+            ]);
+
+            array_push($TABLE_COLUMNS, [
+                'data' => 1,
+                'name' => 'position-down',
+                'title' => '',
+                'orderable' => false,
+                'className' => 'little'
+            ]);
+
+
+            $COLUMN_N = 2;
+
+        }
+
+        foreach ($TABLE_FIELD as $column => $value) {
+
+            $class = "";
+
+            $label = !empty($value['label']) ? $value['label'] : '';
+            $orderable = isset($value['orderable']) ? $value['orderable'] : false;
+            $phone = isset($value['phone']) ? $value['phone'] : true;
+            $tablet = isset($value['tablet']) ? $value['tablet'] : true;
+            $pc = isset($value['pc']) ? $value['pc'] : true;
+
+            $dimension = !empty($value['dimension']) ? $value['dimension'] : '';
+
+            if (empty($dimension)) {
+                if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty') {
+                    $dimension = 'little';
+                }
+            }
+
+            $class .= $dimension;
+
+            if (!$phone) { $class .= ' min-mobile'; }
+            if (!$tablet) { $class .= ' min-tablet'; }
+            if (!$pc) { $class .= ' max-tablet'; }
+
+            if ($pc && $tablet && $phone) { $class .= ' all'; }
+
+            array_push($TABLE_COLUMNS, [
+                'data' => $COLUMN_N,
+                'name' => $column,
+                'title' => $label,
+                'orderable' => $orderable,
+                'className' => $class
+            ]);
+
+            $COLUMN_N++;
+
+        }
+
+        if (!empty($TABLE_ACTION)) {
+
+            $row = false;
+
+            foreach ($TABLE_ACTION as $action => $link) {
+                if (is_array($link) || $link == true) {
+                    $row = true;
+                    break;
+                }
+            }
+            
+            if ($row) { 
+                
+                array_push($TABLE_COLUMNS, [
+                    'data' => $COLUMN_N,
+                    'name' => 'menu',
+                    'title' => '',
+                    'orderable' => false,
+                    'className' => 'little all'
+                ]);
+
+            }
+
+        }
 
 ?>
 <!DOCTYPE html>
@@ -66,19 +156,25 @@
 
 </head>
 <body>
-    
+
     <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
     <?php include $ROOT_APP."/utility/backend/header.php"; ?>
 
     <div class="row g-3">
 
         <wi-card class="col-12">
-            <div class="col-12">
+
+
+            <div class="col-<?=!empty($BUTTON_ADD) ? "8" : "12"?>"> 
                 <h3><?=$FILTER->title?></h3>
                 <figcaption class="text-muted">
-                    <?="Risultati: $FILTER->selected_lines/$FILTER->lines"?>
+                    Risultati: <span id="wi-table-result"></span>
                 </figcaption>
             </div>
+
+            <?php if (!empty($BUTTON_ADD)) { echo "<div class='col-4'>".createAddButton($TEXT->titleS)."</div>"; } ?>
+
+            <?php if (isset($FILTER->html) && !empty($FILTER->html)) :?>
             <div class="col-12">
                 <div class="container" style="max-width: 100%;">
                     <div class="row row-cols-auto gap-2">
@@ -86,28 +182,15 @@
                     </div>
                 </div>
             </div>
-        </wi-card>
+            <?php endif; ?>
 
-        <?php
+            <?php
 
-            if (!empty($FILTER_SEARCH) || !empty($FILTER_CUSTOM) || !empty($BUTTON_ADD) || !empty($BUTTON_CUSTOM)) {
-                
-                echo "<wi-card class='col-12'>";
 
-                if (!empty($FILTER_SEARCH)) {
-                    echo "<div class='col-4'>$SEARCH</div>";
-                }
+                if (!empty($BUTTON_CUSTOM)) {
 
-                if (!empty($FILTER_CUSTOM) || !empty($BUTTON_ADD) || !empty($BUTTON_CUSTOM)) {
+                    echo "<div class='col-12 d-flex gap-2 justify-content-end'>";
 
-                    if (!empty($FILTER_SEARCH)) {
-                        echo "<div class='col-8 d-flex gap-2 justify-content-end'>";
-                    } else {
-                        echo "<div class='col-12 d-flex gap-2 justify-content-end'>";
-                    }
-                    
-                    if (!empty($FILTER_CUSTOM)) { echo $CUSTOM->button; }
-                    if (!empty($BUTTON_ADD)) { echo $BUTTON_ADD; }
                     if (!empty($BUTTON_CUSTOM)) {
                         foreach ($BUTTON_CUSTOM as $key => $v) {
 
@@ -125,386 +208,53 @@
                         }
                         
                     }
+
                     echo "</div>";
 
                 }
+                
+                if (!empty($FILTER_CUSTOM)) {
+                    
+                    echo "<div class='col-auto pe-0'>".$CUSTOM->button."</div>";
 
-                if (!empty($FILTER_CUSTOM)) { 
-                    echo $CUSTOM->html; 
                 }
 
-                echo "</wi-card>";
-
-            }
-
-        ?>
-
-        <wi-card class="col-12">
-            <div class="col-12 overflow-x-scroll">
-
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <?php
-
-                                if ($FILTER->arrow && $FILTER->selected_lines > 1) {
-                                    echo "<th scope='col' class='phone-none little'></th>";
-                                    echo "<th scope='col' class='phone-none little'></th>";
-                                }
-
-                                foreach ($TABLE_FIELD as $column => $value) {
-
-                                    $class = "";
-
-                                    $label = !empty($value['label']) ? $value['label'] : '';
-                                    $phone = isset($value['phone']) ? $value['phone'] : true;
-                                    $tablet = isset($value['tablet']) ? $value['tablet'] : true;
-                                    $pc = isset($value['pc']) ? $value['pc'] : true;
-
-                                    $dimension = !empty($value['dimension']) ? $value['dimension'] : '';
-
-                                    if (empty($dimension)) {
-                                        if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty') {
-                                            $dimension = 'little ';
-                                        }
-                                    }
-
-                                    $class .= $dimension;
-
-                                    if (!$phone) { $class .= ' phone-none'; }
-                                    if (!$tablet) { $class .= ' tablet-none'; }
-                                    if (!$pc) { $class .= ' pc-none'; }
-
-                                    echo "<th scope='col' class='$class'>$label</th>";
-
-                                }
-
-                                if (!empty($TABLE_ACTION)) {
-
-                                    $row = false;
-
-                                    foreach ($TABLE_ACTION as $action => $link) {
-                                        if (is_array($link) || $link == true) {
-                                            $row = true;
-                                        }
-                                    }
-                                    
-                                    if ($row) { echo "<th scope='col' class='little'></th>"; }
-
-                                }
-
-                            ?>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <?php
-                        
-                            $SQL = sqlSelect($NAME->table, $FILTER->query);
-
-                            $lineN = 1;
-
-                            foreach ($SQL->row as $key => $row) {
-
-                                $ROW_ID = $row['id'];
-
-                                $LINK = (object) array();
-                                $LINK->view = "$PATH->backend/$NAME->folder/view.php?redirect=$PAGE->uriBase64&id=$ROW_ID";
-                                $LINK->modify = "$PATH->backend/$NAME->folder/?redirect=$PAGE->uriBase64&modify=$ROW_ID";
-                                $LINK->download = "$PATH->backend/$NAME->folder/download.php?id=$ROW_ID";
-
-                                $DELETE_BUTTON = true;
-
-                                $searchJS = "";
-
-                                if (!empty($FILTER_SEARCH)) {
-                                    
-                                    $searchJS = "class='search-here' data-keyword='";
-
-                                    foreach ($FILTER_SEARCH as $key => $value) {
-                                        $searchJS .= $row[$value].' '; 
-                                    }
-
-                                    $searchJS = substr($searchJS, 0, -1)."'";
-
-                                }
-
-                                echo "<tr id='line-$lineN' $searchJS >";
-
-
-                                if ($FILTER->arrow && $FILTER->selected_lines > 1) {
-
-                                    $onclickUp = "<a class='bi bi-chevron-up text-dark' onclick=\"ajaxRequest('$PATH->app/api/backend/move.php?table=$NAME->table&id=$ROW_ID&action=up')\" role='button'></a>";
-                                    $onclickDown = "<a class='bi bi-chevron-down text-dark' onclick=\"ajaxRequest('$PATH->app/api/backend/move.php?table=$NAME->table&id=$ROW_ID&action=down')\" role='button'></a>";
-
-                                    if ($lineN == 1) {
-                                        echo "<td scope='col' class='phone-none little'></td>";
-                                        echo "<td scope='col' class='phone-none little'>$onclickDown</td>";
-                                    } elseif ($lineN == $FILTER->selected_lines) {
-                                        echo "<td scope='col' class='phone-none little'>$onclickUp</td>";
-                                        echo "<td scope='col' class='phone-none little'></td>";
-                                    } else {
-                                        echo "<td scope='col' class='phone-none little'>$onclickUp</td>";
-                                        echo "<td scope='col' class='phone-none little'>$onclickDown</a></td>";
-                                    }
-                                }
-
-                                foreach ($TABLE_FIELD as $column => $value) {
-
-                                    $VALUE = "";
-                                    $CLASS = "";
-
-                                    # Set value
-
-                                        $v = isset($value['value']) ? $value['value'] : '';
-                                        
-                                        if (!empty($v)) {
-
-                                            if (is_array($v)) {
-
-                                                $COLUMN_VALUE = "";
-
-                                                foreach ($v as $key => $v) {
-                                                    if (sqlColumnExists($NAME->table, $v)) {
-                                                        $COLUMN_VALUE .= $row[$v].' ';
-                                                    } else {
-                                                        $COLUMN_VALUE .= $v.' ';
-                                                    }
-                                                }
-
-                                                $COLUMN_VALUE = substr($COLUMN_VALUE, 0, -1);
-
-                                            }else{
-
-                                                $COLUMN_VALUE = $row[$v];
-
-                                            }
-
-                                        } else {
-
-                                            $COLUMN_VALUE = empty($row[$column]) ? "" : $row[$column];
-
-                                        }
-
-                                        if (isset($value['function']) && !empty($value['function'])) {
-
-                                            $functionName = $value['function']['name'];
-                                            $functionParameter = isset($value['function']['parameter']) ? $value['function']['parameter'] : 'id';
-
-                                            if ($functionName == "empty") {
-
-                                                $FUNCTION = isEmpty($value['function']['tables'], $value['function']['column'], $row['id'], isset($value['function']['multiple']) ? $value['function']['multiple'] : false);
-                                                $VALUE = $FUNCTION->icon;
-                                                if (!$FUNCTION->return) { $DELETE_BUTTON = false; }
-
-                                            } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend") {
-
-                                                $COLUMN_VALUE = json_decode($COLUMN_VALUE, true);
-                                                $functionReturn = $value['function']['return'];
-
-                                                foreach ($COLUMN_VALUE as $key => $value) {
-                                                    $v = call_user_func_array($functionName, [$value]);
-                                                    if (is_object($v)) { $VALUE .= $v->$functionReturn; }
-                                                }
-                                                
-                                            } else if ($functionName == "active" || $functionName == "visible") {
-
-                                                $functionReturn = $value['function']['return'];
-
-                                                if ($NAME->table == 'user') {
-                                                    if (count(json_decode($row['area'], true)) <= 1 || count(json_decode($row['authority'], true)) <= 1) {
-                                                        $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $row['id']])->$functionReturn; 
-                                                    }
-                                                } else {
-                                                    $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $row['id']])->$functionReturn; 
-                                                }
-
-                                            } else {
-
-                                                $args = [];
-
-                                                if (is_array($functionParameter)) {
-                                                    foreach ($functionParameter as $parameter) {
-                                                        if (isset($row[$parameter])) {
-                                                            array_push($args, $row[$parameter]);
-                                                        } else {
-                                                            array_push($args, $parameter);
-                                                        }
-                                                    }
-                                                } else {
-                                                    array_push($args, $row[$functionParameter]);
-                                                }
-
-                                                if (isset($value['function']['return']) && !empty($value['function']['return'])) {
-                                                    $functionReturn = $value['function']['return'];
-                                                    $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
-                                                } else {
-                                                    $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
-                                                }
-
-                                            }
-
-                                        } else {
-
-                                            $VALUE = $COLUMN_VALUE;
-                                            
-                                        }
-
-                                    # Set format
-                                        if (isset($value['format']) && !empty($value['format'])) {
-
-                                            $format = $value['format'];
-
-                                            if ($format == 'image') {
-                                                $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-cover' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
-                                            } else if ($format == 'date') {
-                                                $VALUE = date('d/m/Y', strtotime($VALUE));
-                                            }
-
-                                        }
-
-                                    # Set link to value
-
-                                        if (isset($value['href']) && !empty($value['href'])) {
-
-                                            $href = $value['href'];
-
-                                            if ($href == 'modify') {
-                                                $href = $LINK->modify;
-                                            } elseif ($href == 'view') {
-                                                $href = $LINK->view;
-                                            } elseif ($href == 'mailto') {
-                                                $href = "mailto:$VALUE";
-                                            } elseif ($href == 'tel') {
-                                                $href = "tel:$VALUE";
-                                                $VALUE = prettyPhone($VALUE);
-                                            }
-
-                                            $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";
-
-                                        }
-
-                                    # Column resize
-                                    
-                                        $phone = isset($value['phone']) ? $value['phone'] : true;
-                                        $tablet = isset($value['tablet']) ? $value['tablet'] : true;
-                                        $pc = isset($value['pc']) ? $value['pc'] : true;
-                                            
-                                        if (!$phone) { $CLASS .= 'phone-none '; }
-                                        if (!$tablet) { $CLASS .= 'tablet-none '; }
-                                        if (!$pc) { $CLASS .= 'pc-none '; }
-
-                                    # Column size
-
-                                        $dimension = !empty($value['dimension']) ? $value['dimension'] : '';
-
-                                        if (empty($dimension)) {
-                                            if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty') {
-                                                $dimension = 'little';
-                                            }
-                                        }
-
-                                        $CLASS .= $dimension;
-
-                                    // 
-                                    
-                                    echo "<td scope='col' class='$CLASS align-middle'>$VALUE</td>";
-
-                                }
-
-                                if (!empty($TABLE_ACTION)) {
-
-                                    $BUTTONS = "";
-                                    
-                                    foreach ($TABLE_ACTION as $ACTION => $link) {
-
-                                        if ($link && !is_array($link)) {
-
-                                            if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->view' role='button'>Visualizza</a>"; }
-                                            elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->modify' role='button'>Modifica</a>"; }
-                                            elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='$LINK->download'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
-                                            elseif ($ACTION == 'visible') { $BUTTONS .= visible($row['visible'], $row['id'])->button; }
-                                            elseif ($ACTION == 'delete' && $DELETE_BUTTON) { $BUTTONS .= delete($row['id'])->button; }
-                                            elseif ($ACTION == 'authority' && $DELETE_BUTTON && isset($USER_FILTER->authority) && isset($USER_FILTER->area) && !is_array($USER_FILTER->area) && !is_array($USER_FILTER->authority)) { $BUTTONS .= removeAuthorization($row['id'], $USER_FILTER->authority, $USER_FILTER->area)->button; }
-                                            elseif ($ACTION == 'active') { 
-                                                if ($NAME->table == 'user') {
-                                                    if (count(json_decode($row['area'], true)) <= 1 || count(json_decode($row['authority'], true)) <= 1) {
-                                                        $BUTTONS .= active($row['active'], $row['id'])->button; 
-                                                    }
-                                                } else {
-                                                    $BUTTONS .= active($row['active'], $row['id'])->button; 
-                                                }
-                                            }
-
-                                        } elseif (is_array($link)) {
-
-                                            $label = $link['label'];
-                                            $href = isset($link['href']) ? $link['href'] : '';
-                                            $action = isset($link['action']) ? $link['action'] : '';
-                                            $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
-
-                                            if (!empty($href)) {
-                                                preg_match_all('/{(.*?)}/', $href, $listVar);
-                                                if (count($listVar) > 0) {
-                                                    foreach ($listVar[1] as $key => $var) {
-                                                        $href = str_replace('{'.$var.'}', $row[$var], $href);
-                                                    }
-                                                }
-                                            }
-
-                                            if (isset($link['key']) && !empty($link['key'])) {
-                                                foreach ($link['key'] as $q) {
-
-                                                    if ($q == 'table') {
-                                                        $query = "table=$NAME->table";
-                                                    } elseif ($q == 'id') {
-                                                        $query = "id=$ROW_ID";
-                                                    } elseif ($q == 'redirect') {
-                                                        $query = "redirect=$PAGE->uriBase64";
-                                                    }
-
-                                                    $url = parse_url($href);
-                                                    $href .= isset($url['query']) ? '&' : '?';
-                                                    $href .= $query;
-
-                                                }
-                                            }
-
-                                            if (!empty($href)) { $action = 'href="'.$href.'"'; }
-
-                                            $BUTTONS .= "<a class='dropdown-item' $action role='button' $target>$label</a>";
-
-                                        }
-
-                                    }
-
-                                    if (!empty($BUTTONS)) {
-                                        echo "
-                                        <td scope='col' class='little align-middle'>
-                                            <div class='position-static btn-group'>
-                                                <span class='badge text-dark' type='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
-                                                    <i class='bi bi-three-dots'></i>
-                                                </span>
-                                                <div class='dropdown-menu dropdown-menu-right'>
-                                                    $BUTTONS
-                                                </div>
-                                            </div>  
-                                        </td>";
-                                    }
-                                    
-                                }
-
-                                echo "</tr>";
-
-                                $lineN++;
-
-                            }
-                            
-
-                        ?>
-                    </tbody>
+                if (!empty($FILTER_SEARCH)) { 
+                    
+                    echo "<div class='col-4 me-auto'>
+                        <div class='input-group input-group-sm'>
+                            <span class='input-group-text user-select-none'>Cerca: </span>
+                            <input type='text' class='form-control' id='wi-table-search'>
+                        </div>
+                    </div>"; 
+                
+                }
+
+                echo '<div class="col-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text user-select-none">Mostra:</span>
+                        <select class="form-select" id="wi-table-length">
+                            <option value="10">10 elementi</option>
+                            <option value="25">25 elementi</option>
+                            <option value="50">50 elementi</option>
+                            <option value="100">100 elementi</option>
+                        </select>
+                    </div>
+                </div>';
+
+                if (!empty($FILTER_CUSTOM)) { echo $CUSTOM->html; }
+
+            ?>
+
+            <div class="col-12">
+
+                <table id="wi-table" class="table table-hover w-100">
+                    <thead></thead>
+                    <tbody class="table-group-divider"></tbody>
                 </table>
 
             </div>
+
         </wi-card>
         
 
@@ -512,6 +262,154 @@
 
     <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
     <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
+
+    <script>
+
+        <?PHP
+
+            $USER_AUTHORITY = isset($USER_FILTER->authority) ? $USER_FILTER->authority : "";
+            
+        ?>
+
+        var dataPost = {
+            folder: '<?=$NAME->folder?>',
+            table: '<?=$NAME->table?>',
+            arrow: <?=empty($FILTER->arrow) ? 'false' : 'true'?>,
+            url: '<?=$PAGE->uri?>',
+            text: {
+                titleS: '<?=$TEXT->titleS?>',
+                titleP: '<?=$TEXT->titleP?>',
+                last: '<?=$TEXT->last?>',
+                all: '<?=$TEXT->all?>',
+                article: '<?=$TEXT->article?>',
+                full: '<?=$TEXT->full?>',
+                empty: '<?=$TEXT->empty?>',
+                this: '<?=$TEXT->this?>'
+            },
+            user: {
+                area: '<?=isset($USER_FILTER->area) ? $USER_FILTER->area : ''?>',
+                authority: <?=is_array($USER_AUTHORITY) ? "JSON.parse('".json_encode($USER_AUTHORITY)."')" : "'$USER_AUTHORITY'"?>
+            },
+            custom: {
+                query_filter: '<?=base64_encode($FILTER->query_filter)?>',
+                query_all: '<?=base64_encode($FILTER->query_all)?>',
+                field: JSON.parse('<?=json_encode($TABLE_FIELD)?>'),
+                action: JSON.parse('<?=json_encode($TABLE_ACTION)?>'),
+                search_field: JSON.parse('<?=json_encode($FILTER_SEARCH)?>'),
+                order_column: '<?=$FILTER->query_order_col?>',
+                order_direction: '<?=$FILTER->query_order_dir?>'
+            }
+        }
+
+        var tablePage = <?=(isset($_GET['wi-page']) && !empty($_GET['wi-page'])) ? $_GET['wi-page'] : 0 ?>;
+        var tableLength = <?=(isset($_GET['wi-length']) && !empty($_GET['wi-length'])) ? $_GET['wi-length'] : 10 ?>;
+        var tableSearch = '<?=(isset($_GET['wi-search']) && !empty($_GET['wi-search'])) ? $_GET['wi-search'] : '' ?>';
+
+        var tableOrderName = '<?=(isset($_GET['wi-order']) && !empty($_GET['wi-order'])) ? $_GET['wi-order'] : $FILTER->query_order_col ?>';
+        var tableOrderDir = '<?=(isset($_GET['wi-order-dir']) && !empty($_GET['wi-order-dir'])) ? $_GET['wi-order-dir'] : $FILTER->query_order_dir ?>';
+
+        window.addEventListener('load', (event) => {
+                
+            var wiTable = new DataTable('#wi-table', {
+                serverSide: true,
+                processing: true,
+                scroller: true,
+                lengthChange: true, // Creo io il lenght change #wi-search-input
+                searching: true, // Creo io la search bar #wi-input-length
+                ajax: {
+                    url: pathApp+'/api/backend/list/table.php',
+                    type: 'POST',
+                    data: dataPost,
+                    error: function (XMLHttpRequest) { ajaxRequestError(XMLHttpRequest); }
+                },
+                idSrc: 'id',
+                columns: JSON.parse('<?=json_encode($TABLE_COLUMNS)?>'),
+                lengthMenu: [10, 25, 50, 100],
+                displayStart: tableLength * tablePage, // Pagina di partenza
+                pageLength: tableLength, // Lunghezza pagina
+                pagingType: "full_numbers", // Tipologia paginazione
+                search: { search: tableSearch },
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.12.1/i18n/it-IT.json',
+                    paginate: {
+                        next: '<i class="bi bi-chevron-right"></i>',
+                        previous: '<i class="bi bi-chevron-left"></i>',
+                        first: '<i class="bi bi-chevron-double-left"></i>',
+                        last: '<i class="bi bi-chevron-double-right"></i>'
+                    }
+                },
+                scrollX: true,
+                scrollY: true,
+                order: {
+                    name: tableOrderName,
+                    dir: tableOrderDir
+                },
+                createdRow: function (row, data, index) {
+                    $(row).addClass('align-middle')
+                },
+                layout: {
+                    topEnd: null,
+                    topStart: null
+                }
+            })
+
+            $('input#wi-table-search').keyup( function() { 
+
+                wiTable.search(this.value).draw(); 
+
+                var pageUrl = new URL(window.location.href);
+                pageUrl.searchParams.set('wi-search', this.value);
+                
+                setListRedirect(pageUrl);
+            
+            });
+
+            $('input#wi-table-search').val(tableSearch)
+
+            $('select#wi-table-length').change( function() {
+                
+                wiTable.page.len(this.value).draw(); 
+
+                var pageUrl = new URL(window.location.href);
+                pageUrl.searchParams.set('wi-length', this.value);
+
+                setListRedirect(pageUrl);
+            
+            });
+
+            $('select#wi-table-length').val(tableLength)
+
+            wiTable.on('draw', (event) => { 
+
+                var page = wiTable.page.info();
+
+                var nPage = page.page;
+
+                var start = page.start + 1;
+                var end = page.end;
+                
+                var recordsTotal = page.recordsTotal;
+                var recordsDisplay = page.recordsDisplay;
+
+                var result = 'da '+start+' a '+end+' di '+recordsDisplay;
+
+                document.querySelector('figcaption span#wi-table-result').innerHTML = result;
+
+                var pageUrl = new URL(window.location.href);
+                pageUrl.searchParams.set('wi-page', nPage);
+
+                var orderColumn = wiTable.order()[0][0];
+                var orderDirection = wiTable.order()[0][1];
+                
+                setListRedirect(pageUrl);
+
+                bootstrapTooltip();
+
+            });
+
+        });
+
+    </script>
 
 </body>
 </html>

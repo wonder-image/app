@@ -1,105 +1,37 @@
 <?php
 
-    function filterLimit() {
-
-        global $QUERY_CUSTOM;
-
-        global $QUERY_ORDER;
-        global $QUERY_DIRECTION;
+    function filter() {
 
         global $TEXT;
         global $NAME;
 
-        $LIMIT = isset($_GET['limit']) ? $_GET['limit'] : '';
-        $range = [25 => '25', 50 => '50', 100 => '100', 250 => '500', 500 => '500', 'all' => 'tutti'];
-        $ARROW = true;
+        $TITLE = "Lista $TEXT->titleP";
 
-        if (empty($QUERY_CUSTOM)) {
-            $QUERY = "`deleted` = 'false' ";
-        }else{
-            $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
-        }
+        $filter = filterCustom();
 
-        $LINES = sqlCount($NAME->table, $QUERY, 'id', true);
+        $QUERY_ALL = $filter->query_all;
+        $QUERY_FILTER = $filter->query_filter;
+        $QUERY_ORDER = $filter->query_order;
+        $QUERY_ORDER_COL = $filter->query_order_col;
+        $QUERY_ORDER_DIR = $filter->query_order_dir;
 
-        if ($LIMIT != 'all') {
+        $QUERY = empty($QUERY_FILTER) ? $QUERY_ALL.$QUERY_ORDER : $QUERY_ALL.'AND '.$QUERY_FILTER.$QUERY_ORDER;
 
-            $SQL_LIMIT = 'LIMIT ';
-            $LIMIT = empty($LIMIT) ? 25 : $LIMIT;
-            $SQL_LIMIT .= $LIMIT;
-
-            $TITLE = ucwords($TEXT->last)." $LIMIT $TEXT->titleP";
-
-            $SELECTED_LINES = ($LINES < $LIMIT) ? $LINES : $LIMIT;
-
-            if (isset($QUERY_ORDER) && !empty($QUERY_ORDER)) {
-
-                $QUERY .= "ORDER BY $QUERY_ORDER ";
-
-                if (isset($QUERY_DIRECTION) && !empty($QUERY_DIRECTION)) {
-                    $QUERY .= "$QUERY_DIRECTION ";
-                } else {
-                    $QUERY .= "ASC ";
-                }
-
-            } else {
-
-                $QUERY .= "ORDER BY `creation` DESC ";
-
-            }
-
-            $QUERY .= "LIMIT $LIMIT";
-
-            $ARROW = false;
-
-        }else{  
-
-            if (!empty($_GET['q'])) {
-                $filter = filterSearch();
-            } else {
-                $filter = filterCustom();
-            }
-
-            $TITLE = $filter->title;
-            $SELECTED_LINES = $filter->selected_lines;
-            $QUERY = $filter->query;
-            $ARROW = $filter->arrow;
-
-        }
-        
-        $buttons = "";
-
-        foreach ($range as $key => $text) {
-
-            if ($key != $LIMIT) {
-                $outline = "-outline";
-            }else{
-                $outline = "";
-            }
-
-            if ($key != 'all') {
-                $text = "$TEXT->last $key";
-            }
-
-            $text = ucwords($text);
-
-            $buttons .= "<a href='?limit=$key' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'>
-                $text
-            </a>";
-
-        }
-
-        if (sqlColumnExists($NAME->table, 'position') && $ARROW) {
-            $ARROW = true;
-        } else {
-            $ARROW = false;
-        }
+        $ARROW = $filter->arrow;
         
         $RETURN = (object) array();
-        $RETURN->html = $buttons;
         $RETURN->query = $QUERY;
-        $RETURN->selected_lines = $SELECTED_LINES;
-        $RETURN->lines = $LINES;
+
+        # Campi utilizzati dalla tabella lista in backend
+            $RETURN->query_all = $QUERY_ALL;
+            $RETURN->query_filter = $QUERY_FILTER;
+            $RETURN->query_order = $QUERY_ORDER;
+            $RETURN->query_order_col = $QUERY_ORDER_COL;
+            $RETURN->query_order_dir = $QUERY_ORDER_DIR;
+        #
+
+        $RETURN->lines = sqlCount($NAME->table, $QUERY_ALL, 'id', true);
+        $RETURN->selected_lines = sqlCount($NAME->table, $QUERY, 'id', true);
         $RETURN->arrow = $ARROW;
         $RETURN->title = $TITLE;
 
@@ -107,12 +39,43 @@
 
     }
 
+    function filterOrder($ARROW) {
+
+        global $NAME;
+
+        global $FILTER_ORDER;
+        global $FILTER_DIRECTION;
+
+        $COLUMN = "creation";
+        $DIRECTION = "DESC";
+        
+        if ($ARROW == true && sqlColumnExists($NAME->table, 'position')) {
+
+            $COLUMN = "position";
+            $DIRECTION = "ASC";
+
+        } elseif (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
+
+            $COLUMN = $FILTER_ORDER;
+
+            if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
+                $DIRECTION = $FILTER_DIRECTION;
+            } else {
+                $DIRECTION = "ASC";
+            }
+
+        }
+
+        $RETURN = (object) array();
+        $RETURN->query = "ORDER BY `$COLUMN` $DIRECTION ";
+        $RETURN->column = $COLUMN;
+        $RETURN->direction = $DIRECTION;
+
+        return $RETURN;
+
+    }
+
     function filterDate() {
-
-        global $QUERY_CUSTOM;
-
-        global $QUERY_ORDER;
-        global $QUERY_DIRECTION;
 
         global $FILTER_COLUMN;
 
@@ -121,24 +84,38 @@
         global $TEXT;
         global $NAME;
 
+        global $QUERY_CUSTOM;
+
         $ARROW = false;
 
-        if (empty($QUERY_CUSTOM)) {
-            $QUERY = "`deleted` = 'false' ";
-        }else{
-            $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
-        }
+        $QUERY_ALL = empty($QUERY_CUSTOM) ? "`deleted` = 'false' " : $QUERY_CUSTOM." AND `deleted` = 'false' ";
 
         $DAYS = isset($HOW_MANY_DAYS) ? $HOW_MANY_DAYS : 30;
         $COLUMN = isset($FILTER_COLUMN) ? $FILTER_COLUMN : 'creation';
 
-        $from = isset($_GET['from']) ? $_GET['from'] : '';
-        $to = isset($_GET['to']) ? $_GET['to'] : '';
-        $YEAR = isset($_GET['year']) ? $_GET['year'] : '';
-        $MONTH = isset($_GET['month']) ? $_GET['month'] : '';
-        $LIMIT = isset($_GET['limit']) ? $_GET['limit'] : '';
+        $from = isset($_GET['wi-from']) ? $_GET['wi-from'] : '';
+        $to = isset($_GET['wi-to']) ? $_GET['wi-to'] : '';
+        $YEAR = isset($_GET['wi-year']) ? $_GET['wi-year'] : '';
+        $MONTH = isset($_GET['wi-month']) ? $_GET['wi-month'] : '';
 
-        // Array filter
+        $QUERY_STRING = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : "";
+
+        $URL_QUERY = [];
+        parse_str($QUERY_STRING, $URL_QUERY);
+        
+        $QUERY_INPUT = "";
+        $QUERY_URL = "";
+
+        $QUERY_DATE = [ 'wi-from', 'wi-to', 'wi-year', 'wi-month' ];
+
+        foreach ($URL_QUERY as $key => $value) {
+            if (!in_array($key, $QUERY_DATE) && $key != 'wi-limit') {
+                $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
+                $QUERY_URL .= "&$key=$value";
+            }
+        }
+
+        # Array bottoni
             $ARRAY_MONTH = [];
             $ARRAY_YEAR = [];
             $BUTTONS_MONTH = "";
@@ -147,8 +124,8 @@
             $OTHER_BUTTONS_YEAR = "";
 
             $TABLE_INFO = sqlTableInfo($NAME->table);
-            $LINES = sqlCount($NAME->table, $QUERY, 'id', true);
-            
+            $LINES = sqlCount($NAME->table, $QUERY_ALL, 'id', true);
+
             $im = 1;
             $iy = 1;
 
@@ -165,7 +142,7 @@
 
                 $mese = translateDate("01-$month-$year", 'month');
 
-                if (isset($_GET['month']) && isset($_GET['year']) && $month == $_GET['month'] && $year == $_GET['year']) {
+                if (isset($_GET['wi-month']) && isset($_GET['wi-year']) && $month == $_GET['wi-month'] && $year == $_GET['wi-year']) {
                     $outline = "";
                     $active = "active";
                 }else{
@@ -174,9 +151,9 @@
                 }
 
                 if ($im < 5) {
-                    $BUTTONS_MONTH .= "<a href='?month=$month&year=$year' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
+                    $BUTTONS_MONTH .= "<a href='?wi-month=$month&wi-year=$year$QUERY_URL' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
                 } else {
-                    $OTHER_BUTTONS_MONTH .= "<a href='?month=$month&year=$year' class='dropdown-item $active'>$mese $year</a>";
+                    $OTHER_BUTTONS_MONTH .= "<a href='?wi-month=$month&wi-year=$year$QUERY_URL' class='dropdown-item $active'>$mese $year</a>";
                 }
                 
                 $im++;
@@ -193,18 +170,18 @@
                 $year = $last;
                 array_push($ARRAY_YEAR, $year);
 
-                if (isset($_GET['year']) && $year == $_GET['year'] && empty($_GET['month'])) {
+                if (isset($_GET['wi-year']) && $year == $_GET['wi-year'] && empty($_GET['wi-month'])) {
                     $outline = "";
                     $active = "active";
-                }else{
+                } else {
                     $outline = "-outline";
                     $active = "";
                 }
 
                 if ($iy < 5) {
-                    $BUTTONS_YEAR .= "<a href='?year=$year' class='btn btn$outline-dark btn-sm col'' tabindex='-1' role='button'> $year </a>";
+                    $BUTTONS_YEAR .= "<a href='?wi-year=$year$QUERY_URL' class='btn btn$outline-dark btn-sm col'' tabindex='-1' role='button'> $year </a>";
                 } else {
-                    $OTHER_BUTTONS_YEAR .= "<a href='?year=$year' class='dropdown-item $active'>$year</a>";
+                    $OTHER_BUTTONS_YEAR .= "<a href='?wi-year=$year$QUERY_URL' class='dropdown-item $active'>$year</a>";
                 }
 
                 $iy++;
@@ -242,30 +219,28 @@
                 
             }
 
-        //
-
-        if ($LIMIT != 'all') {
+        # Filtro
 
             if (empty($MONTH) && !empty($YEAR)) {
 
                 $from = '01/01/'.$YEAR;
                 $to = '31/12/'.$YEAR;
-    
+
                 $TITLE = ucwords($TEXT->titleP)." del ".$YEAR;
-    
+
             }
-    
+
             if (!empty($MONTH) && !empty($YEAR)) {
-    
+
                 $date = '1 '.$MONTH.' '.$YEAR;
                 $from = date('01/m/Y', strtotime($date));
                 $to = date('t/m/Y', strtotime($date));
-    
+
                 $mese = translateDate($MONTH, 'month');
                 $TITLE = ucwords($TEXT->titleP)." di $mese ".$YEAR;
-    
+
             }
-    
+
             if (empty($from) && empty($to)) {
 
                 $from = date('d/m/Y', strtotime("-$DAYS days"));
@@ -282,65 +257,41 @@
             }
 
             $TITLE = empty($TITLE) ? ucwords($TEXT->titleP)." dal $from al $to" : $TITLE;
-    
+
             list($day,$month,$year) = explode("/", $from);
             $SQL_from = "$year-$month-$day";
             list($day,$month,$year) = explode("/", $to);
             $SQL_to = "$year-$month-$day";
 
-            $QUERY .= "AND `$COLUMN` BETWEEN '$SQL_from 00:00:00' AND '$SQL_to 23:59:59' ";
+            $QUERY_ALL .= "AND `$COLUMN` BETWEEN '$SQL_from 00:00:00' AND '$SQL_to 23:59:59' ";
 
-            if (isset($QUERY_ORDER) && !empty($QUERY_ORDER)) {
+            $filter = filterCustom();
 
-                $QUERY .= "ORDER BY $QUERY_ORDER ";
+            $QUERY_FILTER = $filter->query_filter;
+            $QUERY_ORDER = $filter->query_order;
+            $QUERY_ORDER_COL = $filter->query_order_col;
+            $QUERY_ORDER_DIR = $filter->query_order_dir;
 
-                if (isset($QUERY_DIRECTION) && !empty($QUERY_DIRECTION)) {
-                    $QUERY .= "$QUERY_DIRECTION ";
-                } else {
-                    $QUERY .= "ASC ";
-                }
-
-            } else {
-
-                $QUERY .= "ORDER BY `creation` DESC ";
-                
-            }
-
-            $limitAllOutline = "-outline";
-
-        } else {
-
-            $from = date("d/m/Y", strtotime($TABLE_INFO->create_time));
-            $to = date("d/m/Y", strtotime(date('Y-m-d')));
-            
-            if (!empty($_GET['q'])) {
-                $filter = filterSearch();
-            } else {
-                $filter = filterCustom();
-            }
-
-            $TITLE = $filter->title;
-            $SELECTED_LINES = $filter->selected_lines;
-            $QUERY = $filter->query;
-            $ARROW = $filter->arrow;
-            
-            $limitAllOutline = "";
-
-        }
-
-        if (sqlColumnExists($NAME->table, 'position') && $ARROW) {
-            $ARROW = true;
-        } else {
-            $ARROW = false;
-        }
+            $QUERY = empty($QUERY_FILTER) ? $QUERY_ALL.$QUERY_ORDER : $QUERY_ALL.'AND '.$QUERY_FILTER.$QUERY_ORDER;
+    
+        #
 
         $RETURN = (object) array();
-        $RETURN->selected_lines = !empty($SELECTED_LINES) ? $SELECTED_LINES : sqlSelect($NAME->table, $QUERY)->Nrow;
+        $RETURN->selected_lines = sqlSelect($NAME->table, $QUERY)->Nrow;
         $RETURN->lines = $LINES;
         $RETURN->from = $from;
         $RETURN->to = $to;
         $RETURN->title = $TITLE;
         $RETURN->query = $QUERY;
+
+        # Campi utilizzati dalla tabella lista in backend
+            $RETURN->query_all = $QUERY_ALL;
+            $RETURN->query_filter = $QUERY_FILTER;
+            $RETURN->query_order = $QUERY_ORDER;
+            $RETURN->query_order_col = $QUERY_ORDER_COL;
+            $RETURN->query_order_dir = $QUERY_ORDER_DIR;
+        #
+        
         $RETURN->arrow = $ARROW;
 
         $RETURN->array = (object) array();
@@ -350,11 +301,12 @@
         $RETURN->html = "
         <div class='col-5 p-0'>
             <form method='get'>
+                $QUERY_INPUT
                 <div class='input-group input-group-sm input-daterange wi-daterange-filter'>
                     <span class='input-group-text'>Da</span>
-                    <input type='text' class='form-control bg-transparent' name='from' value='$from' readonly>
+                    <input type='text' class='form-control bg-transparent' name='wi-from' value='$from' readonly>
                     <span class='input-group-text'>A</span>
-                    <input type='text' class='form-control bg-transparent' name='to' value='$to' readonly>
+                    <input type='text' class='form-control bg-transparent' name='wi-to' value='$to' readonly>
                     <button type='submit' class='btn btn-dark'><i class='bi bi-search'></i> Cerca</button>
                 </div>
             </form>
@@ -367,92 +319,21 @@
             </script>
         </div>
         <div class='col-12 p-0'>
-            <span>Filtra per anno:</span>
-            <div class='container mt-1' style='max-width: 100%;'>
-                <div class='row row-cols-auto gap-2'>
-                    $BUTTONS_YEAR
-                    <a href='?limit=all' class='btn btn$limitAllOutline-dark btn-sm col' tabindex='-1' role='button'>
-                        Mostra tutti
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class='col-12 p-0'>
             <span>Filtra per mese:</span>
             <div class='container mt-1' style='max-width: 100%;'>
                 <div class='row row-cols-auto gap-2'>
                     $BUTTONS_MONTH
-                    <a href='?limit=all' class='btn btn$limitAllOutline-dark btn-sm col' tabindex='-1' role='button'>
-                        Mostra tutti
-                    </a>
+                </div>
+            </div>
+        </div>
+        <div class='col-12 p-0'>
+            <span>Filtra per anno:</span>
+            <div class='container mt-1' style='max-width: 100%;'>
+                <div class='row row-cols-auto gap-2'>
+                    $BUTTONS_YEAR
                 </div>
             </div>
         </div>";
-
-        return $RETURN;
-
-    }
-
-    function filterSearch() {
-
-        global $NAME;
-        global $TEXT;
-        global $FILTER_SEARCH;
-        global $FILTER_ORDER;
-        global $FILTER_DIRECTION;
-        global $QUERY_CUSTOM;
-
-        $ARROW = true;
-
-        if (empty($QUERY_CUSTOM)) {
-            $QUERY = "`deleted` = 'false' ";
-        } else {
-            $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
-        }
-
-        $searchValue = isset($_GET['q']) ? sanitize($_GET['q']) : '';
-
-        if (!empty($searchValue)) {
-
-            $QUERY_COLUMN = "AND CONCAT_WS(' ',";
-
-            foreach ($FILTER_SEARCH as $key => $value) { $QUERY_COLUMN .= "`$value`, "; }
-
-            $QUERY_COLUMN = substr($QUERY_COLUMN, 0, -2).") LIKE";
-
-            $searchArray = explode(' ', $searchValue);
-
-            foreach ($searchArray as $key => $search) { $QUERY .= $QUERY_COLUMN." '%$search%' "; }
-
-            $QUERY = substr($QUERY, 0, -1);
-
-            $ARROW = false;
-
-        }
-
-        if (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
-
-            $QUERY .= "ORDER BY `$FILTER_ORDER` ";
-
-            if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
-                $QUERY .= "$FILTER_DIRECTION ";
-            } else {
-                $QUERY .= "ASC ";
-            }
-
-        } else {
-
-            $QUERY .= "ORDER BY `creation` DESC ";
-
-        }
-
-        $SQL = sqlSelect($NAME->table, $QUERY);
-        
-        $RETURN = (object) array();
-        $RETURN->query = $QUERY;
-        $RETURN->selected_lines = $SQL->Nrow;
-        $RETURN->arrow = $ARROW;
-        $RETURN->title = ucwords($TEXT->titleP)." inerenti alla tua ricerca: $searchValue";
 
         return $RETURN;
 
@@ -463,17 +344,13 @@
         global $NAME;
         global $TEXT;
         global $FILTER_CUSTOM;
-        global $FILTER_ORDER;
-        global $FILTER_DIRECTION;
         global $QUERY_CUSTOM;
 
-        $ARROW = true;
+        $ARROW = sqlColumnExists($NAME->table, 'position') ? true : false;
 
-        if (empty($QUERY_CUSTOM)) {
-            $QUERY = "`deleted` = 'false' ";
-        } else {
-            $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
-        }
+        $QUERY_FILTER = "";
+
+        $QUERY_ALL = empty($QUERY_CUSTOM) ? "`deleted` = 'false' " : $QUERY_CUSTOM." AND `deleted` = 'false' ";
 
         $FILTER_ID = [];
         
@@ -520,14 +397,12 @@
 
                         } else {
 
-                            $QUERY .= "AND `$column` IN (";
+                            $QUERY_FILTER .=  empty($QUERY_FILTER) ? "`$column` IN (" : "AND `$column` IN (";
 
-                            foreach ($filter as $value) {
-                                $QUERY .= "'$value', ";
-                            }
+                            foreach ($filter as $value) { $QUERY_FILTER .= "'$value', "; }
                             
-                            $QUERY = substr($QUERY, 0, -2);
-                            $QUERY .= ") ";
+                            $QUERY_FILTER = substr($QUERY_FILTER, 0, -2);
+                            $QUERY_FILTER .= ") ";
 
                         }
                         
@@ -535,13 +410,7 @@
 
                         if (isset($value['column_type']) && $value['column_type'] == "multiple") {
                         
-                            if (empty($QUERY_CUSTOM)) {
-                                $Q = "`deleted` = 'false' ";
-                            }else{
-                                $Q = $QUERY_CUSTOM." AND `deleted` = 'false' ";
-                            }
-
-                            $SQL = sqlSelect($NAME->table, $Q);
+                            $SQL = sqlSelect($NAME->table, $QUERY_ALL);
                             
                             $MULTIPLE_FILTER[$column] = []; 
 
@@ -559,7 +428,7 @@
 
                         } else {
 
-                            $QUERY .= "AND `$column` = '$filter' ";
+                            $QUERY_FILTER .=  empty($QUERY_FILTER) ? "`$column` = '$filter' " : "AND `$column` = '$filter' ";
 
                         }
 
@@ -589,98 +458,44 @@
         }
         
         if (!empty($FILTER_ID)) {
+
             $filter = implode(" ,", $FILTER_ID);
+
             if (!empty($filter)) {
-                $QUERY .= "AND id IN ($filter) ";
-            }else{
-                $QUERY .= "AND id = '' ";
-            }
-        }
-        
-        if ($ARROW == true && sqlColumnExists($NAME->table, 'position')) {
-
-            $QUERY .= "ORDER BY `position` ASC ";
-
-        } elseif (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
-
-            $QUERY .= "ORDER BY `$FILTER_ORDER` ";
-
-            if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
-                $QUERY .= "$FILTER_DIRECTION ";
+                $QUERY_FILTER .= empty($QUERY_FILTER) ? "id IN ($filter) " : "AND id IN ($filter) ";
             } else {
-                $QUERY .= "ASC ";
+                $QUERY_FILTER .= empty($QUERY_FILTER) ? "id = '' " : "AND id = '' ";
             }
-
-        } else {
-
-            $QUERY .= "ORDER BY `creation` DESC ";
 
         }
 
-        $SQL = sqlSelect($NAME->table, $QUERY);
+        $ORDER = filterOrder($ARROW);
+
+        $QUERY_ORDER = $ORDER->query;
+        $QUERY_ORDER_COL = $ORDER->column;
+        $QUERY_ORDER_DIR = $ORDER->direction;
         
         $RETURN = (object) array();
-        $RETURN->query = $QUERY;
-        $RETURN->selected_lines = $SQL->Nrow;
+        
+        # Campi utilizzati dalla tabella lista in backend
+            $RETURN->query_all = $QUERY_ALL;
+            $RETURN->query_filter = $QUERY_FILTER;
+            $RETURN->query_order = $QUERY_ORDER;
+            $RETURN->query_order_col = $QUERY_ORDER_COL;
+            $RETURN->query_order_dir = $QUERY_ORDER_DIR;
+        #
+
         $RETURN->arrow = $ARROW;
         $RETURN->title = ucwords($TEXT->all)." $TEXT->article $TEXT->titleP";
 
         return $RETURN;
 
     }
-
-    function createSearchBar() {
-
-        $value = isset($_GET['q']) ? sanitize($_GET['q']) : '';
-
-        $form = "
-        <form action='' method='get' onsubmit='loadingSpinner()'>
-
-            <input type='hidden' name='limit' value='all'>
-
-            <div class='input-group input-group-sm'>
-                <input type='text' class='form-control' id='input-search' name='q' value='$value' onkeyup='search()' aria-describedby='button-search'>
-                <button type='submit' class='btn btn-dark' aria-describedby='button-search'>
-                    <i class='bi bi-search'></i> Cerca
-                </button>
-            </div>
-
-        </form>";
-
-        $script = "
-        <script>
-            function search() {
-                
-                var value = document.getElementById('input-search').value.toLowerCase();
-                
-                document.querySelectorAll('.search-here').forEach(element => {
-
-                    var keyword = element.dataset.keyword.toLowerCase();
-
-                    if (keyword.includes(value)) {
-                        element.style.display = 'table-row';
-                    }else{
-                        element.style.display = 'none';
-                    }
-
-                });
-                
-            }
-        </script>
-        ";
-
-        return "$script $form";
-
-    }
-
     function createFilterCustom() {
 
         global $FILTER_CUSTOM;
 
-        $button = "<button type='button' class='btn btn-secondary btn-sm' data-bs-toggle='collapse' data-bs-target='.filter-container' aria-expanded='false'>
-            <i class='bi bi-filter'></i>
-            Filtri
-        </button>";
+        $FILTER_USED = 0;
 
         $filter = "";
         $script = "<script>";
@@ -948,19 +763,31 @@
                 $HTML
             </div>";
 
+            if (isset($_GET[$table]) && !empty($_GET[$table])) { $FILTER_USED++; }
+
         }
 
         $script .= "</script>";
+        
+        $QUERY_STRING = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : "";
 
-        $collapseShow = (isset($_GET['limit']) && $_GET['limit'] == 'all') ? "show" : "";
+        $URL_QUERY = [];
+        parse_str($QUERY_STRING, $URL_QUERY);
+        
+        $QUERY_INPUT = "";
+
+        foreach ($URL_QUERY as $key => $value) {
+            if (!array_key_exists(str_replace('[]', '', $key), $FILTER_CUSTOM)) {
+                $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
+            }
+        }
 
         $HTML = "
-        <div class='col-12 collapse $collapseShow filter-container mt-3 pt-3 border-top'>
-            <form action='' method='get' onsubmit='loadingSpinner()'>
+        <div class='col-12 collapse filter-container mt-3 border-top border-bottom'>
+            <form action='' method='get' onsubmit='loadingSpinner()' class='my-3'>
                 <div class='row g-3'>
 
-                    <input type='hidden' name='limit' value='all'>
-
+                    $QUERY_INPUT
                     $filter
 
                     <div class='col-3'>
@@ -974,6 +801,12 @@
         </div>
         $script";
 
+        $button = "<button type='button' class='position-relative btn btn-secondary btn-sm' data-bs-toggle='collapse' data-bs-target='.filter-container' aria-expanded='false'>";
+        $button .= "<i class='bi bi-filter'></i>"; # Icona filtri
+        $button .= " Filtri";
+        $button .= ($FILTER_USED > 0) ? "<span class='position-absolute top-0 start-0 translate-middle badge rounded-pill bg-primary' style='--bs-badge-font-size: 0.7em;'>$FILTER_USED <span class='visually-hidden'>unread messages</span></span>" : "";
+        $button .= "</button>";
+
         $RETURN = (object) array();
         $RETURN->button = $button;
         $RETURN->html = $HTML;
@@ -981,5 +814,224 @@
         return $RETURN;
 
     }
+
+    # Funzioni obsolete
+        function filterLimit() {
+
+            global $QUERY_CUSTOM;
+
+            global $QUERY_ORDER;
+            global $QUERY_DIRECTION;
+
+            global $TEXT;
+            global $NAME;
+
+            $LIMIT = isset($_GET['limit']) ? $_GET['limit'] : '';
+            $range = [25 => '25', 50 => '50', 100 => '100', 250 => '500', 500 => '500', 'all' => 'tutti'];
+            $ARROW = true;
+
+            if (empty($QUERY_CUSTOM)) {
+                $QUERY = "`deleted` = 'false' ";
+            }else{
+                $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
+            }
+
+            $LINES = sqlCount($NAME->table, $QUERY, 'id', true);
+
+            if ($LIMIT != 'all') {
+
+                $SQL_LIMIT = 'LIMIT ';
+                $LIMIT = empty($LIMIT) ? 25 : $LIMIT;
+                $SQL_LIMIT .= $LIMIT;
+
+                $TITLE = ucwords($TEXT->last)." $LIMIT $TEXT->titleP";
+
+                $SELECTED_LINES = ($LINES < $LIMIT) ? $LINES : $LIMIT;
+
+                if (isset($QUERY_ORDER) && !empty($QUERY_ORDER)) {
+
+                    $QUERY .= "ORDER BY $QUERY_ORDER ";
+
+                    if (isset($QUERY_DIRECTION) && !empty($QUERY_DIRECTION)) {
+                        $QUERY .= "$QUERY_DIRECTION ";
+                    } else {
+                        $QUERY .= "ASC ";
+                    }
+
+                } else {
+
+                    $QUERY .= "ORDER BY `creation` DESC ";
+
+                }
+
+                $QUERY .= "LIMIT $LIMIT";
+
+                $ARROW = false;
+
+            }else{  
+
+                if (!empty($_GET['q'])) {
+                    $filter = filterSearch();
+                } else {
+                    $filter = filterCustom();
+                }
+
+                $TITLE = $filter->title;
+                $SELECTED_LINES = $filter->selected_lines;
+                $QUERY = $filter->query;
+                $ARROW = $filter->arrow;
+
+            }
+            
+            $buttons = "";
+
+            foreach ($range as $key => $text) {
+
+                if ($key != $LIMIT) {
+                    $outline = "-outline";
+                }else{
+                    $outline = "";
+                }
+
+                if ($key != 'all') {
+                    $text = "$TEXT->last $key";
+                }
+
+                $text = ucwords($text);
+
+                $buttons .= "<a href='?limit=$key' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'>
+                    $text
+                </a>";
+
+            }
+
+            if (sqlColumnExists($NAME->table, 'position') && $ARROW) {
+                $ARROW = true;
+            } else {
+                $ARROW = false;
+            }
+            
+            $RETURN = (object) array();
+            $RETURN->html = $buttons;
+            $RETURN->query = $QUERY;
+            $RETURN->selected_lines = $SELECTED_LINES;
+            $RETURN->lines = $LINES;
+            $RETURN->arrow = $ARROW;
+            $RETURN->title = $TITLE;
+
+            return $RETURN;
+
+        }
+        
+        function createSearchBar() {
+
+            $value = isset($_GET['q']) ? sanitize($_GET['q']) : '';
+
+            $form = "
+            <form action='' method='get' onsubmit='loadingSpinner()'>
+
+                <input type='hidden' name='wi-limit' value='all'>
+
+                <div class='input-group input-group-sm'>
+                    <input type='text' class='form-control' id='input-search' name='q' value='$value' onkeyup='search()' aria-describedby='button-search'>
+                    <button type='submit' class='btn btn-dark' aria-describedby='button-search'>
+                        <i class='bi bi-search'></i> Cerca
+                    </button>
+                </div>
+
+            </form>";
+
+            $script = "
+            <script>
+                function search() {
+                    
+                    var value = document.getElementById('input-search').value.toLowerCase();
+                    
+                    document.querySelectorAll('.search-here').forEach(element => {
+
+                        var keyword = element.dataset.keyword.toLowerCase();
+
+                        if (keyword.includes(value)) {
+                            element.style.display = 'table-row';
+                        }else{
+                            element.style.display = 'none';
+                        }
+
+                    });
+                    
+                }
+            </script>
+            ";
+
+            return "$script $form";
+
+        }
+
+        function filterSearch() {
+
+            global $NAME;
+            global $TEXT;
+            global $FILTER_SEARCH;
+            global $FILTER_ORDER;
+            global $FILTER_DIRECTION;
+            global $QUERY_CUSTOM;
+
+            $ARROW = true;
+
+            if (empty($QUERY_CUSTOM)) {
+                $QUERY = "`deleted` = 'false' ";
+            } else {
+                $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
+            }
+
+            $searchValue = isset($_GET['q']) ? sanitize($_GET['q']) : '';
+
+            if (!empty($searchValue)) {
+
+                $QUERY_COLUMN = "AND CONCAT_WS(' ',";
+
+                foreach ($FILTER_SEARCH as $key => $value) { $QUERY_COLUMN .= "`$value`, "; }
+
+                $QUERY_COLUMN = substr($QUERY_COLUMN, 0, -2).") LIKE";
+
+                $searchArray = explode(' ', $searchValue);
+
+                foreach ($searchArray as $key => $search) { $QUERY .= $QUERY_COLUMN." '%$search%' "; }
+
+                $QUERY = substr($QUERY, 0, -1);
+
+                $ARROW = false;
+
+            }
+
+            if (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
+
+                $QUERY .= "ORDER BY `$FILTER_ORDER` ";
+
+                if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
+                    $QUERY .= "$FILTER_DIRECTION ";
+                } else {
+                    $QUERY .= "ASC ";
+                }
+
+            } else {
+
+                $QUERY .= "ORDER BY `creation` DESC ";
+
+            }
+
+            $SQL = sqlSelect($NAME->table, $QUERY);
+            
+            $RETURN = (object) array();
+            $RETURN->query = $QUERY;
+            $RETURN->selected_lines = $SQL->Nrow;
+            $RETURN->arrow = $ARROW;
+            $RETURN->title = ucwords($TEXT->titleP)." inerenti alla tua ricerca: $searchValue";
+
+            return $RETURN;
+
+        }
+
+    #
 
 ?>

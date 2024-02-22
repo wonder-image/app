@@ -35,7 +35,12 @@
         $RETURN->profile_picture = empty($RETURN->profile_picture) ? "" : (array) json_decode($RETURN->profile_picture);
 
         if (empty($RETURN->profile_picture)) {
-            $image = "<div><div class='position-absolute top-50 start-50 translate-middle text-center'>".substr($RETURN->name, 0, 1).substr($RETURN->surname, 0, 1)."</div></div>";
+
+            $firstLetterName = empty($RETURN->name) ? "" : substr($RETURN->name, 0, 1);
+            $firstLetterSurname = empty($RETURN->name) ? "" : substr($RETURN->surname, 0, 1);
+
+            $image = "<div><div class='position-absolute top-50 start-50 translate-middle text-center'>$firstLetterName$firstLetterSurname</div></div>";
+
         } else {
             $image = "<img class='position-absolute top-50 start-50 translate-middle w-100 h-100' src='$PATH->upload/user/profile-picture/960x960-{$RETURN->profile_picture[0]}' alt='$RETURN->username'>";
         }

@@ -1,4 +1,4 @@
-function ajaxRequest(link, onSuccess = reloadPage) {
+function ajaxRequest(link, onSuccess = reloadPage, params = null) {
 
     loadingSpinner();
 
@@ -13,7 +13,11 @@ function ajaxRequest(link, onSuccess = reloadPage) {
             if (onSuccess != null) {
                 if (typeof onSuccess === 'function') {
                     
-                    onSuccess();
+                    if (params == null) {
+                        onSuccess();
+                    } else {
+                        onSuccess(params);
+                    }
             
                 } else {
             

@@ -1,4 +1,4 @@
-function modal(text, link, title = 'ATTENZIONE', sendText = 'Elimina', sendColor = 'danger', closeText = 'Chiudi', closeColor = 'dark', onSuccess = 'reloadPage') {
+function modal(text, link, title = 'ATTENZIONE', sendText = 'Elimina', sendColor = 'danger', closeText = 'Chiudi', closeColor = 'dark', onSuccess = 'reloadPage', params = null) {
     
     document.querySelector('#modal .modal-title').innerHTML = title;
     document.querySelector('#modal .modal-body').innerHTML = text;
@@ -10,7 +10,7 @@ function modal(text, link, title = 'ATTENZIONE', sendText = 'Elimina', sendColor
     if (onSuccess == 'reloadPage') {
         sendBtn.setAttribute("onclick", "ajaxRequest('"+link+"')");
     } else {
-        sendBtn.setAttribute("onclick", "ajaxRequest('"+link+"', '"+onSuccess+"')");
+        sendBtn.setAttribute("onclick", "ajaxRequest('"+link+"', "+onSuccess+", '"+params+"')");
     }
 
     var closeBtn = document.querySelector('#modal button.close');
