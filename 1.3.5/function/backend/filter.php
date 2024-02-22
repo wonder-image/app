@@ -5,12 +5,6 @@
         global $TEXT;
         global $NAME;
 
-        global $QUERY_CUSTOM;
-
-        $QUERY_ALL = empty($QUERY_CUSTOM) ? "`deleted` = 'false' " : $QUERY_CUSTOM." AND `deleted` = 'false' ";
-
-        $LINES = sqlCount($NAME->table, $QUERY_ALL, 'id', true);
-        
         $TITLE = "Lista $TEXT->titleP";
 
         $filter = filterCustom();
@@ -36,8 +30,8 @@
             $RETURN->query_order_dir = $QUERY_ORDER_DIR;
         #
 
-        $RETURN->lines = $LINES;
-        $RETURN->selected_lines = sqlSelect($NAME->table, $QUERY)->Nrow;
+        $RETURN->lines = sqlCount($NAME->table, $QUERY_ALL, 'id', true);
+        $RETURN->selected_lines = sqlCount($NAME->table, $QUERY, 'id', true);
         $RETURN->arrow = $ARROW;
         $RETURN->title = $TITLE;
 
@@ -352,7 +346,7 @@
         global $FILTER_CUSTOM;
         global $QUERY_CUSTOM;
 
-        $ARROW = true;
+        $ARROW = sqlColumnExists($NAME->table, 'position') ? true : false;
 
         $QUERY_FILTER = "";
 
@@ -820,8 +814,6 @@
         return $RETURN;
 
     }
-
-
 
     # Funzioni obsolete
         function filterLimit() {

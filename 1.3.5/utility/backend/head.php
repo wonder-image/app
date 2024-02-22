@@ -24,8 +24,12 @@
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <!-- DataTables -->
-<script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.min.css">
 
 <!-- Summernote -->
 <link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
