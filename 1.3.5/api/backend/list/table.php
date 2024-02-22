@@ -36,8 +36,8 @@
         $CUSTOM->action = $_POST['custom']['action'];
         $CUSTOM->query = base64_decode($_POST['custom']['query_filter']);
         $CUSTOM->query_all = base64_decode($_POST['custom']['query_all']);
-        $CUSTOM->search_field = $_POST['custom']['search_field'];
-
+        $CUSTOM->search_field = isset($_POST['custom']['search_field']) ? $_POST['custom']['search_field'] : [];
+        
         $CUSTOM->order_column = isset($_POST['order'][0]['name']) ? $_POST['order'][0]['name'] : $_POST['custom']['order_column'];
         $CUSTOM->order_direction = isset($_POST['order'][0]['dir']) ? $_POST['order'][0]['dir'] : $_POST['custom']['order_direction'];
 
