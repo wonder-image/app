@@ -176,8 +176,8 @@
 
             <?php if (isset($FILTER->html) && !empty($FILTER->html)) :?>
             <div class="col-12">
-                <div class="container" style="max-width: 100%;">
-                    <div class="row row-cols-auto gap-2">
+                <div class="container p-0" style="max-width: 100%;">
+                    <div class="row g-2">
                         <?=$FILTER->html?>
                     </div>
                 </div>
@@ -293,7 +293,7 @@
             custom: {
                 query_filter: '<?=base64_encode($FILTER->query_filter)?>',
                 query_all: '<?=base64_encode($FILTER->query_all)?>',
-                field: JSON.parse('<?=json_encode($TABLE_FIELD)?>'),
+                field: '<?=base64_encode(json_encode($TABLE_FIELD))?>',
                 action: JSON.parse('<?=json_encode($TABLE_ACTION)?>'),
                 search_field: JSON.parse('<?=json_encode($FILTER_SEARCH)?>'),
                 order_column: '<?=$FILTER->query_order_col?>',
@@ -398,9 +398,17 @@
                 var pageUrl = new URL(window.location.href);
                 pageUrl.searchParams.set('wi-page', nPage);
 
-                var orderColumn = wiTable.order()[0][0];
-                var orderDirection = wiTable.order()[0][1];
-                
+                if (wiTable.order().length > 0) {
+                    var orderColumn = wiTable.order()[0][0];
+                    var orderDirection = wiTable.order()[0][1]; 
+                } else {
+                    var orderColumn = tableOrderName;
+                    var orderDirection = tableOrderDir;
+                }
+
+                pageUrl.searchParams.set('wi-order', orderColumn);
+                pageUrl.searchParams.set('wi-order-dir', orderDirection);
+
                 setListRedirect(pageUrl);
 
                 bootstrapTooltip();

@@ -2,6 +2,8 @@
 
     namespace Wonder\Table;
     
+    use PDO;
+    
     class SSP {
         
         static function data_output ($columns, $data)

@@ -265,13 +265,13 @@
                 }
 
                 if (!empty($BUTTONS)) {
-
+                    
                     return "
-                    <div class='position-static btn-group'>
-                        <span class='badge text-dark' type='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
+                    <div class='btn-group position-static'>
+                        <span class='badge text-dark' role='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
                             <i class='bi bi-three-dots'></i>
                         </span>
-                        <div class='dropdown-menu dropdown-menu-right'>
+                        <div class='dropdown-menu dropdown-menu-right position-fixed'>
                             $BUTTONS
                         </div>
                     </div>";

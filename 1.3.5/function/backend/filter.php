@@ -299,7 +299,7 @@
         $RETURN->array->year = $ARRAY_YEAR;
 
         $RETURN->html = "
-        <div class='col-5 p-0'>
+        <div class='col-5'>
             <form method='get'>
                 $QUERY_INPUT
                 <div class='input-group input-group-sm input-daterange wi-daterange-filter'>
@@ -318,22 +318,24 @@
                 });
             </script>
         </div>
-        <div class='col-12 p-0'>
+        <div class='col-12'></div>
+        <div class='col-6'>
             <span>Filtra per mese:</span>
             <div class='container mt-1' style='max-width: 100%;'>
                 <div class='row row-cols-auto gap-2'>
                     $BUTTONS_MONTH
                 </div>
             </div>
-        </div>
-        <div class='col-12 p-0'>
-            <span>Filtra per anno:</span>
-            <div class='container mt-1' style='max-width: 100%;'>
-                <div class='row row-cols-auto gap-2'>
-                    $BUTTONS_YEAR
-                </div>
-            </div>
         </div>";
+        
+        // $RETURN->html .= "<div class='col-6'>
+        //     <span>Filtra per anno:</span>
+        //     <div class='container mt-1' style='max-width: 100%;'>
+        //         <div class='row row-cols-auto gap-2'>
+        //             $BUTTONS_YEAR
+        //         </div>
+        //     </div>
+        // </div>";
 
         return $RETURN;
 

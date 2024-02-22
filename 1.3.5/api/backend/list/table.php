@@ -32,7 +32,7 @@
 
         $CUSTOM = (object) array();
         $CUSTOM->arrow = $_POST['arrow'];
-        $CUSTOM->field = $_POST['custom']['field'];
+        $CUSTOM->field = json_decode(base64_decode($_POST['custom']['field']), true);
         $CUSTOM->action = $_POST['custom']['action'];
         $CUSTOM->query = base64_decode($_POST['custom']['query_filter']);
         $CUSTOM->query_all = base64_decode($_POST['custom']['query_all']);
