@@ -305,6 +305,9 @@
         var tableLength = <?=(isset($_GET['wi-length']) && !empty($_GET['wi-length'])) ? $_GET['wi-length'] : 10 ?>;
         var tableSearch = '<?=(isset($_GET['wi-search']) && !empty($_GET['wi-search'])) ? $_GET['wi-search'] : '' ?>';
 
+        var tableDefOrderName = '<?=$FILTER->query_order_col?>';
+        var tableDefOrderDir = '<?=$FILTER->query_order_dir?>';
+
         var tableOrderName = '<?=(isset($_GET['wi-order']) && !empty($_GET['wi-order'])) ? $_GET['wi-order'] : $FILTER->query_order_col ?>';
         var tableOrderDir = '<?=(isset($_GET['wi-order-dir']) && !empty($_GET['wi-order-dir'])) ? $_GET['wi-order-dir'] : $FILTER->query_order_dir ?>';
 
@@ -399,11 +402,24 @@
                 pageUrl.searchParams.set('wi-page', nPage);
 
                 if (wiTable.order().length > 0) {
-                    var orderColumn = wiTable.order()[0][0];
-                    var orderDirection = wiTable.order()[0][1]; 
+
+                    if (wiTable.order()[0][1] == "") {
+         
+                        var orderColumn = tableDefOrderName;
+                        var orderDirection = tableDefOrderDir; 
+
+                    } else {
+                        
+                        var orderColumn = wiTable.order()[0][0];
+                        var orderDirection = wiTable.order()[0][1]; 
+
+                    }
+
                 } else {
+
                     var orderColumn = tableOrderName;
                     var orderDirection = tableOrderDir;
+                    
                 }
 
                 pageUrl.searchParams.set('wi-order', orderColumn);

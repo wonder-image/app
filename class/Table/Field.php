@@ -130,7 +130,7 @@
         private function changeVisible() {
 
             $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/active.php?table={$this->table->name}&id={$this->rowId}',
+                '{$this->link->app}/api/backend/visible.php?table={$this->table->name}&id={$this->rowId}',
                 reloadDataTable, 
                 '#wi-table'
             )\"";
@@ -265,7 +265,7 @@
                 }
 
                 if (!empty($BUTTONS)) {
-                    
+
                     return "
                     <div class='btn-group position-static'>
                         <span class='badge text-dark' role='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
@@ -326,8 +326,15 @@
 
                     if ($functionName == "empty") {
 
-                        $FUNCTION = isEmpty($format['function']['tables'], $format['function']['column'], $this->rowId, isset($format['function']['multiple']) ? $format['function']['multiple'] : false);
+                        $FUNCTION = isEmpty(
+                            $format['function']['tables'], 
+                            $format['function']['column'], 
+                            $this->rowId, 
+                            isset($format['function']['multiple']) ? $format['function']['multiple'] : false
+                        );
+
                         $VALUE = $FUNCTION->icon;
+
                         if (!$FUNCTION->return) { $this->deleteButton = false; }
 
                     } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend") {
