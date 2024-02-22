@@ -1,6 +1,6 @@
 <?php
 
-    namespace Wonder;
+    namespace Wonder\Table;
     
     class SSP {
         

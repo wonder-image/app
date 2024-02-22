@@ -7,8 +7,8 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
-    use Wonder\SSP;
-    use Wonder\TableField;
+    use Wonder\Table\SSP;
+    use Wonder\Table\Field;
 
     # Importo tutte le variabili che mi servono
 
@@ -76,7 +76,7 @@
 
     #
 
-    $TABLE_FIELD = new TableField($NAME, $PATH, $TEXT, $USER, $PAGE);
+    $TABLE_FIELD = new Field($NAME, $PATH, $TEXT, $USER, $PAGE);
 
     $columnN = 0;
     $COLUMNS = [];

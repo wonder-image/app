@@ -1,8 +1,8 @@
 <?php
 
-    namespace Wonder;
+    namespace Wonder\Table;
 
-    class TableField {
+    class Field {
 
         private $table;
         private $link;
