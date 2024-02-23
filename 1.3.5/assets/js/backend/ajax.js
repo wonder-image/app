@@ -21,7 +21,7 @@ function ajaxRequest(link, onSuccess = reloadPage, params = null) {
             
                 } else {
             
-                    var x = JSON.parse(onSuccess);
+                    var x = JSON.parse(onSuccess.replace('&quot;', '"'));
             
                     var f = x.function;
                     var p = x.parameters;
