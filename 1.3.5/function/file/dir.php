@@ -53,19 +53,26 @@
 
     function deleteDir($dir) {
 
-        $files = glob($dir.'/*');  
-        
-        foreach ($files as $file) { 
-        
-            if (is_file($file)) {
-                unlink($file);
-            } else if (is_dir($file)) {
-                deleteDir($file);
+        if (is_dir($dir)) {
+
+            $files = scandir($dir);
+
+            foreach ($files as $file) {
+               if ($file !== '.' && $file !== '..') {
+                  $filePath = $dir.'/'.$file;
+                  if (is_dir($filePath)) {
+                    deleteDir($filePath);
+                  } else {
+                     unlink($filePath);
+                  }
+               }
             }
+            
+            rmdir($dir);
 
-        } 
+        }
 
-        rmdir($dir);
+        clearstatcache();
 
     }
 
