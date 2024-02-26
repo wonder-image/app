@@ -20,11 +20,20 @@ function ajaxRequest(link, onSuccess = reloadPage, params = null) {
                     }
             
                 } else {
-            
-                    var x = JSON.parse(onSuccess.replace('&quot;', '"'));
-            
-                    var f = x.function;
-                    var p = x.parameters;
+                    
+                    try {
+                        
+                        var x = JSON.parse(onSuccess.replace('&quot;', '"'));
+
+                        var f = x.function;
+                        var p = x.parameters;
+                
+                    } catch {
+
+                        var f = onSuccess;
+                        var p = params;
+
+                    }
             
                     window[f](p);
             
