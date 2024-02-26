@@ -318,7 +318,6 @@
             var wiTable = new DataTable('#wi-table', {
                 serverSide: true,
                 processing: true,
-                scroller: true,
                 lengthChange: true, // Creo io il length change #wi-search-input
                 searching: true, // Creo io la search bar #wi-input-length
                 responsive: {
@@ -351,8 +350,6 @@
                         last: '<i class="bi bi-chevron-double-right"></i>'
                     }
                 },
-                scrollX: true,
-                scrollY: true,
                 order: {
                     name: tableOrderName,
                     dir: tableOrderDir
