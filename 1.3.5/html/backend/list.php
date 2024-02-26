@@ -292,12 +292,14 @@
             },
             custom: {
                 query_filter: '<?=base64_encode($FILTER->query_filter)?>',
+                query_filter_ln: <?=$FILTER->selected_lines?>,
                 query_all: '<?=base64_encode($FILTER->query_all)?>',
+                query_all_ln: <?=$FILTER->lines?>,
                 field: '<?=base64_encode(json_encode($TABLE_FIELD))?>',
                 action: JSON.parse('<?=json_encode($TABLE_ACTION)?>'),
                 search_field: JSON.parse('<?=json_encode($FILTER_SEARCH)?>'),
                 order_column: '<?=$FILTER->query_order_col?>',
-                order_direction: '<?=$FILTER->query_order_dir?>'
+                order_direction: '<?=$FILTER->query_order_dir?>',
             }
         }
 

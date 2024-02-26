@@ -17,6 +17,7 @@
         private $redirect;        
         private $redirectBase64;
 
+        private $line = 0;
         private $deleteButton = true;
 
 
@@ -66,6 +67,8 @@
             $this->row = $row;
             $this->column = $column;
 
+            if ($this->rowId != $row['id']) { $this->line++; }
+
             $this->rowId = $row['id'];
 
             $this->link->view = $this->link->folder.'/view.php?redirect='.$this->redirectBase64.'&id='.$this->rowId;
@@ -76,6 +79,13 @@
                 if ($column == 'action_button') {
 
                     return $this->actionButton($format);
+
+                } else if ($column == 'position_arrow_up' || $column == 'position_arrow_down') {
+
+                    return $this->positionArrow(
+                        ($column == 'position_arrow_up') ? 'up' : 'down',
+                        $format
+                    );
 
                 } else {
 
@@ -282,6 +292,30 @@
 
         }
 
+        public function positionArrow($type, $info) {
+
+            $RETURN = "";
+
+            $action = "onclick=\"ajaxRequest(
+                '{$this->link->app}/api/backend/move.php?table={$this->table->name}&id={$this->rowId}&action=$type',
+                reloadDataTable, 
+                '#wi-table'
+            )\"";
+
+            $button = "<a class='bi bi-chevron-$type text-dark' $action role='button'></a>";
+
+            if ($info['visible']) {
+                if ($type == 'up' && $this->line > 1) {
+                    $RETURN = $button;
+                } else if ($type == 'down' && $this->line > $info['lines']) {
+                    $RETURN = $button;
+                }
+            }
+
+            return $RETURN;
+
+        }
+
         public function setValue($format) {
 
             $VALUE = "";
@@ -453,22 +487,5 @@
 
 
     }
-
-    // if ($FILTER->arrow && $FILTER->selected_lines > 1) {
-
-    //     $onclickUp = "<a class='bi bi-chevron-up text-dark' onclick=\"ajaxRequest('$PATH->app/api/backend/move.php?table=$table->name&id=$ROW_ID&action=up')\" role='button'></a>";
-    //     $onclickDown = "<a class='bi bi-chevron-down text-dark' onclick=\"ajaxRequest('$PATH->app/api/backend/move.php?table=$table->name&id=$ROW_ID&action=down')\" role='button'></a>";
-
-    //     if ($lineN == 1) {
-    //         echo "<td scope='col' class='phone-none little'></td>";
-    //         echo "<td scope='col' class='phone-none little'>$onclickDown</td>";
-    //     } elseif ($lineN == $FILTER->selected_lines) {
-    //         echo "<td scope='col' class='phone-none little'>$onclickUp</td>";
-    //         echo "<td scope='col' class='phone-none little'></td>";
-    //     } else {
-    //         echo "<td scope='col' class='phone-none little'>$onclickUp</td>";
-    //         echo "<td scope='col' class='phone-none little'>$onclickDown</a></td>";
-    //     }
-    // }
 
 ?>

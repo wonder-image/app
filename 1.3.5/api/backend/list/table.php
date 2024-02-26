@@ -31,11 +31,13 @@
         $USER->authority = is_array($_POST['user']['authority']) ? $_POST['user']['authority'] : $_POST['user']['authority'];
 
         $CUSTOM = (object) array();
-        $CUSTOM->arrow = $_POST['arrow'];
+        $CUSTOM->arrow = ($_POST['arrow'] == 'false') ? false : true;
         $CUSTOM->field = json_decode(base64_decode($_POST['custom']['field']), true);
         $CUSTOM->action = $_POST['custom']['action'];
         $CUSTOM->query = base64_decode($_POST['custom']['query_filter']);
+        $CUSTOM->query_ln = $_POST['custom']['query_filter_ln'];
         $CUSTOM->query_all = base64_decode($_POST['custom']['query_all']);
+        $CUSTOM->query_all_ln = $_POST['custom']['query_all_ln'];
         $CUSTOM->search_field = isset($_POST['custom']['search_field']) ? $_POST['custom']['search_field'] : [];
         
         $CUSTOM->order_column = isset($_POST['order'][0]['name']) ? $_POST['order'][0]['name'] : $_POST['custom']['order_column'];
@@ -81,26 +83,66 @@
     $columnN = 0;
     $COLUMNS = [];
 
-    foreach ($CUSTOM->field as $column => $format) {
+    # Frecce posizione
+        if ($CUSTOM->arrow) {
+            
+            array_push($COLUMNS, [
+                'db' => 'id', 
+                'dt' => 0,
+                'format' => [
+                    'visible' => $CUSTOM->arrow,
+                    'lines' => $CUSTOM->query_ln
+                ],
+                'formatter' => function($row, $column, $format) {
 
-        $field = [
-            'db' => $column, 
-            'dt' => $columnN,
-            'format' => $format,
-            'formatter' => function($row, $column, $format) {
+                    global $TABLE_FIELD;
 
-                global $TABLE_FIELD;
-    
-                return $TABLE_FIELD->newField($row, $column, $format);
+                    return $TABLE_FIELD->newField($row, 'position_arrow_up', $format);
 
-            }
-        ];
+                }
+            ]);
 
-        array_push($COLUMNS, $field);
+            array_push($COLUMNS, [
+                'db' => 'id', 
+                'dt' => 1,
+                'format' => [
+                    'visible' => $CUSTOM->arrow,
+                    'lines' => $CUSTOM->query_ln
+                ],
+                'formatter' => function($row, $column, $format) {
 
-        $columnN++;
+                    global $TABLE_FIELD;
 
-    }
+                    return $TABLE_FIELD->newField($row, 'position_arrow_down');
+
+                }
+            ]);
+
+            $columnN = 2;
+            
+        }
+
+    # Campi personalizzati
+        foreach ($CUSTOM->field as $column => $format) {
+
+            $field = [
+                'db' => $column, 
+                'dt' => $columnN,
+                'format' => $format,
+                'formatter' => function($row, $column, $format) {
+
+                    global $TABLE_FIELD;
+        
+                    return $TABLE_FIELD->newField($row, $column, $format);
+
+                }
+            ];
+
+            array_push($COLUMNS, $field);
+
+            $columnN++;
+
+        }
 
     # Menu
     array_push($COLUMNS, [
