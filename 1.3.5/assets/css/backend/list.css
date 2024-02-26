@@ -41,6 +41,8 @@ font-family: bootstrap-icons !important;
 content: '\F286';
 }
 
+.dt-container .dt-scroll-body { overflow: visible !important; }
+
 @media (max-width: 992px) {
 .tablet-none { display: none !important; }
 }
