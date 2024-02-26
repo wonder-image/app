@@ -320,7 +320,12 @@
                 lengthChange: true, // Creo io il lenght change #wi-search-input
                 searching: true, // Creo io la search bar #wi-input-length
                 responsive: {
-                    details: false
+                    details: false,
+                    breakpoints: [
+                        { name: 'desktop', width: Infinity },
+                        { name: 'tablet', width: 992 },
+                        { name: 'mobile', width: 768 }
+                    ]
                 },
                 ajax: {
                     url: pathApp+'/api/backend/list/table.php',
