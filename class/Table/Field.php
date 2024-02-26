@@ -267,7 +267,7 @@
                 if (!empty($BUTTONS)) {
 
                     return "
-                    <div class='btn-group position-static'>
+                    <div class='btn-group position-static float-end'>
                         <span class='badge text-dark' role='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
                             <i class='bi bi-three-dots'></i>
                         </span>

@@ -99,10 +99,10 @@
             }
 
             $class .= $dimension;
-
-            if (!$phone) { $class .= ' min-mobile'; }
-            if (!$tablet) { $class .= ' min-tablet'; }
-            if (!$pc) { $class .= ' max-tablet'; }
+            
+            if (!$phone) { $class .= ' not-mobile'; }
+            if (!$tablet) { $class .= ' not-tablet'; }
+            if (!$pc) { $class .= ' not-desktop'; }
 
             if ($pc && $tablet && $phone) { $class .= ' all'; }
 
@@ -319,6 +319,9 @@
                 scroller: true,
                 lengthChange: true, // Creo io il lenght change #wi-search-input
                 searching: true, // Creo io la search bar #wi-input-length
+                responsive: {
+                    details: false
+                },
                 ajax: {
                     url: pathApp+'/api/backend/list/table.php',
                     type: 'POST',
