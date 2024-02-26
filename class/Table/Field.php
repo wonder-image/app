@@ -17,7 +17,7 @@
         private $redirect;        
         private $redirectBase64;
 
-        private $line = 0;
+        public $line = 0;
         private $deleteButton = true;
 
 
@@ -201,9 +201,9 @@
 
         public function actionButton($actionArray) {
 
-            if (!empty($actionArray)) {
+            $BUTTONS = "";
 
-                $BUTTONS = "";
+            if (!empty($actionArray)) {
                 
                 foreach ($actionArray as $ACTION => $link) {
 
@@ -234,41 +234,76 @@
 
                     } elseif (is_array($link)) {
 
-                        $label = $link['label'];
+                        $label = isset($link['label']) ? $link['label'] : '';
                         $href = isset($link['href']) ? $link['href'] : '';
                         $action = isset($link['action']) ? $link['action'] : '';
                         $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
+                        $filter = isset($link['filter']) ? $link['filter'] : [];
 
-                        if (!empty($href)) {
-                            preg_match_all('/{(.*?)}/', $href, $listVar);
-                            if (count($listVar) > 0) {
-                                foreach ($listVar[1] as $key => $var) {
-                                    $href = str_replace('{'.$var.'}', $this->row[$var], $href);
+                        if ($ACTION == 'delete') {
+
+                            $BUTTON = $this->deleteRow()->button;
+
+                        } else {
+
+                            if (!empty($href)) {
+                                preg_match_all('/{(.*?)}/', $href, $listVar);
+                                if (count($listVar) > 0) {
+                                    foreach ($listVar[1] as $key => $var) {
+                                        $href = str_replace('{'.$var.'}', $this->row[$var], $href);
+                                    }
                                 }
                             }
+    
+                            if (isset($link['key']) && !empty($link['key'])) {
+                                foreach ($link['key'] as $q) {
+    
+                                    if ($q == 'table') {
+                                        $query = "table={$this->table->name}";
+                                    } elseif ($q == 'id') {
+                                        $query = "id={$this->rowId}";
+                                    } elseif ($q == 'redirect') {
+                                        $query = "redirect={$this->redirectBase64}";
+                                    }
+    
+                                    $url = parse_url($href);
+                                    $href .= isset($url['query']) ? '&' : '?';
+                                    $href .= $query;
+    
+                                }
+                            }
+    
+                            if (!empty($href)) { $action = 'href="'.$href.'"'; }
+    
+                            $BUTTON = "<a class='dropdown-item' $action role='button' $target>$label</a>";
+    
                         }
 
-                        if (isset($link['key']) && !empty($link['key'])) {
-                            foreach ($link['key'] as $q) {
+                        # Controllo se ho i permessi per vedere questo bottone
+                        $public = true;
 
-                                if ($q == 'table') {
-                                    $query = "table={$this->table->name}";
-                                } elseif ($q == 'id') {
-                                    $query = "id={$this->rowId}";
-                                } elseif ($q == 'redirect') {
-                                    $query = "redirect={$this->redirectBase64}";
+                        if (!empty($filter)) {
+
+                            $public = true;
+
+                            $row = isset($filter['row']) ? $filter['row'] : [];
+                            $area = isset($filter['area']) ? $filter['area'] : [];
+                            $authority = isset($filter['authority']) ? $filter['authority'] : [];
+
+                            # Controlla che l'area dell'utente sia accettata
+                            # Controlla che l'autorità dell'utente sia accettata
+
+                            # Controlla che il valore sia quello specificato
+                                if (!empty($row)) {
+                                    foreach ($row as $key => $value) {
+                                        if ($this->row[$key] != $value) { $public = false; break; }
+                                    }
                                 }
 
-                                $url = parse_url($href);
-                                $href .= isset($url['query']) ? '&' : '?';
-                                $href .= $query;
 
-                            }
                         }
 
-                        if (!empty($href)) { $action = 'href="'.$href.'"'; }
-
-                        $BUTTONS .= "<a class='dropdown-item' $action role='button' $target>$label</a>";
+                        $BUTTONS .= ($public) ? $BUTTON : "";
 
                     }
 
@@ -276,12 +311,12 @@
 
                 if (!empty($BUTTONS)) {
 
-                    return "
+                    $BUTTONS = "
                     <div class='btn-group position-static float-end'>
                         <span class='badge text-dark' role='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
                             <i class='bi bi-three-dots'></i>
                         </span>
-                        <div class='dropdown-menu dropdown-menu-right position-fixed'>
+                        <div class='dropdown-menu dropdown-menu-right'>
                             $BUTTONS
                         </div>
                     </div>";
@@ -290,6 +325,8 @@
 
             }
 
+            return $BUTTONS;
+            
         }
 
         public function positionArrow($type, $info) {
