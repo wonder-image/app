@@ -303,7 +303,7 @@
 
         var tablePage = <?=(isset($_GET['wi-page']) && !empty($_GET['wi-page'])) ? $_GET['wi-page'] : 0 ?>;
         var tableLength = <?=(isset($_GET['wi-length']) && !empty($_GET['wi-length'])) ? $_GET['wi-length'] : 10 ?>;
-        var tableSearch = '<?=(isset($_GET['wi-search']) && !empty($_GET['wi-search'])) ? $_GET['wi-search'] : '' ?>';
+        var tableSearch = '<?=(isset($_GET['wi-search']) && !empty($_GET['wi-search'])) ? str_replace("'", "\'", urldecode($_GET['wi-search'])) : '' ?>';
 
         var tableDefOrderName = '<?=$FILTER->query_order_col?>';
         var tableDefOrderDir = '<?=$FILTER->query_order_dir?>';
