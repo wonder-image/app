@@ -317,7 +317,7 @@
                 serverSide: true,
                 processing: true,
                 scroller: true,
-                lengthChange: true, // Creo io il lenght change #wi-search-input
+                lengthChange: true, // Creo io il length change #wi-search-input
                 searching: true, // Creo io la search bar #wi-input-length
                 responsive: {
                     details: false,
