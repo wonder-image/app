@@ -182,7 +182,6 @@
         'pass' => $DB->password,
         'db'   => $DB->database['main'],
         'host' => $DB->hostname
-        // ,'charset' => 'utf8' // Depending on your PHP and MySQL config, you may need this
     );
 
     echo json_encode(
