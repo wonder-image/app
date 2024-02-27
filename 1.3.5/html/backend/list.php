@@ -84,7 +84,8 @@
 
             $class = "";
 
-            $label = !empty($value['label']) ? $value['label'] : '';
+            $label = (isset($value['label']) && !empty($value['label'])) ? $value['label'] : '';
+            $format = isset($value['format']) ? $value['format'] : '';
             $orderable = isset($value['orderable']) ? $value['orderable'] : false;
             $phone = isset($value['phone']) ? $value['phone'] : true;
             $tablet = isset($value['tablet']) ? $value['tablet'] : true;
@@ -93,7 +94,7 @@
             $dimension = !empty($value['dimension']) ? $value['dimension'] : '';
 
             if (empty($dimension)) {
-                if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty') {
+                if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty' || $format == 'image') {
                     $dimension = 'little';
                 }
             }
@@ -292,9 +293,7 @@
             },
             custom: {
                 query_filter: '<?=base64_encode($FILTER->query_filter)?>',
-                query_filter_ln: <?=$FILTER->selected_lines?>,
                 query_all: '<?=base64_encode($FILTER->query_all)?>',
-                query_all_ln: <?=$FILTER->lines?>,
                 field: '<?=base64_encode(json_encode($TABLE_FIELD))?>',
                 action: JSON.parse('<?=json_encode($TABLE_ACTION)?>'),
                 search_field: JSON.parse('<?=json_encode($FILTER_SEARCH)?>'),

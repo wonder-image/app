@@ -16,6 +16,9 @@
         $NAME->folder = $_POST['folder'];
         $NAME->table = $_POST['table'];
 
+        $nameTable = strtoupper($NAME->table);
+        $NAME->field = $TABLE->$nameTable;
+
         $TEXT = (object) array();
         $TEXT->titleS = $_POST['text']['titleS'];
         $TEXT->titleP = $_POST['text']['titleP'];
@@ -35,9 +38,7 @@
         $CUSTOM->field = json_decode(base64_decode($_POST['custom']['field']), true);
         $CUSTOM->action = $_POST['custom']['action'];
         $CUSTOM->query = base64_decode($_POST['custom']['query_filter']);
-        $CUSTOM->query_ln = $_POST['custom']['query_filter_ln'];
         $CUSTOM->query_all = base64_decode($_POST['custom']['query_all']);
-        $CUSTOM->query_all_ln = $_POST['custom']['query_all_ln'];
         $CUSTOM->search_field = isset($_POST['custom']['search_field']) ? $_POST['custom']['search_field'] : [];
         
         $CUSTOM->order_column = isset($_POST['order'][0]['name']) ? $_POST['order'][0]['name'] : $_POST['custom']['order_column'];
@@ -78,13 +79,30 @@
 
     #
 
+    # Conto le linee 
+
+        if (empty($CUSTOM->query) && empty($CUSTOM->query_all)) {
+            $query = "";
+        } else if (empty($CUSTOM->query) && !empty($CUSTOM->query_all)) {
+            $query = $CUSTOM->query_all;
+        } else if (!empty($CUSTOM->query) && empty($CUSTOM->query_all)) {
+            $query = $CUSTOM->query;
+        } else if (!empty($CUSTOM->query) && !empty($CUSTOM->query_all)) {
+            $query = $CUSTOM->query.' AND '.$CUSTOM->query_all;
+        }
+
+        $CUSTOM->query_ln = sqlCount($NAME->table, $query, 'id', true);
+        $CUSTOM->query_all_ln = sqlCount($NAME->table, $CUSTOM->query_all, 'id', true);
+
+    #
+
     $TABLE_FIELD = new Field($NAME, $PATH, $TEXT, $USER, $PAGE);
 
     $columnN = 0;
     $COLUMNS = [];
 
     # Frecce posizione
-        if ($CUSTOM->arrow) {
+        if ($CUSTOM->arrow && $CUSTOM->query_ln > 1) {
             
             array_push($COLUMNS, [
                 'db' => 'id', 
@@ -113,7 +131,7 @@
 
                     global $TABLE_FIELD;
 
-                    return $TABLE_FIELD->newField($row, 'position_arrow_down');
+                    return $TABLE_FIELD->newField($row, 'position_arrow_down', $format);
 
                 }
             ]);

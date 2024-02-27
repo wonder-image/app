@@ -36,12 +36,14 @@
             $this->table = (object) array();
             $this->table->name = $TABLE->table;
             $this->table->folder = $TABLE->folder;
+            $this->table->field = $TABLE->field;
 
             $this->link = (object) array();
             $this->link->site = $PATH->site;
             $this->link->backend = $PATH->backend;
             $this->link->app = $PATH->app;
             $this->link->folder = $this->link->backend.'/'.$this->table->folder;
+            $this->link->upload = $PATH->upload.'/'.$this->table->folder;
 
             $this->text = (object) array();
             $this->text->titleS = $TEXT->titleS;
@@ -344,7 +346,7 @@
             if ($info['visible']) {
                 if ($type == 'up' && $this->line > 1) {
                     $RETURN = $button;
-                } else if ($type == 'down' && $this->line > $info['lines']) {
+                } else if ($type == 'down' && $this->line < $info['lines']) {
                     $RETURN = $button;
                 }
             }
@@ -467,7 +469,46 @@
                     $type = $format['format'];
 
                     if ($type == 'image') {
+
+                        if (!isset($format['function'])) {
+
+                            $VALUE = empty($VALUE) ? [] : json_decode($VALUE);
+
+                            $imageDir = isset($this->table->field[$this->column]['input']['format']['dir']) ? $this->table->field[$this->column]['input']['format']['dir'] : '/';
+
+                            if (isset($this->table->field[$this->column]['input']['format']['resize'])) {
+
+                                $imageResize = $this->table->field[$this->column]['input']['format']['resize'];
+
+                                if (isset($imageResize['width']) && isset($imageResize['height'])) {
+
+                                    $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+
+                                } else {
+
+                                    $s = 10000000;
+
+                                    foreach ($imageResize as $key => $size) {
+                                        if ($size['width'] < $s) {
+                                            $s = $size['width'];
+                                            $imageSize = $size['width'].'x'.$size['height'].'-';
+                                        }
+                                    }
+
+                                }
+
+                            } else {
+
+                                $imageSize = "";
+
+                            }
+
+                            $VALUE = $this->link->upload.$imageDir.$imageSize.$VALUE[0];
+                            
+                        }
+
                         $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-cover' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
+                    
                     } else if ($type == 'date') {
                         $VALUE = date('d/m/Y', strtotime($VALUE));
                     }
