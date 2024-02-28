@@ -1,0 +1,143 @@
+$i: 0
+
+.#{$width}-auto 
+    width: auto !important
+.#{$width}-fit
+    width: fit-content !important
+
+.#{$height}-auto 
+    height: auto !important
+.#{$height}-fit
+    height: fit-content !important
+
+@while $i <= $dimension-max 
+    /* Width percentige */
+    .#{$width}-#{$i} 
+        width: #{$i+'%'} !important
+    .#{$max}-#{$width}-#{$i} 
+        max-width: #{$i+'%'} !important
+    .#{$min}-#{$width}-#{$i} 
+        min-width: #{$i+'%'} !important
+
+    /* Width viewport */
+    .#{$viewport}#{$width}-#{$i} 
+        width: #{$i+'vw'} !important
+    .#{$max}-#{$viewport}#{$width}-#{$i} 
+        max-width: #{$i+'vw'} !important
+    .#{$min}-#{$viewport}#{$width}-#{$i} 
+        min-width: #{$i+'vw'} !important
+
+    /* Height percentige */
+    .#{$height}-#{$i} 
+        height: #{$i+'%'} !important
+    .#{$max}-#{$height}-#{$i} 
+        max-height: #{$i+'%'} !important
+    .#{$min}-#{$height}-#{$i} 
+        min-height: #{$i+'%'} !important
+
+    /* Height viewport */
+    .#{$viewport}#{$height}-#{$i} 
+        height: #{$i+'vh'} !important
+    .#{$max}-#{$viewport}#{$height}-#{$i} 
+        max-height: #{$i+'vh'} !important
+    .#{$min}-#{$viewport}#{$height}-#{$i} 
+        min-height: #{$i+'vh'} !important
+        
+    $i: $i + $dimension-increase
+
+
+$i: 0
+
+.#{$width}-#{$tablet}-auto 
+    width: auto !important
+.#{$width}-#{$tablet}-fit
+    width: fit-content !important
+
+.#{$height}-#{$tablet}-auto 
+    height: auto !important
+.#{$height}-#{$tablet}-fit
+    height: fit-content !important
+    
+@while $i <= $dimension-max 
+    @include tablet
+        /* Width percentige */
+        .#{$width}-#{$tablet}-#{$i} 
+            width: #{$i+'%'} !important
+        .#{$max}-#{$width}-#{$tablet}-#{$i} 
+            max-width: #{$i+'%'} !important
+        .#{$min}-#{$width}-#{$tablet}-#{$i} 
+            min-width: #{$i+'%'} !important
+
+        /* Width viewport */
+        .#{$viewport}#{$width}-#{$tablet}-#{$i} 
+            width: #{$i+'vw'} !important
+        .#{$max}-#{$viewport}#{$width}-#{$tablet}-#{$i} 
+            max-width: #{$i+'vw'} !important
+        .#{$min}-#{$viewport}#{$width}-#{$tablet}-#{$i} 
+            min-width: #{$i+'vw'} !important
+
+        /* Height percentige */
+        .#{$height}-#{$tablet}-#{$i} 
+            height: #{$i+'%'} !important
+        .#{$max}-#{$height}-#{$tablet}-#{$i} 
+            max-height: #{$i+'%'} !important
+        .#{$min}-#{$height}-#{$tablet}-#{$i} 
+            min-height: #{$i+'%'} !important
+
+        /* Height viewport */
+        .#{$viewport}#{$height}-#{$tablet}-#{$i} 
+            height: #{$i+'vh'} !important
+        .#{$max}-#{$viewport}#{$height}-#{$tablet}-#{$i} 
+            max-height: #{$i+'vh'} !important
+        .#{$min}-#{$viewport}#{$height}-#{$tablet}-#{$i} 
+            min-height: #{$i+'vh'} !important
+        
+    $i: $i + $dimension-increase
+
+$i: 0
+
+.#{$width}-#{$phone}-auto 
+    width: auto !important
+.#{$width}-#{$phone}-fit
+    width: fit-content !important
+
+.#{$height}-#{$phone}-auto 
+    height: auto !important
+.#{$height}-#{$phone}-fit
+    height: fit-content !important
+    
+@while $i <= $dimension-max 
+    @include phone
+        /* Width percentige */
+        .#{$width}-#{$phone}-#{$i} 
+            width: #{$i+'%'} !important
+        .#{$max}-#{$width}-#{$phone}-#{$i} 
+            max-width: #{$i+'%'} !important
+        .#{$min}-#{$width}-#{$phone}-#{$i} 
+            min-width: #{$i+'%'} !important
+
+        /* Width viewport */
+        .#{$viewport}#{$width}-#{$phone}-#{$i} 
+            width: #{$i+'vw'} !important
+        .#{$max}-#{$viewport}#{$width}-#{$phone}-#{$i} 
+            max-width: #{$i+'vw'} !important
+        .#{$min}-#{$viewport}#{$width}-#{$phone}-#{$i} 
+            min-width: #{$i+'vw'} !important
+
+        /* Height percentige */
+        .#{$height}-#{$phone}-#{$i} 
+            height: #{$i+'%'} !important
+        .#{$max}-#{$height}-#{$phone}-#{$i} 
+            max-height: #{$i+'%'} !important
+        .#{$min}-#{$height}-#{$phone}-#{$i} 
+            min-height: #{$i+'%'} !important
+
+        /* Height viewport */
+        .#{$viewport}#{$height}-#{$phone}-#{$i} 
+            height: #{$i+'vh'} !important
+        .#{$max}-#{$viewport}#{$height}-#{$phone}-#{$i} 
+            max-height: #{$i+'vh'} !important
+        .#{$min}-#{$viewport}#{$height}-#{$phone}-#{$i} 
+            min-height: #{$i+'vh'} !important
+        
+    $i: $i + $dimension-increase
