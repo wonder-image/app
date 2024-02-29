@@ -7,6 +7,7 @@
 .o-hidden { overflow: hidden !important; }
 .o-scroll { overflow: scroll !important; }
 .o-auto { overflow: auto !important; }
+.o-inherit { overflow: inherit !important; }
 
 /* Border */
 .b-0 { border: none !important; }
