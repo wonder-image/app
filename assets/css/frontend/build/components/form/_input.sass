@@ -1,0 +1,138 @@
+/* Input */
+.wi-input-container 
+    width: 100%
+    
+    .wi-input
+        width: calc(100% - 32px - var(--input-border-left) - var(--input-border-right))
+        height: 16px
+        line-height: 16px
+        padding: 28px 16px 12px 16px
+        font-size: 16px
+        font-family: var(--input-tx-family)
+        font-weight: var(--input-tx-weight)
+        border-radius: var(--input-border-radius)
+        border-top: var(--input-border-top) solid var(--input-border-color)
+        border-right: var(--input-border-right) solid var(--input-border-color)
+        border-bottom: var(--input-border-bottom) solid var(--input-border-color)
+        border-left: var(--input-border-left) solid var(--input-border-color)
+        color: var(--input-tx-color)
+        background: var(--input-bg-color)
+        text-align: left
+        transition: .2s
+        &:disabled 
+            background: var(--input-disabled-bg)
+        &:focus, &:valid
+            border-color: var(--input-border-focus)
+
+    &.textarea 
+        .wi-input
+            resize: none
+            height: 40px
+
+    &.input-error /* Input error */
+        .wi-input
+            border-top: var(--input-border-top) solid var(--danger-color)
+            border-right: var(--input-border-right) solid var(--danger-color)
+            border-bottom: var(--input-border-bottom) solid var(--danger-color)
+            border-left: var(--input-border-left) solid var(--danger-color)
+        .alert-error
+            display: block
+
+    .wi-label /* Label */
+        position: absolute
+        float: left
+        top: var(--input-border-top)
+        left: var(--input-border-left)
+        width: calc(100% - 32px - var(--input-border-left) - var(--input-border-right))
+        margin: 20px 16px
+        line-height: 16px
+        font-size: 16px
+        font-weight: var(--input-label-weight)
+        color: var(--input-label-color)
+        font-family: var(--input-tx-family)
+        background: transparent
+        cursor: text
+        text-align: left
+        z-index: 3
+        transition: .3s
+        -webkit-touch-callout: none !important
+        -webkit-user-select: none !important
+        -khtml-user-select: none !important
+        -moz-user-select: none !important
+        -ms-user-select: none !important
+        user-select: none !important 
+        display: -webkit-box
+        -webkit-line-clamp: 1
+        -webkit-box-orient: vertical  
+        overflow: hidden
+
+    &.compiled 
+        .wi-label
+            height: 12px
+            line-height: 12px
+            font-size: 12px
+            color: var(--input-label-focus-color)
+            font-weight: var(--input-label-focus-weight)
+            margin: 8px 16px
+            cursor: default
+
+    .wi-input-icon /* Input icon */
+        position: absolute
+        top: var(--input-border-top)
+        width: 22px
+        height: 28px
+        line-height: 28px
+        font-size: 20px
+        text-align: center
+        border-radius: var(--input-border-radius)
+        color: var(--input-label-color)
+        z-index: 9
+
+    &.wi-input-icon-start, &.wi-input-icon-end
+        .wi-input
+            width: calc(100% - 66px - var(--input-border-left) - var(--input-border-right))
+        .wi-label
+            width: calc(100% - 66px - var(--input-border-left) - var(--input-border-right))
+
+    &.wi-input-icon-start
+        .wi-input
+            padding-left: 50px 
+        .wi-label
+            margin-left: 50px
+        .wi-input-icon
+            left: var(--input-border-left)
+            padding: 14px 12px 14px 16px
+
+    &.wi-input-icon-end 
+        .wi-input
+            padding-right: 50px
+        .wi-label
+            margin-right: 0px
+        .wi-input-icon
+            left: var(--input-border-right)
+            padding: 14px 16px 14px 12px
+
+    .alert-error /* Allerta */
+        position: relative
+        float: left
+        width: calc(100% - var(--input-border-left) - var(--input-border-right))
+        margin: 4px var(--input-border-left) 0px var(--input-border-right)
+        font-size: 12px
+        line-height: 16px
+        height: 16px
+        text-align: left
+        font-weight: 300
+        color: var(--danger-color)
+        display: none
+        i 
+            position: relative
+            float: left
+            font-size: 16px
+            margin-right: 8px
+     
+/* Input submit */
+.wi-input-submit 
+    line-height: 24px !important
+    padding: 16px !important
+    font-size: 16px !important
+    border-width: var(--input-border-bottom) !important
