@@ -2,143 +2,156 @@
 <div class="wrapper">
 
     <!-- Sidebar Holder -->
-    <nav id="sidebar" class="bg-body-secondary border-end">
+    <nav id="sidebar">
 
-        <ul class="list-unstyled components">
+        <div class="sidebar-navbar bg-body-secondary border-end d-flex flex-column flex-shrink-0">
 
-            <?php
-                
-                $url = $_SERVER['SCRIPT_NAME'];
-                $pathArray = explode("/", $url);
+            <ul class="list-unstyled components mb-auto sidebar-navbar-nav">
 
-                array_shift($pathArray);
-                array_shift($pathArray);
+                <?php
+                    
+                    $url = $_SERVER['SCRIPT_NAME'];
+                    $pathArray = explode("/", $url);
 
-                foreach ($NAV_BACKEND as $navs) {
+                    array_shift($pathArray);
+                    array_shift($pathArray);
 
-                    $titleNav = isset($navs['title']) ? $navs['title'] : 'ND';
-                    $folderNav = isset($navs['folder']) ? $navs['folder'] : '';
-                    $iconNav = isset($navs['icon']) ? $navs['icon'] : 'bi-bug';
-                    $fileNav = isset($navs['file']) ? $navs['file'] : '';
-                    $authNav = isset($navs['authority']) ? $navs['authority'] : [];
-                    $subNav = isset($navs['subnavs']) ? $navs['subnavs'] : [];
+                    $offcanvasHTML = "";
 
-                    if (!$authNav || count(array_intersect($authNav, $USER->authority)) >= 1) {
+                    foreach ($NAV_BACKEND as $navs) {
 
-                        if (in_array($folderNav, $pathArray)) {
-                            $activeNav = "active";
-                            $activeSubs = "show";
-                            $activeSub = "";
-                            $fillImg = "-fill";
-                        }else{
-                            $activeNav = "";
-                            $activeSubs = "";
-                            $activeSub = "";
-                            $fillImg = "";
-                        }
-    
-                        if (empty($subNav)) {
-                            $subnavsNav = '';
-                            $subNavs = "";
-                            $subnavsList = '';
-                        }else{
-    
-                            $subnavsNav = "data-bs-toggle='collapse' data-bs-target='#$folderNav' aria-expanded='false'";
-                            $subNavs = "";
-                            $activeSub = "";
-                            
-                            foreach ($subNav as $sub) {
-                                
-                                $titleSub = isset($sub['title']) ? $sub['title'] : 'ND';
-                                $folderSub = isset($sub['folder']) ? $sub['folder'] : '';
-                                $authSub = isset($sub['authority']) ? $sub['authority'] : [];
-                                $fileSub = isset($sub['file']) ? $sub['file'] : '';
+                        $titleNav = isset($navs['title']) ? $navs['title'] : 'ND';
+                        $folderNav = isset($navs['folder']) ? $navs['folder'] : '';
+                        $iconNav = isset($navs['icon']) ? $navs['icon'] : 'bi-bug';
+                        $fileNav = isset($navs['file']) ? $navs['file'] : '';
+                        $authNav = isset($navs['authority']) ? $navs['authority'] : [];
+                        $subNav = isset($navs['subnavs']) ? $navs['subnavs'] : [];
+                        $targetId = code(10, 'numbers', 'sidebar-');
 
-                                if (!$authSub || count(array_intersect($authSub, $USER->authority)) >= 1) {
-                                    if ($folderNav == $folderSub) {
-                                        if(in_array($folderNav, $pathArray) && in_array($fileSub, $pathArray)){
-                                            $activeSub = "active";
-                                            $activeSubs = 'show';
-                                        }else{
-                                            $activeSub = "";
-                                        }
-                                    }else{
-                                        if (in_array($folderSub, $pathArray)) {
-                                            $activeSub = "active";
-                                            $activeSubs = 'show';
-                                        }else{
-                                            $activeSub = "";
-                                        }
-                                    }
+                        if (!$authNav || count(array_intersect($authNav, $USER->authority)) >= 1) {
+
+                            $activeNav = false;
+
+                            if (in_array($folderNav, $pathArray)) { $activeNav = true; }
         
-                                    $subNavs .= "
-                                    <li class='$activeSub'>
-                                        <a href='$PATH->site/backend/$folderSub/$fileSub'>       
-                                            <span>$titleSub</span>
-                                        </a>
-                                    </li>
-                                    ";
-                                }
-                                
-                            }
-    
-                            $subnavsList = "
-                            <ul class='collapse $activeSubs list-unstyled' id='$folderNav'>
-                                $subNavs
-                            </ul>";
-    
-                        }
-    
-                        if ($activeSubs == 'show') {
-                            $activeNav = 'active';
-                            $fillImg = '-fill';
-                        }
+                            $offcanvas = [];
+                            
+                            if (!empty($subNav)) {
 
-                        if (!empty($subnavsList)) {
-                            $subnavsToggle = "href='#' type='button' data-bs-toggle='collapse' data-bs-target='#$folderNav' aria-expanded='false' aria-controls='$folderNav'";
-                        }else{
-                            $subnavsToggle = "href='$PATH->site/backend/$folderNav/$fileNav'";
+                                foreach ($subNav as $sub) {
+                                    
+                                    $titleSub = isset($sub['title']) ? $sub['title'] : 'ND';
+                                    $folderSub = isset($sub['folder']) ? $sub['folder'] : '';
+                                    $authSub = isset($sub['authority']) ? $sub['authority'] : [];
+                                    $fileSub = isset($sub['file']) ? $sub['file'] : '';
+
+                                    $activeSub = false;
+
+                                    if (!$authSub || count(array_intersect($authSub, $USER->authority)) >= 1) {
+
+                                        if ($folderNav == $folderSub) {
+                                            if (in_array($folderNav, $pathArray) && in_array($fileSub, $pathArray)){
+                                                $activeSub = true;
+                                                $activeNav = true;
+                                            }
+                                        } else {
+                                            if (in_array($folderSub, $pathArray)) {
+                                                $activeSub = true;
+                                                $activeNav = true;
+                                            }
+                                        }
+
+                                        array_push($offcanvas, [
+                                            'title' => $titleSub,
+                                            'link' => $PATH->site.'/backend/'.$folderSub.'/'.$fileSub,
+                                            'active' => $activeSub
+                                        ]);
+
+                                    }
+                                    
+                                }
+        
+                                $offcanvasHTML .= sidebarOffcanvas(
+                                    $targetId,
+                                    $titleNav,
+                                    $offcanvas
+                                );
+        
+                            }
+
+                            $navClass = $activeNav ? 'active' : '';
+                            $fillImg = $activeNav ? '-fill' : '';
+
+                            if (!empty($offcanvas)) {
+                                $subnavsToggle = "type='button' data-bs-toggle='offcanvas' data-bs-target='#$targetId' aria-label='Close'";
+                            } else {
+                                $subnavsToggle = "href='$PATH->site/backend/$folderNav/$fileNav'";
+                            }
+        
+                            echo "
+                            <li class='$navClass'>
+                                <a $subnavsToggle class='text-body-emphasis'>       
+                                    <i class='bi $iconNav$fillImg'></i> <span>$titleNav</span>
+                                </a>
+                            </li>";
+
                         }
-    
-                        echo "
-                        <li class='$activeNav'>
-                            <div class='line bg-body'></div>
-                            <a $subnavsToggle class='text-body-emphasis'>       
-                                <i class='bi $iconNav$fillImg'></i>
-                                <span>$titleNav</span>
-                            </a>
-                            $subnavsList
-                        </li>
-                        ";
 
                     }
 
-                }
+                ?>
+                
+            </ul>
+
+            <?php
+
+                $impostazioniId = code(10, 'numbers', 'sidebar-');
 
             ?>
-            
-        </ul>
+
+            <ul class="list-unstyled components border-top mb-0">
+                    
+                <li>
+                    <div class="line bg-body"></div>
+                    <a class="text-body-emphasis" type="button" data-bs-toggle="offcanvas" data-bs-target="#<?=$impostazioniId?>">       
+                        <i class="bi bi-gear-wide-connected"></i>
+                        <span>Impostazioni</span>
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+        <div class="sidebar-offcanvas">
+            <?php
+
+                echo $offcanvasHTML;
+
+                echo sidebarOffcanvas($impostazioniId, "Impostazioni", [
+                    [
+                        'title' => 'Profilo',
+                        'link' => $PATH->site.'/backend/account',
+                        'active' => in_array('account', $pathArray) ? true : false
+                    ],[
+                        'title' => 'Esci',
+                        'link' => $PATH->site.'/backend',
+                        'active' => false
+                    ]
+                ]);
+
+            ?>
+        </div>
 
     </nav>
 
     <nav id="topbar" class="bg-body border-bottom">
 
-        <div class="dropdown float-start">
-            <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-gear-wide-connected"></i>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a href="<?=$PATH->site?>/backend/account" class="dropdown-item" type="button"><i class="bi bi-person-fill me-2"></i> Profilo</a></li>
-                <div class="dropdown-divider"></div>
-                <li><a href="<?=$PATH->site?>/backend" class="dropdown-item text-danger" type="button"><i class="bi bi-box-arrow-left me-2"></i> Esci</a></li>
-            </ul>
-        </div>
-
-        <a href="https://www.wonderimage.it" target="_blank" rel="noopener noreferrer" class="position-absolute top-50 start-50 translate-middle" style="height: 30px;">
+        <a href="https://www.wonderimage.it" target="_blank" rel="noopener noreferrer" class="" style="height: 30px;">
             <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="h-100 d-none"><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="h-100 d-none">
         </a>
 
-        <button id="menu" class="btn btn-outline-dark btn-sm pc-none ms-2 float-end" type="button" onclick="menu()">
+        <button id="menu" class="btn btn-outline-dark btn-sm pc-none ms-2 float-end" type="button" onclick="menu();">
             <i class="open-menu bi bi-list"></i><i class="close-menu bi bi-x-lg d-none"></i>
         </button>
 

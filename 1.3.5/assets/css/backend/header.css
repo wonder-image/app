@@ -5,7 +5,7 @@
 --bs-font-monospace: 'Montserrat', sans-serif;  
 }
 
-html { font-size: 15px; }
+html { font-size: 14px; }
 body { 
 --bs-bg-opacity: 1;
 background-color: rgba(var(--bs-tertiary-bg-rgb),var(--bs-bg-opacity))!important;
@@ -75,7 +75,7 @@ position: relative;
 float: right;
 padding: 20px;
 top: 50px;
-width: calc(100% - 220px);
+width: calc(100% - 80px);
 min-height: calc(100vh - 50px);
 transition: all 0.3s;
 }
@@ -84,16 +84,29 @@ position: fixed;
 float: left;
 top: 50px;
 height: calc(100% - 50px);
-min-width: 220px;
-max-width: 220px;
+min-width: 80px;
+max-width: 80px;
 color: #fff;
 transform-origin: bottom left;
 padding: 0;
-padding-top: 15px;
-overflow: scroll;
-overscroll-behavior: none;
--ms-overflow-style: none;
-scrollbar-width: none;
+z-index: 8;
+}
+#sidebar .sidebar-navbar {
+position: absolute;
+float: left;
+width: 100%;
+height: 100%;
+z-index: 3;
+}
+#sidebar .sidebar-offcanvas .offcanvas-backdrop {
+z-index: 1;
+}
+#sidebar .sidebar-offcanvas .offcanvas {
+--bs-offcanvas-height: calc(100% - 50px);
+--bs-offcanvas-width: 200px;
+--bs-offcanvas-zindex: 2;
+top: 50px !important;
+left: 80px !important;
 }
 #sidebar::-webkit-scrollbar {
 display: none;
@@ -103,22 +116,19 @@ position: relative;
 float: left;
 width: 100%;
 }
+#sidebar .sidebar-navbar-nav {
+padding-top: 10px;
+max-height: calc(100% - 55px);
+overflow: scroll;
+overscroll-behavior: none;
+-ms-overflow-style: none;
+scrollbar-width: none;
+}
 #sidebar ul li{
 position: relative;
 float: left;
 width: 100%;
 margin: 5px 0;
-}
-#sidebar ul li .line{
-position: relative;
-float: left;
-width: 5px;
-height: 30px;
-opacity: 0;
-border-radius: 0 0.25rem 0.25rem 0;
-}
-#sidebar ul li.active .line{
-opacity: 1;
 }
 #sidebar ul li ul {
 margin-top: 5px;
@@ -126,62 +136,55 @@ margin-top: 5px;
 #sidebar ul li a {
 position: relative;
 float: left;
-width: calc(100% - 25px);
-margin: 0 10px;
-padding: 5px;
-font-size: 1em;
-line-height: 20px;
+width: 65px;
+margin: 0 7.5px;
+padding: 7.5px 5px;
 display: block;
 text-decoration: none;
 border-radius: 0.25rem;
 transition: .5s;
 }
-#sidebar ul li a i {
-position: relative;
-float: left;
-font-size: 1em;
-width: 20px;
-margin-right: 2px;
-text-align: center;
-}
-#sidebar ul li a:hover,
-a[aria-expanded="true"]{
+
+#sidebar ul li a:hover {
 --bs-bg-opacity: .5;
 background-color: rgba(var(--bs-tertiary-bg-rgb),var(--bs-bg-opacity))!important;
 }
-#sidebar ul li.active > a {
+#sidebar ul li.active a {
 --bs-bg-opacity: 1;
 background-color: rgba(var(--bs-tertiary-bg-rgb),var(--bs-bg-opacity))!important;
 }
-#sidebar ul li ul li a {
+#sidebar ul li.active-offcanvas a {
+background-color: var(--bs-body-bg) !important;
+width: 75px;
+padding-right: 15px;
+}
+#sidebar ul li a i {
 position: relative;
 float: left;
-width: calc(100% - 52px);
-padding: 0 !important;
-margin: 0 0 0 42px !important;
-line-height: 12px;
-font-size: .9em;
-font-weight: 300;
-background: none !important;;
-text-align: left;
-color: var(--bs-tertiary-color) !important;
+font-size: 1.4em;
+line-height: 1em;
+width: 100%;
+text-align: center;
 }
-#sidebar ul li ul li a:hover {
-background: none !important;
-color: var(--bs-secondary-color) !important;
-}
-#sidebar ul li.active ul li.active > a {
-background: none !important;
-font-weight: 400;
-color: var(--bs-secondary-color) !important;
-}
-a[data-toggle="collapse"] {
+
+#sidebar ul li a span {
 position: relative;
+float: left;
+font-size: .7em;
+line-height: 1em;
+width: 100%;
+max-width: 100%;
+margin-top: 7.5px;
+text-align: center; 
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
 }
+
 #topbar{
 position: fixed;
 float: left;
-width: 100%;
+width: 100vw;
 height: 50px;
 padding: 10px 20px;
 z-index: 9;
@@ -198,20 +201,36 @@ wi-card { display: none; }
 position: relative;
 width: 100%;
 }
-#sidebar{
+#sidebar {
 position: fixed;
-width: 100%;
-max-width: 100%;
-min-width: 100%;
-padding: 2% 0;
-top: -250%;
-z-index: 8;
+left: -80px;
+transition: .3s;
+transition-delay: .3s;
+}
+#sidebar::before {
+content: '';
+position: fixed;
+float: right;
 transition: .5s;
+width: calc(100% - 80px);
+height: 100%;
+background: var(--bs-body-bg);
+right: -120%;
+transition: .4s;
+}
+#sidebar .sidebar-offcanvas .offcanvas {
+--bs-offcanvas-width: calc(100% - 80px);
 }
 #sidebar ul li ul{ margin-top: 0%; }
 #sidebar .components {
 position: relative;
 float: left;
 }
-#sidebar.show { top: 50px; }
+#sidebar.show { 
+left: 0px;
+transition-delay: 0s;
+}
+#sidebar.show::before {
+right: 0;
+}
 }
