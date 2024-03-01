@@ -134,24 +134,20 @@
 
 
         <form class="col-3" action="" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body row g-3">
-                        <div class="col-12">
-                            <h6>Modifica password</h6>
-                        </div>
-                        <div class="col-12">
-                            <?=password('Vecchia password', 'old-password', 'required', '')?>
-                        </div>
-                        <div class="col-12">
-                            <?=password('Nuova password', 'new-password', 'required', '')?>
-                        </div>
-                        <div class="col-12">
-                            <?=submit('Modifica password', 'modify-password'); ?>
-                        </div>
-                    </div>
+            <wi-card class="col-12">
+                <div class="col-12">
+                    <h6>Modifica password</h6>
                 </div>
-            </div>
+                <div class="col-12">
+                    <?=password('Vecchia password', 'old-password', 'required', '')?>
+                </div>
+                <div class="col-12">
+                    <?=password('Nuova password', 'new-password', 'required', '')?>
+                </div>
+                <div class="col-12">
+                    <?=submit('Modifica password', 'modify-password'); ?>
+                </div>
+            </wi-card>
         </form>
 
     </div>
