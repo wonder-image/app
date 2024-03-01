@@ -54,41 +54,35 @@
                 <h3><?=$INFO_PAGE->title?></h3>
             </wi-card>
 
-            <div class="col-9">
-                <div class="row g-3">
-
-                    <wi-card class="col-12">
+            <wi-card class="col-12">
+                
+                <div class="col-6">
+                    <div class="row g-3">
                         <div class="col-12">
                             <h6>File .htaccess</h6>
                         </div>
                         <div class="col-12">
                             <?=textarea('Editor', 'htaccess', null, null, file_get_contents($HTACCESS_PATH)) ?>
                         </div>
-                    </wi-card>
+                    </div>
+                </div>
 
-                    <wi-card class="col-12">
+                <div class="col-6">
+                    <div class="row g-3">
                         <div class="col-12">
                             <h6>File robots.txt</h6>
                         </div>
                         <div class="col-12">
                             <?=textarea('Editor', 'robots', null, null, file_get_contents($ROBOTS_PATH)) ?>
                         </div>
-                    </wi-card>
-
+                    </div>
                 </div>
-            </div>
 
-            <div class="col-3">
-                <div class="row g-3">
-
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=submit('Modifica', 'modify'); ?>
-                        </div>
-                    </wi-card>
-
+                <div class="col-12">
+                    <?=submit('Modifica', 'modify'); ?>
                 </div>
-            </div>
+
+            </wi-card>
 
         </div>
     </form>

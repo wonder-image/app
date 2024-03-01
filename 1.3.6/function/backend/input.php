@@ -298,8 +298,18 @@
         global $NAME;
         global $TABLE;
 
-        $TABLE_NAME = strtoupper($NAME->table);
-        $PAGE_TABLE = $TABLE->$TABLE_NAME;
+        if (isset($NAME->table)) {
+
+            $TABLE_NAME = strtoupper($NAME->table);
+            $PAGE_TABLE = $TABLE->$TABLE_NAME;
+    
+            $MAX_LENGHT = isset($PAGE_TABLE[$name]['sql']['lenght']) ? $PAGE_TABLE[$name]['sql']['lenght'] : 0;
+
+        } else {
+
+            $MAX_LENGHT = 0;
+
+        }
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -317,8 +327,6 @@
             </div>";
 
         } else {
-
-            $MAX_LENGHT = isset($PAGE_TABLE[$name]['sql']['lenght']) ? $PAGE_TABLE[$name]['sql']['lenght'] : 0;
 
             if ($MAX_LENGHT > 0) {
                 if ($value == null) { $c = 0; } else { $c = strlen($value); }
@@ -731,7 +739,7 @@
             $ACCEPT = "image/png";
             $EXTENSIONS_ACCEPT = ".png";
         } elseif ($file == "ico") {
-            $ACCEPT = "image/ico";
+            $ACCEPT = "image/ico, image/x-icon";
             $EXTENSIONS_ACCEPT = ".ico";
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";
@@ -879,7 +887,7 @@
             $ACCEPT = "image/png";
             $ACCEPT_LABEL = "la tua immagine";
         } elseif ($file == "ico") {
-            $ACCEPT = "image/ico";
+            $ACCEPT = "image/ico, image/x-icon";
             $ACCEPT_LABEL = "la tua immagine";
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";

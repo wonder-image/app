@@ -8,7 +8,7 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     $INFO_PAGE = (object) array();
-    $INFO_PAGE->title = "Stile input";
+    $INFO_PAGE->title = "Stile modal";
     $INFO_PAGE->table = $TABLE->CSS_MODAL;
     $INFO_PAGE->tableName = "css_modal";
 

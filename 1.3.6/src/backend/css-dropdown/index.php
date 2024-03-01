@@ -8,7 +8,7 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     $INFO_PAGE = (object) array();
-    $INFO_PAGE->title = "Stile input";
+    $INFO_PAGE->title = "Stile dropdown";
     $INFO_PAGE->table = $TABLE->CSS_DROPDOWN;
     $INFO_PAGE->tableName = "css_dropdown";
 

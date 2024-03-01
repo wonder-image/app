@@ -10,6 +10,11 @@
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Seo";
     $INFO_PAGE->table = "seo";
+    $INFO_PAGE->folder = "seo";
+
+    $NAME = (object) array();
+    $NAME->table = $INFO_PAGE->table;
+    $NAME->folder = $INFO_PAGE->folder;
 
     $SQL = sqlSelect($INFO_PAGE->table, ['id' => 1], 1);
     $VALUES = $SQL->row;

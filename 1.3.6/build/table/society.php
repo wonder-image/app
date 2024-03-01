@@ -122,6 +122,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
+                    "reset" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
                     "max_file" => 1,
@@ -134,6 +135,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
+                    "reset" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
                     "max_file" => 1,
@@ -146,6 +148,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
+                    "reset" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
                     "max_file" => 1,
@@ -158,6 +161,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
+                    "reset" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
                     "max_file" => 1,
@@ -170,6 +174,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
+                    "reset" => true,
                     "extensions" => ['ico'],
                     "max_size" => 1,
                     "max_file" => 1,
@@ -182,6 +187,7 @@
                 "format" => [
                     "sanitize" => false,
                     "file" => true,
+                    "reset" => true,
                     "extensions" => ['png'],
                     "max_size" => 1,
                     "max_file" => 1,

@@ -18,12 +18,12 @@
 
     $PAGE_TABLE = $INFO_PAGE->table;
 
-    $SQL = sqlSelect($INFO_PAGE->tableName, ['id' => 1], 1);
+    $SQL = sqlSelect($NAME->table, ['id' => 1], 1);
     $VALUES = $SQL->row;
 
     if (isset($_POST['modify'])) {
         
-        $VALUES = formToArray($INFO_PAGE->tableName, $_FILES, $INFO_PAGE->table);
+        $VALUES = formToArray($INFO_PAGE->tableName, $_FILES, $INFO_PAGE->table, $VALUES);
         
         if (empty($ALERT)) {sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1); }
         if (empty($ALERT)) { header("Location: ?alert=661"); }
@@ -54,52 +54,34 @@
                 <h3><?=$INFO_PAGE->title?></h3>
             </wi-card>
 
-            <div class="col-9">
+            <div class="col-12">
                 <div class="row g-3">
 
                     <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=inputFile('Logo', 'main', 'png'); ?>
+                        <div class="col-4">
+                            <?=inputFileDragDrop('Logo', 'main', 'classic', 'png'); ?>
                         </div>
-                    </wi-card>
-
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=inputFile('Logo nero', 'black', 'png'); ?>
+                        <div class="col-4">
+                            <?=inputFileDragDrop('Logo nero', 'black', 'classic', 'png'); ?>
                         </div>
-                    </wi-card>
-
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=inputFile('Logo bianco', 'white', 'png'); ?>
+                        <div class="col-4">
+                            <?=inputFileDragDrop('Logo bianco', 'white', 'classic', 'png'); ?>
                         </div>
-                    </wi-card>
-
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=inputFile('Icona', 'icon', 'png'); ?>
+                        <div class="col-4">
+                            <?=inputFileDragDrop('Icona', 'icon', 'classic', 'png'); ?>
                         </div>
-                    </wi-card>
-
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=inputFile('Favicon', 'favicon', 'ico'); ?>
+                        <!-- 
+                            La funzione inputFileDragDrop mi converte i file in .png e spesso non riesco a caricare la favicon perchè è nella root principale
+                            <div class="col-4">
+                                <?=inputFileDragDrop('Favicon', 'favicon', 'classic', 'ico'); ?>
+                                <span class="position-relative float-start mt-1">
+                                    Utilizzare <a href="https://convertio.co/it/png-ico/" target="_blank" rel="noopener noreferrer">convertio.co</a> per convertire i file da .png a .ico
+                                </span>
+                            </div> 
+                        -->
+                        <div class="col-4">
+                            <?=inputFileDragDrop('Icona app', 'app_icon', 'classic', 'png'); ?>
                         </div>
-                    </wi-card>
-
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=inputFile('Icona app', 'app_icon', 'png'); ?>
-                        </div>
-                    </wi-card>
-
-                </div>
-            </div>
-
-            <div class="col-3">
-                <div class="row g-3">
-
-                    <wi-card class="col-12">
                         <div class="col-12">
                             <?=submit('Modifica loghi', 'modify'); ?>
                         </div>
