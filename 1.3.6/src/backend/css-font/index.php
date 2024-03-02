@@ -28,10 +28,6 @@
     <?php include $ROOT_APP."/utility/backend/header.php"; ?>
 
     <form action="" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
-
-        <input type="hidden" name="area" value="backend">
-        <input type="hidden" name="password" value="<?=code(2, 'letters').'-'.code(4, 'numbers');?>">
-
         <div class="row g-3">
 
             <wi-card class="col-12">
