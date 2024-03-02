@@ -105,6 +105,11 @@
             "input" => [
                 "label" => "WhatsApp"
             ]
+        ],
+        "youtube" => [
+            "input" => [
+                "label" => "Youtube"
+            ]
         ]
     ];
 
