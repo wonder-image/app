@@ -91,6 +91,18 @@ transform-origin: bottom left;
 padding: 0;
 z-index: 8;
 }
+#sidebar::after {
+content: "";
+position: absolute;
+float: left;
+width: calc(100% - var(--bs-border-width));
+height: calc(100% - 62px);
+top: 0;
+left: 0;
+background: linear-gradient(0deg, rgba(var(--bs-secondary-bg-rgb)) 5px, transparent 50px);
+pointer-events: none !important;
+z-index: 3;
+}
 #sidebar .sidebar-navbar {
 position: absolute;
 float: left;
@@ -118,11 +130,15 @@ width: 100%;
 }
 #sidebar .sidebar-navbar-nav {
 padding-top: 10px;
+padding-bottom: 75px;
 max-height: calc(100% - 55px);
 overflow: scroll;
-overscroll-behavior: none;
--ms-overflow-style: none;
-scrollbar-width: none;
+overscroll-behavior: none !important;
+-ms-overflow-style: none !important;
+scrollbar-width: none !important;
+}
+#sidebar .sidebar-navbar-nav::-webkit-scrollbar { 
+display: none !important; 
 }
 #sidebar ul li{
 position: relative;
