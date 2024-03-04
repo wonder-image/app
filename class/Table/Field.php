@@ -37,6 +37,8 @@
             $this->table->name = $TABLE->table;
             $this->table->folder = $TABLE->folder;
             $this->table->field = $TABLE->field;
+            $this->table->page = $TABLE->page;
+            $this->table->length = $TABLE->length;
 
             $this->link = (object) array();
             $this->link->site = $PATH->site;
@@ -70,6 +72,7 @@
             $this->column = $column;
 
             if ($this->rowId != $row['id']) { $this->line++; }
+            if ($this->line == 1) { $this->line = $this->line + ($this->table->page * $this->table->length); }
 
             $this->rowId = $row['id'];
 
@@ -503,7 +506,7 @@
 
                             }
 
-                            $VALUE = $this->link->upload.$imageDir.$imageSize.$VALUE[0];
+                            $VALUE = isset($VALUE[0]) ? $this->link->upload.$imageDir.$imageSize.$VALUE[0] : "";
                             
                         }
 
