@@ -77,7 +77,13 @@
                 
                 if (!sqlColumnExists($TABLE, $name)) {
 
-                    $type = empty($value['sql']['type']) ? "VARCHAR" : strtoupper($value['sql']['type']);
+                    if ($name == 'position') {
+                        $defaultType = 'INT';
+                    } else {
+                        $defaultType = 'VARCHAR';
+                    }
+
+                    $type = empty($value['sql']['type']) ? $defaultType : strtoupper($value['sql']['type']);
                 
                     if ($type == "VARCHAR") { $defaultLenght = 1000; } elseif ($type == "BIGINT") { $defaultLenght = 11; } elseif ($type == "INT") { $defaultLenght = 11; }
     
@@ -115,7 +121,13 @@
                 $name = strtolower($name);
                 $defaultLenght = null;
 
-                $type = empty($value['sql']['type']) ? "VARCHAR" : strtoupper($value['sql']['type']);
+                if ($name == 'position') {
+                    $defaultType = 'INT';
+                } else {
+                    $defaultType = 'VARCHAR';
+                }
+
+                $type = empty($value['sql']['type']) ? $defaultType : strtoupper($value['sql']['type']);
                 
                 if ($type == "VARCHAR") { $defaultLenght = 1000; } elseif ($type == "BIGINT") { $defaultLenght = 11; } elseif ($type == "INT") { $defaultLenght = 11; }
 
