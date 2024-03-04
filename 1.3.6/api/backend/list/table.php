@@ -44,6 +44,9 @@
         $CUSTOM->order_column = isset($_POST['order'][0]['name']) ? $_POST['order'][0]['name'] : $_POST['custom']['order_column'];
         $CUSTOM->order_direction = isset($_POST['order'][0]['dir']) ? $_POST['order'][0]['dir'] : $_POST['custom']['order_direction'];
 
+        $NAME->page = $PAGE_NUMBER;
+        $NAME->length = $length;
+
     #
 
     # Calcolo il numero della pagina e setto il redirect
