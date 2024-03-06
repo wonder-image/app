@@ -4,6 +4,8 @@
 
         global $CHARACTERS;
 
+        $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5);
+
         foreach ($CHARACTERS as $k => $c) {
                         
             $character = $c['character'];
@@ -201,7 +203,7 @@
 
             if ($upper == true) {
 
-                $str = htmlspecialchars_decode(strtolower($str), ENT_QUOTES);
+                $str = html_entity_decode(strtolower($str), ENT_QUOTES | ENT_HTML5);
 
                 $str = str_replace('à', 'À', $str);
                 $str = str_replace('è', 'È', $str);
@@ -213,7 +215,7 @@
 
             } else {
 
-                $str = htmlspecialchars_decode($str, ENT_QUOTES);
+                $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5);
 
             }
 
