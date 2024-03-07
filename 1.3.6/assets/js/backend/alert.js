@@ -25,6 +25,8 @@ function alertToast(alert, type = null, title = null, text = null) {
 
     var container = toastContainer();
 
+    $(".toast.show").toast().hide();
+    
     if (alert == 801) {
 
         container.innerHTML = NO_INTERNET_ALERT + container.innerHTML;
