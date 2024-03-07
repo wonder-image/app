@@ -82,6 +82,11 @@
             "html" => "&nbsp;",
             "unicode" => "&#160;"
         ],[
+            "character" => " ", # No-Break Space
+            "url" => " ",
+            "html" => "&NonBreakingSpace;",
+            "unicode" => "&#160;"
+        ],[
             "character" => "​", # zero-width space ZWSP
             "url" => "",
             "html" => "&ZeroWidthSpace;",
