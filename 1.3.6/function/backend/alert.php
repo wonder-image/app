@@ -14,34 +14,37 @@
 
     }
 
-    function alertTheme($ALERT) {
+    function alertTheme($code, $type = null, $title = null, $text = null) {
 
         global $ALERT_CODE;
 
         $id = code(10, 'letters', 'alert_');
         
-        $type = $ALERT_CODE[$ALERT]['type'];
-        $title = $ALERT_CODE[$ALERT]['title'];
-        $text = $ALERT_CODE[$ALERT]['text'];
+        if ($code != 'custom') {
 
-        if ($type == "danger") {
-            $icon = "<i class='bi bi-exclamation-triangle me-2 text-danger'></i>";
-        }elseif ($type == "success") {
-            $icon = "<i class='bi bi-check2-circle me-2 text-success'></i>";
+            $type = $ALERT_CODE[$code]['type'];
+            $title = $ALERT_CODE[$code]['title'];
+            $text = $ALERT_CODE[$code]['text'];
+
         }
 
-        return "<div id='$id' class='toast' role='alert' aria-live='assertive' aria-atomic='true'>
-                <div class='toast-header'>
+        if ($type == "danger") {
+            $icon = "<i class='bi bi-exclamation-triangle me-2'></i>";
+        } elseif ($type == "success") {
+            $icon = "<i class='bi bi-check2-circle me-2'></i>";
+        }
+
+        return "<div id='$id' class='toast border-$type overflow-hidden' role='alert' aria-live='assertive' aria-atomic='true'>
+                <div class='toast-header text-bg-$type border-bottom border-$type'>
                     $icon
                     <strong class='me-auto'>$title</strong>
                     <button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button>
                 </div>
-                <div class='toast-body'>
+                <div class='toast-body bg-light'>
                     $text
                 </div>
             </div>";
 
     }
-
 
 ?>

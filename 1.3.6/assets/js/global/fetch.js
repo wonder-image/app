@@ -27,6 +27,9 @@ function fetchValue(value) {
         } else if (value.status == 401) {
             alertToast(911);
             return false;
+        } else if (value.status == undefined) {
+            alertToast(803);
+            return false;
         } else {
             alertToast(value.status);
             return false;

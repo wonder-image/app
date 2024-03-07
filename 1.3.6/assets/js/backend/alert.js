@@ -21,30 +21,47 @@ function toastContainer() {
 
 }
 
-function alertToast(alert) {
+function alertToast(alert, type = null, title = null, text = null) {
 
     var container = toastContainer();
 
     if (alert == 801) {
 
         container.innerHTML = NO_INTERNET_ALERT + container.innerHTML;
-        const toast = new bootstrap.Toast(container.lastElementChild);
+        const toast = new bootstrap.Toast(container.firstElementChild);
         toast.show();
 
-    } else {
+    } else if (alert != undefined) {
+
+        if (alert == 'custom') {
+
+            var data = {
+                post: 'true',
+                backend: 'true',
+                alert: alert,
+                alertType: type,
+                alertTitle: title,
+                alertText: text
+            }
+
+        } else {
+
+            var data = {
+                post: 'true',
+                backend: 'true',
+                alert: alert
+            };
+
+        }
 
         $.ajax({
             type: "POST",
             url: pathApp+'/api/alert.php',
-            data: { 
-                post: 'true',
-                backend: 'true',
-                alert: alert
-            }, 
+            data: data, 
             success: function (data) {
 
                 container.innerHTML = data + container.innerHTML;
-                const toast = new bootstrap.Toast(container.lastElementChild);
+                const toast = new bootstrap.Toast(container.firstElementChild);
                 toast.show();
                 
             }

@@ -171,6 +171,11 @@
             "title" => "Errore 802",
             "text" => "Errore nel file di risposta API"
         ],
+        803 => [
+            "type" => "danger",
+            "title" => "Errore 803",
+            "text" => "Errore nel file di risposta API<br>Status risposta non definito"
+        ],
         850 => [
             "type" => "danger",
             "title" => "Errore 850",

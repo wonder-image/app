@@ -11,6 +11,13 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    if ($_POST['post'] && !empty($_POST['alert'])) { echo alertTheme($_POST['alert']); }
+    if ($_POST['post'] && !empty($_POST['alert'])) { 
+        echo alertTheme(
+            $_POST['alert'],
+            isset($_POST['alertType']) ? $_POST['alertType'] : null,
+            isset($_POST['alertTitle']) ? $_POST['alertTitle'] : null,
+            isset($_POST['alertText']) ? $_POST['alertText'] : null,
+        ); 
+    }
 
 ?>
