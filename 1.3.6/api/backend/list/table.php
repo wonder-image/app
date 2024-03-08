@@ -7,8 +7,8 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
-    use Wonder\Table\SSP;
-    use Wonder\Table\Field;
+    use Wonder\Backend\Table\SSP;
+    use Wonder\Backend\Table\Field;
 
     # Importo tutte le variabili che mi servono
 

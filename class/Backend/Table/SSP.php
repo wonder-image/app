@@ -1,6 +1,6 @@
 <?php
 
-    namespace Wonder\Table;
+    namespace Wonder\Backend\Table;
     
     use PDO;
     
