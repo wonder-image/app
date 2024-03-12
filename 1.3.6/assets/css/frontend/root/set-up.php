@@ -16,32 +16,32 @@
 
     --spacer: <?=$CSS_DEFAULT->spacer?>px;
 
-    --font-family: <?=info('css_font', 'id', $CSS_DEFAULT->font_id)->font_family?>;
+    --font-family: <?=html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->font_id)->font_family, ENT_QUOTES | ENT_HTML5)?>;
     --font-weight: <?=$CSS_DEFAULT->font_weight?>;
     --font-size: <?=$CSS_DEFAULT->font_size?>px;
     --line-height: <?=$CSS_DEFAULT->line_height?>px;
 
-    --title-big-font-family: <?=info('css_font', 'id', $CSS_DEFAULT->title_big_font_id)->font_family?>;
+    --title-big-font-family: <?=html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->title_big_font_id)->font_family, ENT_QUOTES | ENT_HTML5)?>;
     --title-big-font-weight: <?=$CSS_DEFAULT->title_big_font_weight?>;
     --title-big-font-size: <?=$CSS_DEFAULT->title_big_font_size?>px;
     --title-big-line-height: <?=$CSS_DEFAULT->title_big_line_height?>px;
 
-    --title-font-family: <?=info('css_font', 'id', $CSS_DEFAULT->title_font_id)->font_family?>;
+    --title-font-family: <?=html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->title_font_id)->font_family, ENT_QUOTES | ENT_HTML5)?>;
     --title-font-weight: <?=$CSS_DEFAULT->title_font_weight?>;
     --title-font-size: <?=$CSS_DEFAULT->title_font_size?>px;
     --title-line-height: <?=$CSS_DEFAULT->title_line_height?>px;
 
-    --subtitle-font-family: <?=info('css_font', 'id', $CSS_DEFAULT->subtitle_font_id)->font_family?>;
+    --subtitle-font-family: <?=html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->subtitle_font_id)->font_family, ENT_QUOTES | ENT_HTML5)?>;
     --subtitle-font-weight: <?=$CSS_DEFAULT->subtitle_font_weight?>;
     --subtitle-font-size: <?=$CSS_DEFAULT->subtitle_font_size?>px;
     --subtitle-line-height: <?=$CSS_DEFAULT->subtitle_line_height?>px;
 
-    --text-font-family: <?=info('css_font', 'id', $CSS_DEFAULT->text_font_id)->font_family?>;
+    --text-font-family: <?=html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->text_font_id)->font_family, ENT_QUOTES | ENT_HTML5)?>;
     --text-font-weight: <?=$CSS_DEFAULT->text_font_weight?>;
     --text-font-size: <?=$CSS_DEFAULT->text_font_size?>px;
     --text-line-height: <?=$CSS_DEFAULT->text_line_height?>px;
 
-    --text-small-font-family: <?=info('css_font', 'id', $CSS_DEFAULT->text_small_font_id)->font_family?>;
+    --text-small-font-family: <?=html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->text_small_font_id)->font_family, ENT_QUOTES | ENT_HTML5)?>;
     --text-small-font-weight: <?=$CSS_DEFAULT->text_small_font_weight?>;
     --text-small-font-size: <?=$CSS_DEFAULT->text_small_font_size?>px;
     --text-small-line-height: <?=$CSS_DEFAULT->text_small_line_height?>px;
