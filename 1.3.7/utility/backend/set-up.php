@@ -1,7 +1,5 @@
 <?php
 
-    include $ROOT.'/custom/utility/backend/set-up.php';
-
     $DEFAULT_NAV_TOP = [
         [
             'title' => 'Home',
@@ -122,6 +120,8 @@
         ]
     ];
 
+    include $ROOT.'/custom/utility/backend/set-up.php';
+    
     $NAV_BACKEND = array_merge($DEFAULT_NAV_TOP, $NAV_BACKEND, $DEFAULT_NAV_BOTTOM);
 
 ?>
