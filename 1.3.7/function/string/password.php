@@ -2,7 +2,6 @@
 
     function hashPassword($password) {
 
-        $password = sanitize($password);
         $hasher = new Wonder\PasswordHash(8, true);
         $hashPassword = $hasher->HashPassword(trim($password));
 
