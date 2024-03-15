@@ -51,21 +51,27 @@
             <div class="col-9">
                 <div class="row g-3">
 
-                    <wi-card class="col-12">
+                    <wi-card class="col-6">
                         <div class="col-12">
                             <h6>Google</h6>
                         </div>
-                        <div class="col-6">
+                        <div class="col-8">
                             <?=text('Tag manager', 'tag_manager'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=select('Attivo', 'active_tag_manager', [ 'true' => 'Si', 'false' => 'No' ]); ?>
                         </div>
                     </wi-card>
 
-                    <wi-card class="col-12">
+                    <wi-card class="col-6">
                         <div class="col-12">
                             <h6>Facebook</h6>
                         </div>
-                        <div class="col-6">
+                        <div class="col-8">
                             <?=text('ID Pixel', 'pixel_facebook'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=select('Attivo', 'active_pixel_facebook', [ 'true' => 'Si', 'false' => 'No' ]); ?>
                         </div>
                     </wi-card>
 

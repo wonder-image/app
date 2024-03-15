@@ -2,7 +2,7 @@
 
     // Statistiche
         
-        if (is_array($DB->database) && array_key_exists('stats', $DB->database) && $ACTIVE_STATISTICS == true) {
+        if (is_array($DB->database) && array_key_exists('stats', $DB->database) && $ACTIVE_STATISTICS) {
 
             $VALUES = [
                 "visitor_id" => $VISITOR_ID,
@@ -63,16 +63,22 @@
     //
 
     $SOCIETY_LOGOS = sqlSelect('logos', ['id' => '1'], 1)->row;
-    $ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
 
     # Sanifico la SEO
     $SEO->title = empty($SEO->title) ? "" : str_replace('<br />', '', $SEO->title);
     $SEO->description = empty($SEO->description) ? "" : str_replace('<br />', '', $SEO->description);
 
-    $TAG_MANAGER = $ANALYTICS['tag_manager'];
-    $PIXEL_FACEBOOK = $ANALYTICS['pixel_facebook'];
+    $SQL_ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
 
-    if ($TAG_MANAGER != '' && $ACTIVE_STATISTICS == true) :
+    $ANALYTICS->tag_manager = (object) array();
+    $ANALYTICS->pixel = (object) array();
+
+    $ANALYTICS->tag_manager->id = $SQL_ANALYTICS['tag_manager'];
+    $ANALYTICS->tag_manager->active = (!empty($ANALYTICS->tag_manager->id) && $ACTIVE_STATISTICS && ($SQL_ANALYTICS['active_tag_manager'] == "" || $SQL_ANALYTICS['active_tag_manager'] == "true")) ? true : false;
+    $ANALYTICS->pixel->id = $SQL_ANALYTICS['pixel_facebook'];
+    $ANALYTICS->pixel->active = (!empty($ANALYTICS->pixel->id) && $ACTIVE_STATISTICS && ($SQL_ANALYTICS['active_pixel_facebook'] == "" || $SQL_ANALYTICS['active_pixel_facebook'] == "true")) ? true : false;
+
+    if ($ANALYTICS->tag_manager->active) :
 
 ?>
 <!-- Inizio Google Tag Manager -->
@@ -81,7 +87,7 @@
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','<?=$TAG_MANAGER?>');
+    })(window,document,'script','dataLayer','<?=$ANALYTICS->tag_manager->id?>');
 </script>
 <!-- Fine Google Tag Manager -->
 <?php endif; ?>
@@ -290,7 +296,7 @@
 
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
 
-<?php if ($PIXEL_FACEBOOK != '' && $ACTIVE_STATISTICS == true) : ?>
+<?php if ($ANALYTICS->pixel->active) : ?>
 <!-- Inizio Meta Pixel -->
 <script>
     !function(f,b,e,v,n,t,s)
@@ -301,11 +307,11 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '<?=$PIXEL_FACEBOOK?>');
+    fbq('init', '<?=$ANALYTICS->pixel->id?>');
     fbq('track', 'PageView');
 </script>
 <noscript>
-    <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?=$PIXEL_FACEBOOK?>&ev=PageView&noscript=1" />
+    <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?=$ANALYTICS->pixel->id?>&ev=PageView&noscript=1" />
 </noscript>
 <!-- Fine Meta Pixel -->
 <?php endif; ?>
