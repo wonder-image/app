@@ -72,6 +72,7 @@
             $this->column = $column;
 
             if ($this->rowId != $row['id']) { $this->line++; }
+
             if ($this->line == 1) { $this->line = $this->line + ($this->table->page * $this->table->length); }
 
             $this->rowId = $row['id'];
@@ -560,12 +561,9 @@
 
                 $CLASS .= $dimension;
 
-
             return $VALUE;
 
-
         }
-
 
     }
 
