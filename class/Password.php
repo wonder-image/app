@@ -37,7 +37,7 @@
      * @since 2.5.0
      */
 
-    class PasswordHash {
+    class Password {
         var $itoa64;
         var $iteration_count_log2;
         var $portable_hashes;
