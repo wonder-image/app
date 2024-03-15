@@ -910,6 +910,16 @@
         $dir = $PATH->upload.'/'.$NAME->folder;
         $dir .= isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
 
+        if (substr($dir, -1) != '/') {
+                                
+            $NEW_NAME = explode('/', $dir);
+            $lastKey = array_key_last($NEW_NAME);
+
+            $NEW_NAME = $NEW_NAME[$lastKey];
+            $dir = str_replace($NEW_NAME,'', $dir);
+
+        }
+        
         if (is_array($value)) { $value = ""; }
 
         if (!empty($label)) {
