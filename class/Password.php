@@ -1,5 +1,7 @@
 <?php
     
+    namespace Wonder;
+    
     /**
      * Portable PHP password hashing framework.
      * @package phpass
@@ -275,6 +277,7 @@
 
             return $hash === $stored_hash;
         }
+        
     }
 
 ?>
