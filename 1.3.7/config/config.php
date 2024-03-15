@@ -41,6 +41,12 @@
             $DB->database['information_schema'] = "INFORMATION_SCHEMA";
 
         #
+
+    # Email
+        $MAIL->host = (isset($_ENV['MAIL_HOST']) && !empty($_ENV['MAIL_HOST'])) ? $_ENV['MAIL_HOST'] : "out.postassl.it";
+        $MAIL->username = (isset($_ENV['MAIL_USERNAME']) && !empty($_ENV['MAIL_USERNAME'])) ? $_ENV['MAIL_USERNAME'] : "noreply@wonderimage.it";
+        $MAIL->password = (isset($_ENV['MAIL_PASSWORD']) && !empty($_ENV['MAIL_PASSWORD'])) ? $_ENV['MAIL_PASSWORD'] : "PY@2PDY)h06";
+        $MAIL->port = (isset($_ENV['MAIL_PORT']) && !empty($_ENV['MAIL_PORT'])) ? $_ENV['MAIL_PORT'] : 465;
         
     # Path
         $PATH->site = $_ENV['APP_URL'];

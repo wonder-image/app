@@ -2,110 +2,74 @@
 
     function sendMail($from, $to, $object, $body, $attachment = null, $template = 'basic'){
 
+        global $MAIL;
         global $SOCIETY;
 
         $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);
 
-        // Genera un separatore univoco per il tipo di contenuto "multipart/mixed"
-            $boundary = "==Multipart_Boundary_x".md5(time())."x";
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
 
-        // Intestazioni dell'email
-            $headers = "From: $SOCIETY_NAME <$from>\r\n";
-            $headers .= "MIME-Version: 1.0\r\n";
-            $headers .= "Content-Type: multipart/mixed; boundary=\"".$boundary."\"\r\n";
+        try {
 
-        // Contenuto HTML
-            $message = "--$boundary\n";
-            $message .= "Content-Type: text/html; charset=\"UTF-8\"\n";
-            $message .= "Content-Transfer-Encoding: 7bit\n\n";
+            # Impostazioni server
+                $mail->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; 
+                $mail->isSMTP();
+                $mail->Host = $MAIL->host;
+                $mail->SMTPAuth = true;
+                $mail->Username = $MAIL->username;
+                $mail->Password = $MAIL->password;
+                $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                $mail->Port = $MAIL->port;
+            
+            # Header
+                $mail->setFrom($from, $SOCIETY_NAME);
+                $mail->addAddress($to);
+                $mail->addReplyTo($from, $SOCIETY_NAME);
+        
+            # Allegati
+                if ($attachment != null) {
+                    if (is_array($attachment)) {
+                        if (count($attachment) >= 1) {
+                            foreach ($attachment as $key => $value) {
 
-            $message .= emailTemplate($body, $template)."\n";
+                                if (is_numeric($key)) {
+                                    $attachmentName = '';
+                                    $attachmentRelativePath = $value;
+                                } else {
+                                    $attachmentName = $value;
+                                    $attachmentRelativePath = $key;
+                                }
 
-        // Allegati
-            if ($attachment != null) {
-                if (is_array($attachment)) {
-                    if (count($attachment) >= 1) {
-                        foreach ($attachment as $key => $attachmentRelativePath) {
+                                $mail->addAttachment($attachmentRelativePath, $attachmentName);
 
-                            // Nome del file allegato
-                            $attachmentName = basename($attachmentRelativePath);
-
-                            // Dimensione del file allegato
-                            $attachmentSize = filesize($attachmentRelativePath);
-
-                            // Apri il file allegato
-                            $attachmentFile = fopen($attachmentRelativePath, "rb");
-
-                            // Leggi il contenuto del file allegato
-                            $attachmentContent = fread($attachmentFile, $attachmentSize);
-
-                            // Chiudi il file allegato
-                            fclose($attachmentFile);
-
-                            // Ottieni il tipo MIME del file allegato
-                            $attachmentType = getMimeType($attachmentName);
-
-                            // Codifica il contenuto del file allegato in base64
-                            $attachmentContent = chunk_split(base64_encode($attachmentContent));
-
-                            // Aggiungi l'allegato all'email
-                            $message .= "--$boundary\n";
-                            $message .= "Content-Type: $attachmentType; name=\"$attachmentName\"\n";
-                            $message .= "Content-Description: $attachmentName\n";
-                            $message .= "Content-Disposition: attachment;\n filename=\"$attachmentName\"; size=\"$attachmentSize\";\n";
-                            $message .= "Content-Transfer-Encoding: base64\n\n$attachmentContent\n\n";
-
+                            }
                         }
+                    } else {
+                        
+                        $mail->addAttachment($attachment);
+
                     }
-                } else {
-
-                    $attachmentRelativePath = $attachment;
-
-                    // Nome del file allegato
-                    $attachmentName = basename($attachmentRelativePath);
-
-                    // Dimensione del file allegato
-                    $attachmentSize = filesize($attachmentRelativePath);
-
-                    // Apri il file allegato
-                    $attachmentFile = fopen($attachmentRelativePath, "rb");
-
-                    // Leggi il contenuto del file allegato
-                    $attachmentContent = fread($attachmentFile, $attachmentSize);
-
-                    // Chiudi il file allegato
-                    fclose($attachmentFile);
-
-                    // Ottieni il tipo MIME del file allegato
-                    $attachmentType = getMimeType($attachmentName);
-
-                    // Codifica il contenuto del file allegato in base64
-                    $attachmentContent = chunk_split(base64_encode($attachmentContent));
-
-                    // Aggiungi l'allegato all'email
-                    $message .= "--$boundary\n";
-                    $message .= "Content-Type: $attachmentType; name=\"$attachmentName\"\n";
-                    $message .= "Content-Description: $attachmentName\n";
-                    $message .= "Content-Disposition: attachment;\n filename=\"$attachmentName\"; size=\"$attachmentSize\";\n";
-                    $message .= "Content-Transfer-Encoding: base64\n\n$attachmentContent\n\n";
-
                 }
-            }
         
-        // Chiudi contenuto
-            $message .= "--$boundary--";
-
+            # Body
+                $mail->isHTML(true);
+                $mail->Subject = $object;
+                $mail->Body = emailTemplate($body, $template);
+                $mail->AltBody = $body;
         
-        // Invio email
-            if (mail($to, $object, $message, $headers)) {
-                return true;
-            }else{
-                return false;
-            }
+            # Invia
+                $mail->send();
 
-        // Fine
+            return true;
+
+        } catch (PHPMailer\PHPMailer\Exception $e) {
+
+            return false;
+
+        }
     
     }
+
     function emailTemplate($body = '', $template = 'basic') {
 
         global $PATH;
@@ -118,7 +82,6 @@
         if ($template == 'basic') {
 
             $RETURN = '
-            <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
             <html style="font-family:\'Roboto\', sans-serif;-webkit-text-size-adjust:100%;background-color:#ffffff;color:#414042;font-size:14px;">
                 <head>
                     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -139,7 +102,7 @@
                         </div>
                         <div class="line" style="margin:0;padding:0;border:0;position:relative;float:left;width:100%;height:1px;background:#e5e4e2;"></div>
                         <div class="footer row" style="margin:0;padding:0;border:0;position:relative;float:left;width:calc(100% - 20px);padding:20px 10px;font-size:12px;text-align:center;">
-                            Copyright © '.$SOCIETY->legal_name.'. Tutti i diritti riservati.
+                            <font>Copyright © '.$SOCIETY->legal_name.'. Tutti i diritti riservati.</font>
                         </div>
                     </div>
                 </body>

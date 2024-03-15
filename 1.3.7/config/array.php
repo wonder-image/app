@@ -2,6 +2,7 @@
 
     $SEO = (object) array();
     $DB = (object) array();
+    $MAIL = (object) array();
     $COLOR = (object) array();
     $FONT = (object) array();
     $PATH = (object) array();
