@@ -47,4 +47,50 @@
 
     }
 
+    function wiApi($endpoint = null, array $values = []) {
+
+        global $API;
+        
+        $url = $API->endpoint.$endpoint;
+
+        # Codifico i valori in JSON
+            $values = json_encode($values);
+
+        # Open cURL
+            $ch = curl_init();
+
+        # Connection
+            curl_setopt($ch, CURLOPT_URL, $url); 
+        
+        # Header
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: '.strlen($values),
+                'Authorization: Bearer '.$API->key
+            ]);
+
+        # Get response
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        # Post
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $values);
+
+        # Result
+            $result = curl_exec($ch);
+
+        # Control Error
+            if (curl_errno($ch)) {
+
+                $errno = curl_errno($ch); 
+                return curl_strerror($errno);
+                
+            } else {
+
+                return $result;
+
+            }
+
+    }
+
 ?>

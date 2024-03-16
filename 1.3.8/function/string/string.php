@@ -227,8 +227,7 @@
 
     }
 
-
-    function code($lenght, $type, $first = null){
+    function code($lenght, $type = 'all', $first = null){
 
         if($type == 'all'){
             $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

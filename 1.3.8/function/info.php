@@ -26,7 +26,7 @@
         $PAGE->url = $url;
         $PAGE->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         $PAGE->path = empty($PAGE->url) ? '' : parse_url($url)['path'];
-        $PAGE->domain = empty($PAGE->url) ? '' : parse_url($url)['host'];
+        $PAGE->domain = empty($PAGE->url) ? '' : str_replace("www.", "", parse_url($url)['host']);
 
         if (!empty($PAGE->url) && isset(parse_url($PAGE->url)['query'])) {
             $PAGE->query = parse_url($PAGE->url)['query'];
