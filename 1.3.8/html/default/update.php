@@ -1,57 +1,123 @@
-<?php
+<!DOCTYPE html>
+<html lang="it">
+    <head>
 
-    # Aggiorno le tabelle
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aggiornamento wonder-image/app</title>
 
-        foreach ($TABLE as $table => $value) {
-            
-            $table_name = strtolower($table);
-            $table_column = $value;
+    <?php include $ROOT_APP."/utility/backend/head.php"; ?>
 
-            sqlTable($table_name, $table_column);
-            
-        }
+</head>
+<body>
 
-        echo "Tabelle aggiornate<br>";
+    <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
 
-    # Aggiorno le righe
+    <div class="position-absolute w-75 start-50 translate-middle-x mt-4" style="max-width: 450px">
 
-        $files = empty(scandir("$ROOT_APP/build/row/")) ? [] : scandir("$ROOT_APP/build/row/");
+        <wi-card>
+        <?php
 
-        foreach ($files as $file) {
-            if ($file != '' && $file != '.' && $file != '..') {
-                include "$ROOT_APP/build/row/$file";
-            }
-        }
 
-        $files = empty(scandir("$ROOT/custom/build/row/")) ? [] : scandir("$ROOT/custom/build/row/");
+            echo "<h4 class='col-12 mb-2'>wonder-image/app <b>v$APP_VERSION</b></h6>";
 
-        foreach ($files as $file) {
-            if ($file != '' && $file != '.' && $file != '..') {
-                include "$ROOT/custom/build/row/$file";
-            }
-        }
+            # Aggiorno le tabelle
 
-        echo "Righe tabelle aggiornate<br>";
+                foreach ($TABLE as $table => $value) {
+                    
+                    $table_name = strtolower($table);
+                    $table_column = $value;
 
-    # Aggiungo pagine
+                    sqlTable($table_name, $table_column);
+                    
+                }
 
-        $files = empty(scandir("$ROOT_APP/build/page/")) ? [] : scandir("$ROOT_APP/build/page/");
+                echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> Tabelle</h5>';
 
-        foreach ($files as $file) {
-            if ($file != '' && $file != '.' && $file != '..') {
-                include "$ROOT_APP/build/page/$file";
-            }
-        }
+            # Aggiorno le righe
 
-        $files = empty(scandir("$ROOT/custom/build/page/")) ? [] : scandir("$ROOT/custom/build/page/");
+                $files = empty(scandir("$ROOT_APP/build/row/")) ? [] : scandir("$ROOT_APP/build/row/");
 
-        foreach ($files as $file) {
-            if ($file != '' && $file != '.' && $file != '..') {
-                include "$ROOT/custom/build/page/$file";
-            }
-        }
+                foreach ($files as $file) {
+                    if ($file != '' && $file != '.' && $file != '..') {
+                        include "$ROOT_APP/build/row/$file";
+                    }
+                }
 
-        echo "Pagine aggiunte<br>";
-        echo "<br><b>Aggiornamento completato!</b>";
-    
-?>
+                $files = empty(scandir("$ROOT/custom/build/row/")) ? [] : scandir("$ROOT/custom/build/row/");
+
+                foreach ($files as $file) {
+                    if ($file != '' && $file != '.' && $file != '..') {
+                        include "$ROOT/custom/build/row/$file";
+                    }
+                }
+
+                echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> Righe tabelle</h5>';
+
+            # Aggiungo pagine
+
+                $files = empty(scandir("$ROOT_APP/build/page/")) ? [] : scandir("$ROOT_APP/build/page/");
+
+                foreach ($files as $file) {
+                    if ($file != '' && $file != '.' && $file != '..') {
+                        include "$ROOT_APP/build/page/$file";
+                    }
+                }
+
+                $files = empty(scandir("$ROOT/custom/build/page/")) ? [] : scandir("$ROOT/custom/build/page/");
+
+                foreach ($files as $file) {
+                    if ($file != '' && $file != '.' && $file != '..') {
+                        include "$ROOT/custom/build/page/$file";
+                    }
+                }
+
+                echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> Pagine</h5>';
+
+            # Verifico validità api
+
+                $API_STATUS = json_decode(wiApi('/auth/status/'), true);
+
+                if ($API_STATUS['success']) {
+                    
+                    if ($API_STATUS['response']['active'] == true) {
+
+                        wiApi("/auth/update/", [
+                            "site_name" => $PAGE->domain,
+                            "app_version" => $APP_VERSION
+                        ]);
+
+                        # Se le credenziali sono attive aggiorno la versione
+                        echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> '.$API_STATUS['response']['description'].'</h5>';
+
+                    } else {
+
+                        # Se le credenziali non sono attive mando la richiesta di attivazione
+                        $API_REQUEST = json_decode(wiApi("/auth/request/", [
+                            "site_name" => $PAGE->domain,
+                            "app_version" => $APP_VERSION
+                        ]), true);
+
+                        if ($API_REQUEST['success']) {
+                            echo '<h5 class="col-12"><i class="bi bi-x-lg text-danger me-1"></i> '.$API_REQUEST['response'].'</h5>';
+                        } else {
+                            echo '<h5 class="col-12"><i class="bi bi-x-lg text-danger me-1"></i> '.$API_REQUEST['response'].'</h5>';
+                        }
+
+                    }
+                    
+                } else {
+
+                    echo '<h5 class="col-12"><i class="bi bi-x-lg text-danger me-1"></i> '.$API_STATUS['response'].'</h5>';
+
+                }
+
+        ?>
+        </wi-card>
+
+    </div>
+
+    <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
+
+</body>
+</html>
