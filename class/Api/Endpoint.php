@@ -89,16 +89,18 @@
         function verifyApiKey() {
 
             $USER = sqlSelect('user', [
-                'ip' => $this->ip,
                 'api_key' => $this->api_key,
                 'active' => 'true',
                 'deleted' => 'false',
             ], 1);
 
-
             if (!$USER->exists) {
 
-                throw new Exception('API key non valida!', 401); 
+                throw new Exception('API key non valida', 401); 
+
+            } else if ($USER->row['ip'] != $this->ip) {
+
+                throw new Exception('API key non valida per questo IP', 401); 
 
             }
 
