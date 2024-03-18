@@ -11,6 +11,9 @@
     if ($_POST['post']) {
         
         $table = $_GET['table'];
+        $database = isset($_GET['database']) && !empty($_GET['database']) ? $_GET['database'] : 'main';
+
+        if ($database != 'main') { $mysqli = $MYSQLI_CONNECTION[$database]; }
 
         $rowId = $_GET['id'];
         $action = $_GET['action'];
@@ -31,5 +34,3 @@
         sqlModify($table, ['position' => $newPosition], 'id', $rowId);
 
     }
-    
-?>

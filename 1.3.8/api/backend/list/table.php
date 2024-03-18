@@ -15,6 +15,8 @@
         $NAME = (object) array();
         $NAME->folder = $_POST['folder'];
         $NAME->table = $_POST['table'];
+        $NAME->database = $_POST['database'];
+        $NAME->connection = $MYSQLI_CONNECTION[$NAME->database];
 
         $nameTable = strtoupper($NAME->table);
         $NAME->field = $TABLE->$nameTable;
@@ -43,6 +45,11 @@
         
         $CUSTOM->order_column = isset($_POST['order'][0]['name']) ? $_POST['order'][0]['name'] : $_POST['custom']['order_column'];
         $CUSTOM->order_direction = isset($_POST['order'][0]['dir']) ? $_POST['order'][0]['dir'] : $_POST['custom']['order_direction'];
+
+    #
+
+    # Cambio la connessione al database se necessario
+        $mysqli = $MYSQLI_CONNECTION[$NAME->database];
 
     #
 
@@ -183,7 +190,7 @@
     $sql_details = array(
         'user' => $DB->username,
         'pass' => $DB->password,
-        'db'   => $DB->database['main'],
+        'db'   => $DB->database[$NAME->database],
         'host' => $DB->hostname
     );
 
@@ -201,5 +208,3 @@
             $CUSTOM->order_direction
         )
     );
-
-?>

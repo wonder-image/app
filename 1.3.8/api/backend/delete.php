@@ -11,6 +11,9 @@
 
         $id = $_GET['id'];
         $table = $_GET['table'];
+        $database = isset($_GET['database']) && !empty($_GET['database']) ? $_GET['database'] : 'main';
+
+        if ($database != 'main') { $mysqli = $MYSQLI_CONNECTION[$database]; }
 
         if (sqlColumnExists($table, 'active')) {
             
@@ -53,5 +56,3 @@
         }
 
     }
-
-?>

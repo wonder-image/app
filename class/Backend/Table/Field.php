@@ -35,6 +35,8 @@
 
             $this->table = (object) array();
             $this->table->name = $TABLE->table;
+            $this->table->connection = $TABLE->connection;
+            $this->table->database = $TABLE->database;
             $this->table->folder = $TABLE->folder;
             $this->table->field = $TABLE->field;
             $this->table->page = $TABLE->page;
@@ -63,6 +65,8 @@
 
             $this->redirect = $PAGE->redirect;
             $this->redirectBase64 = $PAGE->redirectBase64;
+
+            $mysqli = $TABLE->connection;
 
         }
 
@@ -107,7 +111,7 @@
 
             $action = "onclick=\"modal(
                 'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '{$this->link->app}/api/backend/delete.php?table={$this->table->name}&id={$this->rowId}',
+                '{$this->link->app}/api/backend/delete.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
                 'ATTENZIONE',
                 'Elimina',
                 'danger',
@@ -125,7 +129,7 @@
 
             $action = "onclick=\"modal(
                 'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '{$this->link->app}/api/backend/authority.php?table={$this->table->name}&id={$this->rowId},
+                '{$this->link->app}/api/backend/authority.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId},
                 'ATTENZIONE',
                 'Elimina',
                 'danger',
@@ -146,7 +150,7 @@
         private function changeVisible() {
 
             $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/visible.php?table={$this->table->name}&id={$this->rowId}',
+                '{$this->link->app}/api/backend/visible.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
                 reloadDataTable, 
                 '#wi-table'
             )\"";
@@ -177,7 +181,7 @@
         private function changeActive() {
 
             $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/active.php?table={$this->table->name}&id={$this->rowId}',
+                '{$this->link->app}/api/backend/active.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
                 reloadDataTable, 
                 '#wi-table'
             )\"";
@@ -264,7 +268,9 @@
                             if (isset($link['key']) && !empty($link['key'])) {
                                 foreach ($link['key'] as $q) {
     
-                                    if ($q == 'table') {
+                                    if ($q == 'database') {
+                                        $query = "database={$this->table->database}";
+                                    } elseif ($q == 'table') {
                                         $query = "table={$this->table->name}";
                                     } elseif ($q == 'id') {
                                         $query = "id={$this->rowId}";
@@ -340,7 +346,7 @@
             $RETURN = "";
 
             $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/move.php?table={$this->table->name}&id={$this->rowId}&action=$type',
+                '{$this->link->app}/api/backend/move.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}&action=$type',
                 reloadDataTable, 
                 '#wi-table'
             )\"";

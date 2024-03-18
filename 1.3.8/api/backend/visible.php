@@ -11,6 +11,9 @@
         
         $id = $_GET['id'];
         $table = $_GET['table'];
+        $database = isset($_GET['database']) && !empty($_GET['database']) ? $_GET['database'] : 'main';
+
+        if ($database != 'main') { $mysqli = $MYSQLI_CONNECTION[$database]; }
 
         $row = sqlSelect($table, ['id' => $id], 1)->row;
 
@@ -19,5 +22,3 @@
         sqlModify($table, ['visible' => $visible], 'id', $id);
 
     }
-
-?>
