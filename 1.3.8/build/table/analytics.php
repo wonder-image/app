@@ -7,4 +7,10 @@
         "active_pixel_facebook" => [],
     ];
 
-?>
+    $TABLE->SECURITY = [
+        "api_key" => [
+            "sql" => [
+                "lenght" => 23
+            ]
+        ]
+    ];

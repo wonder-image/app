@@ -13,4 +13,13 @@
 
     }
 
-?>
+
+    if (sqlSelect('security', ['id' => 1], 1)->Nrow == 0) {
+            
+        $values = [
+            "api_key" => code(5).'-'.code(5).'-'.code(5).'-'.code(5)
+        ];
+
+        sqlInsert('security', $values);
+
+    }

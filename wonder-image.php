@@ -31,9 +31,10 @@
     $PAGE = infoPage();
     if (sqlTableExists('society')) { $SOCIETY = infoSociety(); }
 
+    $API->endpoint = "https://api.wonderimage.it/v1.0";
+    $API->key = (sqlTableExists('security')) ? sqlSelect('security', [ 'id' => 1 ], 1)->row['api_key'] : "";
+
     require_once $ROOT_APP."/utility/authorize.php";
 
     if (isset($BACKEND) && $BACKEND) { require_once $ROOT_APP."/utility/backend/set-up.php"; }
     if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP."/utility/frontend/set-up.php"; }
-    
-?>
