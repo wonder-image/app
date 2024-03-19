@@ -2,6 +2,12 @@
 
     $ALERT = '';
 
+    if (!isset($NAME->database) || $NAME->database == '') { 
+        $NAME->database = 'main';
+    } else {
+        $mysqli = $MYSQLI_CONNECTION[$NAME->database];
+    }
+
     if (!isset($PAGE_TABLE)) {
         $table = strtoupper($NAME->table);
         $PAGE_TABLE = $TABLE->$table;
@@ -44,6 +50,7 @@
         if (empty($ALERT)) {
 
             $LOCATION = isset($_POST['upload-add']) ? "$PATH->backend/$NAME->folder/index.php?redirect=$PAGE->redirectBase64" : $REDIRECT;
+            
             header("Location: $LOCATION");
             exit;
 
