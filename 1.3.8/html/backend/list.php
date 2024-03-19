@@ -1,5 +1,10 @@
-
 <?php
+
+    if (!isset($NAME->database) || empty($NAME->database)) { 
+        $NAME->database = 'main';
+    } else {
+        $mysqli = $MYSQLI_CONNECTION[$NAME->database];
+    }
 
     if (isset($USER_FILTER->authority) && isset($USER_FILTER->area)) {
 
@@ -275,6 +280,7 @@
         var dataPost = {
             folder: '<?=$NAME->folder?>',
             table: '<?=$NAME->table?>',
+            database: '<?=$NAME->database?>',
             arrow: <?=empty($FILTER->arrow) ? 'false' : 'true'?>,
             url: '<?=$PAGE->uri?>',
             text: {
