@@ -4,7 +4,6 @@
 
     class Translate {
 
-
         private $BOOLEAN = [
             "1" => 'presente',
             "2" => 'assente'
