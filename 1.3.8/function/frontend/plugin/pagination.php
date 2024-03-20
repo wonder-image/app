@@ -34,7 +34,7 @@
         $RETURN = (object) array();
         $RETURN->page = isset($_GET['page']) ? $_GET['page'] : 1;
         $RETURN->max_row = sqlCount($table, $query);
-        $RETURN->max_page = ceil($RETURN->max_row / $row);
+        $RETURN->max_page = ($RETURN->max_row > 0) ? ceil($RETURN->max_row / $row) : 1;
 
         $RETURN->page = ($RETURN->page > $RETURN->max_page) ? $RETURN->max_page : $RETURN->page;
         
