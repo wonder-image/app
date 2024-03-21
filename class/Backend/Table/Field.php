@@ -46,6 +46,7 @@
             $this->link->site = $PATH->site;
             $this->link->backend = $PATH->backend;
             $this->link->app = $PATH->app;
+            $this->link->api = $PATH->api;
             $this->link->folder = $this->link->backend.'/'.$this->table->folder;
             $this->link->upload = $PATH->upload.'/'.$this->table->folder;
 
@@ -107,6 +108,49 @@
 
         }
 
+        private function ajaxRequest($url, $key = []) {
+
+            $defaultKey = [ 'database', 'table', 'id' ];
+
+            foreach ($defaultKey as $q) {
+
+                if ($q == 'database') {
+                    $query = "database={$this->table->database}";
+                } elseif ($q == 'table') {
+                    $query = "table={$this->table->name}";
+                } elseif ($q == 'id') {
+                    $query = "id={$this->rowId}";
+                }
+
+                $link = parse_url($url);
+                $url .= isset($link['query']) ? '&' : '?';
+                $url .= $query;
+
+            }
+
+            foreach ($key as $q) {
+
+                $link = parse_url($url);
+                $url .= isset($link['query']) ? '&' : '?';
+                $url .= "$q={$this->row[$q]}";
+
+            }
+
+
+            return "onclick=\"ajaxRequest(
+                '$url',
+                reloadDataTable, 
+                '#wi-table'
+            )\"";
+
+        }
+
+        private function actionButtonItem($text, $action, $bootstrapColor = "", $line = false) {
+
+            return returnButton($text, $action, $bootstrapColor, $line);
+
+        }
+
         private function deleteRow() {
 
             $action = "onclick=\"modal(
@@ -121,7 +165,7 @@
                 '#wi-table'
             )\"";
 
-            return returnButton("Elimina", $action, 'danger', true);
+            return $this->actionButtonItem("Elimina", $action, 'danger', true);
 
         }
 
@@ -143,17 +187,13 @@
 
             $action .= "')\"";
 
-            return returnButton("Elimina", $action, 'danger', true);
+            return $this->actionButtonItem("Elimina", $action, 'danger', true);
 
         }
 
         private function changeVisible() {
 
-            $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/visible.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
-                reloadDataTable, 
-                '#wi-table'
-            )\"";
+            $action = $this->ajaxRequest("{$this->link->app}/api/backend/visible.php");
 
             if ($this->row['visible'] == 'true') {
 
@@ -173,18 +213,14 @@
 
             return (object) array_merge( 
                 (array) returnBadge($text, $classIcon, $bootstrapColor), 
-                (array) returnButton($textButton, $action)
+                (array) $this->actionButtonItem($textButton, $action)
             );
 
         }
 
         private function changeActive() {
 
-            $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/active.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
-                reloadDataTable, 
-                '#wi-table'
-            )\"";
+            $action = $this->ajaxRequest("{$this->link->app}/api/backend/active.php");
 
             if ($this->row['active'] == 'true') {
 
@@ -204,7 +240,7 @@
             
             return (object) array_merge( 
                 (array) returnBadge($text, $classIcon, $bootstrapColor), 
-                (array) returnButton($textButton, $action)
+                (array) $this->actionButtonItem($textButton, $action)
             );
 
         }
@@ -246,6 +282,8 @@
 
                         $label = isset($link['label']) ? $link['label'] : '';
                         $href = isset($link['href']) ? $link['href'] : '';
+                        $key = isset($link['key']) ? $link['key'] : [];
+                        $request = isset($link['request']) ? $link['request'] : '';
                         $action = isset($link['action']) ? $link['action'] : '';
                         $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
                         $filter = isset($link['filter']) ? $link['filter'] : [];
@@ -257,16 +295,16 @@
                         } else {
 
                             if (!empty($href)) {
+
                                 preg_match_all('/{(.*?)}/', $href, $listVar);
+
                                 if (count($listVar) > 0) {
-                                    foreach ($listVar[1] as $key => $var) {
+                                    foreach ($listVar[1] as $k => $var) {
                                         $href = str_replace('{'.$var.'}', $this->row[$var], $href);
                                     }
                                 }
-                            }
-    
-                            if (isset($link['key']) && !empty($link['key'])) {
-                                foreach ($link['key'] as $q) {
+
+                                foreach ($key as $q) {
     
                                     if ($q == 'database') {
                                         $query = "database={$this->table->database}";
@@ -283,9 +321,18 @@
                                     $href .= $query;
     
                                 }
+
+                                $action = 'href="'.$href.'"';
+
+                            } else if (!empty($request)) {
+
+                                $action = $this->ajaxRequest($this->link->api.'/'.$request, $key);
+                                
                             }
-    
-                            if (!empty($href)) { $action = 'href="'.$href.'"'; }
+
+                            if (is_array($label)) {
+                                $label = $label[$this->row[$ACTION]];
+                            }
     
                             $BUTTON = "<a class='dropdown-item' $action role='button' $target>$label</a>";
     
