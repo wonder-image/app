@@ -11,8 +11,8 @@
         $RETURN->icon = "<i class='$RETURN->classIcon'></i>";
         $RETURN->tooltip = "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'></i>";
         $RETURN->badge = "<span class='badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span>";
-        $RETURN->badgeIcon = "<span class='badge bg-$RETURN->bootstrapColor'>$RETURN->icon</span>";
-        $RETURN->automaticResize = "<span class='phone-none badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span><span class='pc-none badge bg-$RETURN->bootstrapColor'>$RETURN->icon</span>";
+        $RETURN->badgeIcon = "<span class='badge bg-$RETURN->bootstrapColor' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'>$RETURN->icon</span>";
+        $RETURN->automaticResize = "<span class='phone-none badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span><span class='pc-none badge bg-$RETURN->bootstrapColor' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'>$RETURN->icon</span>";
 
         return $RETURN;
 
