@@ -4,20 +4,22 @@
 
         if ($bootstrapColor == "primary") {
             $color = "#007bff";
-        }elseif($bootstrapColor == "secondary") {
+        } elseif ($bootstrapColor == "secondary") {
             $color = "#6c757d";
-        }elseif($bootstrapColor == "success") {
+        } elseif ($bootstrapColor == "success") {
             $color = "#28a745";
-        }elseif($bootstrapColor == "danger") {
+        } elseif ($bootstrapColor == "danger") {
             $color = "#dc3545";
-        }elseif($bootstrapColor == "warning") {
+        } elseif ($bootstrapColor == "warning") {
             $color = "#ffc107";
-        }elseif($bootstrapColor == "info") {
+        } elseif ($bootstrapColor == "info") {
             $color = "#17a2b8";
-        }elseif($bootstrapColor == "light") {
+        } elseif ($bootstrapColor == "light") {
             $color = "#f8f9fa";
-        }elseif($bootstrapColor == "dark") {
+        } elseif ($bootstrapColor == "dark") {
             $color = "#343a40";
+        } else {
+            $color = "";
         }
 
         return $color;
