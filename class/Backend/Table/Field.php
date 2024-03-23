@@ -128,11 +128,11 @@
 
             }
 
-            foreach ($key as $q) {
+            foreach ($key as $k => $q) {
 
                 $link = parse_url($url);
                 $url .= isset($link['query']) ? '&' : '?';
-                $url .= "$q={$this->row[$q]}";
+                $url .= is_numeric($k) ? "$q={$this->row[$q]}" : "$k=$q";
 
             }
 
@@ -193,7 +193,7 @@
 
         private function changeVisible() {
 
-            $action = $this->ajaxRequest("{$this->link->app}/api/backend/visible.php");
+            $action = $this->ajaxRequest("{$this->link->app}/api/backend/change/boolean.php", [ 'column' => 'visible' ]);
 
             if ($this->row['visible'] == 'true') {
 
@@ -220,7 +220,7 @@
 
         private function changeActive() {
 
-            $action = $this->ajaxRequest("{$this->link->app}/api/backend/active.php");
+            $action = $this->ajaxRequest("{$this->link->app}/api/backend/change/boolean.php", [ 'column' => 'active' ]);
 
             if ($this->row['active'] == 'true') {
 
@@ -245,6 +245,33 @@
 
         }
 
+        private function changeEvidence() {
+
+            $action = $this->ajaxRequest("{$this->link->app}/api/backend/change/boolean.php", [ 'column' => 'evidence' ]);
+
+            if ($this->row['evidence'] == 'true') {
+
+                $text = "In evidenza";
+                $textButton = "Rimuovi evidenza";
+                $classIcon = "bi bi-star-fill";
+                $bootstrapColor = "warning";
+
+            } else {
+
+                $text = "";
+                $textButton = "In evidenza";
+                $classIcon = "";
+                $bootstrapColor = "";
+
+            }
+            
+            return (object) array_merge( 
+                (array) returnBadge($text, $classIcon, $bootstrapColor), 
+                (array) $this->actionButtonItem($textButton, $action)
+            );
+
+        }
+
         public function actionButton($actionArray) {
 
             $BUTTONS = "";
@@ -259,6 +286,7 @@
                         elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->modify}' role='button'>Modifica</a>"; }
                         elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->download}'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
                         elseif ($ACTION == 'visible') { $BUTTONS .= $this->changeVisible()->button; }
+                        elseif ($ACTION == 'evidence') { $BUTTONS .= $this->changeEvidence()->button; }
                         elseif ($ACTION == 'delete' && $this->deleteButton) { $BUTTONS .= $this->deleteRow()->button; }
                         elseif ($ACTION == 'authority' && $this->deleteButton && isset($this->user->authority) && isset($this->user->area) && !is_array($this->user->area) && !is_array($this->user->authority)) { $BUTTONS .= $this->deleteAuthority()->button; }
                         elseif ($ACTION == 'active') { 
@@ -326,7 +354,13 @@
 
                             } else if (!empty($request)) {
 
-                                $action = $this->ajaxRequest($this->link->api.'/'.$request, $key);
+                                if ($request == 'boolean') {
+                                    $url = "{$this->link->app}/api/backend/change/boolean.php?column=$ACTION";
+                                } else {
+                                    $url = $this->link->api.'/'.$request;
+                                }
+
+                                $action = $this->ajaxRequest($url, $key);
                                 
                             }
 
@@ -477,7 +511,7 @@
                             if (is_object($v)) { $VALUE .= $v->$functionReturn; }
                         }
                         
-                    } else if ($functionName == "active" || $functionName == "visible") {
+                    } else if ($functionName == "active" || $functionName == "visible" || $functionName == "evidence") {
 
                         $functionReturn = $format['function']['return'];
 
@@ -591,28 +625,6 @@
                     $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";
 
                 }
-
-            # Column resize
-            
-                $phone = isset($format['phone']) ? $format['phone'] : true;
-                $tablet = isset($format['tablet']) ? $format['tablet'] : true;
-                $pc = isset($format['pc']) ? $format['pc'] : true;
-                    
-                if (!$phone) { $CLASS .= 'phone-none '; }
-                if (!$tablet) { $CLASS .= 'tablet-none '; }
-                if (!$pc) { $CLASS .= 'pc-none '; }
-
-            # Column size
-
-                $dimension = !empty($format['dimension']) ? $format['dimension'] : '';
-
-                if (empty($dimension)) {
-                    if ($this->column == 'authority' || $this->column == 'active' || $this->column == 'visible' || $this->column == 'empty') {
-                        $dimension = 'little';
-                    }
-                }
-
-                $CLASS .= $dimension;
 
             return $VALUE;
 
