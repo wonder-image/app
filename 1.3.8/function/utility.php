@@ -19,12 +19,12 @@
             $RETURN->text = isset($RETURN->text) ? $RETURN->text : $RETURN->name;
             $RETURN->classIcon = isset($RETURN->icon) ? $RETURN->icon : '';
 
-            $RETURN->icon = "<i class='$RETURN->classIcon'></i>";
-            $RETURN->tooltip = "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'></i>";
-            $RETURN->badge = "<span class='badge text-bg-$RETURN->color'>".strtoupper($RETURN->name)."</span>";
-            $RETURN->badgeTooltip = "<span class='badge text-bg-$RETURN->color' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
-            $RETURN->badgeIcon = "<span class='badge text-bg-$RETURN->color'>$RETURN->icon</span>";
-            $RETURN->automaticResize = "<span class='badge text-bg-$RETURN->color'><span class='pc-none'>$RETURN->icon</span><span class='phone-none'>".strtoupper($RETURN->name)."</span></span>";
+            $RETURN->icon = empty($RETURN->classIcon) ? "" : "<i class='$RETURN->classIcon'></i>";
+            $RETURN->tooltip = empty($RETURN->classIcon) || empty($RETURN->text) ? "" : "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'></i>";
+            $RETURN->badge = empty($RETURN->color) || empty($RETURN->name) ? "" : "<span class='badge text-bg-$RETURN->color'>".strtoupper($RETURN->name)."</span>";
+            $RETURN->badgeTooltip = empty($RETURN->color) || empty($RETURN->text) || empty($RETURN->icon) ? "" : "<span class='badge text-bg-$RETURN->color' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
+            $RETURN->badgeIcon = empty($RETURN->color) || empty($RETURN->text) || empty($RETURN->icon) ? "" : "<span class='badge text-bg-$RETURN->color'  data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
+            $RETURN->automaticResize = empty($RETURN->color) || empty($RETURN->icon) || empty($RETURN->name) ? "" : "<span class='badge text-bg-$RETURN->color'><span class='pc-none'>$RETURN->icon</span><span class='phone-none'>".strtoupper($RETURN->name)."</span></span>";
 
         }
 
@@ -51,5 +51,3 @@
         return $classValue;
 
     }
-
-?>

@@ -8,11 +8,12 @@
         $RETURN->text = $text;
         $RETURN->classIcon = $classIcon;
 
-        $RETURN->icon = "<i class='$RETURN->classIcon'></i>";
-        $RETURN->tooltip = "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'></i>";
-        $RETURN->badge = "<span class='badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span>";
-        $RETURN->badgeIcon = "<span class='badge bg-$RETURN->bootstrapColor' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'>$RETURN->icon</span>";
-        $RETURN->automaticResize = "<span class='phone-none badge bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span><span class='pc-none badge bg-$RETURN->bootstrapColor' data-bs-toggle='tooltip' data-bs-placement='top' title='$RETURN->text'>$RETURN->icon</span>";
+        $RETURN->icon = empty($RETURN->classIcon) ? "" : "<i class='$RETURN->classIcon'></i>";
+        $RETURN->tooltip = empty($RETURN->classIcon) || empty($RETURN->text) ? "" : "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'></i>";
+        $RETURN->badge = empty($RETURN->bootstrapColor) || empty($RETURN->text) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span>";
+        $RETURN->badgeTooltip = empty($RETURN->bootstrapColor) || empty($RETURN->text) || empty($RETURN->icon) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
+        $RETURN->badgeIcon = empty($RETURN->bootstrapColor) || empty($RETURN->text) || empty($RETURN->icon) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor'  data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
+        $RETURN->automaticResize = empty($RETURN->bootstrapColor) || empty($RETURN->icon) || empty($RETURN->text) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor'><span class='pc-none'>$RETURN->icon</span><span class='phone-none'>".strtoupper($RETURN->text)."</span></span>";
 
         return $RETURN;
 
@@ -95,6 +96,35 @@
             $textButton = "Abilita";
             $classIcon = "bi bi-x-circle";
             $bootstrapColor = "danger";
+
+        }
+        
+        $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
+
+        return $RETURN;
+
+    }
+
+    function evidence($evidence, $id) {
+
+        global $NAME;
+        global $PATH;
+
+        $action = "onclick=\"ajaxRequest('$PATH->app/api/backend/change/boolean.php?table=$NAME->table&column=evidence&=$id')\"";
+
+        if ($evidence == 'true') {
+
+            $text = "In evidenza";
+            $textButton = "Rimuovi evidenza";
+            $classIcon = "bi bi-star-fill";
+            $bootstrapColor = "warning";
+
+        } else {
+
+            $text = "";
+            $textButton = "In evidenza";
+            $classIcon = "";
+            $bootstrapColor = "";
 
         }
         
@@ -214,5 +244,3 @@
         return $return;
 
     }
-
-?>
