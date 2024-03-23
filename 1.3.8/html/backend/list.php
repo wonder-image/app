@@ -69,7 +69,8 @@
                 'name' => 'position-up',
                 'title' => '',
                 'orderable' => false,
-                'className' => 'little'
+                'className' => 'all',
+                'width' => '30px'
             ]);
 
             array_push($TABLE_COLUMNS, [
@@ -77,7 +78,8 @@
                 'name' => 'position-down',
                 'title' => '',
                 'orderable' => false,
-                'className' => 'little'
+                'className' => 'all',
+                'width' => '30px'
             ]);
 
 
@@ -99,10 +101,15 @@
             $dimension = !empty($value['dimension']) ? $value['dimension'] : '';
 
             if (empty($dimension)) {
-                if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty' || $format == 'image') {
+                if ($column == 'authority' || $column == 'active' || $column == 'visible' || $column == 'empty' || $column == 'evidence' || $format == 'image') {
                     $dimension = 'little';
                 }
             }
+
+            if ($dimension == 'little') { $width = '30px'; } else 
+            if ($dimension == 'medium') { $width = '120px'; } else 
+            if ($dimension == 'big') { $width = '180px'; } else 
+            { $width = 'auto'; } 
 
             $class .= $dimension;
             
@@ -117,7 +124,8 @@
                 'name' => $column,
                 'title' => $label,
                 'orderable' => $orderable,
-                'className' => $class
+                'className' => $class,
+                'width' => $width
             ]);
 
             $COLUMN_N++;
@@ -142,7 +150,8 @@
                     'name' => 'menu',
                     'title' => '',
                     'orderable' => false,
-                    'className' => 'little all'
+                    'className' => 'all',
+                    'width' => '30px'
                 ]);
 
             }
