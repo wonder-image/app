@@ -6,13 +6,15 @@
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
-    
-    $redirect = !empty($_GET['redirect']) ? $PAGE->redirect : $PATH->backend."/home/";
 
     if (isset($_POST['login'])) {
 
         if (authenticateUser("username", $_POST['username'], $_POST['password'], 'backend')) {
-            header("Location: $redirect");
+            if (isset($_GET['redirect']) && !empty($_GET['redirect'])) {
+                header("Location: $redirect");
+            } else {
+                header("Location: ".$PERMITS['backend']['links']['home']);
+            }
         } else {
             $username = $_POST['username'];
         }

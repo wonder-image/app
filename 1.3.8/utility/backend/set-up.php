@@ -5,7 +5,7 @@
             'title' => 'Home',
             'folder' => 'home',
             'icon' => 'bi-house-door',
-            'file' => '',
+            'file' => $PERMITS['backend']['links']['home'],
             'authority' => [],
             'subnavs' => []
         ]

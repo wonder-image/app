@@ -19,6 +19,7 @@
                 "creator" => ["admin"]
             ],
             "links" => [
+                "home" => "$PATH->backend/home/",
                 "login" => "$PATH->backend/account/login/",
                 "password-recovery" => "$PATH->backend/account/password-recovery/",
                 "password-set" => "$PATH->backend/account/password-set/"
@@ -31,5 +32,3 @@
     require $ROOT."/custom/config/permissions.php";
     
     foreach ($CUSTOM_PERMITS as $key => $value) { foreach ($value as $k => $v) { $PERMITS[$key][$k] = $v; } }
-
-?>

@@ -343,6 +343,7 @@
 
             $ARRAY = $PERMITS[$AREA][$PERMIT];
 
+            $home = isset($PERMITS[$AREA]['links']['home']) ? $PERMITS[$AREA]['links']['home'] : '';
             $login = isset($PERMITS[$AREA]['links']['login']) ? $PERMITS[$AREA]['links']['login'] : '';
             $signIn = isset($PERMITS[$AREA]['links']['sign-in']) ? $PERMITS[$AREA]['links']['sign-in'] : '';
             $passwordRecovery = isset($PERMITS[$AREA]['links']['password-recovery']) ? $PERMITS[$AREA]['links']['password-recovery'] : '';
@@ -359,6 +360,7 @@
 
             $RETURN->area = $AREA;
 
+            $RETURN->home = isset($ARRAY['links']['home']) ? $ARRAY['links']['home'] : $home;
             $RETURN->login = isset($ARRAY['links']['login']) ? $ARRAY['links']['login'] : $login;
             $RETURN->signIn = isset($ARRAY['links']['sign-in']) ? $ARRAY['links']['sign-in'] : $signIn;
             $RETURN->passwordRecovery = isset($ARRAY['links']['password-recovery']) ? $ARRAY['links']['password-recovery'] : $passwordRecovery;
@@ -424,5 +426,3 @@
         return $RETURN;
 
     }
-
-?>

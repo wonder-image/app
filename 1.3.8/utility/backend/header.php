@@ -83,14 +83,15 @@
                             $fillImg = $activeNav ? '-fill' : '';
 
                             if (!empty($offcanvas)) {
-                                $subnavsToggle = "type='button' data-bs-toggle='offcanvas' data-bs-target='#$targetId' aria-label='Close'";
+                                $navAction = "type='button' data-bs-toggle='offcanvas' data-bs-target='#$targetId' aria-label='Close'";
                             } else {
-                                $subnavsToggle = "href='$PATH->site/backend/$folderNav/$fileNav'";
+                                $navUrl = isset(parse_url($fileNav)['host']) ? $fileNav : $PATH->site.'/backend/'.$folderNav.'/'.$fileNav ;
+                                $navAction = "href='$navUrl'";
                             }
         
                             echo "
                             <li class='$navClass'>
-                                <a $subnavsToggle class='text-body-emphasis'>       
+                                <a $navAction class='text-body-emphasis'>       
                                     <i class='bi $iconNav$fillImg'></i> <span>$titleNav</span>
                                 </a>
                             </li>";
