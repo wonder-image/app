@@ -121,10 +121,10 @@
 
         } else {
 
-            $text = "";
+            $text = "Non in evidenza";
             $textButton = "In evidenza";
             $classIcon = "";
-            $bootstrapColor = "";
+            $bootstrapColor = "warning";
 
         }
         
