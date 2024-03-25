@@ -82,7 +82,7 @@
             "html" => "&nbsp;",
             "unicode" => "&#160;"
         ],[
-            "character" => " ", # No-Break Space
+            "character" => " ", # No-Break Space \xc2\xa0
             "url" => " ",
             "html" => "&NonBreakingSpace;",
             "unicode" => "&#160;"
