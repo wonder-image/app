@@ -137,6 +137,11 @@
             "html" => "&middot;",
             "unicode" => "&#183;"
         ],[
+            "character" => "…",
+            "url" => "-",
+            "html" => "&mldr;;",
+            "unicode" => "&#8230;"
+        ],[
             "character" => "¶",
             "url" => "",
             "html" => "&para;",
