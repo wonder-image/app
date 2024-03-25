@@ -139,7 +139,7 @@
         ],[
             "character" => "…",
             "url" => "-",
-            "html" => "&mldr;;",
+            "html" => "&mldr;",
             "unicode" => "&#8230;"
         ],[
             "character" => "¶",
