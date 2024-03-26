@@ -110,8 +110,23 @@
 
         foreach ($URL_QUERY as $key => $value) {
             if (!in_array($key, $QUERY_DATE) && $key != 'wi-limit') {
-                $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
-                $QUERY_URL .= "&$key=$value";
+
+                if (is_array($value)) {
+
+                    $key .= '[]';
+
+                    foreach ($value as $v) { 
+                        $QUERY_INPUT .= "<input type='hidden' name='$key' value='$v'>"; 
+                        $QUERY_URL .= "&$key=$v";
+                    }
+
+                } else {
+
+                    $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
+                    $QUERY_URL .= "&$key=$value";
+    
+                }
+                
             }
         }
 
