@@ -734,6 +734,14 @@
                     'false' => "Disabilitati",
                 ];
                 
+            } elseif ($table == "evidence") {
+                
+                $checkbox = [
+                    '' => "Tutti",
+                    'true' => "Si",
+                    'false' => "No",
+                ];
+                
             } else {
 
                 if ($db) {
