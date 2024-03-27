@@ -128,6 +128,7 @@
         $SQL = sqlSelect($table, [$column => $value], 1);
         
         $RETURN = (object) array();
+        $RETURN->exists = $SQL->exists;
         foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? sanitizeEcho($value) : ''; }
         
         return $RETURN;
