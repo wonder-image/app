@@ -48,40 +48,33 @@ width: calc(100% - 60px);
 height: 30px;
 line-height: 30px;
 margin: 0 30px;
-color: #000;
+color: var(--input-label-color);
 }
 #ui-datepicker-div .ui-datepicker-header .ui-datepicker-title select{
 width: auto;
 line-height: 30px;
-color: #000;
+color:  var(--input-label-color);
 }
 #ui-datepicker-div .ui-datepicker-header .ui-datepicker-title select.ui-datepicker-month{ margin-left: 5px; }
 #ui-datepicker-div .ui-datepicker-header .ui-corner-all {
 top: 0;
 width: 30px;
 height: 30px;
-color: #000;
+color: var(--input-label-color);
 border-radius: 0;
 }
 #ui-datepicker-div .ui-datepicker-header .ui-corner-all:hover{
-color: #000;
+color: var(--input-label-color);
 border: none;
 background: none;
 cursor: pointer;
 }
 #ui-datepicker-div .ui-datepicker-header .ui-corner-all.ui-datepicker-next { right: 0; }
 #ui-datepicker-div .ui-datepicker-header .ui-corner-all.ui-datepicker-prev { left: 0; }
-#ui-datepicker-div .ui-datepicker-header .ui-corner-all.ui-datepicker-next span {
-background: none;
-background-image: url("data:image/svg+xml,%3Csvg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-chevron-right' fill='currentColor' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
+#ui-datepicker-div .ui-datepicker-calendar th { 
+padding: 2px;
+color: var(--input-label-color);
 }
-#ui-datepicker-div .ui-datepicker-header .ui-corner-all.ui-datepicker-prev span {
-background: none;
-background-image: url("data:image/svg+xml,%3Csvg width='1em' height='1em' viewBox='0 0 16 16' class='bi bi-chevron-left' fill='currentColor' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
-}
-#ui-datepicker-div .ui-datepicker-calendar th { padding: 2px; }
 #ui-datepicker-div .ui-datepicker-calendar td { 
 border: none; 
 padding: 2px;
@@ -103,7 +96,6 @@ background: var(--input-date-bg);
 }
 
 #ui-datepicker-div .ui-datepicker-calendar td a.ui-state-hover { opacity: .8; }
-
 #ui-datepicker-div .ui-datepicker-calendar td span {
 border: none;
 text-align: center;
