@@ -46,6 +46,26 @@ function checkNumber(event) {
     
 }
 
+function checkPhone(element) {
+    
+    var phones = [
+        { "mask": "### ### ####"}
+    ];
+
+    $(element).inputmask({ 
+        mask: phones, 
+        greedy: false, 
+        placeholder: '', 
+        definitions: { 
+            '#': { 
+                validator: "[0-9]", 
+                cardinality: 1
+            }
+        } 
+    });
+
+}
+
 function labelPositionTop(event) {
 
     event.target.parentElement.classList.add('compiled');
@@ -199,6 +219,10 @@ function setInput() {
     document.querySelectorAll("[data-wi-list-value='true']").forEach(element => {
         element.addEventListener("click", checkInput);
         element.addEventListener("mousedown", checkInput);
+    });
+
+    document.querySelectorAll("[data-wi-phone='true']").forEach(element => {
+        checkPhone(element);
     });
 
     check();

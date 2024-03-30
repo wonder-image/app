@@ -161,7 +161,8 @@
 
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.1.62/jquery.inputmask.bundle.js"></script>
+
     <!--  Moment.js  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js" referrerpolicy="no-referrer"></script>
 
