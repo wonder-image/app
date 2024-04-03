@@ -10,8 +10,8 @@
     if (isset($_POST['login'])) {
 
         if (authenticateUser("username", $_POST['username'], $_POST['password'], 'backend')) {
-            if (isset($_GET['redirect']) && !empty($_GET['redirect'])) {
-                header("Location: $redirect");
+            if (!empty($PAGE->redirect)) {
+                header("Location: $PAGE->redirect");
             } else {
                 header("Location: ".$PERMITS['backend']['links']['home']);
             }
