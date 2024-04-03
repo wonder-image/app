@@ -125,6 +125,33 @@
         </div>";
 
     }
+    
+    function url($label, $name, $value = null, $attribute = '', $error = false) {
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $class = "";
+
+        if (!empty($error)) {
+            $class .= " input-error";
+            $alert = "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> $error</span>";
+        } else {
+            $alert = "<span class='alert-error'></span>";
+        }
+
+        if (!empty($value)) { $class .= " compiled"; }
+        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        return "
+        <div class='wi-input-container url$class'>
+            <label for='$id' class='wi-label'>$label</label>
+            <input type='url' id='$id' class='wi-input' name='$name' value='$value' data-wi-check='true' data-wi-label='true' $attribute>
+            $alert
+        </div>
+        ";
+
+    }
+
 
     function email($label, $name, $value = null, $attribute = '', $error = false) {
 
