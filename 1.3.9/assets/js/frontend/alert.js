@@ -45,6 +45,10 @@ function alertToast(alert) {
             success: function (data) {
 
                 container.innerHTML += data;
+                
+                var url = new URL(window.location.href);
+                url.searchParams.delete('alert');
+                window.history.replaceState(null, null, url);
 
             }
         });

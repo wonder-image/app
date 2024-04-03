@@ -66,6 +66,10 @@ function alertToast(alert, type = null, title = null, text = null) {
                 const toast = new bootstrap.Toast(container.firstElementChild);
                 toast.show();
                 
+                var url = new URL(window.location.href);
+                url.searchParams.delete('alert');
+                window.history.replaceState(null, null, url);
+                
             }
         });
 

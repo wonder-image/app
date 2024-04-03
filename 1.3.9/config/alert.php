@@ -367,5 +367,3 @@
             "text" => "Upload non andato a buon fine"
         ],
     ];
-
-?>
