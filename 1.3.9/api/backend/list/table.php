@@ -38,7 +38,7 @@
         $CUSTOM = (object) array();
         $CUSTOM->arrow = ($_POST['arrow'] == 'false') ? false : true;
         $CUSTOM->field = json_decode(base64_decode($_POST['custom']['field']), true);
-        $CUSTOM->action = $_POST['custom']['action'];
+        $CUSTOM->action = isset($_POST['custom']['action']) ? $_POST['custom']['action'] : [];
         $CUSTOM->query = base64_decode($_POST['custom']['query_filter']);
         $CUSTOM->query_all = base64_decode($_POST['custom']['query_all']);
         $CUSTOM->search_field = isset($_POST['custom']['search_field']) ? $_POST['custom']['search_field'] : [];
@@ -173,18 +173,22 @@
         }
 
     # Menu
-    array_push($COLUMNS, [
-        'db' => 'id', 
-        'dt' => $columnN,
-        'format' => $CUSTOM->action,
-        'formatter' => function($row, $column, $format) {
-
-            global $TABLE_FIELD;
-
-            return $TABLE_FIELD->newField($row, 'action_button', $format);
+        if (!empty($CUSTOM->action)) {
+            
+            array_push($COLUMNS, [
+                'db' => 'id', 
+                'dt' => $columnN,
+                'format' => $CUSTOM->action,
+                'formatter' => function($row, $column, $format) {
+        
+                    global $TABLE_FIELD;
+        
+                    return $TABLE_FIELD->newField($row, 'action_button', $format);
+        
+                }
+            ]);
 
         }
-    ]);
     
     // SQL server connection information
     $sql_details = array(
