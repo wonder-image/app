@@ -12,7 +12,7 @@
 
         private $cURL = "";
 
-        function __construct( string $endpoint, array $values) {
+        function __construct( string $endpoint, array|string $values = "") {
             
             $this->endpoint = $endpoint;
             $this->values = $values;
@@ -32,6 +32,8 @@
 
             if ($type == 'application/json') {
                 $this->values = json_encode($this->values);
+            } else if ($type == 'application/x-www-form-urlencoded' && $this->method == 'POST') {
+                $this->values = http_build_query($this->values);
             }
 
         }
@@ -39,6 +41,12 @@
         function authBasic( string $username, string $password) {
 
             curl_setopt($this->cURL, CURLOPT_USERPWD, "$username:$password");
+
+        }
+
+        function authApiKey( string $apiKey ) {
+
+            $this->header('Authorization-Key: '.$apiKey);
 
         }
 
@@ -58,12 +66,14 @@
                         
                 } else if ($this->method == 'GET') {
                     
-                    $this->endpoint .= "?".http_build_query($this->values);
-
+                    if (!empty($this->values)) {
+                        $this->endpoint .= "?".http_build_query($this->values);
+                    }
+                    
                 }
             
             # Connessione
-                curl_setopt($this->cURL, CURLOPT_URL, $this->endpoint); 
+                curl_setopt($this->cURL, CURLOPT_URL, $this->endpoint);
                 
             # Header
                 if (!empty($this->headers)) {
@@ -77,6 +87,7 @@
 
             # Risultato
                 $result = curl_exec($this->cURL);
+                curl_close($this->cURL);
             
             # Verifica errori
                 if (curl_errno($this->cURL)) {
