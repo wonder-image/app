@@ -75,5 +75,3 @@
         clearstatcache();
 
     }
-
-?>

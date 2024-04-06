@@ -15,5 +15,3 @@
         return $hasher->CheckPassword(trim($password), $hashPassword);
 
     }
-
-?>

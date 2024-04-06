@@ -28,5 +28,3 @@
         return $CALL->result();
 
     }
-
-?>

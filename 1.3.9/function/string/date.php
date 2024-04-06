@@ -215,5 +215,3 @@
         return $RETURN;
 
     }
-
-?>

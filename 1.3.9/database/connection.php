@@ -13,5 +13,3 @@
     }
 
     $mysqli = $MYSQLI_CONNECTION['main'];
-
-?>

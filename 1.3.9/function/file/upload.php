@@ -109,5 +109,3 @@
         return json_encode($NEW_FILE);
     
     }
-
-?>

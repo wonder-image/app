@@ -16,5 +16,3 @@
     
     # Funzioni CUSTOM
     require_once $ROOT."/custom/function/function.php";
-    
-?>

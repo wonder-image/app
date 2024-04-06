@@ -122,7 +122,6 @@
 
     }
 
-
     function info($table, $column, $value) {
 
         $SQL = sqlSelect($table, [$column => $value], 1);
@@ -134,5 +133,3 @@
         return $RETURN;
         
     }
-
-?>

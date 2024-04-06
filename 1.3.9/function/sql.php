@@ -460,6 +460,15 @@
 
     }
 
+    function sqlDatabase($database = 'main') {
+
+        global $mysqli;
+        global $MYSQLI_CONNECTION;
+
+        $mysqli = $MYSQLI_CONNECTION[$database];
+
+    }
+
     function sqlTableInfo($table, $database = 'main') {
 
         global $DB;
@@ -731,5 +740,3 @@
         }
 
     }
-
-?>

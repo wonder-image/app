@@ -157,5 +157,3 @@
         return $RETURN;
 
     }
-    
-?>

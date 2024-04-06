@@ -26,7 +26,7 @@
 
         if ($type == "danger") {
             $icon = "<i class='wi-alert-icon bi bi-exclamation-triangle tx-danger'></i>";
-        }elseif ($type == "success") {
+        } elseif ($type == "success") {
             $icon = "<i class='wi-alert-icon bi bi-check2-circle tx-success'></i>";
         }
 
@@ -42,6 +42,3 @@
             </div>";
 
     }
-
-
-?>

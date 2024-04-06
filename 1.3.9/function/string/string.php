@@ -364,3 +364,21 @@
         echo "<pre>".print_r($array, true)."</pre>";
 
     }
+    
+    function getDomain($domain) {
+
+        $domain = isset(parse_url($domain)['host']) ? parse_url($domain)['host'] : $domain;
+        $domain = str_replace('www.', '', $domain);
+
+        return $domain;
+
+    }
+
+    function getDomainExtension($domain) {
+
+        $explode = explode(".", $domain);
+        $extension = count($explode) > 1 ? end($explode) : "";
+
+        return $extension;
+
+    }
