@@ -88,7 +88,7 @@
 
         function verifyApiKey() {
 
-            $USER = sqlSelect('user', [
+            $USER = sqlSelect('api_user', [
                 'api_key' => $this->api_key,
                 'active' => 'true',
                 'deleted' => 'false',
@@ -134,7 +134,7 @@
             $success = ($status == 200) ? true : false;
 
             sqlInsert(
-                'log', [
+                'api_log', [
                     "ip" => $this->ip,
                     "user_api_key" => $this->api_key,
                     "api_version" => $this->version,
