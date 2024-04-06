@@ -353,10 +353,14 @@
 
     }
 
-    function prettyPrint($array) {
+    function prettyPrint($array) { 
 
-        print("<pre>".print_r($array,true)."</pre>");
+        global $ROOT;
+
+        $bt = debug_backtrace();
+        $caller = array_shift($bt);
+
+        echo 'File <b>'.str_replace($ROOT, '', $caller['file']).'</b> line <b>'.$caller['line'].'</b>';
+        echo "<pre>".print_r($array, true)."</pre>";
 
     }
-    
-?>
