@@ -46,26 +46,6 @@ function checkNumber(event) {
     
 }
 
-function checkPhone(element) {
-    
-    var phones = [
-        { "mask": "### ### ####"}
-    ];
-
-    $(element).inputmask({ 
-        mask: phones, 
-        greedy: false, 
-        placeholder: '', 
-        definitions: { 
-            '#': { 
-                validator: "[0-9]", 
-                cardinality: 1
-            }
-        } 
-    });
-
-}
-
 function labelPositionTop(event) {
 
     event.target.parentElement.classList.add('compiled');

@@ -88,6 +88,10 @@ function checkInput() {
 
     });
 
+    document.querySelectorAll("[data-wi-phone='true']").forEach(element => {
+        checkPhone(element);
+    });
+
     setAutonumeric();
     check();
 

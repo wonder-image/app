@@ -42,6 +42,26 @@
 
     }
 
+    function phone($label, $name, $attribute = null, $value = null) {
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+        
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
+
+        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
+        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        return "
+        <div class='form-floating'>
+            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-phone='true' data-wi-check='true' $attribute>
+            <label for='$id'>$label</label>
+        </div>";
+
+    }
+
     function text($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
