@@ -287,6 +287,7 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/modal.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/button.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/dropdown.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/spinner.css">
 
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/input.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/date.css">
