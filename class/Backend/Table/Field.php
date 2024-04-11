@@ -365,10 +365,10 @@
                             }
 
                             if (is_array($label)) {
-                                $label = $label[$this->row[$ACTION]];
+                                $label = isset($label[$this->row[$ACTION]]) ? $label[$this->row[$ACTION]] : '';
                             }
     
-                            $BUTTON = "<a class='dropdown-item' $action role='button' $target>$label</a>";
+                            $BUTTON = empty($label) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
     
                         }
 
