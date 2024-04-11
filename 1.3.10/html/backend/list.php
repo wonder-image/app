@@ -57,6 +57,9 @@
 
     if (!empty($FILTER_CUSTOM)) { $CUSTOM = createFilterCustom(); }
 
+    $BUTTON_ADD = isset($BUTTON_ADD) && $BUTTON_ADD == true ? true : false;
+    $BUTTON_DOWNLOAD = isset($BUTTON_DOWNLOAD) && $BUTTON_DOWNLOAD == true ? true : false;
+
     # Headers
         $TABLE_COLUMNS = [];
 
@@ -180,14 +183,41 @@
         <wi-card class="col-12">
 
 
-            <div class="col-<?=!empty($BUTTON_ADD) ? "8" : "12"?>"> 
+            <div class="col-<?=$BUTTON_ADD || $BUTTON_DOWNLOAD ? "8" : "12"?>"> 
                 <h3><?=$FILTER->title?></h3>
                 <figcaption class="text-muted">
                     Risultati: <span id="wi-table-result"></span>
                 </figcaption>
             </div>
 
-            <?php if (!empty($BUTTON_ADD)) { echo "<div class='col-4'>".createAddButton($TEXT->titleS)."</div>"; } ?>
+            <?php 
+            
+                if ($BUTTON_ADD || $BUTTON_DOWNLOAD) { 
+                    
+                    echo "<div class='col-4 d-flex gap-2 justify-content-end align-items-start'>";
+                    
+                    if ($BUTTON_DOWNLOAD) {
+
+                        echo '
+                        <div class="dropdown">
+                            <a class="btn btn-sm btn-secondary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-bs-haspopup="true" aria-bs-expanded="false">
+                                <i class="bi bi-download me-1"></i> Esporta
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item" href="download.php?file=csv&query='.base64_encode($FILTER->query).'" role="button"><i class="bi bi-filetype-csv me-1"></i> CSV</a>
+                                <a class="dropdown-item" href="download.php?file=xls&query='.base64_encode($FILTER->query).'" role="button"><i class="bi bi-filetype-xls me-1"></i> Excel</a>
+                            </div>
+                        </div>'; 
+                    
+                    }
+
+                    if ($BUTTON_ADD) { echo createAddButton($TEXT->titleS); }
+                    
+                    echo "</div>"; 
+                    
+                } 
+                
+            ?>
 
             <?php if (isset($FILTER->html) && !empty($FILTER->html)) :?>
             <div class="col-12">

@@ -405,7 +405,7 @@
                 if (!empty($BUTTONS)) {
 
                     $BUTTONS = "
-                    <div class='btn-group position-static float-end'>
+                    <div class='dropdown'>
                         <span class='badge text-dark' role='button' data-bs-toggle='dropdown' aria-bs-haspopup='true' aria-bs-expanded='false'>
                             <i class='bi bi-three-dots'></i>
                         </span>
