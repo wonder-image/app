@@ -118,6 +118,7 @@
     <meta property="og:image" content="<?=$SEO->image?>">
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?=$SEO->url?>">
+    <meta property="og:site_name" content="<?=$SOCIETY->name?>">
 
     <!-- Twitter -->
     <meta property="twitter:title" content="<?=$SEO->title?>" />
