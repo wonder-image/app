@@ -99,3 +99,8 @@ text-decoration: none;
 -ms-user-select: none !important;
 user-select: none !important; 
 }
+.badge.badge-icon {
+padding: 3px !important;
+width: calc(var(--badge-line-height) + (var(--badge-border-width) * 2) + 6px) !important;
+text-align: center !important;
+}
