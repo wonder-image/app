@@ -110,6 +110,7 @@ function setTextarea() {
 
             editor.classList.add('border-top-0');
             editor.classList.add('rounded-bottom');
+            editor.classList.add('overflow-scroll');
     
             container.after(editor);
 
