@@ -183,6 +183,16 @@ line-height: var(--text-small-line-height) !important;
 font-family: var(--text-small-font-family) !important;
 font-weight: var(--text-small-font-weight) !important;
 }
+/* Font weight */
+.fw-t-100 { font-weight: 100 !important; }
+.fw-t-200 { font-weight: 200 !important; }
+.fw-t-300 { font-weight: 300 !important; }
+.fw-t-400 { font-weight: 400 !important; }
+.fw-t-500 { font-weight: 500 !important; }
+.fw-t-600 { font-weight: 600 !important; }
+.fw-t-700 { font-weight: 700 !important; }
+.fw-t-800 { font-weight: 800 !important; }
+.fw-t-900 { font-weight: 900 !important; }
 }
 
 @media (max-width: 768px) {
@@ -221,4 +231,14 @@ line-height: var(--text-small-line-height) !important;
 font-family: var(--text-small-font-family) !important;
 font-weight: var(--text-small-font-weight) !important;
 }
+/* Font weight */
+.fw-p-100 { font-weight: 100 !important; }
+.fw-p-200 { font-weight: 200 !important; }
+.fw-p-300 { font-weight: 300 !important; }
+.fw-p-400 { font-weight: 400 !important; }
+.fw-p-500 { font-weight: 500 !important; }
+.fw-p-600 { font-weight: 600 !important; }
+.fw-p-700 { font-weight: 700 !important; }
+.fw-p-800 { font-weight: 800 !important; }
+.fw-p-900 { font-weight: 900 !important; }
 }
