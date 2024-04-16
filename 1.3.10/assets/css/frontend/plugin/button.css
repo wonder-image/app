@@ -48,6 +48,11 @@ cursor: not-allowed;
 
 
 /* Button icon */
+.btn.btn-icon {
+padding: 10px !important;
+width: calc(var(--button-line-height) + (var(--button-border-width) * 2) + 20px) !important;
+text-align: center !important;
+}
 .btn.btn-icon-right i,
 .btn.btn-arrow i,
 .btn.btn-icon-left i {
