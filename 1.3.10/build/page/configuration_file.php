@@ -44,6 +44,4 @@
         fwrite($FILE, $FILE_TXT);
         fclose($FILE);
         
-    } 
-
-?>
+    }

@@ -112,5 +112,3 @@
     $file = fopen($SITEMAP_FILE, "w");
     fwrite($file, $XML);
     fclose($file);
-
-?>
