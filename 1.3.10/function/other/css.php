@@ -24,7 +24,7 @@
         $RETURN = ":root {\n";
         $RETURN .= "\n";
         $RETURN .= "--spacer: {$CSS_DEFAULT->spacer}px;\n";
-        $RETURN .= "--header-height: $CSS_DEFAULT->header_height;\n";
+        $RETURN .= "--header-height: {$CSS_DEFAULT->header_height}px;\n";
         $RETURN .= "--default-image: url('$DEFAULT->image');\n";
         $RETURN .= "\n";
         $RETURN .= "/* Default font */\n";
