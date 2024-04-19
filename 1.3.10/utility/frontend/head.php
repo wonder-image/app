@@ -262,10 +262,8 @@
     <script src="<?=$PATH->appJs?>/frontend/form/input.js"></script>
 
     <!-- Custom .css -->
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/set-up.php">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/color.php">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/input.php">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/root/component.php">
+    <link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.php">
+    <link rel="stylesheet" href="<?=$PATH->css?>/set-up/color.php">
 
     <!-- Fundamental .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">
@@ -273,10 +271,10 @@
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/resize.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/position.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/grid.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.php">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.php">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.css">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/section.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/dimension.php">
+    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/dimension.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/function.css">
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/text.css">
 
