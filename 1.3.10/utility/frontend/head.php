@@ -262,8 +262,8 @@
     <script src="<?=$PATH->appJs?>/frontend/form/input.js"></script>
 
     <!-- Custom .css -->
-    <link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.php">
-    <link rel="stylesheet" href="<?=$PATH->css?>/set-up/color.php">
+    <link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.css">
+    <link rel="stylesheet" href="<?=$PATH->css?>/set-up/color.css">
 
     <!-- Fundamental .css -->
     <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">
