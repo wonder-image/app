@@ -8,7 +8,7 @@
 
         public $headers = [];
         public $method = "POST";
-        public $values;
+        public $type, $values;
 
         private $cURL = "";
 
@@ -29,16 +29,17 @@
         function contentType($type) {
 
             $this->header('Content-Type: '.$type);
+            $this->type = $type;
 
             if ($type == 'application/json') {
-                $this->values = json_encode($this->values);
+                $this->values = empty($this->values) ? "" : json_encode($this->values);
             } else if ($type == 'application/x-www-form-urlencoded' && $this->method == 'POST') {
                 $this->values = http_build_query($this->values);
             }
 
         }
 
-        function authBasic( string $username, string $password) {
+        function authBasic( string $username, string $password ) {
 
             curl_setopt($this->cURL, CURLOPT_USERPWD, "$username:$password");
 
@@ -63,7 +64,7 @@
 
                     curl_setopt($this->cURL, CURLOPT_POST, true);
                     curl_setopt($this->cURL, CURLOPT_POSTFIELDS, $this->values);
-                        
+                    
                 } else if ($this->method == 'GET') {
                     
                     if (!empty($this->values)) {
