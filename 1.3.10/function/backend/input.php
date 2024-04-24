@@ -785,6 +785,33 @@
             $ARRAY = json_decode($value, true);
             $N_IMAGES = count($ARRAY);
             $rowId = $VALUES['id'];
+
+            if (isset($TB['format']['resize'])) {
+
+                $imageResize = $TB['format']['resize'];
+
+                if (isset($imageResize['width']) && isset($imageResize['height'])) {
+
+                    $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+
+                } else {
+
+                    $s = 10000000;
+
+                    foreach ($imageResize as $key => $size) {
+                        if ($size['width'] < $s) {
+                            $s = $size['width'];
+                            $imageSize = $size['width'].'x'.$size['height'].'-';
+                        }
+                    }
+
+                }
+
+            } else {
+
+                $imageSize = "";
+
+            }
             
             foreach ($ARRAY as $fileId => $fileName) {
 
@@ -796,9 +823,11 @@
 
                 if (substr($dir, -1) != '/') {
                     $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                    $linkDowload = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
                     $link = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
                 } else {
-                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
+                    $linkDowload = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$imageSize.$fileName;
                 }
 
                 if ($file == "image" || $file == "png" || $file == "ico" || $file == "jpg") {
@@ -830,7 +859,7 @@
                             <div class='d-flex w-100 gap-2'>
                                 $ARROW_UP
                                 $ARROW_DOWN
-                                <a href='$link' download class='btn btn-secondary btn-sm ms-auto'><i class='bi bi-download'></i></a>
+                                <a href='$linkDowload' download class='btn btn-secondary btn-sm ms-auto'><i class='bi bi-download'></i></a>
                                 <button type='button' class='btn btn-danger btn-sm' onclick=\"deleteFile('#container-$id', '#card-file-$fileId')\"><i class='bi bi-trash3'></i></button>
                             </div>
                         </div>
