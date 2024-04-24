@@ -188,9 +188,24 @@
 
     function sanitizeEcho($str) {
 
+        global $CHARACTERS;
+
         if (!empty($str)) {
-            $str = htmlspecialchars_decode($str, ENT_QUOTES);
+
+            $str = htmlspecialchars_decode($str, ENT_QUOTES | ENT_HTML5);
             $str = str_replace('<br />', '', $str);
+
+            foreach ($CHARACTERS as $k => $c) {
+                        
+                $character = $c['character'];
+                $html = $c['html'];
+
+                if (!in_array($character, ['"', ">", "<", " ", "&"])) {
+                    $str = str_replace($html, $character, $str);
+                }
+                
+            }
+
         }
 
         return $str;
