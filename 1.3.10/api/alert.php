@@ -19,5 +19,3 @@
             isset($_POST['alertText']) ? $_POST['alertText'] : null,
         ); 
     }
-
-?>
