@@ -11,5 +11,3 @@
     $ANALYTICS = (object) array();
     $API = (object) array();
     $DEFAULT = (object) array();
-    
-?>

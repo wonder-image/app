@@ -17,5 +17,3 @@
         'EBGaramond-Bold' => 'EB Garamond Bold',
         'EBGaramond-ExtraBold' => 'EB Garamond ExtraBold',
     ];
-
-?>

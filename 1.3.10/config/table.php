@@ -4,7 +4,9 @@
 
     foreach ($files as $file) {
         if ($file != '' && $file != '.' && $file != '..') {
-            require_once "$ROOT_APP/build/table/$file";
+            if (isset(pathinfo($file)['extension']) && pathinfo($file)['extension'] == 'php') {
+                require_once "$ROOT_APP/build/table/$file";
+            }
         }
     }
 
@@ -12,8 +14,8 @@
 
     foreach ($files as $file) {
         if ($file != '' && $file != '.' && $file != '..') {
-            require_once "$ROOT/custom/build/table/$file";
+            if (isset(pathinfo($file)['extension']) && pathinfo($file)['extension'] == 'php') {
+                require_once "$ROOT/custom/build/table/$file";
+            }
         }
     }
-
-?>

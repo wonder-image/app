@@ -231,5 +231,3 @@
 
     require_once $ROOT_APP."/config/permissions.php";
     require_once $ROOT_APP."/config/table.php";
-
-?>
