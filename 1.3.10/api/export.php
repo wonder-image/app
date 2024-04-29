@@ -7,5 +7,3 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     sqlExport($_GET['table'], $_GET['format']);
-
-?>
