@@ -451,6 +451,13 @@
         return $result;
 
     }
+    
+    function sqlSum($table, $query = null, $column = '*') {
+
+        $ATTRIBUTES = "SUM($column)";
+        return sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+
+    }
 
     function sqlCount($table, $query = null, $column = '*', $distinct = false) {
 
