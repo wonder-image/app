@@ -455,7 +455,9 @@
     function sqlSum($table, $query = null, $column = '*') {
 
         $ATTRIBUTES = "SUM($column)";
-        return sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+        $n = sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+
+        return empty($n) ? 0 : $n;
 
     }
 
@@ -463,8 +465,10 @@
 
         $DISTINCT = $distinct ? "DISTINCT " : "";
         $ATTRIBUTES = "COUNT($DISTINCT$column)";
-        return sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+        $n = sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
 
+        return empty($n) ? 0 : $n;
+        
     }
 
     function sqlDatabase($database = 'main') {
