@@ -1,0 +1,4 @@
+function setUpPage() {
+    setInput();
+    setDropdown();
+};

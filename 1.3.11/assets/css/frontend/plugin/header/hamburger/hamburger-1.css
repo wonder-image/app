@@ -1,0 +1,56 @@
+#hamburger-1 {
+position: relative;
+float: left;
+width: 30px;
+height: 18px;
+margin: 16px 0;
+cursor: pointer;
+}
+#hamburger-1 .bar {
+position: absolute;
+width: 30px;
+height: 3px;
+border-radius: 1.5px;
+background: #ffffff;
+transition: .4s;
+}
+#hamburger-1.thin {
+height: 17px;
+margin: 16.5px 0;
+}
+#hamburger-1.thin .bar {
+height: 2px;
+}
+#hamburger-1:hover .bar {
+width: 30px;
+}
+#hamburger-1 .bar-1 {
+width: 22.5px;
+}
+#hamburger-1 .bar-2 {
+top: 50%;
+transform: translateY(-50%);
+}
+#hamburger-1 .bar-3 {
+float: right;
+right: 0;
+width: 22.5px;
+bottom: 0;
+}
+#hamburger-1.click .bar-1 {
+width: 30px;
+top: 50%;
+transform: translateY(-50%) rotate(45deg);
+}
+#hamburger-1.click .bar-2 {
+transform: translateY(-50%) rotate(-45deg);
+}
+#hamburger-1.click .bar-3 {
+width: 30px;
+bottom: 50%;
+transform: translateY(50%) rotate(45deg);
+}
+#hamburger-1 .bar-4,
+#hamburger-1 .bar-5 {
+display: none;
+}

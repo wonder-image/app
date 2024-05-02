@@ -1,0 +1,24 @@
+.tablet-none,
+.phone-none { display: block; }
+
+th.phone-none,
+th.tablet-none,
+td.phone-none,
+td.tablet-none {
+display: table-cell;
+}
+.pc-none { display: none !important; }
+
+@media (max-width: 1000px) {
+.pc-none { display: block !important; }
+.tablet-none { display: none !important; }
+}
+
+@media (max-width: 768px) {
+.pc-none { display: block !important; }
+.phone-none { display: none !important; }
+th.pc-none,
+td.pc-none {
+display: table-cell !important;
+}
+}
