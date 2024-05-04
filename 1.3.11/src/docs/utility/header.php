@@ -115,40 +115,6 @@
 
             ?>
 
-            <div class="wi-dropdown-box b-0 p-0">
-                <div class="wi-dropdown-title wi-switcher fw-400">
-                    PROGRAMMAZIONE <i class="bi bi-chevron-down"></i>
-                </div>   
-                <div class="wi-dropdown-content pl-2 gap-1">
-
-                    <div class="w-100">
-                        <div class="wi-dropdown-box b-0 p-0">
-                            <div class="wi-dropdown-title wi-switcher p-r f-start tx-none">
-                                Stile <i class="bi bi-chevron-down"></i>
-                            </div>   
-                            <div class="wi-dropdown-content pl-2">
-                                <a href="<?=$PATH->site?>/docs/button/" class="p-r f-start w-100  tx-none"> Bottoni </a>
-                                <a href="<?=$PATH->site?>/docs/text/" class="p-r f-start w-100  tx-none"> Testi </a>
-                                <a href="<?=$PATH->site?>/docs/input/" class="p-r f-start w-100  tx-none"> Input </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="w-100">
-                        <div class="wi-dropdown-box b-0 p-0">
-                            <div class="wi-dropdown-title wi-switcher p-r f-start tx-none">
-                                Comunicazioni <i class="bi bi-chevron-down"></i>
-                            </div>   
-                            <div class="wi-dropdown-content pl-2">
-                                <a href="<?=$PATH->site?>/docs/alert/" class="p-r f-start w-100 tx-none"> Alert </a>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-
         </div>
 
         <div class="wrapped">

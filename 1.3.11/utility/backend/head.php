@@ -14,168 +14,113 @@
 
 <link rel="shortcut icon" href="<?=$DEFAULT->BeFavicon?>" type="image/x-icon">
 
-<!-- Bootstrap => .css -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<!-- Inizio librerie -->
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Bootstrap => .css -->
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap.css" rel="stylesheet">
 
-<!-- JQuery -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.1.62/jquery.inputmask.bundle.js"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-icons.css" rel="stylesheet">
 
-<!-- DataTables -->
-<script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.bootstrap5.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.min.js"></script>
+    <!-- JQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.css" rel="stylesheet">
 
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.min.css">
+    <!-- DataTables -->
+    <script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.min.js"></script>
 
-<!-- Summernote -->
-<link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
-<script src="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.js"></script>
-<script src="<?=$PATH->lib?>/summernote/0.8.18/lang/summernote-it-IT.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.min.css">
 
-<!-- Quill.js -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Summernote -->
+    <link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
+    <script src="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.js"></script>
+    <script src="<?=$PATH->lib?>/summernote/0.8.18/lang/summernote-it-IT.min.js"></script>
 
-<!-- Editor.js -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.1/dist/header.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.0/dist/image.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@1.4.2/dist/nested-list.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/dist/quote.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.0/dist/delimiter.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.0/dist/embed.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/editorjs-text-alignment-blocktune@1.0.3/dist/bundle.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/attaches@1.3.0/dist/bundle.js"></script>
-<script src="<?=$PATH->lib?>/editorjs/hyperlink.js"></script>
-<script src="<?=$PATH->lib?>/editorjs/gallery.js"></script>
-<script src="<?=$PATH->lib?>/editorjs/video.js"></script>
+    <!-- Quill.js -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
-<!-- FilePond => .css -->
-<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/index.min.css">
-<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/plugin/image-preview/index.min.css">
-<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/plugin/image-edit/index.min.css">
-<link rel="stylesheet" href="<?=$PATH->lib?>/filepond/plugin/get-file/index.min.css">
+    <!-- Editor.js -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/editorjs/editor.js"></script>
 
-<!-- Bootstrap Datepicker -->
-<script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
-<script src="<?=$PATH->lib?>/bootstrap-datepicker/locales/bootstrap-datepicker.it.min.js" rel="stylesheet"></script>
-<link rel="stylesheet" href="<?=$PATH->lib?>/bootstrap-datepicker/css/bootstrap-datepicker3.css">
+    <!-- FilePond -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/filepond/filepond.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/filepond/filepond.css" rel="stylesheet">
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@^3"></script>
-<script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
-<script>
+    <!-- Bootstrap Datepicker -->
+    <script src="<?=$PATH->lib?>/bootstrap-datepicker/js/bootstrap-datepicker.min.js" rel="stylesheet"></script>
+    <script src="<?=$PATH->lib?>/bootstrap-datepicker/locales/bootstrap-datepicker.it.min.js" rel="stylesheet"></script>
+    <link rel="stylesheet" href="<?=$PATH->lib?>/bootstrap-datepicker/css/bootstrap-datepicker3.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@^3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
+    <script>
+        
+        moment.locale('it', {
+            months : 'Gennaio_Febbraio_Marzo_Aprile_Maggio_Giugno_Luglio_Agostp_Settembre_Ottobre_Novembre_Dicembre'.split('_'),
+            monthsShort : 'Gen_Feb_Mar_Apr_Mag_Giu_Lug_Ago_Sep_Ott_Nov_Dic'.split('_'),
+            monthsParseExact : true,
+            weekdays : 'Domenica_Lunedì_Martedì_Mercoledì_Giovedì_Venerdì_Sabato'.split('_'),
+            weekdaysShort : 'Dom_Lun_Mar_Mer_Gio_Ven_Sab'.split('_'),
+            weekdaysMin : 'Do_Lu_Ma_Me_Gi_Ve_Sa'.split('_'),
+        });
+        
+    </script>
+
+    <!-- FullCalendar -->
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.min.js"></script>
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/index.global.min.js"></script>
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.global.min.js"></script>
+
+    <!-- FullCalendar => Bootstrap 5 translator -->
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
+
+    <!-- FullCalendar => Moment -->
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment/index.global.js"></script>
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment-timezone/index.global.js"></script>
+
+    <!-- FullCalendar => IT translator -->
+    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
+
+    <!-- AutoNumeric.js -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/autonumeric/autonumeric.js"></script>
+
+    <!-- Swiper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper-plugin.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper-plugin.css" rel="stylesheet">
     
-    moment.locale('it', {
-        months : 'Gennaio_Febbraio_Marzo_Aprile_Maggio_Giugno_Luglio_Agostp_Settembre_Ottobre_Novembre_Dicembre'.split('_'),
-        monthsShort : 'Gen_Feb_Mar_Apr_Mag_Giu_Lug_Ago_Sep_Ott_Nov_Dic'.split('_'),
-        monthsParseExact : true,
-        weekdays : 'Domenica_Lunedì_Martedì_Mercoledì_Giovedì_Venerdì_Sabato'.split('_'),
-        weekdaysShort : 'Dom_Lun_Mar_Mer_Gio_Ven_Sab'.split('_'),
-        weekdaysMin : 'Do_Lu_Ma_Me_Gi_Ve_Sa'.split('_'),
-    });
+    <!-- Fancyapps -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.css" rel="stylesheet">
     
-</script>
+    <!-- JsTree -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
-<!-- FullCalendar -->
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.min.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/index.global.min.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.global.min.js"></script>
+<!-- Fine librerie -->
 
-<!-- FullCalendar => Bootstrap 5 translator -->
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
+<!-- Inizio file fondamentali  -->
 
-<!-- FullCalendar => Moment -->
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment/index.global.js"></script>
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment-timezone/index.global.js"></script>
+    <script>
 
-<!-- FullCalendar => IT translator -->
-<script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
+        const pathSite = '<?=$PATH->site?>';
+        const pathApp = '<?=$PATH->app?>';
+        var NO_INTERNET_ALERT = null;
 
-<!-- Autonumeric -->
-<script src="https://cdn.jsdelivr.net/npm/autonumeric@4.10.0/dist/autoNumeric.min.js"></script>
-
-<!-- Swiper.js -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-<link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-shutters.min.css" />
-<link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-slicer.min.css" />
-<link rel="stylesheet" href="<?=$PATH->lib?>/swiper/swiper-gl.min.css" />
-
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="<?=$PATH->lib?>/swiper/effect-shutters.min.js"></script>
-<script src="<?=$PATH->lib?>/swiper/effect-slicer.min.js"></script>
-<script src="<?=$PATH->lib?>/swiper/swiper-gl.min.js"></script>
-
-<!-- Fancybox -->
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
-
-<!-- JsTree -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
-
-<script>
-
-    const pathSite = '<?=$PATH->site?>';
-    const pathApp = '<?=$PATH->app?>';
-
-</script>
-
-<!-- Default => .js -->
-<script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
-<script src="<?=$PATH->appJs?>/global/form/phone.js"></script>
-<script src="<?=$PATH->appJs?>/global/fetch.js"></script>
-<script src="<?=$PATH->appJs?>/global/utility.js"></script>
-<script src="<?=$PATH->appJs?>/global/canvas.js"></script>
-
-<script src="<?=$PATH->appJs?>/backend/utility.js"></script>
-<script src="<?=$PATH->appJs?>/backend/ajax.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/input.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/file.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/set.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/send.js"></script>
-<script src="<?=$PATH->appJs?>/backend/alert.js"></script>
-<script src="<?=$PATH->appJs?>/backend/modal.js"></script>
-<script src="<?=$PATH->appJs?>/backend/bootstrap.js"></script>
-<script src="<?=$PATH->appJs?>/backend/jquery.js"></script>
-<script src="<?=$PATH->appJs?>/backend/form/editor.js"></script>
-
-<script>
-
-    var NO_INTERNET_ALERT = null;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/backend/head.js"></script>
     
-    $.ajax({
-        type: "POST",
-        url: pathApp+'/api/alert.php',
-        data: { 
-            post: 'true',
-            backend: 'true',
-            alert: 801
-        }, 
-        success: function (data) {
-            NO_INTERNET_ALERT = data;
-        }
-    });
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/backend/head.css">
 
-</script>
-
-<script src="<?=$PATH->appJs?>/backend/form/inputRow.js"></script>
-
-<!-- Default => .css -->
-<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/header.css">
-<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/input.css">
-<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/list.css">
-<link rel="stylesheet" href="<?=$PATH->appCss?>/backend/order.css">
+<!-- Fine file fondamentali  -->
 
 <!-- Custom => (.css, .js) -->
 <?php include $ROOT.'/custom/utility/backend/head.php';?>

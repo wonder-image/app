@@ -158,142 +158,57 @@
     ?>
 <!-- Fine icone -->
 
-<!-- Inizio file fondamentali  -->
+<!-- Inizio librerie -->
 
-    <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.1.62/jquery.inputmask.bundle.js"></script>
-
-    <!--  Moment.js  -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js" referrerpolicy="no-referrer"></script>
-
-    <!-- JQuery - Datepicker -->
-    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
-
-    <!-- JQuery - Timepicker -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.js" integrity="sha512-s5u/JBtkPg+Ff2WEr49/cJsod95UgLHbC00N/GglqdQuLnYhALncz8ZHiW/LxDRGduijLKzeYb7Aal9h3codZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.css" integrity="sha512-LT9fy1J8pE4Cy6ijbg96UkExgOjCqcxAC7xsnv+mLJxSvftGVmmc236jlPTZXPcBRQcVOWoK1IJhb1dAjtb4lQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <?php foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { echo "<link href='{$row['link']}' rel='stylesheet'>"; } ?>
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- JQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.css" rel="stylesheet">
 
-    <!-- Animazioni AOS -->
-    <link id="aos-css" href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Swiper.js -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-shutters.min.css" />
-    <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-slicer.min.css" />
-    <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/effect-carousel.min.css" />
-    <link rel="stylesheet" href="<?=$PATH->lib?>/swiper/swiper-gl.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper-plugin.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper-plugin.css" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    <script src="<?=$PATH->lib?>/swiper/effect-shutters.min.js"></script>
-    <script src="<?=$PATH->lib?>/swiper/effect-slicer.min.js"></script>
-    <script src="<?=$PATH->lib?>/swiper/effect-carousel.min.js"></script>
-    <script src="<?=$PATH->lib?>/swiper/swiper-gl.min.js"></script>
-
-    <!-- Image Compare -->
-    <link rel="stylesheet" href="https://unpkg.com/image-compare-viewer@1.6.2/dist/image-compare-viewer.min.css">
-    <script src="https://unpkg.com/image-compare-viewer@1.6.2/dist/image-compare-viewer.min.js"></script>
-
-    <!-- Fancybox -->
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
-
-    <!-- Panzoom -->
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/panzoom/panzoom.umd.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/panzoom/panzoom.css">
-
+    <!-- Fancyapps -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.css" rel="stylesheet">
+    
     <!-- Video.js -->
-    <link href="https://unpkg.com/video.js@7/dist/video-js.min.css" rel="stylesheet">
-    <link href="https://unpkg.com/@videojs/themes@1/dist/city/index.css" rel="stylesheet">
-    <link href="https://unpkg.com/@videojs/themes@1/dist/fantasy/index.css" rel="stylesheet">
-    <link href="https://unpkg.com/@videojs/themes@1/dist/forest/index.css" rel="stylesheet">
-    <link href="https://unpkg.com/@videojs/themes@1/dist/sea/index.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/videojs/video.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/videojs/video.css" rel="stylesheet">
 
-    <!-- Typed.js -->
-    <script src="https://unpkg.com/typed.js@2.0.15/dist/typed.umd.js"></script>
+    <!-- Wonder Image -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/lib.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/lib.css" rel="stylesheet">
 
-    <!-- Autonumeric -->
-    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.10.0/dist/autoNumeric.min.js"></script>
-
-    <!-- CountUp -->
-    <script src="<?=$PATH->lib?>/countup/countUp.umd.js"></script>
+<!-- Fine librerie -->
+    
+<!-- Inizio file fondamentali  -->
 
     <script>
 
         const pathSite = '<?=$PATH->site?>';
         const pathApp = '<?=$PATH->app?>';
-
         var NO_INTERNET_ALERT = null;
-        
-        $.ajax({
-            type: "POST",
-            url: pathApp+'/api/alert.php',
-            data: { 
-                post: 'true',
-                frontend: 'true',
-                alert: 801
-            }, 
-            success: function (data) {
-                NO_INTERNET_ALERT = data;
-            }
-        });
 
     </script>
 
-    <!-- Fundamental .js -->
-    <script src="<?=$PATH->appJs?>/global/form/autonumeric.js"></script>
-    <script src="<?=$PATH->appJs?>/global/form/phone.js"></script>
-    <script src="<?=$PATH->appJs?>/global/utility.js"></script>
-    <script src="<?=$PATH->appJs?>/global/fetch.js"></script>
-    <script src="<?=$PATH->appJs?>/global/canvas.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/head.js"></script>
 
-    <script src="<?=$PATH->appJs?>/frontend/utility.js"></script>
-    <script src="<?=$PATH->appJs?>/frontend/scroll.js"></script>
-    <script src="<?=$PATH->appJs?>/frontend/form/list.js"></script>
-    <script src="<?=$PATH->appJs?>/frontend/form/input.js"></script>
-
-    <!-- Custom .css -->
     <link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.css">
     <link rel="stylesheet" href="<?=$PATH->css?>/set-up/color.css">
-
-    <!-- Fundamental .css -->
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/lib.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/main.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/resize.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/position.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/grid.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/margin.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/padding.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/section.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/dimension.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/function.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/class/text.css">
-
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/header.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/hamburger/hamburger.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/hamburger/hamburger-1.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/header/mobile-nav.css">
-
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/alert.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/modal.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/button.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/dropdown.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/spinner.css">
-
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/input.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/date.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/checkbox.css">
-    <link rel="stylesheet" href="<?=$PATH->appCss?>/frontend/plugin/form/select.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/head.css">
+    
 <!-- Fine file fondamentali  -->
 
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
