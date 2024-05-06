@@ -28,12 +28,8 @@
     <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.css" rel="stylesheet">
 
     <!-- DataTables -->
-    <script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/2.0.0/js/dataTables.bootstrap5.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/datatables/datatables.js"></script> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/datatables/datatables.css">
 
     <!-- Summernote -->
     <link href="<?=$PATH->lib?>/summernote/0.8.18/summernote-bs4.min.css" rel="stylesheet">
@@ -74,20 +70,8 @@
     </script>
 
     <!-- FullCalendar -->
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.min.js"></script>
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/index.global.min.js"></script>
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.10/dist/rrule/index.global.min.js"></script>
-
-    <!-- FullCalendar => Bootstrap 5 translator -->
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/bootstrap5/index.global.js"></script>
-
-    <!-- FullCalendar => Moment -->
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment/index.global.js"></script>
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/moment-timezone/index.global.js"></script>
-
-    <!-- FullCalendar => IT translator -->
-    <script src="<?=$PATH->lib?>/fullcalendar/6.1.5/packages/core/locales/it.global.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fullcalendar/fullcalendar.js"></script>
+    
     <!-- AutoNumeric.js -->
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/autonumeric/autonumeric.js"></script>
 
