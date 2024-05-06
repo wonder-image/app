@@ -17,7 +17,7 @@
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
 
         
-    $APP_VERSION = "1.3.11";
+    $APP_VERSION = "1.3.12";
     $LIB_VERSION = "1.2.0";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
