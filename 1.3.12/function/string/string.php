@@ -216,6 +216,9 @@
 
         if (!empty($str)) {
 
+            $str = str_replace('<br> ', "\n", $str);
+            $str = str_replace('<br>', "\n", $str);
+
             if ($upper == true) {
 
                 $str = html_entity_decode(strtolower($str), ENT_QUOTES | ENT_HTML5);
