@@ -66,7 +66,7 @@
 
     # Sanifico la SEO
     $SEO->title = empty($SEO->title) ? "" : str_replace('<br />', '', $SEO->title);
-    $SEO->description = empty($SEO->description) ? "" : str_replace('<br />', '', $SEO->description);
+    $SEO->description = empty($SEO->description) ? "" : substr(str_replace('"', "", str_replace('<br />', '', $SEO->description)), 0, 140); # Raccomandato tra i 50 e 160 caratteri
 
     $SQL_ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
 
