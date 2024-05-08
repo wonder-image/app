@@ -935,6 +935,75 @@
 
     }
 
+    function googleAddress($label, $name = "address", $value = [ 
+        'country' => '',
+        'province' => '',
+        'city' => '',
+        'cap' => '',
+        'street' => '',
+        'number' => '',
+    ], $attribute = '', $restriction = null, $error = false) {
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $class = "";
+        $spiAttribute = "";
+
+        if (!empty($error)) {
+            $class .= " input-error";
+            $alert = "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> $error</span>";
+        } else {
+            $alert = "<span class='alert-error'></span>";
+        }
+
+        if (!empty($value)) { $class .= " compiled"; }
+        if (strpos($attribute, "required") !== false) { 
+            
+            $label .= "*"; 
+            $spiAttribute = "required";
+            $attribute = str_replace("required", "", $attribute); 
+        
+        }
+
+        $aliasName = ($name == 'address') ? '' : $name.'_';
+
+        $country = isset($value["{$aliasName}country"]) ? $value["{$aliasName}country"] : "";
+        $province = isset($value["{$aliasName}province"]) ? $value["{$aliasName}province"] : "";
+        $city = isset($value["{$aliasName}city"]) ? $value["{$aliasName}city"] : "";
+        $cap = isset($value["{$aliasName}cap"]) ? $value["{$aliasName}cap"] : "";
+        $street = isset($value["{$aliasName}street"]) ? $value["{$aliasName}street"] : "";
+        $number = isset($value["{$aliasName}number"]) ? $value["{$aliasName}number"] : "";
+
+        if ($country != "" && $province != "" && $cap != "" && $city != "" && $street != "" && $number != "") {
+            $address = $street.', '.$number.', '.$city.', '.$province.', '.$country;
+        } else {
+            $address = "";
+        }
+
+        # spi = search place input
+
+        $restriction = ($restriction != null) ? $restriction : [];
+        $restriction = json_encode($restriction);
+
+        return "
+        <div class='w-100'>
+            <div class='wi-input-container text$class'>
+                <label for='$id' class='wi-label'>$label</label>
+                <input type='text' id='$id' class='wi-input' placeholder='' name='$name' value='$address' data-wi-search-place='true' data-wi-restriction='$restriction' data-wi-check='true' data-wi-label='true' $attribute disabled>
+                $alert
+                <div class='w-100'>
+                    <input type='text' data-wi-spi='country' data-wi-check='true' name='{$aliasName}country' value='$country' $spiAttribute>
+                    <input type='text' data-wi-spi='province' data-wi-check='true' name='{$aliasName}province' value='$province' $spiAttribute>
+                    <input type='text' data-wi-spi='city' data-wi-check='true' name='{$aliasName}city' value='$city' $spiAttribute>
+                    <input type='text' data-wi-spi='cap' data-wi-check='true' name='{$aliasName}cap' value='$cap' $spiAttribute>
+                    <input type='text' data-wi-spi='street' data-wi-check='true' name='{$aliasName}street' value='$street' $spiAttribute>
+                    <input type='text' data-wi-spi='number' data-wi-check='true' name='{$aliasName}number' value='$number' $spiAttribute>
+                </div>
+            </div>
+        </div>";
+        
+    }
+
     function submit($label, $name, $class = 'btn-success', $onclick = null) {
 
         $id = strtolower(code(10, 'letters', 'button_'));
