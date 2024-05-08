@@ -992,12 +992,12 @@
                 <input type='text' id='$id' class='wi-input' placeholder='' name='$name' value='$address' data-wi-search-place='true' data-wi-restriction='$restriction' data-wi-check='true' data-wi-label='true' $attribute disabled>
                 $alert
                 <div class='w-100'>
-                    <input type='text' data-wi-spi='country' data-wi-check='true' name='{$aliasName}country' value='$country' $spiAttribute>
-                    <input type='text' data-wi-spi='province' data-wi-check='true' name='{$aliasName}province' value='$province' $spiAttribute>
-                    <input type='text' data-wi-spi='city' data-wi-check='true' name='{$aliasName}city' value='$city' $spiAttribute>
-                    <input type='text' data-wi-spi='cap' data-wi-check='true' name='{$aliasName}cap' value='$cap' $spiAttribute>
-                    <input type='text' data-wi-spi='street' data-wi-check='true' name='{$aliasName}street' value='$street' $spiAttribute>
-                    <input type='text' data-wi-spi='number' data-wi-check='true' name='{$aliasName}number' value='$number' $spiAttribute>
+                    <input type='hidden' data-wi-spi='country' data-wi-check='true' name='{$aliasName}country' value='$country' $spiAttribute>
+                    <input type='hidden' data-wi-spi='province' data-wi-check='true' name='{$aliasName}province' value='$province' $spiAttribute>
+                    <input type='hidden' data-wi-spi='city' data-wi-check='true' name='{$aliasName}city' value='$city' $spiAttribute>
+                    <input type='hidden' data-wi-spi='cap' data-wi-check='true' name='{$aliasName}cap' value='$cap' $spiAttribute>
+                    <input type='hidden' data-wi-spi='street' data-wi-check='true' name='{$aliasName}street' value='$street' $spiAttribute>
+                    <input type='hidden' data-wi-spi='number' data-wi-check='true' name='{$aliasName}number' value='$number' $spiAttribute>
                 </div>
             </div>
         </div>";
