@@ -16,9 +16,11 @@
             $RETURN .= '{'."\n";
             $RETURN .= '        "@type": "ListItem",'."\n";
             $RETURN .= '        "position": '.$i.','."\n";
-            $RETURN .= '        "name": "'.$name.'",'."\n";
-            $RETURN .= '        "item": "'.$url.'"'."\n";
-            $RETURN .= '    },';
+            $RETURN .= '        "item": {'."\n";
+            $RETURN .= '            "@id": "'.$url.'",'."\n";
+            $RETURN .= '            "name": "'.$name.'"'."\n";
+            $RETURN .= '        }'."\n";
+            $RETURN .= '},';
 
             $i++;
 
