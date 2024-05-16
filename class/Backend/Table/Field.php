@@ -171,21 +171,21 @@
 
         private function deleteAuthority() {
 
+            $urlAction = "{$this->link->app}/api/backend/authority.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}";
+            
+            if ($this->user->authority != '') { $urlAction .= "&authority={$this->user->authority}"; }
+            if ($this->user->area != '') { $urlAction .= "&area={$this->user->area}"; }
+
             $action = "onclick=\"modal(
                 'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '{$this->link->app}/api/backend/authority.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId},
+                '$urlAction',
                 'ATTENZIONE',
                 'Elimina',
                 'danger',
                 'Chiudi',
                 'dark',
                 'reloadDataTable', 
-                '#wi-table'";
-            
-            if ($this->user->authority != '') { $action .= "&authority={$this->user->authority}"; }
-            if ($this->user->area != '') { $action .= "&area={$this->user->area}"; }
-
-            $action .= "')\"";
+                '#wi-table')\"";
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
 
