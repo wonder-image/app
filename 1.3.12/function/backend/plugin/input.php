@@ -133,7 +133,7 @@
 
         # Linea da copiare
 
-            $RETURN .= "<div id='copy-line' class='col-12 visually-hidden'>";
+            $RETURN .= "<div id='copy-line-$ID' class='col-12 visually-hidden'>";
             $RETURN .= "<input type='hidden' name='position[]' value=''>";
             $RETURN .= "<div class='row g-2'>";
             $RETURN .= "<div class='col-1'>$BUTTON_UP$BUTTON_DOWN</div>";
@@ -183,7 +183,7 @@
         # Bottone per aggiungere
 
             $RETURN .= "<div class='col-12'>";
-            $RETURN .= "<div class='btn btn-secondary float-end' onclick=\"copyRow(document.querySelector('#$ID'), document.querySelector('#copy-line'));\" role='button' data-bs-toggle='tooltip' data-bs-title='Aggiungi linea'><i class='bi bi-plus-lg'></i></div>";
+            $RETURN .= "<div class='btn btn-secondary float-end' onclick=\"copyRow(document.querySelector('#$ID'), document.querySelector('#copy-line-$ID'));\" role='button' data-bs-toggle='tooltip' data-bs-title='Aggiungi linea'><i class='bi bi-plus-lg'></i></div>";
             $RETURN .= "</div>";
 
         #
