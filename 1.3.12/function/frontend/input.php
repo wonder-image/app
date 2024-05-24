@@ -21,8 +21,7 @@
             <label for='$id' class='wi-label'>$label</label>
             <input type='text' id='$id' class='wi-input' name='$name' value='$value' data-wi-check='true' data-wi-label='true' $attribute>
             $alert
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -147,8 +146,7 @@
             <label for='$id' class='wi-label'>$label</label>
             <input type='url' id='$id' class='wi-input' name='$name' value='$value' data-wi-check='true' data-wi-label='true' $attribute>
             $alert
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -276,8 +274,7 @@
             <label for='$id' class='wi-label'>$label</label>
             <input class='wi-input' id='$id' type='file' accept='$ACCEPT' name='$name' data-wi-max-file='$maxFile' data-wi-max-size='$maxSize' data-wi-check='true' $multiple $attribute>
             $alert
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -301,7 +298,7 @@
             $checkMin = 'false';
             $dateMin = '';
             $min = '';
-        }else{
+        } else {
             $checkMin = 'true';
             $min = "minDate: '$dateMin',";
         }
@@ -310,7 +307,7 @@
             $checkMax = 'false';
             $dateMax = '';
             $max = '';
-        }else{
+        } else {
             $checkMax = 'true';
             $max = "maxDate: '$dateMax',";
         }
@@ -398,8 +395,7 @@
                 $setUpDate
 
             });
-        </script>
-        ";
+        </script>";
 
     }
 
@@ -564,7 +560,7 @@
             $checkMin = 'false';
             $dateMin = '';
             $min = '';
-        }else{
+        } else {
             $checkMin = 'true';
             $min = "minDate: '$dateMin',";
         }
@@ -573,7 +569,7 @@
             $checkMax = 'false';
             $dateMax = '';
             $max = '';
-        }else{
+        } else {
             $checkMax = 'true';
             $max = "maxDate: '$dateMax',";
         }
@@ -691,7 +687,7 @@
 
     }
 
-    function textList($label, $name, $options, $value = null, $attribute = '') {
+    function textList($label, $name, $options, $value = null, $attribute = '', $error = false) {
 
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -707,11 +703,10 @@
                 if ($vl == $value) {
                     $inputValue = $nm;
                     $checked = "checked";
-                }else{
+                } else {
                     $checked = "";
                 }
-            }else{
-                $search = "";
+            } else {
                 $checked = "";
             }
 
@@ -721,8 +716,7 @@
             <div class='wi-input-list-value $checked' data-wi-list-value='true'>
                 <input id='$code' data-wi-keyword='$nm $vl' data-wi-input='$id' data-wi-name='$nm' type='radio' name='$name' value='$vl' $checked>
                 $nm
-            </div>
-            ";
+            </div>";
 
         }
 
@@ -745,13 +739,12 @@
         return "
         <div class='wi-input-container text-list$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-list-input='true' data-wi-list-array='$listValues' $attribute>
+            <input type='text' id='$id' class='wi-input $name-value' value='$inputValue' data-wi-label='true' data-wi-name='$name-text' data-wi-list-input='true' data-wi-list-array='$listValues' $attribute>
             $alert
             <div id='list_$id' class='wi-input-list no-scrollbar'>
                 $optionHTML
             </div>
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -821,7 +814,7 @@
 
     }
 
-    function select($label, $name, $option, $value = null, $attribute = '') {
+    function select($label, $name, $option, $value = null, $attribute = '', $error = false) {
         
         $id = strtolower(code(10, 'letters', 'input_'));
 
@@ -848,7 +841,7 @@
                 if ($value == $vl) {
                     $selected = "selected";
                 }
-            }else{
+            } else {
                 if ($i == 1) {
                     if ($value != '') {
                         $selected = "selected";
@@ -878,6 +871,7 @@
 
         $optionHTML = "";
         $i = 1;
+
         foreach ($option as $vl => $nm) {
 
             $checkboxLabel = "";
@@ -888,7 +882,7 @@
                     if (in_array($vl, $value)) {
                         $attribute = "checked ";
                     }
-                }else{
+                } else {
                     if ($value == $vl) {
                         $attribute = "checked ";
                     }
@@ -930,8 +924,7 @@
             <div class='wi-checkbox-list'>
                 $optionHTML 
             </div>
-        </div>
-        ";
+        </div>";
 
     }
 
@@ -1010,7 +1003,7 @@
 
         if ($onclick == null) {
             $action = "type='submit'";
-        }else{
+        } else {
             $action = "type='button' onclick=\"$onclick\"";
         }
 
