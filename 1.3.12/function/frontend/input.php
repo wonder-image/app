@@ -814,6 +814,56 @@
 
     }
 
+    function inputCountry($label, $name, $value = null, $nameState = null, $attribute = '') {
+
+        $options = countries();
+
+        if (!empty($nameState)) {
+            $attribute .= ' data-wi-input-country="true" data-wi-input-state="'.$nameState.'"';
+        }
+
+        echo textList(
+            $label, 
+            $name, 
+            $options, 
+            $value, 
+            $attribute
+        );
+
+    }
+
+    function inputStates($label, $name, $country = null, $value = null, $attribute = '') {
+
+        if (!empty($country)) {
+            $options = states($country);
+        } else {
+            $options = [];
+        }
+
+        echo textList(
+            $label, 
+            $name, 
+            $options, 
+            $value, 
+            $attribute.' data-wi-input-state="true" data-wi-input-attribute="'.$attribute.'"'
+        );
+
+    }
+
+    function inputPhonePrefix($label, $name, $value = null, $attribute = '') {
+
+        $options = phonePrefix();
+
+        echo textList(
+            $label, 
+            $name, 
+            $options, 
+            $value, 
+            $attribute
+        );
+
+    }
+
     function select($label, $name, $option, $value = null, $attribute = '', $error = false) {
         
         $id = strtolower(code(10, 'letters', 'input_'));
