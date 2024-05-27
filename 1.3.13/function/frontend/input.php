@@ -822,7 +822,7 @@
             $attribute .= ' data-wi-input-country="true" data-wi-input-state="'.$nameState.'"';
         }
 
-        echo textList(
+        return textList(
             $label, 
             $name, 
             $options, 
@@ -840,7 +840,7 @@
             $options = [];
         }
 
-        echo textList(
+        return textList(
             $label, 
             $name, 
             $options, 
@@ -854,7 +854,7 @@
 
         $options = phonePrefix();
 
-        echo textList(
+        return textList(
             $label, 
             $name, 
             $options, 
