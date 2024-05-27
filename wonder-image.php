@@ -21,7 +21,7 @@
 
         
     $APP_VERSION = "1.3.13";
-    $LIB_VERSION = "1.4.1";
+    $LIB_VERSION = "1.4.2";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
