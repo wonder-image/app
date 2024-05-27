@@ -16,9 +16,12 @@
     # Imposto la sessione con utente non definito se non è impostato
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
 
+    # Imposto la sessione per la cache
+        if (!isset($_SESSION['system_cache'])) { $_SESSION['system_cache'] = []; }
+
         
     $APP_VERSION = "1.3.13";
-    $LIB_VERSION = "1.3.6";
+    $LIB_VERSION = "1.4.1";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";

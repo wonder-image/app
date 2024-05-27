@@ -16,24 +16,33 @@
 
     function countries() {
 
-        $API = json_decode(wiApi('/service/csc/countries/'), true);
+        if (isset($_SESSION['system_cache']['countries'])) {
 
-        if ($API['success'] == true) {
+            return $_SESSION['system_cache']['countries'];
 
+        } else {
+
+            $API = json_decode(wiApi('/service/csc/countries/'), true);
+    
             $COUNTRIES = [];
-            foreach ($API['response'] as $key => $value) { 
 
-                $name = empty($value['native']) ? $value['name'] : $value['native'];
-                $COUNTRIES[$value['iso2']] = $name; 
+            if ($API['success'] == true) {
+    
+                foreach ($API['response'] as $key => $value) { 
+    
+                    $name = empty($value['native']) ? $value['name'] : $value['native'];
+                    $COUNTRIES[$value['iso2']] = $name; 
+                }
+    
+                # Ordine alfabetico
+                asort($COUNTRIES);
+                
             }
 
-            # Ordine alfabetico
-            asort($COUNTRIES);
+            $_SESSION['system_cache']['countries'] = $COUNTRIES;
 
             return $COUNTRIES;
-            
-        } else {
-            return [];
+
         }
 
     }
@@ -56,92 +65,122 @@
 
     function states( $countryIso2 ) {
 
-        $API = json_decode(wiApi('/service/csc/states/', [
-            'country' => $countryIso2
-        ]), true);
+        if (!isset($_SESSION['system_cache']['states'])) { $_SESSION['system_cache']['states'] = []; }
 
-        if ($API['success'] == true) {
+        if (isset($_SESSION['system_cache']['states'][$countryIso2])) {
+
+            return $_SESSION['system_cache']['states'][$countryIso2];
+
+        } else {
+
+            $API = json_decode(wiApi('/service/csc/states/', [
+                'country' => $countryIso2
+            ]), true);
 
             $STATES = [];
 
-            foreach ($API['response'] as $key => $value) { 
+            if ($API['success'] == true) {
 
-                if (is_numeric($value['iso2'])) {
+                foreach ($API['response'] as $key => $value) { 
 
-                } else {
-                    $STATES[$value['iso2']] = $value['name']; 
+                    if (is_numeric($value['iso2'])) {
+
+                    } else {
+                        $STATES[$value['iso2']] = $value['name']; 
+                    }
+
                 }
+
+                # Ordine alfabetico
+                asort($STATES);
 
             }
 
-            # Ordine alfabetico
-            asort($STATES);
+            $_SESSION['system_cache']['states'][$countryIso2] = $STATES;
 
             return $STATES;
 
-        } else {
-            return [];
         }
 
     }
 
-    function countryPhonePrefix($iso2) {
+    function countryPhonePrefix( $iso2 ) {
 
-        $API = json_decode(wiApi('/service/csc/country/', [
-            'iso2' => $iso2
-        ]), true);
+        if (!isset($_SESSION['system_cache']['country_phone_prefix'])) { $_SESSION['system_cache']['country_phone_prefix'] = []; }
 
-        if ($API['success'] == true) {
+        if (isset($_SESSION['system_cache']['country_phone_prefix'][$iso2])) {
 
-            $response = $API['response'];
-            $phoneCode = $response['phonecode'];
-                    
-            if (strpos($phoneCode, 'and')) {
-                $array = explode(' and ', $phoneCode);
-                $phoneCode = $array[0];
+            return $_SESSION['system_cache']['country_phone_prefix'][$iso2];
+
+        } else {
+
+            $API = json_decode(wiApi('/service/csc/country/', [
+                'iso2' => $iso2
+            ]), true);
+
+            $phoneCode = "";
+    
+            if ($API['success'] == true) {
+    
+                $response = $API['response'];
+                $phoneCode = $response['phonecode'];
+                        
+                if (strpos($phoneCode, 'and')) {
+                    $array = explode(' and ', $phoneCode);
+                    $phoneCode = $array[0];
+                }
+                
+                $phoneCode = str_replace('+', '', $phoneCode);
+                $phoneCode = '+'.$phoneCode;
+
             }
-            
-            $phoneCode = str_replace('+', '', $phoneCode);
-            $phoneCode = '+'.$phoneCode;
+
+            $_SESSION['system_cache']['country_phone_prefix'][$iso2] = $phoneCode;
 
             return $phoneCode;
 
-        } else {
-            return "";
         }
-
 
     }
 
     function phonePrefix() {
 
-        $API = json_decode(wiApi('/service/csc/countries/'), true);
+        if (isset($_SESSION['system_cache']['phone_prefix'])) {
 
-        if ($API['success'] == true) {
+            return $_SESSION['system_cache']['phone_prefix'];
+
+        } else {
+
+            $API = json_decode(wiApi('/service/csc/countries/'), true);
 
             $PREFIX = [];
-            foreach ($API['response'] as $key => $value) { 
 
-                $array = explode(' and ', $value['phonecode']);
+            if ($API['success'] == true) {
 
-                foreach ($array as $phoneCode) {
-                    
-                    $phoneCode = str_replace('+', '', $phoneCode);
-                    $phoneCode = '+'.$phoneCode;
+                foreach ($API['response'] as $key => $value) { 
 
-                    $PREFIX[$phoneCode] = $phoneCode; 
+                    $array = explode(' and ', $value['phonecode']);
+
+                    foreach ($array as $phoneCode) {
+                        
+                        $phoneCode = str_replace('+', '', $phoneCode);
+                        $phoneCode = '+'.$phoneCode;
+
+                        $PREFIX[$phoneCode] = $phoneCode; 
+
+                    }
 
                 }
 
+                # Ordine alfabetico
+                asort($PREFIX);
+                
             }
 
-            # Ordine alfabetico
-            asort($PREFIX);
+            $_SESSION['system_cache']['phone_prefix'] = $PREFIX;
 
             return $PREFIX;
-            
-        } else {
-            return [];
+
         }
 
     }
