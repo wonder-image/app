@@ -85,6 +85,68 @@
 
     }
 
+    function countryPhonePrefix($iso2) {
+
+        $API = json_decode(wiApi('/service/csc/country/', [
+            'iso2' => $iso2
+        ]), true);
+
+        if ($API['success'] == true) {
+
+            $response = $API['response'];
+            $phoneCode = $response['phonecode'];
+                    
+            if (strpos($phoneCode, 'and')) {
+                $array = explode(' and ', $phoneCode);
+                $phoneCode = $array[0];
+            }
+            
+            $phoneCode = str_replace('+', '', $phoneCode);
+            $phoneCode = '+'.$phoneCode;
+
+            return $phoneCode;
+
+        } else {
+            return "";
+        }
+
+
+    }
+
+    function phonePrefix() {
+
+        $API = json_decode(wiApi('/service/csc/countries/'), true);
+
+        if ($API['success'] == true) {
+
+            $PREFIX = [];
+            foreach ($API['response'] as $key => $value) { 
+
+                $array = explode(' and ', $value['phonecode']);
+
+                foreach ($array as $phoneCode) {
+                    
+                    $phoneCode = str_replace('+', '', $phoneCode);
+                    $phoneCode = '+'.$phoneCode;
+
+                    $PREFIX[$phoneCode] = $phoneCode; 
+
+                }
+
+            }
+
+            # Ordine alfabetico
+            asort($PREFIX);
+
+            return $PREFIX;
+            
+        } else {
+            return [];
+        }
+
+    }
+
+
     // Vecchie funzioni 
         function geoContinent($KEY = "iso2", $VALUE = "name") {
         
