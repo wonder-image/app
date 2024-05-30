@@ -114,36 +114,25 @@
 
         $iso2 = strtoupper($iso2);
 
-        if (!isset($_SESSION['system_cache']['geo']['country_phone_prefix'])) { $_SESSION['system_cache']['geo']['country_phone_prefix'] = []; }
+        if (!isset($_SESSION['system_cache']['geo']['countries_phone_prefix'])) { $_SESSION['system_cache']['geo']['countries_phone_prefix'] = []; }
 
-        if (isset($_SESSION['system_cache']['geo']['country_phone_prefix'][$iso2])) {
+        if (isset($_SESSION['system_cache']['geo']['countries_phone_prefix'][$iso2])) {
 
-            return $_SESSION['system_cache']['geo']['country_phone_prefix'][$iso2];
+            return $_SESSION['system_cache']['geo']['countries_phone_prefix'][$iso2];
 
         } else {
 
-            $API = json_decode(wiApi('/service/csc/country/', [
-                'iso2' => $iso2
-            ]), true);
+            $API = json_decode(wiApi('/geo/countries_phone_prefix/'), true);
 
             $phoneCode = "";
     
-            if ($API['success'] == true) {
-    
-                $response = $API['response'];
-                $phoneCode = $response['phonecode'];
-                        
-                if (strpos($phoneCode, 'and')) {
-                    $array = explode(' and ', $phoneCode);
-                    $phoneCode = $array[0];
-                }
-                
-                $phoneCode = str_replace('+', '', $phoneCode);
-                $phoneCode = '+'.$phoneCode;
+            if ($API['success'] == true && isset($API['response'][$iso2])) {
 
+                $phoneCode = $API['response'][$iso2];
+    
             }
 
-            $_SESSION['system_cache']['geo']['country_phone_prefix'][$iso2] = $phoneCode;
+            $_SESSION['system_cache']['geo']['countries_phone_prefix'][$iso2] = $phoneCode;
 
             return $phoneCode;
 
