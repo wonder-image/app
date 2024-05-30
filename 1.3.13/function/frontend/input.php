@@ -845,7 +845,7 @@
             $name, 
             $options, 
             $value, 
-            $attribute.' data-wi-input-state="true" data-wi-input-attribute="'.$attribute.'"'
+            $attribute.' data-wi-input-state="true" data-wi-list-states="'.$country.'"data-wi-input-attribute="'.$attribute.'"'
         );
 
     }
