@@ -17,7 +17,7 @@
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
         
     $APP_VERSION = "1.3.13";
-    $LIB_VERSION = "1.4.6";
+    $LIB_VERSION = "1.4.7";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
