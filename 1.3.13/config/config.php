@@ -2,6 +2,7 @@
 
     require_once $ROOT_APP."/config/env.php";
     require_once $ROOT_APP."/config/array.php";
+    require_once $ROOT_APP."/config/session.php";
     require_once $ROOT_APP."/config/alert.php";
     require_once $ROOT_APP."/config/characters.php";
     require_once $ROOT_APP."/config/fpdf.php";
