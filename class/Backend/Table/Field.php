@@ -499,7 +499,7 @@
 
                         $VALUE = $FUNCTION->icon;
 
-                        if (!$FUNCTION->return) { $this->deleteButton = false; }
+                        $this->deleteButton = ($FUNCTION->return) ? true : false;
 
                     } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend") {
 
