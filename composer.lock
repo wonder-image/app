@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f1d410173c5cc16d9513129aa504e3a4",
+    "content-hash": "51345e1a8217bf9b50715aa9f899dbc4",
     "packages": [
         {
             "name": "chillerlan/php-qrcode",
@@ -1038,46 +1038,6 @@
                 "source": "https://github.com/jsonrainbow/json-schema/tree/v5.2.13"
             },
             "time": "2023-09-26T02:20:38+00:00"
-        },
-        {
-            "name": "nexi/sdk-php-npg",
-            "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/NexiPayments/sdk-php-npg.git",
-                "reference": "0120ba8ffcfa19860911e531341698e7dd2e3600"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/NexiPayments/sdk-php-npg/zipball/0120ba8ffcfa19860911e531341698e7dd2e3600",
-                "reference": "0120ba8ffcfa19860911e531341698e7dd2e3600",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-json": "*",
-                "php": ">=7.2"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "NexiSdk\\": "src/NexiSdk/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "description": "Nexi SDK for NPG",
-            "support": {
-                "issues": "https://github.com/NexiPayments/sdk-php-npg/issues",
-                "source": "https://github.com/NexiPayments/sdk-php-npg/tree/main"
-            },
-            "time": "2024-04-03T08:31:41+00:00"
         },
         {
             "name": "phpmailer/phpmailer",
@@ -2743,9 +2703,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "nexi/sdk-php-npg": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
