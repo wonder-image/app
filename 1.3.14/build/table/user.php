@@ -24,6 +24,13 @@
                 ]
             ]
         ],
+        "phone" => [
+            "input" => [
+                "format" => [
+                    "unique" => true
+                ]
+            ]
+        ],
         "username" => [
             "input" => [
                 "format" => [

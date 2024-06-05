@@ -153,8 +153,11 @@
                                 <div class="col-5">
                                     <?=text('Cognome', 'surname', 'required'); ?>
                                 </div>
-                                <div class="col-8">
+                                <div class="col-6">
                                     <?=text('Username', 'username', 'required'); ?>
+                                </div>
+                                <div class="col-6">
+                                    <?=phone('Cellulare', 'phone'); ?>
                                 </div>
                                 <div class="col-4">
                                     <?php
