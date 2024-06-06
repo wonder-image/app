@@ -2,6 +2,8 @@
 
     namespace Wonder\Backend\Table;
 
+    use Wonder\Plugin\Custom\Prettify;
+
     class Field {
 
         private $table;
@@ -25,7 +27,7 @@
          * 
          * Alcune funzioni di questa classe sono esterne come:
          *  - returnButton()
-         *  - prettyPhone()
+         *  - returnBadge()
          *  - isEmpty()
          * 
          */
@@ -618,8 +620,12 @@
                     } elseif ($href == 'mailto') {
                         $href = "mailto:$VALUE";
                     } elseif ($href == 'tel') {
+
                         $href = "tel:$VALUE";
-                        $VALUE = prettyPhone($VALUE);
+
+                        $PRETTIFY = new Prettify;
+                        $VALUE = $PRETTIFY->Phone($VALUE);
+
                     }
 
                     $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";
