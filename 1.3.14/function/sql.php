@@ -1,443 +1,66 @@
 <?php
 
-    function sqlError($FUNCTION, $TABLE, $QUERY, $ERROR_N, $ERROR) {
-
-        global $DEBUG_MODE;
-        global $ERROR;
-
-        if ($DEBUG_MODE) {
-                
-            echo "Funzione: <b>$FUNCTION</b><br>";
-            echo "Table: <b>$TABLE</b><br>";
-            echo "Query: <b>$QUERY</b><br>";
-            echo "<br>";
-            echo "Error N°$ERROR_N<br>";
-            echo "$ERROR<br>";
-            echo "<br>";
-
-        }else{
-
-            if ($FUNCTION == 'sqlTable') { $ALERT = 951; } 
-            elseif ($FUNCTION == 'sqlInsert') { $ALERT = 952; }
-            elseif ($FUNCTION == 'sqlModify') { $ALERT = 953; }
-            elseif ($FUNCTION == 'sqlSelect') { $ALERT = 954; }
-
-            $values = [
-                "function" => $FUNCTION ,
-                "table" => $TABLE,
-                "query" => $QUERY,
-                "error_n" => $ERROR_N,
-                "error" => $ERROR
-            ];
-
-            sqlInsert('sql_error', $values);
-            
-        }
-
-    }
-
-    /**
-    *   
-    *   $column = 
-    *       'name' => [
-    *        'type' => string,
-    *        'length' => int,
-    *        'null' => bolean,
-    *        'default' => NULL | DEFAULT
-    *    ]
-    *    
-    */ 
-
     function sqlTable($TABLE, $COLUMN, $ENGINE = "MyISAM", $CHARSET = "latin1") {
 
         global $mysqli;
         global $MYSQLI_CONNECTION;
 
-        $def_mysqli = $mysqli;
-
         if (isset($COLUMN['DATABASE'])) {
 
-            $mysqli = $MYSQLI_CONNECTION[$COLUMN['DATABASE']];
+            $connection = $MYSQLI_CONNECTION[$COLUMN['DATABASE']];
             unset($COLUMN['DATABASE']);
 
-        }
-
-        if (sqlTableExists($TABLE)) {
-
-            $QUERY = "";
-            $columnBefore = "id";
-
-            foreach ($COLUMN as $name => $value) {
-
-                $name = strtolower($name);
-                $defaultLenght = null;
-
-                // Cambia colonna
-                // Elimina colonna se non c'è nell'array
-                
-                if (!sqlColumnExists($TABLE, $name)) {
-
-                    if ($name == 'position') {
-                        $defaultType = 'INT';
-                    } else {
-                        $defaultType = 'VARCHAR';
-                    }
-
-                    $type = empty($value['sql']['type']) ? $defaultType : strtoupper($value['sql']['type']);
-                
-                    if ($type == "VARCHAR") { $defaultLenght = 1000; } elseif ($type == "BIGINT") { $defaultLenght = 11; } elseif ($type == "INT") { $defaultLenght = 11; }
-    
-                    $length = empty($value['sql']['length']) ? $defaultLenght : $value['sql']['length'];
-                    $null = $value['sql']['null'] = true ? "NULL" : "NOT NULL";
-                    $default = empty($value['sql']['default']) ? '' : "DEFAULT '".$value['sql']['default']."'";
-                    
-                    if ($length == null) {
-                        $QUERY .= "ADD `$name` $type $null $default AFTER `$columnBefore`, ";
-                    } else {
-                        $QUERY .= "ADD `$name` $type($length) $null $default AFTER `$columnBefore`, ";
-                    }
-                    
-                }
-
-                $columnBefore = $name;
-
-            }
-
-            if (!empty($QUERY)) {
-
-                $QUERY = substr($QUERY, 0, -2);
-                $QUERY = "ALTER TABLE `$TABLE` $QUERY";
-
-            }
-
         } else {
 
-            $QUERY = "CREATE TABLE IF NOT EXISTS `$TABLE` ";
-            $QUERY .= "( ";
-            $QUERY .= "`id` INT NOT NULL AUTO_INCREMENT, ";
-
-            foreach ($COLUMN as $name => $value) {
-                
-                $name = strtolower($name);
-                $defaultLenght = null;
-
-                if ($name == 'position') {
-                    $defaultType = 'INT';
-                } else {
-                    $defaultType = 'VARCHAR';
-                }
-
-                $type = empty($value['sql']['type']) ? $defaultType : strtoupper($value['sql']['type']);
-                
-                if ($type == "VARCHAR") { $defaultLenght = 1000; } elseif ($type == "BIGINT") { $defaultLenght = 11; } elseif ($type == "INT") { $defaultLenght = 11; }
-
-                $length = empty($value['sql']['length']) ? $defaultLenght : $value['sql']['length'];
-                $null = $value['sql']['null'] = true ? "NULL" : "NOT NULL";
-                $default = empty($value['sql']['default']) ? '' : "DEFAULT '".$value['sql']['default']."'";
-                
-                if ($length == null) {
-                    $QUERY .= "`$name` $type $null $default, ";
-                } else {
-                    $QUERY .= "`$name` $type($length) $null $default, ";
-                }
-
-            }
-
-            $QUERY .= "`deleted` VARCHAR(5) NOT NULL DEFAULT 'false', ";
-            $QUERY .= "`last_modified` DATETIME on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
-            $QUERY .= "`creation` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
-            $QUERY .= "PRIMARY KEY (`id`) ";
-            $QUERY .= ") ";
-            $QUERY .= "ENGINE = $ENGINE ";
-            $QUERY .= "DEFAULT CHARSET = $CHARSET ";
-            $QUERY .= ";";
+            $connection = $mysqli;
 
         }
 
-        if (!empty($QUERY)) {
+        $SQL = new Wonder\Sql\CreateTable($connection);
+        $SQL->ENGINE = $ENGINE;
+        $SQL->CHARSET = $CHARSET;
 
-            if($mysqli->query($QUERY)) {
-
-                $RETURN =  (object) array();
-                $RETURN->table = $TABLE;
-                $RETURN->query = $QUERY;
-    
-                $mysqli = $def_mysqli;
-                
-                return $RETURN;
-                
-            } else {
-                
-
-                $mysqli = $def_mysqli;
-
-                sqlError('sqlTable', $TABLE, $QUERY, $mysqli->errno, $mysqli->error);
-    
-            }
-
-        }
-
-        $mysqli = $def_mysqli;
+        return $SQL->Table( $TABLE, $COLUMN );
 
     }
 
-    function sqlInsert($TABLE, $LABEL_VALUES) {
+    function sqlInsert( $table, $values ) {
 
         global $mysqli;
 
-        $QUERY = "INSERT INTO `$TABLE` ";
-        
-        $labels = "";
-        $values = "";
+        $SQL = new Wonder\Sql\Query($mysqli);
 
-        foreach ($LABEL_VALUES as $label => $value) {
-
-            $labels .= "`$label`, ";
-            if ($value != '' || $value == 0) { $values .= "'$value', "; } 
-            else { $values .= "NULL, "; } 
-
-        }
-
-        $labels = substr($labels, 0, -2);
-        $values = substr($values, 0, -2);
-
-        $QUERY .= "($labels) VALUES ($values)";
-
-        if (!$mysqli->query($QUERY)) {
-
-            sqlError('sqlInsert', $TABLE, $QUERY, $mysqli->errno, $mysqli->error);
-
-        } else {
-
-            $RETURN = (object) array();
-            $RETURN->table = $TABLE;
-            $RETURN->query = $QUERY;
-            $RETURN->insert_id = $mysqli->insert_id;
-
-            return $RETURN;
-
-        }
+        return $SQL->Insert( $table, $values );
 
     }
 
-    function sqlModify($TABLE, $LABEL_VALUES, $COLUMN, $VALUE) {
+    function sqlModify( $table, $values, $column, $value ) {
 
         global $mysqli;
 
-        $QUERY = "UPDATE `$TABLE` SET ";
+        $SQL = new Wonder\Sql\Query($mysqli);
 
-        foreach ($LABEL_VALUES as $label => $value) {
-            
-            if ($value != '' || $value == 0) { $QUERY .= "`$label` = '$value', "; } 
-            else { $QUERY .= "`$label` = NULL, ";  }
-
-        }
-
-        $QUERY = substr($QUERY, 0, -2);
-        $QUERY .= " WHERE `$COLUMN` = '$VALUE'";
-
-        if (!$mysqli->query($QUERY)) {
-
-            sqlError('sqlModify', $TABLE, $QUERY, $mysqli->errno, $mysqli->error);
-
-        } else {
-
-            $RETURN = (object) array();
-            $RETURN->table = $TABLE;
-            $RETURN->query = $QUERY;
-
-            return $RETURN;
-
-        }
+        return $SQL->Update( $table, $values, $column, $value );
 
     }
 
-    function sqlSelect($table, $query = null, $limit = null, $order = null, $orderDirection = null, $attributes = '*') {
+    function sqlSelect($table, $condition = null, $limit = null, $order = null, $orderDirection = null, $attributes = '*') {
 
         global $mysqli;
 
-        $filter = '';
+        $SQL = new Wonder\Sql\Query($mysqli);
 
-        if (is_array($table)) {
-
-            $tables = "";
-
-            $mainTable = "";
-            $mainKey = "";
-            
-            $i = 0;
-            foreach ($table as $t => $k) { 
-
-                if ($i == 0) {
-
-                    $tables .= $t;
-
-                    $mainTable = $t;
-                    $mainKey = $k;
-
-                } else {
-
-                    $tables .= " JOIN $t ON $mainTable.$mainKey = $t.$k"; 
-
-                }
-            
-                $i++;
-
-            }
-    
-            $table = $tables;
-            
-        } else {
-
-            $table = "`$table`";
-
-        }
-
-        if ($query != null) {
-
-            $filter .= "WHERE ";
-        
-            if (is_array($query)) {
-
-                foreach ($query as $label => $value) {
-
-                    if (is_array(json_decode($label, true))) { 
-
-                        # Se come colonna c'è un array in JSON converire e creare la query tramite CONCAT_WS
-
-                        $label = json_decode($label, true);
-                        $labelConcat = "CONCAT_WS(' ', ";
-
-                        foreach ($label as $key => $l) {
-                            $labelConcat .= "$l, ";
-                        }
-
-                        $labelConcat = substr($labelConcat, 0, -2).")";
-
-                        $label = $labelConcat; 
-
-                    } else {
-
-                        $label = "$label"; 
-
-                    }
-
-                    if (is_array($value)) {
-    
-                        $filter .= "$label IN (";
-    
-                        foreach ($value as $v) {$filter .= "'$v', ";}
-                        $filter = substr($filter, 0, -2); 
-    
-                        $filter .= ") AND ";
-    
-                    } else {
-
-                        $filter .= "$label = '$value' AND ";
-
-                    }
-                }
-    
-                $filter = substr($filter, 0, -4);
-
-            }else{
-
-                if (str_contains($query, "WHERE") || str_contains($query, "where")) {
-                    $filter = $query;
-                } else {
-                    $filter .= $query;
-                }
-
-            }
-             
-
-        }  
-
-        if ($order != null) { $filter .= " ORDER BY $order"; }
-        if ($orderDirection != null) { $filter .= " $orderDirection"; }
-        if ($limit != null) { $filter .= " LIMIT $limit"; }
-
-        $sql = "SELECT $attributes FROM $table $filter";
-        $result = $mysqli->query($sql);
-        $Nrow = mysqli_num_rows($result);
-
-        $return = (object) array();
-        if ($Nrow == 1) {
-
-            $return->exists = true;
-            $return->Nrow = 1;
-            $return->row = [];
-
-            if ($limit == 1) {
-                while ($row = $result->fetch_assoc()) {
-                    $return->id = isset($row['id']) ? $row['id'] : "";
-                    $return->row = $row;
-                }
-            } else {
-                while ($row = $result->fetch_assoc()) {
-                    $return->id = isset($row['id']) ? $row['id'] : "";
-                    array_push($return->row, $row);
-                }
-            }
-            
-        }elseif ($Nrow >= 2) {
-            $return->exists = true;
-            $return->Nrow = $Nrow;
-            $return->row = [];
-            while ($row = $result->fetch_assoc()) {
-                array_push($return->row, $row);
-            }
-        }else{
-            $return->exists = false;
-            $return->Nrow = 0;
-            $return->row = [];
-        }
-
-        return $return;
+        return $SQL->Select( $table, $condition, $limit, $order, $orderDirection, $attributes );
 
     }
 
-    function sqlDelete($table, $query = null) {
+    function sqlDelete($table, $condition = null) {
         
         global $mysqli;
 
-        $filter = '';
+        $SQL = new Wonder\Sql\Query($mysqli);
 
-        if ($query != null) {
-
-            $filter .= "WHERE ";
-        
-            if (is_array($query)) {
-
-                foreach ($query as $label => $value) {
-                    if (is_array($value)) {
-    
-                        $filter .= "`$label` IN (";
-    
-                        foreach ($value as $v) {$filter .= "'$v', ";}
-                        $filter = substr($filter, 0, -2); 
-    
-                        $filter .= ") AND ";
-    
-                    }else{
-                        $filter .= "`$label` = '$value' AND ";
-                    }
-                }
-    
-                $filter = substr($filter, 0, -4);
-
-            }else{
-
-                $filter .= "$query";
-
-            }
-             
-        }  
-
-        $sql = "DELETE FROM `$table` $filter";
-        $result = $mysqli->query($sql);
-
-        return $result;
+        return $SQL->Delete( $table, $condition );
 
     }
 
@@ -445,30 +68,30 @@
         
         global $mysqli;
 
-        $sql = "TRUNCATE TABLE `$table`";
-        $result = $mysqli->query($sql);
+        $SQL = new Wonder\Sql\Query($mysqli);
 
-        return $result;
+        return $SQL->Truncate( $table );
 
     }
     
     function sqlSum($table, $query = null, $column = '*') {
 
-        $ATTRIBUTES = "SUM($column)";
-        $n = sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+        global $mysqli;
 
-        return empty($n) ? 0 : $n;
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->Sum( $table, $query, $column );
 
     }
 
     function sqlCount($table, $query = null, $column = '*', $distinct = false) {
 
-        $DISTINCT = $distinct ? "DISTINCT " : "";
-        $ATTRIBUTES = "COUNT($DISTINCT$column)";
-        $n = sqlSelect($table, $query, null, null, null, $ATTRIBUTES)->row[0][$ATTRIBUTES];
+        global $mysqli;
 
-        return empty($n) ? 0 : $n;
-        
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->Count( $table, $query, $column, $distinct );
+
     }
 
     function sqlDatabase($database = 'main') {
@@ -504,31 +127,33 @@
 
     }
 
-    function sqlTableExists($TABLE) {
+    function sqlDatabaseExists($database) {
 
         global $mysqli;
 
-        $result = $mysqli->query("SHOW TABLES LIKE '$TABLE'");
-        return (mysqli_num_rows($result)) ? true : false;
-        
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->DatabaseExists( $database );
+
     }
 
-    function sqlDatabaseExists($DATABASE) {
+    function sqlTableExists($table) {
 
         global $mysqli;
 
-        $result = $mysqli->query("SHOW DATABASES LIKE '$DATABASE'");
-        return (mysqli_num_rows($result)) ? true : false;
+        $SQL = new Wonder\Sql\Query($mysqli);
 
-        
+        return $SQL->TableExists( $table );
+
     }
 
-    function sqlColumnExists($TABLE, $COLUMN) {
+    function sqlColumnExists($table, $column) {
 
         global $mysqli;
 
-        $result = $mysqli->query("SHOW COLUMNS FROM `$TABLE` LIKE '$COLUMN'");
-        return (mysqli_num_rows($result)) ? true : false;
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->ColumnExists( $table, $column );
         
     }
 
@@ -746,7 +371,7 @@
         
         if ($format == 'csv') {
             arrayToCsv($ARRAY, $table);
-        }elseif ($format == 'xls') {
+        } elseif ($format == 'xls') {
             arrayToXls($ARRAY, $table);
         }
 
