@@ -261,7 +261,7 @@
 
         $(document).ready(function () {
 
-            $('#page-view-table').DataTable(tableCondition);
+            new DataTable('#page-view-table', tableCondition);
 
             const myChart = new Chart(
                 document.getElementById('https'),
