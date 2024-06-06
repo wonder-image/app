@@ -2,61 +2,10 @@
 
     function translateDate($date, $format) {
 
-        if ($format == 'day') {
+        $TRANSLATOR = new Wonder\Plugin\Custom\Translator\Date;
 
-            $newDate = date("D", strtotime($date));
-
-            if ($newDate == "Mon") {
-                $newDate = "Lunedì";
-            }elseif ($newDate == "Tue") {
-                $newDate = "Martedì";
-            }elseif ($newDate == "Wed") {
-                $newDate = "Mercoledì";
-            }elseif ($newDate == "Thu") {
-                $newDate = "Giovedì";
-            }elseif ($newDate == "Fri") {
-                $newDate = "Venerdì";
-            }elseif ($newDate == "Sat") {
-                $newDate = "Sabato";
-            }elseif ($newDate == "Sun") {
-                $newDate = "Domenica";
-            }
-
-        }
-
-        if ($format == 'month') {
-
-            $newDate = date("F", strtotime($date));
-
-            if ($newDate == "January") {
-                $newDate = "Gennaio";
-            }elseif ($newDate == "February") {
-                $newDate = "Febbraio";
-            }elseif ($newDate == "March") {
-                $newDate = "Marzo";
-            }elseif ($newDate == "April") {
-                $newDate = "Aprile";
-            }elseif ($newDate == "May") {
-                $newDate = "Maggio";
-            }elseif ($newDate == "June") {
-                $newDate = "Giugno";
-            }elseif ($newDate == "July") {
-                $newDate = "Luglio";
-            }elseif ($newDate == "August") {
-                $newDate = "Agosto";
-            }elseif ($newDate == "September") {
-                $newDate = "Settembre";
-            }elseif ($newDate == "October") {
-                $newDate = "Ottobre";
-            }elseif ($newDate == "November") {
-                $newDate = "Novembre";
-            }elseif ($newDate == "December") {
-                $newDate = "Dicembre";
-            }
-
-        }
-
-        return $newDate;
+        if ($format == 'day') { return $TRANSLATOR->Day( $date ); }
+        if ($format == 'month') { return $TRANSLATOR->Month( $date ); }
 
     }
 
