@@ -3,14 +3,23 @@
     namespace Wonder\Plugin\Nexi;
 
     use Wonder\Api\Call;
+    
+    /**
+     * 
+     * Link utili:
+     * - ApiKey test [ https://developer.nexi.it/it/area-test/api-key ]
+     * - Carte test [ https://developer.nexi.it/it/area-test/carte-di-pagamento ]
+     * 
+     */
 
-    class Nexi {
+     class Nexi {
 
         private $API_KEY, $PROD, $CORRELATION_ID, $ENDPOINT;
         private $ENDPOINT_PROD = "https://xpay.nexigroup.com/api/phoenix-0.0/psp/api/v1";
         private $ENDPOINT_TEST = "https://xpaysandbox.nexigroup.com/api/phoenix-0.0/psp/api/v1";
 
-        function __construct(string $apiKey, bool $prod = true ) {
+        function __construct(string $apiKey, bool $prod = true )
+        {
 
             $this->API_KEY = $apiKey;
             $this->PROD = $prod;
@@ -21,7 +30,8 @@
             
         }
 
-        private function CorrelationId () {
+        private function CorrelationId () 
+        {
 
             $rawCorrelationId = bin2hex(openssl_random_pseudo_bytes(16));
 

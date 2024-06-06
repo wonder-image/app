@@ -1,7 +1,7 @@
 <?php
 
     namespace Wonder\Plugin\Nexi;
-
+    
     class Order {
 
         public $CURRENCY = "EUR";
@@ -9,12 +9,13 @@
 
         public $TOTAL = 0;
 
-        public $REFERENCE_ID;
+        public $REFERENCE_ID, $DESCRIPTION;
         public $CONTEXT, $CUSTOMER = [];
 
         function __construct($referenceId, $total) {
 
             $this->REFERENCE_ID = $referenceId;
+            $this->DESCRIPTION = "Pagamento ordine ".$referenceId;
             $this->TOTAL = number_format($total, 2, '', '');
 
         }
@@ -29,6 +30,8 @@
             $this->CUSTOMER['email'] = $email;
 
         }
+
+        public function Description ( $description ) { $this->DESCRIPTION = $description; }
 
         public function Context( $resultUrl, $cancelUrl, $notificationUrl = "" ) {
 
@@ -45,6 +48,10 @@
             $order['orderId'] = $this->REFERENCE_ID;
             $order['amount'] = $this->TOTAL;
             $order['currency'] = $this->CURRENCY;
+
+            if (!empty($this->DESCRIPTION)) {
+                $order['description'] = $this->DESCRIPTION;    
+            }
 
             if (isset($this->CUSTOMER['id']) && !empty($this->CUSTOMER['id'])) {
                 $order['customerId'] = $this->CUSTOMER['id'];    
