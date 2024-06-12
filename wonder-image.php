@@ -19,7 +19,7 @@
     # Imposto la sessione con utente non definito se non è impostato
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
         
-    $APP_VERSION = "1.3.14";
+    $APP_VERSION = "1.4.0";
     $LIB_VERSION = "1.5.0";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
