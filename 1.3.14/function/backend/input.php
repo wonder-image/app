@@ -192,13 +192,15 @@
             $valueTo = "";
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if ($attribute != null && strpos($attribute, "required") !== false && !empty($label)) { $label .= "*"; }
 
         $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
         $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
 
+        $label = empty($label) ?"" : "<h6>$label</h6>"; 
+
         return "
-        <h6>$label</h6>
+        $label
         <div class='input-group input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
             <span class='input-group-text'>Dal</span>
             <input id='$idFrom' type='text' class='$class' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
