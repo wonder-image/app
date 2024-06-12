@@ -3,10 +3,11 @@
     namespace Wonder\Backend\Table;
 
     use Wonder\Plugin\Custom\Prettify;
-
+    
     class Field {
 
         private $table;
+        private $customLink;
         private $link;
         private $text;
         private $user;
@@ -27,7 +28,6 @@
          * 
          * Alcune funzioni di questa classe sono esterne come:
          *  - returnButton()
-         *  - returnBadge()
          *  - isEmpty()
          * 
          */
@@ -36,21 +36,22 @@
         public function __construct(object $TABLE, object $PATH, object $TEXT, object $USER, object $PAGE) { 
 
             $this->table = (object) array();
+            $this->table->id = $TABLE->id;
             $this->table->name = $TABLE->table;
             $this->table->connection = $TABLE->connection;
             $this->table->database = $TABLE->database;
-            $this->table->folder = $TABLE->folder;
             $this->table->field = $TABLE->field;
             $this->table->page = $TABLE->page;
             $this->table->length = $TABLE->length;
+
+            $this->customLink = (object) array();
+            foreach ($TABLE->link as $key => $link) { $this->customLink->$key = $link; }
 
             $this->link = (object) array();
             $this->link->site = $PATH->site;
             $this->link->backend = $PATH->backend;
             $this->link->app = $PATH->app;
             $this->link->api = $PATH->api;
-            $this->link->folder = $this->link->backend.'/'.$this->table->folder;
-            $this->link->upload = $PATH->upload.'/'.$this->table->folder;
 
             $this->text = (object) array();
             $this->text->titleS = $TEXT->titleS;
@@ -84,9 +85,16 @@
 
             $this->rowId = $row['id'];
 
-            $this->link->view = $this->link->folder.'/view.php?redirect='.$this->redirectBase64.'&id='.$this->rowId;
-            $this->link->modify = $this->link->folder.'/?redirect='.$this->redirectBase64.'&modify='.$this->rowId;
-            $this->link->download = $this->link->folder.'/download.php?id='.$this->rowId;
+            foreach ($this->customLink as $key => $link) {
+                
+                $link = str_replace('{redirectBase64}', $this->redirectBase64, $link);
+                $link = str_replace('{rowId}', $this->rowId, $link);
+
+                $link = str_replace('{rowId}', $this->rowId, $link);
+
+                $this->customLink->$key = $link;
+
+            }
 
             if ($format != null) {
                 if ($column == 'action_button') {
@@ -142,7 +150,7 @@
             return "onclick=\"ajaxRequest(
                 '$url',
                 reloadDataTable, 
-                '#wi-table'
+                '#".$this->table->id."'
             )\"";
 
         }
@@ -164,7 +172,7 @@
                 'Chiudi',
                 'dark',
                 'reloadDataTable', 
-                '#wi-table'
+                '#".$this->table->id."'
             )\"";
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
@@ -173,21 +181,21 @@
 
         private function deleteAuthority() {
 
-            $urlAction = "{$this->link->app}/api/backend/authority.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}";
-            
-            if ($this->user->authority != '') { $urlAction .= "&authority={$this->user->authority}"; }
-            if ($this->user->area != '') { $urlAction .= "&area={$this->user->area}"; }
-
             $action = "onclick=\"modal(
                 'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '$urlAction',
+                '{$this->link->app}/api/backend/authority.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId},
                 'ATTENZIONE',
                 'Elimina',
                 'danger',
                 'Chiudi',
                 'dark',
                 'reloadDataTable', 
-                '#wi-table')\"";
+                '#".$this->table->id."'";
+            
+            if ($this->user->authority != '') { $action .= "&authority={$this->user->authority}"; }
+            if ($this->user->area != '') { $action .= "&area={$this->user->area}"; }
+
+            $action .= "')\"";
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
 
@@ -284,14 +292,30 @@
 
                     if ($link && !is_array($link)) {
 
-                        if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->view}' role='button'>Visualizza</a>"; }
-                        elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->modify}' role='button'>Modifica</a>"; }
-                        elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->download}'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
+                        if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
+                        elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
+                        elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->download}'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
                         elseif ($ACTION == 'visible') { $BUTTONS .= $this->changeVisible()->button; }
                         elseif ($ACTION == 'evidence') { $BUTTONS .= $this->changeEvidence()->button; }
                         elseif ($ACTION == 'delete' && $this->deleteButton) { $BUTTONS .= $this->deleteRow()->button; }
-                        elseif ($ACTION == 'authority' && $this->deleteButton && isset($this->user->authority) && isset($this->user->area) && !is_array($this->user->area) && !is_array($this->user->authority)) { $BUTTONS .= $this->deleteAuthority()->button; }
+                        elseif ($ACTION == 'authority' && $this->deleteButton) { 
+                            
+                            if ($this->table->name == 'user') {
+                                
+                                $userArea = json_decode($this->row['area'], true);
+                                $userAuthority = json_decode($this->row['authority'], true);
+
+                                if (count($userArea) == 1 && count($userAuthority) == 1) {
+                                    $BUTTONS .= $this->deleteRow()->button;
+                                } else if (!empty($this->user->area) && !empty($this->user->authority)) {
+                                    $BUTTONS .= $this->deleteAuthority()->button;
+                                }
+
+                            }
+                        
+                        }
                         elseif ($ACTION == 'active') { 
+
                             if ($this->table->name == 'user') {
 
                                 $userArea = json_decode($this->row['area'], true);
@@ -306,6 +330,7 @@
                                 $BUTTONS .= $this->changeActive()->button; 
 
                             }
+
                         }
 
                     } elseif (is_array($link)) {
@@ -431,7 +456,7 @@
             $action = "onclick=\"ajaxRequest(
                 '{$this->link->app}/api/backend/move.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}&action=$type',
                 reloadDataTable, 
-                '#wi-table'
+                '#".$this->table->id."'
             )\"";
 
             $button = "<a class='bi bi-chevron-$type text-dark' $action role='button'></a>";
@@ -596,14 +621,16 @@
 
                             }
 
-                            $VALUE = isset($VALUE[0]) ? $this->link->upload.$imageDir.$imageSize.$VALUE[0] : "";
+                            $VALUE = isset($VALUE[0]) ? $this->customLink->file.$imageDir.$imageSize.$VALUE[0] : "";
                             
                         }
 
                         $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
                     
                     } else if ($type == 'date') {
+
                         $VALUE = date('d/m/Y', strtotime($VALUE));
+
                     }
 
                 }
@@ -614,9 +641,9 @@
                     $href = $format['href'];
 
                     if ($href == 'modify') {
-                        $href = $this->link->modify;
+                        $href = $this->customLink->modify;
                     } elseif ($href == 'view') {
-                        $href = $this->link->view;
+                        $href = $this->customLink->view;
                     } elseif ($href == 'mailto') {
                         $href = "mailto:$VALUE";
                     } elseif ($href == 'tel') {

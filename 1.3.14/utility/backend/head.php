@@ -16,6 +16,11 @@
 
 <!-- Inizio librerie -->
 
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
     <!-- JQuery -->
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery.js"></script>
 
@@ -35,6 +40,12 @@
     <!-- Bootstrap Datepicker -->
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-datepicker.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-datepicker.css" rel="stylesheet">
+    
+    <!-- ! PDF Make ! => Utilizzato da DataTables per la creazione dei pdf -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/pdfmake/pdfmake.js"></script>  -->
+
+    <!-- JSZip -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jszip/jszip.js"></script> 
 
     <!-- DataTables -->
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/datatables/datatables.js"></script> 

@@ -6,6 +6,11 @@
         $mysqli = $MYSQLI_CONNECTION[$NAME->database];
     }
 
+    if (!isset($PAGE_TABLE)) {
+        $table = strtoupper($NAME->table);
+        $PAGE_TABLE = $TABLE->$table;
+    }
+
     if (isset($USER_FILTER->authority) && isset($USER_FILTER->area)) {
 
         $QUERY_CUSTOM = isset($QUERY_CUSTOM) ? $QUERY_CUSTOM.' AND ' : '';
@@ -14,12 +19,12 @@
             if (is_array($USER_FILTER->authority)) {
 
                 $QUERY_CUSTOM .= '(';
-                foreach ($USER_FILTER->authority as $k => $v) { $QUERY_CUSTOM .= "`authority` LIKE '%$v%' OR "; }
+                foreach ($USER_FILTER->authority as $k => $v) { $QUERY_CUSTOM .= "`authority` LIKE '%\"$v\"%' OR "; }
                 $QUERY_CUSTOM = substr($QUERY_CUSTOM, 0, -4).')';
 
             } else {
 
-                $QUERY_CUSTOM .= "`authority` LIKE '%$USER_FILTER->authority%'";
+                $QUERY_CUSTOM .= "`authority` LIKE '%\"$USER_FILTER->authority\"%'";
 
             }
         }
@@ -32,61 +37,178 @@
             if (is_array($USER_FILTER->area)) {
 
                 $QUERY_CUSTOM .= '(';
-                foreach ($USER_FILTER->area as $k => $v) { $QUERY_CUSTOM .= "`area` LIKE '%$v%' OR "; }
+                foreach ($USER_FILTER->area as $k => $v) { $QUERY_CUSTOM .= "`area` LIKE '%\"$v\"%' OR "; }
                 $QUERY_CUSTOM = substr($QUERY_CUSTOM, 0, -4).')';
 
             } else {
 
-                $QUERY_CUSTOM .= "`area` LIKE '%$USER_FILTER->area%'";
+                $QUERY_CUSTOM .= "`area` LIKE '%\"$USER_FILTER->area\"%'";
                 
             }
         }
         
     }
 
-    if ($FILTER_TYPE == 'date') {
-        $FILTER = filterDate();
+    use Wonder\Backend\Table\Table;
+    $TABLE = new Table( $NAME->table, $mysqli );
+
+    $TABLE->endpoint( $API->DataTables );
+
+    if (isset($USER_FILTER->area)) { $TABLE->addEndpointValue('user_area', $USER_FILTER->area); }
+    if (isset($USER_FILTER->authority)) { $TABLE->addEndpointValue('user_authority', $USER_FILTER->authority); }
+
+    $TABLE->addLink( 'view', $PATH->backend.'/'.$NAME->folder.'/view.php?redirect={redirectBase64}&id={rowId}' );
+    $TABLE->addLink( 'modify', $PATH->backend.'/'.$NAME->folder.'/?redirect={redirectBase64}&modify={rowId}' );
+    $TABLE->addLink( 'download', $PATH->backend.'/'.$NAME->folder.'/download.php?id={rowId}' );
+    $TABLE->addLink( 'file', $PATH->upload.'/'.$NAME->folder );
+
+    $QUERY_CUSTOM = empty($QUERY_CUSTOM) ? "`deleted` = 'false'" : $QUERY_CUSTOM." AND `deleted` = 'false'";
+    $TABLE->query($QUERY_CUSTOM);
+
+    $COLUMN_DEF = "creation";
+    $DIRECTION_DEF = "DESC";
+
+    $ARROW_POSITION = sqlColumnExists($NAME->table, 'position');
+    
+    if (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
+
+        $COLUMN_DEF = $FILTER_ORDER;
+
+        if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
+            $DIRECTION_DEF = $FILTER_DIRECTION;
+        } else {
+            $DIRECTION_DEF = "ASC";
+        }
+
+    }
+
+    if ($ARROW_POSITION) {
+
+        $COLUMN = "position";
+        $DIRECTION = "ASC";
+
     } else {
-        $FILTER = filter();
+
+        $COLUMN = $COLUMN_DEF;
+        $DIRECTION = $DIRECTION_DEF;
+
     }
 
-    if (!isset($PAGE_TABLE)) {
-        $table = strtoupper($NAME->table);
-        $PAGE_TABLE = $TABLE->$table;
+    $TABLE->queryOrder($COLUMN, $DIRECTION, $COLUMN_DEF, $DIRECTION_DEF);
+
+    $TABLE->text(
+        $TEXT->titleS,
+        $TEXT->titleP,
+        $TEXT->last,
+        $TEXT->all,
+        $TEXT->article,
+        $TEXT->full,
+        $TEXT->empty,
+        $TEXT->this
+    );
+
+    $TABLE->title(true);
+    $TABLE->titleNResult(true);
+
+    if (isset($BUTTON_ADD) && $BUTTON_ADD) {
+        $TABLE->buttonAdd(
+            $PATH->backend.'/'.$NAME->folder.'/?redirect='.$PAGE->uriBase64,
+            'Aggiungi '.$TEXT->titleS
+        );
     }
 
-    if (!empty($FILTER_CUSTOM)) { $CUSTOM = createFilterCustom(); }
+    if (isset($BUTTON_CUSTOM) && $BUTTON_CUSTOM) {
+        foreach ($BUTTON_CUSTOM as $key => $button) {
+            $TABLE->addButtonCustom( $button['value'], isset($button['html']) ? $button['html'] : false, isset($button['action']) ? $button['action'] : '', isset($button['color']) ? $button['color'] : 'dark' );
+        }
+    }
 
-    $BUTTON_ADD = isset($BUTTON_ADD) && $BUTTON_ADD == true ? true : false;
-    $BUTTON_DOWNLOAD = isset($BUTTON_DOWNLOAD) && $BUTTON_DOWNLOAD == true ? true : false;
+    if (isset($BUTTON_DOWNLOAD) && $BUTTON_DOWNLOAD) {
+        $TABLE->buttonDownload(true);
+    }
 
-    # Headers
-        $TABLE_COLUMNS = [];
+    if (!empty($FILTER_SEARCH)) { $TABLE->filterSearch(true, $FILTER_SEARCH); }
 
-        $COLUMN_N = 0;
+    $TABLE->filterLimit(true);
 
-        if ($FILTER->arrow && $FILTER->selected_lines > 1) {
+    if ($FILTER_TYPE == 'date') { 
+        $TABLE->filterDate(true, isset($HOW_MANY_DAYS) ? $HOW_MANY_DAYS : 30, isset($FILTER_COLUMN) ? $FILTER_COLUMN : 'creation'); 
+    }
 
-            array_push($TABLE_COLUMNS, [
-                'data' => 0,
-                'name' => 'position-up',
-                'title' => '',
-                'orderable' => false,
-                'className' => 'all',
-                'width' => '30px'
-            ]);
+    # Filtri custom
+        if (isset($FILTER_CUSTOM) && !empty($FILTER_CUSTOM)) { 
+            
+            foreach ($FILTER_CUSTOM as $column => $options) {
 
-            array_push($TABLE_COLUMNS, [
-                'data' => 1,
-                'name' => 'position-down',
-                'title' => '',
-                'orderable' => false,
-                'className' => 'all',
-                'width' => '30px'
-            ]);
+                # Creo gli array del valore del filtro
 
+                    $type = isset($options['type']) ? $options['type'] : 'select';
+                    $search = isset($options['search']) ? $options['search'] : false;
+                    $columnType = isset($options['column_type']) ? $options['column_type'] : null;
+                    
+                    if ( isset($options['array']) && !empty($options['array']) ) {
 
-            $COLUMN_N = 2;
+                        $array = $options['array'];
+
+                    } else {
+
+                        $array = ($type == 'radio' || $type == 'select') ? [ '' => "Tutti" ] : [];
+
+                        if ( isset($options['function']) && !empty($options['function']) ) {
+
+                            $array = array_merge($array, call_user_func($options['function']));
+            
+                        } else if ( isset($options['database']) && !empty($options['database']) ) {
+                            
+                            $SQL = sqlSelect( $NAME->table, [ 'deleted' => 'false' ], null, 'name', 'ASC' );
+            
+                            foreach ($SQL->row as $key => $row) {
+                                
+                                $f = $row['id'];
+                                $v = $row['name'];
+            
+                                $array[$f] = $v;
+            
+                            }
+            
+                        } else if ($column == 'visible') {
+
+                            $array['true'] = 'Visibile';
+                            $array['false'] = 'Nascosto';
+
+                        }  else if ($column == 'active') {
+
+                            $array['true'] = 'Abilitati';
+                            $array['false'] = 'Disabilitati';
+
+                        } elseif ($column == 'evidence') {
+
+                            $array['true'] = 'Si';
+                            $array['false'] = 'No';
+                        
+                        } else {
+
+                            $array = [];
+
+                        }
+
+                    }
+
+                #
+
+                $TABLE->addFilter( $options['name'], $column, $array, $type, $search, $columnType );
+
+            }
+
+        }
+
+    #
+
+    # Colonne
+        if ($ARROW_POSITION) {
+
+            $TABLE->addColumn( '', 'position-up', false, '', 'mobile', 'little' );
+            $TABLE->addColumn( '', 'position-down', false, '', 'mobile', 'little' );
 
         }
 
@@ -109,29 +231,13 @@
                 }
             }
 
-            if ($dimension == 'little') { $width = '30px'; } else 
-            if ($dimension == 'medium') { $width = '120px'; } else 
-            if ($dimension == 'big') { $width = '180px'; } else 
-            { $width = 'auto'; } 
-
-            $class .= $dimension;
+            $hiddenDevice = "";
             
-            if (!$phone) { $class .= ' not-mobile'; }
-            if (!$tablet) { $class .= ' not-tablet'; }
-            if (!$pc) { $class .= ' not-desktop'; }
+            if (!$phone) { $hiddenDevice = 'mobile'; }
+            if (!$tablet) { $hiddenDevice = 'tablet'; }
+            if (!$pc) { $hiddenDevice = 'desktop'; }
 
-            if ($pc && $tablet && $phone) { $class .= ' all'; }
-
-            array_push($TABLE_COLUMNS, [
-                'data' => $COLUMN_N,
-                'name' => $column,
-                'title' => $label,
-                'orderable' => $orderable,
-                'className' => $class,
-                'width' => $width
-            ]);
-
-            $COLUMN_N++;
+            $TABLE->addColumn( $label, $column, $orderable, $class, $hiddenDevice, $dimension, $value );
 
         }
 
@@ -146,20 +252,11 @@
                 }
             }
             
-            if ($row) { 
-                
-                array_push($TABLE_COLUMNS, [
-                    'data' => $COLUMN_N,
-                    'name' => 'menu',
-                    'title' => '',
-                    'orderable' => false,
-                    'className' => 'all',
-                    'width' => '30px'
-                ]);
-
-            }
+            if ($row) { $TABLE->addColumn( '', 'menu', false, '', '', 'little', $TABLE_ACTION ); }
 
         }
+
+    #
 
 ?>
 <!DOCTYPE html>
@@ -178,313 +275,12 @@
     <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
     <?php include $ROOT_APP."/utility/backend/header.php"; ?>
 
-    <div class="row g-3">
-
-        <wi-card class="col-12">
-
-
-            <div class="col-<?=$BUTTON_ADD || $BUTTON_DOWNLOAD ? "8" : "12"?>"> 
-                <h3><?=$FILTER->title?></h3>
-                <figcaption class="text-muted">
-                    Risultati: <span id="wi-table-result"></span>
-                </figcaption>
-            </div>
-
-            <?php 
-            
-                if ($BUTTON_ADD || $BUTTON_DOWNLOAD) { 
-                    
-                    echo "<div class='col-4 d-flex gap-2 justify-content-end align-items-start'>";
-                    
-                    if ($BUTTON_DOWNLOAD) {
-
-                        echo '
-                        <div class="dropdown">
-                            <a class="btn btn-sm btn-secondary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-bs-haspopup="true" aria-bs-expanded="false">
-                                <i class="bi bi-download me-1"></i> Esporta
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="download.php?file=csv&query='.base64_encode($FILTER->query).'" role="button"><i class="bi bi-filetype-csv me-1"></i> CSV</a>
-                                <a class="dropdown-item" href="download.php?file=xls&query='.base64_encode($FILTER->query).'" role="button"><i class="bi bi-filetype-xls me-1"></i> Excel</a>
-                            </div>
-                        </div>'; 
-                    
-                    }
-
-                    if ($BUTTON_ADD) { echo createAddButton($TEXT->titleS); }
-                    
-                    echo "</div>"; 
-                    
-                } 
-                
-            ?>
-
-            <?php if (isset($FILTER->html) && !empty($FILTER->html)) :?>
-            <div class="col-12">
-                <div class="container p-0" style="max-width: 100%;">
-                    <div class="row g-2">
-                        <?=$FILTER->html?>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php
-
-
-                if (!empty($BUTTON_CUSTOM)) {
-
-                    echo "<div class='col-12 d-flex gap-2 justify-content-end'>";
-
-                    if (!empty($BUTTON_CUSTOM)) {
-                        foreach ($BUTTON_CUSTOM as $key => $v) {
-
-                            $html = isset($v['html']) ? $v['html'] : false;
-                            $value = isset($v['value']) ? $v['value'] : '';
-                            $action = isset($v['action']) ? $v['action'] : '';
-                            $color = isset($v['color']) ? $v['color'] : 'dark';
-
-                            if ($html) {
-                                echo $value;
-                            } else {
-                                echo "<a $action type='button' class='btn btn-$color btn-sm'>$value</a>";
-                            }
-                            
-                        }
-                        
-                    }
-
-                    echo "</div>";
-
-                }
-                
-                if (!empty($FILTER_CUSTOM)) {
-                    
-                    echo "<div class='col-auto pe-0'>".$CUSTOM->button."</div>";
-
-                }
-
-                if (!empty($FILTER_SEARCH)) { 
-                    
-                    echo "<div class='col-4 me-auto'>
-                        <div class='input-group input-group-sm'>
-                            <span class='input-group-text user-select-none'>Cerca: </span>
-                            <input type='text' class='form-control' id='wi-table-search'>
-                        </div>
-                    </div>"; 
-                
-                }
-
-                echo '<div class="col-3">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text user-select-none">Mostra:</span>
-                        <select class="form-select" id="wi-table-length">
-                            <option value="10">10 elementi</option>
-                            <option value="25">25 elementi</option>
-                            <option value="50">50 elementi</option>
-                            <option value="100">100 elementi</option>
-                        </select>
-                    </div>
-                </div>';
-
-                if (!empty($FILTER_CUSTOM)) { echo $CUSTOM->html; }
-
-            ?>
-
-            <div class="col-12">
-
-                <table id="wi-table" class="table table-hover w-100">
-                    <thead></thead>
-                    <tbody class="table-group-divider"></tbody>
-                </table>
-
-            </div>
-
-        </wi-card>
-        
-
+    <div class="row">
+        <?=$TABLE->generate()?>
     </div>
 
     <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
     <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
-
-    <script>
-
-        <?PHP
-
-            $USER_AUTHORITY = isset($USER_FILTER->authority) ? $USER_FILTER->authority : "";
-            
-        ?>
-
-        var dataPost = {
-            folder: '<?=$NAME->folder?>',
-            table: '<?=$NAME->table?>',
-            database: '<?=$NAME->database?>',
-            arrow: <?=empty($FILTER->arrow) ? 'false' : 'true'?>,
-            url: '<?=$PAGE->uri?>',
-            text: {
-                titleS: '<?=$TEXT->titleS?>',
-                titleP: '<?=$TEXT->titleP?>',
-                last: '<?=$TEXT->last?>',
-                all: '<?=$TEXT->all?>',
-                article: '<?=$TEXT->article?>',
-                full: '<?=$TEXT->full?>',
-                empty: '<?=$TEXT->empty?>',
-                this: '<?=$TEXT->this?>'
-            },
-            user: {
-                area: '<?=isset($USER_FILTER->area) ? $USER_FILTER->area : ''?>',
-                authority: <?=is_array($USER_AUTHORITY) ? "JSON.parse('".json_encode($USER_AUTHORITY)."')" : "'$USER_AUTHORITY'"?>
-            },
-            custom: {
-                query_filter: '<?=base64_encode($FILTER->query_filter)?>',
-                query_all: '<?=base64_encode($FILTER->query_all)?>',
-                field: '<?=base64_encode(json_encode($TABLE_FIELD))?>',
-                action: JSON.parse('<?=json_encode($TABLE_ACTION)?>'),
-                search_field: JSON.parse('<?=json_encode($FILTER_SEARCH)?>'),
-                order_column: '<?=$FILTER->query_order_col?>',
-                order_direction: '<?=$FILTER->query_order_dir?>',
-            }
-        }
-
-        var tablePage = <?=(isset($_GET['wi-page']) && !empty($_GET['wi-page'])) ? $_GET['wi-page'] : 0 ?>;
-        var tableLength = <?=(isset($_GET['wi-length']) && !empty($_GET['wi-length'])) ? $_GET['wi-length'] : 10 ?>;
-        var tableSearch = '<?=(isset($_GET['wi-search']) && !empty($_GET['wi-search'])) ? str_replace("'", "\'", urldecode($_GET['wi-search'])) : '' ?>';
-
-        var tableDefOrderName = '<?=$FILTER->query_order_col?>';
-        var tableDefOrderDir = '<?=$FILTER->query_order_dir?>';
-
-        var tableOrderName = '<?=(isset($_GET['wi-order']) && !empty($_GET['wi-order'])) ? $_GET['wi-order'] : $FILTER->query_order_col ?>';
-        var tableOrderDir = '<?=(isset($_GET['wi-order-dir']) && !empty($_GET['wi-order-dir'])) ? $_GET['wi-order-dir'] : $FILTER->query_order_dir ?>';
-
-        window.addEventListener('load', (event) => {
-                
-            var wiTable = new DataTable('#wi-table', {
-                serverSide: true,
-                processing: true,
-                lengthChange: true, // Creo io il length change #wi-search-input
-                searching: true, // Creo io la search bar #wi-input-length
-                responsive: {
-                    details: false,
-                    breakpoints: [
-                        { name: 'desktop', width: Infinity },
-                        { name: 'tablet', width: 992 },
-                        { name: 'mobile', width: 768 }
-                    ]
-                },
-                ajax: {
-                    url: pathApp+'/api/backend/list/table.php',
-                    type: 'POST',
-                    data: dataPost,
-                    error: function (XMLHttpRequest) { ajaxRequestError(XMLHttpRequest); }
-                },
-                idSrc: 'id',
-                columns: JSON.parse('<?=json_encode($TABLE_COLUMNS)?>'),
-                lengthMenu: [10, 25, 50, 100],
-                displayStart: tableLength * tablePage, // Pagina di partenza
-                pageLength: tableLength, // Lunghezza pagina
-                pagingType: "full_numbers", // Tipologia paginazione
-                search: { search: tableSearch },
-                language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.12.1/i18n/it-IT.json',
-                    paginate: {
-                        next: '<i class="bi bi-chevron-right"></i>',
-                        previous: '<i class="bi bi-chevron-left"></i>',
-                        first: '<i class="bi bi-chevron-double-left"></i>',
-                        last: '<i class="bi bi-chevron-double-right"></i>'
-                    }
-                },
-                order: {
-                    name: tableOrderName,
-                    dir: tableOrderDir
-                },
-                createdRow: function (row, data, index) {
-                    $(row).addClass('align-middle')
-                },
-                layout: {
-                    topEnd: null,
-                    topStart: null
-                }
-            })
-
-            $('input#wi-table-search').keyup( function() { 
-
-                wiTable.search(this.value).draw(); 
-
-                var pageUrl = new URL(window.location.href);
-                pageUrl.searchParams.set('wi-search', this.value);
-                
-                setListRedirect(pageUrl);
-            
-            });
-
-            $('input#wi-table-search').val(tableSearch)
-
-            $('select#wi-table-length').change( function() {
-                
-                wiTable.page.len(this.value).draw(); 
-
-                var pageUrl = new URL(window.location.href);
-                pageUrl.searchParams.set('wi-length', this.value);
-
-                setListRedirect(pageUrl);
-            
-            });
-
-            $('select#wi-table-length').val(tableLength)
-
-            wiTable.on('draw', (event) => { 
-
-                var page = wiTable.page.info();
-
-                var nPage = page.page;
-
-                var start = page.start + 1;
-                var end = page.end;
-                
-                var recordsTotal = page.recordsTotal;
-                var recordsDisplay = page.recordsDisplay;
-
-                var result = 'da '+start+' a '+end+' di '+recordsDisplay;
-
-                document.querySelector('figcaption span#wi-table-result').innerHTML = result;
-
-                var pageUrl = new URL(window.location.href);
-                pageUrl.searchParams.set('wi-page', nPage);
-
-                if (wiTable.order().length > 0) {
-
-                    if (wiTable.order()[0][1] == "") {
-         
-                        var orderColumn = tableDefOrderName;
-                        var orderDirection = tableDefOrderDir; 
-
-                    } else {
-                        
-                        var orderColumn = wiTable.order()[0][0];
-                        var orderDirection = wiTable.order()[0][1]; 
-
-                    }
-
-                } else {
-
-                    var orderColumn = tableOrderName;
-                    var orderDirection = tableOrderDir;
-                    
-                }
-
-                pageUrl.searchParams.set('wi-order', orderColumn);
-                pageUrl.searchParams.set('wi-order-dir', orderDirection);
-
-                setListRedirect(pageUrl);
-
-                bootstrapTooltip();
-
-            });
-
-        });
-
-    </script>
 
 </body>
 </html>
