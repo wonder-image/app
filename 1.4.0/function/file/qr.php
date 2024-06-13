@@ -2,12 +2,17 @@
 
     function createQrCode($data, $src = null) {
 
-        $options = new chillerlan\QRCode\QROptions;   
+        $options = new chillerlan\QRCode\QROptions;
+        $options->outputType = chillerlan\QRCode\Output\QROutputInterface::CUSTOM;
+        $options->outputInterface = chillerlan\QRCode\Output\QRGdImagePNG::class; 
         $options->imageTransparent = false;
 
         $qrcode = new chillerlan\QRCode\QRCode($options);
-        $qrcode->render($data, $src);
 
-        return $qrcode;
+        if ($src == null) {
+            return $qrcode->render($data);
+        } else {
+            $qrcode->render($data, $src);
+        }
 
     }
