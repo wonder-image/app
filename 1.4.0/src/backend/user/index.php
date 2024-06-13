@@ -2,7 +2,7 @@
 
     $BACKEND = true;
     $PRIVATE = true;
-    $PERMIT = ['admin'];
+    $PERMIT = [];
 
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
@@ -106,7 +106,7 @@
             <div class="col-9">
                 <div class="row g-3">
 
-                    <?php if (empty($_GET['modify'])) { ?>
+                    <?php if (empty($_GET['modify']) && (in_array('admin', $USER->authority))) { ?>
                     <wi-card class="col-12">
                         <div class="col-12">
                             <h6>Crea utente da email già esistente</h6>
@@ -147,17 +147,11 @@
                         </div>
                         <div class="col-9">
                             <div class="row g-3">
-                                <div class="col-5">
+                                <div class="col-4">
                                     <?=text('Nome', 'name', 'required'); ?>
                                 </div>
-                                <div class="col-5">
+                                <div class="col-4">
                                     <?=text('Cognome', 'surname', 'required'); ?>
-                                </div>
-                                <div class="col-6">
-                                    <?=text('Username', 'username', 'required'); ?>
-                                </div>
-                                <div class="col-6">
-                                    <?=phone('Cellulare', 'phone'); ?>
                                 </div>
                                 <div class="col-4">
                                     <?php
@@ -173,6 +167,12 @@
                                         echo select('Colore', 'color', $option);
 
                                     ?>
+                                </div>
+                                <div class="col-6">
+                                    <?=text('Username', 'username', 'required'); ?>
+                                </div>
+                                <div class="col-6">
+                                    <?=phone('Cellulare', 'phone'); ?>
                                 </div>
                                 <div class="col-12">
                                     <?=email('Email', 'email', 'required'); ?>
