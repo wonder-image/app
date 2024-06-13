@@ -18,7 +18,7 @@
         $NAME->database = $_POST['config']['database'];
         $NAME->connection = $MYSQLI_CONNECTION[$NAME->database];
 
-        $NAME->link = $_POST['default']['link'];
+        $NAME->link = isset($_POST['default']['link']) ? $_POST['default']['link'] : [];
 
         $nameTable = strtoupper($NAME->table);
         $NAME->field = $TABLE->$nameTable;
@@ -164,7 +164,7 @@
 
             } else {  
 
-                $format = $other;
+                $format = empty($other) ? $format : $other;
 
                 $formatter = function ($row, $column, $format) {
 
