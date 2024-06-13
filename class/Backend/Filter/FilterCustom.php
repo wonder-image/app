@@ -25,7 +25,7 @@
         # Opzioni
             public $filterColumn, $dropdown, $customGet;
 
-        function __construct( $table, $mysqli, array $filterColumn, bool $dropdown, array $customGet = []) {
+        function __construct( $table, $mysqli, array $filterColumn, bool $dropdown = true, array $customGet = []) {
         
             $this->table = $table;
             $this->mysqli = $mysqli;
