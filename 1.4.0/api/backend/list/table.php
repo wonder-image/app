@@ -1,5 +1,7 @@
 <?php
 
+    header('Access-Control-Allow-Origin: *');
+
     $BACKEND = true;
     $PRIVATE = false;
     $PERMIT = [];
