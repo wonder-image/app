@@ -127,11 +127,11 @@
         $TABLE->buttonDownload(true);
     }
 
-    if (!empty($FILTER_SEARCH)) { $TABLE->filterSearch(true, $FILTER_SEARCH); }
+    if (isset($FILTER_SEARCH) && !empty($FILTER_SEARCH)) { $TABLE->filterSearch(true, $FILTER_SEARCH); }
 
     $TABLE->filterLimit(true);
 
-    if ($FILTER_TYPE == 'date') { 
+    if (isset($FILTER_TYPE) && $FILTER_TYPE == 'date') { 
         $TABLE->filterDate(true, isset($HOW_MANY_DAYS) ? $HOW_MANY_DAYS : 30, isset($FILTER_COLUMN) ? $FILTER_COLUMN : 'creation'); 
     }
 
