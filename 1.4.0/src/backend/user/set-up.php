@@ -18,6 +18,10 @@
     $USER_FILTER->area = "backend";
     $USER_FILTER->authority = "";
 
+    if (!in_array('admin', $USER->authority)) {
+        $QUERY_CUSTOM = "`authority` NOT LIKE '%\"admin\"%'";
+    }
+
     $FILTER_TYPE = 'limit';
 
     $BUTTON_ADD = true;
@@ -78,6 +82,4 @@
         ]
     ];
 
-    $FILTER_SEARCH = ['username', 'name', 'surname', 'email'];
-
-?>
+    $FILTER_SEARCH = [ 'username', 'name', 'surname', 'email' ];
