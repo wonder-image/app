@@ -3,15 +3,13 @@
     namespace Wonder\Backend\Table;
     
     use Wonder\Sql\Query;
+    use Wonder\Backend\Filter\FilterDate;
+    use Wonder\Backend\Filter\FilterCustom;
 
     /**
      * 
      * Funzioni esterne utilizzate:
-     *  - translateDate
      *  - sqlTableInfo
-     *  - select ( input )
-     *  - check ( input )
-     *  - checkTree ( input )
      * 
      */
     class Table {
@@ -321,134 +319,11 @@
 
             if ($this->filterDate['visible']) {
 
-               # Valori da tenere in considerazione 
-                    $QUERY_URL = '';
-                    $QUERY_INPUT = '';
+                $FILTER = new FilterDate( $this->table, $this->mysqli, $this->filterDate['days'], $this->filterDate['column'], $this->getFromUrl('filter_custom'));
 
-                    foreach ($this->getFromUrl('filter_custom') as $key => $value) {
-                        $QUERY_URL .= '&'.$key.'='.$value.'';
-                        $QUERY_INPUT .= '<input type="hidden" name="'.$key.'" value="'.$value.'">'; 
-                    }
-
-                #
-
-                $fromName = 'date_from';
-                $toName = 'date_to';
-
-                $monthName = 'month';
-                $yearName = 'year';
-
-                $from = isset($_GET[$fromName]) ? $_GET[$fromName] : '';
-                $to = isset($_GET[$toName]) ? $_GET[$toName] : '';
-
-                $tableCreation = $this->SQL->Select($this->table, null, 1, $this->filterDate['column'], 'ASC')->row[$this->filterDate['column']];
-
-                # Creo i bottoni mesi
-                    
-                    $firstDate = new DateTime($tableCreation);
-                    $firstDate = $firstDate->modify('-1 month');
-                    $lastDate = new DateTime('now');
-
-                    $im = 1;
-
-                    $BUTTONS_MONTH = "";
-                    $OTHER_BUTTONS_MONTH = "";
-
-                    while ($lastDate >= $firstDate) {
-
-                        $month = $lastDate->format('F');
-                        $year = $lastDate->format('Y');
-
-                        $mese = translateDate("01-$month-$year", 'month');
-
-                        if (isset($_GET[$monthName]) && isset($_GET[$yearName]) && $month == $_GET[$monthName] && $year == $_GET[$yearName]) {
-
-                            $outline = "";
-                            $active = "active";
-
-                            $from = $lastDate->format('01/m/Y');
-                            $to = $lastDate->format('t/m/Y');
-
-                            $this->titleValue = ucwords($this->text['titleP'])." di $mese ".$year;
-
-                        } else {
-
-                            $outline = "-outline";
-                            $active = "";
-
-                        }
-
-                        if ($im < 5) {
-                            $BUTTONS_MONTH .= '<a href="?'.$monthName.'='.$month.'&'.$yearName.'='.$year.''.$QUERY_URL.'" class="btn btn'.$outline.'-dark btn-sm col" tabindex="-1" role="button"> '.$mese.' '.$year.' </a>';
-                        } else {
-                            $OTHER_BUTTONS_MONTH .= '<a href="?'.$monthName.'='.$month.'&'.$yearName.'='.$year.''.$QUERY_URL.'" class="dropdown-item '.$active.'"> '.$mese.' '.$year.' </a>';
-                        }
-                        
-                        $im++;
-
-                        $lastDate = $lastDate->modify('-1 month');
-
-                    }
-
-                    if (!empty($OTHER_BUTTONS_MONTH)) {
-                            
-                        $BUTTONS_MONTH .= '<div class="dropdown col p-0">';
-                        $BUTTONS_MONTH .= '<button type="button" class="btn btn-outline-dark btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Altro </button>';
-                        $BUTTONS_MONTH .= '<div class="dropdown-menu">';
-                        $BUTTONS_MONTH .= $OTHER_BUTTONS_MONTH;
-                        $BUTTONS_MONTH .= '</div>';
-                        $BUTTONS_MONTH .= '</div>';
-
-                    }
-
-                    if (empty($from) && empty($to)) {
-
-                        $DAYS = $this->filterDate['days'];
-
-                        $date = new DateTime('now');
-
-                        $from = $date->modify('-'.$DAYS.' month')->format('d/m/Y');
-                        $to = $date->format('d/m/Y');
-
-                        if ($DAYS == 0) {
-                            $this->titleValue = ucwords($this->text['titleP'])." di oggi";
-                        } else {
-                            $this->titleValue = ucwords($this->text['titleP'])." ultimi $DAYS giorni";
-                        }
-
-                    }
-                        
-                    $this->titleValue = empty($this->titleValue) ? ucwords($this->text['titleP'])." dal $from al $to" : $this->titleValue;
-
-                    $RETURN .= '<div class="col-5">';
-                    $RETURN .= '<form action="" method="get" onsubmit="loadingSpinner()">';
-                    $RETURN .= '<div class="input-group input-group-sm input-daterange" data-wi-date-range="true">';
-                    $RETURN .= '<span class="input-group-text">Da</span>';
-                    $RETURN .= '<input type="text" class="form-control bg-transparent" name="'.$fromName.'" value="'.$from.'" readonly>';
-                    $RETURN .= '<span class="input-group-text">A</span>';
-                    $RETURN .= '<input type="text" class="form-control bg-transparent" name="'.$toName.'" value="'.$to.'" readonly>';
-                    $RETURN .= '<button type="submit" class="btn btn-dark"> <i class="bi bi-search"></i> Cerca </button>';
-                    $RETURN .= '</div>';
-                    $RETURN .= '</form>';
-                    $RETURN .= '</div>';
-                    $RETURN .= '<div class="col-12">';
-                    $RETURN .= '<span>Filtra per mese:</span>';
-                    $RETURN .= '<div class="container mt-1" style="max-width: 100%;">';
-                    $RETURN .= '<div class="row row-cols-auto gap-2">';
-                    $RETURN .= $BUTTONS_MONTH;
-                    $RETURN .= '</div>';
-                    $RETURN .= '</div>';
-                    $RETURN .= '</div>';
-
-                # Creo la query
-                    
-                    list($day,$month,$year) = explode("/", $from);
-                    $fromSQL = "$year-$month-$day";
-                    list($day,$month,$year) = explode("/", $to);
-                    $toSQL = "$year-$month-$day";
-
-                    $query = "`".$this->filterDate['column']."` BETWEEN '".$fromSQL." 00:00:00' AND '".$toSQL." 23:59:59' ";
-                    $this->queryFilter .= empty($this->queryFilter) ? $query : 'AND '.$query;
+                $RETURN = $FILTER->filter;
+                $this->titleValue = ucwords($this->text['titleP']).' '.$FILTER->title;
+                $this->queryFilter .= empty($this->queryFilter) ? $FILTER->query : $this->queryFilter.'AND '.$FILTER->query;
 
             }
 
@@ -460,112 +335,18 @@
 
             $FILTER_HTML = '';
             $FILTER_BUTTON_HTML = '';
-            $FILTER_USED = 0;
 
             if (!empty($this->filterCustom)) {
 
-                $FILTER_HTML .= '<div id="'.$this->id['filter_container'].'" class="col-12 collapse border-top border-bottom">';
-                $FILTER_HTML .= '<form action="" method="get" onsubmit="loadingSpinner()" class="my-3">';
-                $FILTER_HTML .= '<div class="col-12">';
-                $FILTER_HTML .= '<div class="container p-0" style="max-width: 100%;">';
-                $FILTER_HTML .= '<div class="row g-3">';
+                $FILTER = new FilterCustom( $this->table, $this->mysqli, $this->filterCustom, true, $this->getFromUrl('filter_date') );
 
-               # Valori da tenere in considerazione
-                    foreach ($this->getFromUrl('filter_date') as $key => $value) { 
-                        $FILTER_HTML .= '<input type="hidden" name="'.$key.'" value="'.$value.'">'; 
-                    }
-
-                #
-
-                foreach ($this->filterCustom as $key => $options) {
-
-                    $FILTER_HTML .= '<div class="col-3">';
-
-                    $columnName = $options['column'];
-                    $name = $this->createId($columnName);
-                    $inputType = $options['input'];
-                    $columnType = $options['column_type'];
-                    $value = isset($_GET[$name]) ? $_GET[$name] : null;
-
-                    if ($inputType == 'select') {
-                        $FILTER_HTML .= select($options['label'], $name, $options['array'], 'old', null, $value);
-                    } else if ($inputType == 'checkbox') {
-                        $FILTER_HTML .= check($options['label'], $name, $options['array'], null, 'checkbox', $options['search'], $value);
-                    } else if ($inputType == 'radio') {
-                        $FILTER_HTML .= check($options['label'], $name, $options['array'], null, 'radio', $options['search'], $value);
-                    } else if ($inputType == 'tree') {
-                        $FILTER_HTML .= checkTree($options['label'], $name, $options['array'], null, 'checkbox', true, $value);
-                    }
-
-                    $FILTER_HTML .= '</div>';
-
-                    # Creo la query 
-                        if ($value != null) {
-                            
-                            if (($inputType == "checkbox" || $inputType == "tree") && is_array($value)) {
-
-                                unset($value[0]); # Elimino il primo valore perchè negli input checkbox il primo valore è un input:hidden
-
-                                if ($columnType == "multiple") {
-
-                                    $query = "";
-
-                                    foreach ($value as $key => $v) { $query .= "`$columnName` LIKE '%\"$v\"%' OR "; }
-
-                                    $query = substr($query, 0, -4);
-
-                                } else {
-
-                                    $query = "`$columnName` IN (";
-
-                                    foreach ($value as $key => $v) { $query .= "'$v', "; }
-                                    
-                                    $query = substr($query, 0, -2);
-                                    $query .= ") ";
-
-                                }
-                                
-
-                            } else {
-
-                                if ($columnType == "multiple") {
-
-                                    $query = "`$columnName` LIKE '%\"$value\"%'";
-
-                                } else {
-
-                                    $query = "`$columnName` = '$value'";
-
-                                }
-
-                            }
-
-                            $this->queryFilter .= empty($this->queryFilter) ? $query : 'AND '.$query;
-                            $FILTER_USED++;
-
-                        }
-
-                    #
-
-                }
-
-                $FILTER_HTML .= '<div class="col-3">';
-                $FILTER_HTML .= '<button type="submit" class="btn btn-dark btn-sm"> <i class="bi bi-search"></i> Applica filtri </button>';
-                $FILTER_HTML .= '</div>';
-
-                $FILTER_HTML .= '</div>';
-                $FILTER_HTML .= '</div>';
-                $FILTER_HTML .= '</div>';
-                $FILTER_HTML .= '</form>';
-                $FILTER_HTML .= '</div>';
+                $FILTER_HTML = $FILTER->filter;
+                $this->queryFilter .= empty($this->queryFilter) ? $FILTER->query : $this->queryFilter.'AND '.$FILTER->query;
 
                 $class = ($this->filterSearch['visible']) ? 'pe-0' : 'me-auto';
 
                 $FILTER_BUTTON_HTML .= '<div class="col-auto '.$class.'">';
-                $FILTER_BUTTON_HTML .= '<button type="button" class="position-relative btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#'.$this->id['filter_container'].'" aria-expanded="false">';
-                $FILTER_BUTTON_HTML .= '<i class="bi bi-filter"></i> Filtri';
-                $FILTER_BUTTON_HTML .= ($FILTER_USED > 0) ? '<span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-primary" style="--bs-badge-font-size: 0.7em;">'.$FILTER_USED.' <span class="visually-hidden">unread messages</span></span>' : '';
-                $FILTER_BUTTON_HTML .= '</button>';
+                $FILTER_BUTTON_HTML .=  $FILTER->button;
                 $FILTER_BUTTON_HTML .= '</div>';
                 
             }
