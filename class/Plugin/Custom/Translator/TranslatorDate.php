@@ -2,7 +2,7 @@
 
     namespace Wonder\Plugin\Custom\Translator;
 
-    class Date {
+    class TranslatorDate {
 
         public function Day( $date ) {
 

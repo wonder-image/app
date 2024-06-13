@@ -2,7 +2,7 @@
 
     function translateDate($date, $format) {
 
-        $TRANSLATOR = new Wonder\Plugin\Custom\Translator\Date;
+        $TRANSLATOR = new Wonder\Plugin\Custom\Translator\TranslatorDate;
 
         if ($format == 'day') { return $TRANSLATOR->Day( $date ); }
         if ($format == 'month') { return $TRANSLATOR->Month( $date ); }

@@ -2,7 +2,7 @@
 
     namespace Wonder\Plugin\Custom;
 
-    use Wonder\Plugin\Custom\Translator\Date;
+    use Wonder\Plugin\Custom\Translator\TranslatorDate;
 
     class Prettify {
 
@@ -28,7 +28,7 @@
 
         public function Date( $date, $hours = false ) {
 
-            $month = new Date();
+            $month = new TranslatorDate();
 
             $RETURN = date("d", strtotime($date)).' '.$month->Month($date).' '.date("Y", strtotime($date));
             $RETURN .= $hours ? ' alle '.date("H:i", strtotime($date)) : '';
