@@ -88,8 +88,8 @@
         $PARAMS[$NAME->table.'__search'] = urlencode($_POST['search']['value']);
 
         if (isset($_POST['order'])) {
-            $PARAMS['wi-order'] = $_POST['order'][0]['name'];
-            $PARAMS['wi-order-dir'] = $_POST['order'][0]['dir'];
+            $PARAMS[$NAME->table.'__order'] = $_POST['order'][0]['name'];
+            $PARAMS[$NAME->table.'__order_dir'] = $_POST['order'][0]['dir'];
         }
 
         $URL_PARTS['query'] = http_build_query($PARAMS);
