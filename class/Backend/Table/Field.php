@@ -3,11 +3,13 @@
     namespace Wonder\Backend\Table;
 
     use Wonder\Plugin\Custom\Prettify;
+    use DateTime;
     
     class Field {
 
         private $table;
-        private $customLink;
+        private $customLinkOriginal; # Link custom originali
+        private $customLink; # Link custom modificati per ogni linea
         private $link;
         private $text;
         private $user;
@@ -35,7 +37,7 @@
 
         public function __construct(object $TABLE, object $PATH, object $TEXT, object $USER, object $PAGE) { 
 
-            $this->table = (object) array();
+            $this->table = (object) [];
             $this->table->id = $TABLE->id;
             $this->table->name = $TABLE->table;
             $this->table->connection = $TABLE->connection;
@@ -44,16 +46,17 @@
             $this->table->page = $TABLE->page;
             $this->table->length = $TABLE->length;
 
-            $this->customLink = (object) array();
-            foreach ($TABLE->link as $key => $link) { $this->customLink->$key = $link; }
+            $this->customLink = (object) [];
+            $this->customLinkOriginal = (object) [];
+            foreach ($TABLE->link as $key => $link) { $this->customLinkOriginal->$key = $link; }
 
-            $this->link = (object) array();
+            $this->link = (object) [];
             $this->link->site = $PATH->site;
             $this->link->backend = $PATH->backend;
             $this->link->app = $PATH->app;
             $this->link->api = $PATH->api;
 
-            $this->text = (object) array();
+            $this->text = (object) [];
             $this->text->titleS = $TEXT->titleS;
             $this->text->titleP = $TEXT->titleP;
             $this->text->last = $TEXT->last;
@@ -63,7 +66,7 @@
             $this->text->empty = $TEXT->empty;
             $this->text->this = $TEXT->this;
 
-            $this->user = (object) array();
+            $this->user = (object) [];
             $this->user->area = $USER->area;
             $this->user->authority = $USER->authority;
 
@@ -85,11 +88,9 @@
 
             $this->rowId = $row['id'];
 
-            foreach ($this->customLink as $key => $link) {
+            foreach ($this->customLinkOriginal as $key => $link) {
                 
                 $link = str_replace('{redirectBase64}', $this->redirectBase64, $link);
-                $link = str_replace('{rowId}', $this->rowId, $link);
-
                 $link = str_replace('{rowId}', $this->rowId, $link);
 
                 $this->customLink->$key = $link;
@@ -629,7 +630,8 @@
                     
                     } else if ($type == 'date') {
 
-                        $VALUE = date('d/m/Y', strtotime($VALUE));
+                        $date = new DateTime($VALUE);
+                        $VALUE = $date->format('d/m/Y');
 
                     }
 
