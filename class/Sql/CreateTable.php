@@ -9,7 +9,7 @@
 
         public object $mysqli;
 
-        public string $ENGINE = "MyISAM";
+        public string $ENGINE = "InnoDB";
         public string $CHARSET = "latin1";
         public string $DEFAULT_TYPE = "VARCHAR";
         public string $DEFAULT_NULL = "NOT NULL";
