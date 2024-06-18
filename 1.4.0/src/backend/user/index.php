@@ -28,7 +28,7 @@
         $REDIRECT = "$PATH->backend/$NAME->folder/list.php";
     }
 
-    if (isset($_POST['upload'])) {
+    if (isset($_POST['upload']) || isset($_POST['upload-add'])) {
 
         if (isset($_GET['modify'])) {
             $MODIFY_ID = $_GET['modify'];
