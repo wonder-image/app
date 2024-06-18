@@ -19,6 +19,8 @@
         private $rowId;
         private $column;
 
+        private $function; # Cache per ogni funzione chiamata ( Ogni nuova riga viene inizializzata )
+
         private $redirect;        
         private $redirectBase64;
 
@@ -82,7 +84,14 @@
             $this->row = $row;
             $this->column = $column;
 
-            if ($this->rowId != $row['id']) { $this->line++; }
+            # Se cambia la linea
+            if ($this->rowId != $row['id']) { 
+
+                $this->line++; 
+            
+                $this->function = [];
+
+            }
 
             if ($this->line == 1) { $this->line = $this->line + ($this->table->page * $this->table->length); }
 
@@ -553,25 +562,46 @@
 
                     } else {
 
-                        $args = [];
+                        # Controllo se è già stata chiamata questa funzione con gli stessi parametri così da non chiamarla due volte
 
-                        if (is_array($functionParameter)) {
-                            foreach ($functionParameter as $parameter) {
-                                if (isset($this->row[$parameter])) {
-                                    array_push($args, $this->row[$parameter]);
-                                } else {
-                                    array_push($args, $parameter);
-                                }
+                        if (isset($this->function[$functionName]) && $this->function[$functionName]['parameter'] == $functionParameter) {
+                            
+                            if (isset($format['function']['return']) && !empty($format['function']['return'])) {
+                                $functionReturn = $format['function']['return'];
+                                $VALUE = $this->function[$functionName]['return']->$functionReturn;
+                            } else {
+                                $VALUE = $this->function[$functionName]['return'];
                             }
-                        } else {
-                            array_push($args, $this->row[$functionParameter]);
-                        }
 
-                        if (isset($format['function']['return']) && !empty($format['function']['return'])) {
-                            $functionReturn = $format['function']['return'];
-                            $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
                         } else {
-                            $VALUE = call_user_func_array($functionName, $args);
+                            
+                            $args = [];
+
+                            if (is_array($functionParameter)) {
+                                foreach ($functionParameter as $parameter) {
+                                    if (isset($this->row[$parameter])) {
+                                        array_push($args, $this->row[$parameter]);
+                                    } else {
+                                        array_push($args, $parameter);
+                                    }
+                                }
+                            } else {
+                                array_push($args, $this->row[$functionParameter]);
+                            }
+
+                            $return = call_user_func_array($functionName, $args);
+
+                            if (isset($format['function']['return']) && !empty($format['function']['return'])) {
+                                $functionReturn = $format['function']['return'];
+                                $VALUE = $return->$functionReturn;
+                            } else {
+                                $VALUE = $return;
+                            }
+
+                            $this->function[$functionName] = [];
+                            $this->function[$functionName]['parameter'] = $functionParameter;
+                            $this->function[$functionName]['return'] = $return;
+
                         }
 
                     }
