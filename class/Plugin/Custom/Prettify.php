@@ -11,11 +11,18 @@
             if (!empty($number)) {
             
                 $number = str_replace(" ", "", $number);
+                $numberLenght = strlen($number);
+                $first = '';
     
                 if (substr($number, 0, 1) == '+') {
-                    return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 3).' '.substr($number, 9, 4);
+                    $first = substr($number, 0, 3);
+                    $number = substr($number, 3, $numberLenght);
+                }
+    
+                if (substr($number, 0, 1) == '0') {
+                    return $first.' '.substr($number, 0, 4).' '.substr($number, 4, 6);
                 } else {
-                    return substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
+                    return $first.' '.substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
                 }
     
             } else {
