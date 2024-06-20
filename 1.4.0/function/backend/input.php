@@ -10,7 +10,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -31,7 +31,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -52,7 +52,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -72,7 +72,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -92,7 +92,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -115,7 +115,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d', strtotime($VALUES[$name])); }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -155,7 +155,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = date('d/m/Y', strtotime($VALUES[$name])); }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
         $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
@@ -220,7 +220,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $color = !empty($value) ? "style='color: $value;'" : '';
 
@@ -243,7 +243,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -263,7 +263,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
         <div class='form-floating'>
@@ -336,7 +336,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         if ($version != null) {
             
@@ -375,7 +375,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
         
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $optionHTML = "";
 
@@ -507,7 +507,7 @@
             $value = ($type == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { 
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
 
             $label .= "*"; 
             $attribute = str_replace('required', '', $attribute);
@@ -555,7 +555,7 @@
             $value = ($type == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { 
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
 
             $label .= "*"; 
             $attribute = str_replace('required', '', $attribute);
@@ -603,7 +603,7 @@
             $value = ($type == 'checkbox') ? $VALUES[$name] : json_encode([$VALUES[$name]]);
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { 
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
 
             $label .= "*"; 
             $attribute = str_replace('required', '', $attribute);
@@ -650,7 +650,7 @@
             $value = $VALUES[$name];
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { 
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
 
             $label .= "*"; 
             $attribute = str_replace('required', '', $attribute);
@@ -685,7 +685,7 @@
             $value = $VALUES[$name];
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false) { 
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
 
             $label .= "*"; 
             $attribute = str_replace('required', '', $attribute);
@@ -743,7 +743,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $TABLE_NAME = strtoupper($NAME->table);
         $PAGE_TABLE = $TABLE->$TABLE_NAME;
@@ -919,7 +919,7 @@
         $class = "w-100";
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $TABLE_NAME = strtoupper($NAME->table);
         $PAGE_TABLE = $TABLE->$TABLE_NAME;
