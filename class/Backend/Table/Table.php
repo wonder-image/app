@@ -98,10 +98,10 @@
             ];
 
 
-        function __construct( $table, $mysqli ) {
+        function __construct( $table, $connection ) {
 
             $this->table = $table;
-            $this->mysqli = $mysqli;
+            $this->mysqli = $connection;
 
             $this->SQL = new Query( $this->mysqli );
             $this->database = $this->SQL->GetDatabase();
@@ -159,7 +159,7 @@
         public function addLink( $key, $link ) { $this->link[$key] = $link; }
 
         public function query( string $query ) { $this->queryCustom = $query; }
-        public function queryOrder( string $column, string $direction, string $columnWhenFilterIsActive = null, string $directionWhenFilterIsActive = null ) { 
+        public function queryOrder( string $column, string $direction = 'DESC', string $columnWhenFilterIsActive = null, string $directionWhenFilterIsActive = null ) { 
 
             $this->orderColumn = $column; 
             $this->orderDirection = $direction;
