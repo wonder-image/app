@@ -235,7 +235,7 @@
          * @param int string $width = 
          * @return void
          */
-        public function addColumn( $label, $column, bool $orderable = false, $class = '', $hiddenDevice = '', $width = 'auto', $other = []) {
+        public function addColumn( $label, $column, bool $orderable = false, $class = '', $hiddenDevice = null, $width = null, $format = []) {
 
             if (empty($hiddenDevice)) {
                 $class .= ' all';
@@ -265,7 +265,7 @@
                 'className' => $class,
                 'width' => $width,
                 'searchable' => false,
-                'other' => $other
+                'other' => $format
             ]);
 
             $this->columnId++;
