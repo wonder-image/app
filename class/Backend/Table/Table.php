@@ -12,6 +12,18 @@
      *  - sqlTableInfo
      * 
      */
+
+    /**
+     * Creazione tabelle dinamiche
+     * 
+     * La classe Table viene utilizzata per la creazione di tabelle dinamiche. Utilizza la libreria {@link https://datatables.net/ DataTables}.
+     * 
+     * @author andreamarinoni <marinoni@wonderimage.it>
+     * @copyright 2024 andreamarinoni
+     * @license MIT
+     * 
+     */
+
     class Table {
 
         # Connessione alla tabella
@@ -98,7 +110,14 @@
             ];
 
 
-        function __construct( $table, $connection ) {
+        /**
+         * Summary of __construct
+         * 
+         * @param string $table Nome della tabella
+         * @param object $connection Connessione al database che ospita la tabella. {@see \Wonder\Sql\Connection}
+         * 
+         */
+        function __construct( string $table, object $connection ) {
 
             $this->table = $table;
             $this->mysqli = $connection;

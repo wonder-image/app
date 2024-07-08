@@ -15,5 +15,5 @@ composer dumpautoload
 ## phpDocumentor
 
 ```
-phpDocumentor run -d . -t docs/class
+phpDocumentor run -d ./class -t docs/class
 ```

@@ -4,6 +4,15 @@
 
     use Exception;
     
+    /**
+     * Creazione degli errori Sql
+     * 
+     * @author andreamarinoni <marinoni@wonderimage.it>
+     * @copyright 2024 andreamarinoni
+     * @license MIT
+     * 
+     */
+    
     class Error {
 
         public function __construct ( $action, $table, $query, $mysqli ) {

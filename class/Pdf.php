@@ -4,6 +4,17 @@
 
     use Fpdf\Fpdf;
 
+    /**
+     * Creazione PDF
+     * 
+     * Utilizza la libreria {@link http://www.fpdf.org/ FPDF}
+     * 
+     * @author andreamarinoni <marinoni@wonderimage.it>
+     * @copyright 2024 andreamarinoni
+     * @license MIT
+     * 
+     */
+
     class Pdf extends Fpdf {
 
         private $FONT = "";
