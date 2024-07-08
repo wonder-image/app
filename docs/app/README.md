@@ -13,4 +13,6 @@ composer update wonder-image/app
 composer dump-autoload
 ```
 
-Eseguita l'installazione segui i comandi descritti nella documentazione [https://github.com/wonder-image/new](https://github.com/wonder-image/new)
+Eseguita l'installazione segui la documentazione [https://github.com/wonder-image/new](https://github.com/wonder-image/new)
+
+<table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td>Frontend</td><td></td><td></td><td></td></tr><tr><td>Backend</td><td></td><td></td><td><a href="broken-reference">Broken link</a></td></tr><tr><td>Specifiche</td><td></td><td></td><td><a href="broken-reference">Broken link</a></td></tr></tbody></table>
