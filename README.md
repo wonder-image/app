@@ -2,5 +2,5 @@
 
 Documentazione:
 
-* [App](docs/app/README.md)
+* [App](https://wonder-image.gitbook.io/wonder-image-app)
 * [Classi](./docs/class/)
