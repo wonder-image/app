@@ -1,14 +1,17 @@
 # Table of contents
 
-* [Page](README.md)
+* [App 1.4.0](README.md)
 
 ## BACKEND
 
 * [Classi](backend/classi/README.md)
-  * [Table](backend/classi/table.md)
+  * [Table](../backend/classi/table.md)
 
-## VARIABILI
+## SPECIFICHE
 
-* [Variabili](variabili/variabili/README.md)
-  * [Classe Table](variabili/variabili/classe-table/README.md)
-    * [hiddenDevice](variabili/variabili/classe-table/hiddendevice.md)
+* [Variabili](specifiche/variabili/README.md)
+  * [Classe Table](specifiche/variabili/classe-table/README.md)
+    * [addColumn](specifiche/variabili/classe-table/addcolumn/README.md)
+      * [hiddenDevice](specifiche/variabili/classe-table/addcolumn/hiddendevice.md)
+      * [width](specifiche/variabili/classe-table/addcolumn/width.md)
+      * [format](specifiche/variabili/classe-table/addcolumn/format.md)
