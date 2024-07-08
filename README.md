@@ -2,5 +2,5 @@
 
 Documentazione:
 
-* [App](https://wonder-image.gitbook.io/wonder-image-app)
+* [App](https://wonder-image.gitbook.io/app)
 * [Classi](./docs/class/)
