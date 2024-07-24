@@ -21,11 +21,11 @@
         $FILE_TXT .= "</IfModule>\n";
         $FILE_TXT .= "\n";
         $FILE_TXT .= "## Redirect Error\n";
-        $FILE_TXT .= "ErrorDocument 400 /error/?err=400\n";
-        $FILE_TXT .= "ErrorDocument 401 /error/?err=401\n";
-        $FILE_TXT .= "ErrorDocument 403 /error/?err=403\n";
-        $FILE_TXT .= "ErrorDocument 404 /error/?err=404\n";
-        $FILE_TXT .= "ErrorDocument 500 /error/?err=500\n";
+        $FILE_TXT .= "ErrorDocument 400 /?errCode=400\n";
+        $FILE_TXT .= "ErrorDocument 401 /?errCode=401\n";
+        $FILE_TXT .= "ErrorDocument 403 /?errCode=403\n";
+        $FILE_TXT .= "ErrorDocument 404 /?errCode=404\n";
+        $FILE_TXT .= "ErrorDocument 500 /?errCode=500\n";
 
         fwrite($FILE, $FILE_TXT);
         fclose($FILE);

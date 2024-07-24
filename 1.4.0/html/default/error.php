@@ -1,6 +1,6 @@
 <?php
     
-    $ERROR = $_GET['err'];
+    $ERROR = $_GET['errCode'];
     http_response_code($ERROR);
 
 ?>
