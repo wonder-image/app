@@ -15,6 +15,12 @@ Per l'installazione del progetto [`wonder-image/new`](https://github.com/wonder-
 composer create-project wonder-image/new project-name
 ```
 
+***
+
+## Configurazione
+
+Una volta effettuata l'installazione è necessario proseguire con la configurazione come segue.
+
 ### .env
 
 Personalizza il file .env con i dettagli del progetto
