@@ -26,6 +26,9 @@
         $FILE_TXT .= "ErrorDocument 403 /?errCode=403\n";
         $FILE_TXT .= "ErrorDocument 404 /?errCode=404\n";
         $FILE_TXT .= "ErrorDocument 500 /?errCode=500\n";
+        $FILE_TXT .= "\n";
+        $FILE_TXT .= "## Redirect Update\n";
+        $FILE_TXT .= "Redirect /update/ /?updateApp=true\n";
 
         fwrite($FILE, $FILE_TXT);
         fclose($FILE);

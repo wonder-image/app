@@ -49,3 +49,11 @@
             exit;
             
         }
+
+    # Se bisogna aggiornare l'app
+        if (isset($_GET['updateApp']) && !empty($_GET['updateApp'])) {
+
+            require_once $ROOT_APP."/html/default/update.php";
+            exit;
+            
+        }
