@@ -221,6 +221,7 @@
 
             if ($upper == true) {
 
+                $str = strip_tags($str);
                 $str = html_entity_decode(strtolower($str), ENT_QUOTES | ENT_HTML5);
 
                 $str = str_replace('à', 'À', $str);
@@ -233,6 +234,7 @@
 
             } else {
 
+                $str = strip_tags($str);
                 $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5);
 
             }
