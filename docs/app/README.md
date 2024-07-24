@@ -1,16 +1,9 @@
 # App 1.4.0
 
-Questa applicazione deve essere utilizzata insieme alla repository `wonder-image/new`
+Questa applicazione deve essere utilizzata insieme al progetto `wonder-image/new`
 
 ```
-gh repo clone wonder-image/new
-```
-
-Successivamente all'installazione è necessario installare il pachetto `wonder-image/app` tramite [composer](https://getcomposer.org/) con i seguenti comandi
-
-```
-composer update wonder-image/app
-composer dump-autoload
+composer create-project wonder-image/new project-name
 ```
 
 Eseguita l'installazione segui la documentazione [https://github.com/wonder-image/new](https://github.com/wonder-image/new)
