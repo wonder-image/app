@@ -239,7 +239,7 @@
 
             }
 
-            $str = iconv('UTF-8', 'windows-1252', $str);
+            $str = iconv('UTF-8', 'windows-1252//IGNORE', $str);
 
         }
         
