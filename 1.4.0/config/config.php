@@ -1,5 +1,7 @@
 <?php
 
+    use Wonder\App\Credentials;
+
     require_once $ROOT_APP."/config/env.php";
     require_once $ROOT_APP."/config/array.php";
     require_once $ROOT_APP."/config/session.php";
@@ -10,38 +12,15 @@
     # Configurazioni CUSTOM
     require_once $ROOT."/custom/config/config.php";
 
+    # Api
+        $API->endpoint = Credentials::api()->endpoint;
+        $API->key = Credentials::api()->key;
+
     # Database
-        $DB->hostname = $_ENV['DB_HOSTNAME'];
-        $DB->username = $_ENV['DB_USERNAME'];
-        $DB->password = $_ENV['DB_PASSWORD'];
-        $DB->database = explode(',', $_ENV['DB_DATABASE']);
-
-        # Trasformo in un array leggibile i dettagli passati dal file .env 
-            $DATABASE_ARRAY = [];
-                
-            if (count($DB->database) > 1) {
-
-                foreach ($DB->database as $k => $v) {
-                    
-                    $A_VALUES = explode(':', str_replace(' ', '', $v));
-                    $DATABASE_ARRAY[$A_VALUES[0]] = $A_VALUES[1];
-
-                }
-
-                $DB->database = $DATABASE_ARRAY;
-
-            } else {
-
-                $DATABASE = explode(':', str_replace(' ', '', $DB->database[0]));
-                $DATABASE_ARRAY['main'] = isset($DATABASE[1]) ? $DATABASE[1] : $DB->database[0];
-
-                $DB->database = $DATABASE_ARRAY;
-
-            }
-
-            $DB->database['information_schema'] = "INFORMATION_SCHEMA";
-
-        #
+        $DB->hostname = Credentials::database()->hostname;
+        $DB->username = Credentials::database()->username;
+        $DB->password = Credentials::database()->password;
+        $DB->database = Credentials::database()->database;
 
     # Email
         $MAIL->host = (isset($_ENV['MAIL_HOST']) && !empty($_ENV['MAIL_HOST'])) ? $_ENV['MAIL_HOST'] : "";
