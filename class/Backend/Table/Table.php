@@ -34,7 +34,7 @@
 
         # Creazione query
             private $query = "";
-            private $queryCustom = "";
+            private $queryCustom = "`deleted` = 'false'";
             private $queryFilter = "";
 
             private $orderColumn = "";
@@ -177,7 +177,7 @@
 
         public function addLink( $key, $link ) { $this->link[$key] = $link; }
 
-        public function query( string $query ) { $this->queryCustom = $query; }
+        public function query( string $query = "`deleted` = 'false'" ) { $this->queryCustom = $query; }
         public function queryOrder( string $column, string $direction = 'DESC', string $columnWhenFilterIsActive = null, string $directionWhenFilterIsActive = null ) { 
 
             $this->orderColumn = $column; 
