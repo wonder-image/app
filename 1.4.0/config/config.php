@@ -15,6 +15,7 @@
     # Api
         $API->endpoint = Credentials::api()->endpoint;
         $API->key = Credentials::api()->key;
+        $API->DataTables = $PATH->appApi."/backend/list/table.php";
 
     # Database
         $DB->hostname = Credentials::database()->hostname;
@@ -58,9 +59,6 @@
         $PATH->logoIcon = $PATH->upload."/logos/Logo-Icon.png";
         $PATH->favicon = $PATH->site."/favicon.ico";
         $PATH->appIcon = $PATH->upload."/logos/App-Icon.png";
-
-    # Api
-        $API->DataTables = $PATH->appApi."/backend/list/table.php";
         
     # Loghi backend
         $DEFAULT->BeLogoBlack = $PATH->app.'/assets/logos/Wonder-Image.png';
