@@ -19,8 +19,8 @@
     # Imposto la sessione con utente non definito se non è impostato
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }
         
-    $APP_VERSION = "1.4.0";
-    $LIB_VERSION = "1.5.5";
+    $APP_VERSION = "1.4.1";
+    $LIB_VERSION = "1.5.6";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
