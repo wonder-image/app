@@ -1,3 +1,3 @@
 <?php
 
-    copyDir($ROOT_APP.'/src/api/', $ROOT.'/api/');
+    copyDir($ROOT_APP.'/build/src/api/', $ROOT.'/api/');

@@ -5,9 +5,8 @@
     $PERMIT = [];
 
     $DIR = __DIR__;
-    $ROOT = str_replace("/api/task", "", $DIR);
+    $ROOT = str_replace("/api/task/stats", "", $DIR);
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    include $ROOT_APP."/generator/sitemap/runcrawl.php";
-
-?>
+    $FREQUENCY = "hourly";
+    require_once $ROOT_APP."/generator/stats/index.php";

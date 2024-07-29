@@ -1,3 +1,3 @@
 <?php
 
-    copyDir($ROOT_APP.'/src/backend/', $ROOT.'/backend/');
+    copyDir($ROOT_APP.'/build/src/backend/', $ROOT.'/backend/');

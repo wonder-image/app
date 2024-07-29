@@ -8,7 +8,5 @@
     $ROOT = str_replace("/api/task/stats", "", $DIR);
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    $FREQUENCY = "monthly";
+    $FREQUENCY = "daily";
     require_once $ROOT_APP."/generator/stats/index.php";
-
-?>
