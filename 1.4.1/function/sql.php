@@ -20,7 +20,10 @@
         $SQL->ENGINE = $ENGINE;
         $SQL->CHARSET = $CHARSET;
 
-        return $SQL->Table( $TABLE, $COLUMN );
+        $REAL_COLUMN = [];
+        foreach ($COLUMN as $key => $value) { $REAL_COLUMN[$key] = isset($value['sql']) ? $value['sql'] : []; }
+
+        return $SQL->Table( $TABLE, $REAL_COLUMN );
 
     }
 
