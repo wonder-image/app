@@ -71,6 +71,41 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Api-Call.html#property_cURL"
         },                {
+            "fqsen": "\\Wonder\\App\\Credentials",
+            "name": "Credentials",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html"
+        },                {
+            "fqsen": "\\Wonder\\App\\Credentials\u003A\u003AloadEnv\u0028\u0029",
+            "name": "loadEnv",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html#method_loadEnv"
+        },                {
+            "fqsen": "\\Wonder\\App\\Credentials\u003A\u003Adatabase\u0028\u0029",
+            "name": "database",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html#method_database"
+        },                {
+            "fqsen": "\\Wonder\\App\\Credentials\u003A\u003Aapi\u0028\u0029",
+            "name": "api",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html#method_api"
+        },                {
+            "fqsen": "\\Wonder\\App\\Credentials\u003A\u003A\u0024ENV",
+            "name": "ENV",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html#property_ENV"
+        },                {
+            "fqsen": "\\Wonder\\App\\Credentials\u003A\u003A\u0024DB",
+            "name": "DB",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html#property_DB"
+        },                {
+            "fqsen": "\\Wonder\\App\\Credentials\u003A\u003A\u0024API",
+            "name": "API",
+            "summary": "",
+            "url": "classes/Wonder-App-Credentials.html#property_API"
+        },                {
             "fqsen": "\\Wonder\\Backend\\Filter\\FilterCustom",
             "name": "FilterCustom",
             "summary": "Funzioni\u0020esterne\u0020utilizzate\u003A\n\u0020\u002D\u0020select\u0020\u0028\u0020input\u0020\u0029\n\u0020\u002D\u0020check\u0020\u0028\u0020input\u0020\u0029\n\u0020\u002D\u0020checkTree\u0020\u0028\u0020input\u0020\u0029",
@@ -1366,6 +1401,41 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Prettify.html#method_Address"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand",
+            "name": "Rand",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand\u003A\u003Ainit\u0028\u0029",
+            "name": "init",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html#method_init"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand\u003A\u003Agenerate\u0028\u0029",
+            "name": "generate",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html#method_generate"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand\u003A\u003A\u0024letter",
+            "name": "letter",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html#property_letter"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand\u003A\u003A\u0024number",
+            "name": "number",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html#property_number"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String\\Rand\u003A\u003A\u0024characters",
+            "name": "characters",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-String-Rand.html#property_characters"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Translator\\TranslatorDate",
             "name": "TranslatorDate",
             "summary": "",
@@ -2406,6 +2476,106 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-PayPal-Plugin.html#method_Address"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates",
+            "name": "Generates",
+            "summary": "Creazione\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetVersion\u0028\u0029",
+            "name": "setVersion",
+            "summary": "Versione\u0020del\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setVersion"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetEccLevel\u0028\u0029",
+            "name": "setEccLevel",
+            "summary": "Livello\u0020di\u0020correzione\u0020del\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setEccLevel"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetQuality\u0028\u0029",
+            "name": "setQuality",
+            "summary": "Qualit\u00E0\u0020del\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setQuality"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetQuietzone\u0028\u0029",
+            "name": "setQuietzone",
+            "summary": "Padding\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setQuietzone"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetColor\u0028\u0029",
+            "name": "setColor",
+            "summary": "Colore\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setColor"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetRounded\u0028\u0029",
+            "name": "setRounded",
+            "summary": "Arrotonda\u0020QRCode",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setRounded"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003AsetCircle\u0028\u0029",
+            "name": "setCircle",
+            "summary": "Disegna\u0020cerchi",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_setCircle"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003Agenerate\u0028\u0029",
+            "name": "generate",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#method_generate"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024data",
+            "name": "data",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_data"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024src",
+            "name": "src",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_src"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024version",
+            "name": "version",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_version"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024eccLevel",
+            "name": "eccLevel",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_eccLevel"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024quality",
+            "name": "quality",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_quality"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024quietzone",
+            "name": "quietzone",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_quietzone"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024color",
+            "name": "color",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_color"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024rounded",
+            "name": "rounded",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_rounded"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024circle",
+            "name": "circle",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_circle"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\QrCode\\Generates\u003A\u003A\u0024circleRadius",
+            "name": "circleRadius",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-QrCode-Generates.html#property_circleRadius"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\QrCode\\QRGdRounded",
             "name": "QRGdRounded",
             "summary": "",
@@ -2621,6 +2791,11 @@ Search.appendIndex(
             "summary": "",
             "url": "namespaces/wonder-api.html"
         },                {
+            "fqsen": "\\Wonder\\App",
+            "name": "App",
+            "summary": "",
+            "url": "namespaces/wonder-app.html"
+        },                {
             "fqsen": "\\Wonder\\Backend\\Filter",
             "name": "Filter",
             "summary": "",
@@ -2665,6 +2840,11 @@ Search.appendIndex(
             "name": "Plugin",
             "summary": "",
             "url": "namespaces/wonder-plugin.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\String",
+            "name": "String",
+            "summary": "",
+            "url": "namespaces/wonder-plugin-custom-string.html"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Translator",
             "name": "Translator",
