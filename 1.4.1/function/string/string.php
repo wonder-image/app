@@ -247,30 +247,11 @@
 
     }
 
-    function code($lenght, $type = 'all', $first = null){
+    function code($lenght = 10, $type = 'all', $prefix = null){
 
-        if($type == 'all'){
-            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        }
+        $code = new Wonder\Plugin\Custom\String\Rand($type);
 
-        if($type == 'numbers'){
-            $characters = '123456789';
-        }
-
-        if($type == 'letters'){
-            $characters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ';
-        }
-
-        $code = '';
-        for ($i = 0; $i < $lenght; $i++) {
-            $code .= $characters[rand(0, strlen($characters) - 1)];
-        }
-
-        if(!empty($first)){
-            $code = "$first$code";
-        }
-
-        return $code;
+        return $code::generate($lenght, $prefix);
 
     }
 

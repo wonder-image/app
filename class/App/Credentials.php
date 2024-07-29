@@ -6,6 +6,7 @@
 
     use Wonder\Sql\Connection;
     use Wonder\Sql\Query;
+    use Wonder\Plugin\Custom\String\Rand;
 
     class Credentials {
 
@@ -93,7 +94,7 @@
 
                 $query = new Query($connection->Connect());
 
-                self::$API->key = ($query->TableExists('security')) ? $query->Select('security', [ 'id' => 1 ], 1)->row['api_key'] : strtolower(code(5).'-'.code(5).'-'.code(5).'-'.code(5));
+                self::$API->key = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? $query->Select('security', [ 'id' => 1 ], 1)->row['api_key'] : strtolower(Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5));
 
             }
 
