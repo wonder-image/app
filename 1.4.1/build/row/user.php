@@ -1,6 +1,6 @@
 <?php
 
-    if (sqlSelect('user', ['username' => '@wonder'], 1)->Nrow == 0) {
+    if (!sqlSelect('user', ['username' => '@wonder'], 1)->exists) {
         
         $values = [
             "name" => sanitize($_ENV['USER_NAME']),
@@ -16,5 +16,3 @@
         sqlInsert('user', $values);
 
     }
-    
-?>

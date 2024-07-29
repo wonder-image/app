@@ -10,7 +10,7 @@
     $TABLE->SECURITY = [
         "api_key" => [
             "sql" => [
-                "lenght" => 23
+                "length" => 23
             ]
         ]
     ];

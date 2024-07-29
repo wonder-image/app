@@ -1,6 +1,6 @@
 <?php
 
-    if (sqlSelect('analytics', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('analytics', ['id' => 1], 1)->exists) {
             
         $values = [
             "tag_manager" => "",
@@ -14,7 +14,7 @@
     }
 
 
-    if (sqlSelect('security', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('security', ['id' => 1], 1)->exists) {
             
         $values = [
             "api_key" => $API->key

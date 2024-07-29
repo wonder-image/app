@@ -1,6 +1,6 @@
 <?php
 
-    if (sqlSelect('society', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('society', ['id' => 1], 1)->exists) {
         
         sqlInsert('society', []);
         sqlInsert('society_address', []);
@@ -9,5 +9,3 @@
         sqlInsert('logos', []);
 
     }
-
-?>

@@ -1,6 +1,6 @@
 <?php
 
-    if (sqlSelect('css_default', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('css_default', ['id' => 1], 1)->exists) {
                     
         $values = [
             "font_id" => 1,
@@ -52,7 +52,7 @@
         $link = sanitize($value['link']);
         $fontFamily = sanitize($value['font-family']);
         
-        if (sqlSelect('css_font', ['name' => $name], 1)->Nrow == 0) {
+        if (!sqlSelect('css_font', ['name' => $name], 1)->exists) {
             
             $values = [
                 "name" => $name,
@@ -74,7 +74,7 @@
         $color = sanitize($value['color']);
         $contrast = sanitize($value['contrast']);
         
-        if (sqlSelect('css_color', ['var' => $var], 1)->Nrow == 0) {
+        if (!sqlSelect('css_color', ['var' => $var], 1)->exists) {
             
             $values = [
                 "var" => $var,
@@ -89,7 +89,7 @@
 
     }
 
-    if (sqlSelect('css_input', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('css_input', ['id' => 1], 1)->exists) {
                     
         $values = [
             "tx_color" => "#000000",
@@ -118,7 +118,7 @@
 
     }
 
-    if (sqlSelect('css_modal', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('css_modal', ['id' => 1], 1)->exists) {
                     
         $values = [
             "tx" => "#000000",
@@ -132,7 +132,7 @@
 
     }
 
-    if (sqlSelect('css_dropdown', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('css_dropdown', ['id' => 1], 1)->exists) {
                     
         $values = [
             "tx" => "#000000",
@@ -147,7 +147,7 @@
 
     }
 
-    if (sqlSelect('css_alert', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('css_alert', ['id' => 1], 1)->exists) {
                     
         $values = [
             "tx" => "var(--dark-color)",
@@ -162,5 +162,3 @@
         sqlInsert('css_alert', $values);
 
     }
-
-?>

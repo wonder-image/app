@@ -1,6 +1,6 @@
 <?php
 
-    if (sqlSelect('seo', ['id' => 1], 1)->Nrow == 0) {
+    if (!sqlSelect('seo', ['id' => 1], 1)->exists) {
             
         $values = [
             "author" => "Andrea Marinoni",
@@ -12,5 +12,3 @@
         sqlInsert('seo', $values);
 
     }
-
-?>

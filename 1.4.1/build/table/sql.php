@@ -5,7 +5,7 @@
         "table" => [],
         "query" => [
             "sql" => [ 
-                "lenght" => 10000 
+                "length" => 10000 
             ]
         ],
         "error_n" => [
@@ -15,9 +15,7 @@
         ],
         "error" => [
             "sql" => [
-                "lenght" => 10000
+                "length" => 10000
             ]
         ]
     ];
-
-?>

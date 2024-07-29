@@ -33,7 +33,7 @@
         "cap" => [
             "sql" => [
                 "type" => "int",
-                "lenght" => 5
+                "length" => 5
             ],
             "input" => [
                 "format" => [
@@ -61,7 +61,7 @@
         "legal_cap" => [
             "sql" => [
                 "type" => "int",
-                "lenght" => 5
+                "length" => 5
             ],
             "input" => [
                 "format" => [
@@ -202,5 +202,3 @@
             ]
         ],
     ];
-    
-?>

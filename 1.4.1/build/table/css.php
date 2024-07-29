@@ -120,5 +120,3 @@
         "border_width" => [],
         "border_radius" => []
     ];
-
-?>
