@@ -12,11 +12,6 @@
     # Configurazioni CUSTOM
     require_once $ROOT."/custom/config/config.php";
 
-    # Api
-        $API->endpoint = Credentials::api()->endpoint;
-        $API->key = Credentials::api()->key;
-        $API->DataTables = $PATH->appApi."/backend/list/table.php";
-
     # Database
         $DB->hostname = Credentials::database()->hostname;
         $DB->username = Credentials::database()->username;
@@ -64,6 +59,11 @@
         $DEFAULT->BeLogoBlack = $PATH->app.'/assets/logos/Wonder-Image.png';
         $DEFAULT->BeLogoWhite = $PATH->app.'/assets/logos/Wonder-Image-White.png';
         $DEFAULT->BeFavicon = 'https://www.wonderimage.it/favicon.ico';
+
+    # Api
+        $API->endpoint = Credentials::api()->endpoint;
+        $API->key = Credentials::api()->key;
+        $API->DataTables = $PATH->appApi."/backend/list/table.php";
 
     # Colori utenti
         $DEFAULT->colorUser = [
