@@ -1,6 +1,6 @@
 <?php
 
-    function sqlTable($TABLE, $COLUMN, $ENGINE = "MyISAM", $CHARSET = "latin1") {
+    function sqlTable($TABLE, $COLUMN, $ENGINE = "InnoDB", $CHARSET = "latin1") {
 
         global $mysqli;
         global $MYSQLI_CONNECTION;
@@ -17,6 +17,7 @@
         }
 
         $SQL = new Wonder\Sql\CreateTable($connection);
+        
         $SQL->ENGINE = $ENGINE;
         $SQL->CHARSET = $CHARSET;
 
