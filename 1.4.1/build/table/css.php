@@ -1,15 +1,43 @@
 <?php
 
+    $TABLE->CSS_FONT = [
+        "name" => [
+            "input" => [
+                "format" => [
+                    "unique" => true
+                ]
+            ]
+        ],
+        "link" => [],
+        "font_family" => [],
+        "visible" => []
+    ];
+
     $TABLE->CSS_DEFAULT = [
-        "font_id" => [],
+        "font_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "css_font"
+            ]
+        ],
         "font_weight" => [],
         "font_size" => [],
         "line_height" => [],
-        "title_big_font_id" => [],
+        "title_big_font_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "css_font"
+            ]
+        ],
         "title_big_font_weight" => [],
         "title_big_font_size" => [],
         "title_big_line_height" => [],
-        "title_font_id" => [],
+        "title_font_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "css_font"
+            ]
+        ],
         "title_font_weight" => [],
         "title_font_size" => [],
         "title_line_height" => [],
@@ -17,11 +45,21 @@
         "subtitle_font_weight" => [],
         "subtitle_font_size" => [],
         "subtitle_line_height" => [],
-        "text_font_id" => [],
+        "text_font_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "css_font"
+            ]
+        ],
         "text_font_weight" => [],
         "text_font_size" => [],
         "text_line_height" => [],
-        "text_small_font_id" => [],
+        "text_small_font_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "css_font"
+            ]
+        ],
         "text_small_font_weight" => [],
         "text_small_font_size" => [],
         "text_small_line_height" => [],
@@ -43,19 +81,6 @@
                 "default" => "80"
             ]
         ]
-    ];
-
-    $TABLE->CSS_FONT = [
-        "name" => [
-            "input" => [
-                "format" => [
-                    "unique" => true
-                ]
-            ]
-        ],
-        "link" => [],
-        "font_family" => [],
-        "visible" => []
     ];
 
     $TABLE->CSS_COLOR = [
