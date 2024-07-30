@@ -47,7 +47,7 @@ Configurare il file `.vscode/sftp.json` con le credenziali FTP per accedere al f
 
 ### Installa/Aggiorna
 
-Per iniziare a utilizzare il framework, una volta concluso l'upload di tutti i file tramite FTP è necessario andare su un browser a scelta e digitare `dominio.it/update/`. Tutte le volte che vengono create/modificate le tabelle per far si che la modifica sia effettiva bisogna andare su quel link.
+Per iniziare a utilizzare il framework, una volta concluso l'upload di tutti i file tramite FTP è necessario andare su un browser a scelta e digitare `dominio.it/`. Tutte le volte che vengono create/modificate le tabelle per far si che la modifica sia effettiva bisogna andare su `dominio.it/update/`.
 
 ### Personalizza
 
