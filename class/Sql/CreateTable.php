@@ -19,7 +19,7 @@
 
         function __construct( $connection ) { $this->mysqli = $connection; }
 
-        private function TableColumn( $name, $options ) {
+        private function TableColumn( $name, $options, $modify = false ) {
 
             $defaultLenght = null;
 
@@ -38,14 +38,30 @@
             }
 
             $length = empty($options['length']) ? $defaultLenght : $options['length'];
+            $type .= ($length == null) ? '': "($length)";
+
             $null = $options['null'] = true ? "NULL" : "NOT NULL";
             $default = empty($options['default']) ? '' : "DEFAULT '".$options['default']."'";
-            
-            if ($length == null) {
-                return "`$name` $type $null $default";
+            $after = empty($options['after']) ? '' : "AFTER `".$options['after']."`";
+
+            if (!empty($options['foreign_table'])) {
+
+                $foreignTable = $options['foreign_table'];
+                $foreignKey = empty($options['foreign_key']) ? "id" : $options['foreign_key'];
+
+                $foreign = $modify ? ", ADD " : ", ";
+                $foreign .= "FOREIGN KEY (`$name`) REFERENCES `$foreignTable` (`$foreignKey`) ON UPDATE CASCADE ON DELETE SET NULL ";
+                
             } else {
-                return "`$name` $type($length) $null $default";
+
+                $foreign = "";
+
             }
+
+            $return = $modify ? "ADD " : "";
+            $return .= "`$name` $type $null $default $after $foreign";
+            
+            return $return;
             
         }
 
@@ -64,14 +80,22 @@
 
                     $columnName = strtolower($columnName);
 
-                    // Cambia colonna
-                    // Elimina colonna se non c'è nell'array
-                    
-                    if (!$SQL->ColumnExists($name, $columnName)) {
+                    # Elimina colonna se non c'è nell'array
 
-                        $columnName = strtolower($columnName);
-                        $query .= 'ADD '.$this->TableColumn( $columnName, $options ).'AFTER `'.$columnBefore.'`, ';
-                        
+                    $columnName = strtolower($columnName);
+                    
+                    if ($SQL->ColumnExists($name, $columnName)) {
+
+                        # Modifica la colonna
+                        # Non è ancora possibile modificare la colonna perchè non è possibile cambiare FOREIGN KEY, è solo possibile eliminarlo e ricrearlo
+                        // $query .= 'MODIFY COLUMN '.$this->TableColumn( $columnName, $options ).', ';
+
+                    } else {
+
+                        $options['after'] = empty($options['after']) ? $columnBefore : $options['after'];
+
+                        $query .= $this->TableColumn( $columnName, $options, true ).', ';
+
                     }
 
                     $columnBefore = $columnName;
@@ -101,7 +125,8 @@
                 $query .= "`deleted` VARCHAR(5) NOT NULL DEFAULT 'false', ";
                 $query .= "`last_modified` DATETIME on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
                 $query .= "`creation` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
-                $query .= "PRIMARY KEY (`id`) ";
+                $query .= "PRIMARY KEY (`id`), ";
+                $query .= "INDEX `ind_id` (`id`) ";
                 $query .= ") ";
                 $query .= "ENGINE = ".$this->ENGINE." ";
                 $query .= "DEFAULT CHARSET = ".$this->CHARSET." ";

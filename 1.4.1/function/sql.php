@@ -17,7 +17,6 @@
         }
 
         $SQL = new Wonder\Sql\CreateTable($connection);
-        
         $SQL->ENGINE = $ENGINE;
         $SQL->CHARSET = $CHARSET;
 
