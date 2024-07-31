@@ -193,7 +193,8 @@
 
         }
 
-        public function Select( string $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string $attributes = '*' ) {
+        public function Select( string $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string $attributes = '*' ) 
+        {
 
             $query = "SELECT ";
             $query .= $attributes;
