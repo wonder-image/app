@@ -5,9 +5,13 @@
     use Wonder\Sql\Query;
     use Wonder\Sql\Utility\Error;
 
+    use Wonder\Sql\Connection;
+
+    use mysqli;
+
     class CreateTable {
 
-        public object $mysqli;
+        public mysqli $mysqli;
 
         public string $ENGINE = "InnoDB";
         public string $CHARSET = "latin1";
@@ -17,9 +21,13 @@
         public int $DEFAULT_LENGHT_BIGINT = 11;
         public int $DEFAULT_LENGHT_INT = 11;
 
-        function __construct( $connection ) { $this->mysqli = $connection; }
+        function __construct( $connection = null ) {
 
-        private function TableColumn( $name, $options, $modify = false ) {
+            $this->mysqli = ($connection === null) ? Connection::Connect() : $connection;
+
+        }
+
+        private function TableColumn( $name, $options, $action = false ) {
 
             $defaultLenght = null;
 
@@ -49,7 +57,14 @@
                 $foreignTable = $options['foreign_table'];
                 $foreignKey = empty($options['foreign_key']) ? "id" : $options['foreign_key'];
 
-                $foreign = $modify ? ", ADD " : ", ";
+                $foreign = ", ";
+
+                if ($action == 'add') {
+                    $foreign .= "ADD ";
+                } else if ($action == 'modify') {
+                    $foreign .= "ADD ";
+                }
+
                 $foreign .= "FOREIGN KEY (`$name`) REFERENCES `$foreignTable` (`$foreignKey`) ON UPDATE CASCADE ON DELETE SET NULL ";
                 
             } else {
@@ -58,7 +73,7 @@
 
             }
 
-            $return = $modify ? "ADD " : "";
+            $return = ($action == 'add') ? "ADD " : "";
             $return .= "`$name` $type $null $default $after $foreign";
             
             return $return;
@@ -80,21 +95,18 @@
 
                     $columnName = strtolower($columnName);
 
-                    # Elimina colonna se non c'è nell'array
-
-                    $columnName = strtolower($columnName);
-                    
                     if ($SQL->ColumnExists($name, $columnName)) {
+                        
+                        # Elimino tutte le FOREIGN KEY
+                        foreach ($SQL->ColumnForeign($name, $columnName) as $key => $foreignKey) { $query .= "DROP CONSTRAINT `$foreignKey`, "; }
 
                         # Modifica la colonna
-                        # Non è ancora possibile modificare la colonna perchè non è possibile cambiare FOREIGN KEY, è solo possibile eliminarlo e ricrearlo
-                        // $query .= 'MODIFY COLUMN '.$this->TableColumn( $columnName, $options ).', ';
+                        $query .= 'MODIFY COLUMN '.$this->TableColumn( $columnName, $options, 'modify' ).', ';
 
                     } else {
 
                         $options['after'] = empty($options['after']) ? $columnBefore : $options['after'];
-
-                        $query .= $this->TableColumn( $columnName, $options, true ).', ';
+                        $query .= $this->TableColumn( $columnName, $options, 'add' ).', ';
 
                     }
 
@@ -102,12 +114,28 @@
 
                 }
 
+                # Elimina colonne tolte dall'array
+                foreach ($SQL->TableColumn($name) as $key => $column) {
+                    if (!array_key_exists($column, $columns) && !in_array($column, [ 'id', 'deleted', 'last_modified', 'creation' ])) {
+                        $query .= "DROP COLUMN $column, ";
+                    }
+                }
+
                 if (!empty($query)) {
 
                     $query = substr($query, 0, -2);
-                    $query = "ALTER TABLE `$name` $query";
+                    $query = "ALTER TABLE `$name` $query;";
 
                 }
+
+                # Cambia il motore
+                $this->mysqli->query( "ALTER TABLE `{$name}` ENGINE = {$this->ENGINE}" );
+
+                # Cambia il set di caratteri
+                $this->mysqli->query( "ALTER TABLE `{$name}` DEFAULT CHARSET = {$this->CHARSET}" );
+
+                # Ottimizza la tabella
+                $this->mysqli->query( "OPTIMIZE TABLE `$name`;" );
                 
             } else {
 
@@ -136,7 +164,7 @@
 
             if (!empty($query)) {
 
-                if($this->mysqli->query( $query )) {
+                if ($this->mysqli->query( $query )) {
 
                     $RETURN =  (object) array();
                     $RETURN->table = $name;

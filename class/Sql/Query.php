@@ -13,7 +13,12 @@
 
         public object $mysqli;
 
-        function __construct( $connection = null ) { $this->mysqli = ($connection == null) ? $this->DBConnection() : $connection; }
+        function __construct( $connection = null ) 
+        { 
+            
+            $this->mysqli = ($connection === null) ? Connection::Connect('main') : $connection; 
+        
+        }
 
         public function Conditions( string | array $conditions ): string
         {
@@ -277,29 +282,6 @@
          * EXTRA FUNCTIONS
          * 
          */
-
-        /**
-         * Connessione al database
-         * 
-         * @param mixed $database
-         * 
-         * @return mysqli
-         * 
-         */
-        private function DBConnection( string $database = 'main' ): mysqli 
-        {
-
-            $connection = new Connection(
-                Credentials::database()->hostname,
-                Credentials::database()->username,
-                Credentials::database()->password,
-                Credentials::database()->database[$database]
-            );
-            
-            return $connection->Connect();
-
-        }
-
         public function GetDatabase(): string
         {
 
@@ -433,7 +415,7 @@
         function ISConnection() : Query
         { 
 
-            return new Query($this->DBConnection('information_schema')); 
+            return new Query(Connection::Connect('information_schema')); 
 
         }
 
@@ -449,10 +431,19 @@
         function ColumnInfo( string $table, string $column ) : array
         {
 
-            return $this->ISConnection()->Select( 'columns', [ 'table_name' => $table, 'column_name' => $column ], 1 )->row;
+            return $this->ISConnection()->Select( 'columns', [ 'table_schema' => $this->GetDatabase(), 'table_name' => $table, 'column_name' => $column ], 1 )->row;
 
         }
 
+        function ColumnForeign( string $table, string $column ) : array
+        {
+
+            return array_column(
+                $this->ISConnection()->Select( 'key_column_usage', [ 'table_schema' => $this->GetDatabase(), 'table_name' => $table, 'column_name' => $column ], null, null, null, 'constraint_name as cName' )->row,
+                'cName'
+            );
+
+        }
 
         /**
          * 
@@ -466,7 +457,7 @@
         {
 
             return array_column(
-                $this->ISConnection()->Select( 'columns', [ 'table_name' => $table ], null, null, null, 'column_name as cName' )->row, 
+                $this->ISConnection()->Select( 'columns', [ 'table_schema' => $this->GetDatabase(), 'table_name' => $table ], null, null, null, 'column_name as cName' )->row, 
                 'cName'
             );
 
