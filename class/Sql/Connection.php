@@ -18,7 +18,8 @@
 
         }
 
-        public function Connect() { 
+        public function Connect() : mysqli 
+        { 
 
             $mysqli = new mysqli( $this->hostname, $this->username, $this->password, $this->database );
                     

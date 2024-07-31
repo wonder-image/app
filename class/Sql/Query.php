@@ -4,13 +4,19 @@
 
     use Wonder\Sql\Utility\Error;
 
+    use Wonder\Sql\Connection;
+    use Wonder\App\Credentials;
+
+    use mysqli;
+
     class Query {
 
         public object $mysqli;
 
-        function __construct( $connection ) { $this->mysqli = $connection; }
+        function __construct( $connection = null ) { $this->mysqli = ($connection == null) ? $this->DBConnection() : $connection; }
 
-        public function Conditions( $conditions ) {
+        public function Conditions( string | array $conditions ): string
+        {
 
             $filter = "";
 
@@ -69,11 +75,12 @@
 
             }
 
-            return " ".$filter;
+            return " $filter";
 
         }
 
-        public function Values( $values, $correlated = false ) {
+        public function Values( array $values, bool $correlated = false ): string
+        {
 
             if ($correlated) {
                 
@@ -110,7 +117,8 @@
 
         }
 
-        public function JoinTable( $tables ) {
+        public function JoinTable( array $tables ): string
+        {
     
             $tableJoined = "";
 
@@ -142,10 +150,15 @@
 
         }
 
-        public function Insert( string $table, string | array $values ) {
+        public function Insert( string $table, string | array $values ): object
+        {
 
             $query = "INSERT INTO `$table` ";
             $query .= $this->Values( $values );
+
+            $RETURN = (object) [];
+            $RETURN->table = $table;
+            $RETURN->query = $query;
 
             if (!$this->mysqli->query( $query )) {
                 
@@ -153,40 +166,34 @@
 
             } else {
 
-                $RETURN = (object) [];
-                $RETURN->table = $table;
-                $RETURN->query = $query;
                 $RETURN->insert_id = $this->mysqli->insert_id;
 
-                return $RETURN;
-
             }
+            
+
+            return $RETURN;
 
         }
 
-        public function Update( $table, $values, $column, $value ) {
+        public function Update( string $table, array $values, string $column, string | int $value ): object 
+        {
 
             $query = "UPDATE `$table` SET ";
             $query .= $this->Values( $values, true );
             $query .= " WHERE `$column` = '$value'";
 
-            if (!$this->mysqli->query( $query )) {
-                
-                new Error( 'Update', $table, $query, $this->mysqli );
+            if (!$this->mysqli->query( $query )) { new Error( 'Update', $table, $query, $this->mysqli ); }
+            
+            $RETURN = (object) [];
+            $RETURN->table = $table;
+            $RETURN->query = $query;
 
-            } else {
+            return $RETURN;
 
-                $RETURN = (object) [];
-                $RETURN->table = $table;
-                $RETURN->query = $query;
-
-                return $RETURN;
-
-            }
 
         }
 
-        public function Select( $table, $condition = null, $limit = null, $order = null, $orderDirection = null, $attributes = '*' ) {
+        public function Select( string $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string $attributes = '*' ) {
 
             $query = "SELECT ";
             $query .= $attributes;
@@ -213,10 +220,10 @@
 
                     if ($limit == 1) {
                         $RETURN->row = $RESULT->fetch_assoc();
-                        $RETURN->id = isset($RETURN->row['id']) ? $RETURN->row['id'] : "";
+                        $RETURN->id = $RETURN->row['id'] ?? "";
                     } else {
                         $RETURN->row = $RESULT->fetch_all( MYSQLI_ASSOC );
-                        $RETURN->id = isset($RETURN->row[0]['id']) ? $RETURN->row[0]['id'] : "";
+                        $RETURN->id = $RETURN->row[0]['id'] ?? "";
                     }
 
                 } else if ($RESULT->num_rows >= 2) {
@@ -231,7 +238,8 @@
         
         }
 
-        public function Delete( $table, $condition = null ) {
+        public function Delete( string $table, string | array $condition = null ): string
+        {
 
             $query = "DELETE FROM ";
             $query .= "`$table`";
@@ -241,15 +249,14 @@
                 
                 new Error( 'Delete', $table, $query, $this->mysqli );
 
-            } else {
-
-                return $RESULT;
-
             }
+
+            return $RESULT;
 
         }
 
-        public function Truncate( $table ) {
+        public function Truncate( string $table ): string
+        {
 
             $query = "TRUNCATE TABLE ";
             $query .= "`$table`";
@@ -258,11 +265,9 @@
                 
                 new Error( 'Truncate', $table, $query, $this->mysqli );
 
-            } else {
-
-                return $RESULT;
-
             }
+            
+            return $RESULT;
 
         }
 
@@ -272,13 +277,37 @@
          * 
          */
 
-        public function GetDatabase() {
+        /**
+         * Connessione al database
+         * 
+         * @param mixed $database
+         * 
+         * @return mysqli
+         * 
+         */
+        private function DBConnection( string $database = 'main' ): mysqli 
+        {
+
+            $connection = new Connection(
+                Credentials::database()->hostname,
+                Credentials::database()->username,
+                Credentials::database()->password,
+                Credentials::database()->database[$database]
+            );
+            
+            return $connection->Connect();
+
+        }
+
+        public function GetDatabase(): string
+        {
 
             $query = "SELECT DATABASE() AS db";
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
                 new Error( 'GetDatabase', '', $query, $this->mysqli );
+                return '';
 
             } else {
 
@@ -290,7 +319,8 @@
 
         }
 
-        public function Sum( $table, $query, $column = '*' ) {
+        public function Sum( string $table, string | array $query, string $column = '*' ): int
+        {
 
             $ATTRIBUTES = "SUM($column)";
             $n = $this->Select( $table, $query, null, null, null, $ATTRIBUTES )->row[0][$ATTRIBUTES];
@@ -299,7 +329,8 @@
     
         }
 
-        public function Count( $table, $query = null, $column = '*', $distinct = false ) {
+        public function Count( string $table, string | array $query = null, string $column = '*', bool $distinct = false ): int
+        {
 
             $DISTINCT = $distinct ? "DISTINCT " : "";
             $ATTRIBUTES = "COUNT($DISTINCT$column)";
@@ -309,14 +340,16 @@
 
         }
 
-
+        
         /**
          * 
-         * Function for verify if database or table or table column exists
+         * Controlla se il database esiste
+         * @param mixed $name
+         * @return bool
          * 
          */
-
-        public function DatabaseExists( $name ) {
+        public function DatabaseExists( string $name ) : bool 
+        {
 
             $query = "SHOW DATABASES LIKE ";
             $query .= "'$name'";
@@ -324,6 +357,7 @@
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
                 new Error( 'DatabaseExists', '', $query, $this->mysqli );
+                return false;
 
             } else {
 
@@ -333,7 +367,15 @@
 
         }
 
-        public function TableExists( $name ) {
+        /**
+         * 
+         * Controlla che la tabella esiste
+         * @param mixed $name
+         * @return bool
+         * 
+         */
+        public function TableExists( string $name ) : bool
+        {
 
             $query = "SHOW TABLES LIKE ";
             $query .= "'$name'";
@@ -341,6 +383,7 @@
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
                 new Error( 'TableExists', '', $query, $this->mysqli );
+                return false;
 
             } else {
 
@@ -350,7 +393,16 @@
 
         }
 
-        public function ColumnExists( $table, $column ) {
+        /**
+         * 
+         * Controlla che la colonna di una determinata tabella esiste
+         * @param mixed $table
+         * @param mixed $column
+         * @return bool
+         * 
+         */
+        public function ColumnExists( string $table, string $column ) : bool
+        {
 
             $query = "SHOW COLUMNS FROM ";
             $query .= "`$table` ";
@@ -360,12 +412,62 @@
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
                 new Error( 'ColumnExists', $table, $query, $this->mysqli );
+                return false;
 
             } else {
 
                 return ($RESULT->num_rows === 0) ? false : true;
 
             }
+
+        }
+
+        /**
+         * 
+         * Connessione al database information_schema
+         * 
+         * @return Query
+         * 
+         */
+        function ISConnection() : Query
+        { 
+
+            return new Query($this->DBConnection('information_schema')); 
+
+        }
+
+        /**
+         * 
+         * Recupera le informazioni della colonna
+         * 
+         * @param mixed $table 
+         * @param mixed $column
+         * @return array
+         * 
+         */
+        function ColumnInfo( string $table, string $column ) : array
+        {
+
+            return $this->ISConnection()->Select( 'columns', [ 'table_name' => $table, 'column_name' => $column ], 1 )->row;
+
+        }
+
+
+        /**
+         * 
+         * Recupera le colonne della tabella
+         * 
+         * @param mixed $table
+         * @return array
+         * 
+         */
+        function TableColumn( string $table ) : array
+        {
+
+            return array_column(
+                $this->ISConnection()->Select( 'columns', [ 'table_name' => $table ], null, null, null, 'column_name as cName' )->row, 
+                'cName'
+            );
 
         }
 
