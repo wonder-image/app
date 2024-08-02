@@ -20,12 +20,10 @@
         
         }
 
-        public function Conditions( string | array $conditions ): string
+        public static function Conditions( string | array $conditions, $where = true ): string
         {
 
-            $filter = "";
-
-            $filter .= "WHERE ";
+            $filter = "WHERE ";
         
             if (is_array($conditions)) {
 
@@ -198,11 +196,11 @@
 
         }
 
-        public function Select( string $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string $attributes = '*' ) 
+        public function Select( string $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string | array $attributes = '*' ) 
         {
 
             $query = "SELECT ";
-            $query .= $attributes;
+            $query .= is_array($attributes) ? implode(",", $attributes) : $attributes;
             $query .= " FROM ";
             $query .= is_array($table) ? $this->JoinTable( $table ) : "`$table`";
             $query .= ($condition == null) ? "" : $this->Conditions( $condition );
