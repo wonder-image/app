@@ -5,13 +5,12 @@
     use Wonder\Sql\Utility\Error;
 
     use Wonder\Sql\Connection;
-    use Wonder\App\Credentials;
 
     use mysqli;
 
     class Query {
 
-        public object $mysqli;
+        public mysqli $mysqli;
 
         function __construct( $connection = null ) 
         { 
@@ -20,10 +19,10 @@
         
         }
 
-        public static function Conditions( string | array $conditions, $where = true ): string
+        public static function Conditions( string | array $conditions, bool $where = true ): string
         {
 
-            $filter = "WHERE ";
+            $filter = $where ? "WHERE " : "";
         
             if (is_array($conditions)) {
 
@@ -71,7 +70,7 @@
             } else {
 
                 if (str_contains($conditions, "WHERE") || str_contains($conditions, "where")) {
-                    $filter = $conditions;
+                    $filter = $where ? $conditions : str_replace( [ "WHERE", "where" ], "", $conditions);
                 } else {
                     $filter .= $conditions;
                 }
