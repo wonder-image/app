@@ -92,4 +92,37 @@
 
         }
 
+        /**
+         * Crea un indice nella colonna
+         * 
+         * @param string|array $column
+         * @return \Wonder\Sql\Column
+         */
+        public function index( string | array $column ): Column
+        {
+
+            $this->definition['index'] = $column;
+
+            return $this;
+
+        }
+
+        public function label( string $label ): Column
+        {
+
+            $this->definition['label'] = $label;
+
+            return $this;
+
+        }
+
+        public function show( bool $show = true ): Column
+        {
+
+            $this->definition['show'] = $show;
+
+            return $this;
+
+        }
+
     }
