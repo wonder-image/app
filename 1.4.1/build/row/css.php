@@ -1,5 +1,26 @@
 <?php
 
+    foreach ($DEFAULT->font as $key => $value) {
+
+        $name = sanitize($value['name']);
+        $link = sanitize($value['link']);
+        $fontFamily = sanitize($value['font-family']);
+
+        if (!sqlSelect('css_font', ['name' => $name], 1)->exists) {
+            
+            $values = [
+                "name" => $name,
+                "link" => $link,
+                "font_family" => $fontFamily,
+                "visible" => "true"
+            ];
+
+            sqlInsert('css_font', $values);
+
+        }
+
+    }
+
     if (!sqlSelect('css_default', ['id' => 1], 1)->exists) {
                     
         $values = [
@@ -43,27 +64,6 @@
         ];
 
         sqlInsert('css_default', $values);
-
-    }
-
-    foreach ($DEFAULT->font as $key => $value) {
-
-        $name = sanitize($value['name']);
-        $link = sanitize($value['link']);
-        $fontFamily = sanitize($value['font-family']);
-        
-        if (!sqlSelect('css_font', ['name' => $name], 1)->exists) {
-            
-            $values = [
-                "name" => $name,
-                "link" => $link,
-                "font_family" => $fontFamily,
-                "visible" => "true"
-            ];
-    
-            sqlInsert('css_font', $values);
-    
-        }
 
     }
 
