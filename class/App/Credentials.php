@@ -14,7 +14,7 @@
         protected static $DB;
         protected static $API;
 
-        static function loadEnv()
+        public static function loadEnv()
         {
 
             if (empty(self::$ENV)) {
@@ -26,7 +26,7 @@
 
         }
 
-        static function database(): object
+        public static function database(): object
         {
             
             self::loadEnv();
@@ -75,7 +75,7 @@
         }
 
 
-        static function api(): object
+        public static function api(): object
         {
 
             self::database();
