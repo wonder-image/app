@@ -7,8 +7,7 @@
         public $name;
         public $definition = [
             'type' => 'VARCHAR',
-            'length' => 1000,
-            'null' => false,
+            'null' => true
         ];
 
         public function __construct( string $name ) {

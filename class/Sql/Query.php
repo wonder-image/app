@@ -12,7 +12,7 @@
 
         public mysqli $mysqli;
 
-        function __construct( $connection = null ) 
+        function __construct( mysqli $connection = null ) 
         { 
             
             $this->mysqli = ($connection === null) ? Connection::Connect('main') : $connection; 
@@ -432,15 +432,44 @@
 
         }
 
-        function ColumnForeign( string $table, string $column ) : array
+        function ColumnForeign( string $table, string $column = null ) : array
         {
 
+            $condition = [
+                'table_schema' => $this->GetDatabase(),
+                'table_name' => $table
+            ];
+
+            if ($column != null) {
+                $condition['column_name'] = $column;
+            }
+
             return array_column(
-                $this->ISConnection()->Select( 'key_column_usage', [ 'table_schema' => $this->GetDatabase(), 'table_name' => $table, 'column_name' => $column ], null, null, null, 'constraint_name as cName' )->row,
+                $this->ISConnection()->Select( 'key_column_usage', $condition, null, null, null, 'constraint_name as cName' )->row,
                 'cName'
             );
 
         }
+
+        function TableIndex( string $table, string $column = null  )
+        {
+
+            $condition = [
+                'table_schema' => $this->GetDatabase(),
+                'table_name' => $table
+            ];
+
+            if ($column != null) {
+                $condition['column_name'] = $column;
+            }
+
+            return array_column(
+                $this->ISConnection()->Select( 'statistics', $condition, null, null, null, 'DISTINCT index_name as iName' )->row, 
+                'iName'
+            );
+
+        }
+
 
         /**
          * 

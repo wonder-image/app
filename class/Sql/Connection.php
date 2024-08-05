@@ -24,10 +24,10 @@
 
         }
 
-        public static function Connect( $database = null): mysqli 
+        public static function Connect( string $database = null): mysqli 
         { 
 
-            $database = ($database === null) ? self::$database : $database;
+            $database = ($database === null) ? self::$database : Credentials::database()->database[$database];
 
             $connectionCode = base64_encode(self::$hostname.' | '.self::$username.' | '.self::$password.' | '.$database);
 

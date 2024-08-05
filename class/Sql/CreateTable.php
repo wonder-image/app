@@ -12,69 +12,189 @@
     class CreateTable {
 
         public mysqli $mysqli;
+        public bool $debug = false;
 
         public string $ENGINE = "InnoDB";
         public string $CHARSET = "latin1";
         public string $DEFAULT_TYPE = "VARCHAR";
-        public string $DEFAULT_NULL = "NOT NULL";
         public int $DEFAULT_LENGHT_VARCHAR = 1000;
-        public int $DEFAULT_LENGHT_BIGINT = 11;
-        public int $DEFAULT_LENGHT_INT = 11;
+        public int $DEFAULT_LENGHT_BIGINT = 18;
+        public int $DEFAULT_LENGHT_INT = 10;
+
+        public array $SQL_VAR = [ 'PRIMARY KEY', 'CURRENT_TIMESTAMP', 'AUTO_INCREMENT' ];
 
         function __construct( $connection = null ) {
 
             $this->mysqli = ($connection === null) ? Connection::Connect() : $connection;
 
         }
+        
+        public function debug(bool $debug = true): void 
+        {
+            $this->debug = $debug;
+        }
 
         private function TableColumn( $name, $options, $action = false ) {
 
-            $defaultLenght = null;
+            if (isset($options['index']) && !empty($options['index'])) {
 
-            $defaultType = ($name == 'position') ? 'INT' : $this->DEFAULT_TYPE;
+                # Se bisogna creare un INDEX
+                
+                $index = $options['index'];
 
-            $type = empty($options['type']) ? $defaultType : strtoupper($options['type']);
-        
-            if ($type == "VARCHAR") { 
-                $defaultLenght = $this->DEFAULT_LENGHT_VARCHAR; 
-            } elseif ($type == "BIGINT") { 
-                $defaultLenght = $this->DEFAULT_LENGHT_BIGINT; 
-            } elseif ($type == "INT") {
-                $defaultLenght = $this->DEFAULT_LENGHT_INT; 
-            } else {
-                $defaultLenght = null;
-            }
+                $return = "";
 
-            $length = empty($options['length']) ? $defaultLenght : $options['length'];
-            $type .= ($length == null) ? '': "($length)";
-
-            $null = $options['null'] = true ? "NULL" : "NOT NULL";
-            $default = empty($options['default']) ? '' : "DEFAULT '".$options['default']."'";
-            $after = empty($options['after']) ? '' : "AFTER `".$options['after']."`";
-
-            if (!empty($options['foreign_table'])) {
-
-                $foreignTable = $options['foreign_table'];
-                $foreignKey = empty($options['foreign_key']) ? "id" : $options['foreign_key'];
-
-                $foreign = ", ";
-
-                if ($action == 'add') {
-                    $foreign .= "ADD ";
-                } else if ($action == 'modify') {
-                    $foreign .= "ADD ";
+                if ($action == 'add' || $action == 'modify') {
+                    $return .= "ADD ";
                 }
 
-                $foreign .= "FOREIGN KEY (`$name`) REFERENCES `$foreignTable` (`$foreignKey`) ON UPDATE CASCADE ON DELETE SET NULL ";
-                
+                $return .= "INDEX `$name` (";
+
+                if (is_array($index)) {
+
+                    foreach ($index as $column) { $return .= "`$column`, "; }
+                    $return = substr($return, 0, -2);
+
+                } else {
+
+                    $return .= "`$index`";
+
+                }
+
+                $return .= ") ";
+
             } else {
 
-                $foreign = "";
+                # Se bisogna creare una colonna
+
+                $defaultLenght = null;
+
+                $defaultType = ($name == 'position') ? 'INT' : $this->DEFAULT_TYPE;
+
+                $type = empty($options['type']) ? $defaultType : strtoupper($options['type']);
+            
+                if ($type == "VARCHAR") { 
+                    $defaultLenght = $this->DEFAULT_LENGHT_VARCHAR; 
+                } elseif ($type == "BIGINT") { 
+                    $defaultLenght = $this->DEFAULT_LENGHT_BIGINT; 
+                } elseif ($type == "INT") {
+                    $defaultLenght = $this->DEFAULT_LENGHT_INT; 
+                } else {
+                    $defaultLenght = null;
+                }
+
+                $length = empty($options['length']) ? $defaultLenght : $options['length'];
+
+                $type .= ($length == null) ? '': "($length)";
+
+                $after = empty($options['after']) ? '' : "AFTER `".$options['after']."`";
+
+                # NULL || NOT NULL
+                    if (isset($options['null'])) {
+                        if ($options['null'] == true) {
+                            $null = "NULL";
+                        } else if ($options['null'] == false) {
+                            $null = "NOT NULL";
+                        }
+                    } else {
+                        $null = "NULL";
+                    }
+
+                # AUTO INCREMENT
+                    if (isset($options['auto_increment']) && $options['auto_increment'] == true) {
+                        $autoIncrement = "AUTO_INCREMENT";
+                    } else {
+                        $autoIncrement = "";
+                    }
+
+                # DEFAULT 
+                    if (isset($options['default'])) {
+
+                        $defaultValue = $options['default'];
+
+                        $default = "DEFAULT ";
+
+                        if (in_array($defaultValue, $this->SQL_VAR)) {
+                            $default .= $defaultValue;
+                        } else {
+                            $default .= "'$defaultValue'";
+                        }
+
+                    } else {
+
+                        $default = "";
+
+                    }
+
+                # On Update
+                    if (isset($options['on_update'])) {
+
+                        $onUpdateValue = $options['on_update'];
+
+                        $onUpdate = 'ON UPDATE ';
+
+                        if (in_array($onUpdateValue, $this->SQL_VAR)) {
+                            $onUpdate .= $onUpdateValue;
+                        } else {
+                            $onUpdate .= "'$onUpdateValue'";
+                        }
+
+                    } else {
+
+                        $onUpdate = "";
+
+                    }
+
+                # FOREIGN KEY
+                    if (isset($options['foreign_table']) && !empty($options['foreign_table'])) {
+
+                        $foreignTable = $options['foreign_table'];
+                        $foreignKey = empty($options['foreign_key']) ? "id" : $options['foreign_key'];
+
+                        $foreign = ", ";
+
+                        if ($action == 'add' || $action == 'modify') {
+                            $foreign .= "ADD ";
+                        }
+
+                        $foreign .= "FOREIGN KEY (`$name`) REFERENCES `$foreignTable` (`$foreignKey`) ON UPDATE CASCADE ON DELETE SET NULL ";
+                        
+                    } else {
+
+                        $foreign = "";
+
+                    }
+
+                # PRIMARY KEY
+                    if (isset($options['primary']) && $options['primary'] == true) {
+
+                        $primary = ", ";
+
+                        if ($action == 'add' || $action == 'modify') {
+                            $primary .= "ADD ";
+                        }
+
+                        $primary .= "PRIMARY KEY (`$name`) ";
+
+                    } else {
+
+                        $primary = "";
+
+                    }
+
+                #
+
+                if ($action == 'add') {
+                    $return = "ADD ";
+                } else if ($action == 'modify') {
+                    $return = "MODIFY COLUMN ";
+                } else {
+                    $return = "";
+                }
+
+                $return .= "`$name` $type $onUpdate $null $autoIncrement $default $after $foreign $primary";
 
             }
-
-            $return = ($action == 'add') ? "ADD " : "";
-            $return .= "`$name` $type $null $default $after $foreign";
             
             return $return;
             
@@ -86,47 +206,101 @@
 
             $name = strtolower($name);
 
+            $beforeColumns = [
+                'id' => [
+                    'type'=> 'INT',
+                    'primary'=> true,
+                    'null' => false,
+                    'auto_increment' => true
+                ]
+            ];
+
+            $afterColumns = [
+                'deleted'=> [
+                    'length'=> 5,
+                    'null' => false,
+                    'default' => 'false',
+                ],
+                'last_modified' => [
+                    'type'=> 'DATETIME',
+                    'null' => false,
+                    'on_update' => 'CURRENT_TIMESTAMP',
+                    'default' => 'CURRENT_TIMESTAMP',
+                ],
+                'creation' => [
+                    'type'=> 'DATETIME',
+                    'null' => false,
+                    'default' => 'CURRENT_TIMESTAMP',
+                ],
+                'ind_id' => [
+                    'index'=> 'id'
+                ]
+            ];
+
+            $columns = array_merge($beforeColumns, $columns, $afterColumns);
+
             if ($SQL->TableExists($name)) {
                 
                 $query = "";
                 $columnBefore = "id";
 
-                foreach ($columns as $columnName => $options) {
+                # Elimino tutte le FOREIGN KEY
+                    foreach ($SQL->ColumnForeign($name) as $key => $foreignKey) { 
 
-                    $columnName = strtolower($columnName);
-
-                    if ($SQL->ColumnExists($name, $columnName)) {
-                        
-                        # Elimino tutte le FOREIGN KEY
-                        foreach ($SQL->ColumnForeign($name, $columnName) as $key => $foreignKey) { $query .= "DROP CONSTRAINT `$foreignKey`, "; }
-
-                        # Modifica la colonna
-                        $query .= 'MODIFY COLUMN '.$this->TableColumn( $columnName, $options, 'modify' ).', ';
-
-                    } else {
-
-                        $options['after'] = empty($options['after']) ? $columnBefore : $options['after'];
-                        $query .= $this->TableColumn( $columnName, $options, 'add' ).', ';
-
+                        if ($foreignKey != "PRIMARY") {
+                            $query .= "DROP CONSTRAINT `$foreignKey`, "; 
+                        }
+                    
                     }
 
-                    $columnBefore = $columnName;
+                # Elimino tutti gli INDEX
+                    foreach ($SQL->TableIndex($name) as $key => $indexName) { 
+                        
+                        $query .= "DROP "; 
+                        $indexName = ($indexName == 'PRIMARY') ? "PRIMARY KEY" : "$indexName";
+                        $query .= in_array($indexName, $this->SQL_VAR) ? $indexName : "INDEX `$indexName`"; 
+                        $query .= ", "; 
+                    
+                    }
 
-                }
+                # Modifico o aggiungo le colonne
+                    foreach ($columns as $columnName => $options) {
+
+                        $columnName = strtolower($columnName);
+                        
+                        if ($SQL->ColumnExists($name, $columnName)) {
+                            
+                            # Modifica la colonna
+                            $query .= $this->TableColumn( $columnName, $options, 'modify' ).', ';
+
+                        } else {
+
+                            # Aggiungo la colonna
+                            $options['after'] = empty($options['after']) ? $columnBefore : $options['after'];
+                            $query .= $this->TableColumn( $columnName, $options, 'add' ).', ';
+
+                        }
+
+                        $columnBefore = $columnName;
+
+                    }
 
                 # Elimina colonne tolte dall'array
-                foreach ($SQL->TableColumn($name) as $key => $column) {
-                    if (!array_key_exists($column, $columns) && !in_array($column, [ 'id', 'deleted', 'last_modified', 'creation' ])) {
-                        $query .= "DROP COLUMN $column, ";
+                    foreach ($SQL->TableColumn($name) as $key => $column) {
+                        if (!array_key_exists($column, $columns) && !in_array($column, [ 'id', 'deleted', 'last_modified', 'creation' ])) {
+                            $query .= "DROP COLUMN $column, ";
+                        }
                     }
-                }
 
-                if (!empty($query)) {
+                # Creo la query
+                    if (!empty($query)) {
 
-                    $query = substr($query, 0, -2);
-                    $query = "ALTER TABLE `$name` $query;";
+                        $query = substr($query, 0, -2);
+                        $query = "ALTER TABLE `$name` $query;";
 
-                }
+                    }
+
+                #
 
                 # Cambia il motore
                 $this->mysqli->query( "ALTER TABLE `{$name}` ENGINE = {$this->ENGINE}" );
@@ -141,7 +315,6 @@
 
                 $query = "CREATE TABLE IF NOT EXISTS `$name` ";
                 $query .= "( ";
-                $query .= "`id` INT NOT NULL AUTO_INCREMENT, ";
 
                 foreach ($columns as $columnName => $options) {
                     
@@ -150,11 +323,8 @@
 
                 }
 
-                $query .= "`deleted` VARCHAR(5) NOT NULL DEFAULT 'false', ";
-                $query .= "`last_modified` DATETIME on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
-                $query .= "`creation` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, ";
-                $query .= "PRIMARY KEY (`id`), ";
-                $query .= "INDEX `ind_id` (`id`) ";
+                $query = substr($query, 0, -2);
+
                 $query .= ") ";
                 $query .= "ENGINE = ".$this->ENGINE." ";
                 $query .= "DEFAULT CHARSET = ".$this->CHARSET." ";
@@ -164,18 +334,26 @@
 
             if (!empty($query)) {
 
-                if ($this->mysqli->query( $query )) {
+                if ($this->debug) {
 
-                    $RETURN =  (object) array();
-                    $RETURN->table = $name;
-                    $RETURN->query = $query;
-                    
-                    return $RETURN;
-                    
+                    echo str_replace(", ", ",<br>", $query);
+
                 } else {
 
-                    new Error( 'Table', $name, $query, $this->mysqli );
-        
+                    if ($this->mysqli->query( $query )) {
+    
+                        $RETURN =  (object) array();
+                        $RETURN->table = $name;
+                        $RETURN->query = $query;
+                        
+                        return $RETURN;
+                        
+                    } else {
+    
+                        new Error( 'Table', $name, $query, $this->mysqli );
+            
+                    }
+
                 }
 
             }
