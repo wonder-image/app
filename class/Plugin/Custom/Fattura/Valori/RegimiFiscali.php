@@ -7,7 +7,7 @@
         public const Valori = [
             "RF01" => "Ordinario",
             "RF02" => "Contribuenti minimi (art. 1, c.96-117, L. 244/2007)",
-            "RF04" => "Agricoltura e attività connesse e pesca (artt. 34 e 34-bis, D.P.R. 633/1972);",
+            "RF04" => "Agricoltura e attività connesse e pesca (art. 34 e 34-bis, D.P.R. 633/1972);",
             "RF05" => "Vendita sali e tabacchi (art. 74, c.1, D.P.R. 633/1972)",
             "RF06" => "Commercio dei fiammiferi (art. 74, c.1, D.P.R. 633/1972)",
             "RF07" => "Editoria (art. 74, c.1, D.P.R. 633/1972)",
