@@ -300,7 +300,7 @@
                 
                 foreach ($actionArray as $ACTION => $link) {
 
-                    if ($link && !is_array($link)) {
+                    if ($link && !is_array($link) && $link != 'false') {
 
                         if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
                         elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
