@@ -2,9 +2,8 @@
 
     namespace Wonder\Sql;
 
-    use Wonder\Sql\Utility\Error;
-
     use Wonder\Sql\Connection;
+    use Wonder\Sql\Utility\Error;
 
     use mysqli;
 
@@ -12,7 +11,7 @@
 
         public mysqli $mysqli;
 
-        function __construct( mysqli $connection = null ) 
+        function __construct( ?mysqli $connection = null ) 
         { 
             
             $this->mysqli = ($connection === null) ? Connection::Connect('main') : $connection; 
@@ -469,7 +468,6 @@
             );
 
         }
-
 
         /**
          * 
