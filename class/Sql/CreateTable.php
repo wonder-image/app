@@ -2,10 +2,8 @@
 
     namespace Wonder\Sql;
 
-    use Wonder\Sql\Query;
+    use Wonder\Sql\{ Connection, Query };
     use Wonder\Sql\Utility\Error;
-
-    use Wonder\Sql\Connection;
 
     use mysqli;
 
