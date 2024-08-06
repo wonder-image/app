@@ -7,7 +7,7 @@
         public const Valori = [
             "N1" => "Escluse ex art.15",
             "N2" => "Non soggette (non più valido dal 1 Gen 2021)",
-            "N2.1" => "Non soggette ad IVA ai sensi degli artt. da 7 a 7-septies del DPR 633/72",
+            "N2.1" => "Non soggette ad IVA ai sensi degli art. da 7 a 7-septies del DPR 633/72",
             "N2.2" => "Non soggette - altri casi",
             "N3" => "Non imponibili (non più valido dal 1 Gen 2021)",
             "N3.1" => "Non imponibili - esportazioni",
@@ -23,7 +23,7 @@
             "N6.2" => "Inversione contabile - cessione di oro e argento puro",
             "N6.3" => "Inversione contabile - subappalto nel settore edile",
             "N6.4" => "Inversione contabile - cessione di fabbricati",
-            "N6.5" => "Inversione contabile - cessione di telefoni cellular",
+            "N6.5" => "Inversione contabile - cessione di telefoni cellulari",
             "N6.6" => "Inversione contabile - cessione di prodotti elettronici",
             "N6.7" => "Inversione contabile - prestazioni comparto edile e settori connessi",
             "N6.8" => "Inversione contabile - operazioni settore energetico",
