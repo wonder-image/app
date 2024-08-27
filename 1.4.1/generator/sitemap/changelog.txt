@@ -4,9 +4,14 @@ ChangeLog for PHP XML Sitemap generator
 http://www.xml-sitemaps.com
 ----------------------------------------------
 
+2021-08-31 v8.2
+
+   * security update: required to setup the login details when installing generator, hardening settings rules on the configuration page
+   * update: bug fixes and minor changes
+
 2021-02-02 v8.1
 
-   * update: PHP7.2 compatibility
+   * update: PHP8 compatibility
    * update: minor changes and fixes
 
 2018-05-17 v8.0

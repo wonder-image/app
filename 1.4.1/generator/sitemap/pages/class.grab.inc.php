@@ -686,7 +686,7 @@
 																													global $grab_parameters,$k0huGF8gg4LQ1A,$K5qP9_ZsHx;
 																													
 																													
-																													error_reporting(E_ALL&~E_NOTICE);
+																													//error_reporting(E_ALL&~E_NOTICE);
 																													
 																													$this->SVH4BzIyh56a_HEGqt = $SVH4BzIyh56a_HEGqt;
 																													
@@ -1721,6 +1721,7 @@
 																													
 																													
 																													$this->tsize+=strlen($cn);
+																													preg_match_all('#<script[^>]*application/ld\+json[^>]*>(.+?)</script>#is', $cn, $ps_json_match);
 																													
 																													
 																													if(!$grab_parameters['xs_parse_js'])
@@ -2231,8 +2232,15 @@
 																													{
 																													
 																													$_imgext = '(?:jpg|png|gif|jpeg|bmp)';
+																													$_imgattr = '(?:src|data-(?:[\w\-]*lazy[\w\-]*|img-url|image|thumbnail|src|original))(?:set)?\s*=\s*|image\:\s*url\s*\(\s*';
+																													$_imgleftmatch = '(?:' . $_imgattr . ')';
+																													$_imgrightmatch = '("([^">]+)|\'([^\'>]+)|([^\s\"\\\\>\\)]+))';
 																													
-																													preg_match_all('#<(?:(?:amp-)?img|div)[^>]*?(?:(?:src|data-(?:image|thumbnail|original))(?:set)?\s*=\s*|image\:\s*url\s*\(\s*)("([^">]+)|\'([^\'>]+)|([^\s\"\\\\>]+))(.*?>)#is', $cn, $dbZYiSonNrlDO42usc, PREG_SET_ORDER);
+																													preg_match_all('#<(?:(?:amp-)?img|div|span|source)[^>]*?'.
+																														//'[^>]*?(?:(?:src|data-(?:image|thumbnail|original))(?:set)?\s*=\s*|image\:\s*url\s*\(\s*)'.
+																														//'("([^">]+)|\'([^\'>]+)|([^\s\"\\\\>]+))'.
+																														$_imgleftmatch.$_imgrightmatch.
+																														'(.*?>)#is', $cn, $dbZYiSonNrlDO42usc, PREG_SET_ORDER);
 																													
 																													preg_match_all('#<a[^>]*\shref\s*=\s*[\'"]?([^>\'" ]*?\.'.$_imgext.')([\'" ][^>]*?>|>)#is', $cn, $L2HmGWTj9H, PREG_SET_ORDER);
 																													
@@ -2269,6 +2277,18 @@
 																													
 																													$_il = preg_split('#(\s*,\s*|\s+[^\./]+\s*)#', $im[1]);
 																													
+																													}
+																													$gotsrcset = count($_il)>1;
+																													if(!$gotsrcset)
+																													{
+                                                                                                                       if (preg_match_all('#' . $_imgleftmatch . $_imgrightmatch . '#is', $im[0], $imlrmatch, PREG_SET_ORDER))
+                                                                                                                       {
+                                                                                                                           $_il = array();
+                                                                                                                           foreach ($imlrmatch as $_im)
+                                                                                                                           {
+                                                                                                                               $_il[] = $_im[1];
+                                                                                                                           }
+                                                                                                                       }
 																													}
 																													
 																													foreach($_il as $_ili)

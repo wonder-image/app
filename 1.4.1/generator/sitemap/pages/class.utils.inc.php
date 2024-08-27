@@ -655,9 +655,16 @@
 																														
 																														foreach($SVH4BzIyh56a_HEGqt as $k=>$v)
 																														
-																														if(strstr($k,'xs_'))
+																														if(strstr($k,'xs_')){
 																														
-																														$ws .= "\n\t<option name=\"$k\">$v</option>";
+                                                                                                                        $_sv = htmlspecialchars($v);
+                                                                                                                        $_oa = '';
+                                                                                                                        if($v != $_sv){
+                                                                                                                         $_oa = ' enc="hs"';
+                                                                                                                         $v = $_sv;
+                                                                                                                        }
+																														$ws .= "\n\t<option name=\"$k\"$_oa>$v</option>";
+																														}
 																														
 																														$ws .= "\n</xmlsitemaps_settings>";
 																														
@@ -668,6 +675,12 @@
 																														fclose($pf);
 																														
 																														}
+                                                                                                                        																														function u_sv_filename($oname, $ext, $isbase = false)
+                                                                                                                        {
+                                                                                                                            $oname = preg_replace('#[^a-z0-9\-\._\\\\\/\:\~\@]#i','', $oname);if($isbase)$oname = preg_replace('#^.*[\/\\\\]#', '', $oname);
+                                                                                                                            if($ext && !preg_match('#\.'.$ext.'$#i', $oname)) $oname .= '.'.$ext;
+                                                                                                                            return $oname;
+                                                                                                                        }
 																														
 																														
 																									function h0UIAblJQo1hieA($X4_F9qhFjm, &$SVH4BzIyh56a_HEGqt, $qfhuDZKBN1S = false)
@@ -676,15 +689,17 @@
 																														
 																														$fl = raSnfm1S9eiZTlT($X4_F9qhFjm);
 																														
-																														preg_match_all('#<option name="(.*?)">(.*?)</option>#is', $fl, $mOXa8svny, PREG_SET_ORDER);
+																														preg_match_all('#<option name="(.*?)"(.*?)>(.*?)</option>#is', $fl, $mOXa8svny, PREG_SET_ORDER);
 																														
 																														foreach($mOXa8svny as $m)
 																														
-																														if(!$qfhuDZKBN1S || $m[2])
+																														if (($v = $m[3]) || !$qfhuDZKBN1S )
 																														
 																														{
 																														
-																														$SVH4BzIyh56a_HEGqt[$m[1]] = $m[2];
+																														if(strstr($m[2], 'enc'))
+																														$v = htmlspecialchars_decode($v);
+																														$SVH4BzIyh56a_HEGqt[$m[1]] = $v;
 																														
 																														}
 																														
