@@ -368,6 +368,16 @@
         
     }
 
+    function selectSearch($label, $name, $option, $multiple = false, $version = null, $attribute = null, $value = null) {
+
+        $attribute .= ' data-wi-select-search="true"';
+        $attribute .= $multiple ? ' data-wi-select-search-multiple="true"' : ' data-wi-select-search-multiple="false"';
+        $value = $value == null ? '' : $value;
+
+        return select($label, $name, $option, $version, $attribute, $value);
+
+    }
+
     function select($label, $name, $option, $version = null, $attribute = null, $value = null) {
 
         global $VALUES;
@@ -410,8 +420,8 @@
 
             return "
             <div id='container-$id' class='w-100 wi-container-select'>
-                <h6>$label</h6>
-                <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute>
+                <label for='$id' class='h6'>$label</label>
+                <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
                     $optionHTML
                 </select>
             </div>";
@@ -420,10 +430,10 @@
 
             return "
             <div class='form-floating'>
-                <select id='$id' name='$name' class='form-select' data-wi-check='true' $attribute>
+                <select id='$id' name='$name' class='form-select' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
                     $optionHTML
                 </select>
-                <label for='floatingSelect'>$label</label>
+                <label for='$id'>$label</label>
             </div>
             ";
 
@@ -988,17 +998,69 @@
 
     }
 
-    function countryList($continent, $label, $name, $attribute = null, $value = null) {
+    function countryList($continent = null, $label, $name, $attribute = null, $value = null) {
 
-        $country = geoCountry($continent);
-        return check($label, $name, $country, $attribute, 'radio', true, $value);
+        $options = countries();
+        return check($label, $name, $options, $attribute, 'radio', true, $value);
 
     }
 
     function provinceList($country, $label, $name, $value = null, $attribute = null) {
 
-        $province = geoProvince($country);
-        return check($label, $name, $province, $attribute, 'radio', true, $value);
+        $options = (!empty($country)) ? states($country) : [];
+        return check($label, $name, $options, $attribute, 'radio', true, $value);
+
+    }
+
+    function inputCountry($label, $name, $value = null, $nameState = null, $attribute = '') {
+
+        $options = countries();
+
+        if (!empty($nameState)) {
+            $attribute .= ' data-wi-input-country="true" data-wi-input-state="'.$nameState.'"';
+        }
+
+        return selectSearch(
+            $label, 
+            $name, 
+            $options, 
+            false,
+            null, 
+            $attribute,
+            $value
+        );
+
+    }
+
+    function inputStates($label, $name, $country = null, $value = null, $attribute = '') {
+
+        $options = (!empty($country)) ? states($country) : [];
+
+        return selectSearch(
+            $label, 
+            $name, 
+            $options, 
+            false,
+            null,
+            $attribute.' data-wi-input-state="true" data-wi-list-states="'.$country.'" data-wi-input-attribute="'.$attribute.'"',
+            $value
+        );
+
+    }
+
+    function inputPhonePrefix($label, $name, $value = null, $attribute = '') {
+
+        $options = phonePrefix();
+
+        return selectSearch(
+            $label, 
+            $name, 
+            $options, 
+            false,
+            null,
+            $attribute,
+            $value
+        );
 
     }
 

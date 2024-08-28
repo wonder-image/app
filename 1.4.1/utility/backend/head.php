@@ -83,6 +83,10 @@
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jstree/jstree.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jstree/jstree.css" rel="stylesheet">
     
+    <!-- Select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/select2/select2.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/select2/select2.css" rel="stylesheet">
+    
 <!-- Fine librerie -->
 
 <!-- Inizio file fondamentali  -->

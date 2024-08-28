@@ -185,20 +185,10 @@
                             <h6>Indirizzo legale</h6>
                         </div>
                         <div class="col-6">
-                            <?php
-
-                                $checkbox = geoCountry('EU');
-                                echo check('Paese', 'legal_country', ['IT' => "Italia"], "readonly", 'radio', true, 'IT');
-
-                            ?>
+                            <?=inputCountry('Paese', 'legal_country', $VALUES['legal_country'] ?? 'IT', 'legal_province')?>
                         </div>
                         <div class="col-6">
-                            <?php
-
-                                $checkbox = geoProvince('IT');
-                                echo check('Provincia', 'legal_province', $checkbox, "", 'radio', true);
-
-                            ?>
+                            <?=inputStates('Provincia', 'legal_province', $VALUES['legal_country'] ?? 'IT');?>
                         </div>
                         <div class="col-8">
                             <?=text('Città', 'legal_city'); ?>
@@ -225,20 +215,10 @@
                             <h6>Indirizzo aziendale</h6>
                         </div>
                         <div class="col-6">
-                            <?php
-
-                                $checkbox = geoCountry('EU');
-                                echo check('Paese', 'country', ['IT' => "Italia"], "", 'radio', true, 'IT');
-
-                            ?>
+                            <?=inputCountry('Paese', 'country', $VALUES['country'] ?? 'IT', 'province')?>
                         </div>
                         <div class="col-6">
-                            <?php
-
-                                $checkbox = geoProvince('IT');
-                                echo check('Provincia', 'province', $checkbox, "", 'radio', true);
-
-                            ?>
+                            <?=inputStates('Provincia', 'province', $VALUES['country'] ?? 'IT');?>
                         </div>
                         <div class="col-8">
                             <?=text('Città', 'city'); ?>
