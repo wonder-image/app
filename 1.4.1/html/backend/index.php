@@ -32,7 +32,7 @@
     if (isset($_POST['upload']) || isset($_POST['upload-add'])) {
 
         $POST = array_merge($_POST, $_FILES);
-        $VALUES = formToArray($NAME->table, $POST, $PAGE_TABLE, isset($VALUES) ? $VALUES : null);
+        $VALUES = formToArray($NAME->table, $POST, $PAGE_TABLE, $VALUES ?? null);
         
         if (empty($ALERT)) {
             if (!empty($_GET['modify']) || !empty($_POST['modify']) ) {
