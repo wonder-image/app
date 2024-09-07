@@ -133,6 +133,18 @@
 
 <!-- Fine SEO -->
 
+<?php
+
+    if (!empty($SEO->breadcrumb)) {
+
+        echo "<!-- Inizio BreadcrumbList => schema.org -->";
+        echo breadcrumb($SEO->breadcrumb);
+        echo "<!-- Fine BreadcrumbList => schema.org -->";
+
+    }
+
+?>
+
 <!-- Inizio icone -->
     <?php
 

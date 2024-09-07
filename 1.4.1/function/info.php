@@ -117,6 +117,7 @@
         $RETURN->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';;
         $RETURN->url = $PATH->site.$RETURN->uri;
         $RETURN->date = date('d/m/Y',strtotime("-1 days"));
+        $RETURN->breadcrumb = [];
 
         return $RETURN;
 
