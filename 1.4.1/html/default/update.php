@@ -36,41 +36,21 @@
 
             # Aggiorno le righe
 
-                $files = empty(scandir("$ROOT_APP/build/row/")) ? [] : scandir("$ROOT_APP/build/row/");
+                $files = scanParentDir("$ROOT_APP/build/row/");
+                foreach ($files as $file) { include "$ROOT_APP/build/row/$file"; }
 
-                foreach ($files as $file) {
-                    if ($file != '' && $file != '.' && $file != '..') {
-                        include "$ROOT_APP/build/row/$file";
-                    }
-                }
-
-                $files = empty(scandir("$ROOT/custom/build/row/")) ? [] : scandir("$ROOT/custom/build/row/");
-
-                foreach ($files as $file) {
-                    if ($file != '' && $file != '.' && $file != '..') {
-                        include "$ROOT/custom/build/row/$file";
-                    }
-                }
+                $files = scanParentDir("$ROOT_APP/custom/build/row/");
+                foreach ($files as $file) { include "$ROOT/custom/build/row/$file"; }
 
                 echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> Righe tabelle</h5>';
 
             # Aggiungo pagine
 
-                $files = empty(scandir("$ROOT_APP/build/page/")) ? [] : scandir("$ROOT_APP/build/page/");
+                $files = scanParentDir("$ROOT_APP/build/page/");
+                foreach ($files as $file) { include "$ROOT_APP/build/page/$file"; }
 
-                foreach ($files as $file) {
-                    if ($file != '' && $file != '.' && $file != '..') {
-                        include "$ROOT_APP/build/page/$file";
-                    }
-                }
-
-                $files = empty(scandir("$ROOT/custom/build/page/")) ? [] : scandir("$ROOT/custom/build/page/");
-
-                foreach ($files as $file) {
-                    if ($file != '' && $file != '.' && $file != '..') {
-                        include "$ROOT/custom/build/page/$file";
-                    }
-                }
+                $files = scanParentDir("$ROOT/custom/build/page/");
+                foreach ($files as $file) { include "$ROOT/custom/build/page/$file"; }
 
                 echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> Pagine</h5>';
 
