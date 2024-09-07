@@ -106,6 +106,161 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-App-Credentials.html#property_API"
         },                {
+            "fqsen": "\\Wonder\\App\\Path",
+            "name": "Path",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003AAPP",
+            "name": "APP",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#constant_APP"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003AAPP_ASSETS",
+            "name": "APP_ASSETS",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#constant_APP_ASSETS"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003AAPP_API",
+            "name": "APP_API",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#constant_APP_API"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003AASSETS",
+            "name": "ASSETS",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#constant_ASSETS"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003AUPLOAD",
+            "name": "UPLOAD",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#constant_UPLOAD"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024site",
+            "name": "site",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_site"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024root",
+            "name": "root",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_root"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024assetsVersion",
+            "name": "assetsVersion",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_assetsVersion"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024appVersion",
+            "name": "appVersion",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_appVersion"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024backend",
+            "name": "backend",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_backend"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024app",
+            "name": "app",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_app"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024appApi",
+            "name": "appApi",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_appApi"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024appAssets",
+            "name": "appAssets",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_appAssets"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024appCss",
+            "name": "appCss",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_appCss"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024appJs",
+            "name": "appJs",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_appJs"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024api",
+            "name": "api",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_api"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024assets",
+            "name": "assets",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_assets"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024css",
+            "name": "css",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_css"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024js",
+            "name": "js",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_js"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024upload",
+            "name": "upload",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_upload"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024temp",
+            "name": "temp",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_temp"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024rUpload",
+            "name": "rUpload",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_rUpload"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024rTemp",
+            "name": "rTemp",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_rTemp"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024logo",
+            "name": "logo",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_logo"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024logoWhite",
+            "name": "logoWhite",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_logoWhite"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024logoBlack",
+            "name": "logoBlack",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_logoBlack"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024logoIcon",
+            "name": "logoIcon",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_logoIcon"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024favicon",
+            "name": "favicon",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_favicon"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024appIcon",
+            "name": "appIcon",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_appIcon"
+        },                {
+            "fqsen": "\\Wonder\\App\\Path\u003A\u003A\u0024apiDT",
+            "name": "apiDT",
+            "summary": "",
+            "url": "classes/Wonder-App-Path.html#property_apiDT"
+        },                {
             "fqsen": "\\Wonder\\Backend\\Filter\\FilterCustom",
             "name": "FilterCustom",
             "summary": "Funzioni\u0020esterne\u0020utilizzate\u003A\n\u0020\u002D\u0020select\u0020\u0028\u0020input\u0020\u0029\n\u0020\u002D\u0020check\u0020\u0028\u0020input\u0020\u0029\n\u0020\u002D\u0020checkTree\u0020\u0028\u0020input\u0020\u0029",
@@ -2591,6 +2746,66 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-QrCode-QRGdRounded.html#method_module"
         },                {
+            "fqsen": "\\Wonder\\Sql\\Column",
+            "name": "Column",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Column.html"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Column.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Atype\u0028\u0029",
+            "name": "type",
+            "summary": "Tipo\u0020valore",
+            "url": "classes/Wonder-Sql-Column.html#method_type"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Alength\u0028\u0029",
+            "name": "length",
+            "summary": "Massima\u0020lunghezza\u0020valore",
+            "url": "classes/Wonder-Sql-Column.html#method_length"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Anull\u0028\u0029",
+            "name": "null",
+            "summary": "Accetta\u0020i\u0020valori\u0020NULL",
+            "url": "classes/Wonder-Sql-Column.html#method_null"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Adefault\u0028\u0029",
+            "name": "default",
+            "summary": "Valore\u0020di\u0020DEFAULT",
+            "url": "classes/Wonder-Sql-Column.html#method_default"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Aforeign\u0028\u0029",
+            "name": "foreign",
+            "summary": "Tabella\u0020e\u0020colonna\u0020di\u0020riferimento",
+            "url": "classes/Wonder-Sql-Column.html#method_foreign"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Aindex\u0028\u0029",
+            "name": "index",
+            "summary": "Crea\u0020un\u0020indice\u0020nella\u0020colonna",
+            "url": "classes/Wonder-Sql-Column.html#method_index"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Alabel\u0028\u0029",
+            "name": "label",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Column.html#method_label"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Ashow\u0028\u0029",
+            "name": "show",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Column.html#method_show"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003A\u0024name",
+            "name": "name",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Column.html#property_name"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003A\u0024definition",
+            "name": "definition",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Column.html#property_definition"
+        },                {
             "fqsen": "\\Wonder\\Sql\\Connection",
             "name": "Connection",
             "summary": "",
@@ -2626,6 +2841,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Sql-Connection.html#property_database"
         },                {
+            "fqsen": "\\Wonder\\Sql\\Connection\u003A\u003A\u0024connection",
+            "name": "connection",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Connection.html#property_connection"
+        },                {
             "fqsen": "\\Wonder\\Sql\\CreateTable",
             "name": "CreateTable",
             "summary": "",
@@ -2635,6 +2855,11 @@ Search.appendIndex(
             "name": "__construct",
             "summary": "",
             "url": "classes/Wonder-Sql-CreateTable.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\CreateTable\u003A\u003A\u0024debug",
+            "name": "debug",
+            "summary": "",
+            "url": "classes/Wonder-Sql-CreateTable.html#property_debug"
         },                {
             "fqsen": "\\Wonder\\Sql\\CreateTable\u003A\u003ATableColumn\u0028\u0029",
             "name": "TableColumn",
@@ -2666,11 +2891,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Sql-CreateTable.html#property_DEFAULT_TYPE"
         },                {
-            "fqsen": "\\Wonder\\Sql\\CreateTable\u003A\u003A\u0024DEFAULT_NULL",
-            "name": "DEFAULT_NULL",
-            "summary": "",
-            "url": "classes/Wonder-Sql-CreateTable.html#property_DEFAULT_NULL"
-        },                {
             "fqsen": "\\Wonder\\Sql\\CreateTable\u003A\u003A\u0024DEFAULT_LENGHT_VARCHAR",
             "name": "DEFAULT_LENGHT_VARCHAR",
             "summary": "",
@@ -2685,6 +2905,11 @@ Search.appendIndex(
             "name": "DEFAULT_LENGHT_INT",
             "summary": "",
             "url": "classes/Wonder-Sql-CreateTable.html#property_DEFAULT_LENGHT_INT"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\CreateTable\u003A\u003A\u0024SQL_VAR",
+            "name": "SQL_VAR",
+            "summary": "",
+            "url": "classes/Wonder-Sql-CreateTable.html#property_SQL_VAR"
         },                {
             "fqsen": "\\Wonder\\Sql\\Query",
             "name": "Query",
@@ -2753,18 +2978,43 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Wonder\\Sql\\Query\u003A\u003ADatabaseExists\u0028\u0029",
             "name": "DatabaseExists",
-            "summary": "Function\u0020for\u0020verify\u0020if\u0020database\u0020or\u0020table\u0020or\u0020table\u0020column\u0020exists",
+            "summary": "Controlla\u0020se\u0020il\u0020database\u0020esiste",
             "url": "classes/Wonder-Sql-Query.html#method_DatabaseExists"
         },                {
             "fqsen": "\\Wonder\\Sql\\Query\u003A\u003ATableExists\u0028\u0029",
             "name": "TableExists",
-            "summary": "",
+            "summary": "Controlla\u0020che\u0020la\u0020tabella\u0020esiste",
             "url": "classes/Wonder-Sql-Query.html#method_TableExists"
         },                {
             "fqsen": "\\Wonder\\Sql\\Query\u003A\u003AColumnExists\u0028\u0029",
             "name": "ColumnExists",
-            "summary": "",
+            "summary": "Controlla\u0020che\u0020la\u0020colonna\u0020di\u0020una\u0020determinata\u0020tabella\u0020esiste",
             "url": "classes/Wonder-Sql-Query.html#method_ColumnExists"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Query\u003A\u003AISConnection\u0028\u0029",
+            "name": "ISConnection",
+            "summary": "Connessione\u0020al\u0020database\u0020information_schema",
+            "url": "classes/Wonder-Sql-Query.html#method_ISConnection"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Query\u003A\u003AColumnInfo\u0028\u0029",
+            "name": "ColumnInfo",
+            "summary": "Recupera\u0020le\u0020informazioni\u0020della\u0020colonna",
+            "url": "classes/Wonder-Sql-Query.html#method_ColumnInfo"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Query\u003A\u003AColumnForeign\u0028\u0029",
+            "name": "ColumnForeign",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Query.html#method_ColumnForeign"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Query\u003A\u003ATableIndex\u0028\u0029",
+            "name": "TableIndex",
+            "summary": "",
+            "url": "classes/Wonder-Sql-Query.html#method_TableIndex"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\Query\u003A\u003ATableColumn\u0028\u0029",
+            "name": "TableColumn",
+            "summary": "Recupera\u0020le\u0020colonne\u0020della\u0020tabella",
+            "url": "classes/Wonder-Sql-Query.html#method_TableColumn"
         },                {
             "fqsen": "\\Wonder\\Sql\\Query\u003A\u003A\u0024mysqli",
             "name": "mysqli",
