@@ -1,4 +1,4 @@
 <?php
 
-    require_once $ROOT_APP."/function/backend/plugin/header.php";
-    require_once $ROOT_APP."/function/backend/plugin/input.php";
+    require_once __DIR__."/header.php";
+    require_once __DIR__."/input.php";

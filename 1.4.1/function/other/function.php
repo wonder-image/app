@@ -1,10 +1,10 @@
 <?php
 
-    require_once $ROOT_APP."/function/other/bootstrap.php";
-    require_once $ROOT_APP."/function/other/curl.php";
-    require_once $ROOT_APP."/function/other/geo.php";
-    require_once $ROOT_APP."/function/other/color.php";
-    require_once $ROOT_APP."/function/other/courier.php";
-    require_once $ROOT_APP."/function/other/schemaOrg.php";
-    require_once $ROOT_APP."/function/other/parent.php";
-    require_once $ROOT_APP."/function/other/css.php";
+    require_once __DIR__."/bootstrap.php";
+    require_once __DIR__."/curl.php";
+    require_once __DIR__."/geo.php";
+    require_once __DIR__."/color.php";
+    require_once __DIR__."/courier.php";
+    require_once __DIR__."/schemaOrg.php";
+    require_once __DIR__."/parent.php";
+    require_once __DIR__."/css.php";

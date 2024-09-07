@@ -1,5 +1,5 @@
 <?php
 
-    require_once $ROOT_APP."/function/frontend/alert.php";
-    require_once $ROOT_APP."/function/frontend/input.php";
-    require_once $ROOT_APP."/function/frontend/plugin/function.php";
+    require_once __DIR__."/alert.php";
+    require_once __DIR__."/input.php";
+    require_once __DIR__."/plugin/function.php";

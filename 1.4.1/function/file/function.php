@@ -1,9 +1,9 @@
 <?php
 
-    require_once $ROOT_APP."/function/file/extension.php";
-    require_once $ROOT_APP."/function/file/barcode.php";
-    require_once $ROOT_APP."/function/file/qr.php";
-    require_once $ROOT_APP."/function/file/resize.php";
-    require_once $ROOT_APP."/function/file/webp.php";
-    require_once $ROOT_APP."/function/file/dir.php";
-    require_once $ROOT_APP."/function/file/upload.php";
+    require_once __DIR__."/extension.php";
+    require_once __DIR__."/barcode.php";
+    require_once __DIR__."/qr.php";
+    require_once __DIR__."/resize.php";
+    require_once __DIR__."/webp.php";
+    require_once __DIR__."/dir.php";
+    require_once __DIR__."/upload.php";

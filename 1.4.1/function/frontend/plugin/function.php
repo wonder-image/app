@@ -1,4 +1,4 @@
 <?php
 
-    require_once $ROOT_APP."/function/frontend/plugin/pagination.php";
-    require_once $ROOT_APP."/function/frontend/plugin/gallery.php";
+    require_once __DIR__."/pagination.php";
+    require_once __DIR__."/gallery.php";

@@ -1,18 +1,18 @@
 <?php
 
-    require_once $ROOT_APP."/function/utility.php";
-    require_once $ROOT_APP."/function/arrayTo.php";
-    require_once $ROOT_APP."/function/sql.php";
-    require_once $ROOT_APP."/function/info.php";
-    require_once $ROOT_APP."/function/mail.php";
-    require_once $ROOT_APP.'/function/user.php';
+    require_once __DIR__."/utility.php";
+    require_once __DIR__."/arrayTo.php";
+    require_once __DIR__."/sql.php";
+    require_once __DIR__."/info.php";
+    require_once __DIR__."/mail.php";
+    require_once __DIR__.'/user.php';
 
-    require_once $ROOT_APP."/function/other/function.php";
-    require_once $ROOT_APP."/function/file/function.php";
-    require_once $ROOT_APP."/function/string/function.php";
+    require_once __DIR__."/other/function.php";
+    require_once __DIR__."/file/function.php";
+    require_once __DIR__."/string/function.php";
 
-    if (isset($BACKEND) && $BACKEND) { require_once $ROOT_APP."/function/backend/function.php"; }
-    if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP."/function/frontend/function.php"; }
+    if (isset($BACKEND) && $BACKEND) { require_once __DIR__."/backend/function.php"; }
+    if (isset($FRONTEND) && $FRONTEND) { require_once __DIR__."/frontend/function.php"; }
     
     # Funzioni CUSTOM
     require_once $ROOT."/custom/function/function.php";

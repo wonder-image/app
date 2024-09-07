@@ -12,8 +12,8 @@
     $API = (object) array();
     $DEFAULT = (object) array();
 
-    require_once $ROOT_APP."/config/array/alert.php"; # Tutte le allerte
-    require_once $ROOT_APP."/config/array/characters.php"; # Caratteri speciali
-    require_once $ROOT_APP."/config/array/fpdf.php"; # Font aggiuntivi FPDF
-    require_once $ROOT_APP."/config/array/env.php"; # Utilizzo il file .env
-    require_once $ROOT_APP."/config/array/path.php"; # Imposta tutti i link utili
+    require_once __DIR__."/alert.php"; # Tutte le allerte
+    require_once __DIR__."/characters.php"; # Caratteri speciali
+    require_once __DIR__."/fpdf.php"; # Font aggiuntivi FPDF
+    require_once __DIR__."/env.php"; # Utilizzo il file .env
+    require_once __DIR__."/path.php"; # Imposta tutti i link utili
