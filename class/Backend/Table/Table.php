@@ -5,6 +5,8 @@
     use Wonder\Sql\Query;
     use Wonder\Backend\Filter\FilterDate;
     use Wonder\Backend\Filter\FilterCustom;
+    
+    use mysqli;
 
     /**
      * 
@@ -29,8 +31,8 @@
         # Connessione alla tabella
             public $table = "";
             public $database = "";
-            private $mysqli = "";
-            private $SQL = "";
+            private mysqli $mysqli = "";
+            private Query $SQL = "";
 
         # Creazione query
             private $query = "";
@@ -114,10 +116,10 @@
          * Summary of __construct
          * 
          * @param string $table Nome della tabella
-         * @param object $connection Connessione al database che ospita la tabella. {@see \Wonder\Sql\Connection}
+         * @param mysqli $connection Connessione al database che ospita la tabella. {@see \Wonder\Sql\Connection}
          * 
          */
-        function __construct( string $table, object $connection ) {
+        function __construct( string $table, mysqli $connection ) {
 
             $this->table = $table;
             $this->mysqli = $connection;
