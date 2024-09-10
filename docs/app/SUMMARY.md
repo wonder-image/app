@@ -1,7 +1,7 @@
 # Table of contents
 
-* [App 1.4.0](README.md)
-  * [Cron Job](app-1.4.0/cron-job.md)
+* [App 1.4.2](README.md)
+  * [Cron Job](app-1.4.2/cron-job.md)
 
 ## BACKEND
 
