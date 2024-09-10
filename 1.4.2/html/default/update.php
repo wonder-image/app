@@ -39,7 +39,7 @@
                 $files = scanParentDir("$ROOT_APP/build/row/");
                 foreach ($files as $file) { include "$ROOT_APP/build/row/$file"; }
 
-                $files = scanParentDir("$ROOT_APP/custom/build/row/");
+                $files = scanParentDir("$ROOT/custom/build/row/");
                 foreach ($files as $file) { include "$ROOT/custom/build/row/$file"; }
 
                 echo '<h5 class="col-12"><i class="bi bi-check2 text-success me-1"></i> Righe tabelle</h5>';
