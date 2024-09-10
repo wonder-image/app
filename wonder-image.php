@@ -1,6 +1,6 @@
 <?php
 
-    $APP_VERSION = "1.4.1";
+    $APP_VERSION = "1.4.2";
     $LIB_VERSION = "1.6.7";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
