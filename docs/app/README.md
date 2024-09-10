@@ -1,4 +1,4 @@
-# App 1.4.0
+# App 1.4.2
 
 {% hint style="info" %}
 Questo progetto è stato studiato per essere utilizzato con Visual Studio Code. Per il corretto funzionamento è consigliata l'installazione dell'estensione SFTP.
@@ -45,9 +45,13 @@ Credenziali utente default accesso al Backend
 
 Configurare il file `.vscode/sftp.json` con le credenziali FTP per accedere al file manager. Seleziona tutti i file e iniziare l'upload.
 
-### Installa/Aggiorna
+### Installazione
 
-Per iniziare a utilizzare il framework, una volta concluso l'upload di tutti i file tramite FTP è necessario andare su un browser a scelta e digitare `dominio.it/`. Tutte le volte che vengono create/modificate le tabelle per far si che la modifica sia effettiva bisogna andare su `dominio.it/update/`.
+Per iniziare a utilizzare il framework, una volta concluso l'upload di tutti i file tramite FTP è necessario andare su un browser a scelta e digitare `dominio.it/`.&#x20;
+
+### Aggiornamenti
+
+Tutte le volte che vengono create/modificate le tabelle per far si che la modifica sia effettiva bisogna andare su `dominio.it/update/`.
 
 ### Personalizza
 
