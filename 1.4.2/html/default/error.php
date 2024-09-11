@@ -18,7 +18,7 @@
 </head>
 <body>
 
-    <div id="contenitore'"
+    <div id="contenitore">
         <div class="titolo">
             ERRORE <?=$ERROR?>
         </div>
