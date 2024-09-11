@@ -31,8 +31,8 @@
         # Connessione alla tabella
             public $table = "";
             public $database = "";
-            private mysqli $mysqli = "";
-            private Query $SQL = "";
+            private string|mysqli $mysqli = "";
+            private string|Query $SQL = "";
 
         # Creazione query
             private $query = "";
@@ -127,7 +127,7 @@
             $this->SQL = new Query( $this->mysqli );
             $this->database = $this->SQL->GetDatabase();
 
-            $this->url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+            $this->url = $_SERVER['REQUEST_URI'] ?? '';
             
             $this->id = [
                 'table' => $this->createId('table'),
