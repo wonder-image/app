@@ -372,7 +372,6 @@
 
         $attribute .= ' data-wi-select-search="true"';
         $attribute .= $multiple ? ' data-wi-select-search-multiple="true"' : ' data-wi-select-search-multiple="false"';
-        $value = $value == null ? '' : $value;
 
         return select($label, $name, $option, $version, $attribute, $value);
 
