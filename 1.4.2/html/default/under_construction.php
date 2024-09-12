@@ -88,7 +88,7 @@
 
             <div class="p-a w-50 c-h p-p-r w-p-100 p-c-h-off mt-p-10">
 
-                <div class="title-big p-title">
+                <div class="title-big t-title">
                     SITO IN<br>
                     COSTRUZIONE
                 </div>
@@ -101,7 +101,7 @@
                     DOVE SIAMO?
                 </div>
                 <div class="w-100 mt-2">
-                    <?=$SOCIETY->prettyAddress?>
+                    <i class="bi bi-geo-alt tx-primary"></i> <span><?=empty($SOCIETY->gmaps) ? $SOCIETY->prettyAddress : "<a href=\"$SOCIETY->gmaps\" target=\"_blank\" rel=\"noopener noreferrer\">$SOCIETY->prettyAddress</a>"?></span>
                 </div>
                 <?php endif; ?>
 
@@ -110,10 +110,9 @@
                     CONTATTI
                 </div>
                 <div class="w-100 mt-2 d-grid col-1 gap-2">
-                    <a href="tel:+"></a>
-                    <?=empty($SOCIETY->email) ? "" : "<span><i class=\"bi bi-envelope tx-primary\"></i> <a href=\"mailto:$SOCIETY->email\">$SOCIETY->email</a></span>"?>
-                    <?=empty($SOCIETY->tel) ? "" : "<span><i class=\"bi bi-telephone tx-primary\"></i> <a href=\"tel:$SOCIETY->tel\">".prettyPhone($SOCIETY->tel)."</a></span>"?>
-                    <?=empty($SOCIETY->cel) ? "" : "<span><i class=\"bi bi-phone tx-primary\"></i> <a href=\"tel:$SOCIETY->cel\">".prettyPhone($SOCIETY->cel)."</a></span>"?>
+                    <?=empty($SOCIETY->email) ? "" : "<span class=\"w-100 d-flex gap-2\"><i class=\"bi bi-envelope tx-primary\"></i> <a href=\"mailto:$SOCIETY->email\">$SOCIETY->email</a></span>"?>
+                    <?=empty($SOCIETY->tel) ? "" : "<span class=\"w-100 d-flex gap-2\"><i class=\"bi bi-telephone tx-primary\"></i> <a href=\"tel:$SOCIETY->tel\">".prettyPhone($SOCIETY->tel)."</a></span>"?>
+                    <?=empty($SOCIETY->cel) ? "" : "<span class=\"w-100 d-flex gap-2\"><i class=\"bi bi-phone tx-primary\"></i> <a href=\"tel:$SOCIETY->cel\">".prettyPhone($SOCIETY->cel)."</a></span>"?>
                 </div>
                 <?php endif; ?>
 
