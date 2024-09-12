@@ -46,7 +46,6 @@
                 $AUTHORITY = [];
                 foreach ($USER_AUTHORITY as $key => $v) {
                     if ($v != $authority) {
-                        echo $v;
                         array_push($AUTHORITY, $v);
                     }
                 }
