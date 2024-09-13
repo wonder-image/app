@@ -117,7 +117,6 @@
         $RETURN->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';;
         $RETURN->url = $PATH->site.$RETURN->uri;
         $RETURN->date = date('d/m/Y',strtotime("-1 days"));
-        $RETURN->breadcrumb = [];
 
         return $RETURN;
 
@@ -127,7 +126,7 @@
 
         $SQL = sqlSelect($table, [$column => $value], 1);
         
-        $RETURN = (object) array();
+        $RETURN = (object) [];
         $RETURN->exists = $SQL->exists;
         foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? sanitizeEcho($value) : ''; }
         
