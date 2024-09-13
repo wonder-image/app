@@ -8,3 +8,4 @@
     require_once __DIR__."/schemaOrg.php";
     require_once __DIR__."/parent.php";
     require_once __DIR__."/css.php";
+    require_once __DIR__."/address.php";
