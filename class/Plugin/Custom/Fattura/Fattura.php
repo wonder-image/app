@@ -568,7 +568,7 @@
 
                     } else if (isset($ScontoMaggiorazione['Percentuale'])) {
 
-                        $ImportoSconto = number_format(($PrezzoTotale * ($ScontoMaggiorazione['Percentuale'] / 100)) * $Quantita, 3, '.', '');
+                        $ImportoSconto = number_format(($PrezzoTotale * ($ScontoMaggiorazione['Percentuale'] / 100)), 3, '.', '');
                         $ImponibileImporto = number_format($PrezzoTotale - $ImportoSconto, 3, '.', '');
                         
                     }
