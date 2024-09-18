@@ -4,7 +4,7 @@
 
     class TranslatorDate {
 
-        public function Day( $date ) {
+        public static function Day( $date ) {
 
             $newDate = date("D", strtotime($date));
 
@@ -28,7 +28,7 @@
     
         }
 
-        public function Month( $date ) {
+        public static function Month( $date ) {
 
             $newDate = date("F", strtotime($date));
     

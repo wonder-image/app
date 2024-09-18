@@ -94,8 +94,7 @@
                     $month = $lastDate->format('F');
                     $year = $lastDate->format('Y');
 
-                    $translator = new TranslatorDate();
-                    $mese = $translator->Month("01-$month-$year");
+                    $mese = TranslatorDate::Month("01-$month-$year");
 
                     if (isset($_GET[$monthName]) && isset($_GET[$yearName]) && $month == $_GET[$monthName] && $year == $_GET[$yearName]) {
 
