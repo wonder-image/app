@@ -663,6 +663,11 @@
                         $date = new DateTime($VALUE);
                         $VALUE = $date->format('d/m/Y');
 
+                    } else if ($type == 'phone') {
+
+                        $prefix = (isset($this->row['phone_prefix']) && !empty($VALUE)) ? $this->row['phone_prefix']." " : "";
+                        $VALUE = $prefix.Prettify::Phone($VALUE);
+
                     }
 
                 }
@@ -680,8 +685,7 @@
                         $href = "mailto:$VALUE";
                     } elseif ($href == 'tel') {
 
-                        $href = "tel:$VALUE";
-
+                        $href = "tel:".str_replace(' ', '', $VALUE);
                         $VALUE = Prettify::Phone($VALUE);
 
                     }
