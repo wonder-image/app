@@ -6,7 +6,7 @@
 
     class Prettify {
 
-        static function Phone( $number ) {
+        public static function Phone( $number ) {
 
             if (!empty($number)) {
             
@@ -33,7 +33,7 @@
 
         }
 
-        static public function Date( $date, $hours = false ) {
+        public static function Date( $date, $hours = false ) {
 
             $RETURN = date("d", strtotime($date)).' '.TranslatorDate::Month($date).' '.date("Y", strtotime($date));
             $RETURN .= $hours ? ' alle '.date("H:i", strtotime($date)) : '';
@@ -42,7 +42,7 @@
             
         }
 
-        static public function Address($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = "") {
+        public static function Address($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = "") {
 
             $RETURN = (object) array();
     
