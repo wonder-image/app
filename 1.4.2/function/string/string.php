@@ -257,25 +257,19 @@
 
     function prettyPhone($number) {
 
-        $PRETTIFY = new Wonder\Plugin\Custom\Prettify;
-
-        return $PRETTIFY->Phone( $number );
+        return Wonder\Plugin\Custom\Prettify::Phone( $number );
 
     }
 
     function prettyDate($date, $hours = false) {
 
-        $PRETTIFY = new Wonder\Plugin\Custom\Prettify;
-
-        return $PRETTIFY->Date( $date, $hours );
+        return Wonder\Plugin\Custom\Prettify::Date( $date, $hours );
 
     }
 
     function prettyAddress($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = "") {
 
-        $PRETTIFY = new Wonder\Plugin\Custom\Prettify;
-
-        return $PRETTIFY->Address( $street, $number, $cap, $city, $province, $country, $more, $name, $surname, $phone );
+        return Wonder\Plugin\Custom\Prettify::Address( $street, $number, $cap, $city, $province, $country, $more, $name, $surname, $phone );
 
     }
 

@@ -6,7 +6,7 @@
 
     class Prettify {
 
-        public function Phone( $number ) {
+        static function Phone( $number ) {
 
             if (!empty($number)) {
             
@@ -22,7 +22,7 @@
                 if (substr($number, 0, 1) == '0') {
                     return $first.' '.substr($number, 0, 4).' '.substr($number, 4, 6);
                 } else {
-                    return $first.' '.substr($number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
+                    return $first.' '.substr( $number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
                 }
     
             } else {
@@ -33,18 +33,16 @@
 
         }
 
-        public function Date( $date, $hours = false ) {
+        static public function Date( $date, $hours = false ) {
 
-            $month = new TranslatorDate();
-
-            $RETURN = date("d", strtotime($date)).' '.$month->Month($date).' '.date("Y", strtotime($date));
+            $RETURN = date("d", strtotime($date)).' '.TranslatorDate::Month($date).' '.date("Y", strtotime($date));
             $RETURN .= $hours ? ' alle '.date("H:i", strtotime($date)) : '';
 
             return $RETURN;
             
         }
 
-        public function Address($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = "") {
+        static public function Address($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = "") {
 
             $RETURN = (object) array();
     
@@ -54,7 +52,7 @@
             $number = empty($number) ? "" : " $number";
     
             $RETURN->line = "$street$number, $cap $city ($province)";
-            $prettyPhone = empty($phone) ? "" : $this->Phone($phone);
+            $prettyPhone = empty($phone) ? "" : self::Phone($phone);
     
             if (!empty($name) && !empty($surname) && !empty($phone)) {
     
@@ -69,7 +67,7 @@
             } else if (!empty($name) && !empty($surname)) {
     
                 $RETURN->pretty = "
-                <b>$name $RETURN->surname</b><br>
+                <b>$name $surname</b><br>
                 $street$number, $cap <br>
                 $city ($province)$addressMore";
     

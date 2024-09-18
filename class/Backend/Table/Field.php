@@ -682,8 +682,7 @@
 
                         $href = "tel:$VALUE";
 
-                        $PRETTIFY = new Prettify;
-                        $VALUE = $PRETTIFY->Phone($VALUE);
+                        $VALUE = Prettify::Phone($VALUE);
 
                     }
 
