@@ -362,8 +362,13 @@
                 $FILTER = new FilterCustom( $this->table, $this->mysqli, $this->filterCustom, true, $this->getFromUrl('filter_date') );
 
                 $FILTER_HTML = $FILTER->filter;
-                $this->queryFilter .= empty($this->queryFilter) ? $FILTER->query : $this->queryFilter.'AND '.$FILTER->query;
-
+                
+                if (!empty($this->queryFilter) && !empty($FILTER->query)) {
+                    $this->queryFilter .= 'AND '.$FILTER->query;
+                } else if (empty($this->queryFilter) && !empty($FILTER->query)) {
+                    $this->queryFilter .= $FILTER->query;
+                }
+                
                 $class = ($this->filterSearch['visible']) ? 'pe-0' : 'me-auto';
 
                 $FILTER_BUTTON_HTML .= '<div class="col-auto '.$class.'">';
