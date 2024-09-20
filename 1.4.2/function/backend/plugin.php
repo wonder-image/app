@@ -175,56 +175,58 @@
 
         foreach ($tables as $table => $filter) {
 
-            $column = isset($filter['column']) ? $filter['column'] : $column;
-            $multiple = isset($filter['multiple']) ? $filter['multiple'] : $multiple;
+            $table = is_array($filter) ? $table : $filter;
+            $filter = is_array($filter) ? $filter : [];
 
-            if (sqlColumnExists($table, 'deleted')) {
-                $FILTER_SQL = " `deleted` = 'false' ";
-            }else{
-                $FILTER_SQL = "";
-            }
+            $column = $filter['column'] ?? $column;
+
+            $FILTER_SQL = (sqlColumnExists($table, 'deleted')) ? " `deleted` = 'false' " : "";
 
             foreach ($filter as $col => $value) { 
+
                 if (sqlColumnExists($table, $col)) {
                     if (empty($FILTER_SQL)) {
                         $and = "";
-                    }else{
+                    } else {
                         $and = "AND";
                     }
+
                     $FILTER_SQL .= "$and `$col` = '$value' ";
+
                 }
             }
 
             $sql = sqlSelect($table, $FILTER_SQL);
 
-            foreach ($sql->row as $key => $row) {
+            if ($sql->exists) {
 
-                $value = $row[$column];
-                
-                if ($multiple) {
+                foreach ($sql->row as $key => $row) {
+
+                    $value = $row[$column];
 
                     if (!empty($value)) {
-                        
+
                         $values = json_decode($value, true);
 
-                        foreach ($values as $key => $v) {
+                        if (is_array($values)) {
+                            foreach ($values as $key => $v) {
+                                if (!in_array($v, $ARRAY)) {
+                                    array_push($ARRAY, $v);
+                                }
+                            }
+                        } else {
+                        
+                            $v = $value;
+    
                             if (!in_array($v, $ARRAY)) {
                                 array_push($ARRAY, $v);
                             }
+    
                         }
 
                     }
-                    
-                }else{
-
-                    $v = $value;
-
-                    if (!in_array($v, $ARRAY)) {
-                        array_push($ARRAY, $v);
-                    }
 
                 }
-
             }
            
         }
