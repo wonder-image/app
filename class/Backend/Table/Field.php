@@ -304,6 +304,7 @@
 
                         if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
                         elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
+                        elseif ($ACTION == 'duplicate') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->duplicate}' role='button'>Duplica</a>"; }
                         elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->download}'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
                         elseif ($ACTION == 'visible') { $BUTTONS .= $this->changeVisible()->button; }
                         elseif ($ACTION == 'evidence') { $BUTTONS .= $this->changeEvidence()->button; }

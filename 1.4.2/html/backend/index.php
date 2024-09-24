@@ -13,11 +13,17 @@
         $PAGE_TABLE = $TABLE->$table;
     }
     
-    if (!empty($_GET['modify'])) {
+    if (!empty($_GET['modify']) || !empty($_GET['duplicate'])) {
         
-        $TITLE = "Modifica $TEXT->titleS";
+        if (!empty($_GET['modify'])) {
+            $TITLE = "Modifica $TEXT->titleS";
+            $getId = $_GET['modify'];
+        } else {
+            $TITLE = "Aggiungi $TEXT->titleS";
+            $getId = $_GET['duplicate'];
+        }
 
-        $SQL = sqlSelect($NAME->table, ['id' => $_GET['modify']], 1);
+        $SQL = sqlSelect($NAME->table, [ 'id' => $getId ], 1);
         $VALUES = $SQL->row;
 
     } else {

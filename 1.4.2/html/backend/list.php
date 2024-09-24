@@ -59,6 +59,7 @@
 
     $TABLE->addLink( 'view', $PATH->backend.'/'.$NAME->folder.'/view.php?redirect={redirectBase64}&id={rowId}' );
     $TABLE->addLink( 'modify', $PATH->backend.'/'.$NAME->folder.'/?redirect={redirectBase64}&modify={rowId}' );
+    $TABLE->addLink( 'duplicate', $PATH->backend.'/'.$NAME->folder.'/?redirect={redirectBase64}&duplicate={rowId}' );
     $TABLE->addLink( 'download', $PATH->backend.'/'.$NAME->folder.'/download.php?id={rowId}' );
     $TABLE->addLink( 'file', $PATH->upload.'/'.$NAME->folder );
 
