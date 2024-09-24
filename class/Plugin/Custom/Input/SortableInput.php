@@ -115,7 +115,7 @@
             $RETURN = "<div class='row g-3'>";
 
             # Titolo
-            if (!empty($this->Title)) { $RETURN .= '<div class="col-12 mt-0"> <h5>'.$this->Title.'</h5> </div>'; }
+            if (!empty($this->Title)) { $RETURN .= '<div class="col-12 mt-0"> <h6>'.$this->Title.'</h6> </div>'; }
 
             # Apro il contenitore
             $RETURN .= '<div class="col-12 mt-0">';
