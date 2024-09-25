@@ -45,4 +45,9 @@
         'Montserrat-ExtraBoldItalic' => 'Montserrat Extra Bold Italic',
         'Montserrat-BlackItalic' => 'Montserrat Black Italic',
         
+        # American Typewriter
+        'AmericanTypewriter-Light' => 'American Typewriter Light',
+        'AmericanTypewriter-Regular' => 'American Typewriter Regular',
+        'AmericanTypewriter-Bold' => 'American Typewriter Bold',
+        
     ];
