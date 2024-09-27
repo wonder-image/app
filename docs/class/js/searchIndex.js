@@ -1141,6 +1141,106 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Pdf.html#property_FONT_BOLD"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address",
+            "name": "Address",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Acreate\u0028\u0029",
+            "name": "create",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_create"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003AgetById\u0028\u0029",
+            "name": "getById",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_getById"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003AmergeConditions\u0028\u0029",
+            "name": "mergeConditions",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_mergeConditions"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Aget\u0028\u0029",
+            "name": "get",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_get"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003AgetValues\u0028\u0029",
+            "name": "getValues",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_getValues"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Adelete\u0028\u0029",
+            "name": "delete",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_delete"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Amodal\u0028\u0029",
+            "name": "modal",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_modal"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003AmodalDelete\u0028\u0029",
+            "name": "modalDelete",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_modalDelete"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003AmodalForm\u0028\u0029",
+            "name": "modalForm",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_modalForm"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Ainput\u0028\u0029",
+            "name": "input",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_input"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Acard\u0028\u0029",
+            "name": "card",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_card"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003AbuttonAdd\u0028\u0029",
+            "name": "buttonAdd",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_buttonAdd"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A\u0024tableName",
+            "name": "tableName",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#property_tableName"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A\u0024table",
+            "name": "table",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#property_table"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A\u0024prefix",
+            "name": "prefix",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#property_prefix"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A\u0024DEFAULT",
+            "name": "DEFAULT",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#property_DEFAULT"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A\u0024platform",
+            "name": "platform",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#property_platform"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003A\u0024condition",
+            "name": "condition",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#property_condition"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Fattura\\Fattura",
             "name": "Fattura",
             "summary": "",
@@ -3065,6 +3165,11 @@ Search.appendIndex(
             "name": "Wonder",
             "summary": "",
             "url": "namespaces/wonder.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address",
+            "name": "Address",
+            "summary": "",
+            "url": "namespaces/wonder-plugin-custom-address.html"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Fattura",
             "name": "Fattura",
