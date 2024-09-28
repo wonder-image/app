@@ -16,15 +16,6 @@
 
     function wiApi( string $endpoint, array $values = []) {
 
-        global $API;
+        return Wonder\App\Api::Call($endpoint, $values);
         
-        $url = $API->endpoint.$endpoint;
-
-        $CALL = new Wonder\Api\Call($url, $values);
-        $CALL->method('POST');
-        $CALL->contentType('application/json');
-        $CALL->authBearer($API->key);
-
-        return $CALL->result();
-
     }
