@@ -2,8 +2,11 @@
 
     namespace Wonder\Plugin\Google\Business;
 
+    use Wonder\App\Api;
+
     class Info {
 
+        static $endpoint = '/service/google/business/';
         static $placeId;
 
         /**
@@ -19,9 +22,7 @@
 
         public function Info():array {
 
-            $request = wiApi('/service/google/business/', [
-                "place_id" => self::$placeId
-            ]);
+            $request = Api::Call(self::$endpoint, [ "place_id" => self::$placeId ]);
 
             $json = json_decode($request, true);
 
@@ -40,7 +41,7 @@
          */
         public function Reviews( string $sort = 'newest', bool $translate = false ):array {
 
-            $request = wiApi('/service/google/business/reviews/', [
+            $request = Api::Call(self::$endpoint."reviews/", [
                 "place_id" => self::$placeId,
                 "sort" => $sort,
                 "translate" => $translate
