@@ -7,6 +7,7 @@
         public $Id;
         public $Title;
         public $Button;
+        public $Position = true;
         public $Columns = [];
         public $RowN = 1;
         public $Values = [ [ ] ];
@@ -29,6 +30,7 @@
         }
 
         function Title( $title) { $this->Title = $title; }
+        function Position( bool $position = true ) { $this->Position = $position; }
 
         function Column( $name, $label = '', $type = 'hidden', $value = null, int $col = 3, $attribute = '', array $option = [] ) {
 
@@ -60,7 +62,10 @@
             }
 
             $RETURN .= '<div class="row g-2">';
-            $RETURN .= '<div class="col-1">'.$this->Button['up'].$this->Button['down'].'</div>';
+
+            if ($this->Position) {
+                $RETURN .= '<div class="col-1">'.$this->Button['up'].$this->Button['down'].'</div>';
+            }
 
             foreach ($this->Columns as $key => $Column) {
                 
@@ -122,11 +127,7 @@
             $RETURN .= '<div id="'.$this->Id.'" class="row g-3 mt-0">';
 
             # Input
-            foreach ($this->Values as $key => $Value) {
-                
-                $RETURN .= $this->GenerateRow($Value);
-
-            }
+            foreach ($this->Values as $key => $Value) { $RETURN .= $this->GenerateRow($Value); }
 
             # Linea da copiare
             $RETURN .= $this->GenerateRow([], true);
