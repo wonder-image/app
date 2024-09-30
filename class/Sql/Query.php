@@ -194,7 +194,7 @@
 
         }
 
-        public function Select( string $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string | array $attributes = '*' ) 
+        public function Select( string | array $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string | array $attributes = '*' ) 
         {
 
             $query = "SELECT ";
