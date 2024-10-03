@@ -95,6 +95,8 @@
                         $RETURN .= price($label, $name.'[]', $attribute, $value);
                     } elseif ($type == 'select') {
                         $RETURN .= select($label, $name.'[]', $option, null, $attribute, $value);
+                    } elseif ($type == 'select-search') {
+                        $RETURN .= selectSearch($label, $name.'[]', $option, false, null, $attribute, $value);
                     } elseif ($type == 'date') {
                         $RETURN .= dateInput($label, $name.'[]', null, null, $attribute, $value);
                     } elseif ($type == 'date-time') {
