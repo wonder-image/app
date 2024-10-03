@@ -371,7 +371,7 @@
     function selectSearch($label, $name, $option, $multiple = false, $version = null, $attribute = null, $value = null) {
 
         $attribute .= ' data-wi-select-search="true"';
-        $attribute .= $multiple ? ' data-wi-select-search-multiple="true"' : ' data-wi-select-search-multiple="false"';
+        $attribute .= $multiple ? ' data-wi-select-search-multiple="true" multiple' : ' data-wi-select-search-multiple="false"';
 
         return select($label, $name, $option, $version, $attribute, $value);
 
@@ -382,9 +382,10 @@
         global $VALUES;
 
         $id = strtolower(code(10, 'letters', 'input_'));
-        
+
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $multiple = !is_null($attribute) && strpos($attribute, "multiple") ? true : false;
 
         $optionHTML = "";
 
@@ -392,6 +393,7 @@
         
         foreach ($option as $vl => $nm) {
 
+            $att = "";
             $dataFilter = "";
 
             if (is_array($nm)) {
@@ -403,10 +405,12 @@
 
             }
 
-            if ($value != null) {
-                $att = ($vl == $value) ? "selected" : "";
-            } else {
-                $att = ($i == 1) ? "selected" : "";
+            if ($value != null) { 
+                if (is_array($value)) {
+                    $att = in_array($vl, $value) ? "selected" : ""; 
+                } else {
+                    $att = ($vl == $value) ? "selected" : ""; 
+                }
             }
 
             $optionHTML .= "<option value='$vl' $att $dataFilter>$nm</option>";
@@ -415,10 +419,14 @@
             
         }
 
+        $name .= $multiple ? "[]" : "";
+        $inputHidden = $multiple ? "<input type='hidden' name='$name'>" : "";
+
         if ($version == 'old') {
 
             return "
             <div id='container-$id' class='w-100 wi-container-select'>
+                $inputHidden
                 <label for='$id' class='h6'>$label</label>
                 <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
                     $optionHTML
@@ -429,6 +437,7 @@
 
             return "
             <div class='form-floating'>
+                $inputHidden
                 <select id='$id' name='$name' class='form-select' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
                     $optionHTML
                 </select>
