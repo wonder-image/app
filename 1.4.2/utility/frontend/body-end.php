@@ -16,4 +16,4 @@
 <!-- Custom .css - .js  -->
 <?php include $ROOT.'/custom/utility/frontend/body-end.php'; ?>
 
-<script> window.addEventListener('load', (event) => { setUpPage(); <?=alert()?> }); </script>
+<script> setAos(); window.addEventListener('load', (event) => { setUpPage(); <?=alert()?> }); </script>
