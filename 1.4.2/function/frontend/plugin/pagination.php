@@ -9,7 +9,11 @@
         $class .= ($active) ? $style['active'] : '';
         $class .= ($disabled) ? $style['disabled'] : '';
 
-        return '<a '.$href.' class="'.$class.'">'.$text.'</a>';
+        if (empty($href)) {
+            return '<div class="'.$class.'">'.$text.'</div>';
+        } else {
+            return '<a '.$href.' class="'.$class.'">'.$text.'</a>';
+        }
 
     }
 
