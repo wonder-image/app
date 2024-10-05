@@ -96,6 +96,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- Link canonico pagina -->
+<link rel="canonical" href="<?=$SEO->url?>">
+
 <!-- Inizio SEO -->
 
     <title><?=$SEO->title?></title>
