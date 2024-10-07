@@ -63,6 +63,8 @@
         
         private function GenerateRow( $Value, $CopyRow = false ) {
 
+            $delete = $Value['delete'] ?? true;
+
             if ($CopyRow) {
 
                 $RETURN = '<div id="copy-line-'.$this->Id.'" class="col-12 visually-hidden">';
@@ -122,7 +124,10 @@
 
             }
 
-            $RETURN .= '<div class="col-1">'.$this->Button['delete'].'</div>';
+            if ($delete) {
+                $RETURN .= '<div class="col-1">'.$this->Button['delete'].'</div>';
+            }
+
             $RETURN .= '</div>';
             $RETURN .= '</div>';
 
