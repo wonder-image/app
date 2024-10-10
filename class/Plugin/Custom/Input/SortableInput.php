@@ -87,11 +87,22 @@
                 $label = $Column['label'];
                 $name = $Column['name'];
                 $type = $Column['type'];
-                $value = isset($Value[$name]) ? $Value[$name] : $Column['value'];
+                $value = $Value[$name] ?? $Column['value'];
                 $col = $Column['col'];
                 $attribute = $Column['attribute'];
                 $option = $Column['option'];
 
+                # Se sono stati passati dei valori diversi nelle linee di default
+
+                    $config = (is_array($value) && isset($value['value'])) ? $value : [];
+
+                    $value = $config['value'] ?? $value;
+                    $addAttribute = $config['attribute'] ?? '';
+
+                    $attribute .= ' '.$addAttribute;
+
+                #
+                
                 if ($CopyRow && !in_array($type, [ 'select', 'select-search' ])) { $attribute = 'data-wi-attribute="'.str_replace('"', "'",$attribute).'"'; }
 
                 if ($type == 'hidden') {

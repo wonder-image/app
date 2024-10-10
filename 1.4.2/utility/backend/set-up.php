@@ -20,49 +20,47 @@
             'subnavs' => [
                 [
                     'title' => 'Dati aziendali',
-                    'folder' => 'corporate-data',
+                    'folder' => 'config-app/corporate-data',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
+                    'title' => 'Logo',
+                    'folder' => 'config-app/logos',
+                    'file' => '',
+                    'authority' => ['admin']
+                ], [
                     'title' => 'Seo',
-                    'folder' => 'seo',
+                    'folder' => 'config-app/seo',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Utenti',
-                    'folder' => 'user',
+                    'folder' => 'config-app/user',
                     'file' => 'list.php',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Analitica',
-                    'folder' => 'analytics',
+                    'folder' => 'config-app/analytics',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Editor',
-                    'folder' => 'configuration-file',
+                    'folder' => 'config-app/configuration-file',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Errori SQL',
-                    'folder' => 'error',
+                    'folder' => 'config-app/sql-error',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Download',
-                    'folder' => 'download',
+                    'folder' => 'config-app/sql-download',
                     'file' => '',
                     'authority' => ['admin']
-                ],
+                ]
             ]
-        ],
-        [
+        ], [
             'title' => 'Stile',
             'folder' => 'css',
             'icon' => 'bi-award',
@@ -70,52 +68,40 @@
             'subnavs' => [
                 [
                     'title' => 'Default',
-                    'folder' => 'css-default',
+                    'folder' => 'config-css/default',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
-                    'title' => 'Logo',
-                    'folder' => 'logos',
-                    'file' => '',
-                    'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Font',
-                    'folder' => 'css-font',
+                    'folder' => 'config-css/font',
                     'file' => 'list.php',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Colori',
-                    'folder' => 'css-color',
+                    'folder' => 'config-css/color',
                     'file' => 'list.php',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Input',
-                    'folder' => 'css-input',
+                    'folder' => 'config-css/input',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Modal',
-                    'folder' => 'css-modal',
+                    'folder' => 'config-css/modal',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Dropdown',
-                    'folder' => 'css-dropdown',
+                    'folder' => 'config-css/dropdown',
                     'file' => '',
                     'authority' => ['admin']
-                ],
-                [
+                ], [
                     'title' => 'Alert',
-                    'folder' => 'css-alert',
+                    'folder' => 'config-css/alert',
                     'file' => '',
                     'authority' => ['admin']
-                ],
+                ]
             ]
         ]
     ];

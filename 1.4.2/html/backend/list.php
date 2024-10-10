@@ -57,12 +57,13 @@
     if (isset($USER_FILTER->area)) { $TABLE->addEndpointValue('user_area', $USER_FILTER->area); }
     if (isset($USER_FILTER->authority)) { $TABLE->addEndpointValue('user_authority', $USER_FILTER->authority); }
 
-    $TABLE->addLink( 'view', $PATH->backend.'/'.$NAME->folder.'/view.php?redirect={redirectBase64}&id={rowId}' );
-    $TABLE->addLink( 'modify', $PATH->backend.'/'.$NAME->folder.'/?redirect={redirectBase64}&modify={rowId}' );
-    $TABLE->addLink( 'duplicate', $PATH->backend.'/'.$NAME->folder.'/?redirect={redirectBase64}&duplicate={rowId}' );
-    $TABLE->addLink( 'download', $PATH->backend.'/'.$NAME->folder.'/download.php?id={rowId}' );
-    $TABLE->addLink( 'file', $PATH->upload.'/'.$NAME->folder );
+    $currentDir = str_replace('backend/', '', $PAGE->dir);
 
+    $TABLE->addLink( 'view', $PATH->backend.'/'.$currentDir.'/view.php?redirect={redirectBase64}&id={rowId}' );
+    $TABLE->addLink( 'modify', $PATH->backend.'/'.$currentDir.'/?redirect={redirectBase64}&modify={rowId}' );
+    $TABLE->addLink( 'download', $PATH->backend.'/'.$currentDir.'/download.php?id={rowId}' );
+    $TABLE->addLink( 'file', $PATH->upload.'/'.$NAME->folder );
+    
     $QUERY_CUSTOM = empty($QUERY_CUSTOM) ? "`deleted` = 'false'" : $QUERY_CUSTOM." AND `deleted` = 'false'";
     $TABLE->query($QUERY_CUSTOM);
 

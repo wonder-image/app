@@ -42,6 +42,9 @@
             $PAGE->redirect = base64_decode($PAGE->redirectBase64); 
         }
 
+        $PAGE->fileName = (pathinfo($PAGE->path, PATHINFO_EXTENSION) != "") ? pathinfo($PAGE->path, PATHINFO_BASENAME) : "";
+        $PAGE->dir = mb_substr(substr(str_replace($PAGE->fileName, '',$PAGE->path), 0, -1), 1);
+
         return $PAGE;
 
     }

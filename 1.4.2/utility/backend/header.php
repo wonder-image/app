@@ -10,29 +10,28 @@
 
                 <?php
                     
-                    $url = $_SERVER['SCRIPT_NAME'];
-                    $pathArray = explode("/", $url);
+                    $parsedUrl = parse_url($_SERVER["REQUEST_URI"])["path"];
 
-                    array_shift($pathArray);
-                    array_shift($pathArray);
+                    $currentFile = $PAGE->fileName;
+                    $currentDir = str_replace('backend/', '',$PAGE->dir);
 
                     $offcanvasHTML = "";
 
                     foreach ($NAV_BACKEND as $navs) {
 
-                        $titleNav = isset($navs['title']) ? $navs['title'] : 'ND';
-                        $folderNav = isset($navs['folder']) ? $navs['folder'] : '';
-                        $iconNav = isset($navs['icon']) ? $navs['icon'] : 'bi-bug';
-                        $fileNav = isset($navs['file']) ? $navs['file'] : '';
-                        $authNav = isset($navs['authority']) ? $navs['authority'] : [];
-                        $subNav = isset($navs['subnavs']) ? $navs['subnavs'] : [];
+                        $titleNav = $navs['title'] ?? 'ND';
+                        $folderNav = $navs['folder'] ?? '';
+                        $iconNav = $navs['icon'] ?? 'bi-bug';
+                        $fileNav = $navs['file'] ?? '';
+                        $authNav = $navs['authority'] ?? [];
+                        $subNav = $navs['subnavs'] ?? [];
                         $targetId = code(10, 'numbers', 'sidebar-');
 
                         if (!$authNav || count(array_intersect($authNav, $USER->authority)) >= 1) {
 
                             $activeNav = false;
 
-                            if (in_array($folderNav, $pathArray)) { $activeNav = true; }
+                            if ($currentDir == $folderNav) { $activeNav = true; }
         
                             $offcanvas = [];
                             
@@ -40,22 +39,22 @@
 
                                 foreach ($subNav as $sub) {
                                     
-                                    $titleSub = isset($sub['title']) ? $sub['title'] : 'ND';
-                                    $folderSub = isset($sub['folder']) ? $sub['folder'] : '';
-                                    $authSub = isset($sub['authority']) ? $sub['authority'] : [];
-                                    $fileSub = isset($sub['file']) ? $sub['file'] : '';
+                                    $titleSub = $sub['title'] ?? 'ND';
+                                    $folderSub = $sub['folder'] ?? '';
+                                    $authSub = $sub['authority'] ?? [];
+                                    $fileSub = $sub['file'] ?? '';
 
                                     $activeSub = false;
 
                                     if (!$authSub || count(array_intersect($authSub, $USER->authority)) >= 1) {
 
                                         if ($folderNav == $folderSub) {
-                                            if (in_array($folderNav, $pathArray) && in_array($fileSub, $pathArray)){
+                                            if ($currentDir == $folderNav && $currentFile == $fileSub){
                                                 $activeSub = true;
                                                 $activeNav = true;
                                             }
                                         } else {
-                                            if (in_array($folderSub, $pathArray)) {
+                                            if ($currentDir == $folderSub) {
                                                 $activeSub = true;
                                                 $activeNav = true;
                                             }
@@ -107,12 +106,12 @@
             <?php
 
                 $impostazioniId = code(10, 'numbers', 'sidebar-');
-
+ 
             ?>
 
             <ul class="list-unstyled components border-top mb-0">
                     
-                <li>
+                <li class="<?=($currentDir == 'account') ? 'active' : ''?>">
                     <div class="line bg-body"></div>
                     <a class="text-body-emphasis" type="button" data-bs-toggle="offcanvas" data-bs-target="#<?=$impostazioniId?>">       
                         <i class="bi bi-gear-wide-connected"></i>
@@ -128,15 +127,15 @@
             <?php
 
                 echo $offcanvasHTML;
-
+                
                 echo sidebarOffcanvas($impostazioniId, "Impostazioni", [
                     [
                         'title' => 'Profilo',
                         'link' => $PATH->site.'/backend/account',
-                        'active' => in_array('account', $pathArray) ? true : false
+                        'active' => ($currentDir == 'account') ? true : false
                     ],[
                         'title' => 'Esci',
-                        'link' => $PATH->site.'/backend',
+                        'link' => $PATH->site.'/backend/',
                         'active' => false
                     ]
                 ]);
