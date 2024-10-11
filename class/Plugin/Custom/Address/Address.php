@@ -171,15 +171,26 @@
 
         public function getValues( array | string $condition ) {
 
-            $row = sqlSelect( 
+            $SQL = sqlSelect( 
                 $this->tableName, 
                 $this->mergeConditions($condition, self::$condition), 
                 1
-            )->row;
+            );
 
             $return = [];
 
-            foreach ($row as $key => $value) { $return["{$this->prefix}$key"] = $value; }
+            if ($SQL->exists) { 
+
+                foreach ($this->getById( $SQL->row['id'] ) as $key => $value) { 
+                    $return["{$this->prefix}$key"] = $value; 
+                } 
+                
+            } else {
+                
+                $return["{$this->prefix}prettyAddress"] = '--';
+                $return["{$this->prefix}prettyPDF"] = '--';
+                
+            }
 
             return $return;
 

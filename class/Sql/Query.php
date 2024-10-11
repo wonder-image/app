@@ -118,7 +118,7 @@
 
         }
 
-        public function JoinTable( array $tables ): string
+        public static function JoinTable( array $tables ): string
         {
     
             $tableJoined = "";
@@ -200,8 +200,8 @@
             $query = "SELECT ";
             $query .= is_array($attributes) ? implode(",", $attributes) : $attributes;
             $query .= " FROM ";
-            $query .= is_array($table) ? $this->JoinTable( $table ) : "`$table`";
-            $query .= ($condition == null) ? "" : $this->Conditions( $condition );
+            $query .= is_array($table) ? self::JoinTable( $table ) : "`$table`";
+            $query .= ($condition == null) ? "" : self::Conditions( $condition );
             $query .= ($order == null) ? "" : " ORDER BY $order";
             $query .= ($orderDirection == null) ? "" : " $orderDirection";
             $query .= ($limit == null) ? "" : " LIMIT $limit";
@@ -245,7 +245,7 @@
 
             $query = "DELETE FROM ";
             $query .= "`$table`";
-            $query .= ($condition == null) ? "" : $this->Conditions( $condition );
+            $query .= ($condition == null) ? "" : self::Conditions( $condition );
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 

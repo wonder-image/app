@@ -14,18 +14,18 @@
 
     # Importo tutte le variabili che mi servono
 
-        $NAME = (object) array();
+        $NAME = (object) [];
         $NAME->id = $_POST['id'];
         $NAME->table = $_POST['config']['table'];
         $NAME->database = $_POST['config']['database'];
         $NAME->connection = $MYSQLI_CONNECTION[$NAME->database];
 
-        $NAME->link = isset($_POST['default']['link']) ? $_POST['default']['link'] : [];
+        $NAME->link = $_POST['default']['link'] ?? [];
 
         $nameTable = strtoupper($NAME->table);
         $NAME->field = $TABLE->$nameTable;
 
-        $TEXT = (object) array();
+        $TEXT = (object) [];
         $TEXT->titleS = $_POST['text']['titleS'];
         $TEXT->titleP = $_POST['text']['titleP'];
         $TEXT->last = $_POST['text']['last'];
@@ -35,21 +35,21 @@
         $TEXT->empty = $_POST['text']['empty'];
         $TEXT->this = $_POST['text']['this'];
 
-        $USER = (object) array();
-        $USER->area = isset($_POST['custom']['user_area']) ? $_POST['custom']['user_area'] : "";
-        $USER->authority = isset($_POST['custom']['user_authority']) ? $_POST['custom']['user_authority'] : "";
+        $USER = (object) [];
+        $USER->area = $_POST['custom']['user_area'] ?? "";
+        $USER->authority = $_POST['custom']['user_authority'] ?? "";
 
-        $CUSTOM = (object) array();
+        $CUSTOM = (object) [];
         $CUSTOM->field = $_POST['fields'];
         $CUSTOM->arrow = ($_POST['default']['order'] == 'position') ? true : false;
-        $CUSTOM->action = isset($_POST['custom']['action']) ? $_POST['custom']['action'] : [];
+        $CUSTOM->action = $_POST['custom']['action'] ?? [];
         $CUSTOM->query = base64_decode($_POST['config']['query']);
         $CUSTOM->query_filter = base64_decode($_POST['config']['query_filter']);
         $CUSTOM->query_all = base64_decode($_POST['config']['query_custom']);
-        $CUSTOM->search_field = isset($_POST['config']['search_column']) ? json_decode(base64_decode($_POST['config']['search_column']), true) : [];
+        $CUSTOM->search_field = isset($_POST['config']['search_columns']) ? json_decode(base64_decode($_POST['config']['search_columns']), true) : [];
         
-        $CUSTOM->order_column = isset($_POST['order'][0]['name']) ? $_POST['order'][0]['name'] : $_POST['default']['order'];
-        $CUSTOM->order_direction = isset($_POST['order'][0]['dir']) ? $_POST['order'][0]['dir'] : $_POST['default']['order_direction'];
+        $CUSTOM->order_column = $_POST['order'][0]['name'] ?? $_POST['default']['order'];
+        $CUSTOM->order_direction = $_POST['order'][0]['dir'] ?? $_POST['default']['order_direction'];
 
     #
 

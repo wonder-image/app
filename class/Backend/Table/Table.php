@@ -207,10 +207,10 @@
             
             }
 
-            public function filterSearch( bool $visible = false, array $fields = [] ) {
+            public function filterSearch( bool $visible = false, array $fields = []) {
 
                 $this->filterSearch['visible'] = $visible; 
-                $this->filterSearch['fields'] = $fields; 
+                $this->filterSearch['fields'] = $fields;
             
             }
 
@@ -574,7 +574,7 @@
                 'query' => base64_encode($this->query),
                 'query_filter' => base64_encode($this->queryFilter),
                 'query_custom' => base64_encode($this->queryCustom),
-                'search_column' => base64_encode(json_encode($this->filterSearch['fields']))
+                'search_columns' => base64_encode(json_encode($this->filterSearch['fields']))
             ];
 
             $JSON['text'] = $this->text;
