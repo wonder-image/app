@@ -191,6 +191,7 @@
 
         }
 
+        public function length(int $value = 10 ) { $this->default['length'] = $value; }
         
         # Filtri
             public function filterDate( bool $visible = false, int $days = 30, string $column = 'creation' ) { 
