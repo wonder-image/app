@@ -114,7 +114,7 @@
 
     if (isset($BUTTON_ADD) && $BUTTON_ADD) {
         $TABLE->buttonAdd(
-            $PATH->backend.'/'.$NAME->folder.'/?redirect='.$PAGE->uriBase64,
+            $PATH->backend.'/'.$currentDir.'/?redirect='.$PAGE->uriBase64,
             'Aggiungi '.$TEXT->titleS
         );
     }
