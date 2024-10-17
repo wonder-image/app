@@ -144,6 +144,18 @@
 
                     <wi-card class="col-12">
                         <div class="col-12">
+                            <h6>Colori dropdown</h6>
+                        </div>
+                        <div class="col-6">
+                            <?=color('Testo', 'dropdown_tx_color', 'required'); ?>
+                        </div>
+                        <div class="col-6">
+                            <?=color('Sfondo', 'dropdown_bg_color', 'required'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-12">
+                        <div class="col-12">
                             <h6>Input select</h6>
                         </div>
                         <div class="col-12">

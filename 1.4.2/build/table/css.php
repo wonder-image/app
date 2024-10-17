@@ -99,6 +99,16 @@
     $TABLE->CSS_INPUT = [
         "tx_color" => [],
         "bg_color" => [],
+        "dropdown_tx_color" => [
+            "sql" => [
+                "default" => "var(--input-tx-color)"
+            ]
+        ],
+        "dropdown_bg_color" => [
+            "sql" => [
+                "default" => "var(--input-bg-color)"
+            ]
+        ],
         "disabled_bg_color" => [],
         "label_color" => [],
         "label_color_focus" => [],

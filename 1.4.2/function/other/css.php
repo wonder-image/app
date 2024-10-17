@@ -88,6 +88,9 @@
         $RETURN .= "--input-bg-color: $CSS_INPUT->bg_color;\n";
         $RETURN .= "--input-disabled-bg: $CSS_INPUT->disabled_bg_color;\n";
         $RETURN .= "\n";
+        $RETURN .= "--input-dropdown-tx-color: $CSS_INPUT->dropdown_tx_color;\n";
+        $RETURN .= "--input-dropdown-bg-color: $CSS_INPUT->dropdown_bg_color;\n";
+        $RETURN .= "\n";
         $RETURN .= "--input-select-hover: $CSS_INPUT->select_hover;\n";
         $RETURN .= "\n";
         $RETURN .= "--input-border-color: $CSS_INPUT->border_color;\n";
