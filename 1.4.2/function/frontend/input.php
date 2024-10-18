@@ -260,20 +260,52 @@
             $ACCEPT = "";
         }
 
-        if (!empty($value)) { $class .= " compiled"; }
+        if (!empty($value)) { 
+
+            $class .= " compiled"; 
+
+            if (is_array(json_decode($value, true))) {
+                $values = json_decode($value, true);
+            } else if (!is_array($value)) {
+                $values = [];
+                array_push($values, $value);
+            }
+
+            $script = '<script>';
+            $script .= "var dataTransfer = new DataTransfer();\n\n";
+
+            foreach ($values as $key => $file) {
+
+                $fileName = basename($file);
+                $fileType = mime_content_type($file);
+                
+                $script .= "dataTransfer.items.add(new File(";
+                $script .= "[],";
+                $script .= "'".$fileName."', {";
+                $script .= "type: '".$fileType."'";
+                $script .= "}));\n";
+                
+            }
+
+            $script .= 'document.querySelector(\'input[type="file"]#'.$id.'\').files = dataTransfer.files;';
+            $script .= '</script>';
+
+        }
+
         if (strpos($attribute, "required") !== false) { $label .= "*"; }
 
         $name .= '[]';
 
         $multiple = ($maxFile == 1) ? "" : "multiple";
 
-        $maxSize = $maxSize * 1048576;
+        $maxSize *= 1048576;
 
         return "
         <div class='wi-input-container file compiled$class'>
             <label for='$id' class='wi-label'>$label</label>
             <input class='wi-input' id='$id' type='file' accept='$ACCEPT' name='$name' data-wi-max-file='$maxFile' data-wi-max-size='$maxSize' data-wi-check='true' $multiple $attribute>
             $alert
+            $script
         </div>";
 
     }
