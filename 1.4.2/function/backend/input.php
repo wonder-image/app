@@ -371,7 +371,7 @@
     function selectSearch($label, $name, $option, $multiple = false, $version = null, $attribute = null, $value = null) {
 
         $attribute .= ' data-wi-select-search="true"';
-        $attribute .= $multiple ? ' data-wi-select-search-multiple="true" multiple' : ' data-wi-select-search-multiple="false"';
+        $attribute .= $multiple ? ' data-wi-select-search-multiple="true" multiple' : '';
 
         return select($label, $name, $option, $version, $attribute, $value);
 
