@@ -350,7 +350,7 @@
         return "
         <div class='wi-input-container date compiled$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='text' id='$id' class='wi-input' name='$name' placeholder='gg/mm/aaaa' data-wi-check='true' $attribute>
+            <input type='text' id='$id' class='wi-input' name='$name' placeholder='gg/mm/aaaa' data-wi-check='true' $attribute value='$value'>
             $alert
         </div>
         <script>
