@@ -71,6 +71,16 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Api-Call.html#property_cURL"
         },                {
+            "fqsen": "\\Wonder\\App\\Api",
+            "name": "Api",
+            "summary": "",
+            "url": "classes/Wonder-App-Api.html"
+        },                {
+            "fqsen": "\\Wonder\\App\\Api\u003A\u003ACall\u0028\u0029",
+            "name": "Call",
+            "summary": "",
+            "url": "classes/Wonder-App-Api.html#method_Call"
+        },                {
             "fqsen": "\\Wonder\\App\\Credentials",
             "name": "Credentials",
             "summary": "",
@@ -650,6 +660,11 @@ Search.appendIndex(
             "name": "queryOrder",
             "summary": "",
             "url": "classes/Wonder-Backend-Table-Table.html#method_queryOrder"
+        },                {
+            "fqsen": "\\Wonder\\Backend\\Table\\Table\u003A\u003Alength\u0028\u0029",
+            "name": "length",
+            "summary": "",
+            "url": "classes/Wonder-Backend-Table-Table.html#method_length"
         },                {
             "fqsen": "\\Wonder\\Backend\\Table\\Table\u003A\u003A\u0024filterDate",
             "name": "filterDate",
@@ -1596,6 +1611,36 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_Title"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024Position",
+            "name": "Position",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_Position"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AOnAdd\u0028\u0029",
+            "name": "OnAdd",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#method_OnAdd"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AOnDelete\u0028\u0029",
+            "name": "OnDelete",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#method_OnDelete"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AOnUp\u0028\u0029",
+            "name": "OnUp",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#method_OnUp"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AOnDown\u0028\u0029",
+            "name": "OnDown",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#method_OnDown"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AConfButtons\u0028\u0029",
+            "name": "ConfButtons",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#method_ConfButtons"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AColumn\u0028\u0029",
             "name": "Column",
             "summary": "",
@@ -1635,6 +1680,26 @@ Search.appendIndex(
             "name": "Values",
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_Values"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024addCallback",
+            "name": "addCallback",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_addCallback"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024deleteCallback",
+            "name": "deleteCallback",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_deleteCallback"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024upCallback",
+            "name": "upCallback",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_upCallback"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024downCallback",
+            "name": "downCallback",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_downCallback"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Prettify",
             "name": "Prettify",
@@ -2410,6 +2475,36 @@ Search.appendIndex(
             "name": "TIPO",
             "summary": "",
             "url": "classes/Wonder-Plugin-Getrix-Translate.html#property_TIPO"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business\\Info",
+            "name": "Info",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Business-Info.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business\\Info\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Business-Info.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business\\Info\u003A\u003AInfo\u0028\u0029",
+            "name": "Info",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Business-Info.html#method_Info"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business\\Info\u003A\u003AReviews\u0028\u0029",
+            "name": "Reviews",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Business-Info.html#method_Reviews"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business\\Info\u003A\u003A\u0024endpoint",
+            "name": "endpoint",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Business-Info.html#property_endpoint"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business\\Info\u003A\u003A\u0024placeId",
+            "name": "placeId",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Business-Info.html#property_placeId"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Nexi\\Nexi",
             "name": "Nexi",
@@ -3220,6 +3315,16 @@ Search.appendIndex(
             "name": "Getrix",
             "summary": "",
             "url": "namespaces/wonder-plugin-getrix.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Business",
+            "name": "Business",
+            "summary": "",
+            "url": "namespaces/wonder-plugin-google-business.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google",
+            "name": "Google",
+            "summary": "",
+            "url": "namespaces/wonder-plugin-google.html"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Nexi",
             "name": "Nexi",
