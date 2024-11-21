@@ -13,7 +13,7 @@
         public $Values = [ [ ] ];
 
         # Callback
-        public $addCallback, $deleteCallback, $upCallback, $downCallback = null;
+        public array $addCallback, $deleteCallback, $upCallback, $downCallback = [];
 
 
         function __construct( $Id, $Values = null ) {
@@ -29,18 +29,19 @@
         function Title( $title) { $this->Title = $title; }
         function Position( bool $position = true ) { $this->Position = $position; }
 
-        function OnAdd( $callback ) { $this->addCallback = $callback; $this->ConfButtons(); }
-        function OnDelete( $callback ) { $this->deleteCallback = $callback; $this->ConfButtons(); }
-        function OnUp( $callback ) { $this->upCallback = $callback; $this->ConfButtons(); }
-        function OnDown( $callback ) { $this->downCallback = $callback; $this->ConfButtons(); }
+        function OnAdd( $callback ) { $this->addCallback[] = $callback; }
+        function OnDelete( $callback ) { $this->deleteCallback[] = $callback; }
+        function OnUp( $callback ) { $this->upCallback[] = $callback; }
+        function OnDown( $callback ) { $this->downCallback[] = $callback; }
+
 
         function ConfButtons() {
 
             $this->Button = [
-                'up' => '<button type="button" class="btn btn-light btn-sm wi-arrow-up" onclick="rowOrder(this.parentElement.parentElement.parentElement, \'up\', '.$this->upCallback.')" style="font-size: .8em;" data-bs-toggle="tooltip" data-bs-title="Sposta linea su"> <i class="bi bi-chevron-up"></i> </button>',
-                'down' => '<button type="button" class="btn btn-light btn-sm wi-arrow-down" onclick="rowOrder(this.parentElement.parentElement.parentElement, \'down\', '.$this->downCallback.')" style="font-size: .8em;" data-bs-toggle="tooltip" data-bs-title="Sposta linea giù"> <i class="bi bi-chevron-down"></i> </button>',
-                'delete' => '<button type="button" class="btn btn-danger btn-sm float-end" onclick="rowRemoveModal(this.parentElement.parentElement.parentElement, '.$this->deleteCallback.')" data-bs-toggle="tooltip" data-bs-title="Elimina linea"> <i class="bi bi-trash3"></i> </button>',
-                'add_row' => '<button type="button" class="btn btn-secondary float-end" onclick="copyRow(document.getElementById(\''.$this->Id.'\'), document.querySelector(\'#copy-line-'.$this->Id.'\'), '.$this->addCallback.');" role="button" data-bs-toggle="tooltip" data-bs-title="Aggiungi linea"> <i class="bi bi-plus-lg"></i> </button>'
+                'up' => '<button type="button" class="btn btn-light btn-sm wi-arrow-up" onclick="rowOrder(this.parentElement.parentElement.parentElement, \'up\', SI_up_'.$this->Id.')" style="font-size: .8em;" data-bs-toggle="tooltip" data-bs-title="Sposta linea su"> <i class="bi bi-chevron-up"></i> </button>',
+                'down' => '<button type="button" class="btn btn-light btn-sm wi-arrow-down" onclick="rowOrder(this.parentElement.parentElement.parentElement, \'down\', SI_down_'.$this->Id.')" style="font-size: .8em;" data-bs-toggle="tooltip" data-bs-title="Sposta linea giù"> <i class="bi bi-chevron-down"></i> </button>',
+                'delete' => '<button type="button" class="btn btn-danger btn-sm float-end" onclick="rowRemoveModal(this.parentElement.parentElement.parentElement, SI_delete_'.$this->Id.')" data-bs-toggle="tooltip" data-bs-title="Elimina linea"> <i class="bi bi-trash3"></i> </button>',
+                'add_row' => '<button type="button" class="btn btn-secondary float-end" onclick="copyRow(document.getElementById(\''.$this->Id.'\'), document.querySelector(\'#copy-line-'.$this->Id.'\'), SI_add_'.$this->Id.');" role="button" data-bs-toggle="tooltip" data-bs-title="Aggiungi linea"> <i class="bi bi-plus-lg"></i> </button>'
             ];
 
         }
@@ -102,7 +103,7 @@
                     $attribute .= ' '.$addAttribute;
 
                 #
-                
+
                 if ($CopyRow && !in_array($type, [ 'select', 'select-search' ])) { $attribute = 'data-wi-attribute="'.str_replace('"', "'",$attribute).'"'; }
 
                 if ($type == 'hidden') {
@@ -172,8 +173,32 @@
 
             $RETURN .= "</div>";
 
-            # Sistema le frecce 
-            $RETURN .= '<script> rowSetArrow(document.getElementById(\''.$this->Id.'\')); </script>';
+            # Script
+            $RETURN .= '<script>';
+
+                # Sistema le frecce 
+                $RETURN .= "rowSetArrow(document.getElementById('{$this->Id}'));\n";
+
+                # Funzioni di callback
+                    $RETURN .= "function SI_add_{$this->Id}() {";
+                    if (!empty($this->addCallback)) { foreach ($this->addCallback as $fName) { $RETURN .= " $fName(); "; } }
+                    $RETURN .= "}\n";
+
+                    $RETURN .= "function SI_delete_{$this->Id}() {";
+                    if (!empty($this->deleteCallback)) { foreach ($this->deleteCallback as $fName) { $RETURN .= " $fName(); "; } }
+                    $RETURN .= "}\n";
+
+                    $RETURN .= "function SI_up_{$this->Id}() {";
+                    if (!empty($this->upCallback)) { foreach ($this->upCallback as $fName) { $RETURN .= " $fName(); "; } }
+                    $RETURN .= "}\n";
+
+                    $RETURN .= "function SI_down_{$this->Id}() {";
+                    if (!empty($this->downCallback)) { foreach ($this->downCallback as $fName) { $RETURN .= " $fName(); "; } }
+                    $RETURN .= "}\n";
+                #
+
+            # End Script
+            $RETURN .= '</script>';
 
             return $RETURN;
 
