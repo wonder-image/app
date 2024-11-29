@@ -95,14 +95,14 @@
                         $fileArray[$file] = [];
                     }
 
-                    foreach (scanParentDir($dir.$file) as $subFile) {
+                    foreach (scanParentDir($dir.'/'.$file) as $subFile) {
                         if ($childArray) {
                             array_push($fileArray[$file], $subFile);
                         } else {
                             array_push($fileArray, $file.'/'.$subFile);
                         }
                     }
-
+                    
                 }
     
             }
