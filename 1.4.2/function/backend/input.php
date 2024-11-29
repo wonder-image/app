@@ -1006,7 +1006,7 @@
 
     }
 
-    function countryList($continent = null, $label, $name, $attribute = null, $value = null) {
+    function countryList($continent, $label, $name, $attribute = null, $value = null) {
 
         $options = countries();
         return check($label, $name, $options, $attribute, 'radio', true, $value);
