@@ -18,13 +18,15 @@
                     $first = substr($number, 0, 3);
                     $number = substr($number, 3, $numberLenght);
                 }
-    
-                if (substr($number, 0, 1) == '0') {
+
+                if ($numberLenght <= 4) {
+                    return $number;
+                } else if (substr($number, 0, 1) == '0') {
                     return $first.' '.substr($number, 0, 4).' '.substr($number, 4, 6);
                 } else {
                     return $first.' '.substr( $number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
                 }
-    
+                
             } else {
     
                 return "";
