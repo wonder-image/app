@@ -120,6 +120,8 @@
                         $RETURN .= number($label, $name.'[]', $attribute, $value);
                     } elseif ($type == 'price') {
                         $RETURN .= price($label, $name.'[]', $attribute, $value);
+                    } elseif ($type == 'percentige') {
+                        $RETURN .= percentige($label, $name.'[]', $attribute, $value);
                     } elseif ($type == 'select') {
                         $RETURN .= select($label, $name.'[]', $option, null, $attribute, $value);
                     } elseif ($type == 'select-search') {
