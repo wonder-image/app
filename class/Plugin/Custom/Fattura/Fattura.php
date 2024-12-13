@@ -631,9 +631,9 @@
                 $DettaglioPagamento['ModalitaPagamento'] = strtoupper($ModalitaPagamento); 
 
                 if ($DataScadenzaPagamento != null) { $DettaglioPagamento['DataScadenzaPagamento'] = $DataScadenzaPagamento; }
+                if ($ImportoPagamento != null) { $DettaglioPagamento['ImportoPagamento'] = number_format($ImportoPagamento, 2, '.', ''); }
                 if ($IstitutoFinanziario != null) { $DettaglioPagamento['IstitutoFinanziario'] = $IstitutoFinanziario; }
                 if ($IBAN != null) { $DettaglioPagamento['IBAN'] = $IBAN; }
-                if ($ImportoPagamento != null) { $DettaglioPagamento['ImportoPagamento'] = number_format($ImportoPagamento, 2, '.', ''); }
                 
                 array_push($this->body['DatiPagamento']['DettaglioPagamento']['child'], $DettaglioPagamento);
 
@@ -667,6 +667,8 @@
         
             }
 
+            private function safeXML($str) { return htmlspecialchars($str, ENT_XML1, 'UTF-8'); }
+
             private function createXml($XML, $CHILD, $PARENT = null) {
 
                 if ($PARENT == null) {
@@ -677,14 +679,14 @@
                     
                     if (is_array($VALUE)) {
         
-                        $elementValue = isset($VALUE['value']) ? $VALUE['value'] : "";
-                        $elementAttributes = isset($VALUE['attributes']) ? $VALUE['attributes'] : "";
-                        $elementChild = isset($VALUE['child']) ? $VALUE['child'] : "";
-                        $elementArray = ($VALUE['array'] == true) ? true : false;
+                        $elementValue = $VALUE['value'] ?? "";
+                        $elementAttributes = $VALUE['attributes'] ?? "";
+                        $elementChild = $VALUE['child'] ?? "";
+                        $elementArray = (isset($VALUE['array']) && $VALUE['array'] == true) ? true : false;
                         
                         if (!$elementArray) {
         
-                            $element = $XML->createElement($NAME, $elementValue);
+                            $element = $XML->createElement($NAME, $this->safeXML($elementValue));
         
                             if (is_array($elementAttributes)) {
                                 foreach ($elementAttributes as $attribute => $value) { $element->setAttribute($attribute, $value); }
@@ -701,7 +703,7 @@
                                     if (is_array($childValue)) {
                                         $XML = $this->createXml($XML, $child, $PARENT); 
                                     } else {
-                                        $element = $XML->createElement($NAME, $childValue);
+                                        $element = $XML->createElement($NAME, $this->safeXML($childValue));
                                         $PARENT->appendChild($element);
                                     }
         
@@ -718,7 +720,7 @@
                                 if (is_array($childValue)) {
                                     $XML = $this->createXml($XML, $child, $PARENT); 
                                 } else {
-                                    $element = $XML->createElement($NAME, $childValue);
+                                    $element = $XML->createElement($NAME, $this->safeXML($childValue));
                                     $PARENT->appendChild($element);
                                 }
         
@@ -735,7 +737,7 @@
                                 if (is_array($childValue)) {
                                     $XML = $this->createXml($XML, $child, $PARENT); 
                                 } else {
-                                    $element = $XML->createElement($childName, $childValue);
+                                    $element = $XML->createElement($childName, $this->safeXML($childValue));
                                     $PARENT->appendChild($element);
                                 }
         
@@ -744,7 +746,7 @@
         
                     } else {
         
-                        $element = $XML->createElement($NAME, $VALUE);
+                        $element = $XML->createElement($NAME, $this->safeXML($VALUE));
                         $PARENT->appendChild($element);
         
                     }
