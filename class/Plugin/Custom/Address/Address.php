@@ -89,14 +89,23 @@
                 
                 if ($RETURN->type == 'private') {
                     
-                    $RETURN->prettyAddress = "
-                    <b>$RETURN->name $RETURN->surname</b><br>
-                    $RETURN->cf<br>
-                    $RETURN->street $RETURN->number, $RETURN->cap <br>
-                    $RETURN->city ($RETURN->province$addressMore)";
+                    if (empty($RETURN->name) && empty($RETURN->surname)) {
+                        
+                        $RETURN->prettyAddress = "";
+                        $RETURN->prettyPDF = "";
     
-                    $RETURN->prettyPDF = "$RETURN->name $RETURN->surname\n$RETURN->cf\n$RETURN->street $RETURN->number, $RETURN->cap\n$RETURN->city ($RETURN->province)$addressMorePDF";
-    
+                    } else {
+
+                        $RETURN->prettyAddress = "
+                        <b>$RETURN->name $RETURN->surname</b><br>
+                        $RETURN->cf<br>
+                        $RETURN->street $RETURN->number, $RETURN->cap <br>
+                        $RETURN->city ($RETURN->province$addressMore)";
+        
+                        $RETURN->prettyPDF = "$RETURN->name $RETURN->surname\n$RETURN->cf\n$RETURN->street $RETURN->number, $RETURN->cap\n$RETURN->city ($RETURN->province)$addressMorePDF";
+        
+                    }
+
                 } elseif ($RETURN->type == 'business') {
     
                     if ($RETURN->pi == $RETURN->cf || empty($RETURN->cf)) {
@@ -110,14 +119,23 @@
                         $fiscalPDF = "";
                     }
     
-                    $RETURN->prettyAddress = "
-                    <b>$RETURN->business_name</b><br>
-                    $fiscal
-                    $RETURN->street $RETURN->number, $RETURN->cap <br>
-                    $RETURN->city ($RETURN->province)$addressMore";
+                    if (empty($RETURN->business_name)) {
+                        
+                        $RETURN->prettyAddress = "";
+                        $RETURN->prettyPDF = "";
     
-                    $RETURN->prettyPDF = "$RETURN->business_name\n$fiscalPDF$RETURN->street $RETURN->number, $RETURN->cap\n$RETURN->city ($RETURN->province)$addressMorePDF";
-    
+                    } else {
+
+                        $RETURN->prettyAddress = "
+                        <b>$RETURN->business_name</b><br>
+                        $fiscal
+                        $RETURN->street $RETURN->number, $RETURN->cap <br>
+                        $RETURN->city ($RETURN->province)$addressMore";
+        
+                        $RETURN->prettyPDF = "$RETURN->business_name\n$fiscalPDF$RETURN->street $RETURN->number, $RETURN->cap\n$RETURN->city ($RETURN->province)$addressMorePDF";
+        
+                    }
+
                 }
     
             } else {
