@@ -669,6 +669,10 @@
                         $prefix = (isset($this->row['phone_prefix']) && !empty($VALUE)) ? $this->row['phone_prefix']." " : "";
                         $VALUE = $prefix.Prettify::Phone($VALUE);
 
+                    } else if ($type == 'price') {
+
+                        $VALUE = empty($VALUE) ? "" : number_format($VALUE, 2, '.', '').'€';
+
                     }
 
                 }
