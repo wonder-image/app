@@ -37,10 +37,18 @@
 
         public static function Date( $date, $hours = false ) {
 
-            $RETURN = date("d", strtotime($date)).' '.TranslatorDate::Month($date).' '.date("Y", strtotime($date));
-            $RETURN .= $hours ? ' alle '.date("H:i", strtotime($date)) : '';
+            if (!empty($date)) {
+                
+                $RETURN = date("d", strtotime($date)).' '.TranslatorDate::Month($date).' '.date("Y", strtotime($date));
+                $RETURN .= $hours ? ' alle '.date("H:i", strtotime($date)) : '';
 
-            return $RETURN;
+                return $RETURN;
+        
+            } else {
+
+                return "";
+                
+            }
             
         }
 
