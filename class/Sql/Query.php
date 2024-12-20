@@ -298,7 +298,7 @@
 
         }
 
-        public function Sum( string $table, string | array $query, string $column = '*' ): int
+        public function Sum( string | array  $table, string | array $query, string $column = '*' ): float
         {
 
             $ATTRIBUTES = "SUM($column)";
@@ -308,7 +308,7 @@
     
         }
 
-        public function Count( string $table, string | array $query = null, string $column = '*', bool $distinct = false ): int
+        public function Count( string | array  $table, string | array $query = null, string $column = '*', bool $distinct = false ): int
         {
 
             $DISTINCT = $distinct ? "DISTINCT " : "";
