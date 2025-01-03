@@ -7,7 +7,9 @@
         public $Id;
         public $Title;
         public $Button;
-        public $Position = true;
+        public bool $Position = true;
+        public bool $Add = true;
+        public bool $Delete = true;
         public $Columns = [];
         public $RowN = 1;
         public $Values = [ [ ] ];
@@ -28,6 +30,8 @@
 
         function Title( $title) { $this->Title = $title; }
         function Position( bool $position = true ) { $this->Position = $position; }
+        function Add( bool $add = true ) { $this->Add = $add; }
+        function Delete( bool $delete = true ) { $this->Delete = $delete; }
 
         function OnAdd( $callback ) { $this->addCallback[] = $callback; }
         function OnDelete( $callback ) { $this->deleteCallback[] = $callback; }
@@ -64,7 +68,7 @@
         
         private function GenerateRow( $Value, $CopyRow = false ) {
 
-            $delete = $Value['delete'] ?? true;
+            $delete = $Value['delete'] ?? $this->Delete;
 
             if ($CopyRow) {
 
@@ -171,7 +175,9 @@
             $RETURN .= '</div>';
 
             # Bottone per aggiungere
-            $RETURN .= '<div class="col-12">'.$this->Button['add_row'].'</div>';
+            if ($this->Add) {
+                $RETURN .= '<div class="col-12">'.$this->Button['add_row'].'</div>';
+            }
 
             $RETURN .= "</div>";
 
