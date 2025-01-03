@@ -56,7 +56,7 @@
 
         return "
         <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-phone='true' data-wi-check='true' $attribute>
+            <input type='tel' inputmode='tel' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-phone='true' data-wi-check='true' $attribute>
             <label for='$id'>$label</label>
         </div>";
 
