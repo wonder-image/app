@@ -32,6 +32,8 @@
 
         }
 
+        public function default($key, $value) { $this->DEFAULT[$key] = $value; }
+
         public function create( array $post ): object {
 
             global $ALERT;
@@ -257,11 +259,11 @@
 
         }
 
-        public function modalForm($type = null,$form = false) {
+        public function modalForm($type = null, $form = false, $required = true) {
             
             $content = $form ? "<form action=\"\" method=\"post\" enctype=\"multipart/form-data\" onsubmit=\"loadingSpinner()\">" : "";
 
-            $content .= $this->input($type, true, false);
+            $content .= $this->input($type, $required, false);
 
             $content .= '<div class="col-12">'.submit('Salva', "{$this->prefix}save").'</div>';
 
@@ -277,14 +279,12 @@
             
             $rowId = $VALUES["{$this->prefix}id"] ?? '';
 
-            $type = $VALUES["{$this->prefix}type"] ?? $this->DEFAULT['type'];
-            $country = $VALUES["{$this->prefix}country"] ?? $this->DEFAULT['country'];
-            $phonePrefix = $VALUES["{$this->prefix}phone_prefix"] ?? $this->DEFAULT['phone_prefix'];
+            foreach ($this->DEFAULT as $key => $value) { $VALUES["{$this->prefix}{$key}"] ??= $value ?? null; }
 
             $ID = "<input type=\"hidden\" name=\"{$this->prefix}id\" value=\"$rowId\">";
 
             if ($billing == 'all') {
-                $TYPE = '<div class="col-12">'.select('Tipologia', "{$this->prefix}type", [ 'private' => 'Privato', 'business' => 'Società' ], $type, "onchange=\"{$this->prefix}FORM.initForm()\" disabled").'</div>';
+                $TYPE = '<div class="col-12">'.select('Tipologia', "{$this->prefix}type", [ 'private' => 'Privato', 'business' => 'Società' ], null, "onchange=\"{$this->prefix}FORM.initForm()\" disabled").'</div>';
             } else if ($billing == 'business') {
                 $TYPE = "<input type=\"hidden\" name=\"{$this->prefix}type\" value=\"business disabled\">";
             } else if ($billing == 'private') {
@@ -302,8 +302,8 @@
             $SDI = '<div class="col-4">'.text('SDI', "{$this->prefix}sdi", "disabled").'</div>';
             $PEC = '<div class="col-8">'.email('PEC', "{$this->prefix}pec", "disabled").'</div>';
 
-            $ADDRESS = '<div class="col-6">'.inputCountry('Paese', "{$this->prefix}country", $country, "{$this->prefix}province", "disabled").'</div>';
-            $ADDRESS .= '<div class="col-6">'.inputStates('Provincia', "{$this->prefix}province", $country, $VALUES["{$this->prefix}province"] ?? null, "disabled").'</div>';
+            $ADDRESS = '<div class="col-6">'.inputCountry('Paese', "{$this->prefix}country", null, "{$this->prefix}province", "disabled").'</div>';
+            $ADDRESS .= '<div class="col-6">'.inputStates('Provincia', "{$this->prefix}province", $VALUES["{$this->prefix}country"] ?? null, null, "disabled").'</div>';
             $ADDRESS .= '<div class="col-4">'.text('Cap', "{$this->prefix}cap", "disabled").'</div>';
             $ADDRESS .= '<div class="col-8">'.text('Città', "{$this->prefix}city", "disabled").'</div>';
             $ADDRESS .= '<div class="col-8">'.text('Via/Viale/Piazza', "{$this->prefix}street", "disabled").'</div>';
@@ -311,7 +311,7 @@
 
             $MORE = '<div class="col-12">'.text('Altre indicazioni', "{$this->prefix}more", "disabled").'</div>';
 
-            $PHONE = '<div class="col-4">'.inputPhonePrefix('Prefisso', "{$this->prefix}phone_prefix", $phonePrefix, "disabled").'</div>';
+            $PHONE = '<div class="col-4">'.inputPhonePrefix('Prefisso', "{$this->prefix}phone_prefix", null, "disabled").'</div>';
             $PHONE .= '<div class="col-8">'.phone('Cellulare', "{$this->prefix}phone", "disabled").'</div>';
 
             if (is_null($billing)) {
