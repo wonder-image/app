@@ -69,7 +69,7 @@
         return "
         <div class='wi-input-container text$class'>
             <label for='$id' class='wi-label'>$label</label>
-            <input type='tel' id='$id' class='wi-input' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-phone='true' $attribute>
+            <input type='tel' inputmode='tel' id='$id' class='wi-input' name='$name' value='$value' data-wi-check='true' data-wi-label='true' data-wi-phone='true' $attribute>
             $alert
         </div>";
 
