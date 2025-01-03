@@ -230,22 +230,6 @@
                         $VALUE = ucwords($VALUE);
                     }
     
-                    if (isset($RULES['format']['unique']) && $RULES['format']['unique'] === true) {
-
-                        $id = ($OLD_VALUES == null) ? null : $OLD_VALUES['id'];
-
-                        if (!unique($VALUE, $table, $name, $id)) {
-                            if ($name == 'link') { $ALERT = 971;} 
-                            elseif ($name == 'code') { $ALERT = 972;}
-                            elseif ($name == 'email') { $ALERT = 973;}
-                            elseif ($name == 'username') { $ALERT = 974;}
-                            elseif ($name == 'tel' || $name == 'tell') { $ALERT = 975;}
-                            elseif ($name == 'phone' || $name == 'cel' || $name == 'cell') { $ALERT = 976;}
-                            else { $ALERT = 970;}
-                        }
-
-                    }
-    
                     if (isset($RULES['format']['link']) && $RULES['format']['link'] === true) {
                         $VALUE = create_link($VALUE);
                     }
@@ -288,6 +272,22 @@
                         $ARRAY = sanitizeJSON(json_decode($VALUE, true));
                         $VALUE = json_encode($ARRAY, JSON_PRETTY_PRINT);
                         
+                    }
+    
+                    if (isset($RULES['format']['unique']) && $RULES['format']['unique'] === true) {
+
+                        $id = ($OLD_VALUES == null) ? null : $OLD_VALUES['id'];
+
+                        if (!unique($VALUE, $table, $name, $id)) {
+                            if ($name == 'link') { $ALERT = 971;} 
+                            elseif ($name == 'code') { $ALERT = 972;}
+                            elseif ($name == 'email') { $ALERT = 973;}
+                            elseif ($name == 'username') { $ALERT = 974;}
+                            elseif ($name == 'tel' || $name == 'tell') { $ALERT = 975;}
+                            elseif ($name == 'phone' || $name == 'cel' || $name == 'cell') { $ALERT = 976;}
+                            else { $ALERT = 970;}
+                        }
+
                     }
 
                 }
