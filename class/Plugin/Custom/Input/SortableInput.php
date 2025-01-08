@@ -45,7 +45,7 @@
                 'up' => '<button type="button" class="btn btn-light btn-sm wi-arrow-up" onclick="rowOrder(this.parentElement.parentElement.parentElement, \'up\', SI_up_'.$this->Id.')" style="font-size: .8em;" data-bs-toggle="tooltip" data-bs-title="Sposta linea su"> <i class="bi bi-chevron-up"></i> </button>',
                 'down' => '<button type="button" class="btn btn-light btn-sm wi-arrow-down" onclick="rowOrder(this.parentElement.parentElement.parentElement, \'down\', SI_down_'.$this->Id.')" style="font-size: .8em;" data-bs-toggle="tooltip" data-bs-title="Sposta linea giù"> <i class="bi bi-chevron-down"></i> </button>',
                 'delete' => '<button type="button" class="btn btn-danger btn-sm float-end" onclick="rowRemoveModal(this.parentElement.parentElement.parentElement, SI_delete_'.$this->Id.')" data-bs-toggle="tooltip" data-bs-title="Elimina linea"> <i class="bi bi-trash3"></i> </button>',
-                'add_row' => '<button type="button" class="btn btn-secondary float-end" onclick="copyRow(document.getElementById(\''.$this->Id.'\'), document.querySelector(\'#copy-line-'.$this->Id.'\'), SI_add_'.$this->Id.');" role="button" data-bs-toggle="tooltip" data-bs-title="Aggiungi linea"> <i class="bi bi-plus-lg"></i> </button>'
+                'add_row' => '<button id="add-row-'.$this->Id.'" type="button" class="btn btn-secondary float-end" onclick="copyRow(document.getElementById(\''.$this->Id.'\'), document.querySelector(\'#copy-line-'.$this->Id.'\'), SI_add_'.$this->Id.');" role="button" data-bs-toggle="tooltip" data-bs-title="Aggiungi linea"> <i class="bi bi-plus-lg"></i> </button>'
             ];
 
         }
