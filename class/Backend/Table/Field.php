@@ -354,11 +354,11 @@
                         $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
                         $filter = isset($link['filter']) ? $link['filter'] : [];
 
-                        if ($ACTION == 'delete') {
 
-                            $BUTTON = $this->deleteRow()->button;
-
-                        } else {
+                        if ($ACTION == 'view') { $BUTTON = "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
+                        else if ($ACTION == 'modify') { $BUTTON = "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
+                        else if ($ACTION == 'delete') {  $BUTTON = $this->deleteRow()->button; } 
+                        else {
 
                             if (!empty($href)) {
 
@@ -427,7 +427,10 @@
                             # Controlla che il valore sia quello specificato
                                 if (!empty($row)) {
                                     foreach ($row as $key => $value) {
-                                        if ($this->row[$key] != $value) { $public = false; break; }
+                                        if ((!is_array($value) && $this->row[$key] != $value) || (is_array($value) && in_array($this->row[$key], $value) == false)) { 
+                                            $public = false; 
+                                            break; 
+                                        }
                                     }
                                 }
 
