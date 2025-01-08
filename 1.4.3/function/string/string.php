@@ -1,6 +1,7 @@
 <?php
 
-    function create_link($str, $table = null, $column = null, $id = null){
+    function create_link($str, $table = null, $column = null, $id = null): string
+    {
 
         global $CHARACTERS;
 
@@ -68,26 +69,25 @@
 
     }
 
-    function create_number($str, $decimals = 0) {
+    function create_number($str, $decimals = 0) 
+    {
 
-        $str = ($str == '' && $str != 0) ? '' : str_replace('€', '', $str);
-        $str = ($str == '' && $str != 0) ? '' : str_replace('%', '', $str);
-        $str = ($str == '' && $str != 0) ? '' : str_replace(',', '.', $str);
-        $str = ($str == '' && $str != 0) ? '' : number_format($str, $decimals, '.', '');
+        if (!empty($str)) {
+            $str = ($str == '' && $str != 0) ? 0 : str_replace([ '€', '%', ',' ], '', $str);
+        } else {
+            $str = 0;
+        }
 
-        return $str;
+        return number_format($str, $decimals, '.', '');
 
     }
 
-    function unique($str, $table, $column, $id = null) {
+    function unique($str, $table, $column, $id = null): bool 
+    {
 
         $unique = true;
 
-        if ($id != null) {
-            $QUERY = "`id` != '$id' AND ";
-        }else{
-            $QUERY = "";
-        }
+        $QUERY = ($id != null) ? "`id` != '$id' AND " : "";
     
         if (sqlColumnExists($table, 'deleted')) {
 
@@ -105,7 +105,8 @@
 
     }
 
-    function sanitize($str){
+    function sanitize($str): string 
+    {
         
         global $CHARACTERS;
         
@@ -131,7 +132,8 @@
         
     }    
 
-    function sanitizeJSON($array) {
+    function sanitizeJSON($array): array 
+    {
 
         global $CHARACTERS;
 
@@ -174,7 +176,8 @@
         
     }
 
-    function sanitizeFirst($str){
+    function sanitizeFirst($str): string
+    {
 
         if (!empty($str)) {
             $str = strtolower($str);
@@ -186,7 +189,8 @@
         
     }
 
-    function sanitizeEcho($str) {
+    function sanitizeEcho($str): string
+    {
 
         global $CHARACTERS;
 
@@ -212,7 +216,8 @@
 
     }
 
-    function printPDF($str, $upper = false){
+    function printPDF($str, $upper = false): string
+    {
 
         if (!empty($str)) {
 
@@ -247,7 +252,8 @@
 
     }
 
-    function code($lenght = 10, $type = 'all', $prefix = null){
+    function code($lenght = 10, $type = 'all', $prefix = null): string
+    {
 
         $code = new Wonder\Plugin\Custom\String\Rand($type);
 
@@ -255,25 +261,29 @@
 
     }
 
-    function prettyPhone($number) {
+    function prettyPhone($number): string
+    {
 
         return Wonder\Plugin\Custom\Prettify::Phone( $number );
 
     }
 
-    function prettyDate($date, $hours = false) {
+    function prettyDate($date, $hours = false): string 
+    {
 
         return Wonder\Plugin\Custom\Prettify::Date( $date, $hours );
 
     }
 
-    function prettyAddress($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = "") {
+    function prettyAddress($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = ""): object
+    {
 
         return Wonder\Plugin\Custom\Prettify::Address( $street, $number, $cap, $city, $province, $country, $more, $name, $surname, $phone );
 
     }
 
-    function prettyPrint($array) { 
+    function prettyPrint($array): void 
+    { 
 
         global $ROOT;
 
@@ -285,7 +295,8 @@
 
     }
     
-    function getDomain($domain) {
+    function getDomain($domain): string 
+    {
 
         $domain = isset(parse_url($domain)['host']) ? parse_url($domain)['host'] : $domain;
         $domain = str_replace('www.', '', $domain);
@@ -294,7 +305,8 @@
 
     }
 
-    function getDomainExtension($domain) {
+    function getDomainExtension($domain): string 
+    {
 
         $explode = explode(".", $domain);
         $extension = count($explode) > 1 ? end($explode) : "";
