@@ -16,12 +16,12 @@ $format = [
         'parameter' => [],
         'return' => ''
     ],
-    'format' => '' || 'image' || 'date',
+    'format' => '' || 'image' || 'date' || 'price' || 'phone',
     'href' => '' || 'modify' || 'view' || 'mailto' || 'tel',
 ];
 ```
 
-<table><thead><tr><th width="204"></th><th width="265">Default</th><th>Dettaglio</th></tr></thead><tbody><tr><td>value</td><td>Colonna indicata nella funzione $TABLE->addColumn()</td><td>Nome colonna da cui prendere il valore. Può essere un array</td></tr><tr><td>function</td><td>null</td><td>È possibile formattare il risultato con una funzione</td></tr><tr><td>function['name']</td><td>null</td><td>Nome della funzione da chiamare</td></tr><tr><td>function['parameter']</td><td>id</td><td>Parametri della funzione. Colonna da passare alla funzione.</td></tr><tr><td>function['return']</td><td>null</td><td>Valore che la funzione deve tornare. Per utilizzare questo parametro la funzione deve rispondere con un array di oggetti.</td></tr><tr><td>format</td><td>null</td><td>È possibile convertire il valore in immagine o data</td></tr><tr><td>href</td><td>null</td><td>Link da dare al valore.</td></tr></tbody></table>
+<table><thead><tr><th width="204"></th><th width="265">Default</th><th>Dettaglio</th></tr></thead><tbody><tr><td>value</td><td>Colonna indicata nella funzione $TABLE->addColumn()</td><td>Nome colonna da cui prendere il valore. Può essere un array</td></tr><tr><td>function</td><td>null</td><td>È possibile formattare il risultato con una funzione</td></tr><tr><td>function['name']</td><td>null</td><td>Nome della funzione da chiamare</td></tr><tr><td>function['parameter']</td><td>id</td><td>Parametri della funzione. Colonna da passare alla funzione.</td></tr><tr><td>function['return']</td><td>null</td><td>Valore che la funzione deve tornare. Per utilizzare questo parametro la funzione deve rispondere con un array di oggetti.</td></tr><tr><td>format</td><td>null</td><td>Formattazione del valore.</td></tr><tr><td>href</td><td>null</td><td>Link da dare al valore.</td></tr></tbody></table>
 
 ***
 

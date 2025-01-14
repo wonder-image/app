@@ -1,7 +1,7 @@
 # Table of contents
 
-* [App 1.4.2](README.md)
-  * [Cron Job](app-1.4.2/cron-job.md)
+* [App 1.4.3](README.md)
+  * [Cron Job](app-1.4.3/cron-job.md)
 
 ## BACKEND
 
@@ -16,3 +16,11 @@
       * [hiddenDevice](specifiche/variabili/classe-table/addcolumn/hiddendevice.md)
       * [width](specifiche/variabili/classe-table/addcolumn/width.md)
       * [format](specifiche/variabili/classe-table/addcolumn/format.md)
+
+## ALTRO
+
+* [Servizi](altro/servizi/README.md)
+  * [Google Tag Manager](altro/servizi/google-tag-manager.md)
+  * [iubenda](altro/servizi/iubenda.md)
+  * [Google Analytics](altro/servizi/google-analytics.md)
+  * [Google Search Console](altro/servizi/google-search-console.md)
