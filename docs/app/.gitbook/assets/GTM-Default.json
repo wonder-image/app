@@ -68,7 +68,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "csConfigurationJson",
-                        "value": ""
+                        "value": "{}"
                     },
                     {
                         "type": "TEMPLATE",
@@ -118,7 +118,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "tagId",
-                        "value": ""
+                        "value": "G-XXXXX"
                     }
                 ],
                 "fingerprint": "1736853777221",
