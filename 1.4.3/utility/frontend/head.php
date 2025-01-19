@@ -212,6 +212,9 @@
     <!-- AutoNumeric.js -->
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/autonumeric/autonumeric.js"></script>
 
+    <!-- Rellax -->
+    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/rellax/rellax.js"></script>
+
     <!-- Wonder Image -->
     <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/lib.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/lib.css" rel="stylesheet">
