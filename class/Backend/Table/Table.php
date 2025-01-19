@@ -119,12 +119,12 @@
          * @param mysqli $connection Connessione al database che ospita la tabella. {@see \Wonder\Sql\Connection}
          * 
          */
-        function __construct( string $table, mysqli $connection ) {
+        function __construct( string $table, ?mysqli $connection = null ) {
 
             $this->table = $table;
-            $this->mysqli = $connection;
 
-            $this->SQL = new Query( $this->mysqli );
+            $this->SQL = new Query( $connection );
+            $this->mysqli = $this->SQL->mysqli;
             $this->database = $this->SQL->GetDatabase();
 
             $this->url = $_SERVER['REQUEST_URI'] ?? '';
@@ -179,7 +179,7 @@
 
         public function addLink( $key, $link ) { $this->link[$key] = $link; }
 
-        public function query( string $query = "`deleted` = 'false'" ) { $this->queryCustom = $query; }
+        public function query( array | string $query = "`deleted` = 'false'" ) { $this->queryCustom = Query::Conditions($query, false); }
         public function queryOrder( string $column, string $direction = 'DESC', string $columnWhenFilterIsActive = null, string $directionWhenFilterIsActive = null ) { 
 
             $this->orderColumn = $column; 
