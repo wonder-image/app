@@ -33,7 +33,6 @@
 
         global $_GET;
         global $PAGE;
-        global $PATH;
 
         $RETURN = (object) array();
         $RETURN->page = isset($_GET['page']) ? $_GET['page'] : 1;
@@ -44,7 +43,7 @@
         
         $RETURN->html = "<div class='d-flex gap-3'>";
 
-        $href = $PATH->site.$PAGE->path;
+        $href = str_replace('?'.$PAGE->query, '', $PAGE->url);
 
         if (empty($PAGE->query)) {
 
