@@ -81,6 +81,11 @@
             "title" => "Prodotti non disponibili",
             "text" => "Alcuni prodotti sono stati rimossi dal tuo carrello perchè non sono più disponibili"
         ],
+        617 => [
+            "type" => "danger",
+            "title" => "Operazione bloccata",
+            "text" => "reCAPTCHA ha bloccato l'operazione, riprovare."
+        ],
         650 => [
             "type" => "success",
             "title" => "Modificato",
