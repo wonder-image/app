@@ -124,8 +124,8 @@
                     $wi = json_decode(wiApi('/service/google/credentials/'), true);
 
                     self::$API->key = strtolower(Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5));
-                    self::$API->gcp_project_id = $wi['success'] ? $wi['response']['project_id'] : '';
-                    self::$API->gcp_api_key = $wi['success'] ? $wi['response']['project_id'] : '';
+                    self::$API->gcp_project_id = $wi['success'] == 'true' ? $wi['response']['project_id'] : '';
+                    self::$API->gcp_api_key = $wi['success'] == 'true' ? $wi['response']['api_key'] : '';
                     self::$API->g_recaptcha_site_key = '';
                     self::$API->g_maps_place_id = '';
 
