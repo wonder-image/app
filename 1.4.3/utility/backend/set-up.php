@@ -44,6 +44,11 @@
                     'file' => '',
                     'authority' => ['admin']
                 ], [
+                    'title' => 'Credenziali',
+                    'folder' => 'config-app/credentials',
+                    'file' => '',
+                    'authority' => ['admin']
+                ], [
                     'title' => 'Editor',
                     'folder' => 'config-app/configuration-file',
                     'file' => '',

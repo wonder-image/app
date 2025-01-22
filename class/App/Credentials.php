@@ -94,7 +94,42 @@
 
                 $query = new Query($connection->Connect());
 
-                self::$API->key = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? $query->Select('security', [ 'id' => 1 ], 1)->row['api_key'] : strtolower(Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5));
+                $exists = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? true : false;
+
+                if ($exists) {
+
+                    $row = $query->Select('security', [ 'id' => 1 ], 1)->row;
+
+                    self::$API->key = $row['api_key'];
+                    self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'];
+                    self::$API->g_maps_place_id = $row['g_maps_place_id'];
+
+                    if (empty($row['gcp_project_id']) || empty($row['gcp_api_key'])) {
+                        
+                        $api = wiApi('/service/google/credentials/');
+                        $wi = json_decode( $api, true);
+                        
+                        self::$API->gcp_project_id = $wi['success'] == 'true' ? $wi['response']['project_id'] : '';
+                        self::$API->gcp_api_key = $wi['success'] == 'true' ? $wi['response']['api_key'] : '';
+
+                    } else {
+
+                        self::$API->gcp_project_id = $row['gcp_project_id'];
+                        self::$API->gcp_api_key = $row['gcp_api_key'];
+
+                    }
+                    
+                } else {
+
+                    $wi = json_decode(wiApi('/service/google/credentials/'), true);
+
+                    self::$API->key = strtolower(Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5));
+                    self::$API->gcp_project_id = $wi['success'] ? $wi['response']['project_id'] : '';
+                    self::$API->gcp_api_key = $wi['success'] ? $wi['response']['project_id'] : '';
+                    self::$API->g_recaptcha_site_key = '';
+                    self::$API->g_maps_place_id = '';
+
+                }
 
             }
 
