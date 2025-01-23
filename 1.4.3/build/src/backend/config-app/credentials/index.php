@@ -63,19 +63,21 @@
                     <wi-card class="col-12">
                         <div class="col-12">
                             <h6>Google Cloud Platform</h6>
+                            Per trovare l'ID Progetto crea o seleziona un progetto da <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer">Google Cloud</a> in alto a sinistra. <br>
+                            Per creare la Api Key accedi a <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud</a> e premi su <b>+ Crea credenziali</b>.
                         </div>
                         <div class="col-6">
-                            <?=text('ID Progetto', 'gcp_project_id', 'required'); ?>
+                            <?=text('ID Progetto', 'gcp_project_id'); ?>
                         </div>
                         <div class="col-6">
-                            <?=text('Api Key', 'gcp_api_key', 'required'); ?>
+                            <?=text('Api Key', 'gcp_api_key'); ?>
                         </div>
                     </wi-card>
 
                     <wi-card class="col-6">
                         <div class="col-12">
-                            <h6>Google reCAPTCHA</h6>
-                            <p>Per creare la chiave del sito <a href="https://www.google.com/recaptcha/admin/create?hl=it" target="_blank" rel="noopener noreferrer">clicca qui</a>.</p>
+                            <h6>Google reCAPTCHA*</h6>
+                            Per creare la chiave del sito <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">clicca qui</a> e seleziona il progetto indicato come <b>ID Progetto</b>.
                         </div>
                         <div class="col-12">
                             <?=text('Chiave Sito', 'g_recaptcha_site_key'); ?>
@@ -84,12 +86,16 @@
 
                     <wi-card class="col-6">
                         <div class="col-12">
-                            <h6>Google Place</h6>
-                            <p>Per trovare il Place Id <a href="https://developers.google.com/maps/documentation/geocoding/overview?hl=it#how-the-geocoding-api-works" target="_blank" rel="noopener noreferrer">clicca qui</a>.</p>
+                            <h6>Google Place*</h6>
+                            Per trovare il Place Id <a href="https://developers.google.com/maps/documentation/geocoding/overview#how-the-geocoding-api-works" target="_blank" rel="noopener noreferrer">clicca qui</a>.
                         </div>
                         <div class="col-12">
                             <?=text('Place ID', 'g_maps_place_id'); ?>
                         </div>
+                    </wi-card>
+
+                    <wi-card  class="col-12">
+                        *Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>
                     </wi-card>
 
                 </div>

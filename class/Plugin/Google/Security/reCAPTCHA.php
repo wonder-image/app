@@ -35,7 +35,7 @@
 
             $RETURN = (object) [];
             $RETURN->result = json_decode($CALL->result(), true);
-            $RETURN->valid = $RETURN->result['tokenProperties']['valid'] == 'true' ? true : false;
+            $RETURN->valid = isset($RETURN->result['tokenProperties']['valid'] ) && $RETURN->result['tokenProperties']['valid'] == 'true' ? true : false;
 
             return $RETURN;
         
