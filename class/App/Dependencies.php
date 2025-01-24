@@ -9,7 +9,7 @@
         public $dependencies = [
             'jquery' => [
                 'name' => 'jQuery',
-                'site' => 'https://jquery.com/',
+                'site' => 'https://jquery.com',
                 'load' => true,
                 'files' => [
                     'head' => [
@@ -19,7 +19,7 @@
             ],
             'moment' => [
                 'name' => 'Moment.js',
-                'site' => 'https://momentjs.com/',
+                'site' => 'https://momentjs.com',
                 'load' => true,
                 'files' => [
                     'head' => [
@@ -29,7 +29,7 @@
             ],
             'jquery-plugin' => [
                 'name' => 'JQuery Plugin',
-                'site' => 'https://plugins.jquery.com/',
+                'site' => 'https://plugins.jquery.com',
                 'load' => true,
                 'files' => [
                     'head' => [
@@ -104,7 +104,7 @@
             ],
             'rellax' => [
                 'name' => 'Rellax',
-                'site' => 'https://yaireo.github.io/rellax/',
+                'site' => 'https://yaireo.github.io/rellax',
                 'load' => false,
                 'files' => [
                     'head' => [
@@ -114,7 +114,7 @@
             ],
             'vivus' => [
                 'name' => 'Vivus.js',
-                'site' => 'https://maxwellito.github.io/vivus/',
+                'site' => 'https://maxwellito.github.io/vivus',
                 'load' => false,
                 'files' => [
                     'head' => [
@@ -187,7 +187,7 @@
                         if (substr($url, -2) == 'js') {
                             $RETURN .= "<script src=\"$url\"></script>";
                         } else if (substr($url, -3) == 'css') {
-                            $RETURN .= "<link src=\"$url\" rel=\"stylesheet\">";
+                            $RETURN .= "<link href=\"$url\" rel=\"stylesheet\">";
                         }
 
                         $RETURN .= "\n";
