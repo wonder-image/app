@@ -1,16 +1,16 @@
 <?php
 
-    $SEO = (object) array();
-    $DB = (object) array();
-    $MAIL = (object) array();
-    $COLOR = (object) array();
-    $FONT = (object) array();
-    $PATH = (object) array();
-    $SOCIETY = (object) array();
-    $TABLE = (object) array();
-    $ANALYTICS = (object) array();
-    $API = (object) array();
-    $DEFAULT = (object) array();
+    $SEO = (object) [];
+    $DB = (object) [];
+    $MAIL = (object) [];
+    $COLOR = (object) [];
+    $FONT = (object) [];
+    $PATH = (object) [];
+    $SOCIETY = (object) [];
+    $TABLE = (object) [];
+    $ANALYTICS = (object) [];
+    $API = (object) [];
+    $DEFAULT = (object) [];
 
     require_once __DIR__."/alert.php"; # Tutte le allerte
     require_once __DIR__."/characters.php"; # Caratteri speciali
