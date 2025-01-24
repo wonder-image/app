@@ -173,55 +173,7 @@
     ?>
 <!-- Fine icone -->
 
-<!-- Inizio librerie -->
-
-    <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <?php foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { echo "<link href='{$row['link']}' rel='stylesheet'>"; } ?>
-
-    <!-- JQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery.js"></script>
-    
-    <!-- Moment.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/moment/moment.js"></script>
-
-    <!-- JQuery Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Swiper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.css" rel="stylesheet">
-
-    <!-- Swiper.js => Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper-plugin.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper-plugin.css" rel="stylesheet">
-    
-    <!-- Fancyapps -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.css" rel="stylesheet">
-    
-    <!-- Video.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/videojs/video.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/videojs/video.css" rel="stylesheet">
-    
-    <!-- AutoNumeric.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/autonumeric/autonumeric.js"></script>
-
-    <!-- Rellax -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/rellax/rellax.js"></script>
-
-    <!-- Wonder Image -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/lib.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/lib.css" rel="stylesheet">
-
-<!-- Fine librerie -->
-    
-<!-- Inizio file fondamentali  -->
+<!-- Inizio Config -->
 
     <script>
 
@@ -231,14 +183,22 @@
 
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/head.js"></script>
-
     <link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.css">
     <link rel="stylesheet" href="<?=$PATH->css?>/set-up/color.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/head.css">
-    
-<!-- Fine file fondamentali  -->
 
+<!-- Fine Config -->
+
+<!-- Inizio librerie -->
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <?php foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { echo "<link href='{$row['link']}' rel='stylesheet'>"; } ?>
+
+    <?=$DEPENDENCIES->Head()?>
+
+<!-- Fine librerie -->
+    
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
 
 <?php if ($ANALYTICS->pixel->active) : ?>

@@ -10,8 +10,7 @@
     </div>
 </section>
 
-<!-- Fundamental .js -->
-<script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/frontend/body-end.js"></script>
+<?=$DEPENDENCIES->Body()?>
 
 <!-- Custom .css - .js  -->
 <?php include $ROOT.'/custom/utility/frontend/body-end.php'; ?>
