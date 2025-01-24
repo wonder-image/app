@@ -233,10 +233,18 @@
 
             $RETURN .= "\n";
             $RETURN .= "/* $var */\n";
+
             $RETURN .= ".tx-$var { color: var(--$var-color) !important; }\n";
+            $RETURN .= ".hover\:tx-$var:hover { color: var(--$var-color) !important; }\n";
             $RETURN .= ".tx-$var-o { color: var(--$var-o-color) !important; }\n";
+            $RETURN .= ".hover\:tx-$var-o { color: var(--$var-o-color) !important; }\n";
+
             $RETURN .= ".bg-$var { background: var(--$var-color) !important; }\n";
+            $RETURN .= ".hover\:bg-$var:hover { color: var(--$var-color) !important; }\n";
             $RETURN .= ".bg-$var-o { background: var(--$var-o-color) !important; }\n";
+            $RETURN .= ".hover\:bg-$var-o { background: var(--$var-o-color) !important; }\n";
+
+            $RETURN .= ".tx-stroke-$var { -webkit-text-stroke-color: var(--$var-color); }\n";
 
             for ($i=0; $i < 11; $i++) { 
 
@@ -244,6 +252,8 @@
                 
                 $RETURN .= ".bg-$var-$opacity { background: var(--$var-color-$opacity) !important; }\n";
                 $RETURN .= ".bg-$var-o-$opacity { background: var(--$var-o-color-$opacity) !important; }\n";
+                $RETURN .= ".hover\:bg-$var-$opacity { background: var(--$var-color-$opacity) !important; }\n";
+                $RETURN .= ".hover\:bg-$var-o-$opacity { background: var(--$var-o-color-$opacity) !important; }\n";
 
             }
 
