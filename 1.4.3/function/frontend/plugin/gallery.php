@@ -1,6 +1,35 @@
 <?php
 
-    function responsiveGallery($ARRAY_IMAGES, $GAP = 6, $DOWNLOAD = false) {
+    function cardResponsiveGallery($galleryId, $array, $format) {
+
+        $src = $array['src'];
+        $alt = $array['alt'];
+        $position = $array['position'];
+        $class = $array['class'] ?? '';
+        $attributes = $array['attributes'] ?? '';
+
+        if ($format == 'h-fit') {
+                
+            return "
+            <a href='javascript:;' data-fancybox-trigger='$galleryId' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
+                <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 120px'>
+            </a>";
+
+        } else {
+
+            return "
+            <a href='javascript:;' data-fancybox-trigger='$galleryId' data-fancybox-index='$position' class='col-1' $attributes>
+                <div class='f-$format o-hidden'>
+                    <img src='$src' alt='$alt' class='bg bg-cover skeleton $class' loading='lazy'>
+                </div>
+            </a>";
+
+        }
+
+        
+    }
+
+    function responsiveGallery($ARRAY_IMAGES, $GAP = 6, $DOWNLOAD = false, $FORMAT = 'h-fit') {
 
         $RETURN = "";
 
@@ -23,6 +52,16 @@
         $desktop = 0;
         $tablet = 0;
         $mobile = 0;
+
+        if (is_array($GAP)) {
+            $gapDesktop = $GAP['desktop'];
+            $gapTablet = $GAP['tablet'];
+            $gapMobile = $GAP['mobile'];
+        } else {
+            $gapDesktop = $GAP;
+            $gapTablet = $GAP;
+            $gapMobile = $GAP;
+        }
 
         $i = 0;
 
@@ -56,28 +95,14 @@
 
         $RETURN .= "</div>";
 
-        $RETURN .= "<div class='w-100 d-grid col-$colDesktop col-t-$colTablet col-p-$colMobile gap-$GAP'>";
+        $RETURN .= "<div class='w-100 d-grid col-$colDesktop col-t-$colTablet col-p-$colMobile gap-$gapDesktop gap-t-$gapTablet gap-p-$gapMobile'>";
 
         for ($i=0; $i < $colDesktop; $i++) { 
             
-            
             $RETURN .= "<div class='w-100 tablet-none'>
-            <div class='w-100 d-grid col-1 gap-$GAP'>";
+            <div class='w-100 d-grid col-1 gap-$gapDesktop'>";
 
-            foreach ($IMG['desktop'][$i] as $value) { 
-
-                $src = $value['src'];
-                $alt = $value['alt'];
-                $position = $value['position'];
-                $class = isset($value['class']) ? $value['class'] : '';
-                $attributes = isset($value['attributes']) ? $value['attributes'] : '';
-
-                $RETURN .= "
-                <a href='javascript:;' data-fancybox-trigger='$id' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
-                    <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 120px'>
-                </a>";
-
-            }
+            foreach ($IMG['desktop'][$i] as $value) { $RETURN .= cardResponsiveGallery($id, $value, $FORMAT); }
 
             $RETURN .= "</div>
             </div>";
@@ -86,24 +111,10 @@
 
         for ($i=0; $i < $colTablet; $i++) { 
             
-            
             $RETURN .= "<div class='w-100 pc-none phone-none'>
-            <div class='w-100 d-grid col-1 gap-$GAP'>";
+            <div class='w-100 d-grid col-1 gap-$gapTablet'>";
             
-            foreach ($IMG['tablet'][$i] as $value) { 
-
-                $src = $value['src'];
-                $alt = $value['alt'];
-                $position = $value['position'];
-                $class = isset($value['class']) ? $value['class'] : '';
-                $attributes = isset($value['attributes']) ? $value['attributes'] : '';
-
-                $RETURN .= "
-                <a href='javascript:;' data-fancybox-trigger='$id' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
-                    <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 120px'>
-                </a>"; 
-            
-            }
+            foreach ($IMG['tablet'][$i] as $value) { $RETURN .= cardResponsiveGallery($id, $value, $FORMAT); }
 
             $RETURN .= "</div>
             </div>";
@@ -112,24 +123,10 @@
 
         for ($i=0; $i < $colMobile; $i++) { 
             
-            
             $RETURN .= "<div class='w-100 pc-none tablet-none h-fit'>
-            <div class='w-100 d-grid col-1 gap-$GAP'>";
+            <div class='w-100 d-grid col-1 gap-$gapMobile'>";
             
-            foreach ($IMG['mobile'][$i] as $value) { 
-
-                $src = $value['src'];
-                $alt = $value['alt'];
-                $position = $value['position'];
-                $class = isset($value['class']) ? $value['class'] : '';
-                $attributes = isset($value['attributes']) ? $value['attributes'] : '';
-
-                $RETURN .= "
-                <a href='javascript:;' data-fancybox-trigger='$id' data-fancybox-index='$position' class='col-1 h-fit' $attributes>
-                    <img src='$src' alt='$alt' class='p-r f-start w-100 skeleton $class' loading='lazy' style='min-height: 80px'>
-                </a>"; 
-            
-            }
+            foreach ($IMG['mobile'][$i] as $value) { $RETURN .= cardResponsiveGallery($id, $value, $FORMAT); }
 
             $RETURN .= "</div>
             </div>";
