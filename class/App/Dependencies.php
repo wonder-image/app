@@ -48,6 +48,16 @@
                     ]
                 ]
             ],
+            'colorjs' => [
+                'name' => 'Color.js',
+                'site' => 'https://github.com/luukdv/color.js',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/colorjs/color.js'
+                    ]
+                ]
+            ],
             'swiper' => [
                 'name' => 'Swiper.js',
                 'site' => 'https://swiperjs.com',
