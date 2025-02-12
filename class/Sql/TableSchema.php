@@ -2,10 +2,10 @@
 
     namespace Wonder\Sql;
 
-    class Column {
+    class TableSchema {
 
         public $name;
-        public $definition = [
+        public $schema = [
             'type' => 'VARCHAR',
             'null' => true
         ];
@@ -15,15 +15,14 @@
         }
 
         /**
-         * Tipo valore
-         * 
+         * Self
          * @param string $type
-         * @return \Wonder\Sql\Column
+         * @return TableSchema
          */
-        public function type( string $type ): Column
+        public function type( string $type ): self
         { 
 
-            $this->definition['type'] = strtoupper($type);
+            $this->schema['type'] = strtoupper($type);
             
             return $this; 
         
@@ -33,12 +32,12 @@
          * Massima lunghezza valore
          * 
          * @param int $length
-         * @return \Wonder\Sql\Column
+         * @return TableSchema
          */
-        public function length( int $length ): Column
+        public function length( int $length ): self
         { 
             
-            $this->definition['length'] = $length;
+            $this->schema['length'] = $length;
 
             return $this; 
         
@@ -48,12 +47,12 @@
          * Accetta i valori NULL
          * 
          * @param bool $null
-         * @return \Wonder\Sql\Column
+         * @return TableSchema
          */
-        public function null( bool $null = true ): Column
+        public function null( bool $null = true ): self
         { 
             
-            $this->definition['null'] = $null;
+            $this->schema['null'] = $null;
 
             return $this; 
         
@@ -63,12 +62,12 @@
          * Valore di DEFAULT
          * 
          * @param string $default
-         * @return \Wonder\Sql\Column
+         * @return TableSchema
          */
-        public function default( string $default ): Column
+        public function default( string $default ): self
         {
             
-            $this->definition['default'] = $default;
+            $this->schema['default'] = $default;
 
             return $this;
 
@@ -79,13 +78,13 @@
          * 
          * @param string $table
          * @param string $column
-         * @return \Wonder\Sql\Column
+         * @return TableSchema
          */
-        public function foreign( string $table, string $column = 'id' ): Column
+        public function foreign( string $table, string $column = 'id' ): self
         {
 
-            $this->definition['foreign_table'] = $table;
-            $this->definition['foreign_key'] = $column;
+            $this->schema['foreign_table'] = $table;
+            $this->schema['foreign_key'] = $column;
 
             return $this;
 
@@ -95,30 +94,30 @@
          * Crea un indice nella colonna
          * 
          * @param string|array $column
-         * @return \Wonder\Sql\Column
+         * @return TableSchema
          */
-        public function index( string | array $column ): Column
+        public function index( string | array $column ): self
         {
 
-            $this->definition['index'] = $column;
+            $this->schema['index'] = $column;
 
             return $this;
 
         }
 
-        public function label( string $label ): Column
+        public function label( string $label ): self
         {
 
-            $this->definition['label'] = $label;
+            $this->schema['label'] = $label;
 
             return $this;
 
         }
 
-        public function show( bool $show = true ): Column
+        public function show( bool $show = true ): self
         {
 
-            $this->definition['show'] = $show;
+            $this->schema['show'] = $show;
 
             return $this;
 
