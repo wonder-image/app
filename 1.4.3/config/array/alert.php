@@ -86,6 +86,11 @@
             "title" => "Operazione bloccata",
             "text" => "reCAPTCHA ha bloccato l'operazione, riprovare."
         ],
+        649 => [
+            "type" => "success",
+            "title" => "Richiesta inviata",
+            "text" => "La tua richiesta è stata inviata con successo."
+        ],
         650 => [
             "type" => "success",
             "title" => "Modificato",
