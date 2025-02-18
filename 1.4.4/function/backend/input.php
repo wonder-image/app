@@ -767,7 +767,8 @@
         $PAGE_TABLE = $TABLE->$TABLE_NAME;
 
         $TB = $PAGE_TABLE[$name]['input'];
-        $maxFile = isset($TB['format']['max_file']) ? $TB['format']['max_file'] : 1;
+        $maxFile = $TB['format']['max_file'] ?? 1;
+        $maxSize = $TB['format']['max_size'] ?? 1;
 
         if ($file == "image") {
             $ACCEPT = "image/png, image/jpeg";
@@ -911,13 +912,14 @@
         <div id='container-$id' class='w-100 wi-container-files'>
             <h6>$label</h6>
             <div class='w-100 mt-1'>
-                <input class='form-control' style='width: 100%;' id='$id' type='file' accept='$ACCEPT' name='$x' data-wi-max-file='$maxFile' data-wi-check='true' $multiple $attribute>
+                <input class='form-control' style='width: 100%;' id='$id' type='file' accept='$ACCEPT' name='$x' data-wi-max-file='$maxFile' data-wi-max-size='$maxSize' data-wi-check='true' $multiple $attribute>
             </div>
             <div class='w-100 mt-1'>
                 <small>
                     <ul>
                         <li>File ammessi: <b>$EXTENSIONS_ACCEPT</b></li>
                         <li>File massimi: <b>$maxFile</b></li>
+                        <li>Peso massimo: <b>{$maxSize}Mb</b></li>
                     </ul> 
                 </small>
             </div>
