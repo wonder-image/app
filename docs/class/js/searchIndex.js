@@ -116,6 +116,111 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-App-Credentials.html#property_API"
         },                {
+            "fqsen": "\\Wonder\\App\\Dependencies",
+            "name": "Dependencies",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Aset\u0028\u0029",
+            "name": "set",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_set"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Ajquery\u0028\u0029",
+            "name": "jquery",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_jquery"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Amoment\u0028\u0029",
+            "name": "moment",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_moment"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003AjqueryPlugin\u0028\u0029",
+            "name": "jqueryPlugin",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_jqueryPlugin"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003AbootstrapIcons\u0028\u0029",
+            "name": "bootstrapIcons",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_bootstrapIcons"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Aswiper\u0028\u0029",
+            "name": "swiper",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_swiper"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003AswiperPlugin\u0028\u0029",
+            "name": "swiperPlugin",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_swiperPlugin"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Afancyapps\u0028\u0029",
+            "name": "fancyapps",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_fancyapps"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Avideojs\u0028\u0029",
+            "name": "videojs",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_videojs"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Aautonumeric\u0028\u0029",
+            "name": "autonumeric",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_autonumeric"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Arellax\u0028\u0029",
+            "name": "rellax",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_rellax"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Avivus\u0028\u0029",
+            "name": "vivus",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_vivus"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003AwiLib\u0028\u0029",
+            "name": "wiLib",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_wiLib"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003AwiFrontend\u0028\u0029",
+            "name": "wiFrontend",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_wiFrontend"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003Agenerate\u0028\u0029",
+            "name": "generate",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_generate"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003AHead\u0028\u0029",
+            "name": "Head",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_Head"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003ABody\u0028\u0029",
+            "name": "Body",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#method_Body"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003A\u0024endpoint",
+            "name": "endpoint",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#property_endpoint"
+        },                {
+            "fqsen": "\\Wonder\\App\\Dependencies\u003A\u003A\u0024dependencies",
+            "name": "dependencies",
+            "summary": "",
+            "url": "classes/Wonder-App-Dependencies.html#property_dependencies"
+        },                {
             "fqsen": "\\Wonder\\App\\Path",
             "name": "Path",
             "summary": "",
@@ -961,6 +1066,96 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-ICS.html#property_events"
         },                {
+            "fqsen": "\\Wonder\\Input\\InputSchema",
+            "name": "InputSchema",
+            "summary": "",
+            "url": "classes/Wonder-Input-InputSchema.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\InputSchema\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Input-InputSchema.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Input\\InputSchema\u003A\u003Alabel\u0028\u0029",
+            "name": "label",
+            "summary": "",
+            "url": "classes/Wonder-Input-InputSchema.html#method_label"
+        },                {
+            "fqsen": "\\Wonder\\Input\\InputSchema\u003A\u003Avalue\u0028\u0029",
+            "name": "value",
+            "summary": "",
+            "url": "classes/Wonder-Input-InputSchema.html#method_value"
+        },                {
+            "fqsen": "\\Wonder\\Input\\InputSchema\u003A\u003A\u0024name",
+            "name": "name",
+            "summary": "",
+            "url": "classes/Wonder-Input-InputSchema.html#property_name"
+        },                {
+            "fqsen": "\\Wonder\\Input\\InputSchema\u003A\u003A\u0024schema",
+            "name": "schema",
+            "summary": "",
+            "url": "classes/Wonder-Input-InputSchema.html#property_schema"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Checkbox",
+            "name": "Checkbox",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Checkbox.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Date",
+            "name": "Date",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Date.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Email",
+            "name": "Email",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Email.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\File",
+            "name": "File",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-File.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Number",
+            "name": "Number",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Number.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Password",
+            "name": "Password",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Password.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Percentige",
+            "name": "Percentige",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Percentige.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Phone",
+            "name": "Phone",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Phone.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Price",
+            "name": "Price",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Price.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Select",
+            "name": "Select",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Select.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Text",
+            "name": "Text",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Text.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type\\Textarea",
+            "name": "Textarea",
+            "summary": "",
+            "url": "classes/Wonder-Input-Type-Textarea.html"
+        },                {
             "fqsen": "\\Wonder\\Password",
             "name": "Password",
             "summary": "Hash\u0020password",
@@ -1165,6 +1360,11 @@ Search.appendIndex(
             "name": "__construct",
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Adefault\u0028\u0029",
+            "name": "default",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Address-Address.html#method_default"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Address\\Address\u003A\u003Acreate\u0028\u0029",
             "name": "create",
@@ -1461,6 +1661,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Fattura-Fattura.html#method_arrayToXml"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Fattura\\Fattura\u003A\u003AsafeXML\u0028\u0029",
+            "name": "safeXML",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Fattura-Fattura.html#method_safeXML"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Fattura\\Fattura\u003A\u003AcreateXml\u0028\u0029",
             "name": "createXml",
             "summary": "",
@@ -1596,6 +1801,41 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Fattura-Valori-TipiDocumento.html#constant_Valori"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA",
+            "name": "reCAPTCHA",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA\u003A\u003Aset\u0028\u0029",
+            "name": "set",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html#method_set"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA\u003A\u003Aaction\u0028\u0029",
+            "name": "action",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html#method_action"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA\u003A\u003Atheme\u0028\u0029",
+            "name": "theme",
+            "summary": "Summary\u0020of\u0020theme",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html#method_theme"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA\u003A\u003Asize\u0028\u0029",
+            "name": "size",
+            "summary": "Summary\u0020of\u0020size",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html#method_size"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA\u003A\u003Agenerate\u0028\u0029",
+            "name": "generate",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html#method_generate"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\reCAPTCHA\u003A\u003A\u0024definition",
+            "name": "definition",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-reCAPTCHA.html#property_definition"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput",
             "name": "SortableInput",
             "summary": "",
@@ -1615,6 +1855,16 @@ Search.appendIndex(
             "name": "Position",
             "summary": "",
             "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_Position"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024Add",
+            "name": "Add",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_Add"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003A\u0024Delete",
+            "name": "Delete",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Custom-Input-SortableInput.html#property_Delete"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Input\\SortableInput\u003A\u003AOnAdd\u0028\u0029",
             "name": "OnAdd",
@@ -2506,6 +2756,51 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-Google-Business-Info.html#property_placeId"
         },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Credentials",
+            "name": "Credentials",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Credentials.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Credentials\u003A\u003Aget\u0028\u0029",
+            "name": "get",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Credentials.html#method_get"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA",
+            "name": "reCAPTCHA",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA\u003A\u003Averify\u0028\u0029",
+            "name": "verify",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html#method_verify"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA\u003A\u003A\u0024projectId",
+            "name": "projectId",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html#property_projectId"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA\u003A\u003A\u0024apiKey",
+            "name": "apiKey",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html#property_apiKey"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA\u003A\u003A\u0024siteKey",
+            "name": "siteKey",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html#property_siteKey"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security\\reCAPTCHA\u003A\u003A\u0024action",
+            "name": "action",
+            "summary": "",
+            "url": "classes/Wonder-Plugin-Google-Security-reCAPTCHA.html#property_action"
+        },                {
             "fqsen": "\\Wonder\\Plugin\\Nexi\\Nexi",
             "name": "Nexi",
             "summary": "Link\u0020utili\u003A\n\u002D\u0020ApiKey\u0020test\u0020\u005B\u0020https\u003A\/\/developer.nexi.it\/it\/area\u002Dtest\/api\u002Dkey\u0020\u005D\n\u002D\u0020Carte\u0020test\u0020\u005B\u0020https\u003A\/\/developer.nexi.it\/it\/area\u002Dtest\/carte\u002Ddi\u002Dpagamento\u0020\u005D",
@@ -2941,66 +3236,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Plugin-QrCode-QRGdRounded.html#method_module"
         },                {
-            "fqsen": "\\Wonder\\Sql\\Column",
-            "name": "Column",
-            "summary": "",
-            "url": "classes/Wonder-Sql-Column.html"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003A__construct\u0028\u0029",
-            "name": "__construct",
-            "summary": "",
-            "url": "classes/Wonder-Sql-Column.html#method___construct"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Atype\u0028\u0029",
-            "name": "type",
-            "summary": "Tipo\u0020valore",
-            "url": "classes/Wonder-Sql-Column.html#method_type"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Alength\u0028\u0029",
-            "name": "length",
-            "summary": "Massima\u0020lunghezza\u0020valore",
-            "url": "classes/Wonder-Sql-Column.html#method_length"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Anull\u0028\u0029",
-            "name": "null",
-            "summary": "Accetta\u0020i\u0020valori\u0020NULL",
-            "url": "classes/Wonder-Sql-Column.html#method_null"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Adefault\u0028\u0029",
-            "name": "default",
-            "summary": "Valore\u0020di\u0020DEFAULT",
-            "url": "classes/Wonder-Sql-Column.html#method_default"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Aforeign\u0028\u0029",
-            "name": "foreign",
-            "summary": "Tabella\u0020e\u0020colonna\u0020di\u0020riferimento",
-            "url": "classes/Wonder-Sql-Column.html#method_foreign"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Aindex\u0028\u0029",
-            "name": "index",
-            "summary": "Crea\u0020un\u0020indice\u0020nella\u0020colonna",
-            "url": "classes/Wonder-Sql-Column.html#method_index"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Alabel\u0028\u0029",
-            "name": "label",
-            "summary": "",
-            "url": "classes/Wonder-Sql-Column.html#method_label"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003Ashow\u0028\u0029",
-            "name": "show",
-            "summary": "",
-            "url": "classes/Wonder-Sql-Column.html#method_show"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003A\u0024name",
-            "name": "name",
-            "summary": "",
-            "url": "classes/Wonder-Sql-Column.html#property_name"
-        },                {
-            "fqsen": "\\Wonder\\Sql\\Column\u003A\u003A\u0024definition",
-            "name": "definition",
-            "summary": "",
-            "url": "classes/Wonder-Sql-Column.html#property_definition"
-        },                {
             "fqsen": "\\Wonder\\Sql\\Connection",
             "name": "Connection",
             "summary": "",
@@ -3216,6 +3451,66 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Wonder-Sql-Query.html#property_mysqli"
         },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema",
+            "name": "TableSchema",
+            "summary": "",
+            "url": "classes/Wonder-Sql-TableSchema.html"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "",
+            "url": "classes/Wonder-Sql-TableSchema.html#method___construct"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Atype\u0028\u0029",
+            "name": "type",
+            "summary": "Self",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_type"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Alength\u0028\u0029",
+            "name": "length",
+            "summary": "Massima\u0020lunghezza\u0020valore",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_length"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Anull\u0028\u0029",
+            "name": "null",
+            "summary": "Accetta\u0020i\u0020valori\u0020NULL",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_null"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Adefault\u0028\u0029",
+            "name": "default",
+            "summary": "Valore\u0020di\u0020DEFAULT",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_default"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Aforeign\u0028\u0029",
+            "name": "foreign",
+            "summary": "Tabella\u0020e\u0020colonna\u0020di\u0020riferimento",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_foreign"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Aindex\u0028\u0029",
+            "name": "index",
+            "summary": "Crea\u0020un\u0020indice\u0020nella\u0020colonna",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_index"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Alabel\u0028\u0029",
+            "name": "label",
+            "summary": "",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_label"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003Ashow\u0028\u0029",
+            "name": "show",
+            "summary": "",
+            "url": "classes/Wonder-Sql-TableSchema.html#method_show"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003A\u0024name",
+            "name": "name",
+            "summary": "",
+            "url": "classes/Wonder-Sql-TableSchema.html#property_name"
+        },                {
+            "fqsen": "\\Wonder\\Sql\\TableSchema\u003A\u003A\u0024schema",
+            "name": "schema",
+            "summary": "",
+            "url": "classes/Wonder-Sql-TableSchema.html#property_schema"
+        },                {
             "fqsen": "\\Wonder\\Sql\\Utility\\Error",
             "name": "Error",
             "summary": "Creazione\u0020degli\u0020errori\u0020Sql",
@@ -3260,6 +3555,16 @@ Search.appendIndex(
             "name": "Wonder",
             "summary": "",
             "url": "namespaces/wonder.html"
+        },                {
+            "fqsen": "\\Wonder\\Input",
+            "name": "Input",
+            "summary": "",
+            "url": "namespaces/wonder-input.html"
+        },                {
+            "fqsen": "\\Wonder\\Input\\Type",
+            "name": "Type",
+            "summary": "",
+            "url": "namespaces/wonder-input-type.html"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Custom\\Address",
             "name": "Address",
@@ -3325,6 +3630,11 @@ Search.appendIndex(
             "name": "Google",
             "summary": "",
             "url": "namespaces/wonder-plugin-google.html"
+        },                {
+            "fqsen": "\\Wonder\\Plugin\\Google\\Security",
+            "name": "Security",
+            "summary": "",
+            "url": "namespaces/wonder-plugin-google-security.html"
         },                {
             "fqsen": "\\Wonder\\Plugin\\Nexi",
             "name": "Nexi",
