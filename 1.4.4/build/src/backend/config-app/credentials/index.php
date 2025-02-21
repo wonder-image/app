@@ -94,8 +94,10 @@
                         </div>
                     </wi-card>
 
-                    <wi-card  class="col-12">
-                        *Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>
+                    <wi-card>
+                        <div class="col-12">
+                            *Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>
+                        </div>
                     </wi-card>
 
                 </div>
