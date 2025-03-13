@@ -38,6 +38,7 @@
     if (isset($_POST['upload']) || isset($_POST['upload-add'])) {
 
         $POST = array_merge($_POST, $_FILES);
+        if (isset($_GET['duplicate'])) { $VALUES = null; }
         $VALUES = formToArray($NAME->table, $POST, $PAGE_TABLE, $VALUES ?? null);
         
         if (empty($ALERT)) {
