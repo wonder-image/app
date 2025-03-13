@@ -193,7 +193,7 @@
 
                 $VALUE = $post[$name];
 
-                if ($OLD_VALUES != null) {
+                if ($OLD_VALUES != null && isset($OLD_VALUES[$name])) {
                     $OLD_VALUE = $OLD_VALUES[$name];
                 }
 
