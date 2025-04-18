@@ -13,11 +13,18 @@
 
             $zipName = basename($file, ".zip");;
 
-            $TMP_ZIP = $zipName.'.zip';
+            # Tengo tutti i file in una cartella per la correzione di eventuali errori
+            # Il nome della cartella è la data e l'ora in cui viene eseguito lo script
+            $dir = getcwd().'/file/'.date("Y-m-d-H-i-s")."/";
 
-            $TMP_XML_AGENZIE = $idAgenzia.'_'.$idSito.'_agenzie.xml';
-            $TMP_XML_LOOKUP = $idSito.'_lookup.xml';
-            $TMP_XML_ANNUNCI = $idAgenzia.'_'.$idSito.'_annunci.xml';
+            # Creo la cartella
+            mkdir($dir);
+
+            $TMP_ZIP = $dir.$zipName.'.zip';
+
+            $TMP_XML_AGENZIE = $dir.$idAgenzia.'_'.$idSito.'_agenzie.xml';
+            $TMP_XML_LOOKUP = $dir.$idSito.'_lookup.xml';
+            $TMP_XML_ANNUNCI = $dir.$idAgenzia.'_'.$idSito.'_annunci.xml';
 
             if (copy($file, $TMP_ZIP)) {
 
@@ -27,7 +34,7 @@
                 if ($unzipped === true) {
                     
                     # Estraggo il file zip
-                    $zip->extractTo(getcwd());
+                    $zip->extractTo($dir);
                     $zip->close();
                         
                     # Trasformo i file XML in un'array
@@ -37,14 +44,6 @@
 
                     # Creo l'array con le specifiche dei lookup
                     $this->LookupLoad();
-
-                    # Elimino lo zip e xml
-                    unlink($TMP_ZIP);
-                    unlink($TMP_XML_AGENZIE);
-                    unlink($idSito.'_agenzie.xml');
-                    unlink($TMP_XML_LOOKUP);
-                    unlink($idAgenzia.'_'.$idSito.'_lookup.xml');
-                    unlink($TMP_XML_ANNUNCI);
                         
                 }
 
