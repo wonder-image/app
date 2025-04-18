@@ -9,10 +9,10 @@ Link utili:
 * SFTP \[ [https://marketplace.visualstudio.com/items?itemName=Natizyskunk.sftp](https://marketplace.visualstudio.com/items?itemName=Natizyskunk.sftp) ]
 {% endhint %}
 
-Per l'installazione del progetto [`wonder-image/new`](https://github.com/wonder-image/new) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituire `project-name` con il nome del dominio.
+Per l'installazione del progetto [`wonder-image/new-site`](https://github.com/wonder-image/new-site) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituire `project-name` con il nome del dominio.
 
 ```
-composer create-project wonder-image/new project-name
+composer create-project wonder-image/new-site project-name
 ```
 
 ***
