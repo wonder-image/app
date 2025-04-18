@@ -71,6 +71,11 @@
                         $this->endpoint .= "?".http_build_query($this->values);
                     }
                     
+                } else if ($this->method == 'PATCH') {
+
+                    curl_setopt($this->cURL, CURLOPT_CUSTOMREQUEST, "PATCH");
+                    curl_setopt($this->cURL, CURLOPT_POSTFIELDS, $this->values);
+                    
                 }
             
             # Connessione
