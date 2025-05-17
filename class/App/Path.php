@@ -10,6 +10,7 @@
         public $appVersion = APP_VERSION;
 
         public const APP = APP_URL.'/vendor/wonder-image/app/'.APP_VERSION;
+        public const APP_RESOURCES = APP_URL.'/vendor/wonder-image/app/resources';
         public const APP_ASSETS = self::APP.'/assets';
         public const APP_API = self::APP.'/api';
         public const ASSETS = APP_URL.'/assets/'.ASSETS_VERSION;
@@ -18,6 +19,7 @@
         public $backend = APP_URL.'/backend';
 
         public $app = self::APP;
+        public $appResources = self::APP_RESOURCES;
         public $appApi = self::APP_API;
         public $appAssets = self::APP_ASSETS.'';
         public $appCss = self::APP_ASSETS.'/css';
