@@ -129,7 +129,7 @@
                         <h5 class="col-12"> Stripe </h5>
 
                         <div class="col-12">
-                            <?=select('Ambiente', 'stripe_test', [ 'true' => 'Produzione', 'false' => 'Test' ], null, 'required'); ?>
+                            <?=select('Ambiente', 'stripe_test', [ 'false' => 'Produzione', 'true' => 'Test' ], null, 'required'); ?>
                         </div>
 
                         <h6>Produzione</h6>
