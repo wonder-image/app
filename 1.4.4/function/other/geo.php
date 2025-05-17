@@ -30,17 +30,15 @@
 
     function countries() {
 
+        global $PATH;
+
         if (isset($_SESSION['system_cache']['geo']['countries'])) {
 
             return $_SESSION['system_cache']['geo']['countries'];
 
         } else {
 
-            $API = json_decode(wiApi('/geo/countries/'), true);
-    
-            $COUNTRIES = [];
-
-            if ($API['success'] == true) { $COUNTRIES = $API['response']; }
+            $COUNTRIES = (!$JSON = @file_get_contents("$PATH->appResources/geo/countries.json")) ? [] : json_decode($JSON, TRUE);
 
             $_SESSION['system_cache']['geo']['countries'] = $COUNTRIES;
 
@@ -49,6 +47,7 @@
         }
 
     }
+
 
     function state( $countryIso2, $stateIso2 ) {
 
@@ -81,8 +80,9 @@
 
     }
 
-
     function states( $countryIso2 ) {
+
+        global $PATH;
 
         $countryIso2 = strtoupper($countryIso2);
 
@@ -94,13 +94,7 @@
 
         } else {
 
-            $API = json_decode(wiApi('/geo/states/', [
-                'country' => $countryIso2
-            ]), true);
-
-            $STATES = [];
-
-            if ($API['success'] == true) { $STATES = $API['response']; }
+            $STATES = (!$JSON = @file_get_contents("$PATH->appResources/geo/states/$countryIso2.json")) ? [] : json_decode($JSON, TRUE);
 
             $_SESSION['system_cache']['geo']['states'][$countryIso2] = $STATES;
 
@@ -112,6 +106,8 @@
 
     function countryPhonePrefix( $iso2 ) {
 
+        global $PATH;
+
         $iso2 = strtoupper($iso2);
 
         if (!isset($_SESSION['system_cache']['geo']['countries_phone_prefix'])) { $_SESSION['system_cache']['geo']['countries_phone_prefix'] = []; }
@@ -122,13 +118,13 @@
 
         } else {
 
-            $API = json_decode(wiApi('/geo/countries_phone_prefix/'), true);
+            $COUNTRY_PHONE_PREFIX = (!$JSON = @file_get_contents("$PATH->appResources/geo/countriesPhonePrefix.json")) ? [] : json_decode($JSON, TRUE);
 
             $phoneCode = "";
     
-            if ($API['success'] == true && isset($API['response'][$iso2])) {
+            if (isset($COUNTRY_PHONE_PREFIX [$iso2])) {
 
-                $phoneCode = $API['response'][$iso2];
+                $phoneCode = $COUNTRY_PHONE_PREFIX [$iso2];
     
             }
 
@@ -140,7 +136,30 @@
 
     }
 
+
+    function countriesPhonePrefix() {
+
+        global $PATH;
+
+        if (isset($_SESSION['system_cache']['geo']['countries_phone_prefix'])) {
+
+            return $_SESSION['system_cache']['geo']['countries_phone_prefix'];
+
+        } else {
+
+            $COUNTRY_PHONE_PREFIX = (!$JSON = @file_get_contents("$PATH->appResources/geo/countriesPhonePrefix.json")) ? [] : json_decode($JSON, TRUE);
+            
+            $_SESSION['system_cache']['geo']['countries_phone_prefix'] = $COUNTRY_PHONE_PREFIX;
+
+            return $COUNTRY_PHONE_PREFIX;
+
+        }
+
+    }
+
     function phonePrefix() {
+
+        global $PATH;
 
         if (isset($_SESSION['system_cache']['geo']['phone_prefix'])) {
 
@@ -148,15 +167,11 @@
 
         } else {
 
-            $API = json_decode(wiApi('/geo/phone_prefix/'), true);
+            $PHONE_PREFIX = (!$JSON = @file_get_contents("$PATH->appResources/geo/phonePrefix.json")) ? [] : json_decode($JSON, TRUE);
 
-            $PREFIX = [];
+            $_SESSION['system_cache']['geo']['phone_prefix'] = $PHONE_PREFIX;
 
-            if ($API['success'] == true) { $PREFIX = $API['response']; }
-
-            $_SESSION['system_cache']['geo']['phone_prefix'] = $PREFIX;
-
-            return $PREFIX;
+            return $PHONE_PREFIX;
 
         }
 
