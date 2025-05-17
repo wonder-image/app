@@ -1092,3 +1092,25 @@
         return "<button $action id='$id' class='btn $class wi-submit' name='$name' disabled>$label</button>";
 
     }
+
+    
+    function submitRecaptcha($label, $name, $class = 'btn-success', $callback = 'sendForm') {
+
+        $id = strtolower(code(10, 'letters', 'button_'));
+        $siteKey = \Wonder\App\Credentials::api()->g_recaptcha_site_key;
+
+        return "
+        <button 
+            type='button' 
+            id='$id' 
+            class='btn $class wi-submit g-recaptcha' 
+            name='$name'
+            data-sitekey='$siteKey'
+            data-callback='$callback'
+            data-action='submit'
+            disabled
+        >
+            $label
+        </button>";
+
+    }
