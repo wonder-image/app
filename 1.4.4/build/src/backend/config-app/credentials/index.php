@@ -7,7 +7,7 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    $INFO_PAGE = (object) array();
+    $INFO_PAGE = (object) [];
     $INFO_PAGE->title = "Credenziali";
     $INFO_PAGE->table = $TABLE->SECURITY;
     $INFO_PAGE->tableName = "security";
@@ -101,6 +101,24 @@
 
                     </wi-card>
 
+                    <wi-card class="col-6">
+                        <h5 class="col-12">
+                            Server mail
+                        </h5>
+                        <div class="col-8">
+                            <?=text('Host', 'mail_host', 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=text('Porta', 'mail_port', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=text('Username', 'mail_username', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=password('Password', 'mail_password', 'required'); ?>
+                        </div>
+                    </wi-card>
+
                 </div>
             </div>
 
@@ -108,22 +126,48 @@
                 <div class="row g-3">
 
                     <wi-card>
-                        <div class="h5 col-12"> Stripe </div>
+                        <h5 class="col-12"> Stripe </h5>
 
-                        <div class="col-4">
-                            <?=select('Ambiente', 'stripe_test', [ 'true' => 'Test', 'false' => 'Produzione' ], null, 'required'); ?>
+                        <div class="col-12">
+                            <?=select('Ambiente', 'stripe_test', [ 'true' => 'Produzione', 'false' => 'Test' ], null, 'required'); ?>
                         </div>
 
+                        <h6>Produzione</h6>
                         <?php if (empty($VALUES['stripe_account_id'])): ?>
-                        <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php" class="w-100 btn btn-primary">
-                            Effettua connessione
-                        </a>
+                        <div class="col-12">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=production" class="w-100 btn btn-primary">
+                                Effettua connessione
+                            </a>
+                        </div>
                         <?php else: ?>
                         <div class="col-12">
-                            <?=text('Account ID', 'stripe_account_id', 'disabled'); ?>
+                            <?=text('Account ID', 'stripe_account_id', 'readonly'); ?>
                         </div>
                         <div class="col-12">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php" class="w-100 btn btn-primary">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=production" class="w-100 btn btn-primary">
+                                Modifica i dati
+                            </a>
+                        </div>
+                        <!-- <div class="col-6">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?ca=true" class="w-100 btn btn-warning">
+                                Cambia account
+                            </a>
+                        </div> -->
+                        <?php endif; ?>
+
+                        <h6>Test</h6>
+                        <?php if (empty($VALUES['stripe_test_account_id'])): ?>
+                        <div class="col-12">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=test" class="w-100 btn btn-primary">
+                                Effettua connessione
+                            </a>
+                        </div>
+                        <?php else: ?>
+                        <div class="col-12">
+                            <?=text('Account ID', 'stripe_test_account_id', 'readonly'); ?>
+                        </div>
+                        <div class="col-12">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=test" class="w-100 btn btn-primary">
                                 Modifica i dati
                             </a>
                         </div>

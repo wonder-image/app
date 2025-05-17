@@ -18,6 +18,7 @@
         "g_recaptcha_site_key" => [],
         "g_maps_place_id" => [],
         "stripe_account_id" => [],
+        "stripe_test_account_id" => [],
         "stripe_private_key" => [],
         "stripe_test_key" => [],
         "stripe_test" => [
