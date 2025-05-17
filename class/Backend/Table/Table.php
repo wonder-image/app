@@ -180,7 +180,7 @@
         public function addLink( $key, $link ) { $this->link[$key] = $link; }
 
         public function query( array | string $query = "`deleted` = 'false'" ) { $this->queryCustom = Query::Conditions($query, false); }
-        public function queryOrder( string $column, string $direction = 'DESC', string $columnWhenFilterIsActive = null, string $directionWhenFilterIsActive = null ) { 
+        public function queryOrder( string $column, string $direction = 'DESC', ?string $columnWhenFilterIsActive = null, ?string $directionWhenFilterIsActive = null ) { 
 
             $this->orderColumn = $column; 
             $this->orderDirection = $direction;
