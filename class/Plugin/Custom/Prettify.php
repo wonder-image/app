@@ -3,37 +3,11 @@
     namespace Wonder\Plugin\Custom;
 
     use Wonder\Plugin\Custom\Translator\TranslatorDate;
+    use Wonder\Plugin\Custom\String\Phone;
 
     class Prettify {
 
-        public static function Phone( $number ) {
-
-            if (!empty($number)) {
-            
-                $number = str_replace(" ", "", $number);
-                $numberLenght = strlen($number);
-                $first = '';
-    
-                if (substr($number, 0, 1) == '+') {
-                    $first = substr($number, 0, 3);
-                    $number = substr($number, 3, $numberLenght);
-                }
-
-                if ($numberLenght <= 4) {
-                    return $number;
-                } else if (substr($number, 0, 1) == '0') {
-                    return $first.' '.substr($number, 0, 4).' '.substr($number, 4, 6);
-                } else {
-                    return $first.' '.substr( $number, 0, 3).' '.substr($number, 3, 3).' '.substr($number, 6, 4);
-                }
-                
-            } else {
-    
-                return "";
-                
-            }
-
-        }
+        public static function Phone( $number ) { return Phone::prettify($number); }
 
         public static function Date( $date, $hours = false ) {
 

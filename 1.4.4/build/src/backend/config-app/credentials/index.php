@@ -52,17 +52,17 @@
                 <div class="row g-3">
 
                     <wi-card class="col-12">
-                        <div class="col-12">
-                            <h6>Wonder Image</h6>
-                        </div>
+                        <h5 class="col-12"> Wonder Image </h5>
                         <div class="col-12">
                             <?=text('Api Key', 'api_key', 'disabled'); ?>
                         </div>
                     </wi-card>
 
                     <wi-card class="col-12">
+                        <h5 class="col-12">
+                            Google Cloud Platform
+                        </h5>
                         <div class="col-12">
-                            <h6>Google Cloud Platform</h6>
                             Per trovare l'ID Progetto crea o seleziona un progetto da <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer">Google Cloud</a> in alto a sinistra. <br>
                             Per creare la Api Key accedi a <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud</a> e premi su <b>+ Crea credenziali</b>.
                         </div>
@@ -72,32 +72,33 @@
                         <div class="col-6">
                             <?=text('Api Key', 'gcp_api_key'); ?>
                         </div>
-                    </wi-card>
 
-                    <wi-card class="col-6">
-                        <div class="col-12">
-                            <h6>Google reCAPTCHA*</h6>
-                            Per creare la chiave del sito <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">clicca qui</a> e seleziona il progetto indicato come <b>ID Progetto</b>.
+                        <div class="col-6">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <h6>Google reCAPTCHA*</h6>
+                                    Per creare la chiave del sito <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">clicca qui</a> e seleziona il progetto indicato come <b>ID Progetto</b>.
+                                </div>
+                                <div class="col-12">
+                                    <?=text('Chiave Sito', 'g_recaptcha_site_key'); ?>
+                                </div> 
+                            </div>
                         </div>
-                        <div class="col-12">
-                            <?=text('Chiave Sito', 'g_recaptcha_site_key'); ?>
-                        </div> 
-                    </wi-card>
 
-                    <wi-card class="col-6">
-                        <div class="col-12">
-                            <h6>Google Place*</h6>
-                            Per trovare il Place Id <a href="https://developers.google.com/maps/documentation/geocoding/overview#how-the-geocoding-api-works" target="_blank" rel="noopener noreferrer">clicca qui</a>.
+                        <div class="col-6">
+                            <div class="col-12">
+                                <h6>Google Place*</h6>
+                                Per trovare il Place Id <a href="https://developers.google.com/maps/documentation/geocoding/overview#how-the-geocoding-api-works" target="_blank" rel="noopener noreferrer">clicca qui</a>.
+                            </div>
+                            <div class="col-12">
+                                <?=text('Place ID', 'g_maps_place_id'); ?>
+                            </div>
                         </div>
-                        <div class="col-12">
-                            <?=text('Place ID', 'g_maps_place_id'); ?>
-                        </div>
-                    </wi-card>
 
-                    <wi-card>
                         <div class="col-12">
                             *Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>
                         </div>
+
                     </wi-card>
 
                 </div>
@@ -105,6 +106,35 @@
 
             <div class="col-3">
                 <div class="row g-3">
+
+                    <wi-card>
+                        <div class="h5 col-12"> Stripe </div>
+
+                        <div class="col-4">
+                            <?=select('Ambiente', 'stripe_test', [ 'true' => 'Test', 'false' => 'Produzione' ], null, 'required'); ?>
+                        </div>
+
+                        <?php if (empty($VALUES['stripe_account_id'])): ?>
+                        <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php" class="w-100 btn btn-primary">
+                            Effettua connessione
+                        </a>
+                        <?php else: ?>
+                        <div class="col-12">
+                            <?=text('Account ID', 'stripe_account_id', 'disabled'); ?>
+                        </div>
+                        <div class="col-12">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php" class="w-100 btn btn-primary">
+                                Modifica i dati
+                            </a>
+                        </div>
+                        <!-- <div class="col-6">
+                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?ca=true" class="w-100 btn btn-warning">
+                                Cambia account
+                            </a>
+                        </div> -->
+                        <?php endif; ?>
+
+                    </wi-card>
 
                     <wi-card class="col-12">
                         <div class="col-12">

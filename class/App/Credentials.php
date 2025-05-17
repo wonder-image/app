@@ -13,6 +13,7 @@
         protected static $ENV;
         protected static $DB;
         protected static $API;
+        protected static $MAIL;
 
         public static function loadEnv()
         {
@@ -74,6 +75,38 @@
             
         }
 
+        public static function mail() {
+
+            self::database();
+
+            if (empty(self::$MAIL)) {
+                
+                self::$MAIL = (object) [];
+
+                $connection = new Connection( 
+                    self::database()->hostname, 
+                    self::database()->username, 
+                    self::database()->password, 
+                    self::database()->database['main']
+                );
+
+                $query = new Query($connection->Connect());
+
+                $exists = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? true : false;
+
+                $row = $exists ? $query->Select('security', [ 'id' => 1 ], 1)->row : [];
+
+                self::$MAIL->host = $row['mail_host'] ?? '';
+                self::$MAIL->username = $row['mail_username'] ?? '';
+                self::$MAIL->password = $row['mail_password'] ?? '';
+                self::$MAIL->port = $row['mail_port'] ?? '';
+
+            }
+            
+            return self::$API;
+
+        }
+
 
         public static function api(): object
         {
@@ -103,6 +136,10 @@
                 self::$API->gcp_api_key = $row['gcp_api_key'] ?? '';
                 self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? '';
                 self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? '';
+                self::$API->stripe_account_id = $row['stripe_account_id'] ?? '';
+                self::$API->stripe_private_key = $row['stripe_private_key'] ?? '';
+                self::$API->stripe_test_key = $row['stripe_test_key'] ?? '';
+                self::$API->stripe_test = $row['stripe_test'] ?? '';
 
             }
 
