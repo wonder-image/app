@@ -136,10 +136,24 @@
                 self::$API->gcp_api_key = $row['gcp_api_key'] ?? '';
                 self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? '';
                 self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? '';
-                self::$API->stripe_account_id = $row['stripe_account_id'] ?? '';
-                self::$API->stripe_private_key = $row['stripe_private_key'] ?? '';
-                self::$API->stripe_test_key = $row['stripe_test_key'] ?? '';
+
                 self::$API->stripe_test = $row['stripe_test'] ?? '';
+                self::$API->stripe_test_key = $row['stripe_test_key'] ?? '';
+                self::$API->stripe_private_key = $row['stripe_private_key'] ?? '';
+
+                self::$API->stripe_account_id = $row['stripe_account_id'] ?? '';
+                self::$API->stripe_test_account_id = $row['stripe_test_account_id'] ?? '';
+
+                switch (self::$API->stripe_test) {
+                    case 'true' || true:
+                        self::$API->stripe_id = self::$API->stripe_account_id;
+                        self::$API->stripe_api_key = self::$API->stripe_test_key;
+                        break;
+                    default:
+                        self::$API->stripe_id = self::$API->stripe_test_account_id;
+                        self::$API->stripe_api_key = self::$API->stripe_private_key;
+                        break;
+                }
 
             }
 
