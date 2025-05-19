@@ -191,6 +191,11 @@
             "title" => "Errore 850",
             "text" => "Preventivo inesistente"
         ],
+        810 => [
+            "type" => "danger",
+            "title" => "Errore 810",
+            "text" => "Impossibile processare il pagamento. Riprovare o contattare l'assistenza."
+        ],
         851 => [
             "type" => "danger",
             "title" => "Errore 851",

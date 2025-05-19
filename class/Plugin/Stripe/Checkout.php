@@ -6,25 +6,31 @@
     
     class Checkout {
 
+        public static $apiKey = null;
+
         public $params, $opts = [];
 
         public function create() {
 
-            return (new Stripe)->checkout->sessions->create($this->params, $this->opts);
+            return (new Stripe(self::$apiKey))->checkout->sessions->create($this->params, $this->opts);
 
         }
 
         public function get($sessionId) {
             
-            return (new Stripe)->checkout->sessions->retrieve($sessionId, $this->params, $this->opts);
+            return (new Stripe(self::$apiKey))->checkout->sessions->retrieve($sessionId, $this->params, $this->opts);
 
         }
 
         public function delete($sessionId) {
             
-            return (new Stripe)->checkout->sessions->expire($sessionId, $this->params, $this->opts);
+            return (new Stripe(self::$apiKey))->checkout->sessions->expire($sessionId, $this->params, $this->opts);
 
         }
+
+        public function apiKey($apiKey) { self::$apiKey = $apiKey; return $this; }
+
+        public function accountId($accountId) { $this->opts['stripe_account'] = $accountId; return $this; }
 
         public function item($name, $price, $quantity = 1, $currency = 'eur') {
             
@@ -88,14 +94,6 @@
 
             # {CHECKOUT_SESSION_ID}
             $this->params['cancel_url'] = $url;
-
-            return $this;
-
-        }
-
-        public function accountId($accountId) {
-            
-            $this->opts['stripe_account'] = $accountId;
 
             return $this;
 
