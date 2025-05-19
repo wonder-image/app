@@ -175,4 +175,25 @@
             $this->_out('Q');
         }
 
+        public function MultiCellHeight($width, $lineHeight, $text, $fontSize, $align = 'L', $bold = false) {
+
+            $PDF = new self;
+
+            $PDF->AddPage();
+            $PDF->SetXY(0,0);
+
+            $PDF->LoadFont($this->FONT, $this->FONT_BOLD);
+
+            if ($bold) {
+                $PDF->FontBold($fontSize);
+            } else {
+                $PDF->Font($fontSize);
+            };
+            
+            $PDF->MultiCell($width, $lineHeight, $text, 0, $align);
+
+            return $PDF->GetY();
+
+        }
+
     }
