@@ -947,6 +947,57 @@
 
     }
 
+    function selectOld($label, $name, $option, $value = null, $attribute = '', $error = false) {
+        
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $class = "";
+
+        if (!empty($error)) {
+            $class .= " input-error";
+            $alert = "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> $error</span>";
+        } else {
+            $alert = "<span class='alert-error'></span>";
+        }
+
+        if (strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        $selected = "";
+        $optionHTML = "";
+        $i = 1;
+        
+        foreach ($option as $vl => $nm) {
+            
+            $selected = "";
+
+            if ($value != null) {
+                if ($value == $vl) {
+                    $selected = "selected";
+                }
+            } else {
+                if ($i == 1) {
+                    if ($value != '') {
+                        $selected = "selected";
+                    }
+                }
+            }
+
+            $optionHTML .= "<option value='$vl' $selected>$nm</option>";
+            $i++;
+            
+        }
+
+        return "
+        <div class='wi-input-container select compiled$class'>
+            <label for='$id' class='wi-label'>$label</label>
+            <select id='$id' name='$name' class='wi-input' data-wi-check='true' data-wi-label='true' $attribute>
+                $optionHTML
+            </select>
+            $alert
+        </div>";
+
+    }
+
     function checkbox($label, $name, $option, $type = 'checkbox', $value = null) {
 
         if ($type == 'checkbox') { $name .= "[]"; }
