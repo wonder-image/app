@@ -248,7 +248,7 @@
 
         }
         
-        return $str;
+        return $str == null ? '' : $str;
 
     }
 
