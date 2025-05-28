@@ -70,16 +70,21 @@
                 $name = $this->table.'__'.$columnName;
                 $inputType = $options['input'];
                 $columnType = $options['column_type'];
-                $value = isset($_GET[$name]) ? $_GET[$name] : null;
+                $value = $_GET[$name] ?? ($options['value'] ?? null);
 
-                if ($inputType == 'select') {
-                    $this->filter .= select($options['label'], $name, $options['array'], 'old', null, $value);
-                } else if ($inputType == 'checkbox') {
-                    $this->filter .= check($options['label'], $name, $options['array'], null, 'checkbox', $options['search'], $value);
-                } else if ($inputType == 'radio') {
-                    $this->filter .= check($options['label'], $name, $options['array'], null, 'radio', $options['search'], $value);
-                } else if ($inputType == 'tree') {
-                    $this->filter .= checkTree($options['label'], $name, $options['array'], null, 'checkbox', true, $value);
+                switch ($inputType) {
+                    case 'select':
+                        $this->filter .= select($options['label'], $name, $options['array'], 'old', null, $value);
+                        break;
+                    case 'checkbox':
+                        $this->filter .= check($options['label'], $name, $options['array'], null, 'checkbox', $options['search'], $value);
+                        break;
+                    case 'radio':
+                        $this->filter .= check($options['label'], $name, $options['array'], null, 'radio', $options['search'], $value);
+                        break;
+                    case 'tree':
+                        $this->filter .= checkTree($options['label'], $name, $options['array'], null, 'checkbox', true, $value);
+                        break;
                 }
 
                 $this->filter .= '</div>';

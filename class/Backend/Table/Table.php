@@ -225,7 +225,7 @@
              * @param [type] $columnType = null || multiple
              * @return void
              */
-            public function addFilter( $label, $column, array $array, $input = 'select', bool $search = false, $columnType = null ) {
+            public function addFilter( $label, $column, $array, $input = 'select', bool $search = false, $columnType = null, $value = null ) {
 
                 array_push(
                     $this->filterCustom, [
@@ -234,7 +234,8 @@
                         'column_type' => $columnType,
                         'array' => $array,
                         'input' => $input,
-                        'search' => $search
+                        'search' => $search,
+                        'value' => $value
                     ]
                 );
 
@@ -330,6 +331,9 @@
                 }
 
             }
+
+            $array['redirect'] = $_GET['redirect'] ?? '';
+            $array['id'] = $_GET['id'] ?? '';
 
             return $array;
 
