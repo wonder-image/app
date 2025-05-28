@@ -2,56 +2,29 @@
 
     function sendMail($from, $to, $object, $body, $attachment = null, $template = 'basic'){
 
-        global $MAIL;
         global $SOCIETY;
 
         $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);
 
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $MAIL = new PHPMailer\PHPMailer\PHPMailer(true);
+        $CREDENTIALS = Wonder\App\Credentials::mail();
 
         try {
 
-            # Se non sono definite le credenziali email chiedo credenziali di default
-                if (empty($MAIL->host) && empty($MAIL->username) && empty($MAIL->password) && empty($MAIL->port)) {
-
-                    $MAIL_CREDENTIALS = json_decode(wiApi('/mail/server/'), true);
-
-                    if ($MAIL_CREDENTIALS['success']) {
-
-                        $Host = $MAIL_CREDENTIALS['response']['host'];
-                        $Username = $MAIL_CREDENTIALS['response']['username'];
-                        $Password = $MAIL_CREDENTIALS['response']['password'];
-                        $Port = $MAIL_CREDENTIALS['response']['port'];
-
-                    } else {
-
-                        throw new PHPMailer\PHPMailer\Exception($MAIL_CREDENTIALS['response'], $MAIL_CREDENTIALS['status']);
-
-                    }
-
-                } else {
-
-                    $Host = $MAIL->host;
-                    $Username = $MAIL->username;
-                    $Password = $MAIL->password;
-                    $Port = $MAIL->port;
-
-                }
-
             # Impostazioni server
-                $mail->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; 
-                $mail->isSMTP();
-                $mail->Host = $Host;
-                $mail->SMTPAuth = true;
-                $mail->Username = $Username;
-                $mail->Password = $Password;
-                $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-                $mail->Port = $Port;
+                $MAIL->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; 
+                $MAIL->isSMTP();
+                $MAIL->Host = $CREDENTIALS->host;
+                $MAIL->SMTPAuth = true;
+                $MAIL->Username = $CREDENTIALS->username;
+                $MAIL->Password = $CREDENTIALS->password;
+                $MAIL->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                $MAIL->Port = $CREDENTIALS->port;
             
             # Header
-                $mail->setFrom($from, $SOCIETY_NAME);
-                $mail->addAddress($to);
-                $mail->addReplyTo($from, $SOCIETY_NAME);
+                $MAIL->setFrom($from, $SOCIETY_NAME);
+                $MAIL->addAddress($to);
+                $MAIL->addReplyTo($from, $SOCIETY_NAME);
         
             # Allegati
                 if ($attachment != null) {
@@ -67,25 +40,25 @@
                                     $attachmentRelativePath = $key;
                                 }
 
-                                $mail->addAttachment($attachmentRelativePath, $attachmentName);
+                                $MAIL->addAttachment($attachmentRelativePath, $attachmentName);
 
                             }
                         }
                     } else {
                         
-                        $mail->addAttachment($attachment);
+                        $MAIL->addAttachment($attachment);
 
                     }
                 }
         
             # Body
-                $mail->isHTML(true);
-                $mail->Subject = $object;
-                $mail->Body = emailTemplate($body, $template);
-                $mail->AltBody = $body;
+                $MAIL->isHTML(true);
+                $MAIL->Subject = $object;
+                $MAIL->Body = emailTemplate($body, $template);
+                $MAIL->AltBody = $body;
         
             # Invia
-                $mail->send();
+                $MAIL->send();
 
             return true;
 

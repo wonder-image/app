@@ -103,7 +103,7 @@
 
             }
             
-            return self::$API;
+            return self::$MAIL;
 
         }
 
