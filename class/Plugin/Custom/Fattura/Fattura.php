@@ -32,7 +32,7 @@
         public $body;
 
         public function __construct($ProgressivoInvio = self::PROGRESSIVO_INVIO, $Data = null, $TipoDocumento = self::TIPO_DOCUMENTO){
-
+            
             $this->file = [];
             $this->file['FatturaElettronica'] = [];
             $this->file['FatturaElettronica']['attributes'] = [
@@ -641,7 +641,7 @@
 
 
         # Esportazione
-            private function arrayToXml($ARRAY, $FILENAME = null, $VERSION = "1.0", $ENCODING = "UTF-8") {
+            public function arrayToXml($ARRAY, $FILENAME = null, $VERSION = "1.0", $ENCODING = "UTF-8") {
 
                 $XML = new DOMDocument($VERSION, $ENCODING);
         
@@ -685,7 +685,7 @@
                         $elementArray = (isset($VALUE['array']) && $VALUE['array'] == true) ? true : false;
                         
                         if (!$elementArray) {
-        
+                            
                             $element = $XML->createElement($NAME, $this->safeXML($elementValue));
         
                             if (is_array($elementAttributes)) {
