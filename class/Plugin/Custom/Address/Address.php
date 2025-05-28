@@ -90,21 +90,25 @@
             if (isset($RETURN->type)) {
                 
                 if ($RETURN->type == 'private') {
+
+                    $RETURN->sdi = '0000000';
                     
-                    if (empty($RETURN->name) && empty($RETURN->surname)) {
+                    if (empty($RETURN->name) || (empty($RETURN->name) && empty($RETURN->surname))) {
                         
                         $RETURN->prettyAddress = "";
                         $RETURN->prettyPDF = "";
     
                     } else {
 
+                        $name = (empty($RETURN->name) && empty($RETURN->surname)) ? "{$RETURN->name} {$RETURN->surname}" : $RETURN->name;
+
                         $RETURN->prettyAddress = "
-                        <b>$RETURN->name $RETURN->surname</b><br>
+                        <b>$name</b><br>
                         $RETURN->cf<br>
                         $RETURN->street $RETURN->number, $RETURN->cap <br>
-                        $RETURN->city ($RETURN->province$addressMore)";
+                        $RETURN->city ($RETURN->province)$addressMore";
         
-                        $RETURN->prettyPDF = "$RETURN->name $RETURN->surname\n$RETURN->cf\n$RETURN->street $RETURN->number, $RETURN->cap\n$RETURN->city ($RETURN->province)$addressMorePDF";
+                        $RETURN->prettyPDF = "$name\n$RETURN->cf\n$RETURN->street $RETURN->number, $RETURN->cap\n$RETURN->city ($RETURN->province)$addressMorePDF";
         
                     }
 
