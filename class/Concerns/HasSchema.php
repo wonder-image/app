@@ -1,0 +1,38 @@
+<?php
+
+    namespace Wonder\Concerns;
+
+    trait HasSchema {
+
+        public array $schema = [];
+
+        public function schema($key, $value): static 
+        {
+
+            $this->schema[$key] = $value;
+
+            return $this;
+
+        }
+
+        public function schemaPush($key, $value): static 
+        {
+
+            if (!is_array($this->schema[$key])) {
+                $this->schema[$key] = [];
+            }
+
+            array_push($this->schema[$key], $value);
+
+            return $this;
+
+        }
+
+        public function getSchema($key)
+        {
+
+            return $this->schema[$key] ?? null;
+
+        }
+
+    }

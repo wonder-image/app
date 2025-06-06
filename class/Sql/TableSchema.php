@@ -2,59 +2,67 @@
 
     namespace Wonder\Sql;
 
+    use Wonder\Concerns\HasSchema;
+
     class TableSchema {
 
+        use HasSchema;
+
         public $name;
-        public $schema = [
-            'type' => 'VARCHAR',
-            'null' => true
-        ];
 
         public function __construct( string $name ) {
+
             $this->name = $name;
+
+            $this->varchar()
+                 ->null();
+
         }
 
-        /**
-         * Self
-         * @param string $type
-         * @return TableSchema
-         */
+        public static function key( string $name ): TableSchema 
+        {
+
+            return new self($name);
+
+        }
+
         public function type( string $type ): self
         { 
 
-            $this->schema['type'] = strtoupper($type);
-            
-            return $this; 
+            return $this->schema('type', strtoupper($type));
         
         }
 
-        /**
-         * Massima lunghezza valore
-         * 
-         * @param int $length
-         * @return TableSchema
-         */
+        # Tipologie di colonna
+            public function int(): self { return $this->type('INT'); }
+
+            public function varchar(): self { return $this->type('VARCHAR'); }
+
+            public function bool(): self { return $this->type('BOOL'); }
+
+            public function json(): self { return $this->type('JSON'); }
+
+            public function date(): self { return $this->type('DATE'); }
+
+            public function datetime(): self { return $this->type('DATETIME'); }
+
+            public function time(): self { return $this->type('TIME'); }
+
+            public function float(): self { return $this->type('FLOAT'); }
+
+        #
+
         public function length( int $length ): self
         { 
-            
-            $this->schema['length'] = $length;
 
-            return $this; 
+            return $this->schema('length', $length);
         
         }
 
-        /**
-         * Accetta i valori NULL
-         * 
-         * @param bool $null
-         * @return TableSchema
-         */
         public function null( bool $null = true ): self
         { 
-            
-            $this->schema['null'] = $null;
-
-            return $this; 
+    
+            return $this->schema('null', $null);
         
         }
 
@@ -67,9 +75,7 @@
         public function default( string $default ): self
         {
             
-            $this->schema['default'] = $default;
-
-            return $this;
+            return $this->schema('default', $default);
 
         }
 
@@ -82,11 +88,9 @@
          */
         public function foreign( string $table, string $column = 'id' ): self
         {
-
-            $this->schema['foreign_table'] = $table;
-            $this->schema['foreign_key'] = $column;
-
-            return $this;
+            
+            return $this->schema('foreign_table', $table)
+                        ->schema('foreign_key', $column);
 
         }
 
@@ -99,27 +103,7 @@
         public function index( string | array $column ): self
         {
 
-            $this->schema['index'] = $column;
-
-            return $this;
-
-        }
-
-        public function label( string $label ): self
-        {
-
-            $this->schema['label'] = $label;
-
-            return $this;
-
-        }
-
-        public function show( bool $show = true ): self
-        {
-
-            $this->schema['show'] = $show;
-
-            return $this;
+            return $this->schema('index', $column);
 
         }
 
