@@ -45,6 +45,7 @@
             private $orderColumnFilterActive = "";
             private $orderDirectionFilterActive = "";
 
+            private $labels = [];
             private $columns = [];
 
             public $default = [
@@ -119,7 +120,7 @@
          * @param mysqli $connection Connessione al database che ospita la tabella. {@see \Wonder\Sql\Connection}
          * 
          */
-        function __construct( string $table, ?mysqli $connection = null ) {
+        public function __construct( string $table, ?mysqli $connection = null ) {
 
             $this->table = $table;
 
@@ -144,26 +145,48 @@
 
         }
 
-        public function title( bool $bool = false ) { $this->title = $bool; }
-        public function titleNResult( bool $bool = false ) { $this->titleNResult = $bool; }
+        public function title( bool $bool = true ): self 
+        { 
+            
+            $this->title = $bool; 
 
-        public function buttonAdd( string $href, string $name = 'Aggiungi', string $icon = '<i class="bi bi-plus-lg"></i>') { 
+            return $this;
+        
+        }
+
+        public function titleNResult( bool $bool = true ): self 
+        {
+            
+            $this->titleNResult = $bool; 
+        
+            return $this;
+
+        }
+
+        public function buttonAdd( string $href, string $name = 'Aggiungi', string $icon = '<i class="bi bi-plus-lg"></i>'): self 
+        { 
 
             $this->buttonAdd['visible'] = empty($name) ? false : true;
             $this->buttonAdd['name'] = $name;
             $this->buttonAdd['href'] = $href;
             $this->buttonAdd['icon'] = $icon;
 
+            return $this;
+
         }
 
-        public function buttonDownload( bool $visible = false, array $format = [ 'csv' => 'CSV', 'print' => 'Stampa' ] ) { 
+        public function buttonDownload( bool $visible = true, array $format = [ 'csv' => 'CSV', 'print' => 'Stampa' ] ): self 
+        { 
             
             $this->buttonDownload['visible'] = $visible; 
             $this->buttonDownload['format'] = $format; 
 
+            return $this;
+
         }
 
-        public function addButtonCustom( string $value, bool $isHTML, string $action = '', string $color = 'dark' ) { 
+        public function addButtonCustom( string $value, bool $isHTML, string $action = '', string $color = 'dark' ): self 
+        { 
 
             array_push($this->buttonCustom, [
                 'value' => $value,
@@ -171,6 +194,8 @@
                 'action' => $action,
                 'color' => $color
             ]);
+
+            return $this;
         
         }
         
@@ -194,24 +219,33 @@
         public function length(int $value = 10 ) { $this->default['length'] = $value; }
         
         # Filtri
-            public function filterDate( bool $visible = false, int $days = 30, string $column = 'creation' ) { 
+            public function filterDate( bool $visible = true, int $days = 30, string $column = 'creation' ): self 
+            { 
 
                 $this->filterDate['visible'] = $visible; 
                 $this->filterDate['days'] = $days; 
                 $this->filterDate['column'] = $column;
+
+                return $this;
             
             }
 
-            public function filterLimit( bool $visible = false ) { 
+            public function filterLimit( bool $visible = true ): self 
+            { 
                 
                 $this->filterLimit['visible'] = $visible; 
             
+                return $this;
+
             }
 
-            public function filterSearch( bool $visible = false, array $fields = []) {
+            public function filterSearch( bool $visible = true, array $fields = []): self 
+            {
 
                 $this->filterSearch['visible'] = $visible; 
                 $this->filterSearch['fields'] = $fields;
+
+                return $this;
             
             }
 
@@ -225,7 +259,8 @@
              * @param [type] $columnType = null || multiple
              * @return void
              */
-            public function addFilter( $label, $column, $array, $input = 'select', bool $search = false, $columnType = null, $value = null ) {
+            public function addFilter( $label, $column, $array, $input = 'select', bool $search = false, $columnType = null, $value = null ): self 
+            {
 
                 array_push(
                     $this->filterCustom, [
@@ -238,6 +273,8 @@
                         'value' => $value
                     ]
                 );
+
+                return $this;
 
             }
 
@@ -258,7 +295,8 @@
          * @param int string $width = 
          * @return void
          */
-        public function addColumn( $label, $column, bool $orderable = false, $class = '', $hiddenDevice = null, $width = null, $format = []) {
+        public function addColumn( $label, $column, bool $orderable = false, $class = '', $hiddenDevice = null, $width = null, $format = []): self
+        {
 
             if (empty($hiddenDevice)) {
                 $class .= ' all';
@@ -292,6 +330,49 @@
             ]);
 
             $this->columnId++;
+
+            return $this;
+
+        }
+
+        public function labels( array $labels ): self 
+        {
+
+            $this->labels = $labels;
+
+            return $this;
+
+        }
+
+        public function columns( array $columns ): self
+        {
+
+            foreach ($columns as $k => $column) {
+
+                $key = $column->name;
+                $type = $column->type;
+                $schema = $column->schema;
+
+                $format = [];
+                $format['format'] = $type;
+
+                if (isset($schema['function'])) { $format['function'] = $schema['function']; }
+                if (isset($schema['value'])) { $format['value'] = $schema['value']; }
+                if (isset($schema['link'])) { $format['href'] = $schema['link']; }
+
+                $this->addColumn(
+                    $schema['label'] ?? $this->labels[$key] ?? $key,
+                    $key,
+                    $schema['sortable'] ?? false,
+                    $schema['class'] ?? null,
+                    $schema['hidden-device'] ?? null,
+                    $schema['size'] ?? null,
+                    $format
+                );
+
+            }
+
+            return $this;
 
         }
 
