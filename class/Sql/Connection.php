@@ -24,7 +24,7 @@
 
         }
 
-        public static function Connect( string $database = null): mysqli 
+        public static function Connect( ?string $database = null): mysqli 
         { 
 
             $database = ($database === null) ? self::$database : Credentials::database()->database[$database];

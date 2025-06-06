@@ -11,7 +11,7 @@
 
         public mysqli $mysqli;
 
-        function __construct( ?mysqli $connection = null ) 
+        public function __construct( ?mysqli $connection = null ) 
         { 
             
             $this->mysqli = ($connection === null) ? Connection::Connect('main') : $connection; 

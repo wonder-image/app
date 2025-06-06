@@ -21,7 +21,7 @@
 
         public array $SQL_VAR = [ 'PRIMARY KEY', 'CURRENT_TIMESTAMP', 'AUTO_INCREMENT' ];
 
-        function __construct( $connection = null ) {
+        public function __construct( ?mysqli $connection = null ) {
 
             $this->mysqli = ($connection === null) ? Connection::Connect() : $connection;
 
