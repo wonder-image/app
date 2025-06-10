@@ -18,7 +18,7 @@
         public function schemaPush($key, $value): static 
         {
 
-            if (!is_array($this->schema[$key])) {
+            if (!isset($this->schema[$key])) {
                 $this->schema[$key] = [];
             }
 
