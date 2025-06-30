@@ -128,6 +128,8 @@
             $this->mysqli = $this->SQL->mysqli;
             $this->database = $this->SQL->GetDatabase();
 
+            $this->endpoint = (new Path)->apiDT;
+            
             $this->url = $_SERVER['REQUEST_URI'] ?? '';
             
             $this->id = [

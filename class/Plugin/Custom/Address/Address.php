@@ -100,7 +100,7 @@
     
                     } else {
 
-                        $name = (empty($RETURN->name) && empty($RETURN->surname)) ? "{$RETURN->name} {$RETURN->surname}" : $RETURN->name;
+                        $name = (empty($RETURN->surname)) ? $RETURN->name : "{$RETURN->name} {$RETURN->surname}";
 
                         $RETURN->prettyAddress = "
                         <b>$name</b><br>

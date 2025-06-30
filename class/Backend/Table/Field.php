@@ -667,6 +667,11 @@
                         $date = new DateTime($VALUE);
                         $VALUE = $date->format('d/m/Y');
 
+                    } else if ($type == 'datetime') {
+
+                        $date = new DateTime($VALUE);
+                        $VALUE = $date->format('d/m/Y H:i');
+
                     } else if ($type == 'phone') {
 
                         $prefix = (isset($this->row['phone_prefix']) && !empty($VALUE)) ? $this->row['phone_prefix']." " : "";

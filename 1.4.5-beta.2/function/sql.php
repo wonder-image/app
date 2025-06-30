@@ -258,13 +258,13 @@
                             $VALUE = '';
                         }
                     }
-    
+                    
                     if (isset($RULES['format']['number']) && $RULES['format']['number'] === true) {
-                        $VALUE = create_number($VALUE, 0);
+                        $VALUE = $VALUE == '' ? '' : create_number($VALUE, 0);
                     }
     
                     if (isset($RULES['format']['decimals']) && !empty($RULES['format']['decimals'])) {
-                        $VALUE = create_number($VALUE, $RULES['format']['decimals']);
+                        $VALUE = $VALUE == '' ? '' : create_number($VALUE, $RULES['format']['decimals']);
                     }
 
                     if (isset($RULES['format']['json']) && $RULES['format']['json'] === true) {

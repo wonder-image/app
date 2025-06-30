@@ -18,6 +18,7 @@
         public int $DEFAULT_LENGHT_VARCHAR = 1000;
         public int $DEFAULT_LENGHT_BIGINT = 18;
         public int $DEFAULT_LENGHT_INT = 10;
+        public $DEFAULT_LENGHT_DECIMAL = '10,2';
 
         public array $SQL_VAR = [ 'PRIMARY KEY', 'CURRENT_TIMESTAMP', 'AUTO_INCREMENT' ];
 
@@ -77,6 +78,8 @@
                     $defaultLenght = $this->DEFAULT_LENGHT_BIGINT; 
                 } elseif ($type == "INT") {
                     $defaultLenght = $this->DEFAULT_LENGHT_INT; 
+                }  elseif ($type == "DECIMAL") {
+                    $defaultLenght = $this->DEFAULT_LENGHT_DECIMAL; 
                 } else {
                     $defaultLenght = null;
                 }

@@ -52,6 +52,8 @@
                 }
         
             # Body
+                $MAIL->CharSet = 'UTF-8';
+                $MAIL->Encoding = 'base64';
                 $MAIL->isHTML(true);
                 $MAIL->Subject = $object;
                 $MAIL->Body = emailTemplate($body, $template);

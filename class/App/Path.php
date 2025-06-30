@@ -25,7 +25,7 @@
         public $appCss = self::APP_ASSETS.'/css';
         public $appJs = self::APP_ASSETS.'/js';
 
-        public $api = APP_URL.'/api/';
+        public $api = APP_URL.'/api';
         public $assets = self::ASSETS;
         public $css = self::ASSETS.'/css';
         public $js = self::ASSETS.'/js';

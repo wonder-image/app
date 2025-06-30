@@ -11,7 +11,7 @@
         $RESIZE = isset($FORMAT['resize']) ? $FORMAT['resize'] : '';
         $RESET = isset($FORMAT['reset']) ? $FORMAT['reset'] : false;
 
-        $NEW_FILE = ($RESET == true) ? [] : $OLD_FILE;
+        $NEW_FILE = ($RESET == true) ? [] : (empty($OLD_FILE) ? [] : $OLD_FILE);
         $N_OLD_FILE = count($NEW_FILE);
 
         $N_NEW_FILE = count($FILES['name']);

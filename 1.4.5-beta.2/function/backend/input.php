@@ -197,15 +197,17 @@
         $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
         $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
 
-        $label = empty($label) ?"" : "<h6>$label</h6>"; 
+        $label = empty($label) ?"" : "<label class='h6 form-label'>$label</label>"; 
 
         return "
-        $label
-        <div class='input-group input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
-            <span class='input-group-text'>Dal</span>
-            <input id='$idFrom' type='text' class='$class' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
-            <span class='input-group-text'>Al</span>
-            <input id='$idTo' type='text' class='$class' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
+        <div>
+            $label
+            <div class='input-group input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
+                <span class='input-group-text'>Dal</span>
+                <input id='$idFrom' type='text' class='$class' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
+                <span class='input-group-text'>Al</span>
+                <input id='$idTo' type='text' class='$class' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
+            </div>
         </div>";
 
     }
@@ -225,10 +227,12 @@
         $color = !empty($value) ? "style='color: $value;'" : '';
 
         return "
-        <h6>$label</h6>
-        <div class='input-group mt-1'>
-            <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
-            <input type='text' class='$class' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
+        <div>
+            <label class='h6 form-label' for='$id'>$label</label>
+            <div class='input-group mt-1'>
+                <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
+                <input type='text' class='$class' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
+            </div>
         </div>";
 
     }
@@ -427,7 +431,7 @@
             return "
             <div id='container-$id' class='w-100 wi-container-select'>
                 $inputHidden
-                <label for='$id' class='h6'>$label</label>
+                <label for='$id' class='h6 form-label'>$label</label>
                 <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
                     $optionHTML
                 </select>
