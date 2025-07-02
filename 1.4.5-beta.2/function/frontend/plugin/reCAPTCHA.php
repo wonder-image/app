@@ -11,6 +11,8 @@
             $ALERT = 617;
         }
 
+        return empty($ALERT) ? true : false;
+
     }
 
     /**
