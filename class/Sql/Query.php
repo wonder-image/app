@@ -158,11 +158,14 @@
             $query .= $this->Values( $values );
 
             $RETURN = (object) [];
+            $RETURN->success = true;
             $RETURN->table = $table;
             $RETURN->query = $query;
 
             if (!$this->mysqli->query( $query )) {
                 
+                $RETURN->success = false;
+
                 new Error( 'Insert', $table, $query, $this->mysqli );
 
             } else {
@@ -171,7 +174,6 @@
 
             }
             
-
             return $RETURN;
 
         }
@@ -183,18 +185,25 @@
             $query .= $this->Values( $values, true );
             $query .= " WHERE `$column` = '$value'";
 
-            if (!$this->mysqli->query( $query )) { new Error( 'Update', $table, $query, $this->mysqli ); }
-            
             $RETURN = (object) [];
+            $RETURN->success = true;
             $RETURN->table = $table;
             $RETURN->query = $query;
+
+            if (!$this->mysqli->query( $query )) { 
+
+                $RETURN->success = false;
+                
+                new Error( 'Update', $table, $query, $this->mysqli ); 
+            
+            }
 
             return $RETURN;
 
 
         }
 
-        public function Select( string | array $table, string | array $condition = null, string | int $limit = null, string $order = null, string $orderDirection = null, string | array $attributes = '*' ) 
+        public function Select( string | array $table, string | array | null $condition = null, string | int | null $limit = null, ?string $order = null, ?string $orderDirection = null, string | array $attributes = '*' ) 
         {
 
             $query = "SELECT ";
@@ -206,17 +215,21 @@
             $query .= ($orderDirection == null) ? "" : " $orderDirection";
             $query .= ($limit == null) ? "" : " LIMIT $limit";
 
+            $RETURN = (object) [];
+
+            $RETURN->success = true;
+            $RETURN->row = [];
+            
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
+                $RETURN->success = false;
+
                 new Error( 'Select', $table, $query, $this->mysqli );
 
             } else {
 
-                $RETURN = (object) [];
-
                 $RETURN->exists = ($RESULT->num_rows > 0) ? true : false;
                 $RETURN->Nrow = $RESULT->num_rows;
-                $RETURN->row = [];
 
                 if ($RESULT->num_rows == 1) {
 
@@ -233,14 +246,14 @@
                     $RETURN->row = $RESULT->fetch_all( MYSQLI_ASSOC );
 
                 }
-                
-                return $RETURN;
 
             }
+            
+            return $RETURN;
         
         }
 
-        public function Delete( string $table, string | array $condition = null ): string
+        public function Delete( string $table, string | array | null $condition = null ): string
         {
 
             $query = "DELETE FROM ";
@@ -268,7 +281,7 @@
                 new Error( 'Truncate', $table, $query, $this->mysqli );
 
             }
-            
+
             return $RESULT;
 
         }
@@ -308,7 +321,7 @@
     
         }
 
-        public function Count( string | array  $table, string | array $query = null, string $column = '*', bool $distinct = false ): int
+        public function Count( string | array  $table, string | array | null $query = null, string $column = '*', bool $distinct = false ): int
         {
 
             $DISTINCT = $distinct ? "DISTINCT " : "";
@@ -431,7 +444,7 @@
 
         }
 
-        function ColumnForeign( string $table, string $column = null ) : array
+        function ColumnForeign( string $table, ?string $column = null ) : array
         {
 
             $condition = [
@@ -450,7 +463,7 @@
 
         }
 
-        function TableIndex( string $table, string $column = null  )
+        function TableIndex( string $table, ?string $column = null  )
         {
 
             $condition = [
