@@ -2,6 +2,8 @@
 
     namespace Wonder\Backend\Table;
     
+    use Wonder\App\Path;
+    
     use Wonder\Sql\Query;
     use Wonder\Backend\Filter\FilterDate;
     use Wonder\Backend\Filter\FilterCustom;
