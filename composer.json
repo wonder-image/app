@@ -29,6 +29,7 @@
     },
     "scripts": {
         "post-update-cmd": [
+            "@composer dump-autoload",
             "php script/installer.php"
         ]
     }
