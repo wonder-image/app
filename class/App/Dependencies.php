@@ -4,13 +4,13 @@
 
     class Dependencies {
 
-        public $endpoint = 'https://cdn.jsdelivr.net/npm/wonder-image@';
+        public $endpoint = APP_URL.'/node_modules/wonder-image';
 
-        public $dependencies = [
+        public static array $dependencies = [
             'jquery' => [
                 'name' => 'jQuery',
                 'site' => 'https://jquery.com',
-                'load' => true,
+                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/jquery/jquery.js'
@@ -20,7 +20,7 @@
             'moment' => [
                 'name' => 'Moment.js',
                 'site' => 'https://momentjs.com',
-                'load' => true,
+                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/moment/moment.js'
@@ -30,11 +30,24 @@
             'jquery-plugin' => [
                 'name' => 'JQuery Plugin',
                 'site' => 'https://plugins.jquery.com',
-                'load' => true,
+                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/jquery/jquery-plugin.js',
                         '/dist/lib/jquery/jquery-plugin.css'
+                    ]
+                ]
+            ],
+            'bootstrap' => [
+                'name' => 'Bootstrap',
+                'site' => 'https://getbootstrap.com',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/bootstrap/bootstrap.css'
+                    ],
+                    'body' => [
+                        '/dist/lib/bootstrap/bootstrap.js',
                     ]
                 ]
             ],
@@ -45,6 +58,112 @@
                 'files' => [
                     'head' => [
                         '/dist/lib/bootstrap/bootstrap-icons.css'
+                    ]
+                ]
+            ],
+            'bootstrap-datepicker' => [
+                'name' => 'Bootstrap Datepicker',
+                'site' => 'https://bootstrap-datepicker.readthedocs.io/',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/bootstrap/bootstrap-datepicker.js',
+                        '/dist/lib/bootstrap/bootstrap-datepicker.css'
+                    ]
+                ]
+            ],
+            'jszip' => [
+                'name' => 'JSZip',
+                'site' => 'https://stuk.github.io/jszip/',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/jszip/jszip.js'
+                    ]
+                ]
+            ],
+            'datatables' => [
+                'name' => 'DataTables',
+                'site' => 'https://datatables.net',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/datatables/datatables.js',
+                        '/dist/lib/datatables/datatables.css'
+                    ]
+                ]
+            ],
+            'quilljs' => [
+                'name' => 'Quill.js',
+                'site' => 'https://quilljs.com',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/quilljs/quill.js',
+                        '/dist/lib/quilljs/quill.css'
+                    ]
+                ]
+            ],
+            'editorjs' => [
+                'name' => 'Editor.js',
+                'site' => 'https://editorjs.io',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/editorjs/editor.js'
+                    ]
+                ]
+            ],
+            'filepond' => [
+                'name' => 'FilePond',
+                'site' => 'https://pqina.nl/filepond/',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/filepond/filepond.js',
+                        '/dist/lib/filepond/filepond.css'
+                    ]
+                ]
+            ],
+            'chartjs' => [
+                'name' => 'Chart.js',
+                'site' => 'https://www.chartjs.org',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/chartjs/chart.js'
+                    ]
+                ]
+            ],
+            'fullcalendar' => [
+                'name' => 'FullCalendar',
+                'site' => 'https://fullcalendar.io',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/fullcalendar/fullcalendar.js'
+                    ]
+                ]
+            ],
+            'jstree' => [
+                'name' => 'JsTree',
+                'site' => 'https://www.jstree.com',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/jstree/jstree.js',
+                        '/dist/lib/jstree/jstree.css'
+                    ]
+                ]
+            ],
+            'select2' => [
+                'name' => 'Select2',
+                'site' => 'https://select2.org',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/lib/select2/select2.js',
+                        '/dist/lib/select2/select2.css'
                     ]
                 ]
             ],
@@ -135,7 +254,7 @@
             'wi-lib' => [
                 'name' => 'WI - Libraries',
                 'site' => 'https://www.wonderimage.it',
-                'load' => true,
+                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/frontend/lib.js',
@@ -146,7 +265,7 @@
             'wi-frontend' => [
                 'name' => 'WI - Frontend',
                 'site' => 'https://www.wonderimage.it',
-                'load' => true,
+                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/frontend/head.js',
@@ -156,32 +275,49 @@
                         '/dist/frontend/body-end.js',
                     ]
                 ]
+            ],
+            'wi-backend' => [
+                'name' => 'WI - Backend',
+                'site' => 'https://www.wonderimage.it',
+                'load' => false,
+                'files' => [
+                    'head' => [
+                        '/dist/backend/head.js',
+                        '/dist/backend/head.css'
+                    ],
+                    'body' => [
+                        '/dist/backend/body-end.js',
+                    ]
+                ]
             ]
         ];
 
-        public function __construct($version) { $this->endpoint .= $version; }
+        
+        private function set($key, bool $value): Dependencies 
+        { 
 
-        private function set($key, bool $value): Dependencies { $this->dependencies[$key]['load'] = $value; return $this; }
+            self::$dependencies[$key]['load'] = $value; 
+            
+            return $this; 
+        
+        }
+        
+        public function __call(string $method, array $arguments): self
+        {
+            $value = $arguments[0] ?? true;
 
-        public function jquery(bool $value = true) { return $this->set('jquery', $value); }
-        public function moment(bool $value = true) { return $this->set('moment', $value); }
-        public function jqueryPlugin(bool $value = true) { return $this->set('jquery-plugin', $value); }
-        public function bootstrapIcons(bool $value = true) { return $this->set('bootstrap-icons', $value); }
-        public function swiper(bool $value = true) { return $this->set('swiper', $value); }
-        public function swiperPlugin(bool $value = true) { return $this->set('swiper-plugin', $value); }
-        public function fancyapps(bool $value = true) { return $this->set('fancyapps', $value); }
-        public function videojs(bool $value = true) { return $this->set('videojs', $value); }
-        public function autonumeric(bool $value = true) { return $this->set('autonumeric', $value); }
-        public function rellax(bool $value = true) { return $this->set('rellax', $value); }
-        public function vivus(bool $value = true) { return $this->set('vivus', $value); }
-        public function wiLib(bool $value = true) { return $this->set('wi-lib', $value); }
-        public function wiFrontend(bool $value = true) { return $this->set('wi-frontend', $value); }
+            // Converte il nome del metodo camelCase in snake-case con trattini
+            $key = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $method));
 
-        public function generate($container): string {
+            return $this->set($key, $value);
+        }
+
+        public function generate($container): string 
+        {
 
             $RETURN = "";
 
-            foreach ($this->dependencies as $key => $value) {
+            foreach (self::$dependencies as $key => $value) {
                 
                 $files = $value['files'][$container] ?? [];
 
@@ -212,8 +348,18 @@
 
         }
 
-        public function Head(): string{ return $this->generate('head'); }
+        public function Head(): string
+        { 
+
+            return $this->generate('head'); 
         
-        public function Body(): string{ return $this->generate('body'); }
+        }
+        
+        public function Body(): string
+        { 
+            
+            return $this->generate('body'); 
+        
+        }
 
     }

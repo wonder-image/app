@@ -26,5 +26,10 @@
         "psr-4": {
             "Wonder\\": "class/"
         }
+    },
+    "scripts": {
+        "post-update-cmd": [
+            "php script/installer.php"
+        ]
     }
 }
