@@ -1,6 +1,6 @@
 <?php
 
-    $APP_VERSION = "1.4.5-beta.3";
+    $APP_VERSION = "1.4.5-beta.4";
     $ROOT_APP = __DIR__."/$APP_VERSION";
 
     require_once $ROOT."/vendor/autoload.php";
