@@ -111,6 +111,25 @@
         ]
     ];
 
+    # Dipendenze
+    Wonder\App\Dependencies::jquery()
+        ::moment()
+        ::bootstrap()
+        ::bootstrapIcons()
+        ::bootstrapDatepicker()
+        ::jszip()
+        ::datatables()
+        ::quilljs()
+        ::editorjs()
+        ::filepond()
+        // ::chartjs()
+        // ::fullcalendar()
+        // ::swiperjs()
+        // ::fancyapps()
+        ::jstree()
+        ::select2()
+        ::wiBackend();
+
     include $ROOT.'/custom/utility/backend/set-up.php';
     
     $NAV_BACKEND = array_merge($DEFAULT_NAV_TOP, $NAV_BACKEND, $DEFAULT_NAV_BOTTOM);

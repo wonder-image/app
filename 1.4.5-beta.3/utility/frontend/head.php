@@ -195,7 +195,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <?php foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { echo "<link href='{$row['link']}' rel='stylesheet'>"; } ?>
 
-    <?=$DEPENDENCIES->Head()?>
+    <?=Wonder\App\Dependencies::Head()?>
 
 <!-- Fine librerie -->
     

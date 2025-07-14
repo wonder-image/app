@@ -10,7 +10,7 @@
     </div>
 </section>
 
-<?=$DEPENDENCIES->Body()?>
+<?=Wonder\App\Dependencies::Body()?>
 
 <!-- Custom .css - .js  -->
 <?php include $ROOT.'/custom/utility/frontend/body-end.php'; ?>

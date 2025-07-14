@@ -12,84 +12,13 @@
 
 </script>
 
-<link rel="shortcut icon" href="<?=$DEFAULT->BeFavicon?>" type="image/x-icon">
+<!-- Inizio icone -->
 
-<!-- Inizio librerie -->
+    <link rel="shortcut icon" href="<?=$DEFAULT->BeFavicon?>" type="image/x-icon">
 
-    <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<!-- Fine icone -->
 
-    <!-- JQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery.js"></script>
-
-    <!-- Moment.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/moment/moment.js"></script>
-
-    <!-- JQuery => Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jquery/jquery-plugin.css" rel="stylesheet">
-
-    <!-- Bootstrap => .css -->
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Bootstrap Datepicker -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-datepicker.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/bootstrap/bootstrap-datepicker.css" rel="stylesheet">
-    
-    <!-- ! PDF Make ! => Utilizzato da DataTables per la creazione dei pdf -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/pdfmake/pdfmake.js"></script>  -->
-
-    <!-- JSZip -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jszip/jszip.js"></script> 
-
-    <!-- DataTables -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/datatables/datatables.js"></script> 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/datatables/datatables.css">
-
-    <!-- Quill.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/quilljs/quill.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/quilljs/quill.css" rel="stylesheet">
-
-    <!-- Editor.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/editorjs/editor.js"></script>
-
-    <!-- FilePond -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/filepond/filepond.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/filepond/filepond.css" rel="stylesheet">
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/chartjs/chart.js"></script>
-
-    <!-- FullCalendar -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fullcalendar/fullcalendar.js"></script>
-
-    <!-- AutoNumeric.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/autonumeric/autonumeric.js"></script>
-
-    <!-- Swiper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/swiperjs/swiper.css" rel="stylesheet">
-
-    <!-- Fancyapps -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/fancyapps/fancyapps.css" rel="stylesheet">
-    
-    <!-- JsTree -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jstree/jstree.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/jstree/jstree.css" rel="stylesheet">
-    
-    <!-- Select2 -->
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/select2/select2.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/lib/select2/select2.css" rel="stylesheet">
-    
-<!-- Fine librerie -->
-
-<!-- Inizio file fondamentali  -->
+<!-- Inizio Config  -->
 
     <script>
 
@@ -99,10 +28,18 @@
 
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/backend/head.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wonder-image@<?=$LIB_VERSION?>/dist/backend/head.css">
+<!-- Fine Config  -->
 
-<!-- Fine file fondamentali  -->
+<!-- Inizio librerie -->
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <?=Wonder\App\Dependencies::Head()?>
+
+<!-- Fine librerie -->
 
 <!-- Custom => (.css, .js) -->
 <?php include $ROOT.'/custom/utility/backend/head.php';?>

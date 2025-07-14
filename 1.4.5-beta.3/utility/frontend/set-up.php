@@ -40,8 +40,14 @@
 
     $SESSION_ID = session_id();
 
-    $ACTIVE_STATISTICS = isset($ACTIVE_STATISTICS) ? $ACTIVE_STATISTICS : true;
+    $ACTIVE_STATISTICS ??= true;
+
+    # Dipendenze
+    Wonder\App\Dependencies::jquery()
+        ::moment()
+        ::bootstrapIcons()
+        ::jqueryPlugin()
+        ::wiLib()
+        ::wiFrontend();
 
     include $ROOT.'/custom/utility/frontend/set-up.php';
-
-?>

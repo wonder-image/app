@@ -2,15 +2,46 @@
 
     namespace Wonder\App;
 
+    /**
+        * Classe per gestire le dipendenze.
+        * 
+        * @method static self jquery(bool $value = true)
+        * @method static self moment(bool $value = true)
+        * @method static self jqueryPlugin(bool $value = true)
+        * @method static self bootstrap(bool $value = true)
+        * @method static self bootstrapIcons(bool $value = true)
+        * @method static self bootstrapDatepicker(bool $value = true)
+        * @method static self jszip(bool $value = true)
+        * @method static self datatables(bool $value = true)
+        * @method static self quilljs(bool $value = true)
+        * @method static self editorjs(bool $value = true)
+        * @method static self filepond(bool $value = true)
+        * @method static self chartjs(bool $value = true)
+        * @method static self fullcalendar(bool $value = true)
+        * @method static self jstree(bool $value = true)
+        * @method static self select2(bool $value = true)
+        * @method static self colorjs(bool $value = true)
+        * @method static self swiper(bool $value = true)
+        * @method static self swiperPlugin(bool $value = true)
+        * @method static self fancyapps(bool $value = true)
+        * @method static self videojs(bool $value = true)
+        * @method static self autonumeric(bool $value = true)
+        * @method static self rellax(bool $value = true)
+        * @method static self vivus(bool $value = true)
+        * @method static self wiLib(bool $value = true)
+        * @method static self wiFrontend(bool $value = true)
+        * @method static self wiBackend(bool $value = true)
+    */
+
+        
     class Dependencies {
 
-        public $endpoint = APP_URL.'/node_modules/wonder-image';
+        public static $endpoint = APP_URL.'/node_modules/wonder-image';
 
         public static array $dependencies = [
             'jquery' => [
                 'name' => 'jQuery',
                 'site' => 'https://jquery.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/jquery/jquery.js'
@@ -20,7 +51,6 @@
             'moment' => [
                 'name' => 'Moment.js',
                 'site' => 'https://momentjs.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/moment/moment.js'
@@ -30,7 +60,6 @@
             'jquery-plugin' => [
                 'name' => 'JQuery Plugin',
                 'site' => 'https://plugins.jquery.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/jquery/jquery-plugin.js',
@@ -41,7 +70,6 @@
             'bootstrap' => [
                 'name' => 'Bootstrap',
                 'site' => 'https://getbootstrap.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/bootstrap/bootstrap.css'
@@ -54,7 +82,6 @@
             'bootstrap-icons' => [
                 'name' => 'Bootstrap Icons',
                 'site' => 'https://icons.getbootstrap.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/bootstrap/bootstrap-icons.css'
@@ -63,8 +90,7 @@
             ],
             'bootstrap-datepicker' => [
                 'name' => 'Bootstrap Datepicker',
-                'site' => 'https://bootstrap-datepicker.readthedocs.io/',
-                'load' => false,
+                'site' => 'https://bootstrap-datepicker.readthedocs.io',
                 'files' => [
                     'head' => [
                         '/dist/lib/bootstrap/bootstrap-datepicker.js',
@@ -75,7 +101,6 @@
             'jszip' => [
                 'name' => 'JSZip',
                 'site' => 'https://stuk.github.io/jszip/',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/jszip/jszip.js'
@@ -85,7 +110,6 @@
             'datatables' => [
                 'name' => 'DataTables',
                 'site' => 'https://datatables.net',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/datatables/datatables.js',
@@ -96,7 +120,6 @@
             'quilljs' => [
                 'name' => 'Quill.js',
                 'site' => 'https://quilljs.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/quilljs/quill.js',
@@ -107,7 +130,6 @@
             'editorjs' => [
                 'name' => 'Editor.js',
                 'site' => 'https://editorjs.io',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/editorjs/editor.js'
@@ -117,7 +139,6 @@
             'filepond' => [
                 'name' => 'FilePond',
                 'site' => 'https://pqina.nl/filepond/',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/filepond/filepond.js',
@@ -128,7 +149,6 @@
             'chartjs' => [
                 'name' => 'Chart.js',
                 'site' => 'https://www.chartjs.org',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/chartjs/chart.js'
@@ -138,7 +158,6 @@
             'fullcalendar' => [
                 'name' => 'FullCalendar',
                 'site' => 'https://fullcalendar.io',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/fullcalendar/fullcalendar.js'
@@ -148,7 +167,6 @@
             'jstree' => [
                 'name' => 'JsTree',
                 'site' => 'https://www.jstree.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/jstree/jstree.js',
@@ -159,7 +177,6 @@
             'select2' => [
                 'name' => 'Select2',
                 'site' => 'https://select2.org',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/select2/select2.js',
@@ -170,7 +187,6 @@
             'colorjs' => [
                 'name' => 'Color.js',
                 'site' => 'https://github.com/luukdv/color.js',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/colorjs/color.js'
@@ -180,7 +196,6 @@
             'swiper' => [
                 'name' => 'Swiper.js',
                 'site' => 'https://swiperjs.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/swiperjs/swiper.js',
@@ -191,7 +206,6 @@
             'swiper-plugin' => [
                 'name' => 'Swiper.js Plugin',
                 'site' => 'https://swiperjs.com/plugins',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/swiperjs/swiper-plugin.js',
@@ -202,7 +216,6 @@
             'fancyapps' => [
                 'name' => 'Fancyapps',
                 'site' => 'https://fancyapps.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/fancyapps/fancyapps.js',
@@ -213,7 +226,6 @@
             'videojs' => [
                 'name' => 'Video.js',
                 'site' => 'https://videojs.com',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/videojs/video.js',
@@ -224,7 +236,6 @@
             'autonumeric' => [
                 'name' => 'AutoNumeric.js',
                 'site' => 'https://autonumeric.org',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/autonumeric/autonumeric.js',
@@ -234,7 +245,6 @@
             'rellax' => [
                 'name' => 'Rellax',
                 'site' => 'https://yaireo.github.io/rellax',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/rellax/rellax.js'
@@ -244,7 +254,6 @@
             'vivus' => [
                 'name' => 'Vivus.js',
                 'site' => 'https://maxwellito.github.io/vivus',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/lib/vivus/vivus.js'
@@ -254,7 +263,6 @@
             'wi-lib' => [
                 'name' => 'WI - Libraries',
                 'site' => 'https://www.wonderimage.it',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/frontend/lib.js',
@@ -265,7 +273,6 @@
             'wi-frontend' => [
                 'name' => 'WI - Frontend',
                 'site' => 'https://www.wonderimage.it',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/frontend/head.js',
@@ -279,7 +286,6 @@
             'wi-backend' => [
                 'name' => 'WI - Backend',
                 'site' => 'https://www.wonderimage.it',
-                'load' => false,
                 'files' => [
                     'head' => [
                         '/dist/backend/head.js',
@@ -292,73 +298,85 @@
             ]
         ];
 
+        protected static array $toLoad = [];
+
         
-        private function set($key, bool $value): Dependencies 
+        private static function set($key, bool $value): Dependencies 
         { 
 
-            self::$dependencies[$key]['load'] = $value; 
+            if (!isset(self::$dependencies[$key])) {
+                throw new \InvalidArgumentException("La dipendenza '$key' non esiste.");
+            }
+
+            if ($value) {
+                self::$toLoad[$key] = true;
+            } else {
+                unset(self::$toLoad[$key]);
+            }
             
-            return $this; 
+            return new self();
         
         }
         
-        public function __call(string $method, array $arguments): self
+        public static function __callStatic(string $method, array $arguments): self
         {
+            
             $value = $arguments[0] ?? true;
 
             // Converte il nome del metodo camelCase in snake-case con trattini
             $key = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $method));
 
-            return $this->set($key, $value);
+            return self::set($key, $value);
+
         }
 
         public function generate($container): string 
         {
 
-            $RETURN = "";
+            $html = "";
 
-            foreach (self::$dependencies as $key => $value) {
+            foreach (self::$toLoad as $key => $value) {
                 
-                $files = $value['files'][$container] ?? [];
+                $dep = self::$dependencies[$key] ?? null;
 
-                if ($value['load'] == true && !empty($files)) {
+                if (!$dep) continue;
 
-                    $RETURN .= "\n";
-                    $RETURN .= "<!-- {$value['name']} | {$value['site']} -->\n";
+                $files = $dep['files'][$container] ?? [];
+                if (empty($files)) continue;
+                
+                $html .= "\n<!-- {$dep['name']} | {$dep['site']} -->\n";
 
-                    foreach ($files as $file) {
+                foreach ($files as $file) {
 
-                        $url = "{$this->endpoint}{$file}";
+                    $url = self::$endpoint . $file;
 
-                        if (substr($url, -2) == 'js') {
-                            $RETURN .= "<script src=\"$url\"></script>";
-                        } else if (substr($url, -3) == 'css') {
-                            $RETURN .= "<link href=\"$url\" rel=\"stylesheet\">";
-                        }
-
-                        $RETURN .= "\n";
-
+                    if (str_ends_with($file, '.js')) {
+                        $html .= "<script src=\"$url\"></script>\n";
+                    } elseif (str_ends_with($file, '.css')) {
+                        $html .= "<link href=\"$url\" rel=\"stylesheet\">\n";
                     }
+
+                    $html .= "\n";
 
                 }
 
             }
 
-            return $RETURN;
+            return $html;
 
         }
 
-        public function Head(): string
+        public static function Head(): string
         { 
 
-            return $this->generate('head'); 
+            return self::generate('head'); 
         
         }
         
-        public function Body(): string
+        public static function Body(): string
         { 
             
-            return $this->generate('body'); 
+            return self::generate('body'); 
         
         }
 
