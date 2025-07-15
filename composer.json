@@ -2,7 +2,7 @@
     "name": "wonder-image/app",
     "description": "Wonder Image Framework",
     "homepage": "https://www.wonderimage.it/",
-    "keywords": ["Wonder Image", "Wonderimage"],
+    "keywords": [ "framework",  "Wonder Image", "Wonderimage" ],
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -26,11 +26,5 @@
         "psr-4": {
             "Wonder\\": "class/"
         }
-    },
-    "scripts": {
-        "post-update-cmd": [
-            "@composer dump-autoload",
-            "php script/installer.php"
-        ]
     }
 }
