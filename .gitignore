@@ -1,9 +1,6 @@
 
 .DS_Store
 vendor/
-.vscode/settings.json
 .phpdoc/
-node_modules/
-package.json
-package-lock.json
 composer.lock
+COMMAND.md
