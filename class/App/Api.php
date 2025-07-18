@@ -7,7 +7,7 @@
 
     class Api {
 
-        static function Call( string $endpoint, array $values = [] ) {
+        public static function Call( string $endpoint, array $values = [] ) {
         
             $url = Credentials::api()->endpoint.$endpoint;
 

@@ -2,6 +2,8 @@
 
     namespace Wonder\Api;
 
+    use CurlHandle;
+
     class Call {
 
         private $endpoint = "";
@@ -10,9 +12,9 @@
         public $method = "POST";
         public $type, $values;
 
-        private $cURL = "";
+        private bool|CurlHandle $cURL;
 
-        function __construct( string $endpoint, array|string $values = "") {
+        public function __construct( string $endpoint, array|string $values = "") {
             
             $this->endpoint = $endpoint;
             $this->values = $values;
@@ -22,11 +24,24 @@
 
         }
 
-        function method($method) { $this->method = strtoupper($method); }
+        public function method($method): static 
+        { 
+            
+            $this->method = strtoupper($method);
+            return $this;
+        
+        }
 
-        function header($value) { array_push($this->headers, $value); }
+        public function header($value): static  
+        {
+            
+            array_push($this->headers, $value); 
+            return $this;
 
-        function contentType($type) {
+        }
+
+        public function contentType($type): static 
+        {
 
             $this->header('Content-Type: '.$type);
             $this->type = $type;
@@ -37,27 +52,35 @@
                 $this->values = http_build_query($this->values);
             }
 
+            return $this;
+
         }
 
-        function authBasic( string $username, string $password ) {
+        public function authBasic( string $username, string $password ): static 
+        {
 
             curl_setopt($this->cURL, CURLOPT_USERPWD, "$username:$password");
+            return $this;
 
         }
 
-        function authApiKey( string $apiKey ) {
+        public function authApiKey( string $apiKey ): static 
+        {
 
             $this->header('Authorization-Key: '.$apiKey);
+            return $this;
 
         }
 
-        function authBearer( string $token) {
+        public function authBearer( string $token): static 
+        {
 
             $this->header('Authorization: Bearer '.$token);
+            return $this;
 
         }
 
-        function result() {
+        public function result() {
 
             # Metodo invio
                 if ($this->method == 'POST') {
