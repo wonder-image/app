@@ -4,10 +4,10 @@
         "backend" => [
             "admin" => [
                 "name" => "Admin",
-                "icon" => "<i class='bi bi-code-slash'></i>",
-                "bg" => "bg-dark",
+                "icon" => "<i class='bi bi-arrow-through-heart'></i>",
+                "bg" => "bg-primary",
                 "tx" => "text-light",
-                "color" => "dark",
+                "color" => "primary",
                 "creator" => ["admin"]
             ],
             "administrator" => [
@@ -18,6 +18,14 @@
                 "color" => "light",
                 "creator" => ["admin"]
             ],
+            "api_user" => [
+                "name" => "Api",
+                "icon" => "<i class='bi bi-code-slash'></i>",
+                "bg" => "bg-dark",
+                "tx" => "text-white",
+                "color" => "dark",
+                "creator" => [ "admin" ]
+            ],
             "links" => [
                 "home" => "$PATH->backend/home/",
                 "login" => "$PATH->backend/account/login/",
@@ -25,7 +33,33 @@
                 "password-set" => "$PATH->backend/account/password-set/"
             ],
         ],
-        "frontend" => []
+        "frontend" => [],
+        "api" => [
+            "api_internal_user" => [
+                "name" => "API Interno",
+                "icon" => "<i class='bi bi-arrow-through-heart'></i>",
+                "bg" => "bg-primary",
+                "tx" => "text-white",
+                "color" => "primary"
+            ],
+            "api_public_access" => [
+                "name" => "Utente API",
+                "icon" => "<i class='bi bi-bug'></i>",
+                "bg" => "bg-info",
+                "tx" => "text-white",
+                "color" => "info"
+            ],
+            "function" => [
+                "creation" => "apiUser"
+            ],
+            "links" => [
+                "login" => "$PATH->site/account/login/",
+                "sign-in" => "$PATH->site/account/sign-in/",
+                "password-restore" => "$PATH->site/account/password-restore/",
+                "password-recovery" => "$PATH->site/account/password-recovery/",
+                "password-set" => "$PATH->site/account/password-set/"
+            ],
+        ]
     ];
 
     # Permessi CUSTOM

@@ -181,6 +181,11 @@
         const pathApp = '<?=$PATH->app?>';
         var NO_INTERNET_ALERT = null;
 
+        const API_TOKEN = '<?=Wonder\App\Credentials::appToken()?>';
+        const GOOGLE_API_KEY = '<?=Wonder\App\Credentials::api()->gcp_api_key?>';
+        const GOOGLE_SITE_KEY = '<?=Wonder\App\Credentials::api()->g_recaptcha_site_key?>';
+        const GOOGLE_PLACE_ID = '<?=Wonder\App\Credentials::api()->g_maps_place_id?>';
+
     </script>
 
     <link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.css">

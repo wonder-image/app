@@ -15,3 +15,9 @@
             require_once "$ROOT/custom/build/table/$file";
         }
     }
+
+    foreach ($TABLE as $tableName => $tableSchema) {
+
+        Wonder\App\Table::key($tableName)->setSchema($tableSchema);
+
+    }

@@ -5,8 +5,8 @@
     require_once __DIR__."/sql.php";
     require_once __DIR__."/info.php";
     require_once __DIR__."/mail.php";
-    require_once __DIR__.'/user.php';
 
+    require_once __DIR__.'/user/function.php';
     require_once __DIR__."/other/function.php";
     require_once __DIR__."/file/function.php";
     require_once __DIR__."/string/function.php";

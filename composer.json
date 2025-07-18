@@ -20,7 +20,8 @@
         "phpmailer/phpmailer": "^6.9",
         "gumlet/php-image-resize": "^2.0",
         "chillerlan/php-qrcode": "^5.0",
-        "stripe/stripe-php": "^17.2"
+        "stripe/stripe-php": "^17.2",
+        "firebase/php-jwt": "^6.11"
     },
     "autoload": {
         "psr-4": {

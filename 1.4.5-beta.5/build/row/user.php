@@ -1,18 +1,36 @@
 <?php
 
-    if (!sqlSelect('user', ['username' => '@wonder'], 1)->exists) {
+    if (!sqlSelect('user', [ 'username' => '@wonder' ], 1)->exists) {
         
         $values = [
-            "name" => sanitize($_ENV['USER_NAME']),
-            "surname" => sanitize($_ENV['USER_SURNAME']),
-            "email" => sanitize($_ENV['USER_EMAIL']),
-            "username" => sanitize($_ENV['USER_USERNAME']),
-            "password" => hashPassword($_ENV['USER_PASSWORD']),
-            "authority" => json_encode(["admin"]),
-            "area" => json_encode(["backend"]),
+            "name" => $_ENV['USER_NAME'],
+            "surname" => $_ENV['USER_SURNAME'],
+            "email" => $_ENV['USER_EMAIL'],
+            "username" => $_ENV['USER_USERNAME'],
+            "password" => $_ENV['USER_PASSWORD'],
+            "authority" => ["admin"],
+            "area" => ["backend"],
             "active" => "true"
         ];
 
-        sqlInsert('user', $values);
+        user($values);
+
+    }
+
+    if (!sqlSelect('user', [ 'username' => '@system' ], 1)->exists) {
+        
+        $values = [
+            "name" => "API",
+            "surname" => "System",
+            "email" => "system@".$PAGE->domain,
+            "username" => "@system",
+            "password" => $_ENV['USER_PASSWORD'],
+            "authority" => ["api_internal_user"],
+            "area" => ["api"],
+            "active" => "true",
+            "allowed_domains" => [$PAGE->domain]
+        ];
+
+        user($values);
 
     }

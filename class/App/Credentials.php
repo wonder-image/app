@@ -14,6 +14,8 @@
         protected static $DB;
         protected static $API;
         protected static $MAIL;
+        protected static $appKey; # Chiave per la codifica
+        protected static $appToken; # Utilizzato per le chiamate API interne
 
         public static function loadEnv()
         {
@@ -77,20 +79,11 @@
 
         public static function mail() {
 
-            self::database();
-
             if (empty(self::$MAIL)) {
                 
                 self::$MAIL = (object) [];
 
-                $connection = new Connection( 
-                    self::database()->hostname, 
-                    self::database()->username, 
-                    self::database()->password, 
-                    self::database()->database['main']
-                );
-
-                $query = new Query($connection->Connect());
+                $query = self::query();
 
                 $exists = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? true : false;
 
@@ -107,25 +100,68 @@
 
         }
 
+        public static function appKey(): string
+        {
 
-        public static function api(): object
+            if (empty(self::$appToken)) {
+
+                self::loadEnv();
+
+                self::$ENV->required([ 'APP_KEY' ]);
+
+                self::$appKey = $_ENV['APP_KEY'];
+
+            }
+
+            return self::$appKey;
+
+        }
+
+        public static function appToken(): string
+        {
+
+            if (empty(self::$appToken)) {
+
+                $query = self::query();
+
+                $exists = ($query->TableExists('api_users') && $query->Select('api_users', [ 'id' => 1 ], 1)->exists) ? true : false;
+
+                $row = $exists ? $query->Select('api_users', [ 'id' => 1 ], 1)->row : [];
+
+                self::$appToken = $row['token'];
+
+            }
+
+
+            return self::$appToken;
+
+        }
+
+        private static function query( string $database = 'main' ): Query 
         {
 
             self::database();
+
+            $connection = new Connection( 
+                self::database()->hostname, 
+                self::database()->username, 
+                self::database()->password, 
+                self::database()->database[$database]
+            );
+
+            return new Query($connection->Connect());
+
+        }
+
+        public static function api(): object
+        {
 
             if (empty(self::$API)) {
                 
                 self::$API = (object) [];
                 self::$API->endpoint = "https://api.wonderimage.it/v1.0";
 
-                $connection = new Connection( 
-                    self::database()->hostname, 
-                    self::database()->username, 
-                    self::database()->password, 
-                    self::database()->database['main']
-                );
-
-                $query = new Query($connection->Connect());
+                $query = self::query();
 
                 $exists = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? true : false;
 

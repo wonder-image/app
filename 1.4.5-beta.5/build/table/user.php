@@ -39,6 +39,9 @@
             ]
         ],
         "profile_picture" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
             "input" => [
                 "format" => [
                     "sanitize" => false,
@@ -68,11 +71,156 @@
         ],
         "color" => [],
         "password" => [],
-        "authority" => [],
-        "area" => [],
+        "authority" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "area" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
         "active" => [
             "sql" => [
                 "default" => "true"
+            ]
+        ]
+    ];
+
+    $TABLE->API_USERS = [
+        "user_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "user"
+            ]
+        ],
+        "allowed_domains" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "allowed_ips" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "token" => [
+            "sql" => [
+                "length" => 512
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "unique" => true
+                ]
+            ]
+        ],
+        "active" => [
+            "sql" => [
+                "default" => "true"
+            ]
+        ]
+    ];
+
+    $TABLE->API_ACTIVITY = [
+        "user_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "user"
+            ]
+        ],
+        "token_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "api_users"
+            ]
+        ],
+        "token" => [
+            "sql" => [
+                "length" => 512
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false
+                ]
+            ]
+        ],
+        "ip" => [
+            "sql" => [
+                "length" => 24
+            ]
+        ],
+        "domain" => [
+            "sql" => [
+                "length" => 100
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false
+                ]
+            ]
+        ],
+        "version" => [
+            "sql" => [
+                "length" => 11
+            ]
+        ],
+        "endpoint" => [],
+        "parameters" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "success" => [
+            "sql" => [
+                "type" => "BOOLEAN"
+            ]
+        ],
+        "status" => [
+            "sql" => [
+                "type" => "INT"
+            ]
+        ],
+        "response" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
             ]
         ]
     ];
