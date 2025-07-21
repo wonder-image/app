@@ -330,7 +330,7 @@
 
         }
 
-        public function generate($container): string 
+        public static function generate($container): string 
         {
 
             $html = "";
