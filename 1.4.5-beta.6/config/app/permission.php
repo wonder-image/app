@@ -50,7 +50,9 @@
                 "color" => "info"
             ],
             "function" => [
-                "creation" => "apiUser"
+                "creation" => "apiUser",
+                "modify" => "apiUser",
+                "info" => "infoApiUser"
             ],
             "links" => [
                 "login" => "$PATH->site/account/login/",

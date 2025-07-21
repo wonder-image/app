@@ -11,6 +11,7 @@
         $USER_ID = $MODIFY_ID ?? $USER->id;
 
         $VALUES = $POST;
+        $VALUES['user_id'] = $USER_ID;
 
         if (!isset($USER->api->token)) {
 
@@ -33,12 +34,15 @@
 
         }
 
-        $VALUES = formToArray('api_user', $VALUES, $TABLE->API_USER);
+        $VALUES = formToArray('api_users', $VALUES, $TABLE->API_USERS);
         
-        if ($USER->api->exists) {
-            sqlModify('api_user', $VALUES, 'user_id', $USER_ID);
+        if (
+            (isset($USER->api_internal_user->exists) && $USER->api_internal_user->exists) 
+            || (isset($USER->api_public_access->exists) && $USER->api_public_access->exists)
+            ) {
+            sqlModify('api_users', $VALUES, 'user_id', $USER_ID);
         } else {
-            sqlInsert('api_user', $VALUES);
+            sqlInsert('api_users', $VALUES);
         }
 
         $RETURN->values = $VALUES;
@@ -51,7 +55,7 @@
     function infoApiUser($value, $filter = 'user_id')
     {
 
-        $RETURN = info('api_user', $filter, $value);
+        $RETURN = info('api_users', $filter, $value);
 
         return $RETURN;
 

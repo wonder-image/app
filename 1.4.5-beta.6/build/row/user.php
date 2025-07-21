@@ -8,8 +8,8 @@
             "email" => $_ENV['USER_EMAIL'],
             "username" => $_ENV['USER_USERNAME'],
             "password" => $_ENV['USER_PASSWORD'],
-            "authority" => ["admin"],
-            "area" => ["backend"],
+            "authority" => "admin",
+            "area" => "backend",
             "active" => "true"
         ];
 
@@ -25,8 +25,8 @@
             "email" => "system@".$PAGE->domain,
             "username" => "@system",
             "password" => $_ENV['USER_PASSWORD'],
-            "authority" => ["api_internal_user"],
-            "area" => ["api"],
+            "authority" => "api_internal_user",
+            "area" => "api",
             "active" => "true",
             "allowed_domains" => [$PAGE->domain]
         ];

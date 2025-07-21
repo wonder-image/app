@@ -9,7 +9,7 @@
             $RETURN = [];
 
             foreach ($PERMITS as $area => $array) {
-                foreach ($array as $key => $value) { if ($key != 'links') { $RETURN[$key] = $value['name']; } }
+                foreach ($array as $key => $value) { if ($key != 'links' && $key != 'function') { $RETURN[$key] = $value['name']; } }
             }
 
         } else {
@@ -18,6 +18,8 @@
                 $AREA = 'backend';
             } elseif (isset($PERMITS['frontend'][$PERMIT])) {
                 $AREA = 'frontend';
+            } elseif (isset($PERMITS['api'][$PERMIT])) {
+                $AREA = 'api';
             }
 
             $ARRAY = $PERMITS[$AREA][$PERMIT];
