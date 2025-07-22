@@ -39,6 +39,11 @@
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
+                    'title' => 'Utenti API',
+                    'folder' => 'config-app/api-users',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ], [
                     'title' => 'Analitica',
                     'folder' => 'config-app/analytics',
                     'file' => '',
