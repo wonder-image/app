@@ -1,3 +1,15 @@
+<?php
+
+    Wonder\App\Dependencies::bootstrap();
+    Wonder\App\Dependencies::bootstrapIcons();
+    Wonder\App\Dependencies::jquery();
+    Wonder\App\Dependencies::jqueryPlugin();
+    Wonder\App\Dependencies::filepond();
+    Wonder\App\Dependencies::editorjs();
+    Wonder\App\Dependencies::wiFrontend(false);
+    Wonder\App\Dependencies::wiBackend();
+
+?>
 <!DOCTYPE html>
 <html lang="it">
     <head>
