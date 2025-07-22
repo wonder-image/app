@@ -542,7 +542,7 @@
 
                         $this->deleteButton = ($FUNCTION->return) ? true : false;
 
-                    } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend") {
+                    } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend" || $functionName == "permissionsApi") {
 
                         $COLUMN_VALUE = json_decode($COLUMN_VALUE, true);
                         $functionReturn = $format['function']['return'];

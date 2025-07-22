@@ -8,7 +8,7 @@
                 "bg" => "bg-primary",
                 "tx" => "text-light",
                 "color" => "primary",
-                "creator" => ["admin"]
+                "creator" => [ "admin" ]
             ],
             "administrator" => [
                 "name" => "Amministratore",
@@ -16,7 +16,7 @@
                 "bg" => "bg-light",
                 "tx" => "text-dark",
                 "color" => "light",
-                "creator" => ["admin"]
+                "creator" => [ "admin" ]
             ],
             "api_user" => [
                 "name" => "Api",
@@ -40,14 +40,16 @@
                 "icon" => "<i class='bi bi-arrow-through-heart'></i>",
                 "bg" => "bg-primary",
                 "tx" => "text-white",
-                "color" => "primary"
+                "color" => "primary",
+                "creator" => [ "admin" ]
             ],
             "api_public_access" => [
                 "name" => "Utente API",
                 "icon" => "<i class='bi bi-bug'></i>",
                 "bg" => "bg-info",
                 "tx" => "text-white",
-                "color" => "info"
+                "color" => "info",
+                "creator" => [ "admin", "administrator" ]
             ],
             "function" => [
                 "creation" => "apiUser",
