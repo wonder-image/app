@@ -127,6 +127,7 @@
         ::quilljs()
         ::editorjs()
         ::filepond()
+        ::autonumeric()
         // ::chartjs()
         // ::fullcalendar()
         // ::swiperjs()
