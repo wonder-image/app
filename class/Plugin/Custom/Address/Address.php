@@ -146,7 +146,7 @@
     
             } else {
     
-                $address = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country, $RETURN->more, $RETURN->name, $RETURN->surname, $RETURN->prettyPhone);
+                $address = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country, $RETURN->more ?? '', $RETURN->name ?? '', $RETURN->surname ?? '', $RETURN->prettyPhone ?? '');
     
                 $RETURN->prettyAddress = $address->pretty;
                 $RETURN->prettyPDF = $address->prettyPDF;
