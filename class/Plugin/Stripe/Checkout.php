@@ -3,107 +3,115 @@
     namespace Wonder\Plugin\Stripe;
 
     use Wonder\Plugin\Stripe\Stripe;
+    use Wonder\Plugin\Stripe\ProductPrice;
     
-    class Checkout {
+    class Checkout extends Stripe {
 
-        public static $apiKey = null;
+        
+        public function object()
+        {
+            return parent::connect()->checkout->sessions;
 
-        public $params, $opts = [];
+        }
 
         public function create() {
 
-            return (new Stripe(self::$apiKey))->checkout->sessions->create($this->params, $this->opts);
+            return $this->object()->create($this->params, $this->opts);
 
         }
 
         public function get($sessionId) {
             
-            return (new Stripe(self::$apiKey))->checkout->sessions->retrieve($sessionId, $this->params, $this->opts);
+            return $this->object()->retrieve($sessionId, $this->params, $this->opts);
 
         }
 
         public function delete($sessionId) {
             
-            return (new Stripe(self::$apiKey))->checkout->sessions->expire($sessionId, $this->params, $this->opts);
+            return $this->object()->expire($sessionId, $this->params, $this->opts);
 
         }
 
-        public function apiKey($apiKey) { self::$apiKey = $apiKey; return $this; }
+        public function itemPrice( ProductPrice $productPrice, $quantity)
+        {
 
-        public function accountId($accountId) { $this->opts['stripe_account'] = $accountId; return $this; }
+            return $this->pushParams('line_items', [
+                'price_data' => $productPrice->params,
+                'quantity' => $quantity,
+            ]);
 
-        public function item($name, $price, $quantity = 1, $currency = 'eur') {
-            
-            if (!isset($this->params['line_items'])) { $this->params['line_items'] = []; }
+        }
 
-            array_push($this->params['line_items'], [
+        public function item($name, $price, $quantity = 1, $currency = 'eur', $images = []) {
+
+            return $this->pushParams('line_items', [
                 'price_data' => [
                     'currency' => $currency,
                     'unit_amount' => number_format($price, 2, '', ''), # in centesimi
                     'product_data' => [
                         'name' => $name,
+                        'images' => $images
                     ],
                 ],
                 'quantity' => $quantity,
             ]);
 
-            return $this;
+        }
+
+        public function customerId( $value ) 
+        {
+
+            return $this->addParams('customer', $value);
 
         }
 
-        public function itemId($priceId, $quantity = 1) {
-            
-            if (!isset($this->params['line_items'])) { $this->params['line_items'] = []; }
 
-            array_push($this->params['line_items'], [
+        public function couponId( $value ) {
+
+            return $this->pushParams('discounts', [ 'coupon' => $value ]);
+
+        }
+
+
+        public function itemId($priceId, $quantity = 1) {
+
+            return $this->pushParams('line_items', [
                 'price' => $priceId,
                 'quantity' => $quantity,
             ]);
-
-            return $this;
 
         }
 
         public function mode($mode) {
 
-            $this->params['mode'] = $mode;
-
-            return $this;
+            return $this->addParams('mode', $mode);
 
         }
 
         public function returnUrl($url) {
 
             # {CHECKOUT_SESSION_ID}
-            $this->params['return_url'] = $url;
-
-            return $this;
+            return $this->addParams('return_url', $url);
 
         }
 
         public function successUrl($url) {
 
             # {CHECKOUT_SESSION_ID}
-            $this->params['success_url'] = $url;
-
-            return $this;
+            return $this->addParams('success_url', $url);
 
         }
 
         public function cancelUrl($url) {
 
             # {CHECKOUT_SESSION_ID}
-            $this->params['cancel_url'] = $url;
-
-            return $this;
+            return $this->addParams('cancel_url', $url);
 
         }
 
         public function customField($key, $label, $type = 'text', $text = []) {
 
-            if (!isset($this->params['custom_fields'])) { $this->params['custom_fields'] = []; }
-
-            array_push($this->params['custom_fields'], [
+            return $this->addParams('custom_fields', [
                 'key' => $key,
                 'label' => [
                     'type' => 'custom',
@@ -113,68 +121,62 @@
                 $type => $text
             ]);
 
-            return $this;
+        }
+
+        public function paymentMethods( array $types ) {
+
+            return $this->addParams('payment_method_types', $types);
 
         }
 
         public function paymentMethod($type) {
 
-            if (!isset($this->params['payment_method_types'])) { $this->params['payment_method_types'] = []; }
-
-            array_push($this->params['payment_method_types'], $type);
-
-            return $this;
+            return $this->pushParams('payment_method_types', $type);
 
         }
 
-        public function phone($enabled = true) {
+        public function phone( bool $enabled = true) {
 
-            $this->params['phone_number_collection']['enabled'] = $enabled;
-
-            return $this;
+            return $this->addParams('phone_number_collection.enabled', $enabled);
 
         }
 
         public function email($value) {
 
-            $this->params['customer_email'] = $value;
-
-            return $this;
+            return $this->addParams('customer_email', $value);
 
         }
 
+        public function billingAddress( bool $required = true) {
 
-        public function billingAddress($required = true) {
-
-            $this->params['billing_address_collection'] = $required ? 'required' : 'auto';
-
-            return $this;
+            return $this->addParams('billing_address_collection', $required ? 'required' : 'auto');
 
         }
 
-        public function tax($bool = true) {
+        public function tax( bool $enabled = true) {
 
-            $this->params['tax_id_collection']['enabled'] = $bool;
-
-            return $this;
+            return $this->addParams('tax_id_collection.enabled', $enabled);
             
         }
 
         public function shippingAddress($allowedCountries = []) {
 
-            $this->params['shipping_address_collection']['allowed_countries'] = $allowedCountries;
-
-            return $this;
+            return $this->addParams('shipping_address_collection.allowed_countries', $allowedCountries);
 
         }
 
-        public function metadata($key, $value) {
-
-            if (!isset($this->params['metadata'])) { $this->params['metadata'] = []; }
-
-            $this->params['metadata'][$key] = $value;
-
-            return $this;
+        public function shipping( int $price, $name = 'Spedizione')
+        {
+            return $this->pushParams('shipping_options', [
+                'shipping_rate_data' => [
+                    'display_name' => $name,
+                    'type' => 'fixed_amount',
+                    'fixed_amount' => [
+                        'amount' => $price,
+                        'currency' => 'EUR'
+                    ]
+                    ]
+                ]);
 
         }
 

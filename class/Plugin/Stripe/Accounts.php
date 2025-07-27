@@ -5,24 +5,24 @@
     use Wonder\App\Path;
     use Wonder\Plugin\Stripe\Stripe;
 
-    class Accounts {
-
-        public static $apiKey = null;
+    class Accounts extends Stripe {
         
-        public static function get($accountId) {
-
-            return (new Stripe(self::$apiKey))->accounts->retrieve($accountId);
+        public static function object()
+        {
+            return parent::connect()->accounts;
 
         }
 
-        public static function apiKey($apiKey) {
-            self::$apiKey = $apiKey;
+        public static function get($accountId) {
+
+            return self::object()->retrieve($accountId);
+
         }
 
         // [ https://docs.stripe.com/api/account_links/create ]
         public static function onboarding($accountId) {
 
-            return (new Stripe(self::$apiKey))->accountLinks->create([
+            return parent::connect()->accountLinks->create([
                 'account' => $accountId,
                 'refresh_url' => (new Path)->appApi.'/stripe/account/onboarding.php',
                 'return_url' => (new Path)->appApi.'/stripe/account/checkOnboarding.php',
@@ -33,7 +33,7 @@
 
         public static function webhook(string $accountId, string $url, array $events) {
 
-            return (new Stripe(self::$apiKey))->webhookEndpoints->create([
+            return parent::connect()->webhookEndpoints->create([
                 'url' => $url,
                 'enabled_events' => $events,
             ], [
@@ -45,7 +45,7 @@
         // [ https://docs.stripe.com/api/accounts/create ]
         public static function create(array $params = []) {
 
-            return (new Stripe(self::$apiKey))->accounts->create($params);
+            return self::object()->create($params);
 
         }
 
@@ -53,7 +53,7 @@
         // [ https://docs.stripe.com/api/accounts/update ]
         public static function update(string $accountId, array $params = []) {
 
-            return (new Stripe(self::$apiKey))->accounts->update($accountId, $params);
+            return self::object()->update($accountId, $params);
             
         }
 
@@ -61,7 +61,7 @@
         // [ https://docs.stripe.com/api/accounts/delete ]
         public static function delete($accountId) {
             
-            return (new Stripe(self::$apiKey))->accounts->delete($accountId);
+            return self::object()->delete($accountId);
 
         }
 
