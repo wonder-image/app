@@ -118,6 +118,7 @@
 
     # Dipendenze
     Wonder\App\Dependencies::jquery()
+        ::jqueryPlugin()
         ::moment()
         ::bootstrap()
         ::bootstrapIcons()
