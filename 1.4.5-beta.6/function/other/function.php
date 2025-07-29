@@ -9,3 +9,4 @@
     require_once __DIR__."/parent.php";
     require_once __DIR__."/css.php";
     require_once __DIR__."/address.php";
+    require_once __DIR__."/payment.php";

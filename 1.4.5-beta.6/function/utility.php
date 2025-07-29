@@ -51,3 +51,18 @@
         return $classValue;
 
     }
+
+    function badgeSVG($svg, $color, $border = false, $width = 40, $height = 24 )
+    {
+
+        $border = $border ? '.5px solid #eeeeee;' : 'none';
+
+        $svg = preg_replace('/<svg\b(?![^>]*\bclass=)/', '<svg class="p-r f-start w-100 h-100 bg-contain"', $svg, 1);
+        
+        return "
+        <span class=\"badge tx-white box-border o-hidden\" style=\"border: none;background: {$color};width: {$width}px;height: {$height}px;border: {$border}\">
+            $svg
+        </span>";
+
+
+    }
