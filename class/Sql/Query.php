@@ -128,23 +128,28 @@
             
             $i = 0;
             
-            foreach ($tables as $t => $k) { 
+            foreach ($tables as $table => $keys) {
 
                 if ($i == 0) {
+                    
+                    $tableJoined .= $table;
+                    $mainTable = $table;
 
-                    $tableJoined .= $t;
-
-                    $mainTable = $t;
-                    $mainKey = $k;
+                    if (is_string($keys)) {
+                        $mainKey = $keys;
+                    }
 
                 } else {
 
-                    $tableJoined .= " JOIN $t ON $mainTable.$mainKey = $t.$k"; 
-
+                    if (is_array($keys)) {
+                        $tableJoined .= " JOIN $table ON $mainTable.{$keys[0]} = $table.{$keys[1]}";
+                    } else {
+                        $tableJoined .= " JOIN $table ON $mainTable.$mainKey = $table.$keys";
+                    }
                 }
-            
-                $i++;
 
+                $i++;
+                
             }
     
             return $tableJoined;
