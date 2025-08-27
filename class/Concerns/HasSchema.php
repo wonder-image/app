@@ -28,10 +28,10 @@
 
         }
 
-        public function getSchema($key)
+        public function getSchema($key = null)
         {
 
-            return $this->schema[$key] ?? null;
+            return $key == null ? $this->schema : $this->schema[$key] ?? null;
 
         }
 
