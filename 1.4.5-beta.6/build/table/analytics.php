@@ -26,6 +26,7 @@
                 "default" => 'false'
             ]
         ],
+        "ipinfo_api_key" => [],
         "mail_host" => [],
         "mail_username" => [],
         "mail_password" => [],

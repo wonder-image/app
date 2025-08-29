@@ -74,5 +74,25 @@
 
             }
 
+            # Aggiungo la chiave di IP Info se non c'è
+            if (sqlSelect('security', ['id' => 1], 1)->row['ipinfo_api_key'] == "") {
+                
+                $STRIPE = json_decode(wiApi('/service/ipinfo/credentials/'), true);
+
+                if ($STRIPE['success']) {
+
+                    sqlModify(
+                        'security', 
+                        [
+                            "ipinfo_api_key" => $STRIPE['response']['api_key']
+                        ],
+                        'id',
+                        1
+                    );
+
+                }
+
+            }
+
         }
     }

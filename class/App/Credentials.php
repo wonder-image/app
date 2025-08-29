@@ -193,6 +193,8 @@
 
             }
 
+            self::$API->ipinfo_api_key = $row['ipinfo_api_key'] ?? '';
+
             return self::$API;
 
         }

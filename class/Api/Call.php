@@ -80,7 +80,24 @@
 
         }
 
-        public function result() {
+        public function timeout( int $seconds ): static 
+        {
+
+            curl_setopt($this->cURL, CURLOPT_TIMEOUT, $seconds);
+            return $this;
+
+        }
+
+        public function connectTimeout( int $seconds ): static 
+        {
+
+            curl_setopt($this->cURL, CURLOPT_CONNECTTIMEOUT, $seconds);
+            return $this;
+
+        }
+
+        private function create()
+        {
 
             # Metodo invio
                 if ($this->method == 'POST') {
@@ -113,6 +130,45 @@
 
             # Chiedi risposta
                 curl_setopt($this->cURL, CURLOPT_RETURNTRANSFER, true);
+
+            return $this;
+
+        }
+
+        public function call()
+        {
+
+            $this->create();
+
+            # Risultato
+            $result = curl_exec($this->cURL);
+            $error = curl_error($this->cURL);
+            $errno = curl_errno($this->cURL);
+            curl_close($this->cURL);
+
+            # Verifica errori
+            if ($errno) {
+                return [
+                    'success' => false,
+                    'error' => $error,
+                    'errno' => $errno,
+                    'result' => null
+                ];
+            } else {
+                return [
+                    'success' => true,
+                    'error' => null,
+                    'errno' => 0,
+                    'result' => $result
+                ];
+            }
+            
+        }
+
+        public function result() 
+        {
+
+            $this->create();
 
             # Risultato
                 $result = curl_exec($this->cURL);
