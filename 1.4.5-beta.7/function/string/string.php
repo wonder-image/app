@@ -210,6 +210,10 @@
                 
             }
 
+        } else {
+
+            $str = '';
+            
         }
 
         return $str;
