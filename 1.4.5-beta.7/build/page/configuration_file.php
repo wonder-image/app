@@ -4,11 +4,10 @@
         
         $FILE = fopen($ROOT."/.htaccess", "w");
 
-        $FILE_TXT = "## Reindirizzamento forzato su www e https\n";
-        $FILE_TXT .= "RewriteCond %{HTTPS} off\n";
-        $FILE_TXT .= "RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n";
-        $FILE_TXT .= "RewriteCond %{HTTP_HOST} !^www\.\n";
-        $FILE_TXT .= "RewriteRule .* https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n";
+        $FILE_TXT = "## Forza HTTPS e WWW\n";
+        $FILE_TXT .= "RewriteCond %{HTTPS} off [OR]\n";
+        $FILE_TXT .= "RewriteCond %{HTTP_HOST} !^www\. [NC]\n";
+        $FILE_TXT .= "RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n";
         $FILE_TXT .= "\n";
         $FILE_TXT .= "## Abilita il caching del browser\n";
         $FILE_TXT .= "<IfModule mod_headers.c>\n";
