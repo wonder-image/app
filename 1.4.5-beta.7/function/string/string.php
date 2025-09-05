@@ -189,30 +189,48 @@
         
     }
 
-    function sanitizeEcho($str): string
+    function normalizeDB($str): float|int|string
+    {
+
+        // preserva 0, 0.0 e numeri in generale
+        if (is_int($str) || is_float($str)) {
+            return $str; // 0 resta 0
+        }
+
+        if ($str === null) {
+            return ''; // i NULL diventano stringa vuota
+        }
+
+        // Se è una stringa numerica ("0", "1", "42") -> torna numero
+        if (is_string($str) && is_numeric($str)) {
+            return $str + 0; // cast numerico
+        }
+
+        // Altrimenti è testo: sanifichiamo
+        return sanitizeEcho((string)$str);
+        
+    }
+
+    function sanitizeEcho( string $str): string
     {
 
         global $CHARACTERS;
 
-        if (!empty($str)) {
+        if (empty(trim($str))) {
+            return '';
+        }
 
-            $str = htmlspecialchars_decode($str, ENT_QUOTES | ENT_HTML5);
-            $str = str_replace('<br />', '', $str);
+        $str = htmlspecialchars_decode($str, ENT_QUOTES | ENT_HTML5);
+        $str = str_replace('<br />', '', $str);
 
-            foreach ($CHARACTERS as $k => $c) {
-                        
-                $character = $c['character'];
-                $html = $c['html'];
+        foreach ($CHARACTERS as $k => $c) {
+                    
+            $character = $c['character'];
+            $html = $c['html'];
 
-                if (!in_array($character, ['"', ">", "<", " ", "&"])) {
-                    $str = str_replace($html, $character, $str);
-                }
-                
+            if (!in_array($character, ['"', ">", "<", " ", "&"])) {
+                $str = str_replace($html, $character, $str);
             }
-
-        } else {
-
-            $str = '';
             
         }
 
