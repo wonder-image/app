@@ -131,7 +131,7 @@
         
         $RETURN = (object) [];
         $RETURN->exists = $SQL->exists;
-        foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? sanitizeEcho($value) : ''; }
+        foreach ($SQL->row as $column => $value) { $RETURN->$column = normalizeDB($value); }
         
         return $RETURN;
         
