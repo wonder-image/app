@@ -1,12 +1,7 @@
-# App 1.4.3
+# App 1.4.5
 
 {% hint style="info" %}
-Questo progetto è stato studiato per essere utilizzato con Visual Studio Code. Per il corretto funzionamento è consigliata l'installazione su VS Code  dell'estensione SFTP.
-
-Link utili:
-
-* VS Code \[ [https://code.visualstudio.com/](https://code.visualstudio.com/) ]
-* SFTP \[ [https://marketplace.visualstudio.com/items?itemName=Natizyskunk.sftp](https://marketplace.visualstudio.com/items?itemName=Natizyskunk.sftp) ]
+Questo progetto è stato studiato per essere utilizzato con [Visual Studio Code](altro/estensioni-e-app-consigliate.md#visual-studio-code). Per il corretto funzionamento è consigliata l'installazione su VS Code  dell'estensione [SFTP](altro/estensioni-e-app-consigliate.md#sftp).
 {% endhint %}
 
 Per l'installazione del progetto [`wonder-image/new-site`](https://github.com/wonder-image/new-site) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituire `project-name` con il nome del dominio.
@@ -41,26 +36,7 @@ Credenziali utente default accesso al Backend
 | `USER_USERNAME` | Username |
 | `USER_PASSWORD` | Password |
 
-È possibile utilizzare un account email personale per l'invio delle email. I campi devono essere compilati con le impostazioni del server in uscita.&#x20;
-
-{% hint style="info" %}
-In caso di mancato riempimento verranno utilizzate quelle di default se è la chiave API è attiva.
-{% endhint %}
-
-| Variabile       | Valore       |
-| --------------- | ------------ |
-| `MAIL_HOST`     | Nome Host    |
-| `MAIL_USERNAME` | Nome Utente  |
-| `MAIL_PASSWORD` | Password     |
-| `MAIL_PORT`     | Porta Server |
-
-### Connessione FTP
-
-Configurare il file `.vscode/sftp.json` con le credenziali FTP per accedere al file manager. Seleziona tutti i file e iniziare l'upload.
-
-{% hint style="warning" %}
-&#x20;È consigliato per operazioni massive di upload di utilizzare un client FTP ad esempio FileZilla \[ [https://filezilla-project.org/](https://filezilla-project.org/) ]
-{% endhint %}
+È possibile utilizzare un account email personale per l'invio delle email da configurare nel bakcend. I campi devono essere compilati con le impostazioni del server in uscita.&#x20;
 
 ### Installazione
 
