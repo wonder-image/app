@@ -16,15 +16,13 @@
 
     function alertTheme($code, $type = null, $title = null, $text = null) {
 
-        global $ALERT_CODE;
-
         $id = code(10, 'letters', 'alert_');
         
         if ($code != 'custom') {
 
-            $type = $ALERT_CODE[$code]['type'];
-            $title = $ALERT_CODE[$code]['title'];
-            $text = $ALERT_CODE[$code]['text'];
+            $type = __t("notifications.{$code}.type");
+            $title = __t("notifications.{$code}.title");
+            $text = __t("notifications.{$code}.text");
 
         }
 

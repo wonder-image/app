@@ -14,29 +14,31 @@
 
     }
 
-    function alertTheme($ALERT) {
-
-        global $ALERT_CODE;
+    function alertTheme($code, $type = null, $title = null, $text = null) {
 
         $id = code(10, 'letters', 'alert_');
         
-        $type = $ALERT_CODE[$ALERT]['type'];
-        $title = $ALERT_CODE[$ALERT]['title'];
-        $text = $ALERT_CODE[$ALERT]['text'];
+        if ($code != 'custom') {
 
-        if ($type == "danger") {
-            $icon = "<i class='wi-alert-icon bi bi-exclamation-triangle tx-danger'></i>";
-        } elseif ($type == "success") {
-            $icon = "<i class='wi-alert-icon bi bi-check2-circle tx-success'></i>";
+            $type = __t("notifications.{$code}.type");
+            $title = __t("notifications.{$code}.title");
+            $text = __t("notifications.{$code}.text");
+
         }
 
-        return "<div id='$id' class='wi-alert wi-show'>
-                <div class='wi-alert-header'>
+        if ($type == "danger") {
+            $icon = "<i class='bi bi-exclamation-triangle me-2'></i>";
+        } elseif ($type == "success") {
+            $icon = "<i class='bi bi-check2-circle me-2'></i>";
+        }
+
+        return "<div id='$id' class='toast border-$type overflow-hidden' role='alert' aria-live='assertive' aria-atomic='true'>
+                <div class='toast-header text-bg-$type border-bottom border-$type'>
                     $icon
-                    <b>$title</b>
-                    <i class='wi-alert-close bi bi-x-lg' onclick=\"this.parentElement.parentElement.classList.remove('wi-show')\"></i>
+                    <strong class='me-auto'>$title</strong>
+                    <button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button>
                 </div>
-                <div class='wi-alert-body'>
+                <div class='toast-body bg-light'>
                     $text
                 </div>
             </div>";

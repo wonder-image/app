@@ -1,0 +1,382 @@
+{
+    "601": {
+        "type": "success",
+        "title": "Passwort gesendet",
+        "text": "Dir wurde eine E-Mail geschickt, um das Passwort deines Kontos zu ändern.<br>Überprüfe auch den Spam-Ordner."
+    },
+    "602": {
+        "type": "success",
+        "title": "Passwort geändert",
+        "text": "Passwort erfolgreich geändert.<br>Versuche dich einzuloggen!"
+    },
+    "603": {
+        "type": "success",
+        "title": "Passwort geändert",
+        "text": "Passwort erfolgreich geändert."
+    },
+    "604": {
+        "type": "success",
+        "title": "Konto geändert",
+        "text": "Konto erfolgreich geändert."
+    },
+    "605": {
+        "type": "success",
+        "title": "E-Mail geändert",
+        "text": "E-Mail erfolgreich geändert."
+    },
+    "606": {
+        "type": "success",
+        "title": "Benutzername geändert",
+        "text": "Benutzername erfolgreich geändert."
+    },
+    "607": {
+        "type": "success",
+        "title": "Adresse hinzugefügt",
+        "text": "Adresse erfolgreich hinzugefügt."
+    },
+    "608": {
+        "type": "success",
+        "title": "Adresse geändert",
+        "text": "Adresse erfolgreich geändert."
+    },
+    "609": {
+        "type": "success",
+        "title": "Adresse gelöscht",
+        "text": "Adresse erfolgreich gelöscht."
+    },
+    "610": {
+        "type": "success",
+        "title": "Zum Warenkorb hinzugefügt",
+        "text": "Der Warenkorb wurde erfolgreich aktualisiert."
+    },
+    "611": {
+        "type": "success",
+        "title": "Passwort festgelegt",
+        "text": "Passwort erfolgreich festgelegt.<br>Versuche dich einzuloggen!"
+    },
+    "612": {
+        "type": "success",
+        "title": "Aus dem Warenkorb entfernt",
+        "text": "Der Warenkorb wurde erfolgreich aktualisiert."
+    },
+    "613": {
+        "type": "danger",
+        "title": "Produkt nicht verfügbar",
+        "text": "Das Produkt ist nicht verfügbar."
+    },
+    "614": {
+        "type": "danger",
+        "title": "Produkt nicht verfügbar",
+        "text": "Das Produkt ist in der gewünschten Menge nicht verfügbar."
+    },
+    "615": {
+        "type": "danger",
+        "title": "Produkt nicht verfügbar",
+        "text": "Ein Produkt wurde aus deinem Warenkorb entfernt, da es nicht mehr verfügbar ist."
+    },
+    "616": {
+        "type": "danger",
+        "title": "Produkte nicht verfügbar",
+        "text": "Einige Produkte wurden aus deinem Warenkorb entfernt, da sie nicht mehr verfügbar sind."
+    },
+    "617": {
+        "type": "danger",
+        "title": "Vorgang blockiert",
+        "text": "reCAPTCHA hat den Vorgang blockiert, bitte erneut versuchen."
+    },
+    "649": {
+        "type": "success",
+        "title": "Anfrage gesendet",
+        "text": "Deine Anfrage wurde erfolgreich gesendet."
+    },
+    "650": {
+        "type": "success",
+        "title": "Geändert",
+        "text": "Änderungen erfolgreich vorgenommen."
+    },
+    "651": {
+        "type": "success",
+        "title": "Daten geändert",
+        "text": "Firmendaten erfolgreich geändert."
+    },
+    "652": {
+        "type": "success",
+        "title": "SEO geändert",
+        "text": "SEO erfolgreich geändert."
+    },
+    "653": {
+        "type": "success",
+        "title": "Analytics geändert",
+        "text": "Die Tags wurden erfolgreich geändert."
+    },
+    "654": {
+        "type": "success",
+        "title": "Dateien geändert",
+        "text": "Konfigurationsdateien erfolgreich geändert."
+    },
+    "660": {
+        "type": "success",
+        "title": "CSS geändert",
+        "text": "CSS-Einstellungen erfolgreich geändert."
+    },
+    "661": {
+        "type": "success",
+        "title": "Logos aktualisiert",
+        "text": "Die Logos wurden erfolgreich aktualisiert."
+    },
+    "662": {
+        "type": "success",
+        "title": "Eingaben geändert",
+        "text": "Eingaben erfolgreich geändert."
+    },
+    "663": {
+        "type": "success",
+        "title": "Modals geändert",
+        "text": "Modals erfolgreich geändert."
+    },
+    "664": {
+        "type": "success",
+        "title": "Dropdowns geändert",
+        "text": "Dropdowns erfolgreich geändert."
+    },
+    "665": {
+        "type": "success",
+        "title": "Alerts geändert",
+        "text": "Alerts erfolgreich geändert."
+    },
+    "700": {
+        "type": "danger",
+        "title": "Fehler 700",
+        "text": "Fehler: Funktion nicht vorhanden."
+    },
+    "701": {
+        "type": "danger",
+        "title": "Fehler 701",
+        "text": "Funktion <b>imagewebp</b> nicht vorhanden. WebP-Bilder können nicht erstellt werden."
+    },
+    "750": {
+        "type": "danger",
+        "title": "Fehler 750",
+        "text": "Fehler beim Öffnen der Datei."
+    },
+    "751": {
+        "type": "danger",
+        "title": "Fehler 751",
+        "text": "Datei nicht vorhanden."
+    },
+    "800": {
+        "type": "danger",
+        "title": "Fehler 800",
+        "text": "Allgemeiner API-Fehler."
+    },
+    "801": {
+        "type": "danger",
+        "title": "Fehler 801",
+        "text": "Internetverbindung verloren."
+    },
+    "802": {
+        "type": "danger",
+        "title": "Fehler 802",
+        "text": "Fehler in der API-Antwortdatei."
+    },
+    "803": {
+        "type": "danger",
+        "title": "Fehler 803",
+        "text": "Fehler in der API-Antwortdatei<br>Antwortstatus nicht definiert."
+    },
+    "850": {
+        "type": "danger",
+        "title": "Fehler 850",
+        "text": "Kostenvoranschlag nicht vorhanden."
+    },
+    "810": {
+        "type": "danger",
+        "title": "Fehler 810",
+        "text": "Zahlung konnte nicht verarbeitet werden. Bitte erneut versuchen oder den Support kontaktieren."
+    },
+    "851": {
+        "type": "danger",
+        "title": "Fehler 851",
+        "text": "Fehler im Kostenvoranschlag.<br>Kontaktiere den Support!"
+    },
+    "852": {
+        "type": "danger",
+        "title": "Fehler 852",
+        "text": "Kostenvoranschlag bereits abgeschlossen."
+    },
+    "853": {
+        "type": "danger",
+        "title": "Fehler 853",
+        "text": "Kostenvoranschlag storniert."
+    },
+    "900": {
+        "type": "danger",
+        "title": "Fehler 900",
+        "text": "Allgemeiner Fehler."
+    },
+    "901": {
+        "type": "danger",
+        "title": "Fehler 901",
+        "text": "Dieser Benutzername existiert nicht."
+    },
+    "902": {
+        "type": "danger",
+        "title": "Fehler 902",
+        "text": "Diese E-Mail ist bereits mit einem anderen Konto verknüpft.<br>Falls es deins ist, versuche dich einzuloggen."
+    },
+    "903": {
+        "type": "danger",
+        "title": "Fehler 903",
+        "text": "Die eingegebene E-Mail ist mit keinem Konto verknüpft.<br>Versuche dich zu registrieren."
+    },
+    "904": {
+        "type": "danger",
+        "title": "Fehler 904",
+        "text": "Diese E-Mail existiert nicht."
+    },
+    "905": {
+        "type": "danger",
+        "title": "Fehler 905",
+        "text": "Falsches Passwort."
+    },
+    "906": {
+        "type": "danger",
+        "title": "Fehler 906",
+        "text": "Benutzer konnte mit dieser E-Mail nicht registriert werden, sie wurde bereits verwendet!"
+    },
+    "907": {
+        "type": "danger",
+        "title": "Fehler 907",
+        "text": "Benutzer konnte mit diesem Benutzernamen nicht registriert werden, er wurde bereits verwendet!"
+    },
+    "908": {
+        "type": "danger",
+        "title": "Fehler 908",
+        "text": "Benutzer konnte nicht registriert werden, Bestätigungs-E-Mail nicht gesendet!"
+    },
+    "909": {
+        "type": "danger",
+        "title": "Fehler 909",
+        "text": "Dein Konto wurde deaktiviert."
+    },
+    "910": {
+        "type": "danger",
+        "title": "Fehler 910",
+        "text": "Benutzer konnte nicht registriert werden, da er minderjährig ist!"
+    },
+    "911": {
+        "type": "danger",
+        "title": "Fehler 911",
+        "text": "Dein Konto hat keinen Zugriff auf diesen Bereich!"
+    },
+    "912": {
+        "type": "danger",
+        "title": "Fehler 912",
+        "text": "Dieses Konto wurde gelöscht."
+    },
+    "913": {
+        "type": "danger",
+        "title": "Fehler 913",
+        "text": "Dieser Link ist nicht gültig, um das Passwort zurückzusetzen.<br>Fordere ihn erneut an!"
+    },
+    "914": {
+        "type": "danger",
+        "title": "Fehler 914",
+        "text": "Dieser Link ist abgelaufen, fordere einen neuen an."
+    },
+    "915": {
+        "type": "danger",
+        "title": "Fehler 915",
+        "text": "Du hast keine Berechtigung, auf diesen Bereich zuzugreifen!"
+    },
+    "916": {
+        "type": "danger",
+        "title": "Fehler 916",
+        "text": "Dieses Konto hat bereits ein Passwort festgelegt.<br>Versuche dich einzuloggen."
+    },
+    "920": {
+        "type": "danger",
+        "title": "Fehler 920",
+        "text": "Datei-Upload fehlgeschlagen!"
+    },
+    "921": {
+        "type": "danger",
+        "title": "Fehler 921",
+        "text": "Ungültige Dateiendung!"
+    },
+    "922": {
+        "type": "danger",
+        "title": "Fehler 922",
+        "text": "Maximale Dateigröße überschritten!"
+    },
+    "923": {
+        "type": "danger",
+        "title": "Fehler 923",
+        "text": "Du hast zu viele Dateien hochgeladen!"
+    },
+    "950": {
+        "type": "danger",
+        "title": "Fehler 950",
+        "text": "Allgemeiner SQL-Fehler."
+    },
+    "951": {
+        "type": "danger",
+        "title": "Fehler 951",
+        "text": "SQL-Fehler<br>Tabelle konnte nicht erstellt oder geändert werden."
+    },
+    "952": {
+        "type": "danger",
+        "title": "Fehler 952",
+        "text": "SQL-Fehler<br>Zeile konnte nicht in die Tabelle eingefügt werden."
+    },
+    "953": {
+        "type": "danger",
+        "title": "Fehler 953",
+        "text": "SQL-Fehler<br>Zeile konnte nicht in der Tabelle geändert werden."
+    },
+    "954": {
+        "type": "danger",
+        "title": "Fehler 954",
+        "text": "SQL-Fehler<br>Zeile konnte nicht aus der Tabelle ausgewählt werden."
+    },
+    "970": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "Ein eingegebener Wert ist bereits in der Tabelle vorhanden!"
+    },
+    "971": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "Link ist bereits in der Tabelle vorhanden."
+    },
+    "972": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "Code ist bereits in der Tabelle vorhanden."
+    },
+    "973": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "E-Mail ist bereits in der Tabelle vorhanden."
+    },
+    "974": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "Benutzername ist bereits in der Tabelle vorhanden."
+    },
+    "975": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "Telefonnummer ist bereits in der Tabelle vorhanden."
+    },
+    "976": {
+        "type": "danger",
+        "title": "Doppelter Wert",
+        "text": "Handynummer ist bereits in der Tabelle vorhanden."
+    },
+    "999": {
+        "type": "danger",
+        "title": "Fehler 999",
+        "text": "Upload fehlgeschlagen."
+    }
+}

@@ -1,0 +1,382 @@
+{
+    "601": {
+        "type": "success",
+        "title": "Password sent",
+        "text": "An email has been sent to you to change your account password.<br>Also check your spam folder."
+    },
+    "602": {
+        "type": "success",
+        "title": "Password changed",
+        "text": "Password successfully changed.<br>Try logging in!"
+    },
+    "603": {
+        "type": "success",
+        "title": "Password changed",
+        "text": "Password successfully changed."
+    },
+    "604": {
+        "type": "success",
+        "title": "Account updated",
+        "text": "Account successfully updated."
+    },
+    "605": {
+        "type": "success",
+        "title": "Email updated",
+        "text": "Email successfully updated."
+    },
+    "606": {
+        "type": "success",
+        "title": "Username updated",
+        "text": "Username successfully updated."
+    },
+    "607": {
+        "type": "success",
+        "title": "Address added",
+        "text": "Address successfully added."
+    },
+    "608": {
+        "type": "success",
+        "title": "Address updated",
+        "text": "Address successfully updated."
+    },
+    "609": {
+        "type": "success",
+        "title": "Address deleted",
+        "text": "Address successfully deleted."
+    },
+    "610": {
+        "type": "success",
+        "title": "Added to cart",
+        "text": "The cart has been successfully updated."
+    },
+    "611": {
+        "type": "success",
+        "title": "Password set",
+        "text": "Password successfully set.<br>Try logging in!"
+    },
+    "612": {
+        "type": "success",
+        "title": "Removed from cart",
+        "text": "The cart has been successfully updated."
+    },
+    "613": {
+        "type": "danger",
+        "title": "Product unavailable",
+        "text": "The product is not available."
+    },
+    "614": {
+        "type": "danger",
+        "title": "Product unavailable",
+        "text": "The product is not available in the desired quantity."
+    },
+    "615": {
+        "type": "danger",
+        "title": "Product unavailable",
+        "text": "A product has been removed from your cart because it is no longer available."
+    },
+    "616": {
+        "type": "danger",
+        "title": "Products unavailable",
+        "text": "Some products have been removed from your cart because they are no longer available."
+    },
+    "617": {
+        "type": "danger",
+        "title": "Operation blocked",
+        "text": "reCAPTCHA has blocked the operation, please try again."
+    },
+    "649": {
+        "type": "success",
+        "title": "Request sent",
+        "text": "Your request has been successfully sent."
+    },
+    "650": {
+        "type": "success",
+        "title": "Updated",
+        "text": "Changes successfully made."
+    },
+    "651": {
+        "type": "success",
+        "title": "Data updated",
+        "text": "Company data successfully updated."
+    },
+    "652": {
+        "type": "success",
+        "title": "SEO updated",
+        "text": "SEO successfully updated."
+    },
+    "653": {
+        "type": "success",
+        "title": "Analytics updated",
+        "text": "Tags successfully updated."
+    },
+    "654": {
+        "type": "success",
+        "title": "Files updated",
+        "text": "Configuration files successfully updated."
+    },
+    "660": {
+        "type": "success",
+        "title": "CSS updated",
+        "text": "CSS settings successfully updated."
+    },
+    "661": {
+        "type": "success",
+        "title": "Logos updated",
+        "text": "Logos successfully updated."
+    },
+    "662": {
+        "type": "success",
+        "title": "Inputs updated",
+        "text": "Inputs successfully updated."
+    },
+    "663": {
+        "type": "success",
+        "title": "Modals updated",
+        "text": "Modals successfully updated."
+    },
+    "664": {
+        "type": "success",
+        "title": "Dropdowns updated",
+        "text": "Dropdowns successfully updated."
+    },
+    "665": {
+        "type": "success",
+        "title": "Alerts updated",
+        "text": "Alerts successfully updated."
+    },
+    "700": {
+        "type": "danger",
+        "title": "Error 700",
+        "text": "Nonexistent function error."
+    },
+    "701": {
+        "type": "danger",
+        "title": "Error 701",
+        "text": "Function <b>imagewebp</b> does not exist. Unable to create images in webp format."
+    },
+    "750": {
+        "type": "danger",
+        "title": "Error 750",
+        "text": "File open error."
+    },
+    "751": {
+        "type": "danger",
+        "title": "Error 751",
+        "text": "File not found."
+    },
+    "800": {
+        "type": "danger",
+        "title": "Error 800",
+        "text": "Generic API error."
+    },
+    "801": {
+        "type": "danger",
+        "title": "Error 801",
+        "text": "Internet connection lost."
+    },
+    "802": {
+        "type": "danger",
+        "title": "Error 802",
+        "text": "Error in API response file."
+    },
+    "803": {
+        "type": "danger",
+        "title": "Error 803",
+        "text": "Error in API response file<br>Response status not defined."
+    },
+    "850": {
+        "type": "danger",
+        "title": "Error 850",
+        "text": "Quotation not found."
+    },
+    "810": {
+        "type": "danger",
+        "title": "Error 810",
+        "text": "Unable to process payment. Please try again or contact support."
+    },
+    "851": {
+        "type": "danger",
+        "title": "Error 851",
+        "text": "Error in quotation.<br>Contact support!"
+    },
+    "852": {
+        "type": "danger",
+        "title": "Error 852",
+        "text": "Quotation already completed."
+    },
+    "853": {
+        "type": "danger",
+        "title": "Error 853",
+        "text": "Quotation canceled."
+    },
+    "900": {
+        "type": "danger",
+        "title": "Error 900",
+        "text": "Generic error."
+    },
+    "901": {
+        "type": "danger",
+        "title": "Error 901",
+        "text": "This username does not exist."
+    },
+    "902": {
+        "type": "danger",
+        "title": "Error 902",
+        "text": "This email is already linked to another account.<br>If it’s yours, try logging in."
+    },
+    "903": {
+        "type": "danger",
+        "title": "Error 903",
+        "text": "The email you entered is not linked to any account.<br>Try registering."
+    },
+    "904": {
+        "type": "danger",
+        "title": "Error 904",
+        "text": "This email does not exist."
+    },
+    "905": {
+        "type": "danger",
+        "title": "Error 905",
+        "text": "Incorrect password."
+    },
+    "906": {
+        "type": "danger",
+        "title": "Error 906",
+        "text": "Unable to register user with this email, it has already been used!"
+    },
+    "907": {
+        "type": "danger",
+        "title": "Error 907",
+        "text": "Unable to register user with this username, it has already been used!"
+    },
+    "908": {
+        "type": "danger",
+        "title": "Error 908",
+        "text": "Unable to register user, confirmation email not sent!"
+    },
+    "909": {
+        "type": "danger",
+        "title": "Error 909",
+        "text": "Your account has been disabled."
+    },
+    "910": {
+        "type": "danger",
+        "title": "Error 910",
+        "text": "Unable to register user because they are underage!"
+    },
+    "911": {
+        "type": "danger",
+        "title": "Error 911",
+        "text": "Your account cannot access this area!"
+    },
+    "912": {
+        "type": "danger",
+        "title": "Error 912",
+        "text": "This account has been deleted."
+    },
+    "913": {
+        "type": "danger",
+        "title": "Error 913",
+        "text": "This link is not valid for resetting the password.<br>Request it again!"
+    },
+    "914": {
+        "type": "danger",
+        "title": "Error 914",
+        "text": "This link has expired, request another one."
+    },
+    "915": {
+        "type": "danger",
+        "title": "Error 915",
+        "text": "You do not have permission to access this section!"
+    },
+    "916": {
+        "type": "danger",
+        "title": "Error 916",
+        "text": "This account already has a password set.<br>Try logging in."
+    },
+    "920": {
+        "type": "danger",
+        "title": "Error 920",
+        "text": "File upload failed!"
+    },
+    "921": {
+        "type": "danger",
+        "title": "Error 921",
+        "text": "Incorrect extension!"
+    },
+    "922": {
+        "type": "danger",
+        "title": "Error 922",
+        "text": "Maximum size exceeded!"
+    },
+    "923": {
+        "type": "danger",
+        "title": "Error 923",
+        "text": "You uploaded too many files!"
+    },
+    "950": {
+        "type": "danger",
+        "title": "Error 950",
+        "text": "Generic SQL error."
+    },
+    "951": {
+        "type": "danger",
+        "title": "Error 951",
+        "text": "SQL error<br>Unable to create or update the table."
+    },
+    "952": {
+        "type": "danger",
+        "title": "Error 952",
+        "text": "SQL error<br>Unable to add a row to the table."
+    },
+    "953": {
+        "type": "danger",
+        "title": "Error 953",
+        "text": "SQL error<br>Unable to update a row from the table."
+    },
+    "954": {
+        "type": "danger",
+        "title": "Error 954",
+        "text": "SQL error<br>Unable to select a row from the table."
+    },
+    "970": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "An entered value already exists in the table!"
+    },
+    "971": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "Link already exists in the table."
+    },
+    "972": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "Code already exists in the table."
+    },
+    "973": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "Email already exists in the table."
+    },
+    "974": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "Username already exists in the table."
+    },
+    "975": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "Phone number already exists in the table."
+    },
+    "976": {
+        "type": "danger",
+        "title": "Duplicate value",
+        "text": "Mobile number already exists in the table."
+    },
+    "999": {
+        "type": "danger",
+        "title": "Error 999",
+        "text": "Upload failed."
+    }
+}

@@ -99,6 +99,9 @@
 <!-- Link canonico pagina -->
 <link rel="canonical" href="<?=$SEO->url?>">
 
+<!-- Impostazioni Multilingua -->
+<?=Wonder\Localization\LanguageContext::renderHead($SEO->url);?>
+
 <!-- Inizio SEO -->
 
     <title><?=$SEO->title?></title>

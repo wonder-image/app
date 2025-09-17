@@ -8,6 +8,8 @@
     require_once $ROOT_APP."/function/function.php";
     
     require_once $ROOT_APP."/config/config.php";
+    
+    require_once $ROOT_APP."/service/service.php";
 
     require_once $ROOT_APP."/middleware/middleware.php";
 

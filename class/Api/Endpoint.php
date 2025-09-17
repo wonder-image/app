@@ -5,23 +5,33 @@
     use Wonder\App\Table;
 
     use Wonder\Api\EndpointException;
+    use Wonder\Localization\LanguageContext;
 
     class Endpoint {
 
         private $version = "v1.0";
         private $endpoint = "";
+        private $auth = [];
         private $requestMethod = "";
         public $token = "";
         public $ip = "";
         public $domain = "";
+        public $lang = "";
         public $parameters = [];
+        public $user;
         public $userId = "";
+        public $userAuth = "";
         public $tokenId = "";
 
-        public function __construct($endpoint = "", $requestMethod = "POST") {
+        public function __construct($endpoint, $method = "POST", $auth = [ "api_internal_user", "api_public_access" ]) {
+
+            $LANG = LanguageContext::setLangFromHeader();
+
+            $this->lang = $LANG->getLang();
 
             $this->endpoint = rtrim($endpoint, '/');
-            $this->requestMethod = $requestMethod;
+            $this->requestMethod = $method;
+            $this->auth = is_array($auth) ? $auth : [ $auth ];
 
             $this->ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? "";
             $this->domain = $_SERVER['HTTP_HOST'] ?? "";
@@ -29,6 +39,7 @@
             $this->checkEndpoint();
             $this->checkToken();
             $this->verifyToken();
+            $this->authUser();
             $this->checkContentType();
             $this->checkRequestMethod();
 
@@ -38,7 +49,7 @@
 
             $parsedURI = parse_url($_SERVER["REQUEST_URI"]);
             $endpointName = rtrim(str_replace('/'.$this->version, "", $parsedURI["path"]), '/');
-            
+
             if ($endpointName != $this->endpoint) { 
                 throw new EndpointException('Endpoint non trovato! ', 400); 
             }
@@ -92,30 +103,51 @@
 
                 throw new EndpointException('Utente non attivo', 401); 
 
-            } else if (!$USER->api->exists) {
+            }
+
+            $this->user = $USER;
+            $this->userId = $decoded->sub;
+            
+
+        }
+
+        private function authUser() 
+        {
+
+            foreach ($this->auth as $auth) {
+                if (in_array($auth, (array) $this->user->authority)) {
+                    break;
+                } else {
+                    throw new EndpointException("Utente non autorizzato per questo endpoint!", 403); 
+                }
+            }
+            
+            $this->userAuth = $auth;
+            $token = $this->user->{$auth};
+
+            if (!$token->exists) {
 
                 throw new EndpointException('Token non valido', 401); 
 
-            } else if ($USER->api->active != 'true') {
+            } else if ($token->active != 'true') {
 
                 throw new EndpointException('Token non attivo', 401); 
 
-            } else if (!empty($USER->api->allowed_ips) && in_array($this->ip, $USER->api->allowed_ips)) {
+            } else if (!empty($userAuth->allowed_ips) && in_array($this->ip, $token->allowed_ips)) {
 
                 throw new EndpointException('Token non valido per questo IP', 401); 
 
-            } else if (!empty($USER->api->allowed_domains) && in_array($this->ip, $USER->api->allowed_domains)) {
+            } else if (!empty($userAuth->allowed_domains) && in_array($this->ip, $token->allowed_domains)) {
 
                 throw new EndpointException('Token non valido per questo dominio', 401); 
 
             }
 
-            $this->userId = $USER->id;
-            $this->tokenId = $USER->api->id;
+            $this->tokenId = $token->id;
 
         }
 
-        public function checkParameters(array $parameters) 
+        public function checkParameters(array $parameters): static 
         {
 
             $this->parameters = json_decode(file_get_contents('php://input'), true);
@@ -134,13 +166,15 @@
 
             }
 
+            return $this;
+
         }
 
         public function response(array|string $response = [], int $status = 200) {
 
             $success = ($status == 200) ? true : false;
 
-            $VALUES = Table::key('api_log')
+            $VALUES = Table::key('api_activity')
                             ->prepare([
                                     "user_id" => $this->userId,
                                     "token_id" => $this->tokenId,
@@ -155,7 +189,7 @@
                                     "response" => $response
                             ]);
 
-            sqlInsert('api_log', $VALUES);
+            sqlInsert('api_activity', $VALUES);
             
             http_response_code($status);
 

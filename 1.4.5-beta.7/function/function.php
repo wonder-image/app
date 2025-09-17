@@ -1,6 +1,7 @@
 <?php
 
     require_once __DIR__."/utility.php";
+    require_once __DIR__."/helper.php";
     require_once __DIR__."/arrayTo.php";
     require_once __DIR__."/sql.php";
     require_once __DIR__."/info.php";

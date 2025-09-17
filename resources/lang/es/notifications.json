@@ -1,0 +1,382 @@
+{
+    "601": {
+        "type": "success",
+        "title": "Contraseña enviada",
+        "text": "Se ha enviado un correo electrónico para cambiar la contraseña de tu cuenta.<br>Revisa también la carpeta de spam."
+    },
+    "602": {
+        "type": "success",
+        "title": "Contraseña cambiada",
+        "text": "Contraseña cambiada con éxito.<br>¡Intenta iniciar sesión!"
+    },
+    "603": {
+        "type": "success",
+        "title": "Contraseña cambiada",
+        "text": "Contraseña cambiada con éxito."
+    },
+    "604": {
+        "type": "success",
+        "title": "Cuenta modificada",
+        "text": "Cuenta modificada con éxito."
+    },
+    "605": {
+        "type": "success",
+        "title": "Correo electrónico modificado",
+        "text": "Correo electrónico modificado con éxito."
+    },
+    "606": {
+        "type": "success",
+        "title": "Nombre de usuario modificado",
+        "text": "Nombre de usuario modificado con éxito."
+    },
+    "607": {
+        "type": "success",
+        "title": "Dirección agregada",
+        "text": "Dirección agregada con éxito."
+    },
+    "608": {
+        "type": "success",
+        "title": "Dirección modificada",
+        "text": "Dirección modificada con éxito."
+    },
+    "609": {
+        "type": "success",
+        "title": "Dirección eliminada",
+        "text": "Dirección eliminada con éxito."
+    },
+    "610": {
+        "type": "success",
+        "title": "Agregado al carrito",
+        "text": "El carrito se ha actualizado correctamente."
+    },
+    "611": {
+        "type": "success",
+        "title": "Contraseña establecida",
+        "text": "Contraseña establecida con éxito.<br>¡Intenta iniciar sesión!"
+    },
+    "612": {
+        "type": "success",
+        "title": "Eliminado del carrito",
+        "text": "El carrito se ha actualizado correctamente."
+    },
+    "613": {
+        "type": "danger",
+        "title": "Producto no disponible",
+        "text": "El producto no está disponible."
+    },
+    "614": {
+        "type": "danger",
+        "title": "Producto no disponible",
+        "text": "El producto no está disponible en la cantidad deseada."
+    },
+    "615": {
+        "type": "danger",
+        "title": "Producto no disponible",
+        "text": "Un producto ha sido retirado de tu carrito porque ya no está disponible."
+    },
+    "616": {
+        "type": "danger",
+        "title": "Productos no disponibles",
+        "text": "Algunos productos han sido retirados de tu carrito porque ya no están disponibles."
+    },
+    "617": {
+        "type": "danger",
+        "title": "Operación bloqueada",
+        "text": "reCAPTCHA ha bloqueado la operación, inténtalo de nuevo."
+    },
+    "649": {
+        "type": "success",
+        "title": "Solicitud enviada",
+        "text": "Tu solicitud se ha enviado con éxito."
+    },
+    "650": {
+        "type": "success",
+        "title": "Modificado",
+        "text": "Cambios realizados con éxito."
+    },
+    "651": {
+        "type": "success",
+        "title": "Datos modificados",
+        "text": "Datos de la empresa modificados con éxito."
+    },
+    "652": {
+        "type": "success",
+        "title": "SEO modificada",
+        "text": "SEO modificada con éxito."
+    },
+    "653": {
+        "type": "success",
+        "title": "Analítica modificada",
+        "text": "Las etiquetas se han modificado con éxito."
+    },
+    "654": {
+        "type": "success",
+        "title": "Archivos modificados",
+        "text": "Los archivos de configuración se han modificado con éxito."
+    },
+    "660": {
+        "type": "success",
+        "title": "CSS modificados",
+        "text": "Configuraciones CSS modificadas con éxito."
+    },
+    "661": {
+        "type": "success",
+        "title": "Logotipos actualizados",
+        "text": "Los logotipos se han actualizado con éxito."
+    },
+    "662": {
+        "type": "success",
+        "title": "Campos modificados",
+        "text": "Campos modificados con éxito."
+    },
+    "663": {
+        "type": "success",
+        "title": "Modales modificados",
+        "text": "Modales modificados con éxito."
+    },
+    "664": {
+        "type": "success",
+        "title": "Desplegables modificados",
+        "text": "Desplegables modificados con éxito."
+    },
+    "665": {
+        "type": "success",
+        "title": "Alertas modificadas",
+        "text": "Alertas modificadas con éxito."
+    },
+    "700": {
+        "type": "danger",
+        "title": "Error 700",
+        "text": "Error: función inexistente."
+    },
+    "701": {
+        "type": "danger",
+        "title": "Error 701",
+        "text": "Función <b>imagewebp</b> inexistente. No se pueden crear imágenes en formato WebP."
+    },
+    "750": {
+        "type": "danger",
+        "title": "Error 750",
+        "text": "Error al abrir el archivo."
+    },
+    "751": {
+        "type": "danger",
+        "title": "Error 751",
+        "text": "Archivo inexistente."
+    },
+    "800": {
+        "type": "danger",
+        "title": "Error 800",
+        "text": "Error genérico de API."
+    },
+    "801": {
+        "type": "danger",
+        "title": "Error 801",
+        "text": "Conexión a internet perdida."
+    },
+    "802": {
+        "type": "danger",
+        "title": "Error 802",
+        "text": "Error en el archivo de respuesta de la API."
+    },
+    "803": {
+        "type": "danger",
+        "title": "Error 803",
+        "text": "Error en el archivo de respuesta de la API<br>Estado de respuesta no definido."
+    },
+    "850": {
+        "type": "danger",
+        "title": "Error 850",
+        "text": "Presupuesto inexistente."
+    },
+    "810": {
+        "type": "danger",
+        "title": "Error 810",
+        "text": "No se puede procesar el pago. Intenta de nuevo o contacta al soporte."
+    },
+    "851": {
+        "type": "danger",
+        "title": "Error 851",
+        "text": "Error en el presupuesto.<br>¡Contacta al soporte!"
+    },
+    "852": {
+        "type": "danger",
+        "title": "Error 852",
+        "text": "Presupuesto ya finalizado."
+    },
+    "853": {
+        "type": "danger",
+        "title": "Error 853",
+        "text": "Presupuesto cancelado."
+    },
+    "900": {
+        "type": "danger",
+        "title": "Error 900",
+        "text": "Error genérico."
+    },
+    "901": {
+        "type": "danger",
+        "title": "Error 901",
+        "text": "Este nombre de usuario no existe."
+    },
+    "902": {
+        "type": "danger",
+        "title": "Error 902",
+        "text": "Este correo electrónico ya está vinculado a otra cuenta.<br>Si es tuyo, intenta iniciar sesión."
+    },
+    "903": {
+        "type": "danger",
+        "title": "Error 903",
+        "text": "El correo electrónico que ingresaste no está vinculado a ninguna cuenta.<br>Intenta registrarte."
+    },
+    "904": {
+        "type": "danger",
+        "title": "Error 904",
+        "text": "Este correo electrónico no existe."
+    },
+    "905": {
+        "type": "danger",
+        "title": "Error 905",
+        "text": "Contraseña incorrecta."
+    },
+    "906": {
+        "type": "danger",
+        "title": "Error 906",
+        "text": "No se puede registrar el usuario con este correo electrónico, ¡ya ha sido usado!"
+    },
+    "907": {
+        "type": "danger",
+        "title": "Error 907",
+        "text": "No se puede registrar el usuario con este nombre de usuario, ¡ya ha sido usado!"
+    },
+    "908": {
+        "type": "danger",
+        "title": "Error 908",
+        "text": "No se puede registrar el usuario, ¡correo de confirmación no enviado!"
+    },
+    "909": {
+        "type": "danger",
+        "title": "Error 909",
+        "text": "Tu cuenta ha sido deshabilitada."
+    },
+    "910": {
+        "type": "danger",
+        "title": "Error 910",
+        "text": "No se puede registrar el usuario porque es menor de edad."
+    },
+    "911": {
+        "type": "danger",
+        "title": "Error 911",
+        "text": "¡Esta cuenta no puede acceder a esta área!"
+    },
+    "912": {
+        "type": "danger",
+        "title": "Error 912",
+        "text": "Esta cuenta ha sido eliminada."
+    },
+    "913": {
+        "type": "danger",
+        "title": "Error 913",
+        "text": "Este enlace no es válido para restablecer la contraseña.<br>¡Solicítalo de nuevo!"
+    },
+    "914": {
+        "type": "danger",
+        "title": "Error 914",
+        "text": "Este enlace ha expirado, solicita otro."
+    },
+    "915": {
+        "type": "danger",
+        "title": "Error 915",
+        "text": "¡No tienes permisos para acceder a esta sección!"
+    },
+    "916": {
+        "type": "danger",
+        "title": "Error 916",
+        "text": "Esta cuenta ya tiene una contraseña establecida.<br>Intenta iniciar sesión."
+    },
+    "920": {
+        "type": "danger",
+        "title": "Error 920",
+        "text": "¡La carga del archivo falló!"
+    },
+    "921": {
+        "type": "danger",
+        "title": "Error 921",
+        "text": "¡Extensión incorrecta!"
+    },
+    "922": {
+        "type": "danger",
+        "title": "Error 922",
+        "text": "¡Se excedieron las dimensiones máximas!"
+    },
+    "923": {
+        "type": "danger",
+        "title": "Error 923",
+        "text": "¡Has subido demasiados archivos!"
+    },
+    "950": {
+        "type": "danger",
+        "title": "Error 950",
+        "text": "Error genérico de SQL."
+    },
+    "951": {
+        "type": "danger",
+        "title": "Error 951",
+        "text": "Error SQL<br>No se puede crear o modificar la tabla."
+    },
+    "952": {
+        "type": "danger",
+        "title": "Error 952",
+        "text": "Error SQL<br>No se puede agregar una fila a la tabla."
+    },
+    "953": {
+        "type": "danger",
+        "title": "Error 953",
+        "text": "Error SQL<br>No se puede modificar una fila de la tabla."
+    },
+    "954": {
+        "type": "danger",
+        "title": "Error 954",
+        "text": "Error SQL<br>No se puede seleccionar una fila de la tabla."
+    },
+    "970": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "¡Un valor ingresado ya está presente en la tabla!"
+    },
+    "971": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "Enlace ya presente en la tabla."
+    },
+    "972": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "Código ya presente en la tabla."
+    },
+    "973": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "Correo electrónico ya presente en la tabla."
+    },
+    "974": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "Nombre de usuario ya presente en la tabla."
+    },
+    "975": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "Número de teléfono ya presente en la tabla."
+    },
+    "976": {
+        "type": "danger",
+        "title": "Valor duplicado",
+        "text": "Número de celular ya presente en la tabla."
+    },
+    "999": {
+        "type": "danger",
+        "title": "Error 999",
+        "text": "Carga fallida."
+    }
+}

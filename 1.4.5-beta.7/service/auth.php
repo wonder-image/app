@@ -1,6 +1,6 @@
 <?php
 
-    if ($PRIVATE) {
+    if (isset($PRIVATE) && $PRIVATE) {
 
         if (isset($BACKEND) && $BACKEND) {
 
