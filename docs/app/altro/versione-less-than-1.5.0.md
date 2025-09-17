@@ -1,8 +1,8 @@
 ---
-description: Passaggio da versioni <1.4.5
+description: Passaggio da versioni <1.5.0
 ---
 
-# Versione <1.4.5
+# Versione <1.5.0
 
 Necessario creare il seguente file forge
 

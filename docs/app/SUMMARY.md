@@ -1,8 +1,8 @@
 # Table of contents
 
-* [App 1.4.5](README.md)
-  * [Multilingua](app-1.4.5/multilingua.md)
-  * [Cron Job](app-1.4.5/cron-job.md)
+* [App 1.5.0](README.md)
+  * [Multilingua](app-1.5.0/multilingua.md)
+  * [Cron Job](app-1.5.0/cron-job.md)
 
 ## BACKEND
 
@@ -25,5 +25,5 @@
   * [iubenda](altro/servizi/iubenda.md)
   * [Google Analytics](altro/servizi/google-analytics.md)
   * [Google Search Console](altro/servizi/google-search-console.md)
-* [Versione <1.4.5](altro/versione-less-than-1.4.5.md)
+* [Versione <1.5.0](altro/versione-less-than-1.5.0.md)
 * [Estensioni e App Consigliate](altro/estensioni-e-app-consigliate.md)
