@@ -12,8 +12,9 @@
 
         }
 
-        public function getResponse() {
-
+        public function getResponse(): array 
+        {
+            
             return [
                 "success" => false,
                 "status" => $this->getCode() ?: 500,

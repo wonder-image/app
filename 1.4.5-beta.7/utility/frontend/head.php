@@ -207,6 +207,19 @@
 
 <!-- Fine librerie -->
     
+<!-- Inizio traduzioni -->
+
+    <script>
+        
+        TranslationProvider.init(
+            <?=json_encode(Wonder\Localization\TranslationProvider::$translations)?>,
+            <?=json_encode(Wonder\Localization\TranslationProvider::$defaultTranslations)?>
+        );
+
+    </script>
+
+<!-- Fine traduzioni -->
+ 
 <?php include $ROOT."/custom/utility/frontend/head.php"; ?>
 
 <?php if ($ANALYTICS->pixel->active) : ?>

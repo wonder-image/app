@@ -9,8 +9,7 @@
     {
         private static ?self $instance = null;
 
-        private array $translations = [];
-        private array $defaultTranslations = [];
+        public static array $translations, $defaultTranslations = [];
         private string $lang;
         private string $defaultLang;
         private array $pathFiles;
@@ -23,8 +22,10 @@
             $this->defaultLang = LanguageContext::getDefaultLang();
             $this->pathFiles = LanguageContext::getPathFiles();
 
-            $this->translations = $this->loadFiles($this->lang);
-            $this->defaultTranslations = LanguageContext::getLang() == LanguageContext::getDefaultLang() ? $this->translations : $this->loadFiles($this->defaultLang);
+            self::$translations = $this->loadFiles($this->lang);
+            self::$defaultTranslations = LanguageContext::getLang() == LanguageContext::getDefaultLang() 
+                ? []
+                : $this->loadFiles($this->defaultLang);
             
         }
 
@@ -41,9 +42,9 @@
                 self::$instance->lang = LanguageContext::getLang();
                 self::$instance->defaultLang = LanguageContext::getDefaultLang();
                 self::$instance->pathFiles = LanguageContext::getPathFiles();
-                self::$instance->translations = self::$instance->loadFiles(self::$instance->lang);
-                self::$instance->defaultTranslations = self::$instance->lang == self::$instance->defaultLang
-                    ? self::$instance->translations
+                self::$instance::$translations = self::$instance->loadFiles(self::$instance->lang);
+                self::$instance::$defaultTranslations = self::$instance->lang == self::$instance->defaultLang
+                    ? self::$instance::$translations
                     : self::$instance->loadFiles(self::$instance->defaultLang);
 
             }
@@ -80,11 +81,11 @@
             }
 
             // 1. Prova lingua corrente
-            $value = self::$instance->getNestedValue(self::$instance->translations, $key);
+            $value = self::$instance->getNestedValue(self::$instance::$translations, $key);
 
             // 2. Se non trovato, prova default
             if ($value === null) {
-                $value = self::$instance->getNestedValue(self::$instance->defaultTranslations, $key);
+                $value = self::$instance->getNestedValue(self::$instance::$defaultTranslations, $key);
             }
 
             // 3. Se ancora null → errore

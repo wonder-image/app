@@ -207,8 +207,10 @@
                             $ARRAY_VALUES = [];
                         }
 
-                        $VALUE = uploadFiles($VALUE, $RULES['format'], $PATH->rUpload.'/'.$NAME->folder, $ARRAY_VALUES);
-                    
+                        $folder = (isset($NAME->folder) && $NAME->folder) ? '/' . $NAME->folder : '';
+
+                        $VALUE = uploadFiles($VALUE, $RULES['format'], $PATH->rUpload.$folder, $ARRAY_VALUES);
+
                     } else {
 
                         foreach ($VALUE as $k => $v) { if (empty($v) && $v != 0) { unset($VALUE[$k]); } }

@@ -191,7 +191,39 @@
             ]
         ],
         "endpoint" => [],
+        "request_method" => [
+            "sql" => [
+                "length" => 5
+            ]
+        ],
+        "content_type" => [
+            "sql" => [
+                "length" => 100
+            ]
+        ],
         "parameters" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "data" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "files" => [
             "sql" => [
                 "type" => "JSON"
             ],

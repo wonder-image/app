@@ -3,25 +3,25 @@
     namespace Wonder\Api;
 
     use Wonder\App\Table;
-
     use Wonder\Api\EndpointException;
     use Wonder\Localization\LanguageContext;
 
     class Endpoint {
 
+        // Endpoint
         private $version = "v1.0";
         private $endpoint = "";
         private $auth = [];
-        private $requestMethod = "";
-        public $token = "";
-        public $ip = "";
-        public $domain = "";
-        public $lang = "";
-        public $parameters = [];
-        public $user;
-        public $userId = "";
-        public $userAuth = "";
-        public $tokenId = "";
+
+        // Token
+        private $token, $tokenId;
+
+        // Request
+        private $ip, $domain, $lang, $requestMethod, $contentType;
+        public $parameters, $data, $files = [];
+
+        // User
+        private $user, $userId, $userAuth;
 
         public function __construct($endpoint, $method = "POST", $auth = [ "api_internal_user", "api_public_access" ]) {
 
@@ -42,6 +42,7 @@
             $this->authUser();
             $this->checkContentType();
             $this->checkRequestMethod();
+            $this->getParameters();
 
         }
 
@@ -56,10 +57,18 @@
 
         }
 
-        private function checkContentType() {
+        private function checkContentType() 
+        {
 
-            if (!isset($_SERVER['CONTENT_TYPE']) || $_SERVER['CONTENT_TYPE'] != 'application/json') { 
-                throw new EndpointException('Formato della richiesta non valido!', 405); 
+            if (!isset($_SERVER['CONTENT_TYPE'])) {
+                throw new EndpointException('Formato della richiesta non specificato!', 405);
+            }
+
+            $this->contentType = strtolower($_SERVER['CONTENT_TYPE']);
+
+            if (!str_contains($this->contentType, 'application/json') && 
+                !str_contains($this->contentType, 'multipart/form-data')) {
+                throw new EndpointException('Formato della richiesta non valido!', 405);
             }
 
         }
@@ -123,7 +132,7 @@
             }
             
             $this->userAuth = $auth;
-            $token = $this->user->{$auth};
+            $token = $this->user->{$this->userAuth};
 
             if (!$token->exists) {
 
@@ -147,16 +156,37 @@
 
         }
 
-        public function checkParameters(array $parameters): static 
+        private function getParameters()
         {
 
-            $this->parameters = json_decode(file_get_contents('php://input'), true);
+            $this->data = [];
+            $this->files = [];
             
-            if (json_last_error()) {
-                throw new EndpointException('Errore nel formato della richiesta! Verificare i parametri.', 401); 
+            if (str_contains($this->contentType, 'application/json')) {
+
+                $input = file_get_contents('php://input');
+
+                $this->data = $input ? json_decode($input, true) : [];
+
+                if (json_last_error()) {
+                    throw new EndpointException('Errore nel formato JSON della richiesta!', 400);
+                }
+
+            } elseif (str_contains($this->contentType, 'multipart/form-data')) {
+
+                $this->data = $_POST;
+                $this->files = $_FILES; 
+
             }
 
-            if (is_array($parameters)) {
+            $this->parameters = array_merge($this->data, $this->files);
+
+        }
+
+        public function checkParameters( array $parameters ): static 
+        {
+
+            if (is_array($this->parameters)) {
                 
                 foreach ($parameters as $parameter) {
                     if (!array_key_exists($parameter, $this->parameters)) {
@@ -170,23 +200,64 @@
 
         }
 
-        public function response(array|string $response = [], int $status = 200) {
+        private function logFiles()
+        {
+
+            $logFiles = [];
+
+            foreach ($this->files as $key => $file) {
+                // File singolo
+                if (is_array($file) && !is_array($file['name'])) {
+                    if ($file['error'] === UPLOAD_ERR_OK) {
+                        $logFiles[$key] = [
+                            'name' => $file['name'],
+                            'type' => $file['type'],
+                            'size' => $file['size'],
+                        ];
+                    }
+                }
+
+                // File multiplo
+                elseif (is_array($file['name'])) {
+                    $logFiles[$key] = [];
+                    foreach ($file['name'] as $i => $filename) {
+                        if ($file['error'][$i] === UPLOAD_ERR_OK) {
+                            $logFiles[$key][] = [
+                                'name' => $filename,
+                                'type' => $file['type'][$i],
+                                'size' => $file['size'][$i],
+                            ];
+                        }
+                    }
+                }
+            }
+
+            return $logFiles;
+
+        }
+
+        public function response(array|string $response = [], int $status = 200): array 
+        {
 
             $success = ($status == 200) ? true : false;
 
             $VALUES = Table::key('api_activity')
                             ->prepare([
-                                    "user_id" => $this->userId,
-                                    "token_id" => $this->tokenId,
-                                    "token" => $this->token,
-                                    "ip" => $this->ip,
-                                    "domain" => $this->domain,
-                                    "version" => $this->version,
-                                    "endpoint" => $this->endpoint,
-                                    "parameters" => $this->parameters,
-                                    "success" => $success,
-                                    "status" => $status,
-                                    "response" => $response
+                                "user_id" => $this->userId,
+                                "token_id" => $this->tokenId,
+                                "token" => $this->token,
+                                "ip" => $this->ip,
+                                "domain" => $this->domain,
+                                "version" => $this->version,
+                                "endpoint" => $this->endpoint,
+                                "request_method" => $this->requestMethod,
+                                "content_type" => $this->contentType,
+                                "parameters" => json_encode(array_merge($this->data, $this->logFiles()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                                "data" => json_encode($this->data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                                "files" => json_encode($this->logFiles(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                                "success" => $success,
+                                "status" => $status,
+                                "response" => json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                             ]);
 
             sqlInsert('api_activity', $VALUES);

@@ -88,6 +88,15 @@
                     ]
                 ]
             ],
+            'flag-icons' => [
+                'name' => 'Flag Icons',
+                'site' => 'https://flagicons.lipis.dev',
+                'files' => [
+                    'head' => [
+                        '/dist/lib/lipis/flag-icons.css'
+                    ]
+                ]
+            ],
             'bootstrap-datepicker' => [
                 'name' => 'Bootstrap Datepicker',
                 'site' => 'https://bootstrap-datepicker.readthedocs.io',

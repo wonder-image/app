@@ -41,5 +41,18 @@
 
 <!-- Fine librerie -->
 
+<!-- Inizio traduzioni -->
+
+    <script>
+        
+        TranslationProvider.init(
+            <?=json_encode(Wonder\Localization\TranslationProvider::$translations)?>,
+            <?=json_encode(Wonder\Localization\TranslationProvider::$defaultTranslations)?>
+        );
+
+    </script>
+
+<!-- Fine traduzioni -->
+
 <!-- Custom => (.css, .js) -->
 <?php include $ROOT.'/custom/utility/backend/head.php';?>
