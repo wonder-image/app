@@ -1,0 +1,43 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "Vorname" },
+            "surname" : { "label" : "Nachname" },
+            "full_name" : { "label" : "Vollständiger Name" },
+            "email" : { "label" : "E-Mail" },
+            "prefix" : { "label" : "Vorwahl" },
+            "cel" : { "label" : "Handy" },
+            "tel" : { "label" : "Telefon" },
+            "phone" : { "label" : "Telefon" },
+            "password" : { "label" : "Passwort" },
+            "message" : { "label" : "Nachricht" },
+            "request" : { "label" : "Was brauchen Sie?" },
+            "privacy" : {
+                "label" : "Ich akzeptiere die <a href=\"{{path_site}}/legal/privacy-policy/\" target=\"_blank\" rel=\"noopener noreferrer\">Datenschutzerklärung</a> und die <a href=\"{{path_site}}/legal/terms-conditions/\" target=\"_blank\" rel=\"noopener noreferrer\">Allgemeinen Geschäftsbedingungen</a>"
+            }
+        }
+    },
+    "buttons" : {
+        "send" : "Senden",
+        "more" : "Mehr erfahren",
+        "back_site" : "Zurück zur Website",
+        "view" : "Ansehen",
+        "look" : "Schauen",
+        "download" : "Herunterladen",
+        "read" : "Lesen",
+        "back" : "Zurück",
+        "next" : "Weiter",
+        "retry" : "Wiederholen",
+        "close" : "Schließen"
+    },
+    "terms" : {
+        "address" : "Adresse",
+        "contact" : "Kontakte",
+        "credit_by" : "Kredite von",
+        "tel" : "Tel",
+        "cel" : "Handy",
+        "mail" : "E-Mail",
+        "pi" : "USt-IdNr.",
+        "cf" : "Steuernummer"
+    }
+}

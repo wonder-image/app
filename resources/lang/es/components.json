@@ -1,0 +1,43 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "Nombre" },
+            "surname" : { "label" : "Apellido" },
+            "full_name" : { "label" : "Nombre completo" },
+            "email" : { "label" : "Correo electrónico" },
+            "prefix" : { "label" : "Prefijo" },
+            "cel" : { "label" : "Móvil" },
+            "tel" : { "label" : "Teléfono" },
+            "phone" : { "label" : "Teléfono" },
+            "password" : { "label" : "Contraseña" },
+            "message" : { "label" : "Mensaje" },
+            "request" : { "label" : "¿Qué necesitas?" },
+            "privacy" : {
+                "label" : "Acepto la <a href=\"{{path_site}}/legal/privacy-policy/\" target=\"_blank\" rel=\"noopener noreferrer\">Política de privacidad</a> y los <a href=\"{{path_site}}/legal/terms-conditions/\" target=\"_blank\" rel=\"noopener noreferrer\">Términos y condiciones</a>"
+            }
+        }
+    },
+    "buttons" : {
+        "send" : "Enviar",
+        "more" : "Saber más",
+        "back_site" : "Volver al sitio",
+        "view" : "Ver",
+        "look" : "Mirar",
+        "download" : "Descargar",
+        "read" : "Leer",
+        "back" : "Atrás",
+        "next" : "Siguiente",
+        "retry" : "Reintentar",
+        "close" : "Cerrar"
+    },
+    "terms" : {
+        "address" : "Dirección",
+        "contact" : "Contactos",
+        "credit_by" : "Créditos por",
+        "tel" : "Tel",
+        "cel" : "Móvil",
+        "mail" : "Correo",
+        "pi" : "NIF",
+        "cf" : "Código fiscal"
+    }
+}

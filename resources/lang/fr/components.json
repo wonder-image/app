@@ -1,0 +1,43 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "Prénom" },
+            "surname" : { "label" : "Nom" },
+            "full_name" : { "label" : "Nom complet" },
+            "email" : { "label" : "E-mail" },
+            "prefix" : { "label" : "Préfixe" },
+            "cel" : { "label" : "Portable" },
+            "tel" : { "label" : "Téléphone" },
+            "phone" : { "label" : "Téléphone" },
+            "password" : { "label" : "Mot de passe" },
+            "message" : { "label" : "Message" },
+            "request" : { "label" : "De quoi avez-vous besoin ?" },
+            "privacy" : {
+                "label" : "J’accepte la <a href=\"{{path_site}}/legal/privacy-policy/\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a> et les <a href=\"{{path_site}}/legal/terms-conditions/\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
+            }
+        }
+    },
+    "buttons" : {
+        "send" : "Envoyer",
+        "more" : "En savoir plus",
+        "back_site" : "Retour au site",
+        "view" : "Voir",
+        "look" : "Regarder",
+        "download" : "Télécharger",
+        "read" : "Lire",
+        "back" : "Retour",
+        "next" : "Suivant",
+        "retry" : "Réessayer",
+        "close" : "Fermer"
+    },
+    "terms" : {
+        "address" : "Adresse",
+        "contact" : "Contacts",
+        "credit_by" : "Crédit par",
+        "tel" : "Tél",
+        "cel" : "Portable",
+        "mail" : "E-mail",
+        "pi" : "N° TVA",
+        "cf" : "Code fiscal"
+    }
+}

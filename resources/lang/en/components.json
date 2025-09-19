@@ -1,0 +1,43 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "First Name" },
+            "surname" : { "label" : "Last Name" },
+            "full_name" : { "label" : "Full Name" },
+            "email" : { "label" : "Email" },
+            "prefix" : { "label" : "Prefix" },
+            "cel" : { "label" : "Mobile" },
+            "tel" : { "label" : "Telephone" },
+            "phone" : { "label" : "Phone" },
+            "password" : { "label" : "Password" },
+            "message" : { "label" : "Message" },
+            "request" : { "label" : "What do you need?" },
+            "privacy" : {
+                "label" : "I accept the <a href=\"{{path_site}}/legal/privacy-policy/\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a> and the <a href=\"{{path_site}}/legal/terms-conditions/\" target=\"_blank\" rel=\"noopener noreferrer\">Terms and Conditions</a>"
+            }
+        }
+    },
+    "buttons" : {
+        "send" : "Send",
+        "more" : "Learn more",
+        "back_site" : "Back to site",
+        "view" : "View",
+        "look" : "Look",
+        "download" : "Download",
+        "read" : "Read",
+        "back" : "Back",
+        "next" : "Next",
+        "retry" : "Retry",
+        "close" : "Close"
+    },
+    "terms" : {
+        "address" : "Address",
+        "contact" : "Contacts",
+        "credit_by" : "Credit By",
+        "tel" : "Tel",
+        "cel" : "Mobile",
+        "mail" : "Email",
+        "pi" : "VAT No.",
+        "cf" : "Tax Code"
+    }
+}

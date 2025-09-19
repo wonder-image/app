@@ -1,0 +1,43 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "Nome" },
+            "surname" : { "label" : "Cognome" },
+            "full_name" : { "label" : "Nome e Cognome" },
+            "email" : { "label" : "Email" },
+            "prefix" : { "label" : "Prefisso" },
+            "cel" : { "label" : "Cellulare" },
+            "tel" : { "label" : "Telefono" },
+            "phone" : { "label" : "Telefono" },
+            "password" : { "label" : "Password" },
+            "message" : { "label" : "Messaggio" },
+            "request" : { "label" : "Di cosa hai bisogno?" },
+            "privacy" : {
+                "label" : "Accetto la <a href=\"{{path_site}}/legal/privacy-policy/\" target=\"_blank\" rel=\"noopener noreferrer\">Politica sulla privacy</a> e i <a href=\"{{path_site}}/legal/terms-conditions/\" target=\"_blank\" rel=\"noopener noreferrer\">Termini e Condizioni</a>"
+            }
+        }
+    },
+    "buttons" : {
+        "send" : "Invia",
+        "more" : "Scopri di più",
+        "back_site" : "Torna al sito",
+        "view" : "Visualizza",
+        "look" : "Guarda",
+        "download" : "Scarica",
+        "read" : "Leggi",
+        "back" : "Indietro",
+        "next" : "Avanti",
+        "retry" : "Riprova",
+        "close" : "Chiudi"
+    },
+    "terms" : {
+        "address" : "Indirizzo",
+        "contact" : "Contatti",
+        "credit_by" : "Credit By",
+        "tel" : "Tel",
+        "cel" : "Cel",
+        "mail" : "Mail",
+        "pi" : "P.Iva",
+        "cf" : "C.Fiscale"
+    }
+}
