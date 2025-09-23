@@ -1,0 +1,136 @@
+{
+    "privacy_policy" : {
+        "seo" : {
+            "title" : "Politique de confidentialité de {{domain}}",
+            "description" : "Consultez notre politique de confidentialité pour comprendre comment nous collectons, utilisons et protégeons vos données personnelles."
+        },
+        "content" : {
+            "title" : "Politique de confidentialité",
+            "subtitle" : "La confidentialité de nos clients est importante pour nous. Notre Politique de traitement des données personnelles décrit les modalités de collecte, d’utilisation, de transfert et de conservation des informations vous concernant. Le traitement des données personnelles est effectué dans le respect du Règlement général sur la protection des données (RGPD - Règlement général sur la protection des données). Nous vous prions de lire l’intégralité de la Politique de confidentialité.",
+            "paragraphs" : [
+                {
+                    "title" : "1. Responsable du traitement et informations de contact",
+                    "text" : "Le responsable du traitement des données personnelles que nous collectons aux fins indiquées à l’article suivant est {{legal_name}}, C.F. {{society_cf}}, TVA {{society_pi}}. <br> Pour toute question ou demande à ce sujet, vous pouvez utiliser les références et contacts suivants : {{legal_name}}, {{legal_address}}, E-mail {{society_email}}, Tél. {{society_phone}}."
+                }, {
+                    "title" : "2. Modalités et finalités du traitement des données personnelles",
+                    "text" : "Conformément à l’art. 6, par. 1, let. b du RGPD, portant dispositions relatives à la confidentialité dans le traitement des données personnelles, nous souhaitons vous informer que : <br><ul><li>Les données personnelles que vous fournissez, ou autrement acquises dans le cadre de notre activité, peuvent faire l’objet d’un traitement avec ou sans l’aide de moyens électroniques, conformément à la réglementation susmentionnée, pour les finalités institutionnelles de notre Cabinet, et notamment pour : exécuter un service ou une ou plusieurs opérations contractuellement convenues ; respecter les obligations prévues par les lois ou règlements ; et protéger les droits du responsable du traitement <?=$LEGAL->name?> en justice (ci-après « Finalités contractuelles »);</li><li>La communication de vos données à {{legal_name}}, identifié ci-dessus, est strictement fonctionnelle à l’exécution de la relation contractuelle ou, lorsque cela est spécifié, aux activités autorisées par l’utilisateur. En particulier, les traitements suivants de vos données personnelles, distincts des Finalités contractuelles, ne sont possibles qu’avec votre consentement exprès :<ol><li>publier des photographies et/ou vidéos vous représentant dans la section « GALERIE » du Site ou via d’autres canaux électroniques (par ex. Facebook, LinkedIn, Instagram) ou traditionnels à des fins promotionnelles ;</li><li>exposer et/ou envoyer à des tiers des photographies vous représentant à des fins promotionnelles ;</li><li>vous envoyer du matériel d’information concernant les services offerts par {{legal_name}}, identifié ci-dessus, ainsi que d’éventuelles initiatives commerciales lancées par celui-ci, par communications électroniques et/ou traditionnelles.</li></ol></li></ul>Les traitements indiqués aux points 1, 2 et 3 sont globalement désignés comme « Finalités de marketing ». <br>{{legal_name}} vous demandera si vous consentez expressément aux Finalités de marketing lors de l’acceptation du mandat ou ultérieurement. Votre refus légitime de donner votre consentement à une ou plusieurs Finalités de marketing n’affecte pas le traitement de vos données personnelles limité aux Finalités contractuelles.<ul><li>Les données seront conservées à notre siège social situé à {{legal_address}}, 3 pour la durée prescrite par la loi ;</li><li>Le traitement des données fournies, ou autrement acquises dans le cadre de notre activité, peut également être effectué par des personnes autorisées à accéder à vos données personnelles par la loi ou la réglementation nationale et/ou communautaire ;</li><li>Des mesures de sécurité spécifiques sont adoptées pour prévenir les accès non autorisés, les utilisations illicites ou incorrectes et la perte de données personnelles ;</li><li>Les données personnelles que vous fournissez ne sont pas transférées vers des pays tiers hors UE ;</li><li>Vous pouvez à tout moment demander la modification ou la suppression de ces données.</li></ul>"
+                }, {
+                    "title" : "3. Base juridique du traitement",
+                    "text" : "La base juridique des traitements effectués pour les Finalités contractuelles réside dans l’exécution du contrat et des obligations antérieures et postérieures, ainsi que dans le respect des obligations légales issues du contrat ou de la loi. <br>La base juridique des traitements effectués pour les Finalités de marketing réside dans les consentements respectifs que vous avez librement accordés."
+                },  {
+                    "title" : "4. Période de conservation des données",
+                    "text" : "Les données collectées pour les traitements à des fins contractuelles sont conservées pour une période correspondant à celle exigée par la réglementation applicable en matière civile et fiscale. <br>Les données collectées pour les traitements à des fins de marketing seront conservées pour la durée nécessaire au traitement pour les finalités spécifiques et en tout état de cause pour une durée n’excédant pas 5 ans."
+                }, {
+                    "title" : "5. Catégories particulières de données personnelles",
+                    "text" : "Si vous fournissez à {{legal_name}} des données qualifiables de « catégories particulières de données personnelles », c’est-à-dire des données révélant l’origine raciale ou ethnique, les opinions politiques, les convictions religieuses ou philosophiques, ou l’appartenance syndicale, ainsi que des données génétiques, des données biométriques visant à identifier de manière unique une personne physique, des données relatives à la santé, à la vie sexuelle ou à l’orientation sexuelle de la personne conformément aux articles 9 et 10 du RGPD, ces catégories de données ne pourront être traitées qu’avec votre consentement libre et explicite, exprimé par écrit ou numériquement via un formulaire qui vous sera fourni. <br> Des mesures de sécurité spécifiques pour ce type de données sont renforcées afin de garantir le plus haut niveau de sécurité de vos données."
+                }, {
+                    "title" : "6. Droits de la personne concernée",
+                    "text" : "À tout moment, vous pouvez exercer, conformément aux articles 15 à 22 du RGPD, les droits suivants :<ul><li>demander la confirmation de l’existence ou non de données personnelles vous concernant (droit d’accès) ;</li><li>obtenir des indications sur les finalités du traitement, les catégories de données personnelles, les destinataires ou les catégories de destinataires auxquels les données personnelles ont été ou seront communiquées et, lorsque possible, la durée de conservation ;</li><li>obtenir la rectification des données personnelles inexactes et le complément des données incomplètes ;</li><li>obtenir la limitation du traitement dans les cas indiqués à l’art. 18 RGPD ;</li><li>obtenir l’effacement des données ou leur transformation en données anonymes, après l’expiration des délais de conservation prévus par la loi ou par la présente politique ;</li><li>obtenir la portabilité des données, c’est-à-dire recevoir une copie des données personnelles vous concernant dans un format structuré, couramment utilisé et lisible par machine, afin de les transmettre à un autre responsable du traitement ;</li><li>s’opposer au traitement à tout moment, sauf s’il existe des motifs légitimes justifiant la poursuite du traitement ;</li><li>retirer à tout moment votre consentement pour les Finalités de marketing, sans préjudice de la licéité des traitements effectués sur la base de votre consentement avant le retrait. Ce retrait peut également être exercé uniquement pour certaines modalités de traitement ;</li><li>déposer une réclamation auprès de l’Autorité de protection des données personnelles ou auprès d’une autre autorité de contrôle compétente.</li></ul>La personne concernée peut exercer ses droits en contactant le Responsable du traitement par les moyens indiqués dans la présente Politique."
+                }, {
+                    "title" : "7. Modifications de la politique de confidentialité",
+                    "text" : "Nous pouvons modifier les informations contenues dans la présente Politique de confidentialité lorsque nous le jugeons opportun. Dans ce cas, nous vous en informerons par divers moyens via la Plateforme (par exemple, par une bannière, une fenêtre pop-up ou une notification push) ou en envoyant un avis à votre adresse e-mail si la modification a un impact significatif sur votre vie privée, afin que vous puissiez en prendre connaissance, les évaluer et, le cas échéant, vous y opposer ou résilier certains services."
+                }
+            ],
+            "payoff" : "Il est possible de consulter en ligne le texte complet de la loi : <a href=\"https://www.garanteprivacy.it/il-testo-del-regolamento\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.garanteprivacy.it/il-testo-del-regolamento</a>"
+        }
+    },
+    "cookie_policy" : {
+        "seo" : {
+            "title" : "Politique relative aux cookies de {{domain}}",
+            "description" : "Découvrez comment nous utilisons les cookies sur notre site web et comment vous pouvez gérer vos préférences."
+        },
+        "content" : {
+            "title": "Politique relative aux cookies",
+            "subtitle": "",
+            "paragraphs": [
+                {
+                    "title": "1. Introduction",
+                    "text": "Le site {{domain}}, ci-après dénommé le « Site », utilise des cookies pour améliorer l’expérience de l’utilisateur et pour recueillir des informations sur la manière dont le Site est utilisé. La présente Politique relative aux cookies décrit les types de cookies utilisés par le Site et les modalités de gestion des cookies. Veuillez lire attentivement la présente Politique relative aux cookies avant d’utiliser le Site."
+                },
+                {
+                    "title": "2. Que sont les cookies ?",
+                    "text": "Les cookies sont de petits fichiers texte stockés sur le terminal de l’utilisateur lorsqu’il visite un site web. Les cookies sont utilisés pour recueillir des informations sur l’utilisation du site web par l’utilisateur, telles que les pages visitées et le temps passé sur le site."
+                },
+                {
+                    "title": "3. Cookies utilisés sur le Site",
+                    "text": "Le Site utilise les types de cookies suivants :<ul><li>Cookies techniques : nécessaires au bon fonctionnement du Site. Ils ne nécessitent pas le consentement de l’utilisateur.</li><li>Cookies de <b>Google Tag Manager</b> : permettent l’intégration d’outils de suivi tels que Google Analytics ou Facebook Pixel, sans collecter d’informations personnelles de l’utilisateur.</li><li>Cookies de <b>Google Analytics</b> : utilisés pour suivre l’utilisation du Site, créer des rapports et améliorer l’expérience utilisateur, en anonymisant l’adresse IP.</li><li>Cookies de <b>Google Search Console</b> : surveillent l’indexation du Site sur les moteurs de recherche, sans collecter de données personnelles.</li><li>Cookies de <b>Pixel Facebook</b> : surveillent les conversions et les interactions des utilisateurs à des fins de marketing.</li><li>Cookies de <b>Google ADS</b> : surveillent l’efficacité des campagnes publicitaires, sans collecter de données personnelles.</li></ul>"
+                },
+                {
+                    "title": "4. Utilisation des cookies",
+                    "text": "Le Site utilise les cookies à diverses fins, notamment :<ul><li>analyse de l’utilisation via Google Analytics et Google Tag Manager ;</li><li>optimisation via Google Search Console ;</li><li>publicité ciblée via Pixel Facebook.</li></ul>"
+                },
+                {
+                    "title": "5. Types de cookies",
+                    "text": "Les cookies utilisés se divisent en :<ul><li>cookies de session, supprimés à la fermeture du navigateur ;</li><li>cookies persistants, qui restent sur le terminal pour mémoriser les préférences ;</li><li>cookies tiers, utilisés pour l’analyse ou la publicité personnalisée.</li></ul>"
+                },
+                {
+                    "title": "6. Liens vers des sites tiers",
+                    "text": "Le Site peut contenir des liens vers des sites web tiers, qui peuvent utiliser des cookies et d’autres technologies de suivi. La présente Politique relative aux cookies ne s’applique pas à ces sites et le propriétaire du Site n’est pas responsable des politiques de confidentialité ou des pratiques de ces sites web."
+                },
+                {
+                    "title": "7. Modifications de la Politique relative aux cookies",
+                    "text": "Le propriétaire du Site se réserve le droit de modifier la présente Politique relative aux cookies à tout moment et sans préavis. Il est de la responsabilité de l’utilisateur de vérifier périodiquement la Politique relative aux cookies pour d’éventuelles mises à jour."
+                },
+                {
+                    "title": "8. Gestion des cookies",
+                    "text": "L’utilisateur peut gérer les cookies utilisés par le Site via les paramètres de son navigateur. Il est possible de bloquer tous les cookies ou seulement certains. Certaines fonctionnalités du Site peuvent ne pas être disponibles en cas de blocage."
+                },
+                {
+                    "title": "9. Informations supplémentaires",
+                    "text": "Pour plus d’informations sur la collecte et l’utilisation des données personnelles, veuillez consulter la <a href=\"{{path_site}}legal/privacy-policy/\">Politique de confidentialité</a> du Site."
+                },
+                {
+                    "title": "10. Acceptation des cookies",
+                    "text": "L’utilisation du Site implique l’acceptation de la présente Politique relative aux cookies. En cas de non-acceptation, l’utilisateur doit immédiatement cesser d’utiliser le Site."
+                }
+            ]
+        }
+    },
+    "terms_conditions" : {
+        "seo" : {
+            "title" : "Termes et conditions de {{domain}}",
+            "description" : "Lisez les termes et conditions qui régissent l’utilisation de notre site web et de nos services."
+        },
+        "content" : {
+            "title": "Termes et conditions",
+            "paragraphs": [
+                {
+                    "title": "1. Acceptation des termes",
+                    "text": "Bienvenue sur le site de {{domain}}, ci-après « le Site ». Avant d’utiliser le Site, veuillez lire attentivement les présents Termes et conditions d’utilisation (\"Termes et conditions\") qui régissent l’accès et l’utilisation du Site. En accédant et en utilisant le Site, l’utilisateur accepte automatiquement les présents Termes et conditions et s’engage à les respecter. Si vous n’acceptez pas ces Termes et conditions, veuillez ne pas utiliser le Site."
+                },
+                {
+                    "title": "2. Utilisation du site",
+                    "text": "Le Site est destiné exclusivement à un usage personnel et non commercial. Il est interdit d’utiliser le Site pour des activités illégales ou qui violent les droits de tiers. En outre, il est interdit d’utiliser le Site pour envoyer du spam ou des messages non sollicités."
+                },
+                {
+                    "title": "3. Propriété intellectuelle",
+                    "text": "Tous les contenus du site web, y compris les textes, images, vidéos, logos, marques, graphiques, code HTML et autres matériaux, sont la propriété de {{legal_name}} ou de leurs propriétaires respectifs et sont protégés par les lois sur la propriété intellectuelle. Il est interdit de copier, modifier, distribuer ou utiliser ces contenus à des fins commerciales sans l’autorisation expresse du propriétaire du site web."
+                },
+                {
+                    "title": "4. Responsabilité",
+                    "text": "Le propriétaire du site web n’est pas responsable des dommages résultant de l’utilisation du site web, y compris les pertes de données ou de bénéfices. De plus, le propriétaire du site web n’est pas responsable des erreurs, inexactitudes ou omissions dans les contenus du site web."
+                },
+                {
+                    "title": "5. Liens externes",
+                    "text": "Le Site peut contenir des liens vers d’autres sites web qui ne sont pas détenus ou contrôlés par le propriétaire du Site. Le propriétaire du Site n’a aucun contrôle sur le contenu, les politiques ou les pratiques de ces sites web et n’est pas responsable des pertes, dommages ou blessures résultant de l’utilisation ou de l’incapacité d’utiliser ces sites web. L’inclusion de liens vers d’autres sites web n’implique pas nécessairement l’approbation ou la recommandation de ces sites par le propriétaire du Site."
+                },
+                {
+                    "title": "6. Confidentialité",
+                    "text": "La confidentialité des utilisateurs du Site est importante pour le propriétaire du Site. Veuillez lire la <a href=\"{{path_site}}legal/privacy-policy/\">Politique de confidentialité</a> du Site pour plus d’informations sur la collecte, l’utilisation et la protection des données personnelles."
+                },
+                {
+                    "title": "7. Modifications des termes et conditions",
+                    "text": "Le propriétaire du Site se réserve le droit de modifier, à tout moment et sans préavis, les présents Termes et conditions. Veuillez vérifier périodiquement les Termes et conditions afin de prendre connaissance d’éventuelles mises à jour ou modifications. L’utilisation continue du Site après toute modification des Termes et conditions constituera une acceptation de ces modifications."
+                },
+                {
+                    "title": "8. Loi applicable",
+                    "text": "Les présents termes et conditions sont régis par les lois de l’État italien. En cas de litige, les parties seront soumises à la juridiction exclusive des tribunaux italiens."
+                },
+                {
+                    "title": "9. Contact",
+                    "text": "En cas de questions ou de commentaires sur les présents termes et conditions, veuillez contacter le propriétaire du site web à l’adresse {{society_email}}."
+                }
+            ]
+        }
+    }
+}

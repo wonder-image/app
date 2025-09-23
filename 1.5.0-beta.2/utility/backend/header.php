@@ -62,7 +62,7 @@
 
                                         array_push($offcanvas, [
                                             'title' => $titleSub,
-                                            'link' => $PATH->site.'/backend/'.$folderSub.'/'.$fileSub,
+                                            'link' => $PATH->backend.'/'.$folderSub.'/'.$fileSub,
                                             'active' => $activeSub
                                         ]);
 
@@ -84,7 +84,7 @@
                             if (!empty($offcanvas)) {
                                 $navAction = "type='button' data-bs-toggle='offcanvas' data-bs-target='#$targetId' aria-label='Close'";
                             } else {
-                                $navUrl = isset(parse_url($fileNav)['host']) ? $fileNav : $PATH->site.'/backend/'.$folderNav.'/'.$fileNav ;
+                                $navUrl = isset(parse_url($fileNav)['host']) ? $fileNav : $PATH->backend.'/'.$folderNav.'/'.$fileNav ;
                                 $navAction = "href='$navUrl'";
                             }
         
@@ -131,11 +131,11 @@
                 echo sidebarOffcanvas($impostazioniId, "Impostazioni", [
                     [
                         'title' => 'Profilo',
-                        'link' => $PATH->site.'/backend/account',
+                        'link' => $PATH->backend.'/account',
                         'active' => ($currentDir == 'account') ? true : false
                     ],[
                         'title' => 'Esci',
-                        'link' => $PATH->site.'/backend/',
+                        'link' => $PATH->backend.'/',
                         'active' => false
                     ]
                 ]);

@@ -5,6 +5,7 @@
     class LanguageContext
     {
         private static string $lang;
+        private static string $langSource = "none";
         private static string $defaultLang = 'it';
         private static array $langs = [];
         private static array $pathFile = [];
@@ -34,7 +35,7 @@
 
             self::$langs[$code] = [
                 'name' => $name,
-                'link' => rtrim($link, '/'),
+                'link' => rtrim($link, '/').'/',
                 'flag' => $flag,
                 'countries' => $countries,
             ];
@@ -61,6 +62,8 @@
             $pathArray = array_values(array_filter(explode('/', $parsedUri["path"] ?? '')));
             $code = isset($pathArray[0]) ? strtolower($pathArray[0]) : self::$defaultLang;
 
+            self::$langSource = 'path';
+
             return self::setLang($code);
             
         }
@@ -72,6 +75,8 @@
             $parts = explode('.', $host);
             $tld = strtolower(end($parts));
 
+            self::$langSource = 'domain';
+
             return self::setLang($tld);
 
         }
@@ -82,6 +87,8 @@
             $host = $_SERVER['HTTP_HOST'] ?? '';
             $parts = explode('.', $host);
             $sub = strtolower($parts[0] ?? '');
+
+            self::$langSource = 'subdomain';
             
             return self::setLang($sub);
 
@@ -91,6 +98,8 @@
         {
 
             $code = strtolower($_GET['lang'] ?? '');
+
+            self::$langSource = 'query';
             
             return self::setLang($code);
 
@@ -109,6 +118,8 @@
                 // prendo il codice della prima lingua (prima di "-")
                 $lang = substr($langs[0], 0, 2);
             }
+
+            self::$langSource = 'header';
 
             return self::setLang($lang);
 
@@ -132,13 +143,143 @@
         public static function getSitePath(): string
         {
 
-            if (isset(self::$langs[self::$lang]['link'])) {
-                return rtrim(self::$langs[self::$lang]['link'], '/');
+            return self::createLangUrl();
+            
+        }
+
+        public static function createLangUrl(string $path = ''): string
+        {
+
+            $path = ltrim($path, '/');
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http');
+            $host = $_SERVER['HTTP_HOST'] ?? '';
+            $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
+            $finalUrl = '';
+
+            switch (self::$langSource) {
+                case 'path':
+                    $finalUrl = $scheme . '://' . $host . '/' . self::$lang . '/' . $path;
+                    break;
+
+                case 'subdomain':
+                    $parts = explode('.', $host);
+                    array_shift($parts); // rimuovo subdomain esistente
+                    $hostWithoutSub = implode('.', $parts);
+                    $finalUrl = $scheme . '://' . self::$lang . '.' . $hostWithoutSub . '/' . $path;
+                    break;
+
+                case 'domain':
+                    $parts = explode('.', $host);
+                    array_pop($parts); // tolgo TLD
+                    $parts[] = self::$lang; // nuova lingua come TLD
+                    $finalUrl = $scheme . '://' . implode('.', $parts) . '/' . $path;
+                    break;
+
+                case 'query':
+                    $parsed = parse_url($uri);
+                    $existingQuery = [];
+                    if (!empty($parsed['query'])) {
+                        parse_str($parsed['query'], $existingQuery);
+                    }
+                    $existingQuery['lang'] = self::$lang;
+                    $newQuery = http_build_query($existingQuery);
+
+                    $basePath = $parsed['path'] ?? '/';
+                    if ($path !== '') {
+                        $basePath = rtrim($basePath, '/') . '/' . $path;
+                    }
+
+                    $finalUrl = $scheme . '://' . $host . $basePath . '?' . $newQuery;
+                    break;
+
+                case 'header':
+                default:
+                    $finalUrl = $scheme . '://' . $host . '/' . $path;
+                    break;
             }
 
-            return rtrim(self::$langs[self::$defaultLang]['link'] ?? '/', '/');
+            // aggiungi slash finale se manca e se non ci sono query o fragment
+            $parsedFinal = parse_url($finalUrl);
+            $hasQueryOrFragment = !empty($parsedFinal['query']) || !empty($parsedFinal['fragment']);
 
+            if (!$hasQueryOrFragment) {
+                $finalUrl = rtrim($finalUrl, '/') . '/';
+            }
+
+            return $finalUrl;
+            
         }
+
+        public static function switchLangUrl(string $url, string $lang): string
+        {
+
+            $parsed = parse_url($url);
+
+            $scheme = $parsed['scheme'] ?? 'http';
+            $host   = $parsed['host'] ?? ($_SERVER['HTTP_HOST'] ?? '');
+            $path   = $parsed['path'] ?? '/';
+            $query  = $parsed['query'] ?? '';
+
+            switch (self::$langSource) {
+                case 'path':
+                    $segments = array_values(array_filter(explode('/', $path)));
+                    if (!empty($segments)) {
+                        $segments[0] = $lang; // sostituisco il primo segmento
+                    } else {
+                        $segments[] = $lang;
+                    }
+                    $path = '/' . implode('/', $segments);
+                    break;
+
+                case 'subdomain':
+                    $parts = explode('.', $host);
+                    if (count($parts) > 2) {
+                        $parts[0] = $lang;
+                    } else {
+                        array_unshift($parts, $lang);
+                    }
+                    $host = implode('.', $parts);
+                    break;
+
+                case 'domain':
+                    $parts = explode('.', $host);
+                    if (count($parts) >= 2) {
+                        $parts[count($parts) - 1] = $lang;
+                    }
+                    $host = implode('.', $parts);
+                    break;
+
+                case 'query':
+                    parse_str($query, $params);
+                    $params['lang'] = $lang;
+                    $query = http_build_query($params);
+                    break;
+
+                case 'header':
+                default:
+                    return $url;
+            }
+
+            // ricostruisco URL
+            $newUrl = $scheme . '://' . $host . $path;
+            if (!empty($query)) {
+                $newUrl .= '?' . $query;
+            }
+            if (!empty($parsed['fragment'])) {
+                $newUrl .= '#' . $parsed['fragment'];
+            }
+
+            // aggiungo slash finale se manca e se non ci sono query o fragment
+            $hasQueryOrFragment = !empty($query) || !empty($parsed['fragment']);
+            if (!$hasQueryOrFragment) {
+                $newUrl = rtrim($newUrl, '/') . '/';
+            }
+
+            return $newUrl;
+            
+        }
+
 
         public static function getPathFiles(): array
         {
@@ -149,21 +290,19 @@
         public static function renderHead(string $currentUrl): string
         {
 
-            $baseSite = self::$langs[self::$lang]['link'];
-
             $html  = '<meta http-equiv="content-language" content="' . htmlspecialchars(self::$lang) . '">' . "\n\n";
 
             // x-default
             if (isset(self::$langs[self::$defaultLang])) {
                 $html .= '<link rel="alternate" href="' 
-                    . htmlspecialchars(str_replace($baseSite, self::$langs[self::$defaultLang]['link'], $currentUrl)) 
+                    . htmlspecialchars(self::switchLangUrl($currentUrl, self::$defaultLang)) 
                     . '" hreflang="x-default" />' . "\n";
             }
 
             // tutte le lingue configurate
             foreach (self::$langs as $code => $conf) {
                 $html .= '<link rel="alternate" href="'
-                    . htmlspecialchars(str_replace($baseSite, $conf['link'], $currentUrl))
+                    . htmlspecialchars(self::switchLangUrl($currentUrl, $code)) 
                     . '" hreflang="' . htmlspecialchars($code) . '" />' . "\n";
             }
 

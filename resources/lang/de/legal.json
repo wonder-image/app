@@ -1,0 +1,136 @@
+{
+    "privacy_policy" : {
+        "seo" : {
+            "title" : "Datenschutzerklärung von {{domain}}",
+            "description" : "Lesen Sie unsere Datenschutzerklärung, um zu verstehen, wie wir Ihre personenbezogenen Daten erheben, verwenden und schützen."
+        },
+        "content" : {
+            "title" : "Datenschutzerklärung",
+            "subtitle" : "Der Schutz der Privatsphäre unserer Kunden ist uns wichtig. Unsere Datenschutzerklärung erläutert die Methoden der Erhebung, Nutzung, Übermittlung und Speicherung Ihrer personenbezogenen Daten. Die Verarbeitung personenbezogener Daten erfolgt im Einklang mit der Datenschutz-Grundverordnung (DSGVO, General Data Protection Regulation). Bitte lesen Sie die gesamte Datenschutzerklärung sorgfältig durch.",
+            "paragraphs" : [
+                {
+                    "title" : "1. Verantwortlicher für die Datenverarbeitung und Kontaktdaten",
+                    "text" : "Verantwortlich für die Verarbeitung der personenbezogenen Daten, die wir zu den unten genannten Zwecken erheben, ist {{legal_name}}, St.-Nr. {{society_cf}}, USt-IdNr. {{society_pi}}. <br> Für Fragen oder Anfragen hierzu können Sie folgende Kontaktdaten verwenden: {{legal_name}}, {{legal_address}}, E-Mail {{society_email}}, Tel. {{society_phone}}."
+                }, {
+                    "title" : "2. Art und Zweck der Verarbeitung personenbezogener Daten",
+                    "text" : "Gemäß Art. 6 Abs. 1 lit. b DSGVO, der Bestimmungen zum Schutz der Vertraulichkeit bei der Verarbeitung personenbezogener Daten enthält, möchten wir Sie darüber informieren, dass: <br><ul><li>Die von Ihnen bereitgestellten oder im Rahmen unserer Tätigkeit anderweitig erworbenen personenbezogenen Daten können mit oder ohne elektronische Hilfsmittel im Einklang mit den oben genannten Vorschriften für die institutionellen Zwecke unserer Kanzlei verarbeitet werden, insbesondere zur Erbringung einer Dienstleistung oder einer oder mehrerer vertraglich vereinbarter Leistungen; zur Erfüllung gesetzlicher oder regulatorischer Verpflichtungen; sowie zum Schutz der Rechte des Verantwortlichen <?=$LEGAL->name?> vor Gericht (im Folgenden „Vertragliche Zwecke“);</li><li>Die Bereitstellung Ihrer Daten an {{legal_name}}, wie oben angegeben, ist zwingend erforderlich für die Durchführung des Vertragsverhältnisses oder, soweit angegeben, für die vom Nutzer genehmigten Tätigkeiten. Insbesondere die folgenden Verarbeitungen Ihrer personenbezogenen Daten, die über die Vertraglichen Zwecke hinausgehen, sind nur mit Ihrer ausdrücklichen Einwilligung möglich:<ol><li>Veröffentlichung von Fotos und/oder Videos, auf denen Sie abgebildet sind, im Bereich „GALERIE“ der Website oder über andere elektronische (z. B. Facebook, LinkedIn, Instagram) oder traditionelle Kanäle zu Werbezwecken;</li><li>Vorzeigen und/oder Versenden von Fotos, auf denen Sie abgebildet sind, an Dritte zu Werbezwecken;</li><li>Versand von Informationsmaterial über die von {{legal_name}} angebotenen Dienstleistungen sowie über etwaige, auch kommerzielle Initiativen mittels elektronischer und/oder traditioneller Kommunikation.</li></ol></li></ul>Die unter den Punkten 1, 2 und 3 genannten Verarbeitungen werden insgesamt als „Marketingzwecke“ bezeichnet. <br>{{legal_name}} wird Sie fragen, ob Sie den Marketingzwecken bei Annahme des Auftrags oder auch später ausdrücklich zustimmen möchten. Ihre berechtigte Weigerung, die Einwilligung für eine oder mehrere Marketingzwecke zu erteilen, beeinträchtigt nicht die Verarbeitung Ihrer personenbezogenen Daten ausschließlich für die Vertraglichen Zwecke.<ul><li>Die Daten werden an unserem Firmensitz in {{legal_address}}, 3 für den gesetzlich vorgeschriebenen Zeitraum aufbewahrt;</li><li>Die Verarbeitung der bereitgestellten oder im Rahmen unserer Tätigkeit erworbenen Daten kann auch durch Stellen erfolgen, die gesetzlich oder durch sekundäre und/oder gemeinschaftliche Vorschriften befugt sind, auf Ihre personenbezogenen Daten zuzugreifen;</li><li>Um unbefugten Zugriff, Missbrauch oder Datenverlust zu verhindern, werden spezifische Sicherheitsmaßnahmen ergriffen;</li><li>Die von Ihnen bereitgestellten personenbezogenen Daten werden nicht in Länder außerhalb der EU übermittelt;</li><li>Sie können jederzeit die Änderung oder Löschung dieser Daten verlangen.</li></ul>"
+                }, {
+                    "title" : "3. Rechtsgrundlage der Verarbeitung",
+                    "text" : "Die Rechtsgrundlage für die Verarbeitung zu Vertraglichen Zwecken ergibt sich aus der Erfüllung des Vertrags und den damit verbundenen Pflichten sowie aus den gesetzlichen Verpflichtungen, die sich aus dem Vertrag oder dem Gesetz ergeben. <br>Die Rechtsgrundlage für die Verarbeitung zu Marketingzwecken ist die jeweilige, von Ihnen freiwillig erteilte Einwilligung."
+                },  {
+                    "title" : "4. Aufbewahrungsdauer der Daten",
+                    "text" : "Die zu Vertraglichen Zwecken erhobenen Daten werden für den Zeitraum aufbewahrt, der nach den einschlägigen zivil- und steuerrechtlichen Vorschriften erforderlich ist. <br>Die zu Marketingzwecken erhobenen Daten werden für den Zeitraum aufbewahrt, der für die jeweilige Verarbeitung erforderlich ist, und in jedem Fall nicht länger als 5 Jahre."
+                }, {
+                    "title" : "5. Besondere Kategorien personenbezogener Daten",
+                    "text" : "Sollten Sie {{legal_name}} Daten zur Verfügung stellen, die als „besondere Kategorien personenbezogener Daten“ gelten, d. h. Daten, die Ihre rassische oder ethnische Herkunft, politische Meinungen, religiöse oder weltanschauliche Überzeugungen oder Gewerkschaftszugehörigkeit offenlegen, sowie genetische Daten, biometrische Daten zur eindeutigen Identifizierung einer natürlichen Person, Gesundheitsdaten oder Daten zum Sexualleben oder zur sexuellen Orientierung gemäß Art. 9 und 10 DSGVO, dürfen diese Daten nur mit Ihrer freien und ausdrücklichen Einwilligung verarbeitet werden, die schriftlich oder digital über ein Ihnen zur Verfügung gestelltes Formular erteilt wird. <br> Für diese Art von Daten gelten verstärkte Sicherheitsmaßnahmen, um den höchstmöglichen Schutz Ihrer Daten zu gewährleisten."
+                }, {
+                    "title" : "6. Rechte der betroffenen Person",
+                    "text" : "Sie können jederzeit gemäß den Artikeln 15 bis 22 DSGVO die folgenden Rechte ausüben:<ul><li>Bestätigung verlangen, ob personenbezogene Daten über Sie vorliegen (Auskunftsrecht);</li><li>Informationen über die Zwecke der Verarbeitung, die Kategorien personenbezogener Daten, die Empfänger oder Kategorien von Empfängern, an die die personenbezogenen Daten weitergegeben wurden oder werden, und, soweit möglich, die Aufbewahrungsfrist erhalten;</li><li>Berichtigung unrichtiger personenbezogener Daten und Vervollständigung unvollständiger Daten verlangen;</li><li>Einschränkung der Verarbeitung in den in Art. 18 DSGVO genannten Fällen verlangen;</li><li>Löschung der Daten oder Umwandlung in anonyme Form verlangen, sobald die gesetzliche oder in dieser Erklärung festgelegte Aufbewahrungsfrist abgelaufen ist;</li><li>Datenübertragbarkeit verlangen, d. h. eine Kopie der Sie betreffenden personenbezogenen Daten in einem strukturierten, gängigen und maschinenlesbaren Format erhalten, um diese an einen anderen Verantwortlichen zu übermitteln;</li><li>Der Verarbeitung jederzeit widersprechen, es sei denn, es liegen zwingende berechtigte Gründe für die Fortsetzung der Verarbeitung vor;</li><li>Die Einwilligung zu Marketingzwecken jederzeit widerrufen, ohne die Rechtmäßigkeit der aufgrund der Einwilligung vor dem Widerruf erfolgten Verarbeitung zu beeinträchtigen. Dieser Widerruf kann auch nur auf bestimmte Verarbeitungsarten beschränkt werden;</li><li>Beschwerde bei der Datenschutzbehörde oder einer anderen zuständigen Aufsichtsbehörde einlegen.</li></ul>Die betroffene Person kann ihre Rechte ausüben, indem sie den Verantwortlichen über die in dieser Erklärung angegebenen Kontaktmöglichkeiten kontaktiert."
+                }, {
+                    "title" : "7. Änderungen der Datenschutzrichtlinie",
+                    "text" : "Wir können die Informationen in dieser Datenschutzrichtlinie ändern, wenn wir dies für angemessen halten. In diesem Fall werden wir Sie über verschiedene Verfahren über die Plattform informieren (z. B. durch ein Banner, ein Pop-up oder eine Push-Benachrichtigung) oder durch eine Mitteilung an Ihre E-Mail-Adresse, wenn die Änderung Ihre Privatsphäre erheblich betrifft, damit Sie die Änderungen einsehen, bewerten und gegebenenfalls widersprechen oder die Dienste kündigen können."
+                }
+            ],
+            "payoff" : "Der vollständige Gesetzestext kann online eingesehen werden: <a href=\"https://www.garanteprivacy.it/il-testo-del-regolamento\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.garanteprivacy.it/il-testo-del-regolamento</a>"
+        }
+    },
+    "cookie_policy" : {
+        "seo" : {
+            "title" : "Cookie-Richtlinie von {{domain}}",
+            "description" : "Erfahren Sie, wie wir Cookies auf unserer Website verwenden und wie Sie Ihre Präferenzen verwalten können."
+        },
+        "content" : {
+            "title": "Cookie-Richtlinie",
+            "subtitle": "",
+            "paragraphs": [
+                {
+                    "title": "1. Einleitung",
+                    "text": "Die Website {{domain}}, im Folgenden \"die Website\" genannt, verwendet Cookies, um die Benutzererfahrung zu verbessern und Informationen über die Nutzung der Website zu sammeln. Diese Cookie-Richtlinie beschreibt die von der Website verwendeten Arten von Cookies und die Verwaltung der Cookies. Bitte lesen Sie diese Cookie-Richtlinie sorgfältig durch, bevor Sie die Website nutzen."
+                },
+                {
+                    "title": "2. Was sind Cookies?",
+                    "text": "Cookies sind kleine Textdateien, die auf dem Gerät des Nutzers gespeichert werden, wenn er eine Website besucht. Cookies werden verwendet, um Informationen über die Nutzung der Website durch den Nutzer zu sammeln, z. B. die besuchten Seiten und die auf der Website verbrachte Zeit."
+                },
+                {
+                    "title": "3. Auf der Website verwendete Cookies",
+                    "text": "Die Website verwendet die folgenden Arten von Cookies:<ul><li>Technische Cookies: erforderlich für das ordnungsgemäße Funktionieren der Website. Sie erfordern keine Zustimmung des Nutzers.</li><li>Cookies von <b>Google Tag Manager</b>: ermöglichen die Integration von Tracking-Tools wie Google Analytics oder Facebook Pixel, ohne personenbezogene Daten des Nutzers zu erheben.</li><li>Cookies von <b>Google Analytics</b>: werden verwendet, um die Nutzung der Website zu verfolgen, Berichte zu erstellen und die Benutzererfahrung zu verbessern, wobei die IP-Adresse anonymisiert wird.</li><li>Cookies von <b>Google Search Console</b>: überwachen die Indexierung der Website in Suchmaschinen, ohne personenbezogene Daten zu erfassen.</li><li>Cookies von <b>Facebook Pixel</b>: überwachen Konversionen und Nutzerinteraktionen zu Marketingzwecken.</li><li>Cookies von <b>Google Ads</b>: überwachen die Wirksamkeit von Werbekampagnen, ohne personenbezogene Daten zu erfassen.</li></ul>"
+                },
+                {
+                    "title": "4. Verwendung von Cookies",
+                    "text": "Die Website verwendet Cookies für verschiedene Zwecke, unter anderem:<ul><li>Analyse der Nutzung durch Google Analytics und Google Tag Manager;</li><li>Optimierung durch Google Search Console;</li><li>Zielgerichtete Werbung durch Facebook Pixel.</li></ul>"
+                },
+                {
+                    "title": "5. Arten von Cookies",
+                    "text": "Die verwendeten Cookies lassen sich in folgende Kategorien einteilen:<ul><li>Sitzungscookies, die beim Schließen des Browsers gelöscht werden;</li><li>Permanente Cookies, die auf dem Gerät verbleiben, um Präferenzen zu speichern;</li><li>Drittanbieter-Cookies, die für Analysen oder personalisierte Werbung verwendet werden.</li></ul>"
+                },
+                {
+                    "title": "6. Links zu Websites Dritter",
+                    "text": "Die Website kann Links zu Websites Dritter enthalten, die Cookies und andere Tracking-Technologien verwenden können. Diese Cookie-Richtlinie gilt nicht für diese Websites, und der Eigentümer der Website ist nicht verantwortlich für die Datenschutzrichtlinien oder Praktiken dieser Websites."
+                },
+                {
+                    "title": "7. Änderungen der Cookie-Richtlinie",
+                    "text": "Der Eigentümer der Website behält sich das Recht vor, diese Cookie-Richtlinie jederzeit und ohne Vorankündigung zu ändern. Es liegt in der Verantwortung des Nutzers, die Cookie-Richtlinie regelmäßig auf mögliche Aktualisierungen zu überprüfen."
+                },
+                {
+                    "title": "8. Verwaltung der Cookies",
+                    "text": "Der Nutzer kann die von der Website verwendeten Cookies über die Einstellungen seines Browsers verwalten. Es ist möglich, alle Cookies oder nur einige zu blockieren. Einige Funktionen der Website sind möglicherweise nicht verfügbar, wenn Cookies blockiert werden."
+                },
+                {
+                    "title": "9. Weitere Informationen",
+                    "text": "Weitere Informationen über die Erhebung und Nutzung personenbezogener Daten finden Sie in der <a href=\"{{path_site}}legal/privacy-policy/\">Datenschutzerklärung</a> der Website."
+                },
+                {
+                    "title": "10. Zustimmung zu Cookies",
+                    "text": "Die Nutzung der Website setzt die Zustimmung zu dieser Cookie-Richtlinie voraus. Im Falle einer Nichtzustimmung muss der Nutzer die Nutzung der Website sofort einstellen."
+                }
+            ]
+        }
+    },
+    "terms_conditions" : {
+        "seo" : {
+            "title" : "Allgemeine Geschäftsbedingungen von {{domain}}",
+            "description" : "Lesen Sie die Allgemeinen Geschäftsbedingungen, die die Nutzung unserer Website und unserer Dienstleistungen regeln."
+        },
+        "content" : {
+            "title": "Allgemeine Geschäftsbedingungen",
+            "paragraphs": [
+                {
+                    "title": "1. Annahme der Bedingungen",
+                    "text": "Willkommen auf der Website von {{domain}}, im Folgenden \"die Website\" genannt. Bitte lesen Sie vor der Nutzung der Website sorgfältig die folgenden Allgemeinen Geschäftsbedingungen (\"AGB\"), die den Zugang zur und die Nutzung der Website regeln. Durch den Zugriff auf und die Nutzung der Website akzeptiert der Nutzer automatisch die folgenden AGB und verpflichtet sich, diese einzuhalten. Wenn Sie diese AGB nicht akzeptieren, nutzen Sie die Website bitte nicht."
+                },
+                {
+                    "title": "2. Nutzung der Website",
+                    "text": "Die Website ist ausschließlich für den persönlichen und nicht kommerziellen Gebrauch bestimmt. Es ist nicht gestattet, die Website für illegale Aktivitäten oder zur Verletzung der Rechte Dritter zu nutzen. Ebenso ist es nicht gestattet, die Website zum Versenden von Spam oder unerwünschten Nachrichten zu verwenden."
+                },
+                {
+                    "title": "3. Geistiges Eigentum",
+                    "text": "Alle Inhalte der Website, einschließlich Texte, Bilder, Videos, Logos, Marken, Grafiken, HTML-Code und andere Materialien, sind Eigentum von {{legal_name}} oder den jeweiligen Eigentümern und durch die Gesetze zum Schutz des geistigen Eigentums geschützt. Es ist nicht gestattet, diese Inhalte ohne die ausdrückliche Genehmigung des Website-Eigentümers zu kopieren, zu ändern, zu verbreiten oder für kommerzielle Zwecke zu nutzen."
+                },
+                {
+                    "title": "4. Haftung",
+                    "text": "Der Eigentümer der Website haftet nicht für Schäden, die sich aus der Nutzung der Website ergeben, einschließlich Datenverlust oder entgangenem Gewinn. Darüber hinaus haftet der Eigentümer der Website nicht für Fehler, Ungenauigkeiten oder Auslassungen in den Inhalten der Website."
+                },
+                {
+                    "title": "5. Externe Links",
+                    "text": "Die Website kann Links zu anderen Websites enthalten, die nicht im Besitz des Website-Eigentümers sind oder von ihm kontrolliert werden. Der Website-Eigentümer hat keine Kontrolle über den Inhalt, die Richtlinien oder die Praktiken solcher Websites und ist nicht verantwortlich für Verluste, Schäden oder Verletzungen, die aus der Nutzung oder der Unmöglichkeit der Nutzung solcher Websites entstehen. Die Aufnahme von Links zu anderen Websites impliziert nicht notwendigerweise eine Billigung oder Empfehlung dieser Websites durch den Eigentümer der Website."
+                },
+                {
+                    "title": "6. Datenschutz",
+                    "text": "Der Schutz der Privatsphäre der Nutzer der Website ist dem Eigentümer der Website wichtig. Bitte lesen Sie die <a href=\"{{path_site}}legal/privacy-policy/\">Datenschutzerklärung</a> der Website für weitere Informationen zur Erhebung, Nutzung und zum Schutz personenbezogener Daten."
+                },
+                {
+                    "title": "7. Änderungen der Allgemeinen Geschäftsbedingungen",
+                    "text": "Der Eigentümer der Website behält sich das Recht vor, diese AGB jederzeit und ohne Vorankündigung zu ändern. Bitte überprüfen Sie die AGB regelmäßig, um mögliche Aktualisierungen oder Änderungen festzustellen. Die fortgesetzte Nutzung der Website nach Änderungen der AGB stellt die Annahme dieser Änderungen dar."
+                },
+                {
+                    "title": "8. Anwendbares Recht",
+                    "text": "Diese AGB unterliegen den Gesetzen der Italienischen Republik. Im Falle von Streitigkeiten unterliegen die Parteien der ausschließlichen Zuständigkeit der italienischen Gerichte."
+                },
+                {
+                    "title": "9. Kontakt",
+                    "text": "Bei Fragen oder Anmerkungen zu diesen AGB wenden Sie sich bitte an den Eigentümer der Website unter {{society_email}}."
+                }
+            ]
+        }
+    }
+}

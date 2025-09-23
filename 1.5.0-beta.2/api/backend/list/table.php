@@ -94,7 +94,7 @@
 
         $URL_PARTS['query'] = http_build_query($PARAMS);
 
-        $PAGE->redirect = $PATH->site . $URL_PARTS['path'].'?'.$URL_PARTS['query'];
+        $PAGE->redirect = 'https://www.'.$PAGE->domain . $URL_PARTS['path'].'?'.$URL_PARTS['query'];
         $PAGE->redirectBase64 = base64_encode($PAGE->redirect);
 
         $NAME->page = $PAGE_NUMBER;

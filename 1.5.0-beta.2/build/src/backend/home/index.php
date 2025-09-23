@@ -80,7 +80,7 @@
                                     $fileSub = isset($sub['file']) ? $sub['file'] : '';
 
                                     if (!$authSub || count(array_intersect($authSub, $USER->authority)) >= 1) {
-                                        $subNavs .= "<a class='list-group-item list-group-item-action' href='$PATH->site/backend/$folderSub/$fileSub'>$titleSub <i class='bi bi-chevron-right float-end'></i></a>";
+                                        $subNavs .= "<a class='list-group-item list-group-item-action' href='$PATH->backend/$folderSub/$fileSub'>$titleSub <i class='bi bi-chevron-right float-end'></i></a>";
                                     }
                                     
                                 }
@@ -101,7 +101,7 @@
 
                                 echo "
                                 <div class='list-group ps-2'>
-                                    <a href='$PATH->site/backend/$folderNav/$fileNav' type='button' class='list-group-item list-group-item-dark list-group-item-action'><i class='bi $iconNav mr-2'></i> $titleNav <i class='bi bi-chevron-right float-end'></i></a>
+                                    <a href='$PATH->backend/$folderNav/$fileNav' type='button' class='list-group-item list-group-item-dark list-group-item-action'><i class='bi $iconNav mr-2'></i> $titleNav <i class='bi bi-chevron-right float-end'></i></a>
                                 </div>";
 
                             }

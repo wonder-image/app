@@ -41,7 +41,7 @@
         $FILE_TXT = "User-agent: *\n";
         $FILE_TXT .= "Disallow: /backend/\n";
         $FILE_TXT .= "\n";
-        $FILE_TXT .= "Sitemap: $PATH->site/shared/sitemap/sitemap.xml";
+        $FILE_TXT .= "Sitemap: https://www.$PAGE->domain/shared/sitemap/sitemap.xml";
 
         fwrite($FILE, $FILE_TXT);
         fclose($FILE);

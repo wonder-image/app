@@ -41,7 +41,7 @@
                     sqlModify('user', [ 'password' => $password ], 'id', $USER_ID);
 
                     $content = "La tua password è stata impostata con successo! <br>
-                    <a href='$PATH->site/backend/'>Accedi</a><br>
+                    <a href='$PATH->backend/'>Accedi</a><br>
                     <br>
                     Se non sei stato tu a richiederlo contattaci: info@wonderimage.it";
 

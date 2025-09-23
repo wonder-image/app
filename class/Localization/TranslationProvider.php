@@ -56,9 +56,7 @@
         public static function setGlobals(array $globals): self
         {
 
-            if (!self::$instance) {
-                throw new RuntimeException("TranslationProvider non inizializzato.");
-            }
+            self::init();
 
             self::$instance->globalReplacements = array_merge(self::$instance->globalReplacements, $globals);
 

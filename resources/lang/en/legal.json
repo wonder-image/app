@@ -1,0 +1,142 @@
+{
+    "privacy_policy": {
+        "seo": {
+            "title": "Privacy Policy of {{domain}}",
+            "description": "Read our privacy policy to understand how we collect, use, and protect your personal data."
+        },
+        "content": {
+            "title": "Privacy Policy",
+            "subtitle": "The privacy of our clients is important to us. Our Personal Data Processing Policy explains how we collect, use, transfer, and store information about you. The processing of personal data takes place in compliance with the General Data Protection Regulation (GDPR). Please read the entire Privacy Policy carefully.",
+            "paragraphs": [
+                {
+                    "title": "1. Data Controller and Contact Information",
+                    "text": "The Data Controller of the personal data we collect for the purposes indicated below is {{legal_name}}, Tax Code {{society_cf}}, VAT {{society_pi}}. <br> For questions or requests, you can use the following references and contacts: {{legal_name}}, {{legal_address}}, Email {{society_email}}, Tel. {{society_phone}}."
+                },
+                {
+                    "title": "2. Methods and Purposes of Personal Data Processing",
+                    "text": "With reference to Article 6, para. 1, letter b of the GDPR, regarding confidentiality in the processing of personal data, we hereby inform you that: <br><ul><li>The personal data you provide, or otherwise acquired in the course of our business, may be processed with or without electronic means, in compliance with the aforementioned legislation, for the institutional purposes of our Firm, and in particular for: performing a service or one or more contractually agreed operations; fulfilling obligations provided by laws or regulations; and protecting the rights of the Data Controller <?=$LEGAL->name?> in court (hereinafter the “Contractual Purposes”);</li><li>Providing your data to {{legal_name}}, as identified above, is strictly necessary for the execution of the contractual relationship or, when specified, for activities consented to by the user. In particular, the following processing of your personal data, other than the Contractual Purposes, is possible only with your specific consent:<ol><li>publishing photographs and/or videos portraying you in the “GALLERY” section of the Site or through other electronic (e.g. Facebook, LinkedIn, Instagram) or traditional channels for promotional purposes;</li><li>displaying and/or sending photographs portraying you to third parties for promotional purposes;</li><li>sending you informational material about the services offered by {{legal_name}}, as identified above, and any commercial initiatives it may undertake, through electronic and/or traditional communications.</li></ol></li></ul>The processing indicated in points 1, 2, and 3 are collectively referred to as “Marketing Purposes.” <br>{{legal_name}} will ask whether you expressly consent to the Marketing Purposes at the time of assignment acceptance or later. Your legitimate refusal to consent to one or more of the Marketing Purposes will not affect the processing of your personal data for the Contractual Purposes only.<ul><li>Data will be stored at our registered office in {{legal_address}}, 3 for the time prescribed by law;</li><li>The processing of data provided, or otherwise acquired during our activity, may also be carried out by parties authorized by law or secondary and/or EU regulations to access your personal data;</li><li>Specific security measures are adopted to prevent unauthorized access, unlawful or improper use, and loss of personal data;</li><li>The personal data you provide is not transferred to non-EU third countries;</li><li>You may request the modification or deletion of such data at any time.</li></ul>"
+                },
+                {
+                    "title": "3. Legal Basis for Processing",
+                    "text": "The legal basis for processing carried out for the Contractual Purposes is the fulfillment of the contract and related obligations, as well as compliance with legal obligations arising from the contract or law. <br>The legal basis for processing carried out for the Marketing Purposes is the respective consents freely given by you."
+                },
+                {
+                    "title": "4. Data Retention Period",
+                    "text": "Data collected for processing under the Contractual Purposes will be retained for a period required by applicable civil and tax laws. <br>Data collected for processing under the Marketing Purposes will be retained for the period necessary for the specific purposes and, in any case, no longer than 5 years."
+                },
+                {
+                    "title": "5. Special Categories of Personal Data",
+                    "text": "If you provide {{legal_name}} with data that qualifies as “special categories of personal data,” meaning data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, as well as genetic data, biometric data intended to uniquely identify a natural person, health data, or data concerning a person's sex life or sexual orientation under Articles 9 and 10 of the GDPR, such data can only be processed with your free and explicit consent, expressed in writing or digitally through a form provided to you. <br> Specific security measures for this type of data are further enhanced to ensure the highest standard of security for your data."
+                },
+                {
+                    "title": "6. Rights of the Data Subject",
+                    "text": "At any time, you may exercise, pursuant to Articles 15 to 22 of the GDPR, the right to:<ul><li>request confirmation as to whether personal data concerning you exists (right of access);</li><li>obtain information about the purposes of processing, categories of personal data, recipients or categories of recipients to whom personal data has been or will be communicated, and, where possible, the retention period;</li><li>obtain the correction of inaccurate personal data and the completion of incomplete data;</li><li>obtain the restriction of processing in the cases indicated in Article 18 GDPR;</li><li>obtain the deletion or anonymization of data after the retention period established by law or this notice;</li><li>obtain data portability, i.e., receive a copy of your personal data in a structured, commonly used, and machine-readable format to transmit it to another data controller;</li><li>object to processing at any time, unless there are legitimate reasons for continuing processing;</li><li>withdraw consent for Marketing Purposes at any time, without prejudice to the lawfulness of processing based on consent prior to withdrawal. Such withdrawal may also be limited to specific processing methods;</li><li>file a complaint with the Data Protection Authority or another competent supervisory authority.</li></ul>The Data Subject may exercise their rights by contacting the Data Controller through the methods indicated in this Privacy Policy."
+                },
+                {
+                    "title": "7. Changes to the Privacy Policy",
+                    "text": "We may amend the information contained in this Privacy Policy whenever we deem it appropriate. In such case, we will inform you through different procedures via the Platform (e.g., banner, pop-up, or push notification) or by sending a notice to your email address if the change significantly affects your privacy, so that you can review the changes, evaluate them, and, if applicable, object or cancel any services."
+                }
+            ],
+            "payoff": "You can read the full text of the law online: <a href=\"https://www.garanteprivacy.it/il-testo-del-regolamento\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.garanteprivacy.it/il-testo-del-regolamento</a>"
+        }
+    },
+    "cookie_policy": {
+        "seo": {
+            "title": "Cookie Policy of {{domain}}",
+            "description": "Learn how we use cookies on our website and how you can manage your preferences."
+        },
+        "content": {
+            "title": "Cookie Policy",
+            "subtitle": "",
+            "paragraphs": [
+                {
+                    "title": "1. Introduction",
+                    "text": "The website {{domain}}, hereinafter referred to as the \"Site,\" uses cookies to improve user experience and to collect information on how the Site is used. This Cookie Policy describes the types of cookies used by the Site and how to manage them. Please read this Cookie Policy carefully before using the Site."
+                },
+                {
+                    "title": "2. What are cookies?",
+                    "text": "Cookies are small text files stored on the user’s device when visiting a website. Cookies are used to collect information about the user’s interaction with the website, such as pages visited and time spent on the site."
+                },
+                {
+                    "title": "3. Cookies Used on the Site",
+                    "text": "The Site uses the following types of cookies:<ul><li>Technical cookies: necessary for the proper functioning of the Site. They do not require user consent.</li><li><b>Google Tag Manager</b> cookies: allow integration of tracking tools such as Google Analytics or Facebook Pixel, without collecting personal user information.</li><li><b>Google Analytics</b> cookies: used to track Site usage, create reports, and improve user experience, anonymizing the IP address.</li><li><b>Google Search Console</b> cookies: monitor the indexing of the Site on search engines, without collecting personal data.</li><li><b>Facebook Pixel</b> cookies: track user conversions and interactions for marketing purposes.</li><li><b>Google Ads</b> cookies: monitor the effectiveness of advertising campaigns, without collecting personal data.</li></ul>"
+                },
+                {
+                    "title": "4. Use of Cookies",
+                    "text": "The Site uses cookies for various purposes, including:<ul><li>usage analysis through Google Analytics and Google Tag Manager;</li><li>optimization via Google Search Console;</li><li>targeted advertising through Facebook Pixel.</li></ul>"
+                },
+                {
+                    "title": "5. Types of Cookies",
+                    "text": "The cookies used are divided into:<ul><li>session cookies, deleted when the browser is closed;</li><li>persistent cookies, which remain on the device to store preferences;</li><li>third-party cookies, used for analytics or personalized advertising.</li></ul>"
+                },
+                {
+                    "title": "6. Links to Third-Party Websites",
+                    "text": "The Site may contain links to third-party websites that may use cookies and other tracking technologies. This Cookie Policy does not apply to such sites, and the Site owner is not responsible for the privacy policies or practices of such websites."
+                },
+                {
+                    "title": "7. Changes to the Cookie Policy",
+                    "text": "The Site owner reserves the right to modify this Cookie Policy at any time without notice. It is the user's responsibility to periodically check the Cookie Policy for updates."
+                },
+                {
+                    "title": "8. Managing Cookies",
+                    "text": "Users can manage cookies used by the Site through their browser settings. You can block all cookies or only some. Some features of the Site may not be available if cookies are blocked."
+                },
+                {
+                    "title": "9. Further Information",
+                    "text": "For more information on the collection and use of personal data, please refer to the Site's <a href=\"{{path_site}}legal/privacy-policy/\">Privacy Policy</a>."
+                },
+                {
+                    "title": "10. Acceptance of Cookies",
+                    "text": "Use of the Site implies acceptance of this Cookie Policy. If you do not accept, you must immediately stop using the Site."
+                }
+            ]
+        }
+    },
+    "terms_conditions": {
+        "seo": {
+            "title": "Terms and Conditions of {{domain}}",
+            "description": "Read the terms and conditions that govern the use of our website and services."
+        },
+        "content": {
+            "title": "Terms and Conditions",
+            "paragraphs": [
+                {
+                    "title": "1. Acceptance of Terms",
+                    "text": "Welcome to the {{domain}} website, hereinafter the \"Site.\" Before using the Site, please carefully read the following Terms and Conditions of Use (\"Terms and Conditions\") that govern access and use of the Site. By accessing and using the Site, you automatically accept the following Terms and Conditions and agree to comply with them. If you do not accept these Terms and Conditions, please do not use the Site."
+                },
+                {
+                    "title": "2. Use of the Site",
+                    "text": "The Site is intended solely for personal and non-commercial use. It is not permitted to use the Site for illegal activities or in ways that infringe the rights of third parties. Furthermore, the Site cannot be used to send spam or unsolicited messages."
+                },
+                {
+                    "title": "3. Intellectual Property",
+                    "text": "All content of the website, including texts, images, videos, logos, trademarks, graphics, HTML code, and other materials are the property of {{legal_name}} or their respective owners and are protected by intellectual property laws. Copying, modifying, distributing, or using such content for commercial purposes without the explicit permission of the website owner is not allowed."
+                },
+                {
+                    "title": "4. Liability",
+                    "text": "The website owner is not responsible for any damages resulting from the use of the website, including data loss or loss of profits. Additionally, the website owner is not responsible for errors, inaccuracies, or omissions in the website content."
+                },
+                {
+                    "title": "5. External Links",
+                    "text": "The Site may contain links to other websites not owned or controlled by the Site owner. The Site owner has no control over the content, policies, or practices of such websites and is not responsible for any losses, damages, or injuries resulting from use of or inability to use such websites. The inclusion of links to other websites does not necessarily imply approval or endorsement of such websites by the Site owner."
+                },
+                {
+                    "title": "6. Privacy",
+                    "text": "The privacy of Site users is important to the Site owner. Please read the Site’s <a href=\"{{path_site}}legal/privacy-policy/\">Privacy Policy</a> for more information on the collection, use, and protection of personal data."
+                },
+                {
+                    "title": "7. Changes to Terms and Conditions",
+                    "text": "The Site owner reserves the right to modify these Terms and Conditions at any time without notice. Please check the Terms and Conditions periodically for updates or changes. Continued use of the Site after modifications to the Terms and Conditions will constitute acceptance of such changes."
+                },
+                {
+                    "title": "8. Governing Law",
+                    "text": "These Terms and Conditions are governed by the laws of the Italian State. In case of disputes, the parties will be subject to the exclusive jurisdiction of Italian courts."
+                },
+                {
+                    "title": "9. Contact",
+                    "text": "For questions or comments about these Terms and Conditions, please contact the website owner at {{society_email}}."
+                }
+            ]
+        }
+    }
+}

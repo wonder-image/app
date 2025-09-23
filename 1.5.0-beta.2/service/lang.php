@@ -3,16 +3,12 @@
     use Wonder\Localization\{ LanguageContext, TranslationProvider };
 
     # Imposto le lingue
-    LanguageContext::addLangPath($ROOT_APP.'/resources/lang/')
+    LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
         ::defaultLang('it')
         ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
 
-    # Imposto la URL del sito
-    $PATH->site = LanguageContext::getSitePath();
-
     # Imposto le variabili globali
-    TranslationProvider::init()
-        ::setGlobals([
+    TranslationProvider::setGlobals([
 
             # Dettagli pagina
             'path_site' => LanguageContext::getSitePath(),

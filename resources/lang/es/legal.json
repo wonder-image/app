@@ -1,0 +1,136 @@
+{
+    "privacy_policy" : {
+        "seo" : {
+            "title" : "Política de privacidad de {{domain}}",
+            "description" : "Consulta nuestra política de privacidad para entender cómo recopilamos, utilizamos y protegemos tus datos personales."
+        },
+        "content" : {
+            "title" : "Política de privacidad",
+            "subtitle" : "La privacidad de nuestros clientes es importante para nosotros. Nuestra Política de Tratamiento de Datos Personales explica cómo recopilamos, utilizamos, transferimos y almacenamos la información que le concierne. El procesamiento de los datos personales se lleva a cabo de conformidad con el Reglamento General de Protección de Datos (RGPD, General Data Protection Regulation). Le pedimos que lea toda la Política de Privacidad.",
+            "paragraphs" : [
+                {
+                    "title" : "1. Responsable del tratamiento y datos de contacto",
+                    "text" : "El responsable del tratamiento de los datos personales que recopilamos para los fines indicados en el artículo siguiente es {{legal_name}}, C.F. {{society_cf}}, P. IVA {{society_pi}}. <br> Para preguntas o solicitudes al respecto, puede utilizar las siguientes referencias y contactos: {{legal_name}}, {{legal_address}}, E-mail {{society_email}}, Tel. {{society_phone}}.  "
+                }, {
+                    "title" : "2. Modalidad y finalidad del tratamiento de datos personales",
+                    "text" : "Con referencia a lo previsto en el art. 6, párr. 1, letra b del RGPD, relativo a la protección de la confidencialidad en el tratamiento de datos personales, deseamos informarle que: <br><ul><li>Los datos personales que usted proporcione, o que se adquieran de otra forma en el marco de nuestra actividad, podrán ser objeto de tratamiento con o sin el uso de medios electrónicos, respetando la normativa mencionada, para los fines institucionales de nuestro Estudio, y en particular para: ejecutar un servicio o una o más operaciones contractualmente acordadas; cumplir con obligaciones previstas por leyes o reglamentos; y proteger los derechos del titular del tratamiento <?=$LEGAL->name?> en sede judicial (en adelante “Fines Contractuales”);</li><li>La comunicación de sus datos a {{legal_name}}, arriba identificado, es estrictamente funcional a la ejecución de la relación contractual o, cuando se especifique, a las actividades autorizadas por el usuario. En particular, los siguientes tratamientos de sus datos personales, distintos de los Fines Contractuales, son posibles solo con su consentimiento expreso:<ol><li>publicar fotografías y/o videos que lo retraten en la sección \"GALERÍA\" del Sitio o a través de otros canales electrónicos (p. ej. Facebook, LinkedIn, Instagram) o tradicionales con fines promocionales;</li><li>mostrar y/o enviar fotografías que lo retraten a terceros con fines promocionales;</li><li>enviarle material informativo sobre los servicios ofrecidos por {{legal_name}}, arriba identificado, y eventuales iniciativas también de carácter comercial promovidas por el mismo, mediante comunicaciones electrónicas y/o tradicionales.</li></ol></li></ul>Los tratamientos indicados en los puntos 1, 2 y 3 se denominan en conjunto “Fines de Marketing”. <br>{{legal_name}} le pedirá su consentimiento expreso para los Fines de Marketing en la fase de aceptación del encargo o también posteriormente. Su legítima negativa a prestar el consentimiento para uno o más de los Fines de Marketing no perjudica el tratamiento de sus datos personales limitadamente a los Fines Contractuales.<ul><li>Los datos se conservarán en nuestra sede legal en {{legal_address}}, por el tiempo prescrito por las normas de ley;</li><li>El tratamiento de los datos proporcionados, o adquiridos de otra forma en el marco de nuestra actividad, podrá ser efectuado también por sujetos que tengan reconocida la facultad de acceder a sus datos personales por normas legales o reglamentarias nacionales y/o comunitarias;</li><li>Para prevenir accesos no autorizados, usos ilícitos o incorrectos y la pérdida de datos personales, se adoptan medidas de seguridad específicas;</li><li>Los datos personales que usted proporcione no serán transferidos a países terceros fuera de la UE;</li><li>En cualquier momento se podrá solicitar la modificación o la cancelación de dichos datos.</li></ul>"
+                }, {
+                    "title" : "3. Base jurídica del tratamiento",
+                    "text" : "La base jurídica de los tratamientos realizados para los Fines Contractuales está constituida por el cumplimiento del contrato y de las obligaciones anteriores y posteriores, así como por el cumplimiento de las obligaciones jurídicas derivadas del contrato o de la ley. <br>La base jurídica de los tratamientos realizados para los Fines de Marketing está constituida por los respectivos consentimientos libremente otorgados por usted."
+                },  {
+                    "title" : "4. Periodo de conservación de los datos",
+                    "text" : "Los datos recopilados para los tratamientos con fines contractuales se conservarán durante el período requerido por la normativa aplicable a efectos civiles y fiscales. <br>Los datos recopilados para los tratamientos con fines de Marketing se conservarán durante el tiempo necesario para el tratamiento de los fines específicos y, en cualquier caso, por un período no superior a 5 años."
+                }, {
+                    "title" : "5. Categorías especiales de datos personales",
+                    "text" : "Si usted proporciona a {{legal_name}} datos considerados “categorías especiales de datos personales”, es decir, aquellos que revelan origen racial o étnico, opiniones políticas, convicciones religiosas o filosóficas, o pertenencia sindical, así como datos genéticos, biométricos destinados a identificar de manera única a una persona física, datos relativos a la salud o a la vida sexual o la orientación sexual de la persona según los artículos 9 y 10 del RGPD, dichas categorías de datos podrán ser tratadas solo con su consentimiento libre y explícito, manifestado por escrito o digitalmente a través de un formulario que se le pondrá a disposición. <br> Se adoptan medidas de seguridad específicas reforzadas para esta tipología de datos con el fin de garantizar el más alto estándar de protección de sus datos."
+                }, {
+                    "title" : "6. Derechos del interesado en el tratamiento",
+                    "text" : "En cualquier momento, usted puede ejercer, en virtud de los artículos 15 a 22 del RGPD, el derecho a:<ul><li>solicitar la confirmación de la existencia o no de datos personales que le conciernen (derecho de acceso);</li><li>obtener información sobre las finalidades del tratamiento, las categorías de datos personales, los destinatarios o las categorías de destinatarios a los que los datos personales han sido o serán comunicados y, cuando sea posible, el periodo de conservación;</li><li>obtener la rectificación de los datos personales inexactos y la integración de los incompletos;</li><li>obtener la limitación del tratamiento en los casos previstos en el art. 18 RGPD;</li><li>obtener la eliminación de los datos o su transformación en forma anónima, una vez transcurridos los plazos de conservación previstos por la ley o por la presente política;</li><li>obtener la portabilidad de los datos, es decir, recibir copia de los datos personales que le conciernen en un formato estructurado, de uso común y lectura mecánica, para poder transmitirlos a otro responsable del tratamiento;</li><li>oponerse al tratamiento en cualquier momento, salvo que existan motivos legítimos para su continuación;</li><li>revocar en cualquier momento el consentimiento para los Fines de Marketing, sin perjuicio de la licitud de los tratamientos realizados en base a su consentimiento antes de la revocación. Dicha revocación puede ejercerse también solo para modalidades específicas de tratamiento;</li><li>presentar una reclamación ante el Garante para la Protección de Datos Personales o ante otra autoridad de control competente.</li></ul>El Interesado puede ejercer sus derechos contactando al Responsable del tratamiento a través de los medios indicados en la presente Política."
+                }, {
+                    "title" : "7. Modificaciones a la política de privacidad",
+                    "text" : "Podemos modificar la información contenida en la presente Política de Privacidad cuando lo consideremos oportuno. En tal caso, le informaremos a través de distintos procedimientos en la Plataforma (por ejemplo, con un banner, un pop-up o una notificación push) o mediante el envío de un aviso a su dirección de correo electrónico si la modificación afecta de manera relevante a su privacidad, para que pueda conocer los cambios, evaluarlos y, según los casos, oponerse o cancelar los servicios correspondientes."
+                }
+            ],
+            "payoff" : "Es posible consultar en línea el texto completo de la ley: <a href=\"https://www.garanteprivacy.it/il-testo-del-regolamento\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.garanteprivacy.it/il-testo-del-regolamento</a>"
+        }
+    },
+    "cookie_policy" : {
+        "seo" : {
+            "title" : "Política de cookies de {{domain}}",
+            "description" : "Descubre cómo utilizamos las cookies en nuestro sitio web y cómo puedes gestionar tus preferencias."
+        },
+        "content" : {
+            "title": "Política de Cookies",
+            "subtitle": "",
+            "paragraphs": [
+                {
+                    "title": "1. Introducción",
+                    "text": "El sitio {{domain}}, en adelante denominado el \"Sitio\", utiliza cookies para mejorar la experiencia del usuario y para recopilar información sobre el uso del Sitio. La presente Política de Cookies describe los tipos de cookies utilizados por el Sitio y la forma de gestionarlos. Lea atentamente esta Política de Cookies antes de utilizar el Sitio."
+                },
+                {
+                    "title": "2. ¿Qué son las cookies?",
+                    "text": "Las cookies son pequeños archivos de texto que se almacenan en el dispositivo del usuario cuando visita un sitio web. Las cookies se utilizan para recopilar información sobre el uso del sitio web por parte del usuario, por ejemplo, las páginas visitadas y el tiempo pasado en el sitio."
+                },
+                {
+                    "title": "3. Cookies utilizadas en el Sitio",
+                    "text": "El Sitio utiliza los siguientes tipos de cookies:<ul><li>Cookies técnicas: necesarias para el correcto funcionamiento del Sitio. No requieren el consentimiento del usuario.</li><li>Cookies de <b>Google Tag Manager</b>: permiten la integración de herramientas de seguimiento como Google Analytics o Facebook Pixel, sin recopilar información personal del usuario.</li><li>Cookies de <b>Google Analytics</b>: utilizadas para rastrear el uso del Sitio, crear informes y mejorar la experiencia del usuario, anonimizando la dirección IP.</li><li>Cookies de <b>Google Search Console</b>: monitorizan la indexación del Sitio en los motores de búsqueda, sin recopilar datos personales.</li><li>Cookies de <b>Pixel Facebook</b>: monitorizan conversiones e interacciones de los usuarios con fines de marketing.</li><li>Cookies de <b>Google ADS</b>: monitorizan la eficacia de las campañas publicitarias, sin recopilar datos personales.</li></ul>"
+                },
+                {
+                    "title": "4. Uso de las Cookies",
+                    "text": "El Sitio utiliza cookies para distintos fines, entre ellos:<ul><li>análisis del uso a través de Google Analytics y Google Tag Manager;</li><li>optimización a través de Google Search Console;</li><li>publicidad segmentada mediante Pixel Facebook.</li></ul>"
+                },
+                {
+                    "title": "5. Tipos de Cookies",
+                    "text": "Las cookies utilizadas se dividen en:<ul><li>cookies de sesión, eliminadas al cerrar el navegador;</li><li>cookies persistentes, que permanecen en el dispositivo para guardar las preferencias;</li><li>cookies de terceros, utilizadas para análisis o publicidad personalizada.</li></ul>"
+                },
+                {
+                    "title": "6. Enlaces a sitios de terceros",
+                    "text": "El Sitio puede contener enlaces a sitios web de terceros, que pueden utilizar cookies y otras tecnologías de seguimiento. La presente Política de Cookies no se aplica a dichos sitios y el propietario del Sitio no es responsable de las políticas de privacidad o prácticas de esos sitios web."
+                },
+                {
+                    "title": "7. Modificaciones a la Política de Cookies",
+                    "text": "El propietario del Sitio se reserva el derecho de modificar la presente Política de Cookies en cualquier momento y sin previo aviso. Es responsabilidad del usuario verificar periódicamente la Política de Cookies para posibles actualizaciones."
+                },
+                {
+                    "title": "8. Gestión de cookies",
+                    "text": "El usuario puede gestionar las cookies utilizadas por el Sitio a través de la configuración de su navegador. Es posible bloquear todas las cookies o solo algunas. Algunas funcionalidades del Sitio pueden no estar disponibles en caso de bloqueo."
+                },
+                {
+                    "title": "9. Más información",
+                    "text": "Para más información sobre la recopilación y el uso de los datos personales, consulte la <a href=\"{{path_site}}legal/privacy-policy/\">Política de Privacidad</a> del Sitio."
+                },
+                {
+                    "title": "10. Aceptación de cookies",
+                    "text": "El uso del Sitio implica la aceptación de la presente Política de Cookies. En caso de no aceptación, el usuario deberá interrumpir inmediatamente el uso del Sitio."
+                }
+            ]
+        }
+    },
+    "terms_conditions" : {
+        "seo" : {
+            "title" : "Términos y condiciones de {{domain}}",
+            "description" : "Lee los términos y condiciones que regulan el uso de nuestro sitio web y de nuestros servicios."
+        },
+        "content" : {
+            "title": "Términos y condiciones",
+            "paragraphs": [
+                {
+                    "title": "1. Aceptación de los términos",
+                    "text": "Bienvenido al sitio de {{domain}}, en adelante \"el Sitio\". Antes de utilizar el Sitio, lea atentamente los siguientes Términos y Condiciones de Uso (\"Términos y Condiciones\") que regulan el acceso y uso del Sitio. Al acceder y utilizar el Sitio, el usuario acepta automáticamente los siguientes Términos y Condiciones y se compromete a cumplirlos. Si no acepta estos Términos y Condiciones, le rogamos no utilice el Sitio."
+                },
+                {
+                    "title": "2. Uso del sitio",
+                    "text": "El sitio está destinado exclusivamente a un uso personal y no comercial. No está permitido utilizar el sitio para actividades ilegales o que infrinjan los derechos de terceros. Además, no está permitido utilizar el sitio para enviar spam o mensajes no solicitados."
+                },
+                {
+                    "title": "3. Propiedad intelectual",
+                    "text": "Todos los contenidos del sitio web, incluidos textos, imágenes, videos, logotipos, marcas, gráficos, código HTML y otros materiales, son propiedad de {{legal_name}} o de sus respectivos propietarios y están protegidos por las leyes de propiedad intelectual. No está permitido copiar, modificar, distribuir o utilizar dichos contenidos para fines comerciales sin el permiso expreso del propietario del sitio web."
+                },
+                {
+                    "title": "4. Responsabilidad",
+                    "text": "El propietario del sitio web no es responsable de posibles daños derivados del uso del sitio web, incluidas pérdidas de datos o pérdida de beneficios. Además, el propietario del sitio web no es responsable de posibles errores, inexactitudes u omisiones en los contenidos del sitio web."
+                },
+                {
+                    "title": "5. Enlaces externos",
+                    "text": "El Sitio puede contener enlaces a otros sitios web que no son propiedad ni están controlados por el propietario del Sitio. El propietario del Sitio no tiene ningún control sobre el contenido, las políticas o las prácticas de dichos sitios web y no es responsable de posibles pérdidas, daños o perjuicios derivados del uso o de la imposibilidad de utilizar dichos sitios web. La inclusión de enlaces a otros sitios web no implica necesariamente la aprobación o recomendación de esos sitios web por parte del propietario del Sitio."
+                },
+                {
+                    "title": "6. Privacidad",
+                    "text": "La privacidad de los usuarios del Sitio es importante para el propietario del Sitio. Lea la <a href=\"{{path_site}}legal/privacy-policy/\">Política de Privacidad</a> del Sitio para más información sobre la recopilación, el uso y la protección de los datos personales."
+                },
+                {
+                    "title": "7. Modificaciones a los términos y condiciones",
+                    "text": "El propietario del Sitio se reserva el derecho de modificar, en cualquier momento y sin previo aviso, los presentes Términos y Condiciones. Le rogamos revisar periódicamente los Términos y Condiciones para comprobar posibles actualizaciones o modificaciones. El uso continuado del Sitio después de posibles modificaciones constituirá la aceptación de dichas modificaciones."
+                },
+                {
+                    "title": "8. Ley aplicable",
+                    "text": "Los presentes términos y condiciones se rigen por las leyes del Estado italiano. En caso de controversia, las partes estarán sometidas a la jurisdicción exclusiva de los tribunales italianos."
+                },
+                {
+                    "title": "9. Contacto",
+                    "text": "En caso de preguntas o comentarios sobre los presentes términos y condiciones, contacte al propietario del sitio web en la dirección {{society_email}}."
+                }
+            ]
+        }
+    }
+}
