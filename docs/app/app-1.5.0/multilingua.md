@@ -17,19 +17,19 @@ Per aggiungere più lingue è possibile aggiungere un file in `/custom/config/la
         ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/it/", 'it', ['IT'])
         ::addLanguage('en', 'English', "https://www.$PAGE->domain/en/", 'gb', [])
         ::setLangFromPath();
-
-    # Imposto la URL del sito
-    $PATH->site = LanguageContext::getSitePath();
     
-    # Imposto le variabili globali
-    TranslationProvider::setGlobals([
-            'path_site' => $PATH->site
-        ]);
+    # Imposto le traduzioni
+    TranslationProvider::init();
 ```
 
 E aggiungere al file .htaccess nel `Backend` reparto `Set Up` -> `Editor` il seguente codice:
 
 ```
+## Aggiunge lo slash finale a tutte le URL se manca
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*[^/])$ /$1/ [R=301,L]
+
 ## Reindirizza lingue alla cartella /theme/
 RewriteCond %{REQUEST_URI} ^/(it|en|de)/?(.*)$
 RewriteRule ^(it|en|de)/(.*)$ /theme/$2 [L,QSA]
@@ -56,7 +56,7 @@ Nel file index.php è consigliato utilizzare questo codice per il redirect dell'
 
 ## Funzioni utili
 
-La funzione `__t` si usa per cercare testi. Nei file JSON, puoi inserire chiavi con `{{key}}` e utilizzare la variabile `$replacements` per inserire il nome effettivo.
+La funzione [`__t`](#user-content-fn-1)[^1] si usa per cercare testi. Nei file JSON, puoi inserire chiavi con `{{key}}` e utilizzare la variabile `$replacements` per inserire il nome effettivo.
 
 ```php
 function __t(string $key, array $replacements = []) {}
@@ -74,6 +74,18 @@ La funzione `__ls` si usa per restituire tutte le lingue impostate.
 function __ls() {}
 ```
 
+La funzione `__u` si usa per creare url
+
+```php
+function __u(string $path) {}
+```
+
+La funzione `__su` si usa per cambiare url da una lingua all'altra
+
+```php
+function __su(string $url, string $lang) {}
+```
+
 ## SEO
 
 Per migliorare l'indicizzazione del sito aggiungere in ogni file:
@@ -83,7 +95,7 @@ $PAGE_KEY = 'home';
 
 $SEO->title = __t("pages.{$PAGE_KEY}.seo.title");
 $SEO->description = __t("pages.{$PAGE_KEY}.seo.description");
-$SEO->url = $PATH->site;
+$SEO->url = __u();
 $SEO->breadcrumb = [
     $SEO->url => __t("components.navigation.{$PAGE_KEY}")
 ];
@@ -112,7 +124,7 @@ E per indicare la lingua del sito:
     foreach (__ls() as $lang => $value) {
         
         $name = $value['name'];
-        $link = str_replace($PATH->site, $value['link'], $SEO->url);
+        $link = __su($SEO->url, $lang);
         $flag = $value['flag'];
 
         $dropdownLang .= '<a href="'.$link.'" hreflang="'.$lang.'/" class="wi-dropdown-item"><span class="fi fi-'.$flag.' fis" style="border-radius: 50%;"></span> '.$name.'</a>';
@@ -127,8 +139,36 @@ E per indicare la lingua del sito:
 </div>
 ```
 
+#### Testo
+
+```php
+<?php
+
+    $langHTML = [];
+
+    foreach (__ls() as $lang => $value) {
+        
+        $link = __su($SEO->url, $lang);
+
+        $bold = $lang == __l() ? "fw-700" : "";
+
+        $langHTML[] = "<a href=\"$link\" hreflang=\"$lang\" class=\"tx-none $bold\">$lang</a>";
+
+    }
+
+?>
+
+<div class="f-end c-h phone-none tx-white tx-upper">
+    <?=implode(' | ', $langHTML)?>
+</div>
+```
+
 #### Flag
 
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css"/>
+Aggiungi al file frontend/set-up.php:
+
+```php
+Dependencies::flagIcons()
 ```
+
+[^1]: Utilizzabile sia in JS che in PHP

@@ -2,6 +2,7 @@
 
 * [App 1.5.0](README.md)
   * [Multilingua](app-1.5.0/multilingua.md)
+  * [Api](app-1.5.0/api.md)
   * [Cron Job](app-1.5.0/cron-job.md)
 
 ## BACKEND
@@ -25,5 +26,6 @@
   * [iubenda](altro/servizi/iubenda.md)
   * [Google Analytics](altro/servizi/google-analytics.md)
   * [Google Search Console](altro/servizi/google-search-console.md)
+  * [Google Cloud Platform](altro/servizi/google-cloud-platform.md)
 * [Versione <1.5.0](altro/versione-less-than-1.5.0.md)
 * [Estensioni e App Consigliate](altro/estensioni-e-app-consigliate.md)
