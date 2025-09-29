@@ -28,7 +28,9 @@ E aggiungere al file .htaccess nel `Backend` reparto `Set Up` -> `Editor` il seg
 ## Aggiunge lo slash finale a tutte le URL se manca
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*[^/])$ /$1/ [R=301,L]
+RewriteCond %{REQUEST_URI} !/$
+RewriteCond %{REQUEST_URI} !\.[^./]+$
+RewriteRule ^(.*)$ /$1/ [R=301,L]
 
 ## Reindirizza lingue alla cartella /theme/
 RewriteCond %{REQUEST_URI} ^/(it|en|de)/?(.*)$

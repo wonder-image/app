@@ -8,7 +8,7 @@ Per trovare l'ID Progetto crea o seleziona un progetto da [Google Cloud](https:/
 
 Per crearle accedi a [Google Cloud](https://console.cloud.google.com/apis/credentials) e premi su `+ Crea credenziali` ⇒ Chiave API,  successivamente compila i campi come segue:
 
-* Restrizioni delle applicazioni: **Indirizzi IP**
+* Restrizioni delle applicazioni: **Indirizzi IP** o **Nessuna**
 * Limitazioni degli indirizzi IP: **Indirizzo IP del server**
 * Restrizioni delle API: **Non limitare la chiave**
 
