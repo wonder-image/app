@@ -170,6 +170,7 @@
                 self::$API->key = $row['api_key'] ?? strtolower(Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5));
                 self::$API->gcp_project_id = $row['gcp_project_id'] ?? '';
                 self::$API->gcp_api_key = $row['gcp_api_key'] ?? '';
+                self::$API->gcp_client_api_key = $row['gcp_client_api_key'] ?? self::$API->gcp_api_key;
                 self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? '';
                 self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? '';
 

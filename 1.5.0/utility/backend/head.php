@@ -27,7 +27,7 @@
         var NO_INTERNET_ALERT = null;
 
         const API_TOKEN = '<?=Wonder\App\Credentials::appToken()?>';
-        const GOOGLE_API_KEY = '<?=Wonder\App\Credentials::api()->gcp_api_key?>';
+        const GOOGLE_API_KEY = '<?=Wonder\App\Credentials::api()->gcp_client_api_key?>';
         const GOOGLE_SITE_KEY = '<?=Wonder\App\Credentials::api()->g_recaptcha_site_key?>';
         const GOOGLE_PLACE_ID = '<?=Wonder\App\Credentials::api()->g_maps_place_id?>';
 

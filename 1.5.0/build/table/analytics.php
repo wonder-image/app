@@ -15,6 +15,7 @@
         ],
         "gcp_project_id" => [],
         "gcp_api_key" => [],
+        "gcp_client_api_key" => [],
         "g_recaptcha_site_key" => [],
         "g_maps_place_id" => [],
         "stripe_account_id" => [],

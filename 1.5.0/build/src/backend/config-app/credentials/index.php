@@ -63,22 +63,21 @@
                             Google Cloud Platform
                         </h5>
                         <div class="col-12">
-                            Per trovare l'ID Progetto crea o seleziona un progetto da <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer">Google Cloud</a> in alto a sinistra. <br>
-                            Per creare la Api Key accedi a <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud</a> e premi su <b>+ Crea credenziali</b>.
+                            Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.
                         </div>
-                        <div class="col-6">
+                        <div class="col-2">
                             <?=text('ID Progetto', 'gcp_project_id'); ?>
                         </div>
-                        <div class="col-6">
-                            <?=text('Api Key', 'gcp_api_key'); ?>
+                        <div class="col-5">
+                            <?=text('Secret Api Key', 'gcp_api_key'); ?>
+                        </div>
+                        <div class="col-5">
+                            <?=text('Client Api Key', 'gcp_client_api_key'); ?>
                         </div>
 
                         <div class="col-6">
                             <div class="row g-3">
-                                <div class="col-12">
-                                    <h6>Google reCAPTCHA*</h6>
-                                    Per creare la chiave del sito <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">clicca qui</a> e seleziona il progetto indicato come <b>ID Progetto</b>.
-                                </div>
+                                <h6 class="col-12">Google reCAPTCHA*</h6>
                                 <div class="col-12">
                                     <?=text('Chiave Sito', 'g_recaptcha_site_key'); ?>
                                 </div> 
@@ -86,12 +85,11 @@
                         </div>
 
                         <div class="col-6">
-                            <div class="col-12">
-                                <h6>Google Place*</h6>
-                                Per trovare il Place Id <a href="https://developers.google.com/maps/documentation/geocoding/overview#how-the-geocoding-api-works" target="_blank" rel="noopener noreferrer">clicca qui</a>.
-                            </div>
-                            <div class="col-12">
-                                <?=text('Place ID', 'g_maps_place_id'); ?>
+                            <div class="row g-3">
+                                <h6 class="col-12">Google Place*</h6>
+                                <div class="col-12">
+                                    <?=text('Place ID', 'g_maps_place_id'); ?>
+                                </div>
                             </div>
                         </div>
 
