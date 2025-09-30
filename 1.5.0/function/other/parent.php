@@ -1,6 +1,6 @@
 <?php
 
-    function childTree($table, $parentId = '0', $removeId = null) {
+    function childTree($table, $parentId = '0', $removeId = null, $colName = 'name') {
 
         $RETURN = [];
 
@@ -9,13 +9,13 @@
         foreach ($SQL->row as $key => $row) {
 
             $rowId = $row['id'];
-            $rowName = $row['name'];
+            $rowName = $row[$colName];
 
             if ($rowId != $removeId) {
 
                 $RETURN[$rowId] = [];
                 $RETURN[$rowId]['name'] = $rowName;
-                $RETURN[$rowId]['child'] = childTree($table, $rowId, $removeId);
+                $RETURN[$rowId]['child'] = childTree($table, $rowId, $removeId, $colName);
                 
             }
             

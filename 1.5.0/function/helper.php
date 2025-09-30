@@ -22,6 +22,12 @@
         return Wonder\Localization\LanguageContext::getLangs();
     }
 
+    // Lingua default
+    function __dl(): string
+    {
+        return Wonder\Localization\LanguageContext::getDefaultLang();
+    }
+    
     // Url
     function __u(string $path = ''): string
     {

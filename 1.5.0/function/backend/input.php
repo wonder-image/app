@@ -13,11 +13,13 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='password' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
-        </div>
-        ";
+        <div>
+            <div class='form-floating'>
+                <input type='password' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
+        </div>";
         
     }
 
@@ -34,11 +36,13 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='email' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
-        </div>
-        ";
+        <div>
+            <div class='form-floating'>
+                <input type='email' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
+        </div>";
 
     }
 
@@ -55,9 +59,12 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='tel' inputmode='tel' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-phone='true' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='tel' inputmode='tel' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-phone='true' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -75,9 +82,12 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -95,12 +105,16 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
-            <div class='btn btn-sm btn-dark text-light position-absolute top-50 end-0 me-2 translate-middle-y' onclick=\"generateCode('#$id')\">
-                GENERA
+        <div>
+            <div class='form-floating'>
+                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+                <div class='btn btn-sm btn-dark text-light position-absolute top-50 end-0 me-2 translate-middle-y' onclick=\"generateCode('#$id')\">
+                    GENERA
+                </div>
+                <div class='invalid-feedback'> </div>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -118,9 +132,12 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='date' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='date' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -138,9 +155,12 @@
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='datetime-local' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='datetime-local' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -161,9 +181,12 @@
         $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
 
         return "
-        <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-date='true' $min $max $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-date='true' $min $max $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -202,12 +225,13 @@
         return "
         <div>
             $label
-            <div class='input-group input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
+            <div class='input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
                 <span class='input-group-text'>Dal</span>
                 <input id='$idFrom' type='text' class='$class' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
                 <span class='input-group-text'>Al</span>
                 <input id='$idTo' type='text' class='$class' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -233,6 +257,7 @@
                 <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
                 <input type='text' class='$class' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -250,9 +275,12 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-number='true' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-number='true' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -270,9 +298,12 @@
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-price='true' placeholder='$label' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-price='true' placeholder='$label' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -290,9 +321,12 @@
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-percentige='true' placeholder='$label' $attribute>
-            <label for='$id'>$label</label>
+        <div>
+            <div class='form-floating'>
+                <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-percentige='true' placeholder='$label' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -310,11 +344,13 @@
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
-        <div class='form-floating'>
-            <input type='url' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-            <label for='$id'>$label</label>
-        </div>
-        ";
+        <div>
+            <div class='form-floating'>
+                <input type='url' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
+        </div>";
 
     }
 
@@ -347,9 +383,12 @@
             $valueEncoded =  empty($value) ? "" : base64_encode($value);
 
             return "
-            <div class='form-floating'>
-                <h6 class='mb-1'>$label</h6>
-                <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true' data-wi-textarea='$version' data-wi-folder='$NAME->folder' $attribute>$value</textarea>
+            <div>
+                <div class='form-floating'>
+                    <h6 class='mb-1'>$label</h6>
+                    <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true' data-wi-textarea='$version' data-wi-folder='$NAME->folder' $attribute>$value</textarea>
+                </div>
+                <div class='invalid-feedback'> </div>
             </div>";
 
         } else {
@@ -362,10 +401,13 @@
             }
 
             return "
-            <div class='form-floating'>
-                $MAX
-                <textarea class='form-control' placeholder='$label' id='$id' style='height: 100px' name='$name' data-wi-check='true' data-wi-counter='true' $attribute>$value</textarea>
-                <label for='$id'>$label</label>
+            <div>
+                <div class='form-floating'>
+                    $MAX
+                    <textarea class='form-control' placeholder='$label' id='$id' style='height: 100px' name='$name' data-wi-check='true' data-wi-counter='true' $attribute>$value</textarea>
+                    <label for='$id'>$label</label>
+                </div>
+                <div class='invalid-feedback'> </div>
             </div>";
             
         }
@@ -429,25 +471,30 @@
         if ($version == 'old') {
 
             return "
-            <div id='container-$id' class='w-100 wi-container-select'>
-                $inputHidden
-                <label for='$id' class='h6 form-label'>$label</label>
-                <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
-                    $optionHTML
-                </select>
+            <div>
+                <div id='container-$id' class='w-100 wi-container-select'>
+                    $inputHidden
+                    <label for='$id' class='h6 form-label'>$label</label>
+                    <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
+                        $optionHTML
+                    </select>
+                </div>
+                <div class='invalid-feedback'> </div>
             </div>";
 
         } else {
 
             return "
-            <div class='form-floating'>
-                $inputHidden
-                <select id='$id' name='$name' class='form-select' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
-                    $optionHTML
-                </select>
-                <label for='$id'>$label</label>
-            </div>
-            ";
+            <div>
+                <div class='form-floating'>
+                    $inputHidden
+                    <select id='$id' name='$name' class='form-select' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
+                        $optionHTML
+                    </select>
+                    <label for='$id'>$label</label>
+                </div>
+                <div class='invalid-feedback'> </div>
+            </div>";
 
         }
 
@@ -563,6 +610,7 @@
                     $optionHTML
                 </div>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     } 
@@ -611,6 +659,7 @@
                     $optionHTML
                 </div>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     } 
@@ -658,6 +707,7 @@
                     Cerca risultati
                 </div>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     } 
@@ -693,6 +743,7 @@
                 <span class='input-group-text'><input class='form-check-input mt-0' type='checkbox' name='$name' id='$id' $attribute $checked></span>
                 <label for='$id' class='form-control user-select-none'>$label</label>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -751,6 +802,7 @@
                 <label class='btn border $classLabelTrue' for='$idTrue'>Si</label>
                 <label class='btn border $classLabelFalse' for='$idFalse'>No</label>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
 
     }
@@ -917,6 +969,7 @@
             <h6>$label</h6>
             <div class='w-100 mt-1'>
                 <input class='form-control' style='width: 100%;' id='$id' type='file' accept='$ACCEPT' name='$x' data-wi-max-file='$maxFile' data-wi-max-size='$maxSize' data-wi-check='true' $multiple $attribute>
+                <div class='invalid-feedback'> </div>
             </div>
             <div class='w-100 mt-1'>
                 <small>
@@ -1008,7 +1061,20 @@
             <div class='$class'>
                 <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-uploader-label='$ACCEPT_LABEL' data-wi-check='true' $multiple $attribute>
             </div>
+            <div class='invalid-feedback'> </div>
         </div>";
+
+    }
+
+    function googleAddress($label, $name, $callback = null, $attributes = null, $value = null) 
+    {
+
+        return text(
+            $label,
+            $name,
+            "$attributes data-wi-search-place=\"true\" data-wi-callback=\"$callback\"",
+            $value 
+        );
 
     }
 

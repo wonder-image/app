@@ -681,6 +681,16 @@
 
                         $VALUE = empty($VALUE) ? "" : number_format($VALUE, 2, '.', '').'€';
 
+                    } else if ($type == 'color') {
+
+                        if (!empty($VALUE)) {
+                            
+                            $colorInfo = colorInfo(hexToRgb($VALUE));
+
+                            $VALUE = empty($VALUE) ? "" : '<span class="badge" style="background: '.$VALUE.'; color: '.$colorInfo->neutral->color.'">'.$VALUE.'</span>';
+
+                        }
+
                     }
 
                 }

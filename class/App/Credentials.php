@@ -128,7 +128,7 @@
 
                 $row = $exists ? $query->Select('api_users', [ 'id' => 1 ], 1)->row : [];
 
-                self::$appToken = $row['token'];
+                self::$appToken = $row['token'] ?? '';
 
             }
 

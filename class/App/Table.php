@@ -29,10 +29,16 @@
 
         }
 
+        public function schema() {
+
+            return self::$list[$this->name];
+
+        }
+
         public function prepare( array $post, ?array $oldValues = null ): array
         {
 
-            return formToArray($this->name, $post, self::$list[$this->name], $oldValues);
+            return formToArray($this->name, $post, $this->schema(), $oldValues);
 
         }
 
