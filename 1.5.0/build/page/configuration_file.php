@@ -9,9 +9,16 @@
         $FILE_TXT .= "RewriteCond %{HTTP_HOST} !^www\. [NC]\n";
         $FILE_TXT .= "RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n";
         $FILE_TXT .= "\n";
+        $FILE_TXT .= "## Aggiunge lo slash finale a tutte le URL se manca";
+        $FILE_TXT .= "RewriteCond %{REQUEST_FILENAME} !-f";
+        $FILE_TXT .= "RewriteCond %{REQUEST_FILENAME} !-d";
+        $FILE_TXT .= "RewriteCond %{REQUEST_URI} !/$";
+        $FILE_TXT .= "RewriteCond %{REQUEST_URI} !\.[^./]+$ # esclude file con estensione";
+        $FILE_TXT .= "RewriteRule ^(.*)$ /$1/ [R=301,L]";
+        $FILE_TXT .= "\n";
         $FILE_TXT .= "## Abilita il caching del browser\n";
         $FILE_TXT .= "<IfModule mod_headers.c>\n";
-        $FILE_TXT .= "  <FilesMatch \"\\.(jpe?g|png|gif|swf|flv|pdf|mp4|gz)$\">\n";
+        $FILE_TXT .= "  <FilesMatch \"\\.(jpe?g|png|webp|gif|swf|flv|pdf|mp4|webm|gz)$\">\n";
         $FILE_TXT .= "      Header set Cache-Control \"max-age=86400, public\"\n";
         $FILE_TXT .= "  </FilesMatch>\n";
         $FILE_TXT .= "  <FilesMatch \"\\.(js|css|html|htm|ico)$\">\n";
