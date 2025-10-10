@@ -7,7 +7,7 @@
 
     abstract class Stripe extends StripeClient {
 
-        private $apiKey;
+        private static $apiKey;
 
         public $accountId;
         
@@ -15,13 +15,13 @@
 
         public function __construct( $apiKey = null ) {
 
-            $this->apiKey = ($apiKey == null) ? Credentials::api()->stripe_api_key : $apiKey;
+            self::$apiKey = ($apiKey == null) ? Credentials::api()->stripe_api_key : $apiKey;
 
             if (!empty(Credentials::api()->stripe_id)) {
                 $this->accountId(Credentials::api()->stripe_id);
             }
 
-            parent::__construct($this->apiKey);
+            parent::__construct(self::$apiKey);
 
         }
 
@@ -32,11 +32,11 @@
 
         }
 
-        public function apiKey($apiKey): static { 
+        public static function apiKey($apiKey): static { 
             
-            $this->apiKey = $apiKey;
+            self::$apiKey = $apiKey;
 
-            return $this; 
+            return new static($apiKey); 
         
         }
 
