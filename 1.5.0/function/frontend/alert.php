@@ -26,21 +26,19 @@
 
         }
 
-        if ($type == "danger") {
-            $icon = "<i class='bi bi-exclamation-triangle me-2'></i>";
-        } elseif ($type == "success") {
-            $icon = "<i class='bi bi-check2-circle me-2'></i>";
-        }
+        $icon = match ($type) {
+            "danger" => "<i class='wi-alert-icon bi bi-exclamation-triangle tx-danger'></i>",
+            "success" => "<i class='wi-alert-icon bi bi-check2-circle tx-success'></i>",
+        };
 
-        return "<div id='$id' class='toast border-$type overflow-hidden' role='alert' aria-live='assertive' aria-atomic='true'>
-                <div class='toast-header text-bg-$type border-bottom border-$type'>
-                    $icon
-                    <strong class='me-auto'>$title</strong>
-                    <button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button>
+        return "<div id='$id' class='wi-alert wi-show'>
+                <div class='wi-alert-header'>
+                    $icon <b>$title</b>
+                    <i class='wi-alert-close bi bi-x-lg' onclick=\"this.parentElement.parentElement.classList.remove('wi-show')\"></i>
                 </div>
-                <div class='toast-body bg-light'>
+                <div class='wi-alert-body'>
                     $text
                 </div>
             </div>";
-
+            
     }
