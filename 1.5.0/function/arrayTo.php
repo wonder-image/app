@@ -14,18 +14,67 @@
         
     }
 
-    function arrayToXls($ARRAY, $FILENAME = null) {
+    function arrayToXls($array, $fileName = 'export') {
 
-        header("Content-Type: application/vnd.ms-excel;");
-        header("Content-Disposition: attachment; filename=\"$FILENAME.xls\"");
-        header("Pragma: no-cache");
+        $array = is_array($array) ? $array : [$array];
+
+        $fileName = empty($fileName) ? 'export' : trim((string) $fileName);
+
+        $sheetName = create_link($fileName);
+
+        $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle($sheetName);
+
+        foreach (array_values($array) as $rowIndex => $row) {
+
+            if (!is_array($row)) { $row = [ $row ]; }
+
+            foreach (array_values($row) as $columnIndex => $cell) {
+
+                $coordinate = PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex + 1) . ($rowIndex + 1);
+
+                $dataType = PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING;
+                $value = '';
+
+                if ($cell instanceof DateTimeInterface) {
+                    $value = PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($cell);
+                    $dataType = PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC;
+                } elseif (is_bool($cell)) {
+                    $dataType = PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_BOOL;
+                    $value = $cell;
+                } elseif (is_int($cell) || is_float($cell)) {
+                    $dataType = PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC;
+                    $value = $cell;
+                } elseif (is_string($cell)) {
+                    $trimmed = trim($cell);
+                    if ($trimmed !== '' && is_numeric($trimmed) && !preg_match('/^0\d+$/', $trimmed)) {
+                        $dataType = PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC;
+                        $value = $trimmed;
+                    } else {
+                        $value = $cell;
+                    }
+                } elseif ($cell === null) {
+                    $value = '';
+                } else {
+                    $value = (string) $cell;
+                }
+
+                $sheet->setCellValueExplicit($coordinate, $value, $dataType);
+
+            }
+        }
+
+        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        header("Content-Disposition: attachment; filename=\"{$fileName}.xlsx\"");
+        header("Cache-Control: max-age=0");
+        header("Pragma: public");
         header("Expires: 0");
-        $output = fopen("php://output", 'w');
 
-        foreach ($ARRAY as $row) { fputcsv($output, $row,"\t"); }
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $writer->save('php://output');
 
-        fclose($output);
-    
     }
 
     function arrayToXml($ARRAY, $FILENAME = null, $VERSION = "1.0", $ENCODING = "UTF-8") {

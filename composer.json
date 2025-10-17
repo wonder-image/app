@@ -21,7 +21,8 @@
         "gumlet/php-image-resize": "^2.0",
         "chillerlan/php-qrcode": "^5.0",
         "stripe/stripe-php": "^17.2",
-        "firebase/php-jwt": "^6.11"
+        "firebase/php-jwt": "^6.11",
+        "phpoffice/phpspreadsheet": "^5.1"
     },
     "autoload": {
         "psr-4": {
