@@ -6,4 +6,5 @@
     require_once __DIR__."/resize.php";
     require_once __DIR__."/webp.php";
     require_once __DIR__."/dir.php";
+    require_once __DIR__."/json.php";
     require_once __DIR__."/upload.php";

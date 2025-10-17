@@ -32,6 +32,35 @@
 
     }
 
+    function arrayTraverse(array $arr, string $prefix = ''): array
+    {
+        $array = [];
+
+        foreach ($arr as $k => $v) {
+            $fullKey = $prefix === '' ? $k : "{$prefix}.{$k}";
+            if (is_array($v)) {
+                $array = array_merge($array, arrayTraverse($v, $fullKey));
+            } else {
+                $array[] = [ $fullKey, $v, '' ];
+            }
+        }
+
+        return $array;
+
+    }
+
+    function arrayMergeDeclared(array $ref, array $content): array
+    {
+        foreach ($content as $key => $value) {
+            if (is_array($value) && isset($ref[$key]) && is_array($ref[$key])) {
+                $ref[$key] = arrayMergeDeclared($ref[$key], $value);
+            } else {
+                $ref[$key] = $value;
+            }
+        }
+        return $ref;
+    }
+
     function attributeSearchClass($attribute) {
 
         $classValue = "";
@@ -63,6 +92,5 @@
         <span class=\"badge tx-white box-border o-hidden\" style=\"border: none;background: {$color};width: {$width}px;height: {$height}px;border: {$border}\">
             $svg
         </span>";
-
 
     }
