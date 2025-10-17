@@ -22,8 +22,8 @@
                 $MAIL->Port = $CREDENTIALS->port;
             
             # Header
-                $MAIL->setFrom($from, $SOCIETY_NAME);
                 $MAIL->addAddress($to);
+                $MAIL->setFrom($CREDENTIALS->username, $SOCIETY_NAME);
                 $MAIL->addReplyTo($from, $SOCIETY_NAME);
         
             # Allegati
