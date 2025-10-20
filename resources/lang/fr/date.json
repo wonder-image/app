@@ -24,5 +24,7 @@
     },
     "today": "Aujourd'hui",
     "yesterday": "Hier",
-    "tomorrow": "Demain"
+    "tomorrow": "Demain",
+    "at_hours" : "à {hours}",
+    "from_to_hours" : "de {from} à {to}"
 }

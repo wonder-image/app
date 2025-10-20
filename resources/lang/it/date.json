@@ -24,5 +24,7 @@
     },
     "today" : "Oggi",
     "yesterday" : "Ieri",
-    "tomorrow" : "Domani"
+    "tomorrow" : "Domani",
+    "at_hours" : "alle {hours}",
+    "from_to_hours" : "dalle {from} alle {to}"
 }

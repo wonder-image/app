@@ -134,8 +134,10 @@
             $RETURN->prettyTime .= "<b>".translateDate($day, 'day').":</b> ";
 
             foreach ($value as $key => $value) {
-                $RETURN->prettyTime .= "dalle ".$value['from']." ";
-                $RETURN->prettyTime .= "alle ".$value['to']."<br>";
+                $RETURN->prettyTime .= __t('date.from_to_hours', [
+                    'from' => $value['from'],
+                    'to' => $value['to']
+                ]).'<br>'; 
             }
 
         }
@@ -154,7 +156,10 @@
 
             foreach ($h as $k => $v) {
                 $v = explode('=>', $v);
-                $RETURN->prettyTimeGroup .= 'dalle '.$v[0].' alle '.$v[1].' | '; 
+                $RETURN->prettyTimeGroup .= $RETURN->prettyTime .= __t('date.from_to_hours', [
+                    'from' => $v[0],
+                    'to' => $v[1]
+                ]).' | '; 
             }
 
             $RETURN->prettyTimeGroup = substr($RETURN->prettyTimeGroup, 0, -3).'<br>';

@@ -14,7 +14,7 @@
             if (!empty($date)) {
                 
                 $RETURN = date("d", strtotime($date)).' '.TranslatorDate::Month($date).' '.date("Y", strtotime($date));
-                $RETURN .= $hours ? ' alle '.date("H:i", strtotime($date)) : '';
+                $RETURN .= $hours ? ' '.__t('date.at_hours', [ 'hours' => date("H:i", strtotime($date)) ]) : '';
 
                 return $RETURN;
         
