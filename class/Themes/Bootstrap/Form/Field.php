@@ -4,10 +4,11 @@
 
     use Wonder\Themes\Bootstrap\Component;
     use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
+    use Wonder\Themes\Concerns\HasAttributes;
 
     abstract class Field extends Component {
 
-        use CanSpanColumn;
+        use CanSpanColumn, HasAttributes;
 
         public array $schema;
 
@@ -31,23 +32,6 @@
 
             return $html;
 
-        }
-
-        protected function renderAttributes(): string
-        {
-            
-            $html = [];
-
-            foreach ($this->schema['attributes'] ?? [] as $key => $value) {
-                if (is_bool($value)) {
-                    if ($value) $html[] = $key;
-                } else {
-                    $html[] = $key . '="' . htmlspecialchars((string)$value) . '"';
-                }
-            }
-
-            return implode(' ', $html);
-        
         }
 
         abstract public function renderInput(): string;

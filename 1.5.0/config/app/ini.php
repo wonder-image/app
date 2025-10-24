@@ -15,5 +15,3 @@
 
     # Inizio la sessione
         session_start();
-        
-        

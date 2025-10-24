@@ -15,7 +15,7 @@
             $type = $this->schema['type'];
             $value = $this->schema['value'] ?? '';
 
-            $attributes = $this->renderAttributes();
+            $attributes = $this->renderAttributes($this->schema['attributes']);
 
             return "<input class=\"form-control\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\" {$attributes} />";
         

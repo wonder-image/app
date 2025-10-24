@@ -6,7 +6,7 @@
 
     use Wonder\Elements\Concerns\{ IsContainer };
 
-    class Card extends Component {
+    class Container extends Component {
 
         use IsContainer;
 
