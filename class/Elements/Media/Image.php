@@ -55,12 +55,30 @@
 
         }
 
-        public function responsive( bool $responsive = true ): self
+        public function fitCover( bool $cover = true ): self
         {
 
-            return $this->schema('responsive', $responsive);
+            $this->fitContain(false);
+            return $this->schema('fit-cover', $cover);
 
         }
+
+        public function fitContain( bool $contain = true ): self
+        {
+
+            $this->fitCover(false);
+            return $this->schema('fit-contain', $contain);
+
+        }
+
+        public function skeleton( bool $skeleton = true ): self
+        {
+
+            $this->fitCover(false);
+            return $this->schema('skeleton', $skeleton);
+
+        }
+
 
         public function notDraggable( bool $draggable = true ): self
         {

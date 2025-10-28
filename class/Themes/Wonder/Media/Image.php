@@ -92,13 +92,10 @@
                 $this->src = sprintf('%s%s-%d.%s', $this->directoryUrl, $this->imageName, $this->defaultSize, $this->extension);
             }
 
-            if ($this->getSchema('responsive') == true) {
-                $class->addClass('bg bg-cover');
-            }
-
-            if ($this->getSchema('draggable') == false) {
-                $class->addClass('no-interaction unselectable');
-            }
+            if ($this->getSchema('fit-cover') == true) { $class->addClass('bg bg-cover'); }
+            if ($this->getSchema('fit-contain') == true) { $class->addClass('bg bg-contain'); }
+            if ($this->getSchema('skeleton') == true) { $class->addClass('skeleton'); }
+            if ($this->getSchema('draggable') == false) { $class->addClass('no-interaction unselectable'); }
 
             $this->attributes = $this->renderAttributes($class->getSchema('attributes'));
 
