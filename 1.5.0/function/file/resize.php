@@ -27,3 +27,25 @@
         }
         
     }
+
+    function imageResize($imagePath, array $sizes = RESPONSIVE_IMAGE_SIZES, bool $webp = true)
+    {
+
+        global $ALERT;
+
+        try {
+
+            $image = Wonder\Plugin\Custom\Image\ResponsiveImage::path($imagePath);
+
+            $image->sizes = $sizes;
+            $image->webp = $webp;
+
+            $image->generate();
+
+        } catch (\Throwable $th) {
+
+            $ALERT = 920;
+
+        }
+
+    }

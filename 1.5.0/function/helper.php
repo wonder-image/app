@@ -41,8 +41,23 @@
     }
 
     // Immagini
-    function __i()
+    function __i(string $image)
     {
+        
+        return Wonder\Elements\Media\Image::src($image)
+            ->skeleton()
+            ->notDraggable()
+            ->fitCover();
+
+    }
+    
+    // Immagine Responsive
+    function __ri(string $image)
+    {
+        
+        return __i($image)
+            ->sizes(RESPONSIVE_IMAGE_SIZES)
+            ->hasWebP();
 
     }
 

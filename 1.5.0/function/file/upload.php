@@ -4,12 +4,27 @@
 
         global $ALERT;
         
-        $MAX_FILE = isset($FORMAT['max_file']) ? $FORMAT['max_file'] : 1;
+        $MAX_FILE = $FORMAT['max_file'] ?? 1;
         $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1048576 : 2 * 1048576;
-        $EXTENSIONS = isset($FORMAT['extensions']) ? $FORMAT['extensions'] : '';
-        $DIR = isset($FORMAT['dir']) ? $FORMAT['dir'] : '/';
-        $RESIZE = isset($FORMAT['resize']) ? $FORMAT['resize'] : '';
-        $RESET = isset($FORMAT['reset']) ? $FORMAT['reset'] : false;
+        $EXTENSIONS = $FORMAT['extensions'] ?? '';
+        $DIR = $FORMAT['dir'] ?? '/';
+        $RESIZE = $FORMAT['resize'] ?? [];
+        $WEBP = $FORMAT['webp'] ?? false;
+        $RESET = $FORMAT['reset'] ?? false;
+
+        if ($RESIZE === true) {
+            $RESIZE = null;
+        } else if (isset($RESIZE['width'])) {
+            $RESIZE = [ $RESIZE['width'] ];
+        } else if (isset($RESIZE[0]['width'])) {
+
+            $R = [];
+
+            foreach ($RESIZE as $key => $value) {
+                array_push($R, $value['width']);
+            }
+
+        }
 
         $NEW_FILE = ($RESET == true) ? [] : (empty($OLD_FILE) ? [] : $OLD_FILE);
         $N_OLD_FILE = count($NEW_FILE);
@@ -64,25 +79,7 @@
 
                                 $NEW_FILE[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
 
-                                if (!empty($RESIZE)) {
-                                    if (isset($RESIZE[0]) && is_array($RESIZE[0])) {
-                                        foreach ($RESIZE as $k => $v) {
-
-                                            $WIDTH = $v['width'];
-                                            $HEIGHT = $v['height'];
-                                            
-                                            resizeImage($NEW_PATH, $v['width'], $v['height'], $PATH_UPLOAD, $WIDTH.'x'.$HEIGHT.'-'.$NEW_NAME);
-
-                                        }
-                                    } else {
-
-                                        $WIDTH = $RESIZE['width'];
-                                        $HEIGHT = $RESIZE['height'];
-
-                                        resizeImage($NEW_PATH, $RESIZE['width'], $HEIGHT, $PATH_UPLOAD, $WIDTH.'x'.$HEIGHT.'-'.$NEW_NAME);
-
-                                    }
-                                }
+                                imageResize($NEW_PATH, $RESIZE, $WEBP);
 
                             } else {
 
