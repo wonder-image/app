@@ -58,7 +58,7 @@
         public function fitCover( bool $cover = true ): self
         {
 
-            $this->fitContain(false);
+            if ($cover === true) { $this->fitContain(false); }
             return $this->schema('fit-cover', $cover);
 
         }
@@ -66,7 +66,7 @@
         public function fitContain( bool $contain = true ): self
         {
 
-            $this->fitCover(false);
+            if ($contain === true) { $this->fitCover(false); }
             return $this->schema('fit-contain', $contain);
 
         }
