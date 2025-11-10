@@ -25,6 +25,6 @@
     "today": "Heute",
     "yesterday": "Gestern",
     "tomorrow": "Morgen",
-    "at_hours" : "um {hours}",
-    "from_to_hours" : "von {from} bis {to}"
+    "at_hours" : "um {{hours}}",
+    "from_to_hours" : "von {{from}} bis {{to}}"
 }

@@ -25,6 +25,6 @@
     "today": "Hoy",
     "yesterday": "Ayer",
     "tomorrow": "Mañana",
-    "at_hours" : "a las {hours}",
-    "from_to_hours" : "de {from} a {to}"
+    "at_hours" : "a las {{hours}}",
+    "from_to_hours" : "de {{from}} a {{to}}"
 }
