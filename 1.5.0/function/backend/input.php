@@ -867,12 +867,12 @@
 
                 $imageResize = $TB['format']['resize'];
 
-                if (isset($imageResize['width']) && isset($imageResize['height'])) {
+                if (isset($imageResize['width'])) {
 
                     $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+                    $sizeBefore = true;
 
-                } else {
-
+                } else if (isset($imageResize[0]['width'])) {
                     $s = 10000000;
 
                     foreach ($imageResize as $key => $size) {
@@ -881,6 +881,13 @@
                             $imageSize = $size['width'].'x'.$size['height'].'-';
                         }
                     }
+
+                    $sizeBefore = true;
+
+                } else {
+
+                    $imageSize = '-'.$imageResize[0];
+                    $sizeBefore = false;
 
                 }
 
@@ -904,7 +911,13 @@
                     $link = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
                 } else {
                     $linkDowload = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
-                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$imageSize.$fileName;
+                    if ($sizeBefore) {
+                        $link = $PATH->upload.'/'.$NAME->folder.$dir.$imageSize.$fileName;
+                    } else {
+                        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                        $name = pathinfo($fileName, PATHINFO_FILENAME);
+                        $link = $PATH->upload.'/'.$NAME->folder.$dir.$name.$imageSize.'.'.$extension;
+                    }
                 }
 
                 if ($file == "image" || $file == "png" || $file == "ico" || $file == "jpg") {
@@ -1001,9 +1014,11 @@
         $TABLE_NAME = strtoupper($NAME->table);
         $PAGE_TABLE = $TABLE->$TABLE_NAME;
 
-        $TB = $PAGE_TABLE[$name]['input'];
-        $maxFile = isset($TB['format']['max_file']) ? $TB['format']['max_file'] : 1;
-        $maxSize = isset($TB['format']['max_size']) ? $TB['format']['max_size'] : 1;
+        $columnName = (isset($NAME->column) && !is_array($NAME->column)) ? $NAME->column : $name;
+
+        $TB = $PAGE_TABLE[$columnName]['input'];
+        $maxFile = $TB['format']['max_file'] ?? 1;
+        $maxSize = $TB['format']['max_size'] ?? 1;
 
         if ($file == "image") {
             $ACCEPT = "image/png, image/jpeg";
@@ -1036,7 +1051,7 @@
         $multiple = ($maxFile > 1) ? "multiple" : "";
 
         $dir = $PATH->upload.'/'.$NAME->folder;
-        $dir .= isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
+        $dir .= $TB['format']['dir'] ?? '/'; 
 
         if (substr($dir, -1) != '/') {
                                 

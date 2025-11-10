@@ -633,12 +633,12 @@
 
                                 $imageResize = $this->table->field[$this->column]['input']['format']['resize'];
 
-                                if (isset($imageResize['width']) && isset($imageResize['height'])) {
+                                if (isset($imageResize['width'])) {
 
                                     $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+                                    $sizeBefore = true;
 
-                                } else {
-
+                                } else if (isset($imageResize[0]['width'])) {
                                     $s = 10000000;
 
                                     foreach ($imageResize as $key => $size) {
@@ -648,6 +648,13 @@
                                         }
                                     }
 
+                                    $sizeBefore = true;
+
+                                } else {
+
+                                    $imageSize = '-'.$imageResize[0];
+                                    $sizeBefore = false;
+
                                 }
 
                             } else {
@@ -656,7 +663,17 @@
 
                             }
 
-                            $VALUE = isset($VALUE[0]) ? $this->customLink->file.$imageDir.$imageSize.$VALUE[0] : "";
+                            if (isset($VALUE[0])) {
+                                if ($sizeBefore) {
+                                    $VALUE = $this->customLink->file.$imageDir.$imageSize.$VALUE[0];
+                                } else {
+                                    $extension = pathinfo($VALUE[0], PATHINFO_EXTENSION);
+                                    $name = pathinfo($VALUE[0], PATHINFO_FILENAME);
+                                    $VALUE = $this->customLink->file.$imageDir.$name.$imageSize.'.'.$extension;
+                                }
+                            } else {
+                                $VALUE = "";
+                            }
                             
                         }
 

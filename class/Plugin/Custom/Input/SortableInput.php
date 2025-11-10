@@ -50,7 +50,7 @@
 
         }
 
-        function Column( $name, $label = '', $type = 'hidden', $value = null, int $col = 3, $attribute = '', array $option = [] ) {
+        function Column( $name, $label = '', $type = 'hidden', $value = null, int $col = 3, $attribute = '', array $option = [], array $config = [] ) {
 
             $Column = [
                 'name' => $name,
@@ -59,7 +59,8 @@
                 'value' => $value,
                 'col' => $col,
                 'attribute' => $attribute,
-                'option' => $option
+                'option' => $option,
+                'config' => $config
             ];
 
             array_push($this->Columns, $Column);
@@ -96,13 +97,14 @@
                 $col = $Column['col'];
                 $attribute = $Column['attribute'];
                 $option = $Column['option'];
+                $columnConfig = $Column['config'] ?? [];
 
                 # Se sono stati passati dei valori diversi nelle linee di default
 
-                    $config = (is_array($value) && isset($value['value'])) ? $value : [];
+                    $valueConfig = (is_array($value) && isset($value['value'])) ? $value : [];
 
-                    $value = $config['value'] ?? $value;
-                    $addAttribute = $config['attribute'] ?? '';
+                    $value = $valueConfig['value'] ?? $value;
+                    $addAttribute = $valueConfig['attribute'] ?? '';
 
                     $attribute .= ' '.$addAttribute;
 
@@ -134,6 +136,8 @@
                         $RETURN .= dateInput($label, $name.'[]', null, null, $attribute, $value);
                     } elseif ($type == 'date-time') {
                         $RETURN .= textDatetime($label, $name.'[]', $attribute, $value);
+                    } elseif ($type == 'file') {
+                        $RETURN .= $this->renderUploadInput($label, $name, $attribute, $value, $columnConfig);
                     }
 
                     $RETURN .= "</div>";
@@ -211,5 +215,50 @@
             return $RETURN;
 
         }
-        
+
+        private function renderUploadInput($label, $name, $attribute, $value, array $config = []) {
+
+            global $NAME;
+
+            $inputName = $name.'[]';
+            $type = $config['type'] ?? 'images';
+            $uploader = $config['uploader'] ?? 'classic';
+
+            $overrideKeys = array_intersect_key($config, array_flip(['table', 'folder', 'column']));
+            $shouldOverride = !empty($overrideKeys);
+
+            $nameWasSet = isset($NAME);
+            $previousName = $nameWasSet ? $NAME : null;
+
+            if ($shouldOverride) {
+
+                $base = $nameWasSet ? (array) $NAME : [];
+
+                $NAME = (object) array_merge(
+                    $base,
+                    [
+                        'table' => $overrideKeys['table'] ?? ($base['table'] ?? ''),
+                        'folder' => $overrideKeys['folder'] ?? ($base['folder'] ?? ''),
+                        'column' => $overrideKeys['column'] ?? $name
+                    ]
+                );
+
+            }
+
+            $input = inputFileDragDrop($label, $inputName, $uploader, $type, $attribute, $value);
+
+            if ($shouldOverride) {
+
+                if ($nameWasSet) {
+                    $NAME = $previousName;
+                } else {
+                    unset($NAME);
+                }
+
+            }
+
+            return $input;
+
+        }
+
     }
