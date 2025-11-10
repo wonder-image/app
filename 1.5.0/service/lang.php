@@ -3,16 +3,49 @@
     use Wonder\Localization\{ LanguageContext, TranslationProvider };
 
     # Imposto le lingue
-    LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
-        ::defaultLang('it')
-        ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
+        LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
+            ::defaultLang('it')
+            ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
+    
 
     # Imposto le variabili globali
-    TranslationProvider::setGlobals([
+        TranslationProvider::setGlobals([
 
             # Dettagli pagina
             'path_site' => LanguageContext::getSitePath(),
-            'domain' => $PAGE->domain,  
+            'domain' => $PAGE->domain,
+
+            # Dettagli utente
+            'user_name' => $USER->name ?? '',
+            'user_surname' => $USER->surname ?? '',
+            'user_email' => $USER->email ?? '',
+            'user_phone' => $USER->phone ?? '',
+            'user_username' => $USER->username ?? '',
+            'user_color' => $USER->color ?? ''
+
+        ]);
+        
+
+    if (file_exists($ROOT."/custom/config/lang.php")) {
+        require_once $ROOT."/custom/config/lang.php";
+    }
+
+
+    # Informazioni della società
+        if (sqlTableExists('society')) { 
+
+            $SOCIETY = infoSociety();
+        
+        } else {
+
+            $SOCIETY->name = "Wonder Image";
+            $SOCIETY->legal_name = "Wonder Image";
+            $SOCIETY->email = "info@wonderimage.it";
+
+        }
+        
+    # Imposto le variabili globali
+        TranslationProvider::setGlobals([
 
             # Dettagli società
             'legal_name' => $SOCIETY->legal_name ?? '',
@@ -26,16 +59,5 @@
             'society_cel' => isset($SOCIETY->cel) && $SOCIETY->cel ? prettyPhone($SOCIETY->cel) : '',
             'society_phone' => !empty($SOCIETY->tel) ? prettyPhone($SOCIETY->tel) : (!empty($SOCIETY->cel) ? prettyPhone($SOCIETY->cel) : ''),
 
-            # Dettagli utente
-            'user_name' => $USER->name ?? '',
-            'user_surname' => $USER->surname ?? '',
-            'user_email' => $USER->email ?? '',
-            'user_phone' => $USER->phone ?? '',
-            'user_username' => $USER->username ?? '',
-            'user_color' => $USER->color ?? ''
-
         ]);
-
-    if (file_exists($ROOT."/custom/config/lang.php")) {
-        require_once $ROOT."/custom/config/lang.php";
-    }
+        
