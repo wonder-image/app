@@ -137,7 +137,8 @@
                     } elseif ($type == 'date-time') {
                         $RETURN .= textDatetime($label, $name.'[]', $attribute, $value);
                     } elseif ($type == 'file') {
-                        $RETURN .= $this->renderUploadInput($label, $name, $attribute, $value, $columnConfig);
+                        $nRow = $this->RowN - 1;
+                        $RETURN .= $this->renderUploadInput($label, $name.'-'.$nRow, $attribute, $value, $columnConfig);
                     }
 
                     $RETURN .= "</div>";
@@ -220,8 +221,8 @@
 
             global $NAME;
 
-            $inputName = $name.'[]';
-            $type = $config['type'] ?? 'images';
+            $inputName = $name;
+            $type = $config['type'] ?? 'image';
             $uploader = $config['uploader'] ?? 'classic';
 
             $overrideKeys = array_intersect_key($config, array_flip(['table', 'folder', 'column']));

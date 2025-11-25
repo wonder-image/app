@@ -199,22 +199,41 @@
 
                 if (is_array($VALUE)) {
                     
-                    if (isset($RULES['format']['file']) && $RULES['format']['file'] === true && count($VALUE['name']) > 0) {
+                    if (isset($RULES['format']['file']) && $RULES['format']['file'] === true && isset($VALUE['name'])) {
 
-                        if (isset($OLD_VALUE)) {
-                            $ARRAY_VALUES = json_decode($OLD_VALUE, true);
-                        } else {
-                            $ARRAY_VALUES = [];
-                        }
+                        $ARRAY_VALUES = (isset($OLD_VALUE)) ? json_decode($OLD_VALUE, true) : [];
 
                         $folder = (isset($NAME->folder) && $NAME->folder) ? '/' . $NAME->folder : '';
+
+                        if (isset($RULES['format']['name'])) {
+
+                            $formatName = $RULES['format']['name'];
+                            preg_match_all('/{([^}]+)}/', $formatName, $matches);
+
+                            if (!empty($matches[1])) {
+
+                                foreach ($matches[1] as $match) {
+
+                                    if ($match == 'rand') { continue; }
+
+                                    $replace = $VALUES[$match] ?? ($post[$match] ?? '');
+
+                                    $formatName = str_replace('{' . $match . '}', $replace, $formatName);
+
+                                }
+
+                            }
+
+                            $RULES['format']['name'] = empty($formatName) ? code() : $formatName;
+
+                        }
 
                         $VALUE = uploadFiles($VALUE, $RULES['format'], $PATH->rUpload.$folder, $ARRAY_VALUES);
 
                     } else {
 
                         foreach ($VALUE as $k => $v) { if (empty($v) && $v != 0) { unset($VALUE[$k]); } }
-                        $VALUE = json_encode(array_values($VALUE));
+                        $VALUE = json_encode(array_values($VALUE), JSON_PRETTY_PRINT);
 
                     }
                     
@@ -271,7 +290,9 @@
 
                     if (isset($RULES['format']['json']) && $RULES['format']['json'] === true) {
 
-                        $ARRAY = sanitizeJSON(json_decode($VALUE, true));
+                        $decoded = empty($VALUE) ? [] : json_decode($VALUE, true);
+                        if (!is_array($decoded)) { $decoded = []; }
+                        $ARRAY = sanitizeJSON($decoded);
                         $VALUE = json_encode($ARRAY, JSON_PRETTY_PRINT);
                         
                     }

@@ -8,6 +8,7 @@
         $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1048576 : 2 * 1048576;
         $EXTENSIONS = $FORMAT['extensions'] ?? '';
         $DIR = $FORMAT['dir'] ?? '/';
+        $CUSTOM_NAME = $FORMAT['name'] ?? '';
         $RESIZE = $FORMAT['resize'] ?? [];
         $WEBP = $FORMAT['webp'] ?? false;
         $RESET = $FORMAT['reset'] ?? false;
@@ -59,17 +60,29 @@
                         if (empty($ALERT)) {
 
                             if (substr($DIR, -1) != '/') {
-                                
-                                $NEW_NAME = explode('/', $DIR);
-                                $lastKey = array_key_last($NEW_NAME);
 
-                                $PATH_UPLOAD = $PATH_DIR.str_replace($NEW_NAME,'', $DIR);
-                                $NEW_NAME = $NEW_NAME[$lastKey];
+                                $DIR_PARTS = explode('/', $DIR);
+                                $NEW_NAME = array_pop($DIR_PARTS);
+                                $PATH_UPLOAD = $PATH_DIR.implode('/', $DIR_PARTS);
+
+                                if (substr($PATH_UPLOAD, -1) != '/') { $PATH_UPLOAD .= '/'; }
 
                             } else {
 
                                 $NEW_NAME = code(10, 'all');
                                 $PATH_UPLOAD = $PATH_DIR.$DIR;
+
+                            }
+
+                            if (!empty($CUSTOM_NAME)) {
+
+                                $NEW_NAME = $CUSTOM_NAME;
+
+                                if (strpos($NEW_NAME, '{rand}') !== false) {
+                                    $NEW_NAME = str_replace('{rand}', code(3, 'letter'), $NEW_NAME);
+                                }
+
+                                $NEW_NAME = create_link(strtolower($NEW_NAME));
 
                             }
 
@@ -103,6 +116,6 @@
 
         }
 
-        return json_encode($NEW_FILE);
+        return json_encode($NEW_FILE, JSON_PRETTY_PRINT);
     
     }

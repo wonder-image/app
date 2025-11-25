@@ -1046,9 +1046,45 @@
             $ACCEPT_LABEL = "il tuo file";
         }
 
+        if (isset($TB['format']['resize'])) {
+
+            $imageResize = $TB['format']['resize'];
+
+            if (isset($imageResize['width'])) {
+
+                $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+                $sizeBefore = true;
+
+            } else if (isset($imageResize[0]['width'])) {
+                $s = 10000000;
+
+                foreach ($imageResize as $key => $size) {
+                    if ($size['width'] < $s) {
+                        $s = $size['width'];
+                        $imageSize = $size['width'].'x'.$size['height'].'-';
+                    }
+                }
+
+                $sizeBefore = true;
+
+            } else {
+
+                $imageSize = $imageResize[0];
+                $sizeBefore = false;
+
+            }
+
+        } else {
+
+            $sizeBefore = false;
+            $imageSize = "";
+
+        }
+
         $x = $name.'[]';
 
         $multiple = ($maxFile > 1) ? "multiple" : "";
+        $class = ($maxFile > 1) ? " filepond--multiple" : "";
 
         $dir = $PATH->upload.'/'.$NAME->folder;
         $dir .= $TB['format']['dir'] ?? '/'; 
@@ -1074,7 +1110,7 @@
         <div id='container-$id' class='w-100'>
             $label
             <div class='$class'>
-                <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-uploader-label='$ACCEPT_LABEL' data-wi-check='true' $multiple $attribute>
+                <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-min-size-image='$imageSize' data-size-before='$sizeBefore' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-uploader-label='$ACCEPT_LABEL' data-wi-check='true' $multiple $attribute>
             </div>
             <div class='invalid-feedback'> </div>
         </div>";

@@ -132,7 +132,7 @@
         
     }    
 
-    function sanitizeJSON($array): array 
+    function sanitizeJSON( array $array ): array 
     {
 
         global $CHARACTERS;
