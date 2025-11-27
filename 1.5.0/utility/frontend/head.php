@@ -62,8 +62,6 @@
 
     //
 
-    $SOCIETY_LOGOS = sqlSelect('logos', ['id' => '1'], 1)->row;
-
     # Sanifico la SEO
     $SEO->title = empty($SEO->title) ? "" : strip_tags($SEO->title);
     $SEO->description = empty($SEO->description) ? "" : substr(str_replace('"', "", strip_tags($SEO->description)), 0, 140); # Raccomandato tra i 50 e 160 caratteri
@@ -154,20 +152,25 @@
 <!-- Inizio icone -->
     <?php
 
-        if ($SOCIETY_LOGOS['favicon'] != "" && !empty(json_decode($SOCIETY_LOGOS['favicon']))) {
+        if (!empty($SOCIETY->favicon)) {
 
             echo "<link rel='icon' href='$PATH->favicon'>";
 
         }
 
-        if ($SOCIETY_LOGOS['app_icon'] != "" && !empty(json_decode($SOCIETY_LOGOS['app_icon']))) {
+        if (!empty($SOCIETY->appIcon)) {
 
-            echo "<link rel='apple-touch-icon' href='$PATH->appIcon'>";
+            echo "<link rel='apple-touch-icon' href='$SOCIETY->appIcon'>";
+
+            $pathInfo = pathinfo($SOCIETY->appIcon);
+
+            $name = $pathInfo['filename'];
+            $extension = $pathInfo['extension'];
 
             foreach ($DEFAULT->appIcon as $size) {
                 
-                echo "<link rel='icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
-                echo "<link rel='apple-touch-icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$size}x{$size}-App-Icon.png'>";
+                echo "<link rel='icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$name}-{$size}.{$extension}'>";
+                echo "<link rel='apple-touch-icon' sizes='{$size}x{$size}' href='$PATH->upload/logos/{$name}-{$size}.{$extension}'>";
             
             }
 

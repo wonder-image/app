@@ -50,6 +50,8 @@
     }
 
     function infoSociety() {
+
+        global $PATH;
         
         $RETURN = (object) array();
 
@@ -102,6 +104,28 @@
         $RETURN->timeGroup = $PRETTY_TIMEGROUP->timeGroup;
         $RETURN->prettyTime = $PRETTY_TIMEGROUP->prettyTime;
         $RETURN->prettyTimeGroup = $PRETTY_TIMEGROUP->prettyTimeGroup;
+
+        $LOGOS = sqlSelect('logos', [ 'id' => '1'], 1)->row;
+
+        $LOGO = [];
+
+        foreach ($LOGOS as $key => $value) {
+            if (!empty($value) && !empty(json_decode($value)) && is_array(json_decode($value))) {
+                $logo = json_decode($value)[0];
+                $LOGO[$key] = $logo;
+            }
+        }
+
+        $RETURN->logo = isset($LOGO['main']) ? $PATH->upload.'/logos/'.$LOGO['main'] : "";
+        $RETURN->logoBlack = isset($LOGO['black']) ? $PATH->upload.'/logos/'.$LOGO['black'] : "";
+        $RETURN->logoWhite = isset($LOGO['white']) ? $PATH->upload.'/logos/'.$LOGO['white'] : "";
+        
+        $RETURN->icon = isset($LOGO['icon']) ? $PATH->upload.'/logos/'.$LOGO['icon'] : "";
+        $RETURN->iconBlack = isset($LOGO['icon_black']) ? $PATH->upload.'/logos/'.$LOGO['icon_black'] : "";
+        $RETURN->iconWhite = isset($LOGO['icon_white']) ? $PATH->upload.'/logos/'.$LOGO['icon_white'] : "";
+
+        $RETURN->favicon = isset($LOGO['favicon']) ? $PATH->site.'/'.$LOGO['favicon'] : "";
+        $RETURN->appIcon = isset($LOGO['app_icon']) ? $PATH->upload.'/logos/'.$LOGO['app_icon'] : "";
 
         return $RETURN;
 

@@ -22,8 +22,12 @@
     $VALUES = $SQL->row;
 
     if (isset($_POST['modify'])) {
+
+        $_POST['slug'] = $SOCIETY->name;
+
+        $POST = array_merge($_POST, $_FILES);
         
-        $VALUES = formToArray($INFO_PAGE->tableName, $_FILES, $INFO_PAGE->table, $VALUES);
+        $VALUES = formToArray($INFO_PAGE->tableName, $POST, $INFO_PAGE->table, $VALUES);
         
         if (empty($ALERT)) {sqlModify($INFO_PAGE->tableName, $VALUES, 'id', 1); }
         if (empty($ALERT)) { header("Location: ?alert=661"); }
@@ -57,7 +61,7 @@
             <div class="col-12">
                 <div class="row g-3">
 
-                    <wi-card class="col-12">
+                    <wi-card class="col-8">
                         <div class="col-4">
                             <?=inputFileDragDrop('Logo', 'main', 'classic', 'png'); ?>
                         </div>
@@ -67,19 +71,20 @@
                         <div class="col-4">
                             <?=inputFileDragDrop('Logo bianco', 'white', 'classic', 'png'); ?>
                         </div>
+                        <div class="col-12"></div>
                         <div class="col-4">
                             <?=inputFileDragDrop('Icona', 'icon', 'classic', 'png'); ?>
                         </div>
-                        <!-- 
-                            La funzione inputFileDragDrop mi converte i file in .png e spesso non riesco a caricare la favicon perchè è nella root principale
-                            <div class="col-4">
-                                <?=inputFileDragDrop('Favicon', 'favicon', 'classic', 'ico'); ?>
-                                <span class="position-relative float-start mt-1">
-                                    Utilizzare <a href="https://convertio.co/it/png-ico/" target="_blank" rel="noopener noreferrer">convertio.co</a> per convertire i file da .png a .ico
-                                </span>
-                            </div> 
-                        -->
                         <div class="col-4">
+                            <?=inputFileDragDrop('Icona Nera', 'icon_black', 'classic', 'png'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=inputFileDragDrop('Icona Bianca', 'icon_white', 'classic', 'png'); ?>
+                        </div>
+                    </wi-card>
+
+                    <wi-card class="col-4">
+                        <div class="col-12">
                             <?=inputFileDragDrop('Icona app', 'app_icon', 'classic', 'png'); ?>
                         </div>
                         <div class="col-12">

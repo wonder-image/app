@@ -113,15 +113,16 @@
         ]
     ];
 
-    $APP_ICON_RESIZE = [];
-    foreach ($DEFAULT->appIcon as $size) { 
-        array_push($APP_ICON_RESIZE, [ 
-            'width' => $size,
-            'height' => $size
-        ]);
-    }
-
     $TABLE->LOGOS = [
+        "slug" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "link_unique" => true,
+                    "lower" => true
+                ]
+            ]
+        ],
         "main" => [
             "input" => [
                 "format" => [
@@ -129,9 +130,11 @@
                     "file" => true,
                     "reset" => true,
                     "extensions" => ['png'],
-                    "max_size" => 1,
+                    "max_size" => 2,
                     "max_file" => 1,
-                    "dir" => '/Logo'
+                    "name" => 'logo-{slug}',
+                    "webp" => RESPONSIVE_IMAGE_WEBP,
+                    "resize" => RESPONSIVE_IMAGE_SIZES
                 ]
             ]
         ],
@@ -142,9 +145,11 @@
                     "file" => true,
                     "reset" => true,
                     "extensions" => ['png'],
-                    "max_size" => 1,
+                    "max_size" => 2,
                     "max_file" => 1,
-                    "dir" => '/Logo-Black'
+                    "name" => 'logo-{slug}-black',
+                    "webp" => RESPONSIVE_IMAGE_WEBP,
+                    "resize" => RESPONSIVE_IMAGE_SIZES
                 ]
             ]
         ],
@@ -155,9 +160,11 @@
                     "file" => true,
                     "reset" => true,
                     "extensions" => ['png'],
-                    "max_size" => 1,
+                    "max_size" => 2,
                     "max_file" => 1,
-                    "dir" => '/Logo-White'
+                    "name" => 'logo-{slug}-white',
+                    "webp" => RESPONSIVE_IMAGE_WEBP,
+                    "resize" => RESPONSIVE_IMAGE_SIZES
                 ]
             ]
         ],
@@ -168,9 +175,41 @@
                     "file" => true,
                     "reset" => true,
                     "extensions" => ['png'],
-                    "max_size" => 1,
+                    "max_size" => 2,
                     "max_file" => 1,
-                    "dir" => '/Logo-Icon'
+                    "name" => 'icon-{slug}',
+                    "webp" => RESPONSIVE_IMAGE_WEBP,
+                    "resize" => RESPONSIVE_IMAGE_SIZES
+                ]
+            ]
+        ],
+        "icon_black" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "reset" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 2,
+                    "max_file" => 1,
+                    "name" => 'icon-{slug}-black',
+                    "webp" => RESPONSIVE_IMAGE_WEBP,
+                    "resize" => RESPONSIVE_IMAGE_SIZES
+                ]
+            ]
+        ],
+        "icon_white" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "file" => true,
+                    "reset" => true,
+                    "extensions" => ['png'],
+                    "max_size" => 2,
+                    "max_file" => 1,
+                    "name" => 'icon-{slug}-white',
+                    "webp" => RESPONSIVE_IMAGE_WEBP,
+                    "resize" => RESPONSIVE_IMAGE_SIZES
                 ]
             ]
         ],
@@ -194,10 +233,10 @@
                     "file" => true,
                     "reset" => true,
                     "extensions" => ['png'],
-                    "max_size" => 1,
+                    "max_size" => 2,
                     "max_file" => 1,
-                    "dir" => '/App-Icon',
-                    "resize" => $APP_ICON_RESIZE
+                    "name" => 'app-icon-{slug}',
+                    "resize" => $DEFAULT->appIcon
                 ]
             ]
         ],
