@@ -21,9 +21,9 @@
 
             $R = [];
 
-            foreach ($RESIZE as $key => $value) {
-                array_push($R, $value['width']);
-            }
+            foreach ($RESIZE as $key => $value) { array_push($R, $value['width']); }
+
+            $RESIZE = $R;
 
         }
 

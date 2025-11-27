@@ -31,9 +31,11 @@
                     
             $app = new Application();
 
+            $instances = [];
             foreach ($this->commands as $class) {
-                $app->add(new $class);
+                $instances[] = new $class();
             }
+            $app->addCommands($instances);
 
             return $app->run($input, $output);
 

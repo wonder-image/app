@@ -14,7 +14,7 @@
         $from = date('Y-m-d',mktime(0,0,0,date('m'),date('d')-$day,date('Y')));
         $to = date('Y-m-d',mktime(0,0,0,date('m'),date('d')-1,date('Y')));
 
-        $dates = array();
+        $dates = [];
         
         if ($day >= 2) {
 
@@ -30,9 +30,9 @@
                 
                 $date = date("Y-m-d",mktime(0,0,0,$month,$day+1,$year));
 
-                if($date == $to){
+                if ($date == $to){
                     $found = true;
-                }else{
+                } else {
                     array_push($dates, $date);
                 }
 
@@ -56,9 +56,9 @@
 
     function arrayDay($from, $to) {
 
-        list($day,$month,$year) = explode("/", $from);
+        [$day, $month, $year] = explode("/", $from);
         $from = "$year-$month-$day";
-        list($day,$month,$year) = explode("/", $to);
+        [$day, $month, $year] = explode("/", $to);
         $to = "$year-$month-$day";
 
         $dates = array();
@@ -133,10 +133,10 @@
 
             $RETURN->prettyTime .= "<b>".translateDate($day, 'day').":</b> ";
 
-            foreach ($value as $key => $value) {
+            foreach ($value as $key => $v) {
                 $RETURN->prettyTime .= __t('date.from_to_hours', [
-                    'from' => $value['from'],
-                    'to' => $value['to']
+                    'from' => $v['from'],
+                    'to' => $v['to']
                 ]).'<br>'; 
             }
 
@@ -156,7 +156,7 @@
 
             foreach ($h as $k => $v) {
                 $v = explode('=>', $v);
-                $RETURN->prettyTimeGroup .= $RETURN->prettyTime .= __t('date.from_to_hours', [
+                $RETURN->prettyTimeGroup .= __t('date.from_to_hours', [
                     'from' => $v[0],
                     'to' => $v[1]
                 ]).' | '; 
