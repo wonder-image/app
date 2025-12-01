@@ -27,6 +27,21 @@
         
         }
 
+        // ! Aggiungere la funzione style in maniera da poterla modificare anche in futuro
+        // public function style( string $key, string|int $value ): self
+        // {
+
+        //     return $this->attr('style', [ "$key: $value;" ] );
+
+        // }
+
+        // public function addStyle( string $key, string|int $value ): self
+        // {
+
+        //     return $this->pushAttr('style', [ "$key: $value;" ] ); 
+
+        // }
+
         public function id(string $id): self
         { 
             

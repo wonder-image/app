@@ -30,7 +30,6 @@
         require_once $ROOT."/custom/config/lang.php";
     }
 
-
     # Informazioni della società
         if (sqlTableExists('society')) { 
 
@@ -44,6 +43,14 @@
 
         }
         
+    # Modifico impostazioni logo
+        $PATH->logo = isset($SOCIETY->logo) ? __i($SOCIETY->logo)->size(480)->url() : '';
+        $PATH->logoWhite = isset($SOCIETY->logoWhite) ? __i($SOCIETY->logoWhite)->size(480)->url() : '';
+        $PATH->logoBlack = isset($SOCIETY->logoBlack) ? __i($SOCIETY->logoBlack)->size(480)->url() : '';
+        $PATH->logoIcon = isset($SOCIETY->logoIcon) ? __i($SOCIETY->icon)->size(480)->url() : '';
+        $PATH->favicon = $SOCIETY->favicon ?? '';
+        $PATH->appIcon = isset($SOCIETY->appIcon) ? __i($SOCIETY->appIcon)->size(480)->url() : '';
+
     # Imposto le variabili globali
         TranslationProvider::setGlobals([
 

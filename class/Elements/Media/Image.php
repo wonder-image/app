@@ -5,6 +5,7 @@
     use Wonder\Elements\Component;
 
     use Wonder\Elements\Concerns\{ Renderer };
+    use Wonder\App\Path;
 
     class Image extends Component {
 
@@ -74,7 +75,6 @@
         public function skeleton( bool $skeleton = true ): self
         {
 
-            $this->fitCover(false);
             return $this->schema('skeleton', $skeleton);
 
         }
@@ -87,10 +87,40 @@
 
         }
 
-        public function loading( string $loading = 'lazy' )
+        public function loading( string $loading = 'lazy' ): self
         {
 
             return $this->attr('loading', $loading );
+
+        }
+
+        public function url() : string 
+        {
+
+            $image = $this->getSchema('src');
+            $size = $this->getSchema('default-size');
+
+            if (empty($image)) {
+                
+                return '';
+
+            } else if (empty($size)) {
+
+                return $image;
+
+            } else {
+
+                $pathInfo = pathinfo($image);
+
+                $name = $pathInfo['filename'];
+                $extension = $pathInfo['extension'];
+
+                $directory = str_replace((new Path())->site, '', $pathInfo['dirname']);
+                $directoryUrl = (new Path())->site.$directory.DIRECTORY_SEPARATOR;
+
+                return sprintf('%s%s-%d.%s', $directoryUrl, $name, $size, $extension);
+
+            }
 
         }
 
