@@ -47,8 +47,7 @@
         return Wonder\Elements\Media\Image::src($image)
             ->skeleton()
             ->notDraggable()
-            ->loading()
-            ->fitCover();
+            ->loading();
 
     }
     
