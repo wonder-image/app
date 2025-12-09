@@ -53,6 +53,25 @@
 
     function deleteDir($dir) {
 
+        $realDir = realpath($dir);
+        $vendorRoot = realpath(__DIR__.'/../../../vendor');
+
+        // Evita di cancellare accidentalmente i file core della libreria
+        $isVendorPath = $realDir !== false && $vendorRoot !== false && str_starts_with($realDir, $vendorRoot);
+
+        // Evita di cancellare accidentalmente i file core della libreria o le dipendenze in vendor
+        if ($isVendorPath) {
+            error_log("[deleteDir] Skip cancellazione di percorso protetto: $realDir");
+            return;
+        }
+
+        // Se è un link simbolico non seguo la directory: rimuovo solo il link
+        if (is_link($dir)) {
+            @unlink($dir);
+            clearstatcache();
+            return;
+        }
+
         if (is_dir($dir)) {
 
             $files = scandir($dir);

@@ -1,6 +1,6 @@
 <?php
 
-    function curl( string $url, string $action = null, array $values = [], string $username = null, string $password = null) {
+    function curl( string $url, ?string $action = null, array $values = [], ?string $username = null, ?string $password = null) {
 
         $CALL = new Wonder\Api\Call($url, $values);
 

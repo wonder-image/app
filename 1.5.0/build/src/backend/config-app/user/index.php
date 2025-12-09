@@ -22,11 +22,7 @@
 
     }
 
-    if (!empty($PAGE->redirect)) {
-        $REDIRECT = $PAGE->redirect;
-    } else {
-        $REDIRECT = "$PATH->backend/$NAME->folder/list.php";
-    }
+    $REDIRECT = (!empty($PAGE->redirect)) ? $PAGE->redirect : "$PATH->backend/$NAME->folder/list.php";
 
     if (isset($_POST['upload']) || isset($_POST['upload-add'])) {
 
@@ -59,7 +55,7 @@
                 Autorizzazione: <b>$authority</b>
                 ";
 
-                sendMail("noreply@wonderimage.it", $_POST['email'], "Benvenuto nello staff", $content);
+                sendMail("info@wonderimage.it", $_POST['email'], "Benvenuto nello staff", $content);
         
             }
 

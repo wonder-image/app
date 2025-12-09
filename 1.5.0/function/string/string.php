@@ -245,6 +245,7 @@
 
             $str = str_replace('<br> ', "\n", $str);
             $str = str_replace('<br>', "\n", $str);
+            $str = preg_replace('#<(script|style)[^>]*?>.*?</\\1>#is', '', $str);
 
             if ($upper == true) {
 
