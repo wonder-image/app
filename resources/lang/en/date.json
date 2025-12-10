@@ -26,5 +26,11 @@
     "yesterday": "Yesterday",
     "tomorrow": "Tomorrow",
     "at_hours" : "at {{hours}}",
-    "from_to_hours" : "from {{from}} to {{to}}"
+    "from_to_hours" : "from {{from}} to {{to}}",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "at": "at",
+    "hour": "hour"
 }

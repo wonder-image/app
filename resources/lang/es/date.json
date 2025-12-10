@@ -26,5 +26,11 @@
     "yesterday": "Ayer",
     "tomorrow": "Mañana",
     "at_hours" : "a las {{hours}}",
-    "from_to_hours" : "de {{from}} a {{to}}"
+    "from_to_hours" : "de {{from}} a {{to}}",
+    "days": "Días",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "seconds": "Segundos",
+    "at": "a las",
+    "hour": "hora"
 }

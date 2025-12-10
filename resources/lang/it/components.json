@@ -13,7 +13,7 @@
             "message" : { "label" : "Messaggio" },
             "request" : { "label" : "Di cosa hai bisogno?" },
             "privacy" : {
-                "label" : "Accetto la <a href=\"{{path_site}}legal/privacy-policy/\" target=\"_blank\" rel=\"noopener noreferrer\">Politica sulla privacy</a> e i <a href=\"{{path_site}}legal/terms-conditions/\" target=\"_blank\" rel=\"noopener noreferrer\">Termini e Condizioni</a>"
+                "label" : "Accetto la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politica sulla privacy</a> e i <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termini e Condizioni</a>"
             }
         }
     },

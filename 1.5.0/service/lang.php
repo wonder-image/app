@@ -13,6 +13,9 @@
 
             # Dettagli pagina
             'path_site' => LanguageContext::getSitePath(),
+            'path_privacy_policy' => __u('legal/privacy-policy'),
+            'path_cookie_policy' => __u('legal/cookie-policy'),
+            'path_terms_conditions' => __u('legal/terms-conditions'),
             'domain' => $PAGE->domain,
 
             # Dettagli utente

@@ -26,5 +26,11 @@
     "yesterday" : "Ieri",
     "tomorrow" : "Domani",
     "at_hours" : "alle {{hours}}",
-    "from_to_hours" : "dalle {{from}} alle {{to}}"
+    "from_to_hours" : "dalle {{from}} alle {{to}}",
+    "days" : "Giorni",
+    "hours" : "Ore",
+    "minutes" : "Minuti",
+    "seconds" : "Secondi",
+    "at" : "alle",
+    "hour" : "ore"
 }
