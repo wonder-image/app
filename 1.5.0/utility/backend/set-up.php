@@ -13,6 +13,34 @@
 
     $DEFAULT_NAV_BOTTOM = [
         [
+            'title' => 'Media',
+            'folder' => 'media',
+            'icon' => 'bi-image',
+            'authority' => ['admin'],
+            'subnavs' => [
+                [
+                    'title' => 'Immagini',
+                    'folder' => 'media/images',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ], [
+                    'title' => 'Icone',
+                    'folder' => 'media/icons',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ], [
+                    'title' => 'Documenti',
+                    'folder' => 'media/documents',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ], [
+                    'title' => 'Upload di massa',
+                    'folder' => 'media/upload-massive',
+                    'file' => '',
+                    'authority' => ['admin']
+                ]
+            ]
+        ], [
             'title' => 'Set Up',
             'folder' => 'set-up',
             'icon' => 'bi-gear',

@@ -79,10 +79,10 @@
 
             $pathInfo = pathinfo($this->src);
 
-            $this->extension = strtolower($pathInfo['extension']);
+            $this->extension = isset($pathInfo['extension']) ? strtolower($pathInfo['extension']) : '';
             $this->mimeType = $this->getMimeType();
-            $this->imageName = $pathInfo['filename'];
-            $this->directory = str_replace((new Path())->site, '', $pathInfo['dirname']);
+            $this->imageName = $pathInfo['filename'] ?? '';
+            $this->directory = isset($pathInfo['dirname']) ? str_replace((new Path())->site, '', $pathInfo['dirname']) : '';
             $this->directoryUrl = (new Path())->site.$this->directory.DIRECTORY_SEPARATOR;
 
             $this->defaultSize = $this->getSchema('default-size') ?? null;

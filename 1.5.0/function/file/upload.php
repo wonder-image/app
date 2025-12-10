@@ -92,7 +92,9 @@
 
                                 $NEW_FILE[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
 
-                                imageResize($NEW_PATH, $RESIZE, $WEBP);
+                                if ((!empty($RESIZE) || $WEBP) && in_array($EXTENSION, ['jpg', 'jpeg', 'png', 'webp'])) {
+                                    imageResize($NEW_PATH, $RESIZE, $WEBP);
+                                }
 
                             } else {
 
