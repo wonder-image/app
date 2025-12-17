@@ -29,14 +29,14 @@
                 'normal' => 'btn-primary',
                 'disabled' => 'btn-primary-o',
             ]
-        ]) {
+        ], $countColumn = '*', $countDistinct = false) {
 
         global $_GET;
         global $PAGE;
 
         $RETURN = (object) array();
         $RETURN->page = isset($_GET['page']) ? $_GET['page'] : 1;
-        $RETURN->max_row = sqlCount($table, $query);
+        $RETURN->max_row = sqlCount($table, $query, $countColumn, $countDistinct);
         $RETURN->max_page = ($RETURN->max_row > 0) ? ceil($RETURN->max_row / $row) : 1;
 
         $RETURN->page = ($RETURN->page > $RETURN->max_page) ? $RETURN->max_page : $RETURN->page;
