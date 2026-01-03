@@ -11,8 +11,9 @@
         $PAGE_TABLE = $TABLE->$table;
     }
 
-    if (isset($USER_FILTER->authority) && isset($USER_FILTER->area)) {
-
+    if ((isset($USER_FILTER->authority) && !empty($USER_FILTER->authority)) || 
+        (isset($USER_FILTER->area) && !empty($USER_FILTER->area))) {
+            
         $QUERY_CUSTOM = isset($QUERY_CUSTOM) ? $QUERY_CUSTOM.' AND ' : '';
 
         if (!empty($USER_FILTER->authority)) {
