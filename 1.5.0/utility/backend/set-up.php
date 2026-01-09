@@ -19,6 +19,11 @@
             'authority' => ['admin'],
             'subnavs' => [
                 [
+                    'title' => 'Logo',
+                    'folder' => 'config-app/logos',
+                    'file' => '',
+                    'authority' => ['admin']
+                ], [
                     'title' => 'Immagini',
                     'folder' => 'media/images',
                     'file' => 'list.php',
@@ -49,11 +54,6 @@
                 [
                     'title' => 'Dati aziendali',
                     'folder' => 'config-app/corporate-data',
-                    'file' => '',
-                    'authority' => ['admin']
-                ], [
-                    'title' => 'Logo',
-                    'folder' => 'config-app/logos',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
