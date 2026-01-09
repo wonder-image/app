@@ -22,6 +22,7 @@
         "fatture_in_cloud_app_id" => [],
         "fatture_in_cloud_client_id" => [],
         "fatture_in_cloud_client_secret" => [],
+        "fatture_in_cloud_company_id" => [],
         "fatture_in_cloud_token" => [],
         "ipinfo_api_key" => [],
         "mail_host" => [],

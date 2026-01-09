@@ -45,23 +45,24 @@
         <div class="row g-3">
 
             <wi-card class="col-12">
-                <h3><?=$INFO_PAGE->title?></h3>
+                <h3>
+                    <?=$INFO_PAGE->title?>
+                    <?=submit('Modifica', 'modify', 'float-end'); ?>
+                </h3>
             </wi-card>
 
             <div class="col-9">
                 <div class="row g-3">
 
                     <wi-card class="col-12">
-                        <h5 class="col-12"> Wonder Image </h5>
+                        <h6 class="col-12"> Wonder Image </h6>
                         <div class="col-12">
                             <?=text('Api Key', 'api_key', 'disabled'); ?>
                         </div>
                     </wi-card>
 
                     <wi-card class="col-12">
-                        <h5 class="col-12">
-                            Google Cloud Platform
-                        </h5>
+                        <h6 class="col-12"> Google Cloud Platform </h6>
                         <div class="col-12">
                             Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.
                         </div>
@@ -69,10 +70,10 @@
                             <?=text('ID Progetto', 'gcp_project_id'); ?>
                         </div>
                         <div class="col-5">
-                            <?=text('Secret Api Key', 'gcp_api_key'); ?>
+                            <?=text('Chiave Privata', 'gcp_api_key'); ?>
                         </div>
                         <div class="col-5">
-                            <?=text('Client Api Key', 'gcp_client_api_key'); ?>
+                            <?=text('Chiave Pubblica', 'gcp_client_api_key'); ?>
                         </div>
 
                         <div class="col-6">
@@ -100,9 +101,7 @@
                     </wi-card>
 
                     <wi-card class="col-6">
-                        <h5 class="col-12">
-                            Server mail
-                        </h5>
+                        <h6 class="col-12"> Server mail </h6>
                         <div class="col-8">
                             <?=text('Host', 'mail_host', 'required'); ?>
                         </div>
@@ -124,7 +123,7 @@
                 <div class="row g-3">
 
                     <wi-card>
-                        <h5 class="col-12"> Stripe </h5>
+                        <h6 class="col-12"> Stripe </h6>
 
                         <div class="col-12">
                             <?=select('Ambiente', 'stripe_test', [ 'false' => 'Produzione', 'true' => 'Test' ], null, 'required'); ?>
@@ -133,7 +132,7 @@
                         <h6>Produzione</h6>
                         <?php if (empty($VALUES['stripe_account_id'])): ?>
                         <div class="col-12">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=production" class="w-100 btn btn-primary">
+                            <a href="<?=$PATH->appApi?>/service/stripe/onboarding/?account=production" class="w-100 btn btn-primary">
                                 Effettua connessione
                             </a>
                         </div>
@@ -142,12 +141,12 @@
                             <?=text('Account ID', 'stripe_account_id', 'readonly'); ?>
                         </div>
                         <div class="col-12">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=production" class="w-100 btn btn-primary">
+                            <a href="<?=$PATH->appApi?>/service/stripe/onboarding/?account=production" class="w-100 btn btn-primary">
                                 Modifica i dati
                             </a>
                         </div>
                         <!-- <div class="col-6">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?ca=true" class="w-100 btn btn-warning">
+                            <a href="<?=$PATH->appApi?>/service/stripe/onboarding/?ca=true" class="w-100 btn btn-warning">
                                 Cambia account
                             </a>
                         </div> -->
@@ -156,7 +155,7 @@
                         <h6>Test</h6>
                         <?php if (empty($VALUES['stripe_test_account_id'])): ?>
                         <div class="col-12">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=test" class="w-100 btn btn-primary">
+                            <a href="<?=$PATH->appApi?>/service/stripe/onboarding/?account=test" class="w-100 btn btn-primary">
                                 Effettua connessione
                             </a>
                         </div>
@@ -165,12 +164,12 @@
                             <?=text('Account ID', 'stripe_test_account_id', 'readonly'); ?>
                         </div>
                         <div class="col-12">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?account=test" class="w-100 btn btn-primary">
+                            <a href="<?=$PATH->appApi?>/service/stripe/onboarding/?account=test" class="w-100 btn btn-primary">
                                 Modifica i dati
                             </a>
                         </div>
                         <!-- <div class="col-6">
-                            <a href="<?=$PATH->appApi?>/stripe/account/onboarding.php?ca=true" class="w-100 btn btn-warning">
+                            <a href="<?=$PATH->appApi?>/service/stripe/onboarding/?ca=true" class="w-100 btn btn-warning">
                                 Cambia account
                             </a>
                         </div> -->
@@ -178,10 +177,22 @@
 
                     </wi-card>
 
-                    <wi-card class="col-12">
+                    <wi-card>
+                        <h6 class="col-12"> Fatture in Cloud </h6>
                         <div class="col-12">
-                            <?=submit('Modifica', 'modify'); ?>
+                            <?=text('Codice cliente', 'fatture_in_cloud_company_id'); ?>
                         </div>
+                        <div class="col-12">
+                            <?=text('Token', 'fatture_in_cloud_token'); ?>
+                        </div>
+                        <div class="col-12">
+                            Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/fatture-in-cloud" target="_blank" rel="noopener noreferrer">clicca qui</a>.
+                        </div>
+                        <!-- <div class="col-12">
+                            <a href="<?=$PATH->appApi?>/service/fatture-in-cloud/onboarding/" class="w-100 btn btn-primary">
+                                <?php empty($VALUES['fatture_in_cloud_token']) ? "Effettua connessione" : "Cambia account" ; ?>
+                            </a>
+                        </div> -->
                     </wi-card>
 
                 </div>

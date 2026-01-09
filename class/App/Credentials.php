@@ -195,6 +195,7 @@
                 self::$API->fatture_in_cloud_app_id = $row['fatture_in_cloud_app_id'] ?? '';
                 self::$API->fatture_in_cloud_client_id = $row['fatture_in_cloud_client_id'] ?? '';
                 self::$API->fatture_in_cloud_client_secret = $row['fatture_in_cloud_client_secret'] ?? '';
+                self::$API->fatture_in_cloud_company_id = $row['fatture_in_cloud_company_id'] ?? '';
                 self::$API->fatture_in_cloud_token = $row['fatture_in_cloud_token'] ?? '';
 
             }
