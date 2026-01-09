@@ -16,10 +16,7 @@
 
     if (!sqlSelect('security', ['id' => 1], 1)->exists) {
 
-        $values = [
-            "api_key" => $API->key
-        ];
-
+        $values = [ "api_key" => $API->key ];
         sqlInsert('security', $values);
 
     }
@@ -30,6 +27,8 @@
     if ($API_STATUS['success']) {
         if ($API_STATUS['response']['active'] == true) {
 
+            $VALUES = [];
+
             # Se non ci sono le credenziali email le aggiungo
             if (sqlSelect('security', ['id' => 1], 1)->row['mail_host'] == "") {
             
@@ -37,17 +36,10 @@
 
                 if ($MAIL['success']) {
 
-                    sqlModify(
-                        'security', 
-                        [
-                            "mail_host" => $MAIL['response']['host'],
-                            "mail_username" => $MAIL['response']['username'],
-                            "mail_password" => $MAIL['response']['password'],
-                            "mail_port" => $MAIL['response']['port']
-                        ],
-                        'id',
-                        1
-                    );
+                    $VALUES["mail_host"] = $MAIL['response']['host'];
+                    $VALUES["mail_username"] = $MAIL['response']['username'];
+                    $VALUES["mail_password"] = $MAIL['response']['password'];
+                    $VALUES["mail_port"] = $MAIL['response']['port'];
 
                 }
                     
@@ -60,15 +52,22 @@
 
                 if ($STRIPE['success']) {
 
-                    sqlModify(
-                        'security', 
-                        [
-                            "stripe_private_key" => $STRIPE['response']['private_key'],
-                            "stripe_test_key" => $STRIPE['response']['test_key']
-                        ],
-                        'id',
-                        1
-                    );
+                    $VALUES["stripe_private_key"] = $STRIPE['response']['private_key'];
+                    $VALUES["stripe_test_key"] = $STRIPE['response']['test_key'];
+
+                }
+
+            }
+
+            # Aggiungo le chiavi di fatture in cloud se non ci sono
+            if (sqlSelect('security', ['id' => 1], 1)->row['fatture_in_cloud_app_id'] == "") {
+                
+                $FIC = json_decode(wiApi('/service/fatture-in-cloud/credentials/'), true);
+                if ($FIC['success']) {
+
+                    $VALUES["fatture_in_cloud_app_id"] = $FIC['response']['app_id'];
+                    $VALUES["fatture_in_cloud_client_id"] = $FIC['response']['client_id'];
+                    $VALUES["fatture_in_cloud_client_secret"] = $FIC['response']['client_secret'];
 
                 }
 
@@ -81,18 +80,13 @@
 
                 if ($STRIPE['success']) {
 
-                    sqlModify(
-                        'security', 
-                        [
-                            "ipinfo_api_key" => $STRIPE['response']['api_key']
-                        ],
-                        'id',
-                        1
-                    );
+                    $VALUES["ipinfo_api_key"] = $STRIPE['response']['api_key'];
 
                 }
 
             }
+
+            if (!empty($VALUES)) { sqlModify( 'security', $VALUES, 'id', 1 ); }
 
         }
     }

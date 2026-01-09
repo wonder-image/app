@@ -8,11 +8,7 @@
     ];
 
     $TABLE->SECURITY = [
-        "api_key" => [
-            "sql" => [
-                "length" => 23
-            ]
-        ],
+        "api_key" => [ "sql" => [ "length" => 23 ] ],
         "gcp_project_id" => [],
         "gcp_api_key" => [],
         "gcp_client_api_key" => [],
@@ -22,14 +18,15 @@
         "stripe_test_account_id" => [],
         "stripe_private_key" => [],
         "stripe_test_key" => [],
-        "stripe_test" => [
-            "sql" => [
-                "default" => 'false'
-            ]
-        ],
+        "stripe_test" => [ "sql" => [ "default" => 'false' ] ],
+        "fatture_in_cloud_app_id" => [],
+        "fatture_in_cloud_client_id" => [],
+        "fatture_in_cloud_client_secret" => [],
+        "fatture_in_cloud_token" => [],
         "ipinfo_api_key" => [],
         "mail_host" => [],
         "mail_username" => [],
         "mail_password" => [],
-        "mail_port" => []
+        "mail_port" => [],
+        "encrypt" => [ "sql" => [ "default" => 'false' ] ]
     ];

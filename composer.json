@@ -22,7 +22,8 @@
         "stripe/stripe-php": "^17.2",
         "firebase/php-jwt": "^6.11",
         "phpoffice/phpspreadsheet": "^5.1",
-        "intervention/image": "^3.11"
+        "intervention/image": "^3.11",
+        "fattureincloud/fattureincloud-php-sdk": "^2.1"
     },
     "autoload": {
         "psr-4": {
