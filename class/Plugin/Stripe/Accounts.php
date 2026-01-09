@@ -24,8 +24,8 @@
 
             return parent::connect()->accountLinks->create([
                 'account' => $accountId,
-                'refresh_url' => (new Path)->appApi.'/stripe/account/onboarding.php',
-                'return_url' => (new Path)->appApi.'/stripe/account/checkOnboarding.php',
+                'refresh_url' => (new Path)->appApi.'/service/stripe/onboarding/',
+                'return_url' => (new Path)->appApi.'/service/stripe/onboarding/check/',
                 'type' => 'account_onboarding',
             ]);
 
