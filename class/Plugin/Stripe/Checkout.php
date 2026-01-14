@@ -73,11 +73,12 @@
         }
 
 
-        public function itemId($priceId, $quantity = 1) {
+        public function itemId($priceId, $quantity = 1, array $taxRate = []) {
 
             return $this->pushParams('line_items', [
                 'price' => $priceId,
                 'quantity' => $quantity,
+                'tax_rates' => $taxRate
             ]);
 
         }
