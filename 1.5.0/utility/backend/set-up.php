@@ -20,7 +20,7 @@
             'subnavs' => [
                 [
                     'title' => 'Logo',
-                    'folder' => 'config-app/logos',
+                    'folder' => 'media/logos',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
