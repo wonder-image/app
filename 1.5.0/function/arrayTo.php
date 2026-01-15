@@ -8,7 +8,7 @@
         header("Expires: 0");
         $output = fopen('php://output', 'w' );
 
-        foreach ($ARRAY as $row) { fputcsv($output, $row); }
+        foreach ($ARRAY as $row) { fputcsv($output, $row, ',', '"', '\\'); }
         
         fclose($output);
         
