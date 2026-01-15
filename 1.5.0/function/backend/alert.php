@@ -32,15 +32,6 @@
             $icon = "<i class='bi bi-check2-circle me-2'></i>";
         }
 
-        return "<div id='$id' class='toast border-$type overflow-hidden' role='alert' aria-live='assertive' aria-atomic='true'>
-                <div class='toast-header text-bg-$type border-bottom border-$type'>
-                    $icon
-                    <strong class='me-auto'>$title</strong>
-                    <button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button>
-                </div>
-                <div class='toast-body bg-light'>
-                    $text
-                </div>
-            </div>";
+        return "<div id='$id' class='toast border-$type overflow-hidden' role='alert' aria-live='assertive' aria-atomic='true'> <div class='toast-header text-bg-$type border-bottom border-$type'> $icon <strong class='me-auto'>$title</strong> <button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Close'></button> </div> <div class='toast-body bg-light'> $text </div> </div>";
 
     }

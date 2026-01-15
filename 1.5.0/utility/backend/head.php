@@ -24,7 +24,7 @@
 
         const pathSite = '<?=$PATH->site?>';
         const pathApp = '<?=$PATH->app?>';
-        var NO_INTERNET_ALERT = null;
+        const NO_INTERNET_ALERT = `<?=alertTheme(801)?>`;
 
         const API_TOKEN = '<?=Wonder\App\Credentials::appToken()?>';
         const GOOGLE_API_KEY = '<?=Wonder\App\Credentials::api()->gcp_client_api_key?>';
