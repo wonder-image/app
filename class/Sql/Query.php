@@ -10,11 +10,13 @@
     class Query {
 
         public mysqli $mysqli;
+        private bool $informationSchema = false;
 
-        public function __construct( ?mysqli $connection = null ) 
+        public function __construct( ?mysqli $connection = null, bool $informationSchema = false ) 
         { 
             
             $this->mysqli = ($connection === null) ? Connection::Connect('main') : $connection; 
+            $this->informationSchema = $informationSchema;
         
         }
 
@@ -214,7 +216,11 @@
             $query = "SELECT ";
             $query .= is_array($attributes) ? implode(",", $attributes) : $attributes;
             $query .= " FROM ";
-            $query .= is_array($table) ? self::JoinTable( $table ) : "`$table`";
+            if (is_array($table)) {
+                $query .= self::JoinTable( $table );
+            } else {
+                $query .= $this->informationSchema ? "INFORMATION_SCHEMA.$table" : "`$table`";
+            }
             $query .= ($condition == null) ? "" : self::Conditions( $condition );
             $query .= ($order == null) ? "" : " ORDER BY $order";
             $query .= ($orderDirection == null) ? "" : " $orderDirection";
@@ -421,7 +427,7 @@
 
         /**
          * 
-         * Connessione al database information_schema
+         * Connessione al database information_schema (senza aprire una nuova connessione)
          * 
          * @return Query
          * 
@@ -429,7 +435,7 @@
         function ISConnection() : Query
         { 
 
-            return new Query(Connection::Connect('information_schema')); 
+            return new Query($this->mysqli, true); 
 
         }
 

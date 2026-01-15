@@ -110,21 +110,19 @@
 
         global $DB;
         global $mysqli;
-        global $MYSQLI_CONNECTION;
-
-        $def_mysqli = $mysqli;
 
         $DATABASE = $DB->database[$database];
-        $mysqli = $MYSQLI_CONNECTION['information_schema'];
 
-        $RETURN = (object) array();;
+        $SQL = new Wonder\Sql\Query($mysqli, true);
 
-        foreach (sqlSelect('TABLES', [ 'TABLE_SCHEMA' => $DATABASE, 'TABLE_NAME' => $table ])->row[0] as $column => $value) {
+        $RETURN = (object) array();
+
+        $RESULT = $SQL->Select('TABLES', [ 'TABLE_SCHEMA' => $DATABASE, 'TABLE_NAME' => $table ]);
+
+        foreach (($RESULT->row[0] ?? []) as $column => $value) {
             $column = strtolower($column);
             $RETURN->$column = $value;
         }
-
-        $mysqli = $def_mysqli;
 
         return $RETURN;
 

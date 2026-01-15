@@ -55,6 +55,8 @@
 
                 }
 
+                self::logConnection($database);
+
                 self::$connection[$connectionCode] = $mysqli;
 
                 return $mysqli;
@@ -63,5 +65,31 @@
 
         }
 
+        private static function shouldLogConnection(): bool
+        {
+
+            return (bool) $_ENV['DB_CONNECTION_LOG'] ?? false;
+
+        }
+
+        private static function logConnection( string $database ): void
+        {
+
+            if (!self::shouldLogConnection()) {
+                return;
+            }
+
+            $host = self::$hostname ?? '-';
+            $user = self::$username ?? '-';
+            $uri = $_SERVER['REQUEST_URI'] ?? '-';
+            $pid = function_exists('getmypid') ? getmypid() : '-';
+
+            $line = "[".date('Y-m-d H:i:s')."] [wonder-db] connect host=$host user=$user db=$database pid=$pid uri=$uri";
+
+            $logFile = rtrim(ROOT, "/")."/db-connections.log";
+            error_log($line."\n", 3, $logFile);
+        
+
+        }
 
     }
