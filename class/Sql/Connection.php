@@ -68,7 +68,7 @@
         private static function shouldLogConnection(): bool
         {
 
-            return (bool) isset($_ENV['DB_CONNECTION_LOG']) ? $_ENV['DB_CONNECTION_LOG'] : false;
+            return filter_var($_ENV['DB_CONNECTION_LOG'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
 
         }
 
