@@ -34,6 +34,7 @@
             $functionCreation = $PERMITS[$AREA]['function']['creation'] ?? '';
             $functionModify = $PERMITS[$AREA]['function']['modify'] ?? '';
             $functionInfo = $PERMITS[$AREA]['function']['info'] ?? '';
+            $functionValidate = $PERMITS[$AREA]['function']['validate'] ?? '';
 
             $RETURN = (object) [];
             $RETURN->icon = $ARRAY['icon'] ?? '';
@@ -55,6 +56,7 @@
             $RETURN->functionCreation = $ARRAY['function']['creation'] ?? $functionCreation;
             $RETURN->functionModify = $ARRAY['function']['modify'] ?? $functionModify;
             $RETURN->functionInfo = $ARRAY['function']['info'] ?? $functionInfo;
+            $RETURN->functionValidate = $ARRAY['function']['validate'] ?? $functionValidate;
 
             $RETURN->badge = "<span class='badge $RETURN->bg $RETURN->tx'>".strtoupper($RETURN->name)."</span>";
             $RETURN->badgeIcon = "<span class='badge $RETURN->bg $RETURN->tx'>$RETURN->icon</span>";
