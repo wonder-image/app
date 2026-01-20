@@ -60,6 +60,13 @@
         private function checkContentType() 
         {
 
+            $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
+
+            if (in_array($requestMethod, [ 'GET', 'HEAD' ], true)) {
+                $this->contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
+                return;
+            }
+
             if (!isset($_SERVER['CONTENT_TYPE'])) {
                 throw new EndpointException('Formato della richiesta non specificato!', 405);
             }
@@ -162,7 +169,11 @@
             $this->data = [];
             $this->files = [];
             
-            if (str_contains($this->contentType, 'application/json')) {
+            if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+
+                $this->data = $_GET;
+
+            } elseif (str_contains($this->contentType, 'application/json')) {
 
                 $input = file_get_contents('php://input');
 
@@ -273,3 +284,4 @@
         }
 
     }
+    
