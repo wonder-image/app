@@ -374,6 +374,16 @@
         "title": "Doppelter Wert",
         "text": "Handynummer ist bereits in der Tabelle vorhanden."
     },
+    "981": {
+        "type": "danger",
+        "title": "Steuer-ID ungültig",
+        "text": "Die eingegebene Steuer-ID ist ungültig."
+    },
+    "982": {
+        "type": "danger",
+        "title": "USt-IdNr. ungültig",
+        "text": "Die eingegebene USt-IdNr. ist ungültig."
+    },
     "999": {
         "type": "danger",
         "title": "Fehler 999",

@@ -374,6 +374,16 @@
         "title": "Valeur dupliquée",
         "text": "Numéro de mobile déjà présent dans la table."
     },
+    "981": {
+        "type": "danger",
+        "title": "Numéro fiscal invalide",
+        "text": "Le numéro fiscal saisi n'est pas valide."
+    },
+    "982": {
+        "type": "danger",
+        "title": "Numéro de TVA invalide",
+        "text": "Le numéro de TVA saisi n'est pas valide."
+    },
     "999": {
         "type": "danger",
         "title": "Erreur 999",

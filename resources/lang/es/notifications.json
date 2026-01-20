@@ -374,6 +374,16 @@
         "title": "Valor duplicado",
         "text": "Número de celular ya presente en la tabla."
     },
+    "981": {
+        "type": "danger",
+        "title": "NIF no válido",
+        "text": "El NIF introducido no es válido."
+    },
+    "982": {
+        "type": "danger",
+        "title": "NIF-IVA no válido",
+        "text": "El NIF-IVA introducido no es válido."
+    },
     "999": {
         "type": "danger",
         "title": "Error 999",

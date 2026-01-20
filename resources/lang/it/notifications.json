@@ -374,6 +374,16 @@
         "title": "Valore duplicato",
         "text": "Numero di cellulare già presente nella tabella"
     },
+    "981": {
+        "type": "danger",
+        "title": "Codice fiscale non valido",
+        "text": "Il codice fiscale inserito non è valido"
+    },
+    "982": {
+        "type": "danger",
+        "title": "Partita IVA non valida",
+        "text": "La partita IVA inserita non è valida"
+    },
     "999": {
         "type": "danger",
         "title": "Errore 999",

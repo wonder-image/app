@@ -374,6 +374,16 @@
         "title": "Duplicate value",
         "text": "Mobile number already exists in the table."
     },
+    "981": {
+        "type": "danger",
+        "title": "Invalid tax ID",
+        "text": "The entered tax ID is not valid."
+    },
+    "982": {
+        "type": "danger",
+        "title": "Invalid VAT number",
+        "text": "The entered VAT number is not valid."
+    },
     "999": {
         "type": "danger",
         "title": "Error 999",
