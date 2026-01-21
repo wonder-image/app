@@ -202,7 +202,7 @@
         }
 
         // Se è una stringa numerica ("0", "1", "42") -> torna numero
-        if (is_string($str) && is_numeric($str) && !str_starts_with($str, '0') && !str_starts_with($str, '+')) {
+        if (is_string($str) && is_numeric($str) && ( $str === '0' || !preg_match('/^0\d+$/', $str) ) && !str_starts_with($str, '+')) {
             return $str + 0; // cast numerico
         }
 
