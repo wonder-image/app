@@ -234,6 +234,7 @@
         $id = strtolower(code(10, 'letters', 'input_'));
 
         $class = "";
+        $script = "";
 
         if (!empty($error)) {
             $class .= " input-error";
