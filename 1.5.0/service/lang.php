@@ -2,6 +2,14 @@
 
     use Wonder\Localization\{ LanguageContext, TranslationProvider };
 
+    # Imposto le lingue
+        LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
+            ::defaultLang('it')
+            ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
+    
+    # Inizializzo il sistema di traduzione
+        TranslationProvider::init();
+        
     # Informazioni della società
         if (sqlTableExists('society')) { 
 
@@ -22,11 +30,6 @@
         $PATH->logoIcon = isset($SOCIETY->logoIcon) ? __i($SOCIETY->icon)->size(480)->url() : '';
         $PATH->favicon = $SOCIETY->favicon ?? '';
         $PATH->appIcon = isset($SOCIETY->appIcon) ? __i($SOCIETY->appIcon)->size(480)->url() : '';
-
-    # Imposto le lingue
-        LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
-            ::defaultLang('it')
-            ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
 
     # Imposto le variabili globali
         TranslationProvider::setGlobals([
