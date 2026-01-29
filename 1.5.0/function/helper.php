@@ -66,3 +66,22 @@
     {
 
     }
+
+    // Log
+    function __log( Throwable $exception, string $service, string $action, string $level = 'ERROR', string $file = 'error', array $context = [] ) {
+
+        \Wonder\App\Logger::log($exception, $service, $action, $level, $file, $context);
+
+    }
+
+    function logStripeError(string $action, \Stripe\Exception\ApiErrorException $error) {
+
+        __log($error, 'stripe', $action, 'ERROR', 'error/stripe');
+
+    }
+
+    function logFattureInCloudError(string $action, \FattureInCloud\ApiException $error) {
+
+        __log($error, 'fatture-in-cloud', $action, 'ERROR', 'error/stripe');
+
+    }
