@@ -681,13 +681,11 @@
                     
                     } else if ($type == 'date') {
 
-                        $date = new DateTime($VALUE);
-                        $VALUE = $date->format('d/m/Y');
+                        $VALUE = empty($VALUE) ? "" : (new DateTime($VALUE))->format('d/m/Y');
 
                     } else if ($type == 'datetime') {
 
-                        $date = new DateTime($VALUE);
-                        $VALUE = $date->format('d/m/Y H:i');
+                        $VALUE = empty($VALUE) ? "" : (new DateTime($VALUE))->format('d/m/Y H:i');
 
                     } else if ($type == 'phone') {
 
