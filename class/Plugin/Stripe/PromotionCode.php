@@ -30,6 +30,12 @@
 
         }
 
+        public function all() {
+            
+            return $this->object()->all($this->params, $this->opts);
+
+        }
+
         # https://docs.stripe.com/api/promotion_codes/create#create_promotion_code-coupon
         public function coupon($value) {
 
@@ -44,10 +50,45 @@
 
         }
 
+        # https://docs.stripe.com/api/promotion_codes/list?api-version=2025-04-30.basil#list_promotion_codes-active
+        public function active(bool $value = true) {
+
+            return $this->addParams('active', $value);
+
+        }
+
         # https://docs.stripe.com/api/promotion_codes/create#create_promotion_code-customer
         public function customer($value) {
 
             return $this->addParams('customer', $value);
+
+        }
+
+        # https://docs.stripe.com/api/promotion_codes/list?api-version=2025-04-30.basil#list_promotion_codes-limit
+        public function limit(int $value) {
+
+            return $this->addParams('limit', $value);
+
+        }
+
+        # https://docs.stripe.com/api/promotion_codes/list?api-version=2025-04-30.basil#list_promotion_codes-starting_after
+        public function startingAfter($value) {
+
+            return $this->addParams('starting_after', $value);
+
+        }
+
+        # https://docs.stripe.com/api/promotion_codes/list?api-version=2025-04-30.basil#list_promotion_codes-ending_before
+        public function endingBefore($value) {
+
+            return $this->addParams('ending_before', $value);
+
+        }
+
+        # https://docs.stripe.com/api/promotion_codes/list?api-version=2025-04-30.basil#list_promotion_codes-expand
+        public function expand(array $value) {
+
+            return $this->addParams('expand', $value);
 
         }
 
