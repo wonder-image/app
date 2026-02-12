@@ -2,6 +2,8 @@
 
     namespace Wonder\Localization;
 
+    use Wonder\Http\UrlParser;
+
     class LanguageContext
     {
         private static string $lang;
@@ -60,8 +62,9 @@
         public static function setLangFromPath(): self
         {
 
-            $parsedUri = parse_url($_SERVER["REQUEST_URI"]);
-            $pathArray = array_values(array_filter(explode('/', $parsedUri["path"] ?? '')));
+            $parsedUri = new UrlParser($_SERVER["REQUEST_URI"] ?? '/');
+            $path = $parsedUri->getPath() ?? '/';
+            $pathArray = array_values(array_filter(explode('/', $path)));
             $code = isset($pathArray[0]) ? strtolower($pathArray[0]) : self::$defaultLang;
 
             self::$langSource = 'path';
@@ -179,15 +182,16 @@
                     break;
 
                 case 'query':
-                    $parsed = parse_url($uri);
+                    $parsed = new UrlParser($uri);
                     $existingQuery = [];
-                    if (!empty($parsed['query'])) {
-                        parse_str($parsed['query'], $existingQuery);
+                    $queryString = $parsed->getQuery() ?? '';
+                    if ($queryString !== '') {
+                        parse_str($queryString, $existingQuery);
                     }
                     $existingQuery['lang'] = self::$lang;
                     $newQuery = http_build_query($existingQuery);
 
-                    $basePath = $parsed['path'] ?? '/';
+                    $basePath = $parsed->getPath() ?? '/';
                     if ($path !== '') {
                         $basePath = rtrim($basePath, '/') . '/' . $path;
                     }
@@ -202,8 +206,8 @@
             }
 
             // aggiungi slash finale se manca e se non ci sono query o fragment
-            $parsedFinal = parse_url($finalUrl);
-            $hasQueryOrFragment = !empty($parsedFinal['query']) || !empty($parsedFinal['fragment']);
+            $parsedFinal = new UrlParser($finalUrl);
+            $hasQueryOrFragment = !empty($parsedFinal->getQuery()) || !empty($parsedFinal->getFragment());
 
             if (!$hasQueryOrFragment) {
                 $finalUrl = rtrim($finalUrl, '/') . '/';
@@ -216,12 +220,13 @@
         public static function switchLangUrl(string $url, string $lang): string
         {
 
-            $parsed = parse_url($url);
+            $parsed = new UrlParser($url);
 
-            $scheme = $parsed['scheme'] ?? 'http';
-            $host   = $parsed['host'] ?? ($_SERVER['HTTP_HOST'] ?? '');
-            $path   = $parsed['path'] ?? '/';
-            $query  = $parsed['query'] ?? '';
+            $scheme = $parsed->getScheme(true) ?? 'http';
+            $host   = $parsed->getHost(true) ?? ($_SERVER['HTTP_HOST'] ?? '');
+            $path   = $parsed->getPath(true) ?? '/';
+            $query  = $parsed->getQuery(true) ?? '';
+            $fragment = $parsed->getFragment(true) ?? '';
 
             switch (self::$langSource) {
                 case 'path':
@@ -268,12 +273,12 @@
             if (!empty($query)) {
                 $newUrl .= '?' . $query;
             }
-            if (!empty($parsed['fragment'])) {
-                $newUrl .= '#' . $parsed['fragment'];
+            if (!empty($fragment)) {
+                $newUrl .= '#' . $fragment;
             }
 
             // aggiungo slash finale se manca e se non ci sono query o fragment
-            $hasQueryOrFragment = !empty($query) || !empty($parsed['fragment']);
+            $hasQueryOrFragment = !empty($query) || !empty($fragment);
             if (!$hasQueryOrFragment) {
                 $newUrl = rtrim($newUrl, '/') . '/';
             }

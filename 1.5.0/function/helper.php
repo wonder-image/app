@@ -34,6 +34,12 @@
         return Wonder\Localization\LanguageContext::createLangUrl($path);
     }
 
+    // Url Parser
+    function __url(?string $url = null): Wonder\Http\UrlParser
+    {
+        return new Wonder\Http\UrlParser($url);
+    }
+
     // Cambio lingua url
     function __su(string $url, string $lang): string
     {

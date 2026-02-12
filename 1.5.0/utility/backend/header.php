@@ -10,8 +10,6 @@
 
                 <?php
                     
-                    $parsedUrl = parse_url($_SERVER["REQUEST_URI"])["path"];
-
                     $currentFile = $PAGE->fileName;
                     $currentDir = str_replace('backend/', '',$PAGE->dir);
 
@@ -84,7 +82,8 @@
                             if (!empty($offcanvas)) {
                                 $navAction = "type='button' data-bs-toggle='offcanvas' data-bs-target='#$targetId' aria-label='Close'";
                             } else {
-                                $navUrl = isset(parse_url($fileNav)['host']) ? $fileNav : $PATH->backend.'/'.$folderNav.'/'.$fileNav ;
+                                $urlParser = new \Wonder\Http\UrlParser($fileNav);
+                                $navUrl = $urlParser->isAbsolute() ? $fileNav : $PATH->backend.'/'.$folderNav.'/'.$fileNav ;
                                 $navAction = "href='$navUrl'";
                             }
         

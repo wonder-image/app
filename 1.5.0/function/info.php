@@ -4,37 +4,32 @@
 
         $PAGE = (object) array();
 
-        if (isset($_SERVER['HTTP_HOST'])) {
-
-            if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
-                $url = "https://";  
-            } else {
-                $url = "http://";
-            }
-            
-            $url .= $_SERVER['HTTP_HOST'];
-            $url .= $_SERVER['REQUEST_URI'];
-    
-        } else {
-
-            $url = "";
-
-        }
-
         $PAGE->root = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '';
 
-        $PAGE->url = $url;
         $PAGE->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-        $PAGE->path = empty($PAGE->url) ? '' : parse_url($url)['path'];
-        $PAGE->domain = empty($PAGE->url) ? '' : str_replace("www.", "", parse_url($url)['host']);
+        
+        if (isset($_SERVER['HTTP_HOST'])) {
 
-        if (!empty($PAGE->url) && isset(parse_url($PAGE->url)['query'])) {
-            $PAGE->query = parse_url($PAGE->url)['query'];
+            $URL = new \Wonder\Http\UrlParser();
+
+            $PAGE->url = $URL->getUrl();
+            $PAGE->path = $URL->getPath() ?? '';
+            $PAGE->domain = $URL->getDomain() ?? '';
+            $PAGE->query = $URL->getQuery() ?? '';
+            $file = $URL->getFile();
+            $PAGE->fileName = (!empty($file) && pathinfo($file, PATHINFO_EXTENSION) != "") ? $file : "";
+
         } else {
+
+            $PAGE->url = "";
+            $PAGE->path = '';
+            $PAGE->domain = '';
             $PAGE->query = "";
+            $PAGE->fileName = '';
+
         }
 
-        $PAGE->base64 = base64_encode($url);
+        $PAGE->base64 = base64_encode($PAGE->url);
         $PAGE->uriBase64 = base64_encode($PAGE->uri);
 
         if (isset($_GET['redirect'])) { 
@@ -42,7 +37,6 @@
             $PAGE->redirect = base64_decode($PAGE->redirectBase64); 
         }
 
-        $PAGE->fileName = (pathinfo($PAGE->path, PATHINFO_EXTENSION) != "") ? pathinfo($PAGE->path, PATHINFO_BASENAME) : "";
         $PAGE->dir = mb_substr(substr(str_replace($PAGE->fileName, '',$PAGE->path), 0, -1), 1);
 
         return $PAGE;

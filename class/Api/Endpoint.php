@@ -5,6 +5,7 @@
     use Wonder\App\Table;
     use Wonder\Api\EndpointException;
     use Wonder\Localization\LanguageContext;
+    use Wonder\Http\UrlParser;
 
     class Endpoint {
 
@@ -48,8 +49,9 @@
 
         private function checkEndpoint() {
 
-            $parsedURI = parse_url($_SERVER["REQUEST_URI"]);
-            $endpointName = rtrim(str_replace('/'.$this->version, "", $parsedURI["path"]), '/');
+            $parsedURI = new UrlParser($_SERVER["REQUEST_URI"] ?? '/');
+            $path = $parsedURI->getPath() ?? '';
+            $endpointName = rtrim(str_replace('/'.$this->version, "", $path), '/');
 
             if ($endpointName != $this->endpoint) { 
                 throw new EndpointException('Endpoint non trovato! ', 400); 
