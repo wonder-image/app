@@ -82,6 +82,18 @@
 
         }
 
+        // Converte un valore PHP nel corrispettivo SQL
+        private function valueToSql($value): string
+        {
+
+            if ($value === null || $value === '') { return "NULL"; }
+            if (is_bool($value)) { return $value ? "'1'" : "'0'"; }
+
+            return "'$value'";
+
+        }
+
+        // Genera la porzione SQL per INSERT/UPDATE
         public function Values( array $values, bool $correlated = false ): string
         {
 
@@ -90,10 +102,7 @@
                 $query = "";
 
                 foreach ($values as $l => $v) {
-            
-                    if ($v != '' || $v == 0) { $query .= "`$l` = '$v', "; } 
-                    else { $query .= "`$l` = NULL, ";  }
-
+                    $query .= "`$l` = ".$this->valueToSql($v).", ";
                 }
 
                 return substr($query, 0, -2);
@@ -104,11 +113,8 @@
                 $value = "";
 
                 foreach ($values as $l => $v) {
-
                     $label .= "`$l`, ";
-                    if ($v != '' || $v == 0) { $value .= "'$v', "; } 
-                    else { $value .= "NULL, "; } 
-
+                    $value .= $this->valueToSql($v).", ";
                 }
 
                 $label = substr($label, 0, -2);
