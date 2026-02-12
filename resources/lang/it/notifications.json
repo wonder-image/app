@@ -294,6 +294,11 @@
         "title": "Errore 916",
         "text": "Questo account ha una password già impostata.<br>Prova a accedere"
     },
+    "917": {
+        "type": "danger",
+        "title": "Sessione scaduta",
+        "text": "La sessione è scaduta. Accedi di nuovo per continuare."
+    },
     "920": {
         "type": "danger",
         "title": "Errore 920",

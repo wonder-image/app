@@ -294,6 +294,11 @@
         "title": "Fehler 916",
         "text": "Dieses Konto hat bereits ein Passwort festgelegt.<br>Versuche dich einzuloggen."
     },
+    "917": {
+        "type": "danger",
+        "title": "Sitzung abgelaufen",
+        "text": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an, um fortzufahren."
+    },
     "920": {
         "type": "danger",
         "title": "Fehler 920",

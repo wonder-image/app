@@ -12,7 +12,6 @@
     $API = (object) [];
     $DEFAULT = (object) [];
 
-    require_once __DIR__."/alert.php"; # Tutte le allerte
     require_once __DIR__."/characters.php"; # Caratteri speciali
     require_once __DIR__."/fpdf.php"; # Font aggiuntivi FPDF
     require_once __DIR__."/env.php"; # Utilizzo il file .env

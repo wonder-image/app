@@ -1,5 +1,6 @@
 <?php
 
+    // Autorizzazione pagina privata (backend/frontend)
     function authorizeUser($AREA, $PERMIT_REQUIRED, $USER_ID = null) {
 
         global $PAGE;
@@ -16,6 +17,16 @@
         $login_redirect = "$login?redirect=$PAGE->uriBase64";
 
         if ($USER_ID == null) {
+            $rememberedId = Wonder\Auth\RememberMe::tryLogin($AREA);
+            if (!empty($rememberedId)) { $USER_ID = $rememberedId; }
+        }
+
+        if ($USER_ID == null) {
+
+            if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+                $separator = (strpos($login_redirect, '?') !== false) ? '&' : '?';
+                $login_redirect .= $separator."alert=917";
+            }
                 
             header("Location: $login_redirect");
             exit;
@@ -54,6 +65,7 @@
 
     }
 
+    // Login utente (remember-me automatico)
     function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null) {
 
         global $ALERT;
@@ -70,6 +82,7 @@
                         if (in_array($AREA, $U->area)) {
                             if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
                                 $_SESSION['user_id'] = $U->id;
+                                Wonder\Auth\RememberMe::set($U->id, $AREA);
                                 return true;
                             } else {
                                 $ALERT = 915;
@@ -92,6 +105,7 @@
         
     }
 
+    // Verifica utente senza login
     function verifyUser($KEY, $VALUE, $AREA = null, $PERMIT_REQUIRED = null) {
 
         global $ALERT;

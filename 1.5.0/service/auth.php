@@ -4,7 +4,7 @@
 
         if (isset($BACKEND) && $BACKEND) {
 
-            $USER = (empty($_POST)) ? authorizeUser('backend', $PERMIT, $_SESSION['user_id'] ?? null) : infoUser($_SESSION['user_id']);
+            $USER = authorizeUser('backend', $PERMIT, $_SESSION['user_id'] ?? null);
 
         } elseif (isset($FRONTEND) && $FRONTEND) {
 

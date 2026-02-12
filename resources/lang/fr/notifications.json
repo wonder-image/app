@@ -294,6 +294,11 @@
         "title": "Erreur 916",
         "text": "Ce compte a déjà un mot de passe défini.<br>Essayez de vous connecter."
     },
+    "917": {
+        "type": "danger",
+        "title": "Session expirée",
+        "text": "Votre session a expiré. Veuillez vous reconnecter pour continuer."
+    },
     "920": {
         "type": "danger",
         "title": "Erreur 920",

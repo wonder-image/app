@@ -39,7 +39,12 @@
             </div>
             <?php
 
-                foreach ($ALERT_CODE as $key => $value) {
+                $NOTIFICATIONS = \Wonder\Localization\TranslationProvider::$translations['notifications']
+                    ?? \Wonder\Localization\TranslationProvider::$defaultTranslations['notifications'];
+
+                if (!is_array($NOTIFICATIONS)) { $NOTIFICATIONS = []; }
+
+                foreach ($NOTIFICATIONS as $key => $value) {
                     echo "
                     <div class='w-100'>
                         <div class='subtitle tx-{$value['type']}'>

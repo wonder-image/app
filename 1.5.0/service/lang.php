@@ -9,6 +9,7 @@
     
     # Inizializzo il sistema di traduzione
         TranslationProvider::init();
+
         
     # Informazioni della società
         if (sqlTableExists('society')) { 

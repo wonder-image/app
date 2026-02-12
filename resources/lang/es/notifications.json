@@ -294,6 +294,11 @@
         "title": "Error 916",
         "text": "Esta cuenta ya tiene una contraseña establecida.<br>Intenta iniciar sesión."
     },
+    "917": {
+        "type": "danger",
+        "title": "Sesión caducada",
+        "text": "Tu sesión ha caducado. Inicia sesión de nuevo para continuar."
+    },
     "920": {
         "type": "danger",
         "title": "Error 920",

@@ -100,6 +100,56 @@
         ]
     ];
 
+    $TABLE->AUTH_REMEMBER = [
+        "user_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "user"
+            ]
+        ],
+        "selector" => [
+            "sql" => [
+                "length" => 64
+            ]
+        ],
+        "token_hash" => [
+            "sql" => [
+                "length" => 128
+            ]
+        ],
+        "area" => [
+            "sql" => [
+                "length" => 20
+            ]
+        ],
+        "expires_at" => [
+            "sql" => [
+                "type" => "DATETIME"
+            ]
+        ],
+        "last_used" => [
+            "sql" => [
+                "type" => "DATETIME"
+            ]
+        ],
+        "ip" => [
+            "sql" => [
+                "length" => 45
+            ]
+        ],
+        "user_agent" => [
+            "sql" => [
+                "length" => 255
+            ]
+        ],
+        "ind_selector" => [
+            "sql" => [
+                "index" => "selector"
+            ]
+        ]
+    ];
+
+
     $TABLE->API_USERS = [
         "user_id" => [
             "sql" => [
