@@ -52,7 +52,10 @@
                 Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 
                 if(sendMail('noreply@wonderimage.it', $USER->email, "Password modificata", $content)) {
+                    Wonder\Auth\AuthLog::write('password_reset', (int) $USER->id, 'backend', true);
                     header("Location: ../login/?alert=602");
+                } else {
+                    Wonder\Auth\AuthLog::write('password_reset', (int) $USER->id, 'backend', false, [ 'reason' => 'mail_failed' ]);
                 };
 
             }

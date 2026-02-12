@@ -26,6 +26,7 @@
             if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                 $separator = (strpos($login_redirect, '?') !== false) ? '&' : '?';
                 $login_redirect .= $separator."alert=917";
+                Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => $_SERVER['REQUEST_URI'] ?? '' ]);
             }
                 
             header("Location: $login_redirect");
@@ -75,6 +76,8 @@
 
         $U = infoUser($VALUE, $KEY);
 
+        $reason = '';
+
         if ($U->exists) {
             if (checkPassword($PASSWORD, $U->password)){
                 if ($U->deleted == 'false') {
@@ -83,25 +86,41 @@
                             if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
                                 $_SESSION['user_id'] = $U->id;
                                 Wonder\Auth\RememberMe::set($U->id, $AREA);
+                                Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
+                                    'key' => $KEY,
+                                    'value' => $VALUE
+                                ]);
                                 return true;
                             } else {
                                 $ALERT = 915;
+                                $reason = 'permit_not_allowed';
                             }
                         } else {
                             $ALERT = 911;
+                            $reason = 'area_not_allowed';
                         }
                     } else {
                         $ALERT = 909;
+                        $reason = 'user_inactive';
                     }
                 } else {
                     $ALERT = 912;
+                    $reason = 'user_deleted';
                 }
             } else {
                 $ALERT = 905; 
+                $reason = 'invalid_password';
             }
         } else {
             $ALERT = ($KEY == 'email') ? 904 : 901;
+            $reason = 'user_not_found';
         }
+
+        Wonder\Auth\AuthLog::write('login_failed', $U->exists ? (int) $U->id : null, $AREA, false, [
+            'key' => $KEY,
+            'value' => $VALUE,
+            'reason' => $reason
+        ]);
         
     }
 
@@ -141,5 +160,29 @@
         }
 
         return $RETURN;
+
+    }
+
+    // Logout utente e pulizia sessione/cookie
+    function logoutUser(string $AREA): void
+    {
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!empty($userId)) {
+            Wonder\Auth\AuthLog::write('logout', (int) $userId, $AREA, true);
+        }
+
+        Wonder\Auth\RememberMe::clear($AREA);
+
+        $_SESSION = [];
+
+        if (session_id() !== '') {
+            session_regenerate_id(true);
+            session_destroy();
+        }
+
+        if (session_name()) {
+            \Wonder\Http\Cookie::clear(session_name());
+        }
 
     }

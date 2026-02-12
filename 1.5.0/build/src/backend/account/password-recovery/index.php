@@ -29,9 +29,17 @@
             Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 
             if(sendMail('noreply@wonderimage.it', $USER->email, "Recupero password", $content)) {
+                Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true);
                 header("Location: ../login/?alert=601");
+            } else {
+                Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [ 'reason' => 'mail_failed' ]);
             };
                     
+        } else {
+            Wonder\Auth\AuthLog::write('password_recovery', null, 'backend', false, [
+                'username' => $_POST['username'] ?? '',
+                'alert' => $ALERT ?? null
+            ]);
         }
         
     }

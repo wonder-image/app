@@ -134,7 +134,7 @@
                         'active' => ($currentDir == 'account') ? true : false
                     ],[
                         'title' => 'Esci',
-                        'link' => $PATH->backend.'/',
+                        'link' => $PATH->backend.'/account/logout/',
                         'active' => false
                     ]
                 ]);

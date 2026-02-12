@@ -46,7 +46,10 @@
                     Se non sei stato tu a richiederlo contattaci: info@wonderimage.it";
 
                     if(sendMail('noreply@wonderimage.it', $USER->email, "Password impostata", $content)) {
+                        Wonder\Auth\AuthLog::write('password_set', (int) $USER->id, 'backend', true);
                         header("Location: ../login/?alert=611");
+                    } else {
+                        Wonder\Auth\AuthLog::write('password_set', (int) $USER->id, 'backend', false, [ 'reason' => 'mail_failed' ]);
                     };
 
                 } else {

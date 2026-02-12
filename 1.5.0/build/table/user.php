@@ -149,6 +149,57 @@
         ]
     ];
 
+    $TABLE->AUTH_LOG = [
+        "user_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "user"
+            ]
+        ],
+        "event" => [
+            "sql" => [
+                "length" => 50
+            ]
+        ],
+        "area" => [
+            "sql" => [
+                "length" => 20
+            ]
+        ],
+        "success" => [
+            "sql" => [
+                "type" => "BOOLEAN"
+            ]
+        ],
+        "ip" => [
+            "sql" => [
+                "length" => 45
+            ]
+        ],
+        "user_agent" => [
+            "sql" => [
+                "length" => 255
+            ]
+        ],
+        "meta" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "ind_user_event" => [
+            "sql" => [
+                "index" => [ 'user_id', 'event' ]
+            ]
+        ]
+    ];
+
+
 
     $TABLE->API_USERS = [
         "user_id" => [

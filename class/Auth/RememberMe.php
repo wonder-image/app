@@ -2,6 +2,8 @@
 
     namespace Wonder\Auth;
 
+    use Wonder\Auth\AuthLog;
+
     /**
      * Gestione Remember Me per sessioni persistenti.
      */
@@ -25,12 +27,14 @@
 
             if (empty($selector) || empty($validator)) {
                 self::clear($area);
+                AuthLog::write('remember_failed', null, $area, false, [ 'reason' => 'invalid_cookie' ]);
                 return null;
             }
 
             $SQL = sqlSelect('auth_remember', [ 'selector' => $selector, 'deleted' => 'false' ], 1);
             if (!$SQL->exists) {
                 self::clear($area);
+                AuthLog::write('remember_failed', null, $area, false, [ 'reason' => 'not_found' ]);
                 return null;
             }
 
@@ -38,6 +42,7 @@
 
             if (($row['area'] ?? '') !== $area) {
                 self::clear($area);
+                AuthLog::write('remember_failed', (int) $row['user_id'], $area, false, [ 'reason' => 'area_mismatch' ]);
                 return null;
             }
 
@@ -45,6 +50,7 @@
             if (!empty($expiresAt) && strtotime($expiresAt) < time()) {
                 sqlModify('auth_remember', [ 'deleted' => 'true' ], 'id', $row['id']);
                 self::clear($area);
+                AuthLog::write('remember_failed', (int) $row['user_id'], $area, false, [ 'reason' => 'expired' ]);
                 return null;
             }
 
@@ -54,6 +60,7 @@
             if (!$match) {
                 sqlModify('auth_remember', [ 'deleted' => 'true' ], 'id', $row['id']);
                 self::clear($area);
+                AuthLog::write('remember_failed', (int) $row['user_id'], $area, false, [ 'reason' => 'mismatch' ]);
                 return null;
             }
 
@@ -75,6 +82,8 @@
             ], 'id', $row['id']);
 
             self::setCookie($area, $selector, $newValidator, $newExpires);
+
+            AuthLog::write('remember_login', (int) $row['user_id'], $area, true);
 
             return (int) $row['user_id'];
         }
