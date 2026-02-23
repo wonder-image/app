@@ -1,4 +1,6 @@
 <?php
+
+    \Wonder\App\Theme::set('wonder');
     
     if (sqlTableExists('seo')) { $SEO = infoSeo(); }
 

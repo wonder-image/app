@@ -1,23 +1,25 @@
 <?php
 
-    namespace Wonder\Themes\Wonder;
-    
-    use Wonder\Themes\Contracts\Renderer;
-    use Wonder\Concerns\HasSchema;
-    use Wonder\Themes\Concerns\HasAttributes;
+namespace Wonder\Themes\Wonder;
 
-    abstract class Component implements Renderer {
+use Wonder\Concerns\HasSchema;
+use Wonder\Themes\Concerns\HasIdentifier;
+use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Contracts\Renderer;
 
-        use HasSchema, HasAttributes;
+abstract class Component implements Renderer
+{
+    use HasSchema;
+    use HasAttributes;
+    use HasIdentifier;
 
-        public function renderComponents( $components ):string 
-        {
-
-            $html = "";
-            foreach ($components as $key => $component) { $html .= $component->render(); }
-
-            return $html;
-
+    public function renderComponents($components): string
+    {
+        $html = "";
+        foreach ($components as $key => $component) {
+            $html .= $component->render();
         }
 
+        return $html;
     }
+}

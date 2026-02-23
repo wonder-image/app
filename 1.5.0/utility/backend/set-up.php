@@ -1,5 +1,7 @@
 <?php
 
+    \Wonder\App\Theme::set('bootstrap');
+
     $DEFAULT_NAV_TOP = [
         [
             'title' => 'Home',
