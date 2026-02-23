@@ -88,6 +88,6 @@
 
     function logFattureInCloudError(string $action, \FattureInCloud\ApiException $error) {
 
-        __log($error, 'fatture-in-cloud', $action, 'ERROR', 'error/stripe');
+        __log($error, 'fatture-in-cloud', $action, 'ERROR', 'error/fatture-in-cloud');
 
     }
