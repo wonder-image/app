@@ -12,8 +12,7 @@
 
         }
 
-        public function create() 
-        {
+        public function create() {
 
             return $this->object()->create($this->params, $this->opts);
 
@@ -33,8 +32,7 @@
 
         }
  
-        public function returnUrl($url) 
-        {
+        public function returnUrl($url) {
 
             return $this->addParams('return_url', $url);
 
