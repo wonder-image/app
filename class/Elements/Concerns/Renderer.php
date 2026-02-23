@@ -1,18 +1,17 @@
 <?php
 
-    namespace Wonder\Elements\Concerns;
+namespace Wonder\Elements\Concerns;
 
-    use Wonder\Themes\Resolver;
+use Wonder\Themes\Resolver;
 
-    trait Renderer
+trait Renderer
+{
+    /**
+     * Renderizza l'elemento col tema attivo o con un tema esplicito.
+     */
+    public function render(?string $theme = null): string
     {
-        
-        public function render(): string
-        {
-
-            $renderer = Resolver::renderer(static::class);
-            return $renderer->render($this);
-
-        }
-
+        $renderer = Resolver::renderer(static::class, $theme);
+        return $renderer->render($this);
     }
+}

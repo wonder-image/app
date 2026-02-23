@@ -3,7 +3,7 @@
     namespace Wonder\Elements\Form;
 
     use Wonder\Elements\Component;
-    use Wonder\Plugin\Custom\String\Rand;
+    use Wonder\Support\Text\Random;
 
     use Wonder\Elements\Concerns\{ CanSpanColumn, Renderer };
 
@@ -18,7 +18,7 @@
         {
 
             $this->name = $name;
-            $this->id = strtolower((new Rand('letters'))::generate( 10, 'field_' ));
+            $this->id = strtolower((new Random('letters'))::generate(10, 'field_'));
             
             $this->schema['id'] = $this->id;
             $this->schema['name'] = $this->name;

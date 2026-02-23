@@ -1,37 +1,34 @@
 <?php
 
-    namespace Wonder\Themes\Concerns;
+namespace Wonder\Themes\Concerns;
 
-    trait HasAttributes {
+trait HasAttributes
+{
+    use EscapesHtml;
 
-        protected function renderAttributes( ?array $attributes ): string
-        {
-            
-            $html = [];
+    protected function renderAttributes(?array $attributes): string
+    {
+        $html = [];
 
-            if ($attributes != null) {
-                foreach ($attributes ?? [] as $key => $value) {
-                    if (is_bool($value)) {
-
-                        if ($value) $html[] = $key;
-
-                    } else if (is_array($value)) {
-
-                        $attr = $key . '="';
-                        foreach ($value as $k => $c) { $attr .= htmlspecialchars((string) $c).' '; }
-                        $attr .= '"';
-                        $html[] = $attr;
-
-                    } else {
-
-                        $html[] = $key . '="' . htmlspecialchars((string) $value) . '"';
-
+        if ($attributes != null) {
+            foreach ($attributes ?? [] as $key => $value) {
+                if (is_bool($value)) {
+                    if ($value) {
+                        $html[] = $key;
                     }
+                } elseif (is_array($value)) {
+                    $attr = $key . '="';
+                    foreach ($value as $k => $c) {
+                        $attr .= $this->escape((string) $c) . ' ';
+                    }
+                    $attr .= '"';
+                    $html[] = $attr;
+                } else {
+                    $html[] = $key . '="' . $this->escape((string) $value) . '"';
                 }
             }
-
-            return implode(' ', $html);
-        
         }
 
+        return implode(' ', $html);
     }
+}

@@ -4,3 +4,4 @@ vendor/
 .phpdoc/
 composer.lock
 COMMAND.md
+example/

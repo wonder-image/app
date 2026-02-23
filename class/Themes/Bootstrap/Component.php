@@ -1,19 +1,26 @@
 <?php
 
-    namespace Wonder\Themes\Bootstrap;
-    
-    use Wonder\Themes\Contracts\Renderer;
+namespace Wonder\Themes\Bootstrap;
 
-    abstract class Component implements Renderer {
+use Wonder\Themes\Concerns\HasIdentifier;
+use Wonder\Themes\Contracts\Renderer;
+use Wonder\Themes\Concerns\EscapesHtml;
 
-        public function renderComponents( $components ):string 
-        {
+abstract class Component implements Renderer
+{
+    use EscapesHtml;
+    use HasIdentifier;
 
-            $html = "";
-            foreach ($components as $key => $component) { $html .= $component->render(); }
+    public function renderComponents($components): string
+    {
 
-            return $html;
-
+        $html = "";
+        foreach ($components as $key => $component) {
+            $html .= $component->render();
         }
+
+        return $html;
+
+    }
 
 }
