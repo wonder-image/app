@@ -3,7 +3,7 @@
     namespace Wonder\Plugin\Custom\Address;
     
     use Wonder\Sql\Query;
-    use Wonder\Plugin\Custom\Prettify;
+    use Wonder\Support\Prettify\Phone;
     
     class Address {
 
@@ -85,7 +85,7 @@
             $RETURN->address = "$RETURN->street $RETURN->number, $RETURN->cap $RETURN->city ($RETURN->province)";
     
             $RETURN->phone_prefix = $RETURN->phone_prefix ?? "";
-            $RETURN->prettyPhone = empty($RETURN->phone) ? "" : Prettify::Phone("{$RETURN->phone_prefix}{$RETURN->phone}");
+            $RETURN->prettyPhone = empty($RETURN->phone) ? "" : Phone::prettify("{$RETURN->phone_prefix}{$RETURN->phone}");
     
             if (isset($RETURN->type)) {
                 

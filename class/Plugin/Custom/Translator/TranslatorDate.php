@@ -1,23 +1,21 @@
 <?php
 
-    namespace Wonder\Plugin\Custom\Translator;
+namespace Wonder\Plugin\Custom\Translator;
 
-    class TranslatorDate {
+use Wonder\Support\Prettify\Date;
 
-        public static function Day( $date ) {
-
-            $day = strtolower(date("l", strtotime($date)));
-
-            return __t("date.week.$day");
-    
-        }
-
-        public static function Month( $date ) {
-
-            $month = strtolower(date("F", strtotime($date)));
-    
-            return __t("date.month.$month");
-            
-        }
-
+/**
+ * DEPRECATO: usa Wonder\Support\Prettify\Date::day()/month().
+ */
+class TranslatorDate
+{
+    public static function Day($date): string
+    {
+        return Date::day($date);
     }
+
+    public static function Month($date): string
+    {
+        return Date::month($date);
+    }
+}

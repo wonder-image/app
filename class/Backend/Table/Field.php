@@ -2,7 +2,7 @@
 
     namespace Wonder\Backend\Table;
 
-    use Wonder\Plugin\Custom\Prettify;
+    use Wonder\Support\Prettify\Phone;
     use DateTime;
     
     class Field {
@@ -366,7 +366,7 @@
 
                                 if (count($listVar) > 0) {
                                     foreach ($listVar[1] as $k => $var) {
-                                        $href = str_replace('{'.$var.'}', $this->row[$var], $href);
+                                        $href = str_replace('{'.$var.'}', $this->row[$var] ?? '', $href);
                                     }
                                 }
 
@@ -388,7 +388,7 @@
     
                                 }
 
-                                $action = 'href="'.$href.'"';
+                                $action = empty($href) ? '' : 'href="'.$href.'"';
 
                             } else if (!empty($request)) {
 
@@ -406,7 +406,7 @@
                                 $label = isset($label[$this->row[$ACTION]]) ? $label[$this->row[$ACTION]] : '';
                             }
     
-                            $BUTTON = empty($label) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
+                            $BUTTON = empty($label) || empty($action) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
     
                         }
 
@@ -690,7 +690,7 @@
                     } else if ($type == 'phone') {
 
                         $prefix = (isset($this->row['phone_prefix']) && !empty($VALUE)) ? $this->row['phone_prefix']." " : "";
-                        $VALUE = $prefix.Prettify::Phone($VALUE);
+                        $VALUE = $prefix.Phone::prettify($VALUE);
 
                     } else if ($type == 'price') {
 
@@ -724,7 +724,7 @@
                     } elseif ($href == 'tel') {
 
                         $href = "tel:".str_replace(' ', '', $VALUE);
-                        $VALUE = Prettify::Phone($VALUE);
+                        $VALUE = Phone::prettify($VALUE);
 
                     }
 

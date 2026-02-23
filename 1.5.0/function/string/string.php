@@ -278,7 +278,7 @@
     function code($lenght = 10, $type = 'all', $prefix = null): string
     {
 
-        $code = new Wonder\Plugin\Custom\String\Rand($type);
+        $code = new Wonder\Support\Text\Random($type);
 
         return $code::generate($lenght, $prefix);
 
@@ -287,21 +287,21 @@
     function prettyPhone($number): string
     {
 
-        return Wonder\Plugin\Custom\Prettify::Phone( $number );
+        return Wonder\Support\Prettify\Phone::prettify( $number );
 
     }
 
     function prettyDate($date, $hours = false): string 
     {
 
-        return Wonder\Plugin\Custom\Prettify::Date( $date, $hours );
+        return Wonder\Support\Prettify\Date::prettify( $date, $hours );
 
     }
 
     function prettyAddress($street, $number, $cap, $city, $province, $country, $more = "", $name = "", $surname = "", $phone = ""): object
     {
 
-        return Wonder\Plugin\Custom\Prettify::Address( $street, $number, $cap, $city, $province, $country, $more, $name, $surname, $phone );
+        return Wonder\Support\Prettify\Address::prettify( $street, $number, $cap, $city, $province, $country, $more, $name, $surname, $phone );
 
     }
 

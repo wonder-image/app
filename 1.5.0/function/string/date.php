@@ -2,10 +2,10 @@
 
     function translateDate($date, $format) {
 
-        $TRANSLATOR = new Wonder\Plugin\Custom\Translator\TranslatorDate;
+        $TRANSLATOR = new Wonder\Support\Prettify\Date;
 
-        if ($format == 'day') { return $TRANSLATOR::Day( $date ); }
-        if ($format == 'month') { return $TRANSLATOR::Month( $date ); }
+        if ($format == 'day') { return $TRANSLATOR::day( $date ); }
+        if ($format == 'month') { return $TRANSLATOR::month( $date ); }
 
     }
 

@@ -6,7 +6,7 @@
 
     use Wonder\Sql\Connection;
     use Wonder\Sql\Query;
-    use Wonder\Plugin\Custom\String\Rand;
+    use Wonder\Support\Text\Random;
 
     class Credentials {
 
@@ -167,7 +167,7 @@
 
                 $row = $exists ? $query->Select('security', [ 'id' => 1 ], 1)->row : [];
 
-                self::$API->key = $row['api_key'] ?? strtolower(Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5).'-'.Rand::generate(5));
+                self::$API->key = $row['api_key'] ?? strtolower(Random::generate(5).'-'.Random::generate(5).'-'.Random::generate(5).'-'.Random::generate(5));
                 self::$API->gcp_project_id = $row['gcp_project_id'] ?? '';
                 self::$API->gcp_api_key = $row['gcp_api_key'] ?? '';
                 self::$API->gcp_client_api_key = $row['gcp_client_api_key'] ?? self::$API->gcp_api_key;

@@ -3,7 +3,7 @@
     namespace Wonder\Backend\Filter;
 
     use Wonder\Sql\Query;
-    use Wonder\Plugin\Custom\Translator\TranslatorDate;
+    use Wonder\Support\Prettify\Date;
 
     use DateTime;
 
@@ -94,7 +94,7 @@
                     $month = $lastDate->format('F');
                     $year = $lastDate->format('Y');
 
-                    $mese = TranslatorDate::Month("01-$month-$year");
+                    $mese = Date::month("01-$month-$year");
 
                     if (isset($_GET[$monthName]) && isset($_GET[$yearName]) && $month == $_GET[$monthName] && $year == $_GET[$yearName]) {
 
