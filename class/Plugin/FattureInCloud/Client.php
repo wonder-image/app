@@ -7,45 +7,33 @@
     
     use FattureInCloud\Model\{ CreateClientRequest, CreateClientResponse, ModifyClientRequest, ModifyClientResponse, ListClientsResponse };
 
-    use Exception;
-
     class Client extends FattureInCloudClient {
+        
+        use HandlesApiErrors;
 
         # https://developers.fattureincloud.it/api-reference/#get-/c/-company_id-/entities/clients
         public function create(): CreateClientResponse 
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->client();
-            $request = (new CreateClientRequest)->setData($this);
-
-            try {
+            return $this->guard('client.create', function () {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->client();
+                $request = (new CreateClientRequest())->setData($this);
 
                 return $instance->createClient( $connect::$companyId, $request );
+            });
 
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Client->create: ', $e->getMessage(), PHP_EOL;
-
-            }
-            
         }
 
         public function get($clientId): ListClientsResponse
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->client();
-
-            try {
+            return $this->guard('client.get', function () use ($clientId) {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->client();
 
                 return $instance->listClients( $connect::$companyId, 'id', $clientId );
-
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Client->get: ', $e->getMessage(), PHP_EOL;
-
-            }
+            });
 
         }
 
@@ -53,19 +41,13 @@
         public function update($clientId): ModifyClientResponse
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->client();
-            $request = (new ModifyClientRequest)->setData($this);
-            
-            try {
+            return $this->guard('client.update', function () use ($clientId) {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->client();
+                $request = (new ModifyClientRequest())->setData($this);
 
                 return $instance->modifyClient( $connect::$companyId, $clientId, $request );
-
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Client->update: ', $e->getMessage(), PHP_EOL;
-
-            }
+            });
 
         }
 

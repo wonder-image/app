@@ -7,99 +7,68 @@
     
     use FattureInCloud\Model\{ CreateVatTypeRequest, CreateVatTypeResponse, ModifyVatTypeRequest, ModifyVatTypeResponse, GetVatTypeResponse, ListVatTypesResponse };
 
-    use Exception;
-
     class Vat extends FattureInCloudVatType {
+        
+        use HandlesApiErrors;
 
         public function create(): CreateVatTypeResponse 
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->settings();
-            $request = (new CreateVatTypeRequest)->setData($this);
-
-            try {
+            return $this->guard('vat.create', function () {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->settings();
+                $request = (new CreateVatTypeRequest())->setData($this);
 
                 return $instance->createVatType( $connect::$companyId, $request );
+            });
 
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Vat->create: ', $e->getMessage(), PHP_EOL;
-
-            }
-            
         }
 
         public function get($vatTypeId): GetVatTypeResponse
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->settings();
-
-            try {
+            return $this->guard('vat.get', function () use ($vatTypeId) {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->settings();
 
                 return $instance->getVatType( $connect::$companyId, $vatTypeId );
-
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Vat->get: ', $e->getMessage(), PHP_EOL;
-
-            }
+            });
 
         }
 
         public function list( ?string $fieldset = null ): ListVatTypesResponse
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->info();
-
-            try {
+            return $this->guard('vat.list', function () use ($fieldset) {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->info();
 
                 return $instance->listVatTypes( $connect::$companyId, $fieldset );
-
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Vat->list: ', $e->getMessage(), PHP_EOL;
-
-            }
+            });
 
         } 
 
         public function update($vatTypeId): ModifyVatTypeResponse
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->settings();
-            $request = (new ModifyVatTypeRequest)->setData($this);
-            
-            try {
+            return $this->guard('vat.update', function () use ($vatTypeId) {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->settings();
+                $request = (new ModifyVatTypeRequest())->setData($this);
 
                 return $instance->modifyVatType( $connect::$companyId, $vatTypeId, $request );
-
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Vat->update: ', $e->getMessage(), PHP_EOL;
-
-            }
+            });
 
         }
 
         public function delete($vatTypeId): void
         {
 
-            $connect = new FattureInCloudApi()::connect();
-            $instance = $connect->settings();
-            
-            try {
-
+            $this->guard('vat.delete', function () use ($vatTypeId) {
+                $connect = FattureInCloudApi::connect();
+                $instance = $connect->settings();
                 $instance->deleteVatType( $connect::$companyId, $vatTypeId );
-
-            } catch (Exception $e) {
-
-                echo 'Exception when calling Vat->delete: ', $e->getMessage(), PHP_EOL;
-
-            }
+            });
 
         }
 

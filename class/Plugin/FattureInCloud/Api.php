@@ -4,7 +4,7 @@
 
     use Wonder\App\Credentials;
     use FattureInCloud\Configuration;
-    use FattureInCloud\Api\{ UserApi, ClientsApi, InfoApi, SettingsApi };
+    use FattureInCloud\Api\{ UserApi, ClientsApi, InfoApi, SettingsApi, IssuedDocumentsApi, IssuedEInvoicesApi };
     use GuzzleHttp\Client as GuzzleClient;
 
     class Api {
@@ -50,6 +50,18 @@
         public function settings(): SettingsApi {
 
             return new SettingsApi( new GuzzleClient(), self::$config );
+
+        }
+
+        public function issuedDocuments(): IssuedDocumentsApi {
+
+            return new IssuedDocumentsApi( new GuzzleClient(), self::$config );
+
+        }
+
+        public function issuedEInvoices(): IssuedEInvoicesApi {
+
+            return new IssuedEInvoicesApi( new GuzzleClient(), self::$config );
 
         }
 
