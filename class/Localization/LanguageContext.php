@@ -113,21 +113,21 @@
         public static function setLangFromHeader(): self
         {
 
-            if (empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                $lang = self::$defaultLang;
-            }
+            $lang = self::$defaultLang;
 
-            // Esempio header: "it-IT,it;q=0.9,en;q=0.8"
-            $langs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-            if (!empty($langs)) {
-                // prendo il codice della prima lingua (prima di "-")
-                $lang = substr($langs[0], 0, 2);
+            if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+                // Esempio header: "it-IT,it;q=0.9,en;q=0.8"
+                $langs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+                if (!empty($langs)) {
+                    // prendo il codice della prima lingua (prima di "-")
+                    $lang = substr($langs[0], 0, 2);
+                }
             }
 
             self::$langSource = 'header';
 
             return self::setLang($lang);
-
+            
         }
 
         public static function getLang(): string
