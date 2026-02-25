@@ -1,18 +1,31 @@
 <?php
 
-    if (!file_exists($ROOT."/.htaccess")) {
+    $WEBROOT = is_dir($ROOT."/public") ? $ROOT."/public" : $ROOT;
+    $HTACCESS_PATH = $WEBROOT."/.htaccess";
+    $ROBOTS_PATH = $WEBROOT."/robots.txt";
+
+    if (!file_exists($HTACCESS_PATH)) {
         
-        $FILE = fopen($ROOT."/.htaccess", "w");
+        $FILE = fopen($HTACCESS_PATH, "w");
         
         $FILE_CONTENT  = "# ----------------------------------------------------------------------\n";
         $FILE_CONTENT .= "# Forza HTTPS e WWW\n";
         $FILE_CONTENT .= "# ----------------------------------------------------------------------\n";
         $FILE_CONTENT .= "<IfModule mod_rewrite.c>\n";
         $FILE_CONTENT .= "  RewriteEngine On\n\n";
-        $FILE_CONTENT .= "  # Reindirizza sempre su HTTPS e WWW\n";
-        $FILE_CONTENT .= "  RewriteCond %{HTTPS} off [OR]\n";
-        $FILE_CONTENT .= "  RewriteCond %{HTTP_HOST} !^www\\. [NC]\n";
-        $FILE_CONTENT .= "  RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n\n";
+        
+        $FILE_CONTENT .= "  # Passa Authorization/Bearer\n";
+        $FILE_CONTENT .= "  RewriteCond %{HTTP:Authorization} .\n";
+        $FILE_CONTENT .= "  RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\n";
+
+        $FILE_CONTENT .= "  # Forza HTTPS \n";
+        $FILE_CONTENT .= "  RewriteCond %{HTTPS} !=on\n";
+        $FILE_CONTENT .= "  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n";
+
+        $FILE_CONTENT .= "  # Forza WWW\n";
+        $FILE_CONTENT .= "  RewriteCond %{HTTP_HOST} !^www\. [NC]\n";
+        $FILE_CONTENT .= "  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n\n";
+
         $FILE_CONTENT .= "  # Aggiunge slash finale se mancante (solo per URL senza estensione)\n";
         $FILE_CONTENT .= "  RewriteCond %{REQUEST_FILENAME} !-f\n";
         $FILE_CONTENT .= "  RewriteCond %{REQUEST_FILENAME} !-d\n";
@@ -112,9 +125,9 @@
 
     } 
 
-    if (!file_exists($ROOT."/robots.txt")) {
+    if (!file_exists($ROBOTS_PATH)) {
 
-        $FILE = fopen($ROOT."/robots.txt", "w");
+        $FILE = fopen($ROBOTS_PATH, "w");
         
         $FILE_CONTENT = "User-agent: *\n";
         $FILE_CONTENT .= "Disallow: /backend/\n";
