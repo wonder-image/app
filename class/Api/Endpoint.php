@@ -24,7 +24,7 @@
         // User
         private $user, $userId, $userAuth;
 
-        public function __construct($endpoint, $method = "POST", $auth = [ "api_internal_user", "api_public_access" ]) {
+        public function __construct($endpoint, $method = "POST", $auth = null) {
 
             $LANG = LanguageContext::setLangFromHeader();
 
@@ -32,7 +32,7 @@
 
             $this->endpoint = rtrim($endpoint, '/');
             $this->requestMethod = $method;
-            $this->auth = is_array($auth) ? $auth : [ $auth ];
+            $this->auth = $this->resolveAuth($auth);
 
             $this->ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? "";
             $this->domain = $_SERVER['HTTP_HOST'] ?? "";
@@ -41,9 +41,42 @@
             $this->checkToken();
             $this->verifyToken();
             $this->authUser();
-            $this->checkContentType();
             $this->checkRequestMethod();
+            $this->checkContentType();
             $this->getParameters();
+
+        }
+
+        private function resolveAuth($auth): array
+        {
+
+            if ($auth === null || $auth === '' || $auth === []) {
+                return array_keys(permissionsApi());
+            }
+
+            if (is_array($auth)) {
+                $isAssoc = array_keys($auth) !== range(0, count($auth) - 1);
+                $values = $isAssoc ? array_keys($auth) : $auth;
+            } else {
+                $values = [ $auth ];
+            }
+            $authValues = [];
+
+            foreach ($values as $value) {
+                if (!is_string($value) && !is_numeric($value)) {
+                    continue;
+                }
+
+                $value = trim((string) $value);
+
+                if ($value !== '') {
+                    $authValues[] = $value;
+                }
+            }
+
+            $authValues = array_values(array_unique($authValues));
+
+            return !empty($authValues) ? $authValues : array_keys(permissionsApi());
 
         }
 
@@ -62,18 +95,29 @@
         private function checkContentType() 
         {
 
-            $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
+            $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
 
+            // GET/HEAD in genere non portano body e non richiedono Content-Type.
             if (in_array($requestMethod, [ 'GET', 'HEAD' ], true)) {
                 $this->contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
                 return;
             }
 
-            if (!isset($_SERVER['CONTENT_TYPE'])) {
-                throw new EndpointException('Formato della richiesta non specificato!', 405);
-            }
+            $this->contentType = strtolower($_SERVER['CONTENT_TYPE'] ?? '');
 
-            $this->contentType = strtolower($_SERVER['CONTENT_TYPE']);
+            if ($this->contentType === '') {
+
+                $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+                $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
+
+                // Nessun body: consenti richieste senza Content-Type.
+                if ($contentLength === 0 || in_array($requestMethod, [ 'GET', 'HEAD' ], true)) {
+                    return;
+                }
+
+                throw new EndpointException('Formato della richiesta non specificato!', 405);
+
+            }
 
             if (!str_contains($this->contentType, 'application/json') && 
                 !str_contains($this->contentType, 'multipart/form-data')) {
@@ -92,13 +136,20 @@
 
         private function checkToken() {
 
-            if (!isset($_SERVER['HTTP_AUTHORIZATION']) || $_SERVER['HTTP_AUTHORIZATION'] == '') {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
 
-                throw new EndpointException('Bearer token mancante!', 401); 
+            if (!$authHeader && function_exists('getallheaders')) {
+                $headers = getallheaders();
+                $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+            }
+
+            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+                
+                $this->token = $matches[1];
 
             } else {
-
-                $this->token = str_replace("Bearer ", "", $_SERVER['HTTP_AUTHORIZATION']);
+                
+                throw new EndpointException('Bearer token mancante!', 401); 
 
             }
 
@@ -126,42 +177,87 @@
             $this->user = $USER;
             $this->userId = $decoded->sub;
             
-
         }
 
         private function authUser() 
         {
 
+            $userAuthority = (array) $this->user->authority;
+            $matchedAuth = null;
+
             foreach ($this->auth as $auth) {
-                if (in_array($auth, (array) $this->user->authority)) {
+                if (in_array($auth, $userAuthority, true)) {
+                    $matchedAuth = $auth;
                     break;
-                } else {
-                    throw new EndpointException("Utente non autorizzato per questo endpoint!", 403); 
                 }
             }
-            
-            $this->userAuth = $auth;
-            $token = $this->user->{$this->userAuth};
 
-            if (!$token->exists) {
+            if ($matchedAuth === null) {
+                throw new EndpointException("Utente non autorizzato per questo endpoint!", 403); 
+            }
+            
+            $this->userAuth = $matchedAuth;
+            $token = $this->user->{$this->userAuth} ?? null;
+
+            if (!is_object($token) || !isset($token->exists) || !$token->exists) {
 
                 throw new EndpointException('Token non valido', 401); 
 
-            } else if ($token->active != 'true') {
+            } 
+            
+            if ($token->active != 'true') {
 
                 throw new EndpointException('Token non attivo', 401); 
 
-            } else if (!empty($userAuth->allowed_ips) && in_array($this->ip, $token->allowed_ips)) {
+            }
+            
+            $allowedIps = $this->normalizeArray($token->allowed_ips ?? []);
+
+            if (!empty($allowedIps) && !in_array($this->ip, $allowedIps, true)) {
 
                 throw new EndpointException('Token non valido per questo IP', 401); 
 
-            } else if (!empty($userAuth->allowed_domains) && in_array($this->ip, $token->allowed_domains)) {
+            }
+            
+            $allowedDomains = $this->normalizeArray($token->allowed_domains ?? []);
+
+            if (!empty($allowedDomains) && !in_array($this->domain, $allowedDomains, true)) {
 
                 throw new EndpointException('Token non valido per questo dominio', 401); 
 
             }
 
-            $this->tokenId = $token->id;
+            $this->tokenId = $token->id ?? null;
+
+        }
+
+        private function normalizeArray($values): array
+        {
+
+            if (is_string($values)) {
+                $decoded = json_decode($values, true);
+                $values = (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : [ $values ];
+            }
+
+            if (!is_array($values)) {
+                return [];
+            }
+
+            $return = [];
+
+            foreach ($values as $value) {
+                if (!is_string($value) && !is_numeric($value)) {
+                    continue;
+                }
+
+                $value = trim((string) $value);
+
+                if ($value !== '') {
+                    $return[] = $value;
+                }
+            }
+
+            return array_values(array_unique($return));
 
         }
 
@@ -170,12 +266,15 @@
 
             $this->data = [];
             $this->files = [];
-            
-            if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+            $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
 
+            if ($requestMethod === 'GET') {
                 $this->data = $_GET;
-
-            } elseif (str_contains($this->contentType, 'application/json')) {
+                $this->parameters = array_merge($this->data, $this->files);
+                return;
+            }
+            
+            if (str_contains($this->contentType, 'application/json')) {
 
                 $input = file_get_contents('php://input');
 
@@ -285,5 +384,75 @@
 
         }
 
+        public function validate($parameter, $type = "string", $required = true)
+        {
+
+            if ($required && !isset($this->parameters[$parameter])) {
+                throw new EndpointException("Parametro $parameter obbligatorio!", 400); 
+            }
+
+            if (isset($this->parameters[$parameter])) {
+
+                $value = $this->parameters[$parameter];
+
+                switch ($type) {
+                    case 'string':
+
+                        if (is_string($value)) {
+                            return $value;
+                        } else {
+                            throw new EndpointException("Parametro $parameter deve essere una stringa!", 400); 
+                        }
+
+                    case 'int':
+
+                        if (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                            return (int) $value;
+                        } else {
+                            throw new EndpointException("Parametro $parameter deve essere un intero!", 400); 
+                        }
+
+                    case 'float':
+
+                        if (filter_var($value, FILTER_VALIDATE_FLOAT) !== false) {
+                            return (float) $value;
+                        } else {
+                            throw new EndpointException("Parametro $parameter deve essere un numero decimale!", 400); 
+                        }
+
+                    case 'bool':
+
+                        if (filter_var($value, FILTER_VALIDATE_BOOLEAN) !== false) {
+                            return (bool) $value;
+                        } else {
+                            throw new EndpointException("Parametro $parameter deve essere un booleano!", 400); 
+                        }
+
+                    case 'array':
+
+                        if (is_array($value)) {
+                            return $value;
+                        } elseif (is_string($value)) {
+                            $decoded = json_decode($value, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                return $decoded;
+                            } else {
+                                throw new EndpointException("Parametro $parameter deve essere un array o una stringa JSON decodificabile!", 400); 
+                            }
+                        } else {
+                            throw new EndpointException("Parametro $parameter deve essere un array o una stringa JSON decodificabile!", 400); 
+                        }
+
+                    default:
+
+                        return $value;
+
+                }
+            }
+
+            
+            return null;
+
+        }
+
     }
-    
