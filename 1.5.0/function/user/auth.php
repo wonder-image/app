@@ -37,8 +37,8 @@
             $U = infoUser($USER_ID);
 
             if ($U->exists) {
-                if ($U->deleted == 'false') {
-                    if ($U->active == 'true'){
+                if (!$U->deleted) {
+                    if ($U->active){
                         if (in_array($AREA, $U->area)) {
                             if (count($PERMIT_REQUIRED) == 0 || count(array_intersect($PERMIT_REQUIRED, $U->authority)) >= 1) {
                                 return $U;
@@ -80,8 +80,8 @@
 
         if ($U->exists) {
             if (checkPassword($PASSWORD, $U->password)){
-                if ($U->deleted == 'false') {
-                    if ($U->active == 'true') {
+                if (!$U->deleted) {
+                    if ($U->active) {
                         if (in_array($AREA, $U->area)) {
                             if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
                                 $_SESSION['user_id'] = $U->id;
@@ -138,8 +138,8 @@
         $RETURN->response = false;
 
         if ($U->exists) {
-            if ($U->deleted == 'false') {
-                if ($U->active == 'true') {
+            if (!$U->deleted) {
+                if ($U->active) {
                     if ($AREA == null || in_array($AREA, $U->area)) {
                         if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
                             $RETURN->response = true;
