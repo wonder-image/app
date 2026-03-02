@@ -28,5 +28,6 @@
   * [Google Search Console](altro/servizi/google-search-console.md)
   * [Google Cloud Platform](altro/servizi/google-cloud-platform.md)
   * [Fatture in Cloud](altro/servizi/fatture-in-cloud.md)
+* [Avvio Locale (PHP 8.4)](altro/avvio-locale.md)
 * [Versione <1.5.0](altro/versione-less-than-1.5.0.md)
 * [Estensioni e App Consigliate](altro/estensioni-e-app-consigliate.md)
