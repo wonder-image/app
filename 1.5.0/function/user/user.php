@@ -54,8 +54,8 @@
         $RETURN->fullName = isset($RETURN->name) ? $RETURN->name.' '.$RETURN->surname : '';
         $RETURN->prettyCreation = isset($RETURN->creation) ? date('d/m/Y', strtotime($RETURN->creation)).' alle '.date('H:i', strtotime($RETURN->creation)) : '';
 
-        $RETURN->active = $RETURN->active == 'true' ? true : false;
-        $RETURN->deleted = $RETURN->deleted == 'true' ? true : false;
+        $RETURN->active = $RETURN->active == 'true' || $RETURN->active == true ? true : false;
+        $RETURN->deleted = $RETURN->deleted == 'true' || $RETURN->deleted == true ? true : false;
 
         return $RETURN;
 
