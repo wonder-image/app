@@ -1,6 +1,6 @@
 <?php
 
-    function sendMail($from, $to, $object, $body, $attachment = null, $template = 'basic'){
+    function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic'){
 
         global $SOCIETY;
 
@@ -8,6 +8,11 @@
 
         $MAIL = new PHPMailer\PHPMailer\PHPMailer(true);
         $CREDENTIALS = Wonder\App\Credentials::mail();
+
+        $BODY_RAW = emailTemplate($body, $template);
+        $BODY_TEXT = htmlToText($BODY_RAW);
+        $MAIL_SENT = false;
+        $MAIL_ERROR = '';
 
         try {
 
@@ -27,16 +32,16 @@
                 $MAIL->addReplyTo($from, $SOCIETY_NAME);
         
             # Allegati
-                if ($attachment != null) {
-                    if (is_array($attachment)) {
-                        if (count($attachment) >= 1) {
-                            foreach ($attachment as $key => $value) {
+                if ($attachments != null) {
+                    if (is_array($attachments)) {
+                        if (count($attachments) >= 1) {
+                            foreach ($attachments as $key => $attachment) {
 
                                 if (is_numeric($key)) {
                                     $attachmentName = '';
-                                    $attachmentRelativePath = $value;
+                                    $attachmentRelativePath = $attachment;
                                 } else {
-                                    $attachmentName = $value;
+                                    $attachmentName = $attachment;
                                     $attachmentRelativePath = $key;
                                 }
 
@@ -46,7 +51,7 @@
                         }
                     } else {
                         
-                        $MAIL->addAttachment($attachment);
+                        $MAIL->addAttachment($attachments);
 
                     }
                 }
@@ -56,20 +61,53 @@
                 $MAIL->Encoding = 'base64';
                 $MAIL->isHTML(true);
                 $MAIL->Subject = $object;
-                $MAIL->Body = emailTemplate($body, $template);
-                $MAIL->AltBody = $body;
+                $MAIL->Body = $BODY_RAW;
+                $MAIL->AltBody = $BODY_TEXT;
         
             # Invia
                 $MAIL->send();
 
-            return true;
+            $MAIL_SENT = true;
 
         } catch (PHPMailer\PHPMailer\Exception $e) {
 
-            return false;
+            $MAIL_ERROR = $e->getMessage();
+            __log($e, '[php_mailer]', '[sendMail]');
+
+        } finally {
+
+            try {
+
+                $VALUES = Wonder\App\Table::key('mail_log')
+                    ->prepare([
+                        'user_id' => $_SESSION['user_id'] ?? null,
+                        'from_email' => (string) ($CREDENTIALS->username ?? ''),
+                        'reply_to_email' => (string) $from,
+                        'to_email' => (string) $to,
+                        'subject' => (string) $object,
+                        'template' => (string) $template,
+                        'body_raw' => $BODY_RAW,
+                        'body_text' => $BODY_RAW,
+                        'attachments' => $attachments,
+                        'status' => $MAIL_SENT ? 'sent' : 'failed',
+                        'error_message' => $MAIL_ERROR,
+                        'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+                        'ip' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+                        'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+                    ]);
+                    
+                sqlInsert('mail_log', $VALUES);
+
+            } catch (Throwable $e) {
+
+                __log($e, '[mail_log]', '[sendMail]');
+
+            }
 
         }
-    
+
+        return $MAIL_SENT;
+
     }
 
     function emailTemplate($body = '', $template = 'basic') {
