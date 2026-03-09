@@ -112,6 +112,228 @@
                 || str_starts_with($this->rawUrl, '//');
         }
 
+        public static function requestUri(?array $server = null): string
+        {
+            $server = $server ?? $_SERVER;
+            return (string) ($server['REQUEST_URI'] ?? '/');
+        }
+
+        public static function requestIp(?array $server = null): string
+        {
+            $server = $server ?? $_SERVER;
+            $forwardedFor = (string) ($server['HTTP_X_FORWARDED_FOR'] ?? '');
+
+            if ($forwardedFor !== '') {
+                $firstIp = trim(explode(',', $forwardedFor)[0]);
+                if ($firstIp !== '') {
+                    return $firstIp;
+                }
+            }
+
+            return (string) ($server['REMOTE_ADDR'] ?? '');
+        }
+
+        public static function requestHost(?array $server = null): string
+        {
+            $server = $server ?? $_SERVER;
+            $host = trim((string) ($server['HTTP_HOST'] ?? ($server['SERVER_NAME'] ?? 'localhost')));
+            return $host !== '' ? $host : 'localhost';
+        }
+
+        public static function isHttpsRequest(?array $server = null): bool
+        {
+            $server = $server ?? $_SERVER;
+
+            $https = strtolower((string) ($server['HTTPS'] ?? ''));
+            if (in_array($https, [ 'on', '1', 'https' ], true)) {
+                return true;
+            }
+
+            $forwardedProto = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? ''));
+            if ($forwardedProto === 'https') {
+                return true;
+            }
+
+            $forwardedScheme = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_SCHEME'] ?? ''));
+            if ($forwardedScheme === 'https') {
+                return true;
+            }
+
+            $forwardedSsl = strtolower(trim((string) ($server['HTTP_X_FORWARDED_SSL'] ?? '')));
+            if (in_array($forwardedSsl, [ 'on', '1' ], true)) {
+                return true;
+            }
+
+            $requestScheme = strtolower(trim((string) ($server['REQUEST_SCHEME'] ?? '')));
+            if ($requestScheme === 'https') {
+                return true;
+            }
+
+            $serverPort = (int) ($server['SERVER_PORT'] ?? 0);
+            return $serverPort === 443;
+        }
+
+        public static function requestScheme(?array $server = null): string
+        {
+            return self::isHttpsRequest($server) ? 'https' : 'http';
+        }
+
+        public static function normalizeDomain(string $domain): string
+        {
+            $domain = trim(strtolower($domain));
+
+            if ($domain === '') {
+                return '';
+            }
+
+            if (str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://')) {
+                $host = parse_url($domain, PHP_URL_HOST);
+                $domain = is_string($host) ? $host : '';
+            } else {
+                $domain = preg_replace('#/.*$#', '', $domain) ?? '';
+            }
+
+            $domain = preg_replace('/:\d+$/', '', $domain) ?? $domain;
+            $domain = rtrim($domain, '.');
+
+            return trim($domain);
+        }
+
+        public static function normalizeDomainPattern(string $pattern): string
+        {
+            $pattern = trim(strtolower($pattern));
+
+            if ($pattern === '') {
+                return '';
+            }
+
+            $hasWildcard = str_starts_with($pattern, '*.');
+            if ($hasWildcard) {
+                $pattern = substr($pattern, 2);
+            }
+
+            $pattern = self::normalizeDomain($pattern);
+
+            if ($pattern === '') {
+                return '';
+            }
+
+            return $hasWildcard ? '*.'.$pattern : $pattern;
+        }
+
+        public static function matchesDomain(
+            string $requestDomain,
+            string $allowedDomainPattern,
+            bool $ignoreWww = true,
+            bool $includeBaseForWildcard = true
+        ): bool {
+            $requestDomain = self::normalizeDomain($requestDomain);
+            $pattern = self::normalizeDomainPattern($allowedDomainPattern);
+
+            if ($requestDomain === '' || $pattern === '') {
+                return false;
+            }
+
+            $requestComparable = $ignoreWww ? self::removeWwwPrefix($requestDomain) : $requestDomain;
+
+            if (str_starts_with($pattern, '*.')) {
+                $base = substr($pattern, 2);
+                $baseComparable = $ignoreWww ? self::removeWwwPrefix($base) : $base;
+
+                if ($includeBaseForWildcard && $requestComparable === $baseComparable) {
+                    return true;
+                }
+
+                return str_ends_with($requestComparable, '.'.$baseComparable);
+            }
+
+            $patternComparable = $ignoreWww ? self::removeWwwPrefix($pattern) : $pattern;
+            return $requestComparable === $patternComparable;
+        }
+
+        public static function matchesAnyDomain(
+            string $requestDomain,
+            array $allowedDomains,
+            bool $ignoreWww = true,
+            bool $includeBaseForWildcard = true
+        ): bool {
+            foreach ($allowedDomains as $allowedDomain) {
+                if (!is_string($allowedDomain) && !is_numeric($allowedDomain)) {
+                    continue;
+                }
+
+                if (self::matchesDomain($requestDomain, (string) $allowedDomain, $ignoreWww, $includeBaseForWildcard)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static function parseQueryString(string $queryString, array $fallback = []): array
+        {
+            if ($queryString === '') {
+                return $fallback;
+            }
+
+            $parameters = [];
+
+            foreach (explode('&', $queryString) as $pair) {
+                if ($pair === '') {
+                    continue;
+                }
+
+                $parts = explode('=', $pair, 2);
+                $rawKey = urldecode($parts[0] ?? '');
+                $rawValue = urldecode($parts[1] ?? '');
+
+                if ($rawKey === '') {
+                    continue;
+                }
+
+                if (preg_match('/\[[^\]]+\]/', $rawKey) && !str_ends_with($rawKey, '[]')) {
+                    continue;
+                }
+
+                if (str_ends_with($rawKey, '[]')) {
+                    $key = substr($rawKey, 0, -2);
+
+                    if (!array_key_exists($key, $parameters) || !is_array($parameters[$key])) {
+                        $parameters[$key] = [];
+                    }
+
+                    $parameters[$key][] = $rawValue;
+                    continue;
+                }
+
+                if (!array_key_exists($rawKey, $parameters)) {
+                    $parameters[$rawKey] = $rawValue;
+                } else {
+                    if (!is_array($parameters[$rawKey])) {
+                        $parameters[$rawKey] = [ $parameters[$rawKey] ];
+                    }
+                    $parameters[$rawKey][] = $rawValue;
+                }
+            }
+
+            foreach ($fallback as $key => $value) {
+                if (!array_key_exists($key, $parameters)) {
+                    $parameters[$key] = $value;
+                }
+            }
+
+            return $parameters;
+        }
+
+        public static function requestQueryParameters(?array $server = null, ?array $fallback = null): array
+        {
+            $server = $server ?? $_SERVER;
+            $fallback = $fallback ?? (is_array($_GET ?? null) ? $_GET : []);
+            $queryString = (string) ($server['QUERY_STRING'] ?? '');
+
+            return self::parseQueryString($queryString, is_array($fallback) ? $fallback : []);
+        }
+
         private function normalizeUrl(?string $url): string
         {
             // Se non passato, usa l'URL corrente.
@@ -151,13 +373,26 @@
         private function currentScheme(): string
         {
             // Determina lo schema attuale.
-            $https = $_SERVER['HTTPS'] ?? '';
-            return (!empty($https) && $https !== 'off') ? 'https' : 'http';
+            return self::requestScheme($_SERVER);
         }
 
         private function currentHost(): string
         {
             // Determina l'host attuale.
-            return $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+            return self::requestHost($_SERVER);
+        }
+
+        private static function firstForwardedHeaderValue(string $value): string
+        {
+            if ($value === '') {
+                return '';
+            }
+
+            return strtolower(trim(explode(',', $value)[0]));
+        }
+
+        private static function removeWwwPrefix(string $domain): string
+        {
+            return str_starts_with($domain, 'www.') ? substr($domain, 4) : $domain;
         }
     }

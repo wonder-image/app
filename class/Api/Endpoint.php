@@ -34,9 +34,10 @@
             $this->requestMethod = $method;
             $this->auth = $this->resolveAuth($auth);
 
-            $this->ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? "";
-            $this->domain = $_SERVER['HTTP_HOST'] ?? "";
+            $this->ip = UrlParser::requestIp($_SERVER);
+            $this->domain = UrlParser::normalizeDomain(UrlParser::requestHost($_SERVER));
             
+            $this->checkHttps();
             $this->checkEndpoint();
             $this->checkToken();
             $this->verifyToken();
@@ -44,6 +45,15 @@
             $this->checkRequestMethod();
             $this->checkContentType();
             $this->getParameters();
+
+        }
+
+        private function checkHttps(): void
+        {
+
+            if (!UrlParser::isHttpsRequest($_SERVER)) {
+                throw new EndpointException('Richiesta non sicura: utilizzare HTTPS', 403);
+            }
 
         }
 
@@ -221,7 +231,7 @@
             
             $allowedDomains = $this->normalizeArray($token->allowed_domains ?? []);
 
-            if (!empty($allowedDomains) && !in_array($this->domain, $allowedDomains, true)) {
+            if (!empty($allowedDomains) && !UrlParser::matchesAnyDomain($this->domain, $allowedDomains)) {
 
                 throw new EndpointException('Token non valido per questo dominio', 401); 
 
@@ -269,7 +279,7 @@
             $requestMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? '');
 
             if ($requestMethod === 'GET') {
-                $this->data = $_GET;
+                $this->data = UrlParser::requestQueryParameters($_SERVER, is_array($_GET) ? $_GET : []);
                 $this->parameters = array_merge($this->data, $this->files);
                 return;
             }
@@ -431,14 +441,39 @@
                     case 'array':
 
                         if (is_array($value)) {
+                            
                             return $value;
+
                         } elseif (is_string($value)) {
+
                             $decoded = json_decode($value, true);
+
                             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                                 return $decoded;
-                            } else {
-                                throw new EndpointException("Parametro $parameter deve essere un array o una stringa JSON decodificabile!", 400); 
                             }
+
+                            // In GET supporta anche liste CSV o chiave ripetuta.
+                            if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+                                $value = trim($value);
+
+                                if (str_contains($value, ',')) {
+                                    $items = array_values(array_filter(
+                                        array_map('trim', explode(',', $value)),
+                                        fn($item) => $item !== ''
+                                    ));
+
+                                    if (!empty($items)) {
+                                        return $items;
+                                    }
+                                }
+
+                                if ($value !== '') {
+                                    return [ $value ];
+                                }
+                            }
+
+                            throw new EndpointException("Parametro $parameter deve essere un array o una stringa JSON decodificabile!", 400); 
+
                         } else {
                             throw new EndpointException("Parametro $parameter deve essere un array o una stringa JSON decodificabile!", 400); 
                         }
