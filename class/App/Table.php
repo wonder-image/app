@@ -35,6 +35,27 @@
 
         }
 
+        public function columns(): array 
+        {
+
+            $columns = array_keys($this->schema());
+
+            array_push($columns, 'id');
+            array_push($columns, 'last_modified');
+            array_push($columns, 'creation');
+            array_push($columns, 'deleted');
+
+            return array_values($columns);
+
+        }
+
+        public function hasColumn( string $columnName ): bool
+        {
+
+            return in_array(trim($columnName), $this->columns(), true);
+
+        }
+
         public function prepare( array $post, ?array $oldValues = null ): array
         {
 
