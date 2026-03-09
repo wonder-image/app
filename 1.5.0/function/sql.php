@@ -260,7 +260,15 @@
                             $VALUE = create_link($VALUE, $table, $name, $OLD_VALUES['id']);
                         }
                     }
-    
+
+                    if (isset($RULES['format']['html_to_text']) && $RULES['format']['html_to_text'] === true) {
+                        $VALUE = htmlToText((string) $VALUE);
+                    }
+
+                    if (isset($RULES['format']['file_to_array']) && $RULES['format']['file_to_array'] === true) {
+                        $VALUE = fileToArray($VALUE);
+                    }
+
                     if (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false) {
                         $VALUE = sanitize($VALUE);
                     }

@@ -5,7 +5,7 @@
 
         global $CHARACTERS;
 
-        $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5);
+        $str = \Wonder\Support\Html\Entity::decode($str);
 
         foreach ($CHARACTERS as $k => $c) {
                         
@@ -107,35 +107,143 @@
 
     function sanitize($str): string 
     {
+        if ($str === null) {
+            return '';
+        }
         
-        global $CHARACTERS;
+        if (is_bool($str)) {
+            $str = $str ? '1' : '0';
+        } elseif (is_int($str) || is_float($str)) {
+            $str = (string) $str;
+        } elseif (is_array($str) || is_object($str)) {
+            $encoded = json_encode($str, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $str = is_string($encoded) ? $encoded : '';
+        } elseif (!is_string($str)) {
+            $str = (string) $str;
+        }
         
         if (!empty($str)) {
 
-            foreach ($CHARACTERS as $k => $c) {
-                        
-                $character = $c['character'];
-                $html = $c['html'];
-
-                if (!in_array($character, ['"', ">", "<", " ", "&"])) {
-                    $str = str_replace($character, $html, $str);
-                }
-                
-            }
-
             $str = trim($str);
+            $str = \Wonder\Support\Html\Entity::encode($str);
             $str = addslashes($str);
 
         }
 
         return $str;
         
-    }    
+    }
+
+    function htmlToText(string $body): string
+    {
+
+        if ($body === '') {
+            return '';
+        }
+
+        $text = $body;
+
+        // Converte i link html in "testo (url)" prima di rimuovere i tag.
+        $text = preg_replace_callback(
+            '#<a\s[^>]*href\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^>\s]+))[^>]*>(.*?)</a>#is',
+            function (array $matches): string {
+                $url = trim((string) ($matches[1] ?? $matches[2] ?? $matches[3] ?? ''));
+                $url = \Wonder\Support\Html\Entity::decode($url);
+
+                $label = trim(strip_tags((string) ($matches[4] ?? '')));
+                $label = \Wonder\Support\Html\Entity::decode($label);
+
+                if ($url === '') {
+                    return $label;
+                }
+
+                if ($label === '' || $label === $url) {
+                    return $url;
+                }
+
+                return $label . ' (' . $url . ')';
+            },
+            $text
+        );
+
+        $text = preg_replace('#<(br|/p|/div|/li|/tr|/h[1-6])\s*/?>#i', "\n", $text);
+        $text = preg_replace('#<li[^>]*>#i', '- ', $text);
+
+        $text = strip_tags($text);
+        $text = \Wonder\Support\Html\Entity::decode($text);
+
+        $text = str_replace("\xc2\xa0", ' ', $text);
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+        $text = preg_replace("/[ \t]+/", ' ', $text);
+        $text = preg_replace("/\n{3,}/", "\n\n", $text);
+        $text = preg_replace("/ *\n */", "\n", $text);
+
+        return trim((string) $text);
+
+    }
+
+    function fileToArray($files): array
+    {
+
+        if ($files === null || $files === '' || $files === []) {
+            return [];
+        }
+
+        if (!is_array($files)) {
+            $files = [ $files ];
+        }
+
+        $RETURN = [];
+
+        foreach ($files as $key => $value) {
+
+            if (is_numeric($key)) {
+                $path = (string) $value;
+                $name = '';
+            } else {
+                $path = (string) $key;
+                $name = (string) $value;
+            }
+
+            if ($path === '') {
+                continue;
+            }
+
+            $realPath = realpath($path);
+            $exists = is_string($realPath) && is_file($realPath);
+            $targetPath = $exists ? $realPath : $path;
+
+            $size = null;
+            if ($exists) {
+                $sizeValue = @filesize($targetPath);
+                $size = ($sizeValue === false) ? null : (int) $sizeValue;
+            }
+
+            $mime = null;
+            if ($exists && function_exists('mime_content_type')) {
+                $mimeType = @mime_content_type($targetPath);
+                $mime = ($mimeType === false) ? null : $mimeType;
+            }
+
+            $RETURN[] = [
+                'path' => $path,
+                'name' => $name,
+                'basename' => basename($path),
+                'extension' => strtolower((string) pathinfo($path, PATHINFO_EXTENSION)),
+                'exists' => $exists,
+                'size' => $size,
+                'mime' => $mime
+            ];
+
+        }
+
+        return $RETURN;
+
+    }
 
     function sanitizeJSON( array $array ): array 
     {
-
-        global $CHARACTERS;
 
         $newArray = [];
 
@@ -145,29 +253,23 @@
                 $newArray[$key] = sanitizeJSON($value);
 
             } else {
+                if (is_string($value)) {
 
-                if (!empty($value)) {
-
-                    $value = str_replace(["\r\n", "\n\r", "\n", "\r"], "",  $value);
+                    $value = str_replace(["\r\n", "\n\r", "\n", "\r"], "", $value);
                     $value = preg_replace('/(<br>)+$/', '', $value);
-                    
-                    foreach ($CHARACTERS as $k => $c) {
-                        
-                        $character = $c['character'];
-                        $html = $c['html'];
+                    $value = \Wonder\Support\Html\Entity::decode($value);
+                    $newArray[$key] = sanitize($value);
 
-                        if (!in_array($character, ['"', ">", "<", " ", "&"])) {
-                            $value = str_replace($character, $html, $value);
-                        }
-                        
-                    }
+                } elseif ($value === null || is_bool($value) || is_int($value) || is_float($value)) {
 
-                    $value = trim($value);
-                    $value = addslashes($value);
+                    $newArray[$key] = $value;
+
+                } else {
+
+                    $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $newArray[$key] = is_string($encoded) ? sanitize($encoded) : '';
 
                 }
-
-                $newArray[$key] = $value;
                 
             }
         }
@@ -214,25 +316,13 @@
     function sanitizeEcho( string $str): string
     {
 
-        global $CHARACTERS;
+        if (empty(trim($str))) { return ''; }
 
-        if (empty(trim($str))) {
-            return '';
-        }
+        // Compatibilità con sanitize(): ripristina le slash aggiunte in input.
+        $str = stripslashes($str);
+        $str = \Wonder\Support\Html\Entity::decode($str);
 
-        $str = htmlspecialchars_decode($str, ENT_QUOTES | ENT_HTML5);
-        $str = str_replace('<br />', '', $str);
-
-        foreach ($CHARACTERS as $k => $c) {
-                    
-            $character = $c['character'];
-            $html = $c['html'];
-
-            if (!in_array($character, ['"', ">", "<", " ", "&"])) {
-                $str = str_replace($html, $character, $str);
-            }
-            
-        }
+        $str = preg_replace('#<br\s*/?>#i', '', $str);
 
         return $str;
 
@@ -250,7 +340,7 @@
             if ($upper == true) {
 
                 $str = strip_tags($str);
-                $str = html_entity_decode(strtolower($str), ENT_QUOTES | ENT_HTML5);
+                $str = \Wonder\Support\Html\Entity::decode(strtolower($str));
 
                 $str = str_replace('à', 'À', $str);
                 $str = str_replace('è', 'È', $str);
@@ -263,7 +353,7 @@
             } else {
 
                 $str = strip_tags($str);
-                $str = html_entity_decode($str, ENT_QUOTES | ENT_HTML5);
+                $str = \Wonder\Support\Html\Entity::decode($str);
 
             }
 

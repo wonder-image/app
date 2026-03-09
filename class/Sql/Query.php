@@ -23,6 +23,14 @@
         public static function Conditions( string | array $conditions, bool $where = true ): string
         {
 
+            $query = new self();
+            return $query->buildConditions($conditions, $where);
+
+        }
+
+        private function buildConditions( string | array $conditions, bool $where = true ): string
+        {
+
             $filter = $where ? "WHERE " : "";
         
             if (is_array($conditions)) {
@@ -54,14 +62,20 @@
 
                         $filter .= "$label IN (";
 
-                        foreach ($value as $v) {$filter .= "'$v', ";}
+                        foreach ($value as $v) {
+                            $filter .= $this->valueToSql($v, false).", ";
+                        }
                         $filter = substr($filter, 0, -2); 
 
                         $filter .= ") AND ";
 
                     } else {
 
-                        $filter .= "$label = '$value' AND ";
+                        if ($value === null) {
+                            $filter .= "$label IS NULL AND ";
+                        } else {
+                            $filter .= "$label = ".$this->valueToSql($value, false)." AND ";
+                        }
 
                     }
                 }
@@ -82,14 +96,41 @@
 
         }
 
-        // Converte un valore PHP nel corrispettivo SQL
-        private function valueToSql($value): string
+        private function escapeString(string $value): string
         {
 
-            if ($value === null || $value === '') { return "NULL"; }
-            if (is_bool($value)) { return $value ? "'1'" : "'0'"; }
+            if ($value === '') {
+                return '';
+            }
 
-            return "'$value'";
+            return $this->mysqli->real_escape_string($value);
+
+        }
+
+        private function valueToSql(mixed $value, bool $emptyStringAsNull = true): string
+        {
+
+            if ($value === null || ($emptyStringAsNull && $value === '')) {
+                return "NULL";
+            }
+
+            if (is_int($value) || is_float($value)) {
+                return "'".$value."'";
+            }
+
+            if (is_bool($value)) {
+                return $value ? "'1'" : "'0'";
+            }
+
+            if (is_array($value) || is_object($value)) {
+                $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                if (!is_string($encoded)) {
+                    $encoded = '';
+                }
+                return "'".$this->escapeString($encoded)."'";
+            }
+
+            return "'".$this->escapeString((string) $value)."'";
 
         }
 
@@ -196,7 +237,7 @@
 
             $query = "UPDATE `$table` SET ";
             $query .= $this->Values( $values, true );
-            $query .= " WHERE `$column` = '$value'";
+            $query .= " WHERE `$column` = ".$this->valueToSql($value, false);
 
             $RETURN = (object) [];
             $RETURN->success = true;
@@ -227,7 +268,7 @@
             } else {
                 $query .= $this->informationSchema ? "INFORMATION_SCHEMA.$table" : "`$table`";
             }
-            $query .= ($condition == null) ? "" : self::Conditions( $condition );
+            $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
             $query .= ($order == null) ? "" : " ORDER BY $order";
             $query .= ($orderDirection == null) ? "" : " $orderDirection";
             $query .= ($limit == null) ? "" : " LIMIT $limit";
@@ -275,7 +316,7 @@
 
             $query = "DELETE FROM ";
             $query .= "`$table`";
-            $query .= ($condition == null) ? "" : self::Conditions( $condition );
+            $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
@@ -361,7 +402,7 @@
         {
 
             $query = "SHOW DATABASES LIKE ";
-            $query .= "'$name'";
+            $query .= "'".$this->escapeString($name)."'";
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
@@ -387,7 +428,7 @@
         {
 
             $query = "SHOW TABLES LIKE ";
-            $query .= "'$name'";
+            $query .= "'".$this->escapeString($name)."'";
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
@@ -416,7 +457,7 @@
             $query = "SHOW COLUMNS FROM ";
             $query .= "`$table` ";
             $query .= "LIKE ";
-            $query .= "'$column'";
+            $query .= "'".$this->escapeString($column)."'";
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
