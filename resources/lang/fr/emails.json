@@ -1,0 +1,7 @@
+{
+    "email_verification": {
+        "subject": "Confirmez votre e-mail pour finaliser l'inscription",
+        "text": "Pour continuer votre inscription, confirmez votre adresse e-mail via le lien suivant.",
+        "button": "Confirmer l'e-mail"
+    }
+}

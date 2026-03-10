@@ -1,0 +1,7 @@
+{
+    "email_verification": {
+        "subject": "Conferma la tua email per completare la registrazione",
+        "text": "Per continuare la registrazione, conferma il tuo indirizzo email cliccando sul link seguente.",
+        "button": "Conferma email"
+    }
+}

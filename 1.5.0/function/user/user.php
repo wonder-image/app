@@ -55,6 +55,7 @@
         $RETURN->prettyCreation = isset($RETURN->creation) ? date('d/m/Y', strtotime($RETURN->creation)).' alle '.date('H:i', strtotime($RETURN->creation)) : '';
 
         $RETURN->active = $RETURN->active == 'true' || $RETURN->active == true ? true : false;
+        $RETURN->email_verified = isset($RETURN->email_verified) && ($RETURN->email_verified == '1' || $RETURN->email_verified == 1 || $RETURN->email_verified === true || $RETURN->email_verified === 'true');
         $RETURN->deleted = $RETURN->deleted == 'true' || $RETURN->deleted == true ? true : false;
 
         return $RETURN;

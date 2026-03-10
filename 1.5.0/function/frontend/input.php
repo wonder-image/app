@@ -1062,6 +1062,30 @@
 
     }
 
+    function inputAcceptDocument(string $type, ?string $attributes = null, $value = null): string
+    {
+
+        $type = strtolower(trim($type));
+
+        $nameByType = [
+            'terms' => 'accept_terms',
+            'privacy' => 'ack_privacy',
+            'marketing' => 'accept_marketing'
+        ];
+
+        $fieldName = $nameByType[$type] ?? $type;
+        $label = __t("components.forms.fields.{$fieldName}.label");
+
+        return checkbox(
+            '',
+            $fieldName,
+            [ 'true' => [ 'label' => $label, 'attribute' => $attributes ] ],
+            'checkbox',
+            $value
+        );
+
+    }
+
     function googleAddress($label, $name = "address", $value = [ 
         'country' => '',
         'province' => '',

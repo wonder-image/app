@@ -12,6 +12,15 @@
             "password" : { "label" : "Mot de passe" },
             "message" : { "label" : "Message" },
             "request" : { "label" : "De quoi avez-vous besoin ?" },
+            "accept_terms" : {
+                "label" : "J’accepte les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
+            },
+            "ack_privacy" : {
+                "label" : "J’ai pris connaissance de la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a>"
+            },
+            "accept_marketing" : {
+                "label" : "J’accepte de recevoir des communications marketing"
+            },
             "privacy" : {
                 "label" : "J’accepte la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a> et les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
             }

@@ -132,5 +132,15 @@
                 }
             ]
         }
+    },
+    "marketing" : {
+        "seo" : {
+            "title" : "Consentement Marketing de {{domain}}",
+            "description" : "Gérez votre consentement à recevoir des communications promotionnelles par e-mail."
+        },
+        "content" : {
+            "title" : "Consentement Marketing",
+            "text" : "Je consens à recevoir des communications promotionnelles par e-mail. Je peux retirer mon consentement à tout moment."
+        }
     }
 }

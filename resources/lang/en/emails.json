@@ -1,0 +1,7 @@
+{
+    "email_verification": {
+        "subject": "Confirm your email to complete registration",
+        "text": "To continue your registration, confirm your email address using the link below.",
+        "button": "Confirm email"
+    }
+}

@@ -138,5 +138,15 @@
                 }
             ]
         }
+    },
+    "marketing": {
+        "seo": {
+            "title": "Marketing Consent for {{domain}}",
+            "description": "Manage your consent to receive promotional email communications."
+        },
+        "content": {
+            "title": "Marketing Consent",
+            "text": "I consent to receive promotional email communications. I can withdraw consent at any time."
+        }
     }
 }

@@ -1,0 +1,7 @@
+{
+    "email_verification": {
+        "subject": "Bestätige deine E-Mail, um die Registrierung abzuschließen",
+        "text": "Um mit der Registrierung fortzufahren, bestätige bitte deine E-Mail-Adresse über den folgenden Link.",
+        "button": "E-Mail bestätigen"
+    }
+}

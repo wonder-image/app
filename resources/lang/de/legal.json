@@ -132,5 +132,15 @@
                 }
             ]
         }
+    },
+    "marketing" : {
+        "seo" : {
+            "title" : "Marketing-Einwilligung von {{domain}}",
+            "description" : "Verwalten Sie Ihre Einwilligung zum Erhalt von Werbe-E-Mails."
+        },
+        "content" : {
+            "title" : "Marketing-Einwilligung",
+            "text" : "Ich willige ein, Werbemitteilungen per E-Mail zu erhalten. Ich kann die Einwilligung jederzeit widerrufen."
+        }
     }
 }
