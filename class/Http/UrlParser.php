@@ -89,6 +89,24 @@
             return $params[$name] ?? null;
         }
 
+        public function addParameter(string $name, mixed $value): string
+        {
+            // Aggiunge il parametro solo se non esiste già.
+            return $this->applyParameterOperation($name, $value, 'add');
+        }
+
+        public function addOrReplaceParameter(string $name, mixed $value): string
+        {
+            // Aggiunge il parametro o lo sostituisce se già presente.
+            return $this->applyParameterOperation($name, $value, 'add_or_replace');
+        }
+
+        public function replaceParameter(string $name, mixed $value): string
+        {
+            // Sostituisce il parametro solo se è già presente.
+            return $this->applyParameterOperation($name, $value, 'replace');
+        }
+
         public function getFile(): ?string
         {
             // Ritorna il nome file con estensione.
@@ -332,6 +350,106 @@
             $queryString = (string) ($server['QUERY_STRING'] ?? '');
 
             return self::parseQueryString($queryString, is_array($fallback) ? $fallback : []);
+        }
+
+        private function applyParameterOperation(string $name, mixed $value, string $mode): string
+        {
+            $name = trim($name);
+
+            if ($name === '') {
+                return $this->rawUrl !== '' ? $this->rawUrl : $this->fullUrl;
+            }
+
+            $parts = !empty($this->rawParts) ? $this->rawParts : $this->parts;
+            $query = self::parseQueryString((string) ($parts['query'] ?? ''));
+            $exists = array_key_exists($name, $query);
+            $normalizedValue = self::normalizeQueryValue($value);
+
+            if ($mode === 'add') {
+                if (!$exists) {
+                    $query[$name] = $normalizedValue;
+                }
+            } elseif ($mode === 'replace') {
+                if ($exists) {
+                    $query[$name] = $normalizedValue;
+                }
+            } else {
+                $query[$name] = $normalizedValue;
+            }
+
+            return self::buildUrlWithQuery($parts, $query);
+        }
+
+        private static function normalizeQueryValue(mixed $value): mixed
+        {
+            if (is_array($value)) {
+                $normalized = [];
+                foreach ($value as $key => $item) {
+                    $normalized[$key] = self::normalizeQueryValue($item);
+                }
+                return $normalized;
+            }
+
+            if ($value instanceof \Stringable) {
+                return (string) $value;
+            }
+
+            if (is_bool($value)) {
+                return $value ? '1' : '0';
+            }
+
+            if ($value === null) {
+                return '';
+            }
+
+            return is_scalar($value) ? (string) $value : '';
+        }
+
+        private static function buildUrlWithQuery(array $parts, array $query): string
+        {
+            $url = '';
+            $host = (string) ($parts['host'] ?? '');
+            $scheme = (string) ($parts['scheme'] ?? '');
+            $user = (string) ($parts['user'] ?? '');
+            $pass = (string) ($parts['pass'] ?? '');
+            $path = (string) ($parts['path'] ?? '');
+            $fragment = (string) ($parts['fragment'] ?? '');
+            $port = isset($parts['port']) ? (int) $parts['port'] : null;
+
+            if ($host !== '') {
+                if ($scheme !== '') {
+                    $url .= $scheme.'://';
+                } else {
+                    $url .= '//';
+                }
+
+                if ($user !== '') {
+                    $url .= $user;
+                    if ($pass !== '') {
+                        $url .= ':'.$pass;
+                    }
+                    $url .= '@';
+                }
+
+                $url .= $host;
+
+                if ($port !== null) {
+                    $url .= ':'.$port;
+                }
+            }
+
+            $url .= $path;
+
+            $queryString = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+            if ($queryString !== '') {
+                $url .= '?'.$queryString;
+            }
+
+            if ($fragment !== '') {
+                $url .= '#'.$fragment;
+            }
+
+            return $url;
         }
 
         private function normalizeUrl(?string $url): string
