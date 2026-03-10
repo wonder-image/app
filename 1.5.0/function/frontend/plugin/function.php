@@ -5,3 +5,4 @@
     require_once __DIR__."/reCAPTCHA.php";
     require_once __DIR__."/swiper.php";
     require_once __DIR__."/image.php";
+    require_once __DIR__."/editor.php";
