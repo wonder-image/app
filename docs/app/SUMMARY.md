@@ -4,6 +4,9 @@
   * [Multilingua](app-1.5.0/multilingua.md)
   * [Api](app-1.5.0/api.md)
   * [Cron Job](app-1.5.0/cron-job.md)
+  * [Utente](app-1.5.0/utente/README.md)
+    * [Verifica email](app-1.5.0/utente/verifica-email.md)
+    * [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
 
 ## BACKEND
 
