@@ -50,6 +50,33 @@
 
             public function float(): self { return $this->type('FLOAT'); }
 
+            /**
+             * Colonna ENUM con lista valori ammessi.
+             *
+             * @param array<int|string, mixed> $values
+             * @return TableSchema
+             */
+            public function enum(array $values): self
+            {
+
+                $cleanValues = [];
+
+                foreach ($values as $value) {
+                    if (!is_string($value) && !is_numeric($value)) {
+                        continue;
+                    }
+
+                    $value = trim((string) $value);
+
+                    if ($value !== '') {
+                        $cleanValues[] = $value;
+                    }
+                }
+
+                return $this->type('ENUM')->schema('enum', array_values(array_unique($cleanValues)));
+
+            }
+
         #
 
         public function length( int $length ): self
@@ -104,6 +131,40 @@
         {
 
             return $this->schema('index', $column);
+
+        }
+
+        /**
+         * Vincolo UNIQUE su singola colonna o su più colonne.
+         *
+         * Esempi:
+         * - unique() -> UNIQUE sulla colonna corrente
+         * - unique(['user_id', 'consent_type']) -> UNIQUE composto
+         *
+         * @param bool|string|array $columns
+         * @return TableSchema
+         */
+        public function unique( bool | string | array $columns = true ): self
+        {
+
+            return $this->schema('unique', $columns);
+
+        }
+
+        /**
+         * Vincolo PRIMARY KEY su singola colonna o composto.
+         *
+         * Esempi:
+         * - primary() -> PRIMARY KEY sulla colonna corrente
+         * - primary(['user_id', 'consent_type']) -> PRIMARY KEY composta
+         *
+         * @param bool|array $columns
+         * @return TableSchema
+         */
+        public function primary( bool | array $columns = true ): self
+        {
+
+            return $this->schema('primary', $columns);
 
         }
 

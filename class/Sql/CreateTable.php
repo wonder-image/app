@@ -33,34 +33,318 @@
             $this->debug = $debug;
         }
 
+        /**
+         * Normalizza una lista colonne usata nei vincoli.
+         *
+         * @param mixed $columns
+         * @param string|null $fallback
+         * @return array<int, string>
+         */
+        private function normalizeColumnList($columns, ?string $fallback = null): array
+        {
+
+            if ($columns === true && $fallback !== null) {
+                $columns = [ $fallback ];
+            } elseif (is_string($columns) || is_numeric($columns)) {
+                $columns = [ (string) $columns ];
+            } elseif (!is_array($columns)) {
+                $columns = [];
+            }
+
+            $return = [];
+
+            foreach ($columns as $column) {
+                if (!is_string($column) && !is_numeric($column)) {
+                    continue;
+                }
+
+                $column = trim((string) $column);
+
+                if ($column !== '') {
+                    $return[] = $column;
+                }
+            }
+
+            return array_values(array_unique($return));
+
+        }
+
+        /**
+         * Converte una lista colonne nel formato SQL `a`, `b`.
+         *
+         * @param array<int, string> $columns
+         * @return string
+         */
+        private function columnListToSql(array $columns): string
+        {
+
+            $sql = '';
+
+            foreach ($columns as $column) {
+                $sql .= "`$column`, ";
+            }
+
+            return substr($sql, 0, -2);
+
+        }
+
+        /**
+         * Costruisce SQL per INDEX/UNIQUE/PRIMARY.
+         */
+        private function buildConstraintSql(string $constraintSql, bool|string $action = false): string
+        {
+
+            $return = '';
+
+            if ($action === 'add' || $action === 'modify') {
+                $return .= 'ADD ';
+            }
+
+            $return .= $constraintSql.' ';
+
+            return $return;
+
+        }
+
+        /**
+         * Riconosce se una definizione contiene opzioni di colonna reali
+         * (non solo vincoli pseudo-colonna).
+         */
+        private function isColumnDefinition(array $options): bool
+        {
+
+            $columnKeys = [
+                'type',
+                'length',
+                'null',
+                'auto_increment',
+                'default',
+                'on_update',
+                'foreign_table',
+                'foreign_key',
+                'after',
+                'enum'
+            ];
+
+            foreach ($columnKeys as $key) {
+                if (array_key_exists($key, $options)) {
+                    return true;
+                }
+            }
+
+            return false;
+
+        }
+
+        /**
+         * Estrae opzioni tabella da chiave speciale "__table".
+         *
+         * @param array<string, mixed> $columns
+         * @return array{auto_id: bool, audit_columns: bool}
+         */
+        private function extractTableOptions(array &$columns): array
+        {
+
+            $tableOptions = [
+                'auto_id' => true,
+                'audit_columns' => true,
+            ];
+
+            if (isset($columns['__table']) && is_array($columns['__table'])) {
+
+                $config = $columns['__table'];
+
+                if (isset($config['auto_id'])) {
+                    $tableOptions['auto_id'] = (bool) $config['auto_id'];
+                }
+
+                if (isset($config['audit_columns'])) {
+                    $tableOptions['audit_columns'] = (bool) $config['audit_columns'];
+                }
+
+                unset($columns['__table']);
+
+            }
+
+            return $tableOptions;
+
+        }
+
+        /**
+         * Estrae vincoli (primary/unique) da schema legacy o model schema.
+         *
+         * @param array<string, mixed> $columns
+         * @return array{primary: array<int, string>, unique: array<string, array<int, string>>}
+         */
+        private function extractConstraints(array &$columns): array
+        {
+
+            $constraints = [
+                'primary' => [],
+                'unique' => [],
+            ];
+
+            foreach ($columns as $name => $options) {
+
+                if (!is_array($options)) {
+                    continue;
+                }
+
+                $isColumnDefinition = $this->isColumnDefinition($options);
+
+                # PRIMARY KEY composta via pseudo-colonna:
+                # 'pk_name' => [ 'primary' => ['col_a', 'col_b'] ]
+                if (
+                    !$isColumnDefinition &&
+                    isset($options['primary']) &&
+                    is_array($options['primary'])
+                ) {
+
+                    $primaryColumns = $this->normalizeColumnList($options['primary']);
+                    if (!empty($primaryColumns)) {
+                        $constraints['primary'] = $primaryColumns;
+                    }
+
+                    unset($columns[$name]);
+                    continue;
+
+                }
+
+                # UNIQUE composta via pseudo-colonna:
+                # 'uq_name' => [ 'unique' => ['col_a', 'col_b'] ]
+                if (!$isColumnDefinition && isset($options['unique'])) {
+
+                    $uniqueColumns = $this->normalizeColumnList($options['unique']);
+                    if (!empty($uniqueColumns)) {
+                        $constraints['unique'][$name] = $uniqueColumns;
+                    }
+
+                    unset($columns[$name]);
+                    continue;
+
+                }
+
+                # UNIQUE singola su colonna:
+                # 'email' => [ ..., 'unique' => true ]
+                if (array_key_exists('unique', $options)) {
+
+                    $uniqueColumns = $this->normalizeColumnList($options['unique'], (string) $name);
+                    if (!empty($uniqueColumns)) {
+                        $constraints['unique']['uniq_'.$name] = $uniqueColumns;
+                    }
+
+                    unset($columns[$name]['unique']);
+
+                }
+            }
+
+            return $constraints;
+
+        }
+
+        /**
+         * Appende vincoli estratti come pseudo-colonne in coda allo schema.
+         *
+         * @param array<string, mixed> $columns
+         * @param array{primary: array<int, string>, unique: array<string, array<int, string>>} $constraints
+         * @return array<string, mixed>
+         */
+        private function appendConstraints(array $columns, array $constraints): array
+        {
+
+            if (!empty($constraints['primary'])) {
+                $columns['__pk_composite'] = [ 'primary' => $constraints['primary'] ];
+            }
+
+            foreach ($constraints['unique'] as $name => $uniqueColumns) {
+                $columns['__unique_'.$name] = [ 'unique' => $uniqueColumns ];
+            }
+
+            return $columns;
+
+        }
+
+        /**
+         * Lista valori enum sanificata.
+         *
+         * @param array<string, mixed> $options
+         * @return array<int, string>
+         */
+        private function normalizeEnumValues(array $options): array
+        {
+
+            $enumValues = $options['enum'] ?? [];
+
+            if (is_string($enumValues)) {
+                $enumValues = array_map('trim', explode(',', $enumValues));
+            }
+
+            if (!is_array($enumValues)) {
+                return [];
+            }
+
+            $return = [];
+
+            foreach ($enumValues as $value) {
+                if (!is_string($value) && !is_numeric($value)) {
+                    continue;
+                }
+
+                $value = trim((string) $value);
+
+                if ($value !== '') {
+                    $return[] = $value;
+                }
+            }
+
+            return array_values(array_unique($return));
+
+        }
+
         private function TableColumn( $name, $options, $action = false ) {
 
             if (isset($options['index']) && !empty($options['index'])) {
 
                 # Se bisogna creare un INDEX
                 
-                $index = $options['index'];
+                $indexColumns = $this->normalizeColumnList($options['index'], $name);
 
-                $return = "";
-
-                if ($action == 'add' || $action == 'modify') {
-                    $return .= "ADD ";
+                if (empty($indexColumns)) {
+                    return '';
                 }
 
-                $return .= "INDEX `$name` (";
+                $return = $this->buildConstraintSql(
+                    "INDEX `$name` (".$this->columnListToSql($indexColumns).")",
+                    $action
+                );
 
-                if (is_array($index)) {
+            } elseif (isset($options['unique'])) {
 
-                    foreach ($index as $column) { $return .= "`$column`, "; }
-                    $return = substr($return, 0, -2);
+                # Se bisogna creare un vincolo UNIQUE (singolo o composito)
+                $uniqueColumns = $this->normalizeColumnList($options['unique'], $name);
 
-                } else {
-
-                    $return .= "`$index`";
-
+                if (empty($uniqueColumns)) {
+                    return '';
                 }
 
-                $return .= ") ";
+                $return = $this->buildConstraintSql(
+                    "UNIQUE KEY `$name` (".$this->columnListToSql($uniqueColumns).")",
+                    $action
+                );
+
+            } elseif (isset($options['primary']) && is_array($options['primary'])) {
+
+                # Se bisogna creare una PRIMARY KEY composta
+                $primaryColumns = $this->normalizeColumnList($options['primary']);
+
+                if (empty($primaryColumns)) {
+                    return '';
+                }
+
+                $return = $this->buildConstraintSql(
+                    "PRIMARY KEY (".$this->columnListToSql($primaryColumns).")",
+                    $action
+                );
 
             } else {
 
@@ -70,7 +354,7 @@
 
                 $defaultType = ($name == 'position') ? 'INT' : $this->DEFAULT_TYPE;
 
-                $type = empty($options['type']) ? $defaultType : strtoupper($options['type']);
+                $type = empty($options['type']) ? $defaultType : strtoupper((string) $options['type']);
             
                 if ($type == "VARCHAR") { 
                     $defaultLenght = $this->DEFAULT_LENGHT_VARCHAR; 
@@ -84,9 +368,34 @@
                     $defaultLenght = null;
                 }
 
-                $length = empty($options['length']) ? $defaultLenght : $options['length'];
+                if ($type == "ENUM") {
 
-                $type .= ($length == null) ? '': "($length)";
+                    $enumValues = $this->normalizeEnumValues($options);
+
+                    if (!empty($enumValues)) {
+
+                        $enumSql = '';
+
+                        foreach ($enumValues as $value) {
+                            $escaped = $this->mysqli->real_escape_string($value);
+                            $enumSql .= "'$escaped', ";
+                        }
+
+                        $type .= "(".substr($enumSql, 0, -2).")";
+
+                    } else {
+
+                        # Fallback sicuro se enum è definito ma senza valori.
+                        $type = "VARCHAR(".$this->DEFAULT_LENGHT_VARCHAR.")";
+
+                    }
+
+                } else {
+
+                    $length = empty($options['length']) ? $defaultLenght : $options['length'];
+                    $type .= ($length == null) ? '': "($length)";
+
+                }
 
                 $after = empty($options['after']) ? '' : "AFTER `".$options['after']."`";
 
@@ -207,43 +516,64 @@
 
             $name = strtolower($name);
 
-            $beforeColumns = [
-                'id' => [
-                    'type'=> 'INT',
-                    'primary'=> true,
-                    'null' => false,
-                    'auto_increment' => true
-                ]
-            ];
+            $tableOptions = $this->extractTableOptions($columns);
+            $constraints = $this->extractConstraints($columns);
 
-            $afterColumns = [
-                'deleted'=> [
-                    'length'=> 5,
-                    'null' => false,
-                    'default' => 'false',
-                ],
-                'last_modified' => [
-                    'type'=> 'DATETIME',
-                    'null' => false,
-                    'on_update' => 'CURRENT_TIMESTAMP',
-                    'default' => 'CURRENT_TIMESTAMP',
-                ],
-                'creation' => [
-                    'type'=> 'DATETIME',
-                    'null' => false,
-                    'default' => 'CURRENT_TIMESTAMP',
-                ],
-                'ind_id' => [
-                    'index'=> 'id'
-                ]
-            ];
+            # La presenza di una PK composta disabilita l'id automatico.
+            if (!empty($constraints['primary'])) {
+                $tableOptions['auto_id'] = false;
+            }
+
+            $beforeColumns = [];
+
+            if ($tableOptions['auto_id']) {
+                $beforeColumns = [
+                    'id' => [
+                        'type'=> 'INT',
+                        'primary'=> true,
+                        'null' => false,
+                        'auto_increment' => true
+                    ]
+                ];
+            }
+
+            $afterColumns = [];
+
+            if ($tableOptions['audit_columns']) {
+
+                $afterColumns = [
+                    'deleted'=> [
+                        'length'=> 5,
+                        'null' => false,
+                        'default' => 'false',
+                    ],
+                    'last_modified' => [
+                        'type'=> 'DATETIME',
+                        'null' => false,
+                        'on_update' => 'CURRENT_TIMESTAMP',
+                        'default' => 'CURRENT_TIMESTAMP',
+                    ],
+                    'creation' => [
+                        'type'=> 'DATETIME',
+                        'null' => false,
+                        'default' => 'CURRENT_TIMESTAMP',
+                    ],
+                ];
+
+                if ($tableOptions['auto_id']) {
+                    $afterColumns['ind_id'] = [
+                        'index'=> 'id'
+                    ];
+                }
+            }
 
             $columns = array_merge($beforeColumns, $columns, $afterColumns);
+            $columns = $this->appendConstraints($columns, $constraints);
 
             if ($SQL->TableExists($name)) {
                 
                 $query = "";
-                $columnBefore = "id";
+                $columnBefore = $tableOptions['auto_id'] ? "id" : null;
 
                 # Elimino tutte le FOREIGN KEY
                     foreach ($SQL->ColumnForeign($name) as $key => $foreignKey) { 
@@ -272,17 +602,27 @@
                         if ($SQL->ColumnExists($name, $columnName)) {
                             
                             # Modifica la colonna
-                            $query .= $this->TableColumn( $columnName, $options, 'modify' ).', ';
+                            $columnSql = $this->TableColumn( $columnName, $options, 'modify' );
+                            if ($columnSql !== '') {
+                                $query .= $columnSql.', ';
+                            }
 
                         } else {
 
                             # Aggiungo la colonna
-                            $options['after'] = empty($options['after']) ? $columnBefore : $options['after'];
-                            $query .= $this->TableColumn( $columnName, $options, 'add' ).', ';
+                            if (is_array($options) && $this->isColumnDefinition($options) && !isset($options['after']) && !empty($columnBefore)) {
+                                $options['after'] = $columnBefore;
+                            }
+                            $columnSql = $this->TableColumn( $columnName, $options, 'add' );
+                            if ($columnSql !== '') {
+                                $query .= $columnSql.', ';
+                            }
 
                         }
 
-                        $columnBefore = $columnName;
+                        if (is_array($options) && $this->isColumnDefinition($options)) {
+                            $columnBefore = $columnName;
+                        }
 
                     }
 
@@ -320,7 +660,10 @@
                 foreach ($columns as $columnName => $options) {
                     
                     $columnName = strtolower($columnName);
-                    $query .= $this->TableColumn( $columnName, $options ).', ';
+                    $columnSql = $this->TableColumn( $columnName, $options );
+                    if ($columnSql !== '') {
+                        $query .= $columnSql.', ';
+                    }
 
                 }
 
