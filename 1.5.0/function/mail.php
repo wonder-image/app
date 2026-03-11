@@ -61,67 +61,149 @@
         $BODY_TEXT = htmlToText($BODY_RAW);
         $MAIL_SENT = false;
         $MAIL_ERROR = '';
-        $mailService = $CREDENTIALS->service;
+        $mailService = strtolower((string) ($CREDENTIALS->service ?? 'phpmailer'));
 
-        // TODO: quando sarà integrato Brevo, aggiungere qui il ramo dedicato.
-        $MAIL_SERVICE_SENT = ($mailService === 'brevo') ? 'phpmailer' : $mailService;
+        if (!in_array($mailService, [ 'phpmailer', 'brevo' ])) {
+            $mailService = 'phpmailer';
+        }
+
+        $attachmentList = [];
+
+        if ($attachments != null) {
+
+            if (is_array($attachments)) {
+
+                if (count($attachments) >= 1) {
+
+                    foreach ($attachments as $key => $attachment) {
+
+                        if (is_numeric($key)) {
+                            $attachmentName = '';
+                            $attachmentRelativePath = $attachment;
+                        } else {
+                            $attachmentName = $attachment;
+                            $attachmentRelativePath = $key;
+                        }
+
+                        $attachmentList[] = [
+                            'path' => $attachmentRelativePath,
+                            'name' => $attachmentName
+                        ];
+
+                    }
+
+                }
+
+            } else {
+
+                $attachmentList[] = [
+                    'path' => $attachments,
+                    'name' => ''
+                ];
+
+            }
+
+        }
+
+        $MAIL_SERVICE_SENT = $mailService;
 
         try {
 
-            # Impostazioni server
-                $MAIL->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; 
-                $MAIL->isSMTP();
-                $MAIL->Host = $CREDENTIALS->host;
-                $MAIL->SMTPAuth = true;
-                $MAIL->Username = $CREDENTIALS->username;
-                $MAIL->Password = $CREDENTIALS->password;
-                $MAIL->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-                $MAIL->Port = $CREDENTIALS->port;
-            
-            # Header
-                $MAIL->addAddress($to);
-                $MAIL->setFrom($CREDENTIALS->username, $SOCIETY_NAME);
-                $MAIL->addReplyTo($from, $SOCIETY_NAME);
-        
-            # Allegati
-                if ($attachments != null) {
-                    if (is_array($attachments)) {
-                        if (count($attachments) >= 1) {
-                            foreach ($attachments as $key => $attachment) {
+            switch ($mailService) {
 
-                                if (is_numeric($key)) {
-                                    $attachmentName = '';
-                                    $attachmentRelativePath = $attachment;
-                                } else {
-                                    $attachmentName = $attachment;
-                                    $attachmentRelativePath = $key;
-                                }
+                case 'brevo':
 
-                                $MAIL->addAttachment($attachmentRelativePath, $attachmentName);
+                    if (empty($CREDENTIALS->brevo_api_key)) {
+                        throw new Exception('Brevo API Key non configurata');
+                    }
 
-                            }
+                    $BREVO = Wonder\Plugin\Brevo\TransactionalEmail::connect($CREDENTIALS->brevo_api_key);
+
+                    $BREVO->sender($CREDENTIALS->username, $SOCIETY_NAME)
+                        ->to($to)
+                        ->replyTo($from, $SOCIETY_NAME)
+                        ->subject($object)
+                        ->html($BODY_RAW)
+                        ->text($BODY_TEXT);
+
+                    foreach ($attachmentList as $attachment) {
+
+                        $attachmentPath = (string) ($attachment['path'] ?? '');
+                        $attachmentName = (string) ($attachment['name'] ?? '');
+
+                        if (empty($attachmentPath)) {
+                            continue;
                         }
-                    } else {
-                        
-                        $MAIL->addAttachment($attachments);
+
+                        if (!is_file($attachmentPath) || !is_readable($attachmentPath)) {
+                            throw new Exception('Allegato non trovato o non leggibile: '.$attachmentPath);
+                        }
+
+                        $attachmentContent = file_get_contents($attachmentPath);
+
+                        if ($attachmentContent === false) {
+                            throw new Exception('Impossibile leggere l\'allegato: '.$attachmentPath);
+                        }
+
+                        if (empty($attachmentName)) {
+                            $attachmentName = basename($attachmentPath);
+                        }
+
+                        $BREVO->attachmentContent($attachmentName, base64_encode($attachmentContent));
 
                     }
-                }
-        
-            # Body
-                $MAIL->CharSet = 'UTF-8';
-                $MAIL->Encoding = 'base64';
-                $MAIL->isHTML(true);
-                $MAIL->Subject = $object;
-                $MAIL->Body = $BODY_RAW;
-                $MAIL->AltBody = $BODY_TEXT;
-        
-            # Invia
-                $MAIL->send();
+
+                    $BREVO->send();
+                    break;
+
+                default:
+
+                    # Impostazioni server
+                        $MAIL->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; 
+                        $MAIL->isSMTP();
+                        $MAIL->Host = $CREDENTIALS->host;
+                        $MAIL->SMTPAuth = true;
+                        $MAIL->Username = $CREDENTIALS->username;
+                        $MAIL->Password = $CREDENTIALS->password;
+                        $MAIL->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                        $MAIL->Port = $CREDENTIALS->port;
+                    
+                    # Header
+                        $MAIL->addAddress($to);
+                        $MAIL->setFrom($CREDENTIALS->username, $SOCIETY_NAME);
+                        $MAIL->addReplyTo($from, $SOCIETY_NAME);
+                
+                    # Allegati
+                        foreach ($attachmentList as $attachment) {
+
+                            $attachmentPath = (string) ($attachment['path'] ?? '');
+                            $attachmentName = (string) ($attachment['name'] ?? '');
+
+                            if (empty($attachmentPath)) {
+                                continue;
+                            }
+
+                            $MAIL->addAttachment($attachmentPath, $attachmentName);
+
+                        }
+                
+                    # Body
+                        $MAIL->CharSet = 'UTF-8';
+                        $MAIL->Encoding = 'base64';
+                        $MAIL->isHTML(true);
+                        $MAIL->Subject = $object;
+                        $MAIL->Body = $BODY_RAW;
+                        $MAIL->AltBody = $BODY_TEXT;
+                
+                    # Invia
+                        $MAIL->send();
+                    break;
+
+            }
 
             $MAIL_SENT = true;
 
-        } catch (PHPMailer\PHPMailer\Exception $e) {
+        } catch (Throwable $e) {
 
             $MAIL_ERROR = $e->getMessage();
             __log($e, '['.$MAIL_SERVICE_SENT.']', '[sendMail]');
