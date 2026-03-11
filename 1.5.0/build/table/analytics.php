@@ -29,5 +29,7 @@
         "mail_username" => [],
         "mail_password" => [],
         "mail_port" => [],
+        "mail_service" => [ "sql" => [ "default" => "phpmailer" ] ],
+        "brevo_api_key" => [],
         "encrypt" => [ "sql" => [ "default" => 'false' ] ]
     ];

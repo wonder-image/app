@@ -52,6 +52,12 @@
                 "type" => "JSON"
             ]
         ],
+        "service" => [
+            "sql" => [
+                "length" => 50,
+                "default" => "phpmailer"
+            ]
+        ],
         "status" => [
             "sql" => [
                 "length" => 20
@@ -76,6 +82,11 @@
         "ind_status" => [
             "sql" => [
                 "index" => "status"
+            ]
+        ],
+        "ind_service" => [
+            "sql" => [
+                "index" => "service"
             ]
         ],
         "ind_user_id" => [

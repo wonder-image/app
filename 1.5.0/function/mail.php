@@ -1,5 +1,29 @@
 <?php
 
+    $MAIL_SERVICE = [
+        'phpmailer' => [
+            'name' => 'PHPMailer',
+            'text' => 'PHPMailer (SMTP)',
+            'icon' => 'bi bi-envelope',
+            'color' => 'info'
+        ],
+        'brevo' => [
+            'name' => 'Brevo',
+            'text' => 'Brevo API',
+            'icon' => 'bi bi-send',
+            'color' => 'primary'
+        ]
+    ];
+
+    function mailService($service = null)
+    {
+
+        global $MAIL_SERVICE;
+
+        return arrayDetails($MAIL_SERVICE, $service);
+
+    }
+
     function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic'){
 
         global $SOCIETY;
@@ -13,6 +37,10 @@
         $BODY_TEXT = htmlToText($BODY_RAW);
         $MAIL_SENT = false;
         $MAIL_ERROR = '';
+        $mailService = $CREDENTIALS->service;
+
+        // TODO: quando sarà integrato Brevo, aggiungere qui il ramo dedicato.
+        $MAIL_SERVICE_SENT = ($mailService === 'brevo') ? 'phpmailer' : $mailService;
 
         try {
 
@@ -72,7 +100,7 @@
         } catch (PHPMailer\PHPMailer\Exception $e) {
 
             $MAIL_ERROR = $e->getMessage();
-            __log($e, '[php_mailer]', '[sendMail]');
+            __log($e, '['.$MAIL_SERVICE_SENT.']', '[sendMail]');
 
         } finally {
 
@@ -89,6 +117,7 @@
                         'body_raw' => $BODY_RAW,
                         'body_text' => $BODY_RAW,
                         'attachments' => $attachments,
+                        'service' => $MAIL_SERVICE_SENT,
                         'status' => $MAIL_SENT ? 'sent' : 'failed',
                         'error_message' => $MAIL_ERROR,
                         'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),

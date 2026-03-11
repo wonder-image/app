@@ -102,17 +102,23 @@
 
                     <wi-card class="col-6">
                         <h6 class="col-12"> Server mail </h6>
+                        <div class="col-12">
+                            <?=select('Servizio', 'mail_service', mailService(), null, 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=password('Brevo API Key', 'brevo_api_key'); ?>
+                        </div>
                         <div class="col-8">
-                            <?=text('Host', 'mail_host', 'required'); ?>
+                            <?=text('Host', 'mail_host'); ?>
                         </div>
                         <div class="col-4">
-                            <?=text('Porta', 'mail_port', 'required'); ?>
+                            <?=text('Porta', 'mail_port'); ?>
                         </div>
                         <div class="col-12">
-                            <?=text('Username', 'mail_username', 'required'); ?>
+                            <?=text('Username', 'mail_username'); ?>
                         </div>
                         <div class="col-12">
-                            <?=password('Password', 'mail_password', 'required'); ?>
+                            <?=password('Password', 'mail_password'); ?>
                         </div>
                     </wi-card>
 

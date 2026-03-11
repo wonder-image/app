@@ -93,6 +93,8 @@
                 self::$MAIL->username = $row['mail_username'] ?? '';
                 self::$MAIL->password = $row['mail_password'] ?? '';
                 self::$MAIL->port = $row['mail_port'] ?? '';
+                self::$MAIL->service = $row['mail_service'] ?? 'phpmailer';
+                self::$MAIL->brevo_api_key = $row['brevo_api_key'] ?? '';
 
             }
             

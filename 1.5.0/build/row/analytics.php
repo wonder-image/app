@@ -16,7 +16,10 @@
 
     if (!sqlSelect('security', ['id' => 1], 1)->exists) {
 
-        $values = [ "api_key" => $API->key ];
+        $values = [
+            "api_key" => $API->key,
+            "mail_service" => "phpmailer"
+        ];
         sqlInsert('security', $values);
 
     }
@@ -43,6 +46,11 @@
 
                 }
                     
+            }
+
+            # Imposto default servizio mail se assente
+            if (empty(sqlSelect('security', ['id' => 1], 1)->row['mail_service'])) {
+                $VALUES["mail_service"] = "phpmailer";
             }
             
             # Aggiungo le chiavi di stripe se non ci sono
