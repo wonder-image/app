@@ -299,6 +299,16 @@
         "title": "Sesión caducada",
         "text": "Tu sesión ha caducado. Inicia sesión de nuevo para continuar."
     },
+    "918": {
+        "type": "danger",
+        "title": "Error 918",
+        "text": "Este enlace de verificación de correo electrónico no es válido o ya se ha utilizado.<br>Solicita uno nuevo."
+    },
+    "919": {
+        "type": "danger",
+        "title": "Error 919",
+        "text": "Este enlace de verificación de correo electrónico ha caducado.<br>Solicita uno nuevo."
+    },
     "920": {
         "type": "danger",
         "title": "Error 920",

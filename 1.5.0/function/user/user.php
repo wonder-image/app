@@ -63,7 +63,7 @@
     }
 
     // Prepara la configurazione specifica della verifica email.
-    function userPermissionEmailVerificationConfig($PERMISSION, array $rules): array
+    function userPermissionEmailVerificationConfig($PERMISSION, array $rules, string $flow = 'default'): array
     {
 
         global $PAGE;
@@ -72,8 +72,17 @@
         $emailRule = isset($rules['email']) && is_array($rules['email']) ? $rules['email'] : [];
         $links = is_object($PERMISSION) && isset($PERMISSION->links) && is_array($PERMISSION->links) ? $PERMISSION->links : [];
 
+        $flow = strtolower(trim($flow));
+        $flow = preg_replace('/[^a-z0-9_-]/', '', $flow) ?? '';
+        if ($flow === '') { $flow = 'default'; }
+
         $tokenLink = trim((string) (
-            $emailRule['token_link']
+            $emailRule["token_link_{$flow}"]
+            ?? $emailRule["verify_link_{$flow}"]
+            ?? $wildcardRule["token_link_{$flow}"]
+            ?? $wildcardRule["verify_link_{$flow}"]
+            ?? ($links["email-verification-{$flow}"] ?? '')
+            ?? $emailRule['token_link']
             ?? $emailRule['verify_link']
             ?? $wildcardRule['token_link']
             ?? $wildcardRule['verify_link']
@@ -81,7 +90,10 @@
         ));
 
         $sentLink = trim((string) (
-            $emailRule['sent_link']
+            $emailRule["sent_link_{$flow}"]
+            ?? $wildcardRule["sent_link_{$flow}"]
+            ?? ($links["email-verification-sent-{$flow}"] ?? '')
+            ?? $emailRule['sent_link']
             ?? $wildcardRule['sent_link']
             ?? ($links['email-verification-sent'] ?? '')
         ));
@@ -235,7 +247,7 @@
         // Calcola verifiche richieste (es. email) dalla permission.
         $VERIFICATION_RULES = userPermissionVerificationRules($PERMISSION);
         $REQUIRED_VERIFICATIONS = userPermissionRequiredVerifications($VERIFICATION_RULES);
-        $EMAIL_VERIFICATION = userPermissionEmailVerificationConfig($PERMISSION, $VERIFICATION_RULES);
+        $EMAIL_VERIFICATION = userPermissionEmailVerificationConfig($PERMISSION, $VERIFICATION_RULES, 'signup');
 
         $RETURN->verification_required = count($REQUIRED_VERIFICATIONS) >= 1;
         $RETURN->verification_checks = array_keys($REQUIRED_VERIFICATIONS);

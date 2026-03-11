@@ -22,7 +22,7 @@
     $PAGE_TABLE = $TABLE->LEGAL_DOCUMENTS;
 
     $TABLE_ACTION = [
-        'modify' => true
+        'duplicate' => true
     ];
 
     $TABLE_FIELD = [
@@ -41,39 +41,34 @@
         "checkbox_label" => [
             "label" => "Testo checkbox"
         ],
-        "is_active" => [
+        "active" => [
             "label" => "Attivo",
             "dimension" => "little",
             "function" => [
                 "name" => "active",
-                "parameter" => "is_active"
+                "return" => "automaticResize"
             ]
         ],
         "published_at" => [
             "label" => "Pubblicato",
             "format" => "datetime",
             "dimension" => "little"
-        ],
-        "content_hash" => [
-            "label" => "Hash",
-            "dimension" => "big",
-            "phone" => false
         ]
     ];
 
     $FILTER_SEARCH = [ 'doc_type', 'checkbox_label', 'version', 'language_code', 'content_hash' ];
 
     $FILTER_CUSTOM = [
-        "is_active" => [
+        "active" => [
             'database' => false,
-            'column' => 'is_active',
+            'column' => 'active',
             'name' => 'Stato',
             'search' => false,
             'type' => 'radio',
             'array' => [
                 '' => 'Tutti',
-                '1' => 'Attivi',
-                '0' => 'Non attivi'
+                'true' => 'Attivi',
+                'false' => 'Non attivi'
             ]
         ],
         "language_code" => [
@@ -85,4 +80,3 @@
             'array' => [ '' => 'Tutte', ...array_map(fn($lang) => $lang['name'], __ls()) ]
         ]
     ];
-

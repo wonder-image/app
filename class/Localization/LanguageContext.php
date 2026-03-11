@@ -51,7 +51,9 @@
 
             self::$lang = (!isset(self::$langs[$code])) ? self::$defaultLang : $code;
 
-            header('Content-Language: ' . self::$lang);
+            if (!headers_sent()) {
+                header('Content-Language: ' . self::$lang);
+            }
             
             TranslationProvider::init();
 

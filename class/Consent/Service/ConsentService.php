@@ -252,7 +252,7 @@
                 'source' => (string) ($context['source'] ?? ConsentDictionary::SOURCE_WEB),
                 'ui_surface' => (string) ($context['ui_surface'] ?? ''),
                 'evidence_json' => $context['evidence_json'] ?? null,
-                'created_at' => $occurredAt,
+                'creation' => $occurredAt,
             ]);
 
             $status = $statusOverride ?? ConsentDictionary::statusFromAction($action);

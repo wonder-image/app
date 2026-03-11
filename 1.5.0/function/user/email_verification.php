@@ -202,18 +202,23 @@
         global $mysqli;
 
         $token = trim($token);
+        $tokenType = trim((string) userEmailVerificationTokenType());
 
         if ($token === '') {
-            return userVerificationFailure('Token verifica utente mancante', 913);
+            return userVerificationFailure(918);
+        }
+
+        if ($tokenType === '') {
+            return userVerificationFailure(900);
         }
 
         $SQL = sqlSelect('consent_confirmation_tokens', [
             'token' => $token,
-            'token_type' => userEmailVerificationTokenType()
+            'token_type' => $tokenType
         ], 1);
 
         if (!$SQL->exists || !is_array($SQL->row)) {
-            return userVerificationFailure('Token verifica utente non trovato', 913);
+            return userVerificationFailure(918);
         }
 
         $row = $SQL->row;
@@ -222,19 +227,19 @@
         $expiresAt = (string) ($row['expires_at'] ?? '');
 
         if (!empty($row['revoked_at'])) {
-            return userVerificationFailure('Token verifica utente revocato', 913);
+            return userVerificationFailure(918);
         }
 
         if (!empty($row['confirmed_at'])) {
-            return userVerificationFailure('Token verifica utente già utilizzato', 913);
+            return userVerificationFailure(918);
         }
 
         if ($expiresAt === '' || strtotime($expiresAt) < time()) {
-            return userVerificationFailure('Token verifica utente scaduto', 914);
+            return userVerificationFailure(919);
         }
 
         if ($userId <= 0 || $tokenId <= 0) {
-            return userVerificationFailure('Token verifica utente non valido', 913);
+            return userVerificationFailure(918);
         }
 
         $now = date('Y-m-d H:i:s');
@@ -257,7 +262,7 @@
                 $sql = "UPDATE `consent_confirmation_tokens` ";
                 $sql .= "SET `confirmed_at` = '{$escapedNow}' ";
                 $sql .= "WHERE `id` = {$tokenId} ";
-                $sql .= "AND `token_type` = '".$mysqli->real_escape_string(userEmailVerificationTokenType())."' ";
+                $sql .= "AND `token_type` = '".$mysqli->real_escape_string($tokenType)."' ";
                 $sql .= "AND `confirmed_at` IS NULL AND `revoked_at` IS NULL";
 
                 if (!$mysqli->query($sql) || $mysqli->affected_rows !== 1) {
@@ -288,7 +293,7 @@
                 $mysqli->rollback();
             }
 
-            return userVerificationFailure('Errore conferma verifica utente: '.$exception->getMessage(), 900);
+            return userVerificationFailure(900);
 
         }
 
@@ -483,9 +488,9 @@
     }
 
     /**
-     * Crea risposta errore e valorizza $ALERT.
+     * Crea risposta errore guidata dal codice alert e valorizza $ALERT.
      */
-    function userVerificationFailure(string $message, int $alertCode = 900): object
+    function userVerificationFailure(int $alertCode = 900): object
     {
 
         global $ALERT;
@@ -494,7 +499,7 @@
 
         return (object) [
             'success' => false,
-            'message' => $message,
+            'message' => '',
             'alert' => $alertCode,
         ];
 

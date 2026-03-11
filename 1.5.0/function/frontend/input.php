@@ -1080,7 +1080,7 @@
             [
                 'doc_type' => $docType,
                 'language_code' => __l(),
-                'is_active' => 1
+                'active' => 'true'
             ],
             1,
             'published_at DESC, id',

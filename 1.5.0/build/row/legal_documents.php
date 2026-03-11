@@ -15,31 +15,29 @@
 
         \Wonder\Localization\LanguageContext::setLang($languageCode);
 
-        foreach ($docTypes as $docType) {
+        foreach ($docTypes as $docTypeCode => $docTypeLabel) {
 
-            $labelKey = 'components.forms.fields.'.$docType.'.label';
-            $contentKey = 'legal.'.$docType.'.content';
+            $labelKey = 'components.forms.fields.'.$docTypeCode.'.label';
+            $contentKey = 'legal.'.$docTypeCode.'.content';
             $checkboxLabel = '';
             $content = null;
 
             $label = __t($labelKey);
-            $content = __t($contentKey);
+            $content = contentsToEditorBlocks(__t($contentKey));
+            $contentJSON = json_encode($content);
 
-            $exists = sqlSelect( 'legal_documents', [ 'doc_type' => $docType, 'version' => $legalVersion, 'language_code' => $languageCode ], 1 )->exists;
+            $exists = sqlSelect( 'legal_documents', [ 'doc_type' => $docTypeCode, 'version' => $legalVersion, 'language_code' => $languageCode ], 1 )->exists;
 
-            if ($exists) { return; }
+            if ($exists) { continue; }
 
             $VALUES = Wonder\App\Table::key('legal_documents')->prepare([
-                'doc_type' => $docType,
+                'doc_type' => $docTypeCode,
                 'version' => $legalVersion,
                 'language_code' => $languageCode,
                 'checkbox_label' => $label,
-                'content_hash' => hash('sha256', $content),
-                'content_snapshot' => contentsToEditorBlocks($content),
+                'content_hash' => hash('sha256', $contentJSON),
+                'content_snapshot' => $content,
                 'published_at' => $publishedAt,
-                'is_active' => 1,
-                'created_at' => $publishedAt,
-                'updated_at' => $publishedAt,
             ]);
 
             sqlInsert('legal_documents', $VALUES);

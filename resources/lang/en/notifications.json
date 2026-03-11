@@ -299,6 +299,16 @@
         "title": "Session expired",
         "text": "Your session has expired. Please sign in again to continue."
     },
+    "918": {
+        "type": "danger",
+        "title": "Error 918",
+        "text": "This email verification link is invalid or has already been used.<br>Request a new one!"
+    },
+    "919": {
+        "type": "danger",
+        "title": "Error 919",
+        "text": "This email verification link has expired.<br>Request a new one!"
+    },
     "920": {
         "type": "danger",
         "title": "Error 920",

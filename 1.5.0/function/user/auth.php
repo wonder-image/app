@@ -32,7 +32,7 @@
             $required = userPermissionRequiredVerifications($rules);
 
             if (isset($required['email'])) {
-                $config = userPermissionEmailVerificationConfig($permission, $rules);
+                $config = userPermissionEmailVerificationConfig($permission, $rules, 'login');
                 $config['required'] = true;
                 $config['authority'] = $authority;
                 return $config;

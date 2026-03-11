@@ -27,7 +27,7 @@
                 [
                     'doc_type' => $docType,
                     'language_code' => $languageCode,
-                    'is_active' => 1
+                    'active' => 'true'
                 ],
                 1,
                 'published_at DESC, id',

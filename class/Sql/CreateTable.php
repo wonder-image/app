@@ -169,7 +169,7 @@
          * Estrae opzioni tabella da chiave speciale "__table".
          *
          * @param array<string, mixed> $columns
-         * @return array{auto_id: bool, audit_columns: bool}
+         * @return array{auto_id: bool, audit_columns: bool, audit_auto_columns: bool}
          */
         private function extractTableOptions(array &$columns): array
         {
@@ -177,6 +177,7 @@
             $tableOptions = [
                 'auto_id' => true,
                 'audit_columns' => true,
+                'audit_auto_columns' => true,
             ];
 
             if (isset($columns['__table']) && is_array($columns['__table'])) {
@@ -189,6 +190,10 @@
 
                 if (isset($config['audit_columns'])) {
                     $tableOptions['audit_columns'] = (bool) $config['audit_columns'];
+                }
+
+                if (isset($config['audit_auto_columns'])) {
+                    $tableOptions['audit_auto_columns'] = (bool) $config['audit_auto_columns'];
                 }
 
                 unset($columns['__table']);
@@ -586,7 +591,7 @@
 
             $afterColumns = [];
 
-            if ($tableOptions['audit_columns']) {
+            if ($tableOptions['audit_columns'] && $tableOptions['audit_auto_columns']) {
 
                 $afterColumns = [
                     'deleted'=> [

@@ -299,6 +299,16 @@
         "title": "Sitzung abgelaufen",
         "text": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an, um fortzufahren."
     },
+    "918": {
+        "type": "danger",
+        "title": "Fehler 918",
+        "text": "Dieser E-Mail-Bestätigungslink ist ungültig oder wurde bereits verwendet.<br>Fordere einen neuen an!"
+    },
+    "919": {
+        "type": "danger",
+        "title": "Fehler 919",
+        "text": "Dieser E-Mail-Bestätigungslink ist abgelaufen.<br>Fordere einen neuen an!"
+    },
     "920": {
         "type": "danger",
         "title": "Fehler 920",

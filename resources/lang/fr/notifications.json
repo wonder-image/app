@@ -299,6 +299,16 @@
         "title": "Session expirée",
         "text": "Votre session a expiré. Veuillez vous reconnecter pour continuer."
     },
+    "918": {
+        "type": "danger",
+        "title": "Erreur 918",
+        "text": "Ce lien de vérification d'e-mail est invalide ou a déjà été utilisé.<br>Demandez-en un nouveau !"
+    },
+    "919": {
+        "type": "danger",
+        "title": "Erreur 919",
+        "text": "Ce lien de vérification d'e-mail a expiré.<br>Demandez-en un nouveau !"
+    },
     "920": {
         "type": "danger",
         "title": "Erreur 920",

@@ -41,10 +41,10 @@
 
             <wi-card class="col-9">
                 <div class="col-4">
-                    <?=select('Tipologia documento', 'doc_type', legalDocumentTypes(), 'old', 'required'); ?>
+                    <?=select('Tipologia documento', 'doc_type', legalDocumentTypes(), null, 'required'); ?>
                 </div>
                 <div class="col-4">
-                    <?=select('Lingua', 'language_code', array_map(fn($lang) => $lang['name'], __ls()), 'old', 'required'); ?>
+                    <?=select('Lingua', 'language_code', array_map(fn($lang) => $lang['name'], __ls()), null, 'required'); ?>
                 </div>
                 <div class="col-4">
                     <?=text('Versione', 'version', 'required'); ?>
@@ -61,7 +61,7 @@
                     ?>
                 </div>
                 <div class="col-12">
-                    <?=text('Testo checkbox', 'checkbox_label', 'required'); ?>
+                    <?=textarea('Testo checkbox', 'checkbox_label', 'required', 'base'); ?>
                 </div>
                 <div class="col-12">
                     <?=textarea('Testo', 'content_snapshot', 'required', 'blog'); ?>
@@ -70,7 +70,7 @@
 
             <wi-card class="col-3">
                 <div class="col-12">
-                    <?=select('Stato', 'is_active', [ '1' => 'Attivo', '0' => 'Non attivo' ], 'old', 'required'); ?>
+                    <?=select('Stato', 'active', [ 'true' => 'Attivo', 'false' => 'Non attivo' ], 'old', 'required'); ?>
                 </div>
                 <div class="col-12">
                     <?=submitAdd()?>

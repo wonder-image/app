@@ -60,16 +60,21 @@
 
                 <wi-card class="col-6">
                     <h6 class="col-12"> Messaggio </h6>
-                    <?= wiCard($MAIL->body_text) ?>
+                    <div class="col-12">
+                        <?= wiCard($MAIL->body_text) ?>
+                    </div>
                     <h6 class="col-12"> Allegati </h6>
-                    <?= wiCard($MAIL->attachments) ?>
+                    <div class="col-12">
+                        <?= wiCard($MAIL->attachments) ?>
+                    </div>
                 </wi-card>
 
                 <wi-card class="col-6">
                     <h6 class="col-12"> Errori </h6>
-                    <?= wiCard($MAIL->error_message) ?>
+                    <div class="col-12">
+                        <?= wiCard($MAIL->error_message) ?>
+                    </div>
                 </wi-card>
-
 
             </div>
         </div>
@@ -79,7 +84,7 @@
 
                 <wi-card class="col-12">
                     <h6 class="col-12 mb-2"> Altro </h6>
-                    <div class="col-6">
+                    <div class="col-12">
                         Servizio: <b><?=mailService($MAIL->service)->text?></b> <br>
                         IP: <b><?=$MAIL->ip?></b> <br>
                         Browser: <b><?=$MAIL->user_agent?></b> <br>

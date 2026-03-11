@@ -141,8 +141,8 @@ if ($result->success) {
 
 ### Alert gestiti da `confirmUserVerificationToken`
 
-- `913`: token mancante/non valido/non trovato/revocato/già usato
-- `914`: token scaduto
+- `918`: token mancante/non valido/non trovato/revocato/già usato
+- `919`: token scaduto
 - `900`: errore generico backend
 
 ### Lingua email verifica

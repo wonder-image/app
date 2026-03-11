@@ -10,6 +10,7 @@
     $TEXT->empty = 'non usato'; // $TEXT->titleS $TEXT->empty
     $TEXT->this = 'questo'; // Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS
 
+    $NAME = (object) [];
     $NAME->table = "mail_log";
     $NAME->folder = "email";
 

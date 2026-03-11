@@ -157,7 +157,7 @@
                 [
                     'title' => 'Accessi Utente',
                     'folder' => 'app/log/auth-users',
-                    'file' => '',
+                    'file' => 'list.php',
                     'authority' => [ 'admin', 'administrator' ]
                 ], [
                     'title' => 'Email',
@@ -166,7 +166,7 @@
                     'authority' => [ 'admin', 'administrator' ]
                 ], [
                     'title' => 'Consensi',
-                    'folder' => 'app/logs/consent',
+                    'folder' => 'app/log/consent',
                     'file' => 'list.php',
                     'authority' => [ 'admin', 'administrator' ]
                 ]

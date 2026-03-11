@@ -57,31 +57,16 @@
                 'null' => false
             ]
         ],
-        'is_active' => [
+        'active' => [
             'sql' => [
-                'type' => 'BOOLEAN',
+                'length' => 5,
                 'null' => false,
-                'default' => '1'
-            ]
-        ],
-        'created_at' => [
-            'sql' => [
-                'type' => 'DATETIME',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP'
-            ]
-        ],
-        'updated_at' => [
-            'sql' => [
-                'type' => 'DATETIME',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
-                'on_update' => 'CURRENT_TIMESTAMP'
+                'default' => 'true'
             ]
         ],
         'idx_doc_type_lang_active' => [
             'sql' => [
-                'index' => [ 'doc_type', 'language_code', 'is_active' ]
+                'index' => [ 'doc_type', 'language_code', 'active' ]
             ]
         ],
         'uq_doc_type_version_language' => [
@@ -97,7 +82,8 @@
     $TABLE->CONSENT_EVENTS = [
         '__table' => [
             'sql' => [
-                'audit_columns' => false
+                'audit_columns' => true,
+                'audit_auto_columns' => false
             ]
         ],
         'user_id' => [
@@ -177,11 +163,10 @@
                 ]
             ]
         ],
-        'created_at' => [
+        'creation' => [
             'sql' => [
                 'type' => 'DATETIME',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP'
+                'null' => false
             ]
         ],
         'idx_user_consent_type_time' => [

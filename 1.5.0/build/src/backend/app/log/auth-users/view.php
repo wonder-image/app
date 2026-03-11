@@ -65,10 +65,10 @@
             <div class="row g-3">
 
                 <wi-card class="col-12">
-                    <h6 class="col-12">
-                        Metadati
-                    </h6>
-                    <?= wiCard($LOG->meta) ?>
+                    <h6 class="col-12"> Metadati </h6>
+                    <div class="col-12">
+                        <?= wiCard($LOG->meta) ?>
+                    </div>
                 </wi-card>
 
             </div>

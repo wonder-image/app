@@ -53,7 +53,7 @@
                 'source' => $source,
                 'ui_surface' => (string) ($payload['ui_surface'] ?? ''),
                 'evidence_json' => $evidence,
-                'created_at' => (string) ($payload['created_at'] ?? $this->now()),
+                'creation' => (string) ($payload['creation'] ?? $payload['created_at'] ?? $this->now()),
             ];
 
             $insert = $this->query->Insert('consent_events', $values);
@@ -148,7 +148,7 @@
             $limit = max(1, min(1000, $limit));
 
             $sql = "SELECT ";
-            $sql .= "ce.id, ce.user_id, ce.consent_type, ce.action, ce.occurred_at, ce.ip_address, ce.user_agent, ce.locale, ce.source, ce.ui_surface, ce.evidence_json, ce.created_at, ";
+            $sql .= "ce.id, ce.user_id, ce.consent_type, ce.action, ce.occurred_at, ce.ip_address, ce.user_agent, ce.locale, ce.source, ce.ui_surface, ce.evidence_json, ce.creation, ";
             $sql .= "ld.id AS document_id, ld.doc_type AS document_type, ld.version AS document_version, ld.language_code AS document_language_code, ld.content_hash AS document_content_hash ";
             $sql .= "FROM `consent_events` ce ";
             $sql .= "LEFT JOIN `legal_documents` ld ON ld.id = ce.legal_document_id ";

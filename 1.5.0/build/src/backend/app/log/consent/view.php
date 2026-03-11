@@ -70,7 +70,9 @@
 
                 <wi-card class="col-12">
                     <h6 class="col-12"> Prova </h6>
-                    <?= wiCard($EVENT->evidence_json) ?>
+                    <div class="col-12">
+                        <?= wiCard($EVENT->evidence_json) ?>
+                    </div>
                 </wi-card>
 
             </div>
@@ -85,7 +87,7 @@
                         Stato: <b><?=$EVENT->locale?></b> <br>
                         IP: <b><?=$EVENT->ip_address?></b> <br>
                         Browser: <b><?=$EVENT->user_agent?></b> <br>
-                        Creazione: <b><?=$EVENT->created_at?></b>
+                        Creazione: <b><?=$EVENT->creation?></b>
                     </div>
                 </wi-card>
 
