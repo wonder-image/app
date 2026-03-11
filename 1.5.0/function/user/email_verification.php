@@ -38,7 +38,7 @@
         $userId = (int) $userId;
 
         if ($userId <= 0) {
-            return (object) [ 'success' => false, 'message' => 'user_id non valido' ];
+            return userVerificationFailure(900);
         }
 
         $verifiedAt = $verifiedAt ?: date('Y-m-d H:i:s');
@@ -48,8 +48,14 @@
             'email_verified_at' => $verifiedAt,
         ], 'id', $userId);
 
+        if (!($update->success ?? false)) {
+            return userVerificationFailure(900, [
+                'query' => $update->query ?? '',
+            ]);
+        }
+
         return (object) [
-            'success' => (bool) ($update->success ?? false),
+            'success' => true,
             'verified_at' => $verifiedAt,
             'query' => $update->query ?? '',
         ];
@@ -65,7 +71,7 @@
         $userId = (int) $userId;
 
         if ($userId <= 0) {
-            return (object) [ 'success' => false, 'message' => 'user_id non valido' ];
+            return userVerificationFailure(900);
         }
 
         $update = sqlModify('user', [
@@ -73,8 +79,14 @@
             'email_verified_at' => null,
         ], 'id', $userId);
 
+        if (!($update->success ?? false)) {
+            return userVerificationFailure(900, [
+                'query' => $update->query ?? '',
+            ]);
+        }
+
         return (object) [
-            'success' => (bool) ($update->success ?? false),
+            'success' => true,
             'query' => $update->query ?? '',
         ];
 
@@ -86,11 +98,20 @@
     function prepareUserEmailVerificationEmail(
         int $userId,
         string $verifyBaseUrl,
-        ?string $continueRegistrationUrl = null,
-        int $ttlHours = 24
+        int $ttlHours = 24,
+        ?array $metadata = null
     ): object {
 
-        $tokenPayload = generateUserVerificationToken($userId, $continueRegistrationUrl, $ttlHours);
+        $verifyBaseUrl = trim($verifyBaseUrl);
+        if ($verifyBaseUrl === '') {
+            return userVerificationFailure(900);
+        }
+
+        $tokenPayload = generateUserVerificationToken($userId, $ttlHours, $metadata);
+
+        if (($tokenPayload->already_verified ?? false) === true) {
+            return $tokenPayload;
+        }
 
         if (!($tokenPayload->success ?? false)) {
             return $tokenPayload;
@@ -106,8 +127,7 @@
 
         $message = buildUserEmailVerificationMessage(
             $verificationUrl,
-            (string) $tokenPayload->expires_at,
-            isset($tokenPayload->continue_registration_url) ? (string) $tokenPayload->continue_registration_url : null
+            (string) $tokenPayload->expires_at
         );
 
         $tokenPayload->verification_url = $verificationUrl;
@@ -124,35 +144,38 @@
      */
     function generateUserVerificationToken(
         int $userId,
-        ?string $continueRegistrationUrl = null,
-        int $ttlHours = 24
+        int $ttlHours = 24,
+        ?array $metadata = null
     ): object {
 
         $userId = (int) $userId;
 
         if ($userId <= 0) {
-            return (object) [ 'success' => false, 'message' => 'user_id non valido' ];
+            return userVerificationFailure(900);
         }
 
-        if ($ttlHours <= 0) {
-            $ttlHours = 24;
-        }
-
-        if ($ttlHours > 720) {
-            $ttlHours = 720;
-        }
+        $ttlHours = max(1, min(720, $ttlHours > 0 ? $ttlHours : 24));
 
         $userSql = sqlSelect('user', [ 'id' => $userId ], 1);
         if (!$userSql->exists) {
-            return (object) [ 'success' => false, 'message' => "Utente non trovato: {$userId}" ];
+            return userVerificationFailure(900);
         }
 
         if (isUserEmailVerified($userId)) {
-            return (object) [ 'success' => false, 'message' => 'Email già verificata' ];
+            return (object) [
+                'success' => true,
+                'already_verified' => true,
+                'user_id' => $userId,
+                'user_email' => (string) ($userSql->row['email'] ?? ''),
+            ];
         }
 
         $languageCode = userEmailVerificationNormalizeLanguageCode();
-        $continueRegistrationUrl = userEmailVerificationNormalizeContinueUrl($continueRegistrationUrl);
+        $metadata = userEmailVerificationNormalizeMetadata($metadata);
+        $metadataJson = json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (!is_string($metadataJson)) {
+            return userVerificationFailure(900);
+        }
 
         $now = date('Y-m-d H:i:s');
         $expiresAt = date('Y-m-d H:i:s', strtotime($now.' +'.$ttlHours.' hours'));
@@ -166,17 +189,15 @@
             'user_id' => $userId,
             'token' => $token,
             'language_code' => $languageCode,
-            'continue_url' => $continueRegistrationUrl,
+            'metadata_json' => $metadataJson,
             'expires_at' => $expiresAt,
             'created_at' => $now,
         ]);
 
         if (!($insert->success ?? false)) {
-            return (object) [
-                'success' => false,
-                'message' => 'Errore inserimento token verifica utente',
+            return userVerificationFailure(900, [
                 'query' => $insert->query ?? '',
-            ];
+            ]);
         }
 
         return (object) [
@@ -184,7 +205,7 @@
             'user_id' => $userId,
             'token_id' => (int) ($insert->insert_id ?? 0),
             'token' => $token,
-            'continue_registration_url' => $continueRegistrationUrl,
+            'metadata' => $metadata,
             'language_code' => $languageCode,
             'expires_at' => $expiresAt,
             'user_email' => (string) ($userSql->row['email'] ?? ''),
@@ -196,7 +217,7 @@
      * Conferma token verifica utente e marca utente come verificato.
      * In caso di errore valorizza sempre anche $ALERT.
      */
-    function confirmUserVerificationToken(string $token, ?string $fallbackContinueUrl = null): object
+    function confirmUserVerificationToken(string $token): object
     {
 
         global $mysqli;
@@ -243,9 +264,15 @@
         }
 
         $now = date('Y-m-d H:i:s');
-        $continueUrl = (string) ($row['continue_url'] ?? '');
-        if ($continueUrl === '') {
-            $continueUrl = userEmailVerificationNormalizeContinueUrl($fallbackContinueUrl) ?? '';
+        $metadata = userEmailVerificationDecodeMetadata($row['metadata_json'] ?? null);
+        $flow = (string) $metadata['flow'];
+        $redirectBase64 = (string) ($metadata['redirect_base64'] ?? '');
+        $redirectUrl = '';
+        if ($redirectBase64 !== '') {
+            $decodedRedirect = base64_decode($redirectBase64, true);
+            if (is_string($decodedRedirect)) {
+                $redirectUrl = trim(str_replace([ "\r", "\n" ], '', $decodedRedirect));
+            }
         }
 
         $hasTransaction = ($mysqli instanceof \mysqli);
@@ -302,7 +329,10 @@
             'user_id' => $userId,
             'token_id' => $tokenId,
             'verified_at' => $now,
-            'continue_registration_url' => $continueUrl,
+            'flow' => $flow,
+            'redirect_base64' => $redirectBase64,
+            'redirect_url' => $redirectUrl,
+            'metadata' => $metadata,
         ];
 
     }
@@ -312,12 +342,10 @@
      */
     function buildUserEmailVerificationMessage(
         string $verificationUrl,
-        ?string $expiresAt = null,
-        ?string $continueRegistrationUrl = null
+        ?string $expiresAt = null
     ): array {
 
         $verificationUrl = trim($verificationUrl);
-        $continueRegistrationUrl = userEmailVerificationNormalizeContinueUrl($continueRegistrationUrl);
         $expiresLine = '';
 
         if (!empty($expiresAt)) {
@@ -329,7 +357,6 @@
         $button = (string) __t('emails.email_verification.button');
 
         $safeVerificationUrl = htmlspecialchars($verificationUrl, ENT_QUOTES, 'UTF-8');
-        $safeContinueUrl = htmlspecialchars((string) $continueRegistrationUrl, ENT_QUOTES, 'UTF-8');
         $safeButtonLabel = htmlspecialchars($button, ENT_QUOTES, 'UTF-8');
         $safeSubject = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
         $safeBodyText = htmlspecialchars($bodyText, ENT_QUOTES, 'UTF-8');
@@ -337,20 +364,12 @@
         $text = $bodyText."\n\n";
         $text .= $button.": ".$verificationUrl."\n";
 
-        if (!empty($continueRegistrationUrl)) {
-            $text .= "\n".$continueRegistrationUrl."\n";
-        }
-
         if ($expiresLine !== '') {
             $text .= "\n".$expiresLine."\n";
         }
 
         $html = "<p>{$safeBodyText}</p>";
         $html .= "<p><a href=\"{$safeVerificationUrl}\" target=\"_blank\" rel=\"noopener noreferrer\">{$safeButtonLabel}</a></p>";
-
-        if (!empty($continueRegistrationUrl)) {
-            $html .= "<p><a href=\"{$safeContinueUrl}\" target=\"_blank\" rel=\"noopener noreferrer\">{$safeContinueUrl}</a></p>";
-        }
 
         if ($expiresLine !== '') {
             $safeExpiresLine = htmlspecialchars($expiresLine, ENT_QUOTES, 'UTF-8');
@@ -371,12 +390,7 @@
     function userEmailVerificationNormalizeLanguageCode(): string
     {
 
-        $lang = 'it';
-
-        if (class_exists('Wonder\\Localization\\LanguageContext')) {
-            $lang = (string) Wonder\Localization\LanguageContext::getLang();
-        }
-
+        $lang = (string) __l();
         if ($lang === '') {
             $lang = 'it';
         }
@@ -400,24 +414,85 @@
     }
 
     /**
-     * Normalizza URL di prosecuzione registrazione.
+     * Normalizza il flow applicativo (es: login, signup).
      */
-    function userEmailVerificationNormalizeContinueUrl(?string $continueUrl): ?string
+    function userEmailVerificationNormalizeFlow(string $flow): string
     {
 
-        if ($continueUrl === null) {
-            return null;
+        $flow = strtolower(trim($flow));
+        $flow = preg_replace('/[^a-z0-9_-]/', '', $flow) ?? '';
+
+        return $flow !== '' ? $flow : 'default';
+
+    }
+
+    /**
+     * Normalizza il redirect in base64.
+     */
+    function userEmailVerificationNormalizeRedirectBase64(?string $redirectBase64): string
+    {
+
+        if ($redirectBase64 === null) {
+            return '';
         }
 
-        $continueUrl = trim($continueUrl);
+        $redirectBase64 = trim($redirectBase64);
 
-        if ($continueUrl === '') {
-            return null;
+        if ($redirectBase64 === '') {
+            return '';
         }
 
-        $continueUrl = str_replace([ "\r", "\n" ], '', $continueUrl);
+        return str_replace([ "\r", "\n" ], '', $redirectBase64);
 
-        return $continueUrl;
+    }
+
+    /**
+     * Normalizza metadata da salvare nel token.
+     *
+     * @return array<string, mixed>
+     */
+    function userEmailVerificationNormalizeMetadata(?array $metadata): array
+    {
+
+        $metadata = is_array($metadata) ? $metadata : [];
+        $flow = userEmailVerificationNormalizeFlow((string) ($metadata['flow'] ?? 'default'));
+        $redirectBase64 = userEmailVerificationNormalizeRedirectBase64((string) ($metadata['redirect_base64'] ?? ''));
+
+        $normalized = [ 'flow' => $flow ];
+
+        if ($redirectBase64 !== '') {
+            $normalized['redirect_base64'] = $redirectBase64;
+        }
+
+        return $normalized;
+
+    }
+
+    /**
+     * Decodifica metadata token da JSON.
+     *
+     * @return array<string, mixed>
+     */
+    function userEmailVerificationDecodeMetadata(?string $rawMetadata): array
+    {
+
+        if ($rawMetadata === null) {
+            return [ 'flow' => 'default' ];
+        }
+
+        $rawMetadata = trim($rawMetadata);
+
+        if ($rawMetadata === '') {
+            return [ 'flow' => 'default' ];
+        }
+
+        $decoded = json_decode($rawMetadata, true);
+
+        if (!is_array($decoded)) {
+            return [ 'flow' => 'default' ];
+        }
+
+        return userEmailVerificationNormalizeMetadata($decoded);
 
     }
 
@@ -445,11 +520,7 @@
     function userEmailVerificationGenerateToken(): string
     {
 
-        if (function_exists('random_bytes')) {
-            return bin2hex(random_bytes(32));
-        }
-
-        return hash('sha256', uniqid((string) mt_rand(), true));
+        return bin2hex(random_bytes(32));
 
     }
 
@@ -490,17 +561,27 @@
     /**
      * Crea risposta errore guidata dal codice alert e valorizza $ALERT.
      */
-    function userVerificationFailure(int $alertCode = 900): object
+    function userVerificationFailure(int $alertCode = 900, array $extra = []): object
     {
 
         global $ALERT;
 
         $ALERT = $alertCode;
 
-        return (object) [
+        $response = [
             'success' => false,
-            'message' => '',
+            'message' => (string) __t("notifications.{$alertCode}.text"),
             'alert' => $alertCode,
         ];
+
+        foreach ($extra as $key => $value) {
+            if (!is_string($key) || $key === '' || $key === 'success' || $key === 'alert') {
+                continue;
+            }
+
+            $response[$key] = $value;
+        }
+
+        return (object) $response;
 
     }
