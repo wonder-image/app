@@ -22,27 +22,27 @@
             'subnavs' => [
                 [
                     'title' => 'Logo',
-                    'folder' => 'media/logos',
+                    'folder' => 'app/media/logos',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Immagini',
-                    'folder' => 'media/images',
+                    'folder' => 'app/media/images',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Icone',
-                    'folder' => 'media/icons',
+                    'folder' => 'app/media/icons',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Documenti',
-                    'folder' => 'media/documents',
+                    'folder' => 'app/media/documents',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Upload di massa',
-                    'folder' => 'media/upload-massive',
+                    'folder' => 'app/media/upload-massive',
                     'file' => '',
                     'authority' => ['admin']
                 ]
@@ -55,52 +55,52 @@
             'subnavs' => [
                 [
                     'title' => 'Dati aziendali',
-                    'folder' => 'config-app/corporate-data',
+                    'folder' => 'app/config/corporate-data',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Seo',
-                    'folder' => 'config-app/seo',
+                    'folder' => 'app/config/seo',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Documenti legali',
-                    'folder' => 'config-app/legal-documents',
+                    'folder' => 'app/config/legal-documents',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Utenti',
-                    'folder' => 'config-app/user',
+                    'folder' => 'app/config/user',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Utenti API',
-                    'folder' => 'config-app/api-users',
+                    'folder' => 'app/config/api-users',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Analitica',
-                    'folder' => 'config-app/analytics',
+                    'folder' => 'app/config/analytics',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Credenziali',
-                    'folder' => 'config-app/credentials',
+                    'folder' => 'app/config/credentials',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Editor',
-                    'folder' => 'config-app/configuration-file',
+                    'folder' => 'app/config/configuration-file',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Errori SQL',
-                    'folder' => 'config-app/sql-error',
+                    'folder' => 'app/config/sql-error',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Download',
-                    'folder' => 'config-app/sql-download',
+                    'folder' => 'app/config/sql-download',
                     'file' => '',
                     'authority' => ['admin']
                 ]
@@ -113,37 +113,37 @@
             'subnavs' => [
                 [
                     'title' => 'Default',
-                    'folder' => 'config-css/default',
+                    'folder' => 'app/css/default',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Font',
-                    'folder' => 'config-css/font',
+                    'folder' => 'app/css/font',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Colori',
-                    'folder' => 'config-css/color',
+                    'folder' => 'app/css/color',
                     'file' => 'list.php',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Input',
-                    'folder' => 'config-css/input',
+                    'folder' => 'app/css/input',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Modal',
-                    'folder' => 'config-css/modal',
+                    'folder' => 'app/css/modal',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Dropdown',
-                    'folder' => 'config-css/dropdown',
+                    'folder' => 'app/css/dropdown',
                     'file' => '',
                     'authority' => ['admin']
                 ], [
                     'title' => 'Alert',
-                    'folder' => 'config-css/alert',
+                    'folder' => 'app/css/alert',
                     'file' => '',
                     'authority' => ['admin']
                 ]
