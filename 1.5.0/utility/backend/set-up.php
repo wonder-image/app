@@ -148,7 +148,30 @@
                     'authority' => ['admin']
                 ]
             ]
-        ]
+        ], [
+            'title' => 'Log',
+            'folder' => 'log',
+            'icon' => 'bi-ear',
+            'authority' => [ 'admin', 'administrator' ],
+            'subnavs' => [
+                [
+                    'title' => 'Accessi Utente',
+                    'folder' => 'app/log/auth-users',
+                    'file' => '',
+                    'authority' => [ 'admin', 'administrator' ]
+                ], [
+                    'title' => 'Email',
+                    'folder' => 'app/log/email',
+                    'file' => 'list.php',
+                    'authority' => [ 'admin', 'administrator' ]
+                ], [
+                    'title' => 'Consensi',
+                    'folder' => 'app/logs/consent',
+                    'file' => 'list.php',
+                    'authority' => [ 'admin', 'administrator' ]
+                ]
+            ]
+        ], 
     ];
 
     # Dipendenze
