@@ -11,5 +11,6 @@ Questa sezione raccoglie i flussi utente legati a:
 
 Sottopagine:
 
+- [Permessi client e verifica email](permessi-client-e-verifica-email.md)
 - [Verifica email](verifica-email.md)
 - [Registrazione consensi](registrazione-consensi.md)

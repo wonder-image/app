@@ -5,6 +5,7 @@
   * [Api](app-1.5.0/api.md)
   * [Cron Job](app-1.5.0/cron-job.md)
   * [Utente](app-1.5.0/utente/README.md)
+    * [Permessi client e verifica email](app-1.5.0/utente/permessi-client-e-verifica-email.md)
     * [Verifica email](app-1.5.0/utente/verifica-email.md)
     * [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
 
