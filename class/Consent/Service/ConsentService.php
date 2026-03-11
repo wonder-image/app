@@ -8,7 +8,6 @@
     use Wonder\Consent\ConsentException;
     use Wonder\Consent\Repository\ConsentEventRepository;
     use Wonder\Consent\Repository\LegalDocumentRepository;
-    use Wonder\Consent\Repository\MarketingOptInTokenRepository;
     use Wonder\Consent\Repository\UserConsentStateRepository;
     use Wonder\Sql\Query;
 
@@ -21,7 +20,6 @@
         private LegalDocumentRepository $legalDocumentRepository;
         private ConsentEventRepository $consentEventRepository;
         private UserConsentStateRepository $userConsentStateRepository;
-        private MarketingOptInTokenRepository $marketingOptInTokenRepository;
 
         public function __construct(?mysqli $mysqli = null)
         {
@@ -32,7 +30,6 @@
             $this->legalDocumentRepository = new LegalDocumentRepository($this->mysqli);
             $this->consentEventRepository = new ConsentEventRepository($this->mysqli);
             $this->userConsentStateRepository = new UserConsentStateRepository($this->mysqli);
-            $this->marketingOptInTokenRepository = new MarketingOptInTokenRepository($this->mysqli);
 
         }
 
@@ -52,105 +49,63 @@
                 throw new ConsentException('user_id non valido');
             }
 
-            $acceptTerms = $this->toBool($input['accept_terms'] ?? false);
-            $ackPrivacy = $this->toBool($input['ack_privacy'] ?? false);
+            $documentSelections = $this->extractDocumentSelectionsFromInput($input);
 
-            if (!$acceptTerms) {
-                throw new ConsentException('L’accettazione dei termini è obbligatoria');
+            if (empty($documentSelections)) {
+                throw new ConsentException('Nessun documento consenso trovato nel payload');
             }
 
-            if (!$ackPrivacy) {
-                throw new ConsentException('La presa visione privacy è obbligatoria');
-            }
-
-            $termsDocumentId = (int) ($input['terms_document_id'] ?? 0);
-            $privacyDocumentId = (int) ($input['privacy_document_id'] ?? 0);
-
-            $this->assertDocumentType($termsDocumentId, ConsentDictionary::DOC_TYPE_TERMS);
-            $this->assertDocumentType($privacyDocumentId, ConsentDictionary::DOC_TYPE_PRIVACY_POLICY);
+            $requiredDocumentTypes = $this->normalizeDocumentTypeList($context['required_document_types'] ?? []);
+            $this->assertRequiredDocumentSelections($requiredDocumentTypes, $documentSelections);
 
             $ctx = $this->normalizeContext($context);
             $now = $this->now();
-
-            $acceptMarketing = $this->toBool($input['accept_marketing'] ?? false);
-            $hasMarketingFlag = array_key_exists('accept_marketing', $input);
-            $tokenResult = null;
             $eventIds = [];
 
             $this->beginTransaction();
 
             try {
 
-                $termsEventId = $this->createEventAndState(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_TERMS_ACCEPT,
-                    ConsentDictionary::ACTION_ACCEPT,
-                    $termsDocumentId,
-                    $ctx,
-                    null,
-                    $now
-                );
+                foreach ($documentSelections as $docType => $accepted) {
 
-                $privacyEventId = $this->createEventAndState(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_PRIVACY_ACK,
-                    ConsentDictionary::ACTION_ACCEPT,
-                    $privacyDocumentId,
-                    $ctx,
-                    null,
-                    $now
-                );
+                    $documentId = $this->extractDocumentIdFromInput($input, $docType);
 
-                $eventIds['terms_accept'] = $termsEventId;
-                $eventIds['privacy_ack'] = $privacyEventId;
+                    if ($documentId <= 0) {
 
-                if ($acceptMarketing) {
+                        if ($accepted || in_array($docType, $requiredDocumentTypes, true)) {
+                            throw new ConsentException("Documento legale mancante per tipo {$docType}");
+                        }
 
-                    $this->assertUserEmailVerifiedForMarketing($userId);
+                        continue;
 
-                    $marketingDocumentId = (int) ($input['marketing_document_id'] ?? 0);
-                    $this->assertDocumentType($marketingDocumentId, ConsentDictionary::DOC_TYPE_MARKETING);
-
-                    $marketingEventId = $this->createEventAndState(
-                        $userId,
-                        ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN,
-                        ConsentDictionary::ACTION_ACCEPT,
-                        $marketingDocumentId,
-                        $ctx,
-                        ConsentDictionary::STATUS_PENDING,
-                        $now
-                    );
-
-                    $eventIds['marketing_optin'] = $marketingEventId;
-
-                    $tokenResult = $this->createMarketingToken(
-                        $userId,
-                        $marketingEventId,
-                        (int) ($input['double_optin_ttl_hours'] ?? 48),
-                        $now
-                    );
-
-                } elseif ($hasMarketingFlag) {
-
-                    $marketingDocumentId = (int) ($input['marketing_document_id'] ?? 0);
-                    if ($marketingDocumentId > 0) {
-                        $this->assertDocumentType($marketingDocumentId, ConsentDictionary::DOC_TYPE_MARKETING);
-                    } else {
-                        $marketingDocumentId = null;
                     }
 
-                    $marketingRejectEventId = $this->createEventAndState(
+                    $this->assertDocumentType($documentId, $docType);
+
+                    $consentType = ConsentDictionary::consentTypeFromDocumentType($docType);
+
+                    if ($consentType === '') {
+                        throw new ConsentException("Impossibile risolvere consent_type per documento {$docType}");
+                    }
+
+                    $action = $accepted ? ConsentDictionary::ACTION_ACCEPT : ConsentDictionary::ACTION_REJECT;
+                    $statusOverride = null;
+
+                    $eventId = $this->createEventAndState(
                         $userId,
-                        ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN,
-                        ConsentDictionary::ACTION_REJECT,
-                        $marketingDocumentId,
+                        $consentType,
+                        $action,
+                        $documentId,
                         $ctx,
-                        null,
+                        $statusOverride,
                         $now
                     );
 
-                    $eventIds['marketing_optin'] = $marketingRejectEventId;
+                    $eventIds[$docType] = $eventId;
+                }
 
+                if (empty($eventIds)) {
+                    throw new ConsentException('Nessun evento consenso generato dal payload');
                 }
 
                 $this->commit();
@@ -158,7 +113,6 @@
                 return [
                     'user_id' => $userId,
                     'events' => $eventIds,
-                    'double_opt_in' => $tokenResult,
                 ];
 
             } catch (Throwable $exception) {
@@ -208,24 +162,10 @@
 
             try {
 
-                $tokenResult = null;
-                $consentType = '';
-                $statusOverride = null;
+                $consentType = ConsentDictionary::consentTypeFromDocumentType($docType);
 
-                switch ($docType) {
-                    case ConsentDictionary::DOC_TYPE_TERMS:
-                        $consentType = ConsentDictionary::CONSENT_TYPE_TERMS_ACCEPT;
-                        break;
-                    case ConsentDictionary::DOC_TYPE_PRIVACY_POLICY:
-                        $consentType = ConsentDictionary::CONSENT_TYPE_PRIVACY_ACK;
-                        break;
-                    case ConsentDictionary::DOC_TYPE_MARKETING:
-                        $this->assertUserEmailVerifiedForMarketing($userId);
-                        $consentType = ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN;
-                        $statusOverride = ConsentDictionary::STATUS_PENDING;
-                        break;
-                    default:
-                        throw new ConsentException("Tipo documento non gestito per registrazione diretta: {$docType}");
+                if ($consentType === '') {
+                    throw new ConsentException("Impossibile risolvere consent_type per documento {$docType}");
                 }
 
                 $eventId = $this->createEventAndState(
@@ -234,18 +174,9 @@
                     ConsentDictionary::ACTION_ACCEPT,
                     $documentId,
                     $ctx,
-                    $statusOverride,
+                    null,
                     $now
                 );
-
-                if ($docType === ConsentDictionary::DOC_TYPE_MARKETING) {
-                    $tokenResult = $this->createMarketingToken(
-                        $userId,
-                        $eventId,
-                        (int) ($context['double_optin_ttl_hours'] ?? 48),
-                        $now
-                    );
-                }
 
                 $this->commit();
 
@@ -254,7 +185,6 @@
                     'document_id' => $documentId,
                     'doc_type' => $docType,
                     'consent_event_id' => $eventId,
-                    'double_opt_in' => $tokenResult,
                 ];
 
             } catch (Throwable $exception) {
@@ -271,197 +201,6 @@
         }
 
         /**
-         * Conferma il double opt-in marketing.
-         *
-         * @param string $token
-         * @param array<string, mixed> $context
-         * @return array<string, mixed>
-         * @throws ConsentException
-         */
-        public function confirmMarketingOptIn(string $token, array $context = []): array
-        {
-
-            $token = trim($token);
-
-            if ($token === '') {
-                throw new ConsentException('Token marketing mancante');
-            }
-
-            $ctx = $this->normalizeContext($context);
-            $now = $this->now();
-
-            $this->beginTransaction();
-
-            try {
-
-                $tokenRow = $this->marketingOptInTokenRepository->findByTokenForUpdate($token);
-
-                if ($tokenRow === null) {
-                    throw new ConsentException('Token marketing non trovato');
-                }
-
-                if (!empty($tokenRow['revoked_at'])) {
-                    throw new ConsentException('Token marketing revocato');
-                }
-
-                if (!empty($tokenRow['confirmed_at'])) {
-                    throw new ConsentException('Token marketing già confermato');
-                }
-
-                $expiresAt = (string) ($tokenRow['expires_at'] ?? '');
-                if ($expiresAt === '' || strtotime($expiresAt) < strtotime($now)) {
-                    throw new ConsentException('Token marketing scaduto');
-                }
-
-                $optInEventId = (int) ($tokenRow['consent_event_id'] ?? 0);
-                $optInEvent = $this->consentEventRepository->findById($optInEventId);
-
-                if ($optInEvent === null) {
-                    throw new ConsentException('Evento marketing_optin non trovato');
-                }
-
-                if (($optInEvent['consent_type'] ?? '') !== ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN) {
-                    throw new ConsentException('Il token non è associato a un evento marketing_optin valido');
-                }
-
-                $userId = (int) ($optInEvent['user_id'] ?? 0);
-                $legalDocumentId = isset($optInEvent['legal_document_id']) ? (int) $optInEvent['legal_document_id'] : null;
-
-                $ctx['evidence_json']['double_opt_in_token_id'] = (int) $tokenRow['id'];
-
-                $confirmEventId = $this->createEventAndState(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN_CONFIRMED,
-                    ConsentDictionary::ACTION_ACCEPT,
-                    $legalDocumentId,
-                    $ctx,
-                    ConsentDictionary::STATUS_ACCEPTED,
-                    $now
-                );
-
-                # Aggiorno anche lo stato opt-in base: da pending/rejected a accepted.
-                $this->userConsentStateRepository->upsert(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN,
-                    ConsentDictionary::STATUS_ACCEPTED,
-                    $legalDocumentId,
-                    $confirmEventId,
-                    $now
-                );
-
-                $this->marketingOptInTokenRepository->markConfirmed((int) $tokenRow['id'], $now);
-
-                $this->commit();
-
-                return [
-                    'user_id' => $userId,
-                    'token_id' => (int) $tokenRow['id'],
-                    'consent_event_id' => $confirmEventId,
-                    'confirmed_at' => $now,
-                ];
-
-            } catch (Throwable $exception) {
-
-                $this->rollback();
-
-                if ($exception instanceof ConsentException) {
-                    throw $exception;
-                }
-
-                throw new ConsentException('Errore durante conferma marketing: '.$exception->getMessage());
-
-            }
-        }
-
-        /**
-         * Revoca il consenso marketing.
-         *
-         * @param int $userId
-         * @param array<string, mixed> $context
-         * @return array<string, mixed>
-         * @throws ConsentException
-         */
-        public function withdrawMarketing(int $userId, array $context = []): array
-        {
-
-            if ($userId <= 0) {
-                throw new ConsentException('user_id non valido');
-            }
-
-            $ctx = $this->normalizeContext($context);
-            $now = $this->now();
-
-            $this->beginTransaction();
-
-            try {
-
-                $lastMarketingEvent = $this->consentEventRepository->findLastByUserAndConsentTypes(
-                    $userId,
-                    [
-                        ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN_CONFIRMED,
-                        ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN
-                    ]
-                );
-
-                $legalDocumentId = null;
-
-                if (is_array($lastMarketingEvent) && isset($lastMarketingEvent['legal_document_id'])) {
-                    $legalDocumentId = (int) $lastMarketingEvent['legal_document_id'];
-                }
-
-                $withdrawEventId = $this->createEventAndState(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_MARKETING_WITHDRAWN,
-                    ConsentDictionary::ACTION_WITHDRAW,
-                    $legalDocumentId,
-                    $ctx,
-                    ConsentDictionary::STATUS_WITHDRAWN,
-                    $now
-                );
-
-                # Coerenza stato marketing: non più attivo dopo revoca.
-                $this->userConsentStateRepository->upsert(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN_CONFIRMED,
-                    ConsentDictionary::STATUS_WITHDRAWN,
-                    $legalDocumentId,
-                    $withdrawEventId,
-                    $now
-                );
-
-                $this->userConsentStateRepository->upsert(
-                    $userId,
-                    ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN,
-                    ConsentDictionary::STATUS_WITHDRAWN,
-                    $legalDocumentId,
-                    $withdrawEventId,
-                    $now
-                );
-
-                $this->marketingOptInTokenRepository->revokeOpenByUserId($userId, $now);
-
-                $this->commit();
-
-                return [
-                    'user_id' => $userId,
-                    'consent_event_id' => $withdrawEventId,
-                    'withdrawn_at' => $now,
-                ];
-
-            } catch (Throwable $exception) {
-
-                $this->rollback();
-
-                if ($exception instanceof ConsentException) {
-                    throw $exception;
-                }
-
-                throw new ConsentException('Errore durante revoca marketing: '.$exception->getMessage());
-
-            }
-        }
-
-        /**
          * Stato corrente + storico sintetico consensi.
          *
          * @return array<string, mixed>
@@ -472,21 +211,8 @@
             $currentState = $this->userConsentStateRepository->getByUserId($userId);
             $history = $this->consentEventRepository->getUserHistory($userId, $historyLimit);
 
-            $marketingActive = false;
-
-            foreach ($currentState as $stateRow) {
-                if (
-                    ($stateRow['consent_type'] ?? '') === ConsentDictionary::CONSENT_TYPE_MARKETING_OPTIN_CONFIRMED &&
-                    ($stateRow['current_status'] ?? '') === ConsentDictionary::STATUS_ACCEPTED
-                ) {
-                    $marketingActive = true;
-                    break;
-                }
-            }
-
             return [
                 'user_id' => $userId,
-                'marketing_active' => $marketingActive,
                 'current_state' => $currentState,
                 'history' => $history,
             ];
@@ -545,40 +271,6 @@
         }
 
         /**
-         * @param int $userId
-         * @param int $consentEventId
-         * @param int $ttlHours
-         * @param string $createdAt
-         * @return array<string, mixed>
-         * @throws ConsentException
-         */
-        private function createMarketingToken(int $userId, int $consentEventId, int $ttlHours, string $createdAt): array
-        {
-
-            if ($ttlHours <= 0) {
-                $ttlHours = 48;
-            }
-
-            $token = $this->generateToken();
-            $expiresAt = date('Y-m-d H:i:s', strtotime($createdAt.' +'.$ttlHours.' hours'));
-
-            $tokenId = $this->marketingOptInTokenRepository->create(
-                $userId,
-                $consentEventId,
-                $token,
-                $expiresAt,
-                $createdAt
-            );
-
-            return [
-                'token_id' => $tokenId,
-                'token' => $token,
-                'expires_at' => $expiresAt,
-            ];
-
-        }
-
-        /**
          * @param int $documentId
          * @param string $expectedType
          * @throws ConsentException
@@ -590,13 +282,15 @@
                 throw new ConsentException("Documento legale mancante per tipo {$expectedType}");
             }
 
+            $expectedType = ConsentDictionary::normalizeDocumentType($expectedType);
+
             $document = $this->legalDocumentRepository->findById($documentId);
 
             if ($document === null) {
                 throw new ConsentException("Documento legale non trovato: id {$documentId}");
             }
 
-            $actualType = (string) ($document['doc_type'] ?? '');
+            $actualType = ConsentDictionary::normalizeDocumentType((string) ($document['doc_type'] ?? ''));
 
             if ($actualType !== $expectedType) {
                 throw new ConsentException("Documento legale {$documentId} non coerente: atteso {$expectedType}, trovato {$actualType}");
@@ -605,56 +299,103 @@
         }
 
         /**
-         * Marketing consent consentito solo se email utente verificata.
-         *
-         * @throws ConsentException
+         * Estrae l'id documento dal payload form usando la convenzione:
+         * - checkbox: accept_<doc_type>
+         * - hidden id: <doc_type>_id
          */
-        private function assertUserEmailVerifiedForMarketing(int $userId): void
+        private function extractDocumentIdFromInput(array $input, string $docType): int
         {
 
-            if ($userId <= 0) {
-                throw new ConsentException('user_id non valido per verifica email');
+            $docType = ConsentDictionary::normalizeDocumentType($docType);
+
+            if ($docType === '') {
+                return 0;
             }
 
-            $row = $this->fetchUserVerificationRow($userId);
+            $field = $docType.'_id';
 
-            if ($row === null) {
-                throw new ConsentException("Utente non trovato: {$userId}");
-            }
-
-            $verified = $row['email_verified'] ?? 0;
-            $verifiedAt = (string) ($row['email_verified_at'] ?? '');
-
-            $isVerified = ($verified == '1' || $verified == 1 || $verified === true || $verified === 'true');
-
-            if (!$isVerified && $verifiedAt !== '' && $verifiedAt !== '0000-00-00 00:00:00') {
-                $isVerified = true;
-            }
-
-            if (!$isVerified) {
-                throw new ConsentException('Per accettare il marketing devi prima confermare la tua email.');
-            }
+            return (int) ($input[$field] ?? 0);
 
         }
 
         /**
-         * @return array<string, mixed>|null
+         * Estrae dal payload i checkbox documento nel formato accept_<doc_type>.
+         *
+         * @param array<string, mixed> $input
+         * @return array<string, bool>
          */
-        private function fetchUserVerificationRow(int $userId): ?array
+        private function extractDocumentSelectionsFromInput(array $input): array
         {
 
-            $sql = "SELECT `id`, `email_verified`, `email_verified_at` ";
-            $sql .= "FROM `user` WHERE `id` = ".(int) $userId." LIMIT 1";
+            $selections = [];
 
-            $result = $this->mysqli->query($sql);
+            foreach ($input as $key => $value) {
 
-            if ($result === false || $result->num_rows === 0) {
-                return null;
+                if (!is_string($key) || strpos($key, 'accept_') !== 0) {
+                    continue;
+                }
+
+                $docType = ConsentDictionary::normalizeDocumentType(substr($key, 7));
+
+                if ($docType === '') {
+                    continue;
+                }
+
+                $selections[$docType] = $this->toBool($value);
+
             }
 
-            $row = $result->fetch_assoc();
+            return $selections;
 
-            return is_array($row) ? $row : null;
+        }
+
+        /**
+         * @param mixed $types
+         * @return array<int, string>
+         */
+        private function normalizeDocumentTypeList(mixed $types): array
+        {
+
+            if (!is_array($types)) {
+                return [];
+            }
+
+            $normalized = [];
+
+            foreach ($types as $type) {
+
+                if (!is_string($type)) {
+                    continue;
+                }
+
+                $docType = ConsentDictionary::normalizeDocumentType($type);
+
+                if ($docType !== '') {
+                    $normalized[] = $docType;
+                }
+
+            }
+
+            return array_values(array_unique($normalized));
+
+        }
+
+        /**
+         * Verifica che i documenti obbligatori risultino accettati.
+         *
+         * @param array<int, string> $requiredDocumentTypes
+         * @param array<string, bool> $selections
+         */
+        private function assertRequiredDocumentSelections(array $requiredDocumentTypes, array $selections): void
+        {
+
+            foreach ($requiredDocumentTypes as $docType) {
+
+                if (!isset($selections[$docType]) || $selections[$docType] !== true) {
+                    throw new ConsentException("Il consenso al documento {$docType} è obbligatorio");
+                }
+
+            }
 
         }
 
@@ -712,17 +453,6 @@
             }
 
             return false;
-
-        }
-
-        private function generateToken(): string
-        {
-
-            if (function_exists('random_bytes')) {
-                return bin2hex(random_bytes(32));
-            }
-
-            return sha1(uniqid((string) mt_rand(), true));
 
         }
 

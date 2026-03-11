@@ -161,10 +161,11 @@
         // Revoca eventuali token aperti già emessi per lo stesso utente.
         userEmailVerificationRevokeOpenTokens($userId, $now);
 
-        $insert = sqlInsert('user_verification_tokens', [
+        $insert = sqlInsert('consent_confirmation_tokens', [
+            'token_type' => userEmailVerificationTokenType(),
             'user_id' => $userId,
             'token' => $token,
-            'lang' => $languageCode,
+            'language_code' => $languageCode,
             'continue_url' => $continueRegistrationUrl,
             'expires_at' => $expiresAt,
             'created_at' => $now,
@@ -206,7 +207,10 @@
             return userVerificationFailure('Token verifica utente mancante', 913);
         }
 
-        $SQL = sqlSelect('user_verification_tokens', [ 'token' => $token ], 1);
+        $SQL = sqlSelect('consent_confirmation_tokens', [
+            'token' => $token,
+            'token_type' => userEmailVerificationTokenType()
+        ], 1);
 
         if (!$SQL->exists || !is_array($SQL->row)) {
             return userVerificationFailure('Token verifica utente non trovato', 913);
@@ -221,7 +225,7 @@
             return userVerificationFailure('Token verifica utente revocato', 913);
         }
 
-        if (!empty($row['used_at'])) {
+        if (!empty($row['confirmed_at'])) {
             return userVerificationFailure('Token verifica utente già utilizzato', 913);
         }
 
@@ -250,9 +254,11 @@
             if ($hasTransaction) {
 
                 $escapedNow = $mysqli->real_escape_string($now);
-                $sql = "UPDATE `user_verification_tokens` ";
-                $sql .= "SET `used_at` = '{$escapedNow}' ";
-                $sql .= "WHERE `id` = {$tokenId} AND `used_at` IS NULL AND `revoked_at` IS NULL";
+                $sql = "UPDATE `consent_confirmation_tokens` ";
+                $sql .= "SET `confirmed_at` = '{$escapedNow}' ";
+                $sql .= "WHERE `id` = {$tokenId} ";
+                $sql .= "AND `token_type` = '".$mysqli->real_escape_string(userEmailVerificationTokenType())."' ";
+                $sql .= "AND `confirmed_at` IS NULL AND `revoked_at` IS NULL";
 
                 if (!$mysqli->query($sql) || $mysqli->affected_rows !== 1) {
                     throw new RuntimeException('Token verifica utente già utilizzato o revocato');
@@ -260,7 +266,7 @@
 
             } else {
 
-                $modify = sqlModify('user_verification_tokens', [ 'used_at' => $now ], 'id', $tokenId);
+                $modify = sqlModify('consent_confirmation_tokens', [ 'confirmed_at' => $now ], 'id', $tokenId);
                 if (!($modify->success ?? false)) {
                     throw new RuntimeException('Impossibile aggiornare token verifica utente');
                 }
@@ -443,14 +449,24 @@
     }
 
     /**
+     * Tipo token usato per verifica email utente.
+     */
+    function userEmailVerificationTokenType(): string
+    {
+
+        return 'user_email_verification';
+
+    }
+
+    /**
      * Revoca token non usati/non revocati dell'utente.
      */
     function userEmailVerificationRevokeOpenTokens(int $userId, string $revokedAt): void
     {
 
         $open = sqlSelect(
-            'user_verification_tokens',
-            "`user_id` = '".(int) $userId."' AND `used_at` IS NULL AND `revoked_at` IS NULL"
+            'consent_confirmation_tokens',
+            "`user_id` = '".(int) $userId."' AND `token_type` = '".userEmailVerificationTokenType()."' AND `confirmed_at` IS NULL AND `revoked_at` IS NULL"
         );
 
         if (!($open->exists ?? false) || !is_array($open->row)) {
@@ -461,7 +477,7 @@
             if (!is_array($row) || !isset($row['id'])) {
                 continue;
             }
-            sqlModify('user_verification_tokens', [ 'revoked_at' => $revokedAt ], 'id', (int) $row['id']);
+            sqlModify('consent_confirmation_tokens', [ 'revoked_at' => $revokedAt ], 'id', (int) $row['id']);
         }
 
     }

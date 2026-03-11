@@ -1066,23 +1066,35 @@
     {
 
         $type = strtolower(trim($type));
+        $type = preg_replace('/[^a-z0-9_-]/', '', $type) ?? '';
 
-        $nameByType = [
-            'terms' => 'accept_terms',
-            'privacy' => 'ack_privacy',
-            'marketing' => 'accept_marketing'
-        ];
+        if (!Wonder\Consent\LegalDocumentTypeContext::hasType($type)) {
+            __log(new Exception('Non esiste il documento '.$type), 'wonder-renderer', 'verify_document_type');
+        }
 
-        $fieldName = $nameByType[$type] ?? $type;
-        $label = __t("components.forms.fields.{$fieldName}.label");
+        $docType = $type;
+        $fieldName = "accept_$docType";
 
-        return checkbox(
-            '',
-            $fieldName,
-            [ 'true' => [ 'label' => $label, 'attribute' => $attributes ] ],
-            'checkbox',
-            $value
+        $SQL = sqlSelect(
+            'legal_documents',
+            [
+                'doc_type' => $docType,
+                'language_code' => __l(),
+                'is_active' => 1
+            ],
+            1,
+            'published_at DESC, id',
+            'DESC'
         );
+
+        if (!$SQL->exists) {
+            __log(new Exception('Non esiste il documento '.$type.' nella lingua '.__l()), 'wonder-renderer', 'verify_document_type_lang');
+        }
+        
+        $label = trim((string) ($SQL->row['checkbox_label'] ?? $type));
+
+        return '<input type="hidden" name="'.$type.'_id" value="'.$SQL->id.'">'.
+        checkbox('', $fieldName, [ 'true' => [ 'label' => $label, 'attribute' => $attributes ] ], 'checkbox', $value );
 
     }
 

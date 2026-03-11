@@ -504,20 +504,32 @@
 
         function ColumnForeign( string $table, ?string $column = null ) : array
         {
+            $database = $this->escapeString($this->GetDatabase());
+            $tableEscaped = $this->escapeString($table);
 
-            $condition = [
-                'table_schema' => $this->GetDatabase(),
-                'table_name' => $table
-            ];
+            $query = "SELECT DISTINCT `constraint_name` AS cName ";
+            $query .= "FROM INFORMATION_SCHEMA.`key_column_usage` ";
+            $query .= "WHERE `table_schema` = '{$database}' ";
+            $query .= "AND `table_name` = '{$tableEscaped}' ";
+            $query .= "AND `referenced_table_name` IS NOT NULL ";
 
             if ($column != null) {
-                $condition['column_name'] = $column;
+                $columnEscaped = $this->escapeString($column);
+                $query .= "AND `column_name` = '{$columnEscaped}' ";
             }
 
-            return array_column(
-                $this->ISConnection()->Select( 'key_column_usage', $condition, null, null, null, 'constraint_name as cName' )->row,
-                'cName'
-            );
+            $result = $this->mysqli->query($query);
+
+            if ($result === false) {
+                new Error( 'ColumnForeign', $table, $query, $this->mysqli );
+                return [];
+            }
+
+            if ($result->num_rows === 0) {
+                return [];
+            }
+
+            return array_column($result->fetch_all(MYSQLI_ASSOC), 'cName');
 
         }
 

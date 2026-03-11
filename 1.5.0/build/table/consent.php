@@ -11,8 +11,8 @@
         ],
         'doc_type' => [
             'sql' => [
-                'type' => 'ENUM',
-                'enum' => [ 'privacy_policy', 'terms', 'cookie_policy', 'marketing' ],
+                'type' => 'VARCHAR',
+                'length' => 100,
                 'null' => false
             ]
         ],
@@ -28,7 +28,7 @@
                 'null' => false
             ]
         ],
-        'title' => [
+        'checkbox_label' => [
             'sql' => [
                 'length' => 255,
                 'null' => false
@@ -109,8 +109,8 @@
         ],
         'consent_type' => [
             'sql' => [
-                'type' => 'ENUM',
-                'enum' => [ 'privacy_ack', 'terms_accept', 'marketing_optin', 'marketing_optin_confirmed', 'marketing_withdrawn' ],
+                'type' => 'VARCHAR',
+                'length' => 120,
                 'null' => false
             ]
         ],
@@ -215,8 +215,8 @@
         ],
         'consent_type' => [
             'sql' => [
-                'type' => 'ENUM',
-                'enum' => [ 'privacy_ack', 'terms_accept', 'marketing_optin', 'marketing_optin_confirmed', 'marketing_withdrawn' ],
+                'type' => 'VARCHAR',
+                'length' => 120,
                 'null' => false
             ]
         ],
@@ -262,12 +262,18 @@
     ];
 
     /**
-     * Token double opt-in per conferma marketing.
+     * Token di conferma.
      */
-    $TABLE->MARKETING_OPTIN_TOKENS = [
+    $TABLE->CONSENT_CONFIRMATION_TOKENS = [
         '__table' => [
             'sql' => [
                 'audit_columns' => false
+            ]
+        ],
+        'token_type' => [
+            'sql' => [
+                'length' => 50,
+                'null' => false
             ]
         ],
         'user_id' => [
@@ -277,18 +283,35 @@
                 'foreign_table' => 'user'
             ]
         ],
-        'consent_event_id' => [
-            'sql' => [
-                'type' => 'INT',
-                'null' => false,
-                'foreign_table' => 'consent_events'
-            ]
-        ],
         'token' => [
             'sql' => [
                 'length' => 128,
                 'null' => false,
                 'unique' => true
+            ]
+        ],
+        'language_code' => [
+            'sql' => [
+                'length' => 2,
+                'null' => true
+            ]
+        ],
+        'continue_url' => [
+            'sql' => [
+                'type' => 'LONGTEXT',
+                'null' => true
+            ]
+        ],
+        'metadata_json' => [
+            'sql' => [
+                'type' => 'JSON',
+                'null' => true
+            ],
+            'input' => [
+                'format' => [
+                    'sanitize' => false,
+                    'json' => true
+                ]
             ]
         ],
         'expires_at' => [
@@ -318,8 +341,7 @@
         ],
         'idx_user_expires' => [
             'sql' => [
-                'index' => [ 'user_id', 'expires_at' ]
+                'index' => [ 'user_id', 'token_type', 'expires_at' ]
             ]
         ]
     ];
-

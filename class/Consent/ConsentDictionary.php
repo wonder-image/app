@@ -9,15 +9,12 @@
     class ConsentDictionary
     {
         public const DOC_TYPE_PRIVACY_POLICY = 'privacy_policy';
-        public const DOC_TYPE_TERMS = 'terms';
+        public const DOC_TYPE_TERMS = 'terms_conditions';
+        public const DOC_TYPE_TERMS_LEGACY = 'terms';
         public const DOC_TYPE_COOKIE_POLICY = 'cookie_policy';
-        public const DOC_TYPE_MARKETING = 'marketing';
 
         public const CONSENT_TYPE_PRIVACY_ACK = 'privacy_ack';
         public const CONSENT_TYPE_TERMS_ACCEPT = 'terms_accept';
-        public const CONSENT_TYPE_MARKETING_OPTIN = 'marketing_optin';
-        public const CONSENT_TYPE_MARKETING_OPTIN_CONFIRMED = 'marketing_optin_confirmed';
-        public const CONSENT_TYPE_MARKETING_WITHDRAWN = 'marketing_withdrawn';
 
         public const ACTION_ACCEPT = 'accept';
         public const ACTION_REJECT = 'reject';
@@ -33,6 +30,10 @@
         public const SOURCE_API = 'api';
         public const SOURCE_ADMIN = 'admin';
 
+        /**
+         * Tipi documento base usati nei flussi consenso standard.
+         * Nota: legal_documents.doc_type supporta anche tipi custom.
+         */
         public static function documentTypes(): array
         {
 
@@ -40,8 +41,22 @@
                 self::DOC_TYPE_PRIVACY_POLICY,
                 self::DOC_TYPE_TERMS,
                 self::DOC_TYPE_COOKIE_POLICY,
-                self::DOC_TYPE_MARKETING,
             ];
+
+        }
+
+        /**
+         * Normalizza il tipo documento.
+         * Supporta tipi custom oltre ai documenti base.
+         * Esempi validi: privacy_policy, terms_conditions, refund_policy, legal_notice.
+         */
+        public static function normalizeDocumentType(string $docType): string
+        {
+
+            $docType = strtolower(trim($docType));
+            $docType = preg_replace('/[^a-z0-9_-]/', '', $docType) ?? '';
+
+            return $docType;
 
         }
 
@@ -51,10 +66,71 @@
             return [
                 self::CONSENT_TYPE_PRIVACY_ACK,
                 self::CONSENT_TYPE_TERMS_ACCEPT,
-                self::CONSENT_TYPE_MARKETING_OPTIN,
-                self::CONSENT_TYPE_MARKETING_OPTIN_CONFIRMED,
-                self::CONSENT_TYPE_MARKETING_WITHDRAWN,
             ];
+
+        }
+
+        /**
+         * Normalizza il consent_type.
+         * Supporta anche consent_type custom derivati da doc_type.
+         */
+        public static function normalizeConsentType(string $consentType): string
+        {
+
+            $consentType = strtolower(trim($consentType));
+            $consentType = preg_replace('/[^a-z0-9_-]/', '', $consentType) ?? '';
+
+            if ($consentType === '') {
+                return '';
+            }
+
+            return substr($consentType, 0, 120);
+
+        }
+
+        /**
+         * Risolve il consent_type da doc_type.
+         *
+         * - terms/terms_conditions -> terms_accept
+         * - privacy_policy -> privacy_ack
+         * - altri tipi -> doc_<doc_type>
+         */
+        public static function consentTypeFromDocumentType(string $docType): string
+        {
+
+            $docType = self::normalizeDocumentType($docType);
+
+            if ($docType === '') {
+                return '';
+            }
+
+            if (self::isTermsDocumentType($docType)) {
+                return self::CONSENT_TYPE_TERMS_ACCEPT;
+            }
+
+            if (self::isPrivacyDocumentType($docType)) {
+                return self::CONSENT_TYPE_PRIVACY_ACK;
+            }
+
+            return self::normalizeConsentType('doc_'.$docType);
+
+        }
+
+        public static function isTermsDocumentType(string $docType): bool
+        {
+
+            $docType = self::normalizeDocumentType($docType);
+
+            return in_array($docType, [ self::DOC_TYPE_TERMS, self::DOC_TYPE_TERMS_LEGACY ], true);
+
+        }
+
+        public static function isPrivacyDocumentType(string $docType): bool
+        {
+
+            $docType = self::normalizeDocumentType($docType);
+
+            return $docType === self::DOC_TYPE_PRIVACY_POLICY;
 
         }
 
@@ -146,4 +222,3 @@
 
         }
     }
-

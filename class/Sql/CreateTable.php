@@ -122,6 +122,8 @@
                 'on_update',
                 'foreign_table',
                 'foreign_key',
+                'foreign_on_update',
+                'foreign_on_delete',
                 'after',
                 'enum'
             ];
@@ -133,6 +135,33 @@
             }
 
             return false;
+
+        }
+
+        /**
+         * Normalizza azione referenziale per FOREIGN KEY.
+         *
+         * @param mixed $action
+         * @param string $fallback
+         * @return string
+         */
+        private function normalizeReferentialAction($action, string $fallback): string
+        {
+
+            $allowed = [ 'CASCADE', 'RESTRICT', 'NO ACTION', 'SET NULL' ];
+
+            if (!is_string($action) && !is_numeric($action)) {
+                return $fallback;
+            }
+
+            $action = strtoupper(trim((string) $action));
+            $action = preg_replace('/\s+/', ' ', $action) ?? '';
+
+            if ($action === '' || !in_array($action, $allowed, true)) {
+                return $fallback;
+            }
+
+            return $action;
 
         }
 
@@ -461,13 +490,31 @@
                         $foreignTable = $options['foreign_table'];
                         $foreignKey = empty($options['foreign_key']) ? "id" : $options['foreign_key'];
 
+                        $isNullableColumn = !isset($options['null']) || $options['null'] == true;
+                        $defaultOnDelete = $isNullableColumn ? 'SET NULL' : 'RESTRICT';
+
+                        $foreignOnUpdate = $this->normalizeReferentialAction(
+                            $options['foreign_on_update'] ?? 'CASCADE',
+                            'CASCADE'
+                        );
+
+                        $foreignOnDelete = $this->normalizeReferentialAction(
+                            $options['foreign_on_delete'] ?? $defaultOnDelete,
+                            $defaultOnDelete
+                        );
+
+                        # Evita SQL non valido: SET NULL su colonna NOT NULL.
+                        if (!$isNullableColumn && $foreignOnDelete === 'SET NULL') {
+                            $foreignOnDelete = 'RESTRICT';
+                        }
+
                         $foreign = ", ";
 
                         if ($action == 'add' || $action == 'modify') {
                             $foreign .= "ADD ";
                         }
 
-                        $foreign .= "FOREIGN KEY (`$name`) REFERENCES `$foreignTable` (`$foreignKey`) ON UPDATE CASCADE ON DELETE SET NULL ";
+                        $foreign .= "FOREIGN KEY (`$name`) REFERENCES `$foreignTable` (`$foreignKey`) ON UPDATE $foreignOnUpdate ON DELETE $foreignOnDelete ";
                         
                     } else {
 
@@ -576,16 +623,20 @@
                 $columnBefore = $tableOptions['auto_id'] ? "id" : null;
 
                 # Elimino tutte le FOREIGN KEY
-                    foreach ($SQL->ColumnForeign($name) as $key => $foreignKey) { 
+                    foreach (array_values(array_unique($SQL->ColumnForeign($name))) as $foreignKey) { 
 
-                        if ($foreignKey != "PRIMARY") {
-                            $query .= "DROP CONSTRAINT `$foreignKey`, "; 
+                        if (!empty($foreignKey) && $foreignKey != "PRIMARY") {
+                            $query .= "DROP FOREIGN KEY `$foreignKey`, "; 
                         }
                     
                     }
 
                 # Elimino tutti gli INDEX
-                    foreach ($SQL->TableIndex($name) as $key => $indexName) { 
+                    foreach (array_values(array_unique($SQL->TableIndex($name))) as $indexName) { 
+                        
+                        if (empty($indexName)) {
+                            continue;
+                        }
                         
                         $query .= "DROP "; 
                         $indexName = ($indexName == 'PRIMARY') ? "PRIMARY KEY" : "$indexName";

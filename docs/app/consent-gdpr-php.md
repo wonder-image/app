@@ -1,5 +1,13 @@
 # Sistema Consensi GDPR (solo PHP)
 
+{% hint style="info" %}
+Per la lettura in GitBook usa le pagine aggiornate in `app-1.5.0`:
+
+- [Utente](app-1.5.0/utente/README.md)
+- [Verifica email](app-1.5.0/utente/verifica-email.md)
+- [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
+{% endhint %}
+
 Questa implementazione usa:
 
 - builder tabelle Wonder esteso (`ENUM`, `UNIQUE` compositi, `PRIMARY KEY` composta)
@@ -12,7 +20,7 @@ Questa implementazione usa:
 - `legal_documents`
 - `consent_events`
 - `user_consent_state`
-- `marketing_optin_tokens`
+- `consent_confirmation_tokens`
 
 Definizioni in:
 
@@ -45,17 +53,14 @@ Classe principale:
 Metodi:
 
 - `registerBaseConsents(...)`
-- `confirmMarketingOptIn(...)`
-- `withdrawMarketing(...)`
+- `registerConsentByDocumentId(...)`
 - `getUserConsents(...)`
 
-## Wrapper function legacy
+## Wrapper function
 
 Funzioni disponibili:
 
 - `registerUserConsents(...)`
-- `confirmUserMarketingOptIn(...)`
-- `withdrawUserMarketingConsent(...)`
 - `getUserConsentsSnapshot(...)`
 
 File:
@@ -71,11 +76,12 @@ Questa sezione copre solo la verifica email utente lato backend.
 ### Tabelle coinvolte
 
 - `user` (campi: `email_verified`, `email_verified_at`)
-- `user_verification_tokens` (token one-time, scadenza, revoca, lingua, continue URL)
+- `consent_confirmation_tokens` con `token_type=user_email_verification` (token one-time, scadenza, revoca, lingua, continue URL)
 
 Definizione tabelle:
 
 - `1.5.0/build/table/user.php`
+- `1.5.0/build/table/consent.php`
 
 ### Funzioni disponibili
 
@@ -157,7 +163,7 @@ Chiavi usate:
 
 ---
 
-## Sezione Registrazione Consensi: privacy, terms, marketing
+## Sezione Registrazione Consensi: privacy e terms
 
 Questa sezione copre la registrazione dei consensi GDPR.
 
@@ -165,9 +171,6 @@ Questa sezione copre la registrazione dei consensi GDPR.
 
 - `terms_accept`: accettazione contrattuale dei termini
 - `privacy_ack`: presa visione informativa privacy (non consenso generale)
-- `marketing_optin`: consenso marketing separato
-- `marketing_optin_confirmed`: conferma double opt-in
-- `marketing_withdrawn`: revoca marketing
 
 ### Funzioni wrapper da usare
 
@@ -178,8 +181,6 @@ File:
 Funzioni:
 
 - `registerUserConsents(...)`
-- `confirmUserMarketingOptIn(...)`
-- `withdrawUserMarketingConsent(...)`
 - `getUserConsentsSnapshot(...)`
 
 ### Registrazione consensi in signup
@@ -190,12 +191,10 @@ Esempio:
 $result = registerUserConsents(
     (int) $userId,
     [
-        'accept_terms' => true,
-        'ack_privacy' => true,
-        'accept_marketing' => true, // opzionale
-        'terms_document_id' => 10,
-        'privacy_document_id' => 11,
-        'marketing_document_id' => 12
+        'accept_terms_conditions' => true,
+        'accept_privacy_policy' => true,
+        'terms_conditions_id' => 10,
+        'privacy_policy_id' => 11
     ],
     [
         'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
@@ -203,8 +202,9 @@ $result = registerUserConsents(
         'locale' => 'it', // 2 lettere
         'source' => 'web',
         'ui_surface' => 'signup',
+        'required_document_types' => [ 'terms', 'privacy_policy' ],
         'evidence_json' => [
-            'checkbox_name' => 'accept_marketing',
+            'checkbox_name' => 'accept_privacy_policy',
             'form_version' => 'v1',
             'request_id' => 'req_123'
         ]
@@ -215,41 +215,10 @@ $result = registerUserConsents(
 Output utile:
 
 - `$result['events']` con id eventi creati
-- `$result['double_opt_in']` se marketing è stato accettato (contiene token marketing)
-
-### Conferma double opt-in marketing
-
-```php
-$confirm = confirmUserMarketingOptIn($token, [
-    'locale' => 'de',
-    'source' => 'web',
-    'ui_surface' => 'email_link'
-]);
-```
-
-### Revoca marketing
-
-```php
-$withdraw = withdrawUserMarketingConsent((int) $userId, [
-    'locale' => 'it',
-    'source' => 'web',
-    'ui_surface' => 'profile_settings'
-]);
-```
+- per doc custom, `consent_type` viene salvato come `doc_<doc_type>`
 
 ### Lettura stato corrente + storico sintetico
 
 ```php
 $snapshot = getUserConsentsSnapshot((int) $userId, 100);
 ```
-
-### Regola importante: email verificata prima del marketing
-
-Il marketing è consentito solo se:
-
-- `user.email_verified = 1` oppure
-- `user.email_verified_at` valorizzato
-
-Se non verificato, la registrazione marketing genera errore:
-
-- `Per accettare il marketing devi prima confermare la tua email.`

@@ -17,14 +17,16 @@
         {
 
             $userId = (int) ($payload['user_id'] ?? 0);
-            $consentType = (string) ($payload['consent_type'] ?? '');
+            $consentType = ConsentDictionary::normalizeConsentType((string) ($payload['consent_type'] ?? ''));
             $action = (string) ($payload['action'] ?? '');
 
             if ($userId <= 0) {
                 throw new ConsentException('user_id non valido');
             }
 
-            ConsentDictionary::assertAllowed($consentType, ConsentDictionary::consentTypes(), 'consent_type');
+            if ($consentType === '') {
+                throw new ConsentException('consent_type non valido');
+            }
             ConsentDictionary::assertAllowed($action, ConsentDictionary::actions(), 'action');
 
             $source = (string) ($payload['source'] ?? ConsentDictionary::SOURCE_WEB);
@@ -158,4 +160,3 @@
 
         }
     }
-

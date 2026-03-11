@@ -1,5 +1,55 @@
 <?php
 
+    // Configurazione verifica email richiesta per il login in una specifica area.
+    function userLoginEmailVerificationConfig(object $U, string $AREA, $PERMIT_REQUIRED = null): array
+    {
+
+        $authorities = isset($U->authority) && is_array($U->authority) ? $U->authority : [];
+        $candidates = [];
+
+        if ($PERMIT_REQUIRED !== null) {
+            $requiredList = is_array($PERMIT_REQUIRED) ? $PERMIT_REQUIRED : [ $PERMIT_REQUIRED ];
+            foreach ($requiredList as $requiredAuthority) {
+                if (is_string($requiredAuthority) && in_array($requiredAuthority, $authorities, true)) {
+                    $candidates[] = $requiredAuthority;
+                }
+            }
+        }
+
+        if (count($candidates) === 0) {
+            foreach ($authorities as $authority) {
+                $permission = permissions($authority);
+                if (is_object($permission) && isset($permission->area) && $permission->area === $AREA) {
+                    $candidates[] = $authority;
+                }
+            }
+        }
+
+        foreach ($candidates as $authority) {
+
+            $permission = permissions($authority);
+            $rules = userPermissionVerificationRules($permission);
+            $required = userPermissionRequiredVerifications($rules);
+
+            if (isset($required['email'])) {
+                $config = userPermissionEmailVerificationConfig($permission, $rules);
+                $config['required'] = true;
+                $config['authority'] = $authority;
+                return $config;
+            }
+
+        }
+
+        return [
+            'required' => false,
+            'authority' => '',
+            'token_link' => '',
+            'sent_link' => '',
+            'ttl_hours' => 24,
+        ];
+
+    }
+
     // Autorizzazione pagina privata (backend/frontend)
     function authorizeUser($AREA, $PERMIT_REQUIRED, $USER_ID = null) {
 
@@ -83,14 +133,63 @@
                 if (!$U->deleted) {
                     if ($U->active) {
                         if (in_array($AREA, $U->area)) {
-                            if ($PERMIT_REQUIRED == null || in_array($PERMIT_REQUIRED, $U->authority)) {
+
+                            $permitAllowed = false;
+                            
+                            if ($PERMIT_REQUIRED == null) {
+                                $permitAllowed = true;
+                            } elseif (is_array($PERMIT_REQUIRED)) {
+                                $permitAllowed = count(array_intersect($PERMIT_REQUIRED, $U->authority)) >= 1;
+                            } else {
+                                $permitAllowed = in_array($PERMIT_REQUIRED, $U->authority);
+                            }
+
+                            if ($permitAllowed) {
+
+                                $EMAIL_VERIFICATION = userLoginEmailVerificationConfig($U, $AREA, $PERMIT_REQUIRED);
+
+                                if (($EMAIL_VERIFICATION['required'] ?? false) && !$U->email_verified) {
+
+                                    $MAIL_RESULT = userSendEmailVerificationMail((int) $U->id, (string) $U->email, $EMAIL_VERIFICATION);
+                                    $sentLink = trim((string) ($MAIL_RESULT->sent_link ?? ($EMAIL_VERIFICATION['sent_link'] ?? '')));
+
+                                    $meta = [
+                                        'key' => $KEY,
+                                        'value' => $VALUE,
+                                        'reason' => 'email_not_verified',
+                                        'authority' => $EMAIL_VERIFICATION['authority'] ?? '',
+                                        'email_sent' => (bool) ($MAIL_RESULT->sent ?? false),
+                                        'verification_sent_link' => $sentLink,
+                                    ];
+
+                                    if (!($MAIL_RESULT->success ?? false)) {
+                                        $ALERT = 908;
+                                        $meta['reason'] = 'email_verification_mail_failed';
+                                        $meta['error'] = (string) ($MAIL_RESULT->message ?? '');
+                                    }
+
+                                    Wonder\Auth\AuthLog::write('login_failed', (int) $U->id, $AREA, false, $meta);
+
+                                    if ($sentLink !== '') {
+                                        header("Location: $sentLink");
+                                        exit;
+                                    }
+
+                                    $reason = (string) $meta['reason'];
+                                    return false;
+
+                                }
+
                                 $_SESSION['user_id'] = $U->id;
+
                                 Wonder\Auth\RememberMe::set($U->id, $AREA);
                                 Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
                                     'key' => $KEY,
                                     'value' => $VALUE
                                 ]);
+
                                 return true;
+
                             } else {
                                 $ALERT = 915;
                                 $reason = 'permit_not_allowed';

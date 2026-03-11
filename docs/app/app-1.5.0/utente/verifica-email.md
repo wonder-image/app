@@ -11,11 +11,12 @@ Verificare l'email utente con token one-time prima di consentire il marketing e 
 ## Tabelle coinvolte
 
 - `user` (`email_verified`, `email_verified_at`)
-- `user_verification_tokens` (`token`, `expires_at`, `used_at`, `revoked_at`, `lang`, `continue_url`)
+- `consent_confirmation_tokens` (`token_type=user_email_verification`, `token`, `expires_at`, `confirmed_at`, `revoked_at`, `language_code`, `continue_url`)
 
 Definizione:
 
-- `1.5.0/build/table/user.php`
+- `1.5.0/build/table/user.php` (tabella `user`)
+- `1.5.0/build/table/consent.php` (tabella `consent_confirmation_tokens`)
 
 ## Funzioni disponibili
 

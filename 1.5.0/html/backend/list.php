@@ -66,7 +66,14 @@
     $TABLE->addLink( 'download', $PATH->backend.'/'.$currentDir.'/download.php?id={rowId}' );
     $TABLE->addLink( 'file', $PATH->upload.'/'.$NAME->folder );
     
-    $QUERY_CUSTOM = empty($QUERY_CUSTOM) ? "`deleted` = 'false'" : $QUERY_CUSTOM." AND `deleted` = 'false'";
+    $HAS_DELETED_COLUMN = sqlColumnExists($NAME->table, 'deleted');
+
+    if ($HAS_DELETED_COLUMN) {
+        $QUERY_CUSTOM = empty($QUERY_CUSTOM) ? "`deleted` = 'false'" : $QUERY_CUSTOM." AND `deleted` = 'false'";
+    } else {
+        $QUERY_CUSTOM = empty($QUERY_CUSTOM) ? "1 = 1" : $QUERY_CUSTOM;
+    }
+
     $TABLE->query($QUERY_CUSTOM);
 
     $COLUMN_DEF = "creation";

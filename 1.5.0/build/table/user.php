@@ -161,61 +161,6 @@
         ]
     ];
 
-    $TABLE->USER_VERIFICATION_TOKENS = [
-        "user_id" => [
-            "sql" => [
-                "type" => "INT",
-                "foreign_table" => "user"
-            ]
-        ],
-        "token" => [
-            "sql" => [
-                "length" => 128,
-                "unique" => true
-            ]
-        ],
-        "lang" => [
-            "sql" => [
-                "length" => 2,
-                "default" => "it"
-            ]
-        ],
-        "continue_url" => [
-            "sql" => [
-                "type" => "LONGTEXT",
-                "null" => true
-            ]
-        ],
-        "expires_at" => [
-            "sql" => [
-                "type" => "DATETIME"
-            ]
-        ],
-        "used_at" => [
-            "sql" => [
-                "type" => "DATETIME",
-                "null" => true
-            ]
-        ],
-        "revoked_at" => [
-            "sql" => [
-                "type" => "DATETIME",
-                "null" => true
-            ]
-        ],
-        "created_at" => [
-            "sql" => [
-                "type" => "DATETIME",
-                "default" => "CURRENT_TIMESTAMP"
-            ]
-        ],
-        "idx_user_expires_at" => [
-            "sql" => [
-                "index" => [ "user_id", "expires_at" ]
-            ]
-        ]
-    ];
-
     $TABLE->AUTH_LOG = [
         "user_id" => [
             "sql" => [

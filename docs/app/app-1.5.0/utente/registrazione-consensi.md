@@ -10,9 +10,6 @@ Registrare in modo auditabile e versionato:
 
 - accettazione termini (`terms_accept`)
 - presa visione privacy (`privacy_ack`)
-- consenso marketing separato (`marketing_optin`)
-- conferma marketing double opt-in (`marketing_optin_confirmed`)
-- revoca marketing (`marketing_withdrawn`)
 
 ## Funzioni wrapper da usare
 
@@ -23,8 +20,6 @@ File:
 Funzioni:
 
 - `registerUserConsents(...)`
-- `confirmUserMarketingOptIn(...)`
-- `withdrawUserMarketingConsent(...)`
 - `getUserConsentsSnapshot(...)`
 
 ## Tabelle coinvolte
@@ -32,7 +27,7 @@ Funzioni:
 - `legal_documents`
 - `consent_events`
 - `user_consent_state`
-- `marketing_optin_tokens`
+- `consent_confirmation_tokens`
 
 Definizione:
 
@@ -44,7 +39,6 @@ Checkbox in UI (separate):
 
 - obbligatoria: termini
 - obbligatoria: privacy (presa visione)
-- opzionale: marketing
 
 Esempio:
 
@@ -52,12 +46,10 @@ Esempio:
 $result = registerUserConsents(
     (int) $userId,
     [
-        'accept_terms' => true,
-        'ack_privacy' => true,
-        'accept_marketing' => true,
-        'terms_document_id' => 10,
-        'privacy_document_id' => 11,
-        'marketing_document_id' => 12
+        'accept_terms_conditions' => true,
+        'accept_privacy_policy' => true,
+        'terms_conditions_id' => 10,
+        'privacy_policy_id' => 11
     ],
     [
         'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
@@ -65,8 +57,9 @@ $result = registerUserConsents(
         'locale' => 'it',
         'source' => 'web',
         'ui_surface' => 'signup',
+        'required_document_types' => [ 'terms_conditions', 'privacy_policy' ],
         'evidence_json' => [
-            'checkbox_name' => 'accept_marketing',
+            'checkbox_name' => 'accept_privacy_policy',
             'form_version' => 'v1',
             'request_id' => 'req_123'
         ]
@@ -77,27 +70,17 @@ $result = registerUserConsents(
 Output utile:
 
 - `$result['events']` (id eventi creati)
-- `$result['double_opt_in']` se marketing accettato
 
-## Conferma marketing (double opt-in)
+Convenzione campi form usata dal service:
 
-```php
-$confirm = confirmUserMarketingOptIn($token, [
-    'locale' => 'de',
-    'source' => 'web',
-    'ui_surface' => 'email_link'
-]);
-```
+- checkbox: `accept_<doc_type>`
+- hidden documento: `<doc_type>_id`
 
-## Revoca marketing
+Esempio con helper:
 
-```php
-$withdraw = withdrawUserMarketingConsent((int) $userId, [
-    'locale' => 'it',
-    'source' => 'web',
-    'ui_surface' => 'profile_settings'
-]);
-```
+- `inputAcceptDocument('terms_conditions')` -> `accept_terms_conditions` + `terms_conditions_id`
+- `inputAcceptDocument('privacy_policy')` -> `accept_privacy_policy` + `privacy_policy_id`
+Per i tipi documento custom, il service salva `consent_type` come `doc_<doc_type>`.
 
 ## Lettura stato consensi
 
@@ -107,19 +90,6 @@ $snapshot = getUserConsentsSnapshot((int) $userId, 100);
 
 ## Regole importanti
 
-- `privacy_ack` non è consenso marketing e non è consenso generale.
+- `privacy_ack` non è consenso generale al trattamento.
 - `terms_accept` è accettazione contrattuale.
-- Marketing separato e facoltativo.
-- Il marketing è attivo solo dopo `marketing_optin_confirmed`.
 - Ogni variazione crea nuovo evento, storico mai sovrascritto.
-
-## Vincolo email verificata per marketing
-
-Nel service, il marketing richiede utente verificato:
-
-- `user.email_verified = 1` oppure
-- `user.email_verified_at` valorizzato
-
-Se non verificato:
-
-- errore: `Per accettare il marketing devi prima confermare la tua email.`

@@ -29,7 +29,12 @@
                 throw new ConsentException('last_event_id non valido per user_consent_state');
             }
 
-            ConsentDictionary::assertAllowed($consentType, ConsentDictionary::consentTypes(), 'consent_type');
+            $consentType = ConsentDictionary::normalizeConsentType($consentType);
+
+            if ($consentType === '') {
+                throw new ConsentException('consent_type non valido per user_consent_state');
+            }
+
             ConsentDictionary::assertAllowed($currentStatus, ConsentDictionary::statuses(), 'current_status');
 
             $updatedAt = $updatedAt ?? $this->now();
@@ -77,4 +82,3 @@
 
         }
     }
-

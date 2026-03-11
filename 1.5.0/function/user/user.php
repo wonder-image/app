@@ -54,11 +54,131 @@
         $RETURN->fullName = isset($RETURN->name) ? $RETURN->name.' '.$RETURN->surname : '';
         $RETURN->prettyCreation = isset($RETURN->creation) ? date('d/m/Y', strtotime($RETURN->creation)).' alle '.date('H:i', strtotime($RETURN->creation)) : '';
 
-        $RETURN->active = $RETURN->active == 'true' || $RETURN->active == true ? true : false;
-        $RETURN->email_verified = isset($RETURN->email_verified) && ($RETURN->email_verified == '1' || $RETURN->email_verified == 1 || $RETURN->email_verified === true || $RETURN->email_verified === 'true');
-        $RETURN->deleted = $RETURN->deleted == 'true' || $RETURN->deleted == true ? true : false;
+        $RETURN->active = filter_var($RETURN->active ?? false, FILTER_VALIDATE_BOOLEAN);;
+        $RETURN->email_verified = filter_var($RETURN->email_verified ?? false, FILTER_VALIDATE_BOOLEAN);
+        $RETURN->deleted = filter_var($RETURN->deleted ?? true, FILTER_VALIDATE_BOOLEAN);
 
         return $RETURN;
+
+    }
+
+    // Prepara la configurazione specifica della verifica email.
+    function userPermissionEmailVerificationConfig($PERMISSION, array $rules): array
+    {
+
+        global $PAGE;
+
+        $wildcardRule = isset($rules['*']) && is_array($rules['*']) ? $rules['*'] : [];
+        $emailRule = isset($rules['email']) && is_array($rules['email']) ? $rules['email'] : [];
+        $links = is_object($PERMISSION) && isset($PERMISSION->links) && is_array($PERMISSION->links) ? $PERMISSION->links : [];
+
+        $tokenLink = trim((string) (
+            $emailRule['token_link']
+            ?? $emailRule['verify_link']
+            ?? $wildcardRule['token_link']
+            ?? $wildcardRule['verify_link']
+            ?? ($links['email-verification'] ?? '')
+        ));
+
+        $sentLink = trim((string) (
+            $emailRule['sent_link']
+            ?? $wildcardRule['sent_link']
+            ?? ($links['email-verification-sent'] ?? '')
+        ));
+
+        $ttlHours = (int) ($emailRule['ttl_hours'] ?? $wildcardRule['ttl_hours'] ?? 24);
+        $redirectBase64 = isset($PAGE) && is_object($PAGE) && isset($PAGE->redirectBase64)
+            ? trim((string) $PAGE->redirectBase64)
+            : '';
+
+        if ($ttlHours <= 0) { $ttlHours = 24; }
+        if ($redirectBase64 !== '' && $sentLink !== '') {
+            $sentLink = (new Wonder\Http\UrlParser($sentLink))->addParameter('redirect', $redirectBase64);
+
+        }
+
+        return [
+            'required' => userVerificationRuleRequired($emailRule) || userVerificationRuleRequired($wildcardRule),
+            'token_link' => $tokenLink,
+            'sent_link' => $sentLink,
+            'ttl_hours' => $ttlHours,
+        ];
+
+    }
+
+    // Genera token/link e invia la mail di verifica email.
+    function userSendEmailVerificationMail(int $userId, string $userEmail, array $config): object
+    {
+
+        global $SOCIETY;
+
+        $tokenLink = trim((string) ($config['token_link'] ?? ''));
+        $sentLink = trim((string) ($config['sent_link'] ?? ''));
+        $ttlHours = (int) ($config['ttl_hours'] ?? 24);
+
+        if ($tokenLink === '') {
+            return (object) [
+                'success' => false,
+                'sent' => false,
+                'sent_link' => $sentLink,
+                'message' => 'Link verifica email non configurato',
+            ];
+        }
+
+        $payload = prepareUserEmailVerificationEmail(
+            $userId,
+            $tokenLink,
+            $sentLink !== '' ? $sentLink : null,
+            $ttlHours
+        );
+
+        if (!($payload->success ?? false)) {
+
+            $message = (string) ($payload->message ?? '');
+
+            if (str_contains(strtolower($message), 'già verificata')) {
+                return (object) [
+                    'success' => true,
+                    'sent' => false,
+                    'already_verified' => true,
+                    'sent_link' => $sentLink,
+                    'verification_url' => '',
+                ];
+            }
+
+            return (object) [
+                'success' => false,
+                'sent' => false,
+                'sent_link' => $sentLink,
+                'message' => $message,
+            ];
+
+        }
+
+        $subject = (string) ($payload->email_subject ?? __t('emails.email_verification.subject'));
+        $body = (string) ($payload->email_html ?? $payload->email_text ?? '');
+        $from = isset($SOCIETY->email) ? (string) $SOCIETY->email : '';
+        $sent = sendMail($from, $userEmail, $subject, $body);
+
+        if (!$sent) {
+            return (object) [
+                'success' => false,
+                'sent' => false,
+                'sent_link' => $sentLink,
+                'message' => 'Invio email verifica fallito',
+                'verification_url' => (string) ($payload->verification_url ?? ''),
+            ];
+        }
+
+        return (object) [
+            'success' => true,
+            'sent' => true,
+            'already_verified' => false,
+            'sent_link' => $sentLink,
+            'verification_url' => (string) ($payload->verification_url ?? ''),
+            'expires_at' => (string) ($payload->expires_at ?? ''),
+            'token_id' => (int) ($payload->token_id ?? 0),
+        ];
 
     }
 
@@ -69,16 +189,25 @@
         global $TABLE;
 
         // Crea o modifica un utente e gestisce gli hook legati alla authority.
-        // Prepara oggetti di ritorno e payload.
-        $RETURN = (object) [];
+        $RETURN = (object) [
+            'verification_required' => false,
+            'verification_checks' => [],
+            'email_verification_required' => false,
+            'email_verification_sent' => false,
+            'email_verification_sent_link' => '',
+            'email_verification_url' => '',
+            'email_verification_already_verified' => false,
+            'already_registered' => false,
+        ];
+
         $UPLOAD = [];
-        
+
         // Definisce i campi protetti che non devono essere copiati direttamente dal POST.
-        $PROTECTED_COLUMNS = ['name', 'surname', 'email', 'username', 'password', 'profile_picture', 'color', 'area', 'authority' ];
+        $PROTECTED_COLUMNS = [ 'name', 'surname', 'email', 'username', 'password', 'profile_picture', 'color', 'area', 'authority' ];
 
         // Copia nel payload solo colonne presenti in tabella e non protette.
         foreach ($POST as $column => $value) {
-            if (!in_array($column,$PROTECTED_COLUMNS) && sqlColumnExists('user', $column)) {
+            if (!in_array($column, $PROTECTED_COLUMNS, true) && sqlColumnExists('user', $column)) {
                 $UPLOAD[$column] = $value;
             }
         }
@@ -87,33 +216,60 @@
         if (isset($POST['name'])) { $UPLOAD['name'] = sanitizeFirst($POST['name']); }
         if (isset($POST['surname'])) { $UPLOAD['surname'] = sanitizeFirst($POST['surname']); }
         if (isset($POST['active'])) { $UPLOAD['active'] = $POST['active']; }
-        
-        // Email: sanitizzazione e controllo di unicita.
-        if (isset($POST['email'])) { 
-            $UPLOAD['email'] = sanitize(strtolower($POST['email'])); 
-            if (!unique($POST['email'], 'user', 'email', $MODIFY_ID)) { $ALERT = 906; }
-        }
-        
-        // Username: sanitizzazione e controllo di unicita.
-        if (isset($POST['username'])) { 
-            $UPLOAD['username'] = sanitize(strtolower($POST['username']));
-            if (!unique($POST['username'], 'user', 'username', $MODIFY_ID)) { $ALERT = 907; } 
-        }
 
         // Upload foto profilo secondo le regole configurate.
-        if (isset($POST['profile_picture'])) { 
+        if (isset($POST['profile_picture'])) {
             $RULES = isset($TABLE->USER['profile_picture']['input']['format']) ? $TABLE->USER['profile_picture']['input']['format'] : [];
             $UPLOAD['profile_picture'] = uploadFiles($POST['profile_picture'], $RULES, $PATH->rUpload.'/user', []);
         }
 
         // Normalizza il colore se presente.
-        if (isset($POST['color'])) { 
+        if (isset($POST['color'])) {
             $UPLOAD['color'] = strtolower($POST['color']);
         }
 
         // Risolve la permission associata alla authority, se presente.
         $PERMISSION = null;
         if (isset($POST['authority'])) { $PERMISSION = permissions($POST['authority']); }
+
+        // Calcola verifiche richieste (es. email) dalla permission.
+        $VERIFICATION_RULES = userPermissionVerificationRules($PERMISSION);
+        $REQUIRED_VERIFICATIONS = userPermissionRequiredVerifications($VERIFICATION_RULES);
+        $EMAIL_VERIFICATION = userPermissionEmailVerificationConfig($PERMISSION, $VERIFICATION_RULES);
+
+        $RETURN->verification_required = count($REQUIRED_VERIFICATIONS) >= 1;
+        $RETURN->verification_checks = array_keys($REQUIRED_VERIFICATIONS);
+        $RETURN->email_verification_required = (bool) $EMAIL_VERIFICATION['required'];
+        $RETURN->email_verification_sent_link = (string) ($EMAIL_VERIFICATION['sent_link'] ?? '');
+
+        $EXISTING_EMAIL_USER = null;
+        $REUSE_EXISTING_USER = false;
+
+        // Email: sanitizzazione e controllo di unicita.
+        // Se è richiesta la verifica email, un account già esistente viene riutilizzato.
+        if (isset($POST['email'])) {
+
+            $UPLOAD['email'] = sanitize(strtolower($POST['email']));
+
+            if ($MODIFY_ID == null && ($EMAIL_VERIFICATION['required'] ?? false)) {
+                $EXISTING_EMAIL_USER = infoUser($UPLOAD['email'], 'email');
+                $REUSE_EXISTING_USER = (bool) ($EXISTING_EMAIL_USER->exists ?? false);
+                $RETURN->already_registered = $REUSE_EXISTING_USER;
+            }
+
+            if (!$REUSE_EXISTING_USER && !unique($UPLOAD['email'], 'user', 'email', $MODIFY_ID)) {
+                $ALERT = 906;
+            }
+
+        }
+
+        // Username: sanitizzazione e controllo di unicita.
+        if (isset($POST['username'])) {
+            $UPLOAD['username'] = sanitize(strtolower($POST['username']));
+            if (!$REUSE_EXISTING_USER && !unique($UPLOAD['username'], 'user', 'username', $MODIFY_ID)) {
+                $ALERT = 907;
+            }
+        }
 
         if ($MODIFY_ID == null) {
 
@@ -130,48 +286,89 @@
             $UPLOAD['authority'] = json_encode($authority);
             $UPLOAD['area'] = json_encode($area);
 
-            // Genera username di default e cifra la password se presente.
-            if (!isset($UPLOAD['username']) || empty($UPLOAD['username'])) { $UPLOAD['username'] = create_link(substr($UPLOAD['email'], 0, strpos($UPLOAD['email'], '@')), 'user', 'username'); }
-            if (isset($POST['password'])) { $UPLOAD['password'] = hashPassword($POST['password']); }
+            if ($REUSE_EXISTING_USER && is_object($EXISTING_EMAIL_USER) && ($EXISTING_EMAIL_USER->exists ?? false)) {
 
-            // Validazione authority prima di scrivere dati su DB.
-            if (empty($ALERT) && $PERMISSION && !empty($PERMISSION->functionValidate)) {
-
-                $AUTHORITY_VALIDATE = call_user_func_array($PERMISSION->functionValidate, [$POST, $UPLOAD, null, $MODIFY_ID]);
-
-                // La validazione puo aggiornare il POST (normalizzazioni o default).
-                if (is_object($AUTHORITY_VALIDATE) && isset($AUTHORITY_VALIDATE->post) && is_array($AUTHORITY_VALIDATE->post)) {
-                    $POST = array_merge($POST, $AUTHORITY_VALIDATE->post);
-                }
-
-                // Flag per evitare doppia validazione negli hook di authority.
-                if (isset($POST['authority'])) { $POST['_' . $POST['authority'] . '_validated'] = true; }
-
-            }
-
-            if (empty($ALERT)) { 
-
-                // Inserisce il record utente.
-                $sql = sqlInsert('user', $UPLOAD); 
-
-                // Prepara il ritorno base.
-                $RETURN->user = infoUser($sql->insert_id);
+                $RETURN->user = infoUser($EXISTING_EMAIL_USER->id);
                 $RETURN->values = $UPLOAD;
-
-                // Hook di creazione per authority specifica.
-                if ($PERMISSION && !empty($PERMISSION->functionCreation)) {
-                    
-                    $AUTHORITY_UPLOAD = call_user_func_array($PERMISSION->functionCreation, [$POST, $UPLOAD, $RETURN->user, $MODIFY_ID]);
-                    $RETURN->values = array_merge($AUTHORITY_UPLOAD->values, $UPLOAD);
-                    $RETURN->user = $AUTHORITY_UPLOAD->user;
-
-                }
 
             } else {
 
-                // In caso di errori, ritorna utente vuoto e dati originali.
-                $RETURN->user = infoUser('');
-                $RETURN->values = $POST;
+                // Genera username di default e cifra la password se presente.
+                if (!isset($UPLOAD['username']) || empty($UPLOAD['username'])) {
+                    $usernameBase = isset($UPLOAD['email']) ? explode('@', (string) $UPLOAD['email'])[0] : code(8, 'letters');
+                    $UPLOAD['username'] = create_link($usernameBase, 'user', 'username');
+                }
+
+                if (isset($POST['password'])) { $UPLOAD['password'] = hashPassword($POST['password']); }
+
+                // Validazione authority prima di scrivere dati su DB.
+                if (empty($ALERT) && $PERMISSION && !empty($PERMISSION->functionValidate)) {
+
+                    $AUTHORITY_VALIDATE = call_user_func_array($PERMISSION->functionValidate, [ $POST, $UPLOAD, null, $MODIFY_ID ]);
+
+                    // La validazione puo aggiornare il POST (normalizzazioni o default).
+                    if (is_object($AUTHORITY_VALIDATE) && isset($AUTHORITY_VALIDATE->post) && is_array($AUTHORITY_VALIDATE->post)) {
+                        $POST = array_merge($POST, $AUTHORITY_VALIDATE->post);
+                    }
+
+                    // Flag per evitare doppia validazione negli hook di authority.
+                    if (isset($POST['authority'])) { $POST['_' . $POST['authority'] . '_validated'] = true; }
+
+                }
+
+                if (empty($ALERT)) {
+
+                    // Inserisce il record utente.
+                    $sql = sqlInsert('user', $UPLOAD);
+
+                    // Prepara il ritorno base.
+                    $RETURN->user = infoUser($sql->insert_id);
+                    $RETURN->values = $UPLOAD;
+
+                    // Hook di creazione per authority specifica.
+                    if ($PERMISSION && !empty($PERMISSION->functionCreation)) {
+
+                        $AUTHORITY_UPLOAD = call_user_func_array($PERMISSION->functionCreation, [ $POST, $UPLOAD, $RETURN->user, $MODIFY_ID ]);
+                        $RETURN->values = array_merge($AUTHORITY_UPLOAD->values, $UPLOAD);
+                        $RETURN->user = $AUTHORITY_UPLOAD->user;
+
+                    }
+
+                } else {
+
+                    // In caso di errori, ritorna utente vuoto e dati originali.
+                    $RETURN->user = infoUser('');
+                    $RETURN->values = $POST;
+
+                }
+
+            }
+
+            // Invia email di verifica sia a nuovo utente sia a utente già registrato.
+            if (empty($ALERT) && ($EMAIL_VERIFICATION['required'] ?? false)) {
+
+                $USER_ID = (int) ($RETURN->user->id ?? 0);
+                $USER_EMAIL = (string) ($RETURN->user->email ?? ($UPLOAD['email'] ?? ''));
+
+                if ($USER_ID <= 0 || $USER_EMAIL === '') {
+
+                    $ALERT = 908;
+
+                } else {
+
+                    $MAIL_RESULT = userSendEmailVerificationMail($USER_ID, $USER_EMAIL, $EMAIL_VERIFICATION);
+
+                    $RETURN->email_verification_sent = (bool) ($MAIL_RESULT->sent ?? false);
+                    $RETURN->email_verification_url = (string) ($MAIL_RESULT->verification_url ?? '');
+                    $RETURN->email_verification_already_verified = (bool) ($MAIL_RESULT->already_verified ?? false);
+                    $RETURN->email_verification_sent_link = (string) ($MAIL_RESULT->sent_link ?? $RETURN->email_verification_sent_link);
+
+                    if (!($MAIL_RESULT->success ?? false)) {
+                        $ALERT = 908;
+                        $RETURN->email_verification_error = (string) ($MAIL_RESULT->message ?? '');
+                    }
+
+                }
 
             }
 
@@ -184,7 +381,7 @@
             // Validazione authority prima della modifica.
             if (empty($ALERT) && $PERMISSION && !empty($PERMISSION->functionValidate)) {
 
-                $AUTHORITY_VALIDATE = call_user_func_array($PERMISSION->functionValidate, [$POST, $UPLOAD, $M_USER, $MODIFY_ID]);
+                $AUTHORITY_VALIDATE = call_user_func_array($PERMISSION->functionValidate, [ $POST, $UPLOAD, $M_USER, $MODIFY_ID ]);
 
                 // La validazione puo aggiornare il POST (normalizzazioni o default).
                 if (is_object($AUTHORITY_VALIDATE) && isset($AUTHORITY_VALIDATE->post) && is_array($AUTHORITY_VALIDATE->post)) {
@@ -199,7 +396,7 @@
             // Recupera area e authority attuali.
             $area = $M_USER->area;
             $authority = $M_USER->authority;
-            
+
             // Aggiunge area se non presente.
             if (isset($POST['area']) && !in_array($POST['area'], $area)) { array_push($area, $POST['area']); }
 
@@ -211,8 +408,8 @@
                 # Ogni utente può avere solo un permesso per l'area backend o api
 
                 // Backend/API: mantiene un solo permesso per area.
-                if (isset($POST['authority']) && !in_array($POST['authority'], $authority)) { 
-                    
+                if (isset($POST['authority']) && !in_array($POST['authority'], $authority)) {
+
                     $new_authority = [];
 
                     foreach ($authority as $k => $v) {
@@ -222,7 +419,7 @@
                     }
 
                     array_push($new_authority, $POST['authority']);
-                    
+
                     $authority = $new_authority;
 
                 }
@@ -242,19 +439,19 @@
             $UPLOAD['authority'] = json_encode($authority);
             $UPLOAD['area'] = json_encode($area);
 
-            if (empty($ALERT)) { 
-                
+            if (empty($ALERT)) {
+
                 // Aggiorna il record utente.
-                sqlModify('user', $UPLOAD, 'id', $MODIFY_ID); 
-            
+                sqlModify('user', $UPLOAD, 'id', $MODIFY_ID);
+
                 // Prepara il ritorno base.
                 $RETURN->user = infoUser($M_USER->id);
                 $RETURN->values = $UPLOAD;
-               
+
                 // Hook di modifica per authority specifica.
                 if ($PERMISSION && !empty($PERMISSION->functionModify)) {
-                    
-                    $AUTHORITY_UPLOAD = call_user_func_array($PERMISSION->functionModify, [$POST, $UPLOAD, $RETURN->user, $MODIFY_ID]);
+
+                    $AUTHORITY_UPLOAD = call_user_func_array($PERMISSION->functionModify, [ $POST, $UPLOAD, $RETURN->user, $MODIFY_ID ]);
                     $RETURN->values = array_merge($AUTHORITY_UPLOAD->values, $UPLOAD);
                     $RETURN->user = $AUTHORITY_UPLOAD->user;
 
@@ -266,11 +463,11 @@
                 $RETURN->user = infoUser('');
                 $RETURN->values = $POST;
 
-            };
+            }
 
         }
 
         // Ritorna utente e valori elaborati.
         return $RETURN;
-        
+
     }

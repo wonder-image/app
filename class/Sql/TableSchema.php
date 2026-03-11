@@ -122,6 +122,30 @@
         }
 
         /**
+         * Azione ON UPDATE per chiave esterna.
+         *
+         * Esempio: foreignOnUpdate('CASCADE')
+         */
+        public function foreignOnUpdate(string $action): self
+        {
+
+            return $this->schema('foreign_on_update', strtoupper(trim($action)));
+
+        }
+
+        /**
+         * Azione ON DELETE per chiave esterna.
+         *
+         * Esempio: foreignOnDelete('RESTRICT')
+         */
+        public function foreignOnDelete(string $action): self
+        {
+
+            return $this->schema('foreign_on_delete', strtoupper(trim($action)));
+
+        }
+
+        /**
          * Crea un indice nella colonna
          * 
          * @param string|array $column
