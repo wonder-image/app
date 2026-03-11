@@ -706,6 +706,38 @@
 
                         }
 
+                    } else if ($type == 'status') {
+
+                        if (!empty($VALUE)) {
+
+                            $bool = filter_var($VALUE, FILTER_VALIDATE_BOOLEAN);
+                            
+                            if ($bool) {
+                                $VALUE = '<span class="badge text-bg-success">SUCCESSO</span>';
+                            } else {
+                                $VALUE = '<span class="badge text-bg-danger">ERRORE</span>';
+                            }
+
+                        }
+
+                    } else if ($type == 'user' || $type == 'user_avatar' || $type == 'user_name') {
+
+                        if (!empty($VALUE)) {
+
+                            $U = infoUser($VALUE);
+                            
+                            if ($U->exists) {
+
+                                $VALUE = match ($type) {
+                                    'user' => '<div class="d-inline-flex"><div class="me-1" style="width: 23px; font-size: 10px">'.$U->avatar . '</div> ' . $U->fullName.'</div>',
+                                    'user_avatar' => '<div style="width: 23px; font-size: 10px">'.$U->avatar.'</div>',
+                                    'user_name' => $U->fullName,
+                                };
+                                
+                            }
+                            
+                        }
+
                     }
 
                 }
