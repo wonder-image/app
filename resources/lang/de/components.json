@@ -12,14 +12,17 @@
             "password" : { "label" : "Passwort" },
             "message" : { "label" : "Nachricht" },
             "request" : { "label" : "Was brauchen Sie?" },
-            "accept_terms" : {
+            "terms_conditions" : {
                 "label" : "Ich akzeptiere die <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Allgemeinen Geschäftsbedingungen</a>"
             },
-            "ack_privacy" : {
+            "privacy_policy" : {
                 "label" : "Ich habe die <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Datenschutzerklärung</a> zur Kenntnis genommen"
             },
-            "accept_marketing" : {
+            "marketing" : {
                 "label" : "Ich stimme dem Erhalt von Marketing-Mitteilungen zu"
+            },
+            "cookie_policy" : {
+                "label" : "Ich akzeptiere die <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Cookie-Richtlinie</a>"
             },
             "privacy" : {
                 "label" : "Ich akzeptiere die <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Datenschutzerklärung</a> und die <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Allgemeinen Geschäftsbedingungen</a>"
@@ -47,6 +50,16 @@
         "cel" : "Handy",
         "mail" : "E-Mail",
         "pi" : "USt-IdNr.",
-        "cf" : "Steuernummer"
+        "cf" : "Steuernummer",
+        "privacy_policy" : "Ich habe die Datenschutzerklärung zur Kenntnis genommen",
+        "terms_conditions" : "Ich akzeptiere die Allgemeinen Geschäftsbedingungen",
+        "cookie_policy" : "Ich akzeptiere die Cookie-Richtlinie",
+        "marketing" : "Ich stimme dem Erhalt von Marketing-Mitteilungen zu"
+    },
+    "legal" : {
+        "privacy_policy" : "Datenschutzerklärung",
+        "terms_conditions" : "Allgemeine Geschäftsbedingungen",
+        "cookie_policy" : "Cookie-Richtlinie",
+        "marketing" : "Marketing-Einwilligung"
     }
 }

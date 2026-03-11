@@ -12,14 +12,17 @@
             "password" : { "label" : "Mot de passe" },
             "message" : { "label" : "Message" },
             "request" : { "label" : "De quoi avez-vous besoin ?" },
-            "accept_terms" : {
+            "terms_conditions" : {
                 "label" : "J’accepte les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
             },
-            "ack_privacy" : {
+            "privacy_policy" : {
                 "label" : "J’ai pris connaissance de la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a>"
             },
-            "accept_marketing" : {
+            "marketing" : {
                 "label" : "J’accepte de recevoir des communications marketing"
+            },
+            "cookie_policy" : {
+                "label" : "J’accepte la <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique des cookies</a>"
             },
             "privacy" : {
                 "label" : "J’accepte la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a> et les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
@@ -47,6 +50,16 @@
         "cel" : "Portable",
         "mail" : "E-mail",
         "pi" : "N° TVA",
-        "cf" : "Code fiscal"
+        "cf" : "Code fiscal",
+        "privacy_policy" : "J’ai pris connaissance de la Politique de confidentialité",
+        "terms_conditions" : "J’accepte les Termes et conditions",
+        "cookie_policy" : "J’accepte la Politique des cookies",
+        "marketing" : "J’accepte de recevoir des communications marketing"
+    },
+    "legal" : {
+        "privacy_policy" : "Politique de confidentialité",
+        "terms_conditions" : "Termes et conditions",
+        "cookie_policy" : "Politique des cookies",
+        "marketing" : "Consentement marketing"
     }
 }

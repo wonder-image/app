@@ -12,14 +12,17 @@
             "password" : { "label" : "Password" },
             "message" : { "label" : "Message" },
             "request" : { "label" : "What do you need?" },
-            "accept_terms" : {
+            "terms_conditions" : {
                 "label" : "I accept the <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Terms and Conditions</a>"
             },
-            "ack_privacy" : {
+            "privacy_policy" : {
                 "label" : "I acknowledge the <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a>"
             },
-            "accept_marketing" : {
+            "marketing" : {
                 "label" : "I consent to receive marketing communications"
+            },
+            "cookie_policy" : {
+                "label" : "I accept the <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Cookie Policy</a>"
             },
             "privacy" : {
                 "label" : "I accept the <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a> and the <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Terms and Conditions</a>"
@@ -47,6 +50,16 @@
         "cel" : "Mobile",
         "mail" : "Email",
         "pi" : "VAT No.",
-        "cf" : "Tax Code"
+        "cf" : "Tax Code",
+        "privacy_policy" : "I acknowledge the Privacy Policy",
+        "terms_conditions" : "I accept the Terms and Conditions",
+        "cookie_policy" : "I accept the Cookie Policy",
+        "marketing" : "I consent to receive marketing communications"
+    },
+    "legal" : {
+        "privacy_policy" : "Privacy Policy",
+        "terms_conditions" : "Terms and Conditions",
+        "cookie_policy" : "Cookie Policy",
+        "marketing" : "Marketing Consent"
     }
 }

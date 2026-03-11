@@ -171,3 +171,164 @@
         return $XML;
 
     }
+
+    function contentsToEditorBlocks(mixed $contents): array
+    {
+
+        $newBlockId = static function (): string {
+            try {
+                return rtrim(strtr(base64_encode(random_bytes(9)), '+/', '-_'), '=');
+            } catch (Throwable $exception) {
+                return substr(md5(uniqid((string) mt_rand(), true)), 0, 10);
+            }
+        };
+
+        $makeParagraph = static function (string $text, string $alignment = 'left') use ($newBlockId): array {
+            return [
+                'id' => $newBlockId(),
+                'data' => [ 'text' => $text ],
+                'type' => 'paragraph',
+                'tunes' => [
+                    'textAlign' => [ 'alignment' => $alignment ]
+                ]
+            ];
+        };
+
+        $makeHeader = static function (string $text, string $level = '4') use ($newBlockId): array {
+            return [
+                'id' => $newBlockId(),
+                'data' => [
+                    'text' => $text,
+                    'level' => $level
+                ],
+                'type' => 'header',
+                'tunes' => [
+                    'textAlign' => [ 'alignment' => 'left' ]
+                ]
+            ];
+        };
+
+        $normalize = null;
+        $normalize = static function (mixed $content) use (&$normalize, $newBlockId, $makeParagraph, $makeHeader): array {
+
+            if (is_object($content)) {
+                $content = json_decode(json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), true);
+            }
+
+            if (is_string($content)) {
+                $content = trim($content);
+                if ($content === '') {
+                    return [];
+                }
+
+                $decoded = json_decode($content, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $content = $decoded;
+                } else {
+                    return [ $makeParagraph($content) ];
+                }
+            }
+
+            if (!is_array($content)) {
+                return [];
+            }
+
+            if (array_is_list($content)) {
+
+                $blocks = [];
+
+                foreach ($content as $block) {
+
+                    if (!is_array($block)) {
+                        $text = trim((string) $block);
+                        if ($text !== '') {
+                            $blocks[] = $makeParagraph($text);
+                        }
+                        continue;
+                    }
+
+                    $type = strtolower(trim((string) ($block['type'] ?? '')));
+                    if ($type === '') {
+                        continue;
+                    }
+
+                    if (!array_key_exists('data', $block)) {
+                        $block['data'] = [];
+                    }
+
+                    if (!isset($block['id']) || trim((string) $block['id']) === '') {
+                        $block['id'] = $newBlockId();
+                    }
+
+                    if (in_array($type, [ 'paragraph', 'header' ], true) && !isset($block['tunes']['textAlign']['alignment'])) {
+                        $block['tunes']['textAlign']['alignment'] = 'left';
+                    }
+
+                    if ($type === 'quote' && !isset($block['data']['alignment'])) {
+                        $block['data']['alignment'] = 'left';
+                    }
+
+                    $blocks[] = $block;
+
+                }
+
+                return $blocks;
+
+            }
+
+            $blocks = [];
+
+            $title = trim((string) ($content['title'] ?? ''));
+            if ($title !== '') {
+                $blocks[] = $makeHeader($title, '2');
+            }
+
+            $subtitle = trim((string) ($content['subtitle'] ?? ''));
+            if ($subtitle !== '') {
+                $blocks[] = $makeParagraph($subtitle);
+            }
+
+            $text = trim((string) ($content['text'] ?? ''));
+            if ($text !== '') {
+                $blocks[] = $makeParagraph($text);
+            }
+
+            $paragraphs = $content['paragraphs'] ?? ($content['paragraph'] ?? []);
+            if (is_array($paragraphs)) {
+
+                foreach ($paragraphs as $paragraph) {
+
+                    if (!is_array($paragraph)) {
+                        $paragraphText = trim((string) $paragraph);
+                        if ($paragraphText !== '') {
+                            $blocks[] = $makeParagraph($paragraphText);
+                        }
+                        continue;
+                    }
+
+                    $paragraphTitle = trim((string) ($paragraph['title'] ?? ''));
+                    if ($paragraphTitle !== '') {
+                        $blocks[] = $makeHeader($paragraphTitle, '4');
+                    }
+
+                    $paragraphText = trim((string) ($paragraph['text'] ?? ($paragraph['content'] ?? '')));
+                    if ($paragraphText !== '') {
+                        $blocks[] = $makeParagraph($paragraphText);
+                    }
+
+                }
+
+            }
+
+            $payoff = trim((string) ($content['payoff'] ?? ''));
+            if ($payoff !== '') {
+                $blocks[] = $makeParagraph($payoff);
+            }
+
+            return $blocks;
+
+        };
+
+        return $normalize($contents);
+
+    }

@@ -12,14 +12,17 @@
             "password" : { "label" : "Password" },
             "message" : { "label" : "Messaggio" },
             "request" : { "label" : "Di cosa hai bisogno?" },
-            "accept_terms" : {
+            "terms_conditions" : {
                 "label" : "Accetto i <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termini e Condizioni</a>"
             },
-            "ack_privacy" : {
+            "privacy_policy" : {
                 "label" : "Ho preso visione della <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a>"
             },
-            "accept_marketing" : {
+            "marketing" : {
                 "label" : "Acconsento a ricevere comunicazioni marketing"
+            },
+            "cookie_policy" : {
+                "label" : "Accetto la <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Cookie Policy</a>"
             },
             "privacy" : {
                 "label" : "Accetto la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politica sulla privacy</a> e i <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termini e Condizioni</a>"
@@ -47,6 +50,16 @@
         "cel" : "Cel",
         "mail" : "Mail",
         "pi" : "P.Iva",
-        "cf" : "C.Fiscale"
+        "cf" : "C.Fiscale",
+        "privacy_policy" : "Ho preso visione della Privacy Policy",
+        "terms_conditions" : "Accetto i Termini e Condizioni",
+        "cookie_policy" : "Accetto la Cookie Policy",
+        "marketing" : "Acconsento a ricevere comunicazioni marketing"
+    },
+    "legal" : {
+        "privacy_policy" : "Informativa sulla privacy",
+        "terms_conditions" : "Termini e condizioni",
+        "cookie_policy" : "Cookie Policy",
+        "marketing" : "Consenso Marketing"
     }
 }

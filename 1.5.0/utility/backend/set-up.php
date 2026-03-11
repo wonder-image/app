@@ -64,6 +64,11 @@
                     'file' => '',
                     'authority' => ['admin']
                 ], [
+                    'title' => 'Documenti legali',
+                    'folder' => 'config-app/legal-documents',
+                    'file' => 'list.php',
+                    'authority' => ['admin']
+                ], [
                     'title' => 'Utenti',
                     'folder' => 'config-app/user',
                     'file' => 'list.php',

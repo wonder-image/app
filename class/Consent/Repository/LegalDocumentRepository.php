@@ -14,7 +14,12 @@
         public function findActiveByTypeAndLanguage(string $docType, string $languageCode): ?array
         {
 
-            ConsentDictionary::assertAllowed($docType, ConsentDictionary::documentTypes(), 'doc_type');
+            $docType = ConsentDictionary::normalizeDocumentType($docType);
+
+            if ($docType === '') {
+                throw new ConsentException('doc_type non valido');
+            }
+
             $languageCode = ConsentDictionary::normalizeLanguageCode($languageCode);
 
             $result = $this->query->Select(
@@ -61,4 +66,3 @@
 
         }
     }
-
