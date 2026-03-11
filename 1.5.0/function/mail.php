@@ -15,12 +15,36 @@
         ]
     ];
 
+    $MAIL_LOG_STATUS = [
+        'sent' => [
+            'name' => 'Inviata',
+            'text' => 'Email inviata con successo',
+            'icon' => 'bi bi-check-circle',
+            'color' => 'success'
+        ],
+        'failed' => [
+            'name' => 'Fallita',
+            'text' => 'Invio email non riuscito',
+            'icon' => 'bi bi-exclamation-octagon',
+            'color' => 'danger'
+        ]
+    ];
+
     function mailService($service = null)
     {
 
         global $MAIL_SERVICE;
 
         return arrayDetails($MAIL_SERVICE, $service);
+
+    }
+
+    function mailLogStatus($status = null)
+    {
+
+        global $MAIL_LOG_STATUS;
+
+        return arrayDetails($MAIL_LOG_STATUS, $status);
 
     }
 

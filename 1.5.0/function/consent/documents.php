@@ -37,7 +37,7 @@
 
     }
 
-    function infoDocuments($value, $filter = 'id') {
+    function infoLegalDocument($value, $filter = 'id') {
 
         $RETURN = info('legal_documents', $filter, $value);
 
