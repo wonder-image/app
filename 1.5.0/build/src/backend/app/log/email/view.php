@@ -61,7 +61,7 @@
                 <wi-card class="col-6">
                     <h6 class="col-12"> Messaggio </h6>
                     <div class="col-12">
-                        <?= wiCard($MAIL->body_text) ?>
+                        <?= wiCard(nl2br($MAIL->body_text)) ?>
                     </div>
                     <h6 class="col-12"> Allegati </h6>
                     <div class="col-12">
