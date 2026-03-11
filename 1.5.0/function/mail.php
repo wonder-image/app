@@ -139,7 +139,7 @@
                         'subject' => (string) $object,
                         'template' => (string) $template,
                         'body_raw' => $BODY_RAW,
-                        'body_text' => $BODY_RAW,
+                        'body_text' => $BODY_TEXT,
                         'attachments' => $attachments,
                         'service' => $MAIL_SERVICE_SENT,
                         'status' => $MAIL_SENT ? 'sent' : 'failed',
