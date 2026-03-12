@@ -329,6 +329,11 @@
         "title": "Errore 923",
         "text": "Hai caricato troppi file!"
     },
+    "924": {
+        "type": "danger",
+        "title": "Errore 924",
+        "text": "Il tuo account risulta registrato parzialmente. Registrati di nuovo per completare l'accesso."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",

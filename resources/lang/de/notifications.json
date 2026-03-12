@@ -329,6 +329,11 @@
         "title": "Fehler 923",
         "text": "Du hast zu viele Dateien hochgeladen!"
     },
+    "924": {
+        "type": "danger",
+        "title": "Fehler 924",
+        "text": "Dein Konto scheint nur teilweise registriert zu sein. Bitte registriere dich erneut, um den Zugriff abzuschließen."
+    },
     "950": {
         "type": "danger",
         "title": "Fehler 950",

@@ -329,6 +329,11 @@
         "title": "Erreur 923",
         "text": "Vous avez téléchargé trop de fichiers !"
     },
+    "924": {
+        "type": "danger",
+        "title": "Erreur 924",
+        "text": "Votre compte semble partiellement enregistré. Inscrivez-vous à nouveau pour finaliser l'accès."
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

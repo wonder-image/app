@@ -120,7 +120,8 @@
     }
 
     // Login utente (remember-me automatico)
-    function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null) {
+    function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null)
+    {
 
         global $ALERT;
 
@@ -128,104 +129,109 @@
         $PASSWORD = sanitize($PASSWORD);
 
         $U = infoUser($VALUE, $KEY);
-
         $reason = '';
 
-        if ($U->exists) {
-            if (checkPassword($PASSWORD, $U->password)){
-                if (!$U->deleted) {
-                    if ($U->active) {
-                        if (in_array($AREA, $U->area)) {
-
-                            $permitAllowed = false;
-                            
-                            if ($PERMIT_REQUIRED == null) {
-                                $permitAllowed = true;
-                            } elseif (is_array($PERMIT_REQUIRED)) {
-                                $permitAllowed = count(array_intersect($PERMIT_REQUIRED, $U->authority)) >= 1;
-                            } else {
-                                $permitAllowed = in_array($PERMIT_REQUIRED, $U->authority);
-                            }
-
-                            if ($permitAllowed) {
-
-                                $EMAIL_VERIFICATION = userLoginEmailVerificationConfig($U, $AREA, $PERMIT_REQUIRED);
-
-                                if (($EMAIL_VERIFICATION['required'] ?? false) && !$U->email_verified) {
-
-                                    $MAIL_RESULT = userSendEmailVerificationMail((int) $U->id, (string) $U->email, $EMAIL_VERIFICATION);
-                                    $sentLink = trim((string) ($MAIL_RESULT->sent_link ?? ($EMAIL_VERIFICATION['sent_link'] ?? '')));
-
-                                    $meta = [
-                                        'key' => $KEY,
-                                        'value' => $VALUE,
-                                        'reason' => 'email_not_verified',
-                                        'authority' => $EMAIL_VERIFICATION['authority'] ?? '',
-                                        'email_sent' => (bool) ($MAIL_RESULT->sent ?? false),
-                                        'verification_sent_link' => $sentLink,
-                                        'flow' => (string) ($MAIL_RESULT->flow ?? ($EMAIL_VERIFICATION['flow'] ?? 'login')),
-                                        'requested_from_url' => (string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? '')),
-                                    ];
-
-                                    if (!($MAIL_RESULT->success ?? false)) {
-                                        $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
-                                        $meta['reason'] = 'email_verification_mail_failed';
-                                        $meta['error'] = (string) ($MAIL_RESULT->message ?? '');
-                                    }
-
-                                    Wonder\Auth\AuthLog::write('login_failed', (int) $U->id, $AREA, false, $meta);
-
-                                    if ($sentLink !== '') {
-                                        header("Location: $sentLink");
-                                        exit;
-                                    }
-
-                                    $reason = (string) $meta['reason'];
-                                    return false;
-
-                                }
-
-                                $_SESSION['user_id'] = $U->id;
-
-                                Wonder\Auth\RememberMe::set($U->id, $AREA);
-                                Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
-                                    'key' => $KEY,
-                                    'value' => $VALUE
-                                ]);
-
-                                return true;
-
-                            } else {
-                                $ALERT = 915;
-                                $reason = 'permit_not_allowed';
-                            }
-                        } else {
-                            $ALERT = 911;
-                            $reason = 'area_not_allowed';
-                        }
-                    } else {
-                        $ALERT = 909;
-                        $reason = 'user_inactive';
-                    }
-                } else {
-                    $ALERT = 912;
-                    $reason = 'user_deleted';
-                }
-            } else {
-                $ALERT = 905; 
-                $reason = 'invalid_password';
-            }
-        } else {
-            $ALERT = ($KEY == 'email') ? 904 : 901;
+        if (!$U->exists) {
+            $ALERT = ($KEY === 'email') ? 904 : 901;
             $reason = 'user_not_found';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
         }
 
-        Wonder\Auth\AuthLog::write('login_failed', $U->exists ? (int) $U->id : null, $AREA, false, [
+        $passwordMissing = trim((string) ($U->password ?? '')) === '';
+        if ($passwordMissing) {
+            $ALERT = 924;
+            $reason = 'partial_registration_password_missing';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
+        }
+
+        if (!checkPassword($PASSWORD, $U->password)) {
+            $ALERT = 905;
+            $reason = 'invalid_password';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
+        }
+
+        if ($U->deleted) {
+            $ALERT = 912;
+            $reason = 'user_deleted';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
+        }
+
+        if (!$U->active) {
+            $ALERT = 909;
+            $reason = 'user_inactive';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
+        }
+
+        if (!in_array($AREA, $U->area, true)) {
+            $ALERT = 911;
+            $reason = 'area_not_allowed';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
+        }
+
+        if (!isPermitAllowed($PERMIT_REQUIRED, $U->authority)) {
+            $ALERT = 915;
+            $reason = 'permit_not_allowed';
+            return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
+        }
+
+        $EMAIL_VERIFICATION = userLoginEmailVerificationConfig($U, $AREA, $PERMIT_REQUIRED);
+
+        if (($EMAIL_VERIFICATION['required'] ?? false) && !$U->email_verified) {
+            $ALERT = 924;
+            $reason = 'partial_registration_email_not_verified';
+
+            Wonder\Auth\AuthLog::write('login_failed', (int) $U->id, $AREA, false, [
+                'key' => $KEY,
+                'value' => $VALUE,
+                'reason' => $reason,
+                'authority' => $EMAIL_VERIFICATION['authority'] ?? '',
+                'flow' => (string) ($EMAIL_VERIFICATION['flow'] ?? 'login'),
+                'requested_from_url' => (string) ($EMAIL_VERIFICATION['requested_from_url'] ?? ''),
+            ]);
+
+            return false;
+        }
+
+        $_SESSION['user_id'] = $U->id;
+
+        Wonder\Auth\RememberMe::set($U->id, $AREA);
+        Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
             'key' => $KEY,
             'value' => $VALUE,
-            'reason' => $reason
         ]);
+
+        return true;
         
+    }
+
+    function isPermitAllowed($PERMIT_REQUIRED, array $userAuthorities): bool
+    {
+        if ($PERMIT_REQUIRED === null) {
+            return true;
+        }
+
+        if (is_array($PERMIT_REQUIRED)) {
+            return count(array_intersect($PERMIT_REQUIRED, $userAuthorities)) > 0;
+        }
+
+        return in_array($PERMIT_REQUIRED, $userAuthorities, true);
+    }
+
+    function logFailedLogin($U, $AREA, $KEY, $VALUE, $reason): bool
+    {
+        Wonder\Auth\AuthLog::write(
+            'login_failed',
+            $U->exists ? (int) $U->id : null,
+            $AREA,
+            false,
+            [
+                'key' => $KEY,
+                'value' => $VALUE,
+                'reason' => $reason,
+            ]
+        );
+
+        return false;
     }
 
     // Verifica utente senza login
