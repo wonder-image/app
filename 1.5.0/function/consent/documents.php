@@ -49,7 +49,9 @@
             $rawLabel = $RETURN->checkbox_label;
             $rawContent = $RETURN->content_snapshot;
 
-            $RETURN->renderLabel = trim((string) \Wonder\Localization\TranslationProvider::replace($rawLabel));
+            $label = trim((string) \Wonder\Localization\TranslationProvider::replace($rawLabel));
+            $label = preg_replace('#</?p\b[^>]*>#i', '', $label) ?? $label;
+            $RETURN->renderLabel = trim($label);
 
             if (is_string($rawContent)) {
                 $decodedPayload = json_decode($rawContent, true);
