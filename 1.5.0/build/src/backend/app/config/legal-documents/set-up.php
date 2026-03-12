@@ -26,9 +26,13 @@
     ];
 
     $TABLE_FIELD = [
+        "name" => [
+            "label" => "Nome",
+            "href" => "modify"
+        ],
         "doc_type" => [
             "label" => "Tipologia",
-            "href" => "modify"
+            "dimension" => "little"
         ],
         "language_code" => [
             "label" => "Lingua",
@@ -56,7 +60,7 @@
         ]
     ];
 
-    $FILTER_SEARCH = [ 'doc_type', 'checkbox_label', 'version', 'language_code', 'content_hash' ];
+    $FILTER_SEARCH = [ 'name', 'doc_type', 'checkbox_label', 'version', 'language_code', 'content_hash' ];
 
     $FILTER_CUSTOM = [
         "active" => [

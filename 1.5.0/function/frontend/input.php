@@ -1089,11 +1089,13 @@
 
         if (!$SQL->exists) {
             __log(new Exception('Non esiste il documento '.$type.' nella lingua '.__l()), 'wonder-renderer', 'verify_document_type_lang');
+            return '';
         }
-        
-        $label = trim((string) ($SQL->row['checkbox_label'] ?? $type));
 
-        return '<input type="hidden" name="'.$type.'_id" value="'.$SQL->id.'">'.
+        $document = infoLegalDocument($SQL->id);
+        $label = $document->renderLabel;
+
+        return '<input type="hidden" name="'.$type.'_id" value="'.$document->id.'">'.
         checkbox('', $fieldName, [ 'true' => [ 'label' => $label, 'attribute' => $attributes ] ], 'checkbox', $value );
 
     }

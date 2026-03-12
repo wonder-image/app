@@ -16,6 +16,13 @@
                 'null' => false
             ]
         ],
+        'name' => [
+            'sql' => [
+                'length' => 255,
+                'null' => false,
+                'default' => ''
+            ]
+        ],
         'version' => [
             'sql' => [
                 'length' => 50,
@@ -32,6 +39,11 @@
             'sql' => [
                 'length' => 255,
                 'null' => false
+            ],
+            'input' => [
+                'format' => [
+                    'sanitize' => false
+                ]
             ]
         ],
         'content_hash' => [

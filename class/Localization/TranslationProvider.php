@@ -74,30 +74,61 @@
         public static function get(string $key, array $replacements = []): mixed
         {
 
-            if (!self::$instance) {
-                throw new RuntimeException("TranslationProvider non inizializzato.");
-            }
+            $value = self::getValue($key);
 
-            // 1. Prova lingua corrente
-            $value = self::$instance->getNestedValue(self::$instance::$translations, $key);
-
-            // 2. Se non trovato, prova default
-            if ($value === null) {
-                $value = self::$instance->getNestedValue(self::$instance::$defaultTranslations, $key);
-            }
-
-            // 3. Se ancora null → errore
-            if ($value === null) {
-                throw new RuntimeException("Chiave di traduzione mancante: '{$key}'");
-            }
-
-            // 4. Sostituzione placeholder
+            // Sostituzione placeholder
             if (!empty($replacements)) {
                 $value = self::$instance->applyReplacements($value, $replacements);
             }
 
-            // 5. Sostituzione variabili globali predefinite
+            // Sostituzione variabili globali predefinite
             $value = self::$instance->replaceGlobals($value);
+
+            return $value;
+
+        }
+
+        public static function getRaw(string $key): mixed
+        {
+
+            return self::getValue($key);
+
+        }
+
+        public static function replace(mixed $value, array $replacements = []): mixed
+        {
+
+            if (!self::$instance) {
+                throw new RuntimeException("TranslationProvider non inizializzato.");
+            }
+
+            if (!empty($replacements)) {
+                $value = self::$instance->applyReplacements($value, $replacements);
+            }
+
+            return self::$instance->replaceGlobals($value);
+
+        }
+
+        private static function getValue(string $key): mixed
+        {
+
+            if (!self::$instance) {
+                throw new RuntimeException("TranslationProvider non inizializzato.");
+            }
+
+            // Prova lingua corrente
+            $value = self::$instance->getNestedValue(self::$instance::$translations, $key);
+
+            // Se non trovato, prova default
+            if ($value === null) {
+                $value = self::$instance->getNestedValue(self::$instance::$defaultTranslations, $key);
+            }
+
+            // Se ancora null → errore
+            if ($value === null) {
+                throw new RuntimeException("Chiave di traduzione mancante: '{$key}'");
+            }
 
             return $value;
 

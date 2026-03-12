@@ -12,8 +12,19 @@
     if (isset($_POST['content_snapshot'])) {
         $_POST['content_hash'] = hash('sha256', $_POST['content_snapshot']);
     }
+
+    if (isset($_POST['doc_type']) && (!isset($_POST['name']) || trim((string) $_POST['name']) === '')) {
+        $_POST['name'] = ucwords(str_replace([ '_', '-' ], ' ', (string) $_POST['doc_type']));
+    }
     
     require_once $ROOT_APP."/html/backend/index.php";
+
+    if (
+        (!isset($VALUES['name']) || trim((string) $VALUES['name']) === '')
+        && isset($VALUES['doc_type'])
+    ) {
+        $VALUES['name'] = ucwords(str_replace([ '_', '-' ], ' ', (string) $VALUES['doc_type']));
+    }
 
 ?>
 <!DOCTYPE html>
@@ -40,6 +51,9 @@
             </wi-card>
 
             <wi-card class="col-9">
+                <div class="col-8">
+                    <?=text('Nome', 'name', 'required'); ?>
+                </div>
                 <div class="col-4">
                     <?=select('Tipologia documento', 'doc_type', legalDocumentTypes(), null, 'required'); ?>
                 </div>
@@ -61,11 +75,20 @@
                     ?>
                 </div>
                 <div class="col-12">
-                    <?=textarea('Testo checkbox', 'checkbox_label', 'required', 'base'); ?>
+                    <?=textarea(
+                        'Testo checkbox',
+                        'checkbox_label',
+                        'required',
+                        'base',
+                        isset($VALUES['checkbox_label']) ? html_entity_decode((string) $VALUES['checkbox_label'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : null
+                    ); ?>
                 </div>
+            </wi-card>
                 <div class="col-12">
                     <?=textarea('Testo', 'content_snapshot', 'required', 'blog'); ?>
                 </div>
+            <wi-card>
+
             </wi-card>
 
             <wi-card class="col-3">

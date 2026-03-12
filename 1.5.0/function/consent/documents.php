@@ -40,10 +40,27 @@
     function infoLegalDocument($value, $filter = 'id') {
 
         $RETURN = info('legal_documents', $filter, $value);
+        
+        $RETURN->renderLabel = '';
+        $RETURN->renderContent = '';
 
         if ($RETURN->exists) {
 
-            $RETURN->render = (new Wonder\Plugin\Custom\Input\EditorBlocksRenderer())::make($RETURN->content_snapshot);
+            $rawLabel = $RETURN->checkbox_label;
+            $rawContent = $RETURN->content_snapshot;
+
+            $RETURN->renderLabel = trim((string) \Wonder\Localization\TranslationProvider::replace($rawLabel));
+
+            if (is_string($rawContent)) {
+                $decodedPayload = json_decode($rawContent, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $rawContent = $decodedPayload;
+                }
+            }
+
+            $rawContent = \Wonder\Localization\TranslationProvider::replace($rawContent);
+
+            $RETURN->renderContent = (new Wonder\Plugin\Custom\Input\EditorBlocksRenderer())::make($rawContent);
             
         }
 

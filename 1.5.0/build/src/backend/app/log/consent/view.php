@@ -22,6 +22,10 @@
     }
     
     $DOCUMENT = infoLegalDocument($EVENT->legal_document_id);
+    $documentName = trim((string) ($DOCUMENT->name ?? ''));
+    if ($documentName === '') {
+        $documentName = trim((string) ($DOCUMENT->doc_type ?? 'Documento legale'));
+    }
 
 ?>
 <!DOCTYPE html>
@@ -43,7 +47,7 @@
     <div class="row g-3">
 
         <wi-card class="col-12">
-            <h3><a href="<?=$REDIRECT?>" type="button" class="text-dark"><i class="bi bi-arrow-left-short"></i></a> <?=$DOCUMENT->doc_type?> </h3>
+            <h3><a href="<?=$REDIRECT?>" type="button" class="text-dark"><i class="bi bi-arrow-left-short"></i></a> <?=$documentName?> </h3>
             <h6><?= $userName ?></h6>
         </wi-card>
 
@@ -53,6 +57,7 @@
                 <wi-card class="col-6">
                     <h6 class="col-12 mb-2"> Documento </h6>
                     <div class="col-12">
+                        Nome: <b><?=$documentName?></b> <br>
                         Tipologia: <b><?=$DOCUMENT->doc_type?></b> <br>
                         Versione: <b><?=$DOCUMENT->version?></b> <br>
                         Lingua: <b><?=$DOCUMENT->language_code?></b>
