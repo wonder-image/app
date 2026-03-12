@@ -137,6 +137,8 @@ class LocalStart extends Command
             'DB_USERNAME' => $dbDefaults['username'] !== '' ? $dbDefaults['username'] : 'sf8_test_user',
             'DB_PASSWORD' => $dbPasswordDefault,
             'DB_DATABASE' => $dbDefaults['database'] !== '' ? $dbDefaults['database'] : 'main:myapp_sf8_test',
+            'DB_CHARSET' => 'latin1',
+            'DB_COLLATION' => 'latin1_swedish_ci',
             'USER_PASSWORD' => $this->randomAlphaNumeric(8),
         ];
 
@@ -246,6 +248,8 @@ DB_HOSTNAME=
 DB_USERNAME=
 DB_PASSWORD=
 DB_DATABASE=
+DB_CHARSET=latin1
+DB_COLLATION=latin1_swedish_ci
 DB_CONNECTION_LOG=false
 
 # Backend default user

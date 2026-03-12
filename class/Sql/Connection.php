@@ -9,7 +9,7 @@
 
     class Connection {
 
-        private static $hostname, $username, $password, $database;
+        private static $hostname, $username, $password, $database, $charset, $collation;
 
         private static $connection = [];
 
@@ -21,6 +21,16 @@
             self::$username = ($username === null) ? Credentials::database()->username : $username;
             self::$password = ($password === null) ? Credentials::database()->password : $password;
             self::$database = ($database === null) ? Credentials::database()->database['main'] : $database;
+            self::$charset = trim((string) (Credentials::database()->charset ?? 'latin1'));
+            self::$collation = trim((string) (Credentials::database()->collation ?? 'latin1_swedish_ci'));
+
+            if (self::$charset === '') {
+                self::$charset = 'latin1';
+            }
+
+            if (self::$collation === '') {
+                self::$collation = 'latin1_swedish_ci';
+            }
 
         }
 
@@ -51,7 +61,35 @@
 
                 } else {
 
-                    $mysqli->set_charset("latin1");
+                    $charset = is_string(self::$charset) && self::$charset !== '' ? self::$charset : 'latin1';
+                    $collation = is_string(self::$collation) ? trim(self::$collation) : '';
+
+                    if (!$mysqli->set_charset($charset)) {
+
+                        $message = "\r\n";
+                        $message .= "Impossibile impostare charset MySQL '{$charset}'\r\n";
+                        $message .= "Error N°{$mysqli->errno}\r\n";
+                        $message .= "{$mysqli->error}\r\n";
+
+                        throw new Exception($message);
+
+                    }
+
+                    if ($collation !== '') {
+
+                        $escapedCollation = $mysqli->real_escape_string($collation);
+                        if (!$mysqli->query("SET collation_connection = '{$escapedCollation}'")) {
+
+                            $message = "\r\n";
+                            $message .= "Impossibile impostare collation MySQL '{$collation}'\r\n";
+                            $message .= "Error N°{$mysqli->errno}\r\n";
+                            $message .= "{$mysqli->error}\r\n";
+
+                            throw new Exception($message);
+
+                        }
+
+                    }
 
                 }
 

@@ -27,12 +27,7 @@
 
     $TABLE_FIELD = [
         "name" => [
-            "label" => "Nome",
-            "href" => "modify"
-        ],
-        "doc_type" => [
-            "label" => "Tipologia",
-            "dimension" => "little"
+            "label" => "Nome"
         ],
         "language_code" => [
             "label" => "Lingua",
@@ -41,9 +36,6 @@
         "version" => [
             "label" => "Versione",
             "dimension" => "little"
-        ],
-        "checkbox_label" => [
-            "label" => "Testo checkbox"
         ],
         "active" => [
             "label" => "Attivo",
@@ -56,7 +48,7 @@
         "published_at" => [
             "label" => "Pubblicato",
             "format" => "datetime",
-            "dimension" => "little"
+            "dimension" => "medium"
         ]
     ];
 

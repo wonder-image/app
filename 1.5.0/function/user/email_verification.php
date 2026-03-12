@@ -148,33 +148,51 @@
         ?array $metadata = null
     ): object {
 
+        global $ALERT;
+
         $userId = (int) $userId;
+        $metadata = userEmailVerificationNormalizeMetadata($metadata);
+        $flow = (string) $metadata['flow'];
+        $requestedFromUrl = (string) ($metadata['requested_from_url'] ?? '');
+
+        $fail = function (int $alertCode, array $extra = []) use (&$ALERT, $flow, $requestedFromUrl): object {
+            $ALERT = $alertCode;
+
+            return (object) array_merge([
+                'success' => false,
+                'alert_code' => $alertCode,
+                'flow' => $flow,
+                'requested_from_url' => $requestedFromUrl,
+            ], $extra);
+        };
 
         if ($userId <= 0) {
-            return userVerificationFailure(900);
+            return $fail(900);
         }
 
         $ttlHours = max(1, min(720, $ttlHours > 0 ? $ttlHours : 24));
 
         $userSql = sqlSelect('user', [ 'id' => $userId ], 1);
         if (!$userSql->exists) {
-            return userVerificationFailure(900);
+            return $fail(900);
         }
 
         if (isUserEmailVerified($userId)) {
             return (object) [
                 'success' => true,
+                'alert_code' => null,
                 'already_verified' => true,
                 'user_id' => $userId,
                 'user_email' => (string) ($userSql->row['email'] ?? ''),
+                'flow' => $flow,
+                'requested_from_url' => $requestedFromUrl,
             ];
         }
 
         $languageCode = userEmailVerificationNormalizeLanguageCode();
-        $metadata = userEmailVerificationNormalizeMetadata($metadata);
         $metadataJson = json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (!is_string($metadataJson)) {
-            return userVerificationFailure(900);
+            return $fail(900);
         }
 
         $now = date('Y-m-d H:i:s');
@@ -195,13 +213,14 @@
         ]);
 
         if (!($insert->success ?? false)) {
-            return userVerificationFailure(900, [
+            return $fail(900, [
                 'query' => $insert->query ?? '',
             ]);
         }
 
         return (object) [
             'success' => true,
+            'alert_code' => null,
             'user_id' => $userId,
             'token_id' => (int) ($insert->insert_id ?? 0),
             'token' => $token,
@@ -209,6 +228,8 @@
             'language_code' => $languageCode,
             'expires_at' => $expiresAt,
             'user_email' => (string) ($userSql->row['email'] ?? ''),
+            'flow' => $flow,
+            'requested_from_url' => $requestedFromUrl,
         ];
 
     }
@@ -221,16 +242,30 @@
     {
 
         global $mysqli;
+        global $ALERT;
 
         $token = trim($token);
         $tokenType = trim((string) userEmailVerificationTokenType());
+        $flow = 'default';
+        $requestedFromUrl = '';
+
+        $fail = function (int $alertCode, array $extra = []) use (&$ALERT, &$flow, &$requestedFromUrl): object {
+            $ALERT = $alertCode;
+
+            return (object) array_merge([
+                'success' => false,
+                'alert_code' => $alertCode,
+                'flow' => $flow,
+                'requested_from_url' => $requestedFromUrl,
+            ], $extra);
+        };
 
         if ($token === '') {
-            return userVerificationFailure(918);
+            return $fail(918);
         }
 
         if ($tokenType === '') {
-            return userVerificationFailure(900);
+            return $fail(900);
         }
 
         $SQL = sqlSelect('consent_confirmation_tokens', [
@@ -239,33 +274,34 @@
         ], 1);
 
         if (!$SQL->exists || !is_array($SQL->row)) {
-            return userVerificationFailure(918);
+            return $fail(918);
         }
 
         $row = $SQL->row;
+        $metadata = userEmailVerificationDecodeMetadata($row['metadata_json'] ?? null);
+        $flow = (string) $metadata['flow'];
+        $requestedFromUrl = (string) ($metadata['requested_from_url'] ?? '');
         $tokenId = (int) ($row['id'] ?? 0);
         $userId = (int) ($row['user_id'] ?? 0);
         $expiresAt = (string) ($row['expires_at'] ?? '');
 
         if (!empty($row['revoked_at'])) {
-            return userVerificationFailure(918);
+            return $fail(918);
         }
 
         if (!empty($row['confirmed_at'])) {
-            return userVerificationFailure(918);
+            return $fail(918);
         }
 
         if ($expiresAt === '' || strtotime($expiresAt) < time()) {
-            return userVerificationFailure(919);
+            return $fail(919);
         }
 
         if ($userId <= 0 || $tokenId <= 0) {
-            return userVerificationFailure(918);
+            return $fail(918);
         }
 
         $now = date('Y-m-d H:i:s');
-        $metadata = userEmailVerificationDecodeMetadata($row['metadata_json'] ?? null);
-        $flow = (string) $metadata['flow'];
         $redirectBase64 = (string) ($metadata['redirect_base64'] ?? '');
         $redirectUrl = '';
         if ($redirectBase64 !== '') {
@@ -320,18 +356,20 @@
                 $mysqli->rollback();
             }
 
-            return userVerificationFailure(900);
+            return $fail(900);
 
         }
 
         return (object) [
             'success' => true,
+            'alert_code' => null,
             'user_id' => $userId,
             'token_id' => $tokenId,
             'verified_at' => $now,
             'flow' => $flow,
             'redirect_base64' => $redirectBase64,
             'redirect_url' => $redirectUrl,
+            'requested_from_url' => $requestedFromUrl,
             'metadata' => $metadata,
         ];
 
@@ -447,6 +485,26 @@
     }
 
     /**
+     * Normalizza URL sorgente della richiesta invio mail.
+     */
+    function userEmailVerificationNormalizeRequestedFromUrl(?string $requestedFromUrl): string
+    {
+
+        if ($requestedFromUrl === null) {
+            return '';
+        }
+
+        $requestedFromUrl = trim($requestedFromUrl);
+
+        if ($requestedFromUrl === '') {
+            return '';
+        }
+
+        return str_replace([ "\r", "\n" ], '', $requestedFromUrl);
+
+    }
+
+    /**
      * Normalizza metadata da salvare nel token.
      *
      * @return array<string, mixed>
@@ -457,11 +515,15 @@
         $metadata = is_array($metadata) ? $metadata : [];
         $flow = userEmailVerificationNormalizeFlow((string) ($metadata['flow'] ?? 'default'));
         $redirectBase64 = userEmailVerificationNormalizeRedirectBase64((string) ($metadata['redirect_base64'] ?? ''));
+        $requestedFromUrl = userEmailVerificationNormalizeRequestedFromUrl((string) ($metadata['requested_from_url'] ?? ''));
 
         $normalized = [ 'flow' => $flow ];
 
         if ($redirectBase64 !== '') {
             $normalized['redirect_base64'] = $redirectBase64;
+        }
+        if ($requestedFromUrl !== '') {
+            $normalized['requested_from_url'] = $requestedFromUrl;
         }
 
         return $normalized;
@@ -572,10 +634,11 @@
             'success' => false,
             'message' => (string) __t("notifications.{$alertCode}.text"),
             'alert' => $alertCode,
+            'alert_code' => $alertCode,
         ];
 
         foreach ($extra as $key => $value) {
-            if (!is_string($key) || $key === '' || $key === 'success' || $key === 'alert') {
+            if (!is_string($key) || $key === '' || $key === 'success' || $key === 'alert' || $key === 'alert_code') {
                 continue;
             }
 

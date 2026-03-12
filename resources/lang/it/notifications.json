@@ -302,12 +302,12 @@
     "918": {
         "type": "danger",
         "title": "Errore 918",
-        "text": "Questo link di verifica email non è valido o è già stato utilizzato.<br>Richiedine uno nuovo!"
+        "text": "Questo link di verifica email non è valido o è già stato utilizzato."
     },
     "919": {
         "type": "danger",
         "title": "Errore 919",
-        "text": "Questo link di verifica email è scaduto.<br>Richiedine uno nuovo!"
+        "text": "Questo link di verifica email è scaduto."
     },
     "920": {
         "type": "danger",

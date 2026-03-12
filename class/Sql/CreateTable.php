@@ -2,6 +2,7 @@
 
     namespace Wonder\Sql;
 
+    use Wonder\App\Credentials;
     use Wonder\Sql\{ Connection, Query };
     use Wonder\Sql\Utility\Error;
 
@@ -14,6 +15,7 @@
 
         public string $ENGINE = "InnoDB";
         public string $CHARSET = "latin1";
+        public string $COLLATION = "latin1_swedish_ci";
         public string $DEFAULT_TYPE = "VARCHAR";
         public int $DEFAULT_LENGHT_VARCHAR = 1000;
         public int $DEFAULT_LENGHT_BIGINT = 18;
@@ -25,6 +27,13 @@
         public function __construct( ?mysqli $connection = null ) {
 
             $this->mysqli = ($connection === null) ? Connection::Connect() : $connection;
+
+            $databaseConfig = Credentials::database();
+            $charset = trim((string) ($databaseConfig->charset ?? 'latin1'));
+            $collation = trim((string) ($databaseConfig->collation ?? 'latin1_swedish_ci'));
+
+            $this->CHARSET = $charset !== '' ? $charset : 'latin1';
+            $this->COLLATION = $collation !== '' ? $collation : 'latin1_swedish_ci';
 
         }
         
@@ -703,7 +712,11 @@
                 $this->mysqli->query( "ALTER TABLE `{$name}` ENGINE = {$this->ENGINE}" );
 
                 # Cambia il set di caratteri
-                $this->mysqli->query( "ALTER TABLE `{$name}` DEFAULT CHARSET = {$this->CHARSET}" );
+                $charsetQuery = "ALTER TABLE `{$name}` DEFAULT CHARACTER SET = {$this->CHARSET}";
+                if ($this->COLLATION !== '') {
+                    $charsetQuery .= " COLLATE = {$this->COLLATION}";
+                }
+                $this->mysqli->query($charsetQuery);
 
                 # Ottimizza la tabella
                 $this->mysqli->query( "OPTIMIZE TABLE `$name`;" );
@@ -728,6 +741,9 @@
                 $query .= ") ";
                 $query .= "ENGINE = ".$this->ENGINE." ";
                 $query .= "DEFAULT CHARSET = ".$this->CHARSET." ";
+                if ($this->COLLATION !== '') {
+                    $query .= "COLLATE = ".$this->COLLATION." ";
+                }
                 $query .= ";";
 
             }

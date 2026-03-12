@@ -107,6 +107,108 @@
 
         }
 
+        private function looksLikeJsonContainer(string $value): bool
+        {
+
+            $trimmed = trim($value);
+
+            if ($trimmed === '') {
+                return false;
+            }
+
+            $firstChar = $trimmed[0];
+
+            if ($firstChar !== '{' && $firstChar !== '[') {
+                return false;
+            }
+
+            json_decode($trimmed, true);
+
+            return json_last_error() === JSON_ERROR_NONE;
+
+        }
+
+        private function unicodeCodePoint(string $char): ?int
+        {
+
+            if ($char === '') {
+                return null;
+            }
+
+            if (function_exists('mb_ord')) {
+                $codePoint = mb_ord($char, 'UTF-8');
+                if (is_int($codePoint) && $codePoint >= 0) {
+                    return $codePoint;
+                }
+            }
+
+            $ucs4 = @iconv('UTF-8', 'UCS-4BE', $char);
+            if (!is_string($ucs4) || strlen($ucs4) !== 4) {
+                return null;
+            }
+
+            $decoded = unpack('Ncode', $ucs4);
+            if (!is_array($decoded) || !isset($decoded['code'])) {
+                return null;
+            }
+
+            return (int) $decoded['code'];
+
+        }
+
+        private function encodeNonLatin1Characters(string $value): string
+        {
+
+            if ($value === '') {
+                return '';
+            }
+
+            if (preg_match('/[^\x{0000}-\x{00FF}]/u', $value) !== 1) {
+                return $value;
+            }
+
+            $encoded = preg_replace_callback(
+                '/[^\x{0000}-\x{00FF}]/u',
+                function (array $matches): string {
+                    $codePoint = $this->unicodeCodePoint((string) ($matches[0] ?? ''));
+
+                    if ($codePoint === null) {
+                        return (string) ($matches[0] ?? '');
+                    }
+
+                    return '&#'.$codePoint.';';
+                },
+                $value
+            );
+
+            return is_string($encoded) ? $encoded : $value;
+
+        }
+
+        private function protectLatin1String(string $value): string
+        {
+
+            if ($value === '') {
+                return '';
+            }
+
+            if ($this->looksLikeJsonContainer($value)) {
+
+                $decoded = json_decode($value, true, 512, JSON_BIGINT_AS_STRING);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $reEncoded = json_encode($decoded, JSON_UNESCAPED_SLASHES);
+                    if (is_string($reEncoded)) {
+                        return $reEncoded;
+                    }
+                }
+
+            }
+
+            return $this->encodeNonLatin1Characters($value);
+
+        }
+
         private function valueToSql(mixed $value, bool $emptyStringAsNull = true): string
         {
 
@@ -123,14 +225,17 @@
             }
 
             if (is_array($value) || is_object($value)) {
-                $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                // In latin1 manteniamo JSON in ASCII con escape \uXXXX.
+                $encoded = json_encode($value, JSON_UNESCAPED_SLASHES);
                 if (!is_string($encoded)) {
                     $encoded = '';
                 }
                 return "'".$this->escapeString($encoded)."'";
             }
 
-            return "'".$this->escapeString((string) $value)."'";
+            $stringValue = $this->protectLatin1String((string) $value);
+
+            return "'".$this->escapeString($stringValue)."'";
 
         }
 

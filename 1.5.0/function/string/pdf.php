@@ -9,14 +9,14 @@
             return '';
         }
 
-        $str = normalizeUtf8String($str);
+        $str = normalizeUtf8Text($str);
         $str = convertHtmlBreaksToNewLine($str);
         $str = stripHtmlNonTextBlocks($str);
         $str = stripHtmlComments($str);
 
         $str = strip_tags($str);
         $str = \Wonder\Support\Html\Entity::decode($str);
-        $str = normalizeUtf8String($str);
+        $str = normalizeUtf8Text($str);
 
         $str = normalizeLineEndings($str);
         $str = str_replace("\xc2\xa0", ' ', $str);
@@ -43,11 +43,11 @@
             }
         }
 
-        return convertUtf8ToWindows1252($str);
+        return convertTextToWindows1252($str);
 
     }
 
-    function normalizeUtf8String(string $str): string
+    function normalizeUtf8Text(string $str): string
     {
 
         if ($str === '') {
@@ -77,13 +77,14 @@
 
     }
 
-    function convertUtf8ToWindows1252(string $str): string
+    function convertTextToWindows1252(string $str): string
     {
 
         if ($str === '') {
             return '';
         }
 
+        // Alcune librerie PDF storiche gestiscono ancora testo single-byte.
         $converted = @iconv('UTF-8', 'Windows-1252//TRANSLIT', $str);
         if (is_string($converted)) {
             return $converted;
@@ -91,8 +92,8 @@
 
         $characters = preg_split('//u', $str, -1, PREG_SPLIT_NO_EMPTY);
         if (!is_array($characters)) {
-            $fallback = @iconv('UTF-8', 'Windows-1252//IGNORE', $str);
-            return is_string($fallback) ? $fallback : '';
+            $convertedIgnore = @iconv('UTF-8', 'Windows-1252//IGNORE', $str);
+            return is_string($convertedIgnore) ? $convertedIgnore : '';
         }
 
         $result = '';
@@ -104,10 +105,10 @@
                 continue;
             }
 
-            $asciiFallback = @iconv('UTF-8', 'ASCII//TRANSLIT', $character);
-            if (is_string($asciiFallback) && $asciiFallback !== '') {
-                $asciiFallback = pregReplaceSafe('/[^\x20-\x7E]/', '', $asciiFallback);
-                $result .= ($asciiFallback !== '') ? $asciiFallback : '?';
+            $asciiTranslit = @iconv('UTF-8', 'ASCII//TRANSLIT', $character);
+            if (is_string($asciiTranslit) && $asciiTranslit !== '') {
+                $asciiTranslit = pregReplaceSafe('/[^\x20-\x7E]/', '', $asciiTranslit);
+                $result .= ($asciiTranslit !== '') ? $asciiTranslit : '?';
                 continue;
             }
 
@@ -115,19 +116,5 @@
         }
 
         return $result;
-
-    }
-
-    function printPDFNormalizeUtf8(string $str): string
-    {
-
-        return normalizeUtf8String($str);
-
-    }
-
-    function printPDFToWindows1252(string $str): string
-    {
-
-        return convertUtf8ToWindows1252($str);
 
     }

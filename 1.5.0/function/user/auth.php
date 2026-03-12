@@ -32,7 +32,7 @@
             $required = userPermissionRequiredVerifications($rules);
 
             if (isset($required['email'])) {
-                $config = userPermissionEmailVerificationConfig( $rules, 'login');
+                $config = userPermissionEmailVerificationConfig($permission, $rules, 'login');
                 $config['required'] = true;
                 $config['authority'] = $authority;
                 return $config;
@@ -47,6 +47,7 @@
             'sent_link' => '',
             'flow' => 'login',
             'redirect_base64' => '',
+            'requested_from_url' => '',
             'ttl_hours' => 24,
         ];
 
@@ -163,10 +164,11 @@
                                         'email_sent' => (bool) ($MAIL_RESULT->sent ?? false),
                                         'verification_sent_link' => $sentLink,
                                         'flow' => (string) ($MAIL_RESULT->flow ?? ($EMAIL_VERIFICATION['flow'] ?? 'login')),
+                                        'requested_from_url' => (string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? '')),
                                     ];
 
                                     if (!($MAIL_RESULT->success ?? false)) {
-                                        $ALERT = (int) ($MAIL_RESULT->alert ?? 908);
+                                        $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
                                         $meta['reason'] = 'email_verification_mail_failed';
                                         $meta['error'] = (string) ($MAIL_RESULT->message ?? '');
                                     }

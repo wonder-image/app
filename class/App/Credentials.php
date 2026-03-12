@@ -43,6 +43,16 @@
                 self::$DB->username = $_ENV['DB_USERNAME'];
                 self::$DB->password = $_ENV['DB_PASSWORD'];
                 self::$DB->database = explode(',', $_ENV['DB_DATABASE']);
+                self::$DB->charset = trim((string) ($_ENV['DB_CHARSET'] ?? 'latin1'));
+                self::$DB->collation = trim((string) ($_ENV['DB_COLLATION'] ?? 'latin1_swedish_ci'));
+
+                if (self::$DB->charset === '') {
+                    self::$DB->charset = 'latin1';
+                }
+
+                if (self::$DB->collation === '') {
+                    self::$DB->collation = 'latin1_swedish_ci';
+                }
 
                 # Trasformo in un array leggibile i dettagli passati dal file .env 
                     $DATABASE_ARRAY = [];

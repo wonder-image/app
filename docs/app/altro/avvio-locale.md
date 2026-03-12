@@ -38,6 +38,8 @@ DB_HOSTNAME=127.0.0.1:3307
 DB_USERNAME=sf8_test_user
 DB_PASSWORD=...
 DB_DATABASE=main:myapp_sf8_test
+DB_CHARSET=latin1
+DB_COLLATION=latin1_swedish_ci
 ```
 
 ## 5) Avvio semplice con Forge

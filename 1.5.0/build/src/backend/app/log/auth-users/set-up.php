@@ -1,8 +1,8 @@
 <?php
 
     $TEXT = (object) [];
-    $TEXT->titleS = "accessi utenti";
-    $TEXT->titleP = "accesso utente";
+    $TEXT->titleS = "accesso utenti";
+    $TEXT->titleP = "accessi utente";
     $TEXT->last = 'ultimi'; // $TEXT->last 50 $TEXT->titleP
     $TEXT->all = 'tutti'; // Lista $TEXT->all $TEXT->article $titlePageP
     $TEXT->article = 'gli'; // Lista $TEXT->all $TEXT->article $titlePageP

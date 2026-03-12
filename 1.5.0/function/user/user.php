@@ -63,7 +63,7 @@
     }
 
     // Configurazione verifica email per il flusso richiesto.
-    function userPermissionEmailVerificationConfig(array $rules, string $flow = 'default'): array
+    function userPermissionEmailVerificationConfig($PERMISSION, array $rules, string $flow = 'default'): array
     {
 
         global $PAGE;
@@ -77,8 +77,15 @@
         $ttlHours = (int) ($emailRule['ttl_hours'] ?? $wildcardRule['ttl_hours'] ?? 24);
 
         $redirectBase64 = '';
+        $requestedFromUrl = '';
         if (isset($PAGE) && is_object($PAGE) && isset($PAGE->redirectBase64)) {
             $redirectBase64 = userEmailVerificationNormalizeRedirectBase64((string) $PAGE->redirectBase64);
+        }
+        if (isset($PAGE) && is_object($PAGE) && isset($PAGE->url)) {
+            $requestedFromUrl = userEmailVerificationNormalizeRequestedFromUrl((string) $PAGE->url);
+        }
+        if ($requestedFromUrl === '' && isset($_SERVER['REQUEST_URI'])) {
+            $requestedFromUrl = userEmailVerificationNormalizeRequestedFromUrl((string) $_SERVER['REQUEST_URI']);
         }
 
         if ($ttlHours <= 0) {
@@ -94,6 +101,7 @@
             'sent_link' => $sentLink,
             'flow' => $flow,
             'redirect_base64' => $redirectBase64,
+            'requested_from_url' => $requestedFromUrl,
             'ttl_hours' => $ttlHours,
         ];
 
@@ -109,12 +117,14 @@
         $sentLink = trim((string) ($config['sent_link'] ?? ''));
         $flow = userEmailVerificationNormalizeFlow((string) ($config['flow'] ?? 'default'));
         $redirectBase64 = userEmailVerificationNormalizeRedirectBase64((string) ($config['redirect_base64'] ?? ''));
+        $requestedFromUrl = userEmailVerificationNormalizeRequestedFromUrl((string) ($config['requested_from_url'] ?? ''));
         $ttlHours = (int) ($config['ttl_hours'] ?? 24);
         $baseResult = [
             'sent' => false,
             'sent_link' => $sentLink,
             'flow' => $flow,
             'redirect_base64' => $redirectBase64,
+            'requested_from_url' => $requestedFromUrl,
         ];
 
         if ($tokenLink === '') {
@@ -128,6 +138,7 @@
             [
                 'flow' => $flow,
                 'redirect_base64' => $redirectBase64,
+                'requested_from_url' => $requestedFromUrl,
             ]
         );
 
@@ -140,11 +151,12 @@
                 'verification_url' => '',
                 'flow' => $flow,
                 'redirect_base64' => $redirectBase64,
+                'requested_from_url' => $requestedFromUrl,
             ];
         }
 
         if (!($payload->success ?? false)) {
-            return userVerificationFailure((int) ($payload->alert ?? 900), $baseResult);
+            return userVerificationFailure((int) ($payload->alert_code ?? $payload->alert ?? 900), $baseResult);
 
         }
 
@@ -167,8 +179,10 @@
             'verification_url' => (string) ($payload->verification_url ?? ''),
             'expires_at' => (string) ($payload->expires_at ?? ''),
             'token_id' => (int) ($payload->token_id ?? 0),
+            'alert_code' => null,
             'flow' => $flow,
             'redirect_base64' => $redirectBase64,
+            'requested_from_url' => $requestedFromUrl,
         ];
 
     }
@@ -226,7 +240,7 @@
         // Calcola verifiche richieste (es. email) dalla permission.
         $VERIFICATION_RULES = userPermissionVerificationRules($PERMISSION);
         $REQUIRED_VERIFICATIONS = userPermissionRequiredVerifications($VERIFICATION_RULES);
-        $EMAIL_VERIFICATION = userPermissionEmailVerificationConfig($VERIFICATION_RULES, 'signup');
+        $EMAIL_VERIFICATION = userPermissionEmailVerificationConfig($PERMISSION, $VERIFICATION_RULES, 'signup');
 
         $RETURN->verification_required = count($REQUIRED_VERIFICATIONS) >= 1;
         $RETURN->verification_checks = array_keys($REQUIRED_VERIFICATIONS);
@@ -355,7 +369,7 @@
                     $RETURN->email_verification_sent_link = (string) ($MAIL_RESULT->sent_link ?? $RETURN->email_verification_sent_link);
 
                     if (!($MAIL_RESULT->success ?? false)) {
-                        $ALERT = (int) ($MAIL_RESULT->alert ?? 908);
+                        $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
                         $RETURN->email_verification_error = (string) ($MAIL_RESULT->message ?? '');
                     }
 

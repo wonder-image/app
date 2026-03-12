@@ -50,55 +50,69 @@
                 <h3><a href="<?=$REDIRECT?>" type="button" class="text-dark"><i class="bi bi-arrow-left-short"></i></a> <?=$TITLE?></h3>
             </wi-card>
 
-            <wi-card class="col-9">
-                <div class="col-8">
-                    <?=text('Nome', 'name', 'required'); ?>
-                </div>
-                <div class="col-4">
-                    <?=select('Tipologia documento', 'doc_type', legalDocumentTypes(), null, 'required'); ?>
-                </div>
-                <div class="col-4">
-                    <?=select('Lingua', 'language_code', array_map(fn($lang) => $lang['name'], __ls()), null, 'required'); ?>
-                </div>
-                <div class="col-4">
-                    <?=text('Versione', 'version', 'required'); ?>
-                </div>
-                <div class="col-4">
-                    <?php
 
-                        $publishedAtDefault = isset($VALUES['published_at']) && strtotime((string) $VALUES['published_at']) !== false
-                            ? date('Y-m-d\TH:i', strtotime((string) $VALUES['published_at']))
-                            : date('Y-m-d\TH:i');
+            <div class="col-12">
+                <div class="row g-3">
 
-                        echo textDatetime('Pubblicato il', 'published_at', 'required', $publishedAtDefault);
+                    <wi-card>
+                        <div class="col-8">
+                            <?=text('Nome', 'name', 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=select('Tipologia documento', 'doc_type', legalDocumentTypes(), null, 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=select('Lingua', 'language_code', array_map(fn($lang) => $lang['name'], __ls()), null, 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=text('Versione', 'version', 'required'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?php
 
-                    ?>
-                </div>
-                <div class="col-12">
-                    <?=textarea(
-                        'Testo checkbox',
-                        'checkbox_label',
-                        'required',
-                        'base',
-                        isset($VALUES['checkbox_label']) ? html_entity_decode((string) $VALUES['checkbox_label'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : null
-                    ); ?>
-                </div>
-            </wi-card>
-                <div class="col-12">
-                    <?=textarea('Testo', 'content_snapshot', 'required', 'blog'); ?>
-                </div>
-            <wi-card>
+                                $publishedAtDefault = isset($VALUES['published_at']) && strtotime((string) $VALUES['published_at']) !== false
+                                    ? date('Y-m-d\TH:i', strtotime((string) $VALUES['published_at']))
+                                    : date('Y-m-d\TH:i');
 
-            </wi-card>
+                                echo textDatetime('Pubblicato il', 'published_at', 'required', $publishedAtDefault);
 
-            <wi-card class="col-3">
-                <div class="col-12">
-                    <?=select('Stato', 'active', [ 'true' => 'Attivo', 'false' => 'Non attivo' ], 'old', 'required'); ?>
+                            ?>
+                        </div>
+                        <div class="col-12">
+                            <?=textarea(
+                                'Testo checkbox',
+                                'checkbox_label',
+                                'required',
+                                'plus',
+                                isset($VALUES['checkbox_label']) ? html_entity_decode((string) $VALUES['checkbox_label'], ENT_QUOTES | ENT_HTML5, 'UTF-8') : null
+                            ); ?>
+                        </div>
+
+                    </wi-card>
+
+                    </wi-card>
+                        <div class="col-12">
+                            <?=textarea('Testo', 'content_snapshot', 'required', 'blog'); ?>
+                        </div>
+                    <wi-card>
+                        
                 </div>
-                <div class="col-12">
-                    <?=submitAdd()?>
+            </div>
+
+            <div class="col-3">
+                <div class="row g-3">
+
+                    <wi-card class="col-3">
+                        <div class="col-12">
+                            <?=select('Stato', 'active', [ 'true' => 'Attivo', 'false' => 'Non attivo' ], 'old', 'required'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=submitAdd()?>
+                        </div>
+                    </wi-card>
+                    
                 </div>
-            </wi-card>
+            </div>
 
         </div>
     </form>
