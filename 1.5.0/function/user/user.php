@@ -187,6 +187,57 @@
 
     }
 
+    // Verifica se il payload contiene almeno una scelta consenso.
+    function userHasConsentPayload(array $post): bool
+    {
+
+        foreach ($post as $field => $value) {
+            if (is_string($field) && str_starts_with($field, 'accept_')) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+    // Costruisce il contesto tecnico da salvare sugli eventi consenso.
+    function userConsentContextFromPost(array $post): array
+    {
+
+        $context = [
+            'ip_address' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'locale' => (string) (__l() ?: 'it'),
+            'source' => (string) ($post['consent_source'] ?? 'web'),
+            'ui_surface' => (string) ($post['consent_ui_surface'] ?? 'signup'),
+        ];
+
+        $required = $post['required_document_types'] ?? ($post['consent_required_document_types'] ?? null);
+        if (is_string($required)) {
+            $decoded = json_decode($required, true);
+            $required = is_array($decoded) ? $decoded : array_map('trim', explode(',', $required));
+        }
+        if (is_array($required)) {
+            $required = array_values(array_filter(array_map(static fn($v) => trim((string) $v), $required)));
+            if (count($required) > 0) {
+                $context['required_document_types'] = $required;
+            }
+        }
+
+        $evidence = $post['evidence_json'] ?? ($post['consent_evidence_json'] ?? null);
+        if (is_string($evidence)) {
+            $decoded = json_decode($evidence, true);
+            $evidence = is_array($decoded) ? $decoded : null;
+        }
+        if (is_array($evidence)) {
+            $context['evidence_json'] = $evidence;
+        }
+
+        return $context;
+
+    }
+
     function user($POST, $MODIFY_ID = null) {
 
         global $ALERT;
@@ -202,6 +253,7 @@
             'email_verification_sent_link' => '',
             'email_verification_url' => '',
             'email_verification_already_verified' => false,
+            'consents' => [],
             'already_registered' => false,
         ];
 
@@ -349,6 +401,31 @@
 
             }
 
+            // Registra i consensi in fase signup se presenti nel payload.
+            if (empty($ALERT) && userHasConsentPayload($POST)) {
+
+                $USER_ID = (int) ($RETURN->user->id ?? 0);
+
+                if ($USER_ID <= 0) {
+
+                    $ALERT = 900;
+
+                } else {
+
+                    try {
+                        $RETURN->consents = registerUserConsents($USER_ID, $POST, userConsentContextFromPost($POST));
+                    } catch (Throwable $exception) {
+                        $ALERT = 900;
+                        $RETURN->consents = [
+                            'success' => false,
+                            'message' => (string) $exception->getMessage(),
+                        ];
+                    }
+
+                }
+
+            }
+
             // Invia email di verifica sia a nuovo utente sia a utente già registrato.
             if (empty($ALERT) && ($EMAIL_VERIFICATION['required'] ?? false)) {
 
@@ -459,6 +536,31 @@
                     $AUTHORITY_UPLOAD = call_user_func_array($PERMISSION->functionModify, [ $POST, $UPLOAD, $RETURN->user, $MODIFY_ID ]);
                     $RETURN->values = array_merge($AUTHORITY_UPLOAD->values, $UPLOAD);
                     $RETURN->user = $AUTHORITY_UPLOAD->user;
+
+                }
+
+                // Registra i consensi anche nel flusso di modifica cliente.
+                if (userHasConsentPayload($POST)) {
+
+                    $USER_ID = (int) ($RETURN->user->id ?? $M_USER->id ?? 0);
+
+                    if ($USER_ID <= 0) {
+
+                        $ALERT = 900;
+
+                    } else {
+
+                        try {
+                            $RETURN->consents = registerUserConsents($USER_ID, $POST, userConsentContextFromPost($POST));
+                        } catch (Throwable $exception) {
+                            $ALERT = 900;
+                            $RETURN->consents = [
+                                'success' => false,
+                                'message' => (string) $exception->getMessage(),
+                            ];
+                        }
+
+                    }
 
                 }
 
