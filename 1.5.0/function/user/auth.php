@@ -29,11 +29,9 @@
 
             $permission = permissions($authority);
             $rules = userPermissionVerificationRules($permission);
-            $required = userPermissionRequiredVerifications($rules);
+            $config = userPermissionEmailVerificationConfig($permission, $rules, 'login');
 
-            if (isset($required['email'])) {
-                $config = userPermissionEmailVerificationConfig($permission, $rules, 'login');
-                $config['required'] = true;
+            if (($config['required'] ?? false) === true) {
                 $config['authority'] = $authority;
                 return $config;
             }
@@ -175,21 +173,49 @@
         }
 
         $EMAIL_VERIFICATION = userLoginEmailVerificationConfig($U, $AREA, $PERMIT_REQUIRED);
+        $emailVerified = isUserEmailVerified((int) $U->id);
 
-        if (($EMAIL_VERIFICATION['required'] ?? false) && !$U->email_verified) {
-            $ALERT = 924;
-            $reason = 'partial_registration_email_not_verified';
+        if (($EMAIL_VERIFICATION['required'] ?? false) && !$emailVerified) {
+            $MAIL_RESULT = userSendEmailVerificationMail((int) $U->id, (string) $U->email, $EMAIL_VERIFICATION);
+            $sentLink = trim((string) ($MAIL_RESULT->sent_link ?? ($EMAIL_VERIFICATION['sent_link'] ?? '')));
 
-            Wonder\Auth\AuthLog::write('login_failed', (int) $U->id, $AREA, false, [
-                'key' => $KEY,
-                'value' => $VALUE,
-                'reason' => $reason,
+            $logMeta = [
                 'authority' => $EMAIL_VERIFICATION['authority'] ?? '',
-                'flow' => (string) ($EMAIL_VERIFICATION['flow'] ?? 'login'),
-                'requested_from_url' => (string) ($EMAIL_VERIFICATION['requested_from_url'] ?? ''),
-            ]);
+                'flow' => (string) ($MAIL_RESULT->flow ?? ($EMAIL_VERIFICATION['flow'] ?? 'login')),
+                'requested_from_url' => (string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? '')),
+                'email_sent' => (bool) ($MAIL_RESULT->sent ?? false),
+                'verification_sent_link' => $sentLink,
+            ];
 
-            return false;
+            if (!($MAIL_RESULT->success ?? false)) {
+                $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
+                $reason = 'email_verification_mail_failed';
+                $logMeta['error'] = (string) ($MAIL_RESULT->message ?? '');
+                return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, $logMeta);
+            }
+
+            if (($MAIL_RESULT->already_verified ?? false) === true) {
+                $syncResult = markUserEmailVerified((int) $U->id);
+
+                if (!($syncResult->success ?? false)) {
+                    $ALERT = (int) ($syncResult->alert_code ?? 900);
+                    $reason = 'email_verification_state_sync_failed';
+                    $logMeta['already_verified'] = true;
+                    $logMeta['error'] = (string) ($syncResult->message ?? '');
+                    return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, $logMeta);
+                }
+            } else {
+                $ALERT = 924;
+                $reason = 'partial_registration_email_not_verified';
+                logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, $logMeta);
+
+                if ($sentLink !== '') {
+                    header("Location: $sentLink");
+                    exit;
+                }
+
+                return false;
+            }
         }
 
         $_SESSION['user_id'] = $U->id;
@@ -217,18 +243,24 @@
         return in_array($PERMIT_REQUIRED, $userAuthorities, true);
     }
 
-    function logFailedLogin($U, $AREA, $KEY, $VALUE, $reason): bool
+    function logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, array $extraMeta = []): bool
     {
+        $meta = [
+            'key' => $KEY,
+            'value' => $VALUE,
+            'reason' => $reason,
+        ];
+
+        if (!empty($extraMeta)) {
+            $meta = array_merge($meta, $extraMeta);
+        }
+
         Wonder\Auth\AuthLog::write(
             'login_failed',
             $U->exists ? (int) $U->id : null,
             $AREA,
             false,
-            [
-                'key' => $KEY,
-                'value' => $VALUE,
-                'reason' => $reason,
-            ]
+            $meta
         );
 
         return false;

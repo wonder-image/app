@@ -1,14 +1,14 @@
 <?php
 
     $TEXT = (object) [];
-    $TEXT->titleS = "accessi utenti";
-    $TEXT->titleP = "accesso utente";
-    $TEXT->last = 'ultimi'; // $TEXT->last 50 $TEXT->titleP
-    $TEXT->all = 'tutti'; // Lista $TEXT->all $TEXT->article $titlePageP
-    $TEXT->article = 'gli'; // Lista $TEXT->all $TEXT->article $titlePageP
-    $TEXT->full = 'usato'; // $TEXT->titleS $TEXT->full
-    $TEXT->empty = 'non usato'; // $TEXT->titleS $TEXT->empty
-    $TEXT->this = 'questo'; // Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS
+    $TEXT->titleS = "email";
+    $TEXT->titleP = "email";
+    $TEXT->last = 'ultime'; // $TEXT->last 50 $TEXT->titleP
+    $TEXT->all = 'tutte'; // Lista $TEXT->all $TEXT->article $titlePageP
+    $TEXT->article = 'le'; // Lista $TEXT->all $TEXT->article $titlePageP
+    $TEXT->full = 'usata'; // $TEXT->titleS $TEXT->full
+    $TEXT->empty = 'non usata'; // $TEXT->titleS $TEXT->empty
+    $TEXT->this = 'questa'; // Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS
 
     $NAME = (object) [];
     $NAME->table = "mail_log";
