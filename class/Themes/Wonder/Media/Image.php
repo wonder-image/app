@@ -5,6 +5,7 @@
     use Wonder\Themes\Wonder\Component;
 
     use Wonder\App\Path;
+    use Wonder\Http\UrlParser;
 
     use RuntimeException;
 
@@ -82,9 +83,12 @@
             $this->extension = isset($pathInfo['extension']) ? strtolower($pathInfo['extension']) : '';
             $this->mimeType = $this->getMimeType();
             $this->imageName = $pathInfo['filename'] ?? '';
-            $this->directory = isset($pathInfo['dirname']) ? str_replace((new Path())->site, '', $pathInfo['dirname']) : '';
-            $this->directoryUrl = (new Path())->site.$this->directory.DIRECTORY_SEPARATOR;
 
+            $baseUrl = (filter_var($this->src, FILTER_VALIDATE_URL) !== false) ? (new UrlParser($this->src))->getBaseUrl() : (new Path())->site;
+
+            $this->directory = isset($pathInfo['dirname']) ? str_replace($baseUrl, '', $pathInfo['dirname']) : '';
+            $this->directoryUrl = $baseUrl.$this->directory.DIRECTORY_SEPARATOR;
+            
             $this->defaultSize = $this->getSchema('default-size') ?? null;
             $this->sizes = $this->getSchema('sizes') ?? [];
 

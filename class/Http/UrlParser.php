@@ -88,6 +88,34 @@
             parse_str($query, $params);
             return $params[$name] ?? null;
         }
+        public function getBaseUrl(bool $raw = false): ?string
+        {
+
+            $scheme = $this->getScheme($raw);
+            $host = $this->getHost($raw);
+            $port = $this->getPort($raw);
+
+            if (empty($host)) {
+                return null;
+            }
+
+            $baseUrl = '';
+
+            if (!empty($scheme)) {
+                $baseUrl .= $scheme . '://';
+            } else {
+                $baseUrl .= '//';
+            }
+
+            $baseUrl .= $host;
+
+            if (!empty($port)) {
+                $baseUrl .= ':' . $port;
+            }
+
+            return $baseUrl;
+            
+        }
 
         public function addParameter(string $name, mixed $value): string
         {
