@@ -51,7 +51,7 @@
             </wi-card>
 
 
-            <div class="col-12">
+            <div class="col-9">
                 <div class="row g-3">
 
                     <wi-card>
@@ -90,11 +90,11 @@
 
                     </wi-card>
 
-                    </wi-card>
+                    <wi-card>
                         <div class="col-12">
                             <?=textarea('Testo', 'content_snapshot', 'required', 'blog'); ?>
                         </div>
-                    <wi-card>
+                    </wi-card>
                         
                 </div>
             </div>

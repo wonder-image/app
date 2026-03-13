@@ -301,6 +301,8 @@
 
         $EXISTING_EMAIL_USER = null;
         $REUSE_EXISTING_USER = false;
+        $SUBMITTED_PASSWORD = isset($POST['password']) ? (string) $POST['password'] : '';
+        $HAS_SUBMITTED_PASSWORD = trim($SUBMITTED_PASSWORD) !== '';
 
         // Email: sanitizzazione e controllo di unicita.
         // Se è richiesta la verifica email, un account già esistente viene riutilizzato.
@@ -356,7 +358,7 @@
                     $UPLOAD['username'] = create_link($usernameBase, 'user', 'username');
                 }
 
-                if (isset($POST['password'])) { $UPLOAD['password'] = hashPassword($POST['password']); }
+                if ($HAS_SUBMITTED_PASSWORD) { $UPLOAD['password'] = hashPassword($SUBMITTED_PASSWORD); }
 
                 // Validazione authority prima di scrivere dati su DB.
                 if (empty($ALERT) && $PERMISSION && !empty($PERMISSION->functionValidate)) {
@@ -478,6 +480,8 @@
             // Recupera area e authority attuali.
             $area = $M_USER->area;
             $authority = $M_USER->authority;
+
+            if ($HAS_SUBMITTED_PASSWORD && empty($M_USER->password)) { $UPLOAD['password'] = hashPassword($SUBMITTED_PASSWORD); }
 
             // Aggiunge area se non presente.
             if (isset($POST['area']) && !in_array($POST['area'], $area)) { array_push($area, $POST['area']); }
