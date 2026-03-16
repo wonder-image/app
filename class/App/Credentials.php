@@ -185,6 +185,7 @@
                 self::$API->gcp_client_api_key = $row['gcp_client_api_key'] ?? self::$API->gcp_api_key;
                 self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? '';
                 self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? '';
+                self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? '';
 
                 self::$API->stripe_test = isset($row['stripe_test']) ? filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN) : false;
                 self::$API->stripe_test_key = $row['stripe_test_key'] ?? '';
@@ -212,6 +213,7 @@
 
             }
 
+            self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? (self::$API->klaviyo_api_key ?? '');
             self::$API->ipinfo_api_key = $row['ipinfo_api_key'] ?? '';
 
             return self::$API;

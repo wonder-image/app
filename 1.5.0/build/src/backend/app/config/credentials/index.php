@@ -122,6 +122,18 @@
                         </div>
                     </wi-card>
 
+                    <wi-card class="col-6">
+                        <h6 class="col-12"> Klaviyo </h6>
+                        <div class="col-12">
+                            <a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">
+                                Apri documentazione API
+                            </a>
+                        </div>
+                        <div class="col-12">
+                            <?=password('Klaviyo API Key', 'klaviyo_api_key'); ?>
+                        </div>
+                    </wi-card>
+
                 </div>
             </div>
 

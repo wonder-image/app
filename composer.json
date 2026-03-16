@@ -24,7 +24,8 @@
         "phpoffice/phpspreadsheet": "^5.1",
         "intervention/image": "^3.11",
         "fattureincloud/fattureincloud-php-sdk": "^2.1",
-        "getbrevo/brevo-php": "^4.0"
+        "getbrevo/brevo-php": "^4.0",
+        "klaviyo/api": "^18.0"
     },
     "autoload": {
         "psr-4": {

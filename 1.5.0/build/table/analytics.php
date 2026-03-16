@@ -25,6 +25,7 @@
         "fatture_in_cloud_company_id" => [],
         "fatture_in_cloud_token" => [],
         "ipinfo_api_key" => [],
+        "klaviyo_api_key" => [],
         "mail_host" => [],
         "mail_username" => [],
         "mail_password" => [],
