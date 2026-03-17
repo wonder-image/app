@@ -39,5 +39,5 @@
 
     }
     
-    header("Location: $PATH->backend/config-app/credentials/");
+    header("Location: $PATH->backend/app/config/credentials/");
         

@@ -19,13 +19,6 @@
     
     require_once $ROOT_APP."/html/backend/index.php";
 
-    if (
-        (!isset($VALUES['name']) || trim((string) $VALUES['name']) === '')
-        && isset($VALUES['doc_type'])
-    ) {
-        $VALUES['name'] = ucwords(str_replace([ '_', '-' ], ' ', (string) $VALUES['doc_type']));
-    }
-
 ?>
 <!DOCTYPE html>
 <html lang="it">

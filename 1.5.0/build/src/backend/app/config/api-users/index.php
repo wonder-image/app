@@ -42,7 +42,7 @@
 
         if (empty($ALERT)) {
             if (isset($_POST['upload-add'])) {
-                header("Location: $PATH->backend/$NAME->folder/index.php?redirect=$PAGE->redirectBase64");
+                header("Location: ?redirect=$PAGE->redirectBase64");
             } else {
                 header("Location: $REDIRECT");
             }
