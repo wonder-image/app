@@ -21,27 +21,41 @@
             $labelKey = 'components.forms.fields.'.$docTypeCode.'.label';
             $contentKey = 'legal.'.$docTypeCode.'.content';
 
-            $name = \Wonder\Localization\TranslationProvider::getRaw($nameKey);
-            $label = \Wonder\Localization\TranslationProvider::getRaw($labelKey);
-            $content = contentsToEditorBlocks(\Wonder\Localization\TranslationProvider::getRaw($contentKey));
-            $contentJSON = json_encode($content);
+            try {
+                $name = \Wonder\Localization\TranslationProvider::getRaw($nameKey);
+            } catch (\Throwable $th) {
+                $name = "";
+            }
 
-            $exists = sqlSelect( 'legal_documents', [ 'doc_type' => $docTypeCode, 'version' => $legalVersion, 'language_code' => $languageCode ], 1 )->exists;
+            try {
+                $label = \Wonder\Localization\TranslationProvider::getRaw($labelKey);
+            } catch (\Throwable $th) {
+                $label = "";
+            }
 
-            if ($exists) { continue; }
+            if (!empty($name) && !empty($label)) {
+                
+                $content = contentsToEditorBlocks(\Wonder\Localization\TranslationProvider::getRaw($contentKey));
+                $contentJSON = json_encode($content);
 
-            $VALUES = Wonder\App\Table::key('legal_documents')->prepare([
-                'doc_type' => $docTypeCode,
-                'name' => $name,
-                'version' => $legalVersion,
-                'language_code' => $languageCode,
-                'checkbox_label' => $label,
-                'content_hash' => hash('sha256', $contentJSON),
-                'content_snapshot' => $content,
-                'published_at' => $publishedAt,
-            ]);
+                $exists = sqlSelect( 'legal_documents', [ 'doc_type' => $docTypeCode, 'version' => $legalVersion, 'language_code' => $languageCode ], 1 )->exists;
 
-            sqlInsert('legal_documents', $VALUES);
+                if ($exists) { continue; }
+
+                $VALUES = Wonder\App\Table::key('legal_documents')->prepare([
+                    'doc_type' => $docTypeCode,
+                    'name' => $name,
+                    'version' => $legalVersion,
+                    'language_code' => $languageCode,
+                    'checkbox_label' => $label,
+                    'content_hash' => hash('sha256', $contentJSON),
+                    'content_snapshot' => $content,
+                    'published_at' => $publishedAt,
+                ]);
+
+                sqlInsert('legal_documents', $VALUES);
+                
+            }
             
         }
 
