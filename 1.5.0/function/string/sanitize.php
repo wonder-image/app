@@ -316,8 +316,6 @@
         $str = stripslashes($str);
         $str = \Wonder\Support\Html\Entity::decode($str);
 
-        $str = pregReplaceSafe('#<br\s*/?>#i', '', $str);
-
         // Corregge in lettura il mojibake storico senza toccare i dati nel DB.
         $str = decodeMojibakeString($str);
 
