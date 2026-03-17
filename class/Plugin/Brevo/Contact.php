@@ -83,21 +83,21 @@
         public function firstName($value): static
         {
 
-            return $this->attribute('FNAME', $value);
+            return $this->attribute('NOME', $value);
 
         }
 
         public function lastName($value): static
         {
 
-            return $this->attribute('LNAME', $value);
+            return $this->attribute('COGNOME', $value);
 
         }
 
         public function phone($value): static
         {
 
-            return $this->attribute('SMS', $value);
+            return $this->attribute('SMS', str_replace(" ", "", $value));
 
         }
 
