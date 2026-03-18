@@ -374,13 +374,54 @@
 
                 $name = $parameter->getName();
 
-                if (preg_match('/(?:query|request)$/', $name) === 1) {
+                if (preg_match('/(?:query|request|dto)(?:_[a-z0-9]+)?$/', $name) === 1) {
                     return $name;
                 }
 
             }
 
+            foreach ($parameters as $parameter) {
+
+                $name = $parameter->getName();
+
+                if ($this->isTransportParameter($name)) {
+                    continue;
+                }
+
+                return $name;
+
+            }
+
             return null;
+
+        }
+
+        protected function isTransportParameter(string $name): bool
+        {
+
+            if (in_array($name, [
+                'apiKey',
+                'contentType',
+                'filter',
+                'sort',
+                'include',
+                'count',
+                'cursor',
+                'locale',
+                'revision',
+            ], true)) {
+                return true;
+            }
+
+            if ($name === 'id' || str_ends_with($name, '_id')) {
+                return true;
+            }
+
+            if (str_starts_with($name, 'fields_') || str_starts_with($name, 'additional_fields_') || str_starts_with($name, 'page_')) {
+                return true;
+            }
+
+            return false;
 
         }
 
@@ -396,6 +437,104 @@
             $resource = trim($resource, '_');
 
             return $prefix.'_'.$resource;
+
+        }
+
+        protected function dataType(string $type, string $path = 'data.type'): static
+        {
+
+            return $this->addParams($path, $type);
+
+        }
+
+        protected function dataId($value, string $path = 'data.id'): static
+        {
+
+            return $this->addParams($path, $value);
+
+        }
+
+        protected function dataAttributes(array $value, string $path = 'data.attributes'): static
+        {
+
+            return $this->addParams($path, $value);
+
+        }
+
+        protected function dataAttribute(string $key, $value, string $path = 'data.attributes'): static
+        {
+
+            return $this->addParams($path.'.'.$key, $value);
+
+        }
+
+        protected function clearDataAttribute(string $key, string $path = 'data.attributes'): static
+        {
+
+            return $this->dataAttribute($key, null, $path);
+
+        }
+
+        protected function dataProperties(array $value, string $path = 'data.attributes.properties'): static
+        {
+
+            return $this->addParams($path, $value);
+
+        }
+
+        protected function dataProperty(string $key, $value, string $path = 'data.attributes.properties'): static
+        {
+
+            return $this->addParams($path.'.'.$key, $value);
+
+        }
+
+        protected function relationship(string $key, array $value, string $path = 'data.relationships'): static
+        {
+
+            return $this->addParams($path.'.'.$key, $value);
+
+        }
+
+        protected function relationshipId(string $key, string $type, $id, string $path = 'data.relationships'): static
+        {
+
+            return $this->addParams($path.'.'.$key.'.data', [
+                'type' => $type,
+                'id' => $id,
+            ]);
+
+        }
+
+        protected function relationshipIds(string $key, string $type, array $ids, string $path = 'data.relationships'): static
+        {
+
+            return $this->addParams($path.'.'.$key.'.data', array_map(
+                static fn ($id) => [
+                    'type' => $type,
+                    'id' => $id,
+                ],
+                $ids
+            ));
+
+        }
+
+        protected function onlyParams(array $keys): array
+        {
+
+            $params = [];
+
+            foreach ($keys as $key) {
+
+                if (!array_key_exists($key, $this->params)) {
+                    continue;
+                }
+
+                $params[$key] = $this->params[$key];
+
+            }
+
+            return $params;
 
         }
 

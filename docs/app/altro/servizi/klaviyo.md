@@ -6,22 +6,28 @@ Link di accesso: [https://www.klaviyo.com/](https://www.klaviyo.com/)
 
 ## Configurazione rapida
 
-1. In Klaviyo apri `Settings` -> `API keys`.
-2. Nella sezione `Private API Keys` clicca `Create Private API Key`.
-3. Dai un nome alla chiave e abilita gli scope per le risorse che userai.
-4. Copia subito la chiave `pk_...` in un posto sicuro: Klaviyo non la mostra di nuovo dopo la creazione.
-5. Nel backend del sito apri la sezione credenziali.
-6. Incolla la chiave nel campo `Klaviyo API Key`.
+1. Accedi a Klaviyo e apri `Settings` -> `API keys`.
+2. Crea una `Private API Key`.
+3. Abilita gli scope necessari per le risorse che userai.
+4. Nel backend del sito apri la sezione credenziali.
+5. Incolla la chiave nel campo `Klaviyo API Key`.
 
-Nota importante:
+{% hint style="warning" %}
+Per i plugin `Wonder\Plugin\Klaviyo\*` serve una `Private API Key`.
 
-- i wrapper `Wonder\Plugin\Klaviyo\*` lavorano sugli endpoint server-side `/api`
-- per questi endpoint serve una `private API key`
-- la `public API key` / `site ID` da 6 caratteri serve agli endpoint `/client` e non va usata con queste classi
+La `Public API Key` o `Site ID` non va usata con queste classi.
+{% endhint %}
 
-Se devi usare solo una parte delle API, crea una chiave con scope minimi. In generale abilita lettura e/o scrittura solo sulle risorse che usi davvero.
+Scope minimi consigliati:
 
-## Plugin disponibili
+- `profiles:read` e `profiles:write` per leggere e modificare profili
+- `lists:read` e `lists:write` per lavorare con le liste
+- `subscriptions:write` per iscrivere un profilo a email o SMS marketing
+- scope aggiuntivi per `events`, `metrics`, `campaigns`, `forms`, `webhooks` se usi anche quelle API
+
+Di default la chiave API viene letta automaticamente da `Credentials::api()->klaviyo_api_key`.
+
+## Classi disponibili
 
 Il framework include queste classi:
 
@@ -47,37 +53,22 @@ Il framework include queste classi:
 - `Wonder\Plugin\Klaviyo\WebFeeds`
 - `Wonder\Plugin\Klaviyo\Webhooks`
 
-Di default la chiave API viene letta automaticamente da `Credentials::api()->klaviyo_api_key`.
-
 ## Pattern di utilizzo
 
 Tutte le classi Klaviyo usano lo stesso approccio:
 
 - crei l'istanza
-- imposti parametri query o body
+- imposti i parametri con metodi fluent
 - esegui la chiamata finale
-
-I wrapper inoltrano tutte le funzioni esposte dal package `klaviyo/api`, quindi i nomi dei metodi seguono quelli ufficiali della SDK:
-
-- `Profiles` usa metodi come `getProfiles()`, `getProfile()`, `createProfile()`, `updateProfile()`
-- `Lists` usa metodi come `getLists()`, `getList()`, `createList()`, `addProfilesToList()`
-- `Segments` usa metodi come `getSegments()`, `getSegment()`
-- `Metrics` usa metodi come `getMetrics()`, `getMetric()`
-- `Events` usa metodi come `getEvents()`, `createEvent()`
-- `Templates` usa metodi come `getTemplates()`, `getTemplate()`
-- `Flows` usa metodi come `getFlows()`, `getFlow()`, `createFlow()`
-- `Campaigns` usa metodi come `getCampaigns()`, `getCampaign()`, `createCampaign()`
-- `Forms` usa metodi come `getForms()`, `getForm()`, `createForm()`
-- `Webhooks` usa metodi come `getWebhooks()`, `getWebhook()`
 
 Esempio base:
 
 ```php
 use Wonder\Plugin\Klaviyo\Profiles;
 
-$response = (new Profiles())
+$profiles = (new Profiles())
     ->pageSize(10)
-    ->getProfiles();
+    ->all();
 ```
 
 Se vuoi forzare una chiave API specifica:
@@ -90,9 +81,7 @@ $profiles = Profiles::connect('pk_...');
 
 In alternativa puoi usare `Profiles::apiKey('pk_...')`.
 
-### Parametri query
-
-Per filtri, sorting, include e paginazione puoi usare:
+I metodi query piu usati sono:
 
 - `filter()`
 - `sort()`
@@ -107,353 +96,422 @@ Esempio:
 ```php
 use Wonder\Plugin\Klaviyo\Profiles;
 
-$response = (new Profiles())
+$profiles = (new Profiles())
     ->filter('equals(email,"utente@example.com")')
-    ->additionalField('profile', 'predictive_analytics')
     ->fields('profile', ['email', 'first_name', 'last_name'])
     ->pageSize(10)
-    ->getProfiles();
+    ->all();
 ```
 
-### Parametri body
+## Profiles
 
-Per le chiamate `create*()` / `update*()` hai due modi:
+La classe `Profiles` e quella che userai piu spesso per:
 
-1. costruisci il body con `body()` / `addParams()`
-2. passi il parametro ufficiale della SDK come named argument
+- creare profili
+- aggiornare profili
+- iscrivere contatti a liste
+- gestire il consenso marketing email e SMS
+- leggere le sottoscrizioni
 
-Esempio con `body()`:
+### Creazione o aggiornamento profilo
+
+Se devi solo salvare i dati anagrafici o proprieta custom del profilo:
 
 ```php
 use Wonder\Plugin\Klaviyo\Profiles;
 
 $response = (new Profiles())
-    ->body([
-        'data' => [
-            'type' => 'profile',
-            'attributes' => [
-                'email' => 'utente@example.com',
-                'first_name' => 'Mario',
-                'last_name' => 'Rossi'
-            ]
-        ]
-    ])
-    ->createProfile();
+    ->email('utente@example.com')
+    ->phone('+39 333 1234567')
+    ->firstName('Mario')
+    ->lastName('Rossi')
+    ->property('source', 'checkout')
+    ->createOrUpdate();
 ```
 
-Esempio con named arguments:
+Metodi piu usati per il profilo:
+
+- `email()`
+- `phone()` o `phoneNumber()`
+- `firstName()`
+- `lastName()`
+- `externalId()`
+- `organization()`
+- `locale()`
+- `title()`
+- `image()`
+- `property()`
+- `properties()`
+- `location()`
+
+### Iscrizione a lista con email marketing
+
+Se devi creare il profilo se non esiste, iscriverlo alla lista e dare il consenso email marketing:
 
 ```php
 use Wonder\Plugin\Klaviyo\Profiles;
 
-$response = (new Profiles())->createProfile(
-    profile_create_query: [
-        'data' => [
-            'type' => 'profile',
-            'attributes' => [
-                'email' => 'utente@example.com'
-            ]
-        ]
-    ]
-);
+$response = (new Profiles())
+    ->email('utente@example.com')
+    ->listId('LIST_ID')
+    ->emailMarketing()
+    ->subscribe();
 ```
 
-## Dati necessari al funzionamento
+### Iscrizione a lista con email marketing e SMS marketing
 
-Per usare bene le classi Klaviyo ti servono quasi sempre due cose:
+```php
+use Wonder\Plugin\Klaviyo\Profiles;
 
-1. una `private API key`
-2. gli ID degli oggetti con cui vuoi lavorare
+$response = (new Profiles())
+    ->email('utente@example.com')
+    ->phone('+39 333 1234567')
+    ->listId('LIST_ID')
+    ->emailMarketing()
+    ->smsMarketing()
+    ->subscribe();
+```
 
-### Private API key
+Nota pratica:
 
-La private key:
+- `phone()` normalizza il numero, ma per l'SMS Klaviyo richiede comunque un numero finale in formato `E.164`
+- un valore corretto e ad esempio `+393331234567`
 
-- inizia normalmente con `pk_`
-- abilita le chiamate agli endpoint `/api`
-- puo leggere e scrivere dati in base agli scope assegnati
-- non deve mai essere esposta nel frontend o in repository pubbliche
+### Iscrizione con solo SMS transazionale
 
-Ricorda che dopo la creazione Klaviyo non ti mostra piu il valore completo della chiave. Se la perdi, devi crearne una nuova.
+Usa questo flusso solo se ti serve consenso `transactional-only`.
 
-### Come recuperare gli ID delle risorse
+```php
+use Wonder\Plugin\Klaviyo\Profiles;
 
-Regola pratica:
+$response = (new Profiles())
+    ->phone('+39 333 1234567')
+    ->listId('LIST_ID')
+    ->smsTransactional()
+    ->subscribe();
+```
 
-- il modo piu robusto e programmabile e recuperarli via API e usare `data[*].id`
-- molti ID sono anche visibili nell'interfaccia Klaviyo
+Nota pratica:
 
-Klaviyo indica esplicitamente che ogni lista ha un ID dedicato e che lo stesso concetto vale anche per `user`, `flow`, `campaign`, `segment` e altri oggetti. Per le liste l'ID si trova in `Lists & Segments` -> lista -> `Settings` oppure nella URL della pagina.
+- se un profilo ha gia `smsMarketing()`, puo ricevere anche SMS transazionali
+- `smsTransactional()` serve solo quando vuoi registrare consenso SMS transazionale senza marketing
+- gli SMS transazionali in Klaviyo richiedono comunque configurazione account corretta e, in pratica, vengono usati in flow post-purchase o casi approvati come transactional
 
-Di seguito i dati che ti servono piu spesso e come ottenerli.
+### Flusso corretto quando hai anche proprieta custom
 
-### `profile_id`
+{% hint style="warning" %}
+Klaviyo non permette di iscrivere un profilo e aggiornare le custom properties nello stesso request body di `subscribe`.
 
-Lo ottieni da:
-
-- risposta di `createProfile()`
-- risultato di `getProfiles()`
-- chiamata diretta `getProfile($id)` se gia lo conosci
+Se devi fare entrambe le cose, usa due chiamate:
+1. `createOrUpdate()`
+2. `subscribe()`
+{% endhint %}
 
 Esempio:
 
 ```php
 use Wonder\Plugin\Klaviyo\Profiles;
 
-$profiles = (new Profiles())
-    ->fields('profile', ['email', 'first_name'])
-    ->pageSize(20)
-    ->getProfiles();
+$profile = (new Profiles())
+    ->email('utente@example.com')
+    ->phone('+39 333 1234567')
+    ->firstName('Mario')
+    ->lastName('Rossi')
+    ->property('source', 'form-newsletter');
 
-$profileId = $profiles['data'][0]['id'] ?? null;
+$profile->createOrUpdate();
+
+$profile
+    ->listId('LIST_ID')
+    ->emailMarketing()
+    ->smsMarketing()
+    ->subscribe();
 ```
 
-### `list_id`
+### Aggiungere un profilo a una lista senza cambiare il consenso marketing
 
-Lo ottieni da:
-
-- `Lists & Segments` -> lista -> `Settings`
-- risultato di `getLists()`
-
-```php
-use Wonder\Plugin\Klaviyo\Lists;
-
-$lists = (new Lists())->getLists(
-    fields_list: ['name']
-);
-
-$listId = $lists['data'][0]['id'] ?? null;
-```
-
-### `segment_id`
-
-Lo ottieni da:
-
-- risultato di `getSegments()`
-- interfaccia Klaviyo quando apri il segmento
-
-```php
-use Wonder\Plugin\Klaviyo\Segments;
-
-$segments = (new Segments())->getSegments(
-    fields_segment: ['name']
-);
-
-$segmentId = $segments['data'][0]['id'] ?? null;
-```
-
-### `metric_id`
-
-Serve spesso per analytics, eventi e report.
-
-Lo ottieni da:
-
-- `getMetrics()`
-- attività analytics di Klaviyo
-
-```php
-use Wonder\Plugin\Klaviyo\Metrics;
-
-$metrics = (new Metrics())->getMetrics(
-    fields_metric: ['name']
-);
-
-$metricId = $metrics['data'][0]['id'] ?? null;
-```
-
-### `template_id`
-
-Lo ottieni da:
-
-- `getTemplates()`
-- editor template in Klaviyo
-
-```php
-use Wonder\Plugin\Klaviyo\Templates;
-
-$templates = (new Templates())->getTemplates(
-    fields_template: ['name']
-);
-
-$templateId = $templates['data'][0]['id'] ?? null;
-```
-
-### `flow_id`
-
-Lo ottieni da:
-
-- `getFlows()`
-- interfaccia Flows in Klaviyo
-
-```php
-use Wonder\Plugin\Klaviyo\Flows;
-
-$flows = (new Flows())->getFlows(
-    fields_flow: ['name'],
-    page_size: 20
-);
-
-$flowId = $flows['data'][0]['id'] ?? null;
-```
-
-### `campaign_id`
-
-Lo ottieni da:
-
-- `getCampaigns()`
-- interfaccia Campaigns in Klaviyo
-
-```php
-use Wonder\Plugin\Klaviyo\Campaigns;
-
-$campaigns = (new Campaigns())->getCampaigns(
-    filter: 'equals(archived,false)',
-    fields_campaign: ['name'],
-);
-
-$campaignId = $campaigns['data'][0]['id'] ?? null;
-```
-
-### `form_id`
-
-Lo ottieni da:
-
-- `getForms()`
-- interfaccia Forms in Klaviyo
-
-```php
-use Wonder\Plugin\Klaviyo\Forms;
-
-$forms = (new Forms())->getForms(
-    fields_form: ['name'],
-    page_size: 20
-);
-
-$formId = $forms['data'][0]['id'] ?? null;
-```
-
-### `webhook_id`
-
-Lo ottieni da:
-
-- `getWebhooks()`
-- sezione Webhooks in Klaviyo
-
-```php
-use Wonder\Plugin\Klaviyo\Webhooks;
-
-$webhooks = (new Webhooks())->getWebhooks();
-
-$webhookId = $webhooks['data'][0]['id'] ?? null;
-```
-
-## Classi piu usate
-
-### Profiles
-
-La classe `Profiles` e quella che userai piu spesso per leggere, creare e aggiornare contatti/profili Klaviyo.
-
-Metodi piu usati:
-
-- `getProfiles()`
-- `getProfile()`
-- `createProfile()`
-- `updateProfile()`
-- `getProfileRelationshipsLists()`
-- `getListsForProfile()`
-- `getSegmentsForProfile()`
-
-Aggiornamento profilo:
+Se hai gia il `profile_id` e vuoi solo collegarlo a una lista:
 
 ```php
 use Wonder\Plugin\Klaviyo\Profiles;
 
 (new Profiles())
-    ->body([
-        'data' => [
-            'type' => 'profile',
-            'id' => 'PROFILE_ID',
-            'attributes' => [
-                'first_name' => 'Mario',
-                'last_name' => 'Rossi'
-            ]
-        ]
-    ])
-    ->updateProfile('PROFILE_ID');
+    ->profileId('PROFILE_ID')
+    ->listId('LIST_ID')
+    ->addToList();
 ```
 
-### Lists e Segments
+### Leggere il consenso marketing di un profilo
 
-Le classi `Lists` e `Segments` servono per recuperare gruppi di utenti e relative relazioni.
+Klaviyo non restituisce i dati `subscriptions` di default. Devi richiederli esplicitamente:
 
-Metodi piu usati:
+```php
+use Wonder\Plugin\Klaviyo\Profiles;
 
-- `getLists()`
-- `getList()`
-- `createList()`
-- `addProfilesToList()`
-- `getSegments()`
-- `getSegment()`
-- `getProfilesForList()`
-- `getProfilesForSegment()`
+$profile = (new Profiles())
+    ->withSubscriptions()
+    ->get('PROFILE_ID');
+```
 
-### Metrics ed Events
+Metodi piu usati di `Profiles`:
 
-Usa `Metrics` per recuperare metriche disponibili e relativi ID, e `Events` per leggere o inviare eventi.
+- `all()`
+- `get()`
+- `create()`
+- `createOrUpdate()`
+- `update()`
+- `subscribe()`
+- `addToList()`
+- `withSubscriptions()`
+- `listId()`
+- `emailMarketing()`
+- `smsMarketing()`
+- `smsTransactional()`
+- `ageGatedDateOfBirth()`
+- `historicalImport()`
 
-Metodi piu usati:
+## Lists
 
-- `getMetrics()`
-- `getMetric()`
-- `getEvents()`
-- `createEvent()`
+La classe `Lists` serve per leggere, creare e modificare liste Klaviyo.
 
-Lettura eventi filtrati per metrica:
+### Lettura liste
+
+```php
+use Wonder\Plugin\Klaviyo\Lists;
+
+$lists = (new Lists())
+    ->fields('list', ['name'])
+    ->all();
+```
+
+### Creazione lista
+
+```php
+use Wonder\Plugin\Klaviyo\Lists;
+
+$response = (new Lists())
+    ->name('Newsletter Italia')
+    ->create();
+```
+
+### Aggiunta profilo a lista da `Lists`
+
+```php
+use Wonder\Plugin\Klaviyo\Lists;
+
+(new Lists())->addProfile('LIST_ID', 'PROFILE_ID');
+```
+
+Metodi piu usati di `Lists`:
+
+- `all()`
+- `get()`
+- `create()`
+- `update()`
+- `delete()`
+- `addProfile()`
+- `addProfiles()`
+- `removeProfile()`
+- `removeProfiles()`
+
+## Events
+
+La classe `Events` serve per inviare eventi custom a Klaviyo.
+
+### Creazione evento
 
 ```php
 use Wonder\Plugin\Klaviyo\Events;
 
-$events = (new Events())
-    ->filter('equals(metric_id,"METRIC_ID")')
-    ->sort('-datetime')
-    ->pageCursor('https://a.klaviyo.com/api/events/?page%5Bcursor%5D=...')
-    ->getEvents();
+$response = (new Events())
+    ->metricName('Placed Order')
+    ->email('utente@example.com')
+    ->property('order_id', '100001')
+    ->property('value', 149.90)
+    ->time(date(DATE_ATOM))
+    ->create();
 ```
 
-### Templates, Flows e Campaigns
+Metodi piu usati di `Events`:
 
-Queste classi sono utili quando vuoi collegare automazioni e messaggi gia presenti in Klaviyo.
+- `all()`
+- `get()`
+- `create()`
+- `metricName()`
+- `email()`
+- `phone()`
+- `property()`
+- `properties()`
+- `time()`
+- `value()`
+- `valueCurrency()`
 
-Metodi piu usati:
+## Metrics
 
-- `getTemplates()`
-- `getTemplate()`
-- `getFlows()`
-- `getFlow()`
-- `createFlow()`
-- `getCampaigns()`
-- `getCampaign()`
-- `createCampaign()`
+La classe `Metrics` serve per leggere le metriche disponibili e recuperare i relativi ID.
 
-### Forms e Webhooks
+### Lettura metriche
 
-Se devi lavorare con acquisizione lead o integrazioni server-server:
+```php
+use Wonder\Plugin\Klaviyo\Metrics;
 
-- `Forms` espone `getForms()`, `getForm()`, `createForm()`
-- `Webhooks` espone `getWebhooks()`, `getWebhook()`
+$metrics = (new Metrics())
+    ->fields('metric', ['name'])
+    ->all();
+```
 
-## Note operative
+### Recupero `metric_id`
 
-- I filtri Klaviyo usano la sintassi `filter=...`, per esempio `equals(email,"utente@example.com")`.
-- Lo sorting usa `sort=campo` oppure `sort=-campo`.
-- Le sparse fieldsets usano `fields[TIPO]`, per esempio `fields[profile]=email,first_name`.
-- L'inclusione relazioni usa `include`, per esempio `include=lists`.
-- La paginazione e cursor-based: puoi passare direttamente il link `next` ricevuto dalla risposta a `pageCursor()`.
-- Le date devono essere in formato ISO 8601 / RFC 3339.
+```php
+use Wonder\Plugin\Klaviyo\Metrics;
+
+$metrics = (new Metrics())
+    ->fields('metric', ['name'])
+    ->all();
+
+$metricId = $metrics['data'][0]['id'] ?? null;
+```
+
+## Dati necessari al funzionamento
+
+Per usare bene le classi Klaviyo ti servono quasi sempre:
+
+1. una `Private API Key`
+2. gli ID degli oggetti con cui lavori
+
+### `list_id`
+
+Lo ottieni da:
+
+- interfaccia Klaviyo nella pagina della lista
+- risposta di `Lists::all()`
+
+```php
+use Wonder\Plugin\Klaviyo\Lists;
+
+$lists = (new Lists())
+    ->fields('list', ['name'])
+    ->all();
+
+$listId = $lists['data'][0]['id'] ?? null;
+```
+
+### `profile_id`
+
+Lo ottieni da:
+
+- risposta di `Profiles::create()`
+- risposta di `Profiles::createOrUpdate()`
+- ricerca profili con `Profiles::all()`
+
+```php
+use Wonder\Plugin\Klaviyo\Profiles;
+
+$profiles = (new Profiles())
+    ->filter('equals(email,"utente@example.com")')
+    ->fields('profile', ['email'])
+    ->all();
+
+$profileId = $profiles['data'][0]['id'] ?? null;
+```
+
+### `metric_id`
+
+Lo ottieni da:
+
+- risposta di `Metrics::all()`
+
+```php
+use Wonder\Plugin\Klaviyo\Metrics;
+
+$metrics = (new Metrics())
+    ->fields('metric', ['name'])
+    ->all();
+
+$metricId = $metrics['data'][0]['id'] ?? null;
+```
+
+## Errori comuni
+
+### `400 Bad Request` su `subscribe()`
+
+I casi piu comuni sono:
+
+- `listId()` mancante o non valido
+- chiave API senza scope `subscriptions:write`
+- `phone_number` non in formato E.164
+- numero valido ma regione SMS non supportata dal tuo account Klaviyo
+- uso di `consented_at` senza `historicalImport(true)`
+
+### Numero SMS non supportato dalla regione dell'account
+
+Se ricevi un errore simile a:
+
+```text
+Phone number is valid but is not in a supported region for this account.
+Please configure a sending number for this region.
+```
+
+significa che:
+
+- il numero e corretto
+- ma il tuo account Klaviyo non puo ancora inviare o gestire SMS per quella regione
+
+In quel caso puoi:
+
+- usare solo `emailMarketing()`
+- salvare comunque il telefono sul profilo con `createOrUpdate()`
+- configurare in Klaviyo un sending number compatibile con quella regione
+
+### SMS marketing vs SMS transazionale
+
+Regola pratica:
+
+- `smsMarketing()` e il caso standard
+- `smsMarketing()` copre anche l'invio di SMS transazionali
+- `smsTransactional()` serve solo per profili `transactional-only`
+
+Esempio email only:
+
+```php
+use Wonder\Plugin\Klaviyo\Profiles;
+
+(new Profiles())
+    ->email('utente@example.com')
+    ->listId('LIST_ID')
+    ->emailMarketing()
+    ->subscribe();
+```
+
+### SMS age gating
+
+Se il tuo account richiede age gating per l'SMS, devi passare anche:
+
+```php
+->ageGatedDateOfBirth('1990-01-01')
+```
+
+### Lettura subscription vuota
+
+Se recuperi un profilo e non vedi `subscriptions`, quasi sempre manca:
+
+```php
+->withSubscriptions()
+```
+
+## Note pratiche
+
+- `subscribe()` crea il profilo se non esiste gia
+- `addToList()` aggiunge a una lista senza cambiare lo stato marketing
+- `createOrUpdate()` e il metodo giusto per salvare anagrafica e proprieta custom
+- `phone()` normalizza spazi e simboli, ma per l'SMS il numero deve comunque risultare E.164
+- la paginazione Klaviyo e cursor-based
+- le date devono essere in formato ISO 8601 / RFC 3339
 
 ## Link utili
 
 - API overview: [https://developers.klaviyo.com/en/reference/api_overview](https://developers.klaviyo.com/en/reference/api_overview)
-- Authenticate API requests: [https://developers.klaviyo.com/en/docs/authenticate_](https://developers.klaviyo.com/en/docs/authenticate_)
-- How to find a list ID: [https://help.klaviyo.com/hc/en-us/articles/115005078647](https://help.klaviyo.com/hc/en-us/articles/115005078647)
+- Profiles API overview: [https://developers.klaviyo.com/en/reference/profiles_api_overview](https://developers.klaviyo.com/en/reference/profiles_api_overview)
+- Subscribe Profiles: [https://developers.klaviyo.com/en/reference/subscribe_profiles](https://developers.klaviyo.com/en/reference/subscribe_profiles)
+- Create or Update Profile: [https://developers.klaviyo.com/en/reference/create_or_update_profile](https://developers.klaviyo.com/en/reference/create_or_update_profile)
 - SDK PHP: [https://github.com/klaviyo/klaviyo-api-php](https://github.com/klaviyo/klaviyo-api-php)

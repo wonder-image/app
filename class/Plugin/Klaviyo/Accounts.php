@@ -14,4 +14,18 @@
 
         }
 
+        public function all()
+        {
+
+            return $this->getAccounts();
+
+        }
+
+        public function get($accountId)
+        {
+
+            return $this->getAccount($accountId);
+
+        }
+
     }
