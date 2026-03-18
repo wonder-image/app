@@ -6,11 +6,9 @@
         $content = wiPreIfArray($content);
 
         return <<<HTML
-        <div class="card">
-            <div class="card-body">
-                {$content}
-            </div>
-        </div>
+        <wi-card>
+            {$content}
+        </wi-card>
         HTML;
 
     }
@@ -41,14 +39,14 @@
         if ($oldValue === null) {
 
             return <<<HTML
-            <div class="row">
+            <wi-card>
                 <div class="col-12">
                     <h6 class="text-muted">{$title}</h6>
                 </div>
                 <div class="col-12">
                     <h2 class="w-auto mb-0">{$value}{$unit}</h2>
                 </div>
-            </div>
+            </wi-card>
             HTML;
 
             
@@ -88,5 +86,25 @@
             HTML;
 
         }
+
+    }
+
+    function wiCardAccordion(string $title, mixed $content, bool $expanded = false)
+    {
+
+        $content = wiPreIfArray($content);
+        
+        $ariaExpanded = $expanded ? 'true' : 'false';
+        $show = $expanded ? 'show' : '';
+
+        $id = code('5', 'letters', 'accordion_');
+
+        return wiCard(<<<HTML
+            <h6 class="col-12 d-flex justify-content-between align-items-center text-start" data-bs-toggle="collapse" data-bs-target="#{$id}" aria-expanded="{$ariaExpanded}" style="cursor: pointer;">
+                <span class="mb-0">{$title}</span>
+                <span class="chevron"> <i class="bi bi-chevron-down"></i> </span>
+            </h6>
+            <div id="{$id}" class="collapse {$show} col-12">{$content}</div>
+        HTML);
 
     }
