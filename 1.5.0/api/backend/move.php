@@ -33,12 +33,12 @@
         $newPosition = ($action == 'up') ? $oldPosition - 1 : $oldPosition + 1;
 
         if ($filter != null && $filterId != null) {
-            $oldPositionId = sqlSelect($table, [ 'position' => $newPosition, $filter => $filterId ], 1)->id;
-            sqlModify($table, [ 'position' => $oldPosition ], 'id', $oldPositionId);
+            $oldPositionId = sqlSelect($table, [ 'position' => $newPosition, $filter => $filterId, 'deleted' => 'false' ], 1)->id;
+            sqlModify($table, [ 'position' => $oldPosition, 'deleted' => 'false' ], 'id', $oldPositionId);
         } else {
-            sqlModify($table, [ 'position' => $oldPosition ], 'position', $newPosition);
+            sqlModify($table, [ 'position' => $oldPosition, 'deleted' => 'false' ], 'position', $newPosition);
         }
 
-        sqlModify($table, ['position' => $newPosition], 'id', $rowId);
+        sqlModify($table, ['position' => $newPosition, 'deleted' => 'false'], 'id', $rowId);
 
     }
