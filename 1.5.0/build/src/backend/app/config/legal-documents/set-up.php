@@ -22,12 +22,15 @@
     $PAGE_TABLE = $TABLE->LEGAL_DOCUMENTS;
 
     $TABLE_ACTION = [
+        'view' => true,
+        'download' => true,
         'duplicate' => true
     ];
 
     $TABLE_FIELD = [
         "name" => [
-            "label" => "Nome"
+            "label" => "Nome",
+            "href" => "view"
         ],
         "language_code" => [
             "label" => "Lingua",

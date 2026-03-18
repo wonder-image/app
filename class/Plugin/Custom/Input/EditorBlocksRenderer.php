@@ -30,6 +30,11 @@ class EditorBlocksRenderer
         return (new self($config))->render($payload);
     }
 
+    public static function makePdf(mixed $payload, ?\Wonder\Pdf $pdf = null, array $config = []): \Wonder\Pdf
+    {
+        return EditorBlocksRendererPdf::make($payload, $pdf, $config);
+    }
+
     public function render(mixed $payload): string
     {
         $blocks = $this->extractBlocks($payload);
@@ -53,6 +58,11 @@ class EditorBlocksRenderer
         $output .= $this->renderQueuedScripts();
 
         return $output;
+    }
+
+    public function renderPdf(mixed $payload, ?\Wonder\Pdf $pdf = null): \Wonder\Pdf
+    {
+        return (new EditorBlocksRendererPdf($this->config))->render($payload, $pdf);
     }
 
     private function extractBlocks(mixed $payload): array
