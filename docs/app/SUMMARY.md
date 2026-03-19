@@ -9,6 +9,11 @@
     * [Verifica email](app-1.5.0/utente/verifica-email.md)
     * [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
 
+## ELEMENTI
+
+* [Elementi](elementi/README.md)
+  * [Charts](elementi/charts.md)
+
 ## BACKEND
 
 * [Classi](backend/classi/README.md)

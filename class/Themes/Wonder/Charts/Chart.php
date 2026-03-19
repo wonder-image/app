@@ -1,0 +1,30 @@
+<?php
+
+namespace Wonder\Themes\Wonder\Charts;
+
+use Wonder\Themes\Concerns\InteractsWithCharts;
+use Wonder\Themes\Wonder\Component;
+
+class Chart extends Component
+{
+    use InteractsWithCharts;
+
+    public function render($class): string
+    {
+        $chart = $this->chartContext($class, ['wi-chart']);
+
+        $html = "<div id='{$chart['safe_wrapper_id']}' {$chart['attributes']}>";
+
+        if ($chart['title'] !== '') {
+            $html .= "<div class='wi-chart-header mb-2'><b>{$chart['safe_title']}</b></div>";
+        }
+
+        $html .= "<div class='wi-chart-body' style=\"{$chart['canvas_style']}\">";
+        $html .= "<canvas id='{$chart['safe_canvas_id']}' class='w-100 h-100'></canvas>";
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= $this->renderChartScript($chart['canvas_id_json'], $chart['config_json']);
+
+        return $html;
+    }
+}
