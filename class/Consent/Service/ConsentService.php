@@ -439,6 +439,18 @@
         private function toBool(mixed $value): bool
         {
 
+            if (is_array($value)) {
+
+                foreach ($value as $item) {
+                    if ($this->toBool($item)) {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            }
+
             if (is_bool($value)) {
                 return $value;
             }
