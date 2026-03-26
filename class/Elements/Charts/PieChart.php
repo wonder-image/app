@@ -15,16 +15,19 @@ class PieChart extends Chart
         return new self();
     }
 
-    public function series(array $data, ?string $label = null, array $dataset = []): self
+    public function series(array $data, ?string $label = null, array|Dataset $dataset = []): self
     {
-        $baseDataset = [
-            'data' => array_values($data),
-        ];
+        $series = Dataset::make()
+            ->data($data);
 
         if ($label !== null && trim($label) !== '') {
-            $baseDataset['label'] = $label;
+            $series->label($label);
         }
 
-        return $this->dataset(array_replace($baseDataset, $dataset));
+        if ($dataset !== []) {
+            $series->merge($dataset);
+        }
+
+        return $this->dataset($series);
     }
 }

@@ -13,18 +13,16 @@ class Chart extends Component
 
     public function render($class): string
     {
-        $chart = $this->chartContext($class, ['card', 'border', 'h-100']);
+        $chart = $this->chartContext($class);
 
         $html = "<div id='{$chart['safe_wrapper_id']}' {$chart['attributes']}>";
 
         if ($chart['title'] !== '') {
-            $html .= "<div class='card-header bg-transparent'><strong>{$chart['safe_title']}</strong></div>";
+            $html .= "<div class='mb-2'><strong>{$chart['safe_title']}</strong></div>";
         }
 
-        $html .= "<div class='card-body'>";
         $html .= "<div class='chartjs-container' style=\"{$chart['canvas_style']}\">";
         $html .= "<canvas id='{$chart['safe_canvas_id']}' class='w-100 h-100'></canvas>";
-        $html .= '</div>';
         $html .= '</div>';
         $html .= '</div>';
         $html .= $this->renderChartScript($chart['canvas_id_json'], $chart['config_json']);

@@ -10,7 +10,7 @@ class Chart extends Component
 {
     use Renderer;
 
-    private const ALLOWED_TYPES = ['line', 'pie'];
+    private const ALLOWED_TYPES = ['line', 'pie', 'bar'];
     private const ALLOWED_LEGEND_POSITIONS = ['top', 'left', 'bottom', 'right', 'chartArea'];
 
     public function __construct(string $type)
@@ -44,7 +44,7 @@ class Chart extends Component
         return $this->schema('labels', array_values($labels));
     }
 
-    public function dataset(array $dataset): self
+    public function dataset(array|Dataset $dataset): self
     {
         $datasets = $this->getSchema('datasets') ?? [];
         $datasets[] = $this->normalizeDataset($dataset);
@@ -57,8 +57,8 @@ class Chart extends Component
         $normalized = [];
 
         foreach ($datasets as $dataset) {
-            if (!is_array($dataset)) {
-                throw new InvalidArgumentException('Ogni dataset deve essere un array.');
+            if (!is_array($dataset) && !$dataset instanceof Dataset) {
+                throw new InvalidArgumentException('Ogni dataset deve essere un array o un oggetto Dataset.');
             }
 
             $normalized[] = $this->normalizeDataset($dataset);
@@ -77,6 +77,58 @@ class Chart extends Component
         $current = $this->getSchema('options') ?? [];
 
         return $this->schema('options', array_replace_recursive($current, $options));
+    }
+
+    public function interaction(array $options): self
+    {
+        return $this->mergeOptions([
+            'interaction' => $options,
+        ]);
+    }
+
+    public function animation(array|bool $options): self
+    {
+        return $this->mergeOptions([
+            'animation' => $options,
+        ]);
+    }
+
+    public function plugin(string $name, array $options): self
+    {
+        $plugin = trim($name);
+        if ($plugin === '') {
+            throw new InvalidArgumentException('Il nome del plugin non può essere vuoto.');
+        }
+
+        return $this->mergeOptions([
+            'plugins' => [
+                $plugin => $options,
+            ],
+        ]);
+    }
+
+    public function scale(string $axis, array $options): self
+    {
+        $normalized = strtolower(trim($axis));
+        if ($normalized === '') {
+            throw new InvalidArgumentException("L'asse non può essere vuoto.");
+        }
+
+        return $this->mergeOptions([
+            'scales' => [
+                $normalized => $options,
+            ],
+        ]);
+    }
+
+    public function xAxis(array $options): self
+    {
+        return $this->scale('x', $options);
+    }
+
+    public function yAxis(array $options): self
+    {
+        return $this->scale('y', $options);
     }
 
     public function width(int|string $width): self
@@ -145,8 +197,12 @@ class Chart extends Component
         ];
     }
 
-    protected function normalizeDataset(array $dataset): array
+    protected function normalizeDataset(array|Dataset $dataset): array
     {
+        if ($dataset instanceof Dataset) {
+            $dataset = $dataset->toArray();
+        }
+
         if (!array_key_exists('data', $dataset) || !is_array($dataset['data'])) {
             throw new InvalidArgumentException('Ogni dataset deve contenere una chiave data con un array di valori.');
         }
