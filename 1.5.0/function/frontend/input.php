@@ -1094,9 +1094,40 @@
 
         $document = infoLegalDocument($SQL->id);
         $label = $document->renderLabel;
+        $id = strtolower(code(10, 'letters', 'checkbox_'));
+        $attributes = trim((string) $attributes);
+        $attributesHtml = $attributes === '' ? '' : ' '.$attributes;
 
-        return '<input type="hidden" name="'.$type.'_id" value="'.$document->id.'">'.
-        checkbox('', $fieldName, [ 'true' => [ 'label' => $label, 'attribute' => $attributes ] ], 'checkbox', $value );
+        $checked = false;
+
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (filter_var($item, FILTER_VALIDATE_BOOLEAN)) {
+                    $checked = true;
+                    break;
+                }
+            }
+        } elseif ($value !== null) {
+            $checked = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        if (strpos($attributes, 'required') !== false) {
+            $label .= '*';
+        }
+
+        return '
+        <input type="hidden" name="'.$type.'_id" value="'.$document->id.'">
+        <div class="wi-input-container checkbox compiled">
+            <div class="wi-checkbox-list">
+                <div class="wi-checkbox-container">
+                    <input type="checkbox" id="'.$id.'" class="wi-checkbox" name="'.$fieldName.'" value="true" data-wi-check="true"'.$attributesHtml.($checked ? ' checked' : '').'>
+                    <div class="wi-checkbox-icon">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <label for="'.$id.'" class="wi-checkbox-label unselectable">'.$label.'</label>
+                </div>
+            </div>
+        </div>';
 
     }
 
