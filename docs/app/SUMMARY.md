@@ -8,15 +8,18 @@
     * [Permessi client e verifica email](app-1.5.0/utente/permessi-client-e-verifica-email.md)
     * [Verifica email](app-1.5.0/utente/verifica-email.md)
     * [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
+    * [Auth federata Google / Apple](app-1.5.0/utente/auth-federata-google-apple.md)
 
 ## ELEMENTI
 
 * [Elementi](elementi/README.md)
   * [Charts](elementi/charts.md)
 
-## BACKEND
+## CLASSI
 
-* [Classi](backend/classi/README.md)
+* [Classi](classi/README.md)
+  * [Accesso con Google (Classi)](classi/accesso-google-classi.md)
+  * [Accesso con Apple (Classi)](classi/accesso-apple-classi.md)
   * [Table](../backend/classi/table.md)
 
 ## SPECIFICHE
@@ -31,14 +34,18 @@
 ## ALTRO
 
 * [Servizi](altro/servizi/README.md)
-  * [Google Tag Manager](altro/servizi/google-tag-manager.md)
-  * [iubenda](altro/servizi/iubenda.md)
-  * [Google Analytics](altro/servizi/google-analytics.md)
-  * [Google Search Console](altro/servizi/google-search-console.md)
-  * [Google Cloud Platform](altro/servizi/google-cloud-platform.md)
-  * [Fatture in Cloud](altro/servizi/fatture-in-cloud.md)
-  * [Brevo](altro/servizi/brevo.md)
-  * [Klaviyo](altro/servizi/klaviyo.md)
+  * [Google Tag Manager](altro/servizi/google-tag-manager/configurazione.md)
+    * [Configurazione](altro/servizi/google-tag-manager/configurazione.md)
+    * [iubenda](altro/servizi/google-tag-manager/iubenda.md)
+    * [Google Analytics](altro/servizi/google-tag-manager/google-analytics.md)
+  * [Configurazione](altro/servizi/configurazione/README.md)
+    * [Google Cloud Platform](altro/servizi/configurazione/google-cloud-platform.md)
+    * [Google Sign-In OAuth](altro/servizi/configurazione/google-sign-in-oauth.md)
+    * [Sign in with Apple](altro/servizi/configurazione/sign-in-with-apple.md)
+    * [Google Search Console](altro/servizi/configurazione/google-search-console.md)
+    * [Fatture in Cloud](altro/servizi/configurazione/fatture-in-cloud.md)
+    * [Brevo](altro/servizi/configurazione/brevo.md)
+    * [Klaviyo](altro/servizi/configurazione/klaviyo.md)
 * [Avvio Locale (PHP 8.4)](altro/avvio-locale.md)
 * [Versione <1.5.0](altro/versione-less-than-1.5.0.md)
 * [Estensioni e App Consigliate](altro/estensioni-e-app-consigliate.md)

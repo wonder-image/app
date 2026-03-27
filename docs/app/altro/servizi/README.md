@@ -1,3 +1,19 @@
 # Servizi
 
-<table data-view="cards"><thead><tr><th></th><th data-hidden data-card-target data-type="content-ref"></th><th data-hidden data-card-cover data-type="files"></th></tr></thead><tbody><tr><td>Google Tag Manager</td><td><a href="google-tag-manager.md">google-tag-manager.md</a></td><td></td></tr><tr><td>iubenda</td><td><a href="iubenda.md">iubenda.md</a></td><td></td></tr><tr><td>Google Analytics</td><td><a href="google-analytics.md">google-analytics.md</a></td><td></td></tr><tr><td>Google Search Console</td><td><a href="google-search-console.md">google-search-console.md</a></td><td></td></tr><tr><td>Google Cloud Platform</td><td><a href="google-cloud-platform.md">google-cloud-platform.md</a></td><td></td></tr><tr><td>Fatture in Cloud</td><td><a href="fatture-in-cloud.md">fatture-in-cloud.md</a></td><td></td></tr><tr><td>Brevo</td><td><a href="brevo.md">brevo.md</a></td><td></td></tr><tr><td>Klaviyo</td><td><a href="klaviyo.md">klaviyo.md</a></td><td></td></tr></tbody></table>
+Questa sezione è divisa in due aree operative:
+- setup/configurazione servizi
+- Google Tag Manager (configurazione contenitore e integrazioni collegate)
+
+## Google Tag Manager
+- [Configurazione](google-tag-manager/configurazione.md)
+- [iubenda](google-tag-manager/iubenda.md)
+- [Google Analytics](google-tag-manager/google-analytics.md)
+
+## Configurazione
+- [Google Cloud Platform](configurazione/google-cloud-platform.md)
+- [Google Sign-In OAuth](configurazione/google-sign-in-oauth.md)
+- [Sign in with Apple](configurazione/sign-in-with-apple.md)
+- [Google Search Console](configurazione/google-search-console.md)
+- [Fatture in Cloud](configurazione/fatture-in-cloud.md)
+- [Brevo](configurazione/brevo.md)
+- [Klaviyo](configurazione/klaviyo.md)
