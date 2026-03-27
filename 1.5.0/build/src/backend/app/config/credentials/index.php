@@ -100,6 +100,48 @@
 
                     </wi-card>
 
+                    <wi-card class="col-12">
+                        <h6 class="col-12"> Login Federato (Google / Apple) </h6>
+
+                        <div class="col-12">
+                            Documentazione interna:
+                            <a href="https://wonder-image.gitbook.io/app/app-1.5.0/utente/auth-federata-google-apple" target="_blank" rel="noopener noreferrer">Auth Federata (GitBook)</a>.
+                        </div>
+
+                        <div class="col-12">
+                            Guide ufficiali:
+                            <a href="https://developers.google.com/identity/openid-connect/openid-connect" target="_blank" rel="noopener noreferrer">Google OpenID Connect</a>
+                            -
+                            <a href="https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js" target="_blank" rel="noopener noreferrer">Sign in with Apple JS</a>.
+                        </div>
+
+                        <div class="col-4">
+                            <?=text('Google Client ID', 'google_oauth_client_id'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=password('Google Client Secret', 'google_oauth_client_secret'); ?>
+                        </div>
+                        <div class="col-4">
+                            <?=text('Google Redirect URI', 'google_oauth_redirect_uri'); ?>
+                        </div>
+
+                        <div class="col-3">
+                            <?=text('Apple Service ID (Client ID)', 'apple_oauth_client_id'); ?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Apple Team ID', 'apple_oauth_team_id'); ?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Apple Key ID', 'apple_oauth_key_id'); ?>
+                        </div>
+                        <div class="col-3">
+                            <?=text('Apple Redirect URI', 'apple_oauth_redirect_uri'); ?>
+                        </div>
+                        <div class="col-12">
+                            <?=password('Apple Private Key (.p8)', 'apple_oauth_private_key'); ?>
+                        </div>
+                    </wi-card>
+
                     <wi-card class="col-6">
                         <h6 class="col-12"> Server mail </h6>
                         <div class="col-12">

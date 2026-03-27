@@ -183,6 +183,14 @@
                 self::$API->gcp_project_id = $row['gcp_project_id'] ?? '';
                 self::$API->gcp_api_key = $row['gcp_api_key'] ?? '';
                 self::$API->gcp_client_api_key = $row['gcp_client_api_key'] ?? self::$API->gcp_api_key;
+                self::$API->google_oauth_client_id = $row['google_oauth_client_id'] ?? '';
+                self::$API->google_oauth_client_secret = $row['google_oauth_client_secret'] ?? '';
+                self::$API->google_oauth_redirect_uri = $row['google_oauth_redirect_uri'] ?? '';
+                self::$API->apple_oauth_client_id = $row['apple_oauth_client_id'] ?? '';
+                self::$API->apple_oauth_team_id = $row['apple_oauth_team_id'] ?? '';
+                self::$API->apple_oauth_key_id = $row['apple_oauth_key_id'] ?? '';
+                self::$API->apple_oauth_private_key = $row['apple_oauth_private_key'] ?? '';
+                self::$API->apple_oauth_redirect_uri = $row['apple_oauth_redirect_uri'] ?? '';
                 self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? '';
                 self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? '';
                 self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? '';

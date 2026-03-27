@@ -211,7 +211,68 @@
         ]
     ];
 
-
+    $TABLE->AUTH_FEDERATED = [
+        "user_id" => [
+            "sql" => [
+                "type" => "INT",
+                "foreign_table" => "user"
+            ]
+        ],
+        "provider" => [
+            "sql" => [
+                "length" => 20
+            ]
+        ],
+        "provider_user_id" => [
+            "sql" => [
+                "length" => 191
+            ]
+        ],
+        "provider_email" => [
+            "sql" => [
+                "length" => 255,
+                "null" => true
+            ]
+        ],
+        "provider_email_verified" => [
+            "sql" => [
+                "type" => "BOOLEAN",
+                "default" => "false"
+            ]
+        ],
+        "last_login_at" => [
+            "sql" => [
+                "type" => "DATETIME",
+                "null" => true
+            ]
+        ],
+        "meta" => [
+            "sql" => [
+                "type" => "JSON"
+            ],
+            "input" => [
+                "format" => [
+                    "sanitize" => false,
+                    "json" => true
+                ]
+            ]
+        ],
+        "uq_provider_subject" => [
+            "sql" => [
+                "unique" => [ "provider", "provider_user_id" ]
+            ]
+        ],
+        "uq_user_provider" => [
+            "sql" => [
+                "unique" => [ "user_id", "provider" ]
+            ]
+        ],
+        "ind_user_provider" => [
+            "sql" => [
+                "index" => [ "user_id", "provider" ]
+            ]
+        ]
+    ];
 
     $TABLE->API_USERS = [
         "user_id" => [
