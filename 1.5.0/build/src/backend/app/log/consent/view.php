@@ -88,7 +88,7 @@
 
                 <wi-card class="col-12">
                     <h6 class="col-12 mb-2"> Altro </h6>
-                    <div class="col-6">
+                    <div class="col-12">
                         Stato: <b><?=$EVENT->locale?></b> <br>
                         IP: <b><?=$EVENT->ip_address?></b> <br>
                         Browser: <b><?=$EVENT->user_agent?></b> <br>
