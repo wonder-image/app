@@ -61,18 +61,18 @@
                 <wi-card class="col-6">
                     <h6 class="col-12"> Messaggio </h6>
                     <div class="col-12">
-                        <?= wiCard(nl2br($MAIL->body_text)) ?>
+                        <?=wiPreIfArray(nl2br($MAIL->body_text))?>
                     </div>
                     <h6 class="col-12"> Allegati </h6>
                     <div class="col-12">
-                        <?= wiCard($MAIL->attachments) ?>
+                        <?= wiPreIfArray($MAIL->attachments) ?>
                     </div>
                 </wi-card>
 
                 <wi-card class="col-6">
                     <h6 class="col-12"> Errori </h6>
                     <div class="col-12">
-                        <?= wiCard($MAIL->error_message) ?>
+                        <?= wiPreIfArray($MAIL->error_message) ?>
                     </div>
                 </wi-card>
 
