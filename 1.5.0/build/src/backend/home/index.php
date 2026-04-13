@@ -7,25 +7,41 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
-    if (array_key_exists('stats', $DB->database)) {
+    $UPDATE_RESULT = null;
 
-        $mysqli = $MYSQLI_CONNECTION['stats'];
+    if (
+        isset($_POST['run_app_update'])
+        && is_array($USER->authority ?? null)
+        && in_array('admin', $USER->authority, true)
+    ) {
 
-        $FROM = date('Y-m-d H', strtotime('-24 hours')).':00:00';
-        $TO = date('Y-m-d H').':00:00';
+        $systemUser = infoUser('@system', 'username');
+        $systemToken = trim((string) ($systemUser->api_internal_user->token ?? ''));
+        $releaseId = trim((string) ($_POST['release_id'] ?? ''));
 
-        $N_VIEW = number_format(sqlSelect('visitors_log', "`creation` BETWEEN '$FROM' AND '$TO'")->Nrow, 0, '.');
-        $N_VISITOR = number_format(sqlSelect('visitors_log', "`creation` BETWEEN '$FROM' AND '$TO'", null, null, null, "DISTINCT visitor_id")->Nrow, 0, '.');
-        $N_SESSION = number_format(sqlSelect('visitors_log', "`creation` BETWEEN '$FROM' AND '$TO'", null, null, null, "DISTINCT session_id")->Nrow, 0, '.');
-        $N_HTTPS = number_format(sqlSelect('visitors_log', "`creation` BETWEEN '$FROM' AND '$TO' AND `https` = 'on'")->Nrow, 0, '.');
-        $N_HTTP = number_format($N_VIEW - $N_HTTPS, 0, '.');
+        if ($systemToken === '') {
+            $UPDATE_RESULT = [
+                'success' => false,
+                'message' => 'Token API di @system non disponibile.',
+            ];
+        } else {
+            $UPDATE_RESULT = curlJson(
+                $PATH->api.'/app/update/',
+                'POST',
+                [
+                    'release_id' => $releaseId,
+                    'source' => 'backend',
+                ],
+                $systemToken
+            );
 
-        $FROM = date('Y-m-d ').' 00:00:00';
-        $TO = date('Y-m-d ').' 23:59:59';
-
-        $MOST_PAGE_VIEW = sqlSelect('url_vr_dbd', "`creation` BETWEEN '$FROM' AND '$TO'", 20, 'visitors', 'DESC');
-
-        $mysqli = $MYSQLI_CONNECTION['main'];
+            if (!is_array($UPDATE_RESULT)) {
+                $UPDATE_RESULT = [
+                    'success' => false,
+                    'message' => 'Risposta update non valida.',
+                ];
+            }
+        }
 
     }
     
@@ -117,123 +133,43 @@
         <div class="col-9">
             <div class="row g-3">
 
-                <?php if (array_key_exists('stats', $DB->database)) { ?>
+                <?php if (in_array('admin', $USER->authority, true)) { ?>
                 <wi-card class="col-12">
                     <div class="col-12">
-                        <h6>Ultime 24 ore</h6>
+                        <h6>Update applicativo</h6>
                     </div>
-                    <div class="col-4">
-                        <h1><?=$N_VIEW?></h1>
-                        <h6 class="fw-light">Visualizzazioni di pagina</h6>
-                    </div>
-                    <div class="col-4">
-                        <h1><?=$N_VISITOR?></h1>
-                        <h6 class="fw-light">Utenti</h6>
-                    </div>
-                    <div class="col-4">
-                        <h1><?=$N_SESSION?></h1>
-                        <h6 class="fw-light">Sessioni</h6>
-                    </div>
-                </wi-card>
-
-                <wi-card class="col-8">
+                    <?php if (is_array($UPDATE_RESULT)) { ?>
                     <div class="col-12">
-                        <h6>Pagine più visitate di ieri</h6>
+                        <?php
+                            $icon = !empty($UPDATE_RESULT['success']) ? 'bi-check2 text-success' : 'bi-x-lg text-danger';
+                            $message = htmlspecialchars((string) ($UPDATE_RESULT['message'] ?? $UPDATE_RESULT['response'] ?? 'Operazione conclusa.'), ENT_QUOTES, 'UTF-8');
+                        ?>
+                        <p class="mb-2"><i class="bi <?=$icon?> me-1"></i><?=$message?></p>
+                        <?php if (!empty($UPDATE_RESULT['release_id'])) { ?>
+                        <p class="mb-1"><b>Release:</b> <?=htmlspecialchars((string) $UPDATE_RESULT['release_id'], ENT_QUOTES, 'UTF-8')?></p>
+                        <?php } ?>
+                        <?php if (isset($UPDATE_RESULT['stats']) && is_array($UPDATE_RESULT['stats'])) { ?>
+                        <p class="mb-0">
+                            <b>Tabelle:</b> <?= (int) ($UPDATE_RESULT['stats']['tables'] ?? 0) ?>
+                            |
+                            <b>Row:</b> <?= (int) ($UPDATE_RESULT['stats']['rows'] ?? 0) ?>
+                            |
+                            <b>Page:</b> <?= (int) ($UPDATE_RESULT['stats']['pages'] ?? 0) ?>
+                        </p>
+                        <?php } ?>
                     </div>
-                    <div class="col-12 overflow-scroll">
-                        <table id="page-view-table" class="table table-hover" style="max-width:100%">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Url</th>
-                                    <th scope="col">Visualizzazioni</th>
-                                    <th scope="col">Utenti</th>
-                                    <th scope="col">Sessioni</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-
-                                    foreach ($MOST_PAGE_VIEW->row as $key => $row) {
-
-                                        $url = $row['url'];
-                                        $view = $row['visitors'];
-                                        $visitor = $row['visitors_unique'];
-                                        $session = $row['sessions'];
-
-                                        echo "
-                                        <tr>
-                                            <td><a href='$PATH->site$url' target='_blank' rel='noopener noreferrer' class='text-dark'>$url</a></td>
-                                            <td>$view</td>
-                                            <td>$visitor</td>
-                                            <td>$session</td>
-                                        </tr>";
-
-                                    }
-
-                                ?>
-                            </tbody>
-                        </table>
-
-                        <script>
-
-                            const tableCondition = {
-                                rowReorder: true,
-                                searching: false,
-                                lengthChange: false,
-                                pageLength: 5,
-                                pagingType: 'simple_numbers',
-                                language: {
-                                    url: 'https://cdn.datatables.net/plug-ins/1.12.1/i18n/it-IT.json'
-                                }
-                            };
-                            
-                        </script>
-
-                    </div>
-                </wi-card>
-
-                <wi-card class="col-4">
-                    <div class="col-12">
-                        <h6>Sicurezza</h6>
-                    </div>
-                    <div class="col-12">
-
-                        <canvas id="https" class="w-100"></canvas>
-
-                        <script>
-
-                            const data = {
-                                labels: [
-                                    'HTTPS',
-                                    'HTTP'
-                                ],
-                                datasets: [
-                                    {
-                                        label: 'Visualizzazioni',
-                                        data: [<?=$N_HTTPS?>, <?=$N_HTTP?>],
-                                        backgroundColor: [
-                                            '<?=bootstrapColor('primary')?>',
-                                            '<?=bootstrapColor('warning')?>'
-                                        ],
-                                    }
-                                ]
-                            };
-
-                            const config = {
-                                type: 'doughnut',
-                                data: data,
-                                options: {
-                                    plugins: {
-                                        legend: {
-                                            position: 'bottom',
-                                        },
-                                    }
-                                }
-                            };
-
-                        </script>
-
-                    </div>
+                    <?php } ?>
+                    <form method="post" class="col-12 mt-2">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-8">
+                                <label for="release_id" class="form-label">Release ID</label>
+                                <input type="text" class="form-control" id="release_id" name="release_id" placeholder="es. commit SHA o tag deploy">
+                            </div>
+                            <div class="col-4">
+                                <button type="submit" name="run_app_update" value="true" class="btn btn-dark w-100">Esegui update</button>
+                            </div>
+                        </div>
+                    </form>
                 </wi-card>
                 <?php } ?>
 

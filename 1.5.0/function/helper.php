@@ -34,6 +34,33 @@
         return Wonder\Localization\LanguageContext::createLangUrl($path);
     }
 
+    // Routes
+    function __r(string $name, array $parameters = []): string {
+        $url = \Wonder\Http\Route::url($name, $parameters);
+
+        if ($url !== '') {
+            return $url;
+        }
+
+        global $ROOT;
+        global $ROOT_APP;
+
+        if (!isset($ROOT, $ROOT_APP) || !is_string($ROOT) || !is_string($ROOT_APP)) {
+            return '';
+        }
+
+        \Wonder\Http\Route::loadDirectories([
+            $ROOT_APP.'/config/routes',
+            $ROOT.'/custom/config/routes',
+        ], [
+            'ROOT' => $ROOT,
+            'ROOT_APP' => $ROOT_APP,
+        ]);
+
+        return \Wonder\Http\Route::url($name, $parameters);
+
+    }
+
     // Url Parser
     function __url(?string $url = null): Wonder\Http\UrlParser
     {

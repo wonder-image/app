@@ -3,6 +3,8 @@
 * [App 1.5.0](README.md)
   * [Multilingua](app-1.5.0/multilingua.md)
   * [Api](app-1.5.0/api.md)
+  * [Routing](app-1.5.0/routing.md)
+  * [Layout e View](app-1.5.0/layout.md)
   * [Cron Job](app-1.5.0/cron-job.md)
   * [Utente](app-1.5.0/utente/README.md)
     * [Permessi client e verifica email](app-1.5.0/utente/permessi-client-e-verifica-email.md)
