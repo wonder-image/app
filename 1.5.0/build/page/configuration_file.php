@@ -3,6 +3,42 @@
     $WEBROOT = is_dir($ROOT."/public") ? $ROOT."/public" : $ROOT;
     $HTACCESS_PATH = $WEBROOT."/.htaccess";
     $ROBOTS_PATH = $WEBROOT."/robots.txt";
+    $ROUTER_BLOCK = "# WONDER ROUTER START\n";
+    $ROUTER_BLOCK .= "<IfModule mod_rewrite.c>\n";
+    $ROUTER_BLOCK .= "  RewriteEngine On\n\n";
+    $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]\n";
+    $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_FILENAME} !-f\n";
+    $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_FILENAME} !-d\n";
+    $ROUTER_BLOCK .= "  RewriteRule ^ handler/index.php [L,QSA]\n";
+    $ROUTER_BLOCK .= "</IfModule>\n";
+    $ROUTER_BLOCK .= "# WONDER ROUTER END";
+
+    if (file_exists($HTACCESS_PATH)) {
+
+        $htaccessContent = file_get_contents($HTACCESS_PATH);
+
+        if (is_string($htaccessContent) && $htaccessContent !== '') {
+            $updatedContent = preg_replace('/^Redirect 301 \/update\/ \/\?updateApp=true\r?\n/m', '', $htaccessContent);
+            $updatedContent = preg_replace('/\n?# WONDER ROUTER START.*?# WONDER ROUTER END\r?\n?/s', "\n", (string) $updatedContent);
+
+            if (is_string($updatedContent)) {
+                if (str_contains($updatedContent, '# Aggiunge slash finale se mancante')) {
+                    $updatedContent = str_replace(
+                        "# Aggiunge slash finale se mancante (solo per URL senza estensione)\n",
+                        $ROUTER_BLOCK."\n\n  # Aggiunge slash finale se mancante (solo per URL senza estensione)\n",
+                        $updatedContent
+                    );
+                } else {
+                    $updatedContent = rtrim($updatedContent)."\n\n".$ROUTER_BLOCK."\n";
+                }
+            }
+
+            if (is_string($updatedContent) && $updatedContent !== $htaccessContent) {
+                file_put_contents($HTACCESS_PATH, $updatedContent);
+            }
+        }
+
+    }
 
     if (!file_exists($HTACCESS_PATH)) {
         
@@ -25,6 +61,11 @@
         $FILE_CONTENT .= "  # Forza WWW\n";
         $FILE_CONTENT .= "  RewriteCond %{HTTP_HOST} !^www\. [NC]\n";
         $FILE_CONTENT .= "  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n\n";
+        $FILE_CONTENT .= "  # Router Wonder\n";
+        $FILE_CONTENT .= "  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]\n";
+        $FILE_CONTENT .= "  RewriteCond %{REQUEST_FILENAME} !-f\n";
+        $FILE_CONTENT .= "  RewriteCond %{REQUEST_FILENAME} !-d\n";
+        $FILE_CONTENT .= "  RewriteRule ^ handler/index.php [L,QSA]\n\n";
 
         $FILE_CONTENT .= "  # Aggiunge slash finale se mancante (solo per URL senza estensione)\n";
         $FILE_CONTENT .= "  RewriteCond %{REQUEST_FILENAME} !-f\n";
@@ -96,11 +137,6 @@
         $FILE_CONTENT .= "  RewriteCond %{QUERY_STRING} !errCode=\n";
         $FILE_CONTENT .= "  RewriteRule ^.*$ /?errCode=%{ENV:REDIRECT_STATUS} [R=302,L]\n";
         $FILE_CONTENT .= "</IfModule>\n\n";
-
-        $FILE_CONTENT .= "# ----------------------------------------------------------------------\n";
-        $FILE_CONTENT .= "# Redirect statici\n";
-        $FILE_CONTENT .= "# ----------------------------------------------------------------------\n";
-        $FILE_CONTENT .= "Redirect 301 /update/ /?updateApp=true\n";
 
         $FILE_CONTENT .= "# ----------------------------------------------------------------------\n";
         $FILE_CONTENT .= "# Sicurezza e policy moderne\n";

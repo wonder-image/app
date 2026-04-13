@@ -27,8 +27,8 @@
                 "creator" => [ "admin" ]
             ],
             "links" => [
-                "home" => "$PATH->backend/home/",
-                "login" => "$PATH->backend/account/login/",
+                "home" => __r('backend.home'),
+                "login" => __r('backend.account.login'),
                 "password-recovery" => "$PATH->backend/account/password-recovery/",
                 "password-set" => "$PATH->backend/account/password-set/"
             ],
