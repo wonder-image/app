@@ -12,8 +12,15 @@
 
         $VALUES = $POST;
         $VALUES['user_id'] = $USER_ID;
+        $authority = trim((string) ($POST['authority'] ?? ''));
+        $currentApiUser = ($authority !== '' && isset($USER->$authority) && is_object($USER->$authority)) ? $USER->$authority : null;
+        $providedToken = trim((string) ($POST['token'] ?? ''));
 
-        if (!isset($USER->api->token)) {
+        if ($providedToken !== '') {
+
+            $VALUES['token'] = $providedToken;
+
+        } else if (!is_object($currentApiUser) || !($currentApiUser->exists ?? false) || empty($currentApiUser->token)) {
 
             $VALUES['token'] = Firebase\JWT\JWT::encode(
                 [
@@ -31,6 +38,10 @@
             <b>{$VALUES['token']}</b>";
             
             sendMail($SOCIETY->email, $USER->email, "Credenziali API", $body);
+
+        } else {
+
+            $VALUES['token'] = $currentApiUser->token;
 
         }
 
