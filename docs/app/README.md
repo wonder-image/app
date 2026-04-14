@@ -20,6 +20,7 @@ La procedura aggiornata è questa:
 php forge config
 php forge provision
 php forge update --local
+php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 ```
 
 Per la procedura completa, il file `composer.json` consigliato di `new-site` e il workflow GitHub Actions, vai qui:

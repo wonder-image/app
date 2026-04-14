@@ -6,11 +6,12 @@ icon: wrench
 
 Questa è la procedura reale oggi per usare `wonder-image/app` insieme a `wonder-image/new-site`.
 
-I comandi importanti sono quattro:
+I comandi importanti sono cinque:
 
 - `php forge config`
 - `php forge provision`
 - `php forge update`
+- `php forge db:init`
 - `php forge start`
 
 ## Cosa fa ogni comando
@@ -66,15 +67,38 @@ Quindi:
 - `php forge update` va bene anche in CI
 - `php forge update --local` va usato in locale
 
+### `php forge db:init`
+
+Serve per inizializzare `.env` e il database locale.
+
+Fa questo:
+
+- crea `.env` se manca
+- completa solo i valori mancanti
+- deriva `DB_DATABASE` da `APP_DOMAIN`
+- crea database, utente applicativo e grant MySQL
+- non salva le credenziali admin MySQL nel file `.env`
+
+Esempio:
+
+```bash
+php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret --app-db-username=new_site_user --app-db-password=secret123
+```
+
+Con `APP_DOMAIN=new-site` il valore scritto è `DB_DATABASE=main:new_site`.
+
 ### `php forge start`
 
 Serve per l’avvio locale rapido.
 
 Fa questo:
 
-- completa automaticamente `.env` se mancano valori minimi
+- completa automaticamente `.env` solo per i valori locali non DB critici
+- controlla la connessione DB
 - avvia il server PHP integrato
 - espone i path compatibili con il progetto
+
+Se il DB manca o l’utente applicativo non ha accesso, suggerisce di eseguire `php forge db:init`.
 
 Uso tipico:
 
@@ -134,7 +158,13 @@ php forge provision
 php forge update --local
 ```
 
-### 5. Avvia o pubblica il progetto
+### 5. Inizializza database locale
+
+```bash
+php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
+```
+
+### 6. Avvia o pubblica il progetto
 
 Da questo punto hai:
 
@@ -446,6 +476,7 @@ Questa differenza è intenzionale.
 - `php forge config` per configurare il progetto
 - `php forge provision` solo quando devi configurare GitHub e Bitwarden
 - `php forge update --local` solo in locale
+- `php forge db:init` per il provisioning esplicito del database locale
 - `php forge update` in CI o in contesti non locali
 - `php forge start` per l’avvio locale rapido
 - in CI usa sempre `composer install --no-scripts`

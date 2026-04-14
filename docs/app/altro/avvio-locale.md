@@ -2,7 +2,42 @@
 
 Guida rapida per creare e avviare un progetto Wonder in locale con DB separato.
 
-## 1) Prerequisiti
+## 1) Flusso rapido reale
+
+Dopo:
+
+```bash
+composer create-project wonder-image/new-site project-name
+cd project-name
+```
+
+il flusso pratico consigliato è questo:
+
+```bash
+php forge config
+php forge provision
+php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
+php forge update --local
+php forge start
+```
+
+Significato rapido:
+
+- `php forge config` prepara il progetto locale
+- `php forge provision` configura l’ambiente di progetto lato GitHub e Bitwarden, utile per il flusso di deploy/produzione
+- `php forge db:init` inizializza `.env` e crea database, utente e grant locali
+- `php forge update --local` genera i file e i task locali necessari
+- `php forge start` avvia il server locale
+
+Ordine consigliato per il locale:
+
+- prima `php forge db:init`
+- poi `php forge update --local`
+- poi `php forge start`
+
+`php forge start` non crea il database. Se il DB locale non esiste ancora, il comando ti segnala di usare `php forge db:init`.
+
+## 2) Prerequisiti
 
 ```bash
 php -v
@@ -10,7 +45,7 @@ composer -V
 mysql --version
 ```
 
-## 2) Crea progetto test parallelo
+## 3) Crea progetto test parallelo
 
 ```bash
 cd /Users/andreamarinoni/Desktop/PROGETTI/template
@@ -18,31 +53,55 @@ cp -R new-site new-site-php84-sf8
 cd new-site-php84-sf8
 ```
 
-## 3) Collega il pacchetto `app` locale (worktree lab)
+## 4) Collega il pacchetto `app` locale (worktree lab)
 
 ```bash
 composer config repositories.wonder-image-app path ../app-php84-sf8
 composer require wonder-image/app:"dev-codex/php84-sf8-lab as 1.5.x-dev" --with-all-dependencies
 ```
 
-## 4) Configura `.env`
+## 5) Inizializza `.env` e database locale
 
-Imposta almeno:
+Usa `php forge db:init` per:
 
-```env
-APP_DEBUG=true
-APP_URL=http://127.0.0.1:8088
-APP_KEY=una_chiave_random
+- creare `.env` se manca
+- completare solo i valori mancanti
+- derivare `DB_DATABASE` da `APP_DOMAIN`
+- creare database, utente applicativo e grant MySQL
 
-DB_HOSTNAME=127.0.0.1:3307
-DB_USERNAME=sf8_test_user
-DB_PASSWORD=...
-DB_DATABASE=main:myapp_sf8_test
-DB_CHARSET=latin1
-DB_COLLATION=latin1_swedish_ci
+Esempio reale:
+
+```bash
+php forge db:init \
+  --admin-host=127.0.0.1 \
+  --admin-port=3306 \
+  --admin-username=root \
+  --admin-password=secret \
+  --app-db-username=new_site_user \
+  --app-db-password=secret123
 ```
 
-## 5) Avvio semplice con Forge
+Con:
+
+```env
+APP_DOMAIN=new-site
+```
+
+il comando scrive:
+
+```env
+DB_DATABASE=main:new_site
+```
+
+Le credenziali admin MySQL servono solo per il provisioning e non vengono salvate nel file `.env`.
+
+## 6) Differenza tra `db:init` e `start`
+
+- `php forge db:init` prepara `.env` e fa il provisioning esplicito del database locale
+- `php forge start` completa solo i valori locali non critici, verifica la connessione DB e avvia il server PHP
+- se il DB manca o l’accesso viene negato, `php forge start` suggerisce di eseguire `php forge db:init`
+
+## 7) Avvio semplice con Forge
 
 Dal root del progetto (`new-site-php84-sf8`):
 
@@ -54,16 +113,10 @@ Il comando:
 - avvia server PHP locale
 - gestisce route directory (`/backend/`)
 - abilita `/update/` anche in sviluppo locale
-- completa automaticamente `.env` se trova campi vuoti (`APP_URL`, blocco DB, `USER_PASSWORD`)
+- completa automaticamente `.env` solo per i valori locali non DB critici (`APP_DOMAIN`, `APP_URL`, `APP_KEY`, `USER_PASSWORD`)
 - fa un check DB iniziale
 
-Puoi anche passare i default DB da riga comando (usati solo se i campi `.env` sono vuoti):
-
-```bash
-php forge start --db-hostname=127.0.0.1:3307 --db-username=sf8_test_user --db-password=secret --db-database=main:myapp_sf8_test
-```
-
-## 6) URL utili
+## 8) URL utili
 
 - Home: `http://127.0.0.1:8088/`
 - Backend: `http://127.0.0.1:8088/backend/`
@@ -71,12 +124,12 @@ php forge start --db-hostname=127.0.0.1:3307 --db-username=sf8_test_user --db-pa
 - Update (safe, senza side-effect): `http://127.0.0.1:8088/update/`
 - Esegui update: `http://127.0.0.1:8088/update/run/`
 
-## 7) Vedere il DB in modo chiaro (CLI)
+## 9) Vedere il DB in modo chiaro (CLI)
 
 Connessione:
 
 ```bash
-mysql -h 127.0.0.1 -P 3307 -u sf8_test_user -p myapp_sf8_test
+mysql -h 127.0.0.1 -P 3306 -u new_site_user -p new_site
 ```
 
 Comandi utili:
@@ -87,7 +140,7 @@ DESCRIBE security;
 SELECT id, mail_host, stripe_test FROM security LIMIT 20;
 ```
 
-## Nota su `/update/`
+## 10) Nota su `/update/`
 
 Se avvii con `php -S` senza router custom, `/update/` potrebbe non funzionare.
 Con `php forge start` la route viene gestita automaticamente.

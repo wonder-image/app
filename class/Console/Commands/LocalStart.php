@@ -2,14 +2,13 @@
 
 namespace Wonder\Console\Commands;
 
-use Dotenv\Dotenv;
 use mysqli;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class LocalStart extends Command
+class LocalStart extends LocalEnvironmentCommand
 {
     public $name = 'start';
 
@@ -21,27 +20,22 @@ class LocalStart extends Command
             ->setDescription('Avvia il progetto in locale con routing compatibile (/, /backend/, /api/).')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Host server locale', '127.0.0.1')
             ->addOption('port', null, InputOption::VALUE_REQUIRED, 'Porta server locale', '8088')
-            ->addOption('docroot', null, InputOption::VALUE_REQUIRED, 'Document root del progetto', '.')
-            ->addOption('db-hostname', null, InputOption::VALUE_REQUIRED, 'Default DB_HOSTNAME se vuoto in .env', '127.0.0.1:3307')
-            ->addOption('db-username', null, InputOption::VALUE_REQUIRED, 'Default DB_USERNAME se vuoto in .env', 'sf8_test_user')
-            ->addOption('db-password', null, InputOption::VALUE_REQUIRED, 'Default DB_PASSWORD se vuoto in .env', 'sf8_test_password')
-            ->addOption('db-database', null, InputOption::VALUE_REQUIRED, 'Default DB_DATABASE se vuoto in .env', 'main:myapp_sf8_test');
+            ->addOption('docroot', null, InputOption::VALUE_REQUIRED, 'Document root del progetto', '.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $cwd = getcwd() ?: '.';
-        $host = (string) $input->getOption('host');
+        $host = trim((string) $input->getOption('host'));
         $port = (int) $input->getOption('port');
         $docroot = $this->resolveDocroot($cwd, (string) $input->getOption('docroot'));
-        $dbDefaults = [
-            'hostname' => trim((string) $input->getOption('db-hostname')),
-            'username' => trim((string) $input->getOption('db-username')),
-            'password' => (string) $input->getOption('db-password'),
-            'database' => trim((string) $input->getOption('db-database')),
-        ];
 
-        if ($port < 1 || $port > 65535) {
+        if ($host === '') {
+            $output->writeln('<error>❌ Host non valido.</error>');
+            return Command::FAILURE;
+        }
+
+        if (!$this->validatePort($port)) {
             $output->writeln('<error>❌ Porta non valida. Usa un valore tra 1 e 65535.</error>');
             return Command::FAILURE;
         }
@@ -56,7 +50,10 @@ class LocalStart extends Command
             return Command::FAILURE;
         }
 
-        $this->ensureEnv($cwd, $host, $port, $dbDefaults, $output);
+        if (!$this->ensureEnv($cwd, $host, $port, $output)) {
+            return Command::FAILURE;
+        }
+
         $this->loadEnv($cwd);
         $this->printEnvHints($output, $host, $port);
         $this->checkDatabase($output);
@@ -67,7 +64,7 @@ class LocalStart extends Command
             return Command::FAILURE;
         }
 
-        $url = "http://{$host}:{$port}";
+        $url = $this->buildLocalAppUrl($host, $port);
 
         $output->writeln('');
         $output->writeln('<info>✅ Server locale pronto</info>');
@@ -102,179 +99,42 @@ class LocalStart extends Command
         return $resolved !== false ? rtrim($resolved, DIRECTORY_SEPARATOR) : null;
     }
 
-    private function ensureEnv(string $cwd, string $host, int $port, array $dbDefaults, OutputInterface $output): void
+    private function ensureEnv(string $cwd, string $host, int $port, OutputInterface $output): bool
     {
-        $envPath = $cwd.'/.env';
+        $lines = $this->readEnvLines($cwd, $output);
 
-        if (!file_exists($envPath)) {
-            file_put_contents($envPath, $this->defaultEnvTemplate());
-            $output->writeln('<info>✅ File .env creato automaticamente.</info>');
+        if ($lines === null) {
+            return false;
         }
 
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
-        if ($lines === false) {
-            $output->writeln('<comment>⚠️ Impossibile leggere il file .env</comment>');
-            return;
-        }
+        $keyToIndex = $this->envKeyToIndex($lines);
+        $appDomain = $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
 
-        $keyToIndex = [];
-        foreach ($lines as $i => $line) {
-            if (preg_match('/^\s*([A-Z0-9_]+)\s*=/', $line, $m) === 1) {
-                $keyToIndex[$m[1]] = $i;
+        if ($appDomain === '') {
+            $appDomain = $this->defaultAppDomain($cwd);
+
+            if ($appDomain !== '') {
+                $output->writeln('<info>✅ APP_DOMAIN rilevato dalla cartella progetto: '.$appDomain.'</info>');
             }
         }
 
-        $appUrl = "http://{$host}:{$port}";
-        $dbPasswordDefault = trim($dbDefaults['password']) !== ''
-            ? (string) $dbDefaults['password']
-            : 'sf8_test_password';
-
-        $updates = [
-            'APP_URL' => $appUrl,
+        $updatedKeys = $this->completeEnvValues($lines, $keyToIndex, [
+            'APP_DOMAIN' => $appDomain !== '' ? $appDomain : null,
+            'APP_URL' => $this->buildLocalAppUrl($host, $port),
             'APP_KEY' => bin2hex(random_bytes(32)),
-            'DB_HOSTNAME' => $dbDefaults['hostname'] !== '' ? $dbDefaults['hostname'] : '127.0.0.1:3307',
-            'DB_USERNAME' => $dbDefaults['username'] !== '' ? $dbDefaults['username'] : 'sf8_test_user',
-            'DB_PASSWORD' => $dbPasswordDefault,
-            'DB_DATABASE' => $dbDefaults['database'] !== '' ? $dbDefaults['database'] : 'main:myapp_sf8_test',
-            'DB_CHARSET' => 'latin1',
-            'DB_COLLATION' => 'latin1_swedish_ci',
             'USER_PASSWORD' => $this->randomAlphaNumeric(8),
-        ];
+        ]);
 
-        $updatedKeys = [];
-
-        foreach ($updates as $key => $value) {
-            $existing = $this->envValue($lines, $keyToIndex, $key);
-            if (!$this->isMissingEnvValue($existing, $key)) {
-                continue;
-            }
-
-            $row = $key.'='.$value;
-
-            if (isset($keyToIndex[$key])) {
-                $lines[$keyToIndex[$key]] = $row;
-            } else {
-                $lines[] = $row;
-                $keyToIndex[$key] = count($lines) - 1;
-            }
-
-            $updatedKeys[] = $key;
-        }
-
-        if (count($updatedKeys) > 0) {
-            file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL);
-            $safeKeys = array_map(fn($key) => in_array($key, ['DB_PASSWORD', 'USER_PASSWORD', 'APP_KEY'], true) ? "{$key}=***" : $key, $updatedKeys);
-            $output->writeln('<info>✅ .env completato automaticamente: '.implode(', ', $safeKeys).'</info>');
-        }
-    }
-
-    private function envValue(array $lines, array $keyToIndex, string $key): string
-    {
-        if (!isset($keyToIndex[$key])) {
-            return '';
-        }
-
-        $line = $lines[$keyToIndex[$key]];
-        $parts = explode('=', $line, 2);
-        $raw = $parts[1] ?? '';
-
-        return trim(trim($raw), "\"'");
-    }
-
-    private function isMissingEnvValue(string $value, string $key): bool
-    {
-        if ($value === '') {
+        if (count($updatedKeys) === 0) {
             return true;
         }
 
-        $normalized = strtolower(trim($value));
-
-        $commonPlaceholders = [
-            '...',
-            'todo',
-            'changeme',
-            'change-me',
-            'replace-me',
-            'replace_this',
-            'null',
-        ];
-
-        if (in_array($normalized, $commonPlaceholders, true)) {
-            return true;
-        }
-
-        $keySpecific = [
-            'APP_KEY' => ['metti_una_chiave_random', 'una_chiave_random'],
-            'DB_USERNAME' => ['tuo_db_user', 'db_user', 'username'],
-            'DB_PASSWORD' => ['tua_db_pass', 'db_pass', 'password'],
-            'DB_DATABASE' => ['db_name', 'my_database'],
-            'USER_PASSWORD' => ['password', 'user_password'],
-        ];
-
-        if (isset($keySpecific[$key]) && in_array($normalized, $keySpecific[$key], true)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private function randomAlphaNumeric(int $length): string
-    {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $max = strlen($alphabet) - 1;
-        $output = '';
-
-        for ($i = 0; $i < $length; $i++) {
-            $output .= $alphabet[random_int(0, $max)];
-        }
-
-        return $output;
-    }
-
-    private function defaultEnvTemplate(): string
-    {
-        return <<<ENV
-# App Info
-APP_DEBUG=true
-APP_URL=
-APP_KEY=
-
-# Assets
-ASSETS_VERSION=0.0
-
-# Database
-DB_HOSTNAME=
-DB_USERNAME=
-DB_PASSWORD=
-DB_DATABASE=
-DB_CHARSET=latin1
-DB_COLLATION=latin1_swedish_ci
-DB_CONNECTION_LOG=false
-
-# Backend default user
-USER_NAME=Admin
-USER_SURNAME=User
-USER_EMAIL=admin@example.local
-USER_USERNAME=admin
-USER_PASSWORD=
-ENV;
-    }
-
-    private function loadEnv(string $cwd): void
-    {
-        $envPath = $cwd.'/.env';
-
-        if (!file_exists($envPath)) {
-            return;
-        }
-
-        $ENV_FILE = Dotenv::createImmutable($cwd);
-        $ENV_FILE->safeLoad();
+        return $this->writeEnvLines($cwd, $lines, $output, $updatedKeys);
     }
 
     private function printEnvHints(OutputInterface $output, string $host, int $port): void
     {
-        $expectedAppUrl = "http://{$host}:{$port}";
+        $expectedAppUrl = $this->buildLocalAppUrl($host, $port);
         $appUrl = trim((string) ($_ENV['APP_URL'] ?? ''));
 
         if ($appUrl === '') {
@@ -296,7 +156,8 @@ ENV;
         $database = $this->parseMainDatabase($databaseRaw);
 
         if ($hostname === '' || $username === '' || $database === '') {
-            $output->writeln('<comment>⚠️ Credenziali DB incomplete nel file .env</comment>');
+            $output->writeln('<comment>⚠️ Configurazione DB incompleta nel file .env.</comment>');
+            $output->writeln('<comment>ℹ️ Esegui `php forge db:init` per inizializzare database e utente locale.</comment>');
             return;
         }
 
@@ -307,52 +168,12 @@ ENV;
 
         if ($mysqli->connect_errno) {
             $output->writeln('<comment>⚠️ DB non raggiungibile: '.$mysqli->connect_error.'</comment>');
+            $output->writeln('<comment>ℹ️ Se il database locale non è stato ancora creato esegui `php forge db:init`.</comment>');
             return;
         }
 
         $output->writeln('<info>✅ Connessione DB OK ('.$host.($port > 0 ? ':'.$port : '').')</info>');
         $mysqli->close();
-    }
-
-    private function parseMainDatabase(string $database): string
-    {
-        $database = trim($database);
-        if ($database === '') {
-            return '';
-        }
-
-        $parts = array_map('trim', explode(',', $database));
-        $first = '';
-
-        foreach ($parts as $part) {
-            if ($part === '') {
-                continue;
-            }
-
-            if ($first === '') {
-                $first = $part;
-            }
-
-            if (str_contains($part, ':')) {
-                [$key, $value] = array_map('trim', explode(':', $part, 2));
-                if ($key === 'main') {
-                    return $value;
-                }
-            }
-        }
-
-        return str_contains($first, ':')
-            ? trim((string) explode(':', $first, 2)[1])
-            : $first;
-    }
-
-    private function parseHostPort(string $hostname): array
-    {
-        if (preg_match('/^(.+):(\d+)$/', $hostname, $matches) === 1) {
-            return [trim($matches[1]), (int) $matches[2]];
-        }
-
-        return [$hostname, 0];
     }
 
     private function createRouter(string $docroot): ?string
