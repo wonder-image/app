@@ -18,7 +18,7 @@ class LocalStart extends Command
         $this
             ->setName($this->name)
             ->setAliases(['local:start'])
-            ->setDescription('Avvia il progetto in locale con routing compatibile (/, /backend/, /update/).')
+            ->setDescription('Avvia il progetto in locale con routing compatibile (/, /backend/, /api/).')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Host server locale', '127.0.0.1')
             ->addOption('port', null, InputOption::VALUE_REQUIRED, 'Porta server locale', '8088')
             ->addOption('docroot', null, InputOption::VALUE_REQUIRED, 'Document root del progetto', '.')
@@ -74,8 +74,7 @@ class LocalStart extends Command
         $output->writeln("  Home: {$url}/");
         $output->writeln("  Backend: {$url}/backend/");
         $output->writeln("  Login backend: {$url}/backend/account/login/");
-        $output->writeln("  Update (safe): {$url}/update/");
-        $output->writeln("  Esegui update: {$url}/update/run/");
+        $output->writeln("  API update: {$url}/api/app/update/");
         $output->writeln('  Stop: CTRL+C');
         $output->writeln('');
 
@@ -366,19 +365,6 @@ ENV;
 \$docroot = {$docrootExport};
 \$uri = parse_url(\$_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 \$requestPath = \$docroot.\$uri;
-
-if (\$uri === '/update' || \$uri === '/update/') {
-    \$runPath = '/update/run/';
-    header('Content-Type: text/html; charset=UTF-8');
-    echo '<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Update</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:2rem;max-width:760px;margin:0 auto;line-height:1.5}code{background:#f3f3f3;padding:.2rem .4rem;border-radius:.25rem}.btn{display:inline-block;padding:.6rem .9rem;background:#111;color:#fff;text-decoration:none;border-radius:.35rem}</style></head><body><h1>Update protetto</h1><p>Questa pagina non esegue aggiornamenti automaticamente.</p><p>Per eseguire realmente lo script usa <code>/update/run/</code>.</p><p><a class="btn" href="'.\$runPath.'">Esegui update ora</a></p></body></html>';
-    return true;
-}
-
-if (\$uri === '/update/run' || \$uri === '/update/run/') {
-    \$_GET['updateApp'] = 'true';
-    require \$docroot.'/index.php';
-    return true;
-}
 
 if (\$uri !== '/' && is_file(\$requestPath)) {
     return false;

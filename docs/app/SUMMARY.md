@@ -1,6 +1,7 @@
 # Table of contents
 
 * [App 1.5.0](README.md)
+  * [Installazione e Deploy](app-1.5.0/installazione-e-deploy.md)
   * [Multilingua](app-1.5.0/multilingua.md)
   * [Api](app-1.5.0/api.md)
   * [Routing](app-1.5.0/routing.md)

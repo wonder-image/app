@@ -111,6 +111,4 @@
 
     $XML .= "</xmlsitemaps_settings>";
 
-    $file = fopen($SITEMAP_FILE, "w");
-    fwrite($file, $XML);
-    fclose($file);
+    file_put_contents($SITEMAP_FILE, $XML);

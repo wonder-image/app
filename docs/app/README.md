@@ -1,10 +1,10 @@
-# App 1.4.5
+# App 1.5.0
 
 {% hint style="info" %}
 Questo progetto è stato studiato per essere utilizzato con [Visual Studio Code](altro/estensioni-e-app-consigliate.md#visual-studio-code). Per il corretto funzionamento è consigliata l'installazione su VS Code  dell'estensione [SFTP](altro/estensioni-e-app-consigliate.md#sftp).
 {% endhint %}
 
-Per l'installazione del progetto [`wonder-image/new-site`](https://github.com/wonder-image/new-site) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituire `project-name` con il nome del dominio.
+Per l'installazione del progetto [`wonder-image/new-site`](https://github.com/wonder-image/new-site) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituisci `project-name` con il nome del progetto o del dominio.
 
 ```
 composer create-project wonder-image/new-site project-name
@@ -12,9 +12,21 @@ composer create-project wonder-image/new-site project-name
 
 ***
 
-## Configurazione
+## Configurazione iniziale
 
-Una volta effettuata l'installazione è necessario proseguire con la configurazione come segue.
+La procedura aggiornata è questa:
+
+```bash
+php forge config
+php forge provision
+php forge update --local
+```
+
+Per la procedura completa, il file `composer.json` consigliato di `new-site` e il workflow GitHub Actions, vai qui:
+
+- [Installazione e Deploy](app-1.5.0/installazione-e-deploy.md)
+
+Il resto di questa pagina è storico e va letto tenendo conto del flusso nuovo sopra.
 
 ### .env
 
@@ -53,4 +65,3 @@ Per continuare la configurazione andare al link `dominio.it/backend/` accedendo 
 
 
 <table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td>Frontend</td><td></td><td></td><td></td></tr><tr><td>Backend</td><td></td><td></td><td><a href="broken-reference">Broken link</a></td></tr><tr><td>Specifiche</td><td></td><td></td><td><a href="broken-reference">Broken link</a></td></tr></tbody></table>
-

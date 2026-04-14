@@ -15,6 +15,8 @@
             
             $this->commands = [
                 \Wonder\Console\Commands\Config::class,
+                \Wonder\Console\Commands\Provision::class,
+                \Wonder\Console\Commands\Update::class,
                 \Wonder\Console\Commands\LocalStart::class,
                 \Wonder\Console\Commands\MakeModel::class,
                 // altri comandi...

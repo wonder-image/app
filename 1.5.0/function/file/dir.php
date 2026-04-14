@@ -97,7 +97,15 @@
 
     function scanParentDir( string $dir, bool $childArray = false ) {
 
-        $files = empty(scandir($dir)) ? [] : scandir($dir);
+        if (is_dir($dir) === false) {
+            return [];
+        }
+
+        $files = scandir($dir);
+
+        if ($files === false) {
+            return [];
+        }
 
         $fileArray = [];
 

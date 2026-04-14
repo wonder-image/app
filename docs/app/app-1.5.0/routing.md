@@ -34,13 +34,13 @@ Le route non vengono dedotte dalla URL. L'`area` viene dichiarata nella route.
 
 ### Bootstrap e publish
 
-- `1.5.0/build/page/update.php`
-- `1.5.0/build/page/configuration_file.php`
+- `1.5.0/build/cli/update.php`
+- `1.5.0/build/update/configuration_file.php`
 - `1.5.0/function/helper.php`
 
 ## Come gira davvero
 
-1. `update.php` crea `ROOT/handler/index.php`
+1. `php forge update --local` esegue `1.5.0/build/cli/update.php` e crea `ROOT/handler/index.php`
 2. `.htaccess` manda lì le richieste senza file fisico
 3. `RouteDispatcher` carica le route da:
    - `ROOT_APP/config/routes`
@@ -377,8 +377,8 @@ Il frontend routed può essere aggiunto in `custom` con lo stesso formato.
 
 ### Cambiare il file generato e il rewrite
 
-- `1.5.0/build/page/update.php`
-- `1.5.0/build/page/configuration_file.php`
+- `1.5.0/build/cli/update.php`
+- `1.5.0/build/update/configuration_file.php`
 
 ## Errori comuni
 
@@ -433,7 +433,7 @@ Il rewrite passa al router solo se il file fisico non esiste.
 
 Se c'è ancora una directory legacy in root, quella può battere la route nuova.
 
-Controlla `1.5.0/build/page/update.php` e pulisci i path legacy che non devono più esistere.
+Controlla `1.5.0/build/cli/update.php` e pulisci i path legacy che non devono più esistere.
 
 ## Best practice
 
