@@ -1,7 +1,8 @@
 <?php
 
     $APP_VERSION = "1.5.0";
-    $ROOT_APP = __DIR__."/$APP_VERSION";
+    $ROOT_APP = __DIR__."/app";
+    $ROOT_RESOURCES = __DIR__."/resources";
 
     require_once $ROOT."/vendor/autoload.php";
 

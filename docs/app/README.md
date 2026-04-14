@@ -1,4 +1,4 @@
-# App 1.5.0
+# App
 
 {% hint style="info" %}
 Questo progetto è stato studiato per essere utilizzato con [Visual Studio Code](altro/estensioni-e-app-consigliate.md#visual-studio-code). Per il corretto funzionamento è consigliata l'installazione su VS Code  dell'estensione [SFTP](altro/estensioni-e-app-consigliate.md#sftp).
@@ -24,7 +24,7 @@ php forge update --local
 
 Per la procedura completa, il file `composer.json` consigliato di `new-site` e il workflow GitHub Actions, vai qui:
 
-- [Installazione e Deploy](app-1.5.0/installazione-e-deploy.md)
+- [Installazione e Deploy](app/installazione-e-deploy.md)
 
 Il resto di questa pagina è storico e va letto tenendo conto del flusso nuovo sopra.
 

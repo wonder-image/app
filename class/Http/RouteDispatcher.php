@@ -189,24 +189,14 @@ class RouteDispatcher
 
         $appPackageRoot = $this->appPackageRoot();
 
-        if (is_dir($appPackageRoot.'/config/routes')) {
-            $this->runtimeRoot = $appPackageRoot;
+        if (is_dir($appPackageRoot.'/app/config/routes')) {
+            $this->runtimeRoot = $appPackageRoot.'/app';
             return $this->runtimeRoot;
         }
 
-        $versions = [];
-
-        foreach (glob($appPackageRoot.'/*', GLOB_ONLYDIR) ?: [] as $directory) {
-            $name = basename($directory);
-
-            if (preg_match('/^\d+\.\d+\.\d+$/', $name)) {
-                $versions[$name] = $directory;
-            }
-        }
-
-        if (!empty($versions)) {
-            uksort($versions, 'version_compare');
-            $this->runtimeRoot = end($versions) ?: null;
+        if (is_dir($appPackageRoot.'/config/routes')) {
+            $this->runtimeRoot = $appPackageRoot;
+            return $this->runtimeRoot;
         }
 
         if (!is_string($this->runtimeRoot) || $this->runtimeRoot === '') {

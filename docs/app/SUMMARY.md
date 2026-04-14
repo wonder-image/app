@@ -1,17 +1,17 @@
 # Table of contents
 
-* [App 1.5.0](README.md)
-  * [Installazione e Deploy](app-1.5.0/installazione-e-deploy.md)
-  * [Multilingua](app-1.5.0/multilingua.md)
-  * [Api](app-1.5.0/api.md)
-  * [Routing](app-1.5.0/routing.md)
-  * [Layout e View](app-1.5.0/layout.md)
-  * [Cron Job](app-1.5.0/cron-job.md)
-  * [Utente](app-1.5.0/utente/README.md)
-    * [Permessi client e verifica email](app-1.5.0/utente/permessi-client-e-verifica-email.md)
-    * [Verifica email](app-1.5.0/utente/verifica-email.md)
-    * [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
-    * [Auth federata Google / Apple](app-1.5.0/utente/auth-federata-google-apple.md)
+* [App](README.md)
+  * [Installazione e Deploy](app/installazione-e-deploy.md)
+  * [Multilingua](app/multilingua.md)
+  * [Api](app/api.md)
+  * [Routing](app/routing.md)
+  * [Layout e View](app/layout.md)
+  * [Cron Job](app/cron-job.md)
+  * [Utente](app/utente/README.md)
+    * [Permessi client e verifica email](app/utente/permessi-client-e-verifica-email.md)
+    * [Verifica email](app/utente/verifica-email.md)
+    * [Registrazione consensi](app/utente/registrazione-consensi.md)
+    * [Auth federata Google / Apple](app/utente/auth-federata-google-apple.md)
 
 ## ELEMENTI
 

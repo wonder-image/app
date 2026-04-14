@@ -9,15 +9,17 @@
         public $assetsVersion = ASSETS_VERSION;
         public $appVersion = APP_VERSION;
 
-        public const APP = APP_URL.'/vendor/wonder-image/app/'.APP_VERSION;
-        public const APP_RESOURCES = APP_URL.'/vendor/wonder-image/app/resources';
-        public const APP_ASSETS = self::APP.'/assets';
+        public const PACKAGE = APP_URL.'/vendor/wonder-image/app';
+        public const APP = self::PACKAGE.'/app';
+        public const APP_RESOURCES = self::PACKAGE.'/resources';
+        public const APP_ASSETS = self::APP_RESOURCES.'/assets';
         public const APP_API = self::APP.'/api';
         public const ASSETS = APP_URL.'/assets/'.ASSETS_VERSION;
         public const UPLOAD = APP_URL.'/assets/upload';
 
         public $backend = APP_URL.'/backend';
 
+        public $package = self::PACKAGE;
         public $app = self::APP;
         public $appResources = self::APP_RESOURCES;
         public $appApi = self::APP_API;
@@ -32,10 +34,10 @@
 
 
         public $upload = APP_URL.'/assets/upload';
-        public $temp = APP_URL.'/assets/temp';
+        public $temp = APP_URL.'/storage/tmp';
 
         public $rUpload = ROOT.'/assets/upload';
-        public $rTemp = ROOT.'/assets/temp';
+        public $rTemp = ROOT.'/storage/tmp';
 
         public $logo = self::UPLOAD.'/logos/Logo.png';
         public $logoWhite = self::UPLOAD.'/logos/Logo-White.png';

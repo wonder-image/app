@@ -1,18 +1,18 @@
 # Sistema Consensi GDPR (solo PHP)
 
 {% hint style="info" %}
-Per la lettura in GitBook usa le pagine aggiornate in `app-1.5.0`:
+Per la lettura in GitBook usa le pagine aggiornate in `app`:
 
-- [Utente](app-1.5.0/utente/README.md)
-- [Verifica email](app-1.5.0/utente/verifica-email.md)
-- [Registrazione consensi](app-1.5.0/utente/registrazione-consensi.md)
+- [Utente](app/utente/README.md)
+- [Verifica email](app/utente/verifica-email.md)
+- [Registrazione consensi](app/utente/registrazione-consensi.md)
 {% endhint %}
 
 Questa implementazione usa:
 
 - builder tabelle Wonder esteso (`ENUM`, `UNIQUE` compositi, `PRIMARY KEY` composta)
 - repository + service PHP in `Wonder\Consent`
-- funzioni legacy in `1.5.0/function/consent/`
+- funzioni legacy in `app/function/consent/`
 - nessun endpoint API HTTP dedicato
 
 ## Tabelle create
@@ -24,11 +24,11 @@ Questa implementazione usa:
 
 Definizioni in:
 
-- `1.5.0/build/table/consent.php`
+- `app/build/table/consent.php`
 
 Seed iniziale documenti legali `it/de/en`:
 
-- `1.5.0/build/row/legal_documents.php`
+- `app/build/row/legal_documents.php`
 
 ## Builder SQL: nuove capacità
 
@@ -65,7 +65,7 @@ Funzioni disponibili:
 
 File:
 
-- `1.5.0/function/consent/consent.php`
+- `app/function/consent/consent.php`
 
 ---
 
@@ -80,14 +80,14 @@ Questa sezione copre solo la verifica email utente lato backend.
 
 Definizione tabelle:
 
-- `1.5.0/build/table/user.php`
-- `1.5.0/build/table/consent.php`
+- `app/build/table/user.php`
+- `app/build/table/consent.php`
 
 ### Funzioni disponibili
 
 File:
 
-- `1.5.0/function/user/email_verification.php`
+- `app/function/user/email_verification.php`
 
 Funzioni principali:
 
@@ -176,7 +176,7 @@ Questa sezione copre la registrazione dei consensi GDPR.
 
 File:
 
-- `1.5.0/function/consent/consent.php`
+- `app/function/consent/consent.php`
 
 Funzioni:
 

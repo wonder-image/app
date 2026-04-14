@@ -30,7 +30,7 @@
                 $dir1 = $path[0];
                 $dir2 = $path[1];
                 
-                $this->AddFont($regular, "", $regular.'.php', $ROOT_APP.'/assets/font/'.$dir1.'/'.$dir2);
+                $this->AddFont($regular, "", $regular.'.php', dirname($ROOT_APP).'/resources/assets/font/'.$dir1.'/'.$dir2);
 
             }
 
@@ -42,7 +42,7 @@
                 $dir1 = $path[0];
                 $dir2 = $path[1];
 
-                $this->AddFont($bold, "B", $bold.'.php', $ROOT_APP.'/assets/font/'.$dir1.'/'.$dir2);
+                $this->AddFont($bold, "B", $bold.'.php', dirname($ROOT_APP).'/resources/assets/font/'.$dir1.'/'.$dir2);
 
             }
 
