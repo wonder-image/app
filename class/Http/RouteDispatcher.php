@@ -19,7 +19,7 @@ class RouteDispatcher
             $runtimeRoot = $this->runtimeRoot();
             $routes = Route::loadDirectories([
                 $runtimeRoot.'/config/routes',
-                $this->root.'/custom/config/routes',
+                $this->root.'/custom/routes',
             ], [
                 'ROOT' => $this->root,
                 'ROOT_APP' => $runtimeRoot,
