@@ -53,7 +53,7 @@
             # Dettagli società
             'legal_name' => $SOCIETY->legal_name ?? '',
             'legal_address' => empty($SOCIETY->legal_street) ? $SOCIETY->address  ?? '' : $SOCIETY->addressLegal,
-            'society_name' => $SOCIETY->name,
+            'society_name' => $SOCIETY->name ?? '',
             'society_address' => $SOCIETY->address ?? '',
             'society_cf' => $SOCIETY->cf ?? '',
             'society_pi' => $SOCIETY->pi ?? '',

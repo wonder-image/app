@@ -4,6 +4,7 @@ namespace Wonder\App;
 
 use mysqli;
 use Throwable;
+use Wonder\Sql\Connection;
 
 class UpdateRunner
 {
@@ -13,7 +14,17 @@ class UpdateRunner
     {
         global $mysqli;
 
-        $this->connection = $connection ?? $mysqli;
+        if ($connection instanceof mysqli) {
+            $this->connection = $connection;
+            return;
+        }
+
+        if (($mysqli ?? null) instanceof mysqli) {
+            $this->connection = $mysqli;
+            return;
+        }
+
+        $this->connection = Connection::Connect('main');
     }
 
     public function latestRun(): ?array
@@ -63,6 +74,7 @@ class UpdateRunner
         ];
 
         try {
+            $this->loadTableSchemas();
             $this->ensureTrackingTable();
 
             $lock = new UpdateLock($this->connection, $this->lockName());
@@ -133,6 +145,10 @@ class UpdateRunner
     private function ensureTrackingTable(): void
     {
         global $TABLE;
+
+        if (!is_object($TABLE ?? null)) {
+            $TABLE = (object) [];
+        }
 
         if (!isset($TABLE->APP_UPDATE_RUNS)) {
             $TABLE->APP_UPDATE_RUNS = [
@@ -213,6 +229,51 @@ class UpdateRunner
         sqlTable('app_update_runs', $TABLE->APP_UPDATE_RUNS);
     }
 
+    private function loadTableSchemas(): void
+    {
+        global $ROOT;
+        global $ROOT_APP;
+        global $TABLE;
+
+        if (!is_object($TABLE ?? null)) {
+            $TABLE = (object) [];
+        }
+
+        extract($GLOBALS, EXTR_SKIP);
+
+        if (!is_object($DB ?? null)) {
+            $DB = (object) ['database' => []];
+        }
+
+        if (!is_object($DEFAULT ?? null)) {
+            $DEFAULT = RuntimeDefaults::mergeStyleDefaults(null, $PATH ?? null);
+        } else {
+            $DEFAULT = RuntimeDefaults::mergeStyleDefaults($DEFAULT, $PATH ?? null);
+        }
+
+        foreach ($this->tableDirectories() as $directory) {
+            if (!is_dir($directory)) {
+                continue;
+            }
+
+            foreach (scanParentDir($directory) as $file) {
+                if (pathinfo($file, PATHINFO_EXTENSION) !== 'php') {
+                    continue;
+                }
+
+                include $directory.$file;
+            }
+        }
+
+        foreach (get_object_vars($TABLE) as $tableName => $tableSchema) {
+            if (!is_array($tableSchema)) {
+                continue;
+            }
+
+            Table::key((string) $tableName)->setSchema($tableSchema);
+        }
+    }
+
     private function createRunRow(string $releaseId, string $triggerType, string $source, string $startedAt): int
     {
         $insert = sqlInsert('app_update_runs', [
@@ -259,10 +320,32 @@ class UpdateRunner
         global $TABLE;
 
         $count = 0;
+        $pending = get_object_vars($TABLE);
+        $lastError = null;
 
-        foreach ($TABLE as $table => $value) {
-            sqlTable(strtolower((string) $table), $value);
-            $count++;
+        while (!empty($pending)) {
+            $progress = false;
+
+            foreach ($pending as $table => $value) {
+                try {
+                    sqlTable(strtolower((string) $table), $value);
+                    unset($pending[$table]);
+                    $count++;
+                    $progress = true;
+                } catch (Throwable $throwable) {
+                    $lastError = $throwable;
+                }
+            }
+
+            if ($progress) {
+                continue;
+            }
+
+            if ($lastError instanceof Throwable) {
+                throw $lastError;
+            }
+
+            break;
         }
 
         return $count;
@@ -276,6 +359,17 @@ class UpdateRunner
         return [
             $ROOT_APP.'/build/row/',
             $ROOT.'/custom/build/row/',
+        ];
+    }
+
+    private function tableDirectories(): array
+    {
+        global $ROOT;
+        global $ROOT_APP;
+
+        return [
+            $ROOT_APP.'/build/table/',
+            $ROOT.'/custom/build/table/',
         ];
     }
 
@@ -303,6 +397,22 @@ class UpdateRunner
 
     private function runFiles(array $directories): int
     {
+        extract($GLOBALS, EXTR_SKIP);
+
+        if (!is_object($API ?? null)) {
+            $API = (object) ['key' => ''];
+        }
+
+        if (!is_object($DEFAULT ?? null)) {
+            $DEFAULT = RuntimeDefaults::mergeStyleDefaults(null, $PATH ?? null);
+        } else {
+            $DEFAULT = RuntimeDefaults::mergeStyleDefaults($DEFAULT, $PATH ?? null);
+        }
+
+        if (!is_object($PAGE ?? null)) {
+            $PAGE = (object) ['domain' => ''];
+        }
+
         $count = 0;
 
         foreach ($directories as $directory) {

@@ -113,7 +113,8 @@ Il comando:
 - avvia server PHP locale
 - gestisce route directory (`/backend/`)
 - abilita `/update/` anche in sviluppo locale
-- completa automaticamente `.env` solo per i valori locali non DB critici (`APP_DOMAIN`, `APP_URL`, `APP_KEY`, `USER_PASSWORD`)
+- sincronizza `APP_DOMAIN` dalla cartella progetto e `APP_URL` con host/porta locali
+- completa automaticamente `.env` per gli altri valori locali non DB critici (`APP_KEY`, `USER_PASSWORD`)
 - fa un check DB iniziale
 
 ## 8) URL utili
@@ -144,3 +145,5 @@ SELECT id, mail_host, stripe_test FROM security LIMIT 20;
 
 Se avvii con `php -S` senza router custom, `/update/` potrebbe non funzionare.
 Con `php forge start` la route viene gestita automaticamente.
+
+In piu', durante l'avvio locale vengono normalizzate anche le URL legacy del backend come `/backend/.../index.php`, cosi' i redirect storici continuano a funzionare con il router nuovo.

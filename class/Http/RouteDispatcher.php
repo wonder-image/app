@@ -6,6 +6,37 @@ use Throwable;
 
 class RouteDispatcher
 {
+    private const RUNTIME_SCOPE_KEYS = [
+        'ROOT',
+        'ROOT_APP',
+        'ROOT_RESOURCES',
+        'APP_VERSION',
+        'SEO',
+        'DB',
+        'MAIL',
+        'COLOR',
+        'FONT',
+        'PATH',
+        'SOCIETY',
+        'TABLE',
+        'ANALYTICS',
+        'API',
+        'DEFAULT',
+        'PAGE',
+        'PERMITS',
+        'MYSQLI_CONNECTION',
+        'mysqli',
+        'BACKEND',
+        'FRONTEND',
+        'PRIVATE',
+        'PERMIT',
+        'ROUTE_PARAMETERS',
+        'ROUTE_META',
+        'ALERT',
+        'ERROR',
+        'USER',
+    ];
+
     private string $area = 'frontend';
     private ?string $runtimeRoot = null;
 
@@ -61,6 +92,7 @@ class RouteDispatcher
 
             $this->bootApplication($route);
 
+            extract($this->runtimeScope(), EXTR_SKIP);
             include (string) $route['handler'];
             exit();
         } catch (Throwable $throwable) {
@@ -130,6 +162,19 @@ class RouteDispatcher
         $GLOBALS['ROUTE_META'] = $ROUTE_META;
 
         require_once $this->appPackageRoot().'/wonder-image.php';
+    }
+
+    private function runtimeScope(): array
+    {
+        $runtime = [];
+
+        foreach (self::RUNTIME_SCOPE_KEYS as $key) {
+            if (array_key_exists($key, $GLOBALS)) {
+                $runtime[$key] = $GLOBALS[$key];
+            }
+        }
+
+        return $runtime;
     }
 
     private function notFound(): never

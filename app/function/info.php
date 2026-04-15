@@ -68,6 +68,28 @@
 
         $RETURN->domain = empty($RETURN->site) ? '' : parse_url($RETURN->site)['host'];
 
+        foreach ([
+            'street',
+            'number',
+            'cap',
+            'city',
+            'province',
+            'country',
+            'legal_street',
+            'legal_number',
+            'legal_cap',
+            'legal_city',
+            'legal_province',
+            'legal_country',
+            'name',
+            'legal_name',
+            'email',
+        ] as $field) {
+            if (!isset($RETURN->$field)) {
+                $RETURN->$field = '';
+            }
+        }
+
         $address = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country);
         $RETURN->address = "$RETURN->street $RETURN->number, $RETURN->cap $RETURN->city ($RETURN->province)";
         $RETURN->prettyAddress = $address->pretty;

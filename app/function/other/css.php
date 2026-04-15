@@ -7,25 +7,35 @@
 
         $PATH = $ROOT.'/assets/'.$_ENV['ASSETS_VERSION'].'/css/set-up/root.css';
 
-        $CSS_DEFAULT = info('css_default', 'id', '1');
-        $CSS_INPUT = info('css_input', 'id', '1');
+        $CSS_DEFAULT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_default', 'id', '1'), \Wonder\App\RuntimeDefaults::cssDefaultRow());
+        $CSS_INPUT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_input', 'id', '1'), \Wonder\App\RuntimeDefaults::cssInputRow());
 
-        $CSS_MODAL = info('css_modal', 'id', '1');
-        $CSS_DROPDOWN = info('css_dropdown', 'id', '1');
-        $CSS_ALERT = info('css_alert', 'id', '1');
+        $CSS_MODAL = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_modal', 'id', '1'), \Wonder\App\RuntimeDefaults::cssModalRow());
+        $CSS_DROPDOWN = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_dropdown', 'id', '1'), \Wonder\App\RuntimeDefaults::cssDropdownRow());
+        $CSS_ALERT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_alert', 'id', '1'), \Wonder\App\RuntimeDefaults::cssAlertRow());
 
-        $fontFamilyDefault = html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->font_id)->font_family, ENT_QUOTES | ENT_HTML5);
-        $fontFamilyTitleBig = html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->title_big_font_id)->font_family, ENT_QUOTES | ENT_HTML5);
-        $fontFamilyTitle = html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->title_font_id)->font_family, ENT_QUOTES | ENT_HTML5);
-        $fontFamilySubtitle = html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->subtitle_font_id)->font_family, ENT_QUOTES | ENT_HTML5);
-        $fontFamilyText = html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->text_font_id)->font_family, ENT_QUOTES | ENT_HTML5);
-        $fontFamilyTextSmall = html_entity_decode(info('css_font', 'id', $CSS_DEFAULT->text_small_font_id)->font_family, ENT_QUOTES | ENT_HTML5);
+        $decodeFontFamily = static function ($fontId): string {
+            $fontFamily = (string) (info('css_font', 'id', $fontId)->font_family ?? '');
+
+            if ($fontFamily === '') {
+                $fontFamily = "'Roboto', sans-serif";
+            }
+
+            return html_entity_decode($fontFamily, ENT_QUOTES | ENT_HTML5);
+        };
+
+        $fontFamilyDefault = $decodeFontFamily($CSS_DEFAULT->font_id);
+        $fontFamilyTitleBig = $decodeFontFamily($CSS_DEFAULT->title_big_font_id);
+        $fontFamilyTitle = $decodeFontFamily($CSS_DEFAULT->title_font_id);
+        $fontFamilySubtitle = $decodeFontFamily($CSS_DEFAULT->subtitle_font_id);
+        $fontFamilyText = $decodeFontFamily($CSS_DEFAULT->text_font_id);
+        $fontFamilyTextSmall = $decodeFontFamily($CSS_DEFAULT->text_small_font_id);
 
         $RETURN = ":root {\n";
         $RETURN .= "\n";
         $RETURN .= "--spacer: {$CSS_DEFAULT->spacer}px;\n";
         $RETURN .= "--header-height: {$CSS_DEFAULT->header_height}px;\n";
-        $RETURN .= "--default-image: url('$DEFAULT->image');\n";
+        $RETURN .= "--default-image: url('".((string) ($DEFAULT->image ?? ''))."');\n";
         $RETURN .= "\n";
         $RETURN .= "/* Default font */\n";
         $RETURN .= "--font-family: $fontFamilyDefault;\n";
@@ -173,7 +183,7 @@
         $RETURN .= "\n";
         $RETURN .= "/* Set-up colori testo */\n";
 
-        $CSS_DEFAULT = info('css_default', 'id', '1');
+        $CSS_DEFAULT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_default', 'id', '1'), \Wonder\App\RuntimeDefaults::cssDefaultRow());
 
         $RETURN .= "--tx-color: ".$CSS_DEFAULT->tx_color.";\n";
         $RETURN .= "--tx-color-rgb: ".hexToRgb($CSS_DEFAULT->tx_color).";\n";

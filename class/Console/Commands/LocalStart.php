@@ -71,7 +71,7 @@ class LocalStart extends LocalEnvironmentCommand
         $output->writeln("  Home: {$url}/");
         $output->writeln("  Backend: {$url}/backend/");
         $output->writeln("  Login backend: {$url}/backend/account/login/");
-        $output->writeln("  API update: {$url}/api/app/update/");
+        $output->writeln("  API update (POST): {$url}/api/app/update/");
         $output->writeln('  Stop: CTRL+C');
         $output->writeln('');
 
@@ -108,22 +108,22 @@ class LocalStart extends LocalEnvironmentCommand
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
-        $appDomain = $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+        $existingAppDomain = $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+        $appDomain = $this->defaultAppDomain($cwd);
 
-        if ($appDomain === '') {
-            $appDomain = $this->defaultAppDomain($cwd);
-
-            if ($appDomain !== '') {
-                $output->writeln('<info>✅ APP_DOMAIN rilevato dalla cartella progetto: '.$appDomain.'</info>');
-            }
+        if ($appDomain !== '' && $appDomain !== $existingAppDomain) {
+            $output->writeln('<info>✅ APP_DOMAIN sincronizzato dalla cartella progetto: '.$appDomain.'</info>');
         }
 
         $updatedKeys = $this->completeEnvValues($lines, $keyToIndex, [
             'APP_DOMAIN' => $appDomain !== '' ? $appDomain : null,
             'APP_URL' => $this->buildLocalAppUrl($host, $port),
+        ], true);
+
+        $updatedKeys = array_merge($updatedKeys, $this->completeEnvValues($lines, $keyToIndex, [
             'APP_KEY' => bin2hex(random_bytes(32)),
             'USER_PASSWORD' => $this->randomAlphaNumeric(8),
-        ]);
+        ]));
 
         if (count($updatedKeys) === 0) {
             return true;
@@ -185,6 +185,17 @@ class LocalStart extends LocalEnvironmentCommand
 <?php
 \$docroot = {$docrootExport};
 \$uri = parse_url(\$_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+\$legacyUri = preg_replace('#/index\\.php$#', '/', \$uri);
+
+if (is_string(\$legacyUri) && \$legacyUri !== '' && \$legacyUri !== \$uri) {
+    \$query = isset(\$_SERVER['QUERY_STRING']) && \$_SERVER['QUERY_STRING'] !== ''
+        ? '?'.\$_SERVER['QUERY_STRING']
+        : '';
+    \$uri = \$legacyUri;
+    \$_SERVER['REQUEST_URI'] = \$uri.\$query;
+    \$_SERVER['PHP_SELF'] = \$uri;
+}
+
 \$requestPath = \$docroot.\$uri;
 
 if (\$uri !== '/' && is_file(\$requestPath)) {
@@ -198,6 +209,13 @@ if (\$uri !== '/' && is_dir(\$requestPath) && file_exists(\$requestPath.'/index.
 
 if (\$uri !== '/' && file_exists(\$requestPath.'.php')) {
     require \$requestPath.'.php';
+    return true;
+}
+
+\$handlerIndex = \$docroot.'/handler/index.php';
+
+if (file_exists(\$handlerIndex)) {
+    require \$handlerIndex;
     return true;
 }
 

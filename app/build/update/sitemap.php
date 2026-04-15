@@ -1,6 +1,8 @@
 <?php
 
     $SITEMAP_FILE = $ROOT_APP."/generator/sitemap/data/generator.conf";
+    $sitemapLogin = trim((string) ($_ENV['USER_USERNAME'] ?? \Wonder\App\RuntimeDefaults::adminUsername()));
+    $sitemapPassword = (string) ($_ENV['USER_PASSWORD'] ?? 'admin');
 
     $ARRAY = [
         "xs_inc_skip" => "\.(xml|doc|docx|eps|ps|txt|rtf|ppt|xls|rss|pdf)",
@@ -59,8 +61,8 @@
         "xs_ref_list_max" => "20000",
         "xs_htmlname" => "$ROOT/shared/sitemap/sitemap.html",
         "xs_notconfigured" => "0",
-        "xs_login" => $_ENV['USER_USERNAME'],
-        "xs_password" => md5($_ENV['USER_PASSWORD']),
+        "xs_login" => $sitemapLogin,
+        "xs_password" => md5($sitemapPassword),
         "xs_max_pages" => "",
         "xs_delay_req" => "",
         "xs_delay_ms" => "",

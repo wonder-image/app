@@ -464,11 +464,20 @@
                     if (isset($options['default'])) {
 
                         $defaultValue = $options['default'];
+                        $isBooleanType = preg_match('/^(BOOLEAN|BOOL)\b/i', $type) === 1;
 
                         $default = "DEFAULT ";
 
                         if (in_array($defaultValue, $this->SQL_VAR)) {
                             $default .= $defaultValue;
+                        } elseif (
+                            $isBooleanType &&
+                            (
+                                is_bool($defaultValue) ||
+                                in_array(strtolower((string) $defaultValue), ['true', 'false', '1', '0'], true)
+                            )
+                        ) {
+                            $default .= filter_var($defaultValue, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
                         } else {
                             $default .= "'$defaultValue'";
                         }

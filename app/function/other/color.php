@@ -2,6 +2,24 @@
 
     function hexToRgb($hex) {
 
+        if (!is_string($hex)) {
+            return "0, 0, 0";
+        }
+
+        $hex = trim($hex);
+
+        if ($hex === '') {
+            return "0, 0, 0";
+        }
+
+        if (preg_match('/^#([a-f0-9]{3})$/i', $hex, $matches) === 1) {
+            $hex = '#'.$matches[1][0].$matches[1][0].$matches[1][1].$matches[1][1].$matches[1][2].$matches[1][2];
+        }
+
+        if (preg_match('/^#([a-f0-9]{6})$/i', $hex) !== 1) {
+            return "0, 0, 0";
+        }
+
         list($r, $g, $b) = sscanf($hex, "#%02x%02x%02x");
         return "$r, $g, $b";
 

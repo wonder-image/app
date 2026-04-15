@@ -17,6 +17,11 @@ Route::area('backend')
         Route::post('/', $ROOT_APP.'/http/backend/home.php')
             ->permit([]);
 
+        Route::redirect('/login/', '/backend/account/login/')
+            ->name('login.legacy')
+            ->guarded(false)
+            ->permit([]);
+
         Route::name('account.')
             ->prefix('/account')
             ->group(function () use ($ROOT_APP) {

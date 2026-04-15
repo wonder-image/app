@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
+use Wonder\App\RuntimeDefaults;
 
 abstract class LocalEnvironmentCommand extends Config
 {
@@ -84,6 +85,11 @@ abstract class LocalEnvironmentCommand extends Config
 
     protected function defaultEnvTemplate(): string
     {
+        $adminName = RuntimeDefaults::adminName();
+        $adminSurname = RuntimeDefaults::adminSurname();
+        $adminEmail = RuntimeDefaults::adminEmail();
+        $adminUsername = RuntimeDefaults::adminUsername();
+
         return <<<ENV
 # App Info
 APP_DEBUG=true
@@ -104,10 +110,10 @@ DB_COLLATION=latin1_swedish_ci
 DB_CONNECTION_LOG=false
 
 # Backend default user
-USER_NAME=Admin
-USER_SURNAME=User
-USER_EMAIL=admin@example.local
-USER_USERNAME=admin
+USER_NAME=$adminName
+USER_SURNAME=$adminSurname
+USER_EMAIL=$adminEmail
+USER_USERNAME=$adminUsername
 USER_PASSWORD=
 ENV;
     }

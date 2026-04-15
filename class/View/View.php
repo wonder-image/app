@@ -6,6 +6,26 @@ use RuntimeException;
 
 class View
 {
+    private const RUNTIME_KEYS = [
+        'ROOT',
+        'ROOT_APP',
+        'ROOT_RESOURCES',
+        'APP_VERSION',
+        'PAGE',
+        'PATH',
+        'DEFAULT',
+        'PERMITS',
+        'BACKEND',
+        'FRONTEND',
+        'PRIVATE',
+        'PERMIT',
+        'ROUTE_PARAMETERS',
+        'ROUTE_META',
+        'ALERT',
+        'ERROR',
+        'USER',
+    ];
+
     private static array $layoutStack = [];
     private static array $dataStack = [];
     private static array $globalStack = [];
@@ -23,11 +43,13 @@ class View
     public function render(): void
     {
         $data = $this->normalizeData($this->data);
+        $runtime = self::runtimeData();
 
         self::$dataStack[] = $data;
         self::$globalStack[] = self::pushGlobals($data);
 
         try {
+            extract($runtime, EXTR_SKIP);
             extract($data, EXTR_SKIP);
             include $this->view;
         } finally {
@@ -65,9 +87,23 @@ class View
 
         $layoutData['PAGE_CONTENT'] = $content;
 
+        extract(self::runtimeData(), EXTR_SKIP);
         extract($layoutData, EXTR_SKIP);
 
         include self::resolveLayoutPath((string) ($context['layout'] ?? ''), (string) $ROOT, (string) $ROOT_APP);
+    }
+
+    private static function runtimeData(): array
+    {
+        $runtime = [];
+
+        foreach (self::RUNTIME_KEYS as $key) {
+            if (array_key_exists($key, $GLOBALS)) {
+                $runtime[$key] = $GLOBALS[$key];
+            }
+        }
+
+        return $runtime;
     }
 
     private static function currentData(): array
