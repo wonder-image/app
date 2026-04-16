@@ -361,7 +361,7 @@
         public function response(array|string $response = [], int $status = 200): array 
         {
 
-            $success = ($status == 200) ? true : false;
+            $success = $status >= 200 && $status < 300;
 
             $VALUES = Table::key('api_activity')
                             ->prepare([

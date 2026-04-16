@@ -26,4 +26,6 @@ Route::area('api')
 
             });
 
+        \Wonder\App\ResourceRouteRegistrar::registerApi($ROOT_APP);
+
     });

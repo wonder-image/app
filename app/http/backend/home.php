@@ -41,5 +41,6 @@ if (
 
 \Wonder\View\View::make($ROOT_APP.'/view/pages/backend/home.php', [
     'TITLE' => $TITLE,
-    'UPDATE_RESULT' => $UPDATE_RESULT
+    'UPDATE_RESULT' => $UPDATE_RESULT,
+    'NAV_BACKEND' => is_array($NAV_BACKEND ?? null) ? $NAV_BACKEND : [],
 ])->render();

@@ -4,4 +4,7 @@
     require_once __DIR__."/style/style.php";
     require_once __DIR__."/connection/connection.php";
     require_once __DIR__."/app/app.php";
-    require_once $ROOT."/custom/config/config.php"; # Configurazioni CUSTOM
+    $customConfigFile = $ROOT."/custom/config/config.php";
+    if (file_exists($customConfigFile)) {
+        require_once $customConfigFile; # Configurazioni CUSTOM
+    }

@@ -10,4 +10,9 @@
 </div>
 
 <!-- Custom .css - .js  -->
-<?php include $ROOT.'/custom/utility/backend/body-start.php';?>
+<?php
+$customBackendBodyStart = $ROOT.'/custom/utility/backend/body-start.php';
+if (file_exists($customBackendBodyStart)) {
+    include $customBackendBodyStart;
+}
+?>

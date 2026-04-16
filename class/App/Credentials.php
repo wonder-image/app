@@ -4,6 +4,7 @@
 
     use Dotenv\Dotenv;
 
+    use Throwable;
     use Wonder\Sql\Connection;
     use Wonder\Sql\Query;
     use Wonder\Support\Text\Random;
@@ -90,21 +91,15 @@
         public static function mail() {
 
             if (empty(self::$MAIL)) {
-                
-                self::$MAIL = (object) [];
 
-                $query = self::query();
-
-                $exists = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? true : false;
-
-                $row = $exists ? $query->Select('security', [ 'id' => 1 ], 1)->row : [];
-
-                self::$MAIL->host = $row['mail_host'] ?? '';
-                self::$MAIL->username = $row['mail_username'] ?? '';
-                self::$MAIL->password = $row['mail_password'] ?? '';
-                self::$MAIL->port = $row['mail_port'] ?? '';
-                self::$MAIL->service = $row['mail_service'] ?? 'phpmailer';
-                self::$MAIL->brevo_api_key = $row['brevo_api_key'] ?? '';
+                $row = self::safeSecurityRow();
+                self::$MAIL = self::mailDefaults();
+                self::$MAIL->host = $row['mail_host'] ?? self::$MAIL->host;
+                self::$MAIL->username = $row['mail_username'] ?? self::$MAIL->username;
+                self::$MAIL->password = $row['mail_password'] ?? self::$MAIL->password;
+                self::$MAIL->port = $row['mail_port'] ?? self::$MAIL->port;
+                self::$MAIL->service = $row['mail_service'] ?? self::$MAIL->service;
+                self::$MAIL->brevo_api_key = $row['brevo_api_key'] ?? self::$MAIL->brevo_api_key;
 
             }
             
@@ -115,7 +110,7 @@
         public static function appKey(): string
         {
 
-            if (empty(self::$appToken)) {
+            if (empty(self::$appKey)) {
 
                 self::loadEnv();
 
@@ -133,13 +128,7 @@
         {
 
             if (empty(self::$appToken)) {
-
-                $query = self::query();
-
-                $exists = ($query->TableExists('api_users') && $query->Select('api_users', [ 'id' => 1 ], 1)->exists) ? true : false;
-
-                $row = $exists ? $query->Select('api_users', [ 'id' => 1 ], 1)->row : [];
-
+                $row = self::safeRow('api_users', [ 'id' => 1 ]);
                 self::$appToken = $row['token'] ?? '';
 
             }
@@ -169,62 +158,128 @@
         {
 
             if (empty(self::$API)) {
-                
-                self::$API = (object) [];
-                self::$API->endpoint = "https://api.wonderimage.it/v1.0";
 
-                $query = self::query();
-
-                $exists = ($query->TableExists('security') && $query->Select('security', [ 'id' => 1 ], 1)->exists) ? true : false;
-
-                $row = $exists ? $query->Select('security', [ 'id' => 1 ], 1)->row : [];
-
-                self::$API->key = $row['api_key'] ?? strtolower(Random::generate(5).'-'.Random::generate(5).'-'.Random::generate(5).'-'.Random::generate(5));
-                self::$API->gcp_project_id = $row['gcp_project_id'] ?? '';
-                self::$API->gcp_api_key = $row['gcp_api_key'] ?? '';
+                $row = self::safeSecurityRow();
+                self::$API = self::apiDefaults();
+                self::$API->key = $row['api_key'] ?? self::$API->key;
+                self::$API->gcp_project_id = $row['gcp_project_id'] ?? self::$API->gcp_project_id;
+                self::$API->gcp_api_key = $row['gcp_api_key'] ?? self::$API->gcp_api_key;
                 self::$API->gcp_client_api_key = $row['gcp_client_api_key'] ?? self::$API->gcp_api_key;
-                self::$API->google_oauth_client_id = $row['google_oauth_client_id'] ?? '';
-                self::$API->google_oauth_client_secret = $row['google_oauth_client_secret'] ?? '';
-                self::$API->google_oauth_redirect_uri = $row['google_oauth_redirect_uri'] ?? '';
-                self::$API->apple_oauth_client_id = $row['apple_oauth_client_id'] ?? '';
-                self::$API->apple_oauth_team_id = $row['apple_oauth_team_id'] ?? '';
-                self::$API->apple_oauth_key_id = $row['apple_oauth_key_id'] ?? '';
-                self::$API->apple_oauth_private_key = $row['apple_oauth_private_key'] ?? '';
-                self::$API->apple_oauth_redirect_uri = $row['apple_oauth_redirect_uri'] ?? '';
-                self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? '';
-                self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? '';
-                self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? '';
+                self::$API->google_oauth_client_id = $row['google_oauth_client_id'] ?? self::$API->google_oauth_client_id;
+                self::$API->google_oauth_client_secret = $row['google_oauth_client_secret'] ?? self::$API->google_oauth_client_secret;
+                self::$API->google_oauth_redirect_uri = $row['google_oauth_redirect_uri'] ?? self::$API->google_oauth_redirect_uri;
+                self::$API->apple_oauth_client_id = $row['apple_oauth_client_id'] ?? self::$API->apple_oauth_client_id;
+                self::$API->apple_oauth_team_id = $row['apple_oauth_team_id'] ?? self::$API->apple_oauth_team_id;
+                self::$API->apple_oauth_key_id = $row['apple_oauth_key_id'] ?? self::$API->apple_oauth_key_id;
+                self::$API->apple_oauth_private_key = $row['apple_oauth_private_key'] ?? self::$API->apple_oauth_private_key;
+                self::$API->apple_oauth_redirect_uri = $row['apple_oauth_redirect_uri'] ?? self::$API->apple_oauth_redirect_uri;
+                self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? self::$API->g_recaptcha_site_key;
+                self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? self::$API->g_maps_place_id;
+                self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? self::$API->klaviyo_api_key;
+                self::$API->ipinfo_api_key = $row['ipinfo_api_key'] ?? self::$API->ipinfo_api_key;
 
-                self::$API->stripe_test = isset($row['stripe_test']) ? filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN) : false;
-                self::$API->stripe_test_key = $row['stripe_test_key'] ?? '';
-                self::$API->stripe_private_key = $row['stripe_private_key'] ?? '';
+                self::$API->stripe_test = isset($row['stripe_test'])
+                    ? filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN)
+                    : self::$API->stripe_test;
+                self::$API->stripe_test_key = $row['stripe_test_key'] ?? self::$API->stripe_test_key;
+                self::$API->stripe_private_key = $row['stripe_private_key'] ?? self::$API->stripe_private_key;
+                self::$API->stripe_account_id = $row['stripe_account_id'] ?? self::$API->stripe_account_id;
+                self::$API->stripe_test_account_id = $row['stripe_test_account_id'] ?? self::$API->stripe_test_account_id;
+                self::$API->stripe_id = self::$API->stripe_test ? self::$API->stripe_test_account_id : self::$API->stripe_account_id;
+                self::$API->stripe_api_key = self::$API->stripe_test ? self::$API->stripe_test_key : self::$API->stripe_private_key;
 
-                self::$API->stripe_account_id = $row['stripe_account_id'] ?? '';
-                self::$API->stripe_test_account_id = $row['stripe_test_account_id'] ?? '';
-
-                switch (self::$API->stripe_test) {
-                    case true:
-                        self::$API->stripe_id = self::$API->stripe_test_account_id;
-                        self::$API->stripe_api_key = self::$API->stripe_test_key;
-                        break;
-                    default:
-                        self::$API->stripe_id = self::$API->stripe_account_id;
-                        self::$API->stripe_api_key = self::$API->stripe_private_key;
-                        break;
-                }
-
-                self::$API->fatture_in_cloud_app_id = $row['fatture_in_cloud_app_id'] ?? '';
-                self::$API->fatture_in_cloud_client_id = $row['fatture_in_cloud_client_id'] ?? '';
-                self::$API->fatture_in_cloud_client_secret = $row['fatture_in_cloud_client_secret'] ?? '';
-                self::$API->fatture_in_cloud_company_id = $row['fatture_in_cloud_company_id'] ?? '';
-                self::$API->fatture_in_cloud_token = $row['fatture_in_cloud_token'] ?? '';
+                self::$API->fatture_in_cloud_app_id = $row['fatture_in_cloud_app_id'] ?? self::$API->fatture_in_cloud_app_id;
+                self::$API->fatture_in_cloud_client_id = $row['fatture_in_cloud_client_id'] ?? self::$API->fatture_in_cloud_client_id;
+                self::$API->fatture_in_cloud_client_secret = $row['fatture_in_cloud_client_secret'] ?? self::$API->fatture_in_cloud_client_secret;
+                self::$API->fatture_in_cloud_company_id = $row['fatture_in_cloud_company_id'] ?? self::$API->fatture_in_cloud_company_id;
+                self::$API->fatture_in_cloud_token = $row['fatture_in_cloud_token'] ?? self::$API->fatture_in_cloud_token;
 
             }
 
-            self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? (self::$API->klaviyo_api_key ?? '');
-            self::$API->ipinfo_api_key = $row['ipinfo_api_key'] ?? '';
-
             return self::$API;
+
+        }
+
+        public static function mailDefaults(): object
+        {
+
+            return (object) [
+                'host' => '',
+                'username' => '',
+                'password' => '',
+                'port' => '',
+                'service' => 'phpmailer',
+                'brevo_api_key' => '',
+            ];
+
+        }
+
+        public static function apiDefaults(): object
+        {
+
+            $key = strtolower(Random::generate(5).'-'.Random::generate(5).'-'.Random::generate(5).'-'.Random::generate(5));
+
+            return (object) [
+                'endpoint' => 'https://api.wonderimage.it/v1.0',
+                'key' => $key,
+                'gcp_project_id' => '',
+                'gcp_api_key' => '',
+                'gcp_client_api_key' => '',
+                'google_oauth_client_id' => '',
+                'google_oauth_client_secret' => '',
+                'google_oauth_redirect_uri' => '',
+                'apple_oauth_client_id' => '',
+                'apple_oauth_team_id' => '',
+                'apple_oauth_key_id' => '',
+                'apple_oauth_private_key' => '',
+                'apple_oauth_redirect_uri' => '',
+                'g_recaptcha_site_key' => '',
+                'g_maps_place_id' => '',
+                'klaviyo_api_key' => '',
+                'ipinfo_api_key' => '',
+                'stripe_test' => false,
+                'stripe_test_key' => '',
+                'stripe_private_key' => '',
+                'stripe_account_id' => '',
+                'stripe_test_account_id' => '',
+                'stripe_id' => '',
+                'stripe_api_key' => '',
+                'fatture_in_cloud_app_id' => '',
+                'fatture_in_cloud_client_id' => '',
+                'fatture_in_cloud_client_secret' => '',
+                'fatture_in_cloud_company_id' => '',
+                'fatture_in_cloud_token' => '',
+            ];
+
+        }
+
+        private static function safeSecurityRow(): array
+        {
+
+            return self::safeRow('security', [ 'id' => 1 ]);
+
+        }
+
+        private static function safeRow(string $table, array $conditions, string $database = 'main'): array
+        {
+
+            try {
+                $query = self::query($database);
+
+                if (!$query->TableExists($table)) {
+                    return [];
+                }
+
+                $result = $query->Select($table, $conditions, 1);
+
+                if (!is_object($result) || empty($result->exists)) {
+                    return [];
+                }
+
+                return is_array($result->row ?? null) ? $result->row : [];
+            } catch (Throwable) {
+                return [];
+            }
 
         }
 

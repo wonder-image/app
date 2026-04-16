@@ -67,6 +67,11 @@
     ];
 
     # Permessi CUSTOM
-    require $ROOT."/custom/config/permissions.php";
+    $customPermissionsFile = $ROOT."/custom/config/permissions.php";
+    $CUSTOM_PERMITS = [];
+
+    if (file_exists($customPermissionsFile)) {
+        require $customPermissionsFile;
+    }
     
     foreach ($CUSTOM_PERMITS as $key => $value) { foreach ($value as $k => $v) { $PERMITS[$key][$k] = $v; } }

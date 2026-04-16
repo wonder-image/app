@@ -18,4 +18,7 @@
     if (isset($FRONTEND) && $FRONTEND) { require_once __DIR__."/frontend/function.php"; }
     
     # Funzioni CUSTOM
-    require_once $ROOT."/custom/function/function.php";
+    $customFunctionFile = $ROOT."/custom/function/function.php";
+    if (file_exists($customFunctionFile)) {
+        require_once $customFunctionFile;
+    }

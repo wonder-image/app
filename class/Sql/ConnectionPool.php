@@ -14,24 +14,22 @@
         private $database;
         private $databases = [];
         private $connections = [];
+        private bool $configured = false;
 
         public function __construct( $hostname = null, $username = null, $password = null, ?array $database = null ) 
         {
 
-            $this->hostname = ($hostname === null) ? Credentials::database()->hostname : $hostname;
-            $this->username = ($username === null) ? Credentials::database()->username : $username;
-            $this->password = ($password === null) ? Credentials::database()->password : $password;
-            $this->database = ($database === null) ? Credentials::database()->database : $database;
-
-            foreach ($this->database as $alias => $database) {
-                $this->databases[$alias] = $database;
-                $this->databases[$database] = $database;
-            }
+            $this->hostname = $hostname;
+            $this->username = $username;
+            $this->password = $password;
+            $this->database = $database;
 
         }
 
         public function offsetExists(mixed $offset): bool
         {
+
+            $this->ensureConfigured();
 
             return isset($this->databases[$offset]) || isset($this->connections[$offset]);
 
@@ -39,6 +37,8 @@
 
         public function offsetGet(mixed $offset): mixed
         {
+
+            $this->ensureConfigured();
 
             if (isset($this->connections[$offset])) {
                 return $this->connections[$offset];
@@ -80,6 +80,31 @@
         {
 
             unset($this->connections[$offset]);
+
+        }
+
+        private function ensureConfigured(): void
+        {
+
+            if ($this->configured) {
+                return;
+            }
+
+            if ($this->hostname === null || $this->username === null || $this->password === null || $this->database === null) {
+                $credentials = Credentials::database();
+
+                $this->hostname ??= $credentials->hostname;
+                $this->username ??= $credentials->username;
+                $this->password ??= $credentials->password;
+                $this->database ??= $credentials->database;
+            }
+
+            foreach ((array) $this->database as $alias => $database) {
+                $this->databases[$alias] = $database;
+                $this->databases[$database] = $database;
+            }
+
+            $this->configured = true;
 
         }
 

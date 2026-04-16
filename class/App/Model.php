@@ -1,257 +1,246 @@
 <?php
 
-    namespace Wonder\App;
+namespace Wonder\App;
 
-    use mysqli;
-    use Wonder\Sql\{ Connection, Query, CreateTable };
+use Exception;
+use mysqli;
+use Wonder\Sql\{Connection, CreateTable, Query};
 
-    abstract class Model {
+abstract class Model
+{
+    public static string $table = '';
+    public static string $folder = '';
+    public static string $icon = 'bi bi-circle';
 
-        public static $table, $folder;
+    protected static ?string $dbHostname = null;
+    protected static ?string $dbUsername = null;
+    protected static ?string $dbPassword = null;
+    protected static ?string $dbName = null;
 
-        protected static ?string $dbHostname, $dbUsername, $dbPassword, $dbName;
+    protected static string|array|null $defaultCondition = null;
 
-        protected static ?string $defaultCondition = "";
+    public static Connection $connection;
 
-        public static Connection $connection;
+    abstract public static function tableSchema(): array;
+    abstract public static function dataSchema(): array;
 
-        abstract public static function tableSchema(): array;
-        abstract public static function dataSchema(): array;
-
-        public static function query(): Query
-        { 
-
-            return new Query(self::connection());
-
-        }
-
-        public static function setConnection()
-        {
-
-            $connection = new Connection( 
-                    self::$dbHostname ?? null, 
-                    self::$dbUsername ?? null, 
-                    self::$dbPassword ?? null, 
-                    self::$dbName ?? null
-                );
-            
-            self::$connection = $connection;
-
-        }
-
-        public static function connection(): mysqli 
-        {
-
-            if (empty(self::$connection)) { self::setConnection(); }
-            
-            return self::$connection->Connect();
-
-        }
-
-        public static function getColumns(): array 
-        {
-
-            $columns = [];
-            foreach (static::tableSchema() as $key => $column) { $columns[$column->name] = $column->schema; }
-
-            return $columns;
-
-        }
-
-        public static function createTable() 
-        {
-
-            $database = new CreateTable(self::connection());
-            $database->Table(static::$table, self::getColumns());
-
-        }
-
-        # Prepare
-
-            public static function arrayValues( array $values, $prefix = '' ): array
-            {
-
-                $schema = static::dataSchema();
-                $columns = self::getColumns();
-
-                $valuesArray = [];
-
-                foreach ($schema as $class) {
-
-                    if (array_key_exists($class->key, $columns)) {
-                        
-                        $key = "{$prefix}{$class->key}";
-
-                        if ($class->isRequired()) {
-
-                            // Se obbligatorio, preparalo anche se è null (farà scattare un errore interno)
-                            $value = $values[$key] ?? null;
-
-                            $valuesArray[$key] = [
-                                'class' => $class,
-                                'value' => $value
-                            ];
-
-                        } else {
-
-                            // Se non è richiesto, lo prepariamo solo se è stato passato
-                            if (isset($values[$key])) {
-
-                                $valuesArray[$key] = [
-                                    'class' => $class,
-                                    'value' => $values[$key]
-                                ];
-
-                            }
-
-                        }
-                        
-                    } else {
-
-                        throw new \Exception(
-                            "La colonna ".$class->key." non fa parte delle colonne del Database."
-                        );
-
-                    }
-
-                }
-
-                return $valuesArray;
-
-            }
-
-            public static function validate( array $values, $prefix = '' ): object 
-            {
-                
-                $validatedValues = (object) [];
-
-                $validatedValues->valid = true;
-                $validatedValues->response = [];
-
-                foreach (self::arrayValues($values, $prefix) as $key => $value) {
-
-                    $class = $value['class'];
-                    $validatedValues->response[$key] = $class->validate($value['value'], $values);
-
-                    if (!$validatedValues->response[$key]->isValid()) {
-                        $validatedValues->valid = false;
-                    }
-
-                }
-
-                return $validatedValues;
-
-            }
-
-            public static function prepare( array $values, $prefix = ''): array 
-            {
-
-                $preparedValues = [];
-
-                foreach (self::arrayValues($values, $prefix) as $key => $value) {
-                    $preparedValues[str_replace($prefix, '', $key)] = $value['class']->format($value['value']);
-                }
-
-                return $preparedValues;
-
-            }
-
-        # Get
-
-            public static function getAll( string | array $column = '*' ): array
-            {
-
-                return self::query()->Select(
-                    static::$table,
-                    null,
-                    null,
-                    null,
-                    null,
-                    $column
-                )->row;
-
-            }
-
-            public static function get( $condition = null, $limit = null, $order = null, $orderDirection = null, $column = '*' ): object 
-            {
-
-                return self::query()->Select(
-                    static::$table,
-                    $condition,
-                    $limit,
-                    $order,
-                    $orderDirection,
-                    $column
-                )->row;
-
-            }
-
-            public static function getById($id): object 
-            {
-
-                return self::query()->Select(
-                    static::$table, 
-                    [ 'id' => $id ], 
-                    1
-                )->row;
-
-            }
-
-        # Operation
-
-            public static function create($values)
-            {
-
-                $validated = self::validate($values);
-                
-                if (!$validated->valid) {
-
-                    return (object) array_merge( [ 'success' => false], (array) $validated );
-
-                }
-
-                return self::query()->Insert(
-                    static::$table,
-                    self::prepare($values)
-                );
-
-            }
-
-            public static function update( array $values, int $id ): object 
-            {
-
-                $validated = self::validate($values);
-                
-                if (!$validated->valid) {
-
-                    return (object) array_merge( [ 'success' => false], (array) $validated );
-
-                }
-
-                return self::query()->Update(
-                    static::$table,
-                    self::prepare($values),
-                    'id',
-                    $id
-                );
-
-            }
-
-            public static function delete()
-            {
-
-
-            }
-
-            public static function createUpdate($values, $id = null)
-            {
-
-                if (empty($id)) {
-                    return self::create($values);
-                } else {
-                    return self::update($values, $id);
-                }
-
-            }
-            
+    public static function query(): Query
+    {
+        return new Query(static::connection());
     }
+
+    public static function setConnection(): void
+    {
+        static::$connection = new Connection(
+            static::$dbHostname ?? null,
+            static::$dbUsername ?? null,
+            static::$dbPassword ?? null,
+            static::$dbName ?? null
+        );
+    }
+
+    public static function connection(): mysqli
+    {
+        if (!isset(static::$connection)) {
+            static::setConnection();
+        }
+
+        return static::$connection->Connect();
+    }
+
+    public static function getColumns(): array
+    {
+        $columns = [];
+
+        foreach (static::tableSchema() as $column) {
+            if (!isset($column->name, $column->schema)) {
+                continue;
+            }
+
+            $columns[$column->name] = $column->schema;
+        }
+
+        return $columns;
+    }
+
+    public static function createTable(): void
+    {
+        $database = new CreateTable(static::connection());
+        $database->Table(static::$table, static::getColumns());
+    }
+
+    public static function arrayValues(array $values, string $prefix = ''): array
+    {
+        $schema = static::dataSchema();
+        $columns = static::getColumns();
+        $valuesArray = [];
+
+        foreach ($schema as $field) {
+            if (!isset($field->key) || !array_key_exists($field->key, $columns)) {
+                throw new Exception(
+                    'La colonna '.($field->key ?? '[sconosciuta]').' non fa parte delle colonne del Database.'
+                );
+            }
+
+            $key = $prefix.$field->key;
+
+            if ($field->isRequired()) {
+                $valuesArray[$key] = [
+                    'class' => $field,
+                    'value' => $values[$key] ?? null,
+                ];
+                continue;
+            }
+
+            if (array_key_exists($key, $values)) {
+                $valuesArray[$key] = [
+                    'class' => $field,
+                    'value' => $values[$key],
+                ];
+            }
+        }
+
+        return $valuesArray;
+    }
+
+    public static function validate(array $values, string $prefix = ''): object
+    {
+        $validatedValues = (object) [
+            'valid' => true,
+            'response' => [],
+        ];
+
+        foreach (static::arrayValues($values, $prefix) as $key => $value) {
+            $field = $value['class'];
+            $validatedValues->response[$key] = $field->validate($value['value'], $values);
+
+            if (!$validatedValues->response[$key]->isValid()) {
+                $validatedValues->valid = false;
+            }
+        }
+
+        return $validatedValues;
+    }
+
+    public static function prepare(array $values, string $prefix = ''): array
+    {
+        $preparedValues = [];
+
+        foreach (static::arrayValues($values, $prefix) as $key => $value) {
+            $preparedValues[str_replace($prefix, '', $key)] = $value['class']->format($value['value']);
+        }
+
+        return $preparedValues;
+    }
+
+    public static function all(string|array $columns = '*'): array
+    {
+        return static::query()->Select(
+            static::$table,
+            static::$defaultCondition,
+            null,
+            null,
+            null,
+            $columns
+        )->row;
+    }
+
+    public static function find(
+        string|array|null $condition = null,
+        string|int|null $limit = null,
+        ?string $order = null,
+        ?string $orderDirection = null,
+        string|array $columns = '*'
+    ): mixed {
+        return static::query()->Select(
+            static::$table,
+            $condition ?? static::$defaultCondition,
+            $limit,
+            $order,
+            $orderDirection,
+            $columns
+        )->row;
+    }
+
+    public static function findById(int|string $id): mixed
+    {
+        return static::query()->Select(
+            static::$table,
+            ['id' => $id],
+            1
+        )->row;
+    }
+
+    public static function create(array $values): object
+    {
+        $validated = static::validate($values);
+
+        if (!$validated->valid) {
+            return (object) array_merge(['success' => false], (array) $validated);
+        }
+
+        return static::query()->Insert(
+            static::$table,
+            static::prepare($values)
+        );
+    }
+
+    public static function update(array $values, int|string $id): object
+    {
+        $validated = static::validate($values);
+
+        if (!$validated->valid) {
+            return (object) array_merge(['success' => false], (array) $validated);
+        }
+
+        return static::query()->Update(
+            static::$table,
+            static::prepare($values),
+            'id',
+            $id
+        );
+    }
+
+    public static function delete(int|string $id): object
+    {
+        $deleted = (bool) static::query()->Delete(
+            static::$table,
+            ['id' => $id]
+        );
+
+        return (object) [
+            'success' => $deleted,
+            'table' => static::$table,
+            'id' => $id,
+        ];
+    }
+
+    public static function getAll(string|array $column = '*'): array
+    {
+        return static::all($column);
+    }
+
+    public static function get(
+        string|array|null $condition = null,
+        string|int|null $limit = null,
+        ?string $order = null,
+        ?string $orderDirection = null,
+        string|array $column = '*'
+    ): mixed {
+        return static::find($condition, $limit, $order, $orderDirection, $column);
+    }
+
+    public static function getById(int|string $id): mixed
+    {
+        return static::findById($id);
+    }
+
+    public static function createUpdate(array $values, int|string|null $id = null): object
+    {
+        if ($id === null || $id === '') {
+            return static::create($values);
+        }
+
+        return static::update($values, $id);
+    }
+}

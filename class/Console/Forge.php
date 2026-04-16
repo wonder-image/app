@@ -20,7 +20,7 @@
                 \Wonder\Console\Commands\DbInit::class,
                 \Wonder\Console\Commands\LocalStart::class,
                 \Wonder\Console\Commands\MakeModel::class,
-                // altri comandi...
+                \Wonder\Console\Commands\MakeResource::class,
             ];
 
         }

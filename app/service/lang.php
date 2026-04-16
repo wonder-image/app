@@ -12,11 +12,21 @@
 
         
     # Informazioni della società
-        if (sqlTableExists('society')) { 
+        try {
 
-            $SOCIETY = infoSociety();
-        
-        } else {
+            if (sqlTableExists('society')) {
+
+                $SOCIETY = infoSociety();
+
+            } else {
+
+                $SOCIETY->name = "Wonder Image";
+                $SOCIETY->legal_name = "Wonder Image";
+                $SOCIETY->email = "info@wonderimage.it";
+
+            }
+
+        } catch (\Throwable) {
 
             $SOCIETY->name = "Wonder Image";
             $SOCIETY->legal_name = "Wonder Image";

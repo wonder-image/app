@@ -14,6 +14,13 @@
 
         abstract protected function template($className, $namespace): string;
 
+        protected function normalizeResolved(array $resolved): array
+        {
+
+            return $resolved;
+
+        }
+
         protected function resolveArgument($name)
         {
 
@@ -47,7 +54,7 @@
 
             $this
                 ->setName($this->name)
-                ->setDescription('Crea un nuovo'.$this->commandName);
+                ->setDescription('Crea un nuovo '.$this->commandName);
 
             foreach ($this->argument as $name => $mode) {
                 $this->addArgument($name, $mode, $name.' del '.$this->commandName);
@@ -58,7 +65,9 @@
         protected function execute(InputInterface $input, OutputInterface $output): int 
         {
 
-            $resolver = $this->resolveArgument($input->getArgument('name'));
+            $resolver = $this->normalizeResolved(
+                $this->resolveArgument($input->getArgument('name'))
+            );
 
             $className = $resolver['className'];
             $namespace = $resolver['namespace'];

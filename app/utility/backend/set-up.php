@@ -195,6 +195,21 @@
         ::select2()
         ::wiBackend();
 
-    include $ROOT.'/custom/utility/backend/set-up.php';
+    $NAV_BACKEND = [];
+
+    $customBackendSetup = $ROOT.'/custom/utility/backend/set-up.php';
+    if (file_exists($customBackendSetup)) {
+        include $customBackendSetup;
+    }
     
-    $NAV_BACKEND = array_merge($DEFAULT_NAV_TOP, $NAV_BACKEND, $DEFAULT_NAV_BOTTOM);
+    $NAV_BACKEND = array_merge(
+        $DEFAULT_NAV_TOP,
+        is_array($NAV_BACKEND) ? $NAV_BACKEND : [],
+        $DEFAULT_NAV_BOTTOM
+    );
+
+    $NAV_BACKEND = \Wonder\Backend\Support\BackendNavigation::merge($NAV_BACKEND);
+
+    \Wonder\App\LegacyGlobals::share([
+        'NAV_BACKEND' => $NAV_BACKEND,
+    ]);

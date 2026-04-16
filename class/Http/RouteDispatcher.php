@@ -3,40 +3,10 @@
 namespace Wonder\Http;
 
 use Throwable;
+use Wonder\App\LegacyGlobals;
 
 class RouteDispatcher
 {
-    private const RUNTIME_SCOPE_KEYS = [
-        'ROOT',
-        'ROOT_APP',
-        'ROOT_RESOURCES',
-        'APP_VERSION',
-        'SEO',
-        'DB',
-        'MAIL',
-        'COLOR',
-        'FONT',
-        'PATH',
-        'SOCIETY',
-        'TABLE',
-        'ANALYTICS',
-        'API',
-        'DEFAULT',
-        'PAGE',
-        'PERMITS',
-        'MYSQLI_CONNECTION',
-        'mysqli',
-        'BACKEND',
-        'FRONTEND',
-        'PRIVATE',
-        'PERMIT',
-        'ROUTE_PARAMETERS',
-        'ROUTE_META',
-        'ALERT',
-        'ERROR',
-        'USER',
-    ];
-
     private string $area = 'frontend';
     private ?string $runtimeRoot = null;
 
@@ -143,38 +113,23 @@ class RouteDispatcher
 
     private function bootApplication(array $route): void
     {
-        $ROOT = $this->root;
-        $ROOT_APP = $this->runtimeRoot();
-        $FRONTEND = !empty($route['frontend']) || ($route['area'] ?? null) === 'frontend';
-        $BACKEND = !empty($route['backend']) || ($route['area'] ?? null) === 'backend';
-        $PRIVATE = (bool) ($route['private'] ?? false);
-        $PERMIT = is_array($route['permit'] ?? null) ? $route['permit'] : [];
-        $ROUTE_PARAMETERS = is_array($route['parameters'] ?? null) ? $route['parameters'] : [];
-        $ROUTE_META = $route;
-
-        $GLOBALS['ROOT'] = $ROOT;
-        $GLOBALS['ROOT_APP'] = $ROOT_APP;
-        $GLOBALS['FRONTEND'] = $FRONTEND;
-        $GLOBALS['BACKEND'] = $BACKEND;
-        $GLOBALS['PRIVATE'] = $PRIVATE;
-        $GLOBALS['PERMIT'] = $PERMIT;
-        $GLOBALS['ROUTE_PARAMETERS'] = $ROUTE_PARAMETERS;
-        $GLOBALS['ROUTE_META'] = $ROUTE_META;
+        LegacyGlobals::share([
+            'ROOT' => $this->root,
+            'ROOT_APP' => $this->runtimeRoot(),
+            'FRONTEND' => !empty($route['frontend']) || ($route['area'] ?? null) === 'frontend',
+            'BACKEND' => !empty($route['backend']) || ($route['area'] ?? null) === 'backend',
+            'PRIVATE' => (bool) ($route['private'] ?? false),
+            'PERMIT' => is_array($route['permit'] ?? null) ? $route['permit'] : [],
+            'ROUTE_PARAMETERS' => is_array($route['parameters'] ?? null) ? $route['parameters'] : [],
+            'ROUTE_META' => $route,
+        ]);
 
         require_once $this->appPackageRoot().'/wonder-image.php';
     }
 
     private function runtimeScope(): array
     {
-        $runtime = [];
-
-        foreach (self::RUNTIME_SCOPE_KEYS as $key) {
-            if (array_key_exists($key, $GLOBALS)) {
-                $runtime[$key] = $GLOBALS[$key];
-            }
-        }
-
-        return $runtime;
+        return LegacyGlobals::scope();
     }
 
     private function notFound(): never
@@ -200,24 +155,18 @@ class RouteDispatcher
             exit();
         }
 
-        $ROOT = $this->root;
-        $ROOT_APP = $this->runtimeRoot();
-        $FRONTEND = $this->area === 'frontend';
-        $BACKEND = $this->area === 'backend';
-        $PRIVATE = false;
-        $PERMIT = [];
-        $ERROR = $status;
-
-        $GLOBALS['ROOT'] = $ROOT;
-        $GLOBALS['ROOT_APP'] = $ROOT_APP;
-        $GLOBALS['FRONTEND'] = $FRONTEND;
-        $GLOBALS['BACKEND'] = $BACKEND;
-        $GLOBALS['PRIVATE'] = $PRIVATE;
-        $GLOBALS['PERMIT'] = $PERMIT;
-        $GLOBALS['ERROR'] = $ERROR;
+        LegacyGlobals::share([
+            'ROOT' => $this->root,
+            'ROOT_APP' => $this->runtimeRoot(),
+            'FRONTEND' => $this->area === 'frontend',
+            'BACKEND' => $this->area === 'backend',
+            'PRIVATE' => false,
+            'PERMIT' => [],
+            'ERROR' => $status,
+        ]);
 
         require_once $this->appPackageRoot().'/wonder-image.php';
-        include $ROOT_APP.'/view/error/http.php';
+        include $this->runtimeRoot().'/view/error/http.php';
         exit();
     }
 

@@ -73,4 +73,6 @@ Route::area('backend')
 
             });
 
+        \Wonder\App\ResourceRouteRegistrar::registerBackend($ROOT_APP);
+
     });

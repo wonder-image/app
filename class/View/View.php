@@ -3,29 +3,10 @@
 namespace Wonder\View;
 
 use RuntimeException;
+use Wonder\App\LegacyGlobals;
 
 class View
 {
-    private const RUNTIME_KEYS = [
-        'ROOT',
-        'ROOT_APP',
-        'ROOT_RESOURCES',
-        'APP_VERSION',
-        'PAGE',
-        'PATH',
-        'DEFAULT',
-        'PERMITS',
-        'BACKEND',
-        'FRONTEND',
-        'PRIVATE',
-        'PERMIT',
-        'ROUTE_PARAMETERS',
-        'ROUTE_META',
-        'ALERT',
-        'ERROR',
-        'USER',
-    ];
-
     private static array $layoutStack = [];
     private static array $dataStack = [];
     private static array $globalStack = [];
@@ -70,9 +51,6 @@ class View
 
     public static function end(): void
     {
-        global $ROOT;
-        global $ROOT_APP;
-
         $context = array_pop(self::$layoutStack);
 
         if (!is_array($context)) {
@@ -87,6 +65,9 @@ class View
 
         $layoutData['PAGE_CONTENT'] = $content;
 
+        $ROOT = (string) LegacyGlobals::get('ROOT', '');
+        $ROOT_APP = (string) LegacyGlobals::get('ROOT_APP', '');
+
         extract(self::runtimeData(), EXTR_SKIP);
         extract($layoutData, EXTR_SKIP);
 
@@ -95,15 +76,7 @@ class View
 
     private static function runtimeData(): array
     {
-        $runtime = [];
-
-        foreach (self::RUNTIME_KEYS as $key) {
-            if (array_key_exists($key, $GLOBALS)) {
-                $runtime[$key] = $GLOBALS[$key];
-            }
-        }
-
-        return $runtime;
+        return LegacyGlobals::scope();
     }
 
     private static function currentData(): array

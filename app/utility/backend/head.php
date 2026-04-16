@@ -60,4 +60,9 @@
 <!-- Fine traduzioni -->
 
 <!-- Custom => (.css, .js) -->
-<?php include $ROOT.'/custom/utility/backend/head.php';?>
+<?php
+$customBackendHead = $ROOT.'/custom/utility/backend/head.php';
+if (file_exists($customBackendHead)) {
+    include $customBackendHead;
+}
+?>
