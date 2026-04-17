@@ -4,8 +4,10 @@ namespace Wonder\Backend\Support;
 
 use RuntimeException;
 use Throwable;
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
+use Wonder\App\Table;
 use Wonder\View\View;
 
 final class ResourcePageController
@@ -57,15 +59,23 @@ final class ResourcePageController
 
     private function store(): void
     {
+        global $ALERT;
+
+        $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
-        $values = $this->requestValues();
-        $result = $modelClass::create($values);
+        $values = $this->preparedValues();
+        $result = (object) ['success' => false];
+
+        if (empty($ALERT)) {
+            $result = $modelClass::query()->Insert($modelClass::$table, $values);
+        }
 
         if (!empty($result->success)) {
             $this->redirectToConfiguredPage('store');
         }
 
-        $this->renderForm('create', $values, (array) ($result->response ?? []));
+        $errors = !empty($ALERT) ? ['alert' => (string) $ALERT] : (array) ($result->response ?? []);
+        $this->renderForm('create', $values, $errors);
     }
 
     private function view(int $id): void
@@ -89,16 +99,25 @@ final class ResourcePageController
 
     private function update(int $id): void
     {
+        global $ALERT;
+
         $this->guardPositiveId($id);
+        $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
-        $values = $this->requestValues();
-        $result = $modelClass::update($values, $id);
+        $existingValues = (array) $modelClass::findById($id);
+        $values = $this->preparedValues($existingValues);
+        $result = (object) ['success' => false];
+
+        if (empty($ALERT)) {
+            $result = $modelClass::query()->Update($modelClass::$table, $values, 'id', $id);
+        }
 
         if (!empty($result->success)) {
             $this->redirectToConfiguredPage('update');
         }
 
-        $this->renderForm('edit', $values, (array) ($result->response ?? []), $id);
+        $errors = !empty($ALERT) ? ['alert' => (string) $ALERT] : (array) ($result->response ?? []);
+        $this->renderForm('edit', $values, $errors, $id);
     }
 
     private function delete(int $id): never
@@ -121,6 +140,18 @@ final class ResourcePageController
     private function requestValues(): array
     {
         return array_merge($_POST, $_FILES);
+    }
+
+    private function preparedValues(?array $oldValues = null): array
+    {
+        $tableName = $this->resourceClass::modelTable();
+        LegacyGlobals::set('NAME', $this->presenter->legacyName());
+
+        if (array_key_exists($tableName, Table::$list)) {
+            return Table::key($tableName)->prepare($this->requestValues(), $oldValues);
+        }
+
+        return $this->requestValues();
     }
 
     private function renderListTable(): string

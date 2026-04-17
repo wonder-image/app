@@ -5,11 +5,13 @@ namespace Wonder\App;
 use mysqli;
 use RuntimeException;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
-use Wonder\App\ResourceSchema\FormSchema as ResourceFormSchema;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
-use Wonder\App\ResourceSchema\TableSchema as ResourceTableSchema;
+use Wonder\App\ResourceSchema\TableLayoutSchema as ResourceTableLayoutSchema;
+use Wonder\Elements\Form\Form as BackendFormLayout;
+use Wonder\Backend\Support\ResourceTableRenderer;
+use Wonder\Backend\Table\Table as BackendTable;
 use Wonder\Sql\Query;
 
 abstract class Resource
@@ -41,9 +43,23 @@ abstract class Resource
         return static::modelClass()::$table;
     }
 
+    public static function path(): string
+    {
+        return trim((string) (static::modelClass()::$folder ?? ''), '/');
+    }
+
     public static function slug(): string
     {
-        return trim((string) (static::modelClass()::$folder ?? ''));
+        $path = static::path();
+
+        if ($path === '') {
+            return '';
+        }
+
+        $slug = str_replace(['\\', '/'], '-', $path);
+        $slug = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $slug) ?? $slug;
+
+        return trim(strtolower($slug), '-');
     }
 
     public static function icon(): string
@@ -63,32 +79,42 @@ abstract class Resource
 
     public static function formSchema(): array
     {
-        return static::form()->toArray();
+        return [];
+    }
+
+    public static function formLayoutSchema(): ?BackendFormLayout
+    {
+        return null;
     }
 
     public static function tableSchema(): array
     {
-        return static::table()->toArray();
+        return [];
     }
 
-    public static function pageSchema(): array
+    public static function tableLayoutSchema(): ResourceTableLayoutSchema
     {
-        return static::page()->toArray();
+        return static::tableLayout();
     }
 
-    public static function apiSchema(): array
+    public static function pageSchema(): ResourcePageSchema
     {
-        return static::api()->toArray();
+        return static::page();
     }
 
-    public static function permissionSchema(): array
+    public static function apiSchema(): ResourceApiSchema
     {
-        return static::permission()->toArray();
+        return static::api();
     }
 
-    public static function navigationSchema(): array
+    public static function permissionSchema(): ResourcePermissionSchema
     {
-        return static::navigation()->toArray();
+        return static::permission();
+    }
+
+    public static function navigationSchema(): ResourceNavigationSchema
+    {
+        return static::navigation();
     }
 
     public static function querySchema(): array
@@ -122,15 +148,15 @@ abstract class Resource
         return static::flattenFormItems(static::formSchema());
     }
 
-    public static function getInput(string $key): mixed
+    public static function getInput(string $key): object
     {
         foreach (static::formFields() as $item) {
             if (is_object($item) && property_exists($item, 'name') && $item->name === $key) {
-                return $item;
+                return clone $item;
             }
         }
 
-        return null;
+        throw new RuntimeException("Input resource non trovato: {$key} in ".static::class.'.');
     }
 
     public static function getLabel(?string $key = null): string|array
@@ -151,35 +177,50 @@ abstract class Resource
     {
         $schema = static::tableSchema();
 
-        return $key === null ? $schema : ($schema[$key] ?? null);
+        if ($key === null) {
+            return $schema;
+        }
+
+        foreach ($schema as $item) {
+            if (is_object($item) && property_exists($item, 'name') && $item->name === $key) {
+                return clone $item;
+            }
+        }
+
+        throw new RuntimeException("Colonna resource non trovata: {$key} in ".static::class.'.');
+    }
+
+    public static function getColumn(string $key): object
+    {
+        return static::getTable($key);
     }
 
     public static function getPage(?string $key = null): mixed
     {
         $schema = static::pageSchema();
 
-        return $key === null ? $schema : ($schema[$key] ?? null);
+        return $key === null ? $schema : $schema->get($key);
     }
 
     public static function getApi(?string $key = null): mixed
     {
         $schema = static::apiSchema();
 
-        return $key === null ? $schema : ($schema[$key] ?? null);
+        return $key === null ? $schema : $schema->get($key);
     }
 
     public static function getPermission(?string $key = null): mixed
     {
         $schema = static::permissionSchema();
 
-        return $key === null ? $schema : ($schema[$key] ?? null);
+        return $key === null ? $schema : $schema->get($key);
     }
 
     public static function getNavigation(?string $key = null): mixed
     {
         $schema = static::navigationSchema();
 
-        return $key === null ? $schema : ($schema[$key] ?? null);
+        return $key === null ? $schema : $schema->get($key);
     }
 
     public static function getQuery(?string $key = null): mixed
@@ -189,19 +230,14 @@ abstract class Resource
         return $key === null ? $schema : ($schema[$key] ?? null);
     }
 
-    public static function table(): ResourceTableSchema
-    {
-        return ResourceTableSchema::for(static::class);
-    }
-
-    public static function form(): ResourceFormSchema
-    {
-        return ResourceFormSchema::for(static::class);
-    }
-
     public static function page(): ResourcePageSchema
     {
         return ResourcePageSchema::for(static::class);
+    }
+
+    public static function tableLayout(): ResourceTableLayoutSchema
+    {
+        return ResourceTableLayoutSchema::for(static::class);
     }
 
     public static function api(): ResourceApiSchema
@@ -219,11 +255,16 @@ abstract class Resource
         return ResourcePermissionSchema::for(static::class);
     }
 
+    public static function backendTable(): BackendTable
+    {
+        return ResourceTableRenderer::make(static::class);
+    }
+
     public static function label(): string
     {
         $label = trim((string) static::getText('label'));
 
-        return $label !== '' ? $label : static::fallbackTitle(static::slug());
+        return $label !== '' ? $label : static::fallbackTitle(static::pathLeaf());
     }
 
     public static function pluralLabel(): string
@@ -284,5 +325,19 @@ abstract class Resource
         return function_exists('mb_convert_case')
             ? mb_convert_case($value, MB_CASE_TITLE, 'UTF-8')
             : ucfirst($value);
+    }
+
+    private static function pathLeaf(): string
+    {
+        $path = str_replace('\\', '/', static::path());
+        $path = trim($path, '/');
+
+        if ($path === '') {
+            return '';
+        }
+
+        $segments = explode('/', $path);
+
+        return (string) end($segments);
     }
 }

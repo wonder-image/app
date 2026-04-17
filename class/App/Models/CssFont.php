@@ -9,7 +9,7 @@ use Wonder\Sql\TableSchema as Column;
 final class CssFont extends Model
 {
     public static string $table = 'css_font';
-    public static string $folder = 'css-font';
+    public static string $folder = 'app/css/font';
     public static string $icon = 'bi bi-fonts';
 
     public static function tableSchema(): array

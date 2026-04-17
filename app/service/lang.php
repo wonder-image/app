@@ -2,6 +2,8 @@
 
     use Wonder\Localization\{ LanguageContext, TranslationProvider };
 
+    $SOCIETY ??= (object) [];
+
     # Imposto le lingue
         LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
             ::defaultLang('it')
@@ -32,6 +34,29 @@
             $SOCIETY->legal_name = "Wonder Image";
             $SOCIETY->email = "info@wonderimage.it";
 
+        }
+
+        foreach ([
+            'prettyAddress' => '--',
+            'prettyLegal' => '',
+            'gmaps' => '',
+            'tel' => '',
+            'cel' => '',
+            'social' => [],
+            'logo' => '',
+            'logoWhite' => '',
+            'logoBlack' => '',
+            'icon' => '',
+            'favicon' => '',
+            'appIcon' => '',
+            'address' => '',
+            'addressLegal' => '',
+            'cf' => '',
+            'pi' => '',
+        ] as $field => $value) {
+            if (!isset($SOCIETY->$field)) {
+                $SOCIETY->$field = $value;
+            }
         }
         
     # Modifico impostazioni logo

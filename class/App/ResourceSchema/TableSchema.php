@@ -6,6 +6,7 @@ use RuntimeException;
 use Wonder\App\Resource;
 use Wonder\Elements\Table\Column;
 use Wonder\Elements\Table\Columns\ColumnBadge;
+use Wonder\Elements\Table\Columns\ColumnButton;
 use Wonder\Elements\Table\Columns\ColumnIcon;
 use Wonder\Elements\Table\Columns\ColumnImage;
 use Wonder\Elements\Table\Columns\ColumnText;
@@ -33,11 +34,6 @@ final class TableSchema
                 'direction' => $order['direction'] ?? 'DESC',
             ],
             'columns' => [],
-            'actions' => [
-                'view' => false,
-                'edit' => false,
-                'delete' => false,
-            ],
             'filters' => [
                 'search' => [],
                 'limit' => true,
@@ -68,6 +64,11 @@ final class TableSchema
     public static function image(string $name): ColumnImage
     {
         return new ColumnImage($name);
+    }
+
+    public static function button(string $name = 'menu'): ColumnButton
+    {
+        return new ColumnButton($name);
     }
 
     public function title(bool $enabled = true): self
@@ -148,7 +149,39 @@ final class TableSchema
 
     public function action(string $action, bool $enabled = true): self
     {
-        $this->schema['actions'][trim($action)] = $enabled;
+        $action = trim($action);
+
+        if ($action === '') {
+            return $this;
+        }
+
+        $config = $this->buttonColumnConfig();
+
+        if ($enabled) {
+            $config['actions'][$action] = true;
+        } else {
+            unset($config['actions'][$action]);
+        }
+
+        $this->schema['columns']['menu'] = $config;
+
+        return $this;
+    }
+
+    public function buttons(array $actions, string $size = 'little'): self
+    {
+        $config = $this->buttonColumnConfig();
+        $config['size'] = $size;
+
+        foreach ($actions as $action) {
+            if (!is_string($action)) {
+                continue;
+            }
+
+            $config['actions'][trim($action)] = true;
+        }
+
+        $this->schema['columns']['menu'] = $config;
 
         return $this;
     }
@@ -169,6 +202,37 @@ final class TableSchema
 
     public function toArray(): array
     {
+        return $this->all();
+    }
+
+    public function get(?string $key = null): mixed
+    {
+        if ($key === null) {
+            return $this->schema;
+        }
+
+        return $this->schema[$key] ?? null;
+    }
+
+    public function all(): array
+    {
         return $this->schema;
+    }
+
+    private function buttonColumnConfig(): array
+    {
+        $config = (array) ($this->schema['columns']['menu'] ?? []);
+
+        if (($config['type'] ?? null) !== 'button') {
+            $config = array_merge(
+                self::button()->size('little')->toArray(),
+                $config
+            );
+        }
+
+        $config['label'] = '';
+        $config['actions'] = (array) ($config['actions'] ?? []);
+
+        return $config;
     }
 }

@@ -43,4 +43,5 @@ if (
     'TITLE' => $TITLE,
     'UPDATE_RESULT' => $UPDATE_RESULT,
     'NAV_BACKEND' => is_array($NAV_BACKEND ?? null) ? $NAV_BACKEND : [],
+    'USER' => is_object($USER ?? null) ? $USER : (object) [ 'authority' => [] ],
 ])->render();

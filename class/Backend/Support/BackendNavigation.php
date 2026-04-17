@@ -34,7 +34,7 @@ final class BackendNavigation
                 continue;
             }
 
-            $schema = (array) $resourceClass::navigationSchema();
+            $schema = $resourceClass::navigationSchema()->all();
 
             if (empty($schema['enabled'])) {
                 continue;
@@ -49,7 +49,7 @@ final class BackendNavigation
 
             $subnav = [
                 'title' => (string) ($schema['title'] ?? $resourceClass::titleLabel()),
-                'folder' => 'resource/'.$resourceClass::slug(),
+                'folder' => $resourceClass::path(),
                 'file' => self::normalizeFile((string) ($schema['file'] ?? '')),
                 'authority' => self::normalizeAuthority((array) ($schema['authority'] ?? [])),
                 '__resource_order' => (int) ($schema['order'] ?? 100),

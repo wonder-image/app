@@ -4,13 +4,6 @@ namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
 use Wonder\App\Resource;
-use Wonder\Elements\Form\Components\InputEmail;
-use Wonder\Elements\Form\Components\InputNumber;
-use Wonder\Elements\Form\Components\InputPassword;
-use Wonder\Elements\Form\Components\InputTel;
-use Wonder\Elements\Form\Components\InputText;
-use Wonder\Elements\Form\Components\Select;
-use Wonder\Elements\Form\Components\Textarea;
 
 final class FormSchema
 {
@@ -38,39 +31,111 @@ final class FormSchema
         return new self($resourceClass);
     }
 
-    public static function text(string $name): InputText
+    public static function input(string $helper, string $name): FormField
     {
-        return new InputText($name);
+        return new FormField(trim($helper), $name);
     }
 
-    public static function email(string $name): InputEmail
+    public static function text(string $name): FormField
     {
-        return new InputEmail($name);
+        return self::input('text', $name);
     }
 
-    public static function number(string $name): InputNumber
+    public static function textGenerator(string $name): FormField
     {
-        return new InputNumber($name);
+        return self::input('textGenerator', $name);
     }
 
-    public static function password(string $name): InputPassword
+    public static function textDate(string $name): FormField
     {
-        return new InputPassword($name);
+        return self::input('textDate', $name);
     }
 
-    public static function tel(string $name): InputTel
+    public static function textDatetime(string $name): FormField
     {
-        return new InputTel($name);
+        return self::input('textDatetime', $name);
     }
 
-    public static function textarea(string $name): Textarea
+    public static function dateInput(string $name): FormField
     {
-        return new Textarea($name);
+        return self::input('dateInput', $name);
     }
 
-    public static function select(string $name, array $options = []): Select
+    public static function dateRange(string $name): FormField
     {
-        return (new Select($name))->options($options);
+        return self::input('dateRange', $name);
+    }
+
+    public static function color(string $name): FormField
+    {
+        return self::input('color', $name);
+    }
+
+    public static function email(string $name): FormField
+    {
+        return self::input('email', $name);
+    }
+
+    public static function number(string $name): FormField
+    {
+        return self::input('number', $name);
+    }
+
+    public static function price(string $name): FormField
+    {
+        return self::input('price', $name);
+    }
+
+    public static function percentige(string $name): FormField
+    {
+        return self::input('percentige', $name);
+    }
+
+    public static function password(string $name): FormField
+    {
+        return self::input('password', $name);
+    }
+
+    public static function tel(string $name): FormField
+    {
+        return self::input('phone', $name);
+    }
+
+    public static function url(string $name): FormField
+    {
+        return self::input('url', $name);
+    }
+
+    public static function textarea(string $name): FormField
+    {
+        return self::input('textarea', $name);
+    }
+
+    public static function select(string $name, array $options = []): FormField
+    {
+        return self::input('select', $name)->options($options);
+    }
+
+    public static function selectSearch(string $name, array $options = []): FormField
+    {
+        return self::input('selectSearch', $name)->options($options);
+    }
+
+    public static function checkbox(string $name): FormField
+    {
+        return self::input('checkbox', $name);
+    }
+
+    public static function inputFile(string $name, string $file = 'image'): FormField
+    {
+        return self::input('inputFile', $name)->file($file);
+    }
+
+    public static function inputFileDragDrop(string $name, string $file = 'image', string $uploader = 'classic'): FormField
+    {
+        return self::input('inputFileDragDrop', $name)
+            ->file($file)
+            ->uploader($uploader);
     }
 
     public function method(string $method): self
@@ -151,6 +216,20 @@ final class FormSchema
     }
 
     public function toArray(): array
+    {
+        return $this->all();
+    }
+
+    public function get(?string $key = null): mixed
+    {
+        if ($key === null) {
+            return $this->schema;
+        }
+
+        return $this->schema[$key] ?? null;
+    }
+
+    public function all(): array
     {
         return $this->schema;
     }

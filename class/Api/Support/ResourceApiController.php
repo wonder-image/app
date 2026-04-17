@@ -123,7 +123,7 @@ final class ResourceApiController
     {
         $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? '/';
         $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
-        $permissions = (array) ($this->resourceClass::permissionSchema()['api'] ?? []);
+        $permissions = (array) $this->resourceClass::permissionSchema()->get('api');
 
         return new Endpoint(
             rtrim($requestPath, '/'),

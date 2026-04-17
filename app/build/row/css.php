@@ -4,7 +4,7 @@
 
         $name = sanitize($value['name']);
         $link = sanitize($value['link']);
-        $fontFamily = sanitize($value['font-family']);
+        $fontFamily = \Wonder\App\Support\CssFontFamily::normalize($value['font-family']);
 
         if (!sqlSelect('css_font', ['name' => $name], 1)->exists) {
             

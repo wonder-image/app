@@ -61,7 +61,7 @@
 
                                 $FONTS = [];
 
-                                foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = $row['font_family']; }
+                                foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { $FONTS[$row['id']] = \Wonder\App\Support\CssFontFamily::normalize($row['font_family']); }
 
                                 echo select('Font family', 'font_id', $FONTS, null, 'required'); 
 

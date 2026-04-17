@@ -4,6 +4,7 @@
 
     use Wonder\Support\Prettify\Phone;
     use DateTime;
+    use Wonder\App\Support\CssFontFamily;
     
     class Field {
 
@@ -613,6 +614,10 @@
                 } else {
 
                     $VALUE = $COLUMN_VALUE;
+
+                    if ($this->table->name === 'css_font' && $this->column === 'font_family') {
+                        $VALUE = CssFontFamily::normalize($VALUE);
+                    }
                     
                 }
 

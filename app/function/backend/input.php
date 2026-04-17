@@ -1,5 +1,7 @@
 <?php
 
+    use Wonder\App\Support\CssFontFamily;
+
     function password($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
@@ -79,6 +81,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
+        if ($name === 'font_family') { $value = CssFontFamily::normalize($value); }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "
@@ -102,6 +105,7 @@
         $class .= attributeSearchClass($attribute);
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
+        if ($name === 'font_family') { $value = CssFontFamily::normalize($value); }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
         return "

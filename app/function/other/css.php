@@ -17,11 +17,10 @@
         $decodeFontFamily = static function ($fontId): string {
             $fontFamily = (string) (info('css_font', 'id', $fontId)->font_family ?? '');
 
-            if ($fontFamily === '') {
-                $fontFamily = "'Roboto', sans-serif";
-            }
-
-            return html_entity_decode($fontFamily, ENT_QUOTES | ENT_HTML5);
+            return \Wonder\App\Support\CssFontFamily::normalize(
+                $fontFamily,
+                \Wonder\App\Support\CssFontFamily::fallback()
+            );
         };
 
         $fontFamilyDefault = $decodeFontFamily($CSS_DEFAULT->font_id);

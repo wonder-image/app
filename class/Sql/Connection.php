@@ -9,7 +9,7 @@
 
     class Connection {
 
-        private static $hostname, $username, $password, $database, $charset, $collation;
+        private static $hostname, $port, $username, $password, $database, $charset, $collation;
 
         private static $connection = [];
 
@@ -24,6 +24,8 @@
             self::$charset = trim((string) (Credentials::database()->charset ?? 'latin1'));
             self::$collation = trim((string) (Credentials::database()->collation ?? 'latin1_swedish_ci'));
 
+            [self::$hostname, self::$port] = self::parseHostAndPort((string) self::$hostname);
+
             if (self::$charset === '') {
                 self::$charset = 'latin1';
             }
@@ -34,8 +36,26 @@
 
         }
 
+        private static function ensureConfigured(): void
+        {
+
+            if (
+                self::$hostname !== null &&
+                self::$username !== null &&
+                self::$password !== null &&
+                self::$database !== null
+            ) {
+                return;
+            }
+
+            new self();
+
+        }
+
         public static function Connect( ?string $database = null): mysqli 
         { 
+
+            self::ensureConfigured();
 
             $database = ($database === null) ? self::$database : Credentials::database()->database[$database];
 
@@ -47,7 +67,13 @@
 
             } else {
 
-                $mysqli = new mysqli( self::$hostname, self::$username, self::$password, $database );
+                $mysqli = new mysqli(
+                    self::$hostname,
+                    self::$username,
+                    self::$password,
+                    $database,
+                    self::$port
+                );
                         
                 if ($mysqli->connect_error) {
                     
@@ -107,6 +133,26 @@
         {
 
             return filter_var($_ENV['DB_CONNECTION_LOG'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+
+        }
+
+        private static function parseHostAndPort(string $hostname): array
+        {
+
+            $hostname = trim($hostname);
+
+            if ($hostname === '') {
+                return ['', 3306];
+            }
+
+            if (str_contains($hostname, ':') && preg_match('/^(.+):([0-9]+)$/', $hostname, $matches) === 1) {
+                return [
+                    trim((string) ($matches[1] ?? '')),
+                    (int) ($matches[2] ?? 3306),
+                ];
+            }
+
+            return [$hostname, 3306];
 
         }
 

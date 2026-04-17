@@ -31,6 +31,7 @@ class Update extends Command
         }
 
         $ROOT = $root;
+        $GLOBALS['ROOT'] = $root;
 
         require_once $bootstrap;
 

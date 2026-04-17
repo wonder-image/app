@@ -9,14 +9,18 @@ final class ResourceRouteRegistrar
     public static function registerBackend(string $rootApp): void
     {
         Route::name('resource.')
-            ->prefix('/resource')
             ->group(function () use ($rootApp) {
                 foreach (ResourceRegistry::all() as $slug => $resourceClass) {
-                    $pages = (array) ($resourceClass::pageSchema()['pages'] ?? []);
-                    $permissions = (array) ($resourceClass::permissionSchema()['backend'] ?? []);
+                    $pages = (array) $resourceClass::pageSchema()->get('pages');
+                    $permissions = (array) $resourceClass::permissionSchema()->get('backend');
+                    $path = trim((string) $resourceClass::path(), '/');
+
+                    if ($path === '') {
+                        continue;
+                    }
 
                     Route::name($slug.'.')
-                        ->prefix('/'.$slug)
+                        ->prefix('/'.$path)
                         ->group(function () use ($rootApp, $slug, $pages, $permissions) {
                             if (!empty($pages['list'])) {
                                 Route::get('/', $rootApp.'/http/backend/resource/index.php', [
@@ -87,12 +91,12 @@ final class ResourceRouteRegistrar
                 foreach (ResourceRegistry::all() as $slug => $resourceClass) {
                     $apiSchema = $resourceClass::apiSchema();
 
-                    if (empty($apiSchema['enabled'])) {
+                    if (!$apiSchema->get('enabled')) {
                         continue;
                     }
 
-                    $routes = (array) ($apiSchema['routes'] ?? []);
-                    $permissions = (array) ($resourceClass::permissionSchema()['api'] ?? []);
+                    $routes = (array) $apiSchema->get('routes');
+                    $permissions = (array) $resourceClass::permissionSchema()->get('api');
 
                     Route::name($slug.'.')
                         ->prefix('/'.$slug)

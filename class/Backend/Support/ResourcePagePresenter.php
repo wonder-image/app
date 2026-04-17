@@ -23,25 +23,31 @@ final class ResourcePagePresenter
             'TITLE' => $this->pageTitle('list'),
             'RESOURCE_CLASS' => $this->resourceClass,
             'TABLE_HTML' => $tableHtml,
+            'USER' => $this->viewUser(),
         ];
     }
 
     public function form(string $mode, array $values = [], array $errors = [], ?int $id = null): array
     {
         $formSchema = $this->resourceClass::formSchema();
+        $formLayout = $this->resourceClass::formLayoutSchema();
 
         return [
             'TITLE' => $this->pageTitle($mode),
             'RESOURCE_CLASS' => $this->resourceClass,
-            'FIELDS' => $this->hydrateFields((array) ($formSchema['fields'] ?? []), $values, $errors),
-            'SIDEBAR_FIELDS' => $this->hydrateFields((array) ($formSchema['sidebar_fields'] ?? []), $values, $errors),
-            'FORM_METHOD' => $formSchema['method'] ?? 'POST',
-            'FORM_ENCTYPE' => $formSchema['enctype'] ?? 'multipart/form-data',
+            'FIELDS' => $this->hydrateFields($formSchema, $values, $errors),
+            'SIDEBAR_FIELDS' => [],
+            'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, $errors),
+            'FORM_METHOD' => 'POST',
+            'FORM_ENCTYPE' => 'multipart/form-data',
             'FORM_ACTION' => $mode === 'edit' && $id !== null
                 ? $this->editUrl($id)
                 : $this->createUrl(),
             'BACK_URL' => $this->listUrl(),
             'FORM_ERRORS' => $errors,
+            'USER' => $this->viewUser(),
+            'VALUES' => $values,
+            'NAME' => $this->legacyName(),
         ];
     }
 
@@ -52,12 +58,14 @@ final class ResourcePagePresenter
             'RESOURCE_CLASS' => $this->resourceClass,
             'ITEM' => $item,
             'BACK_URL' => $this->listUrl(),
+            'USER' => $this->viewUser(),
         ];
     }
 
     public function viewPath(string $view): string
     {
-        $customView = $this->resourceClass::pageSchema()['views'][$view === 'show' ? 'show' : $view] ?? null;
+        $views = (array) $this->resourceClass::pageSchema()->get('views');
+        $customView = $views[$view === 'show' ? 'show' : $view] ?? null;
 
         if (is_string($customView) && $customView !== '') {
             return $customView;
@@ -70,7 +78,7 @@ final class ResourcePagePresenter
 
     public function redirectUrl(string $action): string
     {
-        $redirects = (array) ($this->resourceClass::pageSchema()['redirects'] ?? []);
+        $redirects = (array) $this->resourceClass::pageSchema()->get('redirects');
         $page = (string) ($redirects[$action] ?? 'list');
 
         return match ($page) {
@@ -91,6 +99,14 @@ final class ResourcePagePresenter
     </div>
 </wi-card>
 HTML;
+    }
+
+    public function legacyName(): object
+    {
+        return (object) [
+            'table' => $this->resourceClass::modelTable(),
+            'folder' => $this->resourceClass::path(),
+        ];
     }
 
     private function hydrateFields(array $fields, array $values, array $errors): array
@@ -126,9 +142,55 @@ HTML;
         return $hydrated;
     }
 
+    private function hydrateLayout(mixed $layout, array $values, array $errors): mixed
+    {
+        if (!is_object($layout)) {
+            return null;
+        }
+
+        $clone = clone $layout;
+
+        if (!property_exists($clone, 'components') || !is_array($clone->components ?? null)) {
+            return $this->hydrateField($clone, $values, $errors);
+        }
+
+        $components = [];
+
+        foreach ($clone->components as $component) {
+            $components[] = $this->hydrateLayout($component, $values, $errors);
+        }
+
+        $clone->components = $components;
+
+        return $clone;
+    }
+
+    private function hydrateField(object $field, array $values, array $errors): object
+    {
+        $clone = clone $field;
+        $name = property_exists($clone, 'name') ? (string) ($clone->name ?? '') : '';
+
+        if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
+            $clone->value($values[$name]);
+        }
+
+        if ($name !== '' && isset($errors[$name]) && method_exists($clone, 'error')) {
+            $error = $errors[$name];
+            $message = is_object($error) && property_exists($error, 'message')
+                ? (string) ($error->message ?? '')
+                : (is_string($error) ? $error : '');
+
+            if ($message !== '') {
+                $clone->error($message);
+            }
+        }
+
+        return $clone;
+    }
+
     private function pageTitle(string $page): string
     {
-        $titles = (array) ($this->resourceClass::pageSchema()['titles'] ?? []);
+        $titles = (array) $this->resourceClass::pageSchema()->get('titles');
 
         return (string) ($titles[$page] ?? $this->resourceClass::titleLabel());
     }
@@ -151,5 +213,16 @@ HTML;
     private function editUrl(int $id): string
     {
         return __r('backend.resource.'.$this->resourceClass::slug().'.update', ['id' => $id]);
+    }
+
+    private function viewUser(): object
+    {
+        $user = LegacyGlobals::get('USER');
+
+        if (is_object($user) && isset($user->authority) && is_array($user->authority)) {
+            return $user;
+        }
+
+        return (object) [ 'authority' => [] ];
     }
 }

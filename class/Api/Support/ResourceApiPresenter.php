@@ -7,7 +7,7 @@ use Wonder\App\Resource;
 
 final class ResourceApiPresenter
 {
-    private array $apiSchema;
+    private object $apiSchema;
     private array $querySchema;
 
     public function __construct(
@@ -82,7 +82,8 @@ final class ResourceApiPresenter
 
     public function fieldsFor(string $action, array $fallback = ['*']): array
     {
-        $fields = (array) ($this->apiSchema['fields'][$action] ?? []);
+        $schema = (array) $this->apiSchema->get('fields');
+        $fields = (array) ($schema[$action] ?? []);
 
         return !empty($fields) ? $fields : $fallback;
     }
@@ -104,7 +105,7 @@ final class ResourceApiPresenter
 
     public function resolveLimit(int $requestedLimit): int
     {
-        $pagination = (array) ($this->apiSchema['pagination'] ?? []);
+        $pagination = (array) $this->apiSchema->get('pagination');
         $defaultLimit = (int) ($pagination['default_limit'] ?? 25);
         $maxLimit = (int) ($pagination['max_limit'] ?? 100);
 

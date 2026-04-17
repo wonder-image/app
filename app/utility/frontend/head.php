@@ -1,5 +1,37 @@
 <?php 
 
+    $SEO ??= (object) [];
+    $SOCIETY ??= (object) [];
+    $ANALYTICS ??= (object) [];
+    $DB ??= (object) [ 'database' => [] ];
+
+    foreach ([
+        'title' => '',
+        'description' => '',
+        'author' => '',
+        'copyright' => '',
+        'reply' => '',
+        'date' => date('d/m/Y'),
+        'image' => '',
+        'url' => '',
+        'creator' => '',
+        'breadcrumb' => '',
+    ] as $field => $value) {
+        if (!isset($SEO->$field)) {
+            $SEO->$field = $value;
+        }
+    }
+
+    foreach ([
+        'name' => '',
+        'favicon' => '',
+        'appIcon' => '',
+    ] as $field => $value) {
+        if (!isset($SOCIETY->$field)) {
+            $SOCIETY->$field = $value;
+        }
+    }
+
     // Statistiche
         
         if (is_array($DB->database) && array_key_exists('stats', $DB->database) && $ACTIVE_STATISTICS) {
@@ -66,15 +98,27 @@
     $SEO->title = empty($SEO->title) ? "" : strip_tags($SEO->title);
     $SEO->description = empty($SEO->description) ? "" : substr(str_replace('"', "", strip_tags($SEO->description)), 0, 140); # Raccomandato tra i 50 e 160 caratteri
 
-    $SQL_ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
+    $SQL_ANALYTICS = [];
+
+    if (sqlTableExists('analytics')) {
+        $SQL_ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
+    }
 
     $ANALYTICS->tag_manager = (object) array();
     $ANALYTICS->pixel = (object) array();
 
-    $ANALYTICS->tag_manager->id = $SQL_ANALYTICS['tag_manager'];
-    $ANALYTICS->tag_manager->active = (!empty($ANALYTICS->tag_manager->id) && $ACTIVE_STATISTICS && ($SQL_ANALYTICS['active_tag_manager'] == "" || $SQL_ANALYTICS['active_tag_manager'] == "true")) ? true : false;
-    $ANALYTICS->pixel->id = $SQL_ANALYTICS['pixel_facebook'];
-    $ANALYTICS->pixel->active = (!empty($ANALYTICS->pixel->id) && $ACTIVE_STATISTICS && ($SQL_ANALYTICS['active_pixel_facebook'] == "" || $SQL_ANALYTICS['active_pixel_facebook'] == "true")) ? true : false;
+    $ANALYTICS->tag_manager->id = $SQL_ANALYTICS['tag_manager'] ?? '';
+    $ANALYTICS->tag_manager->active = (
+        !empty($ANALYTICS->tag_manager->id)
+        && $ACTIVE_STATISTICS
+        && (($SQL_ANALYTICS['active_tag_manager'] ?? '') === "" || ($SQL_ANALYTICS['active_tag_manager'] ?? '') === "true")
+    ) ? true : false;
+    $ANALYTICS->pixel->id = $SQL_ANALYTICS['pixel_facebook'] ?? '';
+    $ANALYTICS->pixel->active = (
+        !empty($ANALYTICS->pixel->id)
+        && $ACTIVE_STATISTICS
+        && (($SQL_ANALYTICS['active_pixel_facebook'] ?? '') === "" || ($SQL_ANALYTICS['active_pixel_facebook'] ?? '') === "true")
+    ) ? true : false;
 
     if ($ANALYTICS->tag_manager->active) :
 
@@ -204,7 +248,15 @@
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <?php foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) { echo "<link href='{$row['link']}' rel='stylesheet'>"; } ?>
+    <?php
+
+        if (sqlTableExists('css_font')) {
+            foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) {
+                echo "<link href='{$row['link']}' rel='stylesheet'>";
+            }
+        }
+
+    ?>
 
     <?=Wonder\App\Dependencies::Head()?>
 

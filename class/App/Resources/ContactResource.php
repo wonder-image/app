@@ -4,11 +4,12 @@ namespace Wonder\App\Resources;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormSchema;
+use Wonder\App\ResourceSchema\FormInput;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
-use Wonder\App\ResourceSchema\TableSchema;
+use Wonder\App\ResourceSchema\TableColumn;
+use Wonder\App\ResourceSchema\TableLayoutSchema;
 
 final class ContactResource extends Resource
 {
@@ -37,39 +38,43 @@ final class ContactResource extends Resource
 
     public static function formSchema(): array
     {
-        return FormSchema::for(static::class)
-            ->toArray();
+        return [
+            FormInput::key('name')->text(),
+        ];
     }
 
     public static function tableSchema(): array
     {
-        return TableSchema::for(static::class)
-            ->toArray();
+        return [
+            TableColumn::key('name')->text(),
+        ];
     }
 
-    public static function pageSchema(): array
+    public static function tableLayoutSchema(): TableLayoutSchema
     {
-        return PageSchema::for(static::class)->toArray();
+        return TableLayoutSchema::for(static::class);
     }
 
-    public static function apiSchema(): array
+    public static function pageSchema(): PageSchema
     {
-        return ApiSchema::for(static::class)
-            ->toArray();
+        return PageSchema::for(static::class);
     }
 
-    public static function permissionSchema(): array
+    public static function apiSchema(): ApiSchema
+    {
+        return ApiSchema::for(static::class);
+    }
+
+    public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
             ->backendCrud(['admin'])
-            ->apiCrud(['admin'])
-            ->toArray();
+            ->apiCrud(['admin']);
     }
 
-    public static function navigationSchema(): array
+    public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->enabled(false)
-            ->toArray();
+            ->enabled(false);
     }
 }

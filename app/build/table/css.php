@@ -9,7 +9,13 @@
             ]
         ],
         "link" => [],
-        "font_family" => [],
+        "font_family" => [
+            "input" => [
+                "format" => [
+                    "sanitize" => false
+                ]
+            ]
+        ],
         "visible" => []
     ];
 

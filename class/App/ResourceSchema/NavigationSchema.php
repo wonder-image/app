@@ -83,6 +83,20 @@ final class NavigationSchema
 
     public function toArray(): array
     {
+        return $this->all();
+    }
+
+    public function get(?string $key = null): mixed
+    {
+        if ($key === null) {
+            return $this->schema;
+        }
+
+        return $this->schema[$key] ?? null;
+    }
+
+    public function all(): array
+    {
         return $this->schema;
     }
 }
