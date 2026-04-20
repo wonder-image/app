@@ -76,8 +76,18 @@ final class ResourceTableRenderer
 
     private function applyLinks(Table $table): void
     {
-        $table->addLink('view', $this->routePattern('view', true));
-        $table->addLink('modify', $this->routePattern('edit', true));
+        $links = [
+            'view' => $this->routePattern('view', true),
+            'modify' => $this->routePattern('edit', true),
+            'download' => $this->routePattern('download', true),
+            'duplicate' => $this->routePattern('duplicate', true),
+        ];
+
+        foreach ($links as $key => $link) {
+            if ($link !== '') {
+                $table->addLink($key, $link);
+            }
+        }
     }
 
     private function applyQuery(Table $table): void
@@ -102,13 +112,37 @@ final class ResourceTableRenderer
 
     private function applyFilters(Table $table): void
     {
-        $searchFields = $this->defaultSearchFields();
+        $searchFields = $this->tableLayoutSearchFields();
         $searchEnabled = (bool) ($this->tableLayoutSchema['filters']['search']['enabled'] ?? true);
         if ($searchEnabled && $searchFields !== []) {
             $table->filterSearch(true, $searchFields);
         }
 
         $table->filterLimit((bool) ($this->tableLayoutSchema['filters']['limit']['enabled'] ?? true));
+
+        foreach ((array) ($this->tableLayoutSchema['custom_filters'] ?? []) as $filter) {
+            if (!is_array($filter)) {
+                continue;
+            }
+
+            $label = trim((string) ($filter['label'] ?? ''));
+            $column = trim((string) ($filter['column'] ?? ''));
+            $options = (array) ($filter['array'] ?? []);
+
+            if ($label === '' || $column === '' || $options === []) {
+                continue;
+            }
+
+            $table->addFilter(
+                $label,
+                $column,
+                $options,
+                (string) ($filter['input'] ?? 'select'),
+                (bool) ($filter['search'] ?? false),
+                $filter['column_type'] ?? null,
+                $filter['value'] ?? null
+            );
+        }
     }
 
     private function applyButtonAdd(Table $table): void
@@ -200,6 +234,22 @@ final class ResourceTableRenderer
         }
 
         return array_values(array_unique(array_filter($fields, 'is_string')));
+    }
+
+    private function tableLayoutSearchFields(): array
+    {
+        $fields = (array) ($this->tableLayoutSchema['search_fields'] ?? []);
+
+        if ($fields === []) {
+            return $this->defaultSearchFields();
+        }
+
+        $fields = array_values(array_filter(array_map(
+            static fn ($field) => is_string($field) ? trim($field) : '',
+            $fields
+        )));
+
+        return $fields === [] ? $this->defaultSearchFields() : array_values(array_unique($fields));
     }
 
     private function resolvedActions(array $buttonColumn): array

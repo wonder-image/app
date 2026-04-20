@@ -25,6 +25,7 @@ class FormField
         'date_min' => null,
         'date_max' => null,
         'error' => '',
+        'prepare' => [],
     ];
 
     public function __construct(
@@ -142,6 +143,51 @@ class FormField
         $this->schema['error'] = $error;
 
         return $this;
+    }
+
+    public function prepare(string|array $key, mixed $value = true): self
+    {
+        if (is_array($key)) {
+            $this->schema['prepare'] = array_merge(
+                (array) ($this->schema['prepare'] ?? []),
+                $key
+            );
+
+            return $this;
+        }
+
+        $this->schema['prepare'][trim($key)] = $value;
+
+        return $this;
+    }
+
+    public function storeAs(string $name): self
+    {
+        return $this->prepare('name', $name);
+    }
+
+    public function maxSize(int $size): self
+    {
+        return $this->prepare('max_size', $size);
+    }
+
+    public function maxFile(int $count): self
+    {
+        return $this->prepare('max_file', $count);
+    }
+
+    public function extensions(array $extensions): self
+    {
+        return $this->prepare('extensions', $extensions);
+    }
+
+    public function get(?string $key = null): mixed
+    {
+        if ($key === null) {
+            return $this->schema;
+        }
+
+        return $this->schema[$key] ?? null;
     }
 
     public function text(): self

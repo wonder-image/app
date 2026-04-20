@@ -30,6 +30,7 @@ Registrare una risorsa una sola volta e ottenere automaticamente:
 Ad oggi sono attivi:
 
 - `class/App/Model.php`
+- `class/App/ModelRegistry.php`
 - `class/App/Resource.php`
 - `class/App/ResourceRegistry.php`
 - `class/App/ResourceRouteRegistrar.php`
@@ -63,6 +64,9 @@ Funzionalmente oggi il sistema offre:
 - presenter separati backend/API
 - integrazione del menu backend dal `ResourceRegistry`
 - generatori `make:model` e `make:resource` aggiornati
+- discovery automatica dei model
+- bootstrap SQL dalle classi `Model`
+- bootstrap prepare/upload dalle classi `Resource`
 
 ## Passaggi fatti
 
@@ -168,8 +172,9 @@ La compatibilita' residua viene mantenuta dove serve davvero:
 
 - le liste backend vengono renderizzate tramite `Wonder\Backend\Table\Table`
 - i form backend continuano a usare i helper storici in `app/function/backend/input.php`
-- se la tabella esiste nel layer legacy `Wonder\App\Table`, `store/update` backend passano da `Table::key(...)->prepare(...)`
-- questo consente di mantenere il flusso upload basato su `formToArray()`
+- `store/update` backend e API usano prima lo schema `prepareSchema()` della resource migrata
+- il layer `Wonder\App\Table` legacy resta come fallback per i moduli non ancora migrati
+- questo consente di mantenere il flusso upload basato su `formToArray()` senza dipendere piu' da `build/table` per i moduli nuovi
 
 ### 8. Navigazione backend
 
@@ -600,11 +605,20 @@ Questo e' voluto per continuare a sfruttare:
 
 ### Upload
 
-Se la tabella e' ancora definita anche nel layer legacy `Wonder\App\Table`, `store/update` backend passano da:
+Per i moduli migrati lo schema di prepare/upload viene ora registrato automaticamente dalla resource.
+
+Se il modulo non e' ancora migrato, `store/update` backend passano ancora da:
 
 - `Table::key($table)->prepare(...)`
 
 quindi la gestione upload continua a funzionare senza doverla riscrivere.
+
+Per i moduli migrati, invece, il flusso corretto e':
+
+- `Model::tableSchema()` -> schema SQL
+- `Model::dataSchema()` -> base di validazione / prepare
+- `Resource::formSchema()` -> metadata input e upload
+- `Resource::prepareSchema()` -> bridge finale compatibile con `formToArray()`
 
 ### Discovery
 
@@ -631,5 +645,31 @@ Serve come riferimento reale per:
 
 - ampliare i DSL dei layout backend
 - rifinire ancora il bridge con `Wonder\Backend\Table\Table`
-- aggiungere eventuali normalizzazioni specifiche di dominio nei model/resource pilota
 - estendere la migrazione ad altre entita' legacy
+
+## Roadmap residua
+
+### Priorita' alta
+
+- rimuovere i file `app/build/table/*.php` dei moduli gia' migrati
+- rimuovere i file `app/build/src/backend/*` dei moduli gia' migrati
+- lasciare `app/build/row/*` attivo finche' non verra' progettato il layer seed nuovo
+
+### Stato attuale della pulizia legacy
+
+- `build/table/css.php` e' stato rimosso
+- `build/src/backend/app/css/*` e' stato rimosso
+- `build/table/media.php` e' stato rimosso
+- `build/src/backend/app/media/{documents,images,icons,logos}` e' stato rimosso
+- `build/table/{seo,analytics}.php` e' stato rimosso
+- `build/src/backend/app/config/{seo,analytics}` e' stato rimosso
+- `legal_documents` e' ora governato da [LegalDocument.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Config/LegalDocument.php) e [LegalDocumentResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Config/LegalDocumentResource.php)
+- `build/src/backend/app/config/legal-documents/*` e' stato rimosso
+- `app/build/table/consent.php` mantiene solo le tabelle consenso non ancora migrate; `legal_documents` e' stato spostato nel `Model`
+- `app/media/upload-massive` resta una utility legacy separata, ma prepara i file usando le `Resource`
+
+Note tecniche recenti:
+- [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php) supporta ora anche `tableOptions()` e `tablePseudos()` per opzioni tabella, indici composti, unique composte e primary composte
+- [TableLayoutSchema.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/ResourceSchema/TableLayoutSchema.php) supporta `searchFields()` e `filterRadio()/filterCustom()` per i filtri lista backend
+- i moduli nuovi devono ottenere schema SQL da `Model`
+- i moduli nuovi devono ottenere schema prepare/upload da `Resource`

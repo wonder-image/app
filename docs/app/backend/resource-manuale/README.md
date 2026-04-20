@@ -6,7 +6,8 @@ Se vuoi partire subito:
 
 1. leggi [Quick Start](quick-start.md)
 2. poi guarda [Componenti](componenti.md)
-3. infine usa [Route e API](route-e-api.md)
+3. se hai un modulo a record singolo usa [Resource Singleton](singleton.md)
+4. infine usa [Route e API](route-e-api.md)
 
 Per i dettagli architetturali completi:
 
@@ -38,4 +39,3 @@ Con un `Model` e una `Resource` ottieni automaticamente:
 4. compili `formSchema()` e `tableSchema()` nella resource
 5. se vuoi, impagini il backend con `formLayoutSchema()` e `tableLayoutSchema()`
 6. apri il backend con il path definito in `Model::$folder`
-

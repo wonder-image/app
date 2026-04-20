@@ -9,6 +9,7 @@
     $ROOT = $_SERVER['DOCUMENT_ROOT'];
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
+    use Wonder\App\Table as AppTable;
     use Wonder\Backend\Table\SSP;
     use Wonder\Backend\Table\Field;
 
@@ -23,7 +24,9 @@
         $NAME->link = $_POST['default']['link'] ?? [];
 
         $nameTable = strtoupper($NAME->table);
-        $NAME->field = $TABLE->$nameTable;
+        $NAME->field = isset($TABLE->$nameTable)
+            ? $TABLE->$nameTable
+            : (AppTable::$list[strtolower($NAME->table)] ?? []);
 
         $TEXT = (object) [];
         $TEXT->titleS = $_POST['text']['titleS'];

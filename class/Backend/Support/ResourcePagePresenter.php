@@ -31,6 +31,7 @@ final class ResourcePagePresenter
     {
         $formSchema = $this->resourceClass::formSchema();
         $formLayout = $this->resourceClass::formLayoutSchema();
+        $values = $this->resourceClass::mutateFormValues($values, $mode, 'backend');
 
         return [
             'TITLE' => $this->pageTitle($mode),
@@ -43,7 +44,7 @@ final class ResourcePagePresenter
             'FORM_ACTION' => $mode === 'edit' && $id !== null
                 ? $this->editUrl($id)
                 : $this->createUrl(),
-            'BACK_URL' => $this->listUrl(),
+            'BACK_URL' => $this->backUrl(),
             'FORM_ERRORS' => $errors,
             'USER' => $this->viewUser(),
             'VALUES' => $values,
@@ -57,7 +58,7 @@ final class ResourcePagePresenter
             'TITLE' => $this->pageTitle('view'),
             'RESOURCE_CLASS' => $this->resourceClass,
             'ITEM' => $item,
-            'BACK_URL' => $this->listUrl(),
+            'BACK_URL' => $this->backUrl(),
             'USER' => $this->viewUser(),
         ];
     }
@@ -105,7 +106,8 @@ HTML;
     {
         return (object) [
             'table' => $this->resourceClass::modelTable(),
-            'folder' => $this->resourceClass::path(),
+            'folder' => $this->resourceClass::legacyFolder(),
+            'schema' => $this->resourceClass::prepareSchemaName(),
         ];
     }
 
@@ -224,5 +226,14 @@ HTML;
         }
 
         return (object) [ 'authority' => [] ];
+    }
+
+    private function backUrl(): string
+    {
+        if ($this->resourceClass::isSingleton()) {
+            return '';
+        }
+
+        return $this->listUrl();
     }
 }

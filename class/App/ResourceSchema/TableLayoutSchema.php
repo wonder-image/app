@@ -34,6 +34,8 @@ final class TableLayoutSchema
                     'enabled' => true,
                 ],
             ],
+            'search_fields' => [],
+            'custom_filters' => [],
         ];
     }
 
@@ -110,6 +112,43 @@ final class TableLayoutSchema
         return $this
             ->filterSearch($search)
             ->filterLimit($limit);
+    }
+
+    public function searchFields(array $fields): self
+    {
+        $this->schema['search_fields'] = array_values(array_filter(array_map(
+            static fn ($field) => is_string($field) ? trim($field) : '',
+            $fields
+        )));
+
+        return $this;
+    }
+
+    public function filterCustom(
+        string $label,
+        string $column,
+        array $options,
+        string $input = 'select',
+        bool $search = false,
+        ?string $columnType = null,
+        mixed $value = null
+    ): self {
+        $this->schema['custom_filters'][] = [
+            'label' => trim($label),
+            'column' => trim($column),
+            'array' => $options,
+            'input' => trim($input) !== '' ? trim($input) : 'select',
+            'search' => $search,
+            'column_type' => $columnType,
+            'value' => $value,
+        ];
+
+        return $this;
+    }
+
+    public function filterRadio(string $label, string $column, array $options, bool $search = false, mixed $value = null): self
+    {
+        return $this->filterCustom($label, $column, $options, 'radio', $search, null, $value);
     }
 
     public function cleanHeader(): self

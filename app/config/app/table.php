@@ -16,8 +16,28 @@
         }
     }
 
+    foreach (Wonder\App\ModelRegistry::all() as $tableName => $modelClass) {
+
+        $existingSchema = isset($TABLE->{$tableName}) && is_array($TABLE->{$tableName})
+            ? $TABLE->{$tableName}
+            : [];
+
+        $TABLE->{$tableName} = array_replace_recursive(
+            $existingSchema,
+            $modelClass::rawTableSchema()
+        );
+
+    }
+
     foreach ($TABLE as $tableName => $tableSchema) {
 
         Wonder\App\Table::key($tableName)->setSchema($tableSchema);
+
+    }
+
+    foreach (Wonder\App\ResourceRegistry::classes() as $resourceClass) {
+
+        Wonder\App\Table::key($resourceClass::prepareSchemaName())
+            ->setSchema($resourceClass::prepareSchema());
 
     }

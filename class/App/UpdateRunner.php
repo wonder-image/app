@@ -265,6 +265,17 @@ class UpdateRunner
             }
         }
 
+        foreach (ModelRegistry::all() as $tableName => $modelClass) {
+            $existingSchema = isset($TABLE->{$tableName}) && is_array($TABLE->{$tableName})
+                ? $TABLE->{$tableName}
+                : [];
+
+            $TABLE->{$tableName} = array_replace_recursive(
+                $existingSchema,
+                $modelClass::rawTableSchema()
+            );
+        }
+
         foreach (get_object_vars($TABLE) as $tableName => $tableSchema) {
             if (!is_array($tableSchema)) {
                 continue;

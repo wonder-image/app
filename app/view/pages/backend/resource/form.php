@@ -9,18 +9,19 @@
                 'method' => (string) ($FORM_METHOD ?? 'POST'),
                 'enctype' => (string) ($FORM_ENCTYPE ?? 'multipart/form-data'),
                 'action' => (string) ($FORM_ACTION ?? ''),
+                'footer' => '
+                    <div class="col-12">
+                        <wi-card class="col-12">
+                            <div class="col-12">'.
+                                (function_exists('submit')
+                                    ? submit('Salva', 'upload')
+                                    : '<button type="submit" class="btn btn-dark">Salva</button>')
+                            .'</div>
+                        </wi-card>
+                    </div>',
             ]
         )
     ?>
-    <div class="row g-3 mt-0">
-        <div class="col-12">
-            <wi-card class="col-12">
-                <div class="col-12">
-                    <?=function_exists('submit') ? submit('Salva', 'upload', null, "document.getElementById('resource-layout-form').requestSubmit();") : '<button type="button" class="btn btn-dark" onclick="document.getElementById(\'resource-layout-form\').requestSubmit();">Salva</button>'?>
-                </div>
-            </wi-card>
-        </div>
-    </div>
 <?php } else { ?>
 <form method="<?=htmlspecialchars((string) ($FORM_METHOD ?? 'POST'), ENT_QUOTES, 'UTF-8')?>"
       enctype="<?=htmlspecialchars((string) ($FORM_ENCTYPE ?? 'multipart/form-data'), ENT_QUOTES, 'UTF-8')?>"

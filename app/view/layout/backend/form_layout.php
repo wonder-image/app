@@ -3,7 +3,9 @@
 <div class="row g-3">
     <wi-card class="col-12">
         <h3>
-            <a href="<?=htmlspecialchars((string) ($BACK_URL ?? ''), ENT_QUOTES, 'UTF-8')?>" class="text-dark"><i class="bi bi-arrow-left-short"></i></a>
+            <?php if (!empty($BACK_URL)) { ?>
+            <a href="<?=htmlspecialchars((string) ($BACK_URL ?? ''), ENT_QUOTES, 'UTF-8')?>" class="text-dark text-decoration-none"><i class="bi bi-arrow-left-short"></i></a>
+            <?php } ?>
             <?=htmlspecialchars((string) ($TITLE ?? ''), ENT_QUOTES, 'UTF-8')?>
         </h3>
     </wi-card>

@@ -3,6 +3,7 @@
 namespace Wonder\App;
 
 use FilesystemIterator;
+use ReflectionClass;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -40,6 +41,10 @@ final class ResourceRegistry
 
             if (!is_subclass_of($resourceClass, Resource::class)) {
                 throw new RuntimeException("{$resourceClass} deve estendere ".Resource::class." ({$source})");
+            }
+
+            if (self::isAbstractResource($resourceClass)) {
+                continue;
             }
 
             $slug = $resourceClass::slug();
@@ -248,6 +253,11 @@ final class ResourceRegistry
         sort($files);
 
         return $files;
+    }
+
+    private static function isAbstractResource(string $resourceClass): bool
+    {
+        return (new ReflectionClass($resourceClass))->isAbstract();
     }
 
     private static function classFromFile(string $file): ?string

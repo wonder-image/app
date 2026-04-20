@@ -216,4 +216,5 @@ quindi la base API e':
 Continua con:
 
 - [Componenti](componenti.md)
+- [Resource Singleton](singleton.md)
 - [Route e API](route-e-api.md)

@@ -2,6 +2,38 @@
 
     use Wonder\App\Support\CssFontFamily;
 
+    function backendPageTableSchema(): array {
+
+        global $NAME;
+        global $TABLE;
+
+        if (!isset($NAME->table)) {
+            return [];
+        }
+
+        $tableName = strtoupper((string) $NAME->table);
+        $tableSchema = isset($TABLE->$tableName) ? (array) $TABLE->$tableName : [];
+
+        $resourceSchemaName = '';
+
+        if (isset($NAME->schema) && is_string($NAME->schema)) {
+            $resourceSchemaName = strtolower(trim($NAME->schema));
+        }
+
+        $resourceSchema = $resourceSchemaName !== ''
+            ? (\Wonder\App\Table::$list[$resourceSchemaName] ?? [])
+            : [];
+
+        $modelSchema = \Wonder\App\Table::$list[strtolower((string) $NAME->table)] ?? [];
+
+        return array_replace_recursive(
+            is_array($tableSchema) ? $tableSchema : [],
+            is_array($modelSchema) ? $modelSchema : [],
+            is_array($resourceSchema) ? $resourceSchema : []
+        );
+
+    }
+
     function password($label, $name, $attribute = null, $value = null) {
 
         global $VALUES;
@@ -366,8 +398,7 @@
 
         if (isset($NAME->table)) {
 
-            $TABLE_NAME = strtoupper($NAME->table);
-            $PAGE_TABLE = $TABLE->$TABLE_NAME;
+            $PAGE_TABLE = backendPageTableSchema();
     
             $MAX_LENGHT = isset($PAGE_TABLE[$name]['sql']['lenght']) ? $PAGE_TABLE[$name]['sql']['lenght'] : 0;
 
@@ -823,10 +854,9 @@
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
-        $TABLE_NAME = strtoupper($NAME->table);
-        $PAGE_TABLE = $TABLE->$TABLE_NAME;
+        $PAGE_TABLE = backendPageTableSchema();
 
-        $TB = $PAGE_TABLE[$name]['input'];
+        $TB = (array) (($PAGE_TABLE[$name]['input'] ?? []));
         $maxFile = $TB['format']['max_file'] ?? 1;
         $maxSize = $TB['format']['max_size'] ?? 1;
 
@@ -890,7 +920,10 @@
 
                 } else {
 
-                    $imageSize = '-'.$imageResize[0];
+                    $firstResize = is_array($imageResize) ? reset($imageResize) : $imageResize;
+                    $imageSize = ($firstResize !== false && $firstResize !== null && $firstResize !== '')
+                        ? '-'.$firstResize
+                        : '';
                     $sizeBefore = false;
 
                 }
@@ -1015,12 +1048,11 @@
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
 
-        $TABLE_NAME = strtoupper($NAME->table);
-        $PAGE_TABLE = $TABLE->$TABLE_NAME;
+        $PAGE_TABLE = backendPageTableSchema();
 
         $columnName = (isset($NAME->column) && !is_array($NAME->column)) ? $NAME->column : $name;
 
-        $TB = $PAGE_TABLE[$columnName]['input'];
+        $TB = (array) (($PAGE_TABLE[$columnName]['input'] ?? []));
         $maxFile = $TB['format']['max_file'] ?? 1;
         $maxSize = $TB['format']['max_size'] ?? 1;
 
@@ -1073,7 +1105,10 @@
 
             } else {
 
-                $imageSize = $imageResize[0];
+                $firstResize = is_array($imageResize) ? reset($imageResize) : $imageResize;
+                $imageSize = ($firstResize !== false && $firstResize !== null)
+                    ? (string) $firstResize
+                    : '';
                 $sizeBefore = false;
 
             }

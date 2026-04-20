@@ -151,4 +151,5 @@ Ricorda questa distinzione:
 Continua con:
 
 - [Quick Start](quick-start.md)
+- [Resource Singleton](singleton.md)
 - [Route e API](route-e-api.md)

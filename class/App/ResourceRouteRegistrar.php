@@ -21,7 +21,7 @@ final class ResourceRouteRegistrar
 
                     Route::name($slug.'.')
                         ->prefix('/'.$path)
-                        ->group(function () use ($rootApp, $slug, $pages, $permissions) {
+                        ->group(function () use ($rootApp, $slug, $pages, $permissions, $resourceClass) {
                             if (!empty($pages['list'])) {
                                 Route::get('/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
@@ -78,6 +78,8 @@ final class ResourceRouteRegistrar
                                     ->permit($permissions['delete'] ?? [])
                                     ->where('id', '[0-9]+');
                             }
+
+                            $resourceClass::registerBackendRoutes($rootApp, $slug);
                         });
                 }
             });
@@ -100,7 +102,7 @@ final class ResourceRouteRegistrar
 
                     Route::name($slug.'.')
                         ->prefix('/'.$slug)
-                        ->group(function () use ($rootApp, $slug, $routes, $permissions) {
+                        ->group(function () use ($rootApp, $slug, $routes, $permissions, $resourceClass) {
                             if (!empty($routes['index'])) {
                                 Route::get('/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
@@ -148,6 +150,8 @@ final class ResourceRouteRegistrar
                                     ->permit($permissions['destroy'] ?? [])
                                     ->where('id', '[0-9]+');
                             }
+
+                            $resourceClass::registerApiRoutes($rootApp, $slug);
                         });
                 }
             });

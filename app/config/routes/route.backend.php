@@ -17,6 +17,19 @@ Route::area('backend')
         Route::post('/', $ROOT_APP.'/http/backend/home.php')
             ->permit([]);
 
+        Route::name('media.')
+            ->prefix('/app/media')
+            ->group(function () use ($ROOT_APP) {
+
+                Route::get('/upload-massive/', $ROOT_APP.'/http/backend/media/upload-massive.php')
+                    ->name('upload-massive')
+                    ->permit(['admin']);
+
+                Route::post('/upload-massive/', $ROOT_APP.'/http/backend/media/upload-massive.php')
+                    ->permit(['admin']);
+
+            });
+
         Route::redirect('/login/', '/backend/account/login/')
             ->name('login.legacy')
             ->guarded(false)

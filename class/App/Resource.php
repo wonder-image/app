@@ -2,6 +2,15 @@
 
 namespace Wonder\App;
 
+use ReflectionObject;
+use Throwable;
+use Wonder\Data\Fields\Field as DataField;
+use Wonder\Data\Fields\Number as NumberField;
+use Wonder\Data\Fields\Text as TextField;
+use Wonder\Data\Formatters\String\LowercaseFormatter;
+use Wonder\Data\Formatters\String\SlugFormatter;
+use Wonder\Data\Formatters\String\TitleCaseFormatter;
+use Wonder\Data\Formatters\String\UppercaseFormatter;
 use mysqli;
 use RuntimeException;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
@@ -48,6 +57,11 @@ abstract class Resource
         return trim((string) (static::modelClass()::$folder ?? ''), '/');
     }
 
+    public static function legacyFolder(): string
+    {
+        return static::path();
+    }
+
     public static function slug(): string
     {
         $path = static::path();
@@ -83,6 +97,11 @@ abstract class Resource
     }
 
     public static function formLayoutSchema(): ?BackendFormLayout
+    {
+        return null;
+    }
+
+    public static function singletonRecordId(): int|string|null
     {
         return null;
     }
@@ -129,6 +148,51 @@ abstract class Resource
         ];
     }
 
+    public static function prepareSchemaName(): string
+    {
+        return 'resource:'.static::slug();
+    }
+
+    public static function prepareSchema(): array
+    {
+        $schema = [];
+        $fields = static::modelFields();
+        $inputs = static::safeFormFieldsByKey();
+
+        foreach (array_unique(array_merge(array_keys($fields), array_keys($inputs))) as $key) {
+            $entry = [];
+            $format = array_merge(
+                static::prepareFormatFromModelField($fields[$key] ?? null),
+                static::prepareFormatFromInput($inputs[$key] ?? null)
+            );
+
+            if ($format !== []) {
+                $entry['input']['format'] = $format;
+            }
+
+            $schema[$key] = $entry;
+        }
+
+        return $schema;
+    }
+
+    public static function mutateRequestValues(
+        array $values,
+        string $action,
+        string $context = 'backend',
+        ?array $oldValues = null
+    ): array {
+        return $values;
+    }
+
+    public static function mutateFormValues(
+        array $values,
+        string $mode,
+        string $context = 'backend'
+    ): array {
+        return $values;
+    }
+
     public static function query(): Query
     {
         $modelClass = static::modelClass();
@@ -145,7 +209,41 @@ abstract class Resource
 
     public static function formFields(): array
     {
-        return static::flattenFormItems(static::formSchema());
+        $fields = [];
+
+        foreach (static::flattenFormItems(static::formSchema()) as $item) {
+            if (!is_object($item)) {
+                continue;
+            }
+
+            $fields[] = static::normalizeFormField($item);
+        }
+
+        return $fields;
+    }
+
+    public static function formFieldsByKey(): array
+    {
+        $fields = [];
+
+        foreach (static::formFields() as $field) {
+            if (!is_object($field) || !property_exists($field, 'name')) {
+                continue;
+            }
+
+            $fields[(string) $field->name] = clone $field;
+        }
+
+        return $fields;
+    }
+
+    public static function safeFormFieldsByKey(): array
+    {
+        try {
+            return static::formFieldsByKey();
+        } catch (Throwable) {
+            return [];
+        }
     }
 
     public static function getInput(string $key): object
@@ -260,6 +358,33 @@ abstract class Resource
         return ResourceTableRenderer::make(static::class);
     }
 
+    public static function isSingleton(): bool
+    {
+        $id = static::singletonRecordId();
+
+        return $id !== null && $id !== '';
+    }
+
+    public static function afterStore(object $result, array $values = []): void
+    {
+    }
+
+    public static function afterUpdate(int|string $id, object $result, array $values = []): void
+    {
+    }
+
+    public static function afterDelete(int|string $id, object $result): void
+    {
+    }
+
+    public static function registerBackendRoutes(string $rootApp, string $slug): void
+    {
+    }
+
+    public static function registerApiRoutes(string $rootApp, string $slug): void
+    {
+    }
+
     public static function label(): string
     {
         $label = trim((string) static::getText('label'));
@@ -312,6 +437,159 @@ abstract class Resource
         }
 
         return $flattened;
+    }
+
+    private static function normalizeFormField(object $field): object
+    {
+        $clone = clone $field;
+
+        if (!property_exists($clone, 'name') || !method_exists($clone, 'label')) {
+            return $clone;
+        }
+
+        $name = trim((string) ($clone->name ?? ''));
+
+        if ($name === '') {
+            return $clone;
+        }
+
+        $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
+
+        if ($label !== '') {
+            return $clone;
+        }
+
+        $defaultLabel = trim((string) static::getLabel($name));
+
+        if ($defaultLabel === '') {
+            $defaultLabel = static::fallbackTitle($name);
+        }
+
+        if ($defaultLabel !== '') {
+            $clone->label($defaultLabel);
+        }
+
+        return $clone;
+    }
+
+    private static function modelFields(): array
+    {
+        $fields = [];
+
+        foreach (static::modelClass()::dataSchema() as $field) {
+            if (!$field instanceof DataField) {
+                continue;
+            }
+
+            $fields[(string) $field->key] = $field;
+        }
+
+        return $fields;
+    }
+
+    private static function prepareFormatFromModelField(?DataField $field): array
+    {
+        if ($field === null) {
+            return [];
+        }
+
+        $format = [];
+        $schema = method_exists($field, 'getSchema') ? (array) $field->getSchema() : [];
+
+        if (($schema['unique'] ?? false) === true) {
+            $format['unique'] = true;
+        }
+
+        if (array_key_exists('sanitize', $schema)) {
+            $format['sanitize'] = (bool) $schema['sanitize'];
+        }
+
+        if ($field instanceof NumberField) {
+            $format['number'] = true;
+        }
+
+        if (isset($schema['decimals']) && is_numeric($schema['decimals'])) {
+            $format['decimals'] = (int) $schema['decimals'];
+        }
+
+        foreach ((array) ($schema['formatters'] ?? []) as $formatter) {
+            $class = is_object($formatter) ? $formatter::class : null;
+
+            if ($class === LowercaseFormatter::class) {
+                $format['lower'] = true;
+            }
+
+            if ($class === UppercaseFormatter::class) {
+                $format['upper'] = true;
+            }
+
+            if ($class === TitleCaseFormatter::class) {
+                $format['ucwords'] = true;
+            }
+
+            if ($class === SlugFormatter::class) {
+                $format['link'] = true;
+            }
+        }
+
+        if ($field instanceof TextField
+            && ($format['lower'] ?? false)
+            && ($format['ucwords'] ?? false)
+            && (($format['sanitize'] ?? null) === true)
+        ) {
+            $format['sanitizeFirst'] = true;
+        }
+
+        return $format;
+    }
+
+    private static function prepareFormatFromInput(?object $input): array
+    {
+        if ($input === null || !method_exists($input, 'get')) {
+            return [];
+        }
+
+        $prepare = (array) ($input->get('prepare') ?? []);
+        $helper = '';
+
+        $reflection = new ReflectionObject($input);
+
+        if ($reflection->hasProperty('helper')) {
+            $property = $reflection->getProperty('helper');
+            $property->setAccessible(true);
+            $helper = (string) $property->getValue($input);
+        }
+
+        if (in_array($helper, ['inputFile', 'inputFileDragDrop'], true)) {
+            $prepare = array_merge([
+                'sanitize' => false,
+                'file' => true,
+                'reset' => true,
+                'max_size' => 5,
+                'max_file' => (bool) ($input->get('multiple') ?? false) ? 10 : 1,
+            ], $prepare);
+
+            $file = (string) ($input->get('file') ?? 'image');
+            $extensions = static::fileExtensionsFor($file);
+
+            if ($extensions !== [] && !isset($prepare['extensions'])) {
+                $prepare['extensions'] = $extensions;
+            }
+        }
+
+        return $prepare;
+    }
+
+    private static function fileExtensionsFor(string $file): array
+    {
+        return match (trim(strtolower($file))) {
+            'pdf' => ['pdf'],
+            'png' => ['png'],
+            'jpg', 'jpeg' => ['jpg', 'jpeg'],
+            'svg' => ['svg'],
+            'webp' => ['webp'],
+            default => [],
+        };
     }
 
     private static function fallbackTitle(string $value): string

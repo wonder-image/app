@@ -8,33 +8,46 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
 
     use Wonder\App\Table;
+    use Wonder\App\Resources\Media\DocumentResource;
+    use Wonder\App\Resources\Media\IconResource;
+    use Wonder\App\Resources\Media\ImageResource;
     
     $INFO_PAGE = (object) array();
     $INFO_PAGE->title = "Uploader massivo";
     $INFO_PAGE->table = "media";
 
     $NAME = (object) array();
-    $NAME->table = "media";
+    $NAME->table = "media_upload_massive";
     $NAME->folder = "media";
 
-    if (isset($_POST['upload'])) {
+    $TABLE->MEDIA_UPLOAD_MASSIVE = [
+        'file' => [
+            'input' => [
+                'format' => [
+                    'max_file' => 10,
+                    'max_size' => 5,
+                ],
+            ],
+        ],
+    ];
 
-        prettyPrint($_FILES);
+    if (isset($_POST['upload'])) {
         
         foreach ($_FILES['file']['name'] as $key => $fileName) {
             
             $fileName = pathinfo($_FILES['file']['name'][$key], PATHINFO_FILENAME);
 
-            $NAME->folder = match ($_POST['type']) {
-                'image' => "images",
-                'icon' => "icons",
-                default => "documents",
+            $resourceClass = match ($_POST['type']) {
+                'image' => ImageResource::class,
+                'icon' => IconResource::class,
+                default => DocumentResource::class,
             };
+
+            $NAME->folder = $resourceClass::legacyFolder();
                     
             $POST = [
                 'type' => $_POST['type'],
                 'name' => $fileName,
-                'slug' => $fileName,
                 'file' => [
                     'name' => [$_FILES['file']['name'][$key]],
                     'type' => [$_FILES['file']['type'][$key]],
@@ -44,17 +57,18 @@
                 ]
             ];
 
-            $VALUES = Table::key($INFO_PAGE->table)->prepare($POST);
+            $POST = $resourceClass::mutateRequestValues($POST, 'store', 'backend');
 
-            sqlInsert($INFO_PAGE->table, $VALUES);
+            $VALUES = Table::key($resourceClass::prepareSchemaName())
+                ->prepareFor($resourceClass::modelTable(), $POST);
+
+            sqlInsert($resourceClass::modelTable(), $VALUES);
             
         }
 
         if (empty($ALERT)) { header("Location: ?alert=650"); }
 
     }
-
-    $TABLE->MEDIA['file']['input']['format']['max_file'] = 10;
 
 ?>
 <!DOCTYPE html>

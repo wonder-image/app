@@ -8,7 +8,9 @@
 
     if (!isset($PAGE_TABLE)) {
         $table = strtoupper($NAME->table);
-        $PAGE_TABLE = $TABLE->$table;
+        $PAGE_TABLE = isset($TABLE->$table)
+            ? $TABLE->$table
+            : (\Wonder\App\Table::$list[strtolower($NAME->table)] ?? []);
     }
 
     if ((isset($USER_FILTER->authority) && !empty($USER_FILTER->authority)) || 

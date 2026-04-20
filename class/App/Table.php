@@ -31,7 +31,7 @@
 
         public function schema() {
 
-            return self::$list[$this->name];
+            return self::$list[$this->name] ?? [];
 
         }
 
@@ -60,6 +60,13 @@
         {
 
             return formToArray($this->name, $post, $this->schema(), $oldValues);
+
+        }
+
+        public function prepareFor( string $tableName, array $post, ?array $oldValues = null ): array
+        {
+
+            return formToArray($tableName, $post, $this->schema(), $oldValues);
 
         }
 

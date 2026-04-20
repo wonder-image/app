@@ -24,6 +24,16 @@ abstract class Model
     abstract public static function tableSchema(): array;
     abstract public static function dataSchema(): array;
 
+    public static function tableOptions(): array
+    {
+        return [];
+    }
+
+    public static function tablePseudos(): array
+    {
+        return [];
+    }
+
     public static function query(): Query
     {
         return new Query(static::connection());
@@ -63,10 +73,53 @@ abstract class Model
         return $columns;
     }
 
+    public static function legacyTableSchema(): array
+    {
+        $schema = [];
+
+        foreach (static::getColumns() as $name => $column) {
+            $schema[$name] = [
+                'sql' => $column,
+            ];
+        }
+
+        return $schema;
+    }
+
+    public static function rawTableSchema(): array
+    {
+        $schema = static::legacyTableSchema();
+        $tableOptions = static::tableOptions();
+
+        if ($tableOptions !== []) {
+            $schema['__table'] = [
+                'sql' => $tableOptions,
+            ];
+        }
+
+        foreach (static::tablePseudos() as $name => $pseudoSchema) {
+            if (!is_string($name) || trim($name) === '' || !is_array($pseudoSchema)) {
+                continue;
+            }
+
+            $schema[$name] = [
+                'sql' => $pseudoSchema,
+            ];
+        }
+
+        return $schema;
+    }
+
     public static function createTable(): void
     {
+        $schema = [];
+
+        foreach (static::rawTableSchema() as $name => $definition) {
+            $schema[$name] = is_array($definition) ? (array) ($definition['sql'] ?? []) : [];
+        }
+
         $database = new CreateTable(static::connection());
-        $database->Table(static::$table, static::getColumns());
+        $database->Table(static::$table, $schema);
     }
 
     public static function arrayValues(array $values, string $prefix = ''): array

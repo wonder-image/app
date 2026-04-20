@@ -2,7 +2,7 @@
 
     $BACKEND = true;
     
-    require_once "../../config.php";
+    require_once __DIR__."/../../config.php";
 
     use Wonder\Api\{ Endpoint, Handler, Response };
 

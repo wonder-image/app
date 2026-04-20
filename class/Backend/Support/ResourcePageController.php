@@ -46,6 +46,10 @@ final class ResourcePageController
 
     private function list(): void
     {
+        if ($this->resourceClass::isSingleton()) {
+            $this->redirectToSingletonEdit();
+        }
+
         View::make(
             $this->presenter->viewPath('list'),
             $this->presenter->list($this->renderListTable())
@@ -71,6 +75,7 @@ final class ResourcePageController
         }
 
         if (!empty($result->success)) {
+            $this->resourceClass::afterStore($result, $values);
             $this->redirectToConfiguredPage('store');
         }
 
@@ -80,21 +85,17 @@ final class ResourcePageController
 
     private function view(int $id): void
     {
-        $this->guardPositiveId($id);
-        $modelClass = $this->resourceClass::modelClass();
+        $item = $this->resourceRow($id);
 
         View::make(
             $this->presenter->viewPath('show'),
-            $this->presenter->show((array) $modelClass::findById($id))
+            $this->presenter->show($item)
         )->render();
     }
 
     private function edit(int $id): void
     {
-        $this->guardPositiveId($id);
-        $modelClass = $this->resourceClass::modelClass();
-
-        $this->renderForm('edit', (array) $modelClass::findById($id), [], $id);
+        $this->renderForm('edit', $this->resourceRow($id), [], $id);
     }
 
     private function update(int $id): void
@@ -104,7 +105,7 @@ final class ResourcePageController
         $this->guardPositiveId($id);
         $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
-        $existingValues = (array) $modelClass::findById($id);
+        $existingValues = $this->resourceRow($id);
         $values = $this->preparedValues($existingValues);
         $result = (object) ['success' => false];
 
@@ -113,6 +114,7 @@ final class ResourcePageController
         }
 
         if (!empty($result->success)) {
+            $this->resourceClass::afterUpdate($id, $result, $values);
             $this->redirectToConfiguredPage('update');
         }
 
@@ -122,9 +124,10 @@ final class ResourcePageController
 
     private function delete(int $id): never
     {
-        $this->guardPositiveId($id);
+        $this->resourceRow($id);
         $modelClass = $this->resourceClass::modelClass();
-        $modelClass::delete($id);
+        $result = $modelClass::delete($id);
+        $this->resourceClass::afterDelete($id, $result);
 
         $this->redirectToConfiguredPage('delete');
     }
@@ -146,12 +149,24 @@ final class ResourcePageController
     {
         $tableName = $this->resourceClass::modelTable();
         LegacyGlobals::set('NAME', $this->presenter->legacyName());
+        $requestValues = $this->resourceClass::mutateRequestValues(
+            $this->requestValues(),
+            $oldValues === null ? 'store' : 'update',
+            'backend',
+            $oldValues
+        );
 
-        if (array_key_exists($tableName, Table::$list)) {
-            return Table::key($tableName)->prepare($this->requestValues(), $oldValues);
+        $resourceSchemaName = $this->resourceClass::prepareSchemaName();
+
+        if (array_key_exists($resourceSchemaName, Table::$list)) {
+            return Table::key($resourceSchemaName)->prepareFor($tableName, $requestValues, $oldValues);
         }
 
-        return $this->requestValues();
+        if (array_key_exists($tableName, Table::$list)) {
+            return Table::key($tableName)->prepare($requestValues, $oldValues);
+        }
+
+        return $requestValues;
     }
 
     private function renderListTable(): string
@@ -174,5 +189,47 @@ final class ResourcePageController
         if ($id <= 0) {
             throw new RuntimeException('ID resource non valido.');
         }
+    }
+
+    private function redirectToSingletonEdit(): never
+    {
+        $id = $this->resourceClass::singletonRecordId();
+
+        if ($id === null || $id === '') {
+            throw new RuntimeException('Record singleton non configurato.');
+        }
+
+        header('Location: '.__r('backend.resource.'.$this->resourceClass::slug().'.edit', ['id' => $id]));
+        exit();
+    }
+
+    private function resourceRow(int $id): array
+    {
+        $this->guardPositiveId($id);
+        $modelClass = $this->resourceClass::modelClass();
+        $row = $modelClass::find($this->resourceConditionForId($id), 1);
+
+        if (!is_array($row) || $row === []) {
+            throw new RuntimeException('Record resource non trovato.');
+        }
+
+        return $row;
+    }
+
+    private function resourceConditionForId(int $id): string|array
+    {
+        $condition = $this->resourceClass::getQuery('condition');
+
+        if (is_array($condition)) {
+            $condition['id'] = $id;
+
+            return $condition;
+        }
+
+        if (is_string($condition) && trim($condition) !== '') {
+            return "`id` = {$id} AND ({$condition})";
+        }
+
+        return ['id' => $id];
     }
 }

@@ -21,6 +21,11 @@ final class TableColumn extends Column
         return $this->setType('date');
     }
 
+    public function datetime(): self
+    {
+        return $this->setType('datetime');
+    }
+
     public function phone(): self
     {
         return $this->setType('phone');

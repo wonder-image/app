@@ -4,8 +4,10 @@ namespace Wonder\Api\Support;
 
 use RuntimeException;
 use Wonder\Api\Endpoint;
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
+use Wonder\App\Table;
 
 final class ResourceApiController
 {
@@ -60,10 +62,8 @@ final class ResourceApiController
 
     private function show(Endpoint $endpoint, int $id): array
     {
-        $this->guardPositiveId($id);
-        $modelClass = $this->resourceClass::modelClass();
         $fields = $this->presenter->fieldsFor('show', ['*']);
-        $item = $modelClass::find(['id' => $id], 1, null, null, $fields);
+        $item = $this->resourceRow($id, $fields);
 
         return $endpoint->response($this->presenter->showPayload($item));
     }
@@ -71,7 +71,7 @@ final class ResourceApiController
     private function store(Endpoint $endpoint): array
     {
         $modelClass = $this->resourceClass::modelClass();
-        $values = $this->presenter->writableValues((array) $endpoint->data, 'store');
+        $values = $this->preparedValues($endpoint, 'store');
         $result = $modelClass::create($values);
 
         if (empty($result->success)) {
@@ -81,10 +81,12 @@ final class ResourceApiController
             );
         }
 
+        $this->resourceClass::afterStore($result, $values);
+
         $item = [];
         if (isset($result->insert_id)) {
             $fields = $this->presenter->fieldsFor('show', ['*']);
-            $item = (array) $modelClass::find(['id' => (int) $result->insert_id], 1, null, null, $fields);
+            $item = $this->resourceRow((int) $result->insert_id, $fields);
         }
 
         return $endpoint->response($this->presenter->storePayload($item), 201);
@@ -92,9 +94,9 @@ final class ResourceApiController
 
     private function update(Endpoint $endpoint, int $id): array
     {
-        $this->guardPositiveId($id);
         $modelClass = $this->resourceClass::modelClass();
-        $values = $this->presenter->writableValues((array) $endpoint->data, 'update');
+        $existingValues = $this->resourceRow($id);
+        $values = $this->preparedValues($endpoint, 'update', $existingValues);
         $result = $modelClass::update($values, $id);
 
         if (empty($result->success)) {
@@ -104,17 +106,20 @@ final class ResourceApiController
             );
         }
 
+        $this->resourceClass::afterUpdate($id, $result, $values);
+
         $fields = $this->presenter->fieldsFor('show', ['*']);
-        $item = (array) $modelClass::find(['id' => $id], 1, null, null, $fields);
+        $item = $this->resourceRow($id, $fields);
 
         return $endpoint->response($this->presenter->updatePayload($item));
     }
 
     private function destroy(Endpoint $endpoint, int $id): array
     {
-        $this->guardPositiveId($id);
+        $this->resourceRow($id);
         $modelClass = $this->resourceClass::modelClass();
         $result = $modelClass::delete($id);
+        $this->resourceClass::afterDelete($id, $result);
 
         return $endpoint->response($this->presenter->destroyPayload($id, !empty($result->success)));
     }
@@ -137,5 +142,65 @@ final class ResourceApiController
         if ($id <= 0) {
             throw new RuntimeException('ID resource non valido.');
         }
+    }
+
+    private function requestValues(Endpoint $endpoint): array
+    {
+        return array_merge((array) $endpoint->data, $_POST, $_FILES);
+    }
+
+    private function preparedValues(Endpoint $endpoint, string $action, ?array $oldValues = null): array
+    {
+        $tableName = $this->resourceClass::modelTable();
+        $rawValues = $this->presenter->writableValues($this->requestValues($endpoint), $action);
+        $values = $this->resourceClass::mutateRequestValues($rawValues, $action, 'api', $oldValues);
+
+        LegacyGlobals::set('NAME', (object) [
+            'table' => $tableName,
+            'folder' => $this->resourceClass::legacyFolder(),
+            'schema' => $this->resourceClass::prepareSchemaName(),
+        ]);
+
+        $resourceSchemaName = $this->resourceClass::prepareSchemaName();
+
+        if (array_key_exists($resourceSchemaName, Table::$list)) {
+            return Table::key($resourceSchemaName)->prepareFor($tableName, $values, $oldValues);
+        }
+
+        if (array_key_exists($tableName, Table::$list)) {
+            return Table::key($tableName)->prepare($values, $oldValues);
+        }
+
+        return $values;
+    }
+
+    private function resourceRow(int $id, array|string $fields = ['*']): array
+    {
+        $this->guardPositiveId($id);
+        $modelClass = $this->resourceClass::modelClass();
+        $row = $modelClass::find($this->resourceConditionForId($id), 1, null, null, $fields);
+
+        if (!is_array($row) || $row === []) {
+            throw new RuntimeException('Record resource non trovato.');
+        }
+
+        return $row;
+    }
+
+    private function resourceConditionForId(int $id): string|array
+    {
+        $condition = $this->resourceClass::getQuery('condition');
+
+        if (is_array($condition)) {
+            $condition['id'] = $id;
+
+            return $condition;
+        }
+
+        if (is_string($condition) && trim($condition) !== '') {
+            return "`id` = {$id} AND ({$condition})";
+        }
+
+        return ['id' => $id];
     }
 }

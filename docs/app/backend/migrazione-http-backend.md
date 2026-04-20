@@ -87,7 +87,7 @@ Esempi:
 
 - `app/build/src/backend/home/index.php`
 - `app/build/src/backend/app/config/corporate-data/index.php`
-- `app/build/src/backend/app/media/logos/index.php`
+- `app/build/src/backend/app/media/upload-massive/index.php`
 
 Pattern:
 
@@ -102,7 +102,6 @@ Pattern:
 Esempi:
 
 - `app/build/src/backend/app/config/legal-documents/index.php`
-- `app/build/src/backend/app/media/documents/index.php`
 - `app/build/src/backend/app/config/user/index.php`
 
 Pattern:
