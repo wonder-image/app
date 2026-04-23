@@ -1125,7 +1125,18 @@
         $multiple = ($maxFile > 1) ? "multiple" : "";
         $class = ($maxFile > 1) ? " filepond--multiple" : "";
 
-        $dir = $PATH->upload.'/'.$NAME->folder;
+        $legacyName = null;
+
+        if (isset($NAME) && is_object($NAME)) {
+            $legacyName = $NAME;
+        } else {
+            $legacyName = \Wonder\App\LegacyGlobals::get('NAME');
+        }
+
+        $folder = is_object($legacyName) ? trim((string) ($legacyName->folder ?? ''), '/') : '';
+
+        $dir = rtrim((string) ($PATH->upload ?? ''), '/');
+        $dir .= $folder !== '' ? '/'.$folder : '';
         $dir .= $TB['format']['dir'] ?? '/'; 
 
         if (substr($dir, -1) != '/') {

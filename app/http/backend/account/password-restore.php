@@ -1,5 +1,7 @@
 <?php
 
+use Wonder\App\PageSchema\AccountPageSchema;
+
 $TITLE = 'Cambio password';
 $VALUES = $_POST;
 $time = strtotime('now');
@@ -71,4 +73,5 @@ if (isset($_POST['restore'])) {
     'VALUES' => $VALUES,
     '_POST' => $_POST,
     'RESTRICTION' => $restriction,
+    'FORM_SCHEMA' => AccountPageSchema::restoreFormSchema(),
 ])->render();

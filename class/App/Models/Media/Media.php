@@ -15,10 +15,12 @@ final class Media extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('slug')->unique(),
-            Column::key('name'),
-            Column::key('alt'),
-            Column::key('type'),
+            ...static::sqlColumnsFromDataSchema([
+                'slug',
+                'name',
+                'alt',
+                'type',
+            ]),
             Column::key('file')->json(),
         ];
     }

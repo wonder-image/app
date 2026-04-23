@@ -30,6 +30,13 @@
 
         private function buildConditions( string | array $conditions, bool $where = true ): string
         {
+            if (is_array($conditions) && $conditions === []) {
+                return '';
+            }
+
+            if (is_string($conditions) && trim($conditions) === '') {
+                return '';
+            }
 
             $filter = $where ? "WHERE " : "";
         

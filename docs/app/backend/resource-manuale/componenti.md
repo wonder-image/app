@@ -2,6 +2,14 @@
 
 Questa pagina mostra come usare i componenti principali dentro una resource.
 
+## Distinzione base
+
+Prima dei componenti, ricorda questa regola:
+
+- `Model::tableSchema()` definisce la struttura SQL della tabella
+- `Model::dataSchema()` definisce come trattare i dati prima del salvataggio
+- `Resource::formSchema()` definisce gli input del backend
+
 ## `FormInput`
 
 `FormInput` serve per configurare un singolo input del form.
@@ -38,6 +46,107 @@ Metodi utili:
 - `options()`
 - `columnSpan()`
 - `error()`
+
+## `UploadSchema` / `Field`
+
+Nel `Model::dataSchema()` usi `Wonder\Data\UploadSchema as Field`.
+
+Tipi disponibili:
+
+- `text()`
+- `number()`
+- `date()`
+- `email()`
+- `json()`
+- `password()`
+- `file()`
+- `image()`
+- `tin()`
+- `vat()`
+
+Esempio semplice:
+
+```php
+Field::key('email')->email()->required()
+Field::key('price')->number()->decimals(2)
+Field::key('meta')->json()->sanitize(false)
+```
+
+Preset utili:
+
+```php
+Field::key('slug')->text()->slug()
+Field::key('code')->text()->code()
+Field::key('code')->text()->codeUpper()
+Field::key('price')->number()
+Field::key('meta')->json()
+Field::key('published_at')->date()
+```
+
+Config runtime prodotti:
+
+- `number()` -> `decimals: 2`
+- `json()` -> `sanitize: false`, `json: true`
+- `date()` -> `date: true`
+- `text()->slug()` -> `sanitize: false`, `link_unique: true`, `lower: true`
+- `text()->code()` -> `sanitize: false`, `unique: true`, `lower: true`
+- `text()->codeUpper()` -> `sanitize: false`, `link_unique: true`, `upper: true`
+
+Esempio upload:
+
+```php
+Field::key('main')->image()
+    ->extensions(['png'])
+    ->name('{slug}-logo-{rand}')
+```
+
+Se usi `image()`:
+
+- `resize()` e' opzionale: se manca usa `RESPONSIVE_IMAGE_SIZES`
+- `webp()` e' opzionale: se manca usa `RESPONSIVE_IMAGE_WEBP`
+- `sanitize(false)`, `file()`, `maxFile(1)` e `maxSize(1)` sono gia' impostati dal field
+
+Metodi utili lato `dataSchema()`:
+
+- `required()`
+- `unique()`
+- `sanitize()`
+- `sanitizeFirst()`
+- `slug()`
+- `lower()`
+- `upper()`
+- `ucwords()`
+- `json()`
+- `htmlToText()`
+- `file()`
+- `image()`
+- `extensions([...])`
+- `maxSize(1)`
+- `maxFile(1)`
+- `dir('/cartella/')`
+- `name('{slug}-file-{rand}')`
+- `reset()`
+- `resize([...])`
+- `webp()`
+
+Bridge SQL opzionale:
+
+Se vuoi riusare i preset SQL dei field dentro `Model::tableSchema()`, puoi usare:
+
+```php
+public static function tableSchema(): array
+{
+    return [
+        ...static::sqlColumnsFromDataSchema([
+            'slug',
+            'name',
+            'email',
+        ]),
+    ];
+}
+```
+
+Questo non sostituisce `tableSchema()`: ti aiuta solo a comporla con meno duplicazione.
 
 ## `TableColumn`
 
@@ -147,9 +256,11 @@ Ricorda questa distinzione:
 - `formLayoutSchema()` = composizione visuale
 - `tableSchema()` = definizione colonne
 - `tableLayoutSchema()` = composizione visuale lista
+- `CustomPageSchema` = schema input per una pagina backend speciale non CRUD
 
 Continua con:
 
 - [Quick Start](quick-start.md)
+- [Resource e CustomPageSchema](custom-page-schema.md)
 - [Resource Singleton](singleton.md)
 - [Route e API](route-e-api.md)

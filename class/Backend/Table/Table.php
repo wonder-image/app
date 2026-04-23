@@ -208,7 +208,21 @@
 
         public function addLink( $key, $link ) { $this->link[$key] = $link; }
 
-        public function query( array | string $query = "`deleted` = 'false'" ) { $this->queryCustom = Query::Conditions($query, false); }
+        public function query( array | string $query = "`deleted` = 'false'" ) {
+
+            if (is_array($query) && $query === []) {
+                $this->queryCustom = '';
+                return;
+            }
+
+            if (is_string($query) && trim($query) === '') {
+                $this->queryCustom = '';
+                return;
+            }
+
+            $this->queryCustom = Query::Conditions($query, false);
+
+        }
         public function queryOrder( string $column, string $direction = 'DESC', ?string $columnWhenFilterIsActive = null, ?string $directionWhenFilterIsActive = null ) { 
 
             $this->orderColumn = $column; 

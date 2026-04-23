@@ -29,21 +29,21 @@ final class ResourceRouteRegistrar
                                 ])->name('list')->permit($permissions['list'] ?? []);
                             }
 
-                            if (!empty($pages['create'])) {
+                            if (!empty($pages['create']) && !$resourceClass::hasCustomBackendPage('create')) {
                                 Route::get('/create/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'create',
                                 ])->name('create')->permit($permissions['create'] ?? []);
                             }
 
-                            if (!empty($pages['store'])) {
+                            if (!empty($pages['store']) && !$resourceClass::hasCustomBackendPage('store')) {
                                 Route::post('/create/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'store',
                                 ])->name('store')->permit($permissions['store'] ?? []);
                             }
 
-                            if (!empty($pages['view'])) {
+                            if (!empty($pages['view']) && !$resourceClass::hasCustomBackendPage('view')) {
                                 Route::get('/{id}/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'view',
@@ -52,7 +52,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($pages['edit'])) {
+                            if (!empty($pages['edit']) && !$resourceClass::hasCustomBackendPage('edit')) {
                                 Route::get('/{id}/edit/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'edit',
@@ -61,7 +61,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($pages['update'])) {
+                            if (!empty($pages['update']) && !$resourceClass::hasCustomBackendPage('update')) {
                                 Route::post('/{id}/edit/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'update',
@@ -70,7 +70,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($pages['delete'])) {
+                            if (!empty($pages['delete']) && !$resourceClass::hasCustomBackendPage('delete')) {
                                 Route::post('/{id}/delete/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'delete',

@@ -48,9 +48,11 @@ final class Contact extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('name'),
-            Column::key('surname'),
-            Column::key('email'),
+            ...static::sqlColumnsFromDataSchema([
+                'name',
+                'surname',
+                'email',
+            ]),
         ];
     }
 
@@ -59,7 +61,7 @@ final class Contact extends Model
         return [
             Field::key('name')->text()->required()->sanitizeFirst(),
             Field::key('surname')->text()->required()->sanitizeFirst(),
-            Field::key('email')->text()->required(),
+            Field::key('email')->email()->required(),
         ];
     }
 }
@@ -206,15 +208,84 @@ quindi la base API e':
 
 ## 7. Regole rapide da ricordare
 
-- `Model::tableSchema()` = colonne SQL
-- `Model::dataSchema()` = come trattare i dati
-- `Resource::formSchema()` = input per campo
+- `Model::tableSchema()` = struttura SQL della tabella
+- `Model::dataSchema()` = come trattare i dati prima del salvataggio
+- `Resource::formSchema()` = input del backend per campo
 - `Resource::tableSchema()` = colonne per campo
 - `Resource::formLayoutSchema()` = layout visuale del form
 - `Resource::tableLayoutSchema()` = layout visuale della lista
 
+Formula breve:
+
+- `tableSchema()` = come e' fatta la tabella
+- `dataSchema()` = come si preparano i dati
+- `formSchema()` = come si inseriscono i dati nel backend
+
+Nota:
+
+- `tableSchema()` resta la fonte esplicita della struttura SQL
+- se vuoi evitare duplicazione, puoi usare `static::sqlColumnsFromDataSchema([...])`
+
+## 8. Upload in `dataSchema()`
+
+Per i campi upload la logica va nel `Model::dataSchema()`.
+
+Esempio:
+
+```php
+Field::key('profile_picture')->image()
+    ->extensions(['png', 'jpg', 'jpeg'])
+    ->maxSize(1)
+    ->maxFile(1)
+    ->dir('/profile-picture/')
+    ->name('{slug}-avatar-{rand}')
+    ->reset()
+```
+
+Metodi utili per upload:
+
+- `file()`
+- `image()`
+- `extensions([...])`
+- `maxSize(1)`
+- `maxFile(1)`
+- `dir('/cartella/')`
+- `name('{slug}-file-{rand}')`
+- `reset()`
+- se ometti `resize()` su `image()`, usa `RESPONSIVE_IMAGE_SIZES`
+- se ometti `webp()` su `image()`, usa `RESPONSIVE_IMAGE_WEBP`
+
+## 9. Preset utili in `dataSchema()`
+
+Esempi:
+
+```php
+Field::key('slug')->text()->slug()
+Field::key('code')->text()->code()
+Field::key('code')->text()->codeUpper()
+Field::key('price')->number()
+Field::key('meta')->json()
+Field::key('published_at')->date()
+```
+
+Comportamento:
+
+- `number()` usa di default `decimals(2)`
+- `json()` produce `sanitize: false` e `json: true`
+- `date()` produce `date: true`
+- `slug()` produce `sanitize: false`, `link_unique: true`, `lower: true`
+- `code()` produce `sanitize: false`, `unique: true`, `lower: true`
+- `codeUpper()` produce `sanitize: false`, `link_unique: true`, `upper: true`
+- `resize([...])`
+- `webp()`
+
+Se il campo e' un upload immagine e non imposti `resize()`, il runtime usa automaticamente `RESPONSIVE_IMAGE_SIZES`.
+
+Se il campo e' un upload immagine e non imposti `webp()`, il runtime usa automaticamente `RESPONSIVE_IMAGE_WEBP`.
+
 Continua con:
 
 - [Componenti](componenti.md)
+- [Resource e CustomPageSchema](custom-page-schema.md)
 - [Resource Singleton](singleton.md)
 - [Route e API](route-e-api.md)

@@ -1,77 +1,33 @@
 <?php
 
-    namespace Wonder\Data\Fields;
+namespace Wonder\Data\Fields;
 
-    class File extends Field {
+class File extends Field
+{
+    public string $type = 'file';
 
-        public string $type = 'file';
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
 
-        public function __construct($key) 
-        {
-
-            parent::__construct($key);
-
-            $this->maxFile(1);
-            $this->maxSize(1);
-            
-        }
-
-        public function mimeType( $mimeType ): self
-        {
-            
-            return $this->schema('mime-type', $mimeType);
-
-        }
-
-        /**
-         * Massimo peso file
-         *
-         * @param integer $maxSize in mb
-         * @return self
-         */
-        public function maxSize( int $maxSize ): self
-        {
-
-            return $this->schema('max-size', $maxSize * 1048576);
-
-        }
-
-        public function maxFile( int $maxFile ): self
-        {
-
-            return $this->schema('max-file', $maxFile);
-
-        }
-
-        public function minFile( int $minFile ): self
-        {
-
-            return $this->schema('min-file', $minFile);
-
-        }
-
-        public function path( string $path ): self
-        {
-
-            return $this->schema('path', $path);
-
-        }
-
-        public function prepare( $file ): ValidationResult 
-        {
-
-            $result = parent::prepare($file);
-
-            if ($result->isValid()) {
-
-                return ValidationResult::success($file);
-
-            } else {
-
-                return $result;
-
-            }
-
-        }
-
+        $this->file()
+            ->sanitize(false)
+            ->maxFile(1)
+            ->maxSize(1);
     }
+
+    public function mimeType(string $mimeType): self
+    {
+        return $this->schema('mime_type', $mimeType);
+    }
+
+    public function minFile(int $minFile): self
+    {
+        return $this->schema('min_file', $minFile);
+    }
+
+    public function path(string $path): self
+    {
+        return $this->dir($path);
+    }
+}

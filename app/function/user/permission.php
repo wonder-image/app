@@ -186,11 +186,18 @@
         global $PERMITS;
 
         $RETURN = [];
+        $permits = is_array($PERMITS ?? null) ? $PERMITS : [];
 
-        $areas = $AREA ? [$AREA] : array_keys($PERMITS);
+        $areas = $AREA ? [$AREA] : array_keys($permits);
 
         foreach ($areas as $area) {
-            foreach ($PERMITS[$area] as $key => $value) {
+            $areaPermissions = $permits[$area] ?? null;
+
+            if (!is_array($areaPermissions)) {
+                continue;
+            }
+
+            foreach ($areaPermissions as $key => $value) {
                 if (permissionEntryIsDefinition($key, $value)) {
                     $RETURN[$key] = $value['name'];
                 }

@@ -1,5 +1,7 @@
 <?php
 
+use Wonder\App\PageSchema\AccountPageSchema;
+
 $TITLE = 'Recupero password';
 $VALUES = $_POST;
 
@@ -40,4 +42,5 @@ if (isset($_POST['recovery'])) {
     'ALERT' => $ALERT ?? null,
     'VALUES' => $VALUES,
     '_POST' => $_POST,
+    'FORM_SCHEMA' => AccountPageSchema::recoveryFormSchema(),
 ])->render();

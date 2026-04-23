@@ -242,7 +242,6 @@
 
         global $ALERT;
         global $PATH;
-        global $TABLE;
 
         // Crea o modifica un utente e gestisce gli hook legati alla authority.
         $RETURN = (object) [
@@ -276,7 +275,8 @@
 
         // Upload foto profilo secondo le regole configurate.
         if (isset($POST['profile_picture'])) {
-            $RULES = isset($TABLE->USER['profile_picture']['input']['format']) ? $TABLE->USER['profile_picture']['input']['format'] : [];
+            $USER_SCHEMA = \Wonder\App\Table::key('user')->schema();
+            $RULES = isset($USER_SCHEMA['profile_picture']['input']['format']) ? $USER_SCHEMA['profile_picture']['input']['format'] : [];
             $UPLOAD['profile_picture'] = uploadFiles($POST['profile_picture'], $RULES, $PATH->rUpload.'/user', []);
         }
 

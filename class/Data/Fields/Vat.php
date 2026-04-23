@@ -1,49 +1,45 @@
 <?php
 
-    namespace Wonder\Data\Fields;
+namespace Wonder\Data\Fields;
 
-    use Wonder\Data\Validators\VatValidator;
+use Wonder\Data\Formatters\String\TrimFormatter;
+use Wonder\Data\Formatters\String\UppercaseFormatter;
+use Wonder\Data\Validators\StringValidator;
+use Wonder\Data\Validators\VatValidator;
 
-    class Vat extends Field {
+class Vat extends Field
+{
+    public string $type = 'vat';
+    private VatValidator $vatValidator;
 
-        public string $type = 'text';
-        private VatValidator $vatValidator;
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
 
-        public function __construct($key)
-        {
+        $this->vatValidator = new VatValidator();
 
-            parent::__construct($key);
+        $this->validators([
+            new StringValidator(),
+            $this->vatValidator,
+        ]);
 
-            $this->vatValidator = new VatValidator();
-
-            $this->validators([
-                new \Wonder\Data\Validators\StringValidator(),
-                $this->vatValidator
-            ]);
-
-            $this->formatters([
-                new \Wonder\Data\Formatters\String\TrimFormatter(),
-                new \Wonder\Data\Formatters\String\UppercaseFormatter()
-            ]);
-
-        }
-
-        public function countryField(string $field): self
-        {
-
-            $this->vatValidator->countryField($field);
-
-            return $this;
-
-        }
-
-        public function countryIso(string $iso2): self
-        {
-
-            $this->vatValidator->countryIso($iso2);
-
-            return $this;
-
-        }
-
+        $this->formatters([
+            new TrimFormatter(),
+            new UppercaseFormatter(),
+        ]);
     }
+
+    public function countryField(string $field): self
+    {
+        $this->vatValidator->countryField($field);
+
+        return $this;
+    }
+
+    public function countryIso(string $iso2): self
+    {
+        $this->vatValidator->countryIso($iso2);
+
+        return $this;
+    }
+}

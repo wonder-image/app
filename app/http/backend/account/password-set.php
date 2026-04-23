@@ -1,5 +1,7 @@
 <?php
 
+use Wonder\App\PageSchema\AccountPageSchema;
+
 $TITLE = 'Imposta password';
 $VALUES = $_POST;
 $restriction = $_GET['r'] ?? '';
@@ -60,4 +62,5 @@ if (isset($_POST['set-password'])) {
     'VALUES' => $VALUES,
     '_POST' => $_POST,
     'RESTRICTION' => $restriction,
+    'FORM_SCHEMA' => AccountPageSchema::setPasswordFormSchema(),
 ])->render();

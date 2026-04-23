@@ -1,26 +1,28 @@
 <?php
 
-    namespace Wonder\Data\Fields;
+namespace Wonder\Data\Fields;
 
-    class Email extends Field {
+use Wonder\Data\Formatters\String\LowercaseFormatter;
+use Wonder\Data\Formatters\String\TrimFormatter;
+use Wonder\Data\Validators\EmailValidator;
+use Wonder\Data\Validators\StringValidator;
 
-        public string $type = 'email';
+class Email extends Field
+{
+    public string $type = 'email';
 
-        public function __construct($key)
-        {
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
 
-            parent::__construct($key);
+        $this->validators([
+            new StringValidator(),
+            new EmailValidator(),
+        ]);
 
-            $this->validators([
-                new \Wonder\Data\Validators\StringValidator(),
-                new \Wonder\Data\Validators\EmailValidator()
-            ]);
-
-            $this->formatters([
-                new \Wonder\Data\Formatters\String\TrimFormatter(),
-                new \Wonder\Data\Formatters\String\LowercaseFormatter()
-            ]);
-
-        }
-
+        $this->formatters([
+            new TrimFormatter(),
+            new LowercaseFormatter(),
+        ]);
     }
+}

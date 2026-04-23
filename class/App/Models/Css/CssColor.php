@@ -4,7 +4,6 @@ namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
-use Wonder\Sql\TableSchema as Column;
 
 final class CssColor extends Model
 {
@@ -15,10 +14,12 @@ final class CssColor extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('var')->unique(),
-            Column::key('name'),
-            Column::key('color'),
-            Column::key('contrast'),
+            ...static::sqlColumnsFromDataSchema([
+                'var',
+                'name',
+                'color',
+                'contrast',
+            ]),
         ];
     }
 

@@ -4,7 +4,6 @@ namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
-use Wonder\Sql\TableSchema as Column;
 
 final class CssFont extends Model
 {
@@ -15,10 +14,12 @@ final class CssFont extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('name')->unique(),
-            Column::key('link'),
-            Column::key('font_family'),
-            Column::key('visible')->default('true'),
+            ...static::sqlColumnsFromDataSchema([
+                'name',
+                'link',
+                'font_family',
+                'visible',
+            ]),
         ];
     }
 

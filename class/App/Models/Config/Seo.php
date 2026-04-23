@@ -15,12 +15,14 @@ final class Seo extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('title'),
+            ...static::sqlColumnsFromDataSchema(['title']),
             Column::key('description')->type('TEXT'),
-            Column::key('author'),
-            Column::key('copyright'),
-            Column::key('creator'),
-            Column::key('reply'),
+            ...static::sqlColumnsFromDataSchema([
+                'author',
+                'copyright',
+                'creator',
+                'reply',
+            ]),
         ];
     }
 

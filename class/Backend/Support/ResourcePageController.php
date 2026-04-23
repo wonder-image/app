@@ -95,7 +95,11 @@ final class ResourcePageController
 
     private function edit(int $id): void
     {
-        $this->renderForm('edit', $this->resourceRow($id), [], $id);
+        $values = $this->resourceClass::isSingleton()
+            ? ($this->resourceRowOrNull($id) ?? [])
+            : $this->resourceRow($id);
+
+        $this->renderForm('edit', $values, [], $id);
     }
 
     private function update(int $id): void
@@ -105,12 +109,18 @@ final class ResourcePageController
         $this->guardPositiveId($id);
         $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
-        $existingValues = $this->resourceRow($id);
+        $existingValues = $this->resourceClass::isSingleton()
+            ? $this->resourceRowOrNull($id)
+            : $this->resourceRow($id);
         $values = $this->preparedValues($existingValues);
         $result = (object) ['success' => false];
 
         if (empty($ALERT)) {
-            $result = $modelClass::query()->Update($modelClass::$table, $values, 'id', $id);
+            if ($existingValues === null && $this->resourceClass::isSingleton()) {
+                $result = $modelClass::query()->Insert($modelClass::$table, array_merge(['id' => $id], $values));
+            } else {
+                $result = $modelClass::query()->Update($modelClass::$table, $values, 'id', $id);
+            }
         }
 
         if (!empty($result->success)) {
@@ -205,12 +215,23 @@ final class ResourcePageController
 
     private function resourceRow(int $id): array
     {
+        $row = $this->resourceRowOrNull($id);
+
+        if (!is_array($row) || $row === []) {
+            throw new RuntimeException('Record resource non trovato.');
+        }
+
+        return $row;
+    }
+
+    private function resourceRowOrNull(int $id): ?array
+    {
         $this->guardPositiveId($id);
         $modelClass = $this->resourceClass::modelClass();
         $row = $modelClass::find($this->resourceConditionForId($id), 1);
 
         if (!is_array($row) || $row === []) {
-            throw new RuntimeException('Record resource non trovato.');
+            return null;
         }
 
         return $row;

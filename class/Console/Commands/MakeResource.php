@@ -79,6 +79,7 @@
             $template .= "    public static function formSchema(): array\n";
             $template .= "    {\n";
             $template .= "        return [\n";
+            $template .= "            // Definisce gli input del backend.\n";
             $template .= "            FormInput::key('name')->text(),\n";
             $template .= "        ];\n";
             $template .= "    }\n";

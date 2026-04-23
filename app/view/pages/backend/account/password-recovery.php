@@ -1,4 +1,15 @@
 <?php \Wonder\View\View::layout('backend.auth'); ?>
+<?php
+$renderInput = static function (string $key, mixed $value = null) use ($FORM_SCHEMA, $VALUES): string {
+    $field = clone $FORM_SCHEMA[$key];
+    if ($value !== null) {
+        $field->value($value);
+    } elseif (array_key_exists($key, (array) $VALUES)) {
+        $field->value($VALUES[$key]);
+    }
+    return $field->render();
+};
+?>
 <form method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
     <wi-card>
         <div class="d-grid col-12 mx-auto">
@@ -6,7 +17,7 @@
         </div>
 
         <div class="col-12">
-            <?=text('Username', 'username', 'required'); ?>
+            <?=$renderInput('username')?>
         </div>
 
         <div class="d-grid col-8 mx-auto">

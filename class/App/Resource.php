@@ -2,17 +2,10 @@
 
 namespace Wonder\App;
 
-use ReflectionObject;
-use Throwable;
-use Wonder\Data\Fields\Field as DataField;
-use Wonder\Data\Fields\Number as NumberField;
-use Wonder\Data\Fields\Text as TextField;
-use Wonder\Data\Formatters\String\LowercaseFormatter;
-use Wonder\Data\Formatters\String\SlugFormatter;
-use Wonder\Data\Formatters\String\TitleCaseFormatter;
-use Wonder\Data\Formatters\String\UppercaseFormatter;
 use mysqli;
+use ReflectionObject;
 use RuntimeException;
+use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
@@ -26,6 +19,7 @@ use Wonder\Sql\Query;
 abstract class Resource
 {
     public static string $model = '';
+    public static string $path = '';
 
     public static array|string $condition = ['deleted' => 'false'];
     public static string|int|null $limit = null;
@@ -54,6 +48,12 @@ abstract class Resource
 
     public static function path(): string
     {
+        $path = trim(static::$path);
+
+        if ($path !== '') {
+            return trim($path, '/');
+        }
+
         return trim((string) (static::modelClass()::$folder ?? ''), '/');
     }
 
@@ -162,7 +162,7 @@ abstract class Resource
         foreach (array_unique(array_merge(array_keys($fields), array_keys($inputs))) as $key) {
             $entry = [];
             $format = array_merge(
-                static::prepareFormatFromModelField($fields[$key] ?? null),
+                static::modelClass()::prepareFormatFromField($fields[$key] ?? null),
                 static::prepareFormatFromInput($inputs[$key] ?? null)
             );
 
@@ -385,6 +385,16 @@ abstract class Resource
     {
     }
 
+    public static function customBackendPages(): array
+    {
+        return [];
+    }
+
+    public static function hasCustomBackendPage(string $action): bool
+    {
+        return in_array(trim($action), static::customBackendPages(), true);
+    }
+
     public static function label(): string
     {
         $label = trim((string) static::getText('label'));
@@ -474,73 +484,7 @@ abstract class Resource
 
     private static function modelFields(): array
     {
-        $fields = [];
-
-        foreach (static::modelClass()::dataSchema() as $field) {
-            if (!$field instanceof DataField) {
-                continue;
-            }
-
-            $fields[(string) $field->key] = $field;
-        }
-
-        return $fields;
-    }
-
-    private static function prepareFormatFromModelField(?DataField $field): array
-    {
-        if ($field === null) {
-            return [];
-        }
-
-        $format = [];
-        $schema = method_exists($field, 'getSchema') ? (array) $field->getSchema() : [];
-
-        if (($schema['unique'] ?? false) === true) {
-            $format['unique'] = true;
-        }
-
-        if (array_key_exists('sanitize', $schema)) {
-            $format['sanitize'] = (bool) $schema['sanitize'];
-        }
-
-        if ($field instanceof NumberField) {
-            $format['number'] = true;
-        }
-
-        if (isset($schema['decimals']) && is_numeric($schema['decimals'])) {
-            $format['decimals'] = (int) $schema['decimals'];
-        }
-
-        foreach ((array) ($schema['formatters'] ?? []) as $formatter) {
-            $class = is_object($formatter) ? $formatter::class : null;
-
-            if ($class === LowercaseFormatter::class) {
-                $format['lower'] = true;
-            }
-
-            if ($class === UppercaseFormatter::class) {
-                $format['upper'] = true;
-            }
-
-            if ($class === TitleCaseFormatter::class) {
-                $format['ucwords'] = true;
-            }
-
-            if ($class === SlugFormatter::class) {
-                $format['link'] = true;
-            }
-        }
-
-        if ($field instanceof TextField
-            && ($format['lower'] ?? false)
-            && ($format['ucwords'] ?? false)
-            && (($format['sanitize'] ?? null) === true)
-        ) {
-            $format['sanitizeFirst'] = true;
-        }
-
-        return $format;
+        return static::modelClass()::dataFields();
     }
 
     private static function prepareFormatFromInput(?object $input): array

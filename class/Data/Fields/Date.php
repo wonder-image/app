@@ -1,9 +1,40 @@
 <?php
 
-    namespace Wonder\Data\Fields;
+namespace Wonder\Data\Fields;
 
-    class Date extends Field {
+use Wonder\Data\Formatters\String\TrimFormatter;
+use Wonder\Data\Validators\StringValidator;
 
-        public string $type = 'date';
+class Date extends Field
+{
+    public string $type = 'date';
 
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
+
+        $this->validators([
+            new StringValidator(),
+        ]);
+
+        $this->formatters([
+            new TrimFormatter(),
+        ]);
+
+        $this->schema('date', true);
     }
+
+    public function sqlSchema(): array
+    {
+        return [
+            'type' => 'DATETIME',
+        ];
+    }
+
+    public function defaultInputFormat(): array
+    {
+        return [
+            'date' => true,
+        ];
+    }
+}

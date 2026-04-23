@@ -31,14 +31,46 @@ final class Logo extends Model
     {
         return [
             Field::key('slug')->text()->required()->slug()->unique(),
-            Field::key('main')->text(),
-            Field::key('black')->text(),
-            Field::key('white')->text(),
-            Field::key('icon')->text(),
-            Field::key('icon_black')->text(),
-            Field::key('icon_white')->text(),
-            Field::key('favicon')->text(),
-            Field::key('app_icon')->text(),
+            Field::key('main')->image()
+                ->extensions(['png'])
+                ->name('{slug}-logo-{rand}')
+                ->webp(RESPONSIVE_IMAGE_WEBP)
+                ->resize(RESPONSIVE_IMAGE_SIZES),
+            Field::key('black')->image()
+                ->extensions(['png'])
+                ->name('{slug}-logo-black-{rand}')
+                ->webp(RESPONSIVE_IMAGE_WEBP)
+                ->resize(RESPONSIVE_IMAGE_SIZES),
+            Field::key('white')->image()
+                ->extensions(['png'])
+                ->name('{slug}-logo-white-{rand}')
+                ->webp(RESPONSIVE_IMAGE_WEBP)
+                ->resize(RESPONSIVE_IMAGE_SIZES),
+            Field::key('icon')->image()
+                ->extensions(['png'])
+                ->name('{slug}-icon-{rand}')
+                ->webp(RESPONSIVE_IMAGE_WEBP)
+                ->resize(RESPONSIVE_IMAGE_SIZES),
+            Field::key('icon_black')->image()
+                ->extensions(['png'])
+                ->name('{slug}-icon-black-{rand}')
+                ->webp(RESPONSIVE_IMAGE_WEBP)
+                ->resize(RESPONSIVE_IMAGE_SIZES),
+            Field::key('icon_white')->image()
+                ->extensions(['png'])
+                ->name('{slug}-icon-white-{rand}')
+                ->webp(RESPONSIVE_IMAGE_WEBP)
+                ->resize(RESPONSIVE_IMAGE_SIZES),
+            Field::key('favicon')->file()
+                ->extensions(['ico'])
+                ->maxSize(1)
+                ->name('favicon')
+                ->dir('/../../../favicon'),
+            Field::key('app_icon')->image()
+                ->extensions(['png'])
+                ->name('{slug}-app-icon-{rand}')
+                ->webp(false)
+                ->resize($GLOBALS['DEFAULT']->appIcon ?? []),
         ];
     }
 }

@@ -41,6 +41,26 @@ final class TableColumn extends Column
         return $this->setType('badge');
     }
 
+    public function status(): self
+    {
+        return $this->setType('status');
+    }
+
+    public function user(): self
+    {
+        return $this->setType('user');
+    }
+
+    public function userAvatar(): self
+    {
+        return $this->setType('user_avatar');
+    }
+
+    public function userName(): self
+    {
+        return $this->setType('user_name');
+    }
+
     public function icon(): self
     {
         return $this->setType('icon');

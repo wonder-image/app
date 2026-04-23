@@ -1,27 +1,41 @@
 <?php
 
-    namespace Wonder\Data\Fields;
+namespace Wonder\Data\Fields;
 
-    class Number extends Field {
+use Wonder\Data\Formatters\String\TrimFormatter;
 
-        public string $type = 'number';
-        
-        public function __construct($key)
-        {
+class Number extends Field
+{
+    public string $type = 'number';
 
-            parent::__construct($key);
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
 
-            $this->formatters([
-                new \Wonder\Data\Formatters\String\TrimFormatter()
-            ]);
+        $this->formatters([
+            new TrimFormatter(),
+        ]);
 
-        }
-
-        public function decimals( int $decimals = 2): self
-        {
-            
-            return $this->schema('decimals', $decimals);
-
-        }
-
+        $this->decimals(2);
     }
+
+    public function decimals(int $decimals = 2): self
+    {
+        return $this->schema('decimals', $decimals);
+    }
+
+    public function sqlSchema(): array
+    {
+        return [
+            'type' => 'DECIMAL',
+            'length' => '10,2',
+        ];
+    }
+
+    public function defaultInputFormat(): array
+    {
+        return [
+            'decimals' => (int) ($this->getSchema('decimals') ?? 2),
+        ];
+    }
+}

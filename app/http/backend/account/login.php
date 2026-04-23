@@ -1,5 +1,7 @@
 <?php
 
+use Wonder\App\PageSchema\AccountPageSchema;
+
     if (isset($_POST['login'])) {
 
         if (authenticateUser('username', $_POST['username'], $_POST['password'], 'backend')) {
@@ -20,4 +22,5 @@
         'TITLE' => 'Login',
         'ALERT' => $ALERT ?? null,
         'fieldUsername' => $_POST['username'] ?? null,
+        'FORM_SCHEMA' => AccountPageSchema::loginFormSchema(),
     ])->render();

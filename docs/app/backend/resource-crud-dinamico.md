@@ -11,6 +11,7 @@ Manuale d'uso semplice:
 - [Manuale Model e Resource](resource-manuale/README.md)
 - [Quick Start](resource-manuale/quick-start.md)
 - [Componenti](resource-manuale/componenti.md)
+- [Resource e CustomPageSchema](resource-manuale/custom-page-schema.md)
 - [Route e API](resource-manuale/route-e-api.md)
 
 ## Obiettivo
@@ -199,6 +200,15 @@ Il `Model` descrive:
 - come e' fatta la tabella SQL
 - come preparare e validare i dati
 
+In forma sintetica:
+
+- `Model::tableSchema()` definisce la struttura SQL della tabella
+- `Model::dataSchema()` definisce come trattare i dati prima del salvataggio
+
+`tableSchema()` resta esplicito. Quando serve ridurre duplicazione, puo' comporsi con:
+
+- `static::sqlColumnsFromDataSchema([...])`
+
 ### `Resource`
 
 La `Resource` descrive:
@@ -209,6 +219,10 @@ La `Resource` descrive:
 - come impaginare il form
 - come impaginare la lista
 - quali route backend e API esporre
+
+In forma sintetica:
+
+- `Resource::formSchema()` definisce gli input del backend
 
 ## Contratto di `Model`
 
@@ -251,8 +265,8 @@ final class Contact extends Model
 
 Regole:
 
-- `tableSchema()` descrive le colonne SQL
-- `dataSchema()` descrive come trattare i dati in ingresso
+- `tableSchema()` definisce la struttura SQL della tabella
+- `dataSchema()` definisce come trattare i dati prima del salvataggio
 - `folder` e' il path canonico backend del modulo
 - `icon` viene usata anche per il menu backend
 
@@ -654,6 +668,8 @@ Serve come riferimento reale per:
 - rimuovere i file `app/build/table/*.php` dei moduli gia' migrati
 - rimuovere i file `app/build/src/backend/*` dei moduli gia' migrati
 - lasciare `app/build/row/*` attivo finche' non verra' progettato il layer seed nuovo
+- completare il passaggio di prepare/upload/normalizzazioni a `Model::dataSchema()`: il bridge centrale ora legge `dataSchema()` e gli override `legacyTableSchema()` nei model applicativi sono stati rimossi; resta da valutare se mantenere `legacyTableSchema()` solo come bridge del base `Model` o eliminarlo del tutto in un secondo step
+- progettare un sostituto di `SortableInput` come componente repeater/collection nativo, capace di gestire sia array JSON sia righe destinate a tabelle relazionate, inclusi upload per-riga e prepare coerente
 
 ### Stato attuale della pulizia legacy
 
@@ -666,6 +682,24 @@ Serve come riferimento reale per:
 - `legal_documents` e' ora governato da [LegalDocument.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Config/LegalDocument.php) e [LegalDocumentResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Config/LegalDocumentResource.php)
 - `build/src/backend/app/config/legal-documents/*` e' stato rimosso
 - `app/build/table/consent.php` mantiene solo le tabelle consenso non ancora migrate; `legal_documents` e' stato spostato nel `Model`
+- `security` e' ora governato da [Security.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Config/Security.php) e [SecurityResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Config/SecurityResource.php)
+- `build/src/backend/app/config/credentials/index.php` e' stato rimosso
+- il blocco `user` e' ora governato da model dedicati in [class/App/Models/User](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/User) e da resource dedicate in [class/App/Resources/User](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/User)
+- `build/table/user.php` e' stato rimosso
+- `build/src/backend/app/config/{user,api-users}` e' stato rimosso
+- `user` e `api-users` usano ora create/edit condivisi via [UserManagementPageController.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/Backend/Support/UserManagementPageController.php) e [manage.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/view/pages/backend/user/manage.php)
+- `auth-users` e' ora governato da [AuthLog.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/User/AuthLog.php) e [AuthLogResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/User/AuthLogResource.php)
+- `build/src/backend/app/log/auth-users/*` e' stato rimosso
+- il blocco `consent` e' ora governato da model dedicati in [class/App/Models/Consent](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Consent) e da [ConsentEventResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Consent/ConsentEventResource.php)
+- `build/table/consent.php` e' stato rimosso
+- `build/src/backend/app/log/consent/*` e' stato rimosso
+- `mail_log` e' ora governato da [MailLog.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Log/MailLog.php) e [MailLogResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Log/MailLogResource.php)
+- `build/table/mail.php` e' stato rimosso
+- `build/src/backend/app/log/email/*` e' stato rimosso
+- `configuration-file` e' stato migrato come resource speciale con model astratto, route custom e pagina dedicata in [configuration-file.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/configuration-file.php)
+- `sql-download` e' stato migrato a route/handler/view nuove in [sql-download.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/sql-download.php)
+- `corporate-data` e' stato migrato a route/handler/view nuove in [corporate-data.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/corporate-data.php), con 4 model reali al posto di `build/table/society.php`
+- `build/src/backend/app/config/configuration-file/index.php` e' stato rimosso
 - `app/media/upload-massive` resta una utility legacy separata, ma prepara i file usando le `Resource`
 
 Note tecniche recenti:
@@ -673,3 +707,5 @@ Note tecniche recenti:
 - [TableLayoutSchema.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/ResourceSchema/TableLayoutSchema.php) supporta `searchFields()` e `filterRadio()/filterCustom()` per i filtri lista backend
 - i moduli nuovi devono ottenere schema SQL da `Model`
 - i moduli nuovi devono ottenere schema prepare/upload da `Resource`
+- il bridge runtime `formToArray()` ora deriva i format da `Model::dataSchema()` tramite [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php); gli override `legacyTableSchema()` nei model applicativi sono stati eliminati
+- `SortableInput` resta temporaneamente attivo per compatibilita' ma va sostituito con un layer piu' strutturato, soprattutto nei casi `variants/products`, `allowed_domains`, `allowed_ips` e upload multipli per riga

@@ -4,7 +4,6 @@
     {
 
         global $SOCIETY;
-        global $TABLE;
 
         $RETURN = (object) [];
 
@@ -45,7 +44,7 @@
 
         }
 
-        $VALUES = formToArray('api_users', $VALUES, $TABLE->API_USERS);
+        $VALUES = formToArray('api_users', $VALUES, \Wonder\App\Table::key('api_users')->schema());
         
         if (
             (isset($USER->api_internal_user->exists) && $USER->api_internal_user->exists) 

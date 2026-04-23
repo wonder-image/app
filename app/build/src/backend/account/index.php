@@ -14,6 +14,8 @@
     $NAME = (object) array();
     $NAME->table = "user";
     $NAME->folder = "user";
+    \Wonder\App\LegacyGlobals::set('NAME', $NAME);
+    $GLOBALS['NAME'] = $NAME;
 
     $SQL = sqlSelect($INFO_PAGE->table, ['id' => $USER->id], 1);
     $VALUES = $SQL->row;

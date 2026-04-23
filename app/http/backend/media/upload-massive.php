@@ -1,6 +1,7 @@
 <?php
 
 use Wonder\App\LegacyGlobals;
+use Wonder\App\PageSchema\UploadMassivePageSchema;
 use Wonder\App\Table;
 use Wonder\App\Resources\Media\DocumentResource;
 use Wonder\App\Resources\Media\IconResource;
@@ -26,6 +27,8 @@ $NAME = (object) [
 ];
 
 LegacyGlobals::set('NAME', $NAME);
+
+$FORM_SCHEMA = UploadMassivePageSchema::formSchema();
 
 if (isset($_POST['upload']) && isset($_FILES['file']) && is_array($_FILES['file']['name'] ?? null)) {
     foreach ($_FILES['file']['name'] as $key => $fileName) {
@@ -73,4 +76,5 @@ LegacyGlobals::set('NAME', $NAME);
 View::make($ROOT_APP.'/view/pages/backend/media/upload-massive.php', [
     'TITLE' => $TITLE,
     'USER' => is_object($USER ?? null) ? $USER : (object) [ 'authority' => [] ],
+    'FORM_SCHEMA' => $FORM_SCHEMA,
 ])->render();

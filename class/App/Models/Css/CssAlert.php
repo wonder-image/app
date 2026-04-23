@@ -4,7 +4,6 @@ namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
-use Wonder\Sql\TableSchema as Column;
 
 final class CssAlert extends Model
 {
@@ -15,13 +14,15 @@ final class CssAlert extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('tx'),
-            Column::key('bg'),
-            Column::key('top'),
-            Column::key('right'),
-            Column::key('border_color'),
-            Column::key('border_width'),
-            Column::key('border_radius'),
+            ...static::sqlColumnsFromDataSchema([
+                'tx',
+                'bg',
+                'top',
+                'right',
+                'border_color',
+                'border_width',
+                'border_radius',
+            ]),
         ];
     }
 

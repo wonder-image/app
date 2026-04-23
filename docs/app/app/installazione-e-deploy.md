@@ -383,20 +383,21 @@ printf '%s\n' "$BWS_PROJECT_ID"
 Comandi tipici:
 
 ```bash
-bws secret create APP_KEY "app-key" "$BWS_PROJECT_ID" --output json
-bws secret create DB_HOSTNAME "localhost" "$BWS_PROJECT_ID" --output json
-bws secret create DB_HOST "localhost" "$BWS_PROJECT_ID" --output json
-bws secret create DB_USERNAME "db-user" "$BWS_PROJECT_ID" --output json
-bws secret create DB_USER "db-user" "$BWS_PROJECT_ID" --output json
-bws secret create DB_PASSWORD "db-password" "$BWS_PROJECT_ID" --output json
-bws secret create DB_DATABASE "db-name" "$BWS_PROJECT_ID" --output json
-bws secret create DB_NAME "db-name" "$BWS_PROJECT_ID" --output json
-bws secret create FTP_HOST "ftp.example.com" "$BWS_PROJECT_ID" --output json
-bws secret create FTP_USER "ftp-user" "$BWS_PROJECT_ID" --output json
-bws secret create FTP_PASSWORD "ftp-password" "$BWS_PROJECT_ID" --output json
+bws secret create DB_HOST "" "$BWS_PROJECT_ID" --output json
+bws secret create DB_USER "" "$BWS_PROJECT_ID" --output json
+bws secret create DB_PASSWORD "" "$BWS_PROJECT_ID" --output json
+bws secret create DB_NAME "" "$BWS_PROJECT_ID" --output json
+bws secret create FTP_HOST "" "$BWS_PROJECT_ID" --output json
+bws secret create FTP_USER "" "$BWS_PROJECT_ID" --output json
+bws secret create FTP_PASSWORD "" "$BWS_PROJECT_ID" --output json
 bws secret create FTP_PORT "21" "$BWS_PROJECT_ID" --output json
 bws secret create FTP_REMOTE_PATH "/public_html/" "$BWS_PROJECT_ID" --output json
-bws secret create GITHUB_API_TOKEN "token-usato-da-api-app-update" "$BWS_PROJECT_ID" --output json
+```
+
+Puoi creare anche secret aggiuntivi caricati poi nel `.env` del deploy. Esempio per la password iniziale del backend:
+
+```bash
+bws secret create USER_PASSWORD "admin" "$BWS_PROJECT_ID" --output json
 ```
 
 Se un secret esiste già e vuoi aggiornarlo:
@@ -409,6 +410,23 @@ export SECRET_ID="$(
 
 bws secret edit --value "nuova-password" "$SECRET_ID" --output json
 ```
+
+Esempio specifico per aggiornare `USER_PASSWORD`:
+
+```bash
+export SECRET_ID="$(
+  bws secret list "$BWS_PROJECT_ID" --output json \
+    | jq -r '.[] | select(.key == "USER_PASSWORD") | .id'
+)"
+
+bws secret edit --value "nuova-password-admin" "$SECRET_ID" --output json
+```
+
+Nota:
+
+- il workflow GitHub Actions carica tutti i secret presenti nel project Bitwarden dentro `.env` e `$GITHUB_ENV`
+- `php forge provision` sincronizza automaticamente solo `APP_KEY`, `DB_HOSTNAME`/`DB_HOST`, `DB_USERNAME`/`DB_USER`, `DB_PASSWORD`, `DB_DATABASE`/`DB_NAME`, `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_PATH`
+- secret aggiuntivi come `USER_PASSWORD` vanno quindi creati o aggiornati manualmente con `bws secret create` e `bws secret edit`
 
 ### 7. Crea la repository GitHub
 

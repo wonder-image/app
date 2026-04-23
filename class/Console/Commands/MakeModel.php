@@ -38,6 +38,7 @@
             $template .= "    public static function tableSchema(): array\n";
             $template .= "    {\n";
             $template .= "        return [\n";
+            $template .= "            // Definisce la struttura SQL della tabella.\n";
             $template .= "            // Column::key('name'),\n";
             $template .= "        ];\n";
             $template .= "    }\n";
@@ -45,6 +46,7 @@
             $template .= "    public static function dataSchema(): array\n";
             $template .= "    {\n";
             $template .= "        return [\n";
+            $template .= "            // Definisce come trattare i dati prima del salvataggio.\n";
             $template .= "            // Field::key('name')->text()->required(),\n";
             $template .= "        ];\n";
             $template .= "    }\n";

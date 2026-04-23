@@ -1,58 +1,52 @@
 <?php
 
-    namespace Wonder\Data\Fields;
+namespace Wonder\Data\Fields;
 
-    use Wonder\Data\Validators\TinValidator;
+use Wonder\Data\Formatters\String\TrimFormatter;
+use Wonder\Data\Formatters\String\UppercaseFormatter;
+use Wonder\Data\Validators\StringValidator;
+use Wonder\Data\Validators\TinValidator;
 
-    class Tin extends Field {
+class Tin extends Field
+{
+    public string $type = 'tin';
+    private TinValidator $tinValidator;
 
-        public string $type = 'text';
-        private TinValidator $tinValidator;
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
 
-        public function __construct($key)
-        {
+        $this->tinValidator = new TinValidator();
 
-            parent::__construct($key);
+        $this->validators([
+            new StringValidator(),
+            $this->tinValidator,
+        ]);
 
-            $this->tinValidator = new TinValidator();
-
-            $this->validators([
-                new \Wonder\Data\Validators\StringValidator(),
-                $this->tinValidator
-            ]);
-
-            $this->formatters([
-                new \Wonder\Data\Formatters\String\TrimFormatter(),
-                new \Wonder\Data\Formatters\String\UppercaseFormatter()
-            ]);
-
-        }
-
-        public function countryField(string $field): self
-        {
-
-            $this->tinValidator->countryField($field);
-
-            return $this;
-
-        }
-
-        public function countryIso(string $iso2): self
-        {
-
-            $this->tinValidator->countryIso($iso2);
-
-            return $this;
-
-        }
-
-        public function type(string $type = 'private'): self
-        {
-
-            $this->tinValidator->type($type);
-
-            return $this;
-
-        }
-
+        $this->formatters([
+            new TrimFormatter(),
+            new UppercaseFormatter(),
+        ]);
     }
+
+    public function countryField(string $field): self
+    {
+        $this->tinValidator->countryField($field);
+
+        return $this;
+    }
+
+    public function countryIso(string $iso2): self
+    {
+        $this->tinValidator->countryIso($iso2);
+
+        return $this;
+    }
+
+    public function type(string $type = 'private'): self
+    {
+        $this->tinValidator->type($type);
+
+        return $this;
+    }
+}

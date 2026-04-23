@@ -18,6 +18,7 @@ class FormField
         'attribute' => '',
         'value' => null,
         'options' => [],
+        'search_bar' => false,
         'version' => null,
         'multiple' => false,
         'file' => 'image',
@@ -26,6 +27,7 @@ class FormField
         'date_max' => null,
         'error' => '',
         'prepare' => [],
+        'context' => [],
     ];
 
     public function __construct(
@@ -98,6 +100,13 @@ class FormField
         return $this;
     }
 
+    public function searchBar(bool $searchBar = true): self
+    {
+        $this->schema['search_bar'] = $searchBar;
+
+        return $this;
+    }
+
     public function version(?string $version): self
     {
         $this->schema['version'] = $version;
@@ -161,6 +170,22 @@ class FormField
         return $this;
     }
 
+    public function context(string|array $key, mixed $value = true): self
+    {
+        if (is_array($key)) {
+            $this->schema['context'] = array_merge(
+                (array) ($this->schema['context'] ?? []),
+                $key
+            );
+
+            return $this;
+        }
+
+        $this->schema['context'][trim($key)] = $value;
+
+        return $this;
+    }
+
     public function storeAs(string $name): self
     {
         return $this->prepare('name', $name);
@@ -185,6 +210,10 @@ class FormField
     {
         if ($key === null) {
             return $this->schema;
+        }
+
+        if ($key === 'helper') {
+            return $this->helper;
         }
 
         return $this->schema[$key] ?? null;
@@ -314,6 +343,15 @@ class FormField
         return $this;
     }
 
+    public function radio(array $options = [], bool $searchBar = false): self
+    {
+        $this->helper = 'radio';
+        $this->options($options);
+        $this->searchBar($searchBar);
+
+        return $this;
+    }
+
     public function selectSearch(array $options = [], bool $multiple = false, ?string $version = null): self
     {
         $this->helper = 'selectSearch';
@@ -348,40 +386,90 @@ class FormField
         return $this;
     }
 
+    public function country(?string $stateField = null): self
+    {
+        $this->helper = 'inputCountry';
+
+        if ($stateField !== null && trim($stateField) !== '') {
+            $this->context('state_field', trim($stateField));
+        }
+
+        return $this;
+    }
+
+    public function states(?string $country = null): self
+    {
+        $this->helper = 'inputStates';
+
+        if ($country !== null && trim($country) !== '') {
+            $this->context('country', trim($country));
+        }
+
+        return $this;
+    }
+
+    public function phonePrefix(): self
+    {
+        $this->helper = 'inputPhonePrefix';
+
+        return $this;
+    }
+
     public function render(?string $theme = null): string
     {
         $this->ensureHelperLoaded();
 
-        if (!function_exists($this->helper)) {
+        $requiredHelper = match ($this->helper) {
+            'radio' => 'check',
+            default => $this->helper,
+        };
+
+        if (!function_exists($requiredHelper)) {
             throw new RuntimeException("Helper form backend non disponibile: {$this->helper}()");
         }
 
-        $label = (string) ($this->schema['label'] ?? $this->name);
+        $label = trim((string) ($this->schema['label'] ?? ''));
+
+        if ($label === '') {
+            $label = ucwords(str_replace(['_', '-'], ' ', $this->name));
+        }
+
         $attribute = trim((string) ($this->schema['attribute'] ?? '')) ?: null;
         $value = $this->schema['value'] ?? null;
         $version = $this->schema['version'] ?? null;
         $options = (array) ($this->schema['options'] ?? []);
+        $searchBar = (bool) ($this->schema['search_bar'] ?? false);
         $file = (string) ($this->schema['file'] ?? 'image');
         $uploader = (string) ($this->schema['uploader'] ?? 'classic');
         $multiple = (bool) ($this->schema['multiple'] ?? false);
         $dateMin = $this->schema['date_min'] ?? null;
         $dateMax = $this->schema['date_max'] ?? null;
+        $context = (array) ($this->schema['context'] ?? []);
 
         return match ($this->helper) {
             'select' => select($label, $this->name, $options, $version, $attribute, $value),
             'selectSearch' => selectSearch($label, $this->name, $options, $multiple, $version, $attribute, $value),
+            'radio' => check($label, $this->name, $options, $attribute, 'radio', $searchBar, $value),
             'textarea' => textarea($label, $this->name, $attribute, $version, $value),
             'dateInput' => dateInput($label, $this->name, $dateMin, $dateMax, $attribute, $value),
             'dateRange' => dateRange($label, $this->name, $dateMin, $dateMax, $attribute, $value),
             'inputFile' => inputFile($label, $this->name, $file, $attribute, $value),
             'inputFileDragDrop' => inputFileDragDrop($label, $this->name, $uploader, $file, $attribute, $value),
+            'inputCountry' => inputCountry($label, $this->name, $value, $context['state_field'] ?? null, $attribute ?? ''),
+            'inputStates' => inputStates($label, $this->name, $context['country'] ?? null, $value, $attribute ?? ''),
+            'inputPhonePrefix' => inputPhonePrefix($label, $this->name, $value, $attribute ?? ''),
             default => call_user_func($this->helper, $label, $this->name, $attribute, $value),
         };
     }
 
     private function ensureHelperLoaded(): void
     {
-        if (function_exists($this->helper)) {
+        $requiredHelper = match ($this->helper) {
+            'radio' => 'check',
+            default => $this->helper,
+        };
+
+        if (function_exists($requiredHelper)) {
             return;
         }
 

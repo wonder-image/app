@@ -1,5 +1,17 @@
 <?php \Wonder\View\View::layout('backend.main'); ?>
 
+<?php
+$renderInput = static function (string $key, mixed $value = null) use ($FORM_SCHEMA): string {
+    $field = clone $FORM_SCHEMA[$key];
+
+    if ($value !== null) {
+        $field->value($value);
+    }
+
+    return $field->render();
+};
+?>
+
 <div class="row g-3">
     <wi-card class="col-12">
         <h3>
@@ -16,7 +28,7 @@
                 <div class="row g-3">
                     <wi-card class="col-12">
                         <div class="col-12">
-                            <?=inputFileDragDrop('', 'file', 'classic')?>
+                            <?=$renderInput('file')?>
                         </div>
                     </wi-card>
                 </div>
@@ -24,7 +36,7 @@
 
             <wi-card class="col-3">
                 <div class="col-12">
-                    <?=select('Tipologia', 'type', [ 'image' => 'Immagine', 'icon' => 'Icona', 'document' => 'Documento' ])?>
+                    <?=$renderInput('type')?>
                 </div>
                 <div class="col-12">
                     <?=submit()?>

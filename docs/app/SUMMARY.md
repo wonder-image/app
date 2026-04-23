@@ -12,6 +12,7 @@
     * [Manuale Model e Resource](backend/resource-manuale/README.md)
       * [Quick Start](backend/resource-manuale/quick-start.md)
       * [Componenti](backend/resource-manuale/componenti.md)
+      * [Resource e CustomPageSchema](backend/resource-manuale/custom-page-schema.md)
       * [Resource Singleton](backend/resource-manuale/singleton.md)
       * [Route e API](backend/resource-manuale/route-e-api.md)
     * [Specifica tecnica CRUD dinamico](backend/resource-crud-dinamico.md)

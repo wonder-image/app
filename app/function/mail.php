@@ -35,6 +35,23 @@
 
         global $MAIL_SERVICE;
 
+        if (!is_array($MAIL_SERVICE ?? null) || $MAIL_SERVICE === []) {
+            $MAIL_SERVICE = [
+                'phpmailer' => [
+                    'name' => 'PHPMailer',
+                    'text' => 'PHPMailer (SMTP)',
+                    'icon' => 'bi bi-envelope',
+                    'color' => 'info'
+                ],
+                'brevo' => [
+                    'name' => 'Brevo',
+                    'text' => 'Brevo API',
+                    'icon' => 'bi bi-send',
+                    'color' => 'primary'
+                ]
+            ];
+        }
+
         return arrayDetails($MAIL_SERVICE, $service);
 
     }
@@ -43,6 +60,23 @@
     {
 
         global $MAIL_LOG_STATUS;
+
+        if (!is_array($MAIL_LOG_STATUS ?? null) || $MAIL_LOG_STATUS === []) {
+            $MAIL_LOG_STATUS = [
+                'sent' => [
+                    'name' => 'Inviata',
+                    'text' => 'Email inviata con successo',
+                    'icon' => 'bi bi-check-circle',
+                    'color' => 'success'
+                ],
+                'failed' => [
+                    'name' => 'Fallita',
+                    'text' => 'Invio email non riuscito',
+                    'icon' => 'bi bi-exclamation-octagon',
+                    'color' => 'danger'
+                ]
+            ];
+        }
 
         return arrayDetails($MAIL_LOG_STATUS, $status);
 

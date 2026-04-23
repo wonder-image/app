@@ -12,6 +12,26 @@
                     
                     $currentFile = $PAGE->fileName;
                     $currentDir = str_replace('backend/', '',$PAGE->dir);
+                    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? '/';
+                    $matchesNavPath = static function (string $folder, string $file = '') use ($PATH, $requestPath): bool {
+                        $basePath = rtrim(parse_url((string) ($PATH->backend ?? '/backend'), PHP_URL_PATH) ?? '/backend', '/');
+                        $folder = trim($folder, '/');
+                        $file = trim($file, '/');
+                        $targetPath = $basePath.($folder !== '' ? '/'.$folder : '');
+
+                        if ($file !== '') {
+                            $targetPath .= '/'.$file;
+                        }
+
+                        $targetPath = rtrim($targetPath, '/');
+                        $request = rtrim($requestPath, '/');
+
+                        if ($targetPath === '') {
+                            return $request === '';
+                        }
+
+                        return $request === $targetPath || str_starts_with($request.'/', $targetPath.'/');
+                    };
 
                     $offcanvasHTML = "";
 
@@ -29,7 +49,7 @@
 
                             $activeNav = false;
 
-                            if ($currentDir == $folderNav) { $activeNav = true; }
+                            if ($currentDir == $folderNav || $matchesNavPath($folderNav, $fileNav)) { $activeNav = true; }
         
                             $offcanvas = [];
                             
@@ -47,12 +67,12 @@
                                     if (!$authSub || count(array_intersect($authSub, $USER->authority)) >= 1) {
 
                                         if ($folderNav == $folderSub) {
-                                            if ($currentDir == $folderNav && $currentFile == $fileSub){
+                                            if (($currentDir == $folderNav && $currentFile == $fileSub) || $matchesNavPath($folderSub, $fileSub)){
                                                 $activeSub = true;
                                                 $activeNav = true;
                                             }
                                         } else {
-                                            if ($currentDir == $folderSub) {
+                                            if ($currentDir == $folderSub || $matchesNavPath($folderSub, $fileSub)) {
                                                 $activeSub = true;
                                                 $activeNav = true;
                                             }

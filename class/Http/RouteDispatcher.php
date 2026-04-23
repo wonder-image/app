@@ -139,10 +139,14 @@ class RouteDispatcher
 
     private function serverError(Throwable $throwable): never
     {
-        $this->fail(500, $this->area === 'api' ? $throwable->getMessage() : '');
+        $this->fail(
+            500,
+            $this->area === 'api' ? $throwable->getMessage() : '',
+            $throwable
+        );
     }
 
-    private function fail(int $status, string $message): never
+    private function fail(int $status, string $message, ?Throwable $throwable = null): never
     {
         http_response_code($status);
 
@@ -163,6 +167,10 @@ class RouteDispatcher
             'PRIVATE' => false,
             'PERMIT' => [],
             'ERROR' => $status,
+            'ERROR_MESSAGE' => $this->debugEnabled() && $throwable !== null ? (string) $throwable->getMessage() : '',
+            'ERROR_FILE' => $this->debugEnabled() && $throwable !== null ? (string) $throwable->getFile() : '',
+            'ERROR_LINE' => $this->debugEnabled() && $throwable !== null ? (int) $throwable->getLine() : 0,
+            'ERROR_TRACE' => $this->debugEnabled() && $throwable !== null ? (string) $throwable->getTraceAsString() : '',
         ]);
 
         require_once $this->appPackageRoot().'/wonder-image.php';
@@ -198,5 +206,26 @@ class RouteDispatcher
         }
 
         return $this->runtimeRoot;
+    }
+
+    private function debugEnabled(): bool
+    {
+        $env = $_ENV['APP_DEBUG'] ?? ($_SERVER['APP_DEBUG'] ?? null);
+
+        if (is_bool($env)) {
+            return $env;
+        }
+
+        $envValue = strtolower(trim((string) $env));
+
+        if (in_array($envValue, ['1', 'true', 'on', 'yes'], true)) {
+            return true;
+        }
+
+        $remoteAddr = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+        $serverName = trim((string) ($_SERVER['SERVER_NAME'] ?? ''));
+
+        return in_array($remoteAddr, ['127.0.0.1', '::1'], true)
+            || in_array($serverName, ['127.0.0.1', 'localhost'], true);
     }
 }

@@ -30,6 +30,30 @@ Route::area('backend')
 
             });
 
+        Route::name('config.')
+            ->prefix('/app/config')
+            ->group(function () use ($ROOT_APP) {
+
+                Route::get('/corporate-data/', $ROOT_APP.'/http/backend/config/corporate-data.php')
+                    ->name('corporate-data')
+                    ->permit(['admin']);
+
+                Route::post('/corporate-data/', $ROOT_APP.'/http/backend/config/corporate-data.php')
+                    ->permit(['admin']);
+
+                Route::get('/configuration-file/', $ROOT_APP.'/http/backend/config/configuration-file.php')
+                    ->name('configuration-file')
+                    ->permit(['admin']);
+
+                Route::post('/configuration-file/', $ROOT_APP.'/http/backend/config/configuration-file.php')
+                    ->permit(['admin']);
+
+                Route::get('/sql-download/', $ROOT_APP.'/http/backend/config/sql-download.php')
+                    ->name('sql-download')
+                    ->permit(['admin']);
+
+            });
+
         Route::redirect('/login/', '/backend/account/login/')
             ->name('login.legacy')
             ->guarded(false)

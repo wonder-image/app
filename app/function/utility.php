@@ -2,6 +2,10 @@
 
     function arrayDetails($array, $key = null) {
 
+        if (!is_array($array)) {
+            $array = [];
+        }
+
         if ($key == null) {
             
             $RETURN = [];
@@ -12,7 +16,13 @@
 
             $RETURN = (object) array();
 
-            foreach ($array[$key] as $k => $v) { $RETURN->$k = $v; }
+            $item = $array[$key] ?? [];
+
+            if (!is_array($item)) {
+                $item = [];
+            }
+
+            foreach ($item as $k => $v) { $RETURN->$k = $v; }
 
             $RETURN->color = isset($RETURN->color) ? $RETURN->color : '';
             $RETURN->name = isset($RETURN->name) ? $RETURN->name : '';

@@ -48,46 +48,15 @@ final class LogoResource extends SingletonResource
 
     public static function formSchema(): array
     {
-        $responsive = [
-            'webp' => RESPONSIVE_IMAGE_WEBP,
-            'resize' => RESPONSIVE_IMAGE_SIZES,
-        ];
-
         return [
-            FormInput::key('main')
-                ->inputFileDragDrop('png')
-                ->storeAs('logo-{slug}')
-                ->prepare($responsive),
-            FormInput::key('black')
-                ->inputFileDragDrop('png')
-                ->storeAs('logo-{slug}-black')
-                ->prepare($responsive),
-            FormInput::key('white')
-                ->inputFileDragDrop('png')
-                ->storeAs('logo-{slug}-white')
-                ->prepare($responsive),
-            FormInput::key('icon')
-                ->inputFileDragDrop('png')
-                ->storeAs('icon-{slug}')
-                ->prepare($responsive),
-            FormInput::key('icon_black')
-                ->inputFileDragDrop('png')
-                ->storeAs('icon-{slug}-black')
-                ->prepare($responsive),
-            FormInput::key('icon_white')
-                ->inputFileDragDrop('png')
-                ->storeAs('icon-{slug}-white')
-                ->prepare($responsive),
-            FormInput::key('app_icon')
-                ->inputFileDragDrop('png')
-                ->storeAs('app-icon-{slug}')
-                ->prepare('resize', $GLOBALS['DEFAULT']->appIcon ?? []),
-            FormInput::key('favicon')
-                ->inputFileDragDrop('ico')
-                ->storeAs('favicon')
-                ->maxSize(1)
-                ->extensions(['ico'])
-                ->prepare('dir', '/../../../favicon'),
+            FormInput::key('main')->inputFileDragDrop('png'),
+            FormInput::key('black')->inputFileDragDrop('png'),
+            FormInput::key('white')->inputFileDragDrop('png'),
+            FormInput::key('icon')->inputFileDragDrop('png'),
+            FormInput::key('icon_black')->inputFileDragDrop('png'),
+            FormInput::key('icon_white')->inputFileDragDrop('png'),
+            FormInput::key('app_icon')->inputFileDragDrop('png'),
+            FormInput::key('favicon')->inputFileDragDrop('ico'),
         ];
     }
 

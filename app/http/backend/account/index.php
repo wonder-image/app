@@ -1,8 +1,17 @@
 <?php
 
+use Wonder\App\PageSchema\AccountPageSchema;
+
 $TITLE = 'Account';
 $VALUES = sqlSelect('user', ['id' => $USER->id], 1)->row;
 $COLOR_OPTIONS = [];
+$NAME = (object) [
+    'table' => 'user',
+    'folder' => 'user',
+];
+
+\Wonder\App\LegacyGlobals::set('NAME', $NAME);
+$GLOBALS['NAME'] = $NAME;
 
 foreach ($DEFAULT->colorUser as $key => $color) {
     if (!empty($color['active'])) {
@@ -46,4 +55,6 @@ if (isset($_POST['modify-password'])) {
     'ALERT' => $ALERT ?? null,
     'VALUES' => $VALUES,
     'COLOR_OPTIONS' => $COLOR_OPTIONS,
+    'PROFILE_FORM_SCHEMA' => AccountPageSchema::profileFormSchema($COLOR_OPTIONS),
+    'PASSWORD_FORM_SCHEMA' => AccountPageSchema::passwordFormSchema(),
 ])->render();

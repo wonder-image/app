@@ -1,5 +1,23 @@
 <?php
 
+    function geoResourcePath(string $relativePath = ''): string {
+
+        global $ROOT_APP;
+
+        $basePath = '';
+
+        if (isset($ROOT_APP) && is_string($ROOT_APP) && $ROOT_APP !== '') {
+            $basePath = dirname(rtrim($ROOT_APP, '/')).'/resources/geo';
+        }
+
+        if ($basePath === '' || !is_dir($basePath)) {
+            $basePath = dirname(__DIR__, 3).'/resources/geo';
+        }
+
+        return rtrim($basePath, '/').'/'.ltrim($relativePath, '/');
+
+    }
+
     function country( $iso2 ) {
         
         $iso2 = strtoupper($iso2);
@@ -30,15 +48,14 @@
 
     function countries() {
 
-        global $PATH;
-
         if (isset($_SESSION['system_cache']['geo']['countries'])) {
 
             return $_SESSION['system_cache']['geo']['countries'];
 
         } else {
 
-            $COUNTRIES = (!$JSON = @file_get_contents("$PATH->appResources/geo/countries.json")) ? [] : json_decode($JSON, TRUE);
+            $path = geoResourcePath('countries.json');
+            $COUNTRIES = (!$JSON = @file_get_contents($path)) ? [] : json_decode($JSON, TRUE);
 
             $_SESSION['system_cache']['geo']['countries'] = $COUNTRIES;
 
@@ -82,8 +99,6 @@
 
     function states( $countryIso2 ) {
 
-        global $PATH;
-
         $countryIso2 = strtoupper($countryIso2);
 
         if (!isset($_SESSION['system_cache']['geo']['states'])) { $_SESSION['system_cache']['geo']['states'] = []; }
@@ -94,7 +109,8 @@
 
         } else {
 
-            $STATES = (!$JSON = @file_get_contents("$PATH->appResources/geo/states/$countryIso2.json")) ? [] : json_decode($JSON, TRUE);
+            $path = geoResourcePath("states/$countryIso2.json");
+            $STATES = (!$JSON = @file_get_contents($path)) ? [] : json_decode($JSON, TRUE);
 
             $_SESSION['system_cache']['geo']['states'][$countryIso2] = $STATES;
 
@@ -106,8 +122,6 @@
 
     function countryPhonePrefix( $iso2 ) {
 
-        global $PATH;
-
         $iso2 = strtoupper($iso2);
 
         if (!isset($_SESSION['system_cache']['geo']['countries_phone_prefix'])) { $_SESSION['system_cache']['geo']['countries_phone_prefix'] = []; }
@@ -118,7 +132,8 @@
 
         } else {
 
-            $COUNTRY_PHONE_PREFIX = (!$JSON = @file_get_contents("$PATH->appResources/geo/countriesPhonePrefix.json")) ? [] : json_decode($JSON, TRUE);
+            $path = geoResourcePath('countriesPhonePrefix.json');
+            $COUNTRY_PHONE_PREFIX = (!$JSON = @file_get_contents($path)) ? [] : json_decode($JSON, TRUE);
 
             $phoneCode = "";
     
@@ -139,15 +154,14 @@
 
     function countriesPhonePrefix() {
 
-        global $PATH;
-
         if (isset($_SESSION['system_cache']['geo']['countries_phone_prefix'])) {
 
             return $_SESSION['system_cache']['geo']['countries_phone_prefix'];
 
         } else {
 
-            $COUNTRY_PHONE_PREFIX = (!$JSON = @file_get_contents("$PATH->appResources/geo/countriesPhonePrefix.json")) ? [] : json_decode($JSON, TRUE);
+            $path = geoResourcePath('countriesPhonePrefix.json');
+            $COUNTRY_PHONE_PREFIX = (!$JSON = @file_get_contents($path)) ? [] : json_decode($JSON, TRUE);
             
             $_SESSION['system_cache']['geo']['countries_phone_prefix'] = $COUNTRY_PHONE_PREFIX;
 
@@ -159,15 +173,14 @@
 
     function phonePrefix() {
 
-        global $PATH;
-
         if (isset($_SESSION['system_cache']['geo']['phone_prefix'])) {
 
             return $_SESSION['system_cache']['geo']['phone_prefix'];
 
         } else {
 
-            $PHONE_PREFIX = (!$JSON = @file_get_contents("$PATH->appResources/geo/phonePrefix.json")) ? [] : json_decode($JSON, TRUE);
+            $path = geoResourcePath('phonePrefix.json');
+            $PHONE_PREFIX = (!$JSON = @file_get_contents($path)) ? [] : json_decode($JSON, TRUE);
 
             $_SESSION['system_cache']['geo']['phone_prefix'] = $PHONE_PREFIX;
 
