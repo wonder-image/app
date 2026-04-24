@@ -68,6 +68,7 @@ Funzionalmente oggi il sistema offre:
 - discovery automatica dei model
 - bootstrap SQL dalle classi `Model`
 - bootstrap prepare/upload dalle classi `Resource`
+- primo layer repeater nativo per array JSON e relazioni 1:N
 
 ## Passaggi fatti
 
@@ -709,3 +710,7 @@ Note tecniche recenti:
 - i moduli nuovi devono ottenere schema prepare/upload da `Resource`
 - il bridge runtime `formToArray()` ora deriva i format da `Model::dataSchema()` tramite [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php); gli override `legacyTableSchema()` nei model applicativi sono stati eliminati
 - `SortableInput` resta temporaneamente attivo per compatibilita' ma va sostituito con un layer piu' strutturato, soprattutto nei casi `variants/products`, `allowed_domains`, `allowed_ips` e upload multipli per riga
+- il primo step del nuovo layer e' attivo: `FormInput::repeater()` sostituisce gia' `SortableInput` nei casi JSON semplici, a partire da `api-users` (`allowed_domains`, `allowed_ips`)
+- il secondo step e' attivo: `RepeaterColumn` + `nested()` + `Wonder\App\Support\Repeater::rowsFromRequest()` coprono gia' righe multi-colonna, hidden/id e upload per riga
+- il terzo step e' avviato: `RepeaterRelation` + `Wonder\App\Support\Repeater::syncRelatedRows()` introducono il primo layer generico di persistenza 1:N, con supporto a update, insert, soft delete e position
+- il CRUD backend/API standard ora esclude automaticamente i repeater relazionali dal payload principale e li sincronizza dopo `store/update`

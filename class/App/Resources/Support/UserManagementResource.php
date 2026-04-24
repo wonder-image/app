@@ -9,6 +9,7 @@ use Wonder\App\ResourceSchema\FormInput;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
+use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Http\Route;
@@ -26,7 +27,7 @@ abstract class UserManagementResource extends Resource
 
     public static function formSchema(): array
     {
-        return [
+        $schema = [
             FormInput::key('profile_picture')->inputFileDragDrop('image', 'profile')->label(''),
             FormInput::key('name')->text()->required(),
             FormInput::key('surname')->text()->required(),
@@ -40,6 +41,30 @@ abstract class UserManagementResource extends Resource
                 'false' => 'Disabilitato',
             ])->required(),
         ];
+
+        if (static::managedArea() === 'api') {
+            $schema[] = FormInput::key('allowed_domains')
+                ->repeater([
+                    RepeaterColumn::key('allowed_domains')
+                        ->text()
+                        ->label('Dominio')
+                        ->columnSpan(11),
+                ])
+                ->repeaterAddLabel('Aggiungi dominio')
+                ->label('Domini');
+
+            $schema[] = FormInput::key('allowed_ips')
+                ->repeater([
+                    RepeaterColumn::key('allowed_ips')
+                        ->text()
+                        ->label('Ip')
+                        ->columnSpan(11),
+                ])
+                ->repeaterAddLabel('Aggiungi IP')
+                ->label('Indirizzi IP');
+        }
+
+        return $schema;
     }
 
     public static function pageSchema(): PageSchema

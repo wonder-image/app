@@ -1245,6 +1245,228 @@
 
     }
 
+    function inputRepeater($label, $name, $attribute = null, $value = null, array $config = []) {
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+        $rowId = $id.'-rows';
+        $templateId = $id.'-template';
+        $addLabel = trim((string) ($config['add_label'] ?? 'Aggiungi linea'));
+        $addButtonClass = trim((string) ($config['add_button_class'] ?? 'btn btn-secondary'));
+        $columns = is_array($config['columns'] ?? null) ? $config['columns'] : [];
+        $nested = (bool) ($config['nested'] ?? false);
+
+        if ($columns === []) {
+            $columns = [[
+                'name' => $name,
+                'label' => '',
+                'helper' => 'text',
+                'col' => 11,
+                'attribute' => $attribute,
+                'options' => [],
+                'search_bar' => false,
+                'version' => null,
+            ]];
+        }
+
+        $rows = [];
+
+        if (is_string($value) && trim($value) !== '') {
+            $decoded = json_decode($value, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $value = $decoded;
+            }
+        }
+
+        if (is_array($value)) {
+            $isAssoc = array_keys($value) !== range(0, count($value) - 1);
+
+            if ($nested && $isAssoc) {
+                $rows = $value;
+            } elseif (!$isAssoc) {
+                $rowIndex = 1;
+
+                foreach ($value as $item) {
+                    $rowKey = 'row_'.$rowIndex;
+
+                    if (is_array($item)) {
+                        $rows[$rowKey] = $item;
+                    } elseif (count($columns) === 1) {
+                        $firstColumn = $columns[0] ?? null;
+                        $firstColumnName = $firstColumn instanceof \Wonder\App\ResourceSchema\FormField
+                            ? (string) $firstColumn->name
+                            : (string) (($firstColumn['name'] ?? $name));
+
+                        $rows[$rowKey] = [
+                            $firstColumnName => $item,
+                        ];
+                    }
+
+                    $rowIndex++;
+                }
+            }
+        }
+
+        if ($rows === []) {
+            $rows['row_1'] = [];
+        }
+
+        $renderField = static function (mixed $column, array $rowValue = [], string $rowKey = '__ROW_KEY__') use ($name, $attribute, $nested): string {
+            if ($column instanceof \Wonder\App\ResourceSchema\FormField) {
+                $field = clone $column;
+                $columnName = trim((string) $field->name);
+                $fieldValue = $rowValue[$columnName] ?? $field->get('value');
+                $inputName = $nested
+                    ? "{$name}[{$rowKey}][{$columnName}]"
+                    : $columnName.'[]';
+                $field->inputName($inputName)->value($fieldValue);
+
+                return $field->render();
+            }
+
+            $column = is_array($column) ? $column : [];
+            $columnName = trim((string) ($column['name'] ?? $name));
+            $helper = trim((string) ($column['helper'] ?? 'text'));
+            $columnLabel = (string) ($column['label'] ?? '');
+            $columnAttribute = trim((string) (($column['attribute'] ?? '') ?: $attribute));
+            $columnOptions = is_array($column['options'] ?? null) ? $column['options'] : [];
+            $searchBar = (bool) ($column['search_bar'] ?? false);
+            $version = $column['version'] ?? null;
+            $fieldValue = $rowValue[$columnName] ?? ($column['value'] ?? null);
+            $fieldName = $nested
+                ? "{$name}[{$rowKey}][{$columnName}]"
+                : $columnName.'[]';
+
+            return match ($helper) {
+                'hidden' => "<input type='hidden' name='{$fieldName}' value='".htmlspecialchars((string) ($fieldValue ?? ''), ENT_QUOTES, 'UTF-8')."' {$columnAttribute}>",
+                'select' => select($columnLabel, $fieldName, $columnOptions, $version, $columnAttribute, $fieldValue),
+                'selectSearch' => selectSearch($columnLabel, $fieldName, $columnOptions, false, $version, $columnAttribute, $fieldValue),
+                'radio' => check($columnLabel, $fieldName, $columnOptions, $columnAttribute, 'radio', $searchBar, $fieldValue),
+                'textarea' => textarea($columnLabel, $fieldName, $columnAttribute, $version, $fieldValue),
+                'email' => email($columnLabel, $fieldName, $columnAttribute, $fieldValue),
+                'phone', 'tel' => phone($columnLabel, $fieldName, $columnAttribute, $fieldValue),
+                'number' => number($columnLabel, $fieldName, $columnAttribute, $fieldValue),
+                'price' => price($columnLabel, $fieldName, $columnAttribute, $fieldValue),
+                'percentige' => percentige($columnLabel, $fieldName, $columnAttribute, $fieldValue),
+                default => text($columnLabel, $fieldName, $columnAttribute, $fieldValue),
+            };
+        };
+
+        $renderRow = static function (array $rowValue = [], string $rowKey = '__ROW_KEY__', bool $template = false) use ($columns, $renderField): string {
+            $rowClass = $template ? ' d-none' : '';
+            $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$rowKey}\">";
+            $html .= '<div class="card border-0 bg-light-subtle">';
+            $html .= '<div class="card-body">';
+            $html .= '<div class="row g-2 align-items-start">';
+
+            foreach ($columns as $column) {
+                if ($column instanceof \Wonder\App\ResourceSchema\FormField) {
+                    $col = (int) (($column->columnSpan['default'] ?? null) ?: 11);
+                    $isHidden = ($column->get('helper') === 'hidden');
+                } else {
+                    $column = is_array($column) ? $column : [];
+                    $col = (int) ($column['col'] ?? 11);
+                    $isHidden = (($column['helper'] ?? 'text') === 'hidden');
+                }
+
+                if ($col <= 0 || $col > 12) {
+                    $col = 11;
+                }
+
+                if ($isHidden) {
+                    $html .= $renderField($column, $rowValue, $rowKey);
+                    continue;
+                }
+
+                $html .= "<div class=\"col-{$col}\">";
+                $html .= $renderField($column, $rowValue, $rowKey);
+                $html .= '</div>';
+            }
+
+            $html .= '<div class="col-1 d-flex align-items-stretch">';
+            $html .= '<button type="button" class="btn btn-danger w-100 wi-repeater-delete" onclick="wiRepeaterRemoveRow(this)"><i class="bi bi-trash3"></i></button>';
+            $html .= '</div>';
+            $html .= '</div>';
+            $html .= '</div>';
+            $html .= '</div>';
+            $html .= '</div>';
+
+            return $html;
+        };
+
+        $html = "<div id=\"{$id}\" class=\"w-100 wi-input-repeater\">";
+        $html .= "<h6>{$label}</h6>";
+        $html .= "<div id=\"{$rowId}\" class=\"row g-2\">";
+
+        foreach ($rows as $rowKey => $row) {
+            $html .= $renderRow(is_array($row) ? $row : [], (string) $rowKey, false);
+        }
+
+        $html .= '</div>';
+        $html .= "<template id=\"{$templateId}\">".$renderRow([], '__ROW_KEY__', true).'</template>';
+        $html .= '<div class="mt-2 d-flex justify-content-end">';
+        $html .= "<button type=\"button\" class=\"{$addButtonClass}\" onclick=\"wiRepeaterAddRow('{$rowId}', '{$templateId}')\"><i class=\"bi bi-plus-lg\"></i> {$addLabel}</button>";
+        $html .= '</div>';
+        $html .= "<script>
+            function wiRepeaterAddRow(containerId, templateId) {
+                const container = document.getElementById(containerId);
+                const template = document.getElementById(templateId);
+
+                if (!container || !template) {
+                    return;
+                }
+
+                const fragment = template.content.cloneNode(true);
+                const row = fragment.querySelector('.wi-repeater-row');
+                const rowKey = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+                if (row) {
+                    row.classList.remove('d-none');
+                    row.setAttribute('data-wi-row-key', rowKey);
+                }
+
+                fragment.querySelectorAll('[name]').forEach((input) => {
+                    input.name = input.name.replaceAll('__ROW_KEY__', rowKey);
+                });
+
+                fragment.querySelectorAll('[data-wi-row-key]').forEach((element) => {
+                    if (element.getAttribute('data-wi-row-key') === '__ROW_KEY__') {
+                        element.setAttribute('data-wi-row-key', rowKey);
+                    }
+                }
+
+                container.appendChild(fragment);
+            }
+
+            function wiRepeaterRemoveRow(button) {
+                const row = button.closest('.wi-repeater-row');
+                const container = row ? row.parentElement : null;
+
+                if (!row || !container) {
+                    return;
+                }
+
+                if (container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
+                    row.querySelectorAll('input, textarea, select').forEach((input) => {
+                        if (input.type === 'checkbox' || input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                    });
+
+                    return;
+                }
+
+                row.remove();
+            }
+        </script>";
+        $html .= '</div>';
+
+        return $html;
+
+    }
+
     function submit($label = 'Salva', $name = 'upload', $class = null, $onclick = null) {
 
         $id = strtolower(code(10, 'letters', 'input_'));

@@ -75,6 +75,18 @@ final class ResourcePageController
         }
 
         if (!empty($result->success)) {
+            $insertId = (int) ($result->insert_id ?? 0);
+
+            if ($insertId > 0) {
+                $this->resourceClass::syncRepeaterRelations(
+                    $insertId,
+                    $_POST,
+                    $_FILES,
+                    'store',
+                    'backend'
+                );
+            }
+
             $this->resourceClass::afterStore($result, $values);
             $this->redirectToConfiguredPage('store');
         }
@@ -124,6 +136,13 @@ final class ResourcePageController
         }
 
         if (!empty($result->success)) {
+            $this->resourceClass::syncRepeaterRelations(
+                $id,
+                $_POST,
+                $_FILES,
+                'update',
+                'backend'
+            );
             $this->resourceClass::afterUpdate($id, $result, $values);
             $this->redirectToConfiguredPage('update');
         }
@@ -160,7 +179,7 @@ final class ResourcePageController
         $tableName = $this->resourceClass::modelTable();
         LegacyGlobals::set('NAME', $this->presenter->legacyName());
         $requestValues = $this->resourceClass::mutateRequestValues(
-            $this->requestValues(),
+            $this->resourceClass::stripRelationInputValues($this->requestValues()),
             $oldValues === null ? 'store' : 'update',
             'backend',
             $oldValues

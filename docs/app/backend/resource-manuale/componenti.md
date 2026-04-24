@@ -40,6 +40,7 @@ Metodi utili:
 - `checkbox()`
 - `inputFile()`
 - `inputFileDragDrop()`
+- `repeater()`
 - `required()`
 - `label()`
 - `value()`
@@ -128,6 +129,101 @@ Metodi utili lato `dataSchema()`:
 - `reset()`
 - `resize([...])`
 - `webp()`
+
+## `repeater()`
+
+Per liste JSON semplici nel backend puoi usare un repeater nativo direttamente in `formSchema()`.
+
+Esempio:
+
+```php
+FormInput::key('allowed_domains')
+    ->repeater([
+        [
+            'name' => 'allowed_domains',
+            'label' => 'Dominio',
+            'helper' => 'text',
+            'col' => 11,
+        ],
+    ])
+    ->repeaterAddLabel('Aggiungi dominio')
+    ->label('Domini')
+```
+
+Questo pattern e' pensato per:
+
+- array JSON semplici
+- liste di stringhe
+- piccoli gruppi di righe ripetibili nel backend
+
+Per casi piu' complessi puoi usare la modalita' nested:
+
+```php
+FormInput::key('variants')
+    ->repeater([
+        RepeaterColumn::key('variant_id')->hidden(),
+        RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(6),
+        RepeaterColumn::key('image')->inputFileDragDrop('image')->label('Immagine')->columnSpan(5),
+    ])
+    ->nested()
+    ->label('Varianti')
+```
+
+Nel controller puoi poi leggere le righe con:
+
+```php
+\Wonder\App\Support\Repeater::rowsFromRequest('variants', $_POST, $_FILES);
+```
+
+Questo supporta gia':
+
+- piu' colonne per riga
+- campi hidden
+- upload per riga
+
+Il bottone di aggiunta:
+
+- e' sempre allineato a destra
+- puo' essere customizzato con `->repeaterAddLabel('Aggiungi dominio')`
+- puo' essere stilizzato con `->repeaterButtonClass('btn btn-dark')`
+
+Primo supporto relazionale 1:N:
+
+```php
+use Wonder\App\ResourceSchema\RepeaterRelation;
+
+FormInput::key('variants')
+    ->repeater([
+        RepeaterColumn::key('id')->hidden(),
+        RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(6),
+        RepeaterColumn::key('image')->inputFileDragDrop('image')->label('Immagine')->columnSpan(5),
+    ])
+    ->nested()
+    ->relation(
+        RepeaterRelation::make('products', 'variant_id')
+            ->positionKey('position')
+    )
+    ->repeaterAddLabel('Aggiungi variante')
+    ->label('Varianti');
+```
+
+Nel controller puoi poi sincronizzare le righe con:
+
+```php
+use Wonder\App\Support\Repeater;
+
+$rows = Repeater::rowsFromRequest('variants', $_POST, $_FILES);
+
+Repeater::syncRelatedRows(
+    RepeaterRelation::make('products', 'variant_id')->positionKey('position'),
+    $variantId,
+    $rows
+);
+```
+
+Se il repeater e' dichiarato dentro una `Resource` con `->relation(...)`, il CRUD backend/API standard lo sincronizza automaticamente dopo `store` e `update`.
+
+Il passo successivo resta la parte relazionale automatica, cioe' il salvataggio 1:N guidato dallo schema.
 
 Bridge SQL opzionale:
 

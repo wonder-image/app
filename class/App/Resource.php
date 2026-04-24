@@ -10,7 +10,9 @@ use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
+use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\ResourceSchema\TableLayoutSchema as ResourceTableLayoutSchema;
+use Wonder\App\Support\Repeater;
 use Wonder\Elements\Form\Form as BackendFormLayout;
 use Wonder\Backend\Support\ResourceTableRenderer;
 use Wonder\Backend\Table\Table as BackendTable;
@@ -193,6 +195,17 @@ abstract class Resource
         return $values;
     }
 
+    public static function prepareRepeaterRelationRow(
+        string $inputName,
+        array $payload,
+        array $row,
+        ?array $existingRow = null,
+        string $action = 'store',
+        string $context = 'backend'
+    ): array {
+        return $payload;
+    }
+
     public static function query(): Query
     {
         $modelClass = static::modelClass();
@@ -244,6 +257,70 @@ abstract class Resource
         } catch (Throwable) {
             return [];
         }
+    }
+
+    public static function repeaterRelations(): array
+    {
+        $relations = [];
+
+        foreach (static::safeFormFieldsByKey() as $key => $field) {
+            if (!is_object($field) || !method_exists($field, 'get')) {
+                continue;
+            }
+
+            $context = (array) ($field->get('context') ?? []);
+            $relation = $context['relation'] ?? null;
+
+            if ($relation instanceof RepeaterRelation) {
+                $relations[$key] = [
+                    'field' => $field,
+                    'relation' => $relation,
+                ];
+            }
+        }
+
+        return $relations;
+    }
+
+    public static function stripRelationInputValues(array $values): array
+    {
+        foreach (array_keys(static::repeaterRelations()) as $inputName) {
+            unset($values[$inputName]);
+        }
+
+        return $values;
+    }
+
+    public static function syncRepeaterRelations(
+        int|string $parentId,
+        array $post,
+        array $files = [],
+        string $action = 'store',
+        string $context = 'backend'
+    ): array {
+        $summary = [];
+
+        foreach (static::repeaterRelations() as $inputName => $entry) {
+            /** @var RepeaterRelation $relation */
+            $relation = $entry['relation'];
+            $rows = Repeater::rowsFromRequest($inputName, $post, $files);
+
+            $summary[$inputName] = Repeater::syncRelatedRows(
+                $relation,
+                $parentId,
+                $rows,
+                fn (array $payload, array $row, ?array $existingRow): array => static::prepareRepeaterRelationRow(
+                    $inputName,
+                    $payload,
+                    $row,
+                    $existingRow,
+                    $action,
+                    $context
+                )
+            );
+        }
+
+        return $summary;
     }
 
     public static function getInput(string $key): object

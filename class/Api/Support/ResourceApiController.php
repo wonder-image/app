@@ -81,6 +81,16 @@ final class ResourceApiController
             );
         }
 
+        if (isset($result->insert_id) && (int) $result->insert_id > 0) {
+            $this->resourceClass::syncRepeaterRelations(
+                (int) $result->insert_id,
+                $_POST,
+                $_FILES,
+                'store',
+                'api'
+            );
+        }
+
         $this->resourceClass::afterStore($result, $values);
 
         $item = [];
@@ -105,6 +115,14 @@ final class ResourceApiController
                 422
             );
         }
+
+        $this->resourceClass::syncRepeaterRelations(
+            $id,
+            $_POST,
+            $_FILES,
+            'update',
+            'api'
+        );
 
         $this->resourceClass::afterUpdate($id, $result, $values);
 
@@ -153,7 +171,12 @@ final class ResourceApiController
     {
         $tableName = $this->resourceClass::modelTable();
         $rawValues = $this->presenter->writableValues($this->requestValues($endpoint), $action);
-        $values = $this->resourceClass::mutateRequestValues($rawValues, $action, 'api', $oldValues);
+        $values = $this->resourceClass::mutateRequestValues(
+            $this->resourceClass::stripRelationInputValues($rawValues),
+            $action,
+            'api',
+            $oldValues
+        );
 
         LegacyGlobals::set('NAME', (object) [
             'table' => $tableName,

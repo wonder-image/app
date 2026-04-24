@@ -93,6 +93,13 @@ class FormField
         return $this;
     }
 
+    public function inputName(string $name): self
+    {
+        $this->name = trim($name);
+
+        return $this;
+    }
+
     public function options(array $options): self
     {
         $this->schema['options'] = $options;
@@ -186,6 +193,26 @@ class FormField
         return $this;
     }
 
+    public function nested(bool $nested = true): self
+    {
+        return $this->context('nested', $nested);
+    }
+
+    public function repeaterAddLabel(string $label): self
+    {
+        return $this->context('add_label', trim($label));
+    }
+
+    public function repeaterButtonClass(string $class): self
+    {
+        return $this->context('add_button_class', trim($class));
+    }
+
+    public function relation(object $relation): self
+    {
+        return $this->context('relation', $relation);
+    }
+
     public function storeAs(string $name): self
     {
         return $this->prepare('name', $name);
@@ -222,6 +249,13 @@ class FormField
     public function text(): self
     {
         $this->helper = 'text';
+
+        return $this;
+    }
+
+    public function hidden(): self
+    {
+        $this->helper = 'hidden';
 
         return $this;
     }
@@ -415,16 +449,28 @@ class FormField
         return $this;
     }
 
+    public function repeater(array $columns = []): self
+    {
+        $this->helper = 'inputRepeater';
+
+        if ($columns !== []) {
+            $this->context('columns', $columns);
+        }
+
+        return $this;
+    }
+
     public function render(?string $theme = null): string
     {
         $this->ensureHelperLoaded();
 
         $requiredHelper = match ($this->helper) {
             'radio' => 'check',
+            'hidden' => null,
             default => $this->helper,
         };
 
-        if (!function_exists($requiredHelper)) {
+        if ($requiredHelper !== null && !function_exists($requiredHelper)) {
             throw new RuntimeException("Helper form backend non disponibile: {$this->helper}()");
         }
 
@@ -447,6 +493,7 @@ class FormField
         $context = (array) ($this->schema['context'] ?? []);
 
         return match ($this->helper) {
+            'hidden' => "<input type='hidden' name='{$this->name}' value='".htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8')."' ".($attribute ?? '').">",
             'select' => select($label, $this->name, $options, $version, $attribute, $value),
             'selectSearch' => selectSearch($label, $this->name, $options, $multiple, $version, $attribute, $value),
             'radio' => check($label, $this->name, $options, $attribute, 'radio', $searchBar, $value),
@@ -458,6 +505,7 @@ class FormField
             'inputCountry' => inputCountry($label, $this->name, $value, $context['state_field'] ?? null, $attribute ?? ''),
             'inputStates' => inputStates($label, $this->name, $context['country'] ?? null, $value, $attribute ?? ''),
             'inputPhonePrefix' => inputPhonePrefix($label, $this->name, $value, $attribute ?? ''),
+            'inputRepeater' => inputRepeater($label, $this->name, $attribute, $value, $context),
             default => call_user_func($this->helper, $label, $this->name, $attribute, $value),
         };
     }
@@ -466,10 +514,11 @@ class FormField
     {
         $requiredHelper = match ($this->helper) {
             'radio' => 'check',
+            'hidden' => null,
             default => $this->helper,
         };
 
-        if (function_exists($requiredHelper)) {
+        if ($requiredHelper === null || function_exists($requiredHelper)) {
             return;
         }
 

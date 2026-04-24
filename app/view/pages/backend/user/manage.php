@@ -1,7 +1,5 @@
 <?php
 
-use Wonder\Plugin\Custom\Input\SortableInput;
-
 \Wonder\View\View::layout('backend.form');
 
 $selectedActive = (string) ($VALUES['active'] ?? 'true');
@@ -77,33 +75,11 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
 
                 <?php if (!empty($SHOW_API_FIELDS)) { ?>
                     <wi-card class="col-12">
-                        <?php
-                            $domains = new SortableInput(
-                                'allowed_domains',
-                                isset($VALUES['allowed_domains'])
-                                    ? array_map(static fn ($domain) => ['allowed_domains' => $domain], (array) json_decode((string) $VALUES['allowed_domains'], true))
-                                    : null
-                            );
-                            $domains->Title('Domini');
-                            $domains->Position(false);
-                            $domains->Column('allowed_domains', 'Dominio', 'text', null, 11);
-                            echo $domains->Generate();
-                        ?>
+                        <?=$renderInput('allowed_domains')?>
                     </wi-card>
 
                     <wi-card class="col-12">
-                        <?php
-                            $ips = new SortableInput(
-                                'allowed_ips',
-                                isset($VALUES['allowed_ips'])
-                                    ? array_map(static fn ($ip) => ['allowed_ips' => $ip], (array) json_decode((string) $VALUES['allowed_ips'], true))
-                                    : null
-                            );
-                            $ips->Title('Indirizzi IP');
-                            $ips->Position(false);
-                            $ips->Column('allowed_ips', 'Ip', 'text', null, 11);
-                            echo $ips->Generate();
-                        ?>
+                        <?=$renderInput('allowed_ips')?>
                     </wi-card>
                 <?php } ?>
 
