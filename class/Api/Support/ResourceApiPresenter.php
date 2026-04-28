@@ -125,15 +125,19 @@ final class ResourceApiPresenter
         $isList = array_keys($items) === range(0, count($items) - 1);
 
         if ($isList) {
-            return array_values(array_filter($items, 'is_array'));
+            return $this->resourceClass::appendRepeaterRelationsToCollection(
+                array_values(array_filter($items, 'is_array'))
+            );
         }
 
-        return [ $items ];
+        return [ $this->resourceClass::appendRepeaterRelationsToItem($items) ];
     }
 
     private function item(mixed $item): array
     {
-        return is_array($item) ? $item : [];
+        return is_array($item)
+            ? $this->resourceClass::appendRepeaterRelationsToItem($item)
+            : [];
     }
 
     private function normalizeErrors(array $errors): array

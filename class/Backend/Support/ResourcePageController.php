@@ -163,6 +163,13 @@ final class ResourcePageController
 
     private function renderForm(string $mode, array $values = [], array $errors = [], ?int $id = null): void
     {
+        $values = $this->resourceClass::hydrateRepeaterFormValues(
+            $values,
+            $id,
+            $_POST,
+            $_FILES
+        );
+
         View::make(
             $this->presenter->viewPath('form'),
             $this->presenter->form($mode, $values, $errors, $id)

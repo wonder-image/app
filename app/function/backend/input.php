@@ -2,6 +2,12 @@
 
     use Wonder\App\Support\CssFontFamily;
 
+    function backendInputEscape(mixed $value): string {
+
+        return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+
+    }
+
     function backendPageTableSchema(): array {
 
         global $NAME;
@@ -68,6 +74,8 @@
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
 
         return "
         <div>
@@ -91,6 +99,8 @@
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
 
         return "
         <div>
@@ -115,6 +125,8 @@
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($name === 'font_family') { $value = CssFontFamily::normalize($value); }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
 
         return "
         <div>
@@ -309,6 +321,8 @@
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
 
         return "
         <div>
@@ -332,6 +346,8 @@
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
 
         return "
         <div>
@@ -378,6 +394,8 @@
 
         if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
         if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
 
         return "
         <div>
@@ -1252,8 +1270,14 @@
         $templateId = $id.'-template';
         $addLabel = trim((string) ($config['add_label'] ?? 'Aggiungi linea'));
         $addButtonClass = trim((string) ($config['add_button_class'] ?? 'btn btn-secondary'));
+        $deleteModalTitle = trim((string) ($config['delete_modal_title'] ?? 'Conferma eliminazione'));
+        $deleteModalText = trim((string) ($config['delete_modal_text'] ?? "Confermi l'eliminazione della riga?"));
+        $deleteModalCancelLabel = trim((string) ($config['delete_modal_cancel_label'] ?? 'Annulla'));
+        $deleteModalConfirmLabel = trim((string) ($config['delete_modal_confirm_label'] ?? 'Elimina'));
+        $deleteModalConfirmClass = trim((string) ($config['delete_modal_confirm_class'] ?? 'btn btn-danger'));
         $columns = is_array($config['columns'] ?? null) ? $config['columns'] : [];
         $nested = (bool) ($config['nested'] ?? false);
+        $sortable = (bool) ($config['sortable'] ?? false);
 
         if ($columns === []) {
             $columns = [[
@@ -1352,7 +1376,7 @@
             };
         };
 
-        $renderRow = static function (array $rowValue = [], string $rowKey = '__ROW_KEY__', bool $template = false) use ($columns, $renderField): string {
+        $renderRow = static function (array $rowValue = [], string $rowKey = '__ROW_KEY__', bool $template = false) use ($columns, $renderField, $sortable, $deleteModalTitle, $deleteModalText, $deleteModalCancelLabel, $deleteModalConfirmLabel, $deleteModalConfirmClass): string {
             $rowClass = $template ? ' d-none' : '';
             $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$rowKey}\">";
             $html .= '<div class="card border-0 bg-light-subtle">';
@@ -1383,8 +1407,25 @@
                 $html .= '</div>';
             }
 
-            $html .= '<div class="col-1 d-flex align-items-stretch">';
-            $html .= '<button type="button" class="btn btn-danger w-100 wi-repeater-delete" onclick="wiRepeaterRemoveRow(this)"><i class="bi bi-trash3"></i></button>';
+            $actionColumnClass = $sortable ? 'col-3' : 'col-1';
+            $html .= "<div class=\"{$actionColumnClass} d-flex align-items-stretch\">";
+            $html .= '<div class="d-flex flex-row gap-2 w-100">';
+
+            if ($sortable) {
+                $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-up" onclick="window.wiRepeaterMoveRowUp(this)"><i class="bi bi-chevron-up"></i></button>';
+                $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-down" onclick="window.wiRepeaterMoveRowDown(this)"><i class="bi bi-chevron-down"></i></button>';
+            }
+
+            $deleteAttrs = sprintf(
+                ' data-wi-delete-title="%s" data-wi-delete-text="%s" data-wi-delete-cancel-label="%s" data-wi-delete-confirm-label="%s" data-wi-delete-confirm-class="%s"',
+                backendInputEscape($deleteModalTitle),
+                backendInputEscape($deleteModalText),
+                backendInputEscape($deleteModalCancelLabel),
+                backendInputEscape($deleteModalConfirmLabel),
+                backendInputEscape($deleteModalConfirmClass)
+            );
+            $html .= '<button type="button" class="btn btn-danger flex-fill wi-repeater-delete" onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
+            $html .= '</div>';
             $html .= '</div>';
             $html .= '</div>';
             $html .= '</div>';
@@ -1405,62 +1446,169 @@
         $html .= '</div>';
         $html .= "<template id=\"{$templateId}\">".$renderRow([], '__ROW_KEY__', true).'</template>';
         $html .= '<div class="mt-2 d-flex justify-content-end">';
-        $html .= "<button type=\"button\" class=\"{$addButtonClass}\" onclick=\"wiRepeaterAddRow('{$rowId}', '{$templateId}')\"><i class=\"bi bi-plus-lg\"></i> {$addLabel}</button>";
+        $html .= "<button type=\"button\" class=\"{$addButtonClass}\" onclick=\"window.wiRepeaterAddRow('{$rowId}', '{$templateId}')\"><i class=\"bi bi-plus-lg\"></i> {$addLabel}</button>";
         $html .= '</div>';
-        $html .= "<script>
-            function wiRepeaterAddRow(containerId, templateId) {
-                const container = document.getElementById(containerId);
-                const template = document.getElementById(templateId);
+        $html .= <<<'HTML'
+<script>
+    window.wiRepeaterAddRow = window.wiRepeaterAddRow || function (containerId, templateId) {
+        const container = document.getElementById(containerId);
+        const template = document.getElementById(templateId);
 
-                if (!container || !template) {
-                    return;
-                }
+        if (!container || !template) {
+            return;
+        }
 
-                const fragment = template.content.cloneNode(true);
-                const row = fragment.querySelector('.wi-repeater-row');
-                const rowKey = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        const fragment = template.content.cloneNode(true);
+        const row = fragment.querySelector('.wi-repeater-row');
+        const rowKey = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
-                if (row) {
-                    row.classList.remove('d-none');
-                    row.setAttribute('data-wi-row-key', rowKey);
-                }
+        if (row) {
+            row.classList.remove('d-none');
+            row.setAttribute('data-wi-row-key', rowKey);
+        }
 
-                fragment.querySelectorAll('[name]').forEach((input) => {
-                    input.name = input.name.replaceAll('__ROW_KEY__', rowKey);
+        fragment.querySelectorAll('[name]').forEach((input) => {
+            input.name = input.name.replaceAll('__ROW_KEY__', rowKey);
+        });
+
+        fragment.querySelectorAll('[data-wi-row-key]').forEach((element) => {
+            if (element.getAttribute('data-wi-row-key') === '__ROW_KEY__') {
+                element.setAttribute('data-wi-row-key', rowKey);
+            }
+        });
+
+        container.appendChild(fragment);
+    };
+
+    window.wiRepeaterEnsureDeleteModal = window.wiRepeaterEnsureDeleteModal || function (config = {}) {
+        let modalEl = document.getElementById('wi-repeater-delete-modal');
+
+        const defaults = {
+            title: "Conferma eliminazione",
+            text: "Confermi l'eliminazione della riga?",
+            cancelLabel: "Annulla",
+            confirmLabel: "Elimina",
+            confirmClass: "btn btn-danger",
+        };
+        const options = { ...defaults, ...config };
+
+        if (!modalEl) {
+            modalEl = document.createElement('div');
+            modalEl.id = 'wi-repeater-delete-modal';
+            modalEl.className = 'modal fade';
+            modalEl.tabIndex = -1;
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" data-wi-modal-title="true"></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-0" data-wi-modal-text="true"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-wi-modal-cancel="true"></button>
+                            <button type="button" data-wi-confirm-delete="true"></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modalEl);
+        }
+
+        modalEl.querySelector('[data-wi-modal-title="true"]').textContent = options.title;
+        modalEl.querySelector('[data-wi-modal-text="true"]').textContent = options.text;
+        modalEl.querySelector('[data-wi-modal-cancel="true"]').textContent = options.cancelLabel;
+
+        const confirmBtn = modalEl.querySelector('[data-wi-confirm-delete="true"]');
+        confirmBtn.textContent = options.confirmLabel;
+        confirmBtn.className = options.confirmClass;
+
+        return modalEl;
+    };
+
+    window.wiRepeaterConfirmDelete = window.wiRepeaterConfirmDelete || function (onConfirm, config = {}) {
+        if (!window.bootstrap || !window.bootstrap.Modal) {
+            const fallbackText = config.text || "Confermi l'eliminazione della riga?";
+
+            if (window.confirm(fallbackText)) {
+                onConfirm();
+            }
+
+            return;
+        }
+
+        const modalEl = window.wiRepeaterEnsureDeleteModal(config);
+        const confirmBtn = modalEl.querySelector('[data-wi-confirm-delete="true"]');
+        const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        confirmBtn.onclick = function () {
+            modal.hide();
+            onConfirm();
+        };
+
+        modal.show();
+    };
+
+    window.wiRepeaterRemoveRow = window.wiRepeaterRemoveRow || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        const container = row ? row.parentElement : null;
+
+        if (!row || !container) {
+            return;
+        }
+
+        const deleteConfig = {
+            title: button.getAttribute('data-wi-delete-title') || 'Conferma eliminazione',
+            text: button.getAttribute('data-wi-delete-text') || "Confermi l'eliminazione della riga?",
+            cancelLabel: button.getAttribute('data-wi-delete-cancel-label') || 'Annulla',
+            confirmLabel: button.getAttribute('data-wi-delete-confirm-label') || 'Elimina',
+            confirmClass: button.getAttribute('data-wi-delete-confirm-class') || 'btn btn-danger',
+        };
+
+        window.wiRepeaterConfirmDelete(function () {
+            if (container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
+                row.querySelectorAll('input, textarea, select').forEach((input) => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
                 });
 
-                fragment.querySelectorAll('[data-wi-row-key]').forEach((element) => {
-                    if (element.getAttribute('data-wi-row-key') === '__ROW_KEY__') {
-                        element.setAttribute('data-wi-row-key', rowKey);
-                    }
-                }
-
-                container.appendChild(fragment);
+                return;
             }
 
-            function wiRepeaterRemoveRow(button) {
-                const row = button.closest('.wi-repeater-row');
-                const container = row ? row.parentElement : null;
+            row.remove();
+        }, deleteConfig);
+    };
 
-                if (!row || !container) {
-                    return;
-                }
+    window.wiRepeaterMoveRowUp = window.wiRepeaterMoveRowUp || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        const previous = row ? row.previousElementSibling : null;
 
-                if (container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
-                    row.querySelectorAll('input, textarea, select').forEach((input) => {
-                        if (input.type === 'checkbox' || input.type === 'radio') {
-                            input.checked = false;
-                        } else {
-                            input.value = '';
-                        }
-                    });
+        if (!row || !previous) {
+            return;
+        }
 
-                    return;
-                }
+        row.parentElement.insertBefore(row, previous);
+    };
 
-                row.remove();
-            }
-        </script>";
+    window.wiRepeaterMoveRowDown = window.wiRepeaterMoveRowDown || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        const next = row ? row.nextElementSibling : null;
+
+        if (!row || !next) {
+            return;
+        }
+
+        row.parentElement.insertBefore(next, row);
+    };
+</script>
+HTML;
         $html .= '</div>';
 
         return $html;

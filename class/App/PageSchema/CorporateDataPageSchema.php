@@ -3,6 +3,7 @@
 namespace Wonder\App\PageSchema;
 
 use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\RepeaterColumn;
 
 final class CorporateDataPageSchema extends CustomPageSchema
 {
@@ -43,9 +44,9 @@ final class CorporateDataPageSchema extends CustomPageSchema
             'linkedin' => 'Linkedin',
             'whatsapp' => 'WhatsApp',
             'youtube' => 'Youtube',
-            'time-day' => 'Giorno',
-            'time-from' => 'Da (08:00)',
-            'time-to' => 'A (17:30)',
+            'day' => 'Giorno',
+            'from_time' => 'Da (08:00)',
+            'to_time' => 'A (17:30)',
         ];
     }
 
@@ -116,7 +117,7 @@ final class CorporateDataPageSchema extends CustomPageSchema
     public static function timetableFormSchema(): array
     {
         return static::applyLabelSchema([
-            'time-day' => FormInput::key('time-day')
+            'day' => FormInput::key('day')
                 ->select([
                     'Mon' => translateDate('Mon', 'day'),
                     'Tue' => translateDate('Tue', 'day'),
@@ -127,8 +128,39 @@ final class CorporateDataPageSchema extends CustomPageSchema
                     'Sun' => translateDate('Sun', 'day'),
                 ])
                 ->columnSpan(3),
-            'time-from' => FormInput::key('time-from')->text()->columnSpan(3),
-            'time-to' => FormInput::key('time-to')->text()->columnSpan(3),
+            'from_time' => FormInput::key('from_time')->text()->columnSpan(3),
+            'to_time' => FormInput::key('to_time')->text()->columnSpan(3),
         ]);
+    }
+
+    public static function timetableRepeaterField(): object
+    {
+        return FormInput::key('timetables')
+            ->repeater([
+                RepeaterColumn::key('id')->hidden(),
+                RepeaterColumn::key('day')
+                    ->select([
+                        'Mon' => translateDate('Mon', 'day'),
+                        'Tue' => translateDate('Tue', 'day'),
+                        'Wed' => translateDate('Wed', 'day'),
+                        'Thu' => translateDate('Thu', 'day'),
+                        'Fri' => translateDate('Fri', 'day'),
+                        'Sat' => translateDate('Sat', 'day'),
+                        'Sun' => translateDate('Sun', 'day'),
+                    ])
+                    ->label('Giorno')
+                    ->columnSpan(4),
+                RepeaterColumn::key('from_time')->text()->label('Da (08:00)')->columnSpan(3),
+                RepeaterColumn::key('to_time')->text()->label('A (17:30)')->columnSpan(4),
+            ])
+            ->nested()
+            ->repeaterSortable()
+            ->repeaterAddLabel('Aggiungi orario')
+            ->repeaterDeleteTitle('Elimina orario')
+            ->repeaterDeleteText('Confermi l\'eliminazione di questo orario?')
+            ->repeaterDeleteCancelLabel('Annulla')
+            ->repeaterDeleteConfirmLabel('Elimina orario')
+            ->repeaterDeleteConfirmClass('btn btn-danger')
+            ->label('Orari');
     }
 }

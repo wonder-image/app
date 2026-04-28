@@ -700,7 +700,11 @@ Serve come riferimento reale per:
 - `configuration-file` e' stato migrato come resource speciale con model astratto, route custom e pagina dedicata in [configuration-file.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/configuration-file.php)
 - `sql-download` e' stato migrato a route/handler/view nuove in [sql-download.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/sql-download.php)
 - `corporate-data` e' stato migrato a route/handler/view nuove in [corporate-data.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/corporate-data.php), con 4 model reali al posto di `build/table/society.php`
+- il blocco `account` usa ora solo `app/http/backend/account/*` e `app/view/pages/backend/account/*`
+- `build/src/backend/index.php` e `build/src/backend/home/index.php` sono stati rimossi
 - `build/src/backend/app/config/configuration-file/index.php` e' stato rimosso
+- `build/src/backend/account/*` e' stato rimosso
+- le vecchie `list.php` legacy di `user`, `api-users`, `auth-users`, `consent`, `email` sono state rimosse
 - `app/media/upload-massive` resta una utility legacy separata, ma prepara i file usando le `Resource`
 
 Note tecniche recenti:
@@ -712,5 +716,12 @@ Note tecniche recenti:
 - `SortableInput` resta temporaneamente attivo per compatibilita' ma va sostituito con un layer piu' strutturato, soprattutto nei casi `variants/products`, `allowed_domains`, `allowed_ips` e upload multipli per riga
 - il primo step del nuovo layer e' attivo: `FormInput::repeater()` sostituisce gia' `SortableInput` nei casi JSON semplici, a partire da `api-users` (`allowed_domains`, `allowed_ips`)
 - il secondo step e' attivo: `RepeaterColumn` + `nested()` + `Wonder\App\Support\Repeater::rowsFromRequest()` coprono gia' righe multi-colonna, hidden/id e upload per riga
+- il repeater supporta ora anche l'ordinamento lato UI con `->repeaterSortable()`, utile quando la relazione usa `positionKey()`
+- il repeater supporta una conferma eliminazione con modale Bootstrap customizzabile da schema (`repeaterDeleteTitle/Text/CancelLabel/ConfirmLabel/ConfirmClass`)
 - il terzo step e' avviato: `RepeaterRelation` + `Wonder\App\Support\Repeater::syncRelatedRows()` introducono il primo layer generico di persistenza 1:N, con supporto a update, insert, soft delete e position
+- il preload del repeater e' ora automatico nel CRUD resource: in caso di errore ricostruisce le righe dal request, e in `edit` puo' caricare anche le righe figlie della relazione
+- anche l'API resource standard e' ora allineata: le relation rows possono essere sincronizzate da payload strutturati e vengono restituite automaticamente in `show/index`
+- il primo caso reale 1:N e' ora impostato su `corporate-data`: gli orari possono vivere nella nuova tabella `society_timetable`, con fallback al JSON legacy `society_address.timetable` finche' lo schema non viene aggiornato
 - il CRUD backend/API standard ora esclude automaticamente i repeater relazionali dal payload principale e li sincronizza dopo `store/update`
+- il primo uso reale del nuovo repeater e' gia' attivo in `corporate-data`, dove il blocco orari non usa piu' `SortableInput`
+- `RepeaterRelation` puo' ora agganciarsi a `Model` o `Resource` del figlio, cosi' il sync usa automaticamente `dataSchema()` / `prepareSchema()` anche per upload e normalizzazioni delle righe correlate

@@ -84,7 +84,7 @@ final class ResourceApiController
         if (isset($result->insert_id) && (int) $result->insert_id > 0) {
             $this->resourceClass::syncRepeaterRelations(
                 (int) $result->insert_id,
-                $_POST,
+                $this->requestValues($endpoint),
                 $_FILES,
                 'store',
                 'api'
@@ -118,7 +118,7 @@ final class ResourceApiController
 
         $this->resourceClass::syncRepeaterRelations(
             $id,
-            $_POST,
+            $this->requestValues($endpoint),
             $_FILES,
             'update',
             'api'

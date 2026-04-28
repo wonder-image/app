@@ -36,7 +36,7 @@
         
     class Dependencies {
 
-        public static $endpoint = APP_URL.'/node_modules/wonder-image';
+        public static $endpoint = APP_URL.'/assets/lib/wonder-image';
 
         public static array $dependencies = [
             'jquery' => [

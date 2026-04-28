@@ -186,6 +186,13 @@ Il bottone di aggiunta:
 - e' sempre allineato a destra
 - puo' essere customizzato con `->repeaterAddLabel('Aggiungi dominio')`
 - puo' essere stilizzato con `->repeaterButtonClass('btn btn-dark')`
+- puo' essere ordinabile con `->repeaterSortable()`
+- la conferma eliminazione puo' essere customizzata con:
+  - `->repeaterDeleteTitle('Elimina riga')`
+  - `->repeaterDeleteText('Confermi l\\'eliminazione di questa riga?')`
+  - `->repeaterDeleteCancelLabel('Annulla')`
+  - `->repeaterDeleteConfirmLabel('Elimina')`
+  - `->repeaterDeleteConfirmClass('btn btn-danger')`
 
 Primo supporto relazionale 1:N:
 
@@ -199,6 +206,7 @@ FormInput::key('variants')
         RepeaterColumn::key('image')->inputFileDragDrop('image')->label('Immagine')->columnSpan(5),
     ])
     ->nested()
+    ->repeaterSortable()
     ->relation(
         RepeaterRelation::make('products', 'variant_id')
             ->positionKey('position')
@@ -222,6 +230,37 @@ Repeater::syncRelatedRows(
 ```
 
 Se il repeater e' dichiarato dentro una `Resource` con `->relation(...)`, il CRUD backend/API standard lo sincronizza automaticamente dopo `store` e `update`.
+
+In piu', durante il render del form:
+
+- se la request corrente contiene il repeater, le righe vengono ricostruite automaticamente da `$_POST` / `$_FILES`
+- se il repeater ha `->relation(...)` ed e' in `edit`, le righe figlie vengono caricate automaticamente dalla tabella relazionata
+- nelle API standard `show` e `index`, se la resource usa `->relation(...)`, le righe figlie vengono aggiunte automaticamente al payload
+
+Per far usare automaticamente al figlio il suo `dataSchema()` / `prepareSchema()` puoi dichiarare anche:
+
+```php
+RepeaterRelation::make('products', 'variant_id')
+    ->model(\Wonder\App\Models\Ecommerce\Product::class)
+```
+
+oppure, se il figlio ha gia' una resource dedicata:
+
+```php
+RepeaterRelation::make('products', 'variant_id')
+    ->resource(\Wonder\App\Resources\Ecommerce\ProductResource::class)
+```
+
+Questo serve soprattutto quando la riga figlia contiene:
+
+- upload file o image
+- normalizzazioni `slug/code/json/date`
+- regole prepare custom del figlio
+
+Primo uso reale nel progetto:
+
+- `corporate-data` usa gia' il nuovo repeater per gli orari (`timetable`), senza passare da `SortableInput`
+- `corporate-data` e' anche il primo caso reale predisposto per una relazione 1:N vera (`society_timetable`), con fallback al JSON legacy finche' la tabella non viene creata
 
 Il passo successivo resta la parte relazionale automatica, cioe' il salvataggio 1:N guidato dallo schema.
 

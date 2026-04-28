@@ -1,5 +1,6 @@
 {
     "name": "wonder-image/app",
+    "version": "2.1.0",
     "description": "Wonder Image Framework",
     "homepage": "https://www.wonderimage.it/",
     "keywords": [ "framework",  "Wonder Image", "Wonderimage" ],

@@ -2,10 +2,17 @@
 
 namespace Wonder\App\Support;
 
+use Wonder\App\LegacyGlobals;
 use Wonder\App\ResourceSchema\RepeaterRelation;
+use Wonder\App\Table;
 
 final class Repeater
 {
+    public static function hasRowsInRequest(string $name, array $post, array $files = []): bool
+    {
+        return is_array($post[$name] ?? null) || is_array($files[$name]['name'] ?? null);
+    }
+
     public static function rowsFromRequest(string $name, array $post, array $files = []): array
     {
         $rows = is_array($post[$name] ?? null) ? $post[$name] : [];
@@ -24,6 +31,32 @@ final class Repeater
         return array_values(array_filter(
             $rows,
             static fn ($row) => is_array($row) && !static::isEmptyRow($row)
+        ));
+    }
+
+    public static function loadRelatedRows(
+        RepeaterRelation $relation,
+        int|string $parentId
+    ): array {
+        $condition = [$relation->parentKey => $parentId];
+
+        if ($relation->softDelete) {
+            $condition[$relation->deletedColumn] = 'false';
+        }
+
+        $result = sqlSelect(
+            $relation->table,
+            $condition,
+            null,
+            $relation->positionKey ?? null,
+            $relation->positionKey !== null ? 'ASC' : null
+        );
+
+        $rows = is_array($result->row ?? null) ? $result->row : [];
+
+        return array_values(array_filter(
+            $rows,
+            static fn ($row) => is_array($row)
         ));
     }
 
@@ -139,6 +172,12 @@ final class Repeater
                 );
             }
 
+            $payload = static::preparePayload(
+                $relation,
+                $payload,
+                $hasId ? ($existingById[(string) $rawId] ?? null) : null
+            );
+
             unset($payload[$rowKey]);
 
             if ($hasId) {
@@ -172,6 +211,41 @@ final class Repeater
         }
 
         return $summary;
+    }
+
+    private static function preparePayload(
+        RepeaterRelation $relation,
+        array $payload,
+        ?array $existingRow = null
+    ): array {
+        $schemaName = trim((string) ($relation->schemaName ?? ''));
+        $prepareTable = trim((string) ($relation->prepareTable ?? $relation->table));
+        $folder = trim((string) ($relation->folder ?? ''), '/');
+        $previousName = LegacyGlobals::get('NAME');
+
+        $prepared = $payload;
+
+        if ($schemaName !== '' && array_key_exists($schemaName, Table::$list)) {
+            LegacyGlobals::set('NAME', (object) [
+                'table' => $prepareTable,
+                'folder' => $folder,
+                'schema' => $schemaName,
+            ]);
+
+            $prepared = Table::key($schemaName)->prepareFor($prepareTable, $payload, $existingRow);
+        } elseif ($prepareTable !== '' && array_key_exists($prepareTable, Table::$list)) {
+            LegacyGlobals::set('NAME', (object) [
+                'table' => $prepareTable,
+                'folder' => $folder,
+                'schema' => $prepareTable,
+            ]);
+
+            $prepared = Table::key($prepareTable)->prepare($payload, $existingRow);
+        }
+
+        LegacyGlobals::set('NAME', $previousName);
+
+        return $prepared;
     }
 
     private static function isEmptyRow(array $row): bool

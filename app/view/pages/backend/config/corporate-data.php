@@ -19,22 +19,6 @@ $renderInput = static function (array $schema, string $key, array $values = [], 
 
     return '';
 };
-
-$sortableInputSchema = [];
-
-foreach ((array) ($TIMETABLE_FORM_SCHEMA ?? []) as $item) {
-    if (!is_object($item) || !property_exists($item, 'name')) {
-        continue;
-    }
-
-    $sortableInputSchema[$item->name] = [
-        'label' => (string) ($item->get('label') ?? ucfirst((string) $item->name)),
-        'type' => (string) ($item->get('helper') ?? 'text'),
-        'option' => (array) ($item->get('options') ?? []),
-        'attribute' => (string) ($item->get('attribute') ?? ''),
-        'col' => (int) (($item->columnSpan['default'] ?? 3) ?: 3),
-    ];
-}
 ?>
 
 <form class="col-12" action="<?=htmlspecialchars(__r('backend.config.corporate-data'), ENT_QUOTES, 'UTF-8')?>" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
@@ -159,7 +143,10 @@ foreach ((array) ($TIMETABLE_FORM_SCHEMA ?? []) as $item) {
                 </wi-card>
 
                 <wi-card class="col-12">
-                    <?=sortableInput('Orari', 'list-copy', $sortableInputSchema, $TIMETABLES ?? [])?>
+                    <?php if (isset($TIMETABLE_REPEATER_FIELD) && is_object($TIMETABLE_REPEATER_FIELD)) { ?>
+                        <?php $timetableField = clone $TIMETABLE_REPEATER_FIELD; ?>
+                        <?=$timetableField->value((array) ($TIMETABLES ?? []))->render()?>
+                    <?php } ?>
                 </wi-card>
 
             </div>

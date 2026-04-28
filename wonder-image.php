@@ -40,7 +40,7 @@
     $ROOT = wonder_resolve_root();
     $GLOBALS['ROOT'] = $ROOT;
 
-    $APP_VERSION = "2.0.0";
+    $APP_VERSION = "2.1.0";
     $ROOT_APP = __DIR__."/app";
     $ROOT_RESOURCES = __DIR__."/resources";
 

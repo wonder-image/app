@@ -323,6 +323,75 @@ abstract class Resource
         return $summary;
     }
 
+    public static function appendRepeaterRelationsToItem(array $item): array
+    {
+        $parentId = $item['id'] ?? null;
+
+        if ($parentId === null || $parentId === '') {
+            return $item;
+        }
+
+        foreach (static::repeaterRelations() as $inputName => $entry) {
+            /** @var RepeaterRelation $relation */
+            $relation = $entry['relation'];
+            $item[$inputName] = Repeater::loadRelatedRows($relation, $parentId);
+        }
+
+        return $item;
+    }
+
+    public static function appendRepeaterRelationsToCollection(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $key => $item) {
+            $normalized[$key] = is_array($item)
+                ? static::appendRepeaterRelationsToItem($item)
+                : $item;
+        }
+
+        return $normalized;
+    }
+
+    public static function hydrateRepeaterFormValues(
+        array $values,
+        int|string|null $parentId = null,
+        ?array $post = null,
+        ?array $files = null
+    ): array {
+        $post ??= [];
+        $files ??= [];
+
+        $relationMap = static::repeaterRelations();
+
+        foreach (static::safeFormFieldsByKey() as $inputName => $field) {
+            if (!is_object($field) || !method_exists($field, 'get')) {
+                continue;
+            }
+
+            if ($field->get('helper') !== 'inputRepeater') {
+                continue;
+            }
+
+            if (Repeater::hasRowsInRequest($inputName, $post, $files)) {
+                $values[$inputName] = Repeater::rowsFromRequest($inputName, $post, $files);
+                continue;
+            }
+
+            $relation = $relationMap[$inputName]['relation'] ?? null;
+
+            if (
+                $relation instanceof RepeaterRelation
+                && ($parentId !== null && $parentId !== '' && (int) $parentId > 0)
+                && !array_key_exists($inputName, $values)
+            ) {
+                $values[$inputName] = Repeater::loadRelatedRows($relation, $parentId);
+            }
+        }
+
+        return $values;
+    }
+
     public static function getInput(string $key): object
     {
         foreach (static::formFields() as $item) {

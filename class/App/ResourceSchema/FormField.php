@@ -208,6 +208,36 @@ class FormField
         return $this->context('add_button_class', trim($class));
     }
 
+    public function repeaterDeleteTitle(string $title): self
+    {
+        return $this->context('delete_modal_title', trim($title));
+    }
+
+    public function repeaterDeleteText(string $text): self
+    {
+        return $this->context('delete_modal_text', trim($text));
+    }
+
+    public function repeaterDeleteCancelLabel(string $label): self
+    {
+        return $this->context('delete_modal_cancel_label', trim($label));
+    }
+
+    public function repeaterDeleteConfirmLabel(string $label): self
+    {
+        return $this->context('delete_modal_confirm_label', trim($label));
+    }
+
+    public function repeaterDeleteConfirmClass(string $class): self
+    {
+        return $this->context('delete_modal_confirm_class', trim($class));
+    }
+
+    public function repeaterSortable(bool $sortable = true): self
+    {
+        return $this->context('sortable', $sortable);
+    }
+
     public function relation(object $relation): self
     {
         return $this->context('relation', $relation);
