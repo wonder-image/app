@@ -98,10 +98,45 @@ Le credenziali admin MySQL servono solo per il provisioning e non vengono salvat
 ## 6) Differenza tra `db:init` e `start`
 
 - `php forge db:init` prepara `.env` e fa il provisioning esplicito del database locale
-- `php forge start` completa solo i valori locali non critici, verifica la connessione DB e avvia il server PHP
+- `php forge start` completa solo i valori locali non critici, verifica la connessione DB e usa Laravel Herd se disponibile, altrimenti fa fallback al server PHP integrato
 - se il DB manca o l’accesso viene negato, `php forge start` suggerisce di eseguire `php forge db:init`
 
 ## 7) Avvio semplice con Forge
+
+### Requisiti Herd
+
+Secondo la documentazione ufficiale di Laravel Herd:
+
+- Herd richiede macOS 12.0 o superiore
+- l'onboarding installa un servizio di background che richiede permessi admin
+- Herd include PHP, nginx, dnsmasq e Node.js
+- dopo l'installazione devono essere disponibili da terminale: `herd`, `php`, `composer`, `laravel`, `node`
+
+Per questo progetto conviene avere anche:
+
+- MySQL o MariaDB locale se usi `php forge db:init`
+- accesso al certificato locale `.test` se vuoi usare HTTPS con webhook, login OAuth o callback esterne
+
+### Installare Herd
+
+1. Scarica Herd da [herd.laravel.com](https://herd.laravel.com/docs/1/getting-started/installation)
+2. Apri il file `.dmg`
+3. Trascina Herd in `Applications`
+4. Avvia Herd e completa l'onboarding
+5. Verifica da terminale:
+
+```bash
+herd --version
+php --version
+composer --version
+node --version
+```
+
+Se usi una shell diversa o il binario non è nel `PATH`, verifica che esista:
+
+```bash
+~/Library/Application\ Support/Herd/bin/herd
+```
 
 Dal root del progetto (`new-site-php84-sf8`):
 
@@ -110,22 +145,61 @@ php forge start
 ```
 
 Il comando:
-- avvia server PHP locale
+- usa Herd su `https://APP_DOMAIN.test` se il comando `herd` e' disponibile
+- esegue `herd link APP_DOMAIN`
+- esegue `herd secure APP_DOMAIN`
+- esegue `herd isolate {PHP_VERSION}` usando `--php-version` se passato, altrimenti la major.minor del PHP corrente
+- sincronizza automaticamente `WonderValetDriver.php` nella configurazione globale di Herd, cosi' le route dinamiche vengono inoltrate a `handler/index.php`
+- in fallback avvia il server PHP locale su `http://127.0.0.1:8088`
 - gestisce route directory (`/backend/`)
 - abilita `/update/` anche in sviluppo locale
-- sincronizza `APP_DOMAIN` dalla cartella progetto e `APP_URL` con host/porta locali
+- sincronizza `APP_DOMAIN` dalla cartella progetto in formato kebab-case senza punti
+- sincronizza `APP_URL` con `https://APP_DOMAIN.test` su Herd oppure con host/porta locali in fallback
 - completa automaticamente `.env` per gli altri valori locali non DB critici (`APP_KEY`, `USER_PASSWORD`)
 - fa un check DB iniziale
 
+Puoi forzare il driver o la versione PHP:
+
+```bash
+php forge start --driver=herd --php-version=8.4
+php forge start --driver=php
+```
+
 ## 8) URL utili
 
-- Home: `http://127.0.0.1:8088/`
-- Backend: `http://127.0.0.1:8088/backend/`
-- Login backend: `http://127.0.0.1:8088/backend/account/login/`
-- Update (safe, senza side-effect): `http://127.0.0.1:8088/update/`
-- Esegui update: `http://127.0.0.1:8088/update/run/`
+- Home: `https://new-site.test/` con Herd, altrimenti `http://127.0.0.1:8088/`
+- Backend: `https://new-site.test/backend/` con Herd, altrimenti `http://127.0.0.1:8088/backend/`
+- Login backend: `https://new-site.test/backend/account/login/` con Herd, altrimenti `http://127.0.0.1:8088/backend/account/login/`
+- Update (safe, senza side-effect): `https://new-site.test/update/` con Herd, altrimenti `http://127.0.0.1:8088/update/`
+- Esegui update: `https://new-site.test/update/run/` con Herd, altrimenti `http://127.0.0.1:8088/update/run/`
 
-## 9) Vedere il DB in modo chiaro (CLI)
+## 9) Routing con Herd
+
+Con Herd il progetto non passa dal router temporaneo di `php -S`, quindi le route nuove devono entrare da:
+
+```text
+handler/index.php
+```
+
+Per questo Wonder genera automaticamente nel root del progetto:
+
+```text
+~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php
+```
+
+Quel driver:
+
+- lascia invariati file statici e pagine fisiche
+- inoltra le route dinamiche (`/backend/...`, `/api/...`, pagine router) a `handler/index.php`
+
+Se il routing sotto Herd smette di funzionare, il primo controllo da fare e':
+
+```bash
+ls ~/Library/Application\\ Support/Herd/config/valet/Drivers/WonderValetDriver.php
+php forge start
+```
+
+## 10) Vedere il DB in modo chiaro (CLI)
 
 Connessione:
 
@@ -141,7 +215,7 @@ DESCRIBE security;
 SELECT id, mail_host, stripe_test FROM security LIMIT 20;
 ```
 
-## 10) Nota su `/update/`
+## 11) Nota su `/update/`
 
 Se avvii con `php -S` senza router custom, `/update/` potrebbe non funzionare.
 Con `php forge start` la route viene gestita automaticamente.

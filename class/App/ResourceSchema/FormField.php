@@ -25,6 +25,7 @@ class FormField
         'uploader' => 'classic',
         'date_min' => null,
         'date_max' => null,
+        'time_step' => null,
         'error' => '',
         'prepare' => [],
         'context' => [],
@@ -150,6 +151,13 @@ class FormField
     public function dateMax(?string $dateMax): self
     {
         $this->schema['date_max'] = $dateMax;
+
+        return $this;
+    }
+
+    public function timeStep(?int $timeStep): self
+    {
+        $this->schema['time_step'] = $timeStep;
 
         return $this;
     }
@@ -316,6 +324,14 @@ class FormField
         $this->helper = 'dateInput';
         $this->dateMin($dateMin);
         $this->dateMax($dateMax);
+
+        return $this;
+    }
+
+    public function timeInput(?int $step = 900): self
+    {
+        $this->helper = 'timeInput';
+        $this->timeStep($step);
 
         return $this;
     }
@@ -520,6 +536,7 @@ class FormField
         $multiple = (bool) ($this->schema['multiple'] ?? false);
         $dateMin = $this->schema['date_min'] ?? null;
         $dateMax = $this->schema['date_max'] ?? null;
+        $timeStep = $this->schema['time_step'] ?? null;
         $context = (array) ($this->schema['context'] ?? []);
 
         return match ($this->helper) {
@@ -529,6 +546,7 @@ class FormField
             'radio' => check($label, $this->name, $options, $attribute, 'radio', $searchBar, $value),
             'textarea' => textarea($label, $this->name, $attribute, $version, $value),
             'dateInput' => dateInput($label, $this->name, $dateMin, $dateMax, $attribute, $value),
+            'timeInput' => timeInput($label, $this->name, $timeStep, $attribute, $value),
             'dateRange' => dateRange($label, $this->name, $dateMin, $dateMax, $attribute, $value),
             'inputFile' => inputFile($label, $this->name, $file, $attribute, $value),
             'inputFileDragDrop' => inputFileDragDrop($label, $this->name, $uploader, $file, $attribute, $value),

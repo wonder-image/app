@@ -95,7 +95,10 @@ Fa questo:
 
 - completa automaticamente `.env` solo per i valori locali non DB critici
 - controlla la connessione DB
-- avvia il server PHP integrato
+- usa Laravel Herd se disponibile e pubblica il sito su `https://APP_DOMAIN.test`
+- esegue `herd link`, `herd secure` e `herd isolate`
+- sincronizza `WonderValetDriver.php` nella configurazione globale di Herd per fare routing corretto sotto Herd
+- in fallback avvia il server PHP integrato
 - espone i path compatibili con il progetto
 
 Se il DB manca o l’utente applicativo non ha accesso, suggerisce di eseguire `php forge db:init`.
@@ -104,6 +107,54 @@ Uso tipico:
 
 ```bash
 php forge start
+```
+
+Quando il progetto nasce da una cartella come `new.site` o `New Site`, il bootstrap locale normalizza automaticamente `APP_DOMAIN` in `new-site`.
+
+### Routing locale con Herd
+
+Herd usa il proprio driver PHP locale. Per questo i progetti Wonder sincronizzano un driver globale in:
+
+```text
+~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php
+```
+
+Il file viene generato automaticamente da:
+
+- `php forge start`
+- `php forge update --local`
+
+Il driver inoltra le route dinamiche al front controller:
+
+```text
+handler/index.php
+```
+
+cosi' `/backend/...`, `/api/...` e le pagine router funzionano anche fuori dal router temporaneo di `php -S`.
+
+### Requisiti ambiente locale consigliati
+
+- macOS 12.0 o superiore per usare Herd
+- Herd installato e avviato almeno una volta
+- permessi admin concessi durante l'onboarding di Herd per i suoi servizi locali
+- MySQL o MariaDB locale se il progetto usa `php forge db:init`
+- supporto HTTPS locale `.test` se il progetto usa callback, webhook o endpoint che richiedono richieste sicure
+
+### Installare Herd
+
+Riferimento ufficiale: [Laravel Herd Installation](https://herd.laravel.com/docs/1/getting-started/installation)
+
+1. Scarica Herd
+2. Apri il `.dmg`
+3. Sposta l'app in `Applications`
+4. Avvia Herd e completa l'onboarding
+5. Verifica da terminale:
+
+```bash
+herd --version
+php --version
+composer --version
+node --version
 ```
 
 ## Struttura file aggiornata

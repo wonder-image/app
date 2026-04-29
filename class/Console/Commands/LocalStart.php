@@ -18,6 +18,8 @@ class LocalStart extends LocalEnvironmentCommand
             ->setName($this->name)
             ->setAliases(['local:start'])
             ->setDescription('Avvia il progetto in locale con routing compatibile (/, /backend/, /api/).')
+            ->addOption('driver', null, InputOption::VALUE_REQUIRED, 'Driver locale: auto, herd, php', 'auto')
+            ->addOption('php-version', null, InputOption::VALUE_REQUIRED, 'Versione PHP da isolare con Herd (es. 8.4)')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Host server locale', '127.0.0.1')
             ->addOption('port', null, InputOption::VALUE_REQUIRED, 'Porta server locale', '8088')
             ->addOption('docroot', null, InputOption::VALUE_REQUIRED, 'Document root del progetto', '.');
@@ -26,9 +28,23 @@ class LocalStart extends LocalEnvironmentCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $cwd = getcwd() ?: '.';
+        $driver = strtolower(trim((string) $input->getOption('driver')));
         $host = trim((string) $input->getOption('host'));
         $port = (int) $input->getOption('port');
         $docroot = $this->resolveDocroot($cwd, (string) $input->getOption('docroot'));
+        $runtimeDriver = $this->resolveLocalRuntimeDriver($driver);
+        $phpVersion = trim((string) $input->getOption('php-version'));
+
+        if ($runtimeDriver === 'invalid') {
+            $output->writeln('<error>❌ Driver non valido. Usa auto, herd oppure php.</error>');
+            return Command::FAILURE;
+        }
+
+        if ($runtimeDriver === 'missing-herd') {
+            $output->writeln('<error>❌ Laravel Herd non installato o non disponibile nel PATH.</error>');
+            $output->writeln('<comment>ℹ️ Installa/configura Herd oppure usa `php forge start --driver=php`.</comment>');
+            return Command::FAILURE;
+        }
 
         if ($host === '') {
             $output->writeln('<error>❌ Host non valido.</error>');
@@ -50,21 +66,43 @@ class LocalStart extends LocalEnvironmentCommand
             return Command::FAILURE;
         }
 
-        if (!$this->ensureEnv($cwd, $host, $port, $output)) {
+        if (!$this->ensureEnv($cwd, $host, $port, $runtimeDriver, $output)) {
             return Command::FAILURE;
         }
 
         $this->loadEnv($cwd);
-        $this->printEnvHints($output, $host, $port);
+        $appDomain = $this->normalizeProjectSlug((string) ($_ENV['APP_DOMAIN'] ?? ''));
+        $url = $this->resolveLocalAppUrl($appDomain !== '' ? $appDomain : $this->defaultAppDomain($cwd), $host, $port, $runtimeDriver);
+
+        $this->printEnvHints($output, $url);
         $this->checkDatabase($output);
 
-        $routerPath = $this->createRouter($docroot);
-        if ($routerPath === null) {
-            $output->writeln('<error>❌ Impossibile creare il router locale temporaneo.</error>');
-            return Command::FAILURE;
-        }
+        if ($runtimeDriver === 'herd') {
+            if ($appDomain === '') {
+                $output->writeln('<error>❌ APP_DOMAIN non valido per Herd.</error>');
+                return Command::FAILURE;
+            }
 
-        $url = $this->buildLocalAppUrl($host, $port);
+            if (!$this->ensureHerdDriver($output)) {
+                return Command::FAILURE;
+            }
+
+            if (!$this->ensureHerdSite($cwd, $appDomain, $phpVersion, $output)) {
+                return Command::FAILURE;
+            }
+
+            $output->writeln('');
+            $output->writeln('<info>✅ Sito locale pronto con Herd</info>');
+            $output->writeln("  Home: {$url}/");
+            $output->writeln("  Backend: {$url}/backend/");
+            $output->writeln("  Login backend: {$url}/backend/account/login/");
+            $output->writeln("  API update (POST): {$url}/api/app/update/");
+            $output->writeln('  Driver: herd');
+            $output->writeln('  PHP isolato: '.($phpVersion !== '' ? $phpVersion : $this->herdPhpVersion()));
+            $output->writeln('');
+
+            return Command::SUCCESS;
+        }
 
         $output->writeln('');
         $output->writeln('<info>✅ Server locale pronto</info>');
@@ -74,6 +112,12 @@ class LocalStart extends LocalEnvironmentCommand
         $output->writeln("  API update (POST): {$url}/api/app/update/");
         $output->writeln('  Stop: CTRL+C');
         $output->writeln('');
+
+        $routerPath = $this->createRouter($docroot);
+        if ($routerPath === null) {
+            $output->writeln('<error>❌ Impossibile creare il router locale temporaneo.</error>');
+            return Command::FAILURE;
+        }
 
         $command = sprintf(
             'php -S %s -t %s %s',
@@ -99,7 +143,7 @@ class LocalStart extends LocalEnvironmentCommand
         return $resolved !== false ? rtrim($resolved, DIRECTORY_SEPARATOR) : null;
     }
 
-    private function ensureEnv(string $cwd, string $host, int $port, OutputInterface $output): bool
+    private function ensureEnv(string $cwd, string $host, int $port, string $driver, OutputInterface $output): bool
     {
         $lines = $this->readEnvLines($cwd, $output);
 
@@ -108,7 +152,7 @@ class LocalStart extends LocalEnvironmentCommand
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
-        $existingAppDomain = $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+        $existingAppDomain = $this->normalizeProjectSlug($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
         $appDomain = $this->defaultAppDomain($cwd);
 
         if ($appDomain !== '' && $appDomain !== $existingAppDomain) {
@@ -117,7 +161,7 @@ class LocalStart extends LocalEnvironmentCommand
 
         $updatedKeys = $this->completeEnvValues($lines, $keyToIndex, [
             'APP_DOMAIN' => $appDomain !== '' ? $appDomain : null,
-            'APP_URL' => $this->buildLocalAppUrl($host, $port),
+            'APP_URL' => $appDomain !== '' ? $this->resolveLocalAppUrl($appDomain, $host, $port, $driver) : null,
         ], true);
 
         $updatedKeys = array_merge($updatedKeys, $this->completeEnvValues($lines, $keyToIndex, [
@@ -132,9 +176,8 @@ class LocalStart extends LocalEnvironmentCommand
         return $this->writeEnvLines($cwd, $lines, $output, $updatedKeys);
     }
 
-    private function printEnvHints(OutputInterface $output, string $host, int $port): void
+    private function printEnvHints(OutputInterface $output, string $expectedAppUrl): void
     {
-        $expectedAppUrl = $this->buildLocalAppUrl($host, $port);
         $appUrl = trim((string) ($_ENV['APP_URL'] ?? ''));
 
         if ($appUrl === '') {
@@ -145,6 +188,100 @@ class LocalStart extends LocalEnvironmentCommand
         if ($appUrl !== $expectedAppUrl) {
             $output->writeln("<comment>⚠️ APP_URL={$appUrl}. Se vedi asset rotti usa {$expectedAppUrl}</comment>");
         }
+    }
+
+    private function ensureHerdDriver(OutputInterface $output): bool
+    {
+        $stubPath = dirname(__DIR__, 3).'/app/build/stubs/WonderValetDriver.php';
+        $driversPath = $this->herdDriversPath();
+        $targetPath = $driversPath.DIRECTORY_SEPARATOR.'WonderValetDriver.php';
+
+        if (!file_exists($stubPath)) {
+            $output->writeln('<error>❌ Stub WonderValetDriver.php non trovato nel package.</error>');
+            return false;
+        }
+
+        $stub = file_get_contents($stubPath);
+
+        if (!is_string($stub) || trim($stub) === '') {
+            $output->writeln('<error>❌ Stub WonderValetDriver.php non valido.</error>');
+            return false;
+        }
+
+        if (!is_dir($driversPath) && !mkdir($driversPath, 0777, true) && !is_dir($driversPath)) {
+            $output->writeln('<error>❌ Impossibile creare la directory Drivers di Herd.</error>');
+            return false;
+        }
+
+        $current = file_exists($targetPath) ? file_get_contents($targetPath) : false;
+
+        if ($current === $stub) {
+            return true;
+        }
+
+        if (file_put_contents($targetPath, $stub) === false) {
+            $output->writeln('<error>❌ Impossibile creare o aggiornare WonderValetDriver.php nella configurazione di Herd.</error>');
+            return false;
+        }
+
+        $output->writeln('<info>✅ WonderValetDriver.php sincronizzato nella configurazione di Herd.</info>');
+
+        return true;
+    }
+
+    private function herdDriversPath(): string
+    {
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '');
+
+        return rtrim($home, DIRECTORY_SEPARATOR).'/Library/Application Support/Herd/config/valet/Drivers';
+    }
+
+    private function ensureHerdSite(string $cwd, string $appDomain, string $phpVersion, OutputInterface $output): bool
+    {
+        $host = $this->buildHerdHost($appDomain);
+
+        $link = $this->runCommand(['herd', 'link', $appDomain], [], $cwd);
+        if (!$this->herdCommandSucceeded($link, ['already linked', 'already exists', 'linked'])) {
+            $message = $link['stderr'] !== '' ? $link['stderr'] : $link['stdout'];
+            $output->writeln('<error>❌ Impossibile collegare il progetto a Herd'.($message !== '' ? ': '.$message : '.').'</error>');
+            return false;
+        }
+
+        $secure = $this->runCommand(['herd', 'secure', $appDomain], [], $cwd);
+        if (!$this->herdCommandSucceeded($secure, ['already secured', 'secured', 'tls', 'certificate'])) {
+            $message = $secure['stderr'] !== '' ? $secure['stderr'] : $secure['stdout'];
+            $output->writeln('<error>❌ Impossibile abilitare HTTPS su Herd'.($message !== '' ? ': '.$message : '.').'</error>');
+            return false;
+        }
+
+        $resolvedPhpVersion = $phpVersion !== '' ? $phpVersion : $this->herdPhpVersion();
+        $isolate = $this->runCommand(['herd', 'isolate', $resolvedPhpVersion, '--site='.$appDomain], [], $cwd);
+        if (!$this->herdCommandSucceeded($isolate, ['isolated', 'already using', 'php version'])) {
+            $message = $isolate['stderr'] !== '' ? $isolate['stderr'] : $isolate['stdout'];
+            $output->writeln('<error>❌ Impossibile isolare la versione PHP su Herd'.($message !== '' ? ': '.$message : '.').'</error>');
+            return false;
+        }
+
+        $output->writeln('<info>✅ Herd collegato su '.$host.'</info>');
+
+        return true;
+    }
+
+    private function herdCommandSucceeded(array $result, array $allowedHints = []): bool
+    {
+        if (($result['exitCode'] ?? 1) === 0) {
+            return true;
+        }
+
+        $message = strtolower(trim(((string) ($result['stdout'] ?? '')).' '.((string) ($result['stderr'] ?? ''))));
+
+        foreach ($allowedHints as $hint) {
+            if ($hint !== '' && str_contains($message, strtolower($hint))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function checkDatabase(OutputInterface $output): void

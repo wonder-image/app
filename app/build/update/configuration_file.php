@@ -171,7 +171,7 @@ HTACCESS;
     if (!file_exists($ROBOTS_PATH)) {
 
         $FILE = fopen($ROBOTS_PATH, "w");
-        
+
         $FILE_CONTENT = "User-agent: *\n";
         $FILE_CONTENT .= "Disallow: /backend/\n";
         $FILE_CONTENT .= "\n";
@@ -179,5 +179,29 @@ HTACCESS;
 
         fwrite($FILE, $FILE_CONTENT);
         fclose($FILE);
-        
+
+    }
+
+    // Driver globale per Herd/Valet
+    $HERD_HOME = getenv('HOME') ?: ($_SERVER['HOME'] ?? '');
+    $VALET_DRIVERS_DIR = rtrim($HERD_HOME, DIRECTORY_SEPARATOR).'/Library/Application Support/Herd/config/valet/Drivers';
+    $VALET_DRIVER_PATH = $VALET_DRIVERS_DIR.'/WonderValetDriver.php';
+    $VALET_DRIVER_STUB_PATH = $ROOT_APP . '/build/stubs/WonderValetDriver.php';
+
+    if (file_exists($VALET_DRIVER_STUB_PATH)) {
+        if (!is_dir($VALET_DRIVERS_DIR)) {
+            @mkdir($VALET_DRIVERS_DIR, 0777, true);
+        }
+
+        $valetDriver = file_get_contents($VALET_DRIVER_STUB_PATH);
+
+        if (is_string($valetDriver) && trim($valetDriver) !== '') {
+            $currentDriver = file_exists($VALET_DRIVER_PATH)
+                ? file_get_contents($VALET_DRIVER_PATH)
+                : false;
+
+            if ($currentDriver !== $valetDriver) {
+                file_put_contents($VALET_DRIVER_PATH, $valetDriver);
+            }
+        }
     }

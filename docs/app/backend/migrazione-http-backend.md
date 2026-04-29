@@ -87,7 +87,7 @@ Esempi:
 
 - `app/build/src/backend/home/index.php`
 - `app/build/src/backend/app/config/corporate-data/index.php`
-- `app/build/src/backend/app/media/upload-massive/index.php`
+- `app/build/src/backend/app/media/upload-massive/index.php` rimosso: il modulo usa `app/http/backend/media/upload-massive.php`
 
 Pattern:
 

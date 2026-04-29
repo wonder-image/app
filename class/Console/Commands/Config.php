@@ -589,10 +589,16 @@ class Config extends Command
                 return '';
             }
 
-            $domain = $this->normalizeDomain($domain);
+            $normalizedDomain = $this->normalizeDomain($domain);
 
-            if ($domain !== '') {
-                return $domain;
+            if ($normalizedDomain !== '') {
+                return $normalizedDomain;
+            }
+
+            $projectSlug = $this->normalizeProjectSlug($domain);
+
+            if ($projectSlug !== '') {
+                return $projectSlug;
             }
 
             $output->writeln('<error>❌ APP_DOMAIN non valido.</error>');
@@ -660,6 +666,30 @@ class Config extends Command
         return strtolower(trim($value));
     }
 
+    protected function normalizeProjectSlug(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        $value = preg_replace('#^https?://#i', '', $value);
+        $value = trim((string) $value, "/ \t\n\r\0\x0B");
+        $host = parse_url('https://'.$value, PHP_URL_HOST);
+
+        if (is_string($host) && $host !== '') {
+            $value = $host;
+        }
+
+        $value = strtolower($value);
+        $value = str_replace('.', '-', $value);
+        $value = preg_replace('/[^a-z0-9-]+/', '-', $value);
+        $value = preg_replace('/-+/', '-', (string) $value);
+
+        return trim((string) $value, '-');
+    }
+
     protected function defaultAppDomain(string $cwd): string
     {
         $folder = trim(basename($cwd));
@@ -668,18 +698,25 @@ class Config extends Command
             return '';
         }
 
-        return $this->normalizeDomain($folder);
+        return $this->normalizeProjectSlug($folder);
     }
 
     protected function buildAppUrl(string $appDomain): string
     {
-        return 'https://'.$appDomain;
+        $domain = $this->normalizeDomain($appDomain);
+
+        if ($domain !== '' && str_contains($domain, '.')) {
+            return 'https://'.$domain;
+        }
+
+        $slug = $this->normalizeProjectSlug($appDomain);
+
+        return 'https://'.($slug !== '' ? $slug : 'app').'.test';
     }
 
     protected function composerProjectName(string $appDomain): string
     {
-        $name = preg_replace('/[^a-z0-9._-]+/', '-', strtolower($appDomain));
-        $name = trim((string) $name, '-._');
+        $name = $this->normalizeProjectSlug($appDomain);
 
         return $name !== '' ? $name : 'app';
     }
@@ -814,7 +851,7 @@ class Config extends Command
         };
     }
 
-    protected function runCommand(array|string $command, array $env = []): array
+    protected function runCommand(array|string $command, array $env = [], ?string $cwd = null): array
     {
         $processEnv = getenv();
 
@@ -834,7 +871,7 @@ class Config extends Command
                 2 => ['pipe', 'w'],
             ],
             $pipes,
-            null,
+            $cwd,
             array_merge($processEnv, $env)
         );
 

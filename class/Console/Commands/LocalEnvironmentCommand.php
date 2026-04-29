@@ -261,8 +261,8 @@ ENV;
 
     protected function deriveDatabaseNameFromAppDomain(string $appDomain): string
     {
-        $database = strtolower(trim($appDomain));
-        $database = str_replace(['-', '.'], '_', $database);
+        $database = $this->normalizeProjectSlug($appDomain);
+        $database = str_replace('-', '_', $database);
         $database = preg_replace('/[^a-z0-9_]+/', '', $database);
         $database = preg_replace('/_+/', '_', (string) $database);
         $database = trim((string) $database, '_');
@@ -273,6 +273,49 @@ ENV;
     protected function buildLocalAppUrl(string $host, int $port): string
     {
         return 'http://'.$host.':'.$port;
+    }
+
+    protected function buildHerdHost(string $appDomain): string
+    {
+        $slug = $this->normalizeProjectSlug($appDomain);
+
+        return ($slug !== '' ? $slug : 'app').'.test';
+    }
+
+    protected function buildHerdAppUrl(string $appDomain): string
+    {
+        return 'https://'.$this->buildHerdHost($appDomain);
+    }
+
+    protected function resolveLocalRuntimeDriver(string $driver = 'auto'): string
+    {
+        $driver = strtolower(trim($driver));
+
+        if (!in_array($driver, ['auto', 'php', 'herd'], true)) {
+            return 'invalid';
+        }
+
+        if ($driver === 'php') {
+            return 'php';
+        }
+
+        if ($driver === 'herd') {
+            return $this->commandExists('herd') ? 'herd' : 'missing-herd';
+        }
+
+        return $this->commandExists('herd') ? 'herd' : 'php';
+    }
+
+    protected function resolveLocalAppUrl(string $appDomain, string $host, int $port, string $driver = 'auto'): string
+    {
+        return $this->resolveLocalRuntimeDriver($driver) === 'herd'
+            ? $this->buildHerdAppUrl($appDomain)
+            : $this->buildLocalAppUrl($host, $port);
+    }
+
+    protected function herdPhpVersion(): string
+    {
+        return PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;
     }
 
     protected function buildDefaultDbUsername(string $databaseName): string

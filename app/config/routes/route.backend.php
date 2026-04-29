@@ -54,8 +54,12 @@ Route::area('backend')
 
             });
 
-        Route::redirect('/login/', '/backend/account/login/')
+        Route::get('/login/', $ROOT_APP.'/http/backend/account/login.php')
             ->name('login.legacy')
+            ->guarded(false)
+            ->permit([]);
+
+        Route::post('/login/', $ROOT_APP.'/http/backend/account/login.php')
             ->guarded(false)
             ->permit([]);
 

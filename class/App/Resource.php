@@ -646,7 +646,6 @@ abstract class Resource
 
         if ($reflection->hasProperty('helper')) {
             $property = $reflection->getProperty('helper');
-            $property->setAccessible(true);
             $helper = (string) $property->getValue($input);
         }
 

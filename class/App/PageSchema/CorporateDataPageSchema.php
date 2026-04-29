@@ -128,8 +128,8 @@ final class CorporateDataPageSchema extends CustomPageSchema
                     'Sun' => translateDate('Sun', 'day'),
                 ])
                 ->columnSpan(3),
-            'from_time' => FormInput::key('from_time')->text()->columnSpan(3),
-            'to_time' => FormInput::key('to_time')->text()->columnSpan(3),
+            'from_time' => FormInput::key('from_time')->timeInput(900)->columnSpan(3),
+            'to_time' => FormInput::key('to_time')->timeInput(900)->columnSpan(3),
         ]);
     }
 
@@ -150,8 +150,8 @@ final class CorporateDataPageSchema extends CustomPageSchema
                     ])
                     ->label('Giorno')
                     ->columnSpan(4),
-                RepeaterColumn::key('from_time')->text()->label('Da (08:00)')->columnSpan(3),
-                RepeaterColumn::key('to_time')->text()->label('A (17:30)')->columnSpan(4),
+                RepeaterColumn::key('from_time')->timeInput(900)->label('Da')->columnSpan(3),
+                RepeaterColumn::key('to_time')->timeInput(900)->label('A')->columnSpan(4),
             ])
             ->nested()
             ->repeaterSortable()

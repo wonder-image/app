@@ -90,7 +90,7 @@
         }
         
         for ( $i=1; $i <= strlen($code_string); $i++ ){
-            $code_length = $code_length + (integer)(substr($code_string,($i-1),1));
+            $code_length = $code_length + (int) (substr($code_string,($i-1),1));
             }
 
         if ( strtolower($orientation) == "horizontal" ) {

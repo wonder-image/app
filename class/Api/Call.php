@@ -172,19 +172,16 @@
 
             # Risultato
                 $result = curl_exec($this->cURL);
-                curl_close($this->cURL);
-            
+                $errno = curl_errno($this->cURL);
+
             # Verifica errori
-                if (curl_errno($this->cURL)) {
+                if ($errno) {
 
-                    $errno = curl_errno($this->cURL); 
                     return curl_strerror($errno);
-                    
-                } else {
-
-                    return $result;
 
                 }
+
+                return $result;
                 
         }
 

@@ -705,7 +705,7 @@ Serve come riferimento reale per:
 - `build/src/backend/app/config/configuration-file/index.php` e' stato rimosso
 - `build/src/backend/account/*` e' stato rimosso
 - le vecchie `list.php` legacy di `user`, `api-users`, `auth-users`, `consent`, `email` sono state rimosse
-- `app/media/upload-massive` resta una utility legacy separata, ma prepara i file usando le `Resource`
+- `app/media/upload-massive` resta una utility custom separata, ma ormai gira fuori da `build/src` e prepara i file usando le `Resource`
 
 Note tecniche recenti:
 - [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php) supporta ora anche `tableOptions()` e `tablePseudos()` per opzioni tabella, indici composti, unique composte e primary composte
@@ -725,3 +725,8 @@ Note tecniche recenti:
 - il CRUD backend/API standard ora esclude automaticamente i repeater relazionali dal payload principale e li sincronizza dopo `store/update`
 - il primo uso reale del nuovo repeater e' gia' attivo in `corporate-data`, dove il blocco orari non usa piu' `SortableInput`
 - `RepeaterRelation` puo' ora agganciarsi a `Model` o `Resource` del figlio, cosi' il sync usa automaticamente `dataSchema()` / `prepareSchema()` anche per upload e normalizzazioni delle righe correlate
+
+Aggiornamento locale:
+- `php forge start` usa ora Laravel Herd quando `herd` e' disponibile e pubblica il sito su `https://APP_DOMAIN.test`
+- il bootstrap locale normalizza `APP_DOMAIN` dalla cartella progetto in formato kebab-case senza punti
+- i progetti Wonder generano ora automaticamente `WonderValetDriver.php` nella configurazione di Herd, cosi' Herd inoltra le route dinamiche a `handler/index.php`

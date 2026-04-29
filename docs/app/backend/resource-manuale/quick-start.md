@@ -200,6 +200,26 @@ Lo slug interno diventa:
 app-contact
 ```
 
+## 7. Sviluppo locale con Herd
+
+Se usi Herd:
+
+```bash
+php forge start --driver=herd --php-version=8.5
+```
+
+Wonder sincronizza automaticamente nel root del progetto:
+
+```text
+~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php
+```
+
+Questo file serve solo per il routing locale Herd e inoltra le route dinamiche a:
+
+```text
+handler/index.php
+```
+
 quindi la base API e':
 
 ```text

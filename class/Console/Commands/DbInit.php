@@ -101,10 +101,10 @@ class DbInit extends LocalEnvironmentCommand
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
-        $appDomainOption = $this->normalizeDomain(trim((string) $input->getOption('app-domain')));
+        $appDomainOption = $this->normalizeProjectSlug(trim((string) $input->getOption('app-domain')));
         $appDomain = $appDomainOption !== ''
             ? $appDomainOption
-            : $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+            : $this->normalizeProjectSlug($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
 
         if ($appDomain === '') {
             $appDomain = $this->defaultAppDomain($cwd);
@@ -182,7 +182,7 @@ class DbInit extends LocalEnvironmentCommand
 
         $resolvedAppUrl = $this->envValue($lines, $keyToIndex, 'APP_URL');
         if ($this->isMissingEnvValue($resolvedAppUrl, 'APP_URL')) {
-            $resolvedAppUrl = $this->buildLocalAppUrl($host, $port);
+            $resolvedAppUrl = $this->resolveLocalAppUrl($appDomain, $host, $port);
         }
 
         $resolvedAppKey = $this->envValue($lines, $keyToIndex, 'APP_KEY');

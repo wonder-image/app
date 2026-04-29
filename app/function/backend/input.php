@@ -239,6 +239,37 @@
 
     }
 
+    function timeInput($label, $name, $step = 900, $attribute = null, $value = null) {
+
+        global $VALUES;
+
+        $id = strtolower(code(10, 'letters', 'input_'));
+
+        $class = "form-control ";
+        $class .= attributeSearchClass($attribute);
+
+        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
+        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+
+        if (!empty($value)) {
+            $value = substr((string) $value, 0, 5);
+        }
+
+        $value = backendInputEscape($value);
+        $label = backendInputEscape($label);
+        $step = is_numeric($step) && (int) $step > 0 ? (int) $step : 900;
+
+        return "
+        <div>
+            <div class='form-floating'>
+                <input type='time' step='{$step}' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
+                <label for='$id'>$label</label>
+            </div>
+            <div class='invalid-feedback'> </div>
+        </div>";
+
+    }
+
     function dateRange($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
         
         global $VALUES;
@@ -1367,6 +1398,7 @@
                 'selectSearch' => selectSearch($columnLabel, $fieldName, $columnOptions, false, $version, $columnAttribute, $fieldValue),
                 'radio' => check($columnLabel, $fieldName, $columnOptions, $columnAttribute, 'radio', $searchBar, $fieldValue),
                 'textarea' => textarea($columnLabel, $fieldName, $columnAttribute, $version, $fieldValue),
+                'timeInput' => timeInput($columnLabel, $fieldName, $column['time_step'] ?? 900, $columnAttribute, $fieldValue),
                 'email' => email($columnLabel, $fieldName, $columnAttribute, $fieldValue),
                 'phone', 'tel' => phone($columnLabel, $fieldName, $columnAttribute, $fieldValue),
                 'number' => number($columnLabel, $fieldName, $columnAttribute, $fieldValue),
