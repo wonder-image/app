@@ -2,6 +2,12 @@
 
     namespace Wonder\Plugin\Custom\Input;
 
+    /**
+     * @deprecated Usa `FormInput::repeater()` con `RepeaterColumn` e `Wonder\App\Support\Repeater`.
+     *
+     * Mantenuto solo per compatibilita' con flussi legacy non ancora rifattorizzati.
+     * Non introdurre nuovi usi applicativi di questo componente.
+     */
     class SortableInput {
 
         public $Id;

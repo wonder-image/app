@@ -57,3 +57,24 @@ Quindi:
 - `tableSchema()` = come e' fatta la tabella
 - `dataSchema()` = come si preparano i dati
 - `formSchema()` = come si inseriscono i dati nel backend
+
+## Matrice veloce
+
+Usa questa regola pratica:
+
+- `Model` se stai definendo struttura SQL o trattamento dati
+- `Resource` se stai definendo CRUD backend/API di un modulo
+- `CustomPageSchema` se stai definendo una pagina backend speciale non CRUD
+- `Repeater` se nel form hai righe ripetibili, JSON o relazioni 1:N
+
+In pratica:
+
+- `Model` = tabella + dati
+- `Resource` = modulo
+- `CustomPageSchema` = pagina speciale
+- `Repeater` = collezione di righe nel form
+
+Nota importante:
+
+- `legacyTableSchema()` non e' piu' un'API da usare nei nuovi moduli
+- oggi resta solo come bridge interno di compatibilita'

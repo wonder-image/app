@@ -146,6 +146,13 @@ Ricorda:
 - `Resource` per moduli
 - `CustomPageSchema` per pagine custom
 - `FormInput` per i singoli campi
+- `Repeater` quando una pagina custom contiene righe ripetibili
+
+Nota:
+
+- `CustomPageSchema` non sposta la logica dati dentro la pagina
+- se la pagina salva dati su model esistenti, restano validi `Model::tableSchema()` e `Model::dataSchema()`
+- la pagina descrive solo gli input e la UI necessaria
 
 Continua con:
 

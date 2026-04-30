@@ -632,8 +632,14 @@ Per i moduli migrati, invece, il flusso corretto e':
 
 - `Model::tableSchema()` -> schema SQL
 - `Model::dataSchema()` -> base di validazione / prepare
-- `Resource::formSchema()` -> metadata input e upload
+- `Resource::formSchema()` -> input backend e metadata UI
 - `Resource::prepareSchema()` -> bridge finale compatibile con `formToArray()`
+
+Nota:
+
+- l'upload non va piu' progettato in `Resource::formSchema()`
+- la logica dati e upload va in `Model::dataSchema()`
+- `formSchema()` decide solo come l'input viene esposto nel backend
 
 ### Discovery
 
@@ -670,7 +676,7 @@ Serve come riferimento reale per:
 - rimuovere i file `app/build/src/backend/*` dei moduli gia' migrati
 - lasciare `app/build/row/*` attivo finche' non verra' progettato il layer seed nuovo
 - completare il passaggio di prepare/upload/normalizzazioni a `Model::dataSchema()`: il bridge centrale ora legge `dataSchema()` e gli override `legacyTableSchema()` nei model applicativi sono stati rimossi; resta da valutare se mantenere `legacyTableSchema()` solo come bridge del base `Model` o eliminarlo del tutto in un secondo step
-- progettare un sostituto di `SortableInput` come componente repeater/collection nativo, capace di gestire sia array JSON sia righe destinate a tabelle relazionate, inclusi upload per-riga e prepare coerente
+- completare la sostituzione definitiva di `SortableInput` con il layer repeater/collection nativo, capace di gestire sia array JSON sia righe destinate a tabelle relazionate, inclusi upload per-riga e prepare coerente
 
 ### Stato attuale della pulizia legacy
 
@@ -697,6 +703,7 @@ Serve come riferimento reale per:
 - `mail_log` e' ora governato da [MailLog.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Log/MailLog.php) e [MailLogResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Log/MailLogResource.php)
 - `build/table/mail.php` e' stato rimosso
 - `build/src/backend/app/log/email/*` e' stato rimosso
+- `build/table/update.php` e' stato rimosso: [UpdateRunner.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/UpdateRunner.php) gestisce gia' `APP_UPDATE_RUNS` in autonomia
 - `configuration-file` e' stato migrato come resource speciale con model astratto, route custom e pagina dedicata in [configuration-file.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/configuration-file.php)
 - `sql-download` e' stato migrato a route/handler/view nuove in [sql-download.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/sql-download.php)
 - `corporate-data` e' stato migrato a route/handler/view nuove in [corporate-data.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/app/http/backend/config/corporate-data.php), con 4 model reali al posto di `build/table/society.php`
@@ -706,6 +713,10 @@ Serve come riferimento reale per:
 - `build/src/backend/account/*` e' stato rimosso
 - le vecchie `list.php` legacy di `user`, `api-users`, `auth-users`, `consent`, `email` sono state rimosse
 - `app/media/upload-massive` resta una utility custom separata, ma ormai gira fuori da `build/src` e prepara i file usando le `Resource`
+- `sql-error` e' ora governato da [SqlError.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Models/Config/SqlError.php) e [SqlErrorResource.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Resources/Config/SqlErrorResource.php)
+- `build/src/backend/app/config/sql-error/*` e' stato rimosso
+- `app/build/src/backend` e' ora vuoto
+- `app/build/table/stats.php` e il relativo generatore statistiche sono stati rimossi: il framework non mantiene piu' un blocco statistiche proprietario
 
 Note tecniche recenti:
 - [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php) supporta ora anche `tableOptions()` e `tablePseudos()` per opzioni tabella, indici composti, unique composte e primary composte
@@ -713,7 +724,7 @@ Note tecniche recenti:
 - i moduli nuovi devono ottenere schema SQL da `Model`
 - i moduli nuovi devono ottenere schema prepare/upload da `Resource`
 - il bridge runtime `formToArray()` ora deriva i format da `Model::dataSchema()` tramite [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php); gli override `legacyTableSchema()` nei model applicativi sono stati eliminati
-- `SortableInput` resta temporaneamente attivo per compatibilita' ma va sostituito con un layer piu' strutturato, soprattutto nei casi `variants/products`, `allowed_domains`, `allowed_ips` e upload multipli per riga
+- `SortableInput` e' ora formalmente deprecated: resta solo per compatibilita' con eventuali flussi legacy residui e non va piu' usato nei nuovi moduli
 - il primo step del nuovo layer e' attivo: `FormInput::repeater()` sostituisce gia' `SortableInput` nei casi JSON semplici, a partire da `api-users` (`allowed_domains`, `allowed_ips`)
 - il secondo step e' attivo: `RepeaterColumn` + `nested()` + `Wonder\App\Support\Repeater::rowsFromRequest()` coprono gia' righe multi-colonna, hidden/id e upload per riga
 - il repeater supporta ora anche l'ordinamento lato UI con `->repeaterSortable()`, utile quando la relazione usa `positionKey()`
@@ -730,3 +741,8 @@ Aggiornamento locale:
 - `php forge start` usa ora Laravel Herd quando `herd` e' disponibile e pubblica il sito su `https://APP_DOMAIN.test`
 - il bootstrap locale normalizza `APP_DOMAIN` dalla cartella progetto in formato kebab-case senza punti
 - i progetti Wonder generano ora automaticamente `WonderValetDriver.php` nella configurazione di Herd, cosi' Herd inoltra le route dinamiche a `handler/index.php`
+
+Task futura non urgente:
+- introdurre un modulo backend orientato a Google Analytics al posto del vecchio blocco statistiche proprietario gia' rimosso
+- assumere come setup standard: Google Tag Manager nel sito, con tag GA4 configurato dentro GTM
+- aggiungere nel backend la possibilita' di vedere un riepilogo statistiche GA4 oppure aprire direttamente la proprieta' Analytics corretta

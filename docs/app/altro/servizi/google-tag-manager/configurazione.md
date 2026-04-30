@@ -34,5 +34,13 @@ Vai ai tag e successivamente imposta:
 1. **iubenda:** Segui la guida [iubenda.md](iubenda.md "mention") e inserisci in **CS configuration** il codice JSON (Current) esportato dal sito di iubenda
 2. **GA4:** Segui la guida [google-analytics.md](google-analytics.md "mention") e inserisci in **ID tag** il codice G-XXXXX esportato da Google Analytics
 
+### Nota architetturale
+
+Per i progetti Wonder il setup standard desiderato e':
+
+- codice Google Tag Manager nel sito
+- tag Google Analytics 4 configurato dentro GTM
+
+Nel tempo questo sostituira' progressivamente il vecchio blocco statistiche proprietario del framework.
 
 

@@ -132,6 +132,14 @@ Metodi utili lato `dataSchema()`:
 
 ## `repeater()`
 
+`SortableInput` e' da considerare deprecated.
+
+Per nuovi moduli o refactor devi usare:
+
+- `FormInput::repeater()`
+- `RepeaterColumn`
+- `Wonder\App\Support\Repeater`
+
 Per liste JSON semplici nel backend puoi usare un repeater nativo direttamente in `formSchema()`.
 
 Esempio:
@@ -392,6 +400,7 @@ Ricorda questa distinzione:
 - `tableSchema()` = definizione colonne
 - `tableLayoutSchema()` = composizione visuale lista
 - `CustomPageSchema` = schema input per una pagina backend speciale non CRUD
+- `Repeater` = righe ripetibili nel form, JSON o relazione 1:N
 
 Continua con:
 
