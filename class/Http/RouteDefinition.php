@@ -83,4 +83,17 @@ class RouteDefinition
         Route::update($this->index, [ 'frontend' => $enabled ]);
         return $this;
     }
+
+    /**
+     * Opt-in / opt-out esplicito alla traduzione del path della route.
+     *
+     * Default per area: `frontend` traducibile, `api`/`backend` no. Usa questo
+     * metodo per forzare il comportamento (es. una route frontend interna che
+     * NON deve essere tradotta).
+     */
+    public function translatable(bool $value = true): self
+    {
+        Route::update($this->index, [ 'translatable' => $value ]);
+        return $this;
+    }
 }

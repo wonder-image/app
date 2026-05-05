@@ -4,6 +4,8 @@ namespace Wonder\Http;
 
 use Throwable;
 use Wonder\App\LegacyGlobals;
+use Wonder\Localization\LanguageContext;
+use Wonder\Localization\UrlTranslator;
 
 class RouteDispatcher
 {
@@ -18,6 +20,12 @@ class RouteDispatcher
     {
         try {
             $runtimeRoot = $this->runtimeRoot();
+
+            // Pre-routing: dichiara lingue + urls path se il consumer lo prevede.
+            // Necessario perché Route::expandTranslatableRoutes() ha bisogno
+            // della lista di lingue ai loadDirectories.
+            $this->bootLanguages($runtimeRoot);
+
             $routes = Route::loadDirectories([
                 $runtimeRoot.'/config/routes',
                 $this->root.'/custom/routes',
@@ -25,6 +33,11 @@ class RouteDispatcher
                 'ROOT' => $this->root,
                 'ROOT_APP' => $runtimeRoot,
             ]);
+
+            // Espande le route translatable in N varianti per lingua.
+            // Se il consumer non ha registrato lingue / urls.json è no-op.
+            Route::expandTranslatableRoutes(LanguageContext::getLangs());
+            $routes = Route::all();
 
             $router = new Router($routes);
             $pathRoute = $router->matchByPath((string) ($_SERVER['REQUEST_URI'] ?? '/'));
@@ -61,6 +74,18 @@ class RouteDispatcher
             }
 
             $this->bootApplication($route);
+
+            // Override lingua post-bootApplication se la route matched è una
+            // variante tradotta: l'URL vince sulla preferenza utente.
+            if (!empty($route['_locale']) && is_string($route['_locale'])) {
+                LanguageContext::setLang($route['_locale']);
+                LanguageContext::setLangSource('translation');
+            }
+
+            // 301 canonical → variante tradotta della lingua corrente,
+            // se il consumer è in modalità 'translation' e c'è una traduzione
+            // disponibile per la lingua corrente.
+            $this->maybeRedirectToTranslated($route);
 
             extract($this->runtimeScope(), EXTR_SKIP);
             include (string) $route['handler'];
@@ -109,6 +134,92 @@ class RouteDispatcher
             http_response_code(200);
             exit(0);
         }
+    }
+
+    /**
+     * Carica i file che dichiarano lingue e path delle traduzioni URL.
+     *
+     * Avviene PRIMA del routing per permettere a
+     * `Route::expandTranslatableRoutes()` di sapere quali lingue espandere.
+     * Convenzione cercata: `custom/config/lang.php` del consumer.
+     */
+    private function bootLanguages(string $runtimeRoot): void
+    {
+        $candidates = [
+            $this->root.'/custom/config/lang.php',
+        ];
+
+        $ROOT = $this->root;
+        $ROOT_APP = $runtimeRoot;
+
+        foreach ($candidates as $file) {
+            if (is_file($file)) {
+                require_once $file;
+            }
+        }
+    }
+
+    /**
+     * 301 redirect dalla canonical alla variante tradotta della lingua
+     * corrente, se entrambe le condizioni sono vere:
+     *
+     * 1. il consumer è in modalità `langSource = 'translation'`;
+     * 2. la route matched è la canonical (no `_locale`);
+     * 3. esiste una traduzione del path canonical per la lingua corrente.
+     *
+     * I parametri della route (es. `{slug}`) vengono propagati nel path
+     * tradotto. La query string viene preservata.
+     */
+    private function maybeRedirectToTranslated(array $route): void
+    {
+        if (LanguageContext::getLangSource() !== 'translation') {
+            return;
+        }
+
+        // Se è una variante tradotta, niente redirect (siamo già "in lingua").
+        if (!empty($route['_locale'])) {
+            return;
+        }
+
+        $canonicalPath = (string) ($route['_canonical_path'] ?? '');
+        if ($canonicalPath === '') {
+            return;
+        }
+
+        $canonicalKey = trim($canonicalPath, '/');
+        if ($canonicalKey === '') {
+            return;
+        }
+
+        $currentLang = LanguageContext::getLang();
+        if ($currentLang === '') {
+            return;
+        }
+
+        if (!UrlTranslator::has($canonicalKey, $currentLang)) {
+            return;
+        }
+
+        $translated = UrlTranslator::translate($canonicalKey, $currentLang);
+        if ($translated === $canonicalKey) {
+            return;
+        }
+
+        // Costruisci il path tradotto e sostituisci i parametri della route
+        $translatedPath = '/'.$translated.'/';
+        foreach ((array) ($route['parameters'] ?? []) as $key => $value) {
+            $translatedPath = str_replace('{'.$key.'}', rawurlencode((string) $value), $translatedPath);
+        }
+
+        $location = $translatedPath;
+
+        $qs = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+        if (is_string($qs) && $qs !== '') {
+            $location .= '?'.$qs;
+        }
+
+        header('Location: '.$location, true, 301);
+        exit();
     }
 
     private function bootApplication(array $route): void

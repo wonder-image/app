@@ -80,6 +80,15 @@ class RouteGroup
         return $this;
     }
 
+    /**
+     * Opt-in / opt-out esplicito alla traduzione per tutte le route del gruppo.
+     */
+    public function translatable(bool $value = true): self
+    {
+        $this->attributes['translatable'] = $value;
+        return $this;
+    }
+
     public function group(callable $callback): void
     {
         Route::group($this->attributes, $callback);

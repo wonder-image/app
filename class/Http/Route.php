@@ -2,6 +2,8 @@
 
 namespace Wonder\Http;
 
+use Wonder\Localization\UrlTranslator;
+
 class Route
 {
     private static array $routes = [];
@@ -49,6 +51,103 @@ class Route
         sort($files);
 
         return self::load(array_values(array_unique($files)), $context);
+    }
+
+    /**
+     * Espande in N varianti per lingua le route opt-in alla traduzione.
+     *
+     * Per ogni route con `translatable=true` (o `area=frontend` di default),
+     * cerca in `UrlTranslator` una traduzione del path canonical per ciascun
+     * locale registrato. Se la traduzione esiste e differisce dal canonical,
+     * aggiunge una nuova route variante con stesso handler/attributi/where,
+     * path tradotto, attributo `_locale = <code>` e
+     * `_canonical_path = <path canonical>` (per F4).
+     *
+     * La canonical resta in posizione, marcata con `_canonical_path` per
+     * permettere al dispatcher di calcolare il 301 verso la lingua corrente.
+     *
+     * Le `namedRoutes` non vengono toccate: `Route::url($name)` continua a
+     * ritornare il path canonical. F5 estenderà il lookup per scegliere la
+     * variante della lingua corrente.
+     *
+     * Sicuro chiamarla più volte: rifare l'espansione su route già espanse
+     * sarebbe un no-op perché le varianti hanno `_locale` settato e vengono
+     * skippate.
+     *
+     * @param array<string,mixed> $locales lingue registrate (es. l'output di
+     *                                     `LanguageContext::getLangs()`).
+     */
+    public static function expandTranslatableRoutes(array $locales): void
+    {
+        if (empty(self::$routes) || empty($locales)) {
+            return;
+        }
+
+        $localeCodes = array_keys($locales);
+        $variantsToAdd = [];
+
+        foreach (self::$routes as $index => $route) {
+            // Salta le varianti già create
+            if (!empty($route['_locale'])) {
+                continue;
+            }
+
+            // Salta canonical già espanse in chiamata precedente (idempotenza)
+            if (!empty($route['_translation_expanded'])) {
+                continue;
+            }
+
+            // Determina translatable effettivo
+            $translatable = $route['translatable'] ?? null;
+            if ($translatable === null) {
+                $translatable = (($route['area'] ?? null) === 'frontend');
+            }
+            if (!$translatable) {
+                continue;
+            }
+
+            $canonicalPath = self::normalizePath((string) ($route['path'] ?? '/'));
+            $canonicalKey = trim($canonicalPath, '/');
+
+            // Memorizza sulla canonical (per dispatcher 301) e marca come espansa
+            self::$routes[$index]['_canonical_path'] = $canonicalPath;
+            self::$routes[$index]['_translation_expanded'] = true;
+
+            if ($canonicalKey === '') {
+                continue; // homepage o path vuoto: niente da tradurre
+            }
+
+            foreach ($localeCodes as $locale) {
+                if (!is_string($locale) || $locale === '') {
+                    continue;
+                }
+                if (!UrlTranslator::has($canonicalKey, $locale)) {
+                    continue;
+                }
+
+                $translated = UrlTranslator::translate($canonicalKey, $locale);
+                if ($translated === $canonicalKey) {
+                    continue;
+                }
+
+                $translatedPath = self::normalizePath('/'.$translated);
+                if ($translatedPath === $canonicalPath) {
+                    continue;
+                }
+
+                $variant = self::$routes[$index];
+                $variant['path'] = $translatedPath;
+                $variant['_locale'] = $locale;
+                $variant['_canonical_path'] = $canonicalPath;
+                $variant['_translated_from'] = $canonicalKey;
+
+                $variantsToAdd[] = $variant;
+            }
+        }
+
+        foreach ($variantsToAdd as $variant) {
+            self::$routes[] = $variant;
+        }
     }
 
     public static function all(): array
@@ -292,6 +391,9 @@ class Route
             'where' => [],
             'redirect_to' => null,
             'redirect_status' => 302,
+            // null = deriva dall'area (frontend → true, api/backend → false).
+            // Override esplicito via RouteDefinition::translatable() o RouteGroup::translatable().
+            'translatable' => null,
         ];
     }
 
