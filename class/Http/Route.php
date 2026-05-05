@@ -109,9 +109,17 @@ class Route
             $canonicalPath = self::normalizePath((string) ($route['path'] ?? '/'));
             $canonicalKey = trim($canonicalPath, '/');
 
-            // Memorizza sulla canonical (per dispatcher 301) e marca come espansa
+            // Memorizza sulla canonical (per dispatcher 301 / Route::url) e
+            // marca come espansa. Sincronizza anche `namedRoutes` perché
+            // contiene una COPIA della route (PHP array by-value).
             self::$routes[$index]['_canonical_path'] = $canonicalPath;
             self::$routes[$index]['_translation_expanded'] = true;
+
+            $name = $route['name'] ?? null;
+            if (is_string($name) && $name !== '' && isset(self::$namedRoutes[$name])) {
+                self::$namedRoutes[$name]['_canonical_path'] = $canonicalPath;
+                self::$namedRoutes[$name]['_translation_expanded'] = true;
+            }
 
             if ($canonicalKey === '') {
                 continue; // homepage o path vuoto: niente da tradurre
@@ -248,6 +256,27 @@ class Route
         }
 
         $path = (string) $route['path'];
+
+        // Se la route è translatable e il consumer è in modalità
+        // 'translation', sostituisci il path canonical con quello tradotto
+        // della lingua corrente. Le route api/backend (translatable=false)
+        // non vengono toccate.
+        if (
+            !empty($route['_canonical_path'])
+            && \Wonder\Localization\LanguageContext::getLangSource() === 'translation'
+        ) {
+            $currentLang = \Wonder\Localization\LanguageContext::getLang();
+            $canonicalKey = trim((string) $route['_canonical_path'], '/');
+
+            if ($canonicalKey !== '' && $currentLang !== ''
+                && \Wonder\Localization\UrlTranslator::has($canonicalKey, $currentLang)
+            ) {
+                $translated = \Wonder\Localization\UrlTranslator::translate($canonicalKey, $currentLang);
+                if ($translated !== $canonicalKey) {
+                    $path = '/'.$translated.'/';
+                }
+            }
+        }
 
         foreach ($parameters as $key => $value) {
             $path = str_replace('{'.$key.'}', rawurlencode((string) $value), $path);
