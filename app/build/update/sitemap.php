@@ -1,6 +1,6 @@
 <?php
 
-    $SITEMAP_FILE = $ROOT_APP."/generator/sitemap/data/generator.conf";
+    $SITEMAP_FILE = dirname($ROOT_APP)."/vendor-static/xml-sitemaps/data/generator.conf";
     $sitemapLogin = trim((string) ($_ENV['USER_USERNAME'] ?? \Wonder\App\RuntimeDefaults::adminUsername()));
     $sitemapPassword = (string) ($_ENV['USER_PASSWORD'] ?? 'admin');
 
