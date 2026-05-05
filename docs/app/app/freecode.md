@@ -9,9 +9,10 @@ modifica solo layout/stile, il programmatore modifica solo logica/dati, l'AI cap
 dove intervenire senza leggere tutto il progetto.
 
 {% hint style="info" %}
-Stato: **fase 2a — additivo**. Le cartelle e i file descritti qui sono già presenti nel progetto
-ma **non sono ancora cablati** al runtime. `index.php`, `demo.php`, header e footer continuano
-a usare la struttura legacy. Il cablaggio avviene in fase 2b.
+Stato: **on dalla fase 2b**. Header, body-start e footer del progetto delegano ai componenti
+descritti qui; `demo.php` usa la factory `renderPage()` come pilota. Le pagine legacy che
+ancora aprono `<!DOCTYPE html>` a mano restano valide finché non vengono migrate, ma niente
+di nuovo dovrebbe essere scritto in stile legacy.
 {% endhint %}
 
 ## Idea di base
@@ -48,7 +49,8 @@ e i due lavori non si scontrano mai.
 
 ### Esempio pagina
 
-- `custom/pages/_example.php` — mostra come si scriverà una pagina in 2b
+- `custom/pages/_example.php` — esempio minimo di pagina che usa la factory `renderPage()`
+- `demo.php` — pilota di migrazione: home in 30 righe usando `renderPage()`
 
 ## Come gira la factory `renderPage()`
 
@@ -145,7 +147,7 @@ return [
 Aggiungere una voce = aggiungere una riga. Le label vengono lette da
 `lang/{locale}/components.json` con chiave `components.navigation.{key}`.
 
-## Come aggiungere una nuova pagina (in 2b)
+## Come aggiungere una nuova pagina
 
 ### Step 1: aggiungi le label i18n
 
@@ -317,11 +319,11 @@ Fix: sposta i testi in `lang/{locale}/components.json` o `pages.json` e leggili 
 
 ### 3. Pagina che duplica boilerplate
 
-Sintomo: una pagina nuova copia 30 righe da `demo.php` invece di usare `renderPage()`.
+Sintomo: una pagina nuova copia 30 righe di scaffold (`<!DOCTYPE html>`, include head/body-start/header/footer/body-end) invece di usare `renderPage()`.
 
-Causa: distrazione (oppure 2b non ancora completata).
+Causa: distrazione, oppure copia-incolla da una pagina legacy non ancora migrata.
 
-Fix: usa `renderPage()` come da `custom/pages/_example.php`.
+Fix: usa `renderPage()` come da `custom/pages/_example.php` o `demo.php`. La factory si occupa del bootstrap, dello scaffold HTML e degli include — la pagina definisce solo `key` + closure `render`.
 
 ### 4. Componente functional che restituisce HTML invece di stamparlo
 
