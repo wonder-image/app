@@ -144,7 +144,6 @@
             $result = curl_exec($this->cURL);
             $error = curl_error($this->cURL);
             $errno = curl_errno($this->cURL);
-            curl_close($this->cURL);
 
             # Verifica errori
             if ($errno) {
