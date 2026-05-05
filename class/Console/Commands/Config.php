@@ -410,7 +410,7 @@ class Config extends Command
                 $output,
                 $envKey,
                 'Inserisci '.$envKey.':',
-                in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD'], true)
+                in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD', 'USER_PASSWORD'], true)
             );
 
             if ($value === '') {
@@ -442,6 +442,8 @@ class Config extends Command
             'FTP_USER' => ['FTP_USER'],
             'FTP_PORT' => ['FTP_PORT'],
             'FTP_REMOTE_PATH' => ['FTP_REMOTE_PATH'],
+            'USER_USERNAME' => ['USER_USERNAME'],
+            'USER_PASSWORD' => ['USER_PASSWORD'],
         ];
     }
 

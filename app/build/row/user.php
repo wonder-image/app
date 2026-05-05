@@ -40,20 +40,3 @@
 
     }
 
-    if (!sqlSelect('user', [ 'username' => '@github' ], 1)->exists) {
-        
-        $values = [
-            "name" => "GitHub",
-            "surname" => "Actions",
-            "email" => \Wonder\App\RuntimeDefaults::githubEmail(),
-            "username" => "@github",
-            "password" => $_ENV['USER_PASSWORD'],
-            "authority" => "api_public_access",
-            "area" => "api",
-            "active" => "true",
-            "allowed_domains" => [$PAGE->domain]
-        ];
-
-        user($values);
-
-    }

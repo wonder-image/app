@@ -431,7 +431,9 @@ printf '%s\n' "$BWS_PROJECT_ID"
 
 ### 6. Inserisci i secrets del progetto su Bitwarden
 
-Comandi tipici:
+In genere non serve crearli manualmente: `php forge provision` chiede i valori mancanti al primo avvio (DB, FTP, utente admin) e li sincronizza in automatico nel project Bitwarden.
+
+Comandi manuali equivalenti, per riferimento:
 
 ```bash
 bws secret create DB_HOST "" "$BWS_PROJECT_ID" --output json
@@ -443,11 +445,7 @@ bws secret create FTP_USER "" "$BWS_PROJECT_ID" --output json
 bws secret create FTP_PASSWORD "" "$BWS_PROJECT_ID" --output json
 bws secret create FTP_PORT "21" "$BWS_PROJECT_ID" --output json
 bws secret create FTP_REMOTE_PATH "/public_html/" "$BWS_PROJECT_ID" --output json
-```
-
-Puoi creare anche secret aggiuntivi caricati poi nel `.env` del deploy. Esempio per la password iniziale del backend:
-
-```bash
+bws secret create USER_USERNAME "admin" "$BWS_PROJECT_ID" --output json
 bws secret create USER_PASSWORD "admin" "$BWS_PROJECT_ID" --output json
 ```
 
@@ -475,9 +473,9 @@ bws secret edit --value "nuova-password-admin" "$SECRET_ID" --output json
 
 Nota:
 
-- il workflow GitHub Actions carica tutti i secret presenti nel project Bitwarden dentro `.env` e `$GITHUB_ENV`
-- `php forge provision` sincronizza automaticamente solo `APP_KEY`, `DB_HOSTNAME`/`DB_HOST`, `DB_USERNAME`/`DB_USER`, `DB_PASSWORD`, `DB_DATABASE`/`DB_NAME`, `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_PATH`
-- secret aggiuntivi come `USER_PASSWORD` vanno quindi creati o aggiornati manualmente con `bws secret create` e `bws secret edit`
+- il workflow GitHub Actions carica tutti i secret presenti nel project Bitwarden dentro `.env` e `$GITHUB_ENV` (i nomi `FTP_*` e `BWS_*` sono comunque mascherati e non finiscono nel `.env` deployato)
+- `php forge provision` sincronizza automaticamente: `APP_KEY`, `DB_HOSTNAME`/`DB_HOST`, `DB_USERNAME`/`DB_USER`, `DB_PASSWORD`, `DB_DATABASE`/`DB_NAME`, `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_PATH`, `USER_USERNAME`, `USER_PASSWORD`
+- secret extra (es. `GITHUB_API_TOKEN`) vanno aggiunti manualmente con `bws secret create` o `gh secret set`
 
 ### 7. Crea la repository GitHub
 
@@ -876,6 +874,26 @@ php forge update --local
 ```
 
 Questa differenza è intenzionale.
+
+### Utente `@github` non viene creato automaticamente
+
+A partire dalla v2.1.x, `app/build/row/user.php` crea solo due utenti di sistema:
+
+- l'admin (definito da `USER_USERNAME` / `USER_PASSWORD` del `.env`)
+- `@system` con authority `api_internal_user` — id=1 in `api_users`, è il token che `Wonder\App\Credentials::appToken()` restituisce e che il deploy GitHub Action invia come `Authorization: Bearer ...`
+
+L'utente `@github` non viene più creato a ogni `forge update` perché:
+
+- girava anche in CI (paradosso: l'azione che esegue il deploy creava se stessa l'utente che la autorizza)
+- il suo token non era mai allineato con il `GITHUB_API_TOKEN` salvato nei GitHub Secrets
+
+Se vuoi un utente API dedicato per il deploy CI:
+
+1. Backend → Utenti API → crea utente con username `@github`, authority `api_public_access`, area `api`, allowed_domains = il tuo dominio
+2. Copia il token generato dal record
+3. `gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" --body "<token>"`
+
+Se NON crei `@github`, il deploy continua a funzionare usando il token di `@system` (l'endpoint `/api/app/update/` accetta sia `api_internal_user` sia `api_public_access`).
 
 ### Variabili DB con due nomi storici
 
