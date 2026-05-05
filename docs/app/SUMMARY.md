@@ -5,6 +5,7 @@
   * [Multilingua](app/multilingua.md)
   * [Api](app/api.md)
   * [Routing](app/routing.md)
+  * [URL multilingua](app/urls-multilingua.md)
   * [Layout e View](app/layout.md)
   * [Freecode (componenti custom)](app/freecode.md)
   * [Cron Job](app/cron-job.md)

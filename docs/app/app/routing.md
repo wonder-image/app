@@ -132,6 +132,28 @@ Route::get('/user/{id}/', $ROOT_APP.'/http/backend/user/view.php')
     ->where('id', '[0-9]+');
 ```
 
+### Traducibilità (`->translatable()`)
+
+Le route in `area('frontend')` sono **traducibili di default** (lo slug viene preso da `lang/{locale}/urls.json`). Le route in `area('api')` e `area('backend')` no.
+
+Per opt-out esplicito su una route frontend interna che NON deve essere tradotta:
+
+```php
+Route::get('/internal-tool/', $ROOT.'/custom/pages/tool.php')
+    ->name('tool')
+    ->translatable(false);
+```
+
+Per opt-in / opt-out a livello di gruppo:
+
+```php
+Route::area('frontend')->translatable(false)->group(function () {
+    // tutte le route di questo gruppo NON vengono tradotte
+});
+```
+
+Per la sintassi delle traduzioni e il flusso completo vedi [URL multilingua](urls-multilingua.md).
+
 ## Come aggiungere una nuova route
 
 ### Caso 1: nuova pagina backend
