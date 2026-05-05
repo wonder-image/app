@@ -1,3 +1,3 @@
 <?php
 
-include $ROOT_APP.'/generator/sitemap/runcrawl.php';
+include dirname($ROOT_APP).'/vendor-static/xml-sitemaps/runcrawl.php';
