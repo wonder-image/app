@@ -21,6 +21,28 @@
 
         }
 
+        /**
+         * Registra una directory che contiene file `{locale}/urls.json`.
+         *
+         * Facade su `UrlTranslator::addPath()`. I path sono cumulabili: un
+         * progetto consumer può registrare la propria cartella `lang/` dopo
+         * quella di un modulo plugin per fare override delle traduzioni.
+         *
+         * Esempio:
+         *
+         * ```php
+         * LanguageContext::addUrlsPath($ROOT.'/lang/');
+         * ```
+         */
+        public static function addUrlsPath(string $pathUrlsFile): self
+        {
+
+            UrlTranslator::addPath($pathUrlsFile);
+
+            return new self();
+
+        }
+
         public static function defaultLang(string $defaultLang): self
         {
 
@@ -147,6 +169,25 @@
             return self::$langs;
         }
 
+        public static function getLangSource(): string
+        {
+            return self::$langSource;
+        }
+
+        /**
+         * Imposta esplicitamente la strategia di rilevamento lingua.
+         *
+         * Usato tipicamente dal `RouteDispatcher` quando matcha una variante
+         * di route tradotta (`langSource = 'translation'`). Consumer che
+         * preferiscono un'altra strategia (path-prefix, subdomain, domain,
+         * query, header) usano i metodi `setLangFromX()` esistenti.
+         */
+        public static function setLangSource(string $source): self
+        {
+            self::$langSource = $source;
+            return new self();
+        }
+
         public static function getSitePath(): string
         {
 
@@ -162,9 +203,23 @@
             $host = $_SERVER['HTTP_HOST'] ?? '';
             $uri = $_SERVER['REQUEST_URI'] ?? '/';
 
+            // Per langSource='translation' il path canonical viene tradotto
+            // nella lingua corrente. Per le altre strategie il path resta
+            // tale e quale (la lingua è espressa nell'host/prefisso/query).
+            if (self::$langSource === 'translation' && $path !== '') {
+                $path = UrlTranslator::translateInstance(
+                    $path,
+                    self::$lang ?? self::$defaultLang
+                );
+            }
+
             $finalUrl = '';
 
             switch (self::$langSource) {
+                case 'translation':
+                    $finalUrl = $scheme . '://' . $host . '/' . $path;
+                    break;
+
                 case 'path':
                     $finalUrl = $scheme . '://' . $host . '/' . self::$lang . '/' . $path;
                     break;
@@ -231,6 +286,20 @@
             $fragment = $parsed->getFragment(true) ?? '';
 
             switch (self::$langSource) {
+                case 'translation':
+                    $cleanPath = trim($path, '/');
+                    if ($cleanPath !== '') {
+                        $currentLang = self::$lang ?? self::$defaultLang;
+                        // 1. Trova il canonical (concreto) della lingua attuale
+                        $canonical = UrlTranslator::reverseTranslateInstance($cleanPath, $currentLang)
+                            ?? $cleanPath;
+                        // 2. Traduci alla lingua target
+                        $translated = UrlTranslator::translateInstance($canonical, $lang);
+                        $path = '/' . $translated;
+                    }
+                    // host, scheme, query, fragment restano invariati
+                    break;
+
                 case 'path':
                     $segments = array_values(array_filter(explode('/', $path)));
                     if (!empty($segments)) {

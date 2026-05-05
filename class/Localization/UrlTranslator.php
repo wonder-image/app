@@ -141,6 +141,100 @@
         }
 
         /**
+         * Traduce un path "istanza" (con parametri già sostituiti).
+         *
+         * `translate()` lavora su template (`products/{slug}` →
+         * `prodotti/{slug}`); questa lavora su path concreti già con i valori
+         * dei parametri (`products/scarpe-rosse` → `prodotti/scarpe-rosse`).
+         *
+         * Strategia:
+         * 1. match esatto sulla mappa forward (path senza parametri);
+         * 2. altrimenti tenta ogni canonical che contiene `{...}`, costruendo
+         *    una regex e catturando i valori; al primo match riempie i
+         *    placeholder nel translated;
+         * 3. fallback: ritorna il path normalizzato + warning in non-prod.
+         */
+        public static function translateInstance(string $instancePath, string $locale): string
+        {
+            $key = self::normalizeKey($instancePath);
+
+            if ($key === '') {
+                return $key;
+            }
+
+            self::ensureLoaded($locale);
+
+            $forward = self::$forward[$locale] ?? [];
+
+            // 1. Match esatto (più rapido, copre i path senza parametri)
+            if (isset($forward[$key])) {
+                return $forward[$key];
+            }
+
+            // 2. Match con placeholder
+            foreach ($forward as $canonical => $translated) {
+                if (!str_contains($canonical, '{')) {
+                    continue;
+                }
+
+                $params = self::matchTemplate($canonical, $key);
+                if ($params === null) {
+                    continue;
+                }
+
+                return self::fillTemplate($translated, $params);
+            }
+
+            if (!self::isProduction()) {
+                error_log("[UrlTranslator] missing translation (instance): locale={$locale} path={$key}");
+            }
+
+            return $key;
+        }
+
+        /**
+         * Inverso di translateInstance(): dato un path localizzato concreto,
+         * ritorna il path canonical concreto.
+         *
+         * Esempio: `('prodotti/scarpe-rosse', 'it')` → `'products/scarpe-rosse'`.
+         *
+         * Ritorna null se nessuna mappa reverse matcha (né esatta, né template).
+         */
+        public static function reverseTranslateInstance(string $translatedPath, string $locale): ?string
+        {
+            $key = self::normalizeKey($translatedPath);
+
+            if ($key === '') {
+                return null;
+            }
+
+            self::ensureLoaded($locale);
+
+            $reverse = self::$reverse[$locale] ?? [];
+
+            // 1. Match esatto
+            if (isset($reverse[$key])) {
+                return $reverse[$key];
+            }
+
+            // 2. Match con placeholder (cicliamo le voci con {...})
+            foreach ($reverse as $translated => $canonical) {
+                if (!str_contains($translated, '{')) {
+                    continue;
+                }
+
+                $params = self::matchTemplate($translated, $key);
+                if ($params === null) {
+                    continue;
+                }
+
+                return self::fillTemplate($canonical, $params);
+            }
+
+            return null;
+        }
+
+        /**
          * Mappa forward completa per una lingua (canonical => translated).
          *
          * Utile per espandere le route a load-time (vedi
@@ -277,6 +371,61 @@
             }
 
             return $reverse;
+        }
+
+        /**
+         * Match segment-based di un template come `products/{slug}` contro un
+         * path concreto. Stesso pattern del `Wonder\Http\Router`: splitta su
+         * `/`, ogni segmento è letterale oppure un singolo `{name}`. Niente
+         * regex complicate, niente match parziali dentro a un segmento.
+         *
+         * @return array<string,string>|null `null` se i due path non matchano,
+         *                                   altrimenti i parametri estratti.
+         */
+        private static function matchTemplate(string $template, string $instancePath): ?array
+        {
+            $tplSegments = explode('/', $template);
+            $pathSegments = explode('/', $instancePath);
+
+            if (count($tplSegments) !== count($pathSegments)) {
+                return null;
+            }
+
+            $params = [];
+
+            foreach ($tplSegments as $i => $segment) {
+                $value = $pathSegments[$i];
+
+                if (preg_match('/^\{([a-zA-Z0-9_]+)\}$/', $segment, $m) === 1) {
+                    if ($value === '') {
+                        return null;
+                    }
+                    $params[$m[1]] = $value;
+                    continue;
+                }
+
+                if ($segment !== $value) {
+                    return null;
+                }
+            }
+
+            return $params;
+        }
+
+        /**
+         * Sostituisce i segnaposto `{name}` nel template con i valori passati.
+         *
+         * @param array<string,string> $params
+         */
+        private static function fillTemplate(string $template, array $params): string
+        {
+            $callback = static function (array $m) use ($params): string {
+                return $params[$m[1]] ?? $m[0];
+            };
+
+            $filled = preg_replace_callback('/\{([a-zA-Z0-9_]+)\}/', $callback, $template);
+
+            return is_string($filled) ? $filled : $template;
         }
 
         /**
