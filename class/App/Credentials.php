@@ -25,6 +25,7 @@
 
                 self::$ENV = Dotenv::createImmutable(__DIR__);
                 self::$ENV->safeLoad();
+                EnvCompat::apply();
 
             }
 

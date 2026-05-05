@@ -37,6 +37,7 @@ class Config extends Command
         // Verifico se il file .env ha la APP_KEY, se non ne ha una la creo
         $ENV_FILE = Dotenv::createImmutable($cwd);
         $ENV_FILE->safeLoad();
+        \Wonder\App\EnvCompat::apply();
 
         if (!$isCi) {
             if (!$this->ensureCommandInstalled('node', ['node', '-v'], $output)) {

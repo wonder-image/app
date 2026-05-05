@@ -81,6 +81,7 @@ abstract class LocalEnvironmentCommand extends Config
         }
 
         Dotenv::createImmutable($cwd)->safeLoad();
+        \Wonder\App\EnvCompat::apply();
     }
 
     protected function defaultEnvTemplate(): string

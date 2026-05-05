@@ -877,6 +877,32 @@ php forge update --local
 
 Questa differenza è intenzionale.
 
+### Variabili DB con due nomi storici
+
+Il framework storicamente legge i nomi "Laravel-style":
+
+- `DB_HOSTNAME`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DB_DATABASE`
+
+I `.env` più recenti generati da Bitwarden / dal deploy Action / da convenzioni di hosting più diffuse usano invece:
+
+- `DB_HOST`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+
+**Da `wonder-image/app` v2.1.x non serve scegliere**: la classe `Wonder\App\EnvCompat` viene chiamata in automatico subito dopo `Dotenv::safeLoad()` (sia nel flow web sia nei comandi `forge`) e copia i valori nei due set in entrambe le direzioni. Comportamento:
+
+- se sono presenti solo i nomi nuovi → vengono propagati nei nomi vecchi
+- se sono presenti solo i nomi vecchi → vengono propagati nei nomi nuovi
+- se sono presenti entrambi e divergenti → **vince il nuovo**, sovrascrive il vecchio
+
+`DB_PASSWORD` ha lo stesso nome in entrambi i set, nessun alias necessario.
+
+Quindi nel `.env` puoi scrivere indifferentemente uno dei due set; il framework si arrangia. Quando un giorno tutti i progetti useranno solo i nomi nuovi, basterà rimuovere `EnvCompat::apply()` dai bootstrap.
+
 ### Lo step `🗄️ Update App` fallisce con `GITHUB_API_TOKEN: unbound variable`
 
 Causa: nei GitHub Secrets della repo manca `GITHUB_API_TOKEN` **oppure** nel `deploy.yml` manca la riga `GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}` nell'`env:` del job.

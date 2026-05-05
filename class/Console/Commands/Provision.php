@@ -34,6 +34,7 @@ class Provision extends Config
         }
 
         Dotenv::createImmutable($cwd)->safeLoad();
+        \Wonder\App\EnvCompat::apply();
 
         if (!$this->ensureCommandInstalled('bws', ['bws', '--version'], $output, false)) {
             return Command::FAILURE;
