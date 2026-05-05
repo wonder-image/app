@@ -44,7 +44,8 @@ Fa questo:
 - crea o recupera `BWS_PROJECT_ID`
 - crea o verifica la repository GitHub
 - sincronizza secrets e variables GitHub
-- sincronizza i secrets Bitwarden del progetto
+- chiede i valori mancanti (DB, FTP, USER) e li sincronizza nel project Bitwarden
+- **auto-genera** `GITHUB_API_TOKEN` (random hex 64 char) se non presente, lo salva sia in Bitwarden sia nei GitHub Secrets della repo
 
 In CI viene saltato.
 
@@ -514,7 +515,9 @@ gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" --body "<token-applicati
 ```
 
 {% hint style="warning" %}
-Il nome `GITHUB_API_TOKEN` è storico ed è fuorviante: **non è** un GitHub Personal Access Token. È il bearer applicativo che il workflow invia al tuo sito su `${APP_DOMAIN}/api/app/update/` per autorizzare la chiamata di update post-deploy. Se manca, lo step `🗄️ Update App` fallisce con `GITHUB_API_TOKEN: unbound variable`.
+Il nome `GITHUB_API_TOKEN` è storico ed è fuorviante: **non è** un GitHub Personal Access Token. È il **deploy bearer applicativo** che il workflow invia al sito su `${APP_DOMAIN}/api/app/update/` per autorizzare la chiamata di update post-deploy. Se manca, lo step `🗄️ Update App` fallisce con `GITHUB_API_TOKEN: unbound variable`.
+
+Da `wonder-image/app` v2.1.x **non serve generarlo a mano**: `php forge provision` lo crea automaticamente come random hex 64 char, lo salva su Bitwarden e lo sincronizza nei GitHub Secrets della repo. Il valore arriva sul server tramite il `.env` deployato dal workflow.
 {% endhint %}
 
 Variables:
@@ -925,19 +928,46 @@ Quindi nel `.env` puoi scrivere indifferentemente uno dei due set; il framework 
 
 Causa: nei GitHub Secrets della repo manca `GITHUB_API_TOKEN` **oppure** nel `deploy.yml` manca la riga `GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}` nell'`env:` del job.
 
-Fix:
+Fix automatico:
 
-1. Verifica che la riga sia presente nell'`env:` del workflow (vedi blocco YAML "Workflow" in cima).
+```bash
+php forge provision
+```
+
+dal locale, che genera il token e lo sincronizza in entrambi i posti (Bitwarden + GitHub Secrets).
+
+Fix manuale (se non vuoi rilanciare provision):
+
+1. Verifica che la riga `GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}` sia presente nell'`env:` del workflow.
 2. Verifica che il secret esista:
    ```bash
    gh secret list --repo "$REPO_FULL_NAME" | grep GITHUB_API_TOKEN
    ```
-3. Se manca, aggiungilo (il valore deve corrispondere a `Wonder\App\Credentials::appToken()` sull'app target):
+3. Se manca, generane uno random e settalo:
    ```bash
-   gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" --body "<token-applicativo>"
+   gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" \
+     --body "$(php -r 'echo bin2hex(random_bytes(32));')"
    ```
+   Lo stesso valore deve essere salvato anche in Bitwarden con `bws secret create GITHUB_API_TOKEN ...` per finire nel `.env` deployato.
 
 Nel workflow lo step controlla in modo difensivo che il token sia popolato e produce un messaggio `::error::` chiaro se manca.
+
+### Il primo deploy fallisce con `Bearer token mancante` o `Utente non valido` su `/api/app/update/`
+
+**Spiegazione**: storicamente il bearer di deploy era un **JWT** firmato con `APP_KEY` e collegato a un user in tabella `api_users`. Al primo deploy in produzione, però, il DB è ancora vuoto e nessun JWT è verificabile — un classico bootstrap circolare.
+
+**Fix**: a partire da `wonder-image/app` v2.1.x, `/api/app/update/` accetta come bearer **anche** una shared secret semplice presa da `$_ENV['GITHUB_API_TOKEN']`. Il confronto è time-safe (`hash_equals`). Questo path NON richiede DB popolato.
+
+Il valore di `GITHUB_API_TOKEN`:
+
+- viene generato automaticamente da `php forge provision`;
+- viene salvato in Bitwarden Secrets Manager (project) e nei GitHub Secrets della repo;
+- arriva nel `.env` di produzione tramite il workflow (lo step "🔐 Load secrets" lo scrive nel `.env` che poi viene FTP-deployato);
+- viene letto a runtime da `app/http/api/app/update.php` e confrontato col bearer ricevuto.
+
+Quindi il primo deploy funziona out-of-the-box: stesso token nei GitHub Secrets e nel `.env` sul server, match → bypass del JWT → `UpdateRunner` crea le tabelle e popola `api_users`.
+
+Dal **secondo deploy** in poi continua a funzionare allo stesso modo (la shared secret resta stabile), oppure è possibile sostituire il bearer con un JWT generato dal backend (Utenti API) — l'handler accetta entrambe le strade.
 
 ## Best practice
 

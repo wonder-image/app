@@ -405,16 +405,22 @@ class Config extends Command
                 continue;
             }
 
-            $value = $this->askRequiredValue(
-                $input,
-                $output,
-                $envKey,
-                'Inserisci '.$envKey.':',
-                in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD', 'USER_PASSWORD'], true)
-            );
+            $value = $this->autoGenerateValueFor($envKey);
 
-            if ($value === '') {
-                return false;
+            if ($value === null) {
+                $value = $this->askRequiredValue(
+                    $input,
+                    $output,
+                    $envKey,
+                    'Inserisci '.$envKey.':',
+                    in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD', 'USER_PASSWORD'], true)
+                );
+
+                if ($value === '') {
+                    return false;
+                }
+            } else {
+                $output->writeln('<info>🔑 Generato automaticamente '.$envKey.' (random hex 64 chars).</info>');
             }
 
             $this->setEnvValue($lines, $keyToIndex, $envKey, $value);
@@ -427,6 +433,23 @@ class Config extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Per certe chiavi (token di deploy / shared secret) preferiamo generare
+     * un valore random invece di chiederlo all'utente. Se la chiave non rientra
+     * nei casi auto-gestiti, ritorna null e il chiamante chiederà input.
+     */
+    protected function autoGenerateValueFor(string $envKey): ?string
+    {
+        switch ($envKey) {
+            case 'GITHUB_API_TOKEN':
+                // Shared secret per il bypass deploy in /api/app/update/.
+                // Vedi app/http/api/app/update.php (Wonder\App\Credentials::deployToken pattern).
+                return bin2hex(random_bytes(32));
+        }
+
+        return null;
     }
 
     protected function bitwardenProjectSecretMap(): array
@@ -444,6 +467,7 @@ class Config extends Command
             'FTP_REMOTE_PATH' => ['FTP_REMOTE_PATH'],
             'USER_USERNAME' => ['USER_USERNAME'],
             'USER_PASSWORD' => ['USER_PASSWORD'],
+            'GITHUB_API_TOKEN' => ['GITHUB_API_TOKEN'],
         ];
     }
 
