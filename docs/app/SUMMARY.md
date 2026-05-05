@@ -6,6 +6,7 @@
   * [Api](app/api.md)
   * [Routing](app/routing.md)
   * [Layout e View](app/layout.md)
+  * [Freecode (componenti custom)](app/freecode.md)
   * [Cron Job](app/cron-job.md)
   * [Backend](backend/README.md)
     * [Migrazione HTTP Backend](backend/migrazione-http-backend.md)
