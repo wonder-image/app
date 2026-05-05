@@ -501,12 +501,23 @@ Ricava prima il nome completo della repo:
 export REPO_FULL_NAME="$(gh repo view "$REPO_NAME" --json nameWithOwner --jq '.nameWithOwner')"
 ```
 
-Secrets:
+Secrets richiesti dal workflow:
+
+| Secret | Origine | Cosa è |
+|---|---|---|
+| `BWS_ACCESS_TOKEN` | Bitwarden Secrets Manager | Access token per leggere il project Bitwarden |
+| `BWS_PROJECT_ID` | Bitwarden Secrets Manager | UUID del project Bitwarden del sito |
+| `GITHUB_API_TOKEN` | App target (vedi sotto) | **Bearer del sito**, non un PAT GitHub. Usato da `Authorization: Bearer ...` nello step `🗄️ Update App` per chiamare `/api/app/update/` sull'host di produzione. Deve coincidere con il valore restituito da `Wonder\App\Credentials::appToken()` sull'app target. |
 
 ```bash
 gh secret set BWS_ACCESS_TOKEN --repo "$REPO_FULL_NAME" --body "$BWS_ACCESS_TOKEN"
 gh secret set BWS_PROJECT_ID --repo "$REPO_FULL_NAME" --body "$BWS_PROJECT_ID"
+gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" --body "<token-applicativo-del-sito>"
 ```
+
+{% hint style="warning" %}
+Il nome `GITHUB_API_TOKEN` è storico ed è fuorviante: **non è** un GitHub Personal Access Token. È il bearer applicativo che il workflow invia al tuo sito su `${APP_DOMAIN}/api/app/update/` per autorizzare la chiamata di update post-deploy. Se manca, lo step `🗄️ Update App` fallisce con `GITHUB_API_TOKEN: unbound variable`.
+{% endhint %}
 
 Variables:
 
@@ -865,6 +876,24 @@ php forge update --local
 ```
 
 Questa differenza è intenzionale.
+
+### Lo step `🗄️ Update App` fallisce con `GITHUB_API_TOKEN: unbound variable`
+
+Causa: nei GitHub Secrets della repo manca `GITHUB_API_TOKEN` **oppure** nel `deploy.yml` manca la riga `GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}` nell'`env:` del job.
+
+Fix:
+
+1. Verifica che la riga sia presente nell'`env:` del workflow (vedi blocco YAML "Workflow" in cima).
+2. Verifica che il secret esista:
+   ```bash
+   gh secret list --repo "$REPO_FULL_NAME" | grep GITHUB_API_TOKEN
+   ```
+3. Se manca, aggiungilo (il valore deve corrispondere a `Wonder\App\Credentials::appToken()` sull'app target):
+   ```bash
+   gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" --body "<token-applicativo>"
+   ```
+
+Nel workflow lo step controlla in modo difensivo che il token sia popolato e produce un messaggio `::error::` chiaro se manca.
 
 ## Best practice
 
