@@ -435,7 +435,7 @@ class Config extends Command
         $captured = [];
         $localEnvDisabled = $this->localEnvDisabledKeys();
 
-        // Pass 1: cleanup. Le chiavi "remote-only" (FTP_*, GITHUB_API_TOKEN)
+        // Pass 1: cleanup. Le chiavi "remote-only" (FTP_*, APP_DEPLOY_TOKEN)
         // non devono essere salvate nel .env locale. Se un .env precedente
         // le contiene, leggi i valori e rimuovi le righe.
         foreach ($localEnvDisabled as $envKey) {
@@ -518,7 +518,7 @@ class Config extends Command
      *   li scarica al momento del deploy e li scrive nel .env di produzione;
      * - GitHub Secrets della repo, per i token che il workflow legge
      *   come ${{ secrets.X }} prima ancora di poter parlare con Bitwarden
-     *   (es. GITHUB_API_TOKEN).
+     *   (es. APP_DEPLOY_TOKEN).
      *
      * `BWS_ACCESS_TOKEN` e `BWS_PROJECT_ID` non sono in questa lista perché
      * non sono nemmeno presenti in `bitwardenProjectSecretMap()`: vivono
@@ -535,7 +535,7 @@ class Config extends Command
             'FTP_PASSWORD',
             'FTP_PORT',
             'FTP_REMOTE_PATH',
-            'GITHUB_API_TOKEN',
+            'APP_DEPLOY_TOKEN',
         ];
     }
 
@@ -563,7 +563,7 @@ class Config extends Command
     protected function autoGenerateValueFor(string $envKey): ?string
     {
         switch ($envKey) {
-            case 'GITHUB_API_TOKEN':
+            case 'APP_DEPLOY_TOKEN':
                 // Shared secret per il bypass deploy in /api/app/update/.
                 // Vedi app/http/api/app/update.php (Wonder\App\Credentials::deployToken pattern).
                 return bin2hex(random_bytes(32));
@@ -587,7 +587,7 @@ class Config extends Command
             'FTP_REMOTE_PATH' => ['FTP_REMOTE_PATH'],
             'USER_USERNAME' => ['USER_USERNAME'],
             'USER_PASSWORD' => ['USER_PASSWORD'],
-            'GITHUB_API_TOKEN' => ['GITHUB_API_TOKEN'],
+            'APP_DEPLOY_TOKEN' => ['APP_DEPLOY_TOKEN'],
         ];
     }
 

@@ -141,14 +141,20 @@ class Provision extends Config
 
         // Sync su GitHub Secrets dei secret app-level che il deploy workflow
         // legge come ${{ secrets.X }} prima ancora di accedere a Bitwarden.
-        // GITHUB_API_TOKEN è il deploy bearer riconosciuto dal bypass in
-        // /api/app/update/ (vedi app/http/api/app/update.php), quindi DEVE
-        // essere disponibile direttamente al workflow al primo deploy.
-        $githubApiToken = $remoteValues['GITHUB_API_TOKEN']
-            ?? $this->envValue($lines, $keyToIndex, 'GITHUB_API_TOKEN');
-        if ($githubApiToken !== '') {
+        // `APP_DEPLOY_TOKEN` è il deploy bearer riconosciuto dal bypass in
+        // /api/app/update/ (vedi app/http/api/app/update.php).
+        //
+        // Nota nomenclatura: storicamente la chiave si chiamava
+        // `GITHUB_API_TOKEN`, ma `gh secret set` rifiuta i nomi che iniziano
+        // con `GITHUB_` (HTTP 422: "Secret names must not start with
+        // GITHUB_."). Adottiamo `APP_DEPLOY_TOKEN`. Il server PHP accetta
+        // entrambi (vedi update.php), quindi non c'è bisogno di rimuovere
+        // il vecchio secret se già configurato.
+        $appDeployToken = $remoteValues['APP_DEPLOY_TOKEN']
+            ?? $this->envValue($lines, $keyToIndex, 'APP_DEPLOY_TOKEN');
+        if ($appDeployToken !== '') {
             if (!$this->syncGithubRepositorySecrets($appDomain, [
-                'GITHUB_API_TOKEN' => $githubApiToken,
+                'APP_DEPLOY_TOKEN' => $appDeployToken,
             ], $output)) {
                 return Command::FAILURE;
             }

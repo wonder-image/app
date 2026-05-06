@@ -10,14 +10,20 @@ use Wonder\Api\{ Endpoint, Handler, Response };
  * Due percorsi di autenticazione:
  *
  * 1. **Deploy bootstrap (env-shared bearer)**.
- *    Se nel `.env` c'è `GITHUB_API_TOKEN` e il bearer della richiesta combacia
- *    esattamente, l'endpoint accetta la richiesta SENZA passare per il guard
- *    JWT/DB di `Wonder\Api\Endpoint`. Questo risolve il bootstrap circolare
- *    del primo deploy in produzione: prima della creazione di `api_users`
- *    nessun utente esiste, quindi nessun JWT è verificabile. Il token
- *    viene generato automaticamente da `php forge provision` e sincronizzato
- *    su Bitwarden Secrets Manager + GitHub Secrets della repository.
+ *    Se nel `.env` c'è `APP_DEPLOY_TOKEN` (o, per retro-compat, il vecchio
+ *    `GITHUB_API_TOKEN`) e il bearer della richiesta combacia esattamente,
+ *    l'endpoint accetta la richiesta SENZA passare per il guard JWT/DB di
+ *    `Wonder\Api\Endpoint`. Questo risolve il bootstrap circolare del primo
+ *    deploy in produzione: prima della creazione di `api_users` nessun
+ *    utente esiste, quindi nessun JWT è verificabile. Il token viene
+ *    generato automaticamente da `php forge provision` e sincronizzato su
+ *    Bitwarden Secrets Manager + GitHub Secrets della repository.
  *    Il confronto è time-safe (`hash_equals`).
+ *
+ *    NOTA STORICA: il nome originario `GITHUB_API_TOKEN` non è ammesso da
+ *    GitHub Actions come secret della repo (i nomi `GITHUB_*` sono
+ *    riservati). È stato rinominato in `APP_DEPLOY_TOKEN`. Il vecchio nome
+ *    è ancora letto come fallback per siti già in produzione.
  *
  * 2. **Flow JWT standard** (chiamate post-bootstrap, backend, altri client).
  *    Bearer = JWT firmato con APP_KEY. `Wonder\Api\Endpoint` verifica firma,
@@ -26,7 +32,11 @@ use Wonder\Api\{ Endpoint, Handler, Response };
  */
 
 // 1) Deploy bootstrap
-$envToken = trim((string) ($_ENV['GITHUB_API_TOKEN'] ?? ''));
+$envToken = trim((string) (
+    $_ENV['APP_DEPLOY_TOKEN']
+    ?? $_ENV['GITHUB_API_TOKEN']
+    ?? ''
+));
 if ($envToken !== '') {
 
     $authHeader = $_SERVER['HTTP_AUTHORIZATION']
