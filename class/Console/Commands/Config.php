@@ -49,29 +49,58 @@ class Config extends Command
             }
         }
 
-        if (!isset($_ENV['APP_KEY'])) {
-            
+        // APP_KEY è la chiave di firma per JWT, encryption interna e
+        // appToken per le chiamate API. Se manca, una buona parte del
+        // framework (login backend, /api/app/update/, api_users token,
+        // ecc.) si rompe a runtime con `Dotenv ValidationException:
+        // APP_KEY is missing`.
+        //
+        // `isset()` da solo non basta: una riga `APP_KEY=` (chiave
+        // dichiarata ma vuota) passa `isset` e fa fallire la required()
+        // di Credentials::appKey() in produzione. Controlliamo anche che
+        // il valore sia non-vuoto.
+        $existingAppKey = trim((string) ($_ENV['APP_KEY'] ?? ''));
+        if ($existingAppKey === '') {
+
             $appKeyAdded = false;
             $appKey = bin2hex(random_bytes(32));
 
+            // Se la riga esiste ma è vuota, la sostituiamo invece di
+            // appenderne una seconda.
             foreach ($lines as $i => $line) {
-                if (preg_match("/^APP_URL=/", $line)) {
-
-                    array_splice($lines, $i + 1, 0, "APP_KEY=$appKey");
+                if (preg_match("/^APP_KEY=/", $line)) {
+                    $lines[$i] = "APP_KEY=$appKey";
                     $appKeyAdded = true;
-
                     break;
-
                 }
             }
 
+            // Altrimenti la aggiungiamo subito sotto APP_URL per
+            // ordinare bene il file.
+            if (!$appKeyAdded) {
+                foreach ($lines as $i => $line) {
+                    if (preg_match("/^APP_URL=/", $line)) {
+                        array_splice($lines, $i + 1, 0, "APP_KEY=$appKey");
+                        $appKeyAdded = true;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback finale: in coda al file.
             if (!$appKeyAdded) {
                 $lines[] = "APP_KEY=$appKey";
             }
-            
+
             file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
 
-            $output->writeln('<info>✅ Aggiungo un APP_KEY al file .env</info>');
+            // Aggiorna anche $_ENV in memoria così le righe di codice
+            // sotto che leggono $_ENV['APP_KEY'] vedono il valore appena
+            // generato senza dover ricaricare Dotenv.
+            $_ENV['APP_KEY'] = $appKey;
+            putenv('APP_KEY='.$appKey);
+
+            $output->writeln('<info>✅ APP_KEY generata e scritta nel .env</info>');
 
         }
 
