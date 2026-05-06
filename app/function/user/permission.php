@@ -181,6 +181,42 @@
 
     }
 
+    function permissionArea($AREA = null) {
+
+        global $PERMITS;
+
+        $AREA = strtolower(trim((string) $AREA));
+
+        if ($AREA === '' || !isset($PERMITS[$AREA]) || !is_array($PERMITS[$AREA])) {
+            return (object) [];
+        }
+
+        $AREA_CONFIG = $PERMITS[$AREA];
+        $LINKS = isset($AREA_CONFIG['links']) && is_array($AREA_CONFIG['links']) ? $AREA_CONFIG['links'] : [];
+        $FUNCTION = isset($AREA_CONFIG['function']) && is_array($AREA_CONFIG['function']) ? $AREA_CONFIG['function'] : [];
+        $VERIFICATION = isset($AREA_CONFIG['verification']) && is_array($AREA_CONFIG['verification']) ? $AREA_CONFIG['verification'] : [];
+
+        $RETURN = (object) [];
+        $RETURN->area = $AREA;
+        $RETURN->links = $LINKS;
+        $RETURN->verification = $VERIFICATION;
+
+        $RETURN->home = $LINKS['home'] ?? '';
+        $RETURN->login = $LINKS['login'] ?? '';
+        $RETURN->signIn = $LINKS['sign-in'] ?? '';
+        $RETURN->passwordRecovery = $LINKS['password-recovery'] ?? '';
+        $RETURN->passwordRestore = $LINKS['password-restore'] ?? '';
+        $RETURN->passwordSet = $LINKS['password-set'] ?? '';
+
+        $RETURN->functionCreation = $FUNCTION['creation'] ?? '';
+        $RETURN->functionModify = $FUNCTION['modify'] ?? '';
+        $RETURN->functionInfo = $FUNCTION['info'] ?? '';
+        $RETURN->functionValidate = $FUNCTION['validate'] ?? '';
+
+        return $RETURN;
+
+    }
+
     function getPermissions($AREA = null) {
 
         global $PERMITS;

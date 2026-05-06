@@ -13,7 +13,12 @@
         $VALUES['user_id'] = $USER_ID;
         $authority = trim((string) ($POST['authority'] ?? ''));
         $currentApiUser = ($authority !== '' && isset($USER->$authority) && is_object($USER->$authority)) ? $USER->$authority : null;
+        $existingApiUser = infoApiUser($USER_ID);
+        if ((!is_object($currentApiUser) || !($currentApiUser->exists ?? false)) && ($existingApiUser->exists ?? false)) {
+            $currentApiUser = $existingApiUser;
+        }
         $providedToken = trim((string) ($POST['token'] ?? ''));
+        $skipTokenMail = !empty($POST['_skip_api_token_mail']);
 
         if ($providedToken !== '') {
 
@@ -31,12 +36,16 @@
                 'HS256'
             );
 
-            $body = "
-            Buongiorno <b>$USER->name</b>, <br>
-            ecco il tuo Bearer token da includere nell'header di tutte le tue chiamate API:<br>
-            <b>{$VALUES['token']}</b>";
-            
-            sendMail($SOCIETY->email, $USER->email, "Credenziali API", $body);
+            if (!$skipTokenMail) {
+
+                $body = "
+                Buongiorno <b>$USER->name</b>, <br>
+                ecco il tuo Bearer token da includere nell'header di tutte le tue chiamate API:<br>
+                <b>{$VALUES['token']}</b>";
+                
+                sendMail($SOCIETY->email, $USER->email, "Credenziali API", $body);
+
+            }
 
         } else {
 
@@ -46,10 +55,7 @@
 
         $VALUES = formToArray('api_users', $VALUES, \Wonder\App\Table::key('api_users')->schema());
         
-        if (
-            (isset($USER->api_internal_user->exists) && $USER->api_internal_user->exists) 
-            || (isset($USER->api_public_access->exists) && $USER->api_public_access->exists)
-            ) {
+        if (is_object($currentApiUser) && ($currentApiUser->exists ?? false)) {
             sqlModify('api_users', $VALUES, 'user_id', $USER_ID);
         } else {
             sqlInsert('api_users', $VALUES);

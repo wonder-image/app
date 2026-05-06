@@ -3,6 +3,7 @@
     $WEBROOT = is_dir($ROOT."/public") ? $ROOT."/public" : $ROOT;
     $HTACCESS_PATH = $WEBROOT."/.htaccess";
     $ROBOTS_PATH = $WEBROOT."/robots.txt";
+    
     $ROUTER_BLOCK = "# WONDER ROUTER START\n";
     $ROUTER_BLOCK .= "  # Router Wonder\n";
     $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]\n";
@@ -10,6 +11,7 @@
     $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_FILENAME} !-d\n";
     $ROUTER_BLOCK .= "  RewriteRule ^ handler/index.php [L,QSA]\n";
     $ROUTER_BLOCK .= "# WONDER ROUTER END";
+
     $HTACCESS_TEMPLATE = <<<'HTACCESS'
 # ----------------------------------------------------------------------
 # Forza HTTPS e WWW
@@ -39,11 +41,12 @@
   RewriteCond %{REQUEST_URI} !\.[^./]+$
   RewriteRule ^(.*)$ /$1/ [R=301,L]
 
-  # Router Wonder
+  # WONDER ROUTER START
   RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ handler/index.php [L,QSA]
+  # WONDER ROUTER END
 
 </IfModule>
 

@@ -288,6 +288,19 @@
         // Risolve la permission associata alla authority, se presente.
         $PERMISSION = null;
         if (isset($POST['authority'])) { $PERMISSION = permissions($POST['authority']); }
+        if (
+            (
+                !is_object($PERMISSION)
+                || (
+                    empty($PERMISSION->functionCreation ?? '')
+                    && empty($PERMISSION->functionModify ?? '')
+                    && empty($PERMISSION->functionValidate ?? '')
+                )
+            )
+            && isset($POST['area'])
+        ) {
+            $PERMISSION = permissionArea($POST['area']);
+        }
 
         // Calcola verifiche richieste (es. email) dalla permission.
         $VERIFICATION_RULES = userPermissionVerificationRules($PERMISSION);
@@ -480,6 +493,31 @@
             // Recupera area e authority attuali.
             $area = $M_USER->area;
             $authority = $M_USER->authority;
+
+            if (
+                !is_object($PERMISSION)
+                || (
+                    empty($PERMISSION->functionCreation ?? '')
+                    && empty($PERMISSION->functionModify ?? '')
+                    && empty($PERMISSION->functionValidate ?? '')
+                )
+            ) {
+                foreach ((array) $authority as $existingAuthority) {
+                    $existingPermission = permissions((string) $existingAuthority);
+
+                    if (
+                        is_object($existingPermission)
+                        && (
+                            !empty($existingPermission->functionCreation ?? '')
+                            || !empty($existingPermission->functionModify ?? '')
+                            || !empty($existingPermission->functionValidate ?? '')
+                        )
+                    ) {
+                        $PERMISSION = $existingPermission;
+                        break;
+                    }
+                }
+            }
 
             if ($HAS_SUBMITTED_PASSWORD && empty($M_USER->password)) { $UPLOAD['password'] = hashPassword($SUBMITTED_PASSWORD); }
 
