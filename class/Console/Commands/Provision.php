@@ -65,6 +65,20 @@ class Provision extends Config
 
         $keyToIndex = $this->envKeyToIndex($lines);
 
+        // 0. Risolvi la repository GitHub UNA volta. La repo si chiama come
+        //    la cartella locale (es. `wonder-image/new-site`), NON come il
+        //    dominio di produzione (es. `test.wonderimage.it`). Tenerli
+        //    separati è essenziale: il dominio cambia per ambiente, la repo
+        //    è univoca per progetto.
+        $repoName = $this->resolveGithubRepositoryFromGit($cwd, $output);
+        if ($repoName === '') {
+            $output->writeln('<error>❌ Impossibile determinare la repository GitHub.</error>');
+            $output->writeln('<error>   Configura il git remote: git remote add origin git@github.com:OWNER/REPO.git</error>');
+            $output->writeln('<error>   Oppure crea la repo via gh: gh repo create OWNER/'.basename($cwd).' --private</error>');
+            return Command::FAILURE;
+        }
+        $output->writeln('<info>📦 Repository GitHub: '.$repoName.'</info>');
+
         // 1. BWS_ACCESS_TOKEN: serve per parlare con Bitwarden. Resta nel
         //    .env locale (e sarà sincronizzato anche nei GitHub Secrets
         //    più avanti).
@@ -80,17 +94,10 @@ class Provision extends Config
         }
 
         // 2. APP_DOMAIN di PRODUZIONE: prompt con default da GitHub Variables
-        //    se già configurato. NON deriva dal nome cartella locale (che
-        //    serve a Herd, non al deploy). Il valore va in GitHub Variables;
-        //    NON viene scritto nel .env locale.
-        $existingGhVars = $this->existingGithubRepositoryVariables(
-            // primo tentativo: useremo poi appDomain risolto, qui passa
-            // qualunque non-empty (gh usa la repo del cwd se la string non
-            // matcha). Comunque le GH var dipendono dalla repo, e la repo
-            // potrebbe non esistere ancora — in quel caso la lista sarà vuota.
-            $this->envValue($lines, $keyToIndex, 'APP_DOMAIN'),
-            $output
-        ) ?? [];
+        //    della repo (NON dal .env locale: localmente è il valore Herd-
+        //    style, in prod è il dominio reale). Il valore va in GitHub
+        //    Variables della repo; NON viene scritto nel .env locale.
+        $existingGhVars = $this->existingGithubRepositoryVariables($repoName, $output) ?? [];
         $existingAppDomain = $this->normalizeDomain($existingGhVars['APP_DOMAIN'] ?? '');
 
         $appDomain = $existingAppDomain;
@@ -124,14 +131,25 @@ class Provision extends Config
             $output->writeln('<info>✅ Salvato BWS_PROJECT_ID nel .env locale</info>');
         }
 
-        // 4. Repo GitHub: crea/verifica.
-        if (!$this->ensureGithubRepository($appDomain, $output)) {
+        // 4. Repo GitHub: crea/verifica. Avvisa se esiste un'altra repo
+        //    creata erroneamente con il nome del dominio.
+        if (!$this->ensureGithubRepository($repoName, $output)) {
             return Command::FAILURE;
+        }
+
+        $strayDomainRepo = $this->runCommand(['gh', 'repo', 'view', $appDomain, '--json', 'nameWithOwner', '--jq', '.nameWithOwner']);
+        if ($strayDomainRepo['exitCode'] === 0) {
+            $strayName = trim($strayDomainRepo['stdout']);
+            if ($strayName !== '' && $strayName !== $repoName) {
+                $output->writeln('<comment>⚠️  Esiste una repo GitHub `'.$strayName.'` (probabilmente creata da un provision precedente con il dominio come nome).</comment>');
+                $output->writeln('<comment>   Tutti i secret/variables vengono ora salvati su `'.$repoName.'` correttamente.</comment>');
+                $output->writeln('<comment>   Per eliminare la repo orfana: gh repo delete '.$strayName.' --yes</comment>');
+            }
         }
 
         // 5. GitHub Secrets: BWS_*. Non APP_DEPLOY_TOKEN — quello viene
         //    gestito subito dopo, separatamente, per sapere se esiste già.
-        if (!$this->syncGithubRepositorySecrets($appDomain, [
+        if (!$this->syncGithubRepositorySecrets($repoName, [
             'BWS_ACCESS_TOKEN' => $bwAccessToken,
             'BWS_PROJECT_ID' => $bwProjectId,
         ], $output)) {
@@ -143,39 +161,36 @@ class Provision extends Config
         //    sarebbe rotture per i deploy in corso e perché `gh secret list`
         //    non espone il valore quindi non possiamo "leggerlo per
         //    confermare l'identità" dopo).
-        $existingGhSecrets = $this->existingGithubRepositorySecretNames($appDomain, $output) ?? [];
-        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        $existingGhSecrets = $this->existingGithubRepositorySecretNames($repoName, $output) ?? [];
 
         if (!in_array('APP_DEPLOY_TOKEN', $existingGhSecrets, true)) {
             $deployToken = bin2hex(random_bytes(32));
-            if (!$this->syncGithubRepositorySecrets($appDomain, [
+            if (!$this->syncGithubRepositorySecrets($repoName, [
                 'APP_DEPLOY_TOKEN' => $deployToken,
             ], $output)) {
                 return Command::FAILURE;
             }
-            $output->writeln('<info>🔑 Generato APP_DEPLOY_TOKEN e salvato in GitHub Secrets.</info>');
+            $output->writeln('<info>🔑 Generato APP_DEPLOY_TOKEN e salvato in GitHub Secrets ('.$repoName.').</info>');
 
             // Verifica post-sync: gh secret list deve ora ritornare il nome.
             // Se non lo ritorna, segnalo prima che il deploy fallisca.
-            $verify = $this->existingGithubRepositorySecretNames($appDomain, $output) ?? [];
+            $verify = $this->existingGithubRepositorySecretNames($repoName, $output) ?? [];
             if (!in_array('APP_DEPLOY_TOKEN', $verify, true)) {
-                $output->writeln('<error>❌ APP_DEPLOY_TOKEN risulta NON salvato dopo il push.</error>');
-                $output->writeln('<error>   Verifica manualmente con: gh secret list --repo ' . $repoName . '</error>');
+                $output->writeln('<error>❌ APP_DEPLOY_TOKEN risulta NON salvato dopo il push su '.$repoName.'.</error>');
+                $output->writeln('<error>   Verifica manualmente con: gh secret list --repo '.$repoName.'</error>');
                 $output->writeln('<error>   Se serve, settalo a mano:</error>');
-                $output->writeln('<error>     gh secret set APP_DEPLOY_TOKEN --repo ' . $repoName . ' --body "$(php -r \'echo bin2hex(random_bytes(32));\')"</error>');
+                $output->writeln('<error>     gh secret set APP_DEPLOY_TOKEN --repo '.$repoName.' --body "$(php -r \'echo bin2hex(random_bytes(32));\')"</error>');
                 return Command::FAILURE;
             }
-            $output->writeln('<info>✅ APP_DEPLOY_TOKEN verificato in gh secret list.</info>');
+            $output->writeln('<info>✅ APP_DEPLOY_TOKEN verificato in gh secret list ('.$repoName.').</info>');
         } else {
-            $output->writeln('<info>↺ APP_DEPLOY_TOKEN già presente in GitHub Secrets, mantenuto invariato.</info>');
+            $output->writeln('<info>↺ APP_DEPLOY_TOKEN già presente in GitHub Secrets ('.$repoName.'), mantenuto invariato.</info>');
         }
 
-        // Avvisa se esiste ancora il vecchio nome (legacy, GitHub blocca
-        // i secret che iniziano con GITHUB_ ma se è stato creato manualmente
-        // o ereditato non lo eliminiamo automaticamente).
+        // Avvisa se esiste ancora il vecchio nome (legacy).
         if (in_array('GITHUB_API_TOKEN', $existingGhSecrets, true)) {
             $output->writeln('<comment>⚠️  GITHUB_API_TOKEN ancora presente in GitHub Secrets (nome legacy). Puoi rimuoverlo manualmente con:</comment>');
-            $output->writeln('<comment>   gh secret delete GITHUB_API_TOKEN --repo '.$this->resolveGithubRepositoryName($appDomain).'</comment>');
+            $output->writeln('<comment>   gh secret delete GITHUB_API_TOKEN --repo '.$repoName.'</comment>');
         }
 
         // 7. GitHub Variables: APP_DOMAIN + ASSETS_VERSION.
@@ -187,7 +202,7 @@ class Provision extends Config
             $assetsVersion = '0.0';
         }
 
-        if (!$this->syncGithubRepositoryVariables($appDomain, [
+        if (!$this->syncGithubRepositoryVariables($repoName, [
             'APP_DOMAIN' => $appDomain,
             'ASSETS_VERSION' => $assetsVersion,
         ], $output)) {

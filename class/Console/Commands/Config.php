@@ -272,6 +272,14 @@ class Config extends Command
         return $projectId;
     }
 
+    /**
+     * Verifica se la repo GitHub `$repoName` (`owner/repo`) esiste; se no la crea.
+     *
+     * @deprecated Il parametro storico era `$appDomain` (es. `test.wonderimage.it`),
+     *             che spesso NON coincide con la repo (es. `wonder-image/new-site`).
+     *             Da v2.1.x il chiamante deve passare il nome owner/repo risolto
+     *             via `resolveGithubRepositoryFromGit()`.
+     */
     protected function ensureGithubRepository(string $appDomain, OutputInterface $output): bool
     {
         if (!$this->commandExists('gh')) {
@@ -306,9 +314,14 @@ class Config extends Command
         return true;
     }
 
-    protected function syncGithubRepositorySecrets(string $appDomain, array $secrets, OutputInterface $output): bool
+    protected function syncGithubRepositorySecrets(string $repoOrAppDomain, array $secrets, OutputInterface $output): bool
     {
-        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        // Il parametro accetta SIA il repo name in forma `owner/repo` (modo
+        // nuovo) SIA un dominio (modo legacy, retro-compat). Se non è
+        // `owner/repo`, fallback al lookup via gh repo view.
+        $repoName = str_contains($repoOrAppDomain, '/')
+            ? $repoOrAppDomain
+            : $this->resolveGithubRepositoryName($repoOrAppDomain);
 
         if ($repoName === '') {
             $output->writeln('<error>❌ Impossibile determinare il nome completo della repository GitHub.</error>');
@@ -340,9 +353,11 @@ class Config extends Command
         return true;
     }
 
-    protected function syncGithubRepositoryVariables(string $appDomain, array $variables, OutputInterface $output): bool
+    protected function syncGithubRepositoryVariables(string $repoOrAppDomain, array $variables, OutputInterface $output): bool
     {
-        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        $repoName = str_contains($repoOrAppDomain, '/')
+            ? $repoOrAppDomain
+            : $this->resolveGithubRepositoryName($repoOrAppDomain);
 
         if ($repoName === '') {
             $output->writeln('<error>❌ Impossibile determinare il nome completo della repository GitHub.</error>');
@@ -722,6 +737,44 @@ class Config extends Command
         return trim($repo['stdout']);
     }
 
+    /**
+     * Risolve la repo GitHub del progetto a partire dal git remote `origin`
+     * della cartella corrente — `owner/repo`. Se non c'è remote configurato,
+     * usa `gh api user` per estrarre l'owner di default + basename del cwd.
+     *
+     * Sostituisce `resolveGithubRepositoryName($appDomain)` nel flow di
+     * provision, perché l'`APP_DOMAIN` può essere `test.wonderimage.it`
+     * (sub-domain di produzione) mentre la repo si chiama `new-site`
+     * (nome cartella). Erano sempre stati confusi e per fortuna in passato
+     * coincidevano spesso; ora vengono separati.
+     */
+    protected function resolveGithubRepositoryFromGit(string $cwd, OutputInterface $output): string
+    {
+        // Strategia 1: git remote get-url origin → estrai owner/repo
+        $remote = $this->runCommand(['git', '-C', $cwd, 'remote', 'get-url', 'origin']);
+        if ($remote['exitCode'] === 0) {
+            $url = trim($remote['stdout']);
+            // SSH: git@github.com:owner/repo.git
+            // HTTPS: https://github.com/owner/repo(.git)?
+            if (preg_match('#github\.com[:/]([^/]+)/([^/.\s]+?)(?:\.git)?/?$#', $url, $m) === 1) {
+                return $m[1].'/'.$m[2];
+            }
+        }
+
+        // Strategia 2: gh api user → estrai login + basename(cwd)
+        $whoami = $this->runCommand(['gh', 'api', 'user', '--jq', '.login']);
+        if ($whoami['exitCode'] === 0) {
+            $owner = trim($whoami['stdout']);
+            $folder = $this->normalizeProjectSlug(basename($cwd));
+            if ($owner !== '' && $folder !== '') {
+                $output->writeln('<comment>ℹ️ Nessun git remote origin configurato. Uso owner di default ('.$owner.') + nome cartella ('.$folder.').</comment>');
+                return $owner.'/'.$folder;
+            }
+        }
+
+        return '';
+    }
+
     protected function updateComposerName(string $composerJsonPath, string $appDomain, OutputInterface $output): bool
     {
         if (!file_exists($composerJsonPath)) {
@@ -919,9 +972,11 @@ class Config extends Command
      *
      * @return string[]|null
      */
-    protected function existingGithubRepositorySecretNames(string $appDomain, OutputInterface $output): ?array
+    protected function existingGithubRepositorySecretNames(string $repoOrAppDomain, OutputInterface $output): ?array
     {
-        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        $repoName = str_contains($repoOrAppDomain, '/')
+            ? $repoOrAppDomain
+            : $this->resolveGithubRepositoryName($repoOrAppDomain);
         if ($repoName === '') {
             return null;
         }
@@ -955,9 +1010,11 @@ class Config extends Command
      *
      * @return array<string,string>|null
      */
-    protected function existingGithubRepositoryVariables(string $appDomain, OutputInterface $output): ?array
+    protected function existingGithubRepositoryVariables(string $repoOrAppDomain, OutputInterface $output): ?array
     {
-        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        $repoName = str_contains($repoOrAppDomain, '/')
+            ? $repoOrAppDomain
+            : $this->resolveGithubRepositoryName($repoOrAppDomain);
         if ($repoName === '') {
             return null;
         }
