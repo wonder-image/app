@@ -4,6 +4,7 @@ namespace Wonder\Console\Commands;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -40,7 +41,9 @@ class Build extends Command
     {
         $this
             ->setName($this->name)
-            ->setDescription('Genera handler/index.php e .htaccess senza richiedere DB. Per uso in CI prima del deploy.');
+            ->setDescription('Genera handler/index.php e .htaccess senza richiedere DB. Per uso in CI prima del deploy.')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Sovrascrive anche .htaccess se esiste già')
+            ->addOption('force-www', null, InputOption::VALUE_NONE, 'Aggiunge la regola force-WWW al template .htaccess (off di default: la maggior parte dei subdomain non ha www)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -104,20 +107,25 @@ class Build extends Command
         }
         $output->writeln('<info>✅ Generato '.$handlerPath.'</info>');
 
-        // 4. Genera .htaccess SOLO se manca (rispetta override dell'utente).
+        // 4. Genera .htaccess. Default: solo se manca (rispetta override
+        //    dell'utente). Con --force lo sovrascrive sempre.
         $webroot = is_dir($root.'/public') ? $root.'/public' : $root;
         $htaccessPath = $webroot.'/.htaccess';
 
-        if (!file_exists($htaccessPath)) {
-            $htaccessContent = self::htaccessTemplate();
+        $force = (bool) $input->getOption('force');
+        $forceWww = (bool) $input->getOption('force-www');
+
+        if (!file_exists($htaccessPath) || $force) {
+            $htaccessContent = self::htaccessTemplate($forceWww);
             $written = file_put_contents($htaccessPath, $htaccessContent.PHP_EOL);
             if ($written === false) {
                 $output->writeln('<error>❌ Impossibile scrivere '.$htaccessPath.'</error>');
                 return Command::FAILURE;
             }
-            $output->writeln('<info>✅ Generato '.$htaccessPath.'</info>');
+            $verb = file_exists($htaccessPath.'.bak') ? 'Sovrascritto' : 'Generato';
+            $output->writeln('<info>✅ '.$verb.' '.$htaccessPath.($forceWww ? ' (con force-www)' : '').'</info>');
         } else {
-            $output->writeln('<comment>↺ '.$htaccessPath.' esiste già, nessuna modifica.</comment>');
+            $output->writeln('<comment>↺ '.$htaccessPath.' esiste già, nessuna modifica. Usa --force per sovrascrivere.</comment>');
         }
 
         $output->writeln('<info>🧱 Build completato.</info>');
@@ -146,60 +154,88 @@ PHP;
     }
 
     /**
-     * Template `.htaccess` di default. Stesso contenuto generato da
-     * `app/build/update/configuration_file.php` quando `.htaccess` manca.
-     * Tenuto in copia per la stessa ragione del front controller.
+     * Template `.htaccess` di default per shared hosting (Aruba, SiteGround,
+     * IONOS, ecc.).
+     *
+     * Versione "no force-www": la maggior parte dei subdomini (es.
+     * `test.example.it`) NON ha la corrispondente versione con www, quindi
+     * forzare `www.` causerebbe redirect verso un host che non esiste e il
+     * sito apparirebbe come 404 o pagina parking del provider.
+     *
+     * Per attivare force-www (utile per il dominio principale `example.it`
+     * → `www.example.it`), passare `--force-www` a `forge build`.
+     *
+     * Aggiunte rispetto alla versione precedente:
+     * - `Options +FollowSymLinks -MultiViews` (richiesto da molti shared
+     *   hosting Apache per attivare `RewriteRule`);
+     * - `RewriteBase /` (esplicito; alcune config Apache non assumono `/`
+     *   come default su shared hosting);
+     * - directory listing comunque disabilitato con `Options -Indexes`.
      */
-    private static function htaccessTemplate(): string
+    private static function htaccessTemplate(bool $forceWww = false): string
     {
-        return <<<'HTACCESS'
+        $forceWwwBlock = $forceWww
+            ? <<<'HTACCESS'
+
+  # Forza WWW fuori dall'ambiente locale (opt-in via --force-www)
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+  RewriteCond %{HTTP_HOST} !^www\. [NC]
+  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+HTACCESS
+            : '';
+
+        return <<<HTACCESS
 # ----------------------------------------------------------------------
-# Forza HTTPS e WWW
+# Apache options (necessari su molti shared hosting per il RewriteRule)
+# ----------------------------------------------------------------------
+Options +FollowSymLinks -MultiViews -Indexes
+AddDefaultCharset UTF-8
+DefaultLanguage it
+
+# ----------------------------------------------------------------------
+# Routing
 # ----------------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteBase /
 
-  # Passa Authorization/Bearer
+  # Passa Authorization/Bearer (CGI/FastCGI mangiano l'header senza questo)
   RewriteCond %{HTTP:Authorization} .
   RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
   # Forza HTTPS fuori dall'ambiente locale
-  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?\$ [NC]
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-  # Forza WWW fuori dall'ambiente locale
-  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
-  RewriteCond %{HTTP_HOST} !^www\. [NC]
-  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+$forceWwwBlock
 
   # Aggiunge slash finale se mancante (solo per URL senza estensione)
-  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]
+  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?\$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} !/$
-  RewriteCond %{REQUEST_URI} !\.[^./]+$
-  RewriteRule ^(.*)$ /$1/ [R=301,L]
+  RewriteCond %{REQUEST_URI} !/\$
+  RewriteCond %{REQUEST_URI} !\.[^./]+\$
+  RewriteRule ^(.*)\$ /\$1/ [R=301,L]
 
-  # Router Wonder
-  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]
+  # Router Wonder: tutto ciò che non è file/directory esistente va al
+  # front controller handler/index.php
+  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?\$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ handler/index.php [L,QSA]
-
 </IfModule>
 
 # ----------------------------------------------------------------------
-# Cache ottimizzata (immagini 24h, validazione automatica con ETag)
+# Cache ottimizzata
 # ----------------------------------------------------------------------
 <IfModule mod_headers.c>
-  <FilesMatch "\.(jpe?g|png|gif|svg|ico|pdf|mp4|webm|ogg|woff2?)$">
+  <FilesMatch "\.(jpe?g|png|gif|svg|ico|pdf|mp4|webm|ogg|woff2?)\$">
     Header set Cache-Control "public, max-age=86400, must-revalidate"
   </FilesMatch>
-  <FilesMatch "\.(js|css)$">
+  <FilesMatch "\.(js|css)\$">
     Header set Cache-Control "public, max-age=604800, must-revalidate"
   </FilesMatch>
-  <FilesMatch "\.(html|htm)$">
+  <FilesMatch "\.(html|htm)\$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
 </IfModule>
@@ -219,20 +255,13 @@ FileETag MTime Size
 
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/json
-  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-gzip dont-vary
+  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)\$" no-gzip dont-vary
 </IfModule>
 
 <IfModule mod_brotli.c>
   BrotliCompressionQuality 5
   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json
-  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-brotli dont-vary
-</IfModule>
-
-<IfModule mod_rewrite.c>
-  RewriteCond %{ENV:REDIRECT_STATUS} >=400
-  RewriteCond %{ENV:REDIRECT_STATUS} <600
-  RewriteCond %{QUERY_STRING} !errCode=
-  RewriteRule ^.*$ /?errCode=%{ENV:REDIRECT_STATUS} [R=302,L]
+  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)\$" no-brotli dont-vary
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -242,10 +271,6 @@ FileETag MTime Size
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set X-XSS-Protection "1; mode=block"
 </IfModule>
-
-Options -Indexes
-AddDefaultCharset UTF-8
-DefaultLanguage it
 HTACCESS;
     }
 
