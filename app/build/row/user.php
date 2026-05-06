@@ -28,7 +28,7 @@
     ])));
 
     if (!sqlSelect('user', [ 'username' => '@system' ], 1)->exists) {
-        
+
         $values = [
             "name" => "API",
             "surname" => "System",
@@ -38,7 +38,13 @@
             "authority" => "api_internal_user",
             "area" => "api",
             "active" => "true",
-            "allowed_domains" => $systemAllowedDomains
+            "allowed_domains" => $systemAllowedDomains,
+            // Bootstrap dell'utente di sistema: durante la creazione iniziale
+            // SMTP potrebbe non essere ancora configurato (specialmente al
+            // primo deploy in produzione). Skip esplicito dell'email del
+            // token: lo si recupera comunque via `Credentials::appToken()`
+            // dal record api_users, che viene comunque generato.
+            "_skip_api_token_mail" => true,
         ];
 
         user($values);
