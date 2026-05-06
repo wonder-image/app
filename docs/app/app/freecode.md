@@ -134,8 +134,9 @@ può essere riusata, testata e modificata senza toccare il layout.
 
 ## Navigazione: una sola sorgente di verità
 
-Oggi `header.php` ripete la nav due volte (desktop + mobile) con label hardcoded.
-Da 2b, l'header itererà su `custom/config/navigation.php`:
+`header.php` itera su `custom/config/navigation.php` per produrre sia il nav desktop sia il nav mobile. Niente label hardcoded, niente duplicazione.
+
+Forma minima:
 
 ```php
 return [
@@ -144,8 +145,38 @@ return [
 ];
 ```
 
-Aggiungere una voce = aggiungere una riga. Le label vengono lette da
-`lang/{locale}/components.json` con chiave `components.navigation.{key}`.
+Aggiungere una voce = aggiungere una riga. Le label vengono lette da `lang/{locale}/components.json` con chiave `components.navigation.{key}`.
+
+### Subnav (children)
+
+Una voce può avere una sotto-lista statica:
+
+```php
+return [
+    [ 'key' => 'home', 'url' => '' ],
+    [
+        'key'      => 'services',
+        'url'      => 'services',
+        'children' => [
+            [ 'key' => 'service_a', 'url' => 'services/a' ],
+            [ 'key' => 'service_b', 'url' => 'services/b' ],
+        ],
+    ],
+    [ 'key' => 'contact', 'url' => 'contact' ],
+];
+```
+
+Il rendering è ricorsivo: ogni `child` può a sua volta avere `children`. Il componente `custom/components/ui/nav-item.php` gestisce sia il caso senza figli (delega a `nav-link.php`) sia il caso con figli (produce `<div class="nav-has-children">` con link parent + `<div class="nav-children">`).
+
+Il designer applica lo stile via le classi `.nav-has-children` e `.nav-children` (dropdown desktop, accordion mobile, ecc.) — la struttura PHP non impone niente.
+
+### Voci esterne
+
+```php
+[ 'key' => 'docs', 'url' => 'https://docs.example.com', 'external' => true ],
+```
+
+Quando `external` è `true`, l'href è usato as-is (no `__u()`) e l'`<a>` riceve `target="_blank" rel="noopener noreferrer"`.
 
 ## Come aggiungere una nuova pagina
 
