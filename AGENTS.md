@@ -25,6 +25,7 @@ Key subareas:
 
 - `class/App/Models`: SQL/data definitions
 - `class/App/Resources`: backend/API modules
+- `class/App/Module`: module-system discovery, manifest, state, config, registry
 - `class/App/PageSchema`: custom backend pages
 - `class/App/ResourceSchema`: form/table/repeater DSL
 - `class/App/Support/Repeater.php`: repeater request + relation sync
@@ -96,6 +97,9 @@ php forge start
 - Default to ASCII unless the file already uses non-ASCII.
 - Keep comments rare and high-signal.
 - Prefer `rg` / `rg --files` for search.
+- The canonical module format is a Composer package, not a folder embedded in the core package.
+- Standard module package naming is `wonder-image/<slug>`.
+- Standard module namespace base is `Wonder\\Plugin\\<StudlySlug>\\`.
 - For backend forms:
   - `Model::tableSchema()` = SQL structure
   - `Model::dataSchema()` = data treatment / prepare / upload
@@ -108,6 +112,9 @@ php forge start
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
 - Backend/API routes are driven from `app/config/routes` and the `ResourceRouteRegistrar`.
+- External modules are enabled by the consumer in `custom/config/modules.php`.
+- External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
+- Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars.
 - `build/src/backend` and `build/table` have been intentionally cleaned out. Do not reintroduce them for new modules.
 - `SortableInput` is deprecated. Keep it only for compatibility; do not add new usages.
 - Local Herd routing uses a global driver stub:
@@ -124,6 +131,7 @@ php forge start
 - legacy cleanup targets:
   - do not recreate `app/build/src/backend/*`
   - do not recreate `app/build/table/*`
+- do not use `custom/...` copy-paste integration as the primary pattern for new modules; prefer package-based module registration
 - avoid changing `wonder-image.php` unless the task is truly bootstrap/runtime-related
 
 ## How to validate changes before committing

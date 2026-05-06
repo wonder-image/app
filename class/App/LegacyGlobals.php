@@ -19,6 +19,7 @@ class LegacyGlobals
         'COLOR' => [ 'group' => 'config', 'kind' => 'style' ],
         'FONT' => [ 'group' => 'config', 'kind' => 'style' ],
         'PATH' => [ 'group' => 'config', 'kind' => 'paths' ],
+        'MODULES' => [ 'group' => 'config', 'kind' => 'module_config' ],
         'SOCIETY' => [ 'group' => 'runtime', 'kind' => 'request_data' ],
         'TABLE' => [ 'group' => 'config', 'kind' => 'schema_registry' ],
         'ANALYTICS' => [ 'group' => 'config', 'kind' => 'service_config' ],

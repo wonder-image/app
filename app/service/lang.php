@@ -8,6 +8,10 @@
         LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
             ::defaultLang('it')
             ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
+
+        foreach (\Wonder\App\Module\Registry::languagePaths() as $languagePath) {
+            LanguageContext::addLangPath($languagePath);
+        }
     
     # Inizializzo il sistema di traduzione
         TranslationProvider::init();

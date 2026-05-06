@@ -90,6 +90,12 @@ final class ModelRegistry
             $packageRoot.'/class/App/Models',
         ];
 
+        foreach (\Wonder\App\Module\Registry::modelDirectories() as $directory) {
+            if (is_string($directory) && trim($directory) !== '') {
+                $directories[] = $directory;
+            }
+        }
+
         $root = LegacyGlobals::get('ROOT', defined('ROOT') ? ROOT : '');
 
         if (is_string($root) && $root !== '') {

@@ -66,6 +66,8 @@
         ]
     ];
 
+    $PERMITS = \Wonder\App\Module\Registry::mergePermissions($PERMITS);
+
     # Permessi CUSTOM
     $customPermissionsFile = $ROOT."/custom/config/permissions.php";
     $CUSTOM_PERMITS = [];

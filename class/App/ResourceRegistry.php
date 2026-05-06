@@ -216,6 +216,14 @@ final class ResourceRegistry
             ],
         ];
 
+        foreach (\Wonder\App\Module\Registry::resourceDirectories() as $directory) {
+            if (!is_array($directory)) {
+                continue;
+            }
+
+            $directories[] = $directory;
+        }
+
         $root = LegacyGlobals::get('ROOT', defined('ROOT') ? ROOT : '');
 
         if (is_string($root) && $root !== '') {

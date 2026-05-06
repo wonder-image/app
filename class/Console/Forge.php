@@ -22,6 +22,8 @@
                 \Wonder\Console\Commands\LocalStart::class,
                 \Wonder\Console\Commands\MakeModel::class,
                 \Wonder\Console\Commands\MakeResource::class,
+                \Wonder\Console\Commands\ValidateModule::class,
+                \Wonder\Console\Commands\StatusModules::class,
             ];
 
         }

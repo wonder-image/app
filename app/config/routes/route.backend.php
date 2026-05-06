@@ -8,7 +8,7 @@ Route::area('backend')
     ->theme('backend')
     ->guarded()
     ->name('backend.')
-    ->group(function () use ($ROOT_APP) {
+    ->group(function () use ($ROOT_APP, $ROOT) {
 
         Route::get('/', $ROOT_APP.'/http/backend/home.php')
             ->name('home')
@@ -115,5 +115,6 @@ Route::area('backend')
             });
 
         \Wonder\App\ResourceRouteRegistrar::registerBackend($ROOT_APP);
+        \Wonder\App\ModuleRouteRegistrar::registerBackend($ROOT, $ROOT_APP);
 
     });

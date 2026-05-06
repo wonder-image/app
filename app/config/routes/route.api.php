@@ -5,7 +5,7 @@ use Wonder\Http\Route;
 Route::area('api')
     ->prefix('/api')
     ->response('json')
-    ->group(function () use ($ROOT_APP) {
+    ->group(function () use ($ROOT_APP, $ROOT) {
 
         Route::name('app.')
             ->prefix('/app')
@@ -27,5 +27,6 @@ Route::area('api')
             });
 
         \Wonder\App\ResourceRouteRegistrar::registerApi($ROOT_APP);
+        \Wonder\App\ModuleRouteRegistrar::registerApi($ROOT, $ROOT_APP);
 
     });
