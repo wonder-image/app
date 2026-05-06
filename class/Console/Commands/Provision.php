@@ -130,7 +130,12 @@ class Provision extends Config
             return Command::FAILURE;
         }
 
-        if (!$this->ensureBitwardenProjectEnvValues($input, $output, $envPath, $lines, $keyToIndex)) {
+        // I secret "remote-only" (FTP_*, GITHUB_API_TOKEN) non vengono
+        // scritti nel .env locale: vivono solo in $remoteValues e da lì
+        // vengono pushati su Bitwarden e/o GitHub Secrets della repo.
+        $remoteValues = [];
+
+        if (!$this->ensureBitwardenProjectEnvValues($input, $output, $envPath, $lines, $keyToIndex, $remoteValues)) {
             return Command::FAILURE;
         }
 
@@ -139,7 +144,8 @@ class Provision extends Config
         // GITHUB_API_TOKEN è il deploy bearer riconosciuto dal bypass in
         // /api/app/update/ (vedi app/http/api/app/update.php), quindi DEVE
         // essere disponibile direttamente al workflow al primo deploy.
-        $githubApiToken = $this->envValue($lines, $keyToIndex, 'GITHUB_API_TOKEN');
+        $githubApiToken = $remoteValues['GITHUB_API_TOKEN']
+            ?? $this->envValue($lines, $keyToIndex, 'GITHUB_API_TOKEN');
         if ($githubApiToken !== '') {
             if (!$this->syncGithubRepositorySecrets($appDomain, [
                 'GITHUB_API_TOKEN' => $githubApiToken,
@@ -148,7 +154,7 @@ class Provision extends Config
             }
         }
 
-        if (!$this->syncBitwardenProjectSecrets($bwProjectId, $bwAccessToken, $lines, $keyToIndex, $output)) {
+        if (!$this->syncBitwardenProjectSecrets($bwProjectId, $bwAccessToken, $lines, $keyToIndex, $output, $remoteValues)) {
             return Command::FAILURE;
         }
 

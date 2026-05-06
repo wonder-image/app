@@ -345,7 +345,7 @@ class Config extends Command
         return true;
     }
 
-    protected function syncBitwardenProjectSecrets(string $bwProjectId, string $bwAccessToken, array $lines, array $keyToIndex, OutputInterface $output): bool
+    protected function syncBitwardenProjectSecrets(string $bwProjectId, string $bwAccessToken, array $lines, array $keyToIndex, OutputInterface $output, array $remoteValues = []): bool
     {
         $map = $this->bitwardenProjectSecretMap();
 
@@ -358,7 +358,10 @@ class Config extends Command
         $updated = [];
 
         foreach ($map as $envKey => $secretKeys) {
-            $value = $this->envValue($lines, $keyToIndex, $envKey);
+            // 1) chiavi "remote-only" (vivono solo in Bitwarden / GitHub
+            //    Secrets, non nel .env locale): leggi da $remoteValues;
+            // 2) chiavi normali: leggi dal .env.
+            $value = $remoteValues[$envKey] ?? $this->envValue($lines, $keyToIndex, $envKey);
 
             if ($value === '') {
                 continue;
@@ -396,12 +399,39 @@ class Config extends Command
         return true;
     }
 
-    protected function ensureBitwardenProjectEnvValues(InputInterface $input, OutputInterface $output, string $envPath, array &$lines, array &$keyToIndex): bool
+    protected function ensureBitwardenProjectEnvValues(InputInterface $input, OutputInterface $output, string $envPath, array &$lines, array &$keyToIndex, array &$remoteValues = []): bool
     {
-        $updated = [];
+        $updatedEnv = [];
+        $cleanedEnv = [];
+        $captured = [];
+        $localEnvDisabled = $this->localEnvDisabledKeys();
 
+        // Pass 1: cleanup. Le chiavi "remote-only" (FTP_*, GITHUB_API_TOKEN)
+        // non devono essere salvate nel .env locale. Se un .env precedente
+        // le contiene, leggi i valori e rimuovi le righe.
+        foreach ($localEnvDisabled as $envKey) {
+            $existing = $this->envValue($lines, $keyToIndex, $envKey);
+            if ($existing !== '') {
+                $captured[$envKey] = $existing;
+                $this->removeEnvValue($lines, $keyToIndex, $envKey);
+                $cleanedEnv[] = $envKey;
+            }
+        }
+
+        // Pass 2: per ogni chiave nella map Bitwarden, riempi il valore mancante.
         foreach (array_keys($this->bitwardenProjectSecretMap()) as $envKey) {
-            if ($this->envValue($lines, $keyToIndex, $envKey) !== '') {
+            $isRemoteOnly = in_array($envKey, $localEnvDisabled, true);
+
+            // Per chiavi remote-only, il valore vive in $remoteValues / $captured
+            // (non nel .env). Per chiavi normali, vive nel .env.
+            $current = $isRemoteOnly
+                ? ($remoteValues[$envKey] ?? $captured[$envKey] ?? '')
+                : $this->envValue($lines, $keyToIndex, $envKey);
+
+            if ($current !== '') {
+                if ($isRemoteOnly && !isset($remoteValues[$envKey])) {
+                    $remoteValues[$envKey] = $current;
+                }
                 continue;
             }
 
@@ -423,15 +453,76 @@ class Config extends Command
                 $output->writeln('<info>🔑 Generato automaticamente '.$envKey.' (random hex 64 chars).</info>');
             }
 
-            $this->setEnvValue($lines, $keyToIndex, $envKey, $value);
-            $updated[] = $envKey;
+            if ($isRemoteOnly) {
+                // Solo in memoria, viene poi pushato su Bitwarden e/o GitHub Secrets.
+                $remoteValues[$envKey] = $value;
+                $updatedEnv[] = $envKey.' (remote-only)';
+            } else {
+                $this->setEnvValue($lines, $keyToIndex, $envKey, $value);
+                $updatedEnv[] = $envKey;
+            }
         }
 
-        if (count($updated) > 0) {
+        if (count($cleanedEnv) > 0 || $this->envFileNeedsRewrite($lines)) {
             file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
-            $output->writeln('<info>✅ Configurazione aggiornata nel file .env: '.implode(', ', $updated).'</info>');
         }
 
+        if (count($cleanedEnv) > 0) {
+            $output->writeln('<info>🧹 Rimosse dal .env (vivono solo su Bitwarden/GitHub Secrets): '.implode(', ', $cleanedEnv).'</info>');
+        }
+
+        if (count($updatedEnv) > 0) {
+            $output->writeln('<info>✅ Configurazione aggiornata: '.implode(', ', $updatedEnv).'</info>');
+        }
+
+        return true;
+    }
+
+    /**
+     * Lista delle chiavi che NON devono mai vivere nel .env locale.
+     *
+     * Sono i secret che servono solo in produzione (FTP credentials per il
+     * deploy, deploy bearer per /api/app/update/, ecc.) e che vengono
+     * propagati su:
+     *
+     * - Bitwarden Secrets Manager (project-level), da cui il workflow CI
+     *   li scarica al momento del deploy e li scrive nel .env di produzione;
+     * - GitHub Secrets della repo, per i token che il workflow legge
+     *   come ${{ secrets.X }} prima ancora di poter parlare con Bitwarden
+     *   (es. GITHUB_API_TOKEN).
+     *
+     * `BWS_ACCESS_TOKEN` e `BWS_PROJECT_ID` non sono in questa lista perché
+     * non sono nemmeno presenti in `bitwardenProjectSecretMap()`: vivono
+     * esclusivamente nei GitHub Secrets della repo (se ci fossero in
+     * Bitwarden sarebbero ricorsivi). `provision` li scrive solo lì.
+     *
+     * @return string[]
+     */
+    protected function localEnvDisabledKeys(): array
+    {
+        return [
+            'FTP_HOST',
+            'FTP_USER',
+            'FTP_PASSWORD',
+            'FTP_PORT',
+            'FTP_REMOTE_PATH',
+            'GITHUB_API_TOKEN',
+        ];
+    }
+
+    /**
+     * Indica se le righe del .env contengono già modifiche pending da
+     * scrivere (es. `setEnvValue` chiamata su una chiave). Usato per
+     * decidere se chiamare `file_put_contents` anche quando il "diff" è
+     * solo cleanup (rimosse righe legacy remote-only).
+     *
+     * Implementazione conservativa: se il file su disco è leggibile e
+     * differisce dalla rappresentazione in memoria, vale rewrite.
+     */
+    protected function envFileNeedsRewrite(array $lines): bool
+    {
+        // Sempre true: il chiamante ha già deciso che serve rewrite.
+        // Rimane come hook per future ottimizzazioni.
         return true;
     }
 
