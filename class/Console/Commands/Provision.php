@@ -144,6 +144,8 @@ class Provision extends Config
         //    non espone il valore quindi non possiamo "leggerlo per
         //    confermare l'identità" dopo).
         $existingGhSecrets = $this->existingGithubRepositorySecretNames($appDomain, $output) ?? [];
+        $repoName = $this->resolveGithubRepositoryName($appDomain);
+
         if (!in_array('APP_DEPLOY_TOKEN', $existingGhSecrets, true)) {
             $deployToken = bin2hex(random_bytes(32));
             if (!$this->syncGithubRepositorySecrets($appDomain, [
@@ -152,6 +154,18 @@ class Provision extends Config
                 return Command::FAILURE;
             }
             $output->writeln('<info>🔑 Generato APP_DEPLOY_TOKEN e salvato in GitHub Secrets.</info>');
+
+            // Verifica post-sync: gh secret list deve ora ritornare il nome.
+            // Se non lo ritorna, segnalo prima che il deploy fallisca.
+            $verify = $this->existingGithubRepositorySecretNames($appDomain, $output) ?? [];
+            if (!in_array('APP_DEPLOY_TOKEN', $verify, true)) {
+                $output->writeln('<error>❌ APP_DEPLOY_TOKEN risulta NON salvato dopo il push.</error>');
+                $output->writeln('<error>   Verifica manualmente con: gh secret list --repo ' . $repoName . '</error>');
+                $output->writeln('<error>   Se serve, settalo a mano:</error>');
+                $output->writeln('<error>     gh secret set APP_DEPLOY_TOKEN --repo ' . $repoName . ' --body "$(php -r \'echo bin2hex(random_bytes(32));\')"</error>');
+                return Command::FAILURE;
+            }
+            $output->writeln('<info>✅ APP_DEPLOY_TOKEN verificato in gh secret list.</info>');
         } else {
             $output->writeln('<info>↺ APP_DEPLOY_TOKEN già presente in GitHub Secrets, mantenuto invariato.</info>');
         }

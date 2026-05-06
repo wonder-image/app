@@ -430,72 +430,69 @@ class Config extends Command
 
     protected function ensureBitwardenProjectEnvValues(InputInterface $input, OutputInterface $output, string $envPath, array &$lines, array &$keyToIndex, array &$remoteValues = []): bool
     {
-        $updatedEnv = [];
         $cleanedEnv = [];
-        $captured = [];
+        $updatedEnv = [];
         $localEnvDisabled = $this->localEnvDisabledKeys();
-
-        // Pass 1: cleanup. Le chiavi "remote-only" (FTP_*, APP_DEPLOY_TOKEN)
-        // non devono essere salvate nel .env locale. Se un .env precedente
-        // le contiene, leggi i valori e rimuovi le righe.
-        foreach ($localEnvDisabled as $envKey) {
-            $existing = $this->envValue($lines, $keyToIndex, $envKey);
-            if ($existing !== '') {
-                $captured[$envKey] = $existing;
-                $this->removeEnvValue($lines, $keyToIndex, $envKey);
-                $cleanedEnv[] = $envKey;
-            }
-        }
-
         $autoGenKeys = $this->bitwardenAutoGenKeys();
+        $secretAliases = $this->bitwardenProjectSecretAliases();
+
         $existingBitwarden = is_array($remoteValues['__bitwarden_existing'] ?? null)
             ? $remoteValues['__bitwarden_existing']
             : [];
         unset($remoteValues['__bitwarden_existing']);
 
-        // Pass 2: per ogni chiave nella map Bitwarden, riempi il valore mancante.
+        // Pass 0: migrazione alias. Se Bitwarden ha solo il vecchio nome
+        // (es. DB_HOSTNAME), riusa il valore come default per il nuovo
+        // (DB_HOST). Non cancella il vecchio: lo lasciamo all'utente.
+        foreach ($secretAliases as $oldName => $newName) {
+            if (!isset($existingBitwarden[$newName]) && isset($existingBitwarden[$oldName]) && $existingBitwarden[$oldName] !== '') {
+                $existingBitwarden[$newName] = $existingBitwarden[$oldName];
+                $output->writeln('<info>↪ Migrazione Bitwarden: ' . $oldName . ' → ' . $newName . ' (valore esistente riusato).</info>');
+                $output->writeln('<comment>   Per rimuovere il vecchio: bws secret list "$BWS_PROJECT_ID" --output json | jq -r \'.[] | select(.key=="' . $oldName . '") | .id\' | xargs -I {} bws secret delete {}</comment>');
+            }
+        }
+
+        // Pass 1: cleanup .env locale. Solo le chiavi "no-locale" residue
+        // legacy vengono rimosse (FTP_*, APP_DEPLOY_TOKEN, GITHUB_API_TOKEN).
+        // DB_*/USER_*/APP_KEY locali NON vengono mai toccate dal provision.
+        foreach ($localEnvDisabled as $envKey) {
+            if ($this->envValue($lines, $keyToIndex, $envKey) !== '') {
+                $this->removeEnvValue($lines, $keyToIndex, $envKey);
+                $cleanedEnv[] = $envKey;
+            }
+        }
+
+        if (count($cleanedEnv) > 0) {
+            file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
+            $output->writeln('<info>🧹 Rimosse dal .env locale (vivono solo in Bitwarden/GitHub Secrets): ' . implode(', ', $cleanedEnv) . '</info>');
+        }
+
+        // Pass 2: per ogni chiave nella map Bitwarden, popola $remoteValues.
+        // Il provision NON LEGGE MAI dal .env locale (i valori locali sono
+        // dev, mentre i valori che vanno in Bitwarden sono di produzione e
+        // possono essere DIVERSI). Single source of truth per produzione:
+        // Bitwarden + wizard interattivo.
         foreach (array_keys($this->bitwardenProjectSecretMap()) as $envKey) {
-            $isRemoteOnly = in_array($envKey, $localEnvDisabled, true);
+            $existingBwValue = $existingBitwarden[$envKey] ?? '';
             $isAutoGen = in_array($envKey, $autoGenKeys, true);
 
-            // 1) AUTO-GEN keys (es. APP_KEY): non chiediamo niente all'utente
-            //    e NON leggiamo MAI dal .env locale (la APP_KEY locale è
-            //    diversa e gestita separatamente da `forge config`).
-            //    - se Bitwarden ha già un valore: lo manteniamo intatto;
-            //    - altrimenti: random hex 64.
+            // 1) AUTO-GEN (es. APP_KEY): mantieni esistente o genera random.
+            //    Mai prompt all'utente.
             if ($isAutoGen) {
-                if (isset($existingBitwarden[$envKey]) && $existingBitwarden[$envKey] !== '') {
-                    $remoteValues[$envKey] = $existingBitwarden[$envKey];
+                if ($existingBwValue !== '') {
+                    $remoteValues[$envKey] = $existingBwValue;
                     continue;
                 }
 
                 $value = $this->autoGenerateValueFor($envKey) ?? bin2hex(random_bytes(32));
                 $remoteValues[$envKey] = $value;
-                $updatedEnv[] = $envKey.' (auto-generato in Bitwarden)';
+                $updatedEnv[] = $envKey . ' (auto-generato)';
                 continue;
             }
 
-            // 2) chiavi remote-only (FTP_*, ecc.): valore vive solo in memoria
-            //    e poi va in Bitwarden, MAI nel .env locale.
-            //    chiavi normali (DB_*, USER_*, ecc.): valore vive nel .env
-            //    locale (per il dev) E va anche in Bitwarden (per la prod).
-            $current = $isRemoteOnly
-                ? ($remoteValues[$envKey] ?? $captured[$envKey] ?? '')
-                : $this->envValue($lines, $keyToIndex, $envKey);
-
-            $existingBwValue = $existingBitwarden[$envKey] ?? '';
-
-            // Se l'utente ha già il valore (in .env o memoria), niente prompt.
-            if ($current !== '') {
-                if ($isRemoteOnly && !isset($remoteValues[$envKey])) {
-                    $remoteValues[$envKey] = $current;
-                }
-                continue;
-            }
-
-            // 3) altrimenti, wizard: prompt con default = valore esistente in
-            //    Bitwarden, se presente. Se l'utente preme Enter mantiene
-            //    il valore Bitwarden; se digita qualcosa lo sostituisce.
+            // 2) WIZARD prompt: default = valore esistente in Bitwarden, se
+            //    presente. Enter mantiene, digitando si sostituisce. Le
+            //    password sono input nascosto.
             $hidden = in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD', 'USER_PASSWORD'], true);
 
             if ($existingBwValue !== '') {
@@ -503,51 +500,40 @@ class Config extends Command
                     $input,
                     $output,
                     $envKey,
-                    'Inserisci '.$envKey.' [Enter = mantieni valore esistente in Bitwarden]:',
+                    $envKey . ' [Enter = mantieni esistente]:',
                     $existingBwValue,
                     $hidden
                 );
-            } else {
-                $autoGenValue = $this->autoGenerateValueFor($envKey);
 
-                if ($autoGenValue !== null) {
-                    $value = $autoGenValue;
-                    $output->writeln('<info>🔑 Generato automaticamente '.$envKey.' (random hex 64 chars).</info>');
-                } else {
-                    $value = $this->askRequiredValue(
-                        $input,
-                        $output,
-                        $envKey,
-                        'Inserisci '.$envKey.':',
-                        $hidden
-                    );
-
-                    if ($value === '') {
-                        return false;
-                    }
+                if ($value !== $existingBwValue) {
+                    $updatedEnv[] = $envKey;
                 }
-            }
-
-            if ($isRemoteOnly) {
-                $remoteValues[$envKey] = $value;
-                $updatedEnv[] = $envKey.' (remote-only)';
             } else {
-                $this->setEnvValue($lines, $keyToIndex, $envKey, $value);
-                $remoteValues[$envKey] = $value;
-                $updatedEnv[] = $envKey;
+                $value = $this->askRequiredValue(
+                    $input,
+                    $output,
+                    $envKey,
+                    'Inserisci ' . $envKey . ' (PRODUZIONE):',
+                    $hidden
+                );
+
+                if ($value === '') {
+                    return false;
+                }
+                $updatedEnv[] = $envKey . ' (nuovo)';
             }
-        }
 
-        if (count($cleanedEnv) > 0 || $this->envFileNeedsRewrite($lines)) {
-            file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
-        }
-
-        if (count($cleanedEnv) > 0) {
-            $output->writeln('<info>🧹 Rimosse dal .env (vivono solo su Bitwarden/GitHub Secrets): '.implode(', ', $cleanedEnv).'</info>');
+            $remoteValues[$envKey] = $value;
         }
 
         if (count($updatedEnv) > 0) {
-            $output->writeln('<info>✅ Configurazione aggiornata: '.implode(', ', $updatedEnv).'</info>');
+            $safe = array_map(
+                fn ($k) => str_starts_with($k, 'DB_PASSWORD') || str_starts_with($k, 'FTP_PASSWORD') || str_starts_with($k, 'USER_PASSWORD') || str_starts_with($k, 'APP_KEY')
+                    ? preg_replace('/^(\w+)/', '$1 [hidden]', $k)
+                    : $k,
+                $updatedEnv
+            );
+            $output->writeln('<info>✅ Valori produzione preparati per Bitwarden: ' . implode(', ', $safe) . '</info>');
         }
 
         return true;
@@ -570,6 +556,17 @@ class Config extends Command
      * non sono nemmeno presenti in `bitwardenProjectSecretMap()`: vivono
      * esclusivamente nei GitHub Secrets della repo (se ci fossero in
      * Bitwarden sarebbero ricorsivi). `provision` li scrive solo lì.
+     *
+     * @return string[]
+     */
+    /**
+     * Chiavi che `forge provision` deve **rimuovere** dal `.env` locale se
+     * presenti per residui legacy. Sono valori che vivono solo in
+     * Bitwarden / GitHub Secrets e non hanno alcun senso in dev locale.
+     *
+     * NON include `DB_*`, `USER_*`, `APP_KEY`: quelle vivono ANCHE nel
+     * `.env` locale (con valori di dev, separati da quelli di produzione)
+     * e il provision non le tocca lì.
      *
      * @return string[]
      */
@@ -622,20 +619,40 @@ class Config extends Command
     protected function bitwardenProjectSecretMap(): array
     {
         return [
-            'APP_KEY' => ['APP_KEY'],
-            'DB_HOSTNAME' => ['DB_HOSTNAME', 'DB_HOST'],
-            'DB_USERNAME' => ['DB_USERNAME', 'DB_USER'],
-            'DB_PASSWORD' => ['DB_PASSWORD'],
-            'DB_DATABASE' => ['DB_DATABASE', 'DB_NAME'],
-            'FTP_HOST' => ['FTP_HOST'],
-            'FTP_PASSWORD' => ['FTP_PASSWORD'],
-            'FTP_USER' => ['FTP_USER'],
-            'FTP_PORT' => ['FTP_PORT'],
+            'APP_KEY'         => ['APP_KEY'],
+            'DB_HOST'         => ['DB_HOST'],
+            'DB_USER'         => ['DB_USER'],
+            'DB_PASSWORD'     => ['DB_PASSWORD'],
+            'DB_NAME'         => ['DB_NAME'],
+            'FTP_HOST'        => ['FTP_HOST'],
+            'FTP_USER'        => ['FTP_USER'],
+            'FTP_PASSWORD'    => ['FTP_PASSWORD'],
+            'FTP_PORT'        => ['FTP_PORT'],
             'FTP_REMOTE_PATH' => ['FTP_REMOTE_PATH'],
-            'USER_USERNAME' => ['USER_USERNAME'],
-            'USER_PASSWORD' => ['USER_PASSWORD'],
+            'USER_USERNAME'   => ['USER_USERNAME'],
+            'USER_PASSWORD'   => ['USER_PASSWORD'],
             // APP_DEPLOY_TOKEN volutamente non in Bitwarden: vive solo nei
             // GitHub Secrets della repo (gestito direttamente da Provision).
+        ];
+    }
+
+    /**
+     * Rinomine storiche delle chiavi (vecchio nome → nuovo nome).
+     *
+     * Quando `forge provision` legge i secret esistenti in Bitwarden e
+     * trova ancora un secret con il vecchio nome ma non quello nuovo,
+     * il valore viene riusato come default per il nuovo. Non cancella
+     * il vecchio (lasciamo che l'utente lo elimini esplicitamente con
+     * `bws secret delete`); aggiunge solo il nuovo.
+     *
+     * @return array<string,string>
+     */
+    protected function bitwardenProjectSecretAliases(): array
+    {
+        return [
+            'DB_HOSTNAME' => 'DB_HOST',
+            'DB_USERNAME' => 'DB_USER',
+            'DB_DATABASE' => 'DB_NAME',
         ];
     }
 
