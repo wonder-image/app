@@ -447,16 +447,45 @@ class Config extends Command
             }
         }
 
+        $autoGenKeys = $this->bitwardenAutoGenKeys();
+        $existingBitwarden = is_array($remoteValues['__bitwarden_existing'] ?? null)
+            ? $remoteValues['__bitwarden_existing']
+            : [];
+        unset($remoteValues['__bitwarden_existing']);
+
         // Pass 2: per ogni chiave nella map Bitwarden, riempi il valore mancante.
         foreach (array_keys($this->bitwardenProjectSecretMap()) as $envKey) {
             $isRemoteOnly = in_array($envKey, $localEnvDisabled, true);
+            $isAutoGen = in_array($envKey, $autoGenKeys, true);
 
-            // Per chiavi remote-only, il valore vive in $remoteValues / $captured
-            // (non nel .env). Per chiavi normali, vive nel .env.
+            // 1) AUTO-GEN keys (es. APP_KEY): non chiediamo niente all'utente
+            //    e NON leggiamo MAI dal .env locale (la APP_KEY locale è
+            //    diversa e gestita separatamente da `forge config`).
+            //    - se Bitwarden ha già un valore: lo manteniamo intatto;
+            //    - altrimenti: random hex 64.
+            if ($isAutoGen) {
+                if (isset($existingBitwarden[$envKey]) && $existingBitwarden[$envKey] !== '') {
+                    $remoteValues[$envKey] = $existingBitwarden[$envKey];
+                    continue;
+                }
+
+                $value = $this->autoGenerateValueFor($envKey) ?? bin2hex(random_bytes(32));
+                $remoteValues[$envKey] = $value;
+                $updatedEnv[] = $envKey.' (auto-generato in Bitwarden)';
+                continue;
+            }
+
+            // 2) chiavi remote-only (FTP_*, ecc.): valore vive solo in memoria
+            //    e poi va in Bitwarden, MAI nel .env locale.
+            //    chiavi normali (DB_*, USER_*, ecc.): valore vive nel .env
+            //    locale (per il dev) E va anche in Bitwarden (per la prod).
             $current = $isRemoteOnly
                 ? ($remoteValues[$envKey] ?? $captured[$envKey] ?? '')
                 : $this->envValue($lines, $keyToIndex, $envKey);
 
+            $existingBwValue = $existingBitwarden[$envKey] ?? '';
+
+            // Se l'utente ha già il valore (in .env o memoria), niente prompt.
             if ($current !== '') {
                 if ($isRemoteOnly && !isset($remoteValues[$envKey])) {
                     $remoteValues[$envKey] = $current;
@@ -464,30 +493,47 @@ class Config extends Command
                 continue;
             }
 
-            $value = $this->autoGenerateValueFor($envKey);
+            // 3) altrimenti, wizard: prompt con default = valore esistente in
+            //    Bitwarden, se presente. Se l'utente preme Enter mantiene
+            //    il valore Bitwarden; se digita qualcosa lo sostituisce.
+            $hidden = in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD', 'USER_PASSWORD'], true);
 
-            if ($value === null) {
-                $value = $this->askRequiredValue(
+            if ($existingBwValue !== '') {
+                $value = $this->askWithDefault(
                     $input,
                     $output,
                     $envKey,
-                    'Inserisci '.$envKey.':',
-                    in_array($envKey, ['DB_PASSWORD', 'FTP_PASSWORD', 'USER_PASSWORD'], true)
+                    'Inserisci '.$envKey.' [Enter = mantieni valore esistente in Bitwarden]:',
+                    $existingBwValue,
+                    $hidden
                 );
-
-                if ($value === '') {
-                    return false;
-                }
             } else {
-                $output->writeln('<info>🔑 Generato automaticamente '.$envKey.' (random hex 64 chars).</info>');
+                $autoGenValue = $this->autoGenerateValueFor($envKey);
+
+                if ($autoGenValue !== null) {
+                    $value = $autoGenValue;
+                    $output->writeln('<info>🔑 Generato automaticamente '.$envKey.' (random hex 64 chars).</info>');
+                } else {
+                    $value = $this->askRequiredValue(
+                        $input,
+                        $output,
+                        $envKey,
+                        'Inserisci '.$envKey.':',
+                        $hidden
+                    );
+
+                    if ($value === '') {
+                        return false;
+                    }
+                }
             }
 
             if ($isRemoteOnly) {
-                // Solo in memoria, viene poi pushato su Bitwarden e/o GitHub Secrets.
                 $remoteValues[$envKey] = $value;
                 $updatedEnv[] = $envKey.' (remote-only)';
             } else {
                 $this->setEnvValue($lines, $keyToIndex, $envKey, $value);
+                $remoteValues[$envKey] = $value;
                 $updatedEnv[] = $envKey;
             }
         }
@@ -536,6 +582,7 @@ class Config extends Command
             'FTP_PORT',
             'FTP_REMOTE_PATH',
             'APP_DEPLOY_TOKEN',
+            'GITHUB_API_TOKEN', // legacy: viene rimossa al cleanup.
         ];
     }
 
@@ -587,7 +634,27 @@ class Config extends Command
             'FTP_REMOTE_PATH' => ['FTP_REMOTE_PATH'],
             'USER_USERNAME' => ['USER_USERNAME'],
             'USER_PASSWORD' => ['USER_PASSWORD'],
-            'APP_DEPLOY_TOKEN' => ['APP_DEPLOY_TOKEN'],
+            // APP_DEPLOY_TOKEN volutamente non in Bitwarden: vive solo nei
+            // GitHub Secrets della repo (gestito direttamente da Provision).
+        ];
+    }
+
+    /**
+     * Chiavi Bitwarden generate automaticamente (random hex 64) se mancanti.
+     *
+     * NON vengono lette dal `.env` locale, NON vengono mai salvate in
+     * `.env` locale, e quando esistono già in Bitwarden vengono mantenute
+     * (mai sovrascritte). L'unica cosa che le tocca è la PRIMA generazione.
+     *
+     * `APP_KEY` di produzione è qui dentro: deve essere stabile e diversa da
+     * quella locale (che vive nel `.env` locale gestito da `forge config`).
+     *
+     * @return string[]
+     */
+    protected function bitwardenAutoGenKeys(): array
+    {
+        return [
+            'APP_KEY',
         ];
     }
 
@@ -750,6 +817,155 @@ class Config extends Command
 
             $output->writeln('<error>❌ APP_DOMAIN non valido.</error>');
         }
+    }
+
+    /**
+     * Come `askRequiredValue` ma con `$default`: se l'utente preme Enter
+     * (input vuoto) viene restituito il default invece di insistere.
+     * Pensato per i wizard "modifica o conferma" del provision.
+     */
+    protected function askWithDefault(InputInterface $input, OutputInterface $output, string $key, string $question, string $default, bool $hidden = false): string
+    {
+        if (!$input->isInteractive()) {
+            return $default;
+        }
+
+        $helper = $this->getHelper('question');
+
+        try {
+            $prompt = new Question($question.' ');
+
+            if ($hidden && method_exists($prompt, 'setHidden')) {
+                $prompt->setHidden(true);
+
+                if (method_exists($prompt, 'setHiddenFallback')) {
+                    $prompt->setHiddenFallback(false);
+                }
+            } elseif ($hidden) {
+                $output->writeln('<comment>⚠️ Input nascosto non disponibile, continuo con input visibile.</comment>');
+            }
+
+            $value = $helper->ask($input, $output, $prompt);
+        } catch (\RuntimeException $e) {
+            if (!$hidden) {
+                throw $e;
+            }
+            // Se l'input nascosto non è supportato, ritorniamo il default
+            // (l'utente non ha avuto modo di digitare).
+            return $default;
+        }
+
+        $value = trim((string) $value);
+        return $value !== '' ? $value : $default;
+    }
+
+    /**
+     * Estende `bitwardenProjectSecrets()` ritornando anche i VALORI dei
+     * secret, non solo gli ID. Cache locale al singolo run.
+     *
+     * @return array<string,string>|null `null` se la chiamata bws fallisce.
+     */
+    protected function bitwardenProjectSecretsWithValues(string $bwProjectId, string $bwAccessToken, OutputInterface $output): ?array
+    {
+        $result = $this->runCommand(
+            ['bws', 'secret', 'list', $bwProjectId, '--output', 'json'],
+            ['BWS_ACCESS_TOKEN' => $bwAccessToken]
+        );
+
+        if ($result['exitCode'] !== 0) {
+            $error = $result['stderr'] !== '' ? $result['stderr'] : 'Impossibile leggere i valori dei secret Bitwarden.';
+            $output->writeln('<error>❌ '.$error.'</error>');
+            return null;
+        }
+
+        $payload = json_decode($result['stdout'], true);
+
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        $values = [];
+        foreach ($payload as $secret) {
+            $key = trim((string) ($secret['key'] ?? ''));
+            $value = (string) ($secret['value'] ?? '');
+            if ($key !== '') {
+                $values[$key] = $value;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Lista dei nomi dei secret della repo GitHub. `gh` non espone i valori
+     * (sono cifrati); ritorniamo solo i nomi per sapere quali esistono già.
+     *
+     * @return string[]|null
+     */
+    protected function existingGithubRepositorySecretNames(string $appDomain, OutputInterface $output): ?array
+    {
+        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        if ($repoName === '') {
+            return null;
+        }
+
+        $result = $this->runCommand(['gh', 'secret', 'list', '--repo', $repoName, '--json', 'name']);
+
+        if ($result['exitCode'] !== 0) {
+            // Se la repo non esiste ancora o non c'è auth, ritorniamo lista vuota
+            // (il provision creerà i secret necessari da zero).
+            return [];
+        }
+
+        $payload = json_decode($result['stdout'], true);
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        $names = [];
+        foreach ($payload as $entry) {
+            $name = trim((string) ($entry['name'] ?? ''));
+            if ($name !== '') {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * Mappa name => value delle GitHub Variables della repo.
+     *
+     * @return array<string,string>|null
+     */
+    protected function existingGithubRepositoryVariables(string $appDomain, OutputInterface $output): ?array
+    {
+        $repoName = $this->resolveGithubRepositoryName($appDomain);
+        if ($repoName === '') {
+            return null;
+        }
+
+        $result = $this->runCommand(['gh', 'variable', 'list', '--repo', $repoName, '--json', 'name,value']);
+
+        if ($result['exitCode'] !== 0) {
+            return [];
+        }
+
+        $payload = json_decode($result['stdout'], true);
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        $values = [];
+        foreach ($payload as $entry) {
+            $name = trim((string) ($entry['name'] ?? ''));
+            $value = (string) ($entry['value'] ?? '');
+            if ($name !== '') {
+                $values[$name] = $value;
+            }
+        }
+
+        return $values;
     }
 
     protected function askRequiredValue(InputInterface $input, OutputInterface $output, string $key, string $question, bool $hidden = false): string
