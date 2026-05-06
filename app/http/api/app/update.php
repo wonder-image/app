@@ -57,15 +57,39 @@ if ($envToken !== '') {
 
         header('Content-Type: application/json; charset=utf-8');
 
-        $RUNNER = new Wonder\App\UpdateRunner();
-        $RESULT = $RUNNER->execute([
-            'release_id' => trim((string) ($payload['release_id'] ?? '')),
-            'trigger_type' => 'api',
-            'source' => $source,
-        ]);
+        // Wrap in try/catch così un'exception interna (es. JWT::encode su
+        // APP_KEY vuota, INSERT su tabella mancante, formToArray su schema
+        // non risolto) restituisce SEMPRE un JSON parlante invece di
+        // farsi catturare dal default 500 HTML del web server. Il workflow
+        // CI stampa il body, quindi l'errore appare direttamente nei log
+        // dell'Action.
+        try {
 
-        http_response_code($RESULT->success ? 200 : 500);
-        echo $RUNNER->jsonPayload($RESULT);
+            $RUNNER = new Wonder\App\UpdateRunner();
+            $RESULT = $RUNNER->execute([
+                'release_id' => trim((string) ($payload['release_id'] ?? '')),
+                'trigger_type' => 'api',
+                'source' => $source,
+            ]);
+
+            http_response_code($RESULT->success ? 200 : 500);
+            echo $RUNNER->jsonPayload($RESULT);
+
+        } catch (Throwable $e) {
+
+            error_log('[/api/app/update/ deploy bypass] '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine());
+
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'status' => 500,
+                'response' => 'UpdateRunner exception: '.$e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine(),
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        }
+
         exit;
     }
 
