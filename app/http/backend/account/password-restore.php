@@ -2,6 +2,11 @@
 
 use Wonder\App\PageSchema\AccountPageSchema;
 
+// `verifyUser()` popola `$ALERT` come variabile globale; allinea i write/read
+// fatti in questo file con il global così `alert()` in body-end vede gli
+// stessi valori e il messaggio compare a video.
+global $ALERT;
+
 $TITLE = 'Cambio password';
 $VALUES = $_POST;
 $time = strtotime('now');

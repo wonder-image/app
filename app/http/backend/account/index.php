@@ -2,6 +2,14 @@
 
 use Wonder\App\PageSchema\AccountPageSchema;
 
+// `user()` (handler upload) popola `$ALERT` come variabile globale; senza
+// `global` qui, gli `$ALERT = ...` impostati nel ramo `modify` /
+// `modify-password` resterebbero locali e il `$ALERT ?? null` passato a
+// View::make sarebbe quello, MA `alert()` in body-end legge `global $ALERT`
+// e quindi vedrebbe valori spuri propagati per side-effect dalle helper
+// chiamate qui sopra. Allineiamo le due viste con `global $ALERT;`.
+global $ALERT;
+
 $TITLE = 'Account';
 $VALUES = sqlSelect('user', ['id' => $USER->id], 1)->row;
 $COLOR_OPTIONS = [];

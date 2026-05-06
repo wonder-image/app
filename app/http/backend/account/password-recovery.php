@@ -2,6 +2,11 @@
 
 use Wonder\App\PageSchema\AccountPageSchema;
 
+// `verifyUser()` popola `$ALERT` come variabile globale; senza `global` qui,
+// il `$ALERT ?? null` letto sotto resterebbe la versione LOCALE (sempre null)
+// e l'alert non comparirebbe a video.
+global $ALERT;
+
 $TITLE = 'Recupero password';
 $VALUES = $_POST;
 

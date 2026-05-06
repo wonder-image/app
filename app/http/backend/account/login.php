@@ -2,6 +2,12 @@
 
 use Wonder\App\PageSchema\AccountPageSchema;
 
+    // authenticateUser() / verifyUser() popolano `$ALERT` come variabile
+    // globale; senza `global` qui, il `$ALERT ?? null` qui sotto leggerebbe
+    // la variabile LOCALE dello scope dell'handler (sempre null) e l'alert
+    // a video non comparirebbe mai dopo un login fallito.
+    global $ALERT;
+
     if (isset($_POST['login'])) {
 
         if (authenticateUser('username', $_POST['username'], $_POST['password'], 'backend')) {
