@@ -1341,26 +1341,63 @@ class Config extends Command
     }
 
     /**
+     * Whitelist di TLD note usate da `defaultProjectLabel()` per riconoscere
+     * il suffisso TLD in nomi cartella tipo `progetto-com` o `progetto-it`.
+     *
+     * Mantenuta conservativa per evitare false positive su nomi legittimi
+     * (es. `react-app`, `my-dev-tool`, `something-co`): NON sono inclusi
+     * `co`, `me`, `dev`, `app`, `ai`, `blog`, `design`, `studio`, `agency`,
+     * `media`, `digital`, `art` perché possono essere parte semantica del
+     * nome del progetto piuttosto che TLD.
+     *
+     * Aggiungi qui se usi spesso una TLD non listata; ogni voce è una
+     * stringa lowercase senza punto/trattino iniziale.
+     */
+    protected const PROJECT_LABEL_TLDS = [
+        // gTLD storiche e generiche
+        'com', 'net', 'org', 'info', 'biz',
+        // ccTLD europei + più diffusi internazionali
+        'it', 'de', 'fr', 'es', 'uk', 'eu', 'us', 'ca', 'au',
+        'ch', 'at', 'be', 'nl', 'pl', 'pt', 'ie', 'dk', 'se', 'no', 'fi',
+        // nuove gTLD usate da progetti web
+        'io', 'xyz', 'cloud', 'online', 'store', 'tech', 'site',
+    ];
+
+    /**
      * Deriva una "label locale" del progetto da un nome che può essere:
      *
-     *   - un dominio:  `fatimagabrielewedding.com`  →  `fatimagabrielewedding`
-     *   - uno slug:    `my-project`                 →  `my-project`
+     *   - un dominio con dot:    `fatimagabrielewedding.com`   →  `fatimagabrielewedding`
+     *   - un dominio con dash:   `fatimagabrielewedding-com`   →  `fatimagabrielewedding`
+     *   - uno slug:              `my-project`                  →  `my-project`
      *
      * Differisce da `normalizeProjectSlug()` perché **strippa la TLD**
-     * (taglia tutto dopo il primo dot) invece di trasformare i dot in
-     * dash. Usato per costruire URL locali `<label>.test` evitando il
-     * vecchio bug `fatimagabrielewedding.com` → `fatimagabrielewedding-com.test`.
+     * invece di trasformare i dot in dash. Usato per costruire URL locali
+     * `<label>.test` evitando il vecchio bug `fatimagabrielewedding.com`
+     * → `fatimagabrielewedding-com.test`.
+     *
+     * Strategia in due passi:
+     *   1. Se il nome contiene un dot → prende la parte prima del primo
+     *      dot (`client.org.uk` → `client`).
+     *   2. Altrimenti se il nome termina con `-<tld>` dove `<tld>` è in
+     *      `PROJECT_LABEL_TLDS` → strippa quel suffisso
+     *      (`fatimagabrielewedding-com` → `fatimagabrielewedding`).
+     *      Solo un passaggio: `client-org-uk` → `client-org` (acceptable).
      *
      * Composer name e GitHub repo name continuano a usare
      * `normalizeProjectSlug()` (dot→dash) perché composer non ammette
      * dot nei nomi package.
      *
      * Esempi:
-     *   `wonder-image.it`     →  `wonder-image`
-     *   `client.org.uk`       →  `client`
-     *   `fatimagabrielewedding.com` → `fatimagabrielewedding`
-     *   `my-project`          →  `my-project`
-     *   `My_Project.test`     →  `my-project`
+     *   `wonder-image.it`               →  `wonder-image`
+     *   `wonder-image-it`               →  `wonder-image`
+     *   `client.org.uk`                 →  `client`
+     *   `client-org-uk`                 →  `client-org`     (single pass)
+     *   `fatimagabrielewedding.com`     →  `fatimagabrielewedding`
+     *   `fatimagabrielewedding-com`     →  `fatimagabrielewedding`
+     *   `my-project`                    →  `my-project`
+     *   `react-app`                     →  `react-app`      (app non whitelistato)
+     *   `something-co`                  →  `something-co`   (co non whitelistato)
+     *   `My_Project.test`               →  `my-project`
      */
     protected function defaultProjectLabel(string $value): string
     {
@@ -1374,10 +1411,25 @@ class Config extends Command
         $value = preg_replace('#^https?://#i', '', $value);
         $value = trim((string) $value, "/ \t\n\r\0\x0B");
 
-        // Se è un dominio (contiene punti), prendo solo l'etichetta
-        // più a sinistra. Sopravvive anche `client.org.uk` → `client`.
+        // 1. Dominio con dot → prendo l'etichetta più a sinistra.
+        //    Sopravvive anche `client.org.uk` → `client`.
         if (str_contains($value, '.')) {
             $value = strstr($value, '.', true) ?: $value;
+        }
+
+        // 2. Suffisso TLD con dash (`-com`, `-it`, ...) → strippa SOLO se
+        //    il chunk finale è in whitelist, per non rompere nomi tipo
+        //    `react-app`. Match case-insensitive sul confronto, ma il
+        //    sub-substring del valore originale preserva la casing che
+        //    `normalizeProjectSlug` poi normalizza.
+        $lower = strtolower($value);
+        foreach (self::PROJECT_LABEL_TLDS as $tld) {
+            $needle = '-'.$tld;
+            $needleLen = strlen($needle);
+            if (strlen($lower) > $needleLen && substr($lower, -$needleLen) === $needle) {
+                $value = substr($value, 0, -$needleLen);
+                break;
+            }
         }
 
         return $this->normalizeProjectSlug($value);
