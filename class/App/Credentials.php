@@ -33,18 +33,40 @@
 
         public static function database(): object
         {
-            
+
             self::loadEnv();
-            
+
             if (empty(self::$DB)) {
-                
-                self::$ENV->required([ 'DB_HOSTNAME', 'DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE' ]);
+
+                // Le credenziali DB possono mancare durante il setup iniziale
+                // di un nuovo progetto (composer create-project → forge config
+                // → npm install eccetera, ESEGUITI prima di `forge db:init` o
+                // della popolazione manuale del `.env`). Storicamente qui
+                // c'era un `Dotenv::required(['DB_HOSTNAME', ...])` che
+                // throwava `ValidationException` con messaggio criptico
+                // "DB_HOSTNAME is missing", bloccando il setup.
+                //
+                // Ora restituiamo un oggetto con valori (eventualmente vuoti)
+                // letti via `$_ENV[…] ?? ''`. Se davvero serve la DB, sarà
+                // `Connection::Connect()` a fallire con un errore
+                // localizzato e chiaro del driver MySQL ("Empty host",
+                // "Access denied", ecc.). I metodi `api()` e `mail()`
+                // continuano a funzionare grazie al try/catch di
+                // `safeRow()` che cattura l'errore di connessione e
+                // ricade sui defaults.
+                //
+                // Per verificare upfront se le credenziali ci sono:
+                // `Credentials::hasDatabaseCredentials()`.
+
+                $hostname = trim((string) ($_ENV['DB_HOSTNAME'] ?? ''));
+                $username = trim((string) ($_ENV['DB_USERNAME'] ?? ''));
+                $password = (string) ($_ENV['DB_PASSWORD'] ?? ''); // intenzionalmente NON trim: una password può iniziare/finire con spazi
+                $database = trim((string) ($_ENV['DB_DATABASE'] ?? ''));
 
                 self::$DB = (object) [];
-                self::$DB->hostname = $_ENV['DB_HOSTNAME'];
-                self::$DB->username = $_ENV['DB_USERNAME'];
-                self::$DB->password = $_ENV['DB_PASSWORD'];
-                self::$DB->database = explode(',', $_ENV['DB_DATABASE']);
+                self::$DB->hostname = $hostname;
+                self::$DB->username = $username;
+                self::$DB->password = $password;
                 self::$DB->charset = trim((string) ($_ENV['DB_CHARSET'] ?? 'latin1'));
                 self::$DB->collation = trim((string) ($_ENV['DB_COLLATION'] ?? 'latin1_swedish_ci'));
 
@@ -56,37 +78,81 @@
                     self::$DB->collation = 'latin1_swedish_ci';
                 }
 
-                # Trasformo in un array leggibile i dettagli passati dal file .env 
+                # Trasformo in un array leggibile i dettagli passati dal file .env
+                # Formato supportato:
+                #   - singolo:  "main_db"            → ['main' => 'main_db']
+                #   - alias:    "alias:db_name"      → ['alias' => 'db_name']
+                #   - multipli: "main:a, stats:b"    → ['main' => 'a', 'stats' => 'b']
+                #
+                # Se `DB_DATABASE` è vuoto (setup iniziale), restituisco
+                # un array con 'main' vuoto: i consumer che accedono a
+                # `database['main']` ricevono `''` invece di errore di
+                # "undefined index", e il fail vero arriva al
+                # `mysqli_connect` di `Connection::Connect()`.
+
                     $DATABASE_ARRAY = [];
-                        
-                    if (count(self::$DB->database) > 1) {
 
-                        foreach (self::$DB->database as $k => $v) {
-                            
-                            $A_VALUES = explode(':', str_replace(' ', '', $v));
-                            $DATABASE_ARRAY[$A_VALUES[0]] = $A_VALUES[1];
+                    if ($database === '') {
 
-                        }
-
-                        self::$DB->database = $DATABASE_ARRAY;
+                        $DATABASE_ARRAY['main'] = '';
 
                     } else {
 
-                        $DATABASE = explode(':', str_replace(' ', '', self::$DB->database[0]));
-                        $DATABASE_ARRAY['main'] = isset($DATABASE[1]) ? $DATABASE[1] : self::$DB->database[0];
+                        $databases = explode(',', $database);
 
-                        self::$DB->database = $DATABASE_ARRAY;
+                        if (count($databases) > 1) {
+
+                            foreach ($databases as $v) {
+
+                                $A_VALUES = explode(':', str_replace(' ', '', $v));
+                                if (isset($A_VALUES[0], $A_VALUES[1]) && $A_VALUES[0] !== '') {
+                                    $DATABASE_ARRAY[$A_VALUES[0]] = $A_VALUES[1];
+                                }
+
+                            }
+
+                        } else {
+
+                            $DATABASE = explode(':', str_replace(' ', '', $databases[0]));
+                            $DATABASE_ARRAY['main'] = isset($DATABASE[1]) ? $DATABASE[1] : $databases[0];
+
+                        }
 
                     }
 
                 #
 
+                self::$DB->database = $DATABASE_ARRAY;
                 self::$DB->database['information_schema'] = "INFORMATION_SCHEMA";
 
             }
-            
+
             return self::$DB;
-            
+
+        }
+
+        /**
+         * Verifica se nel `.env` ci sono credenziali DB plausibilmente complete.
+         *
+         * Utile come early-check nei comandi di setup (es. `forge update --local`)
+         * per dare un messaggio chiaro tipo "esegui `forge db:init` prima"
+         * invece di lasciar fallire `Credentials::database()` o `mysqli_connect`
+         * con errori da bootstrap.
+         *
+         * La password può legittimamente essere vuota (es. utente root su Mac
+         * locale), quindi non rientra nei requisiti minimi.
+         */
+        public static function hasDatabaseCredentials(): bool
+        {
+
+            self::loadEnv();
+
+            $hostname = trim((string) ($_ENV['DB_HOSTNAME'] ?? ''));
+            $username = trim((string) ($_ENV['DB_USERNAME'] ?? ''));
+            $database = trim((string) ($_ENV['DB_DATABASE'] ?? ''));
+
+            return $hostname !== '' && $username !== '' && $database !== '';
+
         }
 
         public static function mail() {
