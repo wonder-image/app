@@ -47,6 +47,16 @@ class Config extends Command
             if (!$this->ensureCommandInstalled('npm', ['npm', '-v'], $output)) {
                 return Command::FAILURE;
             }
+
+            // Node 20+ è obbligatorio: il package npm `wonder-image` ha
+            // `"engines": { "node": ">=20" }`. Con Node 16/18 `npm install
+            // wonder-image` emette `EBADENGINE` e l'install funziona solo
+            // per fortuna (build target ES2022 può rompersi a runtime).
+            // Fail-fast con messaggio chiaro invece di lasciar passare il
+            // warning npm in fondo a un log.
+            if (!$this->ensureNodeMinimumVersion(20, $output)) {
+                return Command::FAILURE;
+            }
         }
 
         // APP_KEY è la chiave di firma per JWT, encryption interna e
@@ -1355,6 +1365,50 @@ class Config extends Command
         $check = $this->runCommand(['sh', '-lc', 'command -v '.escapeshellarg($command).' >/dev/null 2>&1']);
 
         return $check['exitCode'] === 0;
+    }
+
+    /**
+     * Verifica che la versione di `node` sul PATH sia >= $minMajor.
+     *
+     * Il package npm `wonder-image` ha `engines.node >= 20`: senza Node 20+
+     * `npm install wonder-image` (invocato da `forge config`) emette warning
+     * `EBADENGINE` e il sito può rompersi a runtime (build ES2022 non
+     * compilabili da toolchain più vecchie).
+     *
+     * Esce su stderr con istruzioni concrete (Herd / nvm / brew) invece di
+     * lasciar passare un warning npm in fondo a un log gigante.
+     */
+    protected function ensureNodeMinimumVersion(int $minMajor, OutputInterface $output): bool
+    {
+        $result = $this->runCommand(['node', '-v']);
+        if ($result['exitCode'] !== 0) {
+            // Già gestito da ensureCommandInstalled('node'). Non duplico l'errore.
+            return true;
+        }
+
+        $raw = trim((string) $result['stdout']);
+
+        // `node -v` ritorna "v20.11.1\n". Estraggo il major number.
+        if (!preg_match('/^v?(\d+)\./', $raw, $m)) {
+            $output->writeln('<comment>⚠️ Versione node non parseable ('.$raw.'), salto il check.</comment>');
+            return true;
+        }
+
+        $major = (int) $m[1];
+        if ($major >= $minMajor) {
+            return true;
+        }
+
+        $output->writeln('<error>❌ Node '.$raw.' rilevato. Wonder Image richiede Node >= '.$minMajor.'.</error>');
+        $output->writeln('<error>   Il package npm `wonder-image` ha "engines": { "node": ">='.$minMajor.'" }: con questa versione</error>');
+        $output->writeln('<error>   `npm install wonder-image` emette EBADENGINE e la toolchain può rompersi a runtime.</error>');
+        $output->writeln('');
+        $output->writeln('<comment>   Soluzioni rapide:</comment>');
+        $output->writeln('<comment>     • Herd:  aggiorna Herd alla versione più recente (Node '.$minMajor.'+ è di default)</comment>');
+        $output->writeln('<comment>     • nvm:   nvm install '.$minMajor.' && nvm use '.$minMajor.'</comment>');
+        $output->writeln('<comment>     • brew:  brew install node@'.$minMajor.' && brew link --overwrite node@'.$minMajor.'</comment>');
+
+        return false;
     }
 
     protected function ensureCommandInstalled(string $command, array $versionCommand, OutputInterface $output, bool $autoInstall = true): bool

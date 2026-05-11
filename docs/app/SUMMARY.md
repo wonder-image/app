@@ -2,6 +2,7 @@
 
 * [App](README.md)
   * [Installazione e Deploy](app/installazione-e-deploy.md)
+  * [Dev-shared (chiavi dev condivise)](app/dev-shared.md)
   * [Multilingua](app/multilingua.md)
   * [Api](app/api.md)
   * [Routing](app/routing.md)

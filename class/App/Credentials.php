@@ -93,17 +93,19 @@
 
             if (empty(self::$MAIL)) {
 
+                self::loadEnv();
+
                 $row = self::safeSecurityRow();
                 self::$MAIL = self::mailDefaults();
-                self::$MAIL->host = $row['mail_host'] ?? self::$MAIL->host;
-                self::$MAIL->username = $row['mail_username'] ?? self::$MAIL->username;
-                self::$MAIL->password = $row['mail_password'] ?? self::$MAIL->password;
-                self::$MAIL->port = $row['mail_port'] ?? self::$MAIL->port;
-                self::$MAIL->service = $row['mail_service'] ?? self::$MAIL->service;
-                self::$MAIL->brevo_api_key = $row['brevo_api_key'] ?? self::$MAIL->brevo_api_key;
+                self::$MAIL->host          = self::envOrRow('MAIL_HOST',          $row, 'mail_host',          self::$MAIL->host);
+                self::$MAIL->username      = self::envOrRow('MAIL_USERNAME',      $row, 'mail_username',      self::$MAIL->username);
+                self::$MAIL->password      = self::envOrRow('MAIL_PASSWORD',      $row, 'mail_password',      self::$MAIL->password);
+                self::$MAIL->port          = self::envOrRow('MAIL_PORT',          $row, 'mail_port',          self::$MAIL->port);
+                self::$MAIL->service       = self::envOrRow('MAIL_SERVICE',       $row, 'mail_service',       self::$MAIL->service);
+                self::$MAIL->brevo_api_key = self::envOrRow('BREVO_API_KEY',      $row, 'brevo_api_key',      self::$MAIL->brevo_api_key);
 
             }
-            
+
             return self::$MAIL;
 
         }
@@ -160,45 +162,96 @@
 
             if (empty(self::$API)) {
 
+                self::loadEnv();
+
                 $row = self::safeSecurityRow();
                 self::$API = self::apiDefaults();
-                self::$API->key = $row['api_key'] ?? self::$API->key;
-                self::$API->gcp_project_id = $row['gcp_project_id'] ?? self::$API->gcp_project_id;
-                self::$API->gcp_api_key = $row['gcp_api_key'] ?? self::$API->gcp_api_key;
-                self::$API->gcp_client_api_key = $row['gcp_client_api_key'] ?? self::$API->gcp_api_key;
-                self::$API->google_oauth_client_id = $row['google_oauth_client_id'] ?? self::$API->google_oauth_client_id;
-                self::$API->google_oauth_client_secret = $row['google_oauth_client_secret'] ?? self::$API->google_oauth_client_secret;
-                self::$API->google_oauth_redirect_uri = $row['google_oauth_redirect_uri'] ?? self::$API->google_oauth_redirect_uri;
-                self::$API->apple_oauth_client_id = $row['apple_oauth_client_id'] ?? self::$API->apple_oauth_client_id;
-                self::$API->apple_oauth_team_id = $row['apple_oauth_team_id'] ?? self::$API->apple_oauth_team_id;
-                self::$API->apple_oauth_key_id = $row['apple_oauth_key_id'] ?? self::$API->apple_oauth_key_id;
-                self::$API->apple_oauth_private_key = $row['apple_oauth_private_key'] ?? self::$API->apple_oauth_private_key;
-                self::$API->apple_oauth_redirect_uri = $row['apple_oauth_redirect_uri'] ?? self::$API->apple_oauth_redirect_uri;
-                self::$API->g_recaptcha_site_key = $row['g_recaptcha_site_key'] ?? self::$API->g_recaptcha_site_key;
-                self::$API->g_maps_place_id = $row['g_maps_place_id'] ?? self::$API->g_maps_place_id;
-                self::$API->klaviyo_api_key = $row['klaviyo_api_key'] ?? self::$API->klaviyo_api_key;
-                self::$API->ipinfo_api_key = $row['ipinfo_api_key'] ?? self::$API->ipinfo_api_key;
 
-                self::$API->stripe_test = isset($row['stripe_test'])
-                    ? filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN)
-                    : self::$API->stripe_test;
-                self::$API->stripe_test_key = $row['stripe_test_key'] ?? self::$API->stripe_test_key;
-                self::$API->stripe_private_key = $row['stripe_private_key'] ?? self::$API->stripe_private_key;
-                self::$API->stripe_account_id = $row['stripe_account_id'] ?? self::$API->stripe_account_id;
-                self::$API->stripe_test_account_id = $row['stripe_test_account_id'] ?? self::$API->stripe_test_account_id;
-                self::$API->stripe_id = self::$API->stripe_test ? self::$API->stripe_test_account_id : self::$API->stripe_account_id;
-                self::$API->stripe_api_key = self::$API->stripe_test ? self::$API->stripe_test_key : self::$API->stripe_private_key;
+                // Cascade per ogni chiave: $_ENV → DB security row → default
+                // di apiDefaults(). `.env` vince per consentire override locali
+                // (dev-shared Bitwarden riempie il .env con le chiavi dev senza
+                // toccare il DB), restando trasparente in produzione dove il
+                // .env di prod NON le include — vince il DB popolato via
+                // backend admin.
+                self::$API->key                          = self::envOrRow('API_KEY',                          $row, 'api_key',                          self::$API->key);
+                self::$API->gcp_project_id               = self::envOrRow('GCP_PROJECT_ID',                   $row, 'gcp_project_id',                   self::$API->gcp_project_id);
+                self::$API->gcp_api_key                  = self::envOrRow('GCP_API_KEY',                      $row, 'gcp_api_key',                      self::$API->gcp_api_key);
+                self::$API->gcp_client_api_key           = self::envOrRow('GCP_CLIENT_API_KEY',               $row, 'gcp_client_api_key',               self::$API->gcp_api_key);
+                self::$API->google_oauth_client_id       = self::envOrRow('GOOGLE_OAUTH_CLIENT_ID',           $row, 'google_oauth_client_id',           self::$API->google_oauth_client_id);
+                self::$API->google_oauth_client_secret   = self::envOrRow('GOOGLE_OAUTH_CLIENT_SECRET',       $row, 'google_oauth_client_secret',       self::$API->google_oauth_client_secret);
+                self::$API->google_oauth_redirect_uri    = self::envOrRow('GOOGLE_OAUTH_REDIRECT_URI',        $row, 'google_oauth_redirect_uri',        self::$API->google_oauth_redirect_uri);
+                self::$API->apple_oauth_client_id        = self::envOrRow('APPLE_OAUTH_CLIENT_ID',            $row, 'apple_oauth_client_id',            self::$API->apple_oauth_client_id);
+                self::$API->apple_oauth_team_id          = self::envOrRow('APPLE_OAUTH_TEAM_ID',              $row, 'apple_oauth_team_id',              self::$API->apple_oauth_team_id);
+                self::$API->apple_oauth_key_id           = self::envOrRow('APPLE_OAUTH_KEY_ID',               $row, 'apple_oauth_key_id',               self::$API->apple_oauth_key_id);
+                self::$API->apple_oauth_private_key      = self::envOrRow('APPLE_OAUTH_PRIVATE_KEY',          $row, 'apple_oauth_private_key',          self::$API->apple_oauth_private_key);
+                self::$API->apple_oauth_redirect_uri     = self::envOrRow('APPLE_OAUTH_REDIRECT_URI',         $row, 'apple_oauth_redirect_uri',         self::$API->apple_oauth_redirect_uri);
+                self::$API->g_recaptcha_site_key         = self::envOrRow('G_RECAPTCHA_SITE_KEY',             $row, 'g_recaptcha_site_key',             self::$API->g_recaptcha_site_key);
+                self::$API->g_maps_place_id              = self::envOrRow('G_MAPS_PLACE_ID',                  $row, 'g_maps_place_id',                  self::$API->g_maps_place_id);
+                self::$API->klaviyo_api_key              = self::envOrRow('KLAVIYO_API_KEY',                  $row, 'klaviyo_api_key',                  self::$API->klaviyo_api_key);
+                self::$API->ipinfo_api_key               = self::envOrRow('IPINFO_API_KEY',                   $row, 'ipinfo_api_key',                   self::$API->ipinfo_api_key);
 
-                self::$API->fatture_in_cloud_app_id = $row['fatture_in_cloud_app_id'] ?? self::$API->fatture_in_cloud_app_id;
-                self::$API->fatture_in_cloud_client_id = $row['fatture_in_cloud_client_id'] ?? self::$API->fatture_in_cloud_client_id;
-                self::$API->fatture_in_cloud_client_secret = $row['fatture_in_cloud_client_secret'] ?? self::$API->fatture_in_cloud_client_secret;
-                self::$API->fatture_in_cloud_company_id = $row['fatture_in_cloud_company_id'] ?? self::$API->fatture_in_cloud_company_id;
-                self::$API->fatture_in_cloud_token = $row['fatture_in_cloud_token'] ?? self::$API->fatture_in_cloud_token;
+                // stripe_test è un booleano: env "true"/"1"/"on" → true.
+                $stripeTestEnv = trim((string) ($_ENV['STRIPE_TEST'] ?? ''));
+                if ($stripeTestEnv !== '') {
+                    self::$API->stripe_test = filter_var($stripeTestEnv, FILTER_VALIDATE_BOOLEAN);
+                } elseif (isset($row['stripe_test'])) {
+                    self::$API->stripe_test = filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN);
+                }
+
+                self::$API->stripe_test_key              = self::envOrRow('STRIPE_TEST_KEY',                  $row, 'stripe_test_key',                  self::$API->stripe_test_key);
+                self::$API->stripe_private_key           = self::envOrRow('STRIPE_PRIVATE_KEY',               $row, 'stripe_private_key',               self::$API->stripe_private_key);
+                self::$API->stripe_account_id            = self::envOrRow('STRIPE_ACCOUNT_ID',                $row, 'stripe_account_id',                self::$API->stripe_account_id);
+                self::$API->stripe_test_account_id       = self::envOrRow('STRIPE_TEST_ACCOUNT_ID',           $row, 'stripe_test_account_id',           self::$API->stripe_test_account_id);
+                self::$API->stripe_id                    = self::$API->stripe_test ? self::$API->stripe_test_account_id : self::$API->stripe_account_id;
+                self::$API->stripe_api_key               = self::$API->stripe_test ? self::$API->stripe_test_key : self::$API->stripe_private_key;
+
+                self::$API->fatture_in_cloud_app_id        = self::envOrRow('FATTURE_IN_CLOUD_APP_ID',         $row, 'fatture_in_cloud_app_id',         self::$API->fatture_in_cloud_app_id);
+                self::$API->fatture_in_cloud_client_id     = self::envOrRow('FATTURE_IN_CLOUD_CLIENT_ID',      $row, 'fatture_in_cloud_client_id',      self::$API->fatture_in_cloud_client_id);
+                self::$API->fatture_in_cloud_client_secret = self::envOrRow('FATTURE_IN_CLOUD_CLIENT_SECRET',  $row, 'fatture_in_cloud_client_secret',  self::$API->fatture_in_cloud_client_secret);
+                self::$API->fatture_in_cloud_company_id    = self::envOrRow('FATTURE_IN_CLOUD_COMPANY_ID',     $row, 'fatture_in_cloud_company_id',     self::$API->fatture_in_cloud_company_id);
+                self::$API->fatture_in_cloud_token         = self::envOrRow('FATTURE_IN_CLOUD_TOKEN',          $row, 'fatture_in_cloud_token',          self::$API->fatture_in_cloud_token);
 
             }
 
             return self::$API;
 
+        }
+
+        /**
+         * Cascade canonica per le credenziali applicative:
+         *
+         *   1. `$_ENV[$envKey]`           ← override locale (popolato da
+         *                                   dev-shared Bitwarden per le chiavi
+         *                                   di sviluppo, oppure ad-hoc dal
+         *                                   developer per testing).
+         *   2. `$row[$rowKey]`            ← valore di runtime salvato nella
+         *                                   tabella `security` via backend
+         *                                   admin (single source of truth in
+         *                                   produzione).
+         *   3. `$default`                 ← hardcoded da `apiDefaults()` /
+         *                                   `mailDefaults()`.
+         *
+         * In produzione il `.env` NON contiene queste chiavi (sono gestite
+         * dall'admin nel DB), quindi il comportamento di prod resta invariato:
+         * vince sempre il DB. In locale, dev-shared scrive i valori nel `.env`
+         * e il sito li usa senza necessità di popolare il DB di sviluppo.
+         *
+         * Una stringa vuota nel `.env` viene considerata "non impostato"
+         * (cosi `KEY=` non shadow-a un valore di DB valido).
+         */
+        protected static function envOrRow(string $envKey, array $row, string $rowKey, $default)
+        {
+            $envValue = trim((string) ($_ENV[$envKey] ?? ''));
+            if ($envValue !== '') {
+                return $envValue;
+            }
+
+            $rowValue = $row[$rowKey] ?? null;
+            if ($rowValue !== null && $rowValue !== '') {
+                return $rowValue;
+            }
+
+            return $default;
         }
 
         public static function mailDefaults(): object

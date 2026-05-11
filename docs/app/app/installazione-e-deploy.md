@@ -224,9 +224,33 @@ php forge update --local
 ### 1. Crea il progetto
 
 ```bash
-composer create-project wonder-image/new-site project-name
+composer create-project wonder-image/new-site:dev-main project-name
 cd project-name
 ```
+
+> **Nota su `:dev-main`**
+>
+> Il suffisso `:dev-main` forza Composer a usare l'ultimo commit del branch
+> `main` di `wonder-image/new-site` invece di un eventuale tag stabile
+> superato. Anche senza il suffisso il `composer.json` dello skeleton ha
+> `minimum-stability: dev`, quindi se Packagist non è ancora aggiornato
+> all'ultimo release il fallback su `dev-main` avviene comunque.
+>
+> Se vedi un progetto installato vecchio: `composer clear-cache` e ripeti
+> con `:dev-main` esplicito.
+
+> **Prerequisito Node 20+**
+>
+> `forge config` esegue `npm install wonder-image` come ultimo step. Il
+> package npm `wonder-image` richiede Node `>=20`: se hai Node 16 / 18
+> installato Composer va a buon fine ma vedrai `npm WARN EBADENGINE`
+> e l'install potrebbe rompersi a runtime (i build target ES2022 non sono
+> compilabili).
+>
+> Verifica `node --version`. Se sei sotto 20:
+> - **Herd**: aggiorna Herd (versioni recenti spediscono Node 20+)
+> - **nvm**: `nvm install 20 && nvm use 20`
+> - **brew**: `brew install node@20 && brew link --overwrite node@20`
 
 ### 2. Configura il progetto
 
