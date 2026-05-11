@@ -7,9 +7,13 @@ Guida rapida per creare e avviare un progetto Wonder in locale con DB separato.
 Dopo:
 
 ```bash
-composer create-project wonder-image/new-site project-name
+composer create-project wonder-image/new-site:dev-main project-name
 cd project-name
 ```
+
+> Il suffisso `:dev-main` garantisce di prendere l'ultimo commit del
+> branch `main` di `new-site` invece di un tag stabile potenzialmente
+> superato.
 
 il flusso pratico consigliato è questo:
 

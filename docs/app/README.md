@@ -6,9 +6,13 @@ Questo progetto è stato studiato per essere utilizzato con [Visual Studio Code]
 
 Per l'installazione del progetto [`wonder-image/new-site`](https://github.com/wonder-image/new-site) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituisci `project-name` con il nome del progetto o del dominio.
 
+```bash
+composer create-project wonder-image/new-site:dev-main project-name
 ```
-composer create-project wonder-image/new-site project-name
-```
+
+> Il suffisso `:dev-main` forza Composer a prendere l'ultimo commit del
+> branch `main` invece di un tag stabile eventualmente superato. Vedi
+> [Installazione e Deploy](app/installazione-e-deploy.md) per i dettagli.
 
 ***
 
