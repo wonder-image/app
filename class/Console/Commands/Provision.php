@@ -93,6 +93,18 @@ class Provision extends Config
             $output->writeln('<info>✅ Salvato BWS_ACCESS_TOKEN nel .env locale</info>');
         }
 
+        // dev-shared layer (locale): se l'utente ha un project Bitwarden
+        // `dev-shared` con chiavi condivise tra progetti (RECAPTCHA test,
+        // GTM/Pixel dev, SMTP locale, Klaviyo/Brevo dev, ...), riempi i
+        // buchi nel .env locale. Eseguito qui (oltre che da forge config)
+        // perché provision è il punto in cui BWS_ACCESS_TOKEN diventa
+        // disponibile per la prima volta in setup fresh:
+        //   1. composer install → forge config (no BWS, skip dev-shared)
+        //   2. forge provision → salva BWS_ACCESS_TOKEN + dev-shared merge
+        // Non tocca MAI il project di produzione. dev-shared è puramente
+        // un layer locale.
+        $this->applyDevSharedToLocalEnv($bwAccessToken, $envPath, $lines, $keyToIndex, $output);
+
         // 2. APP_DOMAIN di PRODUZIONE: prompt con default da GitHub Variables
         //    della repo (NON dal .env locale: localmente è il valore Herd-
         //    style, in prod è il dominio reale). Il valore va in GitHub

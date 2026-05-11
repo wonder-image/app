@@ -209,6 +209,11 @@ DefaultLanguage it
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 $forceWwwBlock
 
+  # Le cartelle runtime /backend e /api esistono fisicamente, ma devono
+  # comunque passare sempre dal router.
+  RewriteCond %{REQUEST_URI} ^/(backend|api)(?:/.*)?\$ [NC]
+  RewriteRule ^ handler/index.php [L,QSA]
+
   # Aggiunge slash finale se mancante (solo per URL senza estensione)
   RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?\$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f

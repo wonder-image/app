@@ -152,6 +152,23 @@ class Config extends Command
             $output->writeln('<info>✅ Configurazione aggiornata nel file .env: ASSETS_VERSION</info>');
         }
 
+        // dev-shared layer: chiavi dev condivise tra tutti i progetti
+        // locali (RECAPTCHA test, GTM/Pixel dev, SMTP locale/Mailtrap,
+        // Klaviyo/Brevo dev, Maps API dev, ecc.). Auto-discovery per nome
+        // del project Bitwarden `dev-shared`. No-op se:
+        //   - sei in CI (su prod il .env viene da Bitwarden del progetto,
+        //     mai da dev-shared);
+        //   - non c'è ancora un BWS_ACCESS_TOKEN nel .env (prima esecuzione
+        //     post-clone: l'utente esegue dopo `forge provision` che lo crea).
+        // Idempotente: rilanciato non sovrascrive i valori già impostati
+        // localmente (per-project override vince).
+        if (!$isCi) {
+            $bwAccessToken = trim((string) ($_ENV['BWS_ACCESS_TOKEN'] ?? ''));
+            if ($bwAccessToken !== '') {
+                $this->applyDevSharedToLocalEnv($bwAccessToken, $envPath, $lines, $keyToIndex, $output);
+            }
+        }
+
         // Crea package.json se non esiste
         if (!file_exists($packageJsonPath)) {
             $package = [
@@ -688,6 +705,181 @@ class Config extends Command
         return [
             'APP_KEY',
         ];
+    }
+
+    /**
+     * Nome convenzionale del project Bitwarden Secrets Manager che contiene
+     * le chiavi dev condivise tra tutti i progetti locali (RECAPTCHA test
+     * key, SMTP locale/Mailtrap, GTM/Pixel dev, Klaviyo/Brevo dev,
+     * Google Maps API dev, ecc.).
+     *
+     * Auto-discovery per nome: niente UUID hardcoded nel framework,
+     * niente `.env` da modificare in ogni progetto. Funziona out-of-the-box
+     * appena hai un `BWS_ACCESS_TOKEN` con visibilità sul project.
+     */
+    protected const DEV_SHARED_PROJECT_NAME = 'dev-shared';
+
+    /**
+     * Risolve l'UUID del project Bitwarden "dev-shared".
+     *
+     * Strategia:
+     *   1. Override esplicito via $_ENV['BWS_DEV_SHARED_PROJECT_ID']
+     *      (use case edge: dev-shared per cliente, multi-tenant, ecc.).
+     *   2. Altrimenti `bws project list` → primo project con
+     *      `name == 'dev-shared'` (case-insensitive).
+     *   3. Altrimenti null (graceful: forge config funziona lo stesso,
+     *      senza layer dev-shared).
+     */
+    protected function resolveDevSharedProjectId(string $bwAccessToken, OutputInterface $output): ?string
+    {
+        $explicit = trim((string) ($_ENV['BWS_DEV_SHARED_PROJECT_ID'] ?? ''));
+        if ($explicit !== '') {
+            return $explicit;
+        }
+
+        if (!$this->commandExists('bws')) {
+            return null;
+        }
+
+        $result = $this->runCommand(
+            ['bws', 'project', 'list', '--output', 'json'],
+            ['BWS_ACCESS_TOKEN' => $bwAccessToken]
+        );
+
+        if ($result['exitCode'] !== 0) {
+            return null;
+        }
+
+        $payload = json_decode($result['stdout'], true);
+        if (!is_array($payload)) {
+            return null;
+        }
+
+        foreach ($payload as $project) {
+            $name = strtolower(trim((string) ($project['name'] ?? '')));
+            if ($name === self::DEV_SHARED_PROJECT_NAME) {
+                $id = trim((string) ($project['id'] ?? ''));
+                return $id !== '' ? $id : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Chiavi che NON devono mai essere copiate da dev-shared al .env
+     * locale, anche se per errore l'utente le ha messe nel project
+     * condiviso.
+     *
+     * Categorie:
+     * - Bootstrap Bitwarden (BWS_*): ricorsivi, vanno nel .env locale
+     *   tramite `forge provision`.
+     * - Identità del progetto (APP_DOMAIN, APP_URL, APP_KEY): per
+     *   definizione diverse tra progetti.
+     * - Secret di solo produzione (FTP_*, APP_DEPLOY_TOKEN, ecc.): mai
+     *   in locale.
+     * - Credenziali DB / utente admin (DB_*, USER_*): in locale sono
+     *   valori dev per-progetto, mai shared.
+     *
+     * @return string[]
+     */
+    protected function devSharedDisabledKeys(): array
+    {
+        return [
+            'BWS_ACCESS_TOKEN',
+            'BWS_PROJECT_ID',
+            'BWS_DEV_SHARED_PROJECT_ID',
+            'APP_KEY',
+            'APP_DOMAIN',
+            'APP_URL',
+            'APP_DEPLOY_TOKEN',
+            'GITHUB_API_TOKEN',
+            'ASSETS_VERSION',
+            'DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME',
+            'DB_HOSTNAME', 'DB_USERNAME', 'DB_DATABASE',
+            'FTP_HOST', 'FTP_USER', 'FTP_PASSWORD', 'FTP_PORT', 'FTP_REMOTE_PATH',
+            'USER_USERNAME', 'USER_PASSWORD', 'USER_NAME', 'USER_SURNAME', 'USER_EMAIL',
+        ];
+    }
+
+    /**
+     * Merge "fill-missing" delle chiavi del project Bitwarden "dev-shared"
+     * nel .env locale.
+     *
+     * Policy:
+     * - Se la chiave è già presente e non vuota nel .env locale: NIENTE.
+     *   Il per-project override vince sempre su dev-shared (così tieni
+     *   una chiave diversa per un singolo progetto se serve).
+     * - Se la chiave è in `devSharedDisabledKeys()`: skip (project-
+     *   specific o ricorsiva).
+     * - Altrimenti: scrivi nel .env locale.
+     *
+     * No-op silenzioso se:
+     *   - $bwAccessToken vuoto (provision non ancora eseguito)
+     *   - bws non installato
+     *   - project "dev-shared" non trovato (l'utente non l'ha ancora
+     *     creato — messaggio informativo, non errore)
+     *
+     * NON viene mai chiamato da `forge provision` quando sincronizza il
+     * project di produzione: dev-shared è puramente layer locale.
+     */
+    protected function applyDevSharedToLocalEnv(
+        string $bwAccessToken,
+        string $envPath,
+        array &$lines,
+        array &$keyToIndex,
+        OutputInterface $output
+    ): void {
+        if ($bwAccessToken === '') {
+            return;
+        }
+
+        $projectId = $this->resolveDevSharedProjectId($bwAccessToken, $output);
+        if ($projectId === null) {
+            $output->writeln('<comment>ℹ️ Nessun project Bitwarden "dev-shared" trovato. Per condividere chiavi dev (RECAPTCHA, GTM, SMTP, ...) tra progetti, crea un project chiamato `dev-shared` su Bitwarden Secrets Manager.</comment>');
+            return;
+        }
+
+        $secrets = $this->bitwardenProjectSecretsWithValues($projectId, $bwAccessToken, $output);
+        if (!is_array($secrets) || $secrets === []) {
+            return;
+        }
+
+        $disabled = array_flip($this->devSharedDisabledKeys());
+        $added = [];
+        $skipped = [];
+        $dirty = false;
+
+        foreach ($secrets as $key => $value) {
+            if (isset($disabled[$key])) {
+                $skipped[] = $key;
+                continue;
+            }
+
+            // Per-project override: se .env locale ha già un valore
+            // non-vuoto, lo manteniamo. Vince sempre il progetto.
+            $existing = $this->envValue($lines, $keyToIndex, $key);
+            if ($existing !== '') {
+                continue;
+            }
+
+            $this->setEnvValue($lines, $keyToIndex, $key, (string) $value);
+            $added[] = $key;
+            $dirty = true;
+        }
+
+        if ($dirty) {
+            file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL);
+            // Re-sincronizziamo l'indice dopo gli insert.
+            $keyToIndex = $this->envKeyToIndex($lines);
+            $output->writeln('<info>🔄 dev-shared → .env locale (fill-missing): '.implode(', ', $added).'</info>');
+        } else {
+            $output->writeln('<info>↺ dev-shared sincronizzato: niente da aggiungere al .env locale.</info>');
+        }
+
+        if ($skipped !== []) {
+            $output->writeln('<comment>⚠️ dev-shared contiene chiavi project-specific che ho ignorato: '.implode(', ', $skipped).'. Andrebbero rimosse da `dev-shared` (vivono nel project del singolo sito).</comment>');
+        }
     }
 
     protected function bitwardenProjectSecrets(string $bwProjectId, string $bwAccessToken, OutputInterface $output): ?array

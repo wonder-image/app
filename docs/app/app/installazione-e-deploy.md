@@ -46,8 +46,44 @@ Fa questo:
 - sincronizza secrets e variables GitHub
 - chiede i valori mancanti (DB, FTP, USER) e li sincronizza nel project Bitwarden
 - **auto-genera** `GITHUB_API_TOKEN` (random hex 64 char) se non presente, lo salva sia in Bitwarden sia nei GitHub Secrets della repo
+- popola il `.env` locale dal layer `dev-shared` (vedi sotto)
 
 In CI viene saltato.
+
+#### Layer `dev-shared` per le chiavi di sviluppo
+
+Chiavi tipo `RECAPTCHA_SITE_KEY`, `GTM_ID`, `SMTP_*`, `KLAVIYO_API_KEY`, `GOOGLE_MAPS_API_KEY` sono diverse tra locale e produzione, ma quelle **dev** sono normalmente le stesse tra tutti i tuoi progetti locali. Mantenerne una copia separata in ogni `.env` significa: riconfigurarle a mano ad ogni nuovo progetto, e perderle se cambi laptop.
+
+Soluzione: un singolo project Bitwarden chiamato `dev-shared` che contiene tutte le tue chiavi dev personali. `forge config` e `forge provision` lo scoprono automaticamente.
+
+**Auto-discovery per nome.** Niente UUID hardcoded nel codice, niente `.env` da modificare:
+
+1. `forge config` (o `forge provision`) chiama `bws project list`
+2. Cerca il project con `name == "dev-shared"`
+3. Scarica tutte le chiavi del project
+4. Le scrive nel `.env` locale **solo se non sono già presenti** (per-project override vince sempre)
+
+**Setup iniziale (una tantum).** Su Bitwarden Secrets Manager web:
+
+1. Crei un project chiamato esattamente `dev-shared`
+2. Aggiungi le tue chiavi dev (key/value): `RECAPTCHA_SITE_KEY`, `SMTP_HOST`, `GTM_ID`, ecc.
+3. Assicurati che il tuo `BWS_ACCESS_TOKEN` (lo stesso che usi per i project dei progetti) abbia accesso lettura su `dev-shared`
+
+Da quel momento ogni `forge config` / `forge provision` in qualunque progetto popola automaticamente il `.env` locale dalle chiavi `dev-shared`. Idempotente: rilanciato non sovrascrive valori già impostati.
+
+**Override esplicito.** Se per qualche edge case (es. dev-shared per cliente, multi-tenant) serve forzare un UUID specifico, basta aggiungere al `.env` del progetto:
+
+```env
+BWS_DEV_SHARED_PROJECT_ID=<uuid-del-project>
+```
+
+L'override vince sull'auto-discovery per nome.
+
+**Chiavi sempre ignorate.** Il framework filtra automaticamente alcuni nomi che NON devono mai stare in `dev-shared` (`BWS_*`, `APP_KEY`, `APP_DOMAIN`, `DB_*`, `FTP_*`, `USER_*`, `APP_DEPLOY_TOKEN`, ecc.): sono per definizione project-specific o ricorsive. Se per errore le metti in `dev-shared`, vengono ignorate con un warning.
+
+**Mai in produzione.** Il deploy CI legge il `.env` di prod **solo** dal project Bitwarden del singolo sito, mai da `dev-shared`. La separazione locale/produzione resta netta.
+
+**Recovery se perdi il Mac.** Reinstalli `bws`, generi un nuovo `BWS_ACCESS_TOKEN`, cloni i progetti, esegui `forge provision` su ognuno. Tutte le chiavi dev tornano dal project `dev-shared` su Bitwarden. Zero chiavi perse.
 
 ### `php forge update`
 

@@ -5,6 +5,10 @@
     $ROBOTS_PATH = $WEBROOT."/robots.txt";
 
     $ROUTER_BLOCK = "# WONDER ROUTER START\n";
+    $ROUTER_BLOCK .= "  # Le cartelle runtime /backend e /api esistono fisicamente, ma devono\n";
+    $ROUTER_BLOCK .= "  # comunque passare sempre dal router.\n";
+    $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_URI} ^/(backend|api)(?:/.*)?$ [NC]\n";
+    $ROUTER_BLOCK .= "  RewriteRule ^ handler/index.php [L,QSA]\n\n";
     $ROUTER_BLOCK .= "  # Aggiunge slash finale se mancante (solo per URL senza estensione)\n";
     $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]\n";
     $ROUTER_BLOCK .= "  RewriteCond %{REQUEST_FILENAME} !-f\n";
