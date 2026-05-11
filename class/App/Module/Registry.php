@@ -7,10 +7,12 @@ use RuntimeException;
 final class Registry
 {
     private static ?array $modules = null;
+    private static ?array $invalidModules = null;
 
     public static function reset(): void
     {
         self::$modules = null;
+        self::$invalidModules = null;
         StateRepository::reset();
         ConfigRepository::reset();
     }
@@ -22,6 +24,7 @@ final class Registry
         }
 
         $modules = [];
+        $invalidModules = [];
         $priorities = [];
 
         foreach (Discovery::discover() as $manifest) {
@@ -31,7 +34,12 @@ final class Registry
 
             try {
                 ManifestValidator::assertValid($manifest);
-            } catch (\Throwable) {
+            } catch (\Throwable $throwable) {
+                $slug = $manifest->slug();
+
+                if ($slug !== '') {
+                    $invalidModules[$slug] = $throwable->getMessage();
+                }
                 continue;
             }
 
@@ -56,14 +64,25 @@ final class Registry
 
         ksort($modules);
         self::$modules = $modules;
+        self::$invalidModules = $invalidModules;
 
         return self::$modules;
+    }
+
+    public static function invalidReasons(): array
+    {
+        if (self::$invalidModules === null) {
+            self::all();
+        }
+
+        return self::$invalidModules ?? [];
     }
 
     public static function enabled(): array
     {
         $enabled = [];
         $available = self::all();
+        $invalid = self::invalidReasons();
 
         foreach (StateRepository::all() as $slug => $state) {
             if (($state['enabled'] ?? false) !== true) {
@@ -71,6 +90,10 @@ final class Registry
             }
 
             if (!isset($available[$slug])) {
+                if (isset($invalid[$slug]) && trim((string) $invalid[$slug]) !== '') {
+                    throw new RuntimeException('Modulo abilitato ma non valido: '.$slug.' | '.$invalid[$slug]);
+                }
+
                 throw new RuntimeException('Modulo abilitato ma non disponibile: '.$slug);
             }
 

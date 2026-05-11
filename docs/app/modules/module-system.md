@@ -35,7 +35,7 @@ I moduli abilitati vengono integrati in questi punti:
 - `app/service/lang.php`
 - `app/config/config.php`
 
-La discovery Composer del core legge prima `vendor/composer/installed.php` e usa `vendor/composer/installed.json` come fallback e sorgente metadata aggiuntiva. Questo evita differenze tra ambienti locali e deploy finali.
+La discovery Composer del core legge prima `vendor/composer/installed.php` e usa `vendor/composer/installed.json` come fallback e sorgente metadata aggiuntiva. Se i metadata Composer runtime non bastano, il core effettua anche una scansione fisica di `vendor/wonder-image/*/module.json`. Questo evita differenze tra ambienti locali e deploy finali.
 
 ## Stato moduli nel consumer
 

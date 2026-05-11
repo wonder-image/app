@@ -11,6 +11,7 @@ final class Discovery
         return array_merge(
             self::bundledPackages(),
             self::composerPackages(),
+            self::vendorPackages(),
             self::localPackages()
         );
     }
@@ -32,6 +33,17 @@ final class Discovery
         }
 
         return self::filesystemPackages($root.'/modules', 'local', 30);
+    }
+
+    private static function vendorPackages(): array
+    {
+        $root = self::consumerRoot();
+
+        if ($root === null) {
+            return [];
+        }
+
+        return self::filesystemPackages($root.'/vendor/wonder-image', 'vendor', 18);
     }
 
     private static function filesystemPackages(string $modulesRoot, string $source, int $priority): array

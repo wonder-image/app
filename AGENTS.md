@@ -115,7 +115,7 @@ php forge start
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
 - Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars.
-- Composer module discovery must remain compatible with both `vendor/composer/installed.php` and `vendor/composer/installed.json`, because deploy environments may expose different metadata formats.
+- Composer module discovery must remain compatible with both `vendor/composer/installed.php` and `vendor/composer/installed.json`, and must keep a filesystem fallback for `vendor/wonder-image/*/module.json`, because deploy environments may expose different metadata formats.
 - `build/src/backend` and `build/table` have been intentionally cleaned out. Do not reintroduce them for new modules.
 - `SortableInput` is deprecated. Keep it only for compatibility; do not add new usages.
 - Local Herd routing uses a global driver stub:
