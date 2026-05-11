@@ -4,11 +4,14 @@
 
 Ogni modulo deve avere:
 
-- `composer.json`
 - `module.json`
+- entrypoint PHP che implementa `Wonder\App\Module\Contracts\ModuleInterface`
+
+File raccomandati per sviluppo e distribuzione:
+
+- `composer.json`
 - `README.md`
 - `CHANGELOG.md`
-- entrypoint PHP che implementa `Wonder\App\Module\Contracts\ModuleInterface`
 
 ## Namespace standard
 

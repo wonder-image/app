@@ -52,12 +52,6 @@ final class ManifestValidator
             $errors[] = 'frameworkCompatibility.php obbligatorio';
         }
 
-        $composerPath = $manifest->resolvePath('composer.json');
-
-        if ($composerPath === null || !is_file($composerPath)) {
-            $errors[] = 'composer.json mancante';
-        }
-
         $entrypoint = $manifest->entrypoint();
         $legacy = (bool) $manifest->get('legacy', false);
 

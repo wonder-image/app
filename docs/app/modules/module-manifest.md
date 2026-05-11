@@ -78,7 +78,6 @@ Il core valida almeno:
 - namespace sotto `Wonder\\Plugin\\`
 - entrypoint autoloadabile
 - entrypoint che implementa `ModuleInterface`
-- presenza di `composer.json`
 - presenza di `frameworkCompatibility.wonder-app`
 - presenza di `frameworkCompatibility.php`
 - path dichiarati interni al root modulo
@@ -87,5 +86,6 @@ Il core valida almeno:
 ## Note
 
 - i file opzionali possono mancare se non dichiarati
+- `composer.json` e' raccomandato per sviluppo e distribuzione del package, ma non e' richiesto a runtime dal bootstrap del modulo
 - un modulo scoperto ma non abilitato non viene caricato nel runtime
 - il manifest e' il contratto tecnico, non il posto dove mettere configurazione runtime del consumer
