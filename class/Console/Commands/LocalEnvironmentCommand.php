@@ -278,7 +278,10 @@ ENV;
 
     protected function buildHerdHost(string $appDomain): string
     {
-        $slug = $this->normalizeProjectSlug($appDomain);
+        // `defaultProjectLabel` strippa la TLD per non costruire host tipo
+        // `fatimagabrielewedding-com.test` da `fatimagabrielewedding.com`.
+        // Vedi `Config::defaultProjectLabel()` per la regola precisa.
+        $slug = $this->defaultProjectLabel($appDomain);
 
         return ($slug !== '' ? $slug : 'app').'.test';
     }

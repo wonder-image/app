@@ -71,7 +71,9 @@ class LocalStart extends LocalEnvironmentCommand
         }
 
         $this->loadEnv($cwd);
-        $appDomain = $this->normalizeProjectSlug((string) ($_ENV['APP_DOMAIN'] ?? ''));
+        // Strippa la TLD per evitare di costruire URL locali tipo
+        // `fatimagabrielewedding-com.test` da APP_DOMAIN=`fatimagabrielewedding.com`.
+        $appDomain = $this->defaultProjectLabel((string) ($_ENV['APP_DOMAIN'] ?? ''));
         $url = $this->resolveLocalAppUrl($appDomain !== '' ? $appDomain : $this->defaultAppDomain($cwd), $host, $port, $runtimeDriver);
 
         $this->printEnvHints($output, $url);
@@ -152,7 +154,12 @@ class LocalStart extends LocalEnvironmentCommand
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
-        $existingAppDomain = $this->normalizeProjectSlug($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+        // Allineamento coi nuovi default: strippiamo la TLD invece di
+        // applicare dot→dash. Senza questo, un APP_DOMAIN già scritto
+        // dalla vecchia logica (`fatimagabrielewedding-com`) non
+        // matcherebbe il nuovo default (`fatimagabrielewedding`) e
+        // continuerebbe a sovrascriverlo ad ogni `forge start`.
+        $existingAppDomain = $this->defaultProjectLabel($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
         $appDomain = $this->defaultAppDomain($cwd);
 
         if ($appDomain !== '' && $appDomain !== $existingAppDomain) {

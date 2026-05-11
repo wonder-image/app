@@ -1337,7 +1337,50 @@ class Config extends Command
             return '';
         }
 
-        return $this->normalizeProjectSlug($folder);
+        return $this->defaultProjectLabel($folder);
+    }
+
+    /**
+     * Deriva una "label locale" del progetto da un nome che può essere:
+     *
+     *   - un dominio:  `fatimagabrielewedding.com`  →  `fatimagabrielewedding`
+     *   - uno slug:    `my-project`                 →  `my-project`
+     *
+     * Differisce da `normalizeProjectSlug()` perché **strippa la TLD**
+     * (taglia tutto dopo il primo dot) invece di trasformare i dot in
+     * dash. Usato per costruire URL locali `<label>.test` evitando il
+     * vecchio bug `fatimagabrielewedding.com` → `fatimagabrielewedding-com.test`.
+     *
+     * Composer name e GitHub repo name continuano a usare
+     * `normalizeProjectSlug()` (dot→dash) perché composer non ammette
+     * dot nei nomi package.
+     *
+     * Esempi:
+     *   `wonder-image.it`     →  `wonder-image`
+     *   `client.org.uk`       →  `client`
+     *   `fatimagabrielewedding.com` → `fatimagabrielewedding`
+     *   `my-project`          →  `my-project`
+     *   `My_Project.test`     →  `my-project`
+     */
+    protected function defaultProjectLabel(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === '.' || $value === DIRECTORY_SEPARATOR) {
+            return '';
+        }
+
+        // Rimuovo eventuale schema http(s):// e slash di chiusura.
+        $value = preg_replace('#^https?://#i', '', $value);
+        $value = trim((string) $value, "/ \t\n\r\0\x0B");
+
+        // Se è un dominio (contiene punti), prendo solo l'etichetta
+        // più a sinistra. Sopravvive anche `client.org.uk` → `client`.
+        if (str_contains($value, '.')) {
+            $value = strstr($value, '.', true) ?: $value;
+        }
+
+        return $this->normalizeProjectSlug($value);
     }
 
     protected function buildAppUrl(string $appDomain): string
