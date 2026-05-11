@@ -15,7 +15,7 @@
         public static function addLangPath(string $pathLangFile): self
         {
 
-            self::$lang = array_push(self::$pathFile, rtrim($pathLangFile, '/'));
+            self::$pathFile[] = rtrim($pathLangFile, '/');
 
             return new self();
 
