@@ -193,12 +193,30 @@ class Config extends Command
         }
 
         if (!$isCi) {
-            // In locale materializza node_modules/wonder-image.
+            // 1) Aggiunge/aggiorna il package `wonder-image` in
+            //    package.json + node_modules. NOTA: `npm install <pkg>`
+            //    NON esegue i lifecycle script del progetto consumer
+            //    (il `postinstall` di package.json che copia
+            //    `node_modules/wonder-image/dist/` in
+            //    `assets/lib/wonder-image/dist/`).
             if (!$this->runPassthruCommand('npm install wonder-image', $output, 'Impossibile installare wonder-image lato NPM.')) {
                 return Command::FAILURE;
             }
+
+            // 2) Esegue `npm install` (senza argomenti) per innescare il
+            //    `postinstall` del progetto. Questo è il passo che
+            //    materializza `assets/lib/wonder-image/dist/` (lo stile
+            //    del sito). Idempotente: se tutto è già installato, è
+            //    rapido e si limita a far runnare il lifecycle.
+            //
+            //    Senza questo step la cartella `assets/lib/` resta
+            //    vuota e il sito si serve senza CSS/JS di wonder-image
+            //    (sintomo: "il sito non ha stile").
+            if (!$this->runPassthruCommand('npm install', $output, 'Impossibile eseguire npm install (postinstall del progetto: assets/lib/ non popolata).')) {
+                return Command::FAILURE;
+            }
         } else {
-            $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto npm install wonder-image.</comment>');
+            $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto npm install wonder-image (il workflow esegue npm ci che innesca da solo il postinstall).</comment>');
         }
 
         if (!$isCi) {
