@@ -7,6 +7,10 @@
 
     $MODULES = \Wonder\App\Module\ConfigRepository::all();
 
+    foreach (\Wonder\App\Module\Registry::bootFiles() as $MODULE_BOOT_FILE) {
+        require_once $MODULE_BOOT_FILE;
+    }
+
     $customConfigFile = $ROOT."/custom/config/config.php";
     if (file_exists($customConfigFile)) {
         require_once $customConfigFile; # Configurazioni CUSTOM

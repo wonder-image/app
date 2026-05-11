@@ -31,7 +31,7 @@ final class Manifest
             throw new \RuntimeException($message.' ('.$manifestPath.')');
         }
 
-        return new self(
+        return self::fromArray(
             dirname($manifestPath),
             $manifestPath,
             $data,
@@ -39,6 +39,17 @@ final class Manifest
             $priority,
             $composerPackage
         );
+    }
+
+    public static function fromArray(
+        string $root,
+        string $manifestPath,
+        array $data,
+        string $source,
+        int $priority = 0,
+        ?string $composerPackage = null,
+    ): self {
+        return new self($root, $manifestPath, $data, $source, $priority, $composerPackage);
     }
 
     public function root(): string
@@ -249,6 +260,31 @@ final class Manifest
         }
 
         return null;
+    }
+
+    public function bootFiles(): array
+    {
+        $files = $this->get('boot.files', []);
+
+        if (!is_array($files)) {
+            return [];
+        }
+
+        $resolved = [];
+
+        foreach ($files as $file) {
+            if (!is_string($file) || trim($file) === '') {
+                continue;
+            }
+
+            $path = $this->resolvePath(trim($file));
+
+            if ($path !== null) {
+                $resolved[] = $path;
+            }
+        }
+
+        return array_values(array_unique($resolved));
     }
 
     public function resolvePath(?string $path): ?string

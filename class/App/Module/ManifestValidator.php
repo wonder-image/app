@@ -59,11 +59,12 @@ final class ManifestValidator
         }
 
         $entrypoint = $manifest->entrypoint();
+        $legacy = (bool) $manifest->get('legacy', false);
 
         if ($entrypoint !== '') {
             if (!class_exists($entrypoint)) {
                 $errors[] = 'Entrypoint non autoloadabile: '.$entrypoint;
-            } elseif (!is_subclass_of($entrypoint, ModuleInterface::class)) {
+            } elseif (!$legacy && !is_subclass_of($entrypoint, ModuleInterface::class)) {
                 $errors[] = $entrypoint.' deve implementare '.ModuleInterface::class;
             }
         }

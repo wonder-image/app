@@ -8,6 +8,7 @@ La linea corrente e' questa:
 - il package consigliato e' `wonder-image/<slug>`;
 - il namespace base standard e' `Wonder\Plugin\<StudlySlug>\`;
 - il modulo espone un `module.json` e un entrypoint PHP che implementa `Wonder\App\Module\Contracts\ModuleInterface`;
+- in compatibilita' temporanea, un package Composer `wonder-image/*` con `extra.wonder.module=true` puo' essere caricato anche senza `module.json`, ma questo fallback legacy non e' il formato target;
 - il consumer abilita i moduli da `custom/config/modules.php`.
 
 Stato attuale del core:

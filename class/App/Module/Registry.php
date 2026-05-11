@@ -170,6 +170,23 @@ final class Registry
         return array_values(array_unique($paths));
     }
 
+    public static function bootFiles(): array
+    {
+        $files = [];
+
+        foreach (self::enabled() as $manifest) {
+            foreach ($manifest->bootFiles() as $file) {
+                if (is_file($file)) {
+                    $files[] = $file;
+                }
+            }
+        }
+
+        sort($files);
+
+        return array_values(array_unique($files));
+    }
+
     public static function mergePermissions(array $permits): array
     {
         foreach (self::enabled() as $manifest) {

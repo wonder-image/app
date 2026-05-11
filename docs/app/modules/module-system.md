@@ -35,6 +35,8 @@ I moduli abilitati vengono integrati in questi punti:
 - `app/service/lang.php`
 - `app/config/config.php`
 
+La discovery Composer del core legge prima `vendor/composer/installed.php` e usa `vendor/composer/installed.json` come fallback e sorgente metadata aggiuntiva. Questo evita differenze tra ambienti locali e deploy finali.
+
 ## Stato moduli nel consumer
 
 Il consumer dichiara i moduli in:
@@ -64,6 +66,7 @@ Regole:
 - se un modulo non e' dichiarato, il core non lo abilita;
 - se un modulo e' abilitato ma non viene scoperto, il bootstrap fallisce con errore chiaro;
 - se un modulo dipende da un altro modulo non abilitato, il bootstrap fallisce.
+- i package legacy `wonder-image/*` con `module.json` restano supportati anche se il deploy espone solo metadata Composer parziali.
 
 ## Comandi disponibili
 
