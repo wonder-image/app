@@ -205,7 +205,7 @@
                     # Header
                         $MAIL->addAddress($to);
                         $MAIL->setFrom($CREDENTIALS->username, $SOCIETY_NAME);
-                        $MAIL->addReplyTo($from, $SOCIETY_NAME);
+                        if (!empty($from)) { $MAIL->addReplyTo($from, $SOCIETY_NAME); }
                 
                     # Allegati
                         foreach ($attachmentList as $attachment) {
