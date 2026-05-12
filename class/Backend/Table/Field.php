@@ -634,13 +634,22 @@
 
                             $imageDir = isset($this->table->field[$this->column]['input']['format']['dir']) ? $this->table->field[$this->column]['input']['format']['dir'] : '/';
 
+                            // Default sicuri: nessuna resize, file servito dal
+                            // path nudo. Prima `$sizeBefore` non era
+                            // inizializzato nel ramo "no resize" → "Undefined
+                            // variable $sizeBefore" a riga ~672 nei resource
+                            // dove il field è `text()` ma la colonna è
+                            // formattata come `image()` (es. Media.file).
+                            $imageSize = '';
+                            $sizeBefore = false;
+
                             if (isset($this->table->field[$this->column]['input']['format']['resize'])) {
 
                                 $imageResize = $this->table->field[$this->column]['input']['format']['resize'];
 
                                 if (isset($imageResize['width'])) {
 
-                                    $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+                                    $imageSize = $imageResize['width'].'x'.($imageResize['height'] ?? $imageResize['width']).'-';
                                     $sizeBefore = true;
 
                                 } else if (isset($imageResize[0]['width'])) {
@@ -649,37 +658,43 @@
                                     foreach ($imageResize as $key => $size) {
                                         if ($size['width'] < $s) {
                                             $s = $size['width'];
-                                            $imageSize = $size['width'].'x'.$size['height'].'-';
+                                            $imageSize = $size['width'].'x'.($size['height'] ?? $size['width']).'-';
                                         }
                                     }
 
                                     $sizeBefore = true;
 
-                                } else {
+                                } else if (isset($imageResize[0])) {
 
                                     $imageSize = '-'.$imageResize[0];
                                     $sizeBefore = false;
 
                                 }
-
-                            } else {
-
-                                $imageSize = "";
+                                // Altri pattern di resize non riconosciuti
+                                // → defaults sopra (no size suffix).
 
                             }
 
+                            // `customLink->file` può mancare se l'AJAX non
+                            // l'ha inviato (es. table caller legacy senza
+                            // addLink('file', ...)). Fall back a stringa
+                            // vuota: l'URL sarà relativo al dominio corrente
+                            // e l'<img> mostrerà broken se il path è errato,
+                            // ma niente PHP warning nel JSON di risposta.
+                            $fileBase = $this->customLink->file ?? '';
+
                             if (isset($VALUE[0])) {
                                 if ($sizeBefore) {
-                                    $VALUE = $this->customLink->file.$imageDir.$imageSize.$VALUE[0];
+                                    $VALUE = $fileBase.$imageDir.$imageSize.$VALUE[0];
                                 } else {
                                     $extension = pathinfo($VALUE[0], PATHINFO_EXTENSION);
                                     $name = pathinfo($VALUE[0], PATHINFO_FILENAME);
-                                    $VALUE = $this->customLink->file.$imageDir.$name.$imageSize.'.'.$extension;
+                                    $VALUE = $fileBase.$imageDir.$name.$imageSize.'.'.$extension;
                                 }
                             } else {
                                 $VALUE = "";
                             }
-                            
+
                         }
 
                         $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
