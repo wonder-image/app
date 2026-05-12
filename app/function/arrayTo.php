@@ -21,6 +21,8 @@
         $fileName = empty($fileName) ? 'export' : trim((string) $fileName);
 
         $sheetName = create_link($fileName);
+        $sheetName = trim(substr($sheetName, 0, 31), '- ');
+        $sheetName = $sheetName === '' ? 'Sheet1' : $sheetName;
 
         $spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -65,15 +67,17 @@
             }
         }
 
-        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        header("Content-Disposition: attachment; filename=\"{$fileName}.xlsx\"");
+        header("Content-Type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=\"{$fileName}.xls\"");
         header("Cache-Control: max-age=0");
         header("Pragma: public");
         header("Expires: 0");
 
-        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xls($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $writer->save('php://output');
+
+        $spreadsheet->disconnectWorksheets();
 
     }
 
