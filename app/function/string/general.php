@@ -5,9 +5,11 @@
 
         global $CHARACTERS;
 
+        $characters = is_array($CHARACTERS ?? null) ? $CHARACTERS : [];
+
         $str = \Wonder\Support\Html\Entity::decode($str);
 
-        foreach ($CHARACTERS as $k => $c) {
+        foreach ($characters as $k => $c) {
 
             $character = $c['character'];
             $html = $c['html'];
