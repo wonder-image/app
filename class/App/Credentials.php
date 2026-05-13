@@ -58,10 +58,10 @@
                 // Per verificare upfront se le credenziali ci sono:
                 // `Credentials::hasDatabaseCredentials()`.
 
-                $hostname = trim((string) ($_ENV['DB_HOSTNAME'] ?? ''));
-                $username = trim((string) ($_ENV['DB_USERNAME'] ?? ''));
-                $password = (string) ($_ENV['DB_PASSWORD'] ?? ''); // intenzionalmente NON trim: una password può iniziare/finire con spazi
-                $database = trim((string) ($_ENV['DB_DATABASE'] ?? ''));
+                $hostname = self::firstEnvValue(['DB_HOSTNAME', 'DB_HOST']);
+                $username = self::firstEnvValue(['DB_USERNAME', 'DB_USER']);
+                $password = self::firstEnvValue(['DB_PASSWORD'], false); // intenzionalmente NON trim: una password può iniziare/finire con spazi
+                $database = self::firstEnvValue(['DB_DATABASE', 'DB_NAME']);
 
                 self::$DB = (object) [];
                 self::$DB->hostname = $hostname;
@@ -147,11 +147,57 @@
 
             self::loadEnv();
 
-            $hostname = trim((string) ($_ENV['DB_HOSTNAME'] ?? ''));
-            $username = trim((string) ($_ENV['DB_USERNAME'] ?? ''));
-            $database = trim((string) ($_ENV['DB_DATABASE'] ?? ''));
+            $hostname = self::firstEnvValue(['DB_HOSTNAME', 'DB_HOST']);
+            $username = self::firstEnvValue(['DB_USERNAME', 'DB_USER']);
+            $database = self::firstEnvValue(['DB_DATABASE', 'DB_NAME']);
 
             return $hostname !== '' && $username !== '' && $database !== '';
+
+        }
+
+        private static function firstEnvValue(array $keys, bool $trim = true): string
+        {
+
+            foreach ($keys as $key) {
+
+                if (!is_string($key) || $key === '') {
+                    continue;
+                }
+
+                $value = self::readEnvValue($key, $trim);
+
+                if ($value !== '') {
+                    return $value;
+                }
+
+            }
+
+            return '';
+
+        }
+
+        private static function readEnvValue(string $key, bool $trim = true): string
+        {
+
+            if (array_key_exists($key, $_ENV)) {
+                $value = (string) $_ENV[$key];
+                return $trim ? trim($value) : $value;
+            }
+
+            if (array_key_exists($key, $_SERVER)) {
+                $value = (string) $_SERVER[$key];
+                return $trim ? trim($value) : $value;
+            }
+
+            $value = getenv($key);
+
+            if ($value === false) {
+                return '';
+            }
+
+            $value = (string) $value;
+
+            return $trim ? trim($value) : $value;
 
         }
 
