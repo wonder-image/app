@@ -89,7 +89,7 @@ final class ImageResource extends Resource
     public static function tableSchema(): array
     {
         return [
-            TableColumn::key('file')->image()->link('edit')->size('little'),,
+            TableColumn::key('file')->image()->link('edit')->size('little'),
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('slug')->text(),
             TableColumn::key('actions')->button()->actions(['edit', 'delete']),
