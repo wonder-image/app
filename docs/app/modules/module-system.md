@@ -37,6 +37,8 @@ I moduli abilitati vengono integrati in questi punti:
 
 La discovery Composer del core legge prima `vendor/composer/installed.php` e usa `vendor/composer/installed.json` come fallback e sorgente metadata aggiuntiva. Se i metadata Composer runtime non bastano, il core effettua anche una scansione fisica di `vendor/wonder-image/*/module.json`. Questo evita differenze tra ambienti locali e deploy finali.
 
+Prima della discovery dei `Model` il core pre-inizializza anche un contesto traduzioni minimo. Questo permette ai moduli di usare `__t()` in extension, field definitions e schema dinamici gia' nelle fasi iniziali del bootstrap.
+
 ## Stato moduli nel consumer
 
 Il consumer dichiara i moduli in:
