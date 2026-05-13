@@ -89,7 +89,7 @@ final class ImageResource extends Resource
     public static function tableSchema(): array
     {
         return [
-            TableColumn::key('file')->image()->link('edit'),
+            TableColumn::key('file')->image()->link('edit')->size('little'),,
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('slug')->text(),
             TableColumn::key('actions')->button()->actions(['edit', 'delete']),
@@ -132,7 +132,7 @@ final class ImageResource extends Resource
         return NavigationSchema::for(static::class)
             ->section('Media', 'media', 'bi-image')
             ->title('Immagini')
-            ->order(20)
+            ->order(9)
             ->authority(['admin']);
     }
 
