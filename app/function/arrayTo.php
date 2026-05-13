@@ -15,6 +15,10 @@
     }
 
     function arrayToXls($array, $fileName = 'export') {
+        arrayToXlsx($array, $fileName);
+    }
+
+    function arrayToXlsx($array, $fileName = 'export') {
 
         $array = is_array($array) ? $array : [$array];
 
@@ -67,13 +71,13 @@
             }
         }
 
-        header("Content-Type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=\"{$fileName}.xls\"");
+        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        header("Content-Disposition: attachment; filename=\"{$fileName}.xlsx\"");
         header("Cache-Control: max-age=0");
         header("Pragma: public");
         header("Expires: 0");
 
-        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xls($spreadsheet);
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $writer->save('php://output');
 

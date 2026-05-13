@@ -54,7 +54,7 @@
             'xls' => 'application/vnd.ms-excel',
             'ppt' => 'application/vnd.ms-powerpoint',
             'docx' => 'application/msword',
-            'xlsx' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'pptx' => 'application/vnd.ms-powerpoint',
 
             // open office
