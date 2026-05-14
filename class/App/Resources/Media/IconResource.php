@@ -2,7 +2,6 @@
 
 namespace Wonder\App\Resources\Media;
 
-use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormInput;
 use Wonder\App\ResourceSchema\NavigationSchema;
@@ -13,7 +12,7 @@ use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Form\Form;
 
-final class IconResource extends Resource
+final class IconResource extends MediaResource
 {
     public static string $model = \Wonder\App\Models\Media\Media::class;
 
@@ -139,18 +138,8 @@ final class IconResource extends Resource
             ->authority(['admin']);
     }
 
-    public static function mutateRequestValues(
-        array $values,
-        string $action,
-        string $context = 'backend',
-        ?array $oldValues = null
-    ): array {
-        if (!empty($values['name'])) {
-            $values['slug'] = $values['name'];
-        }
-
-        $values['type'] = 'icon';
-
-        return $values;
+    protected static function mediaType(): string
+    {
+        return 'icon';
     }
 }

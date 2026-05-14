@@ -46,24 +46,44 @@
         {
 
             $manager = new ImageManager( new Driver() );
+            $sourceImage = $manager->read($this->imagePath);
+            $sourceWidth = (int) $sourceImage->width();
+            $sizes = array_values(array_unique(array_filter(array_map(
+                static fn ($size): int => (int) $size,
+                $this->sizes
+            ), static fn (int $size): bool => $size > 0)));
+
+            sort($sizes);
+            $baseWebpPath = null;
 
             if ($this->webp && $this->extension !== 'webp') {
                 $webpPath = sprintf('%s%s.webp', $this->directory, $this->imageName);
-                $webpImage = $manager->read($this->imagePath);
+                $webpImage = clone $sourceImage;
                 $webpImage->toWebp(80)->save($webpPath);
+                $baseWebpPath = $webpPath;
             }
             
-            foreach ($this->sizes as $size) {
-
-                $resizedImage = $manager->read($this->imagePath);
-                $resizedImage->scaleDown($size);
-
+            foreach ($sizes as $size) {
                 $targetPath = sprintf('%s%s-%d.%s', $this->directory, $this->imageName, $size, $this->extension);
+
+                if ($size >= $sourceWidth) {
+                    @copy($this->imagePath, $targetPath);
+
+                    if ($baseWebpPath !== null) {
+                        @copy($baseWebpPath, sprintf('%s%s-%d.webp', $this->directory, $this->imageName, $size));
+                    }
+
+                    continue;
+                }
+
+                $resizedImage = clone $sourceImage;
+                $resizedImage->scaleDown($size);
                 $resizedImage->save($targetPath);
 
-                if ($this->webp && $this->extension !== 'webp') {
+                if ($baseWebpPath !== null) {
                     $webpPath = sprintf('%s%s-%d.webp', $this->directory, $this->imageName, $size);
-                    $resizedImage->toWebp(80)->save($webpPath);
+                    $webpImage = clone $resizedImage;
+                    $webpImage->toWebp(80)->save($webpPath);
                 }
 
             }

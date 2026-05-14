@@ -71,8 +71,13 @@ final class ResourceApiController
     private function store(Endpoint $endpoint): array
     {
         $modelClass = $this->resourceClass::modelClass();
-        $values = $this->preparedValues($endpoint, 'store');
-        $result = $modelClass::create($values);
+        $requestValues = $this->requestValues($endpoint);
+        $existingValues = $this->resourceClass::findStoreExistingValues($requestValues, 'api');
+        $targetId = (int) ($existingValues['id'] ?? 0);
+        $values = $this->preparedValues($endpoint, $targetId > 0 ? 'update' : 'store', $existingValues);
+        $result = $targetId > 0
+            ? $modelClass::update($values, $targetId)
+            : $modelClass::create($values);
 
         if (empty($result->success)) {
             return $endpoint->response(
@@ -81,10 +86,25 @@ final class ResourceApiController
             );
         }
 
+        if ($targetId > 0) {
+            $this->resourceClass::syncRepeaterRelations(
+                $targetId,
+                $requestValues,
+                $_FILES,
+                'update',
+                'api'
+            );
+            $fields = $this->presenter->fieldsFor('show', ['*']);
+            $item = $this->resourceRow($targetId, $fields);
+            $this->resourceClass::afterUpdate($targetId, $result, $values);
+
+            return $endpoint->response($this->presenter->updatePayload($item));
+        }
+
         if (isset($result->insert_id) && (int) $result->insert_id > 0) {
             $this->resourceClass::syncRepeaterRelations(
                 (int) $result->insert_id,
-                $this->requestValues($endpoint),
+                $requestValues,
                 $_FILES,
                 'store',
                 'api'
@@ -134,10 +154,10 @@ final class ResourceApiController
 
     private function destroy(Endpoint $endpoint, int $id): array
     {
-        $this->resourceRow($id);
+        $values = $this->resourceRow($id);
         $modelClass = $this->resourceClass::modelClass();
         $result = $modelClass::delete($id);
-        $this->resourceClass::afterDelete($id, $result);
+        $this->resourceClass::afterDelete($id, $result, $values);
 
         return $endpoint->response($this->presenter->destroyPayload($id, !empty($result->success)));
     }

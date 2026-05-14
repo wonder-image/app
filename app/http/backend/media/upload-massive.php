@@ -57,12 +57,35 @@ if (isset($_POST['upload']) && isset($_FILES['file']) && is_array($_FILES['file'
             ],
         ];
 
-        $post = $resourceClass::mutateRequestValues($post, 'store', 'backend');
+        $existingValues = $resourceClass::findStoreExistingValues($post, 'backend');
+        $action = $existingValues !== null ? 'update' : 'store';
+        $post = $resourceClass::mutateRequestValues($post, $action, 'backend', $existingValues);
 
         $values = Table::key($resourceClass::prepareSchemaName())
-            ->prepareFor($resourceClass::modelTable(), $post);
+            ->prepareFor($resourceClass::modelTable(), $post, $existingValues);
 
-        sqlInsert($resourceClass::modelTable(), $values);
+        if ($existingValues !== null) {
+            $result = $resourceClass::modelClass()::query()->Update(
+                $resourceClass::modelTable(),
+                $values,
+                'id',
+                (int) $existingValues['id']
+            );
+
+            if (!empty($result->success)) {
+                continue;
+            }
+
+            $ALERT = $ALERT ?: 920;
+            break;
+        }
+
+        $result = sqlInsert($resourceClass::modelTable(), $values);
+
+        if (empty($result->success)) {
+            $ALERT = $ALERT ?: 920;
+            break;
+        }
     }
 
     if (empty($ALERT)) {

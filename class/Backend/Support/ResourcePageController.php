@@ -67,27 +67,45 @@ final class ResourcePageController
 
         $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
-        $values = $this->preparedValues();
+        $existingValues = $this->resourceClass::findStoreExistingValues($this->requestValues(), 'backend');
+        $targetId = (int) ($existingValues['id'] ?? 0);
+        $values = $this->preparedValues($existingValues);
         $result = (object) ['success' => false];
 
         if (empty($ALERT)) {
-            $result = $modelClass::query()->Insert($modelClass::$table, $values);
+            if ($targetId > 0) {
+                $result = $modelClass::query()->Update($modelClass::$table, $values, 'id', $targetId);
+            } else {
+                $result = $modelClass::query()->Insert($modelClass::$table, $values);
+            }
         }
 
         if (!empty($result->success)) {
-            $insertId = (int) ($result->insert_id ?? 0);
-
-            if ($insertId > 0) {
+            if ($targetId > 0) {
                 $this->resourceClass::syncRepeaterRelations(
-                    $insertId,
+                    $targetId,
                     $_POST,
                     $_FILES,
-                    'store',
+                    'update',
                     'backend'
                 );
+                $this->resourceClass::afterUpdate($targetId, $result, $values);
+            } else {
+                $insertId = (int) ($result->insert_id ?? 0);
+
+                if ($insertId > 0) {
+                    $this->resourceClass::syncRepeaterRelations(
+                        $insertId,
+                        $_POST,
+                        $_FILES,
+                        'store',
+                        'backend'
+                    );
+                }
+
+                $this->resourceClass::afterStore($result, $values);
             }
 
-            $this->resourceClass::afterStore($result, $values);
             $this->redirectToConfiguredPage('store');
         }
 
@@ -153,10 +171,10 @@ final class ResourcePageController
 
     private function delete(int $id): never
     {
-        $this->resourceRow($id);
+        $values = $this->resourceRow($id);
         $modelClass = $this->resourceClass::modelClass();
         $result = $modelClass::delete($id);
-        $this->resourceClass::afterDelete($id, $result);
+        $this->resourceClass::afterDelete($id, $result, $values);
 
         $this->redirectToConfiguredPage('delete');
     }

@@ -921,6 +921,9 @@
         } elseif ($file == "ico") {
             $ACCEPT = "image/ico, image/x-icon";
             $EXTENSIONS_ACCEPT = ".ico";
+        } elseif ($file == "media") {
+            $ACCEPT = "image/png, image/jpeg, image/webp, application/pdf";
+            $EXTENSIONS_ACCEPT = ".png, .jpg, .jpeg, .webp, .pdf";
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";
             $EXTENSIONS_ACCEPT = ".mp4";
@@ -1117,6 +1120,9 @@
         } elseif ($file == "ico") {
             $ACCEPT = "image/ico, image/x-icon";
             $ACCEPT_LABEL = "la tua immagine";
+        } elseif ($file == "media") {
+            $ACCEPT = "image/png, image/jpeg, image/webp, application/pdf";
+            $ACCEPT_LABEL = "i tuoi file";
         } elseif ($file == "video") {
             $ACCEPT = "video/mp4";
             $ACCEPT_LABEL = "il tuo video";

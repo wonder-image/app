@@ -81,6 +81,7 @@ final class ResourceTableRenderer
             'modify' => $this->routePattern('edit', true),
             'download' => $this->routePattern('download', true),
             'duplicate' => $this->routePattern('duplicate', true),
+            'file' => (new \Wonder\App\Path)->upload.'/'.$this->resourceClass::legacyFolder(),
         ];
 
         foreach ($links as $key => $link) {

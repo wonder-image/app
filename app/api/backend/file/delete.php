@@ -27,51 +27,14 @@
 
             } else {
 
-                // Delete image
                 $t = strtoupper($table);
-                $TABLE = $TABLE->$t[$column]['input'];
+                $TABLE = $TABLE->$t[$column]['input'] ?? [];
+                $format = (array) ($TABLE['format'] ?? []);
+                $basePath = rtrim((string) $PATH->rUpload, '/');
+                $folder = trim((string) $folder, '/');
+                $basePath .= $folder !== '' ? '/'.$folder : '';
 
-                $dir = isset($TABLE['format']['dir']) ? $TABLE['format']['dir'] : '/'; 
-                $resize = isset($TABLE['format']['resize']) ? $TABLE['format']['resize'] : ''; 
-
-                if (substr($dir, -1) != '/') {
-
-                    $extension = pathinfo($image, PATHINFO_EXTENSION);
-
-                    $name = explode('/', $dir);
-                    $lastKey = array_key_last($name);
-
-                    $path = $PATH->rUpload.'/'.$folder.str_replace($name,'', $dir);
-                    $name = $name[$lastKey].'.'.$extension;
-
-                } else {
-
-                    $name = $image;
-                    $path = $PATH->rUpload.'/'.$folder.$dir;
-
-                }
-
-                $link = $path.$name;
-
-                if (!empty($resize)) {
-                    if (is_array($resize[0])) {
-                        foreach ($resize as $k => $v) {
-
-                            $WIDTH = $v['width'];
-                            $HEIGHT = $v['height'];
-                            unlink($path.$WIDTH.'x'.$HEIGHT.'-'.$name);
-
-                        }
-                    } else {
-
-                        $WIDTH = $resize['width'];
-                        $HEIGHT = $resize['height'];
-                        unlink($path.$WIDTH.'x'.$HEIGHT.'-'.$name);
-
-                    }
-                }
-                
-                unlink($link);
+                \Wonder\App\Support\MediaFileManager::deleteFile($basePath, $format, (string) $image);
 
             }
 

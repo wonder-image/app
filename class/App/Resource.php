@@ -519,8 +519,13 @@ abstract class Resource
     {
     }
 
-    public static function afterDelete(int|string $id, object $result): void
+    public static function afterDelete(int|string $id, object $result, array $values = []): void
     {
+    }
+
+    public static function findStoreExistingValues(array $requestValues, string $context = 'backend'): ?array
+    {
+        return null;
     }
 
     public static function registerBackendRoutes(string $rootApp, string $slug): void

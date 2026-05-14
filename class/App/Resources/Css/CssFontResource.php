@@ -155,7 +155,7 @@ final class CssFontResource extends Resource
         }
     }
 
-    public static function afterDelete(int|string $id, object $result): void
+    public static function afterDelete(int|string $id, object $result, array $values = []): void
     {
         if (function_exists('cssRoot')) {
             cssRoot();
