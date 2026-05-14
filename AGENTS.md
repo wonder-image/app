@@ -111,6 +111,7 @@ php forge start
 
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
+- `Credentials::loadEnv()` must resolve `.env` from the consumer `ROOT`, never from the package directory under `vendor/`.
 - Backend/API routes are driven from `app/config/routes` and the `ResourceRouteRegistrar`.
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.

@@ -23,11 +23,30 @@
 
             if (empty(self::$ENV)) {
 
-                self::$ENV = Dotenv::createImmutable(__DIR__);
+                self::$ENV = Dotenv::createImmutable(self::envRoot());
                 self::$ENV->safeLoad();
                 EnvCompat::apply();
 
             }
+
+        }
+
+        private static function envRoot(): string
+        {
+
+            $root = LegacyGlobals::get('ROOT', defined('ROOT') ? ROOT : '');
+
+            if (is_string($root) && trim($root) !== '' && is_file(rtrim($root, '/').'/.env')) {
+                return rtrim($root, '/');
+            }
+
+            $cwd = getcwd();
+
+            if (is_string($cwd) && trim($cwd) !== '' && is_file(rtrim($cwd, '/').'/.env')) {
+                return rtrim($cwd, '/');
+            }
+
+            return dirname(__DIR__, 3);
 
         }
 
