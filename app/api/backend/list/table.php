@@ -22,11 +22,22 @@
         $NAME->connection = $MYSQLI_CONNECTION[$NAME->database];
 
         $NAME->link = $_POST['default']['link'] ?? [];
+        $NAME->schema = $_POST['custom']['schema'] ?? '';
 
         $nameTable = strtoupper($NAME->table);
-        $NAME->field = isset($TABLE->$nameTable)
+        $legacyField = isset($TABLE->$nameTable)
             ? $TABLE->$nameTable
-            : (AppTable::$list[strtolower($NAME->table)] ?? []);
+            : [];
+        $tableField = AppTable::$list[strtolower($NAME->table)] ?? [];
+        $resourceField = is_string($NAME->schema) && trim($NAME->schema) !== ''
+            ? (AppTable::$list[strtolower(trim($NAME->schema))] ?? [])
+            : [];
+
+        $NAME->field = array_replace_recursive(
+            is_array($legacyField) ? $legacyField : [],
+            is_array($tableField) ? $tableField : [],
+            is_array($resourceField) ? $resourceField : []
+        );
 
         $TEXT = (object) [];
         $TEXT->titleS = $_POST['text']['titleS'];

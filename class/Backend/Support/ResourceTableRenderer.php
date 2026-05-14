@@ -44,6 +44,7 @@ final class ResourceTableRenderer
     private function toTable(): Table
     {
         $table = new Table($this->resourceClass::modelTable(), $this->resourceClass::connection());
+        $table->addEndpointValue('schema', $this->resourceClass::prepareSchemaName());
 
         $table->labels($this->resourceClass::labelSchema());
         $table->text(
