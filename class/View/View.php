@@ -3,6 +3,7 @@
 namespace Wonder\View;
 
 use RuntimeException;
+use Throwable;
 use Wonder\App\LegacyGlobals;
 
 class View
@@ -21,9 +22,39 @@ class View
         return new self($view, $data);
     }
 
+    public static function component(string $component, array $data = []): string
+    {
+        $data = self::normalizeData($data);
+        $runtime = self::runtimeData();
+
+        self::$dataStack[] = $data;
+        self::$globalStack[] = self::pushGlobals($data);
+
+        ob_start();
+
+        try {
+            extract($runtime, EXTR_SKIP);
+            extract($data, EXTR_SKIP);
+
+            $ROOT = (string) LegacyGlobals::get('ROOT', '');
+            $ROOT_APP = (string) LegacyGlobals::get('ROOT_APP', '');
+
+            include self::resolveComponentPath($component, $ROOT, $ROOT_APP);
+
+            return (string) ob_get_clean();
+        } catch (Throwable $exception) {
+            ob_end_clean();
+
+            throw $exception;
+        } finally {
+            self::popGlobals();
+            array_pop(self::$dataStack);
+        }
+    }
+
     public function render(): void
     {
-        $data = $this->normalizeData($this->data);
+        $data = self::normalizeData($this->data);
         $runtime = self::runtimeData();
 
         self::$dataStack[] = $data;
@@ -86,7 +117,7 @@ class View
         return is_array($data) ? $data : [];
     }
 
-    private function normalizeData(array $data): array
+    private static function normalizeData(array $data): array
     {
         if (array_key_exists('_POST', $data) && !array_key_exists('VALUES', $data)) {
             $data['VALUES'] = is_array($data['_POST']) ? $data['_POST'] : [];
@@ -160,5 +191,51 @@ class View
         }
 
         throw new RuntimeException("Layout non trovato: {$layout}");
+    }
+
+    private static function resolveComponentPath(string $component, string $root, string $rootApp): string
+    {
+        $component = trim($component);
+
+        if ($component === '') {
+            throw new RuntimeException('Component non definito.');
+        }
+
+        if (file_exists($component)) {
+            return $component;
+        }
+
+        $relativeComponent = self::normalizeComponentPath($component);
+        $candidates = [
+            $root.'/custom/view/components/'.$relativeComponent.'.php',
+            $rootApp.'/view/components/'.$relativeComponent.'.php',
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (file_exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        throw new RuntimeException("Component non trovato: {$component}");
+    }
+
+    private static function normalizeComponentPath(string $component): string
+    {
+        $component = str_replace(['\\', '.'], '/', trim($component));
+        $component = trim($component, '/');
+
+        if ($component === '') {
+            return '';
+        }
+
+        if (
+            str_starts_with($component, 'frontend/')
+            || str_starts_with($component, 'backend/')
+        ) {
+            return $component;
+        }
+
+        return 'frontend/'.$component;
     }
 }
