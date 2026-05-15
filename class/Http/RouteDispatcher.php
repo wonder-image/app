@@ -145,6 +145,8 @@ class RouteDispatcher
      */
     private function bootLanguages(string $runtimeRoot): void
     {
+        $this->bootLanguageHelpers($runtimeRoot);
+
         $candidates = [
             $this->root.'/custom/config/lang.php',
         ];
@@ -157,6 +159,14 @@ class RouteDispatcher
                 require_once $file;
             }
         }
+    }
+
+    private function bootLanguageHelpers(string $runtimeRoot): void
+    {
+        $GLOBALS['ROOT'] = $this->root;
+        $GLOBALS['ROOT_APP'] = $runtimeRoot;
+
+        require_once $runtimeRoot.'/function/helper.php';
     }
 
     /**

@@ -51,7 +51,7 @@
 
         \Wonder\Http\Route::loadDirectories([
             $ROOT_APP.'/config/routes',
-            $ROOT.'/custom/config/routes',
+            $ROOT.'/custom/routes'
         ], [
             'ROOT' => $ROOT,
             'ROOT_APP' => $ROOT_APP,
