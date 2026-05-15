@@ -76,9 +76,9 @@
 
             # Dettagli pagina
             'path_site' => LanguageContext::getSitePath(),
-            'path_privacy_policy' => __r('frontend.legal.privacy-policy'),
-            'path_cookie_policy' => __r('frontend.legal.cookie-policy'),
-            'path_terms_conditions' => __r('frontend.legal.terms-conditions'),
+            'path_privacy_policy' => __r('legal.privacy-policy'),
+            'path_cookie_policy' => __r('legal.cookie-policy'),
+            'path_terms_conditions' => __r('legal.terms-conditions'),
             'domain' => $PAGE->domain,
 
             # Dettagli utente
