@@ -48,3 +48,5 @@ $downloadUrl = __r('backend.resource.'.RESOURCE_CLASS::slug().'.download', [
         </div>
     </wi-card>
 </div>
+
+<?php \Wonder\View\View::end(); ?>
