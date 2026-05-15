@@ -22,6 +22,14 @@ final class BackendNavigation
             $navigation[$index] = self::mergeSection($navigation[$index], $resourceSection);
         }
 
+        foreach ($navigation as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            unset($navigation[$index]['__resource_order']);
+        }
+
         return array_values($navigation);
     }
 
@@ -43,10 +51,6 @@ final class BackendNavigation
             $sectionFolder = trim((string) ($schema['section_folder'] ?? ''));
             $sectionTitle = trim((string) ($schema['section'] ?? ''));
 
-            if ($sectionFolder === '' || $sectionTitle === '') {
-                continue;
-            }
-
             $subnav = [
                 'title' => (string) ($schema['title'] ?? $resourceClass::titleLabel()),
                 'folder' => $resourceClass::path(),
@@ -54,6 +58,19 @@ final class BackendNavigation
                 'authority' => self::normalizeAuthority((array) ($schema['authority'] ?? [])),
                 '__resource_order' => (int) ($schema['order'] ?? 100),
             ];
+
+            if ($sectionFolder === '' || $sectionTitle === '') {
+                $sections['resource:'.$resourceClass] = [
+                    'title' => $subnav['title'],
+                    'folder' => $subnav['folder'],
+                    'icon' => (string) ($resourceClass::icon() ?: 'bi-bug'),
+                    'file' => $subnav['file'],
+                    'authority' => $subnav['authority'],
+                    'subnavs' => [],
+                    '__resource_order' => $subnav['__resource_order'],
+                ];
+                continue;
+            }
 
             if (!isset($sections[$sectionFolder])) {
                 $sections[$sectionFolder] = [
@@ -102,7 +119,7 @@ final class BackendNavigation
         $base['title'] = (string) ($base['title'] ?? $resourceSection['title'] ?? '');
         $base['folder'] = (string) ($base['folder'] ?? $resourceSection['folder'] ?? '');
         $base['icon'] = (string) ($base['icon'] ?? $resourceSection['icon'] ?? 'bi-bug');
-        $base['file'] = (string) ($base['file'] ?? '');
+        $base['file'] = (string) ($base['file'] ?? $resourceSection['file'] ?? '');
         $base['authority'] = self::mergeAuthority(
             (array) ($base['authority'] ?? []),
             (array) ($resourceSection['authority'] ?? [])
@@ -111,6 +128,7 @@ final class BackendNavigation
             (array) ($base['subnavs'] ?? []),
             ...(array) ($resourceSection['subnavs'] ?? [])
         );
+        $base['__resource_order'] = (int) ($base['__resource_order'] ?? $resourceSection['__resource_order'] ?? 1000);
 
         return $base;
     }
