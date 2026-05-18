@@ -13,12 +13,12 @@ class Alert extends Component
         $title = trim((string) ($schema['title'] ?? ''));
         $level = strtolower((string) ($schema['level'] ?? 'info'));
         $dismissible = (bool) ($schema['dismissible'] ?? true);
-        $attributes = $this->renderAttributes($schema['attributes'] ?? null);
         $type = $this->themeType($level);
         $icon = $this->iconByType($type);
         $id = $this->resolveId($schema['id'] ?? null);
         $safeId = $this->escape($id);
         $safeTitle = $this->escape($title !== '' ? $title : ucfirst($type));
+        $attributes = $this->renderAttributes($schema['attributes'] ?? null);
 
         $html = "<div id='{$safeId}' class='wi-alert wi-show' {$attributes}>";
         $html .= "<div class='wi-alert-header'>";

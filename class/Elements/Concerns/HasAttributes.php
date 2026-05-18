@@ -50,5 +50,17 @@
 
         }
 
+        public function attributes(array $attributes): static
+        {
+            foreach ($attributes as $key => $value) {
+                if (!is_string($key) || $key === '') {
+                    continue;
+                }
+
+                $this->attr($key, $value);
+            }
+
+            return $this;
+        }
 
     }

@@ -5,10 +5,11 @@
 
     use Wonder\Concerns\HasSchema;
     use Wonder\Elements\Concerns\HasAttributes;
+    use Wonder\Elements\Concerns\HasStyle;
 
     abstract class Component {
 
-        use HasSchema, HasAttributes;
+        use HasSchema, HasAttributes, HasStyle;
 
         public string $id;
         public array $schema = [];
@@ -26,21 +27,6 @@
             return $this->pushAttr('class', $class); 
         
         }
-
-        // ! Aggiungere la funzione style in maniera da poterla modificare anche in futuro
-        // public function style( string $key, string|int $value ): self
-        // {
-
-        //     return $this->attr('style', [ "$key: $value;" ] );
-
-        // }
-
-        // public function addStyle( string $key, string|int $value ): self
-        // {
-
-        //     return $this->pushAttr('style', [ "$key: $value;" ] ); 
-
-        // }
 
         public function id(string $id): self
         { 
