@@ -33,6 +33,11 @@ Significato rapido:
 - `php forge update --local` genera i file e i task locali necessari
 - `php forge start` avvia il server locale
 
+Per `php forge start` un front controller valido e':
+
+- `ROOT/index.php`
+- oppure `ROOT/handler/index.php`
+
 Ordine consigliato per il locale:
 
 - prima `php forge db:init`

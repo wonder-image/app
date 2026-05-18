@@ -61,8 +61,11 @@ class LocalStart extends LocalEnvironmentCommand
             return Command::FAILURE;
         }
 
-        if (!file_exists($docroot.'/index.php')) {
-            $output->writeln('<error>❌ Nessun index.php trovato nella docroot.</error>');
+        $hasIndex = file_exists($docroot.'/index.php');
+        $hasHandler = file_exists($docroot.'/handler/index.php');
+
+        if (!$hasIndex && !$hasHandler) {
+            $output->writeln('<error>❌ Nessun front controller trovato nella docroot: manca sia index.php sia handler/index.php.</error>');
             return Command::FAILURE;
         }
 
