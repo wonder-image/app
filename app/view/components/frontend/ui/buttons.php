@@ -61,7 +61,7 @@ $class = trim(implode(' ', $classes));
 
 ?>
 <<?=$tag?> 
-    id="<?= $id ?>"
+    <?= $id !== '' ? 'id="'.e($id).'"' : '' ?>
     class="<?= e($class) ?>" 
     <?=$attributes?>
 >

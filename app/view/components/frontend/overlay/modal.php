@@ -6,9 +6,11 @@ $body ??= '';
 $closeUrl ??= '#';
 $closeLabel ??= 'Chiudi';
 $footer ??= null;
+$class ??= '';
+$attributes ??= '';
 
 ?>
-<section id="<?=e($id)?>" class="wi-modal no-interaction">
+<section id="<?=e($id)?>" class="wi-modal no-interaction<?= $class !== '' ? ' '.e($class) : '' ?>"<?= $attributes !== '' ? ' '.$attributes : '' ?>>
 
     <div class="bg wi-close-modal"></div>
 
