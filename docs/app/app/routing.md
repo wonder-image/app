@@ -42,12 +42,13 @@ Le route non vengono dedotte dalla URL. L'`area` viene dichiarata nella route.
 
 1. `php forge update --local` esegue `app/build/cli/update.php` e crea `ROOT/handler/index.php`
 2. `.htaccess` manda lì le richieste senza file fisico
-3. `RouteDispatcher` carica le route da:
+3. la homepage `/` deve avere una rewrite esplicita verso `handler/index.php`, perché la document root esiste fisicamente come directory e altrimenti salterebbe il router
+4. `RouteDispatcher` carica le route da:
    - `ROOT_APP/config/routes`
    - `ROOT/custom/config/routes`
-4. il router trova la route
-5. il dispatcher bootstrappa `wonder-image.php`
-6. viene incluso l'handler della route
+5. il router trova la route
+6. il dispatcher bootstrappa `wonder-image.php`
+7. viene incluso l'handler della route
 
 ## Struttura di una route
 

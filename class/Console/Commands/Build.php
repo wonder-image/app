@@ -214,6 +214,10 @@ $forceWwwBlock
   RewriteCond %{REQUEST_URI} ^/(backend|api)(?:/.*)?\$ [NC]
   RewriteRule ^ handler/index.php [L,QSA]
 
+  # La homepage deve sempre entrare nel router anche se la document root
+  # esiste fisicamente come directory.
+  RewriteRule ^\$ handler/index.php [L,QSA]
+
   # Aggiunge slash finale se mancante (solo per URL senza estensione)
   RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?\$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
