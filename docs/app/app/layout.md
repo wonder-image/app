@@ -33,6 +33,8 @@ Il flusso corretto è questo:
 - `app/view/pages/backend/home.php`
 - `app/view/pages/backend/account/login.php`
 - `app/view/pages/backend/account/index.php`
+- `app/view/pages/frontend/default/under_construction.php`
+- `app/view/pages/frontend/default/under_maintenance.php`
 
 ### Componenti layout attivi
 
@@ -142,6 +144,8 @@ I punti principali da aggiornare durante il refactor sono:
 - `app/html/default/*`
 - `app/html/backend/list.php`
 - `app/build/src/docs/*`
+
+Le vecchie pagine statiche `app/html/default/*` sono state spostate nel sistema view sotto `app/view/pages/frontend/default/*`.
 
 L'obiettivo finale e' avere i layout che usano `View::component(...)` per head/body/header/footer e non includono piu' file in `app/utility/*`.
 

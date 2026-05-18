@@ -5,24 +5,22 @@
      */
 
     // Testi
-    if (!function_exists('e')) {
-        function e(mixed $value): string
-        {
-            if ($value === null) {
-                return '';
-            }
-
-            if (is_bool($value)) {
-                $value = $value ? '1' : '0';
-            } elseif (!is_scalar($value) && !$value instanceof \Stringable) {
-                $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                $value = $encoded === false ? '' : $encoded;
-            }
-
-            return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    function e(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
         }
-    }
 
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        } elseif (!is_scalar($value) && !$value instanceof \Stringable) {
+            $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $value = $encoded === false ? '' : $encoded;
+        }
+
+        return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+    
     function __t(string $key, array $replacements = []): mixed
     {
         return Wonder\Localization\TranslationProvider::get($key, $replacements);
