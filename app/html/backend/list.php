@@ -280,20 +280,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista <?=$TEXT->titleP?></title>
 
-    <?php include $ROOT_APP."/utility/backend/head.php"; ?>
+    <?= \Wonder\View\View::component('backend.layout.head') ?>
 
 </head>
 <body>
 
-    <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
-    <?php include $ROOT_APP."/utility/backend/header.php"; ?>
+    <?= \Wonder\View\View::component('backend.layout.body-start') ?>
+    <?= \Wonder\View\View::component('backend.layout.header') ?>
 
     <div class="row">
         <?=$TABLE->generate()?>
     </div>
 
-    <?php include $ROOT_APP."/utility/backend/footer.php"; ?>
-    <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
+    <?= \Wonder\View\View::component('backend.layout.footer') ?>
+    <?= \Wonder\View\View::component('backend.layout.body-end') ?>
 
 </body>
 </html>

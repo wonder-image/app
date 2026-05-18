@@ -106,6 +106,7 @@ php forge start
   - `Resource::formSchema()` = backend inputs
 - For non-CRUD backend pages, use `CustomPageSchema`.
 - For repeatable rows, use `FormInput::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
+- When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, also update the related GitBook docs under `docs/app/*` in the same work.
 
 ## Architecture notes
 

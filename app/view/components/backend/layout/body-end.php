@@ -1,13 +1,5 @@
 <?=Wonder\App\Dependencies::Body()?>
 
-<!-- Custom => (.css, .js) -->
-<?php
-$customBackendBodyEnd = $ROOT."/custom/utility/backend/body-end.php";
-if (file_exists($customBackendBodyEnd)) {
-    include $customBackendBodyEnd;
-}
-?>
-
 <script>
 
     window.addEventListener('load', () => {

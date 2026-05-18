@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="<?=__l()?>">
+<html lang="<?=e(__l())?>">
 <head>
 
-    <?php include $ROOT_APP.'/utility/frontend/head.php'; ?>
+    <?= \Wonder\View\View::component('frontend.layout.head') ?>
 
 </head>
 <body>
 
-    <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
+    <?= \Wonder\View\View::component('frontend.layout.body-start') ?>
 
     <?=$PAGE_CONTENT?>
     
-    <?php include $ROOT_APP.'/utility/frontend/body-end.php' ?>
+    <?= \Wonder\View\View::component('frontend.layout.body-end') ?>
     
 </body>
 </html>

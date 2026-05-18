@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 
-    <?php include $ROOT_APP.'/utility/frontend/head.php'; ?>
+    <?= \Wonder\View\View::component('frontend.layout.head') ?>
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
@@ -77,7 +77,7 @@
 </head>
 <body>
 
-    <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
+    <?= \Wonder\View\View::component('frontend.layout.body-start') ?>
 
     <section class="full-page h-p-auto">
         <div class="content">
@@ -144,7 +144,7 @@
         </div>
     </section>
     
-    <?php include $ROOT_APP.'/utility/frontend/body-end.php' ?>
+    <?= \Wonder\View\View::component('frontend.layout.body-end') ?>
     
 </body>
 </html>

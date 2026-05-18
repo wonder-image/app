@@ -8,11 +8,3 @@
         <span>Caricamento</span>
     </div>
 </div>
-
-<!-- Custom .css - .js  -->
-<?php
-$customBackendBodyStart = $ROOT.'/custom/utility/backend/body-start.php';
-if (file_exists($customBackendBodyStart)) {
-    include $customBackendBodyStart;
-}
-?>

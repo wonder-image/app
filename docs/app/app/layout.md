@@ -23,10 +23,10 @@ Il flusso corretto è questo:
 ### Layout core
 
 - `app/view/layout/backend/base.php`
-- `app/view/layout/backend/main_layout.php`
-- `app/view/layout/backend/auth_layout.php`
+- `app/view/layout/backend/main.php`
+- `app/view/layout/backend/auth.php`
 - `app/view/layout/frontend/base.php`
-- `app/view/layout/frontend/main_layout.php`
+- `app/view/layout/frontend/main.php`
 
 ### View pages
 
@@ -34,14 +34,116 @@ Il flusso corretto è questo:
 - `app/view/pages/backend/account/login.php`
 - `app/view/pages/backend/account/index.php`
 
-### Utility legacy ancora usate dai layout
+### Componenti layout attivi
 
-- `app/utility/backend/head.php`
-- `app/utility/backend/body-start.php`
-- `app/utility/backend/body-end.php`
-- `app/utility/frontend/head.php`
-- `app/utility/frontend/body-start.php`
-- `app/utility/frontend/body-end.php`
+- `app/view/components/backend/layout/head.php`
+- `app/view/components/backend/layout/body-start.php`
+- `app/view/components/backend/layout/body-end.php`
+- `app/view/components/backend/layout/header.php`
+- `app/view/components/backend/layout/footer.php`
+- `app/view/components/frontend/layout/head.php`
+- `app/view/components/frontend/layout/body-start.php`
+- `app/view/components/frontend/layout/body-end.php`
+- `app/view/components/frontend/layout/header.php`
+- `app/view/components/frontend/layout/footer.php`
+
+## Struttura target
+
+La direzione corretta del refactor layout e view e':
+
+- layout chiamati con `View::layout('frontend.main')` e `View::layout('backend.main')`
+- partial HTML riusabili spostati in `app/view/components/...`
+- bootstrap non renderizzabile separato dai componenti view
+- nessun nuovo uso di `app/utility/*` o `custom/utility/*`
+
+### Layout target
+
+- `app/view/layout/frontend/base.php`
+- `app/view/layout/frontend/main.php`
+- `app/view/layout/backend/base.php`
+- `app/view/layout/backend/main.php`
+- `app/view/layout/backend/auth.php`
+
+Il naming target evita il suffisso `_layout` quando non serve.
+
+### Componenti layout target
+
+- `app/view/components/frontend/layout/head.php`
+- `app/view/components/frontend/layout/body-start.php`
+- `app/view/components/frontend/layout/body-end.php`
+- `app/view/components/frontend/layout/header.php`
+- `app/view/components/frontend/layout/footer.php`
+- `app/view/components/backend/layout/head.php`
+- `app/view/components/backend/layout/body-start.php`
+- `app/view/components/backend/layout/body-end.php`
+- `app/view/components/backend/layout/header.php`
+- `app/view/components/backend/layout/footer.php`
+
+### Bootstrap target
+
+I file `set-up.php` non sono componenti view. La destinazione corretta e':
+
+- `app/bootstrap/frontend.php`
+- `app/bootstrap/backend.php`
+
+Questi file restano PHP runtime/bootstrap e non devono essere messi in `view/components`.
+
+### Navigazione backend
+
+La navigazione backend non deve piu' passare da una variabile globale `NAV_BACKEND`.
+
+La sorgente corretta e':
+
+- `Wonder\Backend\Support\BackendNavigation::all()`
+
+Il bootstrap backend carica tema e dipendenze, mentre i componenti/layout che devono leggere la navigazione la recuperano direttamente da `BackendNavigation`.
+
+### Convenzioni nei componenti layout
+
+Per i partial in `app/view/components/*` la convenzione pratica e':
+
+- usare `e(...)` per testo e attributi HTML
+- usare `json_encode(...)` quando un valore PHP entra in uno script inline JavaScript
+- preferire una fase iniziale di preparazione dati PHP e poi markup HTML leggibile, invece di grandi `echo` multilinea
+- lasciare raw solo output esplicitamente HTML o snippet gia' prodotti da helper dedicati
+
+### Override target nel progetto host
+
+I vecchi hook:
+
+- `custom/utility/frontend/*`
+- `custom/utility/backend/*`
+
+devono essere sostituiti con:
+
+- `custom/view/components/frontend/layout/*`
+- `custom/view/components/backend/layout/*`
+
+### Mapping utility -> target
+
+- `app/utility/frontend/head.php` -> `app/view/components/frontend/layout/head.php`
+- `app/utility/frontend/body-start.php` -> `app/view/components/frontend/layout/body-start.php`
+- `app/utility/frontend/body-end.php` -> `app/view/components/frontend/layout/body-end.php`
+- `app/utility/frontend/set-up.php` -> `app/bootstrap/frontend.php`
+- `app/utility/backend/head.php` -> `app/view/components/backend/layout/head.php`
+- `app/utility/backend/body-start.php` -> `app/view/components/backend/layout/body-start.php`
+- `app/utility/backend/body-end.php` -> `app/view/components/backend/layout/body-end.php`
+- `app/utility/backend/header.php` -> `app/view/components/backend/layout/header.php`
+- `app/utility/backend/footer.php` -> `app/view/components/backend/layout/footer.php`
+- `app/utility/backend/set-up.php` -> `app/bootstrap/backend.php`
+
+### Riferimenti da migrare
+
+I punti principali da aggiornare durante il refactor sono:
+
+- `wonder-image.php`
+- `app/view/layout/frontend/*`
+- `app/view/layout/backend/*`
+- `app/html/default/*`
+- `app/html/backend/list.php`
+- `app/build/src/docs/*`
+
+L'obiettivo finale e' avere i layout che usano `View::component(...)` per head/body/header/footer e non includono piu' file in `app/utility/*`.
 
 ## Come gira davvero
 
@@ -113,7 +215,7 @@ La pagina:
 
 Esempio reale:
 
-- `app/view/layout/backend/auth_layout.php`
+- `app/view/layout/backend/auth.php`
 
 ```php
 <?php \Wonder\View\View::layout('backend.base'); ?>
@@ -133,9 +235,9 @@ Qui stanno:
 
 - `<html>`
 - `<head>`
-- `utility/backend/head.php`
-- `utility/backend/body-start.php`
-- `utility/backend/body-end.php`
+- `View::component('backend.layout.head')`
+- `View::component('backend.layout.body-start')`
+- `View::component('backend.layout.body-end')`
 
 ## Come aggiungere una nuova view
 

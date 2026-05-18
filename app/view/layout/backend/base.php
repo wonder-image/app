@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="<?=__l()?>">
+<html lang="<?=e(__l())?>">
 <head>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?=htmlspecialchars((string) ($TITLE ?? ''), ENT_QUOTES, 'UTF-8')?></title>
+    <title><?=e($TITLE ?? '')?></title>
 
-    <?php include $ROOT_APP."/utility/backend/head.php"; ?>
+    <?= \Wonder\View\View::component('backend.layout.head') ?>
 
 </head>
 <body>
 
-    <?php include $ROOT_APP."/utility/backend/body-start.php"; ?>
+    <?= \Wonder\View\View::component('backend.layout.body-start') ?>
 
     <?=$PAGE_CONTENT?>
 
-    <?php include $ROOT_APP."/utility/backend/body-end.php"; ?>
+    <?= \Wonder\View\View::component('backend.layout.body-end') ?>
 
 </body>
 </html>

@@ -17,7 +17,7 @@
         $SEO->title = "Demo input";
         $SEO->description = "";
 
-        include $ROOT_APP.'/utility/frontend/head.php';
+        echo \Wonder\View\View::component('frontend.layout.head');
         
     ?>
 
@@ -26,7 +26,7 @@
 </head>
 <body>
 
-    <?php include $ROOT_APP.'/utility/frontend/body-start.php' ?>
+    <?= \Wonder\View\View::component('frontend.layout.body-start') ?>
     <?php include $ROOT.'/docs/utility/header.php' ?>
 
     <div class="w-100">
@@ -77,7 +77,7 @@
     </div>
 
     <?php include $ROOT.'/docs/utility/footer.php' ?>
-    <?php include $ROOT_APP.'/utility/frontend/body-end.php' ?>
+    <?= \Wonder\View\View::component('frontend.layout.body-end') ?>
     
 </body>
 </html>

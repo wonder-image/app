@@ -1,11 +1,12 @@
 <?php \Wonder\View\View::layout('backend.main'); ?>
+<?php $navigation = \Wonder\Backend\Support\BackendNavigation::all(); ?>
 <div class="row g-3">
 
     <wi-card class="col-3">
 
         <?php
 
-            foreach ($NAV_BACKEND as $navs) {
+            foreach ($navigation as $navs) {
 
                 $titleNav = isset($navs['title']) ? $navs['title'] : 'ND';
                 $folderNav = isset($navs['folder']) ? $navs['folder'] : 'home';
@@ -79,11 +80,11 @@
                 <div class="col-12">
                     <?php
                         $icon = !empty($UPDATE_RESULT['success']) ? 'bi-check2 text-success' : 'bi-x-lg text-danger';
-                        $message = htmlspecialchars((string) ($UPDATE_RESULT['message'] ?? $UPDATE_RESULT['response'] ?? 'Operazione conclusa.'), ENT_QUOTES, 'UTF-8');
+                        $message = e($UPDATE_RESULT['message'] ?? $UPDATE_RESULT['response'] ?? 'Operazione conclusa.');
                     ?>
                     <p class="mb-2"><i class="bi <?=$icon?> me-1"></i><?=$message?></p>
                     <?php if (!empty($UPDATE_RESULT['release_id'])) { ?>
-                    <p class="mb-1"><b>Release:</b> <?=htmlspecialchars((string) $UPDATE_RESULT['release_id'], ENT_QUOTES, 'UTF-8')?></p>
+                    <p class="mb-1"><b>Release:</b> <?=e($UPDATE_RESULT['release_id'])?></p>
                     <?php } ?>
                     <?php if (isset($UPDATE_RESULT['stats']) && is_array($UPDATE_RESULT['stats'])) { ?>
                     <p class="mb-0">

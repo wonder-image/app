@@ -60,8 +60,8 @@
 
     require_once $ROOT_APP."/middleware/middleware.php";
 
-    if (isset($BACKEND) && $BACKEND) { require_once $ROOT_APP."/utility/backend/set-up.php"; }
+    if (isset($BACKEND) && $BACKEND) { require_once $ROOT_APP."/bootstrap/backend.php"; }
 
-    if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP."/utility/frontend/set-up.php"; }
+    if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP."/bootstrap/frontend.php"; }
 
     \Wonder\App\LegacyGlobals::capture(get_defined_vars());

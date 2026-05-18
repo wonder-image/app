@@ -110,6 +110,12 @@ Oggi nello stesso namespace convivono quattro categorie diverse:
 
 - `NAV_BACKEND`
 
+Nota runtime attuale:
+
+- il runtime attivo non deve piu' esportare `NAV_BACKEND` come globale condivisa
+- la navigazione backend va letta da `Wonder\Backend\Support\BackendNavigation::all()`
+- i riferimenti qui sotto restano utili come documentazione del refactor legacy
+
 Il problema non e' l'esistenza delle globali in se', ma il fatto che categorie diverse sono trattate nello stesso modo.
 
 ### 3. Side effect impliciti
@@ -315,6 +321,9 @@ Stesso effetto legacy, ma con un solo entry point.
 
 ### 2. Area bootstrap
 
+Questo esempio descrive il passaggio intermedio legacy.
+Nel runtime attuale la direzione corretta e' non condividere piu' `NAV_BACKEND` via `LegacyGlobals`.
+
 Prima:
 
 ```php
@@ -331,6 +340,12 @@ Dopo:
 
 Questo non la promuove a globale core.
 La rende solo disponibile come context runtime dell'area backend.
+
+Target finale:
+
+```php
+$navigation = \Wonder\Backend\Support\BackendNavigation::all();
+```
 
 ### 3. Nuovo codice applicativo
 
