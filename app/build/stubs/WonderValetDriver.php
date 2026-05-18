@@ -44,7 +44,7 @@ class WonderValetDriver extends ValetDriver
             }
         }
 
-        if ($uri !== '' && $uri !== '/' && $this->isActualFile($handler)) {
+        if ($this->isActualFile($handler)) {
             $_SERVER['SCRIPT_FILENAME'] = $handler;
             $_SERVER['SCRIPT_NAME'] = '/handler/index.php';
             $_SERVER['DOCUMENT_ROOT'] = $sitePath;

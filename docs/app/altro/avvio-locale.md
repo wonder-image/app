@@ -194,7 +194,7 @@ Per questo Wonder genera automaticamente nel root del progetto:
 Quel driver:
 
 - lascia invariati file statici e pagine fisiche
-- inoltra le route dinamiche (`/backend/...`, `/api/...`, pagine router) a `handler/index.php`
+- inoltra le route dinamiche (`/`, `/backend/...`, `/api/...`, pagine router) a `handler/index.php`
 
 Se il routing sotto Herd smette di funzionare, il primo controllo da fare e':
 
@@ -202,6 +202,12 @@ Se il routing sotto Herd smette di funzionare, il primo controllo da fare e':
 ls ~/Library/Application\\ Support/Herd/config/valet/Drivers/WonderValetDriver.php
 php forge start
 ```
+
+Se Herd mostra `could not find a valid PHP file to serve`, i controlli prioritari sono:
+
+- esiste `ROOT/handler/index.php`
+- `WonderValetDriver.php` e' stato risincronizzato dopo l'ultimo update del framework
+- la homepage `/` viene inoltrata al driver Wonder e non richiede un `index.php` fisico nel root del progetto
 
 ## 10) Vedere il DB in modo chiaro (CLI)
 
