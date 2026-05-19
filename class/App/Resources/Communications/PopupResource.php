@@ -55,8 +55,8 @@ final class PopupResource extends Resource
             'name' => 'Nome interno',
             'title' => 'Titolo',
             'bg_color' => 'Sfondo',
-            'url' => 'URL azione',
-            'url_label' => 'Etichetta CTA',
+            'url' => 'Link',
+            'url_label' => 'Nome bottone',
             'pages' => 'Pagine',
             'view' => 'Visualizzazioni max',
             'images' => 'Immagine',
@@ -83,7 +83,7 @@ final class PopupResource extends Resource
                 ->value('black')
                 ->required(),
             FormInput::key('url')
-                ->text(),
+                ->url(),
             FormInput::key('url_label')
                 ->text(),
             FormInput::key('pages')

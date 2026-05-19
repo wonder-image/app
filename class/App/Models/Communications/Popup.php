@@ -54,6 +54,7 @@ final class Popup extends Model
                 ->maxSize(2)
                 ->maxFile(1)
                 ->dir('/images/')
+                ->name('{slug}')
                 ->responsive(),
         ];
     }
