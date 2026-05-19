@@ -10,6 +10,7 @@ use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
+use Wonder\App\Support\FrontendRouteCatalog;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Form\Form;
 
@@ -53,7 +54,7 @@ final class PopupResource extends Resource
             'url' => 'URL azione',
             'url_label' => 'Etichetta CTA',
             'pages' => 'Pagine',
-            'view' => 'Modalità',
+            'view' => 'Visualizzazioni max',
             'images' => 'Immagine',
             'visible' => 'Stato',
             'position' => 'Ordine',
@@ -73,6 +74,12 @@ final class PopupResource extends Resource
                 ->text(),
             FormInput::key('url_label')
                 ->text(),
+            FormInput::key('pages')
+                ->selectSearch(static::frontendPageOptions(), true)
+                ->required(),
+            FormInput::key('view')
+                ->number()
+                ->attribute('min="0" step="1"'),
             FormInput::key('images')
                 ->inputFileDragDrop('image')
                 ->storeAs('{slug}')
@@ -105,10 +112,12 @@ final class PopupResource extends Resource
                 static::getInput('title')->columnSpan(1),
                 static::getInput('url')->columnSpan(1),
                 static::getInput('url_label')->columnSpan(1),
+                static::getInput('pages')->columnSpan(2),
                 static::getInput('images')->columnSpan(2),
             ])->columns(2)->columnSpan(2),
 
             (new Card)->components([
+                static::getInput('view'),
                 static::getInput('visible'),
             ])->columns(1)->columnSpan(1),
         ])->columns(3);
@@ -177,5 +186,26 @@ final class PopupResource extends Resource
         }
 
         return $values;
+    }
+
+    public static function mutateFormValues(
+        array $values,
+        string $mode,
+        string $context = 'backend'
+    ): array {
+        if (isset($values['pages']) && is_string($values['pages']) && trim($values['pages']) !== '') {
+            $decoded = json_decode($values['pages'], true);
+
+            if (is_array($decoded)) {
+                $values['pages'] = $decoded;
+            }
+        }
+
+        return $values;
+    }
+
+    private static function frontendPageOptions(): array
+    {
+        return FrontendRouteCatalog::options();
     }
 }

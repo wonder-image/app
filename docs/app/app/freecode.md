@@ -132,6 +132,9 @@ renderPopup($PAGE_KEY);
 I componenti `functional/` espongono **funzioni PHP** invece di HTML inline, così la logica
 può essere riusata, testata e modificata senza toccare il layout.
 
+Per i popup con visibilità per pagina, usa come `$PAGE_KEY` la stessa chiave assegnata alla
+route frontend con `->name('...')`: il backend popup usa quel `route name` per il campo `pages`.
+
 ## Navigazione: una sola sorgente di verità
 
 `header.php` itera su `custom/config/navigation.php` per produrre sia il nav desktop sia il nav mobile. Niente label hardcoded, niente duplicazione.
