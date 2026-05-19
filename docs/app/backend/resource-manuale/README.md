@@ -27,8 +27,10 @@ Con un `Model` e una `Resource` ottieni automaticamente:
 
 ## File principali
 
-- `class/App/Models/*`
-- `class/App/Resources/*`
+- consumer project: `app/Models/*`
+- consumer project: `app/Resources/*`
+- core package: `class/App/Models/*`
+- core package: `class/App/Resources/*`
 - `class/App/PageSchema/*`
 - `class/App/Resource.php`
 - `class/App/Model.php`

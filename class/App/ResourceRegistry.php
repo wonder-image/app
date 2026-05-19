@@ -228,6 +228,11 @@ final class ResourceRegistry
 
         if (is_string($root) && $root !== '') {
             $directories[] = [
+                'path' => rtrim($root, '/').'/app/Resources',
+                'priority' => 20,
+                'source' => 'app',
+            ];
+            $directories[] = [
                 'path' => rtrim($root, '/').'/custom/class/Resources',
                 'priority' => 30,
                 'source' => 'custom',

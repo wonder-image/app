@@ -99,6 +99,7 @@ final class ModelRegistry
         $root = LegacyGlobals::get('ROOT', defined('ROOT') ? ROOT : '');
 
         if (is_string($root) && $root !== '') {
+            $directories[] = rtrim($root, '/').'/app/Models';
             $directories[] = rtrim($root, '/').'/custom/class/Models';
         }
 

@@ -12,7 +12,7 @@ php forge make:model Contact
 
 File generato:
 
-- `class/App/Models/Contact.php`
+- `app/Models/Contact.php`
 
 ## 2. Crea la resource
 
@@ -24,7 +24,7 @@ php forge make:resource Contact
 
 File generato:
 
-- `class/App/Resources/ContactResource.php`
+- `app/Resources/ContactResource.php`
 
 ## 3. Compila il model
 
@@ -33,7 +33,7 @@ Esempio:
 ```php
 <?php
 
-namespace Wonder\App\Models;
+namespace App\Models;
 
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
@@ -74,7 +74,7 @@ Esempio:
 ```php
 <?php
 
-namespace Wonder\App\Resources;
+namespace App\Resources;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
@@ -86,7 +86,7 @@ use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Form\Form;
-use Wonder\App\Models\Contact;
+use App\Models\Contact;
 
 final class ContactResource extends Resource
 {

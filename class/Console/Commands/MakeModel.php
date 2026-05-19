@@ -10,8 +10,8 @@
         public $name = 'make:model';
         public $commandName = 'Modello';
 
-        public $namespace = "Wonder\App\Models";
-        public $root = "./class/App/Models/";
+        public $namespace = "App\Models";
+        public $root = "./app/Models/";
         public $argument = [ 
             'name' => InputArgument::REQUIRED
         ];

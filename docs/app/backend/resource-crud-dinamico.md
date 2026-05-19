@@ -114,6 +114,7 @@ Responsabilita':
 Le resource vengono scoperte automaticamente in:
 
 - `class/App/Resources`
+- `$ROOT/app/Resources`
 - `$ROOT/custom/class/Resources`
 
 I file opzionali di override restano:
@@ -121,12 +122,12 @@ I file opzionali di override restano:
 - `app/config/resource/resources.php`
 - `$ROOT/custom/config/resource/resources.php`
 
-Ordine di priorita':
+In pratica il registry considera:
 
-1. discovery package
-2. config package
-3. discovery custom
-4. config custom
+1. resource native del package
+2. resource del consumer in `$ROOT/app/Resources`
+3. resource custom legacy
+4. override espliciti dai file di config
 
 ### 4. Route dinamiche
 
@@ -232,7 +233,7 @@ Esempio minimo:
 ```php
 <?php
 
-namespace Wonder\App\Models;
+namespace App\Models;
 
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
@@ -278,7 +279,7 @@ Esempio minimo:
 ```php
 <?php
 
-namespace Wonder\App\Resources;
+namespace App\Resources;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\FormInput;
@@ -286,7 +287,7 @@ use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Components\Card;
-use Wonder\App\Models\Contact;
+use App\Models\Contact;
 
 final class ContactResource extends Resource
 {
@@ -515,6 +516,7 @@ Poi compilare:
 La resource viene scoperta automaticamente se si trova in:
 
 - `class/App/Resources`
+- `$ROOT/app/Resources`
 - `$ROOT/custom/class/Resources`
 
 ### 4. Aprire il backend

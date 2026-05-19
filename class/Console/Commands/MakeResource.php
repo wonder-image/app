@@ -10,8 +10,8 @@
         public $name = 'make:resource';
         public $commandName = 'Risorsa';
 
-        public $namespace = "Wonder\App\Resources";
-        public $root = "./class/App/Resources/";
+        public $namespace = "App\Resources";
+        public $root = "./app/Resources/";
         public $argument = [ 
             'name' => InputArgument::REQUIRED
         ];
