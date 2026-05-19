@@ -34,33 +34,27 @@ final class Logo extends Model
             Field::key('main')->image()
                 ->extensions(['png'])
                 ->name('{slug}-logo-{rand}')
-                ->webp(RESPONSIVE_IMAGE_WEBP)
-                ->resize(RESPONSIVE_IMAGE_SIZES),
+                ->responsive(),
             Field::key('black')->image()
                 ->extensions(['png'])
                 ->name('{slug}-logo-black-{rand}')
-                ->webp(RESPONSIVE_IMAGE_WEBP)
-                ->resize(RESPONSIVE_IMAGE_SIZES),
+                ->responsive(),
             Field::key('white')->image()
                 ->extensions(['png'])
                 ->name('{slug}-logo-white-{rand}')
-                ->webp(RESPONSIVE_IMAGE_WEBP)
-                ->resize(RESPONSIVE_IMAGE_SIZES),
+                ->responsive(),
             Field::key('icon')->image()
                 ->extensions(['png'])
                 ->name('{slug}-icon-{rand}')
-                ->webp(RESPONSIVE_IMAGE_WEBP)
-                ->resize(RESPONSIVE_IMAGE_SIZES),
+                ->responsive(),
             Field::key('icon_black')->image()
                 ->extensions(['png'])
                 ->name('{slug}-icon-black-{rand}')
-                ->webp(RESPONSIVE_IMAGE_WEBP)
-                ->resize(RESPONSIVE_IMAGE_SIZES),
+                ->responsive(),
             Field::key('icon_white')->image()
                 ->extensions(['png'])
                 ->name('{slug}-icon-white-{rand}')
-                ->webp(RESPONSIVE_IMAGE_WEBP)
-                ->resize(RESPONSIVE_IMAGE_SIZES),
+                ->responsive(),
             Field::key('favicon')->file()
                 ->extensions(['ico'])
                 ->maxSize(1)
