@@ -16,6 +16,16 @@ class File extends Field
             ->maxSize(1);
     }
 
+    public function name(string $name): static
+    {
+        return $this->schema('name', $name);
+    }
+    
+    public function file(bool $enabled = true): static
+    {
+        return $this->schema('file', $enabled);
+    }
+
     public function mimeType(string $mimeType): self
     {
         return $this->schema('mime_type', $mimeType);
@@ -30,4 +40,25 @@ class File extends Field
     {
         return $this->dir($path);
     }
+
+    public function extensions(array $extensions): static
+    {
+        return $this->schema('extensions', $extensions);
+    }
+
+    public function maxSize(int $maxSize): static
+    {
+        return $this->schema('max_size', $maxSize);
+    }
+
+    public function maxFile(int $maxFile): static
+    {
+        return $this->schema('max_file', $maxFile);
+    }
+
+    public function dir(string $dir): static
+    {
+        return $this->schema('dir', $dir);
+    }
+
 }

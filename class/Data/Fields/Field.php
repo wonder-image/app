@@ -139,46 +139,6 @@ abstract class Field
         return $this->schema('file_to_array', $enabled);
     }
 
-    public function file(bool $enabled = true): static
-    {
-        return $this->schema('file', $enabled);
-    }
-
-    public function extensions(array $extensions): static
-    {
-        return $this->schema('extensions', $extensions);
-    }
-
-    public function maxSize(int $maxSize): static
-    {
-        return $this->schema('max_size', $maxSize);
-    }
-
-    public function maxFile(int $maxFile): static
-    {
-        return $this->schema('max_file', $maxFile);
-    }
-
-    public function dir(string $dir): static
-    {
-        return $this->schema('dir', $dir);
-    }
-
-    public function reset(bool $reset = true): static
-    {
-        return $this->schema('reset', $reset);
-    }
-
-    public function resize(array $resize): static
-    {
-        return $this->schema('resize', $resize);
-    }
-
-    public function name(string $name): static
-    {
-        return $this->schema('name', $name);
-    }
-
     public function readonlyOnUpdate(bool $enabled = true): static
     {
         return $this->schema('readonly_on_update', $enabled);
@@ -187,11 +147,6 @@ abstract class Field
     public function immutableOnUpdate(bool $enabled = true): static
     {
         return $this->schema('immutable_on_update', $enabled);
-    }
-
-    public function webp(bool $webp = true): static
-    {
-        return $this->schema('webp', $webp);
     }
 
     public function validate($value, array $input = []): ValidationResult

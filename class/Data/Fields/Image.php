@@ -13,6 +13,17 @@ class Image extends File
         $this->mimeType('image/*');
     }
 
+    public function reset(bool $reset = true): static
+    {
+        return $this->schema('reset', $reset);
+    }
+
+    
+    public function resize(array $resize): static
+    {
+        return $this->schema('resize', $resize);
+    }
+
     public function resizeToWidth(int $width): self
     {
         return $this->resize([['width' => $width]]);
@@ -26,6 +37,11 @@ class Image extends File
         );
 
         return $this->resize($resize);
+    }
+
+    public function webp(bool $webp = true): static
+    {
+        return $this->schema('webp', $webp);
     }
 
     public function convertToWebp(bool $webp = true): self
