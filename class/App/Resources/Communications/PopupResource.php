@@ -14,7 +14,7 @@ use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\App\Support\FrontendRouteCatalog;
-use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\{Card, Container};
 use Wonder\Elements\Form\Form;
 
 final class PopupResource extends Resource
@@ -55,10 +55,11 @@ final class PopupResource extends Resource
             'name' => 'Nome interno',
             'title' => 'Titolo',
             'bg_color' => 'Sfondo',
-            'url' => 'Link',
-            'url_label' => 'Nome bottone',
+            'tx_color' => 'Colore testo',
+            'url' => 'URL azione',
+            'url_label' => 'Etichetta CTA',
             'pages' => 'Pagine',
-            'view' => 'Visualizzazioni max',
+            'view' => 'N° Visualizzazioni',
             'images' => 'Immagine',
             'visible' => 'Stato',
             'position' => 'Ordine',
@@ -83,11 +84,13 @@ final class PopupResource extends Resource
                 ->value('black')
                 ->required(),
             FormInput::key('url')
-                ->url(),
+                ->text(),
             FormInput::key('url_label')
                 ->text(),
             FormInput::key('pages')
-                ->selectSearch(static::frontendPageOptions(), true)
+                ->checkbox()
+                ->options(static::frontendPageOptions())
+                ->searchBar()
                 ->required(),
             FormInput::key('view')
                 ->number()
@@ -112,14 +115,19 @@ final class PopupResource extends Resource
     public static function formLayoutSchema(): ?Form
     {
         return (new Form)->components([
+
             (new Card)->components([
-                static::getInput('name')->columnSpan(1),
-                static::getInput('title')->columnSpan(1),
-                static::getInput('url')->columnSpan(1),
-                static::getInput('url_label')->columnSpan(1),
-                static::getInput('pages')->columnSpan(2),
-                static::getInput('images')->columnSpan(2),
-            ])->columns(2)->columnSpan(2),
+                (new Container)->components([
+                    static::getInput('images')->columnSpan(2)
+                ])->columns(1)->columnSpan(4),
+                (new Container)->components([
+                    static::getInput('name')->columnSpan(1),
+                    static::getInput('title')->columnSpan(1),
+                    static::getInput('url')->columnSpan(1),
+                    static::getInput('url_label')->columnSpan(1),
+                    static::getInput('pages')->columnSpan(2)
+                ])->columns(2)->columnSpan(8),
+            ])->columns(12)->columnSpan(2),
 
             (new Card)->components([
                 static::getInput('view'),
@@ -127,13 +135,14 @@ final class PopupResource extends Resource
                 static::getInput('tx_color'),
                 static::getInput('visible'),
             ])->columns(1)->columnSpan(1),
+
         ])->columns(3);
     }
 
     public static function tableSchema(): array
     {
         return [
-            TableColumn::key('images')->image(),
+            TableColumn::key('images')->image()->link('edit')->size('little'),
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('title')->text(),
             TableColumn::key('visible')
