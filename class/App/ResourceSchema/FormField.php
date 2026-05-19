@@ -544,6 +544,10 @@ class FormField
             'select' => select($label, $this->name, $options, $version, $attribute, $value),
             'selectSearch' => selectSearch($label, $this->name, $options, $multiple, $version, $attribute, $value),
             'radio' => check($label, $this->name, $options, $attribute, 'radio', $searchBar, $value),
+            'checkbox' => $options !== []
+                ? check($label, $this->name, $options, $attribute, 'checkbox', $searchBar, $value)
+                : checkbox($label, $this->name, $attribute, $value),
+            'url' => url($label, $this->name, $attribute, $value),
             'textarea' => textarea($label, $this->name, $attribute, $version, $value),
             'dateInput' => dateInput($label, $this->name, $dateMin, $dateMax, $attribute, $value),
             'timeInput' => timeInput($label, $this->name, $timeStep, $attribute, $value),

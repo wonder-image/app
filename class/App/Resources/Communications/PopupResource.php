@@ -96,12 +96,7 @@ final class PopupResource extends Resource
                 ->number()
                 ->attribute('min="0" step="1"'),
             FormInput::key('images')
-                ->inputFileDragDrop('image')
-                ->storeAs('{slug}')
-                ->prepare([
-                    'webp' => RESPONSIVE_IMAGE_WEBP,
-                    'resize' => RESPONSIVE_IMAGE_SIZES,
-                ]),
+                ->inputFileDragDrop('image'),
             FormInput::key('visible')
                 ->select([
                     'true' => 'Visibile',
@@ -222,7 +217,9 @@ final class PopupResource extends Resource
 
     private static function frontendPageOptions(): array
     {
-        return FrontendRouteCatalog::options();
+        return [
+            \Wonder\App\Models\Communications\Popup::ALL_PAGES_KEY => 'Tutte le pagine',
+        ] + FrontendRouteCatalog::options();
     }
 
     private static function colorOptions(): array

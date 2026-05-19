@@ -60,7 +60,6 @@ echo \Wonder\View\View::component('overlay.modal', [
     'id' => $popup['code'],
     'title' => $title,
     'titleClass' => 'subtitle',
-    'class' => 'bg-'.$popup['bg_color'].' tx-'.$popup['bg_color'].'-o',
     'headerClass' => 'b-0',
     'bodyClass' => 'no-scrollbar',
     'contentClass' => $popup['content_class'] ?? '',
@@ -70,4 +69,4 @@ echo \Wonder\View\View::component('overlay.modal', [
     'showFooter' => $showFooter,
 ]);
 ?>
-<script>window.addEventListener('load', () => { modal(<?=json_encode('#'.($popup['code'] ?? ''))?>); })</script>
+<script> window.addEventListener('load', () => { modal('#<?=$popup['code']?>'); }) </script>

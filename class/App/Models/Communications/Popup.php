@@ -8,6 +8,8 @@ use Wonder\Sql\TableSchema as Column;
 
 final class Popup extends Model
 {
+    public const ALL_PAGES_KEY = '__all__';
+
     public static string $table = 'popup';
     public static string $folder = 'popups';
     public static string $icon = 'bi bi-window-stack';
@@ -49,7 +51,6 @@ final class Popup extends Model
             Field::key('pages')->json(),
             Field::key('images')
                 ->image()
-                ->reset()
                 ->extensions(['png', 'jpg', 'jpeg'])
                 ->maxSize(2)
                 ->maxFile(1)
@@ -68,7 +69,8 @@ final class Popup extends Model
         }
 
         $escapedPageKey = addslashes($pageKey);
-        $condition = 'pages LIKE '."'%\\\"{$escapedPageKey}\\\"%'".' AND visible = \'true\' AND deleted = \'false\'';
+        $allPagesKey = addslashes(static::ALL_PAGES_KEY);
+        $condition = '(pages LIKE '."'%\\\"{$escapedPageKey}\\\"%'".' OR pages LIKE '."'%\\\"{$allPagesKey}\\\"%'".') AND visible = \'true\'';
         $popup = static::find($condition, 1, 'position', 'ASC');
 
         return is_array($popup) && $popup !== [] ? $popup : null;
@@ -97,8 +99,8 @@ final class Popup extends Model
             'image' => is_string($image) ? trim($image) : null,
             'bg_color' => $bgColor,
             'tx_color' => $txColor,
-            'content_class' => 'bg-'.$bgColor.' tx-'.$bgColor.'-o',
-            'footer_class' => 'b-0 bg-'.$bgColor.' tx-'.$bgColor.'-o',
+            'content_class' => 'bg-'.$bgColor.' tx-'.$txColor,
+            'footer_class' => 'b-0 bg-'.$bgColor.' tx-'.$txColor,
         ];
     }
 

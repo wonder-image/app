@@ -4,6 +4,8 @@ namespace Wonder\App;
 
 use Exception;
 use mysqli;
+use Wonder\App\Path;
+use Wonder\App\Support\MediaFileManager;
 use Wonder\Data\Fields\Field as DataField;
 use Wonder\Data\Fields\Number as NumberField;
 use Wonder\Data\Fields\Text as TextField;
@@ -25,7 +27,7 @@ abstract class Model
     protected static ?string $dbPassword = null;
     protected static ?string $dbName = null;
 
-    protected static string|array|null $defaultCondition = null;
+    protected static string|array|null $defaultCondition = ['deleted' => 'false'];
 
     public static Connection $connection;
 
@@ -506,7 +508,7 @@ abstract class Model
     {
         return static::query()->Select(
             static::$table,
-            static::$defaultCondition,
+            static::queryCondition(),
             null,
             null,
             null,
@@ -523,7 +525,7 @@ abstract class Model
     ): mixed {
         return static::query()->Select(
             static::$table,
-            $condition ?? static::$defaultCondition,
+            static::queryCondition($condition),
             $limit,
             $order,
             $orderDirection,
@@ -535,7 +537,7 @@ abstract class Model
     {
         return static::query()->Select(
             static::$table,
-            ['id' => $id],
+            static::queryCondition(['id' => $id]),
             1
         )->row;
     }
@@ -604,6 +606,32 @@ abstract class Model
         return static::findById($id);
     }
 
+    public static function safeAll(string|array $columns = '*'): array
+    {
+        return static::normalizeApiResult(static::all($columns));
+    }
+
+    public static function safeFind(
+        string|array|null $condition = null,
+        string|int|null $limit = null,
+        ?string $order = null,
+        ?string $orderDirection = null,
+        string|array $columns = '*'
+    ): mixed {
+        return static::normalizeApiResult(
+            static::find($condition, $limit, $order, $orderDirection, $columns)
+        );
+    }
+
+    public static function safeFindById(int|string $id): ?array
+    {
+        $row = static::findById($id);
+
+        return is_array($row) && $row !== []
+            ? static::normalizeApiRow($row)
+            : null;
+    }
+
     public static function createUpdate(array $values, int|string|null $id = null): object
     {
         if ($id === null || $id === '') {
@@ -611,5 +639,243 @@ abstract class Model
         }
 
         return static::update($values, $id);
+    }
+
+    protected static function queryCondition(string|array|null $condition = null): string|array|null
+    {
+        $defaultCondition = static::softDeleteDefaultCondition();
+
+        if ($defaultCondition === null) {
+            return $condition;
+        }
+
+        if ($condition === null) {
+            return $defaultCondition;
+        }
+
+        if (is_array($condition)) {
+            foreach ($condition as $key => $_value) {
+                if (trim((string) $key, "` \t\n\r\0\x0B") === 'deleted') {
+                    return $condition;
+                }
+            }
+
+            return array_merge($defaultCondition, $condition);
+        }
+
+        $condition = trim($condition);
+
+        if ($condition === '') {
+            return $defaultCondition;
+        }
+
+        if (preg_match('/\bdeleted\b/i', $condition) === 1) {
+            return $condition;
+        }
+
+        return '('.$condition.') AND '.static::arrayConditionToSql($defaultCondition);
+    }
+
+    protected static function softDeleteDefaultCondition(): ?array
+    {
+        if (!is_array(static::$defaultCondition) || static::$defaultCondition === []) {
+            return null;
+        }
+
+        return static::supportsSoftDelete()
+            ? static::$defaultCondition
+            : null;
+    }
+
+    protected static function supportsSoftDelete(): bool
+    {
+        if (array_key_exists('deleted', static::getColumns())) {
+            return true;
+        }
+
+        $tableOptions = static::tableOptions();
+
+        return (($tableOptions['audit_columns'] ?? true) === true)
+            && (($tableOptions['audit_auto_columns'] ?? true) === true);
+    }
+
+    protected static function arrayConditionToSql(array $condition): string
+    {
+        $filters = [];
+
+        foreach ($condition as $column => $value) {
+            $column = trim((string) $column, "` \t\n\r\0\x0B");
+
+            if ($column === '') {
+                continue;
+            }
+
+            if ($value === null) {
+                $filters[] = "`{$column}` IS NULL";
+                continue;
+            }
+
+            $value = addslashes((string) $value);
+            $filters[] = "`{$column}` = '{$value}'";
+        }
+
+        return implode(' AND ', $filters);
+    }
+
+    protected static function normalizeApiResult(mixed $result): mixed
+    {
+        if (!is_array($result) || $result === []) {
+            return $result;
+        }
+
+        if (static::isAssoc($result)) {
+            return static::normalizeApiRow($result);
+        }
+
+        return array_map(
+            static fn (mixed $row): mixed => is_array($row) ? static::normalizeApiRow($row) : $row,
+            $result
+        );
+    }
+
+    protected static function normalizeApiRow(array $row): array
+    {
+        $fields = static::dataFields();
+        $columns = static::getColumns();
+        $api = [];
+
+        foreach ($row as $key => $value) {
+            $field = $fields[$key] ?? null;
+            $schema = ($field !== null && method_exists($field, 'getSchema'))
+                ? (array) $field->getSchema()
+                : [];
+            $columnSchema = is_array($columns[$key] ?? null) ? $columns[$key] : [];
+
+            if (is_string($value)) {
+                $trimmed = trim($value);
+
+                if ($trimmed === 'true' || $trimmed === 'false') {
+                    $row[$key] = filter_var($trimmed, FILTER_VALIDATE_BOOLEAN);
+                    continue;
+                }
+
+                $columnType = strtoupper((string) ($columnSchema['type'] ?? ''));
+
+                if ($columnType === 'BOOL' && ($trimmed === '0' || $trimmed === '1')) {
+                    $row[$key] = $trimmed === '1';
+                    continue;
+                }
+            }
+
+            if (($schema['json'] ?? false) === true) {
+                $decoded = is_string($value) && trim($value) !== ''
+                    ? json_decode($value, true)
+                    : [];
+
+                $row[$key] = is_array($decoded) ? $decoded : [];
+                continue;
+            }
+
+            if (($schema['file'] ?? false) === true || in_array((string) ($field->type ?? ''), ['file', 'image'], true)) {
+                $storedFiles = MediaFileManager::decodeStoredFiles($value);
+                $urls = static::storedFileUrls($storedFiles, $schema);
+
+                $row[$key] = $storedFiles;
+                $api = array_merge($api, static::fileApiPayload($key, $urls));
+            }
+        }
+
+        if ($api !== []) {
+            $row['api'] = $api;
+        }
+
+        return $row;
+    }
+
+    protected static function storedFileUrls(array $storedFiles, array $schema): array
+    {
+        $urls = [];
+
+        foreach ($storedFiles as $storedFile) {
+            $url = static::storedFileUrl($storedFile, $schema);
+
+            if ($url !== null) {
+                $urls[] = $url;
+            }
+        }
+
+        return array_values($urls);
+    }
+
+    protected static function storedFileUrl(string $storedFile, array $schema): ?string
+    {
+        $storedFile = trim($storedFile);
+
+        if ($storedFile === '') {
+            return null;
+        }
+
+        if (filter_var($storedFile, FILTER_VALIDATE_URL) !== false) {
+            return $storedFile;
+        }
+
+        $dir = trim((string) ($schema['dir'] ?? '/'));
+
+        if (str_contains($dir, '..')) {
+            return null;
+        }
+
+        if ($dir !== '' && substr($dir, -1) !== '/') {
+            $dir = trim((string) dirname($dir), '.\\/');
+        } else {
+            $dir = trim($dir, '/');
+        }
+
+        $segments = [rtrim((new Path())->upload, '/')];
+        $folder = trim(static::$folder, '/');
+
+        if ($folder !== '') {
+            $segments[] = $folder;
+        }
+
+        if ($dir !== '') {
+            $segments[] = $dir;
+        }
+
+        $segments[] = ltrim($storedFile, '/');
+
+        return implode('/', $segments);
+    }
+
+    protected static function fileApiPayload(string $key, array $urls): array
+    {
+        $pluralKey = preg_match('/s$/', $key) === 1
+            ? static::camelCase($key).'Url'
+            : static::camelCase($key).'Urls';
+        $singularSourceKey = preg_replace('/s$/', '', $key) ?: $key;
+        $singularKey = static::camelCase($singularSourceKey).'Url';
+
+        return [
+            $pluralKey => $urls,
+            $singularKey => $urls[0] ?? null,
+        ];
+    }
+
+    protected static function camelCase(string $value): string
+    {
+        $value = str_replace(['-', '_'], ' ', trim($value));
+        $value = ucwords($value);
+        $value = str_replace(' ', '', $value);
+
+        return lcfirst($value);
+    }
+
+    protected static function isAssoc(array $array): bool
+    {
+        if ($array === []) {
+            return false;
+        }
+
+        return array_keys($array) !== range(0, count($array) - 1);
     }
 }

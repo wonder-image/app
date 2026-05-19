@@ -44,7 +44,16 @@
             }
         }
 
-        $N_FILE = $N_NEW_FILE + $N_OLD_FILE;
+        $REPLACE_SINGLE_FILE = !$RESET
+            && $MAX_FILE === 1
+            && $N_NEW_FILE > 0
+            && !empty($OLD_FILE);
+
+        if ($REPLACE_SINGLE_FILE) {
+            $RESET = true;
+        }
+
+        $N_FILE = $RESET ? $N_NEW_FILE : ($N_NEW_FILE + $N_OLD_FILE);
         $REMOVED_OLD_FILE = false;
 
         if ($N_FILE <= $MAX_FILE) {

@@ -44,7 +44,6 @@ final class User extends Model
                 ->maxSize(1)
                 ->maxFile(1)
                 ->dir('/profile-picture/')
-                ->reset()
                 ->resize([
                     ['width' => 960, 'height' => 960],
                     ['width' => 480, 'height' => 480],
