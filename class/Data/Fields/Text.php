@@ -63,6 +63,20 @@ class Text extends Field
             ->upper();
     }
 
+    public function uniqueCode(string $prefix = '', int $length = 7, ?string $column = null): self
+    {
+        return $this->sanitize(false)
+            ->unique()
+            ->lower()
+            ->readonlyOnUpdate()
+            ->immutableOnUpdate()
+            ->schema('unique_code', [
+                'prefix' => $prefix,
+                'length' => $length,
+                'column' => $column,
+            ]);
+    }
+
     public function sanitizeFirst(): static
     {
         return $this->lower()

@@ -179,6 +179,16 @@ abstract class Field
         return $this->schema('name', $name);
     }
 
+    public function readonlyOnUpdate(bool $enabled = true): static
+    {
+        return $this->schema('readonly_on_update', $enabled);
+    }
+
+    public function immutableOnUpdate(bool $enabled = true): static
+    {
+        return $this->schema('immutable_on_update', $enabled);
+    }
+
     public function webp(bool $webp = true): static
     {
         return $this->schema('webp', $webp);

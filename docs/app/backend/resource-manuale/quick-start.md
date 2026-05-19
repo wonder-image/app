@@ -282,6 +282,8 @@ Esempi:
 ```php
 Field::key('slug')->text()->slug()
 Field::key('code')->text()->code()
+Field::key('code')->text()->uniqueCode()
+Field::key('code')->text()->uniqueCode('ord-', 12)
 Field::key('code')->text()->codeUpper()
 Field::key('price')->number()
 Field::key('meta')->json()
@@ -295,6 +297,7 @@ Comportamento:
 - `date()` produce `date: true`
 - `slug()` produce `sanitize: false`, `link_unique: true`, `lower: true`
 - `code()` produce `sanitize: false`, `unique: true`, `lower: true`
+- `uniqueCode()` genera un codice univoco in creazione, lo salva in lowercase e lo blocca in update
 - `codeUpper()` produce `sanitize: false`, `link_unique: true`, `upper: true`
 - `resize([...])`
 - `webp()`

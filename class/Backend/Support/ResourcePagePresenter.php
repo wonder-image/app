@@ -36,9 +36,9 @@ final class ResourcePagePresenter
         return [
             'TITLE' => $this->pageTitle($mode),
             'RESOURCE_CLASS' => $this->resourceClass,
-            'FIELDS' => $this->hydrateFields($formSchema, $values, $errors),
+            'FIELDS' => $this->hydrateFields($formSchema, $values, $errors, $mode),
             'SIDEBAR_FIELDS' => [],
-            'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, $errors),
+            'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, $errors, $mode),
             'FORM_METHOD' => 'POST',
             'FORM_ENCTYPE' => 'multipart/form-data',
             'FORM_ACTION' => $mode === 'edit' && $id !== null
@@ -111,7 +111,7 @@ HTML;
         ];
     }
 
-    private function hydrateFields(array $fields, array $values, array $errors): array
+    private function hydrateFields(array $fields, array $values, array $errors, string $mode): array
     {
         $hydrated = [];
 
@@ -120,7 +120,7 @@ HTML;
                 continue;
             }
 
-            $clone = clone $field;
+            $clone = $this->applyModelFieldState(clone $field, $mode);
             $name = property_exists($clone, 'name') ? (string) ($clone->name ?? '') : '';
 
             if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
@@ -144,7 +144,7 @@ HTML;
         return $hydrated;
     }
 
-    private function hydrateLayout(mixed $layout, array $values, array $errors): mixed
+    private function hydrateLayout(mixed $layout, array $values, array $errors, string $mode): mixed
     {
         if (!is_object($layout)) {
             return null;
@@ -153,13 +153,13 @@ HTML;
         $clone = clone $layout;
 
         if (!property_exists($clone, 'components') || !is_array($clone->components ?? null)) {
-            return $this->hydrateField($clone, $values, $errors);
+            return $this->hydrateField($clone, $values, $errors, $mode);
         }
 
         $components = [];
 
         foreach ($clone->components as $component) {
-            $components[] = $this->hydrateLayout($component, $values, $errors);
+            $components[] = $this->hydrateLayout($component, $values, $errors, $mode);
         }
 
         $clone->components = $components;
@@ -167,9 +167,9 @@ HTML;
         return $clone;
     }
 
-    private function hydrateField(object $field, array $values, array $errors): object
+    private function hydrateField(object $field, array $values, array $errors, string $mode): object
     {
-        $clone = clone $field;
+        $clone = $this->applyModelFieldState(clone $field, $mode);
         $name = property_exists($clone, 'name') ? (string) ($clone->name ?? '') : '';
 
         if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
@@ -188,6 +188,32 @@ HTML;
         }
 
         return $clone;
+    }
+
+    private function applyModelFieldState(object $field, string $mode): object
+    {
+        if ($mode !== 'edit' || !property_exists($field, 'name') || !method_exists($field, 'readonly')) {
+            return $field;
+        }
+
+        $name = trim((string) ($field->name ?? ''));
+
+        if ($name === '') {
+            return $field;
+        }
+
+        $modelFields = $this->resourceClass::modelClass()::dataFields();
+        $modelField = $modelFields[$name] ?? null;
+
+        if ($modelField === null || !method_exists($modelField, 'getSchema')) {
+            return $field;
+        }
+
+        if (($modelField->getSchema('readonly_on_update') ?? false) === true) {
+            $field->readonly();
+        }
+
+        return $field;
     }
 
     private function pageTitle(string $page): string

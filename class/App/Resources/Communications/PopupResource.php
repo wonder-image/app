@@ -2,7 +2,10 @@
 
 namespace Wonder\App\Resources\Communications;
 
+use Throwable;
 use Wonder\App\Resource;
+use Wonder\App\RuntimeDefaults;
+use Wonder\App\Models\Css\CssColor;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormInput;
 use Wonder\App\ResourceSchema\NavigationSchema;
@@ -51,6 +54,7 @@ final class PopupResource extends Resource
             'slug' => 'Slug',
             'name' => 'Nome interno',
             'title' => 'Titolo',
+            'bg_color' => 'Sfondo',
             'url' => 'URL azione',
             'url_label' => 'Etichetta CTA',
             'pages' => 'Pagine',
@@ -70,6 +74,14 @@ final class PopupResource extends Resource
                 ->required(),
             FormInput::key('title')
                 ->text(),
+            FormInput::key('bg_color')
+                ->select(static::colorOptions(), 'old')
+                ->value('white')
+                ->required(),
+            FormInput::key('tx_color')
+                ->select(static::colorOptions(), 'old')
+                ->value('black')
+                ->required(),
             FormInput::key('url')
                 ->text(),
             FormInput::key('url_label')
@@ -84,15 +96,8 @@ final class PopupResource extends Resource
                 ->inputFileDragDrop('image')
                 ->storeAs('{slug}')
                 ->prepare([
-                    'resize' => [
-                        ['width' => 120, 'height' => 120],
-                        ['width' => 480, 'height' => 480],
-                        ['width' => 620, 'height' => 620],
-                        ['width' => 960, 'height' => 960],
-                        ['width' => 1080, 'height' => 1080],
-                        ['width' => 1440, 'height' => 1440],
-                        ['width' => 1920, 'height' => 1920],
-                    ],
+                    'webp' => RESPONSIVE_IMAGE_WEBP,
+                    'resize' => RESPONSIVE_IMAGE_SIZES,
                 ]),
             FormInput::key('visible')
                 ->select([
@@ -118,6 +123,8 @@ final class PopupResource extends Resource
 
             (new Card)->components([
                 static::getInput('view'),
+                static::getInput('bg_color'),
+                static::getInput('tx_color'),
                 static::getInput('visible'),
             ])->columns(1)->columnSpan(1),
         ])->columns(3);
@@ -156,7 +163,7 @@ final class PopupResource extends Resource
     public static function apiSchema(): ApiSchema
     {
         return ApiSchema::for(static::class)
-            ->fields('index', ['id', 'slug', 'name', 'title', 'url', 'url_label', 'view', 'images', 'pages', 'position', 'visible']);
+            ->fields('index', ['id', 'slug', 'name', 'title', 'bg_color', 'url', 'url_label', 'view', 'images', 'pages', 'position', 'visible']);
     }
 
     public static function permissionSchema(): PermissionSchema
@@ -207,5 +214,41 @@ final class PopupResource extends Resource
     private static function frontendPageOptions(): array
     {
         return FrontendRouteCatalog::options();
+    }
+
+    private static function colorOptions(): array
+    {
+        try {
+            $options = [];
+
+            foreach (CssColor::all(['var', 'name']) as $row) {
+                $var = trim((string) ($row['var'] ?? ''));
+
+                if ($var === '') {
+                    continue;
+                }
+
+                $options[$var] = trim((string) ($row['name'] ?? $var));
+            }
+
+            if ($options !== []) {
+                return $options;
+            }
+        } catch (Throwable) {
+        }
+
+        $fallback = [];
+
+        foreach (RuntimeDefaults::defaultColors() as $color) {
+            $var = trim((string) ($color['var'] ?? ''));
+
+            if ($var === '') {
+                continue;
+            }
+
+            $fallback[$var] = trim((string) ($color['name'] ?? $var));
+        }
+
+        return $fallback;
     }
 }

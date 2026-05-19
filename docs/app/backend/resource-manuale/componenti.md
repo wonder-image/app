@@ -78,6 +78,8 @@ Preset utili:
 ```php
 Field::key('slug')->text()->slug()
 Field::key('code')->text()->code()
+Field::key('code')->text()->uniqueCode()
+Field::key('code')->text()->uniqueCode('ord-', 12)
 Field::key('code')->text()->codeUpper()
 Field::key('price')->number()
 Field::key('meta')->json()
@@ -91,6 +93,7 @@ Config runtime prodotti:
 - `date()` -> `date: true`
 - `text()->slug()` -> `sanitize: false`, `link_unique: true`, `lower: true`
 - `text()->code()` -> `sanitize: false`, `unique: true`, `lower: true`
+- `text()->uniqueCode()` -> genera il valore in creazione, forza `lower`, `unique`, `readonlyOnUpdate`, `immutableOnUpdate`
 - `text()->codeUpper()` -> `sanitize: false`, `link_unique: true`, `upper: true`
 
 Esempio upload:
@@ -114,6 +117,7 @@ Metodi utili lato `dataSchema()`:
 - `sanitize()`
 - `sanitizeFirst()`
 - `slug()`
+- `uniqueCode()`
 - `lower()`
 - `upper()`
 - `ucwords()`

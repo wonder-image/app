@@ -169,6 +169,7 @@
         foreach ($tableFields as $name => $value) {
 
             $RULES = isset($value['input']) ? $value['input'] : [];
+            $FORMAT = isset($RULES['format']) && is_array($RULES['format']) ? $RULES['format'] : [];
 
             if ($OLD_VALUES == null) {
                 $ACTION = 'add';
@@ -185,6 +186,34 @@
                 }else{
                     $CONTINUE = true;
                 }
+            }
+
+            if (
+                $ACTION == 'modify'
+                && $CONTINUE
+                && isset($FORMAT['immutable_on_update'])
+                && $FORMAT['immutable_on_update'] === true
+            ) {
+                continue;
+            }
+
+            if (
+                $ACTION == 'add'
+                && $CONTINUE
+                && isset($FORMAT['unique_code'])
+                && is_array($FORMAT['unique_code'])
+            ) {
+
+                $VALUE = create_unique_code(
+                    $table,
+                    (string) ($FORMAT['unique_code']['prefix'] ?? ''),
+                    (int) ($FORMAT['unique_code']['length'] ?? 10),
+                    trim((string) ($FORMAT['unique_code']['column'] ?? '')) ?: $name
+                );
+
+                $VALUES[$name] = $VALUE;
+                continue;
+
             }
 
             if (isset($post[$name]) && $CONTINUE) {

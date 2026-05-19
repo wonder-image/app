@@ -177,6 +177,32 @@
 
     }
 
+    function create_unique_code(string $table, string $prefix = '', int $length = 7, string $column = 'code'): string
+    {
+
+        $prefix = strtolower(trim($prefix));
+        $attempt = 0;
+
+        if (!sqlColumnExists($table, $column)) {
+            return strtolower($prefix.code($length, 'all'));
+        }
+
+        while ($attempt < 50) {
+
+            $candidate = strtolower($prefix.code($length, 'all'));
+
+            if (!sqlSelect($table, [$column => $candidate], 1, null, null, 'id')->exists) {
+                return $candidate;
+            }
+
+            $attempt++;
+
+        }
+
+        return strtolower($prefix.uniqid());
+
+    }
+
     function prettyPhone($number): string
     {
 

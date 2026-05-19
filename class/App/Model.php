@@ -222,8 +222,16 @@ abstract class Model
             $format['link_unique'] = true;
         }
 
+        if (isset($schema['unique_code']) && is_array($schema['unique_code'])) {
+            $format['unique_code'] = $schema['unique_code'];
+        }
+
         if (array_key_exists('sanitize', $schema)) {
             $format['sanitize'] = (bool) $schema['sanitize'];
+        }
+
+        if (($schema['immutable_on_update'] ?? false) === true) {
+            $format['immutable_on_update'] = true;
         }
 
         if (($schema['json'] ?? false) === true) {
