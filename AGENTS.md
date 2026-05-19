@@ -97,6 +97,7 @@ php forge start
 - Default to ASCII unless the file already uses non-ASCII.
 - Keep comments rare and high-signal.
 - Prefer `rg` / `rg --files` for search.
+- When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
 - The canonical module format is a Composer package, not a folder embedded in the core package.
 - Standard module package naming is `wonder-image/<slug>`.
 - Standard module namespace base is `Wonder\\Plugin\\<StudlySlug>\\`.
