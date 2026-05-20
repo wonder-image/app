@@ -420,6 +420,7 @@
                 'apple_oauth_private_key' => '',
                 'apple_oauth_redirect_uri' => '',
                 'g_recaptcha_site_key' => '',
+                'g_recaptcha_secret_key' => '',
                 'g_maps_place_id' => '',
                 'klaviyo_api_key' => '',
                 'ipinfo_api_key' => '',
