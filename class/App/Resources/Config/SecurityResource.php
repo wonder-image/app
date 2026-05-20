@@ -7,6 +7,7 @@ use Wonder\App\ResourceSchema\FormInput;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\Container;
 use Wonder\Elements\Components\HelpText;
 use Wonder\Elements\Components\SectionTitle;
 use Wonder\Elements\Form\Form;
@@ -37,6 +38,7 @@ final class SecurityResource extends SingletonResource
             'gcp_api_key' => 'Chiave Privata',
             'gcp_client_api_key' => 'Chiave Pubblica',
             'g_recaptcha_site_key' => 'Chiave Sito',
+            'g_recaptcha_secret_key' => 'Chiave Segreta',
             'g_maps_place_id' => 'Place ID',
             'google_oauth_client_id' => 'Google Client ID',
             'google_oauth_client_secret' => 'Google Client Secret',
@@ -70,6 +72,7 @@ final class SecurityResource extends SingletonResource
             FormInput::key('gcp_api_key')->text(),
             FormInput::key('gcp_client_api_key')->text(),
             FormInput::key('g_recaptcha_site_key')->text(),
+            FormInput::key('g_recaptcha_secret_key')->text(),
             FormInput::key('g_maps_place_id')->text(),
 
             FormInput::key('google_oauth_client_id')->text(),
@@ -104,73 +107,87 @@ final class SecurityResource extends SingletonResource
     public static function formLayoutSchema(): ?Form
     {
         return (new Form)->components([
-            (new Card)->components([
-                SectionTitle::make('Wonder Image'),
-                static::getInput('api_key')->columnSpan(12),
-            ])->columns(12)->columnSpan(12),
 
-            (new Card)->components([
-                SectionTitle::make('Google Cloud Platform')
-                    ->tooltip('Compila qui le chiavi progetto e i servizi collegati a Google.'),
-                HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.'),
-                static::getInput('gcp_project_id')->columnSpan(2),
-                static::getInput('gcp_api_key')->columnSpan(5),
-                static::getInput('gcp_client_api_key')->columnSpan(5),
-                SectionTitle::make('Google reCAPTCHA*')->columnSpan(6),
-                SectionTitle::make('Google Place*')->columnSpan(6),
-                static::getInput('g_recaptcha_site_key')->columnSpan(6),
-                static::getInput('g_maps_place_id')->columnSpan(6),
-                HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.'),
-            ])->columns(12)->columnSpan(9),
+            (new Container)->components([
 
-            (new Card)->components([
-                SectionTitle::make('Stripe')
-                    ->tooltip('Qui imposti ambiente e account collegati.'),
-                static::getInput('stripe_test')->columnSpan(12),
-                SectionTitle::make('Produzione'),
-                static::getInput('stripe_account_id')->columnSpan(12),
-                SectionTitle::make('Test'),
-                static::getInput('stripe_test_account_id')->columnSpan(12),
-            ])->columns(12)->columnSpan(3),
+                (new Card)->components([
+                    SectionTitle::make('Wonder Image'),
+                    static::getInput('api_key')->columnSpan(12),
+                ])->columns(12)->columnSpan(2),
+                
+                (new Card)->components([
+                    SectionTitle::make('Google Cloud Platform')
+                        ->tooltip('Compila qui le chiavi progetto e i servizi collegati a Google.'),
+                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.'),
+                    static::getInput('gcp_project_id')->columnSpan(2),
+                    static::getInput('gcp_api_key')->columnSpan(5),
+                    static::getInput('gcp_client_api_key')->columnSpan(5),
+                    SectionTitle::make('Google reCAPTCHA*')->columnSpan(8),
+                    SectionTitle::make('Google Place*')->columnSpan(4),
+                    static::getInput('g_recaptcha_site_key')->columnSpan(4),
+                    static::getInput('g_recaptcha_secret_key')->columnSpan(4),
+                    static::getInput('g_maps_place_id')->columnSpan(4),
+                    HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.'),
+                ])->columns(12)->columnSpan(2),
 
-            (new Card)->components([
-                SectionTitle::make('Login Federato (Google / Apple)')
-                    ->tooltip('Usato per l’autenticazione social tramite Google e Apple.'),
-                HelpText::make('Documentazione interna: <a href="https://wonder-image.gitbook.io/app/app/utente/auth-federata-google-apple" target="_blank" rel="noopener noreferrer">Auth Federata (GitBook)</a>.'),
-                HelpText::make('Guide ufficiali: <a href="https://developers.google.com/identity/openid-connect/openid-connect" target="_blank" rel="noopener noreferrer">Google OpenID Connect</a> - <a href="https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js" target="_blank" rel="noopener noreferrer">Sign in with Apple JS</a>.'),
-                static::getInput('google_oauth_client_id')->columnSpan(4),
-                static::getInput('google_oauth_client_secret')->columnSpan(4),
-                static::getInput('google_oauth_redirect_uri')->columnSpan(4),
-                static::getInput('apple_oauth_client_id')->columnSpan(3),
-                static::getInput('apple_oauth_team_id')->columnSpan(3),
-                static::getInput('apple_oauth_key_id')->columnSpan(3),
-                static::getInput('apple_oauth_redirect_uri')->columnSpan(3),
-                static::getInput('apple_oauth_private_key')->columnSpan(12),
-            ])->columns(12)->columnSpan(9),
+                (new Card)->components([
+                    SectionTitle::make('Klaviyo'),
+                    HelpText::make('<a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">Apri documentazione API</a>.'),
+                    static::getInput('klaviyo_api_key')->columnSpan(12),
+                ])->columns(12)->columnSpan(2)
 
-            (new Card)->components([
-                SectionTitle::make('Fatture in Cloud'),
-                HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/fatture-in-cloud" target="_blank" rel="noopener noreferrer">clicca qui</a>.'),
-                static::getInput('fatture_in_cloud_company_id')->columnSpan(12),
-                static::getInput('fatture_in_cloud_token')->columnSpan(12),
-            ])->columns(12)->columnSpan(3),
+                (new Card)->components([
+                    SectionTitle::make('Server mail')
+                        ->tooltip('Configura SMTP o Brevo per l’invio delle email.'),
+                    static::getInput('mail_service')->columnSpan(12),
+                    static::getInput('brevo_api_key')->columnSpan(12),
+                    static::getInput('mail_host')->columnSpan(8),
+                    static::getInput('mail_port')->columnSpan(4),
+                    static::getInput('mail_username')->columnSpan(12),
+                    static::getInput('mail_password')->columnSpan(12),
+                ])->columns(12)->columnSpan(1)
+                
+                // (new Card)->components([
+                //     SectionTitle::make('Login Federato (Google / Apple)')
+                //         ->tooltip('Usato per l’autenticazione social tramite Google e Apple.'),
+                //     HelpText::make('Documentazione interna: <a href="https://wonder-image.gitbook.io/app/app/utente/auth-federata-google-apple" target="_blank" rel="noopener noreferrer">Auth Federata (GitBook)</a>.'),
+                //     HelpText::make('Guide ufficiali: <a href="https://developers.google.com/identity/openid-connect/openid-connect" target="_blank" rel="noopener noreferrer">Google OpenID Connect</a> - <a href="https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js" target="_blank" rel="noopener noreferrer">Sign in with Apple JS</a>.'),
+                //     static::getInput('google_oauth_client_id')->columnSpan(4),
+                //     static::getInput('google_oauth_client_secret')->columnSpan(4),
+                //     static::getInput('google_oauth_redirect_uri')->columnSpan(4),
+                //     static::getInput('apple_oauth_client_id')->columnSpan(3),
+                //     static::getInput('apple_oauth_team_id')->columnSpan(3),
+                //     static::getInput('apple_oauth_key_id')->columnSpan(3),
+                //     static::getInput('apple_oauth_redirect_uri')->columnSpan(3),
+                //     static::getInput('apple_oauth_private_key')->columnSpan(12),
+                // ])->columns(12)->columnSpan(9),
 
-            (new Card)->components([
-                SectionTitle::make('Server mail')
-                    ->tooltip('Configura SMTP o Brevo per l’invio delle email.'),
-                static::getInput('mail_service')->columnSpan(12),
-                static::getInput('brevo_api_key')->columnSpan(12),
-                static::getInput('mail_host')->columnSpan(8),
-                static::getInput('mail_port')->columnSpan(4),
-                static::getInput('mail_username')->columnSpan(12),
-                static::getInput('mail_password')->columnSpan(12),
-            ])->columns(12)->columnSpan(6),
+            ])->columns(2)->columnSpan(9),
 
-            (new Card)->components([
-                SectionTitle::make('Klaviyo'),
-                HelpText::make('<a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">Apri documentazione API</a>.'),
-                static::getInput('klaviyo_api_key')->columnSpan(12),
-            ])->columns(12)->columnSpan(6),
+            (new Container)->components([
+
+                (new Card)->components([
+                    SectionTitle::make('Stripe')
+                        ->tooltip('Qui imposti ambiente e account collegati.'),
+                    static::getInput('stripe_test')->columnSpan(12),
+                    SectionTitle::make('Produzione'),
+                    static::getInput('stripe_account_id')->columnSpan(12),
+                    SectionTitle::make('Test'),
+                    static::getInput('stripe_test_account_id')->columnSpan(12),
+                ])->columns(12)->columnSpan(1),
+
+
+                (new Card)->components([
+                    SectionTitle::make('Fatture in Cloud'),
+                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/fatture-in-cloud" target="_blank" rel="noopener noreferrer">clicca qui</a>.'),
+                    static::getInput('fatture_in_cloud_company_id')->columnSpan(12),
+                    static::getInput('fatture_in_cloud_token')->columnSpan(12),
+                ])->columns(12)->columnSpan(1),
+
+            ])->columnSpan(3)->columns(1)
+
+
+
         ])->columns(12);
     }
 

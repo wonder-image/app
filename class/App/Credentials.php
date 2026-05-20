@@ -317,6 +317,7 @@
                 self::$API->apple_oauth_private_key      = self::envOrRow('APPLE_OAUTH_PRIVATE_KEY',          $row, 'apple_oauth_private_key',          self::$API->apple_oauth_private_key);
                 self::$API->apple_oauth_redirect_uri     = self::envOrRow('APPLE_OAUTH_REDIRECT_URI',         $row, 'apple_oauth_redirect_uri',         self::$API->apple_oauth_redirect_uri);
                 self::$API->g_recaptcha_site_key         = self::envOrRow('G_RECAPTCHA_SITE_KEY',             $row, 'g_recaptcha_site_key',             self::$API->g_recaptcha_site_key);
+                self::$API->g_recaptcha_secret_key       = self::envOrRow('G_RECAPTCHA_SECRET_KEY',           $row, 'g_recaptcha_secret_key',           self::$API->g_recaptcha_secret_key);
                 self::$API->g_maps_place_id              = self::envOrRow('G_MAPS_PLACE_ID',                  $row, 'g_maps_place_id',                  self::$API->g_maps_place_id);
                 self::$API->klaviyo_api_key              = self::envOrRow('KLAVIYO_API_KEY',                  $row, 'klaviyo_api_key',                  self::$API->klaviyo_api_key);
                 self::$API->ipinfo_api_key               = self::envOrRow('IPINFO_API_KEY',                   $row, 'ipinfo_api_key',                   self::$API->ipinfo_api_key);
