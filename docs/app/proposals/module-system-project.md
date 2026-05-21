@@ -59,7 +59,7 @@ Le convenzioni correnti sono coerenti e vanno riusate:
 - `Resource` in `class/App/Resources`
 - estensioni consumer in `ROOT/custom/...`
 - route dichiarative in `config/routes/route.*.php`
-- permessi globali in `app/config/app/permission.php` + merge da `custom/config/permissions.php`
+- permessi globali in `app/config/app/permission.php` + merge da `custom/config/permissions.php` via `PermissionRegistry`
 - aggiornamenti via `UpdateRunner`
 - schema SQL da `Model::tableSchema()`
 - data handling da `Model::dataSchema()`
@@ -130,7 +130,7 @@ Il framework non ha oggi un sistema namespace-based per view di moduli. Le view 
 Un sistema esiste gia', ma non e' centralizzato in classi moderne:
 
 - definizioni permessi in `app/config/app/permission.php`
-- merge custom da `custom/config/permissions.php`
+- merge custom da `custom/config/permissions.php` via `PermissionRegistry`
 - autorizzazione runtime in `app/function/user/auth.php`
 - servizi bootstrap auth in `app/service/auth.php`
 
@@ -750,7 +750,7 @@ Ogni modulo puo' fornire:
 
 - `config/permissions.php`
 
-Questo file deve restituire un array compatibile con `$CUSTOM_PERMITS`.
+Questo file deve restituire un array compatibile con `$PERMITS` oppure una `Wonder\App\Permission\PermissionRegistry`.
 
 ### Regole
 

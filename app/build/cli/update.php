@@ -7,8 +7,6 @@
         $ROOT.'/storage/tmp/',
         $ROOT.'/storage/generated/sitemap/',
         $ROOT.'/handler/',
-        $ROOT.'/api/',
-        $ROOT.'/backend/',
     ] as $directory) {
         if (!is_dir($directory)) {
             mkdir($directory, 0777, true);

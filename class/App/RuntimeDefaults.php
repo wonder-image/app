@@ -9,6 +9,11 @@ class RuntimeDefaults
         return 'admin';
     }
 
+    public static function adminPassword(): string
+    {
+        return 'admin';
+    }
+
     public static function adminName(): string
     {
         return 'Admin';

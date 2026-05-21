@@ -13,6 +13,10 @@ Guida pratica per:
 ## Riferimenti codice
 
 - `app/config/app/permission.php`
+- `class/App/Permission/Area.php`
+- `class/App/Permission/Permission.php`
+- `class/App/Permission/Permissions.php`
+- `class/App/Permission/PermissionRegistry.php`
 - `app/function/user/permission.php`
 - `app/function/user/user.php`
 - `app/function/user/auth.php`
@@ -20,52 +24,195 @@ Guida pratica per:
 
 ## 1) Configurare il permesso `frontend.client`
 
-I permessi custom vengono caricati da `custom/config/permissions.php` e fusi in `$PERMITS`.
+I permessi custom possono essere definiti in `custom/config/permissions.php` usando direttamente la facade `Wonder\App\Permission\Permissions`. Il file viene eseguito dentro il registry gia' attivo, quindi non serve tenere una variabile locale. Il `return` di un array o di una `PermissionRegistry` resta utile come compat legacy in altri punti del framework.
+
+La convenzione consigliata e':
+
+- `Area` per definire le impostazioni globali di area (`links`, `function`, `verification`)
+- `Permission` per definire la singola authority utente
+- `Permissions` come facade statica per aggregare, mutare e serializzare
+- `PermissionRegistry` come motore interno
 
 Esempio completo:
 
 ```php
 <?php
 
-$CUSTOM_PERMITS = [
-    "frontend" => [
-        "client" => [
-            "name" => "Cliente",
-            "icon" => "<i class='bi bi-person'></i>",
-            "bg" => "bg-info",
-            "tx" => "text-white",
-            "color" => "info",
-            "creator" => [ "admin", "administrator" ],
-            "links" => [
-                "login" => "$PATH->site/account/auth/login/",
-                "sign-in" => "$PATH->site/account/auth/sign-in/request/",
-                "password-restore" => "$PATH->site/account/auth/password/restore/",
-                "password-recovery" => "$PATH->site/account/auth/password/recovery/",
-                "password-set" => "$PATH->site/account/auth/password/set/"
-            ],
-            "function" => [
-                "creation" => "client",
-                "modify" => "client",
-                "info" => "infoClient",
-                "validate" => "validateClient"
-            ],
-            "verification" => [
-                "email" => [
-                    "required" => true,
-                    "token_link" => "$PATH->site/account/auth/email-verification/verify/",
-                    "sent_link" => "$PATH->site/account/auth/email-verification/send/",
-                    "ttl_hours" => 24
-                ]
-            ]
-        ]
-    ]
-];
+use Wonder\App\Permission\Area;
+use Wonder\App\Permission\Permission;
+use Wonder\App\Permission\Permissions;
+
+Permissions::reset()
+    ->addArea(Area::make('frontend'))
+    ->addPermission(
+        Permission::make('client', 'frontend')
+            ->name('Cliente')
+            ->icon("<i class='bi bi-person'></i>")
+            ->bg('bg-info')
+            ->tx('text-white')
+            ->color('info')
+            ->creator(['admin', 'administrator'])
+            ->link('login', "$PATH->site/account/auth/login/")
+            ->link('sign-in', "$PATH->site/account/auth/sign-in/request/")
+            ->link('password-restore', "$PATH->site/account/auth/password/restore/")
+            ->link('password-recovery', "$PATH->site/account/auth/password/recovery/")
+            ->link('password-set', "$PATH->site/account/auth/password/set/")
+            ->function('creation', 'client')
+            ->function('modify', 'client')
+            ->function('info', 'infoClient')
+            ->function('validate', 'validateClient')
+            ->verification('email', [
+                'required' => true,
+                'token_link' => "$PATH->site/account/auth/email-verification/verify/",
+                'sent_link' => "$PATH->site/account/auth/email-verification/send/",
+                'ttl_hours' => 24,
+            ])
+    );
+
+Permissions::area('frontend')
+    ->route('login', 'frontend.account.login');
+
+Permissions::permission('frontend', 'client')
+    ->icon("<i class='bi bi-person-check'></i>");
+
+return Permissions::instance();
 ```
+
+Nel file `custom/config/permissions.php` puoi anche non restituire nulla:
+
+```php
+<?php
+
+use Wonder\App\Permission\Permissions;
+
+Permissions::permission('backend', 'administrator')
+    ->route('home', 'backend.custom.home');
+```
+
+## 1.1 Ordine Di Precedenza
+
+Il caricamento reale avviene in questo ordine:
+
+1. core `app/config/app/permission.php`
+2. moduli abilitati tramite `Module\Registry::mergePermissions(...)`
+3. `custom/config/permissions.php`
+
+Quindi la precedenza finale e':
+
+`core < modules < custom`
+
+In pratica:
+
+- `custom` puo' sovrascrivere un valore definito nel core
+- `custom` puo' sovrascrivere un valore definito da un modulo
+- un permesso puo' sovrascrivere il valore ereditato dalla sua area
+
+## 1.2 Esempi Pratici
+
+### Cambiare la home del backend solo per `administrator`
+
+```php
+<?php
+
+use Wonder\App\Permission\Permissions;
+
+Permissions::permission('backend', 'administrator')
+    ->route('home', 'backend.custom.home');
+```
+
+Effetto:
+
+- `admin` continua a usare `backend.home`
+- `administrator` usa `backend.custom.home`
+
+### Cambiare il login di tutta l'area `frontend`
+
+```php
+<?php
+
+use Wonder\App\Permission\Permissions;
+
+Permissions::area('frontend')
+    ->route('login', 'frontend.account.login');
+```
+
+Effetto:
+
+- tutti i permessi `frontend` che non ridefiniscono `login` useranno quel link
+
+### Sovrascrivere un link area solo per `client`
+
+```php
+<?php
+
+use Wonder\App\Permission\Permissions;
+
+Permissions::area('frontend')
+    ->route('login', 'frontend.account.login');
+
+Permissions::permission('frontend', 'client')
+    ->link('login', "$PATH->site/account/auth/login/");
+```
+
+Effetto:
+
+- l'area `frontend` usa `frontend.account.login`
+- il permesso `client` usa invece il link custom dichiarato sul permesso
+
+### Aggiungere un nuovo permesso e poi modificarlo dopo
+
+```php
+<?php
+
+use Wonder\App\Permission\Permission;
+use Wonder\App\Permission\Permissions;
+
+Permissions::addPermission(
+    Permission::make('editor', 'backend')
+        ->name('Editor')
+        ->icon("<i class='bi bi-pencil'></i>")
+        ->bg('bg-warning')
+        ->tx('text-dark')
+        ->color('warning')
+        ->creator(['admin'])
+);
+
+Permissions::permission('backend', 'editor')
+    ->route('home', 'backend.editor.home')
+    ->function('info', 'infoEditor');
+```
+
+Effetto:
+
+- prima registri il permesso
+- poi lo riapri e lo completi senza usare variabili locali
+
+### Sovrascrivere un permesso definito da un modulo
+
+Se un modulo registra `blog_editor` nell'area `backend`, in `custom/config/permissions.php` puoi comunque fare:
+
+```php
+<?php
+
+use Wonder\App\Permission\Permissions;
+
+Permissions::permission('backend', 'blog_editor')
+    ->route('home', 'backend.blog.dashboard')
+    ->creator(['admin', 'administrator']);
+```
+
+Poiche' `custom` viene eseguito dopo i moduli, questa definizione ha la precedenza finale.
 
 Note rapide:
 
 - le chiavi riservate sono `links`, `function`, `verification` (non sono permessi utente)
 - una voce è trattata come permesso se è un array e ha almeno `name`
+- `Area::make('frontend')->route(...)->link(...)->function(...)->verification(...)` definisce l'area
+- `Permission::make('client', 'frontend')->name(...)->icon(...)->creator(...)` definisce la authority
+- `Permissions` e' la facade da usare nel file, senza variabili locali
+- dopo `addArea(...)` puoi fare `Permissions::area('frontend')->route(...)`
+- dopo `addPermission(...)` puoi fare `Permissions::permission('frontend', 'client')->icon(...)->creator([...])`
+- in `custom/config/permissions.php` puoi usare la facade in modo imperativo senza `return`
 - `verification.email.required=true` abilita il blocco login finché `email_verified=0`
 
 ### Merge interno (area + permesso)
@@ -304,4 +451,3 @@ flowchart LR
     H --> I["Set user.email_verified=1"]
     I --> C
 ```
-

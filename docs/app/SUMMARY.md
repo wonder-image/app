@@ -8,7 +8,7 @@
   * [Routing](app/routing.md)
   * [URL multilingua](app/urls-multilingua.md)
   * [Layout e View](app/layout.md)
-  * [Freecode (componenti custom)](app/freecode.md)
+  * [Freecode (override view e componenti custom)](app/freecode.md)
   * [Cron Job](app/cron-job.md)
   * [Proposte](proposals/module-system-project.md)
   * [Moduli](modules/README.md)

@@ -90,6 +90,7 @@ abstract class LocalEnvironmentCommand extends Config
         $adminSurname = RuntimeDefaults::adminSurname();
         $adminEmail = RuntimeDefaults::adminEmail();
         $adminUsername = RuntimeDefaults::adminUsername();
+        $adminPassword = RuntimeDefaults::adminPassword();
 
         return <<<ENV
 # App Info
@@ -115,7 +116,7 @@ USER_NAME=$adminName
 USER_SURNAME=$adminSurname
 USER_EMAIL=$adminEmail
 USER_USERNAME=$adminUsername
-USER_PASSWORD=
+USER_PASSWORD=$adminPassword
 ENV;
     }
 

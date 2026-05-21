@@ -96,6 +96,7 @@ final class Blog implements ModuleInterface
 - i `Model` del modulo stanno in `src/Models`
 - le `Resource` del modulo stanno in `src/Resources`
 - le route custom stanno in `config/routes/route.*.php`
+- `config/permissions.php` puo' restituire un array compatibile con `$PERMITS` oppure una `Wonder\App\Permission\PermissionRegistry`
 - gli handler custom stanno in `handlers/`
 - le view del modulo stanno in `views/`
 - le traduzioni stanno in `lang/`

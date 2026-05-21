@@ -4,6 +4,7 @@
     $adminName = trim((string) ($_ENV['USER_NAME'] ?? \Wonder\App\RuntimeDefaults::adminName()));
     $adminSurname = trim((string) ($_ENV['USER_SURNAME'] ?? \Wonder\App\RuntimeDefaults::adminSurname()));
     $adminEmail = trim((string) ($_ENV['USER_EMAIL'] ?? \Wonder\App\RuntimeDefaults::adminEmail()));
+    $adminPassword = (string) ($_ENV['USER_PASSWORD'] ?? \Wonder\App\RuntimeDefaults::adminPassword());
 
     if (!sqlSelect('user', [ 'username' => $adminUsername ], 1)->exists) {
 
@@ -12,7 +13,7 @@
             "surname" => $adminSurname,
             "email" => $adminEmail,
             "username" => $adminUsername,
-            "password" => $_ENV['USER_PASSWORD'],
+            "password" => $adminPassword,
             "authority" => "admin",
             "area" => "backend",
             "active" => "true"
@@ -34,7 +35,7 @@
             "surname" => "System",
             "email" => \Wonder\App\RuntimeDefaults::systemEmail(),
             "username" => "@system",
-            "password" => $_ENV['USER_PASSWORD'],
+            "password" => $adminPassword,
             "authority" => "api_internal_user",
             "area" => "api",
             "active" => "true",

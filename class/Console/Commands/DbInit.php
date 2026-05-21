@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Wonder\App\RuntimeDefaults;
 
 class DbInit extends LocalEnvironmentCommand
 {
@@ -192,7 +193,7 @@ class DbInit extends LocalEnvironmentCommand
 
         $resolvedUserPassword = $this->envValue($lines, $keyToIndex, 'USER_PASSWORD');
         if ($this->isMissingEnvValue($resolvedUserPassword, 'USER_PASSWORD')) {
-            $resolvedUserPassword = $this->randomAlphaNumeric(8);
+            $resolvedUserPassword = RuntimeDefaults::adminPassword();
         }
 
         $output->writeln('');

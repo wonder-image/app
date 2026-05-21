@@ -44,12 +44,7 @@ final class User extends Model
                 ->maxSize(1)
                 ->maxFile(1)
                 ->dir('/profile-picture/')
-                ->resize([
-                    ['width' => 960, 'height' => 960],
-                    ['width' => 480, 'height' => 480],
-                    ['width' => 240, 'height' => 240],
-                    ['width' => 120, 'height' => 120],
-                ]),
+                ->responsive(),
             Field::key('color')->text(),
             Field::key('password')->text(),
             Field::key('email_verified')->text(),

@@ -2,389 +2,351 @@
 icon: layer-group
 ---
 
-# Freecode (componenti custom)
+# Freecode (override view e componenti custom)
 
-Questa pagina descrive la struttura `custom/` pensata per il metodo "freecode": il grafico
-modifica solo layout/stile, il programmatore modifica solo logica/dati, l'AI capisce subito
-dove intervenire senza leggere tutto il progetto.
+Questa pagina descrive il flusso corretto per lavorare in modalita' "freecode" oggi.
+
+Nel core `wonder-image/app` il rendering usa:
+
+- `Wonder\View\View`
+- layout in `app/view/layout/...`
+- componenti in `app/view/components/...`
+- route frontend in `app/config/routes/route.frontend.php`
+- logica dati in `class/App/...`
+
+Nel progetto host puoi fare override senza toccare il package usando:
+
+- `custom/view/layout/...`
+- `custom/view/components/...`
 
 {% hint style="info" %}
-Stato: **on dalla fase 2b**. Header, body-start e footer del progetto delegano ai componenti
-descritti qui; `demo.php` usa la factory `renderPage()` come pilota. Le pagine legacy che
-ancora aprono `<!DOCTYPE html>` a mano restano valide finché non vengono migrate, ma niente
-di nuovo dovrebbe essere scritto in stile legacy.
+Questo package e' una libreria. I path `custom/...` non vivono qui dentro: esistono nel progetto
+consumer, ad esempio `new-site`. Nel core devi aggiungere o correggere componenti e classi sotto
+`app/view/...` e `class/App/...`; nel progetto host devi fare gli override in `custom/view/...`.
 {% endhint %}
 
 ## Idea di base
 
-Ogni file deve avere una sola responsabilità. Quattro categorie nette:
+Il principio resta semplice:
 
-| Cartella | Cosa contiene | Cosa NON può fare |
-|---|---|---|
-| `custom/components/layout/` | pezzi visuali fissi (header, footer, legal bar) | query SQL, logica condizionale complessa |
-| `custom/components/sections/` | sezioni riusabili (hero, contact form, CTA) | logica, dati, side effect |
-| `custom/components/ui/` | atomici (card, badge, button group) | logica, dati |
-| `custom/components/functional/` | componenti con logica/dati (popup, cookie banner) | layout HTML hardcoded |
+1. il backend o il model prepara i dati
+2. il componente view li renderizza
+3. il progetto host puo' sostituire layout e componenti senza forkare il core
 
-Risultato: il grafico tocca `layout/` + `sections/` + `ui/`, il programmatore tocca `functional/`,
-e i due lavori non si scontrano mai.
+Quindi:
 
-## File da conoscere
+- niente query SQL nuove dentro i layout
+- niente logica applicativa pesante dentro i componenti visuali
+- niente nuovo uso di `custom/utility/*`
+- niente nuova documentazione che parli di `custom/components/...` o `custom/lib/page.php`, perche' non e' piu' il flusso reale
 
-### Factory pagine
+## Struttura reale
 
-- `custom/lib/page.php` — funzione `renderPage(array $config)`
+### Core package
+
+- `class/View/View.php`
+- `app/view/layout/frontend/base.php`
+- `app/view/layout/frontend/main.php`
+- `app/view/layout/backend/base.php`
+- `app/view/layout/backend/main.php`
+- `app/view/components/frontend/layout/head.php`
+- `app/view/components/frontend/layout/body-start.php`
+- `app/view/components/frontend/layout/body-end.php`
+- `app/view/components/frontend/layout/header.php`
+- `app/view/components/frontend/layout/footer.php`
+- `app/view/components/frontend/overlay/popup.php`
+- `app/view/components/frontend/overlay/annuncement.php`
+- `class/App/Models/Communications/Popup.php`
+- `class/App/Models/Communications/Announcement.php`
+- `class/App/Resources/Communications/PopupResource.php`
+
+### Override nel progetto host
+
+- `custom/view/layout/frontend/...`
+- `custom/view/layout/backend/...`
+- `custom/view/components/frontend/...`
+- `custom/view/components/backend/...`
+
+La risoluzione degli override passa da `View::component()` e `View::layout()`.
+Il progetto host ha priorita' sul core.
+
+## Come vengono risolti layout e componenti
 
 ### Componenti
 
-- `custom/components/layout/site-footer.php`
-- `custom/components/layout/legal-bar.php`
-- `custom/components/sections/contact-form.php`
-- `custom/components/functional/popup.php`
-- `custom/components/README.md` — riferimento rapido sulle 4 cartelle
+Quando chiami:
 
-### Configurazione
+```php
+<?= \Wonder\View\View::component('frontend.layout.head') ?>
+```
 
-- `custom/config/navigation.php` — array delle voci di nav (sorgente unica)
+il resolver cerca in quest'ordine:
 
-### Esempio pagina
+1. `custom/view/components/frontend/layout/head.php`
+2. `app/view/components/frontend/layout/head.php`
 
-- `custom/pages/_example.php` — esempio minimo di pagina che usa la factory `renderPage()`
-- `demo.php` — pilota di migrazione: home in 30 righe usando `renderPage()`
+Lo stesso vale per componenti come:
 
-## Come gira la factory `renderPage()`
+```php
+<?= \Wonder\View\View::component('overlay.popup') ?>
+<?= \Wonder\View\View::component('ui.button', ['label' => 'Apri']) ?>
+```
 
-Una pagina del sito oggi (legacy) duplica circa 30 righe di boilerplate: `$FRONTEND`, `$ROOT`,
-require di `wonder-image.php`, set di `$SEO`, scaffold HTML, include di head/header/footer/body-end.
+Nota: se il nome non parte da `frontend.` o `backend.`, viene considerato frontend.
+Per esempio `ui.button` diventa `frontend/ui/button.php`.
 
-Con la factory diventa così:
+### Layout
+
+Quando una view pagina apre:
+
+```php
+<?php \Wonder\View\View::layout('frontend.main'); ?>
+```
+
+il resolver cerca in quest'ordine:
+
+1. `custom/view/layout/frontend/main.php`
+2. `custom/view/layout/frontend/main_layout.php`
+3. `app/view/layout/frontend/main.php`
+4. `app/view/layout/frontend/main_layout.php`
+
+## Flusso corretto
+
+### 1. Route
+
+Le route frontend del core passano da:
+
+- `app/config/routes/route.frontend.php`
+
+Esempio attuale:
 
 ```php
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'].'/custom/lib/page.php';
 
-renderPage([
-    'key'    => 'home',
-    'render' => function () {
-        ?>
-        <section class="intro">
-            <div class="content">
-                <h1 class="title-big"><?=__t('pages.home.content.hero.title')?></h1>
-            </div>
-        </section>
-        <?php
-    },
-]);
+\Wonder\App\ModuleRouteRegistrar::registerFrontend($ROOT, $ROOT_APP);
 ```
 
-La factory si occupa di tutto il boilerplate: bootstrap del framework, set di `$SEO` da
-`lang/{locale}/pages.json` (chiave `pages.{key}.seo.*`), scaffold `<!DOCTYPE html>...</html>`,
-include di head/body-start/header/footer/body-end.
+I moduli e il progetto host registrano li' le route o i rispettivi file di route.
 
-### Argomenti di `renderPage`
+### 2. Handler
 
-| Chiave | Tipo | Default | Note |
-|---|---|---|---|
-| `key` | string | `'home'` | Usata per leggere SEO da `lang/{locale}/pages.json` (`pages.{key}.seo.*`) e label nav (`components.navigation.{key}`). |
-| `frontend` | bool | `true` | Equivale a `$FRONTEND` legacy. |
-| `private` | bool | `false` | Equivale a `$PRIVATE` legacy. |
-| `permit` | array | `[]` | Equivale a `$PERMIT` legacy. |
-| `url_path` | string | `''` | Path passato a `__u()`. |
-| `seo` | array | (da i18n) | Override SEO: `['title' => ..., 'description' => ..., 'url' => ...]`. |
-| `breadcrumb` | array | auto | Default: `[$SEO->url => __t("components.navigation.{key}")]`. |
-| `render` | callable | nessuno | Closure che stampa il contenuto della pagina. |
+Un handler prepara i dati e renderizza una pagina con `View::make(...)->render()`.
 
-## Come usare i componenti
-
-Tre forme di chiamata, una per categoria.
-
-### Include diretto (`layout/`)
+Esempio:
 
 ```php
-<?php include $ROOT.'/custom/components/layout/site-footer.php'; ?>
+\Wonder\View\View::make($ROOT_APP.'/view/pages/backend/home.php', [
+    'TITLE' => 'Dashboard',
+])->render();
 ```
 
-Il componente legge da scope (`$SOCIETY`, `$SEO`, ...). Niente da passare.
+### 3. View pagina
 
-### Include con argomenti (`sections/`)
+La pagina sceglie il layout e stampa solo il contenuto:
 
 ```php
-<?php
-$args = [
-    'title'   => 'Scrivici',
-    'showMap' => false,
-];
-include $ROOT.'/custom/components/sections/contact-form.php';
-?>
+<?php \Wonder\View\View::layout('frontend.main'); ?>
+
+<section>
+    <h1><?= e($TITLE ?? 'Titolo') ?></h1>
+</section>
+
+<?php \Wonder\View\View::end(); ?>
 ```
 
-Le sezioni leggono `$args` (con default in cima al file). Riusabili da pagine diverse.
+### 4. Layout
 
-### Funzione (`functional/`)
+Il layout compone i partial:
 
 ```php
-<?php
-require_once $ROOT.'/custom/components/functional/popup.php';
-renderPopup($PAGE_KEY);
-?>
+<?= \Wonder\View\View::component('frontend.layout.head') ?>
+<?= \Wonder\View\View::component('frontend.layout.body-start') ?>
+<?= $PAGE_CONTENT ?>
+<?= \Wonder\View\View::component('frontend.layout.body-end') ?>
 ```
 
-I componenti `functional/` espongono **funzioni PHP** invece di HTML inline, così la logica
-può essere riusata, testata e modificata senza toccare il layout.
+## Dove mettere la logica
 
-Per i popup con visibilità per pagina, usa come `$PAGE_KEY` la stessa chiave assegnata alla
-route frontend con `->name('...')`: il backend popup usa quel `route name` per il campo `pages`.
+### Logica dati
 
-## Navigazione: una sola sorgente di verità
+Se il componente dipende da dati applicativi o da una tabella SQL, la logica va in:
 
-`header.php` itera su `custom/config/navigation.php` per produrre sia il nav desktop sia il nav mobile. Niente label hardcoded, niente duplicazione.
+- `class/App/Model.php`
+- `class/App/Models/...`
+- `class/App/Resources/...`
 
-Forma minima:
+Esempio reale:
+
+- `Popup` usa `Popup::currentForPageKey()` e `Popup::modalPayloadForPageKey()`
+- `Announcement` puo' essere letto da `Announcement::safeFind(...)`
+
+Quindi il componente:
+
+- legge un payload pronto
+- non ricostruisce query duplicate
+- non duplica preparazione file/immagini
+
+### Logica di presentazione
+
+La view puo' fare:
+
+- piccoli fallback
+- classi CSS dinamiche
+- controllo su dati gia' pronti
+
+La view non dovrebbe fare:
+
+- nuove query complesse
+- gestione upload
+- regole di validazione
+- logica di backend
+
+## Esempi pratici
+
+### Override del footer frontend nel progetto host
+
+File:
+
+- `custom/view/components/frontend/layout/footer.php`
+
+Se esiste questo file, `View::component('frontend.layout.footer')` usera' quello al posto del core.
+
+### Override del popup
+
+File:
+
+- `custom/view/components/frontend/overlay/popup.php`
+
+Usalo solo se devi cambiare il markup o il comportamento visuale.
+Se devi cambiare dati, filtri o regole di visibilita', correggi prima:
+
+- `class/App/Models/Communications/Popup.php`
+- `class/App/Resources/Communications/PopupResource.php`
+
+### Announcement / annuncement
+
+Il componente core e' ancora:
+
+- `app/view/components/frontend/overlay/annuncement.php`
+
+Il nome file contiene `annuncement` per compatibilita' storica.
+Se devi allineare la logica, lavora prima sul model:
+
+- `class/App/Models/Communications/Announcement.php`
+
+## Regola pratica per Model e Resource
+
+Quando lavori con la nuova architettura:
+
+- `Model::tableSchema()` definisce SQL e colonne
+- `Model::dataSchema()` definisce normalizzazione, upload, prepare, naming file
+- `Resource::formSchema()` definisce gli input backend
+
+Quindi non duplicare nel resource quello che vive gia' nel model, per esempio:
+
+- `->storeAs(...)`
+- `->prepare(...)`
+- regole base di upload image/file
+
+Il resource deve esprimere il form.
+Il model deve esprimere i dati.
+
+## Come aggiungere un nuovo componente frontend
+
+### Caso 1: solo markup riusabile
+
+Aggiungi un file nel core:
+
+- `app/view/components/frontend/...`
+
+e richiamalo con:
 
 ```php
-return [
-    [ 'key' => 'home',    'url' => '' ],
-    [ 'key' => 'contact', 'url' => 'contact' ],
-];
+<?= \Wonder\View\View::component('nome.componente', ['key' => $value]) ?>
 ```
 
-Aggiungere una voce = aggiungere una riga. Le label vengono lette da `lang/{locale}/components.json` con chiave `components.navigation.{key}`.
+Poi, se il progetto host deve customizzarlo, crea lo stesso path sotto:
 
-### Subnav (children)
+- `custom/view/components/frontend/...`
 
-Una voce può avere una sotto-lista statica:
+### Caso 2: markup piu' dati dinamici
 
-```php
-return [
-    [ 'key' => 'home', 'url' => '' ],
-    [
-        'key'      => 'services',
-        'url'      => 'services',
-        'children' => [
-            [ 'key' => 'service_a', 'url' => 'services/a' ],
-            [ 'key' => 'service_b', 'url' => 'services/b' ],
-        ],
-    ],
-    [ 'key' => 'contact', 'url' => 'contact' ],
-];
-```
+1. prepara i dati nel model o nell'handler
+2. passa il payload al componente
+3. fai render del componente con `View::component(...)`
 
-Il rendering è ricorsivo: ogni `child` può a sua volta avere `children`. Il componente `custom/components/ui/nav-item.php` gestisce sia il caso senza figli (delega a `nav-link.php`) sia il caso con figli (produce `<div class="nav-has-children">` con link parent + `<div class="nav-children">`).
-
-Il designer applica lo stile via le classi `.nav-has-children` e `.nav-children` (dropdown desktop, accordion mobile, ecc.) — la struttura PHP non impone niente.
-
-### Voci esterne
-
-```php
-[ 'key' => 'docs', 'url' => 'https://docs.example.com', 'external' => true ],
-```
-
-Quando `external` è `true`, l'href è usato as-is (no `__u()`) e l'`<a>` riceve `target="_blank" rel="noopener noreferrer"`.
+Non mettere la query direttamente nel componente se la stessa logica deve essere riusata altrove.
 
 ## Come aggiungere una nuova pagina
 
-### Step 1: aggiungi le label i18n
+### Nel core
 
-In `lang/it/pages.json`:
+1. registri o estendi la route frontend
+2. prepari un handler in `app/http/...` oppure nel modulo
+3. renderizzi una pagina in `app/view/pages/...`
+4. la pagina apre un layout con `View::layout(...)`
 
-```json
-"about" : {
-    "seo" : {
-        "title" : "Chi siamo - {{society_name}}",
-        "description" : "..."
-    },
-    "content" : {
-        "hero" : { "title" : "Chi siamo" }
-    }
-}
-```
+### Nel progetto host
 
-In `lang/it/components.json` (sezione `navigation`):
+Se vuoi solo cambiare layout o partial:
 
-```json
-"about" : "Chi siamo"
-```
-
-### Step 2: aggiungi la voce di nav
-
-In `custom/config/navigation.php`:
-
-```php
-[ 'key' => 'about', 'url' => 'about' ],
-```
-
-### Step 3: crea la pagina
-
-File `custom/pages/about.php`:
-
-```php
-<?php
-require_once $_SERVER['DOCUMENT_ROOT'].'/custom/lib/page.php';
-
-renderPage([
-    'key'    => 'about',
-    'render' => function () {
-        ?>
-        <section class="intro">
-            <div class="content">
-                <h1 class="title"><?=__t('pages.about.content.hero.title')?></h1>
-            </div>
-        </section>
-        <?php
-    },
-]);
-```
-
-### Step 4: registra la route
-
-In `custom/config/routes/route.frontend.php` (creando il file se non esiste, vedi
-[Routing](routing.md)):
-
-```php
-Route::get('/about/', $ROOT.'/custom/pages/about.php')->name('about');
-```
-
-## Come aggiungere una nuova sezione riusabile
-
-### Step 1: crea il file in `sections/`
-
-File `custom/components/sections/cta.php`:
-
-```php
-<?php
-    $args     = $args ?? [];
-    $title    = $args['title']    ?? 'Iniziamo?';
-    $cta      = $args['cta']      ?? 'Contattaci';
-    $cta_url  = $args['cta_url']  ?? __u('contact');
-?>
-<section class="bg-primary">
-    <div class="content content-medium a-c">
-        <h2 class="title tx-white"><?=$title?></h2>
-        <a href="<?=$cta_url?>" class="btn btn-secondary mt-5"><?=$cta?></a>
-    </div>
-</section>
-```
-
-### Step 2: usala da una pagina
-
-```php
-renderPage([
-    'key'    => 'home',
-    'render' => function () {
-        ?>
-        <section class="intro"><!-- hero --></section>
-        <?php
-        $args = ['title' => 'Pronti a partire?'];
-        include $_SERVER['DOCUMENT_ROOT'].'/custom/components/sections/cta.php';
-    },
-]);
-```
-
-## Come aggiungere un componente functional
-
-I componenti `functional/` espongono funzioni PHP. Niente HTML hardcoded nel file: se serve
-markup, fai `include` di un componente `sections/` o `ui/`.
-
-File `custom/components/functional/cookie-banner.php`:
-
-```php
-<?php
-    function renderCookieBanner(): void
-    {
-        if (!empty($_COOKIE['cookie_consent'])) {
-            return;
-        }
-
-        // logica...
-        // poi rendering via componente UI:
-        $args = [
-            'message' => __t('components.cookie.message'),
-        ];
-        include __DIR__.'/../ui/banner.php';
-    }
-```
-
-## Dove intervenire, file per file
-
-### Voglio cambiare il layout del footer
-
-- `custom/components/layout/site-footer.php` (layout)
-- `custom/components/layout/legal-bar.php` (link legali)
-
-### Voglio cambiare il form contatto
-
-- `custom/components/sections/contact-form.php` (markup form)
-- `api/frontend/form/index.php` (handler invio)
-- `lang/{locale}/components.json` (label dei campi)
-
-### Voglio aggiungere una voce di menu
-
-- `custom/config/navigation.php`
-- `lang/{locale}/components.json` (label sotto `navigation.`)
-
-### Voglio cambiare la logica del popup
-
-- `custom/components/functional/popup.php` (funzione `renderPopup`)
-- (NON toccare `custom/utility/frontend/body-start.php` finché 2b non lo cabla)
-
-### Voglio creare una pagina nuova
-
-Vedi sezione "Come aggiungere una nuova pagina" sopra.
+1. non tocchi la route
+2. fai override in `custom/view/layout/...` o `custom/view/components/...`
 
 ## Errori comuni
 
-### 1. Layout e logica nello stesso file
+### 1. Documentare cartelle non piu' reali
 
-Sintomo: il file `custom/components/layout/qualcosa.php` contiene una `sqlSelect` o un blocco
-`if ($_SESSION[...])`.
+Errore:
 
-Causa: scelta sbagliata di cartella.
+- `custom/components/...`
+- `custom/lib/page.php`
+- `renderPage(...)`
+- `custom/config/navigation.php`
 
-Fix: spostalo in `custom/components/functional/qualcosa.php` ed espone una funzione che la
-pagina chiama.
+Questi riferimenti non descrivono il flusso corrente del core e non vanno usati come base per nuovo codice.
 
-### 2. Sezione con dati hardcoded
+### 2. Mettere logica backend nella view
 
-Sintomo: una sezione `sections/X.php` ha testi italiani direttamente nel markup.
+Errore:
 
-Causa: bypass dell'i18n.
+- query SQL nel footer
+- upload nel popup
+- sanitize in un partial
 
-Fix: sposta i testi in `lang/{locale}/components.json` o `pages.json` e leggili con `__t()`.
+Fix:
 
-### 3. Pagina che duplica boilerplate
+- sposta la logica in `class/App/...` o nell'handler
 
-Sintomo: una pagina nuova copia 30 righe di scaffold (`<!DOCTYPE html>`, include head/body-start/header/footer/body-end) invece di usare `renderPage()`.
+### 3. Duplicare regole tra model e resource
 
-Causa: distrazione, oppure copia-incolla da una pagina legacy non ancora migrata.
+Errore:
 
-Fix: usa `renderPage()` come da `custom/pages/_example.php` o `demo.php`. La factory si occupa del bootstrap, dello scaffold HTML e degli include — la pagina definisce solo `key` + closure `render`.
+- stesso `storeAs`, `prepare`, `dir`, `responsive` sia nel model sia nel resource
 
-### 4. Componente functional che restituisce HTML invece di stamparlo
+Fix:
 
-Sintomo: `renderPopup()` ritorna una stringa, e la pagina chiama `echo renderPopup(...)`.
+- tieni la definizione dati nel model
+- tieni il form backend nel resource
 
-Causa: incoerenza con il resto dei componenti che fanno `echo`/`print` direttamente.
+### 4. Fare override modificando il package
 
-Fix: il componente stampa lui stesso (`echo`/`include`) e la firma è `void`. Se serve la
-stringa, è una funzione diversa (es. `popupHtml()` come builder).
+Errore:
 
-## Best practice
+- toccare direttamente il core per una personalizzazione di progetto
 
-- Una sola responsabilità per file: layout o logica, mai entrambi.
-- Sezioni riusabili leggono argomenti da `$args` con default in cima al file.
-- I componenti `functional/` espongono funzioni; le funzioni stampano, non ritornano HTML.
-- Tutta la nav del sito vive in `custom/config/navigation.php`.
-- Tutte le pagine usano `renderPage()`. Niente boilerplate ripetuto.
-- Tutto ciò che è testo per l'utente sta in `lang/{locale}/{pages,components,emails}.json`.
-- Tutto ciò che è schema tabella DB sta in `custom/build/table/{nome-tabella}.php` (un file per tabella).
-- Se devi creare un componente nuovo, scegli la cartella **prima** di scriverlo. Se non riesci a decidere fra `layout/` e `sections/`, probabilmente è una sezione.
+Fix:
 
-## Formula pratica da ricordare
+- usa `custom/view/components/...`
+- usa `custom/view/layout/...`
 
-Per modificare il sito senza rompere nulla:
+## Checklist rapida
 
-1. Identifica **chi** sta chiedendo: grafico o programmatore.
-2. Apri **una sola** delle quattro cartelle in base alla richiesta.
-3. Tocca **un solo file**.
-4. Se la modifica obbliga a toccare due cartelle diverse, ripensa al confine: probabilmente
-   ti manca un'astrazione (es. argomento `$args` mancante, oppure label da spostare in i18n).
+Se devi fare una modifica in freecode, chiediti:
+
+1. e' logica dati o e' solo rendering?
+2. la modifica e' di progetto oppure deve vivere nel core?
+3. mi basta un override `custom/view/...` o devo correggere `class/App/...`?
+4. sto duplicando qualcosa che esiste gia' nel model o nel resource?
+
+Se la risposta e' chiara, di solito il file giusto emerge subito.

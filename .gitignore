@@ -1,6 +1,7 @@
 
 .DS_Store
 .claude/
+.agents/
 .codex-skill-build/
 .agents/
 vendor/
