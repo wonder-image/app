@@ -154,6 +154,32 @@ the Module system: stable PSR-4 classes in `class/AI/`, opt-in
 `ai.*` paths in `module.json`, file-level resolution, no
 provider-specific subfolders.
 
+## AI dev-tool skills (Claude Code / Cursor / Codex)
+
+Different concept from `ai/agents/` above. **Dev-tool skills** are
+invoked at *development time* by AI assistants (Claude Code, Cursor,
+Codex, etc.) when you chat with them. **Application agents** in
+`ai/agents/` run at *runtime* when the site code calls
+`AgentRegistry::get(...)`.
+
+Dev-tool skills are installed under `.agents/skills/<slug>/` (universal
+folder, symlinked into `.claude/skills/`, `.cursor/`, etc. by the
+installer). Both `.agents/` and `.claude/` are gitignored — the skills
+are managed by an external CLI and auto-updated, not source code.
+
+Install a skill:
+
+```bash
+npx skills add pbakaus/impeccable     # currently used skill for UI design audit/craft
+npx skills list                       # list installed
+npx skills update                     # auto-update all installed skills
+npx skills remove <slug>
+```
+
+Do not commit `.agents/` or hand-edit files inside it. If a skill needs
+project-specific customization, fork it under a different slug rather
+than patching the installed copy.
+
 ## Files or areas to avoid changing
 
 - `vendor/`: never edit dependencies directly in this repo
