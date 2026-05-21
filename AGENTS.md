@@ -127,6 +127,33 @@ php forge start
   - `app/build/stubs/WonderValetDriver.php`
   - generated into `~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php` by consumer-project Forge commands
 
+## AI agent system
+
+The package ships a discovery + composition system for AI agents that
+mirrors the Module/Resource pattern. Different concept from this
+`AGENTS.md` file: this file is a briefing for AI dev tools (Codex,
+Cursor), while the agent system is application-level (SEO writers,
+content summarizers, classifiers invoked at runtime by site code).
+
+- `class/AI/`: PSR-4 classes
+  - `AgentRegistry`: 3-layer discovery (framework 10 / modules 20 / consumer 30), mirrors `ResourceRegistry`
+  - `Agent`: value object with lazy `prompt()` and `run()` STUB (LLM SDK wiring deferred to a follow-up PR)
+  - `AgentConfig`, `AgentResolver`, `AgentValidator`, `ConfigLoader`, `YamlReader`
+- `ai/agents/<slug>/`: agents shipped with the framework, one folder each containing `agent.yml` + `prompt.md`
+- `ai/prompts/`, `ai/tools/`: framework-level shared prompt snippets and tool placeholders
+- `class/Console/Commands/StatusAgents.php` → `php forge status:agents`
+- `class/Console/Commands/ValidateAgent.php` → `php forge validate:agent <slug>`
+- Module manifest accepts an optional `ai: { agents, prompts, tools }` section in `module.json`; defaults `ai/agents`, `ai/prompts`, `ai/tools`. Modules contribute via `Module\Registry::aiAgentDirectories()`.
+- File-level cascade: for each agent slug, every canonical file (`agent.yml`, `prompt.md`, …) is resolved independently. Highest priority wins per file, so a consumer can override only `prompt.md` and inherit `agent.yml` from the framework.
+- Consumer can also tweak runtime settings without forking via `<consumer>/ai/overrides.yml` (model, temperature, max_tokens, tools — never `prompt`).
+- Adds `symfony/yaml` as a Composer dependency (used by `Wonder\AI\YamlReader`).
+- Full docs in `docs/app/ai/` (README + cascade + manifest).
+
+When adding new agent infrastructure, follow the same conventions as
+the Module system: stable PSR-4 classes in `class/AI/`, opt-in
+`ai.*` paths in `module.json`, file-level resolution, no
+provider-specific subfolders.
+
 ## Files or areas to avoid changing
 
 - `vendor/`: never edit dependencies directly in this repo
@@ -161,6 +188,7 @@ composer dumpautoload
 - `class/Console/*`
 - `class/App/Resource*`
 - `class/App/Model*`
+- `class/AI/*`
 - `app/config/routes/*`
 - `app/http/*`
 - `wonder-image.php`
@@ -170,6 +198,13 @@ Use:
 ```bash
 php forge update --local
 php forge start
+```
+
+For `class/AI/*` changes, also smoke the agent discovery:
+
+```bash
+php forge status:agents
+php forge validate:agent <slug>
 ```
 
 5. For Herd-specific local routing changes, also validate:
