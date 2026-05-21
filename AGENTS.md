@@ -127,47 +127,18 @@ php forge start
   - `app/build/stubs/WonderValetDriver.php`
   - generated into `~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php` by consumer-project Forge commands
 
-## AI agent system
+## AI skills (Claude Code / Cursor / Codex)
 
-The package ships a discovery + composition system for AI agents that
-mirrors the Module/Resource pattern. Different concept from this
-`AGENTS.md` file: this file is a briefing for AI dev tools (Codex,
-Cursor), while the agent system is application-level (SEO writers,
-content summarizers, classifiers invoked at runtime by site code).
+The repo uses **AI skills** managed via `npx skills` — prompt-driven
+helpers invoked at *development time* by AI assistants (Claude Code,
+Cursor, Codex, etc.) when you chat with them.
 
-- `class/AI/`: PSR-4 classes
-  - `AgentRegistry`: 3-layer discovery (framework 10 / modules 20 / consumer 30), mirrors `ResourceRegistry`
-  - `Agent`: value object with lazy `prompt()` and `run()` STUB (LLM SDK wiring deferred to a follow-up PR)
-  - `AgentConfig`, `AgentResolver`, `AgentValidator`, `ConfigLoader`, `YamlReader`
-- `ai/agents/<slug>/`: agents shipped with the framework, one folder each containing `agent.yml` + `prompt.md`
-- `ai/prompts/`, `ai/tools/`: framework-level shared prompt snippets and tool placeholders
-- `class/Console/Commands/StatusAgents.php` → `php forge status:agents`
-- `class/Console/Commands/ValidateAgent.php` → `php forge validate:agent <slug>`
-- Module manifest accepts an optional `ai: { agents, prompts, tools }` section in `module.json`; defaults `ai/agents`, `ai/prompts`, `ai/tools`. Modules contribute via `Module\Registry::aiAgentDirectories()`.
-- File-level cascade: for each agent slug, every canonical file (`agent.yml`, `prompt.md`, …) is resolved independently. Highest priority wins per file, so a consumer can override only `prompt.md` and inherit `agent.yml` from the framework.
-- Consumer can also tweak runtime settings without forking via `<consumer>/ai/overrides.yml` (model, temperature, max_tokens, tools — never `prompt`).
-- Adds `symfony/yaml` as a Composer dependency (used by `Wonder\AI\YamlReader`).
-- Full docs in `docs/app/ai/` (README + cascade + manifest).
+Skills are installed under `.agents/skills/<slug>/` (universal folder,
+symlinked into `.claude/skills/`, `.cursor/`, etc. by the installer).
+Both `.agents/` and `.claude/` are gitignored — the skills are managed
+by an external CLI and auto-updated, not source code.
 
-When adding new agent infrastructure, follow the same conventions as
-the Module system: stable PSR-4 classes in `class/AI/`, opt-in
-`ai.*` paths in `module.json`, file-level resolution, no
-provider-specific subfolders.
-
-## AI dev-tool skills (Claude Code / Cursor / Codex)
-
-Different concept from `ai/agents/` above. **Dev-tool skills** are
-invoked at *development time* by AI assistants (Claude Code, Cursor,
-Codex, etc.) when you chat with them. **Application agents** in
-`ai/agents/` run at *runtime* when the site code calls
-`AgentRegistry::get(...)`.
-
-Dev-tool skills are installed under `.agents/skills/<slug>/` (universal
-folder, symlinked into `.claude/skills/`, `.cursor/`, etc. by the
-installer). Both `.agents/` and `.claude/` are gitignored — the skills
-are managed by an external CLI and auto-updated, not source code.
-
-Install a skill:
+Install / manage:
 
 ```bash
 npx skills add pbakaus/impeccable     # currently used skill for UI design audit/craft
@@ -175,6 +146,10 @@ npx skills list                       # list installed
 npx skills update                     # auto-update all installed skills
 npx skills remove <slug>
 ```
+
+Each dev runs `npx skills add` once on their own laptop. The skill is
+not versioned in this repo (intentional): updates flow through the
+CLI, not through git.
 
 Do not commit `.agents/` or hand-edit files inside it. If a skill needs
 project-specific customization, fork it under a different slug rather
@@ -214,7 +189,6 @@ composer dumpautoload
 - `class/Console/*`
 - `class/App/Resource*`
 - `class/App/Model*`
-- `class/AI/*`
 - `app/config/routes/*`
 - `app/http/*`
 - `wonder-image.php`
@@ -224,13 +198,6 @@ Use:
 ```bash
 php forge update --local
 php forge start
-```
-
-For `class/AI/*` changes, also smoke the agent discovery:
-
-```bash
-php forge status:agents
-php forge validate:agent <slug>
 ```
 
 5. For Herd-specific local routing changes, also validate:
