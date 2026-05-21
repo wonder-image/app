@@ -24,6 +24,8 @@
                 \Wonder\Console\Commands\MakeResource::class,
                 \Wonder\Console\Commands\ValidateModule::class,
                 \Wonder\Console\Commands\StatusModules::class,
+                \Wonder\Console\Commands\StatusAgents::class,
+                \Wonder\Console\Commands\ValidateAgent::class,
             ];
 
         }

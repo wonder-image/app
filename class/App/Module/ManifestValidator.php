@@ -71,6 +71,12 @@ final class ManifestValidator
             'lang' => $manifest->langPath(),
             'models' => $manifest->modelsPath(),
             'resources' => $manifest->resourcesPath(),
+            // Path AI: presenti solo se il modulo ha dichiarato la sezione
+            // `ai` nel `module.json`. Stesso check di isPathInsideRoot per
+            // evitare directory traversal verso vendor/ o all'esterno.
+            'ai.agents' => $manifest->aiAgentsPath(),
+            'ai.prompts' => $manifest->aiPromptsPath(),
+            'ai.tools' => $manifest->aiToolsPath(),
         ] as $name => $path) {
             if ($path === null) {
                 continue;

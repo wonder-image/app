@@ -3,6 +3,7 @@
 namespace Wonder\App\Module;
 
 use RuntimeException;
+use Wonder\App\Permission\PermissionRegistry;
 
 final class Registry
 {
@@ -193,6 +194,70 @@ final class Registry
         return array_values(array_unique($paths));
     }
 
+    /**
+     * Discovery delle cartelle `ai/agents/` dei moduli abilitati.
+     *
+     * Shape coerente con `resourceDirectories()`: ogni entry è un array
+     * `['path' => str, 'priority' => 20, 'source' => 'module:<slug>']`.
+     * Priority 20 si colloca tra framework (10) e consumer (30) nella
+     * cascade di `Wonder\AI\AgentRegistry`.
+     *
+     * Solo i moduli che hanno dichiarato la sezione `ai` nel `module.json`
+     * (con eventualmente override dei path di default) contribuiscono qui.
+     */
+    public static function aiAgentDirectories(): array
+    {
+        return self::aiDirectories('aiAgentsPath');
+    }
+
+    /**
+     * Discovery delle cartelle `ai/prompts/` dei moduli abilitati.
+     * Vedi `aiAgentDirectories()`.
+     */
+    public static function aiPromptDirectories(): array
+    {
+        return self::aiDirectories('aiPromptsPath');
+    }
+
+    /**
+     * Discovery delle cartelle `ai/tools/` dei moduli abilitati.
+     * Vedi `aiAgentDirectories()`.
+     */
+    public static function aiToolDirectories(): array
+    {
+        return self::aiDirectories('aiToolsPath');
+    }
+
+    /**
+     * Helper interno: itera i moduli enabled() e raccoglie un path-getter
+     * con la shape standard ['path', 'priority', 'source'].
+     *
+     * Volutamente NON public: i 3 metodi sopra (`aiAgentDirectories` ecc.)
+     * sono i punti di estensione stabili. Aggiungere un nuovo tipo di
+     * risorsa AI = aggiungere un nuovo wrapper + un nuovo path-getter
+     * su `Manifest`.
+     */
+    private static function aiDirectories(string $manifestMethod): array
+    {
+        $directories = [];
+
+        foreach (self::enabled() as $manifest) {
+            $path = $manifest->{$manifestMethod}();
+
+            if ($path === null || !is_dir($path)) {
+                continue;
+            }
+
+            $directories[] = [
+                'path' => $path,
+                'priority' => 20,
+                'source' => 'module:'.$manifest->slug(),
+            ];
+        }
+
+        return $directories;
+    }
+
     public static function bootFiles(): array
     {
         $files = [];
@@ -210,8 +275,11 @@ final class Registry
         return array_values(array_unique($files));
     }
 
-    public static function mergePermissions(array $permits): array
+    public static function mergePermissions(array|PermissionRegistry $permits): array
     {
+        
+        $registry = PermissionRegistry::from($permits);
+
         foreach (self::enabled() as $manifest) {
             $file = $manifest->permissionsFile();
 
@@ -219,25 +287,16 @@ final class Registry
                 continue;
             }
 
-            $loaded = require $file;
-
-            if (!is_array($loaded)) {
-                throw new RuntimeException('Il file permissions del modulo '.$manifest->slug().' deve restituire un array.');
-            }
-
-            foreach ($loaded as $area => $definitions) {
-                if (!isset($permits[$area]) || !is_array($permits[$area])) {
-                    $permits[$area] = [];
-                }
-
-                if (!is_array($definitions)) {
-                    continue;
-                }
-
-                $permits[$area] = array_replace_recursive($permits[$area], $definitions);
+            try {
+                $registry->merge(PermissionRegistry::fromFile($file));
+            } catch (\Throwable $throwable) {
+                throw new RuntimeException(
+                    'Il file permissions del modulo '.$manifest->slug().' non e\' valido: '.$throwable->getMessage(),
+                    previous: $throwable
+                );
             }
         }
 
-        return $permits;
+        return $registry->toArray();
     }
 }

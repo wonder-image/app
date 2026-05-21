@@ -1,0 +1,13 @@
+name: SEO Meta Writer
+description: >
+  Genera title + meta description SEO-ottimizzati a partire dal contenuto
+  di una pagina e da poche keyword chiave. Output JSON con campi `title`
+  (max 60 char) e `description` (50-160 char).
+model: claude-sonnet-4
+temperature: 0
+max_tokens: 512
+prompt: prompt.md
+tools: []
+provider: anthropic
+timeout_seconds: 30
+max_retries: 2

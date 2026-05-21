@@ -262,6 +262,67 @@ final class Manifest
         return null;
     }
 
+    /**
+     * Path-getter per la cartella `agents/` AI del modulo.
+     *
+     * Convenzione:
+     * - Se il `module.json` ha `ai.agents`, viene usato quel path (relativo
+     *   al root del modulo).
+     * - Se ha la sezione `ai` ma senza `agents`, default `ai/agents`.
+     * - Se non ha sezione `ai`, ritorna `null` (il modulo non pubblica agenti).
+     *
+     * Stessa filosofia di `modelsPath()` / `resourcesPath()`. Pensato per
+     * essere consumato da `Wonder\App\Module\Registry::aiAgentDirectories()`
+     * e poi da `Wonder\AI\AgentRegistry` per la cascade 3-layer.
+     */
+    public function aiAgentsPath(): ?string
+    {
+        return $this->aiPath('agents', 'ai/agents');
+    }
+
+    /**
+     * Path-getter per la cartella `prompts/` AI del modulo.
+     * Vedi `aiAgentsPath()` per la semantica.
+     */
+    public function aiPromptsPath(): ?string
+    {
+        return $this->aiPath('prompts', 'ai/prompts');
+    }
+
+    /**
+     * Path-getter per la cartella `tools/` AI del modulo.
+     * Vedi `aiAgentsPath()` per la semantica.
+     */
+    public function aiToolsPath(): ?string
+    {
+        return $this->aiPath('tools', 'ai/tools');
+    }
+
+    /**
+     * Helper interno: risolve un singolo path AI rispettando le 3 regole.
+     *
+     * Il modulo dichiara la sezione `ai` solo se vuole pubblicare qualcosa
+     * di AI. La presenza della sezione attiva i default; l'assenza
+     * disattiva del tutto (return null) per non scansionare cartelle
+     * inesistenti nel filesystem.
+     */
+    private function aiPath(string $key, string $default): ?string
+    {
+        $ai = $this->get('ai');
+
+        if (!is_array($ai)) {
+            return null;
+        }
+
+        $path = $ai[$key] ?? $default;
+
+        if (!is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        return $this->resolvePath(trim($path));
+    }
+
     public function bootFiles(): array
     {
         $files = $this->get('boot.files', []);
