@@ -1,6 +1,7 @@
 
 .DS_Store
 .claude/
+.codex-skill-build/
 vendor/
 .phpdoc/
 COMMAND.md
