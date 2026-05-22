@@ -15,9 +15,4 @@ class Theme implements ThemeContract
     {
         return 'Wonder';
     }
-
-    public function fallback(): ?string
-    {
-        return null;
-    }
 }

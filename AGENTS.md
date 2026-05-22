@@ -31,9 +31,10 @@ Key subareas:
 - `class/App/Support/Repeater.php`: repeater request + relation sync
 - `class/App/Support/FormFieldElementFactory.php`: bridge from `ResourceSchema/FormField` DSL to `Elements/Form/Components/*` (low-level objects)
 - `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
+- `class/Themes/Form/AbstractFieldRenderer.php`: base condivisa per i Field renderer di tutti i temi (schema/error/value/label helpers, render+renderField hook)
 - `class/Themes/Wonder/Form`: HTML rendering for the public-facing site (frontend theme, classes `wi-*`)
 - `class/Themes/Bootstrap/Form`: HTML rendering for the admin backend (Bootstrap 5 with `form-control` / `form-floating`)
-- `class/Themes/{Registry,Resolver}.php`: theme registration + cascade lookup (theme-chain × element-class-chain)
+- `class/Themes/{Registry,Resolver}.php`: theme registration + per-theme lookup (no cross-theme fallback; only parent-class chain within the requested theme)
 - `class/App/Theme.php`: runtime theme switcher (`Theme::set('bootstrap')` / `Theme::get()`)
 - `app/config/routes`: Symfony routing definitions
 - `app/http`: backend/API handlers
@@ -164,10 +165,21 @@ Wonder\Elements\Form\Components\InputText
 Wonder\Themes\{Wonder|Bootstrap}\Form\Components\InputText
 ```
 
-The Resolver walks two chains: theme-chain (active → `fallback()` →
-default `wonder`) and element-class-chain (concrete class → parent
-class → ...). First non-abstract `Renderer` found wins. Missing
-specific renderers gracefully fall back to a generic parent renderer.
+The Resolver looks up renderers **only inside the requested theme**.
+No cross-theme fallback: if a renderer is missing in the active theme,
+the Resolver throws `RuntimeException` with the attempted class names.
+Within a single theme, the Resolver walks the element-class chain
+(concrete class → parent class → ...) so a missing
+`Themes/<T>/Form/Components/InputText` falls back to
+`Themes/<T>/Form/Field` (or another ancestor) if present — this is
+standard OOP, not theme bypass.
+
+Shared base for renderers: `Themes/Form/AbstractFieldRenderer`. It
+holds the schema, error/value helpers, label resolution, and the
+`render() → renderInput() → renderField()` pipeline. Each theme's
+`Field` extends it and overrides only the HTML-specific bits
+(`renderLabel`, `renderError`, `inputClass`, optional `renderField`
+wrapping).
 
 ### Switching theme at runtime
 
@@ -197,14 +209,34 @@ automatically benefit from the Element + Theme system.
 1. Create `class/Elements/Form/Components/<Name>.php` extending
    `Wonder\Elements\Form\Field`. Pure config (no HTML).
 2. Create `class/Themes/Wonder/Form/Components/<Name>.php` extending
-   `Wonder\Themes\Wonder\Form\Field`. Implement `renderInput(): string`.
+   `Wonder\Themes\Wonder\Form\Field` (which extends
+   `Themes\Form\AbstractFieldRenderer`). Implement `renderInput(): string`.
 3. Create `class/Themes/Bootstrap/Form/Components/<Name>.php` extending
-   `Wonder\Themes\Bootstrap\Form\Field`. Implement `renderInput(): string`.
+   `Wonder\Themes\Bootstrap\Form\Field` (same base). Implement
+   `renderInput(): string`.
 4. Optional: add a case in `FormFieldElementFactory::make()` so the
    high-level `FormSchema` DSL can build it too.
 
 No registration step needed: the Resolver discovers the new component
-by namespace convention.
+by namespace convention. Helpers (`hasError`, `resolvedLabel`,
+`hasValue`, schema access) come from `AbstractFieldRenderer` — no
+need to re-implement them per theme.
+
+### Adding a new Theme
+
+1. Create `class/Themes/<MyTheme>/Theme.php` implementing
+   `Themes\Contracts\Theme` with `key()` (e.g. `"tailwind"`) and
+   `namespace()` (e.g. `"Tailwind"`).
+2. Register it: `Themes\Registry::register(\Wonder\Themes\Tailwind\Theme::class)`
+   in your bootstrap (or in `Registry::boot()` if it should ship core).
+3. Create `class/Themes/<MyTheme>/Form/Field.php` extending
+   `Themes\Form\AbstractFieldRenderer`; implement `renderLabel()`,
+   `renderError()`, `inputClass()`. Override `renderField()` if you
+   need a wrapping container.
+4. Create the per-Component renderers under
+   `class/Themes/<MyTheme>/Form/Components/*.php`. You can leave gaps:
+   the parent-class fallback within the same theme will use `Field`
+   if a specific renderer is missing.
 
 ### Common pitfalls
 
@@ -213,8 +245,12 @@ by namespace convention.
   in a few `Elements/Form/Components/*` files — they are dead code and
   safe to remove during cleanup.
 - **Repeater is intentionally absent from `Themes/Wonder/Form/`**. The
-  frontend never renders repeaters. Adding `->render('wonder')` on a
-  `Repeater` will fail with a clear "no renderer found" exception.
+  frontend never renders repeaters. Calling `->render('wonder')` on a
+  `Repeater` raises `RuntimeException` (no silent fallback to
+  Bootstrap).
+- **No cross-theme fallback**. If you need a Component in a theme that
+  doesn't have it, implement it. The Resolver will NOT borrow from
+  another theme to fill the gap.
 - **`Field` is abstract**. Don't instantiate it directly; use a concrete
   Component (`InputText`, `Select`, ...).
 

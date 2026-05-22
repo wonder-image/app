@@ -31,15 +31,45 @@ class/
 │       ├── Textarea.php / TextareaEditor.php
 │       └── Repeater.php           columns(), context()
 │
+├── Themes/Form/
+│   └── AbstractFieldRenderer.php  ← base condivisa per Field di TUTTI i temi
+│                                    (schema, hasError, hasValue, resolvedLabel,
+│                                    render+renderField hook)
+│
 ├── Themes/Wonder/Form/            ← RENDER layer per FRONTEND pubblico
-│   ├── Field.php                  abstract renderer (helper inputClass, renderLabel, renderError)
+│   ├── Field.php                  extends AbstractFieldRenderer
+│   │                              (solo theme-specific: wi-* markup)
+│   ├── Form.php                   container `<form class="wi-form">`
 │   └── Components/                21 renderer concreti (NO Repeater — frontend non lo usa)
 │
 └── Themes/Bootstrap/Form/         ← RENDER layer per BACKEND admin
-    ├── Field.php                  abstract renderer (form-floating, form-control)
+    ├── Field.php                  extends AbstractFieldRenderer
+    │                              (form-floating, form-control, invalid-feedback)
     ├── Form.php
     └── Components/                22 renderer concreti (INCLUDE Repeater)
 ```
+
+### `AbstractFieldRenderer` (base condivisa)
+
+`class/Themes/Form/AbstractFieldRenderer.php` raccoglie tutto ciò che
+sarebbe stato duplicato tra `Themes/Wonder/Form/Field` e
+`Themes/Bootstrap/Form/Field`:
+
+| Metodo | Responsabilità | Sovrascrivibile? |
+|---|---|---|
+| `render($class)` | Estrae lo schema dall'Element e chiama il pipeline | No (final-ish) |
+| `renderInput()` | Markup dell'input — astratto | Sì, obbligatorio nei subclass |
+| `renderField($input)` | Wrapping opzionale (default = identità) | Sì (Bootstrap lo usa per `form-floating`) |
+| `hasError()` / `errorMessage()` | Stato errore di validazione | Raramente |
+| `hasValue()` | Distingue "non impostato" da "valore presente" | No |
+| `resolvedLabel()` | Label + `*` se required | No |
+| Traits inclusi | `HasSchema`, `HasAttributes`, `HasIdentifier`, `EscapesHtml`, `CanSpanColumn` | — |
+
+Restano nei subclass theme-specific solo `renderLabel()`, `renderError()`,
+`inputClass()` (più `containerClass()` per Wonder, override `renderField()`
+con form-floating per Bootstrap). Aggiungere un terzo tema = creare un
+nuovo `Themes/<Nome>/Form/Field.php` che estende `AbstractFieldRenderer`
+e implementa quei 3 metodi.
 
 ## Come si lega un Element al renderer
 
@@ -52,18 +82,24 @@ Wonder\Elements\Form\Components\InputText
 Wonder\Themes\{NS}\Form\Components\InputText        ← NS = "Wonder" o "Bootstrap"
 ```
 
-Il Resolver percorre 2 catene fino a trovare un renderer concreto:
+Il Resolver lavora **solo nel tema richiesto** (niente fallback
+cross-theme). Per ogni tema cerca lungo la catena di parent class
+dell'Element:
 
-1. **Catena tema**: tema corrente → `fallback()` del tema → default
-   (`wonder`). Permette di avere un tema specializzato (es. `Tailwind`)
-   che fa fallback a `Bootstrap` per i component non implementati.
-2. **Catena element**: classe concreta → parent class → ... fino a
-   `Component`. Se manca un renderer specifico per `InputText`, il
-   Resolver prova `Field` (parent) come fallback generico.
+1. **Tema unico**: usa il tema esplicito passato a `render('bootstrap')`
+   oppure quello attivo via `Theme::set()`. Niente fallback automatico
+   su un altro tema: se il renderer richiesto non c'è in quel tema,
+   il Resolver solleva eccezione. Comportamento intenzionale:
+   fail-fast > markup di un tema sbagliato a sorpresa.
+2. **Catena element-class**: classe concreta → parent class → ... .
+   Se manca un renderer specifico per `InputText`, il Resolver prova
+   `Field` (parent) come fallback. Questo è un meccanismo OOP standard,
+   non un fallback cross-theme: lo stesso tema risponde con un renderer
+   generico se uno specifico non esiste.
 
-Se nessuna combinazione di (tema, classe) produce un renderer concreto
-non-astratto, viene sollevata `RuntimeException` con la lista dei
-tentativi.
+Se nessuna combinazione (tema corrente, gerarchia classe) produce un
+renderer concreto non-astratto, viene sollevata `RuntimeException`
+con la lista dei tentativi.
 
 ## Selezione del tema attivo
 
@@ -314,18 +350,16 @@ Cose viste durante l'audit, non rotture, ma utili da sapere:
    render lo fa il tema. Sono residui copy-paste — sicuri da
    rimuovere quando si fa pulizia.
 2. **Repeater non in Wonder**: intenzionale (frontend non lo usa).
-   Se in futuro servisse, basta creare
+   Niente fallback automatico verso Bootstrap: chiamare
+   `->render('wonder')` su un Repeater produce `RuntimeException`
+   esplicita. Se servirà, basta creare
    `class/Themes/Wonder/Form/Components/Repeater.php`.
-3. **Duplicazione helper tra temi**: `renderLabel()`, `renderError()`,
-   `inputClass()` sono reimplementati identici in Wonder e Bootstrap.
-   Si potrebbe estrarre un `class/Themes/AbstractFieldRenderer.php`
-   condiviso. Refactor a basso rischio ma medio impatto sul codice
-   esistente — vale la pena solo se aggiungi un terzo tema.
-4. **`fallback()` di Wonder e Bootstrap**: entrambi ritornano `null`.
-   Il Resolver allora include il default (`wonder`) in fondo alla
-   chain. Se vuoi che `Bootstrap` deleghi a `Wonder` quando manca un
-   component, imposta `Bootstrap::fallback() == 'wonder'` (oggi non
-   serve perché Bootstrap è il più completo).
+3. **`renderField()` di Bootstrap ha signature estesa**: il metodo nel
+   subclass ha `($input, bool $floating = true)` mentre la base ha solo
+   `($input)`. PHP accetta il parametro opzionale aggiuntivo. È usato da
+   alcuni Component Bootstrap (es. Checkbox) per disattivare il pattern
+   `form-floating`. Da tenere d'occhio se mai si formalizzasse la
+   signature in `AbstractFieldRenderer`.
 
 ## File chiave (mappa)
 
@@ -333,17 +367,21 @@ Cose viste durante l'audit, non rotture, ma utili da sapere:
 |---|---|---|
 | Config base | `class/Elements/Form/Field.php` | fluent API: label, value, error, required, readonly, disabled |
 | Form container | `class/Elements/Form/Form.php` | aggrega Element con `IsContainer` |
-| Render base Wonder | `class/Themes/Wonder/Form/Field.php` | helper `renderLabel/renderError/inputClass` con classi `wi-*` |
-| Render base Bootstrap | `class/Themes/Bootstrap/Form/Field.php` | helper con `form-control` + `form-floating` |
+| Base renderer condivisa | `class/Themes/Form/AbstractFieldRenderer.php` | schema, hasError, hasValue, resolvedLabel, render+renderField hook, trait base |
+| Render base Wonder | `class/Themes/Wonder/Form/Field.php` | extends Abstract; helper `wi-*`: inputClass, containerClass, renderLabel, renderError |
+| Form container Wonder | `class/Themes/Wonder/Form/Form.php` | `<form class="wi-form">` |
+| Render base Bootstrap | `class/Themes/Bootstrap/Form/Field.php` | extends Abstract; override renderField (form-floating), helper `form-control`/`is-invalid`/`invalid-feedback` |
+| Form container Bootstrap | `class/Themes/Bootstrap/Form/Form.php` | `<form ...>` con grid Bootstrap |
 | Selettore tema runtime | `class/App/Theme.php` | `Theme::set('bootstrap')` / `Theme::get()` |
 | Registry temi | `class/Themes/Registry.php` | autobot `Wonder` + `Bootstrap`, `setDefault` |
-| Cascade resolver | `class/Themes/Resolver.php` | matching (tema-chain × element-chain) |
+| Resolver | `class/Themes/Resolver.php` | matching solo nel tema richiesto, no fallback cross-theme |
 | Bridge FormSchema → Element | `class/App/Support/FormFieldElementFactory.php` | traduzione `helper` → Element + hydrate |
-| Trait render | `class/Elements/Concerns/Renderer.php` | metodo `render()` che delega a `Resolver` |
+| Trait render lato Element | `class/Elements/Concerns/Renderer.php` | metodo `render()` che delega a `Resolver` |
 
 ## TL;DR
 
 - `Elements/Form/Components/<X>` = **cos'è il campo** (label, validazioni, opzioni)
 - `Themes/<Tema>/Form/Components/<X>` = **come si disegna** in quel tema
+- `Themes/Form/AbstractFieldRenderer` = **base condivisa** tra i Field di ogni tema (helper, schema, label/required, error state)
 - Tema attivo via `Wonder\App\Theme::set()`, override per singola render con `$el->render('tema')`
-- Resolver fa match automatico per namespace, con fallback su parent class + tema di fallback + default
+- Il Resolver lavora **solo nel tema richiesto**: niente fallback cross-theme. Match per namespace + parent-class chain. Se non trova, throw esplicito.

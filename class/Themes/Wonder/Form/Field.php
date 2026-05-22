@@ -2,23 +2,22 @@
 
 namespace Wonder\Themes\Wonder\Form;
 
-use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
-use Wonder\Themes\Concerns\HasAttributes;
-use Wonder\Themes\Wonder\Component;
+use Wonder\Themes\Form\AbstractFieldRenderer;
 
-abstract class Field extends Component
+/**
+ * Renderer base per i field del tema `Wonder` (frontend pubblico).
+ *
+ * Gli helper condivisi con Bootstrap (lettura schema, hasError,
+ * resolvedLabel, …) vivono in `AbstractFieldRenderer`. Qui restano
+ * solo le funzioni che producono markup `wi-*` proprio del tema.
+ */
+abstract class Field extends AbstractFieldRenderer
 {
-    use CanSpanColumn, HasAttributes;
-
-    public function render($class): string
-    {
-        $this->schema = (array) ($class->schema ?? []);
-
-        return $this->renderInput();
-    }
-
-    abstract public function renderInput(): string;
-
+    /**
+     * Costruisce la classe CSS dell'input con stati `compiled`/`input-error`.
+     * Base default `wi-input`; i componenti specifici (es. Select, Textarea)
+     * possono passare un base diverso.
+     */
     protected function inputClass(string $base = 'wi-input'): string
     {
         $class = [$base];
@@ -34,6 +33,10 @@ abstract class Field extends Component
         return implode(' ', $class);
     }
 
+    /**
+     * Classe del container `wi-input-container` con stato e tipo.
+     * Usata dai componenti che wrappano l'input in un `<div>`.
+     */
     protected function containerClass(string $type): string
     {
         $class = ['wi-input-container', $type];
@@ -49,6 +52,9 @@ abstract class Field extends Component
         return implode(' ', $class);
     }
 
+    /**
+     * Markup label tema Wonder: `<label class="wi-label">…</label>`.
+     */
     protected function renderLabel(): string
     {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
@@ -57,6 +63,11 @@ abstract class Field extends Component
         return '<label for="'.$id.'" class="wi-label">'.$label.'</label>';
     }
 
+    /**
+     * Markup errore tema Wonder: span con icona warning. Ritorna uno
+     * span vuoto quando non c'è errore per riservare lo spazio nel
+     * layout (no jumping).
+     */
     protected function renderError(): string
     {
         $error = $this->errorMessage();
@@ -66,37 +77,5 @@ abstract class Field extends Component
         }
 
         return "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> ".$this->escape($error).'</span>';
-    }
-
-    protected function hasError(): bool
-    {
-        return $this->errorMessage() !== '';
-    }
-
-    protected function errorMessage(): string
-    {
-        return trim((string) ($this->schema['error'] ?? ''));
-    }
-
-    protected function hasValue(): bool
-    {
-        $value = $this->schema['value'] ?? null;
-
-        if (is_array($value)) {
-            return $value !== [];
-        }
-
-        return $value !== null && $value !== '';
-    }
-
-    protected function resolvedLabel(): string
-    {
-        $label = trim((string) ($this->schema['label'] ?? ''));
-
-        if (!empty($this->schema['attributes']['required'])) {
-            $label .= '*';
-        }
-
-        return $label;
     }
 }

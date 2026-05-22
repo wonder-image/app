@@ -2,25 +2,25 @@
 
 namespace Wonder\Themes\Bootstrap\Form;
 
-use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
-use Wonder\Themes\Bootstrap\Component;
-use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Form\AbstractFieldRenderer;
 
-abstract class Field extends Component
+/**
+ * Renderer base per i field del tema `Bootstrap` (backend admin).
+ *
+ * Gli helper condivisi con Wonder vivono in `AbstractFieldRenderer`.
+ * Qui restano solo le funzioni che producono markup Bootstrap 5
+ * (`form-control`, `form-floating`, `invalid-feedback`).
+ */
+abstract class Field extends AbstractFieldRenderer
 {
-    use CanSpanColumn, HasAttributes;
-
-    protected array $schema = [];
-
-    public function render($class): string
-    {
-        $this->schema = (array) ($class->schema ?? []);
-
-        return $this->renderField($this->renderInput());
-    }
-
-    abstract public function renderInput(): string;
-
+    /**
+     * Hook di wrapping del tema. Bootstrap usa il pattern
+     * `form-floating` di default: l'input prima, poi la label,
+     * il tutto in un div container. Sotto, l'errore.
+     *
+     * I componenti che NON funzionano col floating (es. Checkbox,
+     * File) passano `$floating = false` per ottenere un wrap minimale.
+     */
     protected function renderField(string $input, bool $floating = true): string
     {
         if ($floating) {
@@ -37,6 +37,10 @@ abstract class Field extends Component
         return '<div>'.$input.$this->renderError().'</div>';
     }
 
+    /**
+     * Markup label tema Bootstrap: `<label>`. Skip se la label è
+     * vuota (alcuni componenti come Hidden non hanno label).
+     */
     protected function renderLabel(): string
     {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
@@ -49,6 +53,12 @@ abstract class Field extends Component
         return '<label for="'.$id.'">'.$this->escape($label).'</label>';
     }
 
+    /**
+     * Markup errore tema Bootstrap: div `invalid-feedback`. Quando
+     * c'è errore aggiunge `d-block` per forzare la visibilità
+     * (di default Bootstrap mostra `invalid-feedback` solo sui
+     * sibling `.is-invalid`, ma noi vogliamo mostrarlo sempre).
+     */
     protected function renderError(): string
     {
         $error = $this->errorMessage();
@@ -57,29 +67,12 @@ abstract class Field extends Component
         return '<div class="'.$class.'">'.$this->escape($error).'</div>';
     }
 
+    /**
+     * Aggiunge `is-invalid` alla classe base quando c'è errore di
+     * validazione, in modo che Bootstrap renderizzi il bordo rosso.
+     */
     protected function inputClass(string $base): string
     {
         return trim($base.($this->hasError() ? ' is-invalid' : ''));
-    }
-
-    protected function hasError(): bool
-    {
-        return $this->errorMessage() !== '';
-    }
-
-    protected function errorMessage(): string
-    {
-        return trim((string) ($this->schema['error'] ?? ''));
-    }
-
-    protected function resolvedLabel(): string
-    {
-        $label = trim((string) ($this->schema['label'] ?? ''));
-
-        if (!empty($this->schema['attributes']['required'])) {
-            $label .= '*';
-        }
-
-        return $label;
     }
 }

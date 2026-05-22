@@ -22,72 +22,46 @@ class Resolver
         }
 
         $activeTheme = self::resolveRequestedTheme($theme);
-        $themeChain = self::resolveThemeChain($activeTheme);
+        $themeNamespace = Registry::get($activeTheme)->namespace();
         $elementCandidates = self::resolveElementCandidates($class);
         $attempted = [];
 
-        foreach ($themeChain as $themeKey) {
-            $themeNamespace = Registry::get($themeKey)->namespace();
-
-            foreach ($elementCandidates as $elementClass) {
-                $relative = self::relativeElementClass($elementClass);
-                if ($relative === null) {
-                    continue;
-                }
-
-                $rendererClass = "Wonder\\Themes\\{$themeNamespace}\\{$relative}";
-                $attempted[] = $rendererClass;
-
-                if (!class_exists($rendererClass)) {
-                    continue;
-                }
-
-                $reflection = new ReflectionClass($rendererClass);
-                if ($reflection->isAbstract()) {
-                    continue;
-                }
-
-                $renderer = new $rendererClass();
-                if (!$renderer instanceof Renderer) {
-                    throw new RuntimeException("{$rendererClass} deve implementare Renderer.");
-                }
-
-                return $renderer;
+        // Nessun fallback cross-theme: cerchiamo SOLO nel tema richiesto.
+        // Se manca un renderer specifico (es. `InputText` di `wonder`)
+        // proviamo le parent class (es. `Field`), ma non saltiamo a un
+        // altro tema: meglio fail-fast con un'eccezione esplicita che
+        // far comparire silentemente markup di un tema non voluto.
+        foreach ($elementCandidates as $elementClass) {
+            $relative = self::relativeElementClass($elementClass);
+            if ($relative === null) {
+                continue;
             }
+
+            $rendererClass = "Wonder\\Themes\\{$themeNamespace}\\{$relative}";
+            $attempted[] = $rendererClass;
+
+            if (!class_exists($rendererClass)) {
+                continue;
+            }
+
+            $reflection = new ReflectionClass($rendererClass);
+            if ($reflection->isAbstract()) {
+                continue;
+            }
+
+            $renderer = new $rendererClass();
+            if (!$renderer instanceof Renderer) {
+                throw new RuntimeException("{$rendererClass} deve implementare Renderer.");
+            }
+
+            return $renderer;
         }
 
         $attemptedText = implode(', ', $attempted);
         throw new RuntimeException(
-            "Nessun renderer trovato per {$class} (tema attivo: {$activeTheme}). Tentativi: {$attemptedText}"
+            "Nessun renderer trovato per {$class} nel tema '{$activeTheme}'. "
+            ."Tentativi: {$attemptedText}"
         );
-    }
-
-    /**
-     * Costruisce la catena tema corrente + fallback.
-     *
-     * @return string[]
-     */
-    private static function resolveThemeChain(string $activeTheme): array
-    {
-        $chain = [];
-        $cursor = strtolower($activeTheme);
-
-        while ($cursor !== '') {
-            if (!Registry::has($cursor) || in_array($cursor, $chain, true)) {
-                break;
-            }
-
-            $chain[] = $cursor;
-            $fallback = Registry::get($cursor)->fallback();
-            $cursor = $fallback !== null ? strtolower($fallback) : '';
-        }
-
-        $default = Registry::default();
-        if (!in_array($default, $chain, true)) {
-            $chain[] = $default;
-        }
-
-        return $chain;
     }
 
     /**
