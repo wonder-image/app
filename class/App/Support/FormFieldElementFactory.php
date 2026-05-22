@@ -1,0 +1,528 @@
+<?php
+
+namespace Wonder\App\Support;
+
+use Throwable;
+use Wonder\App\ResourceSchema\FormField;
+use Wonder\Elements\Form\Components\CheckGroup;
+use Wonder\Elements\Form\Components\Checkbox;
+use Wonder\Elements\Form\Components\Date;
+use Wonder\Elements\Form\Components\DatePicker;
+use Wonder\Elements\Form\Components\DateRange;
+use Wonder\Elements\Form\Components\File;
+use Wonder\Elements\Form\Components\Hidden;
+use Wonder\Elements\Form\Components\InputColor;
+use Wonder\Elements\Form\Components\InputDatetime;
+use Wonder\Elements\Form\Components\InputEmail;
+use Wonder\Elements\Form\Components\InputNumber;
+use Wonder\Elements\Form\Components\InputPassword;
+use Wonder\Elements\Form\Components\InputPercentige;
+use Wonder\Elements\Form\Components\InputPrice;
+use Wonder\Elements\Form\Components\InputTel;
+use Wonder\Elements\Form\Components\InputText;
+use Wonder\Elements\Form\Components\InputTime;
+use Wonder\Elements\Form\Components\InputUrl;
+use Wonder\Elements\Form\Components\Repeater;
+use Wonder\Elements\Form\Components\Select;
+use Wonder\Elements\Form\Components\Textarea;
+use Wonder\Elements\Form\Components\TextareaEditor;
+use Wonder\Elements\Form\Field as ElementField;
+
+final class FormFieldElementFactory
+{
+    public static function render(FormField $field, ?string $theme = null): ?string
+    {
+        $element = self::make($field);
+
+        if (!$element instanceof ElementField) {
+            return null;
+        }
+
+        try {
+            return $element->render($theme);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private static function make(FormField $field): ?ElementField
+    {
+        $helper = (string) ($field->get('helper') ?? 'text');
+        $name = trim((string) ($field->name ?? ''));
+
+        if ($name === '') {
+            return null;
+        }
+
+        $element = match ($helper) {
+            'hidden' => new Hidden($name),
+            'text' => new InputText($name),
+            'email' => new InputEmail($name),
+            'tel', 'phone' => new InputTel($name),
+            'number' => new InputNumber($name),
+            'price' => new InputPrice($name),
+            'percentige' => new InputPercentige($name),
+            'password' => new InputPassword($name),
+            'url' => new InputUrl($name),
+            'color' => new InputColor($name),
+            'textDate' => new Date($name),
+            'textDatetime' => new InputDatetime($name),
+            'dateInput' => new DatePicker($name),
+            'dateRange' => new DateRange($name),
+            'timeInput' => new InputTime($name),
+            'textarea' => self::textareaElement($name, $field),
+            'select' => self::selectElement($name, $field),
+            'selectSearch' => self::selectSearchElement($name, $field),
+            'inputCountry' => self::countryElement($name, $field),
+            'inputStates' => self::statesElement($name, $field),
+            'inputPhonePrefix' => self::phonePrefixElement($name, $field),
+            'radio' => self::checkGroupElement($name, $field, 'radio'),
+            'checkbox' => self::checkboxLikeElement($name, $field),
+            'inputFile', 'inputFileDragDrop' => self::fileElement($name, $field),
+            'inputRepeater' => self::repeaterElement($name, $field),
+            default => null,
+        };
+
+        if (!$element instanceof ElementField) {
+            return null;
+        }
+
+        self::hydrate($element, $field);
+
+        return $element;
+    }
+
+    private static function hydrate(ElementField $element, FormField $field): void
+    {
+        $label = trim((string) ($field->get('label') ?? ''));
+        $value = $field->get('value');
+        $error = trim((string) ($field->get('error') ?? ''));
+        $attributes = self::parseAttributes((string) ($field->get('attribute') ?? ''));
+
+        if ($label === '') {
+            $label = ucwords(str_replace(['_', '-'], ' ', $field->name));
+        }
+
+        if ($field->name === 'font_family' && is_scalar($value)) {
+            $value = CssFontFamily::normalize((string) $value);
+        }
+
+        if ($element instanceof Date) {
+            $value = self::formatNativeDateValue($value);
+        }
+
+        if ($element instanceof InputDatetime) {
+            $value = self::formatDatetimeValue($value);
+        }
+
+        if ($element instanceof DatePicker) {
+            $value = self::formatPickerDateValue($value);
+        }
+
+        if ($element instanceof DateRange) {
+            $value = self::normalizeDateRangeValue($field, $value);
+        }
+
+        $element->label($label)->value($value);
+
+        if ($error !== '') {
+            $element->error($error);
+        }
+
+        if ($attributes !== []) {
+            $element->attributes($attributes);
+        }
+
+        if ($element instanceof Date || $element instanceof DatePicker || $element instanceof DateRange) {
+            $dateMin = $field->get('date_min');
+            $dateMax = $field->get('date_max');
+
+            if (is_string($dateMin) && trim($dateMin) !== '') {
+                $element->min(trim($dateMin));
+            }
+
+            if (is_string($dateMax) && trim($dateMax) !== '') {
+                $element->max(trim($dateMax));
+            }
+        }
+
+        if ($element instanceof InputTime) {
+            $timeStep = $field->get('time_step');
+
+            if (is_numeric($timeStep) && (int) $timeStep > 0) {
+                $element->step((int) $timeStep);
+            }
+        }
+    }
+
+    private static function textareaElement(string $name, FormField $field): ElementField
+    {
+        $version = $field->get('version');
+
+        if (!is_string($version) || trim($version) === '') {
+            return new Textarea($name);
+        }
+
+        return (new TextareaEditor($name))
+            ->version(trim($version))
+            ->folder(self::legacyFolder());
+    }
+
+    private static function selectElement(string $name, FormField $field): Select
+    {
+        return (new Select($name))
+            ->options(self::normalizeOptions((array) ($field->get('options') ?? [])));
+    }
+
+    private static function selectSearchElement(string $name, FormField $field): Select
+    {
+        $select = self::selectElement($name, $field);
+        $multiple = (bool) ($field->get('multiple') ?? false);
+
+        $select->attr('data-wi-select-search', 'true');
+
+        if ($multiple) {
+            $select->attr('data-wi-select-search-multiple', 'true');
+            $select->attr('multiple', true);
+        }
+
+        return $select;
+    }
+
+    private static function countryElement(string $name, FormField $field): ?Select
+    {
+        if (!function_exists('countries')) {
+            return null;
+        }
+
+        $select = self::selectSearchElement($name, $field)
+            ->options(self::normalizeOptions(countries()));
+
+        $context = (array) ($field->get('context') ?? []);
+        $stateField = $context['state_field'] ?? null;
+
+        if (is_string($stateField) && trim($stateField) !== '') {
+            $select->attr('data-wi-input-country', 'true');
+            $select->attr('data-wi-input-state', trim($stateField));
+        }
+
+        return $select;
+    }
+
+    private static function statesElement(string $name, FormField $field): ?Select
+    {
+        if (!function_exists('states')) {
+            return null;
+        }
+
+        $context = (array) ($field->get('context') ?? []);
+        $country = (string) ($context['country'] ?? '');
+        $attribute = (string) ($field->get('attribute') ?? '');
+
+        return self::selectSearchElement($name, $field)
+            ->options(self::normalizeOptions($country !== '' ? states($country) : []))
+            ->attr('data-wi-input-state', 'true')
+            ->attr('data-wi-list-states', $country)
+            ->attr('data-wi-input-attribute', $attribute);
+    }
+
+    private static function phonePrefixElement(string $name, FormField $field): ?Select
+    {
+        if (!function_exists('phonePrefix')) {
+            return null;
+        }
+
+        return self::selectSearchElement($name, $field)
+            ->options(self::normalizeOptions(phonePrefix()));
+    }
+
+    private static function checkboxLikeElement(string $name, FormField $field): ElementField
+    {
+        $options = (array) ($field->get('options') ?? []);
+
+        if ($options === []) {
+            return self::checkboxElement($name, $field);
+        }
+
+        return self::checkGroupElement($name, $field, 'checkbox');
+    }
+
+    private static function checkboxElement(string $name, FormField $field): Checkbox
+    {
+        $checkbox = new Checkbox($name);
+        $value = $field->get('value');
+
+        if (
+            $value === true
+            || $value === 1
+            || $value === '1'
+            || $value === 'true'
+            || $value === 'on'
+        ) {
+            $checkbox->checked();
+        }
+
+        return $checkbox;
+    }
+
+    private static function checkGroupElement(string $name, FormField $field, string $type): CheckGroup
+    {
+        $value = $field->get('value');
+
+        if ($type === 'checkbox' && is_string($value) && trim($value) !== '') {
+            $decoded = json_decode($value, true);
+
+            if (is_array($decoded)) {
+                $value = $decoded;
+            }
+        }
+
+        return (new CheckGroup($name))
+            ->options(self::normalizeOptions((array) ($field->get('options') ?? [])))
+            ->searchBar((bool) ($field->get('search_bar') ?? false))
+            ->inputType($type)
+            ->value($value);
+    }
+
+    private static function fileElement(string $name, FormField $field): File
+    {
+        $format = self::fileFormat($field);
+        $directory = self::fileDirectory(isset($format['dir']) ? (string) $format['dir'] : null);
+
+        return (new File($name))
+            ->file((string) ($field->get('file') ?? 'image'))
+            ->uploader((string) ($field->get('uploader') ?? 'classic'))
+            ->maxFile((int) ($format['max_file'] ?? 1))
+            ->maxSize((int) ($format['max_size'] ?? 5))
+            ->directory($directory)
+            ->fileValue($field->get('value'))
+            ->sizeBefore((bool) ($format['size_before'] ?? false))
+            ->minSizeImage(isset($format['min_size_image']) ? (string) $format['min_size_image'] : null);
+    }
+
+    private static function repeaterElement(string $name, FormField $field): Repeater
+    {
+        return (new Repeater($name))
+            ->columns(is_array($field->get('context')['columns'] ?? null) ? $field->get('context')['columns'] : [])
+            ->context((array) ($field->get('context') ?? []))
+            ->value($field->get('value'));
+    }
+
+    private static function normalizeOptions(array $options): array
+    {
+        $normalized = [];
+
+        foreach ($options as $value => $label) {
+            if (is_array($label)) {
+                $normalized[$value] = [
+                    'name' => (string) ($label['name'] ?? $value),
+                    'filter' => is_array($label['filter'] ?? null) ? $label['filter'] : [],
+                    'child' => is_array($label['child'] ?? null) ? $label['child'] : [],
+                ];
+                continue;
+            }
+
+            $normalized[$value] = $label;
+        }
+
+        return $normalized;
+    }
+
+    private static function fileFormat(FormField $field): array
+    {
+        $format = [];
+        $prepare = (array) ($field->get('prepare') ?? []);
+
+        $format['max_file'] = isset($prepare['max_file'])
+            ? max(1, (int) $prepare['max_file'])
+            : ((bool) ($field->get('multiple') ?? false) ? 10 : 1);
+        $format['max_size'] = isset($prepare['max_size'])
+            ? max(1, (int) $prepare['max_size'])
+            : 5;
+
+        if (isset($prepare['dir']) && is_string($prepare['dir'])) {
+            $format['dir'] = $prepare['dir'];
+        }
+
+        if (!isset($prepare['resize'])) {
+            return $format;
+        }
+
+        $resize = $prepare['resize'];
+
+        if (is_array($resize) && isset($resize['width'], $resize['height'])) {
+            $format['min_size_image'] = $resize['width'].'x'.$resize['height'].'-';
+            $format['size_before'] = true;
+
+            return $format;
+        }
+
+        if (is_array($resize) && isset($resize[0]['width'], $resize[0]['height'])) {
+            $smallest = null;
+
+            foreach ($resize as $size) {
+                if (!is_array($size) || !isset($size['width'], $size['height'])) {
+                    continue;
+                }
+
+                if ($smallest === null || (int) $size['width'] < (int) $smallest['width']) {
+                    $smallest = $size;
+                }
+            }
+
+            if (is_array($smallest)) {
+                $format['min_size_image'] = $smallest['width'].'x'.$smallest['height'].'-';
+                $format['size_before'] = true;
+            }
+
+            return $format;
+        }
+
+        $firstResize = is_array($resize) ? reset($resize) : $resize;
+        $format['min_size_image'] = $firstResize !== false && $firstResize !== null
+            ? (string) $firstResize
+            : '';
+        $format['size_before'] = false;
+
+        return $format;
+    }
+
+    private static function fileDirectory(?string $subDirectory = null): string
+    {
+        $name = $GLOBALS['NAME'] ?? null;
+        $path = $GLOBALS['PATH'] ?? null;
+
+        $folder = is_object($name) ? trim((string) ($name->folder ?? ''), '/') : '';
+        $directory = rtrim((string) ($path->upload ?? ''), '/');
+        $directory .= $folder !== '' ? '/'.$folder : '';
+
+        $subDirectory = $subDirectory !== null ? trim($subDirectory) : '';
+
+        if ($subDirectory !== '') {
+            if ($subDirectory[0] !== '/') {
+                $directory .= '/';
+            }
+
+            $directory .= ltrim($subDirectory, '/');
+        }
+
+        return $directory.'/';
+    }
+
+    private static function legacyFolder(): ?string
+    {
+        $name = $GLOBALS['NAME'] ?? null;
+
+        if (!is_object($name)) {
+            return null;
+        }
+
+        $folder = trim((string) ($name->folder ?? ''));
+
+        return $folder !== '' ? $folder : null;
+    }
+
+    private static function parseAttributes(string $attribute): array
+    {
+        $attribute = trim($attribute);
+
+        if ($attribute === '') {
+            return [];
+        }
+
+        $attributes = [];
+        $pattern = '/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\']+)))?/';
+
+        if (!preg_match_all($pattern, $attribute, $matches, PREG_SET_ORDER)) {
+            return [];
+        }
+
+        foreach ($matches as $match) {
+            $key = trim((string) ($match[1] ?? ''));
+
+            if ($key === '') {
+                continue;
+            }
+
+            $value = $match[2] ?? $match[3] ?? $match[4] ?? true;
+            $attributes[$key] = $value;
+        }
+
+        return $attributes;
+    }
+
+    private static function formatNativeDateValue(mixed $value): mixed
+    {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
+        $formatted = self::formatDateString((string) $value, 'Y-m-d');
+
+        return $formatted ?? $value;
+    }
+
+    private static function formatDatetimeValue(mixed $value): mixed
+    {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
+        $formatted = self::formatDateString((string) $value, 'Y-m-d\TH:i');
+
+        return $formatted ?? $value;
+    }
+
+    private static function formatPickerDateValue(mixed $value): mixed
+    {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
+        $formatted = self::formatDateString((string) $value, 'd/m/Y');
+
+        return $formatted ?? $value;
+    }
+
+    private static function normalizeDateRangeValue(FormField $field, mixed $value): array
+    {
+        if (is_array($value)) {
+            return self::formatDateRangePair($value);
+        }
+
+        $nameFrom = $field->name.'_from';
+        $nameTo = $field->name.'_to';
+        $from = $GLOBALS['VALUES'][$nameFrom] ?? null;
+        $to = $GLOBALS['VALUES'][$nameTo] ?? null;
+
+        return self::formatDateRangePair([$from, $to]);
+    }
+
+    private static function formatDateRangePair(array $value): array
+    {
+        $from = self::formatDateString((string) ($value[0] ?? ''), 'd/m/Y');
+        $to = self::formatDateString((string) ($value[1] ?? ''), 'd/m/Y');
+
+        return [
+            $from ?? '',
+            $to ?? '',
+        ];
+    }
+
+    private static function formatDateString(string $value, string $format): ?string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $timestamp = strtotime($value);
+
+        if ($timestamp === false) {
+            return null;
+        }
+
+        return date($format, $timestamp);
+    }
+}

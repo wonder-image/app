@@ -4,14 +4,9 @@
 
     use Wonder\Elements\Form\Field;
 
-    class Textarea extends Field {
+    class Hidden extends Field {
 
-        public string $type = 'textarea'; 
-
-        public function rows(int $rows): self
-        {
-            return $this->attr('rows', max(1, $rows));
-        }
+        public string $type = 'hidden';
 
         protected function renderInput(): string {
 

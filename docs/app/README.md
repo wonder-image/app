@@ -48,6 +48,8 @@ Nota architetturale aggiornata:
 - helper legacy `app/function/backend/input.php`: compat layer e fallback
 - helper `app/function/frontend/input.php`: ancora validi, ma il target di
   allineamento e' la stessa pipeline themed con tema `Wonder`
+- i casi speciali backend gia' riallineati nel bridge themed includono
+  `textarea($version)`, `textDate`, `dateInput` e `dateRange`
 
 La procedura aggiornata è questa:
 

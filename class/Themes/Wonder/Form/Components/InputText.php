@@ -1,8 +1,8 @@
 <?php
 
-namespace Wonder\Themes\Bootstrap\Form\Components;
+namespace Wonder\Themes\Wonder\Form\Components;
 
-use Wonder\Themes\Bootstrap\Form\Field;
+use Wonder\Themes\Wonder\Form\Field;
 
 class InputText extends Field
 {
@@ -13,8 +13,15 @@ class InputText extends Field
         $type = $this->escape((string) ($this->schema['type'] ?? 'text'));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
         $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $class = $this->inputClass('form-control');
+        $class = $this->inputClass();
+        $typeClass = strtolower((string) ($this->schema['type'] ?? 'text'));
 
-        return "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\" {$attributes} />";
+        return <<<HTML
+<div class="{$this->containerClass($typeClass)}">
+    {$this->renderLabel()}
+    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}" {$attributes}>
+    {$this->renderError()}
+</div>
+HTML;
     }
 }

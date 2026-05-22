@@ -2,19 +2,17 @@
 
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
-use Wonder\Themes\Bootstrap\Form\Field;
-
-class InputText extends Field
+class DatePicker extends InputText
 {
     public function renderInput(): string
     {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
-        $type = $this->escape((string) ($this->schema['type'] ?? 'text'));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
         $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
         $class = $this->inputClass('form-control');
+        $placeholder = $this->escape($this->resolvedLabel());
 
-        return "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\" {$attributes} />";
+        return "<input class=\"{$class}\" type=\"text\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\" placeholder=\"{$placeholder}\" data-wi-date=\"true\" {$attributes} />";
     }
 }

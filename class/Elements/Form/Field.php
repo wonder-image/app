@@ -11,7 +11,8 @@
 
         use CanSpanColumn, Renderer;
 
-        public string $name, $type, $value = '';
+        public string $name, $type;
+        public mixed $value = '';
         public bool $valid = true;
 
         public function __construct( string $name ) 

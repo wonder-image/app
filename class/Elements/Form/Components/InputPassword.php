@@ -6,4 +6,6 @@
 
     class InputPassword extends InputText {
 
+        public string $type = 'password';
+
     }

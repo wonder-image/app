@@ -4,6 +4,7 @@ namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Support\FormFieldElementFactory;
 use Wonder\Elements\Concerns\CanSpanColumn;
 
 class FormField
@@ -508,6 +509,12 @@ class FormField
 
     public function render(?string $theme = null): string
     {
+        $themed = FormFieldElementFactory::render($this, $theme);
+
+        if (is_string($themed) && $themed !== '') {
+            return $themed;
+        }
+
         $this->ensureHelperLoaded();
 
         $requiredHelper = match ($this->helper) {

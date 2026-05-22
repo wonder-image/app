@@ -29,3 +29,7 @@ pipeline themed basato su `Wonder\\Elements\\Form\\*` e
 Per compatibilita', gli helper legacy in `app/function/backend/input.php`
 restano come fallback per i tipi non ancora coperti dal renderer themed o
 per i campi con comportamento speciale.
+
+Ad oggi il renderer themed copre anche i casi speciali backend di
+`textDate`, `dateInput`, `dateRange` e `textarea($version)`, mantenendo
+il fallback legacy solo per gli helper residui non ancora migrati.
