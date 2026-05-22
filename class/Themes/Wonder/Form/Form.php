@@ -25,6 +25,8 @@ class Form extends Component
 
     public function render($class): string
     {
+        $this->propagateNoFloating($class);
+
         $columnsClass = $this->getColumns($class->columns ?? []);
         $gapClass = $this->getGap($class->gap ?? []);
 
@@ -35,5 +37,39 @@ class Form extends Component
         $html .= '</form>';
 
         return $html;
+    }
+
+    /**
+     * Propaga la flag `no_floating` dal Form ai child Component prima
+     * del rendering, in modo che il default valga per tutti i campi.
+     *
+     * Override per singolo campo: se il child ha già `schema[no_floating]`
+     * impostato esplicitamente (es. `noFloating(false)` per riattivare
+     * il floating su un input specifico in un form noFloating), NON
+     * viene sovrascritto. Quindi:
+     *
+     *   - Form senza `noFloating()`: nessun effetto.
+     *   - Form `noFloating()` + child senza impostazione: child eredita true.
+     *   - Form `noFloating()` + child `noFloating(false)`: child resta false.
+     */
+    private function propagateNoFloating(object $form): void
+    {
+        if (!array_key_exists('no_floating', $form->schema ?? [])) {
+            return;
+        }
+
+        $value = (bool) $form->schema['no_floating'];
+
+        foreach ($form->components ?? [] as $component) {
+            if (!isset($component->schema) || !is_array($component->schema)) {
+                continue;
+            }
+
+            if (array_key_exists('no_floating', $component->schema)) {
+                continue;
+            }
+
+            $component->schema['no_floating'] = $value;
+        }
     }
 }

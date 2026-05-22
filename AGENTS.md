@@ -238,6 +238,30 @@ need to re-implement them per theme.
    the parent-class fallback within the same theme will use `Field`
    if a specific renderer is missing.
 
+### Disabling floating labels
+
+Both single Fields and entire Forms expose `noFloating()`:
+
+```php
+(new InputText('nick'))->label('Nickname')->noFloating();    // single field
+
+(new Form())                                                  // whole form
+    ->noFloating()
+    ->components([
+        (new InputText('name'))->label('Nome'),               // inherits no-floating
+        (new InputEmail('email'))->label('Email')->noFloating(false),  // override → keeps floating
+    ]);
+```
+
+Theme behavior:
+- Wonder: adds `wi-nf` to `.wi-input-container` (frontend CSS removes
+  the floating animation).
+- Bootstrap: skips the `<div class="form-floating">` wrap.
+
+Precedence: a Form's `noFloating()` is propagated to children only if
+the child has not set the flag explicitly (see
+`Themes\Wonder\Form\Form::propagateNoFloating()`).
+
 ### Common pitfalls
 
 - **Do NOT put rendering logic in `Elements/`**. The config layer is

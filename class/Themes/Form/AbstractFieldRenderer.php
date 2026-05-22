@@ -120,4 +120,18 @@ abstract class AbstractFieldRenderer implements Renderer
 
         return $label;
     }
+
+    /**
+     * `true` se il campo è in modalità "no floating label". L'opt-in
+     * arriva da `Field::noFloating()` (per singolo input) oppure è
+     * propagato da `Form::noFloating()` ai children prima del render
+     * (vedi `Themes/{Wonder,Bootstrap}/Form/Form::render()`).
+     *
+     * Wonder: aggiunge la classe `wi-nf` al `.wi-input-container`.
+     * Bootstrap: salta il wrap `<div class="form-floating">`.
+     */
+    protected function isNoFloating(): bool
+    {
+        return (bool) ($this->schema['no_floating'] ?? false);
+    }
 }

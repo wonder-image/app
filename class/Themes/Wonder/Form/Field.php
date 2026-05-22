@@ -36,6 +36,10 @@ abstract class Field extends AbstractFieldRenderer
     /**
      * Classe del container `wi-input-container` con stato e tipo.
      * Usata dai componenti che wrappano l'input in un `<div>`.
+     *
+     * Aggiunge `wi-nf` quando il field è in modalità no-floating
+     * (vedi `AbstractFieldRenderer::isNoFloating()`): il CSS frontend
+     * sopprime l'animazione della label e usa un layout statico.
      */
     protected function containerClass(string $type): string
     {
@@ -47,6 +51,10 @@ abstract class Field extends AbstractFieldRenderer
 
         if ($this->hasError()) {
             $class[] = 'input-error';
+        }
+
+        if ($this->isNoFloating()) {
+            $class[] = 'wi-nf';
         }
 
         return implode(' ', $class);

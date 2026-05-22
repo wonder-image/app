@@ -75,11 +75,35 @@
 
         }
 
-        public function autocomplete(string $autocomplete):self 
+        public function autocomplete(string $autocomplete):self
         {
 
-            return $this->attr('autocomplete', $autocomplete); 
+            return $this->attr('autocomplete', $autocomplete);
 
         }
-       
+
+        /**
+         * Disattiva il pattern "floating label" per questo campo.
+         *
+         * Effetti theme-specific:
+         *  - Wonder: aggiunge la classe `wi-nf` al `.wi-input-container`
+         *    (il CSS frontend rimuove l'animazione di "galleggiamento"
+         *    della label).
+         *  - Bootstrap: salta il wrap `<div class="form-floating">`.
+         *
+         * Il default in entrambi i temi è `floating = true`. Chiama
+         * `noFloating()` senza argomenti per attivarlo, o `noFloating(false)`
+         * per ri-abilitare esplicitamente in casi edge.
+         *
+         * Se il valore è impostato anche a livello di `Form`, vince il
+         * default propagato dal Form a meno che il campo NON l'abbia già
+         * impostato esplicitamente (override puntuale possibile).
+         */
+        public function noFloating(bool $noFloating = true): self
+        {
+
+            return $this->schema('no_floating', $noFloating);
+
+        }
+
     }

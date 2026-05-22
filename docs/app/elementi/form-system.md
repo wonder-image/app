@@ -181,6 +181,58 @@ $backendHtml  = $emailField->render('bootstrap');  // <div class="form-floating"
 
 L'oggetto Element è lo stesso: due render diversi.
 
+### Disattivare il "floating label" (`noFloating()`)
+
+Di default ogni campo usa il pattern "floating label" (in Wonder la
+label "galleggia" sopra l'input quando ha valore; in Bootstrap viene
+applicato `<div class="form-floating">`). Per disattivarlo si usa
+l'API `noFloating()` disponibile sia su singoli `Field` che sull'intero
+`Form`.
+
+#### Su singolo input
+
+```php
+$field = (new InputText('nick'))
+    ->label('Nickname')
+    ->noFloating();
+```
+
+Effetti theme-specific:
+- **Wonder**: aggiunge `wi-nf` al `.wi-input-container`, il CSS frontend
+  sopprime l'animazione della label.
+- **Bootstrap**: salta il `<div class="form-floating">`. L'input resta
+  con il suo `<label>` ma renderizzato in modo statico.
+
+#### Su intero form (propagato ai children)
+
+```php
+$form = (new Form())
+    ->noFloating()                                  // default: tutti no-floating
+    ->components([
+        (new InputText('name'))->label('Nome'),     // eredita no-floating
+        (new InputEmail('email'))                   // override puntuale: rimane floating
+            ->label('Email')
+            ->noFloating(false),
+    ]);
+```
+
+Regola di precedenza: la flag del Form viene applicata ai children
+SOLO se il child non l'ha impostata esplicitamente. Quindi
+`noFloating(false)` su un singolo input bypassa il default del Form.
+La propagazione avviene a render-time nel renderer del Form (vedi
+`Themes\Wonder\Form\Form::propagateNoFloating()` e l'equivalente
+Bootstrap).
+
+#### Quando si usa
+
+- Form compatti / inline (es. barra di ricerca, login).
+- Layout "non-floating" voluti dal design (form di registrazione molto
+  lunghi dove la label sopra-statica è più leggibile).
+- Component che concettualmente non hanno floating sensato (es.
+  `Checkbox`, `File` — questi già usano internamente
+  `renderField(input, false)` lato Bootstrap, l'API `noFloating()` è
+  per i casi opt-in dell'utente).
+
 ### Repeater (solo backend Bootstrap)
 
 ```php
