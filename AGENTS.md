@@ -27,8 +27,14 @@ Key subareas:
 - `class/App/Resources`: backend/API modules
 - `class/App/Module`: module-system discovery, manifest, state, config, registry
 - `class/App/PageSchema`: custom backend pages
-- `class/App/ResourceSchema`: form/table/repeater DSL
+- `class/App/ResourceSchema`: high-level form/table/repeater DSL (used by `Resource::formSchema()`)
 - `class/App/Support/Repeater.php`: repeater request + relation sync
+- `class/App/Support/FormFieldElementFactory.php`: bridge from `ResourceSchema/FormField` DSL to `Elements/Form/Components/*` (low-level objects)
+- `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
+- `class/Themes/Wonder/Form`: HTML rendering for the public-facing site (frontend theme, classes `wi-*`)
+- `class/Themes/Bootstrap/Form`: HTML rendering for the admin backend (Bootstrap 5 with `form-control` / `form-floating`)
+- `class/Themes/{Registry,Resolver}.php`: theme registration + cascade lookup (theme-chain × element-class-chain)
+- `class/App/Theme.php`: runtime theme switcher (`Theme::set('bootstrap')` / `Theme::get()`)
 - `app/config/routes`: Symfony routing definitions
 - `app/http`: backend/API handlers
 - `app/build/cli`, `app/build/update`, `app/build/row`, `app/build/stubs`: update/provisioning/build assets
@@ -107,7 +113,8 @@ php forge start
 - For backend forms:
   - `Model::tableSchema()` = SQL structure
   - `Model::dataSchema()` = data treatment / prepare / upload
-  - `Resource::formSchema()` = backend inputs
+  - `Resource::formSchema()` = backend inputs (high-level DSL via `ResourceSchema/FormField`)
+  - Under the hood, rendering goes through `Elements/Form` + `Themes/Bootstrap/Form/Components/*` via `FormFieldElementFactory`. See the Form / Element / Theme system section below.
 - For non-CRUD backend pages, use `CustomPageSchema`.
 - For repeatable rows, use `FormInput::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
 - When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, the work is not complete until all three are updated in the same change:
@@ -133,6 +140,85 @@ php forge start
 - Local Herd routing uses a global driver stub:
   - `app/build/stubs/WonderValetDriver.php`
   - generated into `~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php` by consumer-project Forge commands
+
+## Form / Element / Theme system
+
+Two-layer architecture for building and rendering forms:
+
+- **`class/Elements/Form/`** — config layer. Fluent API objects
+  (`InputText`, `Select`, `Repeater`, ...) that describe a field but
+  contain **no HTML**. Each Component extends `Elements/Form/Field`
+  and exposes builder methods (`label()`, `value()`, `required()`,
+  `placeholder()`, etc.).
+- **`class/Themes/Wonder/Form/`** — renderer layer for the **public
+  frontend** (CSS classes `wi-*`).
+- **`class/Themes/Bootstrap/Form/`** — renderer layer for the **admin
+  backend** (Bootstrap 5 `form-control`, `form-floating`, ...).
+
+Theme matching is automatic via namespace mirroring done by
+`Wonder\Themes\Resolver`:
+
+```
+Wonder\Elements\Form\Components\InputText
+        ↓ Resolver maps to current theme
+Wonder\Themes\{Wonder|Bootstrap}\Form\Components\InputText
+```
+
+The Resolver walks two chains: theme-chain (active → `fallback()` →
+default `wonder`) and element-class-chain (concrete class → parent
+class → ...). First non-abstract `Renderer` found wins. Missing
+specific renderers gracefully fall back to a generic parent renderer.
+
+### Switching theme at runtime
+
+```php
+use Wonder\App\Theme;
+Theme::set('bootstrap');   // backend pages
+Theme::set('wonder');      // public frontend (default)
+```
+
+Or per-call without touching global state:
+
+```php
+echo $field->render('bootstrap');   // one-off rendering
+```
+
+### Bridge with `Resource::formSchema()`
+
+The high-level DSL (`ResourceSchema/FormSchema` + `FormField` /
+`FormInput`) goes through `Wonder\App\Support\FormFieldElementFactory`:
+it converts each `FormField` to the matching `Elements/Form/Components/*`
+object, hydrates it (label, value, attributes, error), and calls
+`$element->render($theme)`. So consumers writing `Resource::formSchema()`
+automatically benefit from the Element + Theme system.
+
+### Adding a new Component
+
+1. Create `class/Elements/Form/Components/<Name>.php` extending
+   `Wonder\Elements\Form\Field`. Pure config (no HTML).
+2. Create `class/Themes/Wonder/Form/Components/<Name>.php` extending
+   `Wonder\Themes\Wonder\Form\Field`. Implement `renderInput(): string`.
+3. Create `class/Themes/Bootstrap/Form/Components/<Name>.php` extending
+   `Wonder\Themes\Bootstrap\Form\Field`. Implement `renderInput(): string`.
+4. Optional: add a case in `FormFieldElementFactory::make()` so the
+   high-level `FormSchema` DSL can build it too.
+
+No registration step needed: the Resolver discovers the new component
+by namespace convention.
+
+### Common pitfalls
+
+- **Do NOT put rendering logic in `Elements/`**. The config layer is
+  HTML-agnostic. Some legacy `renderInput()` stubs (`return ''`) exist
+  in a few `Elements/Form/Components/*` files — they are dead code and
+  safe to remove during cleanup.
+- **Repeater is intentionally absent from `Themes/Wonder/Form/`**. The
+  frontend never renders repeaters. Adding `->render('wonder')` on a
+  `Repeater` will fail with a clear "no renderer found" exception.
+- **`Field` is abstract**. Don't instantiate it directly; use a concrete
+  Component (`InputText`, `Select`, ...).
+
+Full docs in `docs/app/elementi/form-system.md`.
 
 ## AI skills (Claude Code / Cursor / Codex)
 
