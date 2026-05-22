@@ -1,5 +1,27 @@
 # App
 
+{% hint style="warning" %}
+Regola di manutenzione: quando una modifica cambia architettura,
+bootstrap/runtime, layout strutturale, convenzioni per sviluppatori o
+punti di estensione, il lavoro non e' completo finche' non vengono
+aggiornati insieme:
+
+- la documentazione pertinente sotto `docs/app/*`
+- `AGENTS.md`
+- la skill AI rilevante nel suo source/fork mantenuto esternamente
+
+Non modificare `.agents/` a mano: aggiorna la skill alla sorgente e poi
+risincronizzala tramite `npx skills`.
+{% endhint %}
+
+{% hint style="info" %}
+Principi guida del framework: il core deve restare estendibile e
+customizzabile dai consumer project e dai moduli esterni. Il riutilizzo
+del codice e' un obiettivo primario, soprattutto tra classi; quando
+utile, preferire `Concerns` e `Contracts` per condividere comportamento
+ed esporre punti di estensione coerenti.
+{% endhint %}
+
 {% hint style="info" %}
 Questo progetto è stato studiato per essere utilizzato con [Visual Studio Code](altro/estensioni-e-app-consigliate.md#visual-studio-code). Per il corretto funzionamento è consigliata l'installazione su VS Code  dell'estensione [SFTP](altro/estensioni-e-app-consigliate.md#sftp).
 {% endhint %}
@@ -17,6 +39,15 @@ composer create-project wonder-image/new-site:dev-main project-name
 ***
 
 ## Configurazione iniziale
+
+Nota architetturale aggiornata:
+
+- backend form schema: classi `Resource` / `CustomPageSchema`
+- rendering backend: pipeline themed `Wonder\\Elements\\Form` ->
+  `Wonder\\Themes\\Bootstrap\\Form`
+- helper legacy `app/function/backend/input.php`: compat layer e fallback
+- helper `app/function/frontend/input.php`: ancora validi, ma il target di
+  allineamento e' la stessa pipeline themed con tema `Wonder`
 
 La procedura aggiornata è questa:
 

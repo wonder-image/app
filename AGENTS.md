@@ -97,6 +97,9 @@ php forge start
 - Default to ASCII unless the file already uses non-ASCII.
 - Keep comments rare and high-signal.
 - Prefer `rg` / `rg --files` for search.
+- This framework must remain highly extensible and customizable for consumer projects and external modules; avoid closed designs that solve only the local case.
+- Code reuse is a primary design goal, especially across classes; before duplicating behavior, prefer extracting shared abstractions or reusable components.
+- `Concerns` and `Contracts` are strongly preferred when they improve reuse, consistency, and extension points across the framework.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
 - The canonical module format is a Composer package, not a folder embedded in the core package.
 - Standard module package naming is `wonder-image/<slug>`.
@@ -107,11 +110,15 @@ php forge start
   - `Resource::formSchema()` = backend inputs
 - For non-CRUD backend pages, use `CustomPageSchema`.
 - For repeatable rows, use `FormInput::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
-- When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, also update the related GitBook docs under `docs/app/*` in the same work.
+- When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, the work is not complete until all three are updated in the same change:
+  - the related GitBook docs under `docs/app/*`
+  - `AGENTS.md`
+  - the relevant AI skill source/fork/prompt that codifies the affected workflow or architecture guidance
 
 ## Architecture notes
 
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
+- Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
 - `Credentials::loadEnv()` must resolve `.env` from the consumer `ROOT`, never from the package directory under `vendor/`.
 - Backend/API routes are driven from `app/config/routes` and the `ResourceRouteRegistrar`.
@@ -155,6 +162,14 @@ Do not commit `.agents/` or hand-edit files inside it. If a skill needs
 project-specific customization, fork it under a different slug rather
 than patching the installed copy.
 
+If an architectural change alters conventions, extension points,
+directory layout, bootstrap flow, or developer workflow, updating the
+relevant skill is mandatory. Treat the change as incomplete until the
+skill source/fork has been updated to reflect the new architecture and
+the repo documentation has been aligned. Do not patch `.agents/` in
+place; update the maintained skill source/fork and then reinstall or
+sync it through `npx skills`.
+
 ## Files or areas to avoid changing
 
 - `vendor/`: never edit dependencies directly in this repo
@@ -182,9 +197,17 @@ php -l path/to/file.php
 composer dumpautoload
 ```
 
-3. If you changed docs, check links/paths manually.
+3. If you changed docs or `AGENTS.md`, check links/paths and instruction
+   consistency manually.
 
-4. If you changed any of these areas, validate in a consumer project:
+4. If the change is architectural, confirm in the same work that you
+   updated:
+
+- the relevant docs under `docs/app/*`
+- `AGENTS.md`
+- the relevant AI skill source/fork/prompt
+
+5. If you changed any of these areas, validate in a consumer project:
 
 - `class/Console/*`
 - `class/App/Resource*`
@@ -200,7 +223,7 @@ php forge update --local
 php forge start
 ```
 
-5. For Herd-specific local routing changes, also validate:
+6. For Herd-specific local routing changes, also validate:
 
 ```bash
 herd restart
