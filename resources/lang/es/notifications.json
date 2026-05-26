@@ -334,6 +334,11 @@
         "title": "Error 924",
         "text": "Tu cuenta parece estar registrada parcialmente. Regístrate de nuevo para completar el acceso."
     },
+    "925": {
+        "type": "danger",
+        "title": "No se pudo iniciar sesión",
+        "text": "Credenciales no válidas.<br>Introduce un nombre de usuario o correo válido y revisa la contraseña."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

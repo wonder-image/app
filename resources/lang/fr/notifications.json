@@ -334,6 +334,11 @@
         "title": "Erreur 924",
         "text": "Votre compte semble partiellement enregistré. Inscrivez-vous à nouveau pour finaliser l'accès."
     },
+    "925": {
+        "type": "danger",
+        "title": "Connexion impossible",
+        "text": "Identifiants invalides.<br>Saisissez un nom d'utilisateur ou un e-mail valide et vérifiez le mot de passe."
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

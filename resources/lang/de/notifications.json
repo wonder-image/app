@@ -334,6 +334,11 @@
         "title": "Fehler 924",
         "text": "Dein Konto scheint nur teilweise registriert zu sein. Bitte registriere dich erneut, um den Zugriff abzuschließen."
     },
+    "925": {
+        "type": "danger",
+        "title": "Anmeldung fehlgeschlagen",
+        "text": "Ungültige Zugangsdaten.<br>Gib einen gültigen Benutzernamen oder eine gültige E-Mail-Adresse ein und prüfe das Passwort."
+    },
     "950": {
         "type": "danger",
         "title": "Fehler 950",

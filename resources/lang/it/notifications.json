@@ -334,6 +334,11 @@
         "title": "Errore 924",
         "text": "Il tuo account risulta registrato parzialmente. Registrati di nuovo per completare l'accesso."
     },
+    "925": {
+        "type": "danger",
+        "title": "Accesso non riuscito",
+        "text": "Credenziali non valide.<br>Inserisci username o email corretti e verifica la password."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",
