@@ -4,7 +4,7 @@ namespace Wonder\App\Resources\Css;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -44,16 +44,16 @@ final class CssFontResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('font_family')
+            FormField::key('font_family')
                 ->text()
                 ->required(),
-            FormInput::key('link')
+            FormField::key('link')
                 ->url()
                 ->required(),
-            FormInput::key('name')
+            FormField::key('name')
                 ->text()
                 ->required(),
-            FormInput::key('visible')
+            FormField::key('visible')
                 ->select([
                     'true' => 'Visibile',
                     'false' => 'Nascosto',

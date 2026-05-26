@@ -72,7 +72,7 @@ Esempio:
 
 namespace Wonder\App\PageSchema;
 
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 
 final class AccountPageSchema extends CustomPageSchema
 {
@@ -87,8 +87,8 @@ final class AccountPageSchema extends CustomPageSchema
     public static function loginFormSchema(): array
     {
         return static::applyLabelSchema([
-            'username' => FormInput::key('username')->text()->required(),
-            'password' => FormInput::key('password')->password()->required(),
+            'username' => FormField::key('username')->text()->required(),
+            'password' => FormField::key('password')->password()->required(),
         ]);
     }
 }
@@ -129,13 +129,13 @@ Poi:
 <?=$renderInput((array) ($FORM_SCHEMA ?? []), 'password')?>
 ```
 
-## Relazione con `FormInput`
+## Relazione con `FormField`
 
-`CustomPageSchema` non sostituisce `FormInput`.
+`CustomPageSchema` non sostituisce `FormField`.
 
 La relazione corretta e':
 
-- `FormInput` = definizione del singolo campo
+- `FormField` = definizione del singolo campo
 - `CustomPageSchema` = contenitore dichiarativo dei campi di una pagina custom
 - `Resource` = modulo backend completo
 
@@ -145,7 +145,7 @@ Ricorda:
 
 - `Resource` per moduli
 - `CustomPageSchema` per pagine custom
-- `FormInput` per i singoli campi
+- `FormField` per i singoli campi
 - `Repeater` quando una pagina custom contiene righe ripetibili
 
 Nota:

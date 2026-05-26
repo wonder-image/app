@@ -4,7 +4,7 @@ namespace Wonder\App\Resources\Config;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -37,8 +37,8 @@ final class ConfigurationFileResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('htaccess')->textarea()->prepare('sanitize', false),
-            FormInput::key('robots')->textarea()->prepare('sanitize', false),
+            FormField::key('htaccess')->textarea()->prepare('sanitize', false),
+            FormField::key('robots')->textarea()->prepare('sanitize', false),
         ];
     }
 

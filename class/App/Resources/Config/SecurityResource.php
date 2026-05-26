@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Config;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\Elements\Components\Card;
@@ -66,41 +66,41 @@ final class SecurityResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('api_key')->text()->disabled(),
+            FormField::key('api_key')->text()->disabled(),
 
-            FormInput::key('gcp_project_id')->text(),
-            FormInput::key('gcp_api_key')->text(),
-            FormInput::key('gcp_client_api_key')->text(),
-            FormInput::key('g_recaptcha_site_key')->text(),
-            FormInput::key('g_recaptcha_secret_key')->text(),
-            FormInput::key('g_maps_place_id')->text(),
+            FormField::key('gcp_project_id')->text(),
+            FormField::key('gcp_api_key')->text(),
+            FormField::key('gcp_client_api_key')->text(),
+            FormField::key('g_recaptcha_site_key')->text(),
+            FormField::key('g_recaptcha_secret_key')->text(),
+            FormField::key('g_maps_place_id')->text(),
 
-            FormInput::key('google_oauth_client_id')->text(),
-            FormInput::key('google_oauth_client_secret')->password(),
-            FormInput::key('google_oauth_redirect_uri')->text(),
-            FormInput::key('apple_oauth_client_id')->text(),
-            FormInput::key('apple_oauth_team_id')->text(),
-            FormInput::key('apple_oauth_key_id')->text(),
-            FormInput::key('apple_oauth_redirect_uri')->text(),
-            FormInput::key('apple_oauth_private_key')->password(),
+            FormField::key('google_oauth_client_id')->text(),
+            FormField::key('google_oauth_client_secret')->password(),
+            FormField::key('google_oauth_redirect_uri')->text(),
+            FormField::key('apple_oauth_client_id')->text(),
+            FormField::key('apple_oauth_team_id')->text(),
+            FormField::key('apple_oauth_key_id')->text(),
+            FormField::key('apple_oauth_redirect_uri')->text(),
+            FormField::key('apple_oauth_private_key')->password(),
 
-            FormInput::key('mail_service')->select(static::mailServiceOptions())->required(),
-            FormInput::key('brevo_api_key')->password(),
-            FormInput::key('mail_host')->text(),
-            FormInput::key('mail_port')->text(),
-            FormInput::key('mail_username')->text(),
-            FormInput::key('mail_password')->password(),
+            FormField::key('mail_service')->select(static::mailServiceOptions())->required(),
+            FormField::key('brevo_api_key')->password(),
+            FormField::key('mail_host')->text(),
+            FormField::key('mail_port')->text(),
+            FormField::key('mail_username')->text(),
+            FormField::key('mail_password')->password(),
 
-            FormInput::key('klaviyo_api_key')->password(),
+            FormField::key('klaviyo_api_key')->password(),
 
-            FormInput::key('stripe_test')
+            FormField::key('stripe_test')
                 ->select(['false' => 'Produzione', 'true' => 'Test'])
                 ->required(),
-            FormInput::key('stripe_account_id')->text()->readonly(),
-            FormInput::key('stripe_test_account_id')->text()->readonly(),
+            FormField::key('stripe_account_id')->text()->readonly(),
+            FormField::key('stripe_test_account_id')->text()->readonly(),
 
-            FormInput::key('fatture_in_cloud_company_id')->text(),
-            FormInput::key('fatture_in_cloud_token')->text(),
+            FormField::key('fatture_in_cloud_company_id')->text(),
+            FormField::key('fatture_in_cloud_token')->text(),
         ];
     }
 

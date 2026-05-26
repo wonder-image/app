@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Config;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\Elements\Components\{ SectionTitle, Card };
@@ -40,14 +40,14 @@ final class AnalyticsResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('tag_manager')->text(),
-            FormInput::key('active_tag_manager')
+            FormField::key('tag_manager')->text(),
+            FormField::key('active_tag_manager')
                 ->select()
                 ->options(['true' => 'Si', 'false' => 'No'])
                 ->value('false')
                 ->required(),
-            FormInput::key('pixel_facebook')->text(),
-            FormInput::key('active_pixel_facebook')
+            FormField::key('pixel_facebook')->text(),
+            FormField::key('active_pixel_facebook')
                 ->select()
                 ->options(['true' => 'Si', 'false' => 'No'])
                 ->value('false')

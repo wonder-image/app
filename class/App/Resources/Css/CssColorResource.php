@@ -4,7 +4,7 @@ namespace Wonder\App\Resources\Css;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -45,10 +45,10 @@ final class CssColorResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('var')->text()->required(),
-            FormInput::key('name')->text()->required(),
-            FormInput::key('color')->color()->required(),
-            FormInput::key('contrast')->color()->required(),
+            FormField::key('var')->text()->required(),
+            FormField::key('name')->text()->required(),
+            FormField::key('color')->color()->required(),
+            FormField::key('contrast')->color()->required(),
         ];
     }
 

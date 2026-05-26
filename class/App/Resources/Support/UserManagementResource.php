@@ -5,7 +5,7 @@ namespace Wonder\App\Resources\Support;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -28,22 +28,22 @@ abstract class UserManagementResource extends Resource
     public static function formSchema(): array
     {
         $schema = [
-            FormInput::key('profile_picture')->inputFileDragDrop('image', 'profile')->label(''),
-            FormInput::key('name')->text()->required(),
-            FormInput::key('surname')->text()->required(),
-            FormInput::key('color')->select(static::colorOptions()),
-            FormInput::key('username')->text()->required(),
-            FormInput::key('phone')->phone(),
-            FormInput::key('email')->email()->required(),
-            FormInput::key('authority')->select(static::availableAuthorities())->required(),
-            FormInput::key('active')->select([
+            FormField::key('profile_picture')->inputFileDragDrop('image', 'profile')->label(''),
+            FormField::key('name')->text()->required(),
+            FormField::key('surname')->text()->required(),
+            FormField::key('color')->select(static::colorOptions()),
+            FormField::key('username')->text()->required(),
+            FormField::key('phone')->phone(),
+            FormField::key('email')->email()->required(),
+            FormField::key('authority')->select(static::availableAuthorities())->required(),
+            FormField::key('active')->select([
                 'true' => 'Abilitato',
                 'false' => 'Disabilitato',
             ])->required(),
         ];
 
         if (static::managedArea() === 'api') {
-            $schema[] = FormInput::key('allowed_domains')
+            $schema[] = FormField::key('allowed_domains')
                 ->repeater([
                     RepeaterColumn::key('allowed_domains')
                         ->text()
@@ -53,7 +53,7 @@ abstract class UserManagementResource extends Resource
                 ->repeaterAddLabel('Aggiungi dominio')
                 ->label('Domini');
 
-            $schema[] = FormInput::key('allowed_ips')
+            $schema[] = FormField::key('allowed_ips')
                 ->repeater([
                     RepeaterColumn::key('allowed_ips')
                         ->text()

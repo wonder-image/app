@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Media;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -63,7 +63,7 @@ final class ImageResource extends MediaResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('file')
+            FormField::key('file')
                 ->inputFileDragDrop('image')
                 ->storeAs('{slug}')
                 ->prepare([
@@ -71,7 +71,7 @@ final class ImageResource extends MediaResource
                     'resize' => RESPONSIVE_IMAGE_SIZES,
                 ])
                 ->required(),
-            FormInput::key('name')->text()->required(),
+            FormField::key('name')->text()->required(),
         ];
     }
 

@@ -2,7 +2,7 @@
 
 namespace Wonder\App\PageSchema;
 
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 
 final class UploadMassivePageSchema extends CustomPageSchema
 {
@@ -17,8 +17,8 @@ final class UploadMassivePageSchema extends CustomPageSchema
     public static function formSchema(): array
     {
         return static::applyLabelSchema([
-            'file' => FormInput::key('file')->inputFileDragDrop('media', 'classic'),
-            'type' => FormInput::key('type')->select([
+            'file' => FormField::key('file')->inputFileDragDrop('media', 'classic'),
+            'type' => FormField::key('type')->select([
                 'image' => 'Immagine',
                 'icon' => 'Icona',
                 'document' => 'Documento',

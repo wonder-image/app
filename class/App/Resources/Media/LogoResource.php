@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Media;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\Elements\Components\Card;
@@ -49,14 +49,14 @@ final class LogoResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('main')->inputFileDragDrop('png'),
-            FormInput::key('black')->inputFileDragDrop('png'),
-            FormInput::key('white')->inputFileDragDrop('png'),
-            FormInput::key('icon')->inputFileDragDrop('png'),
-            FormInput::key('icon_black')->inputFileDragDrop('png'),
-            FormInput::key('icon_white')->inputFileDragDrop('png'),
-            FormInput::key('app_icon')->inputFileDragDrop('png'),
-            FormInput::key('favicon')->inputFileDragDrop('ico'),
+            FormField::key('main')->inputFileDragDrop('png'),
+            FormField::key('black')->inputFileDragDrop('png'),
+            FormField::key('white')->inputFileDragDrop('png'),
+            FormField::key('icon')->inputFileDragDrop('png'),
+            FormField::key('icon_black')->inputFileDragDrop('png'),
+            FormField::key('icon_white')->inputFileDragDrop('png'),
+            FormField::key('app_icon')->inputFileDragDrop('png'),
+            FormField::key('favicon')->inputFileDragDrop('ico'),
         ];
     }
 

@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Css;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\Resources\Support\CssSingleton;
@@ -59,28 +59,28 @@ final class CssInputResource extends CssSingleton
     public static function formSchema(): array
     {
         return [
-            FormInput::key('border_color')->color()->required(),
-            FormInput::key('border_color_focus')->color()->required(),
-            FormInput::key('border_radius')->text()->required(),
-            FormInput::key('border_top')->text()->required(),
-            FormInput::key('border_right')->text()->required(),
-            FormInput::key('border_bottom')->text()->required(),
-            FormInput::key('border_left')->text()->required(),
-            FormInput::key('date_default')->color()->required(),
-            FormInput::key('date_active')->color()->required(),
-            FormInput::key('date_bg')->color()->required(),
-            FormInput::key('date_bg_hover')->color()->required(),
-            FormInput::key('date_border_radius')->text()->required(),
-            FormInput::key('label_color')->color()->required(),
-            FormInput::key('label_color_focus')->color()->required(),
-            FormInput::key('label_weight')->text()->required(),
-            FormInput::key('label_weight_focus')->text()->required(),
-            FormInput::key('tx_color')->color()->required(),
-            FormInput::key('bg_color')->color()->required(),
-            FormInput::key('disabled_bg_color')->color()->required(),
-            FormInput::key('dropdown_tx_color')->color()->required(),
-            FormInput::key('dropdown_bg_color')->color()->required(),
-            FormInput::key('select_hover')->color()->required(),
+            FormField::key('border_color')->color()->required(),
+            FormField::key('border_color_focus')->color()->required(),
+            FormField::key('border_radius')->text()->required(),
+            FormField::key('border_top')->text()->required(),
+            FormField::key('border_right')->text()->required(),
+            FormField::key('border_bottom')->text()->required(),
+            FormField::key('border_left')->text()->required(),
+            FormField::key('date_default')->color()->required(),
+            FormField::key('date_active')->color()->required(),
+            FormField::key('date_bg')->color()->required(),
+            FormField::key('date_bg_hover')->color()->required(),
+            FormField::key('date_border_radius')->text()->required(),
+            FormField::key('label_color')->color()->required(),
+            FormField::key('label_color_focus')->color()->required(),
+            FormField::key('label_weight')->text()->required(),
+            FormField::key('label_weight_focus')->text()->required(),
+            FormField::key('tx_color')->color()->required(),
+            FormField::key('bg_color')->color()->required(),
+            FormField::key('disabled_bg_color')->color()->required(),
+            FormField::key('dropdown_tx_color')->color()->required(),
+            FormField::key('dropdown_bg_color')->color()->required(),
+            FormField::key('select_hover')->color()->required(),
         ];
     }
 

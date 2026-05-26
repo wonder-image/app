@@ -117,7 +117,7 @@ php forge start
   - `Resource::formSchema()` = backend inputs (high-level DSL via `ResourceSchema/FormField`)
   - Under the hood, rendering goes through `Elements/Form` + `Themes/Bootstrap/Form/Components/*` via `FormFieldElementFactory`. See the Form / Element / Theme system section below.
 - For non-CRUD backend pages, use `CustomPageSchema`.
-- For repeatable rows, use `FormInput::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
+- For repeatable rows, use `FormField::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
 - When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, the work is not complete until all three are updated in the same change:
   - the related GitBook docs under `docs/app/*`
   - `AGENTS.md`
@@ -198,7 +198,7 @@ echo $field->render('bootstrap');   // one-off rendering
 ### Bridge with `Resource::formSchema()`
 
 The high-level DSL (`ResourceSchema/FormSchema` + `FormField` /
-`FormInput`) goes through `Wonder\App\Support\FormFieldElementFactory`:
+`FormField`) goes through `Wonder\App\Support\FormFieldElementFactory`:
 it converts each `FormField` to the matching `Elements/Form/Components/*`
 object, hydrates it (label, value, attributes, error), and calls
 `$element->render($theme)`. So consumers writing `Resource::formSchema()`

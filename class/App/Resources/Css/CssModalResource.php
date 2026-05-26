@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Css;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\Resources\Support\CssSingleton;
@@ -42,11 +42,11 @@ final class CssModalResource extends CssSingleton
     public static function formSchema(): array
     {
         return [
-            FormInput::key('border_width')->text()->required(),
-            FormInput::key('border_radius')->text()->required(),
-            FormInput::key('tx')->color()->required(),
-            FormInput::key('bg')->color()->required(),
-            FormInput::key('border_color')->color()->required(),
+            FormField::key('border_width')->text()->required(),
+            FormField::key('border_radius')->text()->required(),
+            FormField::key('tx')->color()->required(),
+            FormField::key('bg')->color()->required(),
+            FormField::key('border_color')->color()->required(),
         ];
     }
 

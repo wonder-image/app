@@ -42,7 +42,7 @@
             $template .= "\n";
             $template .= "use Wonder\\App\\Resource;\n";
             $template .= "use Wonder\\App\\ResourceSchema\\ApiSchema;\n";
-            $template .= "use Wonder\\App\\ResourceSchema\\FormInput;\n";
+            $template .= "use Wonder\\App\\ResourceSchema\\FormField;\n";
             $template .= "use Wonder\\App\\ResourceSchema\\NavigationSchema;\n";
             $template .= "use Wonder\\App\\ResourceSchema\\PageSchema;\n";
             $template .= "use Wonder\\App\\ResourceSchema\\PermissionSchema;\n";
@@ -80,7 +80,7 @@
             $template .= "    {\n";
             $template .= "        return [\n";
             $template .= "            // Definisce gli input del backend.\n";
-            $template .= "            FormInput::key('name')->text(),\n";
+            $template .= "            FormField::key('name')->text(),\n";
             $template .= "        ];\n";
             $template .= "    }\n";
             $template .= "\n";

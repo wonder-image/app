@@ -282,7 +282,7 @@ Esempio minimo:
 namespace App\Resources;
 
 use Wonder\App\Resource;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Elements\Form\Form;
@@ -320,9 +320,9 @@ final class ContactResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('name')->text()->required(),
-            FormInput::key('surname')->text()->required(),
-            FormInput::key('email')->email()->required(),
+            FormField::key('name')->text()->required(),
+            FormField::key('surname')->text()->required(),
+            FormField::key('email')->email()->required(),
         ];
     }
 
@@ -369,8 +369,8 @@ Corretto:
 public static function formSchema(): array
 {
     return [
-        FormInput::key('name')->text()->required(),
-        FormInput::key('email')->email(),
+        FormField::key('name')->text()->required(),
+        FormField::key('email')->email(),
     ];
 }
 ```
@@ -543,7 +543,7 @@ API:
 
 ### Input backend
 
-Disponibili tramite `FormInput::key(...)`:
+Disponibili tramite `FormField::key(...)`:
 
 - `text()`
 - `textGenerator()`
@@ -727,7 +727,7 @@ Note tecniche recenti:
 - i moduli nuovi devono ottenere schema prepare/upload da `Resource`
 - il bridge runtime `formToArray()` ora deriva i format da `Model::dataSchema()` tramite [Model.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/class/App/Model.php); gli override `legacyTableSchema()` nei model applicativi sono stati eliminati
 - `SortableInput` e' ora formalmente deprecated: resta solo per compatibilita' con eventuali flussi legacy residui e non va piu' usato nei nuovi moduli
-- il primo step del nuovo layer e' attivo: `FormInput::repeater()` sostituisce gia' `SortableInput` nei casi JSON semplici, a partire da `api-users` (`allowed_domains`, `allowed_ips`)
+- il primo step del nuovo layer e' attivo: `FormField::repeater()` sostituisce gia' `SortableInput` nei casi JSON semplici, a partire da `api-users` (`allowed_domains`, `allowed_ips`)
 - il secondo step e' attivo: `RepeaterColumn` + `nested()` + `Wonder\App\Support\Repeater::rowsFromRequest()` coprono gia' righe multi-colonna, hidden/id e upload per riga
 - il repeater supporta ora anche l'ordinamento lato UI con `->repeaterSortable()`, utile quando la relazione usa `positionKey()`
 - il repeater supporta una conferma eliminazione con modale Bootstrap customizzabile da schema (`repeaterDeleteTitle/Text/CancelLabel/ConfirmLabel/ConfirmClass`)

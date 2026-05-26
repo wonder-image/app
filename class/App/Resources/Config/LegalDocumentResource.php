@@ -5,7 +5,7 @@ namespace Wonder\App\Resources\Config;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -56,14 +56,14 @@ final class LegalDocumentResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('name')->text(),
-            FormInput::key('doc_type')->select(static::documentTypes())->required(),
-            FormInput::key('language_code')->select(static::languageOptions())->required(),
-            FormInput::key('version')->text()->required(),
-            FormInput::key('published_at')->textDatetime()->required()->value(date('Y-m-d\TH:i')),
-            FormInput::key('checkbox_label')->textarea('plus')->required()->prepare('sanitize', false),
-            FormInput::key('content_snapshot')->textarea('blog')->required()->prepare('sanitize', false),
-            FormInput::key('active')
+            FormField::key('name')->text(),
+            FormField::key('doc_type')->select(static::documentTypes())->required(),
+            FormField::key('language_code')->select(static::languageOptions())->required(),
+            FormField::key('version')->text()->required(),
+            FormField::key('published_at')->textDatetime()->required()->value(date('Y-m-d\TH:i')),
+            FormField::key('checkbox_label')->textarea('plus')->required()->prepare('sanitize', false),
+            FormField::key('content_snapshot')->textarea('blog')->required()->prepare('sanitize', false),
+            FormField::key('active')
                 ->select(['true' => 'Attivo', 'false' => 'Non attivo'])
                 ->old()
                 ->value('true')

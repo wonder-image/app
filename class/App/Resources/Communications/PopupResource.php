@@ -7,7 +7,7 @@ use Wonder\App\Resource;
 use Wonder\App\RuntimeDefaults;
 use Wonder\App\Models\Css\CssColor;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -70,34 +70,34 @@ final class PopupResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('name')
+            FormField::key('name')
                 ->text()
                 ->required(),
-            FormInput::key('title')
+            FormField::key('title')
                 ->text(),
-            FormInput::key('bg_color')
+            FormField::key('bg_color')
                 ->select(static::colorOptions(), 'old')
                 ->value('white')
                 ->required(),
-            FormInput::key('tx_color')
+            FormField::key('tx_color')
                 ->select(static::colorOptions(), 'old')
                 ->value('black')
                 ->required(),
-            FormInput::key('url')
+            FormField::key('url')
                 ->text(),
-            FormInput::key('url_label')
+            FormField::key('url_label')
                 ->text(),
-            FormInput::key('pages')
+            FormField::key('pages')
                 ->checkbox()
                 ->options(static::frontendPageOptions())
                 ->searchBar()
                 ->required(),
-            FormInput::key('view')
+            FormField::key('view')
                 ->number()
                 ->attribute('min="0" step="1"'),
-            FormInput::key('images')
+            FormField::key('images')
                 ->inputFileDragDrop('image'),
-            FormInput::key('visible')
+            FormField::key('visible')
                 ->select([
                     'true' => 'Visibile',
                     'false' => 'Nascosto',

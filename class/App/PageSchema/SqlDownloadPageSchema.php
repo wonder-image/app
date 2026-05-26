@@ -2,7 +2,7 @@
 
 namespace Wonder\App\PageSchema;
 
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 
 final class SqlDownloadPageSchema extends CustomPageSchema
 {
@@ -17,8 +17,8 @@ final class SqlDownloadPageSchema extends CustomPageSchema
     public static function formSchema(array $tableOptions): array
     {
         return static::applyLabelSchema([
-            'table' => FormInput::key('table')->radio($tableOptions),
-            'format' => FormInput::key('format')->select([
+            'table' => FormField::key('table')->radio($tableOptions),
+            'format' => FormField::key('format')->select([
                 'csv' => 'Csv',
                 'xls' => 'Excel',
             ]),

@@ -21,7 +21,7 @@ Nel backend la source of truth dei campi e' nelle classi:
 - `Resource::formSchema()` per i CRUD resource
 - `CustomPageSchema` per le pagine backend non CRUD
 
-`FormInput` e `FormField` definiscono lo schema del campo, ma non devono
+`FormField` e `FormField` definiscono lo schema del campo, ma non devono
 essere trattati come helper HTML. La renderizzazione prova prima il
 pipeline themed basato su `Wonder\\Elements\\Form\\*` e
 `Wonder\\Themes\\Bootstrap\\Form\\*`.

@@ -78,7 +78,7 @@ namespace App\Resources;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
@@ -119,9 +119,9 @@ final class ContactResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('name')->text()->required(),
-            FormInput::key('surname')->text()->required(),
-            FormInput::key('email')->email()->required(),
+            FormField::key('name')->text()->required(),
+            FormField::key('surname')->text()->required(),
+            FormField::key('email')->email()->required(),
         ];
     }
 

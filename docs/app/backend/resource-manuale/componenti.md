@@ -10,17 +10,17 @@ Prima dei componenti, ricorda questa regola:
 - `Model::dataSchema()` definisce come trattare i dati prima del salvataggio
 - `Resource::formSchema()` definisce gli input del backend
 
-## `FormInput`
+## `FormField`
 
-`FormInput` serve per configurare un singolo input del form.
+`FormField` serve per configurare un singolo input del form.
 
 Esempi:
 
 ```php
-FormInput::key('name')->text()->required()
-FormInput::key('email')->email()->required()
-FormInput::key('phone')->tel()
-FormInput::key('visible')->select([
+FormField::key('name')->text()->required()
+FormField::key('email')->email()->required()
+FormField::key('phone')->tel()
+FormField::key('visible')->select([
     'true' => 'Visibile',
     'false' => 'Nascosto',
 ], 'old')->value('true')
@@ -140,7 +140,7 @@ Metodi utili lato `dataSchema()`:
 
 Per nuovi moduli o refactor devi usare:
 
-- `FormInput::repeater()`
+- `FormField::repeater()`
 - `RepeaterColumn`
 - `Wonder\App\Support\Repeater`
 
@@ -149,7 +149,7 @@ Per liste JSON semplici nel backend puoi usare un repeater nativo direttamente i
 Esempio:
 
 ```php
-FormInput::key('allowed_domains')
+FormField::key('allowed_domains')
     ->repeater([
         [
             'name' => 'allowed_domains',
@@ -171,7 +171,7 @@ Questo pattern e' pensato per:
 Per casi piu' complessi puoi usare la modalita' nested:
 
 ```php
-FormInput::key('variants')
+FormField::key('variants')
     ->repeater([
         RepeaterColumn::key('variant_id')->hidden(),
         RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(6),
@@ -211,7 +211,7 @@ Primo supporto relazionale 1:N:
 ```php
 use Wonder\App\ResourceSchema\RepeaterRelation;
 
-FormInput::key('variants')
+FormField::key('variants')
     ->repeater([
         RepeaterColumn::key('id')->hidden(),
         RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(6),

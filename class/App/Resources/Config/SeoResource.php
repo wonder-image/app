@@ -3,7 +3,7 @@
 namespace Wonder\App\Resources\Config;
 
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\Elements\Components\Card;
@@ -42,12 +42,12 @@ final class SeoResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('title')->text()->required(),
-            FormInput::key('description')->textarea()->required(),
-            FormInput::key('author')->text()->required(),
-            FormInput::key('copyright')->text()->required(),
-            FormInput::key('creator')->text()->required(),
-            FormInput::key('reply')->email()->required(),
+            FormField::key('title')->text()->required(),
+            FormField::key('description')->textarea()->required(),
+            FormField::key('author')->text()->required(),
+            FormField::key('copyright')->text()->required(),
+            FormField::key('creator')->text()->required(),
+            FormField::key('reply')->email()->required(),
         ];
     }
 

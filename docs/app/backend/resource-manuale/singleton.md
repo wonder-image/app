@@ -64,7 +64,7 @@ diventa:
 namespace Wonder\App\Resources;
 
 use Wonder\App\Models\SiteSettings;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\Resources\Support\SingletonResource;
@@ -100,8 +100,8 @@ final class SiteSettingsResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('title')->text()->required(),
-            FormInput::key('email')->email()->required(),
+            FormField::key('title')->text()->required(),
+            FormField::key('email')->email()->required(),
         ];
     }
 

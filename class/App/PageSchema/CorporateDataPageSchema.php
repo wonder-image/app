@@ -2,7 +2,7 @@
 
 namespace Wonder\App\PageSchema;
 
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 
 final class CorporateDataPageSchema extends CustomPageSchema
@@ -53,71 +53,71 @@ final class CorporateDataPageSchema extends CustomPageSchema
     public static function companyFormSchema(): array
     {
         return static::applyLabelSchema([
-            'name' => FormInput::key('name')->text(),
-            'email' => FormInput::key('email')->email(),
-            'tel' => FormInput::key('tel')->text(),
-            'cel' => FormInput::key('cel')->text(),
+            'name' => FormField::key('name')->text(),
+            'email' => FormField::key('email')->email(),
+            'tel' => FormField::key('tel')->text(),
+            'cel' => FormField::key('cel')->text(),
         ]);
     }
 
     public static function legalFormSchema(): array
     {
         return static::applyLabelSchema([
-            'legal_name' => FormInput::key('legal_name')->text(),
-            'share_capital' => FormInput::key('share_capital')->price(),
-            'pec' => FormInput::key('pec')->text(),
-            'sdi' => FormInput::key('sdi')->text(),
-            'rea' => FormInput::key('rea')->text(),
-            'pi' => FormInput::key('pi')->text(),
-            'cf' => FormInput::key('cf')->text(),
+            'legal_name' => FormField::key('legal_name')->text(),
+            'share_capital' => FormField::key('share_capital')->price(),
+            'pec' => FormField::key('pec')->text(),
+            'sdi' => FormField::key('sdi')->text(),
+            'rea' => FormField::key('rea')->text(),
+            'pi' => FormField::key('pi')->text(),
+            'cf' => FormField::key('cf')->text(),
         ]);
     }
 
     public static function legalAddressFormSchema(string $country = 'IT'): array
     {
         return static::applyLabelSchema([
-            'legal_country' => FormInput::key('legal_country')->country('legal_province'),
-            'legal_province' => FormInput::key('legal_province')->states($country),
-            'legal_city' => FormInput::key('legal_city')->text(),
-            'legal_cap' => FormInput::key('legal_cap')->text(),
-            'legal_street' => FormInput::key('legal_street')->text(),
-            'legal_number' => FormInput::key('legal_number')->text(),
-            'legal_more' => FormInput::key('legal_more')->text(),
-            'legal_gmaps' => FormInput::key('legal_gmaps')->url(),
+            'legal_country' => FormField::key('legal_country')->country('legal_province'),
+            'legal_province' => FormField::key('legal_province')->states($country),
+            'legal_city' => FormField::key('legal_city')->text(),
+            'legal_cap' => FormField::key('legal_cap')->text(),
+            'legal_street' => FormField::key('legal_street')->text(),
+            'legal_number' => FormField::key('legal_number')->text(),
+            'legal_more' => FormField::key('legal_more')->text(),
+            'legal_gmaps' => FormField::key('legal_gmaps')->url(),
         ]);
     }
 
     public static function addressFormSchema(string $country = 'IT'): array
     {
         return static::applyLabelSchema([
-            'country' => FormInput::key('country')->country('province'),
-            'province' => FormInput::key('province')->states($country),
-            'city' => FormInput::key('city')->text(),
-            'cap' => FormInput::key('cap')->text(),
-            'street' => FormInput::key('street')->text(),
-            'number' => FormInput::key('number')->text(),
-            'more' => FormInput::key('more')->text(),
-            'gmaps' => FormInput::key('gmaps')->url(),
+            'country' => FormField::key('country')->country('province'),
+            'province' => FormField::key('province')->states($country),
+            'city' => FormField::key('city')->text(),
+            'cap' => FormField::key('cap')->text(),
+            'street' => FormField::key('street')->text(),
+            'number' => FormField::key('number')->text(),
+            'more' => FormField::key('more')->text(),
+            'gmaps' => FormField::key('gmaps')->url(),
         ]);
     }
 
     public static function socialFormSchema(): array
     {
         return static::applyLabelSchema([
-            'site' => FormInput::key('site')->url(),
-            'instagram' => FormInput::key('instagram')->url(),
-            'facebook' => FormInput::key('facebook')->url(),
-            'tiktok' => FormInput::key('tiktok')->url(),
-            'linkedin' => FormInput::key('linkedin')->url(),
-            'whatsapp' => FormInput::key('whatsapp')->url(),
-            'youtube' => FormInput::key('youtube')->url(),
+            'site' => FormField::key('site')->url(),
+            'instagram' => FormField::key('instagram')->url(),
+            'facebook' => FormField::key('facebook')->url(),
+            'tiktok' => FormField::key('tiktok')->url(),
+            'linkedin' => FormField::key('linkedin')->url(),
+            'whatsapp' => FormField::key('whatsapp')->url(),
+            'youtube' => FormField::key('youtube')->url(),
         ]);
     }
 
     public static function timetableFormSchema(): array
     {
         return static::applyLabelSchema([
-            'day' => FormInput::key('day')
+            'day' => FormField::key('day')
                 ->select([
                     'Mon' => translateDate('Mon', 'day'),
                     'Tue' => translateDate('Tue', 'day'),
@@ -128,14 +128,14 @@ final class CorporateDataPageSchema extends CustomPageSchema
                     'Sun' => translateDate('Sun', 'day'),
                 ])
                 ->columnSpan(3),
-            'from_time' => FormInput::key('from_time')->timeInput(900)->columnSpan(3),
-            'to_time' => FormInput::key('to_time')->timeInput(900)->columnSpan(3),
+            'from_time' => FormField::key('from_time')->timeInput(900)->columnSpan(3),
+            'to_time' => FormField::key('to_time')->timeInput(900)->columnSpan(3),
         ]);
     }
 
     public static function timetableRepeaterField(): object
     {
-        return FormInput::key('timetables')
+        return FormField::key('timetables')
             ->repeater([
                 RepeaterColumn::key('id')->hidden(),
                 RepeaterColumn::key('day')
