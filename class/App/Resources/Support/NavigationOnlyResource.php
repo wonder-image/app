@@ -84,6 +84,19 @@ abstract class NavigationOnlyResource extends Resource
         return [];
     }
 
+    /**
+     * Override del Resource::prepareSchema() — l'originale chiama
+     * `modelClass()::prepareFormatFromField()` per ogni campo, cosa
+     * che fallisce qui (no model). Per le NavigationOnlyResource non
+     * c'è uno schema "table" da preparare: la pagina la gestisce una
+     * PageSchema dedicata che pubblica il proprio schema sotto un
+     * altro nome (vedi `CustomPageSchema`).
+     */
+    public static function prepareSchema(): array
+    {
+        return [];
+    }
+
     # `path()`, `icon()`, `navigationSchema()` non sono dichiarati
     # abstract perché Resource fornisce già default (concreti). Le
     # sottoclassi devono comunque overrid-arli, altrimenti `icon()` /
