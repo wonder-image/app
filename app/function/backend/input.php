@@ -1,5 +1,23 @@
 <?php
 
+    /**
+     * Helper procedurali per i form del backend (tema Bootstrap).
+     *
+     * Questo file espone funzioni globali (`text()`, `email()`,
+     * `select()`, …) per backward compatibility con le pagine
+     * dell'admin scritte prima dell'introduzione del sistema
+     * `Elements + Themes`.
+     *
+     * IMPLEMENTAZIONE: ogni funzione è una "compatibility shim" che
+     * costruisce l'Element di `Wonder\Elements\Form\Components` e
+     * delega il rendering al tema attivo (Bootstrap qui).
+     *
+     * NUOVO CODICE: usa direttamente la DSL `Wonder\App\ResourceSchema\
+     * FormField::key(...)->text()->required()` oppure costruisci
+     * l'Element. `FormField` NON dipende più da queste funzioni: il
+     * rendering passa per `FormFieldElementFactory`.
+     */
+
     use Wonder\App\Support\AttributeString;
     use Wonder\App\Support\CssFontFamily;
     use Wonder\Elements\Form\Components\CheckBoolean;

@@ -138,6 +138,29 @@ final class FormSchema
             ->uploader($uploader);
     }
 
+    public static function checkTree(string $name, array $options = []): FormField
+    {
+        return self::input('checkTree', $name)->options($options);
+    }
+
+    public static function dynamicCheck(string $name, string $url): FormField
+    {
+        return self::input('dynamicCheck', $name)->context([
+            'url' => trim($url),
+            'input_type' => 'checkbox',
+        ]);
+    }
+
+    public static function checkBoolean(string $name): FormField
+    {
+        return self::input('checkBoolean', $name);
+    }
+
+    public static function googleAddress(string $name): FormField
+    {
+        return self::input('googleAddress', $name);
+    }
+
     public function method(string $method): self
     {
         $this->schema['method'] = strtoupper(trim($method));

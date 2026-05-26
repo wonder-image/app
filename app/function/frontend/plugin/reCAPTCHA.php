@@ -1,5 +1,16 @@
 <?php
 
+    /**
+     * Helper procedurali per reCAPTCHA v3.
+     *
+     * - `inputRecaptcha()` è una compatibility shim sopra
+     *   `Wonder\Plugin\Custom\Input\reCAPTCHA`. Nuovo codice: usa
+     *   direttamente la classe.
+     * - `verifyRecaptcha()` resta funzione utility server-side (verifica
+     *   token post-submit). Non è un renderer: usa internamente
+     *   `Wonder\Plugin\Google\Security\reCAPTCHA`.
+     */
+
     function verifyRecaptcha($POST) {
 
         global $ALERT;

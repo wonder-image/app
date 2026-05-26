@@ -2,15 +2,18 @@
 
 namespace Wonder\App\Support;
 
-use Throwable;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\Support\AttributeString;
+use Wonder\Elements\Form\Components\CheckBoolean;
 use Wonder\Elements\Form\Components\CheckGroup;
+use Wonder\Elements\Form\Components\CheckTree;
 use Wonder\Elements\Form\Components\Checkbox;
 use Wonder\Elements\Form\Components\Date;
 use Wonder\Elements\Form\Components\DatePicker;
 use Wonder\Elements\Form\Components\DateRange;
+use Wonder\Elements\Form\Components\DynamicCheck;
 use Wonder\Elements\Form\Components\File;
+use Wonder\Elements\Form\Components\GoogleAddress;
 use Wonder\Elements\Form\Components\Hidden;
 use Wonder\Elements\Form\Components\InputColor;
 use Wonder\Elements\Form\Components\InputDatetime;
@@ -27,10 +30,19 @@ use Wonder\Elements\Form\Components\Repeater;
 use Wonder\Elements\Form\Components\Select;
 use Wonder\Elements\Form\Components\Textarea;
 use Wonder\Elements\Form\Components\TextareaEditor;
+use Wonder\Elements\Form\Components\TextGenerator;
 use Wonder\Elements\Form\Field as ElementField;
 
 final class FormFieldElementFactory
 {
+    /**
+     * Render del `FormField` come Element del tema attivo.
+     *
+     * Ritorna `null` SOLO se l'helper non è gestito (mapping non
+     * trovato in `make()`). NON cattura Throwable lanciati dal render:
+     * un errore nel renderer del tema deve propagarsi così che il
+     * chiamante possa diagnosticarlo invece che fallire silently.
+     */
     public static function render(FormField $field, ?string $theme = null): ?string
     {
         $element = self::make($field);
@@ -39,11 +51,7 @@ final class FormFieldElementFactory
             return null;
         }
 
-        try {
-            return $element->render($theme);
-        } catch (Throwable) {
-            return null;
-        }
+        return $element->render($theme);
     }
 
     private static function make(FormField $field): ?ElementField
@@ -58,6 +66,7 @@ final class FormFieldElementFactory
         $element = match ($helper) {
             'hidden' => new Hidden($name),
             'text' => new InputText($name),
+            'textGenerator' => self::textGeneratorElement($name, $field),
             'email' => new InputEmail($name),
             'tel', 'phone' => new InputTel($name),
             'number' => new InputNumber($name),
@@ -79,6 +88,10 @@ final class FormFieldElementFactory
             'inputPhonePrefix' => self::phonePrefixElement($name, $field),
             'radio' => self::checkGroupElement($name, $field, 'radio'),
             'checkbox' => self::checkboxLikeElement($name, $field),
+            'checkTree' => self::checkTreeElement($name, $field),
+            'dynamicCheck' => self::dynamicCheckElement($name, $field),
+            'checkBoolean' => self::checkBooleanElement($name, $field),
+            'googleAddress' => self::googleAddressElement($name, $field),
             'inputFile', 'inputFileDragDrop' => self::fileElement($name, $field),
             'inputRepeater' => self::repeaterElement($name, $field),
             default => null,
@@ -307,6 +320,95 @@ final class FormFieldElementFactory
             ->columns(is_array($field->get('context')['columns'] ?? null) ? $field->get('context')['columns'] : [])
             ->context((array) ($field->get('context') ?? []))
             ->value($field->get('value'));
+    }
+
+    private static function textGeneratorElement(string $name, FormField $field): TextGenerator
+    {
+        $context = (array) ($field->get('context') ?? []);
+        $element = new TextGenerator($name);
+
+        if (isset($context['button_label']) && is_string($context['button_label'])) {
+            $element->buttonLabel($context['button_label']);
+        }
+
+        if (isset($context['callback']) && is_string($context['callback'])) {
+            $element->callback($context['callback']);
+        }
+
+        return $element;
+    }
+
+    private static function checkTreeElement(string $name, FormField $field): CheckTree
+    {
+        $context = (array) ($field->get('context') ?? []);
+        $type = (string) ($context['input_type'] ?? 'checkbox');
+        $value = $field->get('value');
+
+        if ($type === 'checkbox' && is_string($value) && trim($value) !== '') {
+            $decoded = json_decode($value, true);
+
+            if (is_array($decoded)) {
+                $value = $decoded;
+            }
+        }
+
+        return (new CheckTree($name))
+            ->options(self::normalizeOptions((array) ($field->get('options') ?? [])))
+            ->searchBar((bool) ($field->get('search_bar') ?? false))
+            ->inputType($type)
+            ->value($value);
+    }
+
+    private static function dynamicCheckElement(string $name, FormField $field): DynamicCheck
+    {
+        $context = (array) ($field->get('context') ?? []);
+        $url = (string) ($context['url'] ?? '');
+        $type = (string) ($context['input_type'] ?? 'checkbox');
+
+        return (new DynamicCheck($name))
+            ->url($url)
+            ->inputType($type)
+            ->value($field->get('value'));
+    }
+
+    private static function checkBooleanElement(string $name, FormField $field): CheckBoolean
+    {
+        $context = (array) ($field->get('context') ?? []);
+        $values = is_array($context['boolean_values'] ?? null) ? $context['boolean_values'] : ['', 'true', 'false'];
+        $values = array_pad($values, 3, '');
+
+        $element = (new CheckBoolean($name))
+            ->values((string) $values[0], (string) $values[1], (string) $values[2])
+            ->value($field->get('value'));
+
+        if (isset($context['true_label']) && is_string($context['true_label'])) {
+            $element->trueLabel($context['true_label']);
+        }
+
+        if (isset($context['false_label']) && is_string($context['false_label'])) {
+            $element->falseLabel($context['false_label']);
+        }
+
+        return $element;
+    }
+
+    private static function googleAddressElement(string $name, FormField $field): GoogleAddress
+    {
+        $context = (array) ($field->get('context') ?? []);
+        $value = $field->get('value');
+
+        $element = (new GoogleAddress($name))
+            ->alias((string) ($context['alias'] ?? $name))
+            ->restriction(is_array($context['restriction'] ?? null) ? $context['restriction'] : []);
+
+        # breakdown: priorità a context['breakdown'], fallback al value se è array
+        if (is_array($context['breakdown'] ?? null)) {
+            $element->breakdown($context['breakdown']);
+        } elseif (is_array($value)) {
+            $element->breakdown($value);
+        }
+
+        return $element;
     }
 
     private static function normalizeOptions(array $options): array

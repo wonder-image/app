@@ -3,7 +3,6 @@
 namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
-use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\FormFieldElementFactory;
 use Wonder\Elements\Concerns\CanSpanColumn;
 
@@ -299,13 +298,6 @@ class FormField
         return $this;
     }
 
-    public function textGenerator(): self
-    {
-        $this->helper = 'textGenerator';
-
-        return $this;
-    }
-
     public function textDate(): self
     {
         $this->helper = 'textDate';
@@ -507,85 +499,125 @@ class FormField
         return $this;
     }
 
-    public function render(?string $theme = null): string
+    /**
+     * Text input + bottone "GENERA" (Wonder\Elements\Form\Components\TextGenerator).
+     *
+     * @param string|null $callback   Funzione JS chiamata al click (default `generateCode`).
+     * @param string|null $buttonLabel Label del bottone (default `GENERA`).
+     */
+    public function textGenerator(?string $callback = null, ?string $buttonLabel = null): self
     {
-        $themed = FormFieldElementFactory::render($this, $theme);
+        $this->helper = 'textGenerator';
 
-        if (is_string($themed) && $themed !== '') {
-            return $themed;
+        if ($callback !== null && trim($callback) !== '') {
+            $this->context('callback', trim($callback));
         }
 
-        $this->ensureHelperLoaded();
-
-        $requiredHelper = match ($this->helper) {
-            'radio' => 'check',
-            'hidden' => null,
-            default => $this->helper,
-        };
-
-        if ($requiredHelper !== null && !function_exists($requiredHelper)) {
-            throw new RuntimeException("Helper form backend non disponibile: {$this->helper}()");
+        if ($buttonLabel !== null && trim($buttonLabel) !== '') {
+            $this->context('button_label', trim($buttonLabel));
         }
 
-        $label = trim((string) ($this->schema['label'] ?? ''));
-
-        if ($label === '') {
-            $label = ucwords(str_replace(['_', '-'], ' ', $this->name));
-        }
-
-        $attribute = trim((string) ($this->schema['attribute'] ?? '')) ?: null;
-        $value = $this->schema['value'] ?? null;
-        $version = $this->schema['version'] ?? null;
-        $options = (array) ($this->schema['options'] ?? []);
-        $searchBar = (bool) ($this->schema['search_bar'] ?? false);
-        $file = (string) ($this->schema['file'] ?? 'image');
-        $uploader = (string) ($this->schema['uploader'] ?? 'classic');
-        $multiple = (bool) ($this->schema['multiple'] ?? false);
-        $dateMin = $this->schema['date_min'] ?? null;
-        $dateMax = $this->schema['date_max'] ?? null;
-        $timeStep = $this->schema['time_step'] ?? null;
-        $context = (array) ($this->schema['context'] ?? []);
-
-        return match ($this->helper) {
-            'hidden' => "<input type='hidden' name='{$this->name}' value='".htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8')."' ".($attribute ?? '').">",
-            'select' => select($label, $this->name, $options, $version, $attribute, $value),
-            'selectSearch' => selectSearch($label, $this->name, $options, $multiple, $version, $attribute, $value),
-            'radio' => check($label, $this->name, $options, $attribute, 'radio', $searchBar, $value),
-            'checkbox' => $options !== []
-                ? check($label, $this->name, $options, $attribute, 'checkbox', $searchBar, $value)
-                : checkbox($label, $this->name, $attribute, $value),
-            'url' => url($label, $this->name, $attribute, $value),
-            'textarea' => textarea($label, $this->name, $attribute, $version, $value),
-            'dateInput' => dateInput($label, $this->name, $dateMin, $dateMax, $attribute, $value),
-            'timeInput' => timeInput($label, $this->name, $timeStep, $attribute, $value),
-            'dateRange' => dateRange($label, $this->name, $dateMin, $dateMax, $attribute, $value),
-            'inputFile' => inputFile($label, $this->name, $file, $attribute, $value),
-            'inputFileDragDrop' => inputFileDragDrop($label, $this->name, $uploader, $file, $attribute, $value),
-            'inputCountry' => inputCountry($label, $this->name, $value, $context['state_field'] ?? null, $attribute ?? ''),
-            'inputStates' => inputStates($label, $this->name, $context['country'] ?? null, $value, $attribute ?? ''),
-            'inputPhonePrefix' => inputPhonePrefix($label, $this->name, $value, $attribute ?? ''),
-            'inputRepeater' => inputRepeater($label, $this->name, $attribute, $value, $context),
-            default => call_user_func($this->helper, $label, $this->name, $attribute, $value),
-        };
+        return $this;
     }
 
-    private function ensureHelperLoaded(): void
+    /**
+     * Lista checkbox/radio ad albero jsTree
+     * (Wonder\Elements\Form\Components\CheckTree).
+     *
+     * @param array  $options    Opzioni (può contenere `child` per sotto-livelli).
+     * @param bool   $searchBar  Aggiunge la barra di ricerca testuale.
+     * @param string $inputType  'checkbox' (default) o 'radio'.
+     */
+    public function checkTree(array $options = [], bool $searchBar = false, string $inputType = 'checkbox'): self
     {
-        $requiredHelper = match ($this->helper) {
-            'radio' => 'check',
-            'hidden' => null,
-            default => $this->helper,
-        };
+        $this->helper = 'checkTree';
+        $this->options($options);
+        $this->searchBar($searchBar);
 
-        if ($requiredHelper === null || function_exists($requiredHelper)) {
-            return;
+        return $this->context('input_type', $inputType === 'radio' ? 'radio' : 'checkbox');
+    }
+
+    /**
+     * Check (checkbox/radio) con risultati caricati via AJAX
+     * (Wonder\Elements\Form\Components\DynamicCheck).
+     */
+    public function dynamicCheck(string $url, string $inputType = 'checkbox'): self
+    {
+        $this->helper = 'dynamicCheck';
+
+        return $this->context([
+            'url' => trim($url),
+            'input_type' => $inputType === 'radio' ? 'radio' : 'checkbox',
+        ]);
+    }
+
+    /**
+     * Toggle Si/No a 3 stati (null/true/false)
+     * (Wonder\Elements\Form\Components\CheckBoolean).
+     *
+     * @param array $values Tripla [valueNull, valueTrue, valueFalse] dei valori
+     *                      effettivamente postati dal form. Default `['', 'true', 'false']`.
+     */
+    public function checkBoolean(array $values = ['', 'true', 'false'], ?string $trueLabel = null, ?string $falseLabel = null): self
+    {
+        $this->helper = 'checkBoolean';
+
+        $this->context('boolean_values', array_pad($values, 3, ''));
+
+        if ($trueLabel !== null && trim($trueLabel) !== '') {
+            $this->context('true_label', trim($trueLabel));
         }
 
-        $rootApp = (string) LegacyGlobals::get('ROOT_APP', '');
-        $inputPath = $rootApp !== '' ? $rootApp.'/function/backend/input.php' : '';
-
-        if ($inputPath !== '' && file_exists($inputPath)) {
-            require_once $inputPath;
+        if ($falseLabel !== null && trim($falseLabel) !== '') {
+            $this->context('false_label', trim($falseLabel));
         }
+
+        return $this;
+    }
+
+    /**
+     * Google Places address con autocomplete + breakdown nascosti
+     * (Wonder\Elements\Form\Components\GoogleAddress).
+     *
+     * @param array       $restriction Restrizioni Google Places (es. `['country' => 'it']`).
+     * @param string|null $alias       Prefisso per i 6 hidden field. `null` (default) usa il `name`
+     *                                  del campo; passa una stringa esplicita se vuoi
+     *                                  più indirizzi nello stesso form.
+     */
+    public function googleAddress(array $restriction = [], ?string $alias = null): self
+    {
+        $this->helper = 'googleAddress';
+
+        if ($restriction !== []) {
+            $this->context('restriction', $restriction);
+        }
+
+        if ($alias !== null && trim($alias) !== '') {
+            $this->context('alias', trim($alias));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Renderizza il campo come HTML del tema attivo (o di quello esplicito).
+     *
+     * Unica strada: `FormFieldElementFactory::make()` mappa il `helper`
+     * a un Element neutro, che il `Wonder\Themes\Resolver` rende col
+     * tema corrente. Se l'helper non è gestito dalla Factory si lancia
+     * un'eccezione esplicita — niente fallback a funzioni procedurali.
+     */
+    public function render(?string $theme = null): string
+    {
+        $rendered = FormFieldElementFactory::render($this, $theme);
+
+        if ($rendered === null) {
+            throw new RuntimeException(
+                "Helper form non supportato: {$this->helper}. "
+                ."Aggiungi la mappatura in Wonder\\App\\Support\\FormFieldElementFactory::make()."
+            );
+        }
+
+        return $rendered;
     }
 }

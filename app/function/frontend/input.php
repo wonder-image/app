@@ -1,5 +1,18 @@
 <?php
 
+    /**
+     * Helper procedurali per i form del frontend pubblico (tema Wonder).
+     *
+     * Backward compatibility per le pagine frontend scritte prima del
+     * sistema `Elements + Themes`. Ogni funzione costruisce l'Element
+     * neutro di `Wonder\Elements\Form\Components` e delega al renderer
+     * Wonder.
+     *
+     * NUOVO CODICE: usa la DSL `Wonder\App\ResourceSchema\FormField`
+     * oppure costruisci direttamente gli Element. Le Resource del
+     * frontend (es. `Resources/Communications/*`) sono già su FormField.
+     */
+
     use Wonder\App\Support\AttributeString;
     use Wonder\Elements\Form\Components\CheckGroup;
     use Wonder\Elements\Form\Components\DateRange;
