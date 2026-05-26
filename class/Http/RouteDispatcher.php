@@ -332,7 +332,7 @@ class RouteDispatcher
             'http',
             'route_dispatch',
             'ERROR',
-            'storage/logs/error/http',
+            'error/http',
             [
                 'area' => $this->area,
                 'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? ''),

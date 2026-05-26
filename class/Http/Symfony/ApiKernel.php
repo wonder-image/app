@@ -52,7 +52,7 @@ class ApiKernel
                 'api',
                 'symfony_kernel',
                 'ERROR',
-                'storage/logs/error/api',
+                'error/api',
                 [
                     'method' => $request->getMethod(),
                     'path' => $routePath,

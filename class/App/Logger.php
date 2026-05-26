@@ -76,7 +76,7 @@ class Logger
     private static function buildLogPath(string $file): string
     {
         $root = defined('ROOT') ? (string) ROOT : (getcwd() ?: '.');
-        return rtrim($root, '/') . '/' . ltrim($file, '/') . '.log';
+        return rtrim($root, '/') . '/storage/logs/' . ltrim($file, '/') . '.log';
     }
 
     private static function ensureDirectory(string $logPath): void

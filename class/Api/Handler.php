@@ -22,7 +22,7 @@ class Handler
                 'api',
                 'legacy_handler',
                 'ERROR',
-                'storage/logs/error/api',
+                'error/api',
                 [
                     'endpoint' => $endpoint,
                     'method' => $method,
