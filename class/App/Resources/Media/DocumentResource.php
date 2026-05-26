@@ -128,7 +128,7 @@ final class DocumentResource extends MediaResource
         return NavigationSchema::for(static::class)
             ->section('Media', 'media', 'bi-image')
             ->title('Documenti')
-            ->order(0)
+            ->order(4.1)
             ->authority(['admin']);
     }
 
