@@ -3,6 +3,7 @@
 namespace Wonder\Api;
 
 use Throwable;
+use Wonder\App\Logger;
 
 class Handler
 {
@@ -16,6 +17,18 @@ class Handler
         } catch (EndpointException $exception) {
             self::sendError($exception->getCode() ?: 400, $exception->getMessage());
         } catch (Throwable $throwable) {
+            Logger::log(
+                $throwable,
+                'api',
+                'legacy_handler',
+                'ERROR',
+                'storage/logs/error/api',
+                [
+                    'endpoint' => $endpoint,
+                    'method' => $method,
+                ],
+                false
+            );
             self::sendError((int) ($throwable->getCode() ?: 500), $throwable->getMessage());
         }
     }

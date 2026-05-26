@@ -4,6 +4,7 @@ namespace Wonder\Http;
 
 use Throwable;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Logger;
 use Wonder\Localization\LanguageContext;
 use Wonder\Localization\UrlTranslator;
 
@@ -11,6 +12,7 @@ class RouteDispatcher
 {
     private string $area = 'frontend';
     private ?string $runtimeRoot = null;
+    private ?array $currentRoute = null;
 
     public function __construct(
         private readonly string $root,
@@ -18,6 +20,8 @@ class RouteDispatcher
 
     public function handleRequest(): never
     {
+        $this->ensureRequestIdentifiers();
+
         try {
             $runtimeRoot = $this->runtimeRoot();
 
@@ -54,6 +58,7 @@ class RouteDispatcher
                 (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
                 (string) ($_SERVER['REQUEST_URI'] ?? '/')
             );
+            $this->currentRoute = $route;
 
             if (!$this->isValidRoute($route)) {
                 $this->notFound();
@@ -260,6 +265,8 @@ class RouteDispatcher
 
     private function serverError(Throwable $throwable): never
     {
+        $this->logThrowable($throwable);
+
         $this->fail(
             500,
             $this->area === 'api' ? $throwable->getMessage() : '',
@@ -297,6 +304,58 @@ class RouteDispatcher
         require_once $this->appPackageRoot().'/wonder-image.php';
         include $this->runtimeRoot().'/view/error/http.php';
         exit();
+    }
+
+    private function ensureRequestIdentifiers(): void
+    {
+        $requestId = trim((string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ($_SERVER['REQUEST_ID'] ?? '')));
+        if ($requestId === '') {
+            try {
+                $requestId = bin2hex(random_bytes(8));
+            } catch (Throwable) {
+                $requestId = uniqid('req_', true);
+            }
+        }
+
+        $_SERVER['REQUEST_ID'] = $requestId;
+
+        $traceId = trim((string) ($_SERVER['HTTP_TRACE_ID'] ?? ($_SERVER['TRACE_ID'] ?? '')));
+        if ($traceId === '') {
+            $_SERVER['TRACE_ID'] = $requestId;
+        }
+    }
+
+    private function logThrowable(Throwable $throwable): void
+    {
+        Logger::log(
+            $throwable,
+            'http',
+            'route_dispatch',
+            'ERROR',
+            'storage/logs/error/http',
+            [
+                'area' => $this->area,
+                'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? ''),
+                'uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+                'route' => $this->summarizeCurrentRoute(),
+            ],
+            false
+        );
+    }
+
+    private function summarizeCurrentRoute(): array
+    {
+        if (!is_array($this->currentRoute)) {
+            return [];
+        }
+
+        return [
+            'name' => (string) ($this->currentRoute['name'] ?? ''),
+            'area' => (string) ($this->currentRoute['area'] ?? ''),
+            'handler' => (string) ($this->currentRoute['handler'] ?? ''),
+            'path' => (string) ($this->currentRoute['path'] ?? ''),
+            'parameters' => is_array($this->currentRoute['parameters'] ?? null) ? $this->currentRoute['parameters'] : [],
+        ];
     }
 
     private function appPackageRoot(): string

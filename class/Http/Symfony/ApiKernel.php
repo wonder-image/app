@@ -14,6 +14,7 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Throwable;
+use Wonder\App\Logger;
 use Wonder\Http\Symfony\Controllers\GatewayController;
 use Wonder\Http\Symfony\Controllers\HealthController;
 
@@ -46,6 +47,18 @@ class ApiKernel
         } catch (MethodNotAllowedException $exception) {
             return $this->errorResponse(405, 'method_not_allowed', 'Metodo HTTP non consentito');
         } catch (Throwable $exception) {
+            Logger::log(
+                $exception,
+                'api',
+                'symfony_kernel',
+                'ERROR',
+                'storage/logs/error/api',
+                [
+                    'method' => $request->getMethod(),
+                    'path' => $routePath,
+                ],
+                false
+            );
             return $this->errorResponse(500, 'internal_error', 'Errore interno', $exception);
         }
     }

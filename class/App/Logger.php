@@ -21,7 +21,8 @@ class Logger
         string $action,
         string $level = 'ERROR',
         string $file = 'error',
-        array $context = []
+        array $context = [],
+        bool $renderDebug = true
     ): void {
         $normalizedLevel = self::normalizeLevel($level);
         $path = self::relativePath((string) $exception->getFile());
@@ -60,7 +61,7 @@ class Logger
             error_log($encoded . PHP_EOL, 3, $logPath);
         }
 
-        if (self::isDebug()) {
+        if ($renderDebug && self::isDebug()) {
             self::renderDebug($entry, $exception);
             exit();
         }
