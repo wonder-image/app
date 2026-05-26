@@ -1,6 +1,33 @@
 <?php
 
+    use Wonder\App\Support\AttributeString;
     use Wonder\App\Support\CssFontFamily;
+    use Wonder\Elements\Form\Components\CheckBoolean;
+    use Wonder\Elements\Form\Components\CheckGroup;
+    use Wonder\Elements\Form\Components\CheckTree;
+    use Wonder\Elements\Form\Components\Checkbox;
+    use Wonder\Elements\Form\Components\Date as DateElement;
+    use Wonder\Elements\Form\Components\DatePicker;
+    use Wonder\Elements\Form\Components\DateRange;
+    use Wonder\Elements\Form\Components\DynamicCheck;
+    use Wonder\Elements\Form\Components\File as FileElement;
+    use Wonder\Elements\Form\Components\InputColor;
+    use Wonder\Elements\Form\Components\InputDatetime;
+    use Wonder\Elements\Form\Components\InputEmail;
+    use Wonder\Elements\Form\Components\InputNumber;
+    use Wonder\Elements\Form\Components\InputPassword;
+    use Wonder\Elements\Form\Components\InputPercentige;
+    use Wonder\Elements\Form\Components\InputPrice;
+    use Wonder\Elements\Form\Components\InputTel;
+    use Wonder\Elements\Form\Components\InputText;
+    use Wonder\Elements\Form\Components\InputTime;
+    use Wonder\Elements\Form\Components\InputUrl;
+    use Wonder\Elements\Form\Components\Repeater;
+    use Wonder\Elements\Form\Components\Select;
+    use Wonder\Elements\Form\Components\Submit as SubmitElement;
+    use Wonder\Elements\Form\Components\Textarea;
+    use Wonder\Elements\Form\Components\TextareaEditor;
+    use Wonder\Elements\Form\Components\TextGenerator;
 
     function backendInputEscape(mixed $value): string {
 
@@ -40,402 +67,269 @@
 
     }
 
-    function password($label, $name, $attribute = null, $value = null) {
-
+    /**
+     * Helper interno: legge $VALUES[$name] come default se $value non passato.
+     */
+    function backendValueDefault(string $name, mixed $value): mixed
+    {
         global $VALUES;
 
-        $id = strtolower(code(10, 'letters', 'input_'));
+        if ($value === null && isset($VALUES[$name])) {
+            return $VALUES[$name];
+        }
 
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
+        return $value;
+    }
 
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+    function password($label, $name, $attribute = null, $value = null) {
 
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='password' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
-        
+        $value = backendValueDefault($name, $value);
+
+        return (new InputPassword($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
+
     }
 
     function email($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='email' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputEmail($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function phone($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='tel' inputmode='tel' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-phone='true' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputTel($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function text($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
+        if ($name === 'font_family') {
+            $value = CssFontFamily::normalize($value);
+        }
 
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($name === 'font_family') { $value = CssFontFamily::normalize($value); }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputText($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function textGenerator($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
+        if ($name === 'font_family') {
+            $value = CssFontFamily::normalize($value);
+        }
 
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($name === 'font_family') { $value = CssFontFamily::normalize($value); }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-                <div class='btn btn-sm btn-dark text-light position-absolute top-50 end-0 me-2 translate-middle-y' onclick=\"generateCode('#$id')\">
-                    GENERA
-                </div>
-                <div class='invalid-feedback'> </div>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new TextGenerator($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function textDate($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
+        if (is_scalar($value) && trim((string) $value) !== '') {
+            $ts = strtotime((string) $value);
+            if ($ts !== false) {
+                $value = date('Y-m-d', $ts);
+            }
+        }
 
-        if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d', strtotime($VALUES[$name])); }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='date' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new DateElement($name))
+            ->label((string) $label)
+            ->value($value)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function textDatetime($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
+        if (is_scalar($value) && trim((string) $value) !== '') {
+            $ts = strtotime((string) $value);
+            if ($ts !== false) {
+                $value = date('Y-m-d\TH:i', $ts);
+            }
+        }
 
-        if (isset($VALUES[$name]) && !isset($value)) { $value = date('Y-m-d H:i', strtotime($VALUES[$name])); }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='datetime-local' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputDatetime($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
-    
+
     function dateInput($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
+        if (is_scalar($value) && trim((string) $value) !== '') {
+            $ts = strtotime((string) $value);
+            if ($ts !== false) {
+                $value = date('d/m/Y', $ts);
+            }
+        }
 
-        if (isset($VALUES[$name]) && !isset($value)) { $value = date('d/m/Y', strtotime($VALUES[$name])); }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $element = (new DatePicker($name))
+            ->label((string) $label)
+            ->value($value)
+            ->attributes(AttributeString::parse($attribute));
 
-        $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
-        $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
+        if (is_string($dateMin) && trim($dateMin) !== '') { $element->min(trim($dateMin)); }
+        if (is_string($dateMax) && trim($dateMax) !== '') { $element->max(trim($dateMax)); }
 
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-date='true' $min $max $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return $element->render();
 
     }
 
     function timeInput($label, $name, $step = 900, $attribute = null, $value = null) {
 
-        global $VALUES;
-
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendValueDefault($name, $value);
 
         if (!empty($value)) {
             $value = substr((string) $value, 0, 5);
         }
 
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-        $step = is_numeric($step) && (int) $step > 0 ? (int) $step : 900;
+        $element = (new InputTime($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute));
 
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='time' step='{$step}' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        if (is_numeric($step) && (int) $step > 0) {
+            $element->step((int) $step);
+        }
+
+        return $element->render();
 
     }
 
     function dateRange($label, $name, $dateMin = null, $dateMax = null, $attribute = null, $value = null) {
-        
-        global $VALUES;
-        
-        $idFrom = strtolower(code(10, 'letters', 'input_'));
-        $idTo = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
 
-        $nameFrom = $name."_from";
-        $nameTo = $name."_to";
+        global $VALUES;
+
+        $nameFrom = $name.'_from';
+        $nameTo = $name.'_to';
 
         if (isset($VALUES[$nameFrom]) && isset($VALUES[$nameTo]) && !isset($value)) {
             $valueFrom = date('d/m/Y', strtotime($VALUES[$nameFrom]));
             $valueTo = date('d/m/Y', strtotime($VALUES[$nameTo]));
-        } elseif (isset($value)) {
-            $valueFrom = date('d/m/Y', strtotime($value[0]));
-            $valueTo = date('d/m/Y', strtotime($value[1]));
+        } elseif (isset($value) && is_array($value)) {
+            $valueFrom = date('d/m/Y', strtotime((string) $value[0]));
+            $valueTo = date('d/m/Y', strtotime((string) $value[1]));
         } else {
-            $valueFrom = "";
-            $valueTo = "";
+            $valueFrom = '';
+            $valueTo = '';
         }
 
-        if ($attribute != null && strpos($attribute, "required") !== false && !empty($label)) { $label .= "*"; }
+        $element = (new DateRange($name))
+            ->label((string) $label)
+            ->value([$valueFrom, $valueTo])
+            ->attributes(AttributeString::parse($attribute));
 
-        $min = ($dateMin == null) ? '' : 'data-wi-min-date="'.$dateMin.'"';
-        $max = ($dateMax == null) ? '' : 'data-wi-max-date="'.$dateMax.'"';
+        if (is_string($dateMin) && trim($dateMin) !== '') { $element->min(trim($dateMin)); }
+        if (is_string($dateMax) && trim($dateMax) !== '') { $element->max(trim($dateMax)); }
 
-        $label = empty($label) ?"" : "<label class='h6 form-label'>$label</label>"; 
-
-        return "
-        <div>
-            $label
-            <div class='input-group input-daterange mt-1' data-wi-date-range='true' $min $max>
-                <span class='input-group-text'>Dal</span>
-                <input id='$idFrom' type='text' class='$class' name='$nameFrom' value='$valueFrom' data-wi-check='true' readonly $attribute>
-                <span class='input-group-text'>Al</span>
-                <input id='$idTo' type='text' class='$class' name='$nameTo' value='$valueTo' data-wi-check='true' readonly $attribute>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return $element->render();
 
     }
 
     function color($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-
-        $color = !empty($value) ? "style='color: $value;'" : '';
-
-        return "
-        <div>
-            <label class='h6 form-label' for='$id'>$label</label>
-            <div class='input-group mt-1'>
-                <span class='input-group-text'><i class='bi bi-circle-fill wi-show-color' $color></i></span>
-                <input type='text' class='$class' id='$id' aria-describedby='$id-color' name='$name' value='$value' placeholder='$label' data-wi-check='true' data-wi-check-color='true' $attribute>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputColor($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function number($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='text' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-number='true' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputNumber($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function price($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-price='true' placeholder='$label' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputPrice($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function percentige($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='text' class='$class' id='$id' name='$name' value='$value' data-wi-check='true' data-wi-percentige='true' placeholder='$label' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputPercentige($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function url($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        
-        $class = "form-control ";
-        $class .= attributeSearchClass($attribute);
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if ($attribute != null && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $value = backendInputEscape($value);
-        $label = backendInputEscape($label);
-
-        return "
-        <div>
-            <div class='form-floating'>
-                <input type='url' class='$class' id='$id' name='$name' value='$value' placeholder='$label' data-wi-check='true' $attribute>
-                <label for='$id'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new InputUrl($name))
+            ->label((string) $label)
+            ->value($value)
+            ->placeholder((string) $label)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
@@ -445,208 +339,87 @@
         global $NAME;
         global $TABLE;
 
-        if (isset($NAME->table)) {
+        $value = backendValueDefault($name, $value);
 
-            $PAGE_TABLE = backendPageTableSchema();
-    
-            $MAX_LENGHT = isset($PAGE_TABLE[$name]['sql']['lenght']) ? $PAGE_TABLE[$name]['sql']['lenght'] : 0;
+        $attributesArray = AttributeString::parse($attribute);
 
-        } else {
+        if ($version !== null) {
 
-            $MAX_LENGHT = 0;
+            $element = (new TextareaEditor($name))
+                ->label((string) $label)
+                ->value($value)
+                ->version((string) $version)
+                ->attributes($attributesArray);
 
-        }
-
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-
-        if ($version != null) {
-            
-            $valueEncoded =  empty($value) ? "" : base64_encode($value);
-
-            return "
-            <div>
-                <div class='form-floating'>
-                    <h6 class='mb-1'>$label</h6>
-                    <textarea id='$id' class='d-none' name='$name' data-wi-value='$valueEncoded' data-wi-check='true' data-wi-textarea='$version' data-wi-folder='$NAME->folder' $attribute>$value</textarea>
-                </div>
-                <div class='invalid-feedback'> </div>
-            </div>";
-
-        } else {
-
-            if ($MAX_LENGHT > 0) {
-                if ($value == null) { $c = 0; } else { $c = strlen($value); }
-                $MAX = "<div class='position-absolute bottom-0 end-0 m-2 me-3'><span class='wi-counter'>$c</span> / <span class='wi-max-lenght'>$MAX_LENGHT</span></div>";
-            } else {
-                $MAX = "";
+            if (isset($NAME) && is_object($NAME) && isset($NAME->folder)) {
+                $element->folder((string) $NAME->folder);
             }
 
-            return "
-            <div>
-                <div class='form-floating'>
-                    $MAX
-                    <textarea class='form-control' placeholder='$label' id='$id' style='height: 100px' name='$name' data-wi-check='true' data-wi-counter='true' $attribute>$value</textarea>
-                    <label for='$id'>$label</label>
-                </div>
-                <div class='invalid-feedback'> </div>
-            </div>";
-            
+            return $element->render();
+
         }
-        
+
+        if (isset($NAME->table)) {
+            $PAGE_TABLE = backendPageTableSchema();
+            $MAX_LENGHT = isset($PAGE_TABLE[$name]['sql']['lenght']) ? $PAGE_TABLE[$name]['sql']['lenght'] : 0;
+        } else {
+            $MAX_LENGHT = 0;
+        }
+
+        $element = (new Textarea($name))
+            ->label((string) $label)
+            ->value($value)
+            ->counter()
+            ->attributes($attributesArray);
+
+        if ($MAX_LENGHT > 0) {
+            $element->maxLength((int) $MAX_LENGHT);
+        }
+
+        return $element->render();
+
     }
 
     function selectSearch($label, $name, $option, $multiple = false, $version = null, $attribute = null, $value = null) {
 
-        $attribute .= ' data-wi-select-search="true"';
-        $attribute .= $multiple ? ' data-wi-select-search-multiple="true" multiple' : '';
+        $attributesArray = AttributeString::parse($attribute);
+        $attributesArray['data-wi-select-search'] = 'true';
 
-        return select($label, $name, $option, $version, $attribute, $value);
+        if ($multiple) {
+            $attributesArray['data-wi-select-search-multiple'] = 'true';
+            $attributesArray['multiple'] = true;
+        }
+
+        return selectRender($label, $name, $option, $version, $attributesArray, $value);
 
     }
 
     function select($label, $name, $option, $version = null, $attribute = null, $value = null) {
 
-        global $VALUES;
-
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
-        $multiple = !is_null($attribute) && strpos($attribute, "multiple") ? true : false;
-
-        $optionHTML = "";
-
-        $i = 1;
-        
-        foreach ($option as $vl => $nm) {
-
-            $att = "";
-            $dataFilter = "";
-
-            if (is_array($nm)) {
-    
-                $filter = isset($nm['filter']) ? $nm['filter'] : [];
-                $nm = $nm['name'];
-
-                foreach ($filter as $key => $v) { $dataFilter .= "data-$key='$v' "; }
-
-            }
-
-            if ($value != null) { 
-                if (is_array($value)) {
-                    $att = in_array($vl, $value) ? "selected" : ""; 
-                } else {
-                    $att = ($vl == $value) ? "selected" : ""; 
-                }
-            }
-
-            $optionHTML .= "<option value='$vl' $att $dataFilter>$nm</option>";
-
-            $i++;
-            
-        }
-
-        $name .= $multiple ? "[]" : "";
-        $inputHidden = $multiple ? "<input type='hidden' name='$name'>" : "";
-
-        if ($version == 'old') {
-
-            return "
-            <div>
-                <div id='container-$id' class='w-100 wi-container-select'>
-                    $inputHidden
-                    <label for='$id' class='h6 form-label'>$label</label>
-                    <select id='$id' name='$name' class='form-select mt-1' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
-                        $optionHTML
-                    </select>
-                </div>
-                <div class='invalid-feedback'> </div>
-            </div>";
-
-        } else {
-
-            return "
-            <div>
-                <div class='form-floating'>
-                    $inputHidden
-                    <select id='$id' name='$name' class='form-select' data-wi-check='true' $attribute data-wi-attribute='$attribute'>
-                        $optionHTML
-                    </select>
-                    <label for='$id'>$label</label>
-                </div>
-                <div class='invalid-feedback'> </div>
-            </div>";
-
-        }
+        return selectRender($label, $name, $option, $version, AttributeString::parse($attribute), $value);
 
     }
 
-    function createOption($option, $type, $name, $value, $attribute, ) {
+    /**
+     * Helper interno usato da `select()` / `selectSearch()` per costruire l'Element.
+     * Tiene fuori dalla API pubblica il dettaglio "version=old usa container + label esterna".
+     */
+    function selectRender($label, $name, $option, $version, array $attributesArray, $value)
+    {
 
-        $RETURN = ($type == 'list') ? "<ul>" : "";
+        $value = backendValueDefault($name, $value);
 
-        if (is_array($option)) {
+        $element = (new Select($name))
+            ->label((string) $label)
+            ->value($value)
+            ->options(is_array($option) ? $option : [])
+            ->attributes($attributesArray);
 
-            foreach ($option as $optionValue => $optionName) {
-                
-                $optionAttribute = $attribute;
-
-                $optionChild = "";
-                $listAttribute = "";
-    
-                if (is_array($value)) {
-                    $optionAttribute .= ($value != null && in_array($optionValue, $value)) ? " checked" : "";
-                    $listAttribute .= ($value != null && in_array($optionValue, $value)) ? " data-jstree='{\"selected\": true }'" : "";
-                } else {
-                    $optionAttribute .= ($value != null && $optionValue == $value) ? " checked" : "";
-                    $listAttribute .= ($value != null && $optionValue == $value) ? " data-jstree='{\"selected\": true }'" : "";
-                }
-    
-                if (is_array($optionName)) {
-    
-                    $filter = isset($optionName['filter']) ? $optionName['filter'] : [];
-                    $child = isset($optionName['child']) ? $optionName['child'] : [];
-
-                    $optionName = $optionName['name'];
-    
-                    foreach ($filter as $key => $v) { $optionAttribute .= " data-$key='$v'"; }
-
-                    if (!empty($child)) {
-
-                        $optionChild  .= ($type == 'list') ? "" : "<div class='w-100 ps-3'>";
-                        $optionChild  .= createOption($child, $type, $name, $value, $attribute);
-                        $optionChild  .= ($type == 'list') ? "" : "</div>";
-
-                    }
-    
-                }
-
-                if ($type == 'list') {
-                    
-                    $RETURN .= "<li id='$optionValue' $listAttribute><input class='d-none' type='checkbox' name='$name' value='$optionValue' $optionAttribute>$optionName$optionChild</li>";
-
-                } else {
-
-                    $RETURN .= "<div class='w-100'>
-                        <div id='$name-$optionValue' class='form-check'>
-                            <input class='form-check-input' type='$type' name='$name' value='$optionValue' id='$type-$name-$optionValue' data-wi-check='true' $optionAttribute>
-                            <label class='form-check-label wi-check-label user-select-none' for='$type-$name-$optionValue'>$optionName</label>
-                        </div>
-                        $optionChild
-                    </div>";
-
-                }
-    
-            }
-
+        if ($version === 'old') {
+            $element->legacyContainer();
         }
 
-        $RETURN .= ($type == 'list') ? "</ul>" : "";
-
-        return $RETURN;
+        return $element->render();
 
     }
 
@@ -654,240 +427,86 @@
 
         global $VALUES;
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && $value == null) {
+        if ($value === null && isset($VALUES[$name])) {
             $value = ($type == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
         }
 
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
+        return (new CheckGroup($name))
+            ->label((string) $label)
+            ->value($value)
+            ->options(is_array($option) ? $option : [])
+            ->inputType((string) $type)
+            ->searchBar((bool) $searchBar)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
-            $label .= "*"; 
-            $attribute = str_replace('required', '', $attribute);
-            $required = "wi-$type-required";
-
-        } else {
-
-            $required = "";
-            
-        }
-
-        $optionHTML = "";
-        $inputHidden = "";
-        
-        $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
-
-        if ($type == 'checkbox') {
-            $name .= '[]';
-            $inputHidden = "<input type='hidden' name='$name'>";
-        }
-
-        $optionHTML = createOption($option, $type, $name, $value, $attribute);
-
-        return "
-        <div id='container-$id' class='w-100 wi-container-$type $required'>
-            <h6>$label</h6>
-            $inputHidden
-            <div class='card border mt-1'>
-                $bar
-                <div class='card-body overflow-scroll p-2' style='height: 120px;'>
-                    $optionHTML
-                </div>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
-
-    } 
+    }
 
     function checkTree($label, $name, $option, $attribute = null, $type = 'checkbox', $searchBar = false, $value = null) {
 
         global $VALUES;
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && $value == null) {
+        if ($value === null && isset($VALUES[$name])) {
             $value = ($type == 'checkbox') ? json_decode($VALUES[$name], true) : $VALUES[$name];
         }
 
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
+        return (new CheckTree($name))
+            ->label((string) $label)
+            ->value($value)
+            ->options(is_array($option) ? $option : [])
+            ->inputType((string) $type)
+            ->searchBar((bool) $searchBar)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
-            $label .= "*"; 
-            $attribute = str_replace('required', '', $attribute);
-            $required = "wi-$type-required";
-
-        } else {
-
-            $required = "";
-            
-        }
-        
-        $inputHidden = "";
-        $bar = ($searchBar) ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : "";
-
-        if ($type == 'checkbox') {
-
-            $name .= '[]';
-            $inputHidden = "<input type='hidden' name='$name'>";
-
-        }
-
-        $optionHTML = createOption($option, 'list', $name, $value, $attribute);
-
-        return "
-        <div id='container-$id' class='w-100 wi-container-$type $required'>
-            <h6>$label</h6>
-            <div class='card border mt-1'>
-                $bar
-                $inputHidden
-                <div class='card-body overflow-scroll p-2' style='max-height: 300px;' data-wi-tree='$type'>
-                    $optionHTML
-                </div>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
-
-    } 
+    }
 
     function dynamicCheck($label, $name, $url, $attribute = null, $type = 'checkbox', $value = null) {
 
         global $VALUES;
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && $value == null) {
+        if ($value === null && isset($VALUES[$name])) {
             $value = ($type == 'checkbox') ? $VALUES[$name] : json_encode([$VALUES[$name]]);
         }
 
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
-
-            $label .= "*"; 
-            $attribute = str_replace('required', '', $attribute);
-            $required = "wi-$type-required";
-
-        } else {
-
-            $required = "";
-            
-        }
-        
-        $inputHidden = "";
-        
-        if ($type == 'checkbox') {
-
-            $name .= '[]';
-            $inputHidden = "<input type='hidden' name='$name'>";
-
-        }
-
-        return "
-        <div id='container-$id' class='w-100 wi-container-$type $required'>
-            <h6>$label</h6>
-            $inputHidden
-            <div class='card border mt-1'>
-                <input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-name='$name' data-wi-value='$value' data-wi-search='true' data-wi-search-$type='true' data-wi-search-url='$url' data-wi-attribute='$attribute'>
-                <div class='card-body overflow-scroll p-2' style='height: 120px;'>
-                </div>
-                <div class='card-footer border-top text-body-secondary'>
-                    Cerca risultati
-                </div>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
-
-    } 
-
-    function checkbox($label, $name, $attribute = null, $value = null) {
-
-        global $VALUES;
-
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && $value == null) {
-            $value = $VALUES[$name];
-        }
-
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
-
-            $label .= "*"; 
-            $attribute = str_replace('required', '', $attribute);
-            $required = "wi-checkbox-required";
-
-        } else {
-
-            $required = "";
-            
-        }
-        
-        $checked = ($value == 'true') ? 'checked' : '';
-
-        return "
-        <div id='container-$id' class='w-100 wi-container-checkbox $required'>
-            <input type='hidden' name='$name'>
-            <div class='input-group'>
-                <span class='input-group-text'><input class='form-check-input mt-0' type='checkbox' name='$name' id='$id' $attribute $checked></span>
-                <label for='$id' class='form-control user-select-none'>$label</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new DynamicCheck($name))
+            ->label((string) $label)
+            ->value($value)
+            ->url((string) $url)
+            ->inputType((string) $type)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
-    function checkBoolean($label, $name, $attribute = null, $option = [ '', 'true', 'false'],  $value = null) {
+    function checkbox($label, $name, $attribute = null, $value = null) {
 
-        global $VALUES;
+        $value = backendValueDefault($name, $value);
 
-        $id = strtolower(code(10, 'letters', 'input_'));
+        $checkbox = (new Checkbox($name))
+            ->label((string) $label)
+            ->attributes(AttributeString::parse($attribute));
 
-        if (isset($VALUES[$name]) && $value == null) {
-            $value = $VALUES[$name];
+        if ($value === true || $value === 1 || $value === '1' || $value === 'true' || $value === 'on') {
+            $checkbox->checked();
         }
 
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { 
+        return $checkbox->render();
 
-            $label .= "*"; 
-            $attribute = str_replace('required', '', $attribute);
-            $required = "wi-checkbox-required";
+    }
 
-        } else {
+    function checkBoolean($label, $name, $attribute = null, $option = ['', 'true', 'false'], $value = null) {
 
-            $required = "";
-            
-        }
+        $value = backendValueDefault($name, $value);
 
-        # Check value
-            $valueNull = $option[0];
-            $valueTrue = $option[1];
-            $valueFalse = $option[2];
+        $option = is_array($option) ? array_pad($option, 3, '') : ['', 'true', 'false'];
 
-            $idTrue = $name.'-'.$valueTrue;
-            $idFalse = $name.'-'.$valueFalse;
-
-            $checkedTrue = '';
-            $checkedFalse = '';
-
-            $classLabelTrue = '';
-            $classLabelFalse = '';
-
-            if ($valueTrue === $value) {
-                $checkedTrue = 'checked';
-                $classLabelTrue = 'btn-primary';
-            } elseif ($valueFalse === $value) {
-                $checkedFalse = 'checked';
-                $classLabelFalse = 'btn-primary';
-            }
-
-        return "
-        <div id='container-$id' class='w-100 wi-container-checkbox $required' data-wi-check-boolean='true'>
-            <input type='hidden' class='wi-none' name='$name' value='$valueNull'>
-            <input type='checkbox' class='btn-check wi-true' name='$name' value='$valueTrue' id='$idTrue' data-wi-check='true' $checkedTrue $attribute>
-            <input type='checkbox' class='btn-check wi-false' name='$name' value='$valueFalse' id='$idFalse' data-wi-check='true' $checkedFalse $attribute>
-            <div class='input-group'>
-                <span class='form-control'>$label</span>
-                <label class='btn border $classLabelTrue' for='$idTrue'>Si</label>
-                <label class='btn border $classLabelFalse' for='$idFalse'>No</label>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new CheckBoolean($name))
+            ->label((string) $label)
+            ->value($value)
+            ->values((string) $option[0], (string) $option[1], (string) $option[2])
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
@@ -895,210 +514,183 @@
 
         global $PATH;
         global $NAME;
-        global $TABLE;
         global $VALUES;
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendValueDefault($name, $value);
 
         $PAGE_TABLE = backendPageTableSchema();
-
         $TB = (array) (($PAGE_TABLE[$name]['input'] ?? []));
-        $maxFile = $TB['format']['max_file'] ?? 1;
-        $maxSize = $TB['format']['max_size'] ?? 1;
+        $maxFile = (int) ($TB['format']['max_file'] ?? 1);
+        $maxSize = (int) ($TB['format']['max_size'] ?? 1);
 
-        if ($file == "image") {
-            $ACCEPT = "image/png, image/jpeg";
-            $EXTENSIONS_ACCEPT = ".png - .jpg - .jpeg";
-        } elseif ($file == "pdf") {
-            $ACCEPT = "application/pdf";
-            $EXTENSIONS_ACCEPT = ".pdf";
-        } elseif ($file == "png") {
-            $ACCEPT = "image/png";
-            $EXTENSIONS_ACCEPT = ".png";
-        } elseif ($file == "ico") {
-            $ACCEPT = "image/ico, image/x-icon";
-            $EXTENSIONS_ACCEPT = ".ico";
-        } elseif ($file == "media") {
-            $ACCEPT = "image/png, image/jpeg, image/webp, application/pdf";
-            $EXTENSIONS_ACCEPT = ".png, .jpg, .jpeg, .webp, .pdf";
-        } elseif ($file == "video") {
-            $ACCEPT = "video/mp4";
-            $EXTENSIONS_ACCEPT = ".mp4";
-        } elseif ($file == "jpg") {
-            $ACCEPT = "image/jpeg";
-            $EXTENSIONS_ACCEPT = ".jpg - .jpeg";
-        } elseif ($file == "font") {
-            $ACCEPT = "font/ttf";
-            $EXTENSIONS_ACCEPT = ".ttf";
-        } else {
-            $ACCEPT = "";
-            $EXTENSIONS_ACCEPT = "";
+        $extensionsAccept = match ((string) $file) {
+            'image' => '.png - .jpg - .jpeg',
+            'pdf' => '.pdf',
+            'png' => '.png',
+            'ico' => '.ico',
+            'media' => '.png, .jpg, .jpeg, .webp, .pdf',
+            'video' => '.mp4',
+            'jpg' => '.jpg - .jpeg',
+            'font' => '.ttf',
+            default => '',
+        };
+
+        $element = (new FileElement($name))
+            ->label((string) $label)
+            ->file((string) $file)
+            ->mode('classic')
+            ->maxFile($maxFile)
+            ->maxSize($maxSize)
+            ->extensionsAccept($extensionsAccept)
+            ->attributes(AttributeString::parse($attribute));
+
+        $gallery = backendInputFileGallery($element->id, $name, $value, $TB, $file);
+
+        if ($gallery !== '') {
+            $element->gallery($gallery);
         }
 
-        $OLD_FILES = "";
-        $i = 0;
+        # se il numero di file caricati >= max file, l'input upload diventa disabled
+        $alreadyUploaded = is_string($value) && isset($VALUES['id'])
+            ? count((array) (json_decode((string) $value, true) ?: []))
+            : 0;
 
-        if (!empty($value) && isset($VALUES['id'])) {
-
-            $OLD_FILES = "<div class='row g-3'>";
-
-            $ARRAY = json_decode($value, true);
-            $N_IMAGES = count($ARRAY);
-            $rowId = $VALUES['id'];
-
-            if (isset($TB['format']['resize'])) {
-
-                $imageResize = $TB['format']['resize'];
-
-                if (isset($imageResize['width'])) {
-
-                    $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
-                    $sizeBefore = true;
-
-                } else if (isset($imageResize[0]['width'])) {
-                    $s = 10000000;
-
-                    foreach ($imageResize as $key => $size) {
-                        if ($size['width'] < $s) {
-                            $s = $size['width'];
-                            $imageSize = $size['width'].'x'.$size['height'].'-';
-                        }
-                    }
-
-                    $sizeBefore = true;
-
-                } else {
-
-                    $firstResize = is_array($imageResize) ? reset($imageResize) : $imageResize;
-                    $imageSize = ($firstResize !== false && $firstResize !== null && $firstResize !== '')
-                        ? '-'.$firstResize
-                        : '';
-                    $sizeBefore = false;
-
-                }
-
-            } else {
-
-                $imageSize = "";
-
-            }
-            
-            foreach ($ARRAY as $fileId => $fileName) {
-
-                $n = $i + 1;
-
-                $cardClass = "";
-
-                $dir = isset($TB['format']['dir']) ? $TB['format']['dir'] : '/'; 
-
-                if (substr($dir, -1) != '/') {
-                    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                    $linkDowload = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
-                    $link = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
-                } else {
-                    $linkDowload = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
-                    if ($sizeBefore) {
-                        $link = $PATH->upload.'/'.$NAME->folder.$dir.$imageSize.$fileName;
-                    } else {
-                        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                        $name = pathinfo($fileName, PATHINFO_FILENAME);
-                        $link = $PATH->upload.'/'.$NAME->folder.$dir.$name.$imageSize.'.'.$extension;
-                    }
-                }
-
-                if ($file == "image" || $file == "png" || $file == "ico" || $file == "jpg") {
-                    $image = "<img class='w-100 object-fit-contain' src='$link' height='200' lazyload>";
-                } else {
-                    $image = "";
-                }
-
-                if ($N_IMAGES == 1) {
-                    $ARROW_UP = "";
-                    $ARROW_DOWN = "";
-                } else {
-                    $ARROW_UP = "<button type='button' class='btn btn-light btn-sm wi-arrow-up' onclick=\"moveFile('#container-$id', '#card-file-$fileId', 'up')\"><i class='bi bi-chevron-left'></i></button>";
-                    $ARROW_DOWN = "<button type='button' class='btn btn-light btn-sm wi-arrow-down' onclick=\"moveFile('#container-$id', '#card-file-$fileId', 'down')\"><i class='bi bi-chevron-right'></i></i></button>";    
-                }
-
-                if ($n == 1) {
-                    $cardClass .= "wi-first-file";
-                } else if ($n == $N_IMAGES) {
-                    $cardClass .= "wi-last-file";
-                }
-
-                $OLD_FILES .=  "
-                <div id='card-file-$fileId' class='wi-card-file $cardClass col-4 order-$n' data-wi-order='$n' data-wi-n-file='$N_IMAGES' data-wi-db-table='$NAME->table' data-wi-db-column='$name' data-wi-db-row='$rowId' data-wi-folder='$NAME->folder' data-wi-file-id='$fileId' data-wi-file-name='$fileName'>
-                    <div class='card border overflow-hidden'>
-                        $image
-                        <div class='card-body'>
-                            <p class='card-title'>$fileName</p>
-                            <div class='d-flex w-100 gap-2'>
-                                $ARROW_UP
-                                $ARROW_DOWN
-                                <a href='$linkDowload' download class='btn btn-secondary btn-sm ms-auto'><i class='bi bi-download'></i></a>
-                                <button type='button' class='btn btn-danger btn-sm' onclick=\"deleteFile('#container-$id', '#card-file-$fileId')\"><i class='bi bi-trash3'></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>";
-
-                $i++;
-
-            }
-
-            $OLD_FILES .= "</div>";
-
-        }
-        
-        $x = $name.'[]';
-
-        if ($i >=  $maxFile) {
-            $attribute = "disabled";
-            $multiple = "";
-        } else {
-            if ($maxFile == 1) {
-                $multiple = "";
-            } else {
-                $multiple = "multiple";
-            }
+        if ($alreadyUploaded >= $maxFile) {
+            $element->disabled();
         }
 
-        return "
-        <div id='container-$id' class='w-100 wi-container-files'>
-            <h6>$label</h6>
-            <div class='w-100 mt-1'>
-                <input class='form-control' style='width: 100%;' id='$id' type='file' accept='$ACCEPT' name='$x' data-wi-max-file='$maxFile' data-wi-max-size='$maxSize' data-wi-check='true' $multiple $attribute>
-                <div class='invalid-feedback'> </div>
-            </div>
-            <div class='w-100 mt-1'>
-                <small>
-                    <ul>
-                        <li>File ammessi: <b>$EXTENSIONS_ACCEPT</b></li>
-                        <li>File massimi: <b>$maxFile</b></li>
-                        <li>Peso massimo: <b>{$maxSize}Mb</b></li>
-                    </ul> 
-                </small>
-            </div>
-            $OLD_FILES
-        </div>";
+        return $element->render();
 
     }
-    
+
+    /**
+     * Costruisce l'HTML della gallery dei file esistenti per `inputFile()`.
+     *
+     * Vive qui (non nel renderer) perché ha bisogno dei globals
+     * (`$PATH`, `$NAME`, `$VALUES`) e dello schema risolto da
+     * `backendPageTableSchema()`. Il renderer del tema riceve solo
+     * la stringa HTML pronta da inserire.
+     */
+    function backendInputFileGallery(string $containerId, string $name, mixed $value, array $TB, string $file): string
+    {
+
+        global $PATH;
+        global $NAME;
+        global $VALUES;
+
+        if (empty($value) || !isset($VALUES['id'])) {
+            return '';
+        }
+
+        $array = json_decode((string) $value, true);
+
+        if (!is_array($array) || $array === []) {
+            return '';
+        }
+
+        $rowId = $VALUES['id'];
+        $count = count($array);
+        $imageSize = '';
+        $sizeBefore = false;
+
+        if (isset($TB['format']['resize'])) {
+            $imageResize = $TB['format']['resize'];
+
+            if (isset($imageResize['width'])) {
+                $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+                $sizeBefore = true;
+            } else if (isset($imageResize[0]['width'])) {
+                $smallest = PHP_INT_MAX;
+                foreach ($imageResize as $size) {
+                    if ($size['width'] < $smallest) {
+                        $smallest = $size['width'];
+                        $imageSize = $size['width'].'x'.$size['height'].'-';
+                    }
+                }
+                $sizeBefore = true;
+            } else {
+                $firstResize = is_array($imageResize) ? reset($imageResize) : $imageResize;
+                $imageSize = ($firstResize !== false && $firstResize !== null && $firstResize !== '')
+                    ? '-'.$firstResize
+                    : '';
+                $sizeBefore = false;
+            }
+        }
+
+        $dir = isset($TB['format']['dir']) ? $TB['format']['dir'] : '/';
+
+        $html = "<div class='row g-3'>";
+        $i = 0;
+
+        foreach ($array as $fileId => $fileName) {
+            $n = $i + 1;
+            $cardClass = '';
+
+            if (substr($dir, -1) != '/') {
+                $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                $linkDownload = $PATH->upload.'/'.$NAME->folder.$dir.'.'.$extension;
+                $link = $linkDownload;
+            } else {
+                $linkDownload = $PATH->upload.'/'.$NAME->folder.$dir.$fileName;
+                if ($sizeBefore) {
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$imageSize.$fileName;
+                } else {
+                    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                    $baseName = pathinfo($fileName, PATHINFO_FILENAME);
+                    $link = $PATH->upload.'/'.$NAME->folder.$dir.$baseName.$imageSize.'.'.$extension;
+                }
+            }
+
+            $image = in_array($file, ['image', 'png', 'ico', 'jpg'], true)
+                ? "<img class='w-100 object-fit-contain' src='$link' height='200' lazyload>"
+                : '';
+
+            if ($count == 1) {
+                $arrowUp = '';
+                $arrowDown = '';
+            } else {
+                $arrowUp = "<button type='button' class='btn btn-light btn-sm wi-arrow-up' onclick=\"moveFile('#container-$containerId', '#card-file-$fileId', 'up')\"><i class='bi bi-chevron-left'></i></button>";
+                $arrowDown = "<button type='button' class='btn btn-light btn-sm wi-arrow-down' onclick=\"moveFile('#container-$containerId', '#card-file-$fileId', 'down')\"><i class='bi bi-chevron-right'></i></button>";
+            }
+
+            if ($n == 1) {
+                $cardClass .= 'wi-first-file';
+            } else if ($n == $count) {
+                $cardClass .= 'wi-last-file';
+            }
+
+            $html .= "
+            <div id='card-file-$fileId' class='wi-card-file $cardClass col-4 order-$n' data-wi-order='$n' data-wi-n-file='$count' data-wi-db-table='{$NAME->table}' data-wi-db-column='$name' data-wi-db-row='$rowId' data-wi-folder='{$NAME->folder}' data-wi-file-id='$fileId' data-wi-file-name='$fileName'>
+                <div class='card border overflow-hidden'>
+                    $image
+                    <div class='card-body'>
+                        <p class='card-title'>$fileName</p>
+                        <div class='d-flex w-100 gap-2'>
+                            $arrowUp
+                            $arrowDown
+                            <a href='$linkDownload' download class='btn btn-secondary btn-sm ms-auto'><i class='bi bi-download'></i></a>
+                            <button type='button' class='btn btn-danger btn-sm' onclick=\"deleteFile('#container-$containerId', '#card-file-$fileId')\"><i class='bi bi-trash3'></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>";
+
+            $i++;
+        }
+
+        $html .= '</div>';
+
+        return $html;
+
+    }
+
     function inputFileDragDrop($label, $name, $type = 'classic', $file = 'image', $attribute = null, $value = null) {
 
         global $PATH;
         global $NAME;
-        global $TABLE;
         global $VALUES;
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        $class = "w-100";
-
-        if (isset($VALUES[$name]) && !isset($value)) { $value = $VALUES[$name]; }
-        if (!empty($attribute) && strpos($attribute, "required") !== false) { $label .= "*"; }
+        $value = backendValueDefault($name, $value);
 
         $PAGE_TABLE = backendPageTableSchema();
 
@@ -1108,128 +700,79 @@
         $maxFile = $TB['format']['max_file'] ?? 1;
         $maxSize = $TB['format']['max_size'] ?? 1;
 
-        if ($file == "image") {
-            $ACCEPT = "image/png, image/jpeg";
-            $ACCEPT_LABEL = "la tua immagine";
-        } elseif ($file == "pdf") {
-            $ACCEPT = "application/pdf";
-            $ACCEPT_LABEL = "il tuo PDF";
-        } elseif ($file == "png") {
-            $ACCEPT = "image/png";
-            $ACCEPT_LABEL = "la tua immagine";
-        } elseif ($file == "ico") {
-            $ACCEPT = "image/ico, image/x-icon";
-            $ACCEPT_LABEL = "la tua immagine";
-        } elseif ($file == "media") {
-            $ACCEPT = "image/png, image/jpeg, image/webp, application/pdf";
-            $ACCEPT_LABEL = "i tuoi file";
-        } elseif ($file == "video") {
-            $ACCEPT = "video/mp4";
-            $ACCEPT_LABEL = "il tuo video";
-        } elseif ($file == "jpg") {
-            $ACCEPT = "image/jpeg";
-            $ACCEPT_LABEL = "la tua immagine";
-        } elseif ($file == "font") {
-            $ACCEPT = "font/ttf";
-            $ACCEPT_LABEL = "il tuo font";
-        } else {
-            $ACCEPT = "";
-            $ACCEPT_LABEL = "il tuo file";
-        }
+        # min size image + size before (riproduce la logica originale)
+        $imageSize = '';
+        $sizeBefore = false;
 
         if (isset($TB['format']['resize'])) {
 
             $imageResize = $TB['format']['resize'];
 
             if (isset($imageResize['width'])) {
-
                 $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
                 $sizeBefore = true;
-
             } else if (isset($imageResize[0]['width'])) {
                 $s = 10000000;
-
                 foreach ($imageResize as $key => $size) {
                     if ($size['width'] < $s) {
                         $s = $size['width'];
                         $imageSize = $size['width'].'x'.$size['height'].'-';
                     }
                 }
-
                 $sizeBefore = true;
-
             } else {
-
                 $firstResize = is_array($imageResize) ? reset($imageResize) : $imageResize;
                 $imageSize = ($firstResize !== false && $firstResize !== null)
                     ? (string) $firstResize
                     : '';
                 $sizeBefore = false;
-
             }
 
-        } else {
-
-            $sizeBefore = false;
-            $imageSize = "";
-
         }
 
-        $x = $name.'[]';
-
-        $multiple = ($maxFile > 1) ? "multiple" : "";
-        $class = ($maxFile > 1) ? " filepond--multiple" : "";
-
-        $legacyName = null;
-
-        if (isset($NAME) && is_object($NAME)) {
-            $legacyName = $NAME;
-        } else {
-            $legacyName = \Wonder\App\LegacyGlobals::get('NAME');
-        }
+        # directory upload (riproduce la logica originale, ritaglio l'ultimo segmento se dir non termina con /)
+        $legacyName = (isset($NAME) && is_object($NAME))
+            ? $NAME
+            : \Wonder\App\LegacyGlobals::get('NAME');
 
         $folder = is_object($legacyName) ? trim((string) ($legacyName->folder ?? ''), '/') : '';
 
         $dir = rtrim((string) ($PATH->upload ?? ''), '/');
         $dir .= $folder !== '' ? '/'.$folder : '';
-        $dir .= $TB['format']['dir'] ?? '/'; 
+        $dir .= $TB['format']['dir'] ?? '/';
 
         if (substr($dir, -1) != '/') {
-                                
             $NEW_NAME = explode('/', $dir);
             $lastKey = array_key_last($NEW_NAME);
-
             $NEW_NAME = $NEW_NAME[$lastKey];
-            $dir = str_replace($NEW_NAME,'', $dir);
-
+            $dir = str_replace($NEW_NAME, '', $dir);
         }
-        
+
         if (is_array($value)) { $value = ""; }
 
-        if (!empty($label)) {
-            $label = "<h6>$label</h6>";
-            $class .= " mt-1";
-        }
-        
-        return "
-        <div id='container-$id' class='w-100'>
-            $label
-            <div class='$class'>
-                <input id='$id' type='file' accept='$ACCEPT' name='$x' data-max-file-size='{$maxSize}MB' data-min-size-image='$imageSize' data-size-before='$sizeBefore' data-max-files='$maxFile' data-wi-dir='$dir' data-wi-value='$value' data-wi-uploader='$type' data-wi-uploader-label='$ACCEPT_LABEL' data-wi-check='true' $multiple $attribute>
-            </div>
-            <div class='invalid-feedback'> </div>
-        </div>";
+        return (new FileElement($name))
+            ->label((string) $label)
+            ->file((string) $file)
+            ->uploader((string) $type)
+            ->maxFile((int) $maxFile)
+            ->maxSize((int) $maxSize)
+            ->directory($dir)
+            ->fileValue($value)
+            ->sizeBefore((bool) $sizeBefore)
+            ->minSizeImage($imageSize !== '' ? $imageSize : null)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
-    function googleAddress($label, $name, $callback = null, $attributes = null, $value = null) 
+    function googleAddress($label, $name, $callback = null, $attributes = null, $value = null)
     {
 
         return text(
             $label,
             $name,
             "$attributes data-wi-search-place=\"true\" data-wi-callback=\"$callback\"",
-            $value 
+            $value
         );
 
     }
@@ -1257,11 +800,11 @@
         }
 
         return selectSearch(
-            $label, 
-            $name, 
-            $options, 
+            $label,
+            $name,
+            $options,
             false,
-            null, 
+            null,
             $attribute,
             $value
         );
@@ -1273,9 +816,9 @@
         $options = (!empty($country)) ? states($country) : [];
 
         return selectSearch(
-            $label, 
-            $name, 
-            $options, 
+            $label,
+            $name,
+            $options,
             false,
             null,
             $attribute.' data-wi-input-state="true" data-wi-list-states="'.$country.'" data-wi-input-attribute="'.$attribute.'"',
@@ -1289,9 +832,9 @@
         $options = phonePrefix();
 
         return selectSearch(
-            $label, 
-            $name, 
-            $options, 
+            $label,
+            $name,
+            $options,
             false,
             null,
             $attribute,
@@ -1302,363 +845,32 @@
 
     function inputRepeater($label, $name, $attribute = null, $value = null, array $config = []) {
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        $rowId = $id.'-rows';
-        $templateId = $id.'-template';
-        $addLabel = trim((string) ($config['add_label'] ?? 'Aggiungi linea'));
-        $addButtonClass = trim((string) ($config['add_button_class'] ?? 'btn btn-secondary'));
-        $deleteModalTitle = trim((string) ($config['delete_modal_title'] ?? 'Conferma eliminazione'));
-        $deleteModalText = trim((string) ($config['delete_modal_text'] ?? "Confermi l'eliminazione della riga?"));
-        $deleteModalCancelLabel = trim((string) ($config['delete_modal_cancel_label'] ?? 'Annulla'));
-        $deleteModalConfirmLabel = trim((string) ($config['delete_modal_confirm_label'] ?? 'Elimina'));
-        $deleteModalConfirmClass = trim((string) ($config['delete_modal_confirm_class'] ?? 'btn btn-danger'));
         $columns = is_array($config['columns'] ?? null) ? $config['columns'] : [];
-        $nested = (bool) ($config['nested'] ?? false);
-        $sortable = (bool) ($config['sortable'] ?? false);
 
-        if ($columns === []) {
-            $columns = [[
-                'name' => $name,
-                'label' => '',
-                'helper' => 'text',
-                'col' => 11,
-                'attribute' => $attribute,
-                'options' => [],
-                'search_bar' => false,
-                'version' => null,
-            ]];
-        }
-
-        $rows = [];
-
-        if (is_string($value) && trim($value) !== '') {
-            $decoded = json_decode($value, true);
-
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $value = $decoded;
-            }
-        }
-
-        if (is_array($value)) {
-            $isAssoc = array_keys($value) !== range(0, count($value) - 1);
-
-            if ($nested && $isAssoc) {
-                $rows = $value;
-            } elseif (!$isAssoc) {
-                $rowIndex = 1;
-
-                foreach ($value as $item) {
-                    $rowKey = 'row_'.$rowIndex;
-
-                    if (is_array($item)) {
-                        $rows[$rowKey] = $item;
-                    } elseif (count($columns) === 1) {
-                        $firstColumn = $columns[0] ?? null;
-                        $firstColumnName = $firstColumn instanceof \Wonder\App\ResourceSchema\FormField
-                            ? (string) $firstColumn->name
-                            : (string) (($firstColumn['name'] ?? $name));
-
-                        $rows[$rowKey] = [
-                            $firstColumnName => $item,
-                        ];
-                    }
-
-                    $rowIndex++;
-                }
-            }
-        }
-
-        if ($rows === []) {
-            $rows['row_1'] = [];
-        }
-
-        $renderField = static function (mixed $column, array $rowValue = [], string $rowKey = '__ROW_KEY__') use ($name, $attribute, $nested): string {
-            if ($column instanceof \Wonder\App\ResourceSchema\FormField) {
-                $field = clone $column;
-                $columnName = trim((string) $field->name);
-                $fieldValue = $rowValue[$columnName] ?? $field->get('value');
-                $inputName = $nested
-                    ? "{$name}[{$rowKey}][{$columnName}]"
-                    : $columnName.'[]';
-                $field->inputName($inputName)->value($fieldValue);
-
-                return $field->render();
-            }
-
-            $column = is_array($column) ? $column : [];
-            $columnName = trim((string) ($column['name'] ?? $name));
-            $helper = trim((string) ($column['helper'] ?? 'text'));
-            $columnLabel = (string) ($column['label'] ?? '');
-            $columnAttribute = trim((string) (($column['attribute'] ?? '') ?: $attribute));
-            $columnOptions = is_array($column['options'] ?? null) ? $column['options'] : [];
-            $searchBar = (bool) ($column['search_bar'] ?? false);
-            $version = $column['version'] ?? null;
-            $fieldValue = $rowValue[$columnName] ?? ($column['value'] ?? null);
-            $fieldName = $nested
-                ? "{$name}[{$rowKey}][{$columnName}]"
-                : $columnName.'[]';
-
-            return match ($helper) {
-                'hidden' => "<input type='hidden' name='{$fieldName}' value='".htmlspecialchars((string) ($fieldValue ?? ''), ENT_QUOTES, 'UTF-8')."' {$columnAttribute}>",
-                'select' => select($columnLabel, $fieldName, $columnOptions, $version, $columnAttribute, $fieldValue),
-                'selectSearch' => selectSearch($columnLabel, $fieldName, $columnOptions, false, $version, $columnAttribute, $fieldValue),
-                'radio' => check($columnLabel, $fieldName, $columnOptions, $columnAttribute, 'radio', $searchBar, $fieldValue),
-                'textarea' => textarea($columnLabel, $fieldName, $columnAttribute, $version, $fieldValue),
-                'timeInput' => timeInput($columnLabel, $fieldName, $column['time_step'] ?? 900, $columnAttribute, $fieldValue),
-                'email' => email($columnLabel, $fieldName, $columnAttribute, $fieldValue),
-                'phone', 'tel' => phone($columnLabel, $fieldName, $columnAttribute, $fieldValue),
-                'number' => number($columnLabel, $fieldName, $columnAttribute, $fieldValue),
-                'price' => price($columnLabel, $fieldName, $columnAttribute, $fieldValue),
-                'percentige' => percentige($columnLabel, $fieldName, $columnAttribute, $fieldValue),
-                default => text($columnLabel, $fieldName, $columnAttribute, $fieldValue),
-            };
-        };
-
-        $renderRow = static function (array $rowValue = [], string $rowKey = '__ROW_KEY__', bool $template = false) use ($columns, $renderField, $sortable, $deleteModalTitle, $deleteModalText, $deleteModalCancelLabel, $deleteModalConfirmLabel, $deleteModalConfirmClass): string {
-            $rowClass = $template ? ' d-none' : '';
-            $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$rowKey}\">";
-            $html .= '<div class="card border-0 bg-light-subtle">';
-            $html .= '<div class="card-body">';
-            $html .= '<div class="row g-2 align-items-start">';
-
-            foreach ($columns as $column) {
-                if ($column instanceof \Wonder\App\ResourceSchema\FormField) {
-                    $col = (int) (($column->columnSpan['default'] ?? null) ?: 11);
-                    $isHidden = ($column->get('helper') === 'hidden');
-                } else {
-                    $column = is_array($column) ? $column : [];
-                    $col = (int) ($column['col'] ?? 11);
-                    $isHidden = (($column['helper'] ?? 'text') === 'hidden');
-                }
-
-                if ($col <= 0 || $col > 12) {
-                    $col = 11;
-                }
-
-                if ($isHidden) {
-                    $html .= $renderField($column, $rowValue, $rowKey);
-                    continue;
-                }
-
-                $html .= "<div class=\"col-{$col}\">";
-                $html .= $renderField($column, $rowValue, $rowKey);
-                $html .= '</div>';
-            }
-
-            $actionColumnClass = $sortable ? 'col-3' : 'col-1';
-            $html .= "<div class=\"{$actionColumnClass} d-flex align-items-stretch\">";
-            $html .= '<div class="d-flex flex-row gap-2 w-100">';
-
-            if ($sortable) {
-                $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-up" onclick="window.wiRepeaterMoveRowUp(this)"><i class="bi bi-chevron-up"></i></button>';
-                $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-down" onclick="window.wiRepeaterMoveRowDown(this)"><i class="bi bi-chevron-down"></i></button>';
-            }
-
-            $deleteAttrs = sprintf(
-                ' data-wi-delete-title="%s" data-wi-delete-text="%s" data-wi-delete-cancel-label="%s" data-wi-delete-confirm-label="%s" data-wi-delete-confirm-class="%s"',
-                backendInputEscape($deleteModalTitle),
-                backendInputEscape($deleteModalText),
-                backendInputEscape($deleteModalCancelLabel),
-                backendInputEscape($deleteModalConfirmLabel),
-                backendInputEscape($deleteModalConfirmClass)
-            );
-            $html .= '<button type="button" class="btn btn-danger flex-fill wi-repeater-delete" onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
-            $html .= '</div>';
-            $html .= '</div>';
-            $html .= '</div>';
-            $html .= '</div>';
-            $html .= '</div>';
-            $html .= '</div>';
-
-            return $html;
-        };
-
-        $html = "<div id=\"{$id}\" class=\"w-100 wi-input-repeater\">";
-        $html .= "<h6>{$label}</h6>";
-        $html .= "<div id=\"{$rowId}\" class=\"row g-2\">";
-
-        foreach ($rows as $rowKey => $row) {
-            $html .= $renderRow(is_array($row) ? $row : [], (string) $rowKey, false);
-        }
-
-        $html .= '</div>';
-        $html .= "<template id=\"{$templateId}\">".$renderRow([], '__ROW_KEY__', true).'</template>';
-        $html .= '<div class="mt-2 d-flex justify-content-end">';
-        $html .= "<button type=\"button\" class=\"{$addButtonClass}\" onclick=\"window.wiRepeaterAddRow('{$rowId}', '{$templateId}')\"><i class=\"bi bi-plus-lg\"></i> {$addLabel}</button>";
-        $html .= '</div>';
-        $html .= <<<'HTML'
-<script>
-    window.wiRepeaterAddRow = window.wiRepeaterAddRow || function (containerId, templateId) {
-        const container = document.getElementById(containerId);
-        const template = document.getElementById(templateId);
-
-        if (!container || !template) {
-            return;
-        }
-
-        const fragment = template.content.cloneNode(true);
-        const row = fragment.querySelector('.wi-repeater-row');
-        const rowKey = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
-        if (row) {
-            row.classList.remove('d-none');
-            row.setAttribute('data-wi-row-key', rowKey);
-        }
-
-        fragment.querySelectorAll('[name]').forEach((input) => {
-            input.name = input.name.replaceAll('__ROW_KEY__', rowKey);
-        });
-
-        fragment.querySelectorAll('[data-wi-row-key]').forEach((element) => {
-            if (element.getAttribute('data-wi-row-key') === '__ROW_KEY__') {
-                element.setAttribute('data-wi-row-key', rowKey);
-            }
-        });
-
-        container.appendChild(fragment);
-    };
-
-    window.wiRepeaterEnsureDeleteModal = window.wiRepeaterEnsureDeleteModal || function (config = {}) {
-        let modalEl = document.getElementById('wi-repeater-delete-modal');
-
-        const defaults = {
-            title: "Conferma eliminazione",
-            text: "Confermi l'eliminazione della riga?",
-            cancelLabel: "Annulla",
-            confirmLabel: "Elimina",
-            confirmClass: "btn btn-danger",
-        };
-        const options = { ...defaults, ...config };
-
-        if (!modalEl) {
-            modalEl = document.createElement('div');
-            modalEl.id = 'wi-repeater-delete-modal';
-            modalEl.className = 'modal fade';
-            modalEl.tabIndex = -1;
-            modalEl.setAttribute('aria-hidden', 'true');
-            modalEl.innerHTML = `
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" data-wi-modal-title="true"></h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p class="mb-0" data-wi-modal-text="true"></p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-wi-modal-cancel="true"></button>
-                            <button type="button" data-wi-confirm-delete="true"></button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modalEl);
-        }
-
-        modalEl.querySelector('[data-wi-modal-title="true"]').textContent = options.title;
-        modalEl.querySelector('[data-wi-modal-text="true"]').textContent = options.text;
-        modalEl.querySelector('[data-wi-modal-cancel="true"]').textContent = options.cancelLabel;
-
-        const confirmBtn = modalEl.querySelector('[data-wi-confirm-delete="true"]');
-        confirmBtn.textContent = options.confirmLabel;
-        confirmBtn.className = options.confirmClass;
-
-        return modalEl;
-    };
-
-    window.wiRepeaterConfirmDelete = window.wiRepeaterConfirmDelete || function (onConfirm, config = {}) {
-        if (!window.bootstrap || !window.bootstrap.Modal) {
-            const fallbackText = config.text || "Confermi l'eliminazione della riga?";
-
-            if (window.confirm(fallbackText)) {
-                onConfirm();
-            }
-
-            return;
-        }
-
-        const modalEl = window.wiRepeaterEnsureDeleteModal(config);
-        const confirmBtn = modalEl.querySelector('[data-wi-confirm-delete="true"]');
-        const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
-
-        confirmBtn.onclick = function () {
-            modal.hide();
-            onConfirm();
-        };
-
-        modal.show();
-    };
-
-    window.wiRepeaterRemoveRow = window.wiRepeaterRemoveRow || function (button) {
-        const row = button.closest('.wi-repeater-row');
-        const container = row ? row.parentElement : null;
-
-        if (!row || !container) {
-            return;
-        }
-
-        const deleteConfig = {
-            title: button.getAttribute('data-wi-delete-title') || 'Conferma eliminazione',
-            text: button.getAttribute('data-wi-delete-text') || "Confermi l'eliminazione della riga?",
-            cancelLabel: button.getAttribute('data-wi-delete-cancel-label') || 'Annulla',
-            confirmLabel: button.getAttribute('data-wi-delete-confirm-label') || 'Elimina',
-            confirmClass: button.getAttribute('data-wi-delete-confirm-class') || 'btn btn-danger',
-        };
-
-        window.wiRepeaterConfirmDelete(function () {
-            if (container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
-                row.querySelectorAll('input, textarea, select').forEach((input) => {
-                    if (input.type === 'checkbox' || input.type === 'radio') {
-                        input.checked = false;
-                    } else {
-                        input.value = '';
-                    }
-                });
-
-                return;
-            }
-
-            row.remove();
-        }, deleteConfig);
-    };
-
-    window.wiRepeaterMoveRowUp = window.wiRepeaterMoveRowUp || function (button) {
-        const row = button.closest('.wi-repeater-row');
-        const previous = row ? row.previousElementSibling : null;
-
-        if (!row || !previous) {
-            return;
-        }
-
-        row.parentElement.insertBefore(row, previous);
-    };
-
-    window.wiRepeaterMoveRowDown = window.wiRepeaterMoveRowDown || function (button) {
-        const row = button.closest('.wi-repeater-row');
-        const next = row ? row.nextElementSibling : null;
-
-        if (!row || !next) {
-            return;
-        }
-
-        row.parentElement.insertBefore(next, row);
-    };
-</script>
-HTML;
-        $html .= '</div>';
-
-        return $html;
+        return (new Repeater($name))
+            ->label((string) $label)
+            ->value($value)
+            ->columns($columns)
+            ->context($config)
+            ->attributes(AttributeString::parse($attribute))
+            ->render();
 
     }
 
     function submit($label = 'Salva', $name = 'upload', $class = null, $onclick = null) {
 
-        $id = strtolower(code(10, 'letters', 'input_'));
-        $action = ($onclick == null) ? "type='submit'" : "type='button' onclick=\"$onclick\"";
+        $element = (new SubmitElement((string) $name))
+            ->label((string) $label);
 
-        return "<button $action id='$id' name='$name' class='float-end btn btn-dark $class wi-submit' disabled>$label</button>";
+        if (!empty($class)) {
+            $element->addButtonClass((string) $class);
+        }
+
+        if (!empty($onclick)) {
+            $element->onclick((string) $onclick);
+        }
+
+        return $element->render();
 
     }
 

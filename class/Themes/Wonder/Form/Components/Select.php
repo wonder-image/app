@@ -33,8 +33,17 @@ class Select extends Field
             $optionHtml .= '<option value="'.$this->escape((string) $optionValue).'"'.$selected.'>'.$this->escape((string) $optionLabel).'</option>';
         }
 
+        # Il `select` Wonder ha sempre la classe `compiled` (a differenza
+        # di altri campi che la aggiungono solo se hasValue): è il JS di
+        # styling che si aspetta lo stato "compiled" come baseline.
+        $containerClass = $this->containerClass('select');
+
+        if (!str_contains($containerClass, ' compiled')) {
+            $containerClass .= ' compiled';
+        }
+
         return <<<HTML
-<div class="{$this->containerClass('select')}" data-wi-select="true">
+<div class="{$containerClass}" data-wi-select="true">
     {$this->renderLabel()}
     {$inputHidden}
     <select id="{$id}" name="{$inputName}" class="wi-input d-none" data-wi-label="true" {$attributes}>

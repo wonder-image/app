@@ -4,6 +4,7 @@ namespace Wonder\App\Support;
 
 use Throwable;
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\Support\AttributeString;
 use Wonder\Elements\Form\Components\CheckGroup;
 use Wonder\Elements\Form\Components\Checkbox;
 use Wonder\Elements\Form\Components\Date;
@@ -97,7 +98,7 @@ final class FormFieldElementFactory
         $label = trim((string) ($field->get('label') ?? ''));
         $value = $field->get('value');
         $error = trim((string) ($field->get('error') ?? ''));
-        $attributes = self::parseAttributes((string) ($field->get('attribute') ?? ''));
+        $attributes = AttributeString::parse((string) ($field->get('attribute') ?? ''));
 
         if ($label === '') {
             $label = ucwords(str_replace(['_', '-'], ' ', $field->name));
@@ -420,35 +421,6 @@ final class FormFieldElementFactory
         $folder = trim((string) ($name->folder ?? ''));
 
         return $folder !== '' ? $folder : null;
-    }
-
-    private static function parseAttributes(string $attribute): array
-    {
-        $attribute = trim($attribute);
-
-        if ($attribute === '') {
-            return [];
-        }
-
-        $attributes = [];
-        $pattern = '/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\']+)))?/';
-
-        if (!preg_match_all($pattern, $attribute, $matches, PREG_SET_ORDER)) {
-            return [];
-        }
-
-        foreach ($matches as $match) {
-            $key = trim((string) ($match[1] ?? ''));
-
-            if ($key === '') {
-                continue;
-            }
-
-            $value = $match[2] ?? $match[3] ?? $match[4] ?? true;
-            $attributes[$key] = $value;
-        }
-
-        return $attributes;
     }
 
     private static function formatNativeDateValue(mixed $value): mixed

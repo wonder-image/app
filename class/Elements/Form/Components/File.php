@@ -64,10 +64,48 @@
 
         }
 
+        /**
+         * Modalità di rendering. Default `dragdrop` (Filepond, drag&drop UI
+         * usata da `inputFileDragDrop`). `classic` produce l'UI dell'admin
+         * storico (form-control + info-block "File ammessi/massimi/peso" +
+         * eventuale gallery dei file già caricati), come fa `inputFile`.
+         */
+        public function mode(string $mode): self
+        {
+
+            return $this->schema('mode', $mode === 'classic' ? 'classic' : 'dragdrop');
+
+        }
+
+        /**
+         * HTML pre-renderizzato della gallery di file esistenti (usato in
+         * modalità `classic`). La logica di build vive in
+         * `inputFile()` perché ha bisogno di globals (`$PATH`, `$NAME`,
+         * `$VALUES`); qui resta solo l'embed.
+         */
+        public function gallery(string $html): self
+        {
+
+            return $this->schema('gallery_html', $html);
+
+        }
+
+        /**
+         * Stringa con la lista delle estensioni accettate, mostrata nel
+         * blocco informativo della modalità `classic` (es. ".png - .jpg
+         * - .jpeg"). Indipendente da `accept` (l'attributo HTML).
+         */
+        public function extensionsAccept(string $extensions): self
+        {
+
+            return $this->schema('extensions_accept', $extensions);
+
+        }
+
         protected function renderInput(): string {
 
             return '';
-            
+
         }
 
     }
