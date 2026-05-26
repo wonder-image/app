@@ -16,7 +16,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
         </div>
         
         <div class="col-12">
-            <?=$renderInput('username', $fieldUsername ?? '')?>
+            <?=$renderInput('username', $fieldLogin ?? '')?>
         </div>
 
         <div class="col-12">

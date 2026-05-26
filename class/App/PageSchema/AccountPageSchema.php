@@ -47,7 +47,7 @@ final class AccountPageSchema extends CustomPageSchema
     public static function loginFormSchema(): array
     {
         return static::applyLabelSchema([
-            'username' => FormField::key('username')->text()->required(),
+            'username' => FormField::key('username')->text()->label('Username o email')->required(),
             'password' => FormField::key('password')->password()->required(),
         ]);
     }

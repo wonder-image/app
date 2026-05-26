@@ -10,7 +10,7 @@ use Wonder\App\PageSchema\AccountPageSchema;
 
     if (isset($_POST['login'])) {
 
-        if (authenticateUser('username', $_POST['username'], $_POST['password'], 'backend')) {
+        if (authenticateUserLogin($_POST['username'] ?? '', $_POST['password'] ?? '', 'backend')) {
 
             if (!empty($PAGE->redirect)) {
                 header("Location: $PAGE->redirect");
@@ -27,6 +27,6 @@ use Wonder\App\PageSchema\AccountPageSchema;
     \Wonder\View\View::make($ROOT_APP.'/view/pages/backend/account/login.php', [
         'TITLE' => 'Login',
         'ALERT' => $ALERT ?? null,
-        'fieldUsername' => $_POST['username'] ?? null,
+        'fieldLogin' => $_POST['username'] ?? null,
         'FORM_SCHEMA' => AccountPageSchema::loginFormSchema(),
     ])->render();

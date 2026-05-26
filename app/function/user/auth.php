@@ -117,6 +117,33 @@
 
     }
 
+    function resolveUserLoginIdentifierKey(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value !== '' && filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            return 'email';
+        }
+
+        return 'username';
+    }
+
+    function authenticateUserLogin($VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null)
+    {
+
+        global $ALERT;
+
+        $key = resolveUserLoginIdentifierKey((string) $VALUE);
+        $authenticated = authenticateUser($key, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED);
+
+        if (!$authenticated && in_array((int) ($ALERT ?? 0), [901, 904, 905], true)) {
+            $ALERT = 925;
+        }
+
+        return $authenticated;
+
+    }
+
     // Login utente (remember-me automatico)
     function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null)
     {
