@@ -129,9 +129,9 @@ final class ImageResource extends MediaResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Media', 'media', 'bi-image')
+            ->inSection('media')
             ->title('Immagini')
-            ->order(4.3)
+            ->order(20)
             ->authority(['admin']);
     }
 

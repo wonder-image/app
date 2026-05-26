@@ -148,7 +148,7 @@ final class LegalDocumentResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Set Up', 'set-up', 'bi-gear')
+            ->inSection('set-up')
             ->title('Documenti legali')
             ->order(30)
             ->authority(['admin']);

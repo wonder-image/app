@@ -84,10 +84,10 @@ final class SqlErrorResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Set Up', 'set-up', 'bi-gear')
+            ->inSection('log')
             ->title('Errori SQL')
-            ->order(90)
-            ->authority(['admin']);
+            ->order(40)
+            ->authority(['admin', 'administrator']);
     }
 
     private static function customShowViewPath(): ?string

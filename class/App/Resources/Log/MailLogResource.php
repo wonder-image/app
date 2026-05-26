@@ -99,7 +99,7 @@ final class MailLogResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Log', 'log', 'bi-ear')
+            ->section('log', 'Log', 'bi-ear', 1030, ['admin', 'administrator'])
             ->title('Email')
             ->order(1)
             ->authority(['admin', 'administrator']);

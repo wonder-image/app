@@ -96,7 +96,7 @@ final class AuthLogResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Log', 'log', 'bi-ear')
+            ->inSection('log')
             ->title('Accessi Utente')
             ->order(10)
             ->authority(['admin', 'administrator']);

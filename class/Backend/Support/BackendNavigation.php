@@ -2,139 +2,115 @@
 
 namespace Wonder\Backend\Support;
 
+use RuntimeException;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 
+/**
+ * Costruisce la navigation del backend interamente a partire dalle
+ * Resource registrate in `ResourceRegistry`.
+ *
+ * Nessuna sezione è hardcoded qui: il catalogo
+ * `BackendNavigationSections` viene popolato a runtime dalle
+ * dichiarazioni `NavigationSchema::section(key, title, icon, order)`
+ * che le Resource fanno nel proprio `navigationSchema()`.
+ *
+ * Algoritmo in due passi:
+ *
+ *  1. **Pass 1 (collect)**: per ogni Resource, invoca
+ *     `navigationSchema()`. Ogni chiamata a `section()` registra
+ *     la sezione nel registry. Quando il Pass 1 è completo, il
+ *     catalogo è completamente popolato.
+ *
+ *  2. **Pass 2 (build)**: ri-itera le Resource e costruisce sezioni
+ *     + subnav usando `resolveSection()` per ottenere i metadati
+ *     della sezione dal registry. Valida che ogni `inSection(key)`
+ *     referenzi una sezione effettivamente dichiarata.
+ *
+ * Output: array `[section, …]` ordinato per `__section_order`,
+ * pronto per il rendering del menu.
+ */
 final class BackendNavigation
 {
     public static function all(): array
     {
-        return self::merge([
-            ...self::defaultTop(),
-            ...self::defaultBottom(),
-        ]);
+        return self::buildNavigation();
     }
 
-    public static function merge(array $navigation): array
+    /**
+     * Variant: prende un array di sezioni "esterne" (es. da plugin
+     * Module) e le unisce alle sezioni delle Resource. Le sezioni
+     * esterne devono già avere `__section_order` settato.
+     */
+    public static function merge(array $extraSections): array
     {
-        $resources = self::resourceSections();
+        $navigation = self::buildNavigation();
 
-        foreach ($resources as $sectionKey => $resourceSection) {
-            $index = self::findSectionIndex($navigation, $resourceSection);
+        foreach ($extraSections as $section) {
+            if (!is_array($section)) {
+                continue;
+            }
+
+            $index = self::findSectionIndex($navigation, $section);
 
             if ($index === null) {
-                $navigation[] = $resourceSection;
+                $navigation[] = $section;
                 continue;
             }
 
-            $navigation[$index] = self::mergeSection($navigation[$index], $resourceSection);
+            $navigation[$index] = self::mergeSection($navigation[$index], $section);
         }
 
-        foreach ($navigation as $index => $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            unset($navigation[$index]['__resource_order']);
-        }
-
-        return array_values($navigation);
+        return self::sortAndCleanup($navigation);
     }
 
-    private static function defaultTop(): array
+    private static function buildNavigation(): array
     {
-        return [
-            [
-                'title' => 'Home',
-                'folder' => 'home',
-                'icon' => 'bi-house-door',
-                'file' => self::backendHomeFile(),
-                'authority' => [],
-                'subnavs' => [],
-            ],
-        ];
+        $schemas = self::collectSchemas();
+        $sections = self::buildSections($schemas);
+
+        return self::sortAndCleanup($sections);
     }
 
-    private static function defaultBottom(): array
+    /**
+     * Pass 1: invoca `navigationSchema()` su ogni Resource per
+     * triggerare le registrazioni nel
+     * `BackendNavigationSections` registry. Cache delle schema
+     * istanziate per evitare di ricostruirle nel Pass 2.
+     *
+     * @return array<class-string, \Wonder\App\ResourceSchema\NavigationSchema>
+     */
+    private static function collectSchemas(): array
     {
-        return [
-            [
-                'title' => 'Media',
-                'folder' => 'media',
-                'icon' => 'bi-image',
-                'authority' => ['admin'],
-                'subnavs' => [
-                    ['title' => 'Logo', 'folder' => 'app/media/logos', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Immagini', 'folder' => 'app/media/images', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Icone', 'folder' => 'app/media/icons', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Documenti', 'folder' => 'app/media/documents', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Upload di massa', 'folder' => 'app/media/upload-massive', 'file' => '', 'authority' => ['admin']],
-                ],
-            ],
-            [
-                'title' => 'Set Up',
-                'folder' => 'set-up',
-                'icon' => 'bi-gear',
-                'authority' => ['admin'],
-                'subnavs' => [
-                    ['title' => 'Dati aziendali', 'folder' => 'app/config/corporate-data', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Seo', 'folder' => 'app/config/seo', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Documenti legali', 'folder' => 'app/config/legal-documents', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Utenti', 'folder' => 'app/config/user', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Utenti API', 'folder' => 'app/config/api-users', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Analitica', 'folder' => 'app/config/analytics', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Credenziali', 'folder' => 'app/config/credentials', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Editor', 'folder' => 'app/config/configuration-file', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Errori SQL', 'folder' => 'app/config/sql-error', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Download', 'folder' => 'app/config/sql-download', 'file' => '', 'authority' => ['admin']],
-                ],
-            ],
-            [
-                'title' => 'Stile',
-                'folder' => 'css',
-                'icon' => 'bi-award',
-                'authority' => ['admin'],
-                'subnavs' => [
-                    ['title' => 'Default', 'folder' => 'app/css/default', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Font', 'folder' => 'app/css/font', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Colori', 'folder' => 'app/css/color', 'file' => 'list.php', 'authority' => ['admin']],
-                    ['title' => 'Input', 'folder' => 'app/css/input', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Modal', 'folder' => 'app/css/modal', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Dropdown', 'folder' => 'app/css/dropdown', 'file' => '', 'authority' => ['admin']],
-                    ['title' => 'Alert', 'folder' => 'app/css/alert', 'file' => '', 'authority' => ['admin']],
-                ],
-            ],
-            [
-                'title' => 'Log',
-                'folder' => 'log',
-                'icon' => 'bi-ear',
-                'authority' => ['admin', 'administrator'],
-                'subnavs' => [
-                    ['title' => 'Accessi Utente', 'folder' => 'app/log/auth-users', 'file' => 'list.php', 'authority' => ['admin', 'administrator']],
-                    ['title' => 'Email', 'folder' => 'app/log/email', 'file' => 'list.php', 'authority' => ['admin', 'administrator']],
-                    ['title' => 'Consensi', 'folder' => 'app/log/consent', 'file' => 'list.php', 'authority' => ['admin', 'administrator']],
-                ],
-            ],
-        ];
-    }
-
-    private static function resourceSections(): array
-    {
-        $sections = [];
+        $schemas = [];
 
         foreach (ResourceRegistry::all() as $resourceClass) {
             if (!is_subclass_of($resourceClass, Resource::class)) {
                 continue;
             }
 
-            $schema = $resourceClass::navigationSchema()->all();
+            # L'invocazione di `navigationSchema()` ha come side
+            # effect le chiamate a `section()` che popolano il registry.
+            $schemas[$resourceClass] = $resourceClass::navigationSchema();
+        }
+
+        return $schemas;
+    }
+
+    /**
+     * Pass 2: costruisce l'array di sezioni a partire dalle schema
+     * cached + registry (ora completo).
+     */
+    private static function buildSections(array $schemas): array
+    {
+        $sections = [];
+
+        foreach ($schemas as $resourceClass => $navigationSchema) {
+            $schema = $navigationSchema->all();
 
             if (empty($schema['enabled'])) {
                 continue;
             }
-
-            $sectionFolder = trim((string) ($schema['section_folder'] ?? ''));
-            $sectionTitle = trim((string) ($schema['section'] ?? ''));
 
             $subnav = [
                 'title' => (string) ($schema['title'] ?? $resourceClass::titleLabel()),
@@ -144,7 +120,24 @@ final class BackendNavigation
                 '__resource_order' => (int) ($schema['order'] ?? 100),
             ];
 
-            if ($sectionFolder === '' || $sectionTitle === '') {
+            # Validazione esplicita: se la Resource fa inSection('foo')
+            # ma nessuna ha dichiarato 'foo' con section(), errore.
+            $sectionKey = $schema['section_key'] ?? null;
+
+            if (is_string($sectionKey) && $sectionKey !== '' && !BackendNavigationSections::has($sectionKey)) {
+                throw new RuntimeException(
+                    "Resource {$resourceClass} referenzia la sezione '{$sectionKey}' "
+                    ."ma nessuna Resource l'ha dichiarata. "
+                    ."Una Resource deve chiamare section('{$sectionKey}', \$title, \$icon, \$order) "
+                    ."per dichiararla."
+                );
+            }
+
+            $resolvedSection = $navigationSchema->resolveSection();
+
+            # Standalone (no section): la Resource diventa una sezione
+            # top-level a sé. Order = section_order override o 500.
+            if ($resolvedSection === null) {
                 $sections['resource:'.$resourceClass] = [
                     'title' => $subnav['title'],
                     'folder' => $subnav['folder'],
@@ -152,18 +145,25 @@ final class BackendNavigation
                     'file' => $subnav['file'],
                     'authority' => $subnav['authority'],
                     'subnavs' => [],
-                    '__resource_order' => $subnav['__resource_order'],
+                    '__section_order' => is_int($schema['section_order'] ?? null)
+                        ? (int) $schema['section_order']
+                        : 500,
                 ];
                 continue;
             }
 
+            $sectionFolder = $resolvedSection['folder'];
+
             if (!isset($sections[$sectionFolder])) {
                 $sections[$sectionFolder] = [
-                    'title' => $sectionTitle,
+                    'title' => $resolvedSection['title'],
                     'folder' => $sectionFolder,
-                    'icon' => (string) ($schema['section_icon'] ?? $resourceClass::icon()),
-                    'authority' => self::normalizeAuthority((array) ($schema['authority'] ?? [])),
+                    'icon' => $resolvedSection['icon'] !== ''
+                        ? $resolvedSection['icon']
+                        : (string) $resourceClass::icon(),
+                    'authority' => self::normalizeAuthority($resolvedSection['authority']),
                     'subnavs' => [],
+                    '__section_order' => $resolvedSection['order'],
                 ];
             }
 
@@ -179,6 +179,38 @@ final class BackendNavigation
         }
 
         return $sections;
+    }
+
+    /**
+     * Sort top-level + cleanup degli internal markers (`__section_order`,
+     * `__resource_order` nelle subnav).
+     */
+    private static function sortAndCleanup(array $navigation): array
+    {
+        # Sort stabile (PHP 8+): a parità di __section_order si rispetta
+        # l'ordine di inserimento.
+        usort($navigation, static function ($left, $right): int {
+            if (!is_array($left) || !is_array($right)) {
+                return 0;
+            }
+
+            return ((int) ($left['__section_order'] ?? 500))
+                <=> ((int) ($right['__section_order'] ?? 500));
+        });
+
+        foreach ($navigation as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            unset($navigation[$index]['__section_order']);
+
+            if (isset($item['subnavs']) && is_array($item['subnavs'])) {
+                $navigation[$index]['subnavs'] = self::sortSubnavs($item['subnavs']);
+            }
+        }
+
+        return array_values($navigation);
     }
 
     private static function findSectionIndex(array $navigation, array $section): ?int
@@ -199,72 +231,89 @@ final class BackendNavigation
         return null;
     }
 
-    private static function mergeSection(array $base, array $resourceSection): array
+    private static function mergeSection(array $base, array $other): array
     {
-        $base['title'] = (string) ($base['title'] ?? $resourceSection['title'] ?? '');
-        $base['folder'] = (string) ($base['folder'] ?? $resourceSection['folder'] ?? '');
-        $base['icon'] = (string) ($base['icon'] ?? $resourceSection['icon'] ?? 'bi-bug');
-        $base['file'] = (string) ($base['file'] ?? $resourceSection['file'] ?? '');
+        $base['title'] = (string) ($base['title'] ?? $other['title'] ?? '');
+        $base['folder'] = (string) ($base['folder'] ?? $other['folder'] ?? '');
+        $base['icon'] = (string) ($base['icon'] ?? $other['icon'] ?? 'bi-bug');
+        $base['file'] = (string) ($base['file'] ?? $other['file'] ?? '');
         $base['authority'] = self::mergeAuthority(
             (array) ($base['authority'] ?? []),
-            (array) ($resourceSection['authority'] ?? [])
+            (array) ($other['authority'] ?? [])
         );
         $base['subnavs'] = self::mergeSubnavs(
             (array) ($base['subnavs'] ?? []),
-            ...(array) ($resourceSection['subnavs'] ?? [])
+            ...(array) ($other['subnavs'] ?? [])
         );
-        $base['__resource_order'] = (int) ($base['__resource_order'] ?? $resourceSection['__resource_order'] ?? 1000);
+        $base['__section_order'] = (int) (
+            $base['__section_order']
+            ?? $other['__section_order']
+            ?? 500
+        );
 
         return $base;
     }
 
-    private static function mergeSubnavs(array $baseSubnavs, array ...$resourceSubnavs): array
+    /**
+     * Append/merge di nuovi subnav alla lista. Non rimuove
+     * `__resource_order` perché questa funzione è chiamata più volte
+     * (una per Resource); l'ordinamento e la rimozione del marker
+     * avvengono al termine in `sortSubnavs()` chiamato da
+     * `sortAndCleanup()`.
+     */
+    private static function mergeSubnavs(array $baseSubnavs, array ...$incomingSubnavs): array
     {
-        foreach ($resourceSubnavs as $resourceSubnav) {
+        foreach ($incomingSubnavs as $subnav) {
             $merged = false;
 
-            foreach ($baseSubnavs as $index => $subnav) {
-                if (!is_array($subnav)) {
+            foreach ($baseSubnavs as $index => $existing) {
+                if (!is_array($existing)) {
                     continue;
                 }
 
-                $sameFolder = (($subnav['folder'] ?? null) === ($resourceSubnav['folder'] ?? null));
-                $sameTitle = self::normalizeTitle((string) ($subnav['title'] ?? '')) === self::normalizeTitle((string) ($resourceSubnav['title'] ?? ''));
+                $sameFolder = (($existing['folder'] ?? null) === ($subnav['folder'] ?? null));
+                $sameTitle = self::normalizeTitle((string) ($existing['title'] ?? ''))
+                    === self::normalizeTitle((string) ($subnav['title'] ?? ''));
 
                 if (!$sameFolder && !$sameTitle) {
                     continue;
                 }
 
-                $baseSubnavs[$index] = array_merge($subnav, $resourceSubnav);
+                $baseSubnavs[$index] = array_merge($existing, $subnav);
                 $baseSubnavs[$index]['authority'] = self::mergeAuthority(
-                    (array) ($subnav['authority'] ?? []),
-                    (array) ($resourceSubnav['authority'] ?? [])
+                    (array) ($existing['authority'] ?? []),
+                    (array) ($subnav['authority'] ?? [])
                 );
                 $merged = true;
                 break;
             }
 
             if (!$merged) {
-                $baseSubnavs[] = $resourceSubnav;
+                $baseSubnavs[] = $subnav;
             }
         }
 
-        usort($baseSubnavs, static function (array $left, array $right): int {
-            $leftOrder = (int) ($left['__resource_order'] ?? 1000);
-            $rightOrder = (int) ($right['__resource_order'] ?? 1000);
+        return $baseSubnavs;
+    }
 
-            if ($leftOrder !== $rightOrder) {
-                return $leftOrder <=> $rightOrder;
-            }
-
-            return strcasecmp((string) ($left['title'] ?? ''), (string) ($right['title'] ?? ''));
+    /**
+     * Ordinamento finale delle subnav di una sezione (stabile via
+     * `__resource_order`) e rimozione del marker. Chiamato una volta
+     * sola per sezione, dopo che tutte le Resource sono state
+     * processate.
+     */
+    private static function sortSubnavs(array $subnavs): array
+    {
+        usort($subnavs, static function (array $left, array $right): int {
+            return ((int) ($left['__resource_order'] ?? 1000))
+                <=> ((int) ($right['__resource_order'] ?? 1000));
         });
 
-        foreach ($baseSubnavs as $index => $subnav) {
-            unset($baseSubnavs[$index]['__resource_order']);
+        foreach ($subnavs as $index => $subnav) {
+            unset($subnavs[$index]['__resource_order']);
         }
 
-        return array_values($baseSubnavs);
+        return array_values($subnavs);
     }
 
     private static function mergeAuthority(array $base, array $incoming): array
@@ -291,12 +340,5 @@ final class BackendNavigation
     private static function normalizeTitle(string $title): string
     {
         return mb_strtolower(trim($title));
-    }
-
-    private static function backendHomeFile(): string
-    {
-        $permits = $GLOBALS['PERMITS']['backend']['links']['home'] ?? '';
-
-        return is_string($permits) ? $permits : '';
     }
 }

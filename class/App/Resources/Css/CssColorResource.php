@@ -110,9 +110,9 @@ final class CssColorResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Stile', 'css', 'bi-award')
+            ->inSection('css')
             ->authority(['admin'])
-            ->order(10);
+            ->order(20);
     }
 
     public static function afterStore(object $result, array $values = []): void

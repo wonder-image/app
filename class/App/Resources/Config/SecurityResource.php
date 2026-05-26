@@ -199,7 +199,7 @@ final class SecurityResource extends SingletonResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Set Up', 'set-up', 'bi-gear')
+            ->inSection('set-up')
             ->title('Credenziali')
             ->order(70)
             ->authority(['admin']);

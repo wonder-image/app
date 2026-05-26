@@ -49,7 +49,7 @@ final class ApiUserResource extends UserManagementResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Set Up', 'set-up', 'bi-gear')
+            ->inSection('set-up')
             ->title('Utenti API')
             ->order(50)
             ->authority(['admin']);

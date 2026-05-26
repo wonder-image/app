@@ -88,9 +88,9 @@ final class LogoResource extends SingletonResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Media', 'media', 'bi-image')
+            ->inSection('media')
             ->title('Logo')
-            ->order(4.4)
+            ->order(10)
             ->authority(['admin']);
     }
 

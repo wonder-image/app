@@ -136,9 +136,9 @@ final class CssFontResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Stile', 'css', 'bi-award')
+            ->inSection('css')
             ->authority(['admin'])
-            ->order(20);
+            ->order(30);
     }
 
     public static function afterStore(object $result, array $values = []): void

@@ -81,7 +81,7 @@ final class AnalyticsResource extends SingletonResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Set Up', 'set-up', 'bi-gear')
+            ->inSection('set-up')
             ->title('Analitica')
             ->order(60)
             ->authority(['admin']);

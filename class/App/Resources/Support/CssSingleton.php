@@ -9,7 +9,7 @@ abstract class CssSingleton extends SingletonResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Stile', 'css', 'bi-award')
+            ->section('css', 'Stile', 'bi-award', 1010, ['admin'])
             ->authority(['admin']);
     }
 

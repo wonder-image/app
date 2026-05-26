@@ -48,7 +48,7 @@ final class BackendUserResource extends UserManagementResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Set Up', 'set-up', 'bi-gear')
+            ->inSection('set-up')
             ->title('Utenti')
             ->order(40)
             ->authority(['admin']);

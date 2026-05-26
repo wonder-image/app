@@ -228,7 +228,7 @@ final class CssDefaultResource extends CssSingleton
     {
         return parent::navigationSchema()
             ->title('Default')
-            ->order(30);
+            ->order(10);
     }
 
     private static function fontOptions(): array

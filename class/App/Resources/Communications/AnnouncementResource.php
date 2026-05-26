@@ -132,7 +132,7 @@ final class AnnouncementResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('Avvisi', 'notices', 'bi-megaphone')
+            ->section('notices', 'Avvisi', 'bi-megaphone', 500, ['admin', 'administrator'])
             ->title('Annunci')
             ->order(20)
             ->authority(['admin', 'administrator']);
