@@ -33,7 +33,6 @@
     use Wonder\Elements\Form\Components\SelectDate;
     use Wonder\Elements\Form\Components\SelectOld;
     use Wonder\Elements\Form\Components\Submit as SubmitElement;
-    use Wonder\Elements\Form\Components\SubmitRecaptcha as SubmitRecaptchaElement;
     use Wonder\Elements\Form\Components\Textarea;
     use Wonder\Elements\Form\Components\TextList;
 
@@ -400,16 +399,3 @@
 
     }
 
-    function submitRecaptcha($label, $name, $class = 'btn-success', $callback = 'sendForm') {
-
-        $siteKey = \Wonder\App\Credentials::api()->g_recaptcha_site_key;
-
-        return (new SubmitRecaptchaElement((string) $name))
-            ->label((string) $label)
-            ->buttonClass('btn '.$class)
-            ->siteKey((string) $siteKey)
-            ->callback((string) $callback)
-            ->action('submit')
-            ->render();
-
-    }

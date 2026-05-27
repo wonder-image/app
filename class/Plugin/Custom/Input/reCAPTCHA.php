@@ -1,49 +1,50 @@
 <?php
 
     namespace Wonder\Plugin\Custom\Input;
-    use Wonder\Plugin\Google\Security\reCAPTCHA as Credentials;
 
+    use Wonder\Elements\Form\Components\reCAPTCHA as Element;
+
+    /**
+     * API legacy `->action()->theme()->size()->generate()` per il widget
+     * reCAPTCHA v2 "Non sono un robot".
+     *
+     * È un thin wrapper sopra `Wonder\Elements\Form\Components\reCAPTCHA`:
+     * tutta la logica di rendering (markup, siteKey da Credentials,
+     * hidden input) vive nell'Element + renderer del tema attivo.
+     * Questa classe esiste per retro-compatibilità con i caller esistenti
+     * (es. `inputRecaptcha()`).
+     */
     class reCAPTCHA {
 
-        public $definition = [];
+        private Element $element;
 
-        private function set($key, $value) {
-
-            if (!empty($value) && !is_null($value)) {
-                $this->definition[$key] = $value;
-            }
-            
+        public function __construct() {
+            $this->element = new Element();
         }
 
-        public function action($value):reCAPTCHA { $this->set('action', $value); return $this; }
+        public function action($value): self {
+            $this->element->action(is_string($value) ? $value : null);
+            return $this;
+        }
 
         /**
-         * Summary of theme
-         * @param mixed $value = light || dark
-         * @return reCAPTCHA
+         * @param mixed $value light | dark
          */
-        public function theme($value):reCAPTCHA { $this->set('theme', $value); return $this; }
+        public function theme($value): self {
+            $this->element->theme(is_string($value) ? $value : null);
+            return $this;
+        }
 
         /**
-         * Summary of size
-         * @param mixed $value = compact || normal
-         * @return reCAPTCHA
+         * @param mixed $value compact | normal
          */
-        public function size($value):reCAPTCHA { $this->set('size', $value); return $this; }
+        public function size($value): self {
+            $this->element->size(is_string($value) ? $value : null);
+            return $this;
+        }
 
-        public function generate() {
-
-            $siteKey = (new Credentials())::$siteKey;
-
-            $action = $this->definition['action'] ?? '';
-            $theme = $this->definition['theme'] ?? 'light';
-            $size = $this->definition['size'] ?? 'normal';
-
-            return "
-            <div class=\"g-recaptcha\" data-wi-site-key=\"$siteKey\" data-wi-theme=\"$theme\" data-wi-size=\"$size\" data-wi-action=\"$action\"></div>
-            <input type=\"hidden\" name=\"g-recaptcha-token\" required>
-            <input type=\"hidden\" name=\"g-recaptcha-action\" required>";
-            
+        public function generate(): string {
+            return $this->element->render();
         }
 
     }
