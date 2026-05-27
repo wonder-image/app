@@ -3,6 +3,7 @@
 .claude/
 .agents/
 .codex-skill-build/
+skills-lock.json
 .agents/
 vendor/
 .phpdoc/
