@@ -6,6 +6,18 @@
       "sourceType": "github",
       "skillPath": "skill/SKILL.md",
       "computedHash": "34e59a34b9705187e87039faa5d9585aebe0056ef657f761b905afef276a3362"
+    },
+    "wi-app": {
+      "source": "wonder-image/skills",
+      "sourceType": "github",
+      "skillPath": "skills/wi-app/SKILL.md",
+      "computedHash": "ae7132437cac48d49567fb2d0f57116c6807d4b7afbd4af911c8f9c703fe29d1"
+    },
+    "wi-site": {
+      "source": "wonder-image/skills",
+      "sourceType": "github",
+      "skillPath": "skills/wi-site/SKILL.md",
+      "computedHash": "098269ddbc38a1891c44a987d78b71ab1e28b2865f1e7b0c4c9de902f146528a"
     }
   }
 }
