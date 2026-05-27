@@ -61,6 +61,20 @@ abstract class Field extends AbstractFieldRenderer
     }
 
     /**
+     * Attributo `data-wi-label="true"` per i campi con label flottante
+     * Wonder. Il JS di `wonder-image/lib` lo usa per attivare/aggiornare
+     * lo stato `compiled` della label durante focus/blur/typing. Ritorna
+     * stringa vuota se il campo è senza label (es. hidden) — l'attributo
+     * non avrebbe senso e replicherebbe il comportamento del vecchio
+     * `app/function/frontend/input.php` (le funzioni ora rimosse lo
+     * emettevano solo quando esisteva una label associata).
+     */
+    protected function labelMarker(): string
+    {
+        return $this->resolvedLabel() !== '' ? ' data-wi-label="true"' : '';
+    }
+
+    /**
      * Markup label tema Wonder: `<label class="wi-label">…</label>`.
      */
     protected function renderLabel(): string

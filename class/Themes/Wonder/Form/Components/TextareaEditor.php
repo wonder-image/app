@@ -20,7 +20,7 @@ class TextareaEditor extends Field
         return <<<HTML
 <div class="{$this->containerClass('textarea')}">
     {$this->renderLabel()}
-    <textarea id="{$id}" class="d-none" name="{$name}" data-wi-value="{$encodedValue}" data-wi-check="true" data-wi-textarea="{$version}" data-wi-folder="{$folder}" {$attributes}>{$escapedValue}</textarea>
+    <textarea id="{$id}" class="d-none" name="{$name}" data-wi-value="{$encodedValue}" data-wi-check="true"{$this->labelMarker()} data-wi-textarea="{$version}" data-wi-folder="{$folder}" {$attributes}>{$escapedValue}</textarea>
     {$this->renderError()}
 </div>
 HTML;

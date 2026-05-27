@@ -22,7 +22,7 @@ class File extends Field
         return <<<HTML
 <div class="{$this->containerClass('file')}">
     <label for="{$id}" class="wi-label">{$label}</label>
-    <input class="wi-input" id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-wi-max-file="{$maxFile}" data-wi-max-size="{$maxSize}" data-wi-check="true" {$multiple} {$attributes}>
+    <input class="wi-input" id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-wi-max-file="{$maxFile}" data-wi-max-size="{$maxSize}" data-wi-check="true"{$this->labelMarker()} {$multiple} {$attributes}>
     {$this->renderError()}
 </div>
 HTML;

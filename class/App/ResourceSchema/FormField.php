@@ -576,6 +576,38 @@ class FormField
     }
 
     /**
+     * Google reCAPTCHA v2 — "Casella di controllo: Non sono un robot".
+     *
+     * Renderizza il widget `g-recaptcha` con sitekey letta da
+     * `Credentials::api()` e gli input hidden richiesti dalla
+     * verifica server-side `verifyRecaptcha`. È il pendant DSL di
+     * `Wonder\Plugin\Custom\Input\reCAPTCHA` / `inputRecaptcha()`.
+     *
+     * @param string|null $action `submit` (default), o action logica
+     *                            validata server-side.
+     * @param string|null $theme  `light` (default) o `dark`.
+     * @param string|null $size   `normal` (default) o `compact`.
+     */
+    public function recaptcha(?string $action = null, ?string $theme = null, ?string $size = null): self
+    {
+        $this->helper = 'recaptcha';
+
+        if ($action !== null && trim($action) !== '') {
+            $this->context('recaptcha_action', trim($action));
+        }
+
+        if ($theme !== null && trim($theme) !== '') {
+            $this->context('recaptcha_theme', trim($theme));
+        }
+
+        if ($size !== null && trim($size) !== '') {
+            $this->context('recaptcha_size', trim($size));
+        }
+
+        return $this;
+    }
+
+    /**
      * Google Places address con autocomplete + breakdown nascosti
      * (Wonder\Elements\Form\Components\GoogleAddress).
      *

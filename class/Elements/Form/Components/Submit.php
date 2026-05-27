@@ -22,13 +22,17 @@ class Submit extends Field
         parent::__construct($name);
 
         $this->schema('label', 'Salva');
-        $this->schema('button_class', 'float-end btn btn-dark');
+        # Nessun `button_class` di default: è il renderer del tema attivo
+        # a scegliere la classe iniziale (Bootstrap → `float-end btn btn-dark`,
+        # Wonder → `f-end btn btn-success`). Inserire qui un default
+        # tema-specifico (es. `float-end`) verrebbe propagato anche al
+        # tema Wonder, che usa la utility class `f-end` di wonder-image/lib.
     }
 
     /**
-     * Sostituisce o aggiunge classi CSS al bottone (default
-     * `float-end btn btn-dark`). La classe `wi-submit` è sempre
-     * aggiunta dal renderer.
+     * Sostituisce o aggiunge classi CSS al bottone. Default theme-specifico
+     * (vedi `__construct`). La classe `wi-submit` è sempre aggiunta dal
+     * renderer.
      */
     public function buttonClass(string $class): self
     {

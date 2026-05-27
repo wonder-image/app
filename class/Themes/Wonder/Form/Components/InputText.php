@@ -19,7 +19,7 @@ class InputText extends Field
         return <<<HTML
 <div class="{$this->containerClass($typeClass)}">
     {$this->renderLabel()}
-    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}" {$attributes}>
+    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}"{$this->labelMarker()} {$attributes}>
     {$this->renderError()}
 </div>
 HTML;

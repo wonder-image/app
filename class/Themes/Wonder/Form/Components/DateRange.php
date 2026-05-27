@@ -25,9 +25,9 @@ class DateRange extends Field
         return <<<HTML
 <div class="{$this->containerClass('daterange')}">
     {$this->renderLabel()}
-    <input type="text" id="{$baseId}-from" class="wi-input wi-daterange-from" name="{$fromName}" value="{$fromValue}" placeholder="gg/mm/aaaa" data-wi-check="true" readonly {$attributes}>
+    <input type="text" id="{$baseId}-from" class="wi-input wi-daterange-from" name="{$fromName}" value="{$fromValue}" placeholder="gg/mm/aaaa" data-wi-check="true"{$this->labelMarker()} readonly {$attributes}>
     <span class="wi-input-text">-</span>
-    <input type="text" id="{$baseId}-to" class="wi-input wi-daterange-to" name="{$toName}" value="{$toValue}" placeholder="gg/mm/aaaa" data-wi-check="true" readonly {$attributes}>
+    <input type="text" id="{$baseId}-to" class="wi-input wi-daterange-to" name="{$toName}" value="{$toValue}" placeholder="gg/mm/aaaa" data-wi-check="true"{$this->labelMarker()} readonly {$attributes}>
     {$this->renderError()}
 </div>
 <script>

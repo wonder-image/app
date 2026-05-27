@@ -30,7 +30,7 @@ class SelectDate extends DatePicker
         return <<<HTML
 <div class="{$this->containerClass('date')}">
     {$this->renderLabel()}
-    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" data-wi-check="true" {$attributes} value="{$value}">
+    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" data-wi-check="true"{$this->labelMarker()} {$attributes} value="{$value}">
     {$this->renderError()}
 </div>
 <script>

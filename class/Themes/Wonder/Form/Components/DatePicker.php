@@ -21,7 +21,7 @@ class DatePicker extends Field
         return <<<HTML
 <div class="{$this->containerClass('date')}">
     {$this->renderLabel()}
-    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" value="{$value}" data-wi-check="true" {$attributes}>
+    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" value="{$value}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
     {$this->renderError()}
 </div>
 <script>

@@ -877,8 +877,14 @@
 
     function submit($label = 'Salva', $name = 'upload', $class = null, $onclick = null) {
 
+        # Shim backend Bootstrap: l'Element non porta più un default
+        # tema-specifico (vedi `Wonder\Elements\Form\Components\Submit`),
+        # quindi qui inizializziamo esplicitamente la baseline Bootstrap
+        # `float-end btn btn-dark` prima di accodare la variante colore
+        # richiesta dal caller.
         $element = (new SubmitElement((string) $name))
-            ->label((string) $label);
+            ->label((string) $label)
+            ->buttonClass('float-end btn btn-dark');
 
         if (!empty($class)) {
             $element->addButtonClass((string) $class);

@@ -24,7 +24,10 @@ class Submit extends Field
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $label = $this->escape((string) ($this->schema['label'] ?? 'Invia'));
-        $buttonClass = $this->escape(trim((string) ($this->schema['button_class'] ?? 'btn btn-success').' wi-submit'));
+        # Default Wonder: utility class `f-end` di wonder-image/lib (NON
+        # `float-end` di Bootstrap). Le classi `btn`/`btn-success` sono
+        # in lib come btn neutro + variante colore.
+        $buttonClass = $this->escape(trim((string) ($this->schema['button_class'] ?? 'f-end btn btn-success').' wi-submit'));
         $onclick = trim((string) ($this->schema['onclick'] ?? ''));
 
         $action = $onclick === ''

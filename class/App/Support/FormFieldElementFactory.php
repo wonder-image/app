@@ -26,6 +26,7 @@ use Wonder\Elements\Form\Components\InputTel;
 use Wonder\Elements\Form\Components\InputText;
 use Wonder\Elements\Form\Components\InputTime;
 use Wonder\Elements\Form\Components\InputUrl;
+use Wonder\Elements\Form\Components\reCAPTCHA;
 use Wonder\Elements\Form\Components\Repeater;
 use Wonder\Elements\Form\Components\Select;
 use Wonder\Elements\Form\Components\Textarea;
@@ -94,6 +95,7 @@ final class FormFieldElementFactory
             'googleAddress' => self::googleAddressElement($name, $field),
             'inputFile', 'inputFileDragDrop' => self::fileElement($name, $field),
             'inputRepeater' => self::repeaterElement($name, $field),
+            'recaptcha' => self::recaptchaElement($name, $field),
             default => null,
         };
 
@@ -387,6 +389,27 @@ final class FormFieldElementFactory
 
         if (isset($context['false_label']) && is_string($context['false_label'])) {
             $element->falseLabel($context['false_label']);
+        }
+
+        return $element;
+    }
+
+    private static function recaptchaElement(string $name, FormField $field): reCAPTCHA
+    {
+        $context = (array) ($field->get('context') ?? []);
+
+        $element = new reCAPTCHA($name);
+
+        if (isset($context['recaptcha_action']) && is_string($context['recaptcha_action'])) {
+            $element->action($context['recaptcha_action']);
+        }
+
+        if (isset($context['recaptcha_theme']) && is_string($context['recaptcha_theme'])) {
+            $element->theme($context['recaptcha_theme']);
+        }
+
+        if (isset($context['recaptcha_size']) && is_string($context['recaptcha_size'])) {
+            $element->size($context['recaptcha_size']);
         }
 
         return $element;
