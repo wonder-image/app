@@ -27,8 +27,8 @@ class Config extends Command
         'gh' => 'gh',
     ];
     protected const NPX_SKILL = [
-        'wonder-image/skills',
-        'pbakaus/impeccable',
+        'wonder-image/skills' => 'npx skills add wonder-image/skills --all -g -y ',
+        'pbakaus/impeccable' => 'npx skills add pbakaus/impeccable --all -g -y ',
     ];
     protected const NPM_PACKAGE = [
         'wonder-image' => 'npm install wonder-image',
@@ -1624,9 +1624,9 @@ class Config extends Command
     {
         $output->writeln('<info>🤖 Sincronizzo le AI skills consigliate per Wonder.</info>');
 
-        foreach (self::NPX_SKILL as $source) {
+        foreach (self::NPX_SKILL as $source => $command) {
             if ($this->runPassthruCommand(
-                'npx --yes skills add '.escapeshellarg($source),
+                $command,
                 $output,
                 'Impossibile installare la skill '.$source.'.'
             )) {
