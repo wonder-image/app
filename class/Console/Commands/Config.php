@@ -11,12 +11,36 @@ use Dotenv\Dotenv;
 
 class Config extends Command
 {
+    protected const CI_ENV_KEYS = ['CI', 'GITHUB_ACTIONS'];
+    protected const NODE_MINIMUM_MAJOR = 20;
+    protected const REQUIRED_COMMAND_VERSION_COMMANDS = [
+        'node' => ['node', '-v'],
+        'npm' => ['npm', '-v'],
+        'npx' => ['npx', '--version'],
+        'gh' => ['gh', '--version'],
+        'bws' => ['bws', '--version'],
+    ];
+    protected const AUTO_INSTALL_COMMANDS = [
+        'node' => 'node',
+        'npm' => 'node',
+        'npx' => 'node',
+        'gh' => 'gh',
+    ];
+    protected const NPX_SKILL = [
+        'wonder-image/skills',
+        'pbakaus/impeccable',
+    ];
+    protected const NPM_PACKAGE = [
+        'wonder-image' => 'npm install wonder-image',
+        'project' => 'npm install',
+    ];
+
     public $name = 'config';
 
     protected function configure(): void
     {
         $this->setName($this->name);
-        $this->setDescription('Configura il progetto per locale o CI e installa wonder-image lato NPM');
+        $this->setDescription('Configura il progetto per locale o CI, installa wonder-image lato NPM e prova a sincronizzare le skills AI');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -40,21 +64,7 @@ class Config extends Command
         \Wonder\App\EnvCompat::apply();
 
         if (!$isCi) {
-            if (!$this->ensureCommandInstalled('node', ['node', '-v'], $output)) {
-                return Command::FAILURE;
-            }
-
-            if (!$this->ensureCommandInstalled('npm', ['npm', '-v'], $output)) {
-                return Command::FAILURE;
-            }
-
-            // Node 20+ è obbligatorio: il package npm `wonder-image` ha
-            // `"engines": { "node": ">=20" }`. Con Node 16/18 `npm install
-            // wonder-image` emette `EBADENGINE` e l'install funziona solo
-            // per fortuna (build target ES2022 può rompersi a runtime).
-            // Fail-fast con messaggio chiaro invece di lasciar passare il
-            // warning npm in fondo a un log.
-            if (!$this->ensureNodeMinimumVersion(20, $output)) {
+            if (!$this->ensureWonderNodeToolchain($output, true)) {
                 return Command::FAILURE;
             }
         }
@@ -199,7 +209,7 @@ class Config extends Command
             //    (il `postinstall` di package.json che copia
             //    `node_modules/wonder-image/dist/` in
             //    `assets/lib/wonder-image/dist/`).
-            if (!$this->runPassthruCommand('npm install wonder-image', $output, 'Impossibile installare wonder-image lato NPM.')) {
+            if (!$this->runPassthruCommand(self::NPM_PACKAGE['wonder-image'], $output, 'Impossibile installare wonder-image lato NPM.')) {
                 return Command::FAILURE;
             }
 
@@ -212,11 +222,16 @@ class Config extends Command
             //    Senza questo step la cartella `assets/lib/` resta
             //    vuota e il sito si serve senza CSS/JS di wonder-image
             //    (sintomo: "il sito non ha stile").
-            if (!$this->runPassthruCommand('npm install', $output, 'Impossibile eseguire npm install (postinstall del progetto: assets/lib/ non popolata).')) {
+            if (!$this->runPassthruCommand(self::NPM_PACKAGE['project'], $output, 'Impossibile eseguire npm install (postinstall del progetto: assets/lib/ non popolata).')) {
                 return Command::FAILURE;
             }
+
+            // Le AI skills sono tooling locale del developer: se il sync
+            // fallisce, il progetto deve restare configurabile e il fix
+            // può essere rilanciato manualmente con `php forge skills`.
+            $this->installRecommendedSkills($output, false);
         } else {
-            $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto npm install wonder-image (il workflow esegue npm ci che innesca da solo il postinstall).</comment>');
+            $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto '.self::NPM_PACKAGE['wonder-image'].' (il workflow esegue npm ci che innesca da solo il postinstall).</comment>');
         }
 
         if (!$isCi) {
@@ -234,7 +249,7 @@ class Config extends Command
 
     protected function isCiEnvironment(): bool
     {
-        foreach (['CI', 'GITHUB_ACTIONS'] as $key) {
+        foreach (self::CI_ENV_KEYS as $key) {
             $value = $_ENV[$key] ?? getenv($key);
 
             if (!is_string($value)) {
@@ -1571,12 +1586,64 @@ class Config extends Command
 
     protected function installCommand(string $command, OutputInterface $output): bool
     {
-        return match ($command) {
-            'node', 'npm' => $this->installWithBrew('node', $output),
-            'gh' => $this->installWithBrew('gh', $output),
-            'bws' => $this->installBws($output),
-            default => false,
-        };
+        if ($command === 'bws') {
+            return $this->installBws($output);
+        }
+
+        $formula = self::AUTO_INSTALL_COMMANDS[$command] ?? null;
+        if ($formula === null) {
+            return false;
+        }
+
+        return $this->installWithBrew($formula, $output);
+    }
+
+    protected function ensureWonderNodeToolchain(OutputInterface $output, bool $requireNpx = false): bool
+    {
+        if (!$this->ensureCommandInstalled('node', self::REQUIRED_COMMAND_VERSION_COMMANDS['node'], $output)) {
+            return false;
+        }
+
+        if (!$this->ensureCommandInstalled('npm', self::REQUIRED_COMMAND_VERSION_COMMANDS['npm'], $output)) {
+            return false;
+        }
+
+        if ($requireNpx && !$this->ensureCommandInstalled('npx', self::REQUIRED_COMMAND_VERSION_COMMANDS['npx'], $output)) {
+            return false;
+        }
+
+        // Node 20+ è obbligatorio: il package npm `wonder-image` ha
+        // `"engines": { "node": ">=20" }`. Con Node 16/18 `npm install
+        // wonder-image` emette `EBADENGINE` e l'install funziona solo
+        // per fortuna (build target ES2022 può rompersi a runtime).
+        // Lo stesso requisito vale per `npx skills`.
+        return $this->ensureNodeMinimumVersion(self::NODE_MINIMUM_MAJOR, $output);
+    }
+
+    protected function installRecommendedSkills(OutputInterface $output, bool $failOnError = true): bool
+    {
+        $output->writeln('<info>🤖 Sincronizzo le AI skills consigliate per Wonder.</info>');
+
+        foreach (self::NPX_SKILL as $source) {
+            if ($this->runPassthruCommand(
+                'npx --yes skills add '.escapeshellarg($source),
+                $output,
+                'Impossibile installare la skill '.$source.'.'
+            )) {
+                continue;
+            }
+
+            if (!$failOnError) {
+                $output->writeln('<comment>⚠️ Skill sync incompleto. Puoi rilanciare `php forge skills` manualmente.</comment>');
+                return false;
+            }
+
+            return false;
+        }
+
+        $output->writeln('<info>✅ Skills Wonder sincronizzate.</info>');
+
+        return true;
     }
 
     protected function installWithBrew(string $formula, OutputInterface $output): bool

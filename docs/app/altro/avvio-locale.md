@@ -27,7 +27,7 @@ php forge start
 
 Significato rapido:
 
-- `php forge config` prepara il progetto locale
+- `php forge config` prepara il progetto locale e prova a sincronizzare le AI skills raccomandate
 - `php forge provision` configura l’ambiente di progetto lato GitHub e Bitwarden, utile per il flusso di deploy/produzione
 - `php forge db:init` inizializza `.env` e crea database, utente e grant locali
 - `php forge update --local` genera i file e i task locali necessari

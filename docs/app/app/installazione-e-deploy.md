@@ -251,6 +251,15 @@ cd project-name
 > - **Herd**: aggiorna Herd (versioni recenti spediscono Node 20+)
 > - **nvm**: `nvm install 20 && nvm use 20`
 > - **brew**: `brew install node@20 && brew link --overwrite node@20`
+>
+> Sul locale `forge config` prova anche a sincronizzare le AI skills
+> raccomandate per Wonder (`wonder-image/skills` e
+> `pbakaus/impeccable`) tramite `npx skills`. Se il sync fallisce, il
+> setup applicativo continua e puoi rilanciarlo manualmente con:
+>
+> ```bash
+> php forge skills
+> ```
 
 ### 2. Configura il progetto
 

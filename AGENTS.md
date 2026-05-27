@@ -294,15 +294,21 @@ by an external CLI and auto-updated, not source code.
 Install / manage:
 
 ```bash
+php forge skills                      # installs/updates Wonder-recommended skills locally
+npx skills add wonder-image/skills    # manual alternative for Wonder skills
 npx skills add pbakaus/impeccable     # currently used skill for UI design audit/craft
 npx skills list                       # list installed
 npx skills update                     # auto-update all installed skills
 npx skills remove <slug>
 ```
 
-Each dev runs `npx skills add` once on their own laptop. The skill is
-not versioned in this repo (intentional): updates flow through the
-CLI, not through git.
+`php forge config` prova anche a sincronizzare automaticamente le skill
+raccomandate per Wonder (`wonder-image/skills` e `pbakaus/impeccable`)
+come tooling locale del developer. In caso di problemi o per
+risincronizzarle manualmente, usa `php forge skills`.
+
+The skills are not versioned in this repo (intentional): updates flow
+through the external CLI, not through git.
 
 Do not commit `.agents/` or hand-edit files inside it. If a skill needs
 project-specific customization, fork it under a different slug rather
