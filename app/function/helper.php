@@ -77,6 +77,40 @@
 
     }
 
+    // API endpoint path (without domain and /api prefix)
+    function __e(string $name, array $parameters = []): string {
+        $path = \Wonder\Http\Route::resolvePath($name, $parameters);
+
+        if ($path === '') {
+            global $ROOT;
+            global $ROOT_APP;
+
+            if (!isset($ROOT, $ROOT_APP) || !is_string($ROOT) || !is_string($ROOT_APP)) {
+                return '';
+            }
+
+            \Wonder\Http\Route::loadDirectories([
+                $ROOT_APP.'/config/routes',
+                $ROOT.'/custom/routes'
+            ], [
+                'ROOT' => $ROOT,
+                'ROOT_APP' => $ROOT_APP,
+            ]);
+
+            $path = \Wonder\Http\Route::resolvePath($name, $parameters);
+        }
+
+        if ($path === '') {
+            return '';
+        }
+
+        if (str_starts_with($path, '/api/')) {
+            $path = substr($path, 4);
+        }
+
+        return $path;
+    }
+
     // Url Parser
     function __url(?string $url = null): Wonder\Http\UrlParser
     {

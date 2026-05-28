@@ -247,7 +247,7 @@ class Route
         }
     }
 
-    public static function url(string $name, array $parameters = []): string
+    public static function resolvePath(string $name, array $parameters = []): string
     {
         $route = self::$namedRoutes[$name] ?? null;
 
@@ -257,10 +257,6 @@ class Route
 
         $path = (string) $route['path'];
 
-        // Se la route è translatable e il consumer è in modalità
-        // 'translation', sostituisci il path canonical con quello tradotto
-        // della lingua corrente. Le route api/backend (translatable=false)
-        // non vengono toccate.
         if (
             !empty($route['_canonical_path'])
             && \Wonder\Localization\LanguageContext::getLangSource() === 'translation'
@@ -280,6 +276,17 @@ class Route
 
         foreach ($parameters as $key => $value) {
             $path = str_replace('{'.$key.'}', rawurlencode((string) $value), $path);
+        }
+
+        return $path;
+    }
+
+    public static function url(string $name, array $parameters = []): string
+    {
+        $path = self::resolvePath($name, $parameters);
+
+        if ($path === '') {
+            return '';
         }
 
         if (defined('APP_URL')) {
