@@ -127,13 +127,6 @@ class FormField
         return $this->version('old');
     }
 
-    public function file(string $file): self
-    {
-        $this->schema['file'] = trim($file);
-
-        return $this;
-    }
-
     public function uploader(string $uploader = 'classic'): self
     {
         $this->schema['uploader'] = trim($uploader);
@@ -266,9 +259,30 @@ class FormField
         return $this->prepare('max_file', $count);
     }
 
-    public function extensions(array $extensions): self
+    /**
+     * Estensioni accettate per l'upload (post-server validation).
+     * Accetta sia un array (`['png', 'jpg']`) sia una stringa
+     * separata da virgole/spazi/pipe (`'png,jpg'`, `'png jpg'`,
+     * `'.png|.jpg'`). Le estensioni vengono normalizzate a
+     * lowercase senza punto iniziale.
+     */
+    public function extensions(string|array $extensions): self
     {
-        return $this->prepare('extensions', $extensions);
+        if (is_string($extensions)) {
+            $extensions = preg_split('/[\s,|]+/', $extensions, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        }
+
+        $normalized = [];
+
+        foreach ($extensions as $ext) {
+            $value = ltrim(strtolower(trim((string) $ext)), '.');
+
+            if ($value !== '') {
+                $normalized[] = $value;
+            }
+        }
+
+        return $this->prepare('extensions', array_values(array_unique($normalized)));
     }
 
     public function get(?string $key = null): mixed
@@ -442,18 +456,29 @@ class FormField
         return $this;
     }
 
-    public function inputFile(string $file = 'image'): self
+    /**
+     * Upload "classic" (form-control + lista file ammessi/max/peso).
+     * Il parametro `$accept` identifica la *categoria* di file accettata
+     * (es. `image`, `pdf`, `video`, `font`, `media`): il renderer la
+     * traduce in attributo `accept="..."` e in label informativa.
+     */
+    public function inputFile(string $accept = 'image'): self
     {
         $this->helper = 'inputFile';
-        $this->file($file);
+        $this->schema['file'] = trim($accept);
 
         return $this;
     }
 
-    public function inputFileDragDrop(string $file = 'image', string $uploader = 'classic'): self
+    /**
+     * Upload drag&drop (Filepond). `$accept` come in {@see inputFile()};
+     * `$uploader` è la strategia di upload lato client (`classic` o un
+     * uploader registrato).
+     */
+    public function inputFileDragDrop(string $accept = 'image', string $uploader = 'classic'): self
     {
         $this->helper = 'inputFileDragDrop';
-        $this->file($file);
+        $this->schema['file'] = trim($accept);
         $this->uploader($uploader);
 
         return $this;
@@ -497,6 +522,27 @@ class FormField
         }
 
         return $this;
+    }
+
+    /**
+     * Checkbox di accettazione di un documento legale (privacy, terms, ...).
+     * Mirror DSL della funzione procedurale `inputAcceptDocument()` di
+     * `frontend/input.php`: il `type` identifica il documento attivo a
+     * database (`legal_documents.doc_type`) e diventa il prefisso del
+     * field name renderizzato (`accept_<type>`).
+     *
+     * I dati del documento (id, label HTML, ...) vengono risolti al
+     * render in `FormFieldElementFactory` per la lingua corrente.
+     */
+    public static function acceptDocument(string $type): static
+    {
+        $type = strtolower(trim($type));
+        $type = preg_replace('/[^a-z0-9_-]/', '', $type) ?? '';
+
+        $field = new static('accept_'.$type, 'inputAcceptDocument');
+        $field->context('document_type', $type);
+
+        return $field;
     }
 
     /**
@@ -651,5 +697,15 @@ class FormField
         }
 
         return $rendered;
+    }
+
+    /**
+     * Permette di usare il campo come stringa (`echo`, concatenazione,
+     * interpolazione) senza dover chiamare esplicitamente `->render()`.
+     * Utile soprattutto per `*Resource::getInput('foo')` dentro le view.
+     */
+    public function __toString(): string
+    {
+        return $this->render();
     }
 }

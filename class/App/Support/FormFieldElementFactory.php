@@ -15,6 +15,7 @@ use Wonder\Elements\Form\Components\DynamicCheck;
 use Wonder\Elements\Form\Components\File;
 use Wonder\Elements\Form\Components\GoogleAddress;
 use Wonder\Elements\Form\Components\Hidden;
+use Wonder\Elements\Form\Components\InputAcceptDocument;
 use Wonder\Elements\Form\Components\InputColor;
 use Wonder\Elements\Form\Components\InputDatetime;
 use Wonder\Elements\Form\Components\InputEmail;
@@ -46,6 +47,11 @@ final class FormFieldElementFactory
      */
     public static function render(FormField $field, ?string $theme = null): ?string
     {
+        if ((string) ($field->get('helper') ?? '') === 'inputAcceptDocument'
+            && self::resolveLegalDocument($field) === null) {
+            return '';
+        }
+
         $element = self::make($field);
 
         if (!$element instanceof ElementField) {
@@ -95,6 +101,7 @@ final class FormFieldElementFactory
             'googleAddress' => self::googleAddressElement($name, $field),
             'inputFile', 'inputFileDragDrop' => self::fileElement($name, $field),
             'inputRepeater' => self::repeaterElement($name, $field),
+            'inputAcceptDocument' => self::acceptDocumentElement($name, $field),
             'recaptcha' => self::recaptchaElement($name, $field),
             default => null,
         };
@@ -392,6 +399,86 @@ final class FormFieldElementFactory
         }
 
         return $element;
+    }
+
+    private static function acceptDocumentElement(string $name, FormField $field): ?InputAcceptDocument
+    {
+        $document = self::resolveLegalDocument($field);
+
+        if ($document === null) {
+            return null;
+        }
+
+        $element = (new InputAcceptDocument($name))
+            ->documentType((string) ($field->get('context')['document_type'] ?? ''))
+            ->documentId((int) ($document->id ?? 0))
+            ->documentLabel((string) ($document->renderLabel ?? ''));
+
+        $value = $field->get('value');
+        $checked = false;
+
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (filter_var($item, FILTER_VALIDATE_BOOLEAN)) {
+                    $checked = true;
+                    break;
+                }
+            }
+        } elseif ($value !== null) {
+            $checked = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        if ($checked) {
+            $element->checked();
+        }
+
+        return $element;
+    }
+
+    private static function resolveLegalDocument(FormField $field): ?object
+    {
+        $context = (array) ($field->get('context') ?? []);
+        $type = (string) ($context['document_type'] ?? '');
+
+        if ($type === '') {
+            return null;
+        }
+
+        if (
+            class_exists(\Wonder\Consent\LegalDocumentTypeContext::class)
+            && !\Wonder\Consent\LegalDocumentTypeContext::hasType($type)
+            && function_exists('__log')
+        ) {
+            __log(new \Exception('Non esiste il documento '.$type), 'wonder-renderer', 'verify_document_type');
+        }
+
+        if (!function_exists('sqlSelect') || !function_exists('infoLegalDocument') || !function_exists('__l')) {
+            return null;
+        }
+
+        $SQL = sqlSelect(
+            'legal_documents',
+            [
+                'doc_type' => $type,
+                'language_code' => __l(),
+                'active' => 'true',
+            ],
+            1,
+            'published_at DESC, id',
+            'DESC'
+        );
+
+        if (!$SQL->exists) {
+            if (function_exists('__log')) {
+                __log(new \Exception('Non esiste il documento '.$type.' nella lingua '.__l()), 'wonder-renderer', 'verify_document_type_lang');
+            }
+
+            return null;
+        }
+
+        $document = infoLegalDocument($SQL->id);
+
+        return is_object($document) ? $document : null;
     }
 
     private static function recaptchaElement(string $name, FormField $field): reCAPTCHA
