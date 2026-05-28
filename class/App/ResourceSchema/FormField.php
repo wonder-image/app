@@ -2,196 +2,30 @@
 
 namespace Wonder\App\ResourceSchema;
 
-use RuntimeException;
-use Wonder\App\Support\FormFieldElementFactory;
-use Wonder\Elements\Concerns\CanSpanColumn;
-
-class FormField
+/**
+ * Facade storica del DSL form: espone i 45 type-helper (`text()`,
+ * `password()`, `file()`, `select()`, `acceptDocument()`, ...) come
+ * metodi d'istanza che mutano `$this` e tornano `self`.
+ *
+ * La "macchina" condivisa (label, attribute, prepare, context, render,
+ * __toString) vive in `Wonder\App\ResourceSchema\Input` — `FormField`
+ * estende `Input` per ereditarla.
+ *
+ * **Direzione del refactor**: gradualmente i type-helper vengono migrati
+ * in classi dedicate sotto `Wonder\App\ResourceSchema\Inputs\` (es.
+ * `InputText`, `InputPassword`). Quando tutti i tipi saranno migrati,
+ * `FormField::key()` diventerà un dispatcher che ritorna direttamente
+ * la `Input*` corretta. Per ora i due mondi convivono: entrambi
+ * estendono `Input` e sono accettati dal `FormFieldElementFactory`.
+ */
+class FormField extends Input
 {
-    use CanSpanColumn;
-
-    public string $name;
-    protected string $helper = 'text';
-
-    private array $schema = [
-        'label' => '',
-        'attribute' => '',
-        'value' => null,
-        'options' => [],
-        'search_bar' => false,
-        'version' => null,
-        'multiple' => false,
-        'file' => 'image',
-        'uploader' => 'classic',
-        'date_min' => null,
-        'date_max' => null,
-        'time_step' => null,
-        'error' => '',
-        'prepare' => [],
-        'context' => [],
-    ];
-
     public function __construct(
         string $name,
         string $helper = 'text',
     ) {
-        $this->name = trim($name);
+        parent::__construct($name);
         $this->helper = trim($helper) !== '' ? trim($helper) : 'text';
-    }
-
-    public static function key(string $name): static
-    {
-        return new static($name);
-    }
-
-    public function label(string $label): self
-    {
-        $this->schema['label'] = $label;
-
-        return $this;
-    }
-
-    public function attribute(string $attribute): self
-    {
-        $attribute = trim($attribute);
-
-        if ($attribute === '') {
-            return $this;
-        }
-
-        $current = trim((string) ($this->schema['attribute'] ?? ''));
-        $this->schema['attribute'] = trim($current.' '.$attribute);
-
-        return $this;
-    }
-
-    public function required(bool $required = true): self
-    {
-        return $required ? $this->attribute('required') : $this;
-    }
-
-    public function disabled(bool $disabled = true): self
-    {
-        return $disabled ? $this->attribute('disabled') : $this;
-    }
-
-    public function readonly(bool $readonly = true): self
-    {
-        return $readonly ? $this->attribute('readonly') : $this;
-    }
-
-    public function multiple(bool $multiple = true): self
-    {
-        $this->schema['multiple'] = $multiple;
-
-        return $multiple ? $this->attribute('multiple') : $this;
-    }
-
-    public function value(mixed $value): self
-    {
-        $this->schema['value'] = $value;
-
-        return $this;
-    }
-
-    public function inputName(string $name): self
-    {
-        $this->name = trim($name);
-
-        return $this;
-    }
-
-    public function options(array $options): self
-    {
-        $this->schema['options'] = $options;
-
-        return $this;
-    }
-
-    public function searchBar(bool $searchBar = true): self
-    {
-        $this->schema['search_bar'] = $searchBar;
-
-        return $this;
-    }
-
-    public function version(?string $version): self
-    {
-        $this->schema['version'] = $version;
-
-        return $this;
-    }
-
-    public function old(): self
-    {
-        return $this->version('old');
-    }
-
-    public function uploader(string $uploader = 'classic'): self
-    {
-        $this->schema['uploader'] = trim($uploader);
-
-        return $this;
-    }
-
-    public function dateMin(?string $dateMin): self
-    {
-        $this->schema['date_min'] = $dateMin;
-
-        return $this;
-    }
-
-    public function dateMax(?string $dateMax): self
-    {
-        $this->schema['date_max'] = $dateMax;
-
-        return $this;
-    }
-
-    public function timeStep(?int $timeStep): self
-    {
-        $this->schema['time_step'] = $timeStep;
-
-        return $this;
-    }
-
-    public function error(string $error): self
-    {
-        $this->schema['error'] = $error;
-
-        return $this;
-    }
-
-    public function prepare(string|array $key, mixed $value = true): self
-    {
-        if (is_array($key)) {
-            $this->schema['prepare'] = array_merge(
-                (array) ($this->schema['prepare'] ?? []),
-                $key
-            );
-
-            return $this;
-        }
-
-        $this->schema['prepare'][trim($key)] = $value;
-
-        return $this;
-    }
-
-    public function context(string|array $key, mixed $value = true): self
-    {
-        if (is_array($key)) {
-            $this->schema['context'] = array_merge(
-                (array) ($this->schema['context'] ?? []),
-                $key
-            );
-
-            return $this;
-        }
-
-        $this->schema['context'][trim($key)] = $value;
-
-        return $this;
     }
 
     public function nested(bool $nested = true): self
@@ -242,60 +76,6 @@ class FormField
     public function relation(object $relation): self
     {
         return $this->context('relation', $relation);
-    }
-
-    public function storeAs(string $name): self
-    {
-        return $this->prepare('name', $name);
-    }
-
-    public function maxSize(int $size): self
-    {
-        return $this->prepare('max_size', $size);
-    }
-
-    public function maxFile(int $count): self
-    {
-        return $this->prepare('max_file', $count);
-    }
-
-    /**
-     * Estensioni accettate per l'upload (post-server validation).
-     * Accetta sia un array (`['png', 'jpg']`) sia una stringa
-     * separata da virgole/spazi/pipe (`'png,jpg'`, `'png jpg'`,
-     * `'.png|.jpg'`). Le estensioni vengono normalizzate a
-     * lowercase senza punto iniziale.
-     */
-    public function extensions(string|array $extensions): self
-    {
-        if (is_string($extensions)) {
-            $extensions = preg_split('/[\s,|]+/', $extensions, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        }
-
-        $normalized = [];
-
-        foreach ($extensions as $ext) {
-            $value = ltrim(strtolower(trim((string) $ext)), '.');
-
-            if ($value !== '') {
-                $normalized[] = $value;
-            }
-        }
-
-        return $this->prepare('extensions', array_values(array_unique($normalized)));
-    }
-
-    public function get(?string $key = null): mixed
-    {
-        if ($key === null) {
-            return $this->schema;
-        }
-
-        if ($key === 'helper') {
-            return $this->helper;
-        }
-
-        return $this->schema[$key] ?? null;
     }
 
     public function text(): self
@@ -394,6 +174,59 @@ class FormField
         return $this;
     }
 
+    /**
+     * Setters della password policy.
+     *
+     * Le regole finiscono in `prepare['password_rules']` (un singolo array
+     * assoc): `Resource::prepareFormatFromInput()` le copia in
+     * `format['password_rules']`, da dove le legge sia il render (via
+     * `FormFieldElementFactory::passwordElement()` che le propaga
+     * all'`InputPassword` Element) sia la validazione server-side dentro
+     * `formToArray()`, tramite `PasswordPolicyValidator`.
+     *
+     * Le stesse API sono mirror di quelle su `Wonder\Data\Fields\Password`,
+     * così un Model che dichiara `Field::key('password')->password()
+     * ->minLength(8)` ottiene la stessa policy senza dover ripassare dal
+     * FormField del Resource.
+     */
+    public function minLength(int $length): self
+    {
+        return $this->passwordRuleSet('min_length', max(0, $length));
+    }
+
+    public function requireUppercase(bool $required = true): self
+    {
+        return $this->passwordRuleSet('uppercase', $required);
+    }
+
+    public function requireLowercase(bool $required = true): self
+    {
+        return $this->passwordRuleSet('lowercase', $required);
+    }
+
+    public function requireNumber(bool $required = true): self
+    {
+        return $this->passwordRuleSet('number', $required);
+    }
+
+    public function requireSpecial(bool $required = true): self
+    {
+        return $this->passwordRuleSet('special', $required);
+    }
+
+    private function passwordRuleSet(string $key, mixed $value): self
+    {
+        $rules = (array) (($this->schema['prepare']['password_rules'] ?? []) ?: []);
+
+        if ($value === false || $value === 0 || $value === '0') {
+            unset($rules[$key]);
+        } else {
+            $rules[$key] = $value;
+        }
+
+        return $this->prepare('password_rules', $rules);
+    }
+
     public function tel(): self
     {
         $this->helper = 'phone';
@@ -462,7 +295,7 @@ class FormField
      * (es. `image`, `pdf`, `video`, `font`, `media`): il renderer la
      * traduce in attributo `accept="..."` e in label informativa.
      */
-    public function inputFile(string $accept = 'image'): self
+    public function file(string $accept = 'image'): self
     {
         $this->helper = 'inputFile';
         $this->schema['file'] = trim($accept);
@@ -475,7 +308,7 @@ class FormField
      * `$uploader` è la strategia di upload lato client (`classic` o un
      * uploader registrato).
      */
-    public function inputFileDragDrop(string $accept = 'image', string $uploader = 'classic'): self
+    public function fileDragDrop(string $accept = 'image', string $uploader = 'classic'): self
     {
         $this->helper = 'inputFileDragDrop';
         $this->schema['file'] = trim($accept);
@@ -526,23 +359,27 @@ class FormField
 
     /**
      * Checkbox di accettazione di un documento legale (privacy, terms, ...).
-     * Mirror DSL della funzione procedurale `inputAcceptDocument()` di
-     * `frontend/input.php`: il `type` identifica il documento attivo a
-     * database (`legal_documents.doc_type`) e diventa il prefisso del
-     * field name renderizzato (`accept_<type>`).
      *
-     * I dati del documento (id, label HTML, ...) vengono risolti al
-     * render in `FormFieldElementFactory` per la lingua corrente.
+     * Coerente con il resto del DSL: `FormField::key('accept_privacy_policy')
+     * ->acceptDocument('privacy_policy')->required()`. Il `name` del field
+     * resta quello passato a `::key()`: deve coincidere con `accept_<type>`
+     * perché `user()` (app/function/user/user.php) e `ConsentService` cercano
+     * proprio quel prefisso nel POST per registrare il consenso in
+     * `consent_events` / `user_consent_state`.
+     *
+     * I dati del documento (id, label HTML, ...) vengono risolti al render
+     * in `FormFieldElementFactory::resolveLegalDocument()` per la lingua
+     * corrente, leggendo `context.document_type`.
      */
-    public static function acceptDocument(string $type): static
+    public function acceptDocument(string $type): self
     {
         $type = strtolower(trim($type));
         $type = preg_replace('/[^a-z0-9_-]/', '', $type) ?? '';
 
-        $field = new static('accept_'.$type, 'inputAcceptDocument');
-        $field->context('document_type', $type);
+        $this->helper = 'inputAcceptDocument';
+        $this->context('document_type', $type);
 
-        return $field;
+        return $this;
     }
 
     /**
@@ -675,37 +512,5 @@ class FormField
         }
 
         return $this;
-    }
-
-    /**
-     * Renderizza il campo come HTML del tema attivo (o di quello esplicito).
-     *
-     * Unica strada: `FormFieldElementFactory::make()` mappa il `helper`
-     * a un Element neutro, che il `Wonder\Themes\Resolver` rende col
-     * tema corrente. Se l'helper non è gestito dalla Factory si lancia
-     * un'eccezione esplicita — niente fallback a funzioni procedurali.
-     */
-    public function render(?string $theme = null): string
-    {
-        $rendered = FormFieldElementFactory::render($this, $theme);
-
-        if ($rendered === null) {
-            throw new RuntimeException(
-                "Helper form non supportato: {$this->helper}. "
-                ."Aggiungi la mappatura in Wonder\\App\\Support\\FormFieldElementFactory::make()."
-            );
-        }
-
-        return $rendered;
-    }
-
-    /**
-     * Permette di usare il campo come stringa (`echo`, concatenazione,
-     * interpolazione) senza dover chiamare esplicitamente `->render()`.
-     * Utile soprattutto per `*Resource::getInput('foo')` dentro le view.
-     */
-    public function __toString(): string
-    {
-        return $this->render();
     }
 }

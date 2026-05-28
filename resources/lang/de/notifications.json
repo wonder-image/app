@@ -399,6 +399,11 @@
         "title": "Doppelter Wert",
         "text": "Handynummer ist bereits in der Tabelle vorhanden."
     },
+    "977": {
+        "type": "danger",
+        "title": "Ungültiges Passwort",
+        "text": "Das Passwort erfüllt die geforderten Kriterien nicht."
+    },
     "981": {
         "type": "danger",
         "title": "Steuer-ID ungültig",

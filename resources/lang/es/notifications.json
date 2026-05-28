@@ -399,6 +399,11 @@
         "title": "Valor duplicado",
         "text": "Número de celular ya presente en la tabla."
     },
+    "977": {
+        "type": "danger",
+        "title": "Contraseña no válida",
+        "text": "La contraseña no cumple los criterios requeridos."
+    },
     "981": {
         "type": "danger",
         "title": "NIF no válido",

@@ -399,6 +399,11 @@
         "title": "Duplicate value",
         "text": "Mobile number already exists in the table."
     },
+    "977": {
+        "type": "danger",
+        "title": "Invalid password",
+        "text": "The password does not meet the required criteria."
+    },
     "981": {
         "type": "danger",
         "title": "Invalid tax ID",

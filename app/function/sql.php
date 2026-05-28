@@ -337,13 +337,35 @@
                         $id = ($OLD_VALUES == null) ? null : $OLD_VALUES['id'];
 
                         if (!unique($VALUE, $table, $name, $id)) {
-                            if ($name == 'link') { $ALERT = 971;} 
+                            if ($name == 'link') { $ALERT = 971;}
                             elseif ($name == 'code') { $ALERT = 972;}
                             elseif ($name == 'email') { $ALERT = 973;}
                             elseif ($name == 'username') { $ALERT = 974;}
                             elseif ($name == 'tel' || $name == 'tell') { $ALERT = 975;}
                             elseif ($name == 'phone' || $name == 'cel' || $name == 'cell') { $ALERT = 976;}
                             else { $ALERT = 970;}
+                        }
+
+                    }
+
+                    // Validazione password policy. Le regole arrivano via
+                    // FormField->minLength()/requireUppercase()/... o via
+                    // Data\Fields\Password sul Model. In entrambi i casi
+                    // finiscono in $RULES['format']['password_rules'] e qui
+                    // chiamiamo lo stesso validator usato dal Field pipeline.
+                    if (
+                        is_string($VALUE)
+                        && $VALUE !== ''
+                        && isset($RULES['format']['password_rules'])
+                        && is_array($RULES['format']['password_rules'])
+                        && $RULES['format']['password_rules'] !== []
+                    ) {
+
+                        $passwordValidator = new \Wonder\Data\Validators\PasswordPolicyValidator($RULES['format']['password_rules']);
+                        $passwordResult = $passwordValidator->validate($VALUE, $post);
+
+                        if (!$passwordResult->isValid()) {
+                            $ALERT = 977;
                         }
 
                     }

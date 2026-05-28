@@ -2,7 +2,7 @@
 
 namespace Wonder\App\Support;
 
-use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\Input;
 use Wonder\App\Support\AttributeString;
 use Wonder\Elements\Form\Components\CheckBoolean;
 use Wonder\Elements\Form\Components\CheckGroup;
@@ -45,7 +45,7 @@ final class FormFieldElementFactory
      * un errore nel renderer del tema deve propagarsi così che il
      * chiamante possa diagnosticarlo invece che fallire silently.
      */
-    public static function render(FormField $field, ?string $theme = null): ?string
+    public static function render(Input $field, ?string $theme = null): ?string
     {
         if ((string) ($field->get('helper') ?? '') === 'inputAcceptDocument'
             && self::resolveLegalDocument($field) === null) {
@@ -61,7 +61,7 @@ final class FormFieldElementFactory
         return $element->render($theme);
     }
 
-    private static function make(FormField $field): ?ElementField
+    private static function make(Input $field): ?ElementField
     {
         $helper = (string) ($field->get('helper') ?? 'text');
         $name = trim((string) ($field->name ?? ''));
@@ -79,7 +79,7 @@ final class FormFieldElementFactory
             'number' => new InputNumber($name),
             'price' => new InputPrice($name),
             'percentige' => new InputPercentige($name),
-            'password' => new InputPassword($name),
+            'password' => self::passwordElement($name, $field),
             'url' => new InputUrl($name),
             'color' => new InputColor($name),
             'textDate' => new Date($name),
@@ -115,7 +115,7 @@ final class FormFieldElementFactory
         return $element;
     }
 
-    private static function hydrate(ElementField $element, FormField $field): void
+    private static function hydrate(ElementField $element, Input $field): void
     {
         $label = trim((string) ($field->get('label') ?? ''));
         $value = $field->get('value');
@@ -178,7 +178,7 @@ final class FormFieldElementFactory
         }
     }
 
-    private static function textareaElement(string $name, FormField $field): ElementField
+    private static function textareaElement(string $name, Input $field): ElementField
     {
         $version = $field->get('version');
 
@@ -191,13 +191,13 @@ final class FormFieldElementFactory
             ->folder(self::legacyFolder());
     }
 
-    private static function selectElement(string $name, FormField $field): Select
+    private static function selectElement(string $name, Input $field): Select
     {
         return (new Select($name))
             ->options(self::normalizeOptions((array) ($field->get('options') ?? [])));
     }
 
-    private static function selectSearchElement(string $name, FormField $field): Select
+    private static function selectSearchElement(string $name, Input $field): Select
     {
         $select = self::selectElement($name, $field);
         $multiple = (bool) ($field->get('multiple') ?? false);
@@ -212,7 +212,7 @@ final class FormFieldElementFactory
         return $select;
     }
 
-    private static function countryElement(string $name, FormField $field): ?Select
+    private static function countryElement(string $name, Input $field): ?Select
     {
         if (!function_exists('countries')) {
             return null;
@@ -232,7 +232,7 @@ final class FormFieldElementFactory
         return $select;
     }
 
-    private static function statesElement(string $name, FormField $field): ?Select
+    private static function statesElement(string $name, Input $field): ?Select
     {
         if (!function_exists('states')) {
             return null;
@@ -249,7 +249,7 @@ final class FormFieldElementFactory
             ->attr('data-wi-input-attribute', $attribute);
     }
 
-    private static function phonePrefixElement(string $name, FormField $field): ?Select
+    private static function phonePrefixElement(string $name, Input $field): ?Select
     {
         if (!function_exists('phonePrefix')) {
             return null;
@@ -259,7 +259,7 @@ final class FormFieldElementFactory
             ->options(self::normalizeOptions(phonePrefix()));
     }
 
-    private static function checkboxLikeElement(string $name, FormField $field): ElementField
+    private static function checkboxLikeElement(string $name, Input $field): ElementField
     {
         $options = (array) ($field->get('options') ?? []);
 
@@ -270,7 +270,7 @@ final class FormFieldElementFactory
         return self::checkGroupElement($name, $field, 'checkbox');
     }
 
-    private static function checkboxElement(string $name, FormField $field): Checkbox
+    private static function checkboxElement(string $name, Input $field): Checkbox
     {
         $checkbox = new Checkbox($name);
         $value = $field->get('value');
@@ -288,7 +288,7 @@ final class FormFieldElementFactory
         return $checkbox;
     }
 
-    private static function checkGroupElement(string $name, FormField $field, string $type): CheckGroup
+    private static function checkGroupElement(string $name, Input $field, string $type): CheckGroup
     {
         $value = $field->get('value');
 
@@ -307,7 +307,44 @@ final class FormFieldElementFactory
             ->value($value);
     }
 
-    private static function fileElement(string $name, FormField $field): File
+    /**
+     * Costruisce l'`InputPassword` Element e gli copia la password policy
+     * letta da `prepare['password_rules']` (settata dai setters fluent su
+     * `FormField->minLength()`, `->requireUppercase()`, ecc.).
+     *
+     * Le stesse regole rimangono in `prepare`/`format` per la validazione
+     * server-side eseguita da `formToArray()`.
+     */
+    private static function passwordElement(string $name, Input $field): InputPassword
+    {
+        $element = new InputPassword($name);
+        $prepare = (array) ($field->get('prepare') ?? []);
+        $rules = is_array($prepare['password_rules'] ?? null) ? $prepare['password_rules'] : [];
+
+        if (isset($rules['min_length']) && (int) $rules['min_length'] > 0) {
+            $element->minLength((int) $rules['min_length']);
+        }
+
+        if (!empty($rules['uppercase'])) {
+            $element->requireUppercase();
+        }
+
+        if (!empty($rules['lowercase'])) {
+            $element->requireLowercase();
+        }
+
+        if (!empty($rules['number'])) {
+            $element->requireNumber();
+        }
+
+        if (!empty($rules['special'])) {
+            $element->requireSpecial();
+        }
+
+        return $element;
+    }
+
+    private static function fileElement(string $name, Input $field): File
     {
         $format = self::fileFormat($field);
         $directory = self::fileDirectory(isset($format['dir']) ? (string) $format['dir'] : null);
@@ -323,7 +360,7 @@ final class FormFieldElementFactory
             ->minSizeImage(isset($format['min_size_image']) ? (string) $format['min_size_image'] : null);
     }
 
-    private static function repeaterElement(string $name, FormField $field): Repeater
+    private static function repeaterElement(string $name, Input $field): Repeater
     {
         return (new Repeater($name))
             ->columns(is_array($field->get('context')['columns'] ?? null) ? $field->get('context')['columns'] : [])
@@ -331,7 +368,7 @@ final class FormFieldElementFactory
             ->value($field->get('value'));
     }
 
-    private static function textGeneratorElement(string $name, FormField $field): TextGenerator
+    private static function textGeneratorElement(string $name, Input $field): TextGenerator
     {
         $context = (array) ($field->get('context') ?? []);
         $element = new TextGenerator($name);
@@ -347,7 +384,7 @@ final class FormFieldElementFactory
         return $element;
     }
 
-    private static function checkTreeElement(string $name, FormField $field): CheckTree
+    private static function checkTreeElement(string $name, Input $field): CheckTree
     {
         $context = (array) ($field->get('context') ?? []);
         $type = (string) ($context['input_type'] ?? 'checkbox');
@@ -368,7 +405,7 @@ final class FormFieldElementFactory
             ->value($value);
     }
 
-    private static function dynamicCheckElement(string $name, FormField $field): DynamicCheck
+    private static function dynamicCheckElement(string $name, Input $field): DynamicCheck
     {
         $context = (array) ($field->get('context') ?? []);
         $url = (string) ($context['url'] ?? '');
@@ -380,7 +417,7 @@ final class FormFieldElementFactory
             ->value($field->get('value'));
     }
 
-    private static function checkBooleanElement(string $name, FormField $field): CheckBoolean
+    private static function checkBooleanElement(string $name, Input $field): CheckBoolean
     {
         $context = (array) ($field->get('context') ?? []);
         $values = is_array($context['boolean_values'] ?? null) ? $context['boolean_values'] : ['', 'true', 'false'];
@@ -401,7 +438,7 @@ final class FormFieldElementFactory
         return $element;
     }
 
-    private static function acceptDocumentElement(string $name, FormField $field): ?InputAcceptDocument
+    private static function acceptDocumentElement(string $name, Input $field): ?InputAcceptDocument
     {
         $document = self::resolveLegalDocument($field);
 
@@ -435,7 +472,7 @@ final class FormFieldElementFactory
         return $element;
     }
 
-    private static function resolveLegalDocument(FormField $field): ?object
+    private static function resolveLegalDocument(Input $field): ?object
     {
         $context = (array) ($field->get('context') ?? []);
         $type = (string) ($context['document_type'] ?? '');
@@ -481,7 +518,7 @@ final class FormFieldElementFactory
         return is_object($document) ? $document : null;
     }
 
-    private static function recaptchaElement(string $name, FormField $field): reCAPTCHA
+    private static function recaptchaElement(string $name, Input $field): reCAPTCHA
     {
         $context = (array) ($field->get('context') ?? []);
 
@@ -502,7 +539,7 @@ final class FormFieldElementFactory
         return $element;
     }
 
-    private static function googleAddressElement(string $name, FormField $field): GoogleAddress
+    private static function googleAddressElement(string $name, Input $field): GoogleAddress
     {
         $context = (array) ($field->get('context') ?? []);
         $value = $field->get('value');
@@ -541,7 +578,7 @@ final class FormFieldElementFactory
         return $normalized;
     }
 
-    private static function fileFormat(FormField $field): array
+    private static function fileFormat(Input $field): array
     {
         $format = [];
         $prepare = (array) ($field->get('prepare') ?? []);
@@ -668,7 +705,7 @@ final class FormFieldElementFactory
         return $formatted ?? $value;
     }
 
-    private static function normalizeDateRangeValue(FormField $field, mixed $value): array
+    private static function normalizeDateRangeValue(Input $field, mixed $value): array
     {
         if (is_array($value)) {
             return self::formatDateRangePair($value);

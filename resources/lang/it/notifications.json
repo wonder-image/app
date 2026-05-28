@@ -399,6 +399,11 @@
         "title": "Valore duplicato",
         "text": "Numero di cellulare già presente nella tabella"
     },
+    "977": {
+        "type": "danger",
+        "title": "Password non valida",
+        "text": "La password non rispetta i criteri richiesti"
+    },
     "981": {
         "type": "danger",
         "title": "Codice fiscale non valido",

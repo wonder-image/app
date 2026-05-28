@@ -399,6 +399,11 @@
         "title": "Valeur dupliquée",
         "text": "Numéro de mobile déjà présent dans la table."
     },
+    "977": {
+        "type": "danger",
+        "title": "Mot de passe invalide",
+        "text": "Le mot de passe ne respecte pas les critères requis."
+    },
     "981": {
         "type": "danger",
         "title": "Numéro fiscal invalide",
