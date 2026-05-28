@@ -44,35 +44,35 @@ class PasswordPolicyValidator implements Validator
 
         if ($minLength > 0 && mb_strlen($string) < $minLength) {
             return ValidationResult::error(
-                $this->translate('La password deve contenere almeno %d caratteri.', $minLength),
+                $this->translate('forms.password_errors.min_length', ['count' => (string) $minLength]),
                 $value
             );
         }
 
         if (!empty($this->rules['uppercase']) && !preg_match('/[A-Z]/', $string)) {
             return ValidationResult::error(
-                $this->translate('La password deve contenere almeno una lettera maiuscola.'),
+                $this->translate('forms.password_errors.uppercase'),
                 $value
             );
         }
 
         if (!empty($this->rules['lowercase']) && !preg_match('/[a-z]/', $string)) {
             return ValidationResult::error(
-                $this->translate('La password deve contenere almeno una lettera minuscola.'),
+                $this->translate('forms.password_errors.lowercase'),
                 $value
             );
         }
 
         if (!empty($this->rules['number']) && !preg_match('/\d/', $string)) {
             return ValidationResult::error(
-                $this->translate('La password deve contenere almeno un numero.'),
+                $this->translate('forms.password_errors.number'),
                 $value
             );
         }
 
         if (!empty($this->rules['special']) && !preg_match('/[^A-Za-z0-9]/', $string)) {
             return ValidationResult::error(
-                $this->translate('La password deve contenere almeno un carattere speciale.'),
+                $this->translate('forms.password_errors.special'),
                 $value
             );
         }
@@ -88,30 +88,30 @@ class PasswordPolicyValidator implements Validator
         return $this->rules;
     }
 
-    private function translate(string $key, int|string|null $arg = null): string
+    /**
+     * `__t()` lancia eccezione su chiave mancante; qui la catturiamo per
+     * evitare di bloccare un submit solo perché il sito non ha aggiornato
+     * i `components.json` con le chiavi `forms.password_errors.*`.
+     *
+     * @param array<string, string> $replacements
+     */
+    private function translate(string $key, array $replacements = []): string
     {
         if (function_exists('__t')) {
-            $translated = (string) __t($key);
-
-            if ($arg !== null && str_contains($translated, '%d')) {
-                return sprintf($translated, (int) $arg);
+            try {
+                return (string) __t($key, $replacements);
+            } catch (\Throwable) {
+                // fall through to fallback below
             }
-
-            if ($arg !== null && str_contains($translated, '%s')) {
-                return sprintf($translated, (string) $arg);
-            }
-
-            return $translated;
         }
 
-        if ($arg !== null && str_contains($key, '%d')) {
-            return sprintf($key, (int) $arg);
+        $fallback = (string) (end(($segments = explode('.', $key))) ?: $key);
+        $fallback = ucfirst(str_replace('_', ' ', $fallback));
+
+        foreach ($replacements as $name => $value) {
+            $fallback = str_replace('{{'.$name.'}}', (string) $value, $fallback);
         }
 
-        if ($arg !== null && str_contains($key, '%s')) {
-            return sprintf($key, (string) $arg);
-        }
-
-        return $key;
+        return $fallback;
     }
 }

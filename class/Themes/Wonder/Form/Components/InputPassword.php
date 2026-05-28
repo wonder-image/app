@@ -49,24 +49,27 @@ HTML;
 
         if (isset($rules['min_length']) && (int) $rules['min_length'] > 0) {
             $min = (int) $rules['min_length'];
-            $label = $this->translate('Almeno %d caratteri', $min);
-            $items[] = $this->renderRuleItem('min-length', $label, ['data-wi-min="'.$min.'"']);
+            $items[] = $this->renderRuleItem(
+                'min-length',
+                $this->translate('forms.password_rules.min_length', ['count' => (string) $min]),
+                ['data-wi-min="'.$min.'"']
+            );
         }
 
         if (!empty($rules['uppercase'])) {
-            $items[] = $this->renderRuleItem('uppercase', $this->translate('Una lettera maiuscola'));
+            $items[] = $this->renderRuleItem('uppercase', $this->translate('forms.password_rules.uppercase'));
         }
 
         if (!empty($rules['lowercase'])) {
-            $items[] = $this->renderRuleItem('lowercase', $this->translate('Una lettera minuscola'));
+            $items[] = $this->renderRuleItem('lowercase', $this->translate('forms.password_rules.lowercase'));
         }
 
         if (!empty($rules['number'])) {
-            $items[] = $this->renderRuleItem('number', $this->translate('Un numero'));
+            $items[] = $this->renderRuleItem('number', $this->translate('forms.password_rules.number'));
         }
 
         if (!empty($rules['special'])) {
-            $items[] = $this->renderRuleItem('special', $this->translate('Un carattere speciale'));
+            $items[] = $this->renderRuleItem('special', $this->translate('forms.password_rules.special'));
         }
 
         if ($items === []) {
@@ -92,26 +95,32 @@ HTML;
         return '<li data-wi-rule="'.$this->escape($rule).'"'.$extra.'><i class="bi bi-x"></i> '.$this->escape($label).'</li>';
     }
 
-    private function translate(string $key, int|string|null $arg = null): string
+    /**
+     * Chiama `__t()` ma protegge il render quando la chiave manca: il
+     * `Wonder\Localization\TranslationProvider` lancia RuntimeException
+     * in quel caso, e qui non vogliamo abbattere la pagina solo perché
+     * un sito ha dimenticato di aggiornare i `components.json`. Ricado
+     * su una stringa neutra ricostruita dall'ultimo segmento della chiave.
+     *
+     * @param array<string, string> $replacements
+     */
+    private function translate(string $key, array $replacements = []): string
     {
         if (function_exists('__t')) {
-            $translated = (string) __t($key);
-
-            if ($arg !== null && str_contains($translated, '%d')) {
-                return sprintf($translated, (int) $arg);
+            try {
+                return (string) __t($key, $replacements);
+            } catch (\Throwable) {
+                // fall through to fallback below
             }
-
-            if ($arg !== null && str_contains($translated, '%s')) {
-                return sprintf($translated, (string) $arg);
-            }
-
-            return $translated;
         }
 
-        if ($arg !== null && str_contains($key, '%d')) {
-            return sprintf($key, (int) $arg);
+        $fallback = (string) (end(($segments = explode('.', $key))) ?: $key);
+        $fallback = ucfirst(str_replace('_', ' ', $fallback));
+
+        foreach ($replacements as $name => $value) {
+            $fallback = str_replace('{{'.$name.'}}', (string) $value, $fallback);
         }
 
-        return $key;
+        return $fallback;
     }
 }

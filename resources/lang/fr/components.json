@@ -27,6 +27,20 @@
             "privacy" : {
                 "label" : "J’accepte la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a> et les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
             }
+        },
+        "password_rules" : {
+            "min_length" : "Au moins {{count}} caractères",
+            "uppercase" : "Une lettre majuscule",
+            "lowercase" : "Une lettre minuscule",
+            "number" : "Un chiffre",
+            "special" : "Un caractère spécial"
+        },
+        "password_errors" : {
+            "min_length" : "Le mot de passe doit contenir au moins {{count}} caractères.",
+            "uppercase" : "Le mot de passe doit contenir au moins une lettre majuscule.",
+            "lowercase" : "Le mot de passe doit contenir au moins une lettre minuscule.",
+            "number" : "Le mot de passe doit contenir au moins un chiffre.",
+            "special" : "Le mot de passe doit contenir au moins un caractère spécial."
         }
     },
     "buttons" : {
