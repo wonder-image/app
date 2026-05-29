@@ -26,7 +26,39 @@ Metodi disponibili:
 Lato tema, il trait `Wonder\Themes\Bootstrap\Concerns\RendersText`
 traduce queste proprieta' in classi Bootstrap 5.3.
 
-Componenti che usano `HasText`: `HelpText`, `SectionTitle`, `Tooltip`, `Accordion`.
+Componenti che usano `HasText`: `Text`, `HelpText`, `SectionTitle`, `Tooltip`, `Accordion`.
+
+## `Text`
+
+Componente generico per scrivere testo semplice.
+
+```php
+use Wonder\Elements\Components\Text;
+
+Text::make('Questo e\' un paragrafo di testo.');
+
+Text::make('Introduzione importante')
+    ->lead()
+    ->bold();
+
+Text::make('Nota a margine')
+    ->tag('span')
+    ->muted()
+    ->small()
+    ->italic();
+
+Text::make('Attenzione: verifica i dati prima di procedere.')
+    ->color('warning');
+```
+
+Metodi aggiuntivi:
+
+| Metodo | Descrizione |
+|---|---|
+| `tag(string)` | Tag HTML: `p`, `span`, `div`, `small`, `strong`, `em`, `mark`, `abbr`, `blockquote` (default `p`) |
+| `lead(bool)` | Stile Bootstrap `.lead` per paragrafi introduttivi |
+
+Default: `tag('p')`.
 
 ## `HelpText`
 
@@ -201,6 +233,7 @@ class/Elements/Components/          <- Element (dichiarativo)
 ├── Container.php
 ├── HelpText.php
 ├── SectionTitle.php
+├── Text.php
 └── Tooltip.php
 
 class/Elements/Concerns/            <- Trait condivisi Element
@@ -220,6 +253,7 @@ class/Themes/Bootstrap/Components/  <- Renderer Bootstrap
 ├── Container.php
 ├── HelpText.php
 ├── SectionTitle.php
+├── Text.php
 └── Tooltip.php
 
 class/Themes/Bootstrap/Concerns/    <- Trait condivisi renderer
