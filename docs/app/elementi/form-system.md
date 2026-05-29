@@ -285,6 +285,184 @@ Internamente:
 Quindi puoi continuare a definire form con `Resource::formSchema()` e
 ottenere automaticamente il rendering Element-based.
 
+## Refactor `FormField` → `Input` + `Inputs/*`
+
+Il vecchio `FormField` era una facade monolitica con ~45 type-helper
+(`text()`, `password()`, `file()`, ...) e tutto lo schema/render mixato.
+La direzione attuale ricalca il pattern di `Wonder\Data\Fields\*`:
+classi dedicate per tipo, base condivisa.
+
+### Gerarchia
+
+```
+class/App/ResourceSchema/
+├── Input.php                          ← base astratta (label, attribute,
+│                                        prepare, context, value, render,
+│                                        __toString, ...)
+├── FormField.php                      ← extends Input
+│                                        mantiene i 45 type-helper (text, select,
+│                                        file, password, acceptDocument, …)
+│                                        per piena retrocompatibilità
+├── InputSchema.php                    ← dispatcher mirror di Wonder\Data\UploadSchema
+│                                        (InputSchema::key('p')->password()->...)
+└── Inputs/
+    ├── InputText.php                  ← extends Input, helper='text'
+    └── InputPassword.php              ← extends Input, helper='password'
+                                         + setters policy (vedi sotto)
+```
+
+Il `FormFieldElementFactory::render()` accetta una `Input` (type hint
+comune), quindi sia il vecchio `FormField` che le nuove `Input*` sono
+indifferenti al render.
+
+### Le tre forme equivalenti
+
+```php
+use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\InputSchema;
+use Wonder\App\ResourceSchema\Inputs\InputPassword;
+
+// 1. Legacy: FormField facade (retro-compatibile, copre tutti i tipi)
+FormField::key('password')->password()->required()->minLength(8);
+
+// 2. Diretto: classe Input dedicata
+InputPassword::key('password')->required()->minLength(8);
+
+// 3. Dispatcher: mirror del pattern Wonder\Data\UploadSchema
+InputSchema::key('password')->password()->required()->minLength(8);
+```
+
+Tutte producono lo stesso HTML. La (1) resta la strada principale finché
+il refactor non migra tutti i 45 helper. (2)/(3) servono per i tipi già
+estratti — al momento `text`, `password`.
+
+### Ordine di migrazione (informativo)
+
+1. ✅ `Input` base + `InputText` + `InputPassword`
+2. Da fare: `InputFile`, `InputAcceptDocument`
+3. Da fare: choice family (`InputSelect`, `InputRadio`, `InputCheckbox`,
+   `InputCheckTree`, `InputDynamicCheck`, `InputCheckBoolean`)
+4. Da fare: date/time (`InputDate`, `InputTime`, `InputDateRange`)
+5. Da fare: specialistici (`InputRepeater`, `InputGoogleAddress`,
+   `InputReCAPTCHA`, `InputTextGenerator`, `InputCountry`, `InputStates`,
+   `InputPhonePrefix`)
+
+A ogni step gli helper rimasti su `FormField` continuano a funzionare —
+zero big-bang. Quando l'ultimo tipo è migrato, `FormField::key()`
+diventerà un dispatcher puro e `FormFieldElementFactory::make()` sparirà
+(la logica di costruzione si sposterà in `Input*::buildElement()`
+polimorfico).
+
+## Password policy fluent
+
+`InputPassword` (sia Element che ResourceSchema) espone setters per le
+regole di policy:
+
+| Setter | Effetto |
+|---|---|
+| `->minLength(int $n)` | Almeno N caratteri |
+| `->requireUppercase()` | Almeno una maiuscola |
+| `->requireLowercase()` | Almeno una minuscola |
+| `->requireNumber()` | Almeno un numero |
+| `->requireSpecial()` | Almeno un carattere non alfanumerico |
+
+Esempio:
+
+```php
+FormField::key('password')->password()
+    ->required()
+    ->minLength(8)
+    ->requireUppercase()
+    ->requireNumber()
+    ->requireSpecial()
+    ->label(__t('components.forms.fields.password.label'))
+```
+
+Le regole vivono in `prepare['password_rules']`. Da lì vengono propagate
+**a tre livelli** in un colpo solo:
+
+1. **Render** — `class/Themes/Wonder/Form/Components/InputPassword.php`
+   emette l'icona occhio (`togglePassword(...)`) e una `<ul
+   class="wi-password-rules">` con `data-wi-rule="..."`. Il client
+   `wonder-image/lib` switcha le icone `bi-x ↔ bi-check2` live mentre
+   l'utente digita.
+2. **Validazione server-side** — `Resource::prepareFormatFromInput()`
+   copia `password_rules` in `format`. `formToArray()` (`app/function/sql.php`)
+   istanzia un `Wonder\Data\Validators\PasswordPolicyValidator` con quel
+   set di regole e setta `$ALERT = 977` se fallisce.
+3. **Model-side** — `Wonder\Data\Fields\Password` ha gli stessi setters
+   (`minLength`, `requireUppercase`, ...). Se preferisci dichiarare la
+   policy nel `Model::dataSchema()` invece che nel `Resource::formSchema()`,
+   il `PasswordPolicyValidator` viene aggiunto al field con `syncPolicyValidator()`.
+
+Le stringhe vivono in `resources/lang/{it,en,fr,de,es}/components.json`
+sotto `forms.password_rules.*` e `forms.password_errors.*`, con il
+placeholder `{{count}}` (sintassi nativa del `TranslationProvider`, non
+printf-style). Il renderer e il validator wrappano `__t()` in
+try/catch così la pagina non si abbatte se un sito non ha le chiavi
+aggiornate.
+
+Codice di alert per il validator: `977` ("Password non valida") — definito
+in `resources/lang/{lang}/notifications.json`.
+
+## `acceptDocument` fluent
+
+Checkbox di accettazione di un documento legale (privacy, terms, ...):
+
+```php
+FormField::key('accept_privacy_policy')->acceptDocument('privacy_policy')->required()
+```
+
+- Il `name` del field resta quello passato a `::key()` — deve essere
+  `accept_<type>` perché il pipeline consent cerca esattamente quel
+  prefisso nel POST.
+- Il render produce **input checkbox** `accept_<type>` + **hidden**
+  `<type>_id` con id e label HTML del documento attivo nella lingua
+  corrente.
+- La persistenza in `consent_events` è automatica: i Resource controller
+  invocano `recordResourceConsents()` dopo `afterStore()` (vedi
+  [Registrazione consensi](../app/utente/registrazione-consensi.md)).
+
+## File: DataTransfer re-hydration
+
+Quando un `FormField::key('cv')->file('pdf')` viene precompilato con un
+`value` che punta a file già caricati, il renderer Wonder emette uno
+`<script>` che ricostruisce `input.files` lato client via
+`DataTransfer`:
+
+```html
+<div class="wi-input-container file compiled">
+    <label for="input_abc" class="wi-label">CV</label>
+    <input type="file" id="input_abc" name="cv[]" accept="application/pdf"
+           data-wi-max-file="3" data-wi-max-size="10485760" data-wi-check="true" multiple>
+    <span class="alert-error"></span>
+    <script>
+    var dataTransfer = new DataTransfer();
+
+    dataTransfer.items.add(new File([], 'cv-andrea.pdf', { type: 'application/pdf' }));
+    document.querySelector('input[type="file"]#input_abc').files = dataTransfer.files;
+    </script>
+</div>
+```
+
+Il client (`wonder-image/lib`) usa `input.files` per rendere lo stato
+`compiled` del controllo e per il check `max-file`. Il MIME viene
+risolto da `mime_content_type()` quando il file esiste su disco,
+altrimenti dall'estensione, con fallback `application/octet-stream`.
+
+## `->extensions()` accetta stringa o array
+
+Setter file fluent equivalenti:
+
+```php
+FormField::key('cv')->file('pdf')->extensions(['pdf', 'doc', 'docx'])
+FormField::key('cv')->file('pdf')->extensions('pdf, doc, docx')
+FormField::key('cv')->file('pdf')->extensions('.pdf | .doc | .docx')
+```
+
+Le tre forme producono lo stesso `prepare['extensions'] = ['pdf', 'doc',
+'docx']` (lowercase, niente punto iniziale, dedupe).
+
 ## Aggiungere un nuovo component end-to-end
 
 Esempio: voglio un `InputRange` (slider numerico).

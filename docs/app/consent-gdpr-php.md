@@ -52,20 +52,59 @@ Classe principale:
 
 Metodi:
 
-- `registerBaseConsents(...)`
-- `registerConsentByDocumentId(...)`
-- `getUserConsents(...)`
+- `registerBaseConsents(int $userId, array $input, array $context)` — utenti
+  registrati: scrive `consent_events` + `user_consent_state`.
+- `registerLeadConsents(string $email, array $input, array $context)` — lead
+  anonimi: scrive **solo** `consent_events` (`user_id = NULL`,
+  `subject_email = $email`).
+- `registerConsentByDocumentId(...)` — singolo documento per uno user noto.
+- `getUserConsents(...)` — snapshot stato corrente + storico per uno user.
+
+Identificatori del subject nello schema `consent_events`:
+
+- `user_id` (FK `user`, nullable) — signup/update user.
+- `subject_email` (varchar 320, nullable) — form pubblici anonimi.
+- almeno uno dei due **deve** essere valorizzato.
+
+Tracciabilità record sorgente ↔ consenso:
+
+- `subject_ref_type` (varchar 120, nullable) — nome tabella sorgente.
+- `subject_ref_id` (int, nullable) — id del record sorgente.
+- indice composto `idx_subject_ref(subject_ref_type, subject_ref_id)`.
 
 ## Wrapper function
 
-Funzioni disponibili:
+Funzioni disponibili (`app/function/consent/consent.php`):
 
-- `registerUserConsents(...)`
-- `getUserConsentsSnapshot(...)`
+- `registerUserConsents(int $userId, array $input, array $ctx)`
+- `registerLeadConsents(string $email, array $input, array $ctx)`
+- `recordResourceConsents(array $values, array $ctx)` — hook generico
+  invocato automaticamente dai Resource controller (Backend + API) dopo
+  `afterStore()`; instrada a `registerUserConsents` o
+  `registerLeadConsents` in base al contesto, logga senza throw se manca
+  un subject.
+- `consentsForRecord(string $type, int $id, int $limit = 100)` — lookup
+  polimorfico "dato un record sorgente, mostrami i consensi raccolti",
+  con join a `legal_documents` per ottenere versione + content_hash.
+- `getUserConsentsSnapshot(int $userId, int $historyLimit)`
 
-File:
+## Hook automatico nei Resource
 
-- `app/function/consent/consent.php`
+I controller invocano `recordResourceConsents()` subito dopo
+`afterStore()`:
+
+- `class/Api/Support/ResourceApiController.php::store()` con
+  `source = 'api'`
+- `class/Backend/Support/ResourcePageController.php::store()` con
+  `source = 'admin'`
+
+Entrambi passano `subject_ref_type = static::modelTable()` e
+`subject_ref_id = $result->insert_id`, così ogni evento in
+`consent_events` linka esplicitamente al record che l'ha generato.
+
+Quindi qualunque `Resource` che dichiari un campo
+`FormField::key('accept_<doc>')->acceptDocument('<doc>')` registra il
+consenso senza scrivere una riga di codice nei suoi hook.
 
 ---
 
