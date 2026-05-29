@@ -17,11 +17,15 @@
         {
 
             $userId = (int) ($payload['user_id'] ?? 0);
+            $subjectEmail = trim((string) ($payload['subject_email'] ?? ''));
             $consentType = ConsentDictionary::normalizeConsentType((string) ($payload['consent_type'] ?? ''));
             $action = (string) ($payload['action'] ?? '');
 
-            if ($userId <= 0) {
-                throw new ConsentException('user_id non valido');
+            // Almeno uno dei due identificatori deve essere valorizzato:
+            // `user_id` per il signup classico, `subject_email` per i lead
+            // raccolti da form pubblici (contatto, newsletter, ecc.).
+            if ($userId <= 0 && $subjectEmail === '') {
+                throw new ConsentException('Identificatore consenso mancante: serve user_id oppure subject_email');
             }
 
             if ($consentType === '') {
@@ -42,7 +46,8 @@
             }
 
             $values = [
-                'user_id' => $userId,
+                'user_id' => $userId > 0 ? $userId : null,
+                'subject_email' => $subjectEmail !== '' ? $subjectEmail : null,
                 'consent_type' => $consentType,
                 'action' => $action,
                 'legal_document_id' => isset($payload['legal_document_id']) ? (int) $payload['legal_document_id'] : null,

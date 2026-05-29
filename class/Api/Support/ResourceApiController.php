@@ -113,6 +113,18 @@ final class ResourceApiController
 
         $this->resourceClass::afterStore($result, $values);
 
+        // Registra i consensi GDPR loggandoli in `consent_events`.
+        // `$requestValues` (non `$values`) perché contiene anche gli hidden
+        // `<doc_type>_id` necessari a `ConsentService` per linkare il
+        // documento legale.
+        recordResourceConsents(
+            array_merge((array) $requestValues, (array) $values),
+            [
+                'source' => 'api',
+                'ui_surface' => $this->resourceClass::slug().'/store',
+            ]
+        );
+
         $item = [];
         if (isset($result->insert_id)) {
             $fields = $this->presenter->fieldsFor('show', ['*']);

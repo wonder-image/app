@@ -104,6 +104,17 @@ final class ResourcePageController
                 }
 
                 $this->resourceClass::afterStore($result, $values);
+
+                // Vedi nota in ResourceApiController::store(): hook GDPR
+                // generico che intercetta i campi `accept_*` posted, anche
+                // se non whitelist nello schema della Resource.
+                recordResourceConsents(
+                    array_merge((array) $_POST, (array) $values),
+                    [
+                        'source' => 'admin',
+                        'ui_surface' => $this->resourceClass::slug().'/store',
+                    ]
+                );
             }
 
             $this->redirectToConfiguredPage('store');

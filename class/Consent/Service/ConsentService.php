@@ -129,6 +129,115 @@
         }
 
         /**
+         * Registra i consensi di un "lead": un visitatore identificato solo
+         * dall'email, raccolti tramite form pubblici (contatto, newsletter,
+         * lead magnet, ...). A differenza di `registerBaseConsents()` qui
+         * NON viene aggiornato `user_consent_state` — i lead non hanno uno
+         * stato persistente, ogni interazione è un evento standalone in
+         * `consent_events` con `user_id = NULL` e `subject_email = email`.
+         *
+         * Convenzione del payload identica al signup: checkbox
+         * `accept_<doc_type>` + hidden `<doc_type>_id`.
+         *
+         * @param array<string, mixed> $input
+         * @param array<string, mixed> $context
+         * @return array<string, mixed>
+         * @throws ConsentException
+         */
+        public function registerLeadConsents(string $email, array $input, array $context = []): array
+        {
+
+            $email = trim($email);
+
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new ConsentException('subject_email non valido');
+            }
+
+            $documentSelections = $this->extractDocumentSelectionsFromInput($input);
+
+            if (empty($documentSelections)) {
+                throw new ConsentException('Nessun documento consenso trovato nel payload');
+            }
+
+            $requiredDocumentTypes = $this->normalizeDocumentTypeList($context['required_document_types'] ?? []);
+            $this->assertRequiredDocumentSelections($requiredDocumentTypes, $documentSelections);
+
+            $ctx = $this->normalizeContext($context);
+            $now = $this->now();
+            $eventIds = [];
+
+            $this->beginTransaction();
+
+            try {
+
+                foreach ($documentSelections as $docType => $accepted) {
+
+                    $documentId = $this->extractDocumentIdFromInput($input, $docType);
+
+                    if ($documentId <= 0) {
+
+                        if ($accepted || in_array($docType, $requiredDocumentTypes, true)) {
+                            throw new ConsentException("Documento legale mancante per tipo {$docType}");
+                        }
+
+                        continue;
+
+                    }
+
+                    $this->assertDocumentType($documentId, $docType);
+
+                    $consentType = ConsentDictionary::consentTypeFromDocumentType($docType);
+
+                    if ($consentType === '') {
+                        throw new ConsentException("Impossibile risolvere consent_type per documento {$docType}");
+                    }
+
+                    $action = $accepted ? ConsentDictionary::ACTION_ACCEPT : ConsentDictionary::ACTION_REJECT;
+
+                    $eventId = $this->consentEventRepository->create([
+                        'user_id' => 0,
+                        'subject_email' => $email,
+                        'consent_type' => $consentType,
+                        'action' => $action,
+                        'legal_document_id' => $documentId,
+                        'occurred_at' => $now,
+                        'ip_address' => (string) ($ctx['ip_address'] ?? ''),
+                        'user_agent' => (string) ($ctx['user_agent'] ?? ''),
+                        'locale' => (string) ($ctx['locale'] ?? 'it'),
+                        'source' => (string) ($ctx['source'] ?? ConsentDictionary::SOURCE_WEB),
+                        'ui_surface' => (string) ($ctx['ui_surface'] ?? ''),
+                        'evidence_json' => $ctx['evidence_json'] ?? null,
+                        'creation' => $now,
+                    ]);
+
+                    $eventIds[$docType] = $eventId;
+                }
+
+                if (empty($eventIds)) {
+                    throw new ConsentException('Nessun evento consenso generato dal payload');
+                }
+
+                $this->commit();
+
+                return [
+                    'subject_email' => $email,
+                    'events' => $eventIds,
+                ];
+
+            } catch (Throwable $exception) {
+
+                $this->rollback();
+
+                if ($exception instanceof ConsentException) {
+                    throw $exception;
+                }
+
+                throw new ConsentException('Errore durante la registrazione dei consensi lead: '.$exception->getMessage());
+
+            }
+        }
+
+        /**
          * Registra consenso partendo da un singolo documento legale.
          *
          * @param int $userId

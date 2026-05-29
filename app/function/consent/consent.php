@@ -173,3 +173,88 @@
         return consentService()->getUserConsents($userId, $historyLimit);
 
     }
+
+    /**
+     * Registra i consensi di un "lead" identificato dall'email (form
+     * pubblici: contatto, newsletter, lead magnet). Mirror procedurale
+     * di `ConsentService::registerLeadConsents()`.
+     *
+     * @param array<string, mixed> $input
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
+     */
+    function registerLeadConsents(string $email, array $input, array $context = []): array
+    {
+
+        return consentService()->registerLeadConsents($email, $input, $context);
+
+    }
+
+    /**
+     * Hook generico chiamato dai Resource controller (Backend + API) dopo
+     * lo store: se `$values` contiene almeno un checkbox `accept_<doc>`,
+     * lo registra in `consent_events` instradando al pipeline corretto:
+     *
+     *  - user loggato (`$_SESSION['user_id'] > 0`)   → `registerUserConsents`
+     *  - lead anonimo con `$values['email']` valida → `registerLeadConsents`
+     *  - nessuno dei due                              → log silente, no throw
+     *
+     * Non lancia mai eccezioni che possano abbattere lo store: una
+     * registrazione consenso fallita è grave per il GDPR ma non deve
+     * rovesciare il submit del form. Viene loggata via `__log()`.
+     *
+     * `$context['ui_surface']` identifica il punto di raccolta (es. nome
+     * della Resource: `requests/store`, `users/signup`, ...).
+     *
+     * @param array<string, mixed> $values
+     * @param array<string, mixed> $context
+     */
+    function recordResourceConsents(array $values, array $context = []): void
+    {
+
+        $hasConsentPayload = false;
+
+        foreach ($values as $key => $_) {
+            if (is_string($key) && str_starts_with($key, 'accept_')) {
+                $hasConsentPayload = true;
+                break;
+            }
+        }
+
+        if (!$hasConsentPayload) {
+            return;
+        }
+
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+        try {
+
+            if ($userId > 0) {
+                registerUserConsents($userId, $values, $context);
+                return;
+            }
+
+            $email = trim((string) ($values['email'] ?? ''));
+
+            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                registerLeadConsents($email, $values, $context);
+                return;
+            }
+
+            if (function_exists('__log')) {
+                __log(
+                    new RuntimeException('Consenso ricevuto ma nessun subject (user_id/email) disponibile'),
+                    'consent',
+                    'record_resource_consents_no_subject'
+                );
+            }
+
+        } catch (Throwable $exception) {
+
+            if (function_exists('__log')) {
+                __log($exception, 'consent', 'record_resource_consents_failed');
+            }
+
+        }
+
+    }

@@ -15,7 +15,13 @@ final class ConsentEvent extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('user_id')->int()->null(false)->foreign('user'),
+            // `user_id` nullable per coprire il consenso "lead" raccolto da
+            // form pubblici (es. contatto/iscrizione newsletter) dove non
+            // esiste ancora un account. Per quei casi l'identificatore è
+            // `subject_email`. Per i signup utente resta il pattern storico
+            // (user_id valorizzato, subject_email NULL).
+            Column::key('user_id')->int()->null()->foreign('user'),
+            Column::key('subject_email')->length(320)->null(),
             Column::key('consent_type')->length(120)->null(false),
             Column::key('action')->enum(['accept', 'reject', 'withdraw'])->null(false),
             Column::key('legal_document_id')->int()->null()->foreign('legal_documents'),
@@ -44,6 +50,9 @@ final class ConsentEvent extends Model
             'idx_user_consent_type_time' => [
                 'index' => ['user_id', 'consent_type', 'occurred_at'],
             ],
+            'idx_subject_email_consent_type_time' => [
+                'index' => ['subject_email', 'consent_type', 'occurred_at'],
+            ],
             'idx_legal_document_id' => [
                 'index' => 'legal_document_id',
             ],
@@ -53,7 +62,8 @@ final class ConsentEvent extends Model
     public static function dataSchema(): array
     {
         return [
-            Field::key('user_id')->number()->required(),
+            Field::key('user_id')->number(),
+            Field::key('subject_email')->email(),
             Field::key('consent_type')->text()->required(),
             Field::key('action')->text()->required(),
             Field::key('legal_document_id')->number(),
