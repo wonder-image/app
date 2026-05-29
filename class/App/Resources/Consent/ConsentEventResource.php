@@ -55,6 +55,7 @@ final class ConsentEventResource extends Resource
             TableColumn::key('action')->badge()->function('consentEventAction', 'action', 'automaticResize'),
             TableColumn::key('source')->badge()->function('consentEventSource', 'source', 'automaticResize')->size('little'),
             TableColumn::key('occurred_at')->datetime()->size('medium'),
+            TableColumn::key('actions')->button()->actions(['view'])
         ];
     }
 

@@ -116,12 +116,16 @@ final class ResourceApiController
         // Registra i consensi GDPR loggandoli in `consent_events`.
         // `$requestValues` (non `$values`) perché contiene anche gli hidden
         // `<doc_type>_id` necessari a `ConsentService` per linkare il
-        // documento legale.
+        // documento legale. `subject_ref_*` traccia il record sorgente
+        // (table + id) per poter risalire dal consenso alla richiesta e
+        // viceversa.
         recordResourceConsents(
             array_merge((array) $requestValues, (array) $values),
             [
                 'source' => 'api',
                 'ui_surface' => $this->resourceClass::slug().'/store',
+                'subject_ref_type' => $this->resourceClass::modelTable(),
+                'subject_ref_id' => (int) ($result->insert_id ?? 0),
             ]
         );
 

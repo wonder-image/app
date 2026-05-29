@@ -45,9 +45,14 @@
                 $evidence = ($encoded !== false) ? $encoded : null;
             }
 
+            $subjectRefType = trim((string) ($payload['subject_ref_type'] ?? ''));
+            $subjectRefId = (int) ($payload['subject_ref_id'] ?? 0);
+
             $values = [
                 'user_id' => $userId > 0 ? $userId : null,
                 'subject_email' => $subjectEmail !== '' ? $subjectEmail : null,
+                'subject_ref_type' => $subjectRefType !== '' ? $subjectRefType : null,
+                'subject_ref_id' => $subjectRefId > 0 ? $subjectRefId : null,
                 'consent_type' => $consentType,
                 'action' => $action,
                 'legal_document_id' => isset($payload['legal_document_id']) ? (int) $payload['legal_document_id'] : null,
@@ -135,6 +140,38 @@
             $sql .= "LIMIT 1";
 
             return $this->fetchOne($sql);
+
+        }
+
+        /**
+         * Lookup polimorfico: "dato un record sorgente
+         * (table + id), restituisci tutti i consensi che ha generato".
+         *
+         * @return array<int, array<string, mixed>>
+         */
+        public function findBySubjectRef(string $subjectRefType, int $subjectRefId, int $limit = 100): array
+        {
+
+            $subjectRefType = trim($subjectRefType);
+
+            if ($subjectRefType === '' || $subjectRefId <= 0) {
+                return [];
+            }
+
+            $limit = max(1, min(1000, $limit));
+
+            $sql = "SELECT ";
+            $sql .= "ce.id, ce.user_id, ce.subject_email, ce.subject_ref_type, ce.subject_ref_id, ";
+            $sql .= "ce.consent_type, ce.action, ce.occurred_at, ce.ip_address, ce.user_agent, ce.locale, ce.source, ce.ui_surface, ce.evidence_json, ce.creation, ";
+            $sql .= "ld.id AS document_id, ld.doc_type AS document_type, ld.version AS document_version, ld.language_code AS document_language_code, ld.content_hash AS document_content_hash ";
+            $sql .= "FROM `consent_events` ce ";
+            $sql .= "LEFT JOIN `legal_documents` ld ON ld.id = ce.legal_document_id ";
+            $sql .= "WHERE ce.subject_ref_type = '".$this->escape($subjectRefType)."' ";
+            $sql .= "AND ce.subject_ref_id = ".(int) $subjectRefId." ";
+            $sql .= "ORDER BY ce.occurred_at DESC, ce.id DESC ";
+            $sql .= "LIMIT ".(int) $limit;
+
+            return $this->fetchAll($sql);
 
         }
 

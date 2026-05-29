@@ -22,6 +22,13 @@ final class ConsentEvent extends Model
             // (user_id valorizzato, subject_email NULL).
             Column::key('user_id')->int()->null()->foreign('user'),
             Column::key('subject_email')->length(320)->null(),
+            // Link polimorfico al record che ha originato il consenso
+            // (es. `subject_ref_type = 'requests'`, `subject_ref_id = 123`
+            // per il consenso raccolto dal form di contatto in
+            // `RequestResource`). Permette traccia bidirezionale senza FK
+            // rigida verso una singola tabella.
+            Column::key('subject_ref_type')->length(120)->null(),
+            Column::key('subject_ref_id')->int()->null(),
             Column::key('consent_type')->length(120)->null(false),
             Column::key('action')->enum(['accept', 'reject', 'withdraw'])->null(false),
             Column::key('legal_document_id')->int()->null()->foreign('legal_documents'),
@@ -53,6 +60,12 @@ final class ConsentEvent extends Model
             'idx_subject_email_consent_type_time' => [
                 'index' => ['subject_email', 'consent_type', 'occurred_at'],
             ],
+            // Lookup veloce "dato un record sorgente, mostrami i consensi":
+            // `SELECT * FROM consent_events WHERE subject_ref_type = ?
+            // AND subject_ref_id = ?`.
+            'idx_subject_ref' => [
+                'index' => ['subject_ref_type', 'subject_ref_id'],
+            ],
             'idx_legal_document_id' => [
                 'index' => 'legal_document_id',
             ],
@@ -64,6 +77,8 @@ final class ConsentEvent extends Model
         return [
             Field::key('user_id')->number(),
             Field::key('subject_email')->email(),
+            Field::key('subject_ref_type')->text(),
+            Field::key('subject_ref_id')->number(),
             Field::key('consent_type')->text()->required(),
             Field::key('action')->text()->required(),
             Field::key('legal_document_id')->number(),

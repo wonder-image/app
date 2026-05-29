@@ -175,6 +175,25 @@
     }
 
     /**
+     * Lookup polimorfico consenso ↔ record sorgente.
+     *
+     *   $events = consentsForRecord('requests', $requestId);
+     *
+     * Comodo nelle view del backend per mostrare la sezione "Consensi
+     * raccolti" sotto un record (es. una pagina dettaglio richiesta che
+     * elenca i `consent_events.subject_ref_type='requests'` correlati).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    function consentsForRecord(string $subjectRefType, int $subjectRefId, int $limit = 100): array
+    {
+
+        return (new \Wonder\Consent\Repository\ConsentEventRepository(null))
+            ->findBySubjectRef($subjectRefType, $subjectRefId, $limit);
+
+    }
+
+    /**
      * Registra i consensi di un "lead" identificato dall'email (form
      * pubblici: contatto, newsletter, lead magnet). Mirror procedurale
      * di `ConsentService::registerLeadConsents()`.

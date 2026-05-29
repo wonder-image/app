@@ -207,6 +207,8 @@
                         'source' => (string) ($ctx['source'] ?? ConsentDictionary::SOURCE_WEB),
                         'ui_surface' => (string) ($ctx['ui_surface'] ?? ''),
                         'evidence_json' => $ctx['evidence_json'] ?? null,
+                        'subject_ref_type' => (string) ($ctx['subject_ref_type'] ?? ''),
+                        'subject_ref_id' => (int) ($ctx['subject_ref_id'] ?? 0),
                         'creation' => $now,
                     ]);
 
@@ -361,6 +363,8 @@
                 'source' => (string) ($context['source'] ?? ConsentDictionary::SOURCE_WEB),
                 'ui_surface' => (string) ($context['ui_surface'] ?? ''),
                 'evidence_json' => $context['evidence_json'] ?? null,
+                'subject_ref_type' => (string) ($context['subject_ref_type'] ?? ''),
+                'subject_ref_id' => (int) ($context['subject_ref_id'] ?? 0),
                 'creation' => $occurredAt,
             ]);
 
@@ -541,6 +545,12 @@
                 'source' => $source,
                 'ui_surface' => (string) ($context['ui_surface'] ?? ''),
                 'evidence_json' => $evidence,
+                // Link polimorfico al record che ha originato il consenso
+                // (vedi `consent_events.subject_ref_type` /
+                // `subject_ref_id`). Settato dai controller Resource via
+                // `recordResourceConsents()`.
+                'subject_ref_type' => trim((string) ($context['subject_ref_type'] ?? '')),
+                'subject_ref_id' => (int) ($context['subject_ref_id'] ?? 0),
             ];
 
         }

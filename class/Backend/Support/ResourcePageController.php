@@ -113,6 +113,8 @@ final class ResourcePageController
                     [
                         'source' => 'admin',
                         'ui_surface' => $this->resourceClass::slug().'/store',
+                        'subject_ref_type' => $this->resourceClass::modelTable(),
+                        'subject_ref_id' => $insertId,
                     ]
                 );
             }
