@@ -7,13 +7,16 @@ use Wonder\Elements\Concerns\CanSpanColumn;
 use Wonder\Elements\Concerns\HasText;
 use Wonder\Elements\Concerns\Renderer;
 
-class Tooltip extends Component
+class Accordion extends Component
 {
     use CanSpanColumn, HasText, Renderer;
+
+    public array $components = [];
 
     public function __construct(string $text = '')
     {
         $this->text = $text;
+        $this->columnSpan(12);
     }
 
     public static function make(string $text): self
@@ -21,13 +24,20 @@ class Tooltip extends Component
         return new self($text);
     }
 
-    public function placement(string $placement = 'top'): self
+    public function components(array $components): self
     {
-        return $this->schema('placement', trim($placement) !== '' ? trim($placement) : 'top');
+        $this->components = $components;
+
+        return $this;
     }
 
-    public function icon(string $icon): self
+    public function expanded(bool $expanded = true): self
     {
-        return $this->schema('icon', trim($icon));
+        return $this->schema('expanded', $expanded);
+    }
+
+    public function flush(bool $flush = true): self
+    {
+        return $this->schema('flush', $flush);
     }
 }

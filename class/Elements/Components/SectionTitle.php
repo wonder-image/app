@@ -4,15 +4,17 @@ namespace Wonder\Elements\Components;
 
 use Wonder\Elements\Component;
 use Wonder\Elements\Concerns\CanSpanColumn;
+use Wonder\Elements\Concerns\HasText;
+use Wonder\Elements\Concerns\Renderer;
 
 class SectionTitle extends Component
 {
-    use CanSpanColumn;
+    use CanSpanColumn, HasText, Renderer;
 
-    public function __construct(
-        protected string $text = '',
-    ) {
-        $this->columnSpan(12);
+    public function __construct(string $text = '')
+    {
+        $this->text = $text;
+        $this->level(6);
     }
 
     public static function make(string $text): self
@@ -20,37 +22,15 @@ class SectionTitle extends Component
         return new self($text);
     }
 
-    public function text(string $text): self
+    public function level(int $level = 6): self
     {
-        $this->text = $text;
+        $level = max(1, min(6, $level));
 
-        return $this;
-    }
-
-    public function level(string $level = 'h6'): self
-    {
-        return $this->schema('level', trim($level) !== '' ? trim($level) : 'h6');
+        return $this->schema('level', 'h' . $level);
     }
 
     public function tooltip(string $text): self
     {
         return $this->schema('tooltip', $text);
-    }
-
-    public function render(?string $theme = null): string
-    {
-        $tag = strtolower((string) ($this->schema['level'] ?? 'h6'));
-
-        if (!in_array($tag, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'], true)) {
-            $tag = 'h6';
-        }
-
-        $label = htmlspecialchars(trim($this->text), ENT_QUOTES, 'UTF-8');
-        $tooltipText = trim((string) ($this->schema['tooltip'] ?? ''));
-        $tooltip = $tooltipText !== ''
-            ? Tooltip::make($tooltipText)->render()
-            : '';
-
-        return '<'.$tag.'>'.$label.$tooltip.'</'.$tag.'>';
     }
 }

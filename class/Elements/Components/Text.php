@@ -7,7 +7,7 @@ use Wonder\Elements\Concerns\CanSpanColumn;
 use Wonder\Elements\Concerns\HasText;
 use Wonder\Elements\Concerns\Renderer;
 
-class Tooltip extends Component
+class Text extends Component
 {
     use CanSpanColumn, HasText, Renderer;
 
@@ -21,13 +21,13 @@ class Tooltip extends Component
         return new self($text);
     }
 
-    public function placement(string $placement = 'top'): self
+    public function tag(string $tag): self
     {
-        return $this->schema('placement', trim($placement) !== '' ? trim($placement) : 'top');
+        return $this->schema('tag', strtolower(trim($tag)));
     }
 
-    public function icon(string $icon): self
+    public function lead(bool $lead = true): self
     {
-        return $this->schema('icon', trim($icon));
+        return $this->schema('lead', $lead);
     }
 }
