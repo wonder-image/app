@@ -506,7 +506,7 @@ abstract class Model
 
     public static function all(string|array $columns = '*'): array
     {
-        return static::query()->Select(
+        $rows = static::query()->Select(
             static::$table,
             static::queryCondition(),
             null,
@@ -514,6 +514,8 @@ abstract class Model
             null,
             $columns
         )->row;
+
+        return (array) static::decorateRows($rows);
     }
 
     public static function find(
@@ -523,7 +525,7 @@ abstract class Model
         ?string $orderDirection = null,
         string|array $columns = '*'
     ): mixed {
-        return static::query()->Select(
+        $rows = static::query()->Select(
             static::$table,
             static::queryCondition($condition),
             $limit,
@@ -531,15 +533,70 @@ abstract class Model
             $orderDirection,
             $columns
         )->row;
+
+        return static::decorateRows($rows);
     }
 
     public static function findById(int|string $id): mixed
     {
-        return static::query()->Select(
+        $row = static::query()->Select(
             static::$table,
             static::queryCondition(['id' => $id]),
             1
         )->row;
+
+        return static::decorateRows($row);
+    }
+
+    /**
+     * Hook opzionale: ogni Model può override per arricchire/rielaborare
+     * una riga prima che venga restituita da `all()`, `find()`, `findById()`.
+     *
+     * Default = identity. Esempi d'uso tipici:
+     *
+     *   - aggiungere URL backend computati (vedi
+     *     `Wonder\App\Models\Consent\ConsentEvent::decorate`);
+     *   - decodificare JSON colonne in array;
+     *   - calcolare campi derivati (full_name, age, ecc.);
+     *   - normalizzare booleani persistiti come stringa.
+     *
+     * Lavora **per singola riga**. Il dispatch su collection vs riga
+     * singola è gestito da `decorateRows()`.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    public static function decorate(array $row): array
+    {
+        return $row;
+    }
+
+    /**
+     * Applica `decorate()` al risultato di una query Select.
+     *
+     * Il `Wonder\Sql\Query::Select()->row` ritorna shape diverse in base
+     * a `limit`: con `limit=1` o `Where id=X` è una riga assoc, altrimenti
+     * un array di righe. `decorateRows()` discrimina con `isAssoc()`.
+     *
+     * - input vuoto / non array → passthrough (nessuna chiamata a decorate)
+     * - riga assoc → ritorna `decorate($row)`
+     * - lista di righe → array_map con `decorate($row)` su ogni elemento;
+     *   elementi non-array (raro) vengono passthrough
+     */
+    protected static function decorateRows(mixed $rows): mixed
+    {
+        if (!is_array($rows) || $rows === []) {
+            return $rows;
+        }
+
+        if (static::isAssoc($rows)) {
+            return static::decorate($rows);
+        }
+
+        return array_map(
+            static fn (mixed $row): mixed => is_array($row) ? static::decorate($row) : $row,
+            $rows
+        );
     }
 
     public static function create(array $values): object

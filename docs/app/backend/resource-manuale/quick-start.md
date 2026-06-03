@@ -246,7 +246,44 @@ Nota:
 - `tableSchema()` resta la fonte esplicita della struttura SQL
 - se vuoi evitare duplicazione, puoi usare `static::sqlColumnsFromDataSchema([...])`
 
-## 8. Upload in `dataSchema()`
+## 8. Decorare le righe restituite — `Model::decorate()`
+
+Tutti i lookup base — `find()`, `findById()`, `all()` — passano per
+`Model::decorate(array $row): array` prima del return. Default = identity.
+Override sulla sottoclasse per **arricchire automaticamente ogni riga**
+con campi computati (URL, full_name, JSON decodificati, ...).
+
+```php
+final class Contact extends Model
+{
+    public static string $table = 'contact';
+
+    public static function decorate(array $row): array
+    {
+        $row['full_name'] = trim(($row['name'] ?? '').' '.($row['surname'] ?? ''));
+        return $row;
+    }
+}
+
+$rows = Contact::find();
+// ogni riga ora ha `full_name` in più
+```
+
+Si applica a riga singola (`findById`) o lista (`find()`/`all()`)
+indifferentemente: il dispatch è gestito da `decorateRows()` interna.
+Output vuoti (`[]`, `null`) sono passthrough — `decorate()` non viene
+mai chiamato su array vuoto.
+
+Esempio reale: `Wonder\App\Models\Consent\ConsentEvent::decorate()`
+inietta `backend_url` (dettaglio dell'evento) e `source_backend_url`
+(record sorgente che l'ha originato) in ogni riga letta — vedi
+[Registrazione consensi](../../app/utente/registrazione-consensi.md#url-backend-del-consenso-e-del-record-sorgente).
+
+> **Nota**: `decorate()` lavora **dopo** la lettura del DB, non prima
+> dello store. Per trasformazioni in fase di scrittura usa i `formatters`
+> dichiarati in `dataSchema()`.
+
+## 9. Upload in `dataSchema()`
 
 Per i campi upload la logica va nel `Model::dataSchema()`.
 
@@ -275,7 +312,7 @@ Metodi utili per upload:
 - se ometti `resize()` su `image()`, usa `RESPONSIVE_IMAGE_SIZES`
 - se ometti `webp()` su `image()`, usa `RESPONSIVE_IMAGE_WEBP`
 
-## 9. Preset utili in `dataSchema()`
+## 10. Preset utili in `dataSchema()`
 
 Esempi:
 

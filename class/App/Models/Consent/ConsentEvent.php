@@ -96,24 +96,47 @@ final class ConsentEvent extends Model
     }
 
     /**
-     * URL backend del record sorgente di un evento consenso (es. dato
-     * `subject_ref_type='requests'` + `subject_ref_id=42`, ritorna
-     * `/{backend}/requests/42/`).
+     * URL backend del **consent_event stesso** (dettaglio dell'evento nel
+     * backend, es. `/{backend}/log/consent/42/`). Costruito risolvendo
+     * la Resource mappata alla tabella `consent_events` (di norma
+     * `Wonder\App\Resources\Consent\ConsentEventResource`).
      *
-     * Accetta una riga di `consent_events` come array assoc o object —
-     * cioè il formato che ritornano sia `sqlSelect()` sia
-     * `ConsentEventRepository::findById()`/`findBySubjectRef()`.
-     *
-     * Ritorna `null` (non eccezione) quando:
-     *  - `subject_ref_*` non sono valorizzati (consenso registrato prima
-     *    dell'introduzione della tracciabilità, oppure scrittura manuale)
-     *  - nessuna `Resource` registrata mappa la tabella sorgente
-     *  - `$PATH->backend` non è disponibile (ambiente CLI/test)
-     *
-     * Comodo nelle view di `ConsentEvent` backend per linkare "Origine
-     * → {nome resource}".
+     * Ritorna `null` (non eccezione) quando il record non ha id, la
+     * Resource non è registrata o `$PATH->backend` non è disponibile.
      */
     public static function backendUrl(array|object $row): ?string
+    {
+        $data = is_object($row) ? (array) $row : $row;
+        $id = (int) ($data['id'] ?? 0);
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        $resourceClass = ResourceRegistry::resolveByTable(static::$table);
+
+        if ($resourceClass === null) {
+            return null;
+        }
+
+        return self::buildResourceUrl($resourceClass, $id);
+    }
+
+    /**
+     * URL backend del **record sorgente** che ha originato il consenso
+     * (es. dato `subject_ref_type='requests'` + `subject_ref_id=42`,
+     * ritorna `/{backend}/requests/42/`).
+     *
+     * Accetta una riga di `consent_events` come array assoc o object — il
+     * formato che ritornano sia `sqlSelect()` sia
+     * `ConsentEventRepository::findById()`/`findBySubjectRef()`.
+     *
+     * Ritorna `null` quando `subject_ref_*` non sono valorizzati
+     * (consenso registrato prima dell'introduzione della tracciabilità,
+     * o scrittura manuale), nessuna Resource registrata mappa la tabella
+     * sorgente, oppure `$PATH->backend` non è disponibile.
+     */
+    public static function sourceBackendUrl(array|object $row): ?string
     {
         $data = is_object($row) ? (array) $row : $row;
 
@@ -130,6 +153,33 @@ final class ConsentEvent extends Model
             return null;
         }
 
+        return self::buildResourceUrl($resourceClass, $subjectRefId);
+    }
+
+    /**
+     * Inietta nelle righe ritornate da `all()`, `find()`, `findById()`
+     * due URL backend computati:
+     *
+     *  - `backend_url`        → dettaglio del consent_event stesso
+     *  - `source_backend_url` → dettaglio del record sorgente (request,
+     *                            user, …) che ha originato il consenso
+     *
+     * Entrambi possono essere `null` se la riga non ha id, se la Resource
+     * non è registrata, o se `$PATH->backend` non è disponibile (CLI/test).
+     */
+    public static function decorate(array $row): array
+    {
+        $row['backend_url'] = self::backendUrl($row);
+        $row['source_backend_url'] = self::sourceBackendUrl($row);
+
+        return $row;
+    }
+
+    /**
+     * @param class-string<\Wonder\App\Resource> $resourceClass
+     */
+    private static function buildResourceUrl(string $resourceClass, int $id): ?string
+    {
         $path = LegacyGlobals::get('PATH');
         $backend = is_object($path) ? trim((string) ($path->backend ?? '')) : '';
 
@@ -137,6 +187,6 @@ final class ConsentEvent extends Model
             return null;
         }
 
-        return rtrim($backend, '/').'/'.$resourceClass::path().'/'.$subjectRefId.'/';
+        return rtrim($backend, '/').'/'.$resourceClass::path().'/'.$id.'/';
     }
 }

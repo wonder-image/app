@@ -242,6 +242,40 @@ vera da archiviare/esporre — non basta sapere "ha accettato": serve
 sapere "ha accettato la versione X del documento Y, il cui contenuto
 all'epoca era hash Z".
 
+## URL backend del consenso e del record sorgente
+
+Ogni riga di `consent_events` letta via `Wonder\App\Models\Consent\ConsentEvent`
+(quindi via `find()`, `findById()`, `all()`, e tramite il pattern
+`Model::decorate()` — vedi
+[manuale Model](../../backend/resource-manuale/quick-start.md))
+include automaticamente due URL backend computati:
+
+| Chiave | Cosa è | Quando è `null` |
+|---|---|---|
+| `backend_url` | Dettaglio del **consent_event** nel backend (es. `/admin/log/consent/42/`) | id mancante, Resource non registrata |
+| `source_backend_url` | Dettaglio del **record sorgente** che ha generato il consenso (es. `/admin/requests/123/`) | `subject_ref_*` non valorizzati, Resource sorgente non registrata |
+
+```php
+$events = consentsForRecord('requests', $requestId);
+
+foreach ($events as $event) {
+    echo '<a href="'.$event['backend_url'].'">Apri evento</a>';
+    if ($event['source_backend_url'] !== null) {
+        echo '<a href="'.$event['source_backend_url'].'">Apri richiesta</a>';
+    }
+}
+```
+
+I due URL sono calcolati da:
+
+- `ConsentEvent::backendUrl($row)` — link al consenso stesso (risolve la
+  Resource tramite `ResourceRegistry::resolveByTable('consent_events')`)
+- `ConsentEvent::sourceBackendUrl($row)` — link al record sorgente
+  (risolve via `ResourceRegistry::resolveByTable($row['subject_ref_type'])`)
+
+Sono accessibili anche standalone, senza passare da `decorate()`, se
+hai una riga grezza in mano (es. da `ConsentEventRepository`).
+
 ## Regole importanti
 
 - `privacy_ack` non è consenso generale al trattamento.
@@ -264,3 +298,5 @@ all'epoca era hash Z".
 | Hook auto backend store | `class/Backend/Support/ResourcePageController.php::store()` |
 | DSL acceptDocument | `class/App/ResourceSchema/FormField.php` |
 | Render checkbox | `class/Themes/Wonder/Form/Components/InputAcceptDocument.php` |
+| Hook decorate righe ConsentEvent | `class/App/Models/Consent/ConsentEvent.php::decorate()` |
+| Base Model + hook decorate | `class/App/Model.php::decorate()` / `::decorateRows()` |
