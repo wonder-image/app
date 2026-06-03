@@ -40,7 +40,6 @@ class Link extends Component
             $extras[] = 'title="'.$this->escape($title).'"';
         }
 
-        $columnSpan = $this->getColumnSpan($class->columnSpan);
         $classAttr = $classes === [] ? '' : ' class="'.$this->escape(implode(' ', $classes)).'"';
         $extraAttr = $extras === [] ? '' : ' '.implode(' ', $extras);
 
