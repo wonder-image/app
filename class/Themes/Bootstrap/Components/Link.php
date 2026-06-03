@@ -9,7 +9,7 @@ use Wonder\Themes\Concerns\HasAttributes;
 
 class Link extends Component
 {
-    use CanSpanColumn, HasAttributes, EscapesHtml;
+    use HasAttributes, EscapesHtml;
 
     public function render($class): string
     {
@@ -53,8 +53,7 @@ class Link extends Component
             default => $labelHtml,
         };
 
-        $link = '<a href="'.$this->escape($href).'"'.$classAttr.$extraAttr.'>'.$inner.'</a>';
+        return'<a href="'.$this->escape($href).'"'.$classAttr.$extraAttr.'>'.$inner.'</a>';
 
-        return '<div class="'.$columnSpan.'">'.$link.'</div>';
     }
 }

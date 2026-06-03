@@ -3,7 +3,6 @@
 namespace Wonder\Elements\Components;
 
 use Wonder\Elements\Component;
-use Wonder\Elements\Concerns\CanSpanColumn;
 use Wonder\Elements\Concerns\Renderer;
 
 /**
@@ -17,7 +16,7 @@ use Wonder\Elements\Concerns\Renderer;
  */
 class Link extends Component
 {
-    use CanSpanColumn, Renderer;
+    use Renderer;
 
     private string $href = '';
     private string $label = '';
