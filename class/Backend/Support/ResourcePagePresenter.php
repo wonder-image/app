@@ -56,6 +56,8 @@ final class ResourcePagePresenter
     {
         return [
             'TITLE' => $this->pageTitle('view'),
+            'SUBTITLE' => $this->pageSubtitle('view'),
+            'ACTIONS' => $this->pageActions('view', $item),
             'RESOURCE_CLASS' => $this->resourceClass,
             'ITEM' => $item,
             'BACK_URL' => $this->backUrl(),
@@ -221,6 +223,68 @@ HTML;
         $titles = (array) $this->resourceClass::pageSchema()->get('titles');
 
         return (string) ($titles[$page] ?? $this->resourceClass::titleLabel());
+    }
+
+    private function pageSubtitle(string $page): string
+    {
+        $subtitles = (array) $this->resourceClass::pageSchema()->get('subtitles');
+
+        return (string) ($subtitles[$page] ?? '');
+    }
+
+    /**
+     * Risolve i bottoni dell'header per una pagina.
+     *
+     * Normalizza il risultato in un array di array con sempre presenti
+     * `label`, `href`, `class`, `icon`, `target`, `onclick`. Salta
+     * silenziosamente descriptor mal formati invece di lanciare eccezioni
+     * — un bottone "vuoto" durante una view non deve abbattere la pagina.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function pageActions(string $page, array $item = []): array
+    {
+        $registered = (array) $this->resourceClass::pageSchema()->get('actions');
+        $entry = $registered[$page] ?? null;
+
+        if ($entry === null) {
+            return [];
+        }
+
+        try {
+            $descriptors = is_callable($entry) ? $entry($item) : $entry;
+        } catch (Throwable) {
+            return [];
+        }
+
+        if (!is_array($descriptors)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($descriptors as $descriptor) {
+            if (!is_array($descriptor)) {
+                continue;
+            }
+
+            $label = trim((string) ($descriptor['label'] ?? ''));
+
+            if ($label === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'label' => $label,
+                'href' => (string) ($descriptor['href'] ?? ''),
+                'class' => trim((string) ($descriptor['class'] ?? 'btn-primary')),
+                'icon' => trim((string) ($descriptor['icon'] ?? '')),
+                'target' => trim((string) ($descriptor['target'] ?? '')),
+                'onclick' => trim((string) ($descriptor['onclick'] ?? '')),
+            ];
+        }
+
+        return $normalized;
     }
 
     private function listUrl(): string

@@ -70,7 +70,9 @@
             ];
             public $buttonDownload = [
                 'visible' => false,
-                'format' => []
+                'format' => [],
+                'endpoint' => '',   // se valorizzato, sostituisce exportTable() con redirect a "{endpoint}{format}"
+                'label' => 'Esporta'
             ];
             public $buttonCustom = [];
 
@@ -179,11 +181,16 @@
 
         }
 
-        public function buttonDownload( bool $visible = true, array $format = [ 'csv' => 'CSV', 'print' => 'Stampa' ] ): self 
-        { 
-            
-            $this->buttonDownload['visible'] = $visible; 
-            $this->buttonDownload['format'] = $format; 
+        public function buttonDownload( bool $visible = true, array $format = [ 'csv' => 'CSV', 'print' => 'Stampa' ], string $endpoint = '', ?string $label = null ): self
+        {
+
+            $this->buttonDownload['visible'] = $visible;
+            $this->buttonDownload['format'] = $format;
+            $this->buttonDownload['endpoint'] = trim($endpoint);
+
+            if ($label !== null && trim($label) !== '') {
+                $this->buttonDownload['label'] = trim($label);
+            }
 
             return $this;
 
@@ -603,13 +610,26 @@
 
             if ($this->buttonDownload['visible']) {
 
+                $endpoint = (string) ($this->buttonDownload['endpoint'] ?? '');
+                $btnLabel = (string) ($this->buttonDownload['label'] ?? 'Esporta');
+
                 $BUTTON_DOWNLOAD_HTML .= '<div class="col-auto ps-0">';
                 $BUTTON_DOWNLOAD_HTML .= '<div class="btn-group float-end" role="group">';
-                $BUTTON_DOWNLOAD_HTML .= '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Esporta </button>';
+                $BUTTON_DOWNLOAD_HTML .= '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> '.htmlspecialchars($btnLabel, ENT_QUOTES, 'UTF-8').' </button>';
                 $BUTTON_DOWNLOAD_HTML .= '<div class="dropdown-menu dropdown-menu-right">';
 
                 foreach ($this->buttonDownload['format'] as $format => $label) {
-                    $BUTTON_DOWNLOAD_HTML .= '<button onclick="exportTable(\''.$this->id['table'].'\', \''.$format.'\' )" class="dropdown-item">'.$label.'</button>';
+
+                    if ($endpoint !== '') {
+                        // Endpoint Resource-aware: la Resource sa quali
+                        // colonne/callable applicare. Niente JS-side export.
+                        $href = $endpoint.rawurlencode((string) $format).'/';
+                        $BUTTON_DOWNLOAD_HTML .= '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" class="dropdown-item">'.htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8').'</a>';
+                    } else {
+                        // Legacy: sqlExport via app/api/export.php.
+                        $BUTTON_DOWNLOAD_HTML .= '<button onclick="exportTable(\''.$this->id['table'].'\', \''.$format.'\' )" class="dropdown-item">'.htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8').'</button>';
+                    }
+
                 }
 
                 $BUTTON_DOWNLOAD_HTML .= '</div>';

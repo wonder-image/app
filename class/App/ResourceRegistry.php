@@ -100,6 +100,34 @@ final class ResourceRegistry
         return self::all()[$slug];
     }
 
+    /**
+     * Cerca una Resource a partire dal nome della tabella del suo Model.
+     * Comodo per i lookup polimorfici (es. `ConsentEvent::backendUrl()`
+     * che parte da `subject_ref_type` = nome tabella).
+     *
+     * Ritorna `null` se nessuna Resource registrata mappa quella tabella:
+     * la registrazione di consensi è polimorfica e può puntare anche a
+     * tabelle senza Resource associata (raro ma legittimo).
+     *
+     * @return class-string<Resource>|null
+     */
+    public static function resolveByTable(string $table): ?string
+    {
+        $table = trim($table);
+
+        if ($table === '') {
+            return null;
+        }
+
+        foreach (self::all() as $resourceClass) {
+            if ($resourceClass::modelTable() === $table) {
+                return $resourceClass;
+            }
+        }
+
+        return null;
+    }
+
     private static function resourceCandidates(): array
     {
         $candidates = [];

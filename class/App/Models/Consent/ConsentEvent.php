@@ -2,7 +2,9 @@
 
 namespace Wonder\App\Models\Consent;
 
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Model;
+use Wonder\App\ResourceRegistry;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -91,5 +93,50 @@ final class ConsentEvent extends Model
             Field::key('evidence_json')->text()->json()->sanitize(false),
             Field::key('creation')->text(),
         ];
+    }
+
+    /**
+     * URL backend del record sorgente di un evento consenso (es. dato
+     * `subject_ref_type='requests'` + `subject_ref_id=42`, ritorna
+     * `/{backend}/requests/42/`).
+     *
+     * Accetta una riga di `consent_events` come array assoc o object —
+     * cioè il formato che ritornano sia `sqlSelect()` sia
+     * `ConsentEventRepository::findById()`/`findBySubjectRef()`.
+     *
+     * Ritorna `null` (non eccezione) quando:
+     *  - `subject_ref_*` non sono valorizzati (consenso registrato prima
+     *    dell'introduzione della tracciabilità, oppure scrittura manuale)
+     *  - nessuna `Resource` registrata mappa la tabella sorgente
+     *  - `$PATH->backend` non è disponibile (ambiente CLI/test)
+     *
+     * Comodo nelle view di `ConsentEvent` backend per linkare "Origine
+     * → {nome resource}".
+     */
+    public static function backendUrl(array|object $row): ?string
+    {
+        $data = is_object($row) ? (array) $row : $row;
+
+        $subjectRefType = trim((string) ($data['subject_ref_type'] ?? ''));
+        $subjectRefId = (int) ($data['subject_ref_id'] ?? 0);
+
+        if ($subjectRefType === '' || $subjectRefId <= 0) {
+            return null;
+        }
+
+        $resourceClass = ResourceRegistry::resolveByTable($subjectRefType);
+
+        if ($resourceClass === null) {
+            return null;
+        }
+
+        $path = LegacyGlobals::get('PATH');
+        $backend = is_object($path) ? trim((string) ($path->backend ?? '')) : '';
+
+        if ($backend === '') {
+            return null;
+        }
+
+        return rtrim($backend, '/').'/'.$resourceClass::path().'/'.$subjectRefId.'/';
     }
 }

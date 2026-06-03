@@ -36,6 +36,19 @@ final class TableLayoutSchema
             ],
             'search_fields' => [],
             'custom_filters' => [],
+            // Bottone "Esporta" nel header della tabella. `formats` mappa
+            // codice → label visibile (es. ['csv' => 'CSV', 'xlsx' =>
+            // 'Excel']). `columns` può contenere stringhe (nome colonna
+            // del record) o array `['label' => '...', 'value' => string|callable]`
+            // per controllare label e valore di output (callable riceve
+            // l'intera riga e ritorna la cella).
+            'download' => [
+                'enabled' => false,
+                'formats' => ['csv' => 'CSV', 'xlsx' => 'Excel'],
+                'columns' => [],
+                'filename' => null,
+                'label' => null,
+            ],
         ];
     }
 
@@ -157,6 +170,124 @@ final class TableLayoutSchema
             ->hideTitle()
             ->results(false)
             ->hideButtonAdd();
+    }
+
+    /**
+     * Abilita il bottone "Esporta" nel header della tabella.
+     *
+     * `$formats` può essere:
+     *  - `true` (default): tutti i formati supportati (`csv` + `xlsx`)
+     *  - array di codici: `['csv']` o `['csv', 'xlsx']`
+     *  - array assoc codice → label visibile: `['xlsx' => 'Foglio Excel']`
+     *
+     * Formati supportati: `csv`, `xlsx` (vedi `app/function/arrayTo.php`).
+     */
+    public function download(bool|array $formats = true, ?string $label = null): self
+    {
+        $this->schema['download']['enabled'] = $formats !== false && $formats !== [];
+
+        if (is_array($formats) && $formats !== []) {
+            $normalized = [];
+            $defaults = ['csv' => 'CSV', 'xlsx' => 'Excel'];
+
+            foreach ($formats as $key => $value) {
+                if (is_int($key) && is_string($value)) {
+                    $code = strtolower(trim($value));
+                    if ($code !== '') {
+                        $normalized[$code] = $defaults[$code] ?? strtoupper($code);
+                    }
+                } elseif (is_string($key) && is_string($value)) {
+                    $code = strtolower(trim($key));
+                    if ($code !== '') {
+                        $normalized[$code] = trim($value);
+                    }
+                }
+            }
+
+            if ($normalized !== []) {
+                $this->schema['download']['formats'] = $normalized;
+            }
+        }
+
+        if ($label !== null && trim($label) !== '') {
+            $this->schema['download']['label'] = trim($label);
+        }
+
+        return $this;
+    }
+
+    public function hideDownload(): self
+    {
+        $this->schema['download']['enabled'] = false;
+
+        return $this;
+    }
+
+    /**
+     * Colonne da includere nell'export, in ordine.
+     *
+     * Ogni elemento può essere:
+     *  - **stringa** — nome del campo del record (es. `'email'`). La label
+     *    viene presa da `Resource::getLabel('email')` o, in fallback, dal
+     *    nome campo titolato.
+     *  - **array** con shape `['label' => string, 'value' => string|callable]`
+     *    — utile per:
+     *    * customizzare la label dell'header
+     *    * computare il valore con un `callable(array $row): mixed` (es.
+     *      concatenare `name + surname`, formattare una data, ecc.)
+     *
+     * Senza `downloadColumns()` esplicito, l'export usa tutte le colonne
+     * del Model (comportamento del legacy `sqlExport()`).
+     *
+     * Esempio:
+     *
+     * ```php
+     * ->downloadColumns([
+     *     'creation',
+     *     'email',
+     *     ['label' => 'Nome completo', 'value' => fn($r) => trim(($r['name'] ?? '').' '.($r['surname'] ?? ''))],
+     *     ['label' => 'Stato',          'value' => fn($r) => $r['active'] ? 'attivo' : 'inattivo'],
+     * ])
+     * ```
+     */
+    public function downloadColumns(array $columns): self
+    {
+        $normalized = [];
+
+        foreach ($columns as $column) {
+            if (is_string($column) && trim($column) !== '') {
+                $normalized[] = [
+                    'field' => trim($column),
+                    'label' => null,
+                    'value' => null,
+                ];
+                continue;
+            }
+
+            if (!is_array($column)) {
+                continue;
+            }
+
+            $value = $column['value'] ?? null;
+
+            $normalized[] = [
+                'field' => isset($column['field']) ? trim((string) $column['field']) : (is_string($value) ? trim($value) : ''),
+                'label' => isset($column['label']) ? trim((string) $column['label']) : null,
+                'value' => is_callable($value) ? $value : (is_string($value) ? trim($value) : null),
+            ];
+        }
+
+        $this->schema['download']['columns'] = $normalized;
+        $this->schema['download']['enabled'] = $this->schema['download']['enabled'] || $normalized !== [];
+
+        return $this;
+    }
+
+    public function downloadFileName(string $filename): self
+    {
+        $this->schema['download']['filename'] = trim($filename);
+
+        return $this;
     }
 
     public function get(?string $key = null): mixed

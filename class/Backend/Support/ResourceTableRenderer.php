@@ -70,9 +70,41 @@ final class ResourceTableRenderer
         $this->applyQuery($table);
         $this->applyFilters($table);
         $this->applyButtonAdd($table);
+        $this->applyButtonDownload($table);
         $this->applyColumns($table);
 
         return $table;
+    }
+
+    private function applyButtonDownload(Table $table): void
+    {
+        $download = (array) ($this->tableLayoutSchema['download'] ?? []);
+
+        if (empty($download['enabled'])) {
+            return;
+        }
+
+        $formats = (array) ($download['formats'] ?? []);
+
+        if ($formats === []) {
+            return;
+        }
+
+        // Endpoint custom Resource-aware: il controller applica colonne +
+        // callable dichiarati in tableLayoutSchema. Trailing slash importante
+        // perché Table costruisce `{endpoint}{format}/`.
+        try {
+            $endpoint = __r('backend.resource.'.$this->slug.'.export', ['format' => '__FMT__']);
+            $endpoint = (string) str_replace('__FMT__/', '', $endpoint);
+        } catch (\Throwable) {
+            $endpoint = '';
+        }
+
+        $label = isset($download['label']) && is_string($download['label']) && trim($download['label']) !== ''
+            ? trim($download['label'])
+            : null;
+
+        $table->buttonDownload(true, $formats, $endpoint, $label);
     }
 
     private function applyLinks(Table $table): void
