@@ -134,7 +134,7 @@ final class SecurityResource extends SingletonResource
                     SectionTitle::make('Klaviyo'),
                     HelpText::make('<a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">Apri documentazione API</a>.'),
                     static::getInput('klaviyo_api_key')->columnSpan(12),
-                ])->columns(12)->columnSpan(2)
+                ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
                     SectionTitle::make('Server mail')
