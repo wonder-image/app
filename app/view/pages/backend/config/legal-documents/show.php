@@ -7,7 +7,7 @@ if ($documentTitle === '') {
     $documentTitle = trim((string) ($DOCUMENT->doc_type ?? 'Documento legale'));
 }
 
-$downloadUrl = __r('backend.resource.'.RESOURCE_CLASS::slug().'.download', [
+$downloadUrl = __r('backend.resource.'.$RESOURCE_CLASS::slug().'.download', [
     'id' => $DOCUMENT->id ?? 0,
 ]);
 
