@@ -6,13 +6,16 @@ icon: wrench
 
 Questa è la procedura reale oggi per usare `wonder-image/app` insieme a `wonder-image/new-site`.
 
-I comandi importanti sono cinque:
+I comandi importanti sono questi:
 
 - `php forge config`
 - `php forge provision`
 - `php forge update`
+- `php forge build`
 - `php forge db:init`
 - `php forge start`
+- `php forge css:export`
+- `php forge css:import`
 
 ## Cosa fa ogni comando
 
@@ -85,6 +88,24 @@ L'override vince sull'auto-discovery per nome.
 
 **Recovery se perdi il Mac.** Reinstalli `bws`, generi un nuovo `BWS_ACCESS_TOKEN`, cloni i progetti, esegui `forge provision` su ognuno. Tutte le chiavi dev tornano dal project `dev-shared` su Bitwarden. Zero chiavi perse.
 
+### `php forge build`
+
+Genera i file statici necessari al routing del sito **senza richiedere connessione al database**.
+
+Fa questo:
+
+- crea le cartelle di runtime se mancano (`handler/`, `api/`, `backend/`, `storage/`, ecc.)
+- pulisce endpoint legacy che ora vivono come route
+- genera `handler/index.php` (front controller)
+- genera `.htaccess` se non esiste (o con `--force` per sovrascrivere)
+
+Opzioni:
+
+- `--force` (`-f`): sovrascrive `.htaccess` anche se esiste
+- `--force-www`: aggiunge la regola force-WWW al template `.htaccess`
+
+Pensato per essere eseguito sul runner di GitHub Actions **prima** del deploy FTP.
+
 ### `php forge update`
 
 Serve per l’update applicativo.
@@ -93,7 +114,7 @@ Fa questo:
 
 - applica tabelle
 - esegue i file in `build/row`
-- esegue i file in `build/update`
+- esegue i file in `build/update` (include: import `css-config.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
 
 Con `--local` esegue anche:
 
@@ -148,6 +169,26 @@ php forge start
 
 Quando il progetto nasce da una cartella come `new.site` o `New Site`, il bootstrap locale normalizza automaticamente `APP_DOMAIN` in `new-site`.
 
+### `php forge css:export`
+
+Esporta la configurazione CSS (7 tabelle: colori, font, tipografia, input, modal, dropdown, alert) in un file JSON committabile in git.
+
+```bash
+php forge css:export                    # → css-config.json
+php forge css:export design-tokens.json # → file custom
+```
+
+### `php forge css:import`
+
+Importa una configurazione CSS da un file JSON e rigenera `root.css` e `color.css`.
+
+```bash
+php forge css:import                     # ← css-config.json
+php forge css:import --no-rebuild        # solo DB, senza rigenerare CSS
+```
+
+Vedi [Multi-ambiente](multi-ambiente.md) per il workflow completo di sincronizzazione CSS tra ambienti.
+
 ### Routing locale con Herd
 
 Herd usa il proprio driver PHP locale. Per questo i progetti Wonder sincronizzano un driver globale in:
@@ -198,9 +239,9 @@ node --version
 
 ### Update condiviso
 
-- `app/build/update/configuration_file.php`
-- `app/build/update/css.php`
-- `app/build/update/sitemap.php`
+- `app/build/update/configuration_file.php` — aggiorna blocco router `.htaccess`, crea `.htaccess` e `robots.txt` se mancano, installa WonderValetDriver per Herd
+- `app/build/update/css.php` — importa `css-config.json` (se presente) poi rigenera `root.css` e `color.css`
+- `app/build/update/sitemap.php` — rigenera sitemap XML
 
 Questi file vengono eseguiti sia da update locale che da update lato deploy/server.
 
@@ -285,13 +326,26 @@ php forge update --local
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 ```
 
-### 6. Avvia o pubblica il progetto
+### 6. Configura il proxy media locale (opzionale)
+
+Se vuoi vedere le immagini di produzione in locale senza scaricarle, aggiungi nel `.env`:
+
+```dotenv
+MEDIA_FALLBACK_URL=https://www.example.it
+```
+
+Herd farà redirect automatico per i media mancanti sotto `assets/upload/`.
+
+Vedi [Multi-ambiente](multi-ambiente.md) per i dettagli.
+
+### 7. Avvia o pubblica il progetto
 
 Da questo punto hai:
 
 - `.env` pronto
 - `handler/index.php` generato
-- `.htaccess` aggiornato
+- `.htaccess` generato (non tracciato in git)
+- CSS rigenerati da `css-config.json` (se presente nel repo)
 - route e layout attivi
 
 ## Import progetto legacy già esistente
@@ -594,6 +648,7 @@ Variables:
 ```bash
 gh variable set APP_DOMAIN --repo "$REPO_FULL_NAME" --body "$APP_DOMAIN"
 gh variable set ASSETS_VERSION --repo "$REPO_FULL_NAME" --body "$ASSETS_VERSION"
+gh variable set FORCE_WWW --repo "$REPO_FULL_NAME" --body "true"   # opzionale: abilita force-www nel .htaccess generato
 ```
 
 ### 9. Primo upload verso GitHub
@@ -802,8 +857,8 @@ jobs:
       - name: 📦 Composer install
         run: composer install --no-dev --optimize-autoloader --no-scripts
 
-      - name: 🧱 Forge update
-        run: php forge update
+      - name: 🧱 Build static files
+        run: php forge build ${{ vars.FORCE_WWW == 'true' && '--force-www' || '' }}
 
       - name: 📂 Sincronizza file FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4

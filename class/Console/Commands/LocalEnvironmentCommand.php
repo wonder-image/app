@@ -117,6 +117,12 @@ USER_SURNAME=$adminSurname
 USER_EMAIL=$adminEmail
 USER_USERNAME=$adminUsername
 USER_PASSWORD=$adminPassword
+
+# Media fallback (URL di produzione per proxy media mancanti in locale)
+MEDIA_FALLBACK_URL=
+
+# CSS auto-export (scrive css-config.json ad ogni save dal backend)
+CSS_AUTO_EXPORT=false
 ENV;
     }
 

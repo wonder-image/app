@@ -143,22 +143,25 @@ final class CssFontResource extends Resource
 
     public static function afterStore(object $result, array $values = []): void
     {
-        if (function_exists('cssRoot')) {
-            cssRoot();
-        }
+        static::refreshCss();
     }
 
     public static function afterUpdate(int|string $id, object $result, array $values = []): void
     {
-        if (function_exists('cssRoot')) {
-            cssRoot();
-        }
+        static::refreshCss();
     }
 
     public static function afterDelete(int|string $id, object $result, array $values = []): void
     {
+        static::refreshCss();
+    }
+
+    private static function refreshCss(): void
+    {
         if (function_exists('cssRoot')) {
             cssRoot();
         }
+
+        \Wonder\App\Support\CssConfigSync::autoExport();
     }
 }

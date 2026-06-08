@@ -30,7 +30,7 @@ Significato rapido:
 - `php forge config` prepara il progetto locale e prova a sincronizzare le AI skills raccomandate
 - `php forge provision` configura l’ambiente di progetto lato GitHub e Bitwarden, utile per il flusso di deploy/produzione
 - `php forge db:init` inizializza `.env` e crea database, utente e grant locali
-- `php forge update --local` genera i file e i task locali necessari
+- `php forge update --local` genera i file locali necessari (handler, .htaccess) e importa `css-config.json` se presente nel progetto
 - `php forge start` avvia il server locale
 
 Per `php forge start` un front controller valido e':
@@ -174,7 +174,51 @@ php forge start --driver=herd --php-version=8.4
 php forge start --driver=php
 ```
 
-## 8) URL utili
+## 8) Proxy media da produzione
+
+In locale i media uploadati in produzione non esistono sul filesystem. Per evitare immagini rotte, il `WonderValetDriver` supporta un proxy fallback.
+
+Nel `.env` del progetto:
+
+```dotenv
+MEDIA_FALLBACK_URL=https://www.example.it
+```
+
+Con questa variabile valorizzata, Herd fa un redirect 302 per ogni file mancante sotto `assets/upload/` verso la URL di produzione corrispondente.
+
+Funziona solo con Herd/Valet, non con il fallback `php -S`.
+
+## 9) Sincronizzare la configurazione CSS
+
+Se il progetto ha un file `css-config.json` committato (generato con `forge css:export` dalla produzione), i design token vengono importati automaticamente durante `forge update --local`.
+
+Per importare manualmente:
+
+```bash
+php forge css:import
+```
+
+Per esportare la configurazione corrente (utile dopo modifiche locali):
+
+```bash
+php forge css:export
+```
+
+Vedi la documentazione completa in [Multi-ambiente](../app/multi-ambiente.md).
+
+## 10) .htaccess e robots.txt
+
+In locale `.htaccess` non e' tracciato in git. Viene generato automaticamente da `forge update --local` (o `forge build`) usando il template `Build::htaccessTemplate()`.
+
+Se vuoi forzare la rigenerazione:
+
+```bash
+php forge build --force
+```
+
+`robots.txt` viene creato solo se manca, con dominio e prefisso www derivati dalla configurazione locale.
+
+## 11) URL utili
 
 - Home: `https://new-site.test/` con Herd, altrimenti `http://127.0.0.1:8088/`
 - Backend: `https://new-site.test/backend/` con Herd, altrimenti `http://127.0.0.1:8088/backend/`
@@ -200,6 +244,7 @@ Quel driver:
 
 - lascia invariati file statici e pagine fisiche
 - inoltra le route dinamiche (`/`, `/backend/...`, `/api/...`, pagine router) a `handler/index.php`
+- se `MEDIA_FALLBACK_URL` e' valorizzato nel `.env`, fa redirect 302 per media mancanti sotto `assets/upload/`
 
 Se il routing sotto Herd smette di funzionare, il primo controllo da fare e':
 
@@ -230,7 +275,7 @@ DESCRIBE security;
 SELECT id, mail_host, stripe_test FROM security LIMIT 20;
 ```
 
-## 11) Nota su `/update/`
+## 12) Nota su `/update/`
 
 Se avvii con `php -S` senza router custom, `/update/` potrebbe non funzionare.
 Con `php forge start` la route viene gestita automaticamente.

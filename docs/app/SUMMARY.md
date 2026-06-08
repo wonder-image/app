@@ -9,6 +9,7 @@
   * [URL multilingua](app/urls-multilingua.md)
   * [Layout e View](app/layout.md)
   * [Freecode (override view e componenti custom)](app/freecode.md)
+  * [Multi-ambiente](app/multi-ambiente.md)
   * [Cron Job](app/cron-job.md)
   * [Proposte](proposals/module-system-project.md)
   * [Moduli](modules/README.md)
@@ -34,6 +35,7 @@
 
 * [Elementi](elementi/README.md)
   * [Form / Element / Theme system](elementi/form-system.md)
+  * [Componenti UI](elementi/componenti.md)
   * [Charts](elementi/charts.md)
 
 ## CLASSI

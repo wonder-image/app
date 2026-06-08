@@ -33,6 +33,10 @@ final class PageSchema
                 'show' => null,
             ],
             'titles' => $this->resourceClass::defaultPageTitles(),
+            'subtitles' => [],
+            // page → static array di descriptor `{href,label,class?,icon?,target?,onclick?}`
+            // oppure callable($item): array
+            'actions' => [],
             'redirects' => [
                 'store' => 'list',
                 'update' => 'list',
@@ -94,6 +98,61 @@ final class PageSchema
 
             $this->title($page, $title);
         }
+
+        return $this;
+    }
+
+    /**
+     * Sottotitolo della pagina (header sotto al titolo, riga grigia).
+     * Disponibile per qualunque page slot (`list`, `view`, `create`,
+     * `edit`). Stringa vuota = nessun sottotitolo.
+     */
+    public function subtitle(string $page, string $subtitle): self
+    {
+        $this->schema['subtitles'][trim($page)] = trim($subtitle);
+
+        return $this;
+    }
+
+    public function subtitles(array $subtitles): self
+    {
+        foreach ($subtitles as $page => $subtitle) {
+            if (!is_string($page) || !is_string($subtitle)) {
+                continue;
+            }
+
+            $this->subtitle($page, $subtitle);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Bottoni a destra nell'header della pagina.
+     *
+     * Accetta:
+     *  - array di descriptor statici: ogni elemento ha almeno `label` (più
+     *    `href`/`onclick`, opzionali `class`, `icon`, `target`)
+     *  - callable($item): array di descriptor — utile per pagine `view`
+     *    dove i bottoni dipendono dal record (es. "Scarica PDF",
+     *    "Vai alla richiesta", ...)
+     *
+     * Esempio:
+     *
+     * ```php
+     * ->actions('view', function (array $item): array {
+     *     return [
+     *         ['label' => 'Scarica PDF', 'icon' => 'bi bi-file-pdf',
+     *          'href' => '/admin/requests/'.$item['id'].'/pdf', 'class' => 'btn-secondary'],
+     *         ['label' => 'Vai al sito', 'icon' => 'bi bi-box-arrow-up-right',
+     *          'href' => $item['request_url'], 'target' => '_blank', 'class' => 'btn-outline-secondary'],
+     *     ];
+     * })
+     * ```
+     */
+    public function actions(string $page, array|callable $actions): self
+    {
+        $this->schema['actions'][trim($page)] = $actions;
 
         return $this;
     }

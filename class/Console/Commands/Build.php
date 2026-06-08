@@ -172,7 +172,7 @@ PHP;
      *   come default su shared hosting);
      * - directory listing comunque disabilitato con `Options -Indexes`.
      */
-    private static function htaccessTemplate(bool $forceWww = false): string
+    public static function htaccessTemplate(bool $forceWww = false): string
     {
         $forceWwwBlock = $forceWww
             ? <<<'HTACCESS'

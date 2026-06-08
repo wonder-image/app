@@ -3,6 +3,7 @@
 namespace Wonder\App\Resources\Support;
 
 use Wonder\App\ResourceSchema\NavigationSchema;
+use Wonder\App\Support\CssConfigSync;
 
 abstract class CssSingleton extends SingletonResource
 {
@@ -23,5 +24,7 @@ abstract class CssSingleton extends SingletonResource
         if (function_exists('cssRoot')) {
             cssRoot();
         }
+
+        CssConfigSync::autoExport();
     }
 }

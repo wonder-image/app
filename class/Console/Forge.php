@@ -25,6 +25,8 @@
                 \Wonder\Console\Commands\MakeResource::class,
                 \Wonder\Console\Commands\ValidateModule::class,
                 \Wonder\Console\Commands\StatusModules::class,
+                \Wonder\Console\Commands\CssExport::class,
+                \Wonder\Console\Commands\CssImport::class,
             ];
 
         }
