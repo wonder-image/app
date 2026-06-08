@@ -1,5 +1,12 @@
 <?php
 
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\Link;
+use Wonder\Elements\Components\RichText;
+use Wonder\Elements\Components\SectionTitle;
+
 $DOCUMENT = infoLegalDocument($ITEM['id'] ?? 0);
 $documentTitle = trim((string) ($DOCUMENT->renderName ?? $DOCUMENT->name ?? 'Documento legale'));
 
@@ -11,42 +18,51 @@ $downloadUrl = __r('backend.resource.'.$RESOURCE_CLASS::slug().'.download', [
     'id' => $DOCUMENT->id ?? 0,
 ]);
 
+$statusBadge = active($DOCUMENT->active ?? '', $DOCUMENT->id ?? 0)->badge
+    ?? (string) ($DOCUMENT->active ?? '');
+
+$esc = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+$documentComponents = [
+    SectionTitle::make('Documento'),
+    new RichText(
+        'Nome: <b>'.$esc($documentTitle).'</b><br>'
+        .'Tipologia: <b>'.$esc((string) ($DOCUMENT->doc_type ?? '')).'</b><br>'
+        .'Versione: <b>'.$esc((string) ($DOCUMENT->version ?? '')).'</b><br>'
+        .'Lingua: <b>'.$esc((string) ($DOCUMENT->language_code ?? '')).'</b><br>'
+        .'Pubblicato: <b>'.$esc((string) ($DOCUMENT->published_at ?? '')).'</b><br>'
+        .'Stato: <b>'.$statusBadge.'</b>'
+    ),
+];
+
+if ($downloadUrl !== '') {
+    $documentComponents[] = '<div class="col-12 mt-2">'
+        .Link::to($downloadUrl, 'Scarica PDF')
+            ->icon('bi bi-download')
+            ->class('btn btn-dark btn-sm')
+            ->blank()
+            ->render()
+        .'</div>';
+}
+
 \Wonder\View\View::layout('backend.show');
-?>
 
-<div class="row g-3">
-    <wi-card class="col-4">
-        <h6 class="col-12 mb-2">Documento</h6>
-        <div class="col-12">
-            Nome: <b><?=htmlspecialchars($documentTitle, ENT_QUOTES, 'UTF-8')?></b><br>
-            Tipologia: <b><?=htmlspecialchars((string) ($DOCUMENT->doc_type ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-            Versione: <b><?=htmlspecialchars((string) ($DOCUMENT->version ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-            Lingua: <b><?=htmlspecialchars((string) ($DOCUMENT->language_code ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-            Pubblicato: <b><?=htmlspecialchars((string) ($DOCUMENT->published_at ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-            Stato: <b><?=active($DOCUMENT->active ?? '', $DOCUMENT->id ?? 0)->badge ?? ($DOCUMENT->active ?? '')?></b>
-        </div>
-        <?php if ($downloadUrl !== ''): ?>
-            <div class="col-12 mt-3">
-                <a href="<?=$downloadUrl?>" target="_blank" rel="noopener noreferrer" class="btn btn-dark btn-sm">
-                    <i class="bi bi-download"></i> Scarica PDF
-                </a>
-            </div>
-        <?php endif; ?>
-    </wi-card>
+echo ResourceFormLayoutRenderer::renderLayout(
+    (new Container)->components([
 
-    <wi-card class="col-8">
-        <h6 class="col-12 mb-2">Checkbox</h6>
-        <div class="col-12">
-            <?= wiCard($DOCUMENT->renderLabel ?? '') ?>
-        </div>
-    </wi-card>
+        (new Card)->components($documentComponents)->columns(1)->columnSpan(4),
 
-    <wi-card class="col-12">
-        <h6 class="col-12 mb-2">Testo documento</h6>
-        <div class="col-12">
-            <?= wiCard($DOCUMENT->renderContent ?? '') ?>
-        </div>
-    </wi-card>
-</div>
+        (new Card)->components([
+            SectionTitle::make('Checkbox'),
+            (new RichText(wiCard($DOCUMENT->renderLabel ?? '')))->tag('div'),
+        ])->columns(1)->columnSpan(8),
 
-<?php \Wonder\View\View::end(); ?>
+        (new Card)->components([
+            SectionTitle::make('Testo documento'),
+            (new RichText(wiCard($DOCUMENT->renderContent ?? '')))->tag('div'),
+        ])->columns(1)->columnSpan(12),
+
+    ])->columns(12)
+);
+
+\Wonder\View\View::end();

@@ -1,15 +1,27 @@
-<?php \Wonder\View\View::layout('backend.main'); ?>
-
 <?php
-$renderInput = static function (string $key, mixed $value = null) use ($FORM_SCHEMA): string {
-    $field = clone $FORM_SCHEMA[$key];
 
-    if ($value !== null) {
-        $field->value($value);
-    }
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+use Wonder\Elements\Form\Form;
 
-    return $field->render();
-};
+\Wonder\View\View::layout('backend.main');
+
+$submitHtml = function_exists('submit')
+    ? submit()
+    : '<button type="submit" class="btn btn-dark w-100">Salva</button>';
+
+$layout = (new Form)->components([
+
+    (new Card)->components([
+        (clone $FORM_SCHEMA['file'])->columnSpan(12),
+    ])->columns(12)->columnSpan(9),
+
+    (new Card)->components([
+        (clone $FORM_SCHEMA['type'])->columnSpan(12),
+        '<div class="col-12">'.$submitHtml.'</div>',
+    ])->columns(12)->columnSpan(3),
+
+])->columns(12);
 ?>
 
 <div class="row g-3">
@@ -22,28 +34,11 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
         </h3>
     </wi-card>
 
-    <form action="" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
-        <div class="row g-3">
-            <div class="col-9">
-                <div class="row g-3">
-                    <wi-card class="col-12">
-                        <div class="col-12">
-                            <?=$renderInput('file')?>
-                        </div>
-                    </wi-card>
-                </div>
-            </div>
-
-            <wi-card class="col-3">
-                <div class="col-12">
-                    <?=$renderInput('type')?>
-                </div>
-                <div class="col-12">
-                    <?=submit()?>
-                </div>
-            </wi-card>
-        </div>
-    </form>
+    <?= ResourceFormLayoutRenderer::render($layout, [
+        'action' => '',
+        'method' => 'POST',
+        'enctype' => 'multipart/form-data',
+    ]) ?>
 </div>
 
 <?php \Wonder\View\View::end(); ?>

@@ -37,6 +37,33 @@ final class ResourceFormLayoutRenderer
         return $html;
     }
 
+    /**
+     * Renderizza un albero di layout (`Container`/`Card` + Components o
+     * field) come griglia Bootstrap, SENZA il wrapper `<form>`.
+     *
+     * È la controparte "read-only" di {@see render()}: stessa logica di
+     * colonne/span/gap, ma pensata per le pagine di tipo "show" o per le
+     * pagine custom che vogliono comporre la UI con i Components di
+     * `Wonder\Elements\Components\` senza essere un form. In questo modo
+     * le viste backend usano lo stesso motore di layout dei form (classi
+     * Bootstrap `row`/`col-*`) invece di markup ad-hoc.
+     */
+    public static function renderLayout(Form|Container|Card $layout): string
+    {
+        if ($layout instanceof Card) {
+            return self::renderCard($layout, ['default' => 1]);
+        }
+
+        $html = '<div class="'.self::rowClass($layout).'">';
+        $html .= self::renderComponents(
+            (array) ($layout->components ?? []),
+            self::columnsMap($layout)
+        );
+        $html .= '</div>';
+
+        return $html;
+    }
+
     private static function renderComponents(array $components, array $parentColumns): string
     {
         $html = '';

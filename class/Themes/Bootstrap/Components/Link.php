@@ -23,7 +23,11 @@ class Link extends Component
         $iconPosition = (string) ($schema['icon_position'] ?? 'start');
         $muted = (bool) ($schema['muted'] ?? false);
 
-        $rawClass = (string) (($schema['attributes']['class'] ?? '') ?: '');
+        $rawClass = $schema['attributes']['class'] ?? '';
+        if (is_array($rawClass)) {
+            $rawClass = implode(' ', array_map('strval', $rawClass));
+        }
+        $rawClass = (string) $rawClass;
         $classes = array_filter(array_map('trim', explode(' ', $rawClass)));
         if ($muted) {
             $classes[] = 'text-body-secondary';
