@@ -25,7 +25,7 @@ final class AccountPageSchema extends CustomPageSchema
     public static function profileFormSchema(array $colorOptions): array
     {
         return static::applyLabelSchema([
-            'profile_picture' => FormField::key('profile_picture')->inputFileDragDrop('image', 'profile'),
+            'profile_picture' => FormField::key('profile_picture')->fileDragDrop('image', 'profile'),
             'name' => FormField::key('name')->text()->required(),
             'surname' => FormField::key('surname')->text()->required(),
             'username' => FormField::key('username')->text()->required(),

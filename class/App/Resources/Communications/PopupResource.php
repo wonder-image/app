@@ -96,7 +96,7 @@ final class PopupResource extends Resource
                 ->number()
                 ->attribute('min="0" step="1"'),
             FormField::key('images')
-                ->inputFileDragDrop('image'),
+                ->fileDragDrop('image'),
             FormField::key('visible')
                 ->select([
                     'true' => 'Visibile',

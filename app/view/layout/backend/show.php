@@ -11,7 +11,7 @@
                     <?=htmlspecialchars((string) ($TITLE ?? ''), ENT_QUOTES, 'UTF-8')?>
                 </h3>
                 <?php if (!empty($SUBTITLE)) : ?>
-                    <div class="text-body-secondary small mt-1 ms-4 ps-1">
+                    <div class="text-body-secondary small mt-1">
                         <?=htmlspecialchars((string) $SUBTITLE, ENT_QUOTES, 'UTF-8')?>
                     </div>
                 <?php endif; ?>

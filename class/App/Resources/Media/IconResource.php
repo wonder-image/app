@@ -65,7 +65,7 @@ final class IconResource extends MediaResource
     {
         return [
             FormField::key('file')
-                ->inputFileDragDrop('image')
+                ->fileDragDrop('image')
                 ->storeAs('{slug}')
                 ->prepare([
                     'webp' => RESPONSIVE_IMAGE_WEBP,

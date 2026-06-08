@@ -28,7 +28,7 @@ abstract class UserManagementResource extends Resource
     public static function formSchema(): array
     {
         $schema = [
-            FormField::key('profile_picture')->inputFileDragDrop('image', 'profile')->label(''),
+            FormField::key('profile_picture')->fileDragDrop('image', 'profile')->label(''),
             FormField::key('name')->text()->required(),
             FormField::key('surname')->text()->required(),
             FormField::key('color')->select(static::colorOptions()),

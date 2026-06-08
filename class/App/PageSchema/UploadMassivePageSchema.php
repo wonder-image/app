@@ -17,7 +17,7 @@ final class UploadMassivePageSchema extends CustomPageSchema
     public static function formSchema(): array
     {
         return static::applyLabelSchema([
-            'file' => FormField::key('file')->inputFileDragDrop('media', 'classic'),
+            'file' => FormField::key('file')->fileDragDrop('media', 'classic'),
             'type' => FormField::key('type')->select([
                 'image' => 'Immagine',
                 'icon' => 'Icona',

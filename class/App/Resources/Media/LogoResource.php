@@ -49,14 +49,14 @@ final class LogoResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormField::key('main')->inputFileDragDrop('png'),
-            FormField::key('black')->inputFileDragDrop('png'),
-            FormField::key('white')->inputFileDragDrop('png'),
-            FormField::key('icon')->inputFileDragDrop('png'),
-            FormField::key('icon_black')->inputFileDragDrop('png'),
-            FormField::key('icon_white')->inputFileDragDrop('png'),
-            FormField::key('app_icon')->inputFileDragDrop('png'),
-            FormField::key('favicon')->inputFileDragDrop('ico'),
+            FormField::key('main')->fileDragDrop('png'),
+            FormField::key('black')->fileDragDrop('png'),
+            FormField::key('white')->fileDragDrop('png'),
+            FormField::key('icon')->fileDragDrop('png'),
+            FormField::key('icon_black')->fileDragDrop('png'),
+            FormField::key('icon_white')->fileDragDrop('png'),
+            FormField::key('app_icon')->fileDragDrop('png'),
+            FormField::key('favicon')->fileDragDrop('ico'),
         ];
     }
 

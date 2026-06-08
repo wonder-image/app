@@ -64,7 +64,7 @@ final class DocumentResource extends MediaResource
     {
         return [
             FormField::key('file')
-                ->inputFileDragDrop('pdf')
+                ->fileDragDrop('pdf')
                 ->storeAs('{slug}')
                 ->maxSize(5)
                 ->maxFile(1)
