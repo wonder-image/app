@@ -1,105 +1,79 @@
-# App
+---
+icon: house
+---
 
-{% hint style="warning" %}
-Regola di manutenzione: quando una modifica cambia architettura,
-bootstrap/runtime, layout strutturale, convenzioni per sviluppatori o
-punti di estensione, il lavoro non e' completo finche' non vengono
-aggiornati insieme:
+# Cos'è wonder-image/app
 
-- la documentazione pertinente sotto `docs/app/*`
-- `AGENTS.md`
-- la skill AI rilevante nel suo source/fork mantenuto esternamente
-
-Non modificare `.agents/` a mano: aggiorna la skill alla sorgente e poi
-risincronizzala tramite `npx skills`.
-{% endhint %}
+`wonder-image/app` è il **core del framework** Wonder: una libreria PHP
+distribuita come pacchetto Composer (`wonder-image/app`). Non è un sito: è il
+motore che un **sito** installa sotto `vendor/wonder-image/app` e usa per
+costruire frontend, backend, API, CRUD, permessi e gestione utenti.
 
 {% hint style="info" %}
-Principi guida del framework: il core deve restare estendibile e
-customizzabile dai consumer project e dai moduli esterni. Il riutilizzo
-del codice e' un obiettivo primario, soprattutto tra classi; quando
-utile, preferire `Concerns` e `Contracts` per condividere comportamento
-ed esporre punti di estensione coerenti.
+**Per chi è questa documentazione.** Per chi sviluppa o estende il framework e
+per chi costruisce un sito sopra di esso. Se stai lavorando su un progetto
+scaffoldato da [`wonder-image/new-site`](https://github.com/wonder-image/new-site),
+quasi tutto ciò che ti serve è in **Concetti fondamentali**.
+
+**Percorso di lettura consigliato:** Introduzione → Concetti fondamentali (in
+ordine) → Piattaforma come reference quando serve.
 {% endhint %}
 
-{% hint style="info" %}
-Questo progetto è stato studiato per essere utilizzato con [Visual Studio Code](altro/estensioni-e-app-consigliate.md#visual-studio-code). Per il corretto funzionamento è consigliata l'installazione su VS Code  dell'estensione [SFTP](altro/estensioni-e-app-consigliate.md#sftp).
-{% endhint %}
+## Le due parti del sistema
 
-Per l'installazione del progetto [`wonder-image/new-site`](https://github.com/wonder-image/new-site) è necessaria l'installazione di [Composer](https://getcomposer.org/). Sostituisci `project-name` con il nome del progetto o del dominio.
+| Termine | Cos'è | Dove vive |
+|---|---|---|
+| **framework** (`wonder-image/app`) | Il core: Model, Resource, Form, Tabelle, Permessi, Moduli | repo `wonder-image/app`; in un sito sta in `vendor/wonder-image/app/` |
+| **site** (es. `new-site`) | Il progetto reale: pagine, contenuti, configurazioni | repo del progetto; usa il framework sotto `vendor/` |
+| **lib** (`wonder-image/lib`) | Il design system JS/CSS (classi `.wi-*`) | pacchetto npm `wonder-image` |
+| **module** (`wonder-image/<slug>`) | Pacchetto opzionale che aggiunge Model/Resource/route | scoperto via Composer, abilitato dal sito |
+
+## Le 7 aree fondamentali
+
+Il framework si capisce seguendo un'unica catena:
+**Modulo → Risorsa → Form → Tabella → Database → Permessi → Componenti**.
+
+| Area | Cosa fa | Pagina |
+|---|---|---|
+| **Moduli** | Pacchetti che estendono il framework | [Moduli](concetti/moduli/README.md) |
+| **Risorse e Model** | CRUD su una tabella: form, lista, API | [Risorse e Model](concetti/risorse/README.md) |
+| **Creazione Form** | Dichiarare input con `FormField` | [Form](concetti/form/README.md) |
+| **Render tabelle** | Liste backend con `TableColumn` | [Render delle tabelle](concetti/tabelle/README.md) |
+| **Database** | `dataSchema()` + `tableSchema()`, migrazioni | [Model e Database](concetti/risorse/database.md) |
+| **Utenti e permessi** | Authority, ruoli, gestione utenti | [Utenti e Permessi](concetti/utenti/README.md) |
+| **Componenti** | Card, Container, Alert per i layout | [Componenti UI](concetti/componenti/README.md) |
+
+Per vedere come si incastrano (e i 4 flussi tipici: creazione, modifica,
+visualizzazione lista, accesso negato) parti dalla
+[Mappa end-to-end](concetti/mappa-end-to-end.md).
+
+## Avvio rapido
 
 ```bash
-composer create-project wonder-image/new-site:dev-main project-name
-```
-
-> Il suffisso `:dev-main` forza Composer a prendere l'ultimo commit del
-> branch `main` invece di un tag stabile eventualmente superato. Vedi
-> [Installazione e Deploy](app/installazione-e-deploy.md) per i dettagli.
-
-***
-
-## Configurazione iniziale
-
-Nota architetturale aggiornata:
-
-- backend form schema: classi `Resource` / `CustomPageSchema`
-- rendering backend: pipeline themed `Wonder\\Elements\\Form` ->
-  `Wonder\\Themes\\Bootstrap\\Form`
-- helper legacy `app/function/backend/input.php`: compat layer e fallback
-- helper `app/function/frontend/input.php`: ancora validi, ma il target di
-  allineamento e' la stessa pipeline themed con tema `Wonder`
-- i casi speciali backend gia' riallineati nel bridge themed includono
-  `textarea($version)`, `textDate`, `dateInput` e `dateRange`
-
-La procedura aggiornata è questa:
-
-```bash
+composer create-project wonder-image/new-site:dev-main nome-progetto
+cd nome-progetto
 php forge config
-php forge provision
 php forge update --local
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
+php forge start
 ```
 
-Per la procedura completa, il file `composer.json` consigliato di `new-site` e il workflow GitHub Actions, vai qui:
+Dettagli in [Avvio rapido](introduzione/avvio-rapido.md) e
+[Installazione e Deploy](piattaforma/installazione-e-deploy.md).
 
-- [Installazione e Deploy](app/installazione-e-deploy.md)
+## Bootstrap (entrypoint)
 
-Il resto di questa pagina è storico e va letto tenendo conto del flusso nuovo sopra.
+Il punto di ingresso del pacchetto è
+[`wonder-image.php`](https://github.com/wonder-image/app): risolve `ROOT`,
+carica l'autoloader del sito e poi `function`, `config`, `service`,
+`middleware` e infine `bootstrap/backend.php` o `bootstrap/frontend.php`.
+Spiegato in [Architettura in 5 minuti](introduzione/architettura.md).
 
-### .env
-
-Personalizza il file .env con i dettagli del progetto
-
-<table><thead><tr><th width="193">Variabile</th><th>Valore</th></tr></thead><tbody><tr><td><code>APP_DEBUG</code></td><td>Modalità applicazione. Se è in fase di sviluppo digitare <code>true</code> altrimenti <code>false</code></td></tr><tr><td><code>APP_URL</code></td><td>Url del sito "Si raccomanda l'utilizzo di <em>https://www.dominio.it</em>"</td></tr><tr><td><code>ASSETS_VERSION</code></td><td>Nome della cartella in /assets/0.0/</td></tr></tbody></table>
-
-Connessione al database
-
-<table><thead><tr><th width="193">Variabile</th><th>Valore</th></tr></thead><tbody><tr><td><code>DB_HOSTNAME</code></td><td>Indirizzo IP del database oppure utilizzare <code>localhost</code></td></tr><tr><td><code>DB_USERNAME</code></td><td>Username database</td></tr><tr><td><code>DB_PASSWORD</code></td><td>Password database</td></tr><tr><td><code>DB_DATABASE</code></td><td>Nome del database. È possibile inserire più database utilizzando il formato "key1: nome_database, key2: nome_database2" il valore key viene utilizzato per indicare successivamente il database associato alla tabella</td></tr></tbody></table>
-
-Credenziali utente default accesso al Backend
-
-| Variabile       | Valore   |
-| --------------- | -------- |
-| `USER_NAME`     | Nome     |
-| `USER_SURNAME`  | Cognome  |
-| `USER_EMAIL`    | Email    |
-| `USER_USERNAME` | Username |
-| `USER_PASSWORD` | Password |
-
-È possibile utilizzare un account email personale per l'invio delle email da configurare nel bakcend. I campi devono essere compilati con le impostazioni del server in uscita.&#x20;
-
-### Installazione
-
-Per iniziare a utilizzare il framework ( una volta concluso l'upload di tutti i file tramite FTP ) bisogna  andare su un browser a scelta e digitare `dominio.it`.&#x20;
-
-### Aggiornamenti
-
-Tutte le volte che vengono create/modificate le tabelle per far si che la modifica sia effettiva bisogna andare su `dominio.it/update/`.
-
-### Personalizza
-
-Per continuare la configurazione andare al link `dominio.it/backend/` accedendo con le credenziali indicate nel file .env
-
-
-
-<table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td>Frontend</td><td></td><td></td><td></td></tr><tr><td>Backend</td><td></td><td></td><td><a href="broken-reference">Broken link</a></td></tr><tr><td>Specifiche</td><td></td><td></td><td><a href="broken-reference">Broken link</a></td></tr></tbody></table>
+{% hint style="warning" %}
+**Regola di manutenzione.** Quando una modifica cambia architettura,
+bootstrap/runtime, layout strutturale, convenzioni per sviluppatori o punti di
+estensione, il lavoro non è completo finché non vengono aggiornati **insieme**:
+la documentazione pertinente sotto `docs/app/*`, `AGENTS.md` e la skill AI
+rilevante. Non modificare `.agents/` a mano: aggiorna la skill alla sorgente e
+poi risincronizza con `npx skills`.
+{% endhint %}
