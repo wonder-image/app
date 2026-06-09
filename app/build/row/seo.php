@@ -8,6 +8,7 @@
             "creator" => "wonderimage",
             "reply" => "marinoni@wonderimage.it"
         ];
+        $values['id'] = 1;
 
         sqlInsert('seo', $values);
 

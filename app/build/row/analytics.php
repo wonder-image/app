@@ -8,6 +8,7 @@
             "pixel_facebook" => "",
             "active_pixel_facebook" => "false"
         ];
+        $values['id'] = 1;
 
         sqlInsert('analytics', $values);
 
@@ -20,6 +21,7 @@
             "api_key" => $API->key,
             "mail_service" => "phpmailer"
         ];
+        $values['id'] = 1;
         sqlInsert('security', $values);
 
     }
