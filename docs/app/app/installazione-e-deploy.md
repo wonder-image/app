@@ -114,7 +114,7 @@ Fa questo:
 
 - applica tabelle
 - esegue i file in `build/row`
-- esegue i file in `build/update` (include: import `css-config.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
+- esegue i file in `build/update` (include: import `shared/css-config.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
 
 Con `--local` esegue anche:
 
@@ -174,7 +174,7 @@ Quando il progetto nasce da una cartella come `new.site` o `New Site`, il bootst
 Esporta la configurazione CSS (7 tabelle: colori, font, tipografia, input, modal, dropdown, alert) in un file JSON committabile in git.
 
 ```bash
-php forge css:export                    # → css-config.json
+php forge css:export                    # → shared/css-config.json
 php forge css:export design-tokens.json # → file custom
 ```
 
@@ -183,7 +183,7 @@ php forge css:export design-tokens.json # → file custom
 Importa una configurazione CSS da un file JSON e rigenera `root.css` e `color.css`.
 
 ```bash
-php forge css:import                     # ← css-config.json
+php forge css:import                     # ← shared/css-config.json
 php forge css:import --no-rebuild        # solo DB, senza rigenerare CSS
 ```
 
@@ -240,7 +240,7 @@ node --version
 ### Update condiviso
 
 - `app/build/update/configuration_file.php` — aggiorna blocco router `.htaccess`, crea `.htaccess` e `robots.txt` se mancano, installa WonderValetDriver per Herd
-- `app/build/update/css.php` — importa `css-config.json` (se presente) poi rigenera `root.css` e `color.css`
+- `app/build/update/css.php` — importa `shared/css-config.json` (se presente) poi rigenera `root.css` e `color.css`
 - `app/build/update/sitemap.php` — rigenera sitemap XML
 
 Questi file vengono eseguiti sia da update locale che da update lato deploy/server.
@@ -345,7 +345,7 @@ Da questo punto hai:
 - `.env` pronto
 - `handler/index.php` generato
 - `.htaccess` generato (non tracciato in git)
-- CSS rigenerati da `css-config.json` (se presente nel repo)
+- CSS rigenerati da `shared/css-config.json` (se presente nel repo)
 - route e layout attivi
 
 ## Import progetto legacy già esistente

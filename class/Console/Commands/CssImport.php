@@ -34,7 +34,7 @@ class CssImport extends Command
         $this
             ->setName($this->name)
             ->setDescription('Importa la configurazione CSS da un file JSON e rigenera root.css e color.css.')
-            ->addArgument('file', InputArgument::OPTIONAL, 'Percorso del file JSON da importare', 'css-config.json')
+            ->addArgument('file', InputArgument::OPTIONAL, 'Percorso del file JSON da importare', CssConfigSync::CONFIG_PATH)
             ->addOption('no-rebuild', null, InputOption::VALUE_NONE, 'Non rigenerare i file CSS dopo l\'importazione');
     }
 

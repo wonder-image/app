@@ -12,6 +12,13 @@ namespace Wonder\App\Support;
  */
 final class CssConfigSync
 {
+    /**
+     * Path relativo al root del progetto in cui vive il file di
+     * configurazione CSS. Tutte le operazioni di import/export usano
+     * questa costante come single source of truth per il percorso.
+     */
+    public const CONFIG_PATH = 'shared/css-config.json';
+
     private const SYSTEM_COLUMNS = ['id', 'last_modified', 'creation', 'deleted'];
 
     private const SINGLETON_TABLES = [
@@ -44,7 +51,7 @@ final class CssConfigSync
      */
     public static function importIfExists(string $root): bool
     {
-        $file = rtrim($root, '/').'/css-config.json';
+        $file = rtrim($root, '/').'/'.self::CONFIG_PATH;
 
         if (!file_exists($file)) {
             return false;
@@ -173,7 +180,12 @@ final class CssConfigSync
                 return;
             }
 
-            $file = rtrim($root, '/').'/css-config.json';
+            $file = rtrim($root, '/').'/'.self::CONFIG_PATH;
+            $dir = dirname($file);
+
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0777, true);
+            }
 
             // Scrivi solo se il contenuto è effettivamente cambiato,
             // per evitare scritture inutili su disco e diff git spuri.

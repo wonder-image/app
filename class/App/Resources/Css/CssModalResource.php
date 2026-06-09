@@ -79,6 +79,11 @@ final class CssModalResource extends CssSingleton
             ->fields('update', array_keys(static::labelSchema()));
     }
 
+    protected static function formDefaults(): array
+    {
+        return \Wonder\App\RuntimeDefaults::cssModalRow();
+    }
+
     public static function navigationSchema(): NavigationSchema
     {
         return parent::navigationSchema()

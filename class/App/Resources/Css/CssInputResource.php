@@ -143,6 +143,11 @@ final class CssInputResource extends CssSingleton
             ->fields('update', array_keys(static::labelSchema()));
     }
 
+    protected static function formDefaults(): array
+    {
+        return \Wonder\App\RuntimeDefaults::cssInputRow();
+    }
+
     public static function navigationSchema(): NavigationSchema
     {
         return parent::navigationSchema()

@@ -124,7 +124,7 @@ final class CssDefaultResource extends CssSingleton
             (new Container)->components([
             
                 (new Card)->components([
-                    (new SectionTitle)->text('Default'),
+                    (new SectionTitle)->text('Default')->columnSpan(12),
                     static::getInput('font_id')->columnSpan(5),
                     static::getInput('font_weight')->columnSpan(3),
                     static::getInput('font_size')->columnSpan(2),
@@ -132,7 +132,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Titolo grande'),
+                    (new SectionTitle)->text('Titolo grande')->columnSpan(12),
                     static::getInput('title_big_font_id')->columnSpan(5),
                     static::getInput('title_big_font_weight')->columnSpan(3),
                     static::getInput('title_big_font_size')->columnSpan(2),
@@ -140,7 +140,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Titolo'),
+                    (new SectionTitle)->text('Titolo')->columnSpan(12),
                     static::getInput('title_font_id')->columnSpan(5),
                     static::getInput('title_font_weight')->columnSpan(3),
                     static::getInput('title_font_size')->columnSpan(2),
@@ -148,7 +148,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
                     
                 (new Card)->components([
-                    (new SectionTitle)->text('Sottotitolo'),
+                    (new SectionTitle)->text('Sottotitolo')->columnSpan(12),
                     static::getInput('subtitle_font_id')->columnSpan(5),
                     static::getInput('subtitle_font_weight')->columnSpan(3),
                     static::getInput('subtitle_font_size')->columnSpan(2),
@@ -156,7 +156,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Testo'),
+                    (new SectionTitle)->text('Testo')->columnSpan(12),
                     static::getInput('text_font_id')->columnSpan(5),
                     static::getInput('text_font_weight')->columnSpan(3),
                     static::getInput('text_font_size')->columnSpan(2),
@@ -164,7 +164,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Testo piccolo'),
+                    (new SectionTitle)->text('Testo piccolo')->columnSpan(12),
                     static::getInput('text_small_font_id')->columnSpan(5),
                     static::getInput('text_small_font_weight')->columnSpan(3),
                     static::getInput('text_small_font_size')->columnSpan(2),
@@ -177,13 +177,13 @@ final class CssDefaultResource extends CssSingleton
             (new Container)->components([
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Colori'),
+                    (new SectionTitle)->text('Colori')->columnSpan(12),
                     static::getInput('tx_color'),
                     static::getInput('bg_color'),
                 ])->columns(1)->columnSpan(1),
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Bottoni'),
+                    (new SectionTitle)->text('Bottoni')->columnSpan(12),
                     static::getInput('button_font_size')->columnSpan(6),
                     static::getInput('button_line_height')->columnSpan(6),
                     static::getInput('button_font_weight')->columnSpan(12),
@@ -192,7 +192,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    (new SectionTitle)->text('Badge'),
+                    (new SectionTitle)->text('Badge')->columnSpan(12),
                     static::getInput('badge_font_size')->columnSpan(6),
                     static::getInput('badge_line_height')->columnSpan(6),
                     static::getInput('badge_font_weight')->columnSpan(12),
@@ -201,6 +201,7 @@ final class CssDefaultResource extends CssSingleton
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
+                    (new SectionTitle)->text('Spacer')->columnSpan(12),
                     static::getInput('spacer')->columnSpan(12),
                     static::getInput('header_height')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
@@ -222,6 +223,11 @@ final class CssDefaultResource extends CssSingleton
         return parent::apiSchema()
             ->fields('show', array_keys(static::labelSchema()))
             ->fields('update', array_keys(static::labelSchema()));
+    }
+
+    protected static function formDefaults(): array
+    {
+        return \Wonder\App\RuntimeDefaults::cssDefaultRow();
     }
 
     public static function navigationSchema(): NavigationSchema

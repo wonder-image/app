@@ -82,6 +82,11 @@ final class CssDropdownResource extends CssSingleton
             ->fields('update', array_keys(static::labelSchema()));
     }
 
+    protected static function formDefaults(): array
+    {
+        return \Wonder\App\RuntimeDefaults::cssDropdownRow();
+    }
+
     public static function navigationSchema(): NavigationSchema
     {
         return parent::navigationSchema()

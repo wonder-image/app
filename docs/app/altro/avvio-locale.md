@@ -30,7 +30,7 @@ Significato rapido:
 - `php forge config` prepara il progetto locale e prova a sincronizzare le AI skills raccomandate
 - `php forge provision` configura l’ambiente di progetto lato GitHub e Bitwarden, utile per il flusso di deploy/produzione
 - `php forge db:init` inizializza `.env` e crea database, utente e grant locali
-- `php forge update --local` genera i file locali necessari (handler, .htaccess) e importa `css-config.json` se presente nel progetto
+- `php forge update --local` genera i file locali necessari (handler, .htaccess) e importa `shared/css-config.json` se presente nel progetto
 - `php forge start` avvia il server locale
 
 Per `php forge start` un front controller valido e':
@@ -190,7 +190,7 @@ Funziona solo con Herd/Valet, non con il fallback `php -S`.
 
 ## 9) Sincronizzare la configurazione CSS
 
-Se il progetto ha un file `css-config.json` committato (generato con `forge css:export` dalla produzione), i design token vengono importati automaticamente durante `forge update --local`.
+Se il progetto ha un file `shared/css-config.json` committato (generato con `forge css:export` dalla produzione), i design token vengono importati automaticamente durante `forge update --local`.
 
 Per importare manualmente:
 

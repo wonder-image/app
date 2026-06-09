@@ -28,7 +28,7 @@ class CssExport extends Command
         $this
             ->setName($this->name)
             ->setDescription('Esporta la configurazione CSS in un file JSON committabile in git.')
-            ->addArgument('file', InputArgument::OPTIONAL, 'Percorso del file di output', 'css-config.json');
+            ->addArgument('file', InputArgument::OPTIONAL, 'Percorso del file di output', CssConfigSync::CONFIG_PATH);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -53,6 +53,11 @@ class CssExport extends Command
         $config = CssConfigSync::exportConfig();
 
         $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        $dir = dirname($file);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0777, true);
+        }
 
         if (file_put_contents($file, $json."\n") === false) {
             $output->writeln('<error>❌ Impossibile scrivere '.$file.'</error>');
