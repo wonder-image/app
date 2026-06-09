@@ -130,11 +130,18 @@ final class CssConfigSync
         $config = [];
 
         foreach (self::ALL_TABLES as $table) {
-            $result = sqlSelect($table);
-            $rows = [];
+            if (in_array($table, self::SINGLETON_TABLES, true)) {
+                // Tabelle singleton: esporta solo la riga id=1.
+                // Evita di includere duplicati accidentali nel JSON.
+                $result = sqlSelect($table, ['id' => 1], 1);
+                $rows = $result->exists ? [self::cleanRow($result->row)] : [];
+            } else {
+                $result = sqlSelect($table);
+                $rows = [];
 
-            foreach ($result->row as $row) {
-                $rows[] = self::cleanRow($row);
+                foreach ($result->row as $row) {
+                    $rows[] = self::cleanRow($row);
+                }
             }
 
             $config[$table] = $rows;
