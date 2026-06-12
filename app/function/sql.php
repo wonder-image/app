@@ -68,12 +68,17 @@
     }
 
     function sqlTruncate($table) {
-        
+
         global $mysqli;
 
-        $SQL = new Wonder\Sql\Query($mysqli);
+        $mysqli->query('SET FOREIGN_KEY_CHECKS = 0');
 
-        return $SQL->Truncate( $table );
+        $SQL = new Wonder\Sql\Query($mysqli);
+        $result = $SQL->Truncate( $table );
+
+        $mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
+
+        return $result;
 
     }
     

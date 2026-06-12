@@ -206,58 +206,47 @@ final class TableSync
             : self::syncTables();
 
         $imported = 0;
-        $db = $GLOBALS['mysqli'] ?? null;
 
-        if ($db instanceof \mysqli) {
-            $db->query('SET FOREIGN_KEY_CHECKS = 0');
-        }
+        foreach ($tables as $table) {
+            $schema = $discovered[$table] ?? null;
 
-        try {
-            foreach ($tables as $table) {
-                $schema = $discovered[$table] ?? null;
+            if ($schema === null) {
+                continue;
+            }
 
-                if ($schema === null) {
+            if (!isset($config[$table]) || !is_array($config[$table])) {
+                continue;
+            }
+
+            if ($schema->singleton) {
+                if (count($config[$table]) === 0) {
                     continue;
                 }
 
-                if (!isset($config[$table]) || !is_array($config[$table])) {
+                $values = self::cleanRow($config[$table][0], $schema->excludeColumns);
+
+                if ($values === []) {
                     continue;
                 }
 
-                if ($schema->singleton) {
-                    if (count($config[$table]) === 0) {
-                        continue;
-                    }
+                if (sqlSelect($table, ['id' => 1], 1)->exists) {
+                    sqlModify($table, $values, 'id', '1');
+                } else {
+                    sqlInsert($table, $values);
+                }
+            } else {
+                sqlTruncate($table);
 
-                    $values = self::cleanRow($config[$table][0], $schema->excludeColumns);
+                foreach ($config[$table] as $row) {
+                    $values = self::cleanRow($row, $schema->excludeColumns);
 
-                    if ($values === []) {
-                        continue;
-                    }
-
-                    if (sqlSelect($table, ['id' => 1], 1)->exists) {
-                        sqlModify($table, $values, 'id', '1');
-                    } else {
+                    if ($values !== []) {
                         sqlInsert($table, $values);
                     }
-                } else {
-                    sqlTruncate($table);
-
-                    foreach ($config[$table] as $row) {
-                        $values = self::cleanRow($row, $schema->excludeColumns);
-
-                        if ($values !== []) {
-                            sqlInsert($table, $values);
-                        }
-                    }
                 }
+            }
 
-                $imported++;
-            }
-        } finally {
-            if ($db instanceof \mysqli) {
-                $db->query('SET FOREIGN_KEY_CHECKS = 1');
-            }
+            $imported++;
         }
 
         return $imported > 0;
