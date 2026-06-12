@@ -71,12 +71,11 @@
 
         global $mysqli;
 
-        $mysqli->query('SET FOREIGN_KEY_CHECKS = 0');
-
         $SQL = new Wonder\Sql\Query($mysqli);
-        $result = $SQL->Truncate( $table );
 
-        $mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
+        $SQL->mysqli->query('SET FOREIGN_KEY_CHECKS = 0');
+        $result = $SQL->Truncate( $table );
+        $SQL->mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
 
         return $result;
 
