@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 
 final class CssColor extends Model
@@ -10,6 +11,11 @@ final class CssColor extends Model
     public static string $table = 'css_color';
     public static string $folder = 'app/css/color';
     public static string $icon = 'bi bi-palette';
+
+    public static function syncSchema(): ?SyncSchema
+    {
+        return SyncSchema::multiRow();
+    }
 
     public static function tableSchema(): array
     {

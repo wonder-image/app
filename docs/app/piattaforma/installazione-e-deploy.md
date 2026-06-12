@@ -14,8 +14,8 @@ I comandi importanti sono questi:
 - `php forge build`
 - `php forge db:init`
 - `php forge start`
-- `php forge css:export`
-- `php forge css:import`
+- `php forge export`
+- `php forge import`
 
 ## Cosa fa ogni comando
 
@@ -114,7 +114,7 @@ Fa questo:
 
 - applica tabelle
 - esegue i file in `build/row`
-- esegue i file in `build/update` (include: import `shared/css-config.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
+- esegue i file in `build/update` (include: import `shared/sync-data.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
 
 Con `--local` esegue anche:
 
@@ -169,25 +169,26 @@ php forge start
 
 Quando il progetto nasce da una cartella come `new.site` o `New Site`, il bootstrap locale normalizza automaticamente `APP_DOMAIN` in `new-site`.
 
-### `php forge css:export`
+### `php forge export`
 
-Esporta la configurazione CSS (7 tabelle: colori, font, tipografia, input, modal, dropdown, alert) in un file JSON committabile in git.
-
-```bash
-php forge css:export                    # → shared/css-config.json
-php forge css:export design-tokens.json # → file custom
-```
-
-### `php forge css:import`
-
-Importa una configurazione CSS da un file JSON e rigenera `root.css` e `color.css`.
+Esporta tutte le tabelle sincronizzabili (CSS, SEO, dati aziendali, ecc.) in un file JSON committabile in git.
 
 ```bash
-php forge css:import                     # ← shared/css-config.json
-php forge css:import --no-rebuild        # solo DB, senza rigenerare CSS
+php forge export                    # → shared/sync-data.json
+php forge export custom-sync.json   # → file custom
 ```
 
-Vedi [Multi-ambiente](multi-ambiente.md) per il workflow completo di sincronizzazione CSS tra ambienti.
+### `php forge import`
+
+Importa le tabelle da un file JSON. Se contiene tabelle CSS, rigenera anche `root.css` e `color.css`.
+
+```bash
+php forge import                     # ← shared/sync-data.json
+php forge import custom-sync.json    # ← file custom
+php forge import --no-rebuild        # solo DB, senza rigenerare CSS
+```
+
+Vedi [Multi-ambiente](multi-ambiente.md) per il workflow completo di sincronizzazione tra ambienti.
 
 ### Routing locale con Herd
 
@@ -240,7 +241,7 @@ node --version
 ### Update condiviso
 
 - `app/build/update/configuration_file.php` — aggiorna blocco router `.htaccess`, crea `.htaccess` e `robots.txt` se mancano, installa WonderValetDriver per Herd
-- `app/build/update/css.php` — importa `shared/css-config.json` (se presente) poi rigenera `root.css` e `color.css`
+- `app/build/update/css.php` — importa `shared/sync-data.json` (se presente) poi rigenera `root.css` e `color.css`
 - `app/build/update/sitemap.php` — rigenera sitemap XML
 
 Questi file vengono eseguiti sia da update locale che da update lato deploy/server.
@@ -345,7 +346,7 @@ Da questo punto hai:
 - `.env` pronto
 - `handler/index.php` generato
 - `.htaccess` generato (non tracciato in git)
-- CSS rigenerati da `shared/css-config.json` (se presente nel repo)
+- CSS rigenerati da `shared/sync-data.json` (se presente nel repo)
 - route e layout attivi
 
 ## Import progetto legacy già esistente

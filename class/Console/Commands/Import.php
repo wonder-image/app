@@ -7,34 +7,43 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Wonder\App\Support\CssConfigSync;
+use Wonder\App\Support\TableSync;
 
 /**
- * `forge css:import [file]`
+ * `forge import [file]`
  *
- * Importa una configurazione CSS da un file JSON (generato da
- * `forge css:export`) e rigenera i file `root.css` e `color.css`.
+ * Importa un file JSON (generato da `forge export`) nelle tabelle
+ * del DB e, se presenti tabelle CSS, rigenera `root.css` e `color.css`.
  *
- * Le tabelle singleton (`css_default`, `css_input`, `css_modal`,
- * `css_dropdown`, `css_alert`) vengono aggiornate in-place (riga id=1).
- * Le tabelle multi-row (`css_font`, `css_color`) vengono svuotate e
- * ripopolate.
+ * Le tabelle singleton vengono aggiornate in-place (riga id=1).
+ * Le tabelle multi-row vengono svuotate e ripopolate.
  *
  * Pensato per essere usato:
  * - dopo `forge start` in locale (per allinearsi alla produzione)
  * - manualmente per sincronizzare ambienti
  * - nel pipeline `forge update` (automatico via `build/update/css.php`)
  */
-class CssImport extends Command
+class Import extends Command
 {
-    public $name = 'css:import';
+    public $name = 'import';
+
+    /** Tabelle CSS che richiedono rebuild dei file .css dopo l'import. */
+    private const CSS_TABLES = [
+        'css_font',
+        'css_color',
+        'css_default',
+        'css_input',
+        'css_modal',
+        'css_dropdown',
+        'css_alert',
+    ];
 
     protected function configure(): void
     {
         $this
             ->setName($this->name)
-            ->setDescription('Importa la configurazione CSS da un file JSON e rigenera root.css e color.css.')
-            ->addArgument('file', InputArgument::OPTIONAL, 'Percorso del file JSON da importare', CssConfigSync::CONFIG_PATH)
+            ->setDescription('Importa le tabelle sincronizzabili da un file JSON e rigenera i CSS se necessario.')
+            ->addArgument('file', InputArgument::OPTIONAL, 'Percorso del file JSON da importare', TableSync::CONFIG_PATH)
             ->addOption('no-rebuild', null, InputOption::VALUE_NONE, 'Non rigenerare i file CSS dopo l\'importazione');
     }
 
@@ -76,14 +85,18 @@ class CssImport extends Command
             return Command::FAILURE;
         }
 
-        $imported = CssConfigSync::importConfig($config);
+        $imported = TableSync::importConfig($config);
 
         if (!$imported) {
             $output->writeln('<error>❌ Nessuna tabella importata.</error>');
             return Command::FAILURE;
         }
 
-        foreach (CssConfigSync::ALL_TABLES as $table) {
+        $discovered = TableSync::discoverTables();
+        $sync = TableSync::syncTables();
+        $hasCss = false;
+
+        foreach ($sync as $table) {
             if (!isset($config[$table]) || !is_array($config[$table])) {
                 $output->writeln('<comment>⚠️  '.$table.': non presente nel JSON</comment>');
                 continue;
@@ -92,11 +105,25 @@ class CssImport extends Command
             $count = count($config[$table]);
             $label = $count === 1 ? '1 riga' : $count.' righe';
             $output->writeln('   '.$table.': '.$label.' importate');
+
+            if (in_array($table, self::CSS_TABLES, true)) {
+                $hasCss = true;
+            }
         }
 
-        if (!$input->getOption('no-rebuild')) {
-            cssRoot();
-            cssColor();
+        $skipped = array_diff(array_keys($discovered), $sync);
+
+        if ($skipped !== []) {
+            $output->writeln('<comment>   ⊘ Escluse dal sync: '.implode(', ', $skipped).'</comment>');
+        }
+
+        if ($hasCss && !$input->getOption('no-rebuild')) {
+            if (function_exists('cssRoot')) {
+                cssRoot();
+            }
+            if (function_exists('cssColor')) {
+                cssColor();
+            }
             $output->writeln('<info>✅ File CSS rigenerati (root.css, color.css).</info>');
         }
 

@@ -162,6 +162,6 @@ final class CssFontResource extends Resource
             cssRoot();
         }
 
-        \Wonder\App\Support\CssConfigSync::autoExport();
+        \Wonder\App\Support\TableSync::autoExport();
     }
 }

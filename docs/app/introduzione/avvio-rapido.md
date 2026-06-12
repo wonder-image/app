@@ -91,7 +91,7 @@ Vai su `https://nome.test/backend/` e accedi con le credenziali `USER_*` del
 | `php forge build` | CI, pre-deploy | genera file statici senza DB |
 | `php forge start` | locale | avvia il sito (Herd o `php -S`) |
 | `php forge make:model` / `make:resource` | sviluppo | scaffolding di Model/Resource |
-| `php forge css:export` / `css:import` | multi-ambiente | sincronizza CSS via JSON |
+| `php forge export` / `import` | multi-ambiente | sincronizza dati condivisi via JSON |
 | `php forge status:modules` / `validate:module` | moduli | stato e validazione manifest |
 
 I comandi vivono in `class/Console/Commands/*` e si lanciano dalla radice del

@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 
 final class CssAlert extends Model
@@ -10,6 +11,11 @@ final class CssAlert extends Model
     public static string $table = 'css_alert';
     public static string $folder = 'app/css/alert';
     public static string $icon = 'bi bi-bell';
+
+    public static function syncSchema(): ?SyncSchema
+    {
+        return SyncSchema::singleton();
+    }
 
     public static function tableSchema(): array
     {

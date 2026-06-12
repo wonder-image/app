@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -11,6 +12,11 @@ final class Seo extends Model
     public static string $table = 'seo';
     public static string $folder = 'app/config/seo';
     public static string $icon = 'bi bi-search';
+
+    public static function syncSchema(): ?SyncSchema
+    {
+        return SyncSchema::singleton();
+    }
 
     public static function tableSchema(): array
     {

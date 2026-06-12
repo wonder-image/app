@@ -30,7 +30,7 @@ Significato rapido:
 - `php forge config` prepara il progetto locale e prova a sincronizzare le AI skills raccomandate
 - `php forge provision` configura l’ambiente di progetto lato GitHub e Bitwarden, utile per il flusso di deploy/produzione
 - `php forge db:init` inizializza `.env` e crea database, utente e grant locali
-- `php forge update --local` genera i file locali necessari (handler, .htaccess) e importa `shared/css-config.json` se presente nel progetto
+- `php forge update --local` genera i file locali necessari (handler, .htaccess) e importa `shared/sync-data.json` se presente nel progetto
 - `php forge start` avvia il server locale
 
 Per `php forge start` un front controller valido e':
@@ -188,20 +188,20 @@ Con questa variabile valorizzata, Herd fa un redirect 302 per ogni file mancante
 
 Funziona solo con Herd/Valet, non con il fallback `php -S`.
 
-## 9) Sincronizzare la configurazione CSS
+## 9) Sincronizzare i dati condivisi (CSS, SEO, dati aziendali)
 
-Se il progetto ha un file `shared/css-config.json` committato (generato con `forge css:export` dalla produzione), i design token vengono importati automaticamente durante `forge update --local`.
+Se il progetto ha un file `shared/sync-data.json` committato (generato con `forge export` dalla produzione), i dati vengono importati automaticamente durante `forge update --local`.
 
 Per importare manualmente:
 
 ```bash
-php forge css:import
+php forge import
 ```
 
-Per esportare la configurazione corrente (utile dopo modifiche locali):
+Per esportare i dati correnti (utile dopo modifiche locali):
 
 ```bash
-php forge css:export
+php forge export
 ```
 
 Vedi la documentazione completa in [Multi-ambiente](multi-ambiente.md).

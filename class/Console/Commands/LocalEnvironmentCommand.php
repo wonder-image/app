@@ -121,8 +121,8 @@ USER_PASSWORD=$adminPassword
 # Media fallback (URL di produzione per proxy media mancanti in locale)
 MEDIA_FALLBACK_URL=
 
-# CSS auto-export (scrive css-config.json ad ogni save dal backend)
-CSS_AUTO_EXPORT=false
+# Sync auto-export (scrive sync-data.json ad ogni save dal backend)
+SYNC_AUTO_EXPORT=false
 ENV;
     }
 

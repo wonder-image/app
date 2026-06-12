@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 
 final class CssModal extends Model
@@ -10,6 +11,11 @@ final class CssModal extends Model
     public static string $table = 'css_modal';
     public static string $folder = 'app/css/modal';
     public static string $icon = 'bi bi-window';
+
+    public static function syncSchema(): ?SyncSchema
+    {
+        return SyncSchema::singleton();
+    }
 
     public static function tableSchema(): array
     {

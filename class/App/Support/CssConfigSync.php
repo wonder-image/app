@@ -3,21 +3,21 @@
 namespace Wonder\App\Support;
 
 /**
- * Importa / esporta la configurazione CSS (7 tabelle) come JSON.
+ * Facade per la sincronizzazione delle tabelle CSS.
  *
- * Usata sia dal pipeline `build/update/css.php` (importazione automatica
- * di `css-config.json` prima della rigenerazione CSS) sia dai comandi
- * CLI `forge css:export` e `forge css:import`, sia dall'hook automatico
- * post-save delle Resource CSS (`autoExport()`).
+ * Delega tutta la logica a `TableSync`, fornendo un accesso
+ * filtrato alle sole tabelle CSS. Per uso generale preferire
+ * `TableSync` direttamente.
+ *
+ * @see TableSync
  */
 final class CssConfigSync
 {
     /**
-     * Path relativo al root del progetto in cui vive il file di
-     * configurazione CSS. Tutte le operazioni di import/export usano
-     * questa costante come single source of truth per il percorso.
+     * Path del file di sync. Punta al file unificato gestito da
+     * `TableSync` (non piu a un file CSS-specifico).
      */
-    public const CONFIG_PATH = 'shared/css-config.json';
+    public const CONFIG_PATH = TableSync::CONFIG_PATH;
 
     private const SYSTEM_COLUMNS = ['id', 'last_modified', 'creation', 'deleted'];
 
@@ -45,181 +45,54 @@ final class CssConfigSync
     ];
 
     /**
-     * Se `css-config.json` esiste nel root del progetto, importa la
-     * configurazione nel DB. Pensato per essere chiamato da
-     * `build/update/css.php` durante `forge update`.
+     * @deprecated Usa TableSync::setSyncTables() per il filtro globale.
+     */
+    public static function setSyncTables(?array $tables): void
+    {
+        TableSync::setSyncTables($tables);
+    }
+
+    /**
+     * @deprecated Usa TableSync::syncTables() per il filtro globale.
+     */
+    public static function syncTables(): array
+    {
+        return array_values(
+            array_intersect(self::ALL_TABLES, TableSync::syncTables())
+        );
+    }
+
+    /**
+     * Importa css-config.json o sync-data.json dal root del progetto.
+     * Delega a TableSync.
      */
     public static function importIfExists(string $root): bool
     {
-        $file = rtrim($root, '/').'/'.self::CONFIG_PATH;
-
-        if (!file_exists($file)) {
-            return false;
-        }
-
-        $json = file_get_contents($file);
-
-        if ($json === false) {
-            return false;
-        }
-
-        $config = json_decode($json, true);
-
-        if (!is_array($config)) {
-            return false;
-        }
-
-        return self::importConfig($config);
+        return TableSync::importIfExists($root);
     }
 
     /**
-     * Importa un array di configurazione (già decodificato dal JSON)
-     * nelle 7 tabelle CSS del DB.
+     * Importa solo le tabelle CSS da un array di configurazione.
      */
     public static function importConfig(array $config): bool
     {
-        $imported = 0;
-
-        foreach (self::SINGLETON_TABLES as $table) {
-            if (!isset($config[$table]) || !is_array($config[$table]) || count($config[$table]) === 0) {
-                continue;
-            }
-
-            $values = self::cleanRow($config[$table][0]);
-
-            if ($values === []) {
-                continue;
-            }
-
-            if (sqlSelect($table, ['id' => 1], 1)->exists) {
-                sqlModify($table, $values, 'id', '1');
-            } else {
-                sqlInsert($table, $values);
-            }
-
-            $imported++;
-        }
-
-        foreach (self::MULTI_ROW_TABLES as $table) {
-            if (!isset($config[$table]) || !is_array($config[$table])) {
-                continue;
-            }
-
-            sqlTruncate($table);
-
-            foreach ($config[$table] as $row) {
-                $values = self::cleanRow($row);
-
-                if ($values !== []) {
-                    sqlInsert($table, $values);
-                }
-            }
-
-            $imported++;
-        }
-
-        return $imported > 0;
+        return TableSync::importConfig($config, self::ALL_TABLES);
     }
 
     /**
-     * Esporta tutte le 7 tabelle CSS come array associativo pronto
-     * per `json_encode()`.
+     * Esporta solo le tabelle CSS.
      */
     public static function exportConfig(): array
     {
-        $config = [];
-
-        foreach (self::ALL_TABLES as $table) {
-            if (in_array($table, self::SINGLETON_TABLES, true)) {
-                // Tabelle singleton: esporta solo la riga id=1.
-                // Evita di includere duplicati accidentali nel JSON.
-                $result = sqlSelect($table, ['id' => 1], 1);
-                $rows = $result->exists ? [self::cleanRow($result->row)] : [];
-            } else {
-                $result = sqlSelect($table);
-                $rows = [];
-
-                foreach ($result->row as $row) {
-                    $rows[] = self::cleanRow($row);
-                }
-            }
-
-            $config[$table] = $rows;
-        }
-
-        return $config;
+        return TableSync::exportConfig(self::ALL_TABLES);
     }
 
     /**
-     * Esporta automaticamente `css-config.json` nel root del progetto,
-     * se la variabile d'ambiente `CSS_AUTO_EXPORT` è impostata a `true`.
-     *
-     * Pensata per essere chiamata dagli hook `afterUpdate` / `afterStore`
-     * / `afterDelete` delle Resource CSS, in modo che ogni modifica dal
-     * backend rigeneri il file JSON committabile in git.
-     *
-     * Non-blocking: se l'export fallisce (funzioni SQL non disponibili,
-     * root non determinabile, permessi file), l'operazione viene
-     * silenziosamente ignorata — il salvataggio CSS dal backend non
-     * deve mai fallire per colpa dell'export.
+     * Auto-export: delega a TableSync che esporta tutte le tabelle
+     * sincronizzabili (non solo CSS) nel file unificato.
      */
     public static function autoExport(): void
     {
-        try {
-            if (!filter_var($_ENV['CSS_AUTO_EXPORT'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-                return;
-            }
-
-            if (!function_exists('sqlSelect')) {
-                return;
-            }
-
-            $root = $GLOBALS['ROOT'] ?? '';
-
-            if ($root === '' || !is_dir($root)) {
-                return;
-            }
-
-            $config = self::exportConfig();
-            $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            if ($json === false) {
-                return;
-            }
-
-            $file = rtrim($root, '/').'/'.self::CONFIG_PATH;
-            $dir = dirname($file);
-
-            if (!is_dir($dir)) {
-                @mkdir($dir, 0777, true);
-            }
-
-            // Scrivi solo se il contenuto è effettivamente cambiato,
-            // per evitare scritture inutili su disco e diff git spuri.
-            $current = file_exists($file) ? file_get_contents($file) : '';
-            $newContent = $json."\n";
-
-            if ($current !== $newContent) {
-                file_put_contents($file, $newContent);
-            }
-        } catch (\Throwable) {
-            // Non-blocking: il salvataggio CSS non deve mai fallire
-            // per colpa dell'auto-export.
-        }
-    }
-
-    private static function cleanRow(array $row): array
-    {
-        $cleaned = [];
-
-        foreach ($row as $column => $value) {
-            if (in_array($column, self::SYSTEM_COLUMNS, true)) {
-                continue;
-            }
-
-            $cleaned[$column] = $value;
-        }
-
-        return $cleaned;
+        TableSync::autoExport();
     }
 }

@@ -6,6 +6,7 @@ use Exception;
 use mysqli;
 use Wonder\App\Path;
 use Wonder\App\Support\MediaFileManager;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\Fields\Field as DataField;
 use Wonder\Data\Fields\Number as NumberField;
 use Wonder\Data\Fields\Text as TextField;
@@ -33,6 +34,22 @@ abstract class Model
 
     abstract public static function tableSchema(): array;
     abstract public static function dataSchema(): array;
+
+    /**
+     * Definisce il comportamento di sincronizzazione per questa tabella.
+     *
+     * Restituire `null` (default) per escludere la tabella dal sistema
+     * di sync. Restituire `SyncSchema::singleton()` o
+     * `SyncSchema::multiRow()` per includerla.
+     *
+     * Le tabelle con `syncSchema()` non-null vengono scoperte
+     * automaticamente da `TableSync` via `ModelRegistry` e incluse
+     * nei comandi `forge export` / `forge import`.
+     */
+    public static function syncSchema(): ?SyncSchema
+    {
+        return null;
+    }
 
     public static function tableOptions(): array
     {

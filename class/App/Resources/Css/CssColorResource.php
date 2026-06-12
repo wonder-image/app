@@ -135,6 +135,6 @@ final class CssColorResource extends Resource
             cssColor();
         }
 
-        \Wonder\App\Support\CssConfigSync::autoExport();
+        \Wonder\App\Support\TableSync::autoExport();
     }
 }

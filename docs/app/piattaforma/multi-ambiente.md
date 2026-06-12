@@ -8,9 +8,9 @@ Guida alla gestione di ambienti multipli (locale, staging, produzione) con Wonde
 
 ## Problema
 
-Il backend di Wonder Image è nato per operare direttamente in produzione: upload media, configurazione CSS, `.htaccess` e `robots.txt` venivano modificati live. Con ambienti multipli (locale + AI + staging + produzione) questa architettura crea divergenze: media mancanti in locale, CSS diversi tra ambienti, config server sovrascritta dal deploy.
+Il backend di Wonder Image e nato per operare direttamente in produzione: upload media, configurazione CSS, `.htaccess` e `robots.txt` venivano modificati live. Con ambienti multipli (locale + AI + staging + produzione) questa architettura crea divergenze: media mancanti in locale, CSS diversi tra ambienti, config server sovrascritta dal deploy.
 
-Le soluzioni introdotte coprono tre aree: **media**, **configurazione CSS** e **config server**.
+Le soluzioni introdotte coprono tre aree: **media**, **sincronizzazione dati** e **config server**.
 
 ---
 
@@ -18,7 +18,7 @@ Le soluzioni introdotte coprono tre aree: **media**, **configurazione CSS** e **
 
 ### Problema
 
-I media uploadati in produzione (immagini, icone, documenti) non esistono in locale. Il DB clonato contiene riferimenti a file inesistenti → immagini rotte.
+I media uploadati in produzione (immagini, icone, documenti) non esistono in locale. Il DB clonato contiene riferimenti a file inesistenti -> immagini rotte.
 
 ### Soluzione
 
@@ -32,7 +32,7 @@ Nel `.env` del progetto locale:
 MEDIA_FALLBACK_URL=https://www.example.it
 ```
 
-Il valore è la URL base del sito di produzione (senza slash finale). `forge start` genera il `.env` con la variabile già predisposta (vuota) — basta valorizzarla.
+Il valore e la URL base del sito di produzione (senza slash finale). `forge start` genera il `.env` con la variabile gia predisposta (vuota) -- basta valorizzarla.
 
 ### Come funziona
 
@@ -52,66 +52,49 @@ Il redirect usa un file temporaneo in `storage/tmp/_media_proxy.php` (ripulito a
 
 ---
 
-## CSS: configurazione grafica versionata in git
+## Sincronizzazione dati tra ambienti
 
 ### Problema
 
-La configurazione grafica (colori, font, tipografia, input, modal, dropdown, alert) è salvata in 7 tabelle DB. Ogni ambiente ha il proprio DB → la grafica diverge silenziosamente.
+Molti dati di configurazione (CSS, SEO, dati aziendali, social, orari) sono salvati nel DB. Ogni ambiente ha il proprio DB -> i dati divergono silenziosamente.
 
 ### Soluzione
 
-Il file `shared/css-config.json` viene **committato in git** come single source of truth per i design token. Il workflow è:
+Il file `shared/sync-data.json` viene **committato in git** come single source of truth per i dati condivisi tra ambienti. Il workflow e:
 
-1. Il designer modifica colori/font dal backend di produzione → CSS rigenerati live
-2. `forge css:export` produce `shared/css-config.json` dal DB
-3. `shared/css-config.json` viene committato in git
-4. Al deploy, `forge update` importa `shared/css-config.json` nel DB → rigenera CSS
-5. In locale, `forge css:import` dopo setup → stessa grafica della produzione
+1. L'utente modifica dati dal backend di produzione
+2. `forge export` produce `shared/sync-data.json` dal DB
+3. `shared/sync-data.json` viene committato in git
+4. Al deploy, `forge update` importa `shared/sync-data.json` nel DB -> rigenera CSS
+5. In locale, `forge import` dopo setup -> stessi dati della produzione
 
-### Comandi
+### Come funziona: `syncSchema()` sui Model
 
-#### `forge css:export [file]`
+Il sistema scopre automaticamente quali tabelle sincronizzare: ogni Model che implementa `syncSchema()` viene incluso.
 
-Esporta le 7 tabelle CSS in un file JSON:
+```php
+// Model singleton (una sola riga, id=1)
+public static function syncSchema(): ?SyncSchema
+{
+    return SyncSchema::singleton();
+}
 
-```bash
-php forge css:export                    # → shared/css-config.json (default)
-php forge css:export design-tokens.json # → file custom
+// Model multi-row
+public static function syncSchema(): ?SyncSchema
+{
+    return SyncSchema::multiRow();
+}
+
+// Model non sincronizzabile (default)
+public static function syncSchema(): ?SyncSchema
+{
+    return null;
+}
 ```
 
-Output:
+I Model vengono scoperti via `ModelRegistry` -- framework, moduli e sito contribuiscono ciascuno le proprie tabelle sincronizzabili.
 
-```
-✅ Configurazione CSS esportata in /path/to/shared/css-config.json
-   css_font: 2 righe
-   css_color: 12 righe
-   css_default: 1 riga
-   css_input: 1 riga
-   css_modal: 1 riga
-   css_dropdown: 1 riga
-   css_alert: 1 riga
-```
-
-#### `forge css:import [file]`
-
-Importa un file JSON nelle 7 tabelle CSS e rigenera `root.css` + `color.css`:
-
-```bash
-php forge css:import                     # ← shared/css-config.json (default)
-php forge css:import design-tokens.json  # ← file custom
-php forge css:import --no-rebuild        # solo DB, senza rigenerare CSS
-```
-
-#### Import automatico in `forge update`
-
-`build/update/css.php` chiama `CssConfigSync::importIfExists($ROOT)` **prima** di rigenerare i CSS. Se `shared/css-config.json` esiste nel root del progetto, viene importato automaticamente nel DB.
-
-Questo significa che:
-
-- il deploy con `forge update` allinea automaticamente il DB ai design token committati
-- non serve chiamare `forge css:import` manualmente in CI
-
-### Tabelle coinvolte
+### Tabelle sincronizzabili nel framework
 
 | Tabella | Tipo | Contenuto |
 |---|---|---|
@@ -122,42 +105,169 @@ Questo significa che:
 | `css_modal` | Singleton | Stili modal |
 | `css_dropdown` | Singleton | Stili dropdown |
 | `css_alert` | Singleton | Stili alert/toast |
+| `seo` | Singleton | Meta tag SEO default |
+| `society` | Singleton | Dati aziendali |
+| `society_address` | Singleton | Indirizzo sede operativa |
+| `society_legal_address` | Singleton | Indirizzo sede legale |
+| `society_social` | Singleton | Link social |
+| `society_timetable` | Multi-row | Orari di apertura |
 
 Le colonne di sistema (`id`, `last_modified`, `creation`, `deleted`) vengono escluse dall'export/import.
 
-### Classe `CssConfigSync`
+**Non sincronizzabili** (per design):
+- `security` -- contiene API key, password, credenziali (specifiche per ambiente)
+- `analytics` -- contiene GTM ID, Pixel ID (possono differire tra staging e produzione)
+- `logos` -- contiene riferimenti a file media (i file non vengono sincronizzati)
+- Tabelle utenti, log, consent -- dati runtime, non configurazione
 
-La logica centralizzata vive in `Wonder\App\Support\CssConfigSync`:
+### Aggiungere tabelle nel sito
 
-- `exportConfig()` — legge tutte e 7 le tabelle, restituisce array
-- `importConfig(array $config)` — singleton: update id=1; multi-row: truncate + re-insert
-- `importIfExists(string $root)` — cerca `shared/css-config.json` nel root e importa se presente
-- `autoExport()` — esporta `shared/css-config.json` automaticamente se `CSS_AUTO_EXPORT=true` (vedi sotto)
+Un sito puo aggiungere le proprie tabelle sincronizzabili definendo `syncSchema()` nei Model in `app/Models/` o `custom/class/Models/`:
 
-Usata da `forge css:export`, `forge css:import`, `build/update/css.php` e dagli hook delle Resource CSS.
+```php
+// app/Models/Config/MyConfig.php
+namespace App\Models\Config;
+
+use Wonder\App\Model;
+use Wonder\App\Support\SyncSchema;
+
+final class MyConfig extends Model
+{
+    public static string $table = 'my_config';
+
+    public static function syncSchema(): ?SyncSchema
+    {
+        return SyncSchema::singleton();
+    }
+
+    // ... tableSchema(), dataSchema()
+}
+```
+
+La tabella apparira automaticamente in `forge export` / `forge import`.
+
+### Comandi
+
+#### `forge export [file]`
+
+Esporta tutte le tabelle sincronizzabili in un file JSON:
+
+```bash
+php forge export                      # -> shared/sync-data.json (default)
+php forge export custom-sync.json     # -> file custom
+```
+
+Output:
+
+```
+✅ Dati esportati in /path/to/shared/sync-data.json
+   css_font: 2 righe
+   css_color: 12 righe
+   css_default: 1 riga
+   seo: 1 riga
+   society: 1 riga
+   society_address: 1 riga
+   ...
+```
+
+#### `forge import [file]`
+
+Importa un file JSON nelle tabelle del DB. Se contiene tabelle CSS, rigenera anche `root.css` e `color.css`:
+
+```bash
+php forge import                      # <- shared/sync-data.json (default)
+php forge import custom-sync.json     # <- file custom
+php forge import --no-rebuild         # solo DB, senza rigenerare CSS
+```
+
+#### Import automatico in `forge update`
+
+`build/update/css.php` chiama `TableSync::importIfExists($ROOT)` **prima** di rigenerare i CSS. Se `shared/sync-data.json` esiste nel root del progetto, viene importato automaticamente nel DB.
+
+Questo significa che:
+
+- il deploy con `forge update` allinea automaticamente il DB ai dati committati
+- non serve chiamare `forge import` manualmente in CI
+
+### Scegliere le tabelle da sincronizzare
+
+Di default tutte le tabelle con `syncSchema()` vengono esportate/importate. Se un progetto ha bisogno di sincronizzare solo alcune tabelle, ci sono due modi per configurarlo.
+
+**Via `.env`** (piu semplice):
+
+```dotenv
+SYNC_TABLES=css_font,css_color,css_default,seo,society
+```
+
+**Via PHP** (dal bootstrap del sito o da un file di configurazione custom):
+
+```php
+\Wonder\App\Support\TableSync::setSyncTables([
+    'css_font',
+    'css_color',
+    'css_default',
+    'seo',
+    'society',
+]);
+```
+
+Il setter ha precedenza sull'env. Passare `null` per tornare al default (tutte le tabelle).
+
+I comandi CLI mostrano le tabelle escluse:
+
+```
+✅ Dati esportati in shared/sync-data.json
+   css_font: 2 righe
+   css_color: 10 righe
+   css_default: 1 riga
+   seo: 1 riga
+   society: 1 riga
+   ⊘ Escluse dal sync: css_input, css_modal, css_dropdown, css_alert, ...
+```
+
+### Classe `TableSync`
+
+La logica centralizzata vive in `Wonder\App\Support\TableSync`:
+
+- `discoverTables()` -- scopre tutte le tabelle con `syncSchema()` via ModelRegistry
+- `syncTables()` -- restituisce le tabelle attive per il sync (configurabili)
+- `setSyncTables(array $tables)` -- limita le tabelle da sincronizzare
+- `exportConfig(?array $onlyTables)` -- esporta le tabelle attive (o un sottoinsieme)
+- `importConfig(array $config, ?array $onlyTables)` -- importa le tabelle attive
+- `importIfExists(string $root)` -- cerca `shared/sync-data.json` nel root e importa se presente
+- `autoExport()` -- esporta automaticamente se `SYNC_AUTO_EXPORT=true`
+- `resetCache()` -- resetta la cache di discovery (utile nei test)
+
+### Classe `SyncSchema`
+
+Value object che descrive il comportamento di sync di una tabella:
+
+- `SyncSchema::singleton()` -- tabella con una sola riga (id=1)
+- `SyncSchema::multiRow()` -- tabella con righe multiple
+- `->exclude(['col1', 'col2'])` -- esclude colonne aggiuntive dall'export
 
 ### Auto-export dal backend
 
-Quando il designer salva una qualunque configurazione CSS dal backend (colori, font, tipografia, input, modal, dropdown, alert), il file `shared/css-config.json` viene **rigenerato automaticamente** nel root del progetto, se la variabile d'ambiente `CSS_AUTO_EXPORT` è attiva.
+Quando il designer salva una qualunque configurazione CSS dal backend, il file `shared/sync-data.json` viene **rigenerato automaticamente** nel root del progetto, se la variabile d'ambiente `SYNC_AUTO_EXPORT` e attiva.
 
 #### Configurazione
 
 Nel `.env` di produzione:
 
 ```dotenv
-CSS_AUTO_EXPORT=true
+SYNC_AUTO_EXPORT=true
 ```
 
-In locale il valore di default è `false` — l'export automatico non serve perché il file viene importato da git, non generato localmente.
+In locale il valore di default e `false` -- l'export automatico non serve perche il file viene importato da git, non generato localmente.
 
 #### Come funziona
 
 1. Il designer modifica un colore/font/stile dal backend e salva
 2. La Resource CSS rigenera `root.css` / `color.css` come prima
-3. `CssConfigSync::autoExport()` viene chiamato subito dopo
-4. Se `CSS_AUTO_EXPORT=true`, il metodo esporta le 7 tabelle in `shared/css-config.json`
-5. Scrittura solo se il contenuto è effettivamente cambiato (evita diff git spuri)
-6. Se qualcosa fallisce, l'errore viene ignorato silenziosamente — il salvataggio CSS non deve mai fallire per colpa dell'export
+3. `TableSync::autoExport()` viene chiamato subito dopo
+4. Se `SYNC_AUTO_EXPORT=true`, esporta **tutte** le tabelle sincronizzabili in `shared/sync-data.json`
+5. Scrittura solo se il contenuto e effettivamente cambiato (evita diff git spuri)
+6. Se qualcosa fallisce, l'errore viene ignorato silenziosamente
 
 #### Hook coinvolti
 
@@ -176,29 +286,29 @@ In locale il valore di default è `false` — l'export automatico non serve perc
 **Prima configurazione locale:**
 
 ```bash
-git pull                    # contiene shared/css-config.json
-php forge update --local    # importa shared/css-config.json + rigenera CSS
+git pull                    # contiene shared/sync-data.json
+php forge update --local    # importa sync-data.json + rigenera CSS
 ```
 
-**Dopo modifica grafica in produzione (con auto-export attivo):**
+**Dopo modifica in produzione (con auto-export attivo):**
 
 ```bash
-# shared/css-config.json viene aggiornato automaticamente ad ogni save dal backend.
+# shared/sync-data.json viene aggiornato automaticamente ad ogni save CSS.
 # Per committare le modifiche:
-git add shared/css-config.json
-git commit -m "Update CSS config from production"
+git add shared/sync-data.json
+git commit -m "Update sync data from production"
 git push
 ```
 
-**Dopo modifica grafica in produzione (senza auto-export):**
+**Dopo modifica in produzione (senza auto-export):**
 
 ```bash
 # In produzione (o via SSH):
-php forge css:export
+php forge export
 
 # Commit e push:
-git add shared/css-config.json
-git commit -m "Update CSS config from production"
+git add shared/sync-data.json
+git commit -m "Update sync data from production"
 git push
 ```
 
@@ -206,7 +316,7 @@ git push
 
 ```bash
 git pull
-php forge css:import    # o php forge update --local
+php forge import    # o php forge update --local
 ```
 
 ---
@@ -217,13 +327,13 @@ php forge css:import    # o php forge update --local
 
 #### Stato precedente
 
-- `.htaccess` era tracciato in git → il deploy FTP sovrascriveva il file di produzione
+- `.htaccess` era tracciato in git -> il deploy FTP sovrascriveva il file di produzione
 - Due template divergenti: uno in `Build.php`, uno in `configuration_file.php`
 - Force-www inconsistente tra i due
 
 #### Stato attuale
 
-- `.htaccess` è **gitignored** e generato da `forge build` / `forge update`
+- `.htaccess` e **gitignored** e generato da `forge build` / `forge update`
 - Un solo template: `Build::htaccessTemplate(bool $forceWww)` (single source of truth)
 - Force-www parametrico tramite `APP_FORCE_WWW` nel `.env` o `--force-www` in CLI
 
@@ -237,11 +347,11 @@ php forge css:import    # o php forge update --local
 
 **Aggiornamento file esistenti:**
 
-Se `.htaccess` esiste già, `build/update/configuration_file.php` aggiorna solo il blocco `# WONDER ROUTER START ... # WONDER ROUTER END`, preservando personalizzazioni dell'utente.
+Se `.htaccess` esiste gia, `build/update/configuration_file.php` aggiorna solo il blocco `# WONDER ROUTER START ... # WONDER ROUTER END`, preservando personalizzazioni dell'utente.
 
 ### `robots.txt`
 
-Creato solo se manca. Il template è parametrico:
+Creato solo se manca. Il template e parametrico:
 
 - **Dominio**: letto da `$PAGE->domain` (runtime) o `$_ENV['APP_DOMAIN']` (fallback)
 - **Prefisso www**: determinato da `APP_FORCE_WWW`
@@ -265,8 +375,9 @@ Variabili introdotte per il supporto multi-ambiente:
 |---|---|---|---|
 | `MEDIA_FALLBACK_URL` | `.env` locale | *(vuoto)* | URL base produzione per proxy media in Herd |
 | `APP_FORCE_WWW` | `.env` / Bitwarden | `false` | Abilita redirect www in `.htaccess` e `robots.txt` |
-| `APP_DOMAIN` | `.env` / `vars.APP_DOMAIN` | — | Dominio del sito (fallback per `robots.txt`) |
-| `CSS_AUTO_EXPORT` | `.env` produzione | `false` | Se `true`, rigenera `shared/css-config.json` ad ogni save CSS dal backend |
+| `APP_DOMAIN` | `.env` / `vars.APP_DOMAIN` | -- | Dominio del sito (fallback per `robots.txt`) |
+| `SYNC_AUTO_EXPORT` | `.env` produzione | `false` | Se `true`, rigenera `shared/sync-data.json` ad ogni save dal backend |
+| `SYNC_TABLES` | `.env` | *(tutte)* | Comma-separated: tabelle da includere nel sync (es. `css_font,css_color,seo`) |
 
 ### GitHub Actions variables
 
@@ -278,12 +389,12 @@ Variabili introdotte per il supporto multi-ambiente:
 
 ---
 
-## Riepilogo: cosa è generato, cosa è committato
+## Riepilogo: cosa e generato, cosa e committato
 
 | File | In git? | Generato da | Source of truth |
 |---|---|---|---|
-| `shared/css-config.json` | **Sì** | `forge css:export` | Git (committato dal designer/dev) |
-| `root.css`, `color.css` | No | `forge update` (da DB ← `shared/css-config.json`) | DB `css_*` |
+| `shared/sync-data.json` | **Si** | `forge export` | Git (committato dal designer/dev) |
+| `root.css`, `color.css` | No | `forge update` (da DB <- `sync-data.json`) | DB `css_*` |
 | `.htaccess` | No | `forge build` / `forge update` | Template `Build::htaccessTemplate()` + `.env` |
 | `robots.txt` | No | `forge update` (se manca) | Template parametrico + `.env` |
 | `handler/index.php` | No | `forge build` / `forge update --local` | Template framework |
