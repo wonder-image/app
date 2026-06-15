@@ -59,12 +59,12 @@ final class AnalyticsResource extends SingletonResource
     {
         return (new Form)->components([
             (new Card)->components([
-                SectionTitle::make('Google'),
+                SectionTitle::make('Google')->columnSpan(12),
                 static::getInput('tag_manager')->columnSpan(8),
                 static::getInput('active_tag_manager')->columnSpan(4),
             ])->columns(12)->columnSpan(6),
             (new Card)->components([
-                SectionTitle::make('Facebook'),
+                SectionTitle::make('Facebook')->columnSpan(12),
                 static::getInput('pixel_facebook')->columnSpan(8),
                 static::getInput('active_pixel_facebook')->columnSpan(4),
             ])->columns(12)->columnSpan(6),

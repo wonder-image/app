@@ -111,23 +111,26 @@ final class SecurityResource extends SingletonResource
             (new Container)->components([
 
                 (new Card)->components([
-                    SectionTitle::make('Wonder Image'),
+                    SectionTitle::make('Wonder Image')->columnSpan(12),
                     static::getInput('api_key')->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
                 
                 (new Card)->components([
                     SectionTitle::make('Google Cloud Platform')
-                        ->tooltip('Compila qui le chiavi progetto e i servizi collegati a Google.'),
-                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.'),
+                        ->tooltip('Compila qui le chiavi progetto e i servizi collegati a Google.')
+                        ->columnSpan(12),
+                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.')
+                        ->columnSpan(12),
                     static::getInput('gcp_project_id')->columnSpan(2),
                     static::getInput('gcp_api_key')->columnSpan(5),
                     static::getInput('gcp_client_api_key')->columnSpan(5),
-                    SectionTitle::make('Google reCAPTCHA*')->columnSpan(8),
-                    SectionTitle::make('Google Place*')->columnSpan(4),
+                    SectionTitle::make('Google reCAPTCHA*')->columnSpan(12),
                     static::getInput('g_recaptcha_site_key')->columnSpan(4),
                     static::getInput('g_recaptcha_secret_key')->columnSpan(4),
+                    SectionTitle::make('Google Place*')->columnSpan(12),
                     static::getInput('g_maps_place_id')->columnSpan(4),
-                    HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.'),
+                    HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.')
+                    ->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
@@ -138,7 +141,8 @@ final class SecurityResource extends SingletonResource
 
                 (new Card)->components([
                     SectionTitle::make('Server mail')
-                        ->tooltip('Configura SMTP o Brevo per l’invio delle email.'),
+                        ->tooltip('Configura SMTP o Brevo per l’invio delle email.')
+                        ->columnSpan(12),
                     static::getInput('mail_service')->columnSpan(12),
                     static::getInput('brevo_api_key')->columnSpan(12),
                     static::getInput('mail_host')->columnSpan(8),
@@ -168,18 +172,23 @@ final class SecurityResource extends SingletonResource
 
                 (new Card)->components([
                     SectionTitle::make('Stripe')
-                        ->tooltip('Qui imposti ambiente e account collegati.'),
+                        ->tooltip('Qui imposti ambiente e account collegati.')
+                        ->columnSpan(12),
                     static::getInput('stripe_test')->columnSpan(12),
-                    SectionTitle::make('Produzione'),
+                    SectionTitle::make('Produzione')
+                    ->columnSpan(12),
                     static::getInput('stripe_account_id')->columnSpan(12),
-                    SectionTitle::make('Test'),
+                    SectionTitle::make('Test')
+                    ->columnSpan(12),
                     static::getInput('stripe_test_account_id')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
 
 
                 (new Card)->components([
-                    SectionTitle::make('Fatture in Cloud'),
-                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/fatture-in-cloud" target="_blank" rel="noopener noreferrer">clicca qui</a>.'),
+                    SectionTitle::make('Fatture in Cloud')
+                    ->columnSpan(12),
+                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/fatture-in-cloud" target="_blank" rel="noopener noreferrer">clicca qui</a>.')
+                    ->columnSpan(12),
                     static::getInput('fatture_in_cloud_company_id')->columnSpan(12),
                     static::getInput('fatture_in_cloud_token')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
