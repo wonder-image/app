@@ -137,8 +137,10 @@ final class SecurityResource extends SingletonResource
 
                 (new Card)->components([
                     SectionTitle::make('Klaviyo'),
-                    HelpText::make('<a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">Apri documentazione API</a>.'),
-                    static::getInput('klaviyo_api_key')->columnSpan(12),
+                    HelpText::make('<a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">Apri documentazione API</a>.')
+                        ->columnSpan(12),
+                    static::getInput('klaviyo_api_key')
+                        ->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
@@ -173,7 +175,7 @@ final class SecurityResource extends SingletonResource
             (new Container)->components([
 
                 (new Card)->components([
-                    
+
                     SectionTitle::make('Stripe')
                         ->tooltip('Qui imposti ambiente e account collegati.')
                         ->columnSpan(12),
