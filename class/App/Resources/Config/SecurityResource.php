@@ -7,7 +7,7 @@ use Wonder\App\Path;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
-use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Badge;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Components\HelpText;
@@ -183,18 +183,20 @@ final class SecurityResource extends SingletonResource
                     static::getInput('stripe_test')->columnSpan(12),
 
                     SectionTitle::make('Produzione')
-                        ->columnSpan(12),
+                        ->columnSpan(6),
+                    Badge::to((new Path)->appApi.'/service/stripe/onboarding/?account=production', 'Collega')
+                        ->variant('dark')
+                        ->addClass('float-end')
+                        ->columnSpan(6),
                     static::getInput('stripe_account_id')->columnSpan(12),
-                    Button::to((new Path)->appApi.'/service/stripe/onboarding/?account=production', 'Collega account produzione')
-                        ->variant('primary')
-                        ->columnSpan(12),
 
                     SectionTitle::make('Test')
-                        ->columnSpan(12),
+                        ->columnSpan(6),
+                    Badge::to((new Path)->appApi.'/service/stripe/onboarding/?account=test', 'Collega')
+                        ->variant('dark')
+                        ->addClass('float-end')
+                        ->columnSpan(6),
                     static::getInput('stripe_test_account_id')->columnSpan(12),
-                    Button::to((new Path)->appApi.'/service/stripe/onboarding/?account=test', 'Collega account test')
-                        ->variant('primary')
-                        ->columnSpan(12),
                         
                 ])->columns(12)->columnSpan(1),
 
