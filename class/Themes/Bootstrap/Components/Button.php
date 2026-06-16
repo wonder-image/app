@@ -25,6 +25,8 @@ class Button extends Component
         $type = trim((string) ($schema['type'] ?? 'button'));
         $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
 
+        $classes[] = "text-decoration-none";
+
         $classes[] = ($schema['outline'] ?? false) ? "btn-outline-{$variant}" : "btn-{$variant}";
 
         if ($size !== '') {

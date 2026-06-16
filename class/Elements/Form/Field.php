@@ -75,8 +75,15 @@
 
         }
 
-        public function autocomplete(string $autocomplete):self
+        public function autocomplete(bool|string $autocomplete = true):self
         {
+            if ($autocomplete === true) {
+                $autocomplete = $this->type === 'email' ? 'email' : 'on';
+            } elseif ($autocomplete === false) {
+                $autocomplete = 'off';
+            } elseif (trim($autocomplete) === '') {
+                return $this->removeAttr('autocomplete');
+            }
 
             return $this->attr('autocomplete', $autocomplete);
 

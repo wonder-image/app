@@ -121,6 +121,7 @@ final class FormFieldElementFactory
         $value = $field->get('value');
         $error = trim((string) ($field->get('error') ?? ''));
         $attributes = AttributeString::parse((string) ($field->get('attribute') ?? ''));
+        $autocomplete = self::resolveAutocomplete($field, $element);
 
         if ($label === '') {
             $label = ucwords(str_replace(['_', '-'], ' ', $field->name));
@@ -152,6 +153,10 @@ final class FormFieldElementFactory
             $element->error($error);
         }
 
+        if ($autocomplete !== null) {
+            $attributes['autocomplete'] = $autocomplete;
+        }
+
         if ($attributes !== []) {
             $element->attributes($attributes);
         }
@@ -176,6 +181,27 @@ final class FormFieldElementFactory
                 $element->step((int) $timeStep);
             }
         }
+    }
+
+    private static function resolveAutocomplete(Input $field, ElementField $element): ?string
+    {
+        $autocomplete = $field->get('autocomplete');
+
+        if (is_string($autocomplete)) {
+            $autocomplete = trim($autocomplete);
+
+            return $autocomplete !== '' ? $autocomplete : null;
+        }
+
+        if ($autocomplete === false) {
+            return 'off';
+        }
+
+        if ($autocomplete !== true) {
+            return null;
+        }
+
+        return $element instanceof InputEmail ? 'email' : 'on';
     }
 
     private static function textareaElement(string $name, Input $field): ElementField

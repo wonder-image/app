@@ -38,6 +38,7 @@ abstract class Input
     protected array $schema = [
         'label' => '',
         'attribute' => '',
+        'autocomplete' => null,
         'value' => null,
         'options' => [],
         'search_bar' => false,
@@ -97,6 +98,20 @@ abstract class Input
     public function readonly(bool $readonly = true): static
     {
         return $readonly ? $this->attribute('readonly') : $this;
+    }
+
+    public function autocomplete(bool|string $autocomplete = true): static
+    {
+        if (is_string($autocomplete)) {
+            $autocomplete = trim($autocomplete);
+            $this->schema['autocomplete'] = $autocomplete !== '' ? $autocomplete : null;
+
+            return $this;
+        }
+
+        $this->schema['autocomplete'] = $autocomplete;
+
+        return $this;
     }
 
     public function multiple(bool $multiple = true): static
