@@ -8,4 +8,6 @@ skills-lock.json
 vendor/
 .phpdoc/
 COMMAND.md
+TODO.md
+AGENTS.md
 example/
