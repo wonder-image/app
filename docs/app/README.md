@@ -41,7 +41,7 @@ Il framework si capisce seguendo un'unica catena:
 | **Render tabelle** | Liste backend con `TableColumn` | [Render delle tabelle](concetti/tabelle/README.md) |
 | **Database** | `dataSchema()` + `tableSchema()`, migrazioni | [Model e Database](concetti/risorse/database.md) |
 | **Utenti e permessi** | Authority, ruoli, gestione utenti | [Utenti e Permessi](concetti/utenti/README.md) |
-| **Componenti** | Card, Container, Alert per i layout | [Componenti UI](concetti/componenti/README.md) |
+| **Componenti** | Card, Container, Alert, Button, Badge, Dropdown | [Componenti UI](concetti/componenti/README.md) |
 
 Per vedere come si incastrano (e i 4 flussi tipici: creazione, modifica,
 visualizzazione lista, accesso negato) parti dalla

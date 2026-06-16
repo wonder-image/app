@@ -38,7 +38,7 @@ Modulo → Risorsa → Form → Tabella → Database → Permessi → Componenti
    `ResourceRouteRegistrar` applica `Route::permit(...)`. Le chiavi vivono nel
    builder `app/config/app/permission.php` (+ merge moduli + `custom`).
    → [Builder permessi](utenti/permessi.md)
-7. **Componenti** — Card, Container, Alert (`class/Elements/Components/*`)
+7. **Componenti** — Card, Container, Alert, Button, Badge, Dropdown (`class/Elements/Components/*`)
    compongono i layout di form (`formLayoutSchema()`) e di tabella.
    → [Componenti UI](componenti/README.md)
 

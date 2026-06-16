@@ -14,16 +14,13 @@ class Link extends Component
     public function render($class): string
     {
         $schema = $class->getSchema();
-        $href = method_exists($class, 'getHref') ? (string) $class->getHref() : '';
         $label = method_exists($class, 'getLabel') ? (string) $class->getLabel() : '';
-        $target = trim((string) ($schema['target'] ?? ''));
-        $rel = trim((string) ($schema['rel'] ?? ''));
-        $title = trim((string) ($schema['title'] ?? ''));
         $icon = trim((string) ($schema['icon'] ?? ''));
         $iconPosition = (string) ($schema['icon_position'] ?? 'start');
         $muted = (bool) ($schema['muted'] ?? false);
+        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
 
-        $rawClass = $schema['attributes']['class'] ?? '';
+        $rawClass = $attributes['class'] ?? '';
         if (is_array($rawClass)) {
             $rawClass = implode(' ', array_map('strval', $rawClass));
         }
@@ -33,19 +30,12 @@ class Link extends Component
             $classes[] = 'text-body-secondary';
         }
 
-        $extras = [];
-        if ($target !== '') {
-            $extras[] = 'target="'.$this->escape($target).'"';
+        if ($classes !== []) {
+            $attributes['class'] = array_values(array_unique($classes));
+        } else {
+            unset($attributes['class']);
         }
-        if ($rel !== '') {
-            $extras[] = 'rel="'.$this->escape($rel).'"';
-        }
-        if ($title !== '') {
-            $extras[] = 'title="'.$this->escape($title).'"';
-        }
-
-        $classAttr = $classes === [] ? '' : ' class="'.$this->escape(implode(' ', $classes)).'"';
-        $extraAttr = $extras === [] ? '' : ' '.implode(' ', $extras);
+        $attributeString = $this->renderAttributes($attributes);
 
         $iconHtml = $icon !== '' ? '<i class="'.$this->escape($icon).'"></i>' : '';
         $labelHtml = $this->escape($label);
@@ -56,7 +46,7 @@ class Link extends Component
             default => $labelHtml,
         };
 
-        return'<a href="'.$this->escape($href).'"'.$classAttr.$extraAttr.'>'.$inner.'</a>';
+        return '<a'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$inner.'</a>';
 
     }
 }

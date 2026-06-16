@@ -4,6 +4,7 @@ namespace Wonder\Elements\Components;
 
 use Wonder\Elements\Component;
 use Wonder\Elements\Concerns\CanSpanColumn;
+use Wonder\Elements\Concerns\HasLinkAttributes;
 use Wonder\Elements\Concerns\HasText;
 use Wonder\Elements\Concerns\Renderer;
 
@@ -35,7 +36,17 @@ use Wonder\Elements\Concerns\Renderer;
  */
 class Text extends Component
 {
-    use CanSpanColumn, HasText, Renderer;
+    use CanSpanColumn, HasLinkAttributes, HasText, Renderer {
+        href as private;
+        getHref as private;
+        target as private;
+        blank as private;
+        external as private;
+        rel as private;
+        title as private;
+        onclick as private;
+        download as private;
+    }
 
     public function __construct(string $text = '')
     {
@@ -110,44 +121,17 @@ class Text extends Component
 
     /**
      * Shortcut per `->append(Link::to($href, $label))`. Le opzioni di
-     * `$options` vengono inoltrate ai setter di `Link`: `blank`,
-     * `target`, `rel`, `title`, `icon`, `class`, `muted`.
+     * `$options` vengono inoltrate al concern link condiviso:
+     * `blank`, `target`, `rel`, `title`, `onclick`, `download`,
+     * `icon`, `class`, `muted`, `attributes`.
      *
      * @param array<string, mixed> $options
      */
     public function link(string $href, string $label, array $options = []): static
     {
-        $link = Link::to($href, $label);
-
-        if (!empty($options['blank']) || !empty($options['external'])) {
-            $link->blank(true);
-        }
-
-        if (isset($options['target']) && is_string($options['target']) && $options['target'] !== '') {
-            $link->target($options['target']);
-        }
-
-        if (isset($options['rel']) && is_string($options['rel']) && $options['rel'] !== '') {
-            $link->rel($options['rel']);
-        }
-
-        if (isset($options['title']) && is_string($options['title']) && $options['title'] !== '') {
-            $link->title($options['title']);
-        }
-
-        if (isset($options['icon']) && is_string($options['icon']) && $options['icon'] !== '') {
-            $link->icon($options['icon'], (string) ($options['icon_position'] ?? 'start'));
-        }
-
-        if (isset($options['class']) && is_string($options['class']) && $options['class'] !== '') {
-            $link->class($options['class']);
-        }
-
-        if (!empty($options['muted'])) {
-            $link->muted(true);
-        }
-
-        return $this->append($link);
+        return $this->append(
+            $this->applyLinkOptions(Link::to($href, $label), $options)
+        );
     }
 
     /**

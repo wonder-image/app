@@ -41,12 +41,13 @@
 
         public function getAttr($key = null)
         {
+            $attributes = $this->getSchema('attributes');
 
-            if ($key == null || $this->getSchema('attributes') == null || $this->getSchema('attributes')[$key] == null) {
+            if ($key == null || !is_array($attributes) || !array_key_exists($key, $attributes)) {
                 return null;
             }
             
-            return $this->getSchema('attributes')[$key];
+            return $attributes[$key];
 
         }
 

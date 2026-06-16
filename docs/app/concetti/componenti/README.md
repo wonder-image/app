@@ -7,9 +7,10 @@ icon: puzzle-piece
 ## Cos'è
 
 I **componenti** sono i blocchi con cui si compongono i layout di form e di
-pagina nel backend: Card, Container, Alert, Accordion, ecc. Vivono in
-`class/Elements/Components/*` e si combinano con i campi (`FormInput`) per
-ottenere layout a colonne.
+pagina nel backend, ma anche frammenti UI riusabili come bottoni, badge,
+gruppi azioni e dropdown. Vivono in `class/Elements/Components/*` e si
+combinano con i campi (`FormInput`) per ottenere layout a colonne o CTA
+coerenti tra tema Bootstrap e tema Wonder.
 
 ## A cosa serve
 
@@ -30,12 +31,19 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `SectionTitle` | `Elements/Components/SectionTitle.php` | titolo di sezione |
 | `Link` | `Elements/Components/Link.php` | link |
 | `Tooltip` | `Elements/Components/Tooltip.php` | tooltip |
+| `Button` | `Elements/Components/Button.php` | bottone / CTA |
+| `Badge` | `Elements/Components/Badge.php` | badge / etichetta |
+| `ButtonGroup` | `Elements/Components/ButtonGroup.php` | gruppo di bottoni |
+| `Dropdown` | `Elements/Components/Dropdown.php` | bottone dropdown |
 
 I metodi di composizione arrivano da Concerns riusabili:
 
 - `components(array)` — figli del contenitore (`Concerns/IsContainer.php`)
 - `columns(int|array)` — numero di colonne (`Concerns/HasColumns.php`)
 - `columnSpan(int|array)` — quante colonne occupa (`Concerns/CanSpanColumn.php`)
+- `href()/blank()/target()/rel()/title()/onclick()` — attributi link-like
+  condivisi (`Concerns/HasLinkAttributes.php`) per `Link`, `Button`, `Badge`
+  e per i link inline composti da `Text`
 
 ## Esempio: layout di un form con Card
 
@@ -79,14 +87,62 @@ Alert::make('Operazione completata', 'success')
 `->level()`, `->dismissible()`. Livelli tipici: `info`, `success`, `warning`,
 `danger`.
 
+## Esempio: Button, Badge, Group, Dropdown
+
+```php
+use Wonder\Elements\Components\Badge;
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\ButtonGroup;
+use Wonder\Elements\Components\Dropdown;
+
+Button::make('Salva')
+    ->variant('success')
+    ->icon('bi bi-check2', 'start');
+
+Badge::make('Bozza')
+    ->variant('secondary')
+    ->outline();
+
+ButtonGroup::make([
+    Button::make('Annulla')->variant('secondary')->outline(),
+    Button::make('Pubblica')->variant('primary'),
+    Dropdown::make('Altro')
+        ->variant('secondary')
+        ->outline()
+        ->item('Duplica', '/duplicate')
+        ->item('Esporta CSV', '/export.csv', ['blank' => true])
+        ->divider()
+        ->button('Elimina', [
+            'attributes' => ['onclick' => "confirm('Eliminare?')"],
+        ]),
+])->label('Azioni record');
+```
+
+API principali:
+
+- `Button`: `variant()`, `outline()`, `size()`, `type()`, `disabled()`,
+  `active()`, `block()`, `nowrap()`, `icon()`, `arrow()`, `href()/blank()`,
+  `target()`, `rel()`, `title()`, `onclick()`, `download()`
+- `Badge`: `variant()`, `outline()`, `pill()`, `icon()`, `href()/blank()`,
+  `target()`, `rel()`, `title()`, `onclick()`, `download()`
+- `ButtonGroup`: `components()`, `add()`, `label()`, `toolbar()`,
+  `vertical()`, `size()`
+- `Dropdown`: `variant()`, `outline()`, `size()`, `direction()`, `align()`,
+  `item()`, `button()`, `divider()`, `header()`, `text()`
+- `Link`: `href()`, `blank()`, `target()`, `rel()`, `title()`, `onclick()`,
+  `download()`, `icon()`, `muted()`
+- `Text::link(...)`: stesse opzioni del concern link condiviso, più `icon`,
+  `class`, `muted`, `attributes`
+
 ## Collegamenti con il resto
 
 - I campi dentro le Card sono sempre `FormInput`/`FormField`: vedi
   [Form](../form/README.md).
 - Il layout della tabella usa una cornice analoga (`TableLayoutSchema`): vedi
   [Tabelle](../tabelle/tablecolumn.md).
-- I componenti rispettano il design system `wonder-image/lib` (classi `.wi-*`):
-  non inventare nuovi nomi `.wi-*` a livello framework.
+- I componenti rispettano il design system `wonder-image/lib` e i pattern
+  Wonder esistenti (`.btn`, `.badge`, `.btn-group`, `.wi-dropdown-*`,
+  `.wi-alert`): non inventare nuovi nomi `.wi-*` a livello framework.
 
 ## Errori comuni
 
@@ -95,6 +151,8 @@ Alert::make('Operazione completata', 'success')
 - **Colonne sballate** → `columns()` del contenitore e `columnSpan()` dei figli
   devono essere coerenti.
 - **HTML a mano per un riquadro** → usa `Card`/`Container`, non markup custom.
+- **CTA o badge scritti a mano** → usa `Button` / `Badge` / `ButtonGroup` /
+  `Dropdown`, non markup ad-hoc nel Resource o nella view.
 
 ## Charts
 

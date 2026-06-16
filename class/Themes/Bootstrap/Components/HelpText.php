@@ -49,56 +49,9 @@ class HelpText extends Text
                 continue;
             }
 
-            // Per il render del Link inline riusiamo il sibling `Text`
-            // (che ha già il metodo `renderInlineLink`). Visto che è
-            // privato, lo replichiamo qui in modo identico.
-            $output .= $this->renderInlineLinkLikeText($part);
+            $output .= $this->renderInlineLink($part);
         }
 
         return $output;
-    }
-
-    private function renderInlineLinkLikeText(\Wonder\Elements\Components\Link $link): string
-    {
-        $schema = $link->getSchema();
-        $href = $link->getHref();
-        $label = $link->getLabel();
-        $target = trim((string) ($schema['target'] ?? ''));
-        $rel = trim((string) ($schema['rel'] ?? ''));
-        $title = trim((string) ($schema['title'] ?? ''));
-        $icon = trim((string) ($schema['icon'] ?? ''));
-        $iconPosition = (string) ($schema['icon_position'] ?? 'start');
-        $muted = (bool) ($schema['muted'] ?? false);
-        $rawClass = (string) (($schema['attributes']['class'] ?? '') ?: '');
-
-        $classes = array_filter(array_map('trim', explode(' ', $rawClass)));
-        if ($muted) {
-            $classes[] = 'text-body-secondary';
-        }
-
-        $extras = [];
-        if ($target !== '') {
-            $extras[] = 'target="'.$this->escape($target).'"';
-        }
-        if ($rel !== '') {
-            $extras[] = 'rel="'.$this->escape($rel).'"';
-        }
-        if ($title !== '') {
-            $extras[] = 'title="'.$this->escape($title).'"';
-        }
-
-        $classAttr = $classes === [] ? '' : ' class="'.$this->escape(implode(' ', $classes)).'"';
-        $extraAttr = $extras === [] ? '' : ' '.implode(' ', $extras);
-
-        $iconHtml = $icon !== '' ? '<i class="'.$this->escape($icon).'"></i>' : '';
-        $labelHtml = $this->escape($label);
-
-        $inner = match ($icon !== '' ? $iconPosition : 'none') {
-            'end' => $labelHtml.' '.$iconHtml,
-            'start' => $iconHtml.' '.$labelHtml,
-            default => $labelHtml,
-        };
-
-        return '<a href="'.$this->escape($href).'"'.$classAttr.$extraAttr.'>'.$inner.'</a>';
     }
 }

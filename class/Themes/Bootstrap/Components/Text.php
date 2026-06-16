@@ -77,37 +77,27 @@ class Text extends Component
      * standalone ma senza il `<div>` di column-span esterno. Vivere come
      * `<a>` puro dentro al testo.
      */
-    private function renderInlineLink(Link $link): string
+    protected function renderInlineLink(Link $link): string
     {
         $schema = $link->getSchema();
-        $href = $link->getHref();
         $label = $link->getLabel();
-        $target = trim((string) ($schema['target'] ?? ''));
-        $rel = trim((string) ($schema['rel'] ?? ''));
-        $title = trim((string) ($schema['title'] ?? ''));
         $icon = trim((string) ($schema['icon'] ?? ''));
         $iconPosition = (string) ($schema['icon_position'] ?? 'start');
         $muted = (bool) ($schema['muted'] ?? false);
-        $rawClass = (string) (($schema['attributes']['class'] ?? '') ?: '');
+        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
+        $rawClass = (string) (($attributes['class'] ?? '') ?: '');
 
         $classes = array_filter(array_map('trim', explode(' ', $rawClass)));
         if ($muted) {
             $classes[] = 'text-body-secondary';
         }
 
-        $extras = [];
-        if ($target !== '') {
-            $extras[] = 'target="'.$this->escape($target).'"';
+        if ($classes !== []) {
+            $attributes['class'] = array_values(array_unique($classes));
+        } else {
+            unset($attributes['class']);
         }
-        if ($rel !== '') {
-            $extras[] = 'rel="'.$this->escape($rel).'"';
-        }
-        if ($title !== '') {
-            $extras[] = 'title="'.$this->escape($title).'"';
-        }
-
-        $classAttr = $classes === [] ? '' : ' class="'.$this->escape(implode(' ', $classes)).'"';
-        $extraAttr = $extras === [] ? '' : ' '.implode(' ', $extras);
+        $attributeString = $this->renderAttributes($attributes);
 
         $iconHtml = $icon !== '' ? '<i class="'.$this->escape($icon).'"></i>' : '';
         $labelHtml = $this->escape($label);
@@ -118,6 +108,6 @@ class Text extends Component
             default => $labelHtml,
         };
 
-        return '<a href="'.$this->escape($href).'"'.$classAttr.$extraAttr.'>'.$inner.'</a>';
+        return '<a'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$inner.'</a>';
     }
 }
