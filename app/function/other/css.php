@@ -7,12 +7,12 @@
 
         $PATH = $ROOT.'/assets/'.$_ENV['ASSETS_VERSION'].'/css/set-up/root.css';
 
-        $CSS_DEFAULT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_default', 'id', '1'), \Wonder\App\RuntimeDefaults::cssDefaultRow());
-        $CSS_INPUT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_input', 'id', '1'), \Wonder\App\RuntimeDefaults::cssInputRow());
+        $CSS_DEFAULT = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_default', 'id', '1'), \Wonder\App\SeedDefaults::cssDefaultRow());
+        $CSS_INPUT = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_input', 'id', '1'), \Wonder\App\SeedDefaults::cssInputRow());
 
-        $CSS_MODAL = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_modal', 'id', '1'), \Wonder\App\RuntimeDefaults::cssModalRow());
-        $CSS_DROPDOWN = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_dropdown', 'id', '1'), \Wonder\App\RuntimeDefaults::cssDropdownRow());
-        $CSS_ALERT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_alert', 'id', '1'), \Wonder\App\RuntimeDefaults::cssAlertRow());
+        $CSS_MODAL = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_modal', 'id', '1'), \Wonder\App\SeedDefaults::cssModalRow());
+        $CSS_DROPDOWN = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_dropdown', 'id', '1'), \Wonder\App\SeedDefaults::cssDropdownRow());
+        $CSS_ALERT = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_alert', 'id', '1'), \Wonder\App\SeedDefaults::cssAlertRow());
 
         $decodeFontFamily = static function ($fontId): string {
             $fontFamily = (string) (info('css_font', 'id', $fontId)->font_family ?? '');
@@ -182,7 +182,7 @@
         $RETURN .= "\n";
         $RETURN .= "/* Set-up colori testo */\n";
 
-        $CSS_DEFAULT = \Wonder\App\RuntimeDefaults::mergeRecordDefaults(info('css_default', 'id', '1'), \Wonder\App\RuntimeDefaults::cssDefaultRow());
+        $CSS_DEFAULT = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_default', 'id', '1'), \Wonder\App\SeedDefaults::cssDefaultRow());
 
         $RETURN .= "--tx-color: ".$CSS_DEFAULT->tx_color.";\n";
         $RETURN .= "--tx-color-rgb: ".hexToRgb($CSS_DEFAULT->tx_color).";\n";

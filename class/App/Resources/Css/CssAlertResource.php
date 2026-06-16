@@ -97,7 +97,7 @@ final class CssAlertResource extends CssSingleton
 
     protected static function formDefaults(): array
     {
-        return \Wonder\App\RuntimeDefaults::cssAlertRow();
+        return \Wonder\App\SeedDefaults::cssAlertRow();
     }
 
     public static function navigationSchema(): NavigationSchema

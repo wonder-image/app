@@ -162,6 +162,14 @@ comportamenti diversi. Vedi [Definire una Resource](resource.md).
 `app/build/row` e `app/build/update`. Dettagli in
 [Installazione e Deploy](../../piattaforma/installazione-e-deploy.md).
 
+Convenzione architetturale:
+
+- `app/build/row` contiene seed/bootstrap idempotenti che scrivono o
+  riallineano righe applicative.
+- I payload di default per questi seed vivono in `Wonder\App\SeedDefaults`.
+- `Wonder\App\RuntimeDefaults` resta riservato ai fallback runtime
+  (rendering, config in memoria, asset/style defaults letti a runtime).
+
 ## Multi-database
 
 `DB_DATABASE` accetta più database con chiavi:

@@ -114,6 +114,9 @@ Fa questo:
 
 - applica tabelle
 - esegue i file in `build/row`
+  - `build/row` e' il lifecycle di seed/bootstrap idempotente
+  - i payload statici condivisi dei seed stanno in `Wonder\App\SeedDefaults`
+  - `Wonder\App\RuntimeDefaults` non e' il posto giusto per i row seed: resta per fallback runtime
 - esegue i file in `build/update` (include: import `shared/sync-data.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
 
 Con `--local` esegue anche:

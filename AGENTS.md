@@ -30,6 +30,7 @@ Key subareas:
 - `class/App/ResourceSchema`: high-level form/table/repeater DSL (used by `Resource::formSchema()`)
 - `class/App/Support/Repeater.php`: repeater request + relation sync
 - `class/App/Support/FormFieldElementFactory.php`: bridge from `ResourceSchema/FormField` DSL to `Elements/Form/Components/*` (low-level objects)
+- `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
 - `class/Themes/Form/AbstractFieldRenderer.php`: base condivisa per i Field renderer di tutti i temi (schema/error/value/label helpers, render+renderField hook)
 - `class/Themes/Wonder/Form`: HTML rendering for the public-facing site (frontend theme, classes `wi-*`)
@@ -127,6 +128,7 @@ php forge start
 
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.
+- `Wonder\\App\\RuntimeDefaults` is for runtime fallbacks used while rendering or bootstrapping in-memory config; `Wonder\\App\\SeedDefaults` is for idempotent seed/bootstrap payloads used by `build/row` and seed-backed singleton forms.
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
 - `Credentials::loadEnv()` must resolve `.env` from the consumer `ROOT`, never from the package directory under `vendor/`.
 - Backend/API routes are driven from `app/config/routes` and the `ResourceRouteRegistrar`.

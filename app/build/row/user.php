@@ -1,10 +1,10 @@
 <?php
 
-    $adminUsername = trim((string) ($_ENV['USER_USERNAME'] ?? \Wonder\App\RuntimeDefaults::adminUsername()));
-    $adminName = trim((string) ($_ENV['USER_NAME'] ?? \Wonder\App\RuntimeDefaults::adminName()));
-    $adminSurname = trim((string) ($_ENV['USER_SURNAME'] ?? \Wonder\App\RuntimeDefaults::adminSurname()));
-    $adminEmail = trim((string) ($_ENV['USER_EMAIL'] ?? \Wonder\App\RuntimeDefaults::adminEmail()));
-    $adminPassword = (string) ($_ENV['USER_PASSWORD'] ?? \Wonder\App\RuntimeDefaults::adminPassword());
+    $adminUsername = trim((string) ($_ENV['USER_USERNAME'] ?? \Wonder\App\SeedDefaults::adminUsername()));
+    $adminName = trim((string) ($_ENV['USER_NAME'] ?? \Wonder\App\SeedDefaults::adminName()));
+    $adminSurname = trim((string) ($_ENV['USER_SURNAME'] ?? \Wonder\App\SeedDefaults::adminSurname()));
+    $adminEmail = trim((string) ($_ENV['USER_EMAIL'] ?? \Wonder\App\SeedDefaults::adminEmail()));
+    $adminPassword = (string) ($_ENV['USER_PASSWORD'] ?? \Wonder\App\SeedDefaults::adminPassword());
 
     if (!sqlSelect('user', [ 'username' => $adminUsername ], 1)->exists) {
 
@@ -33,7 +33,7 @@
         $values = [
             "name" => "API",
             "surname" => "System",
-            "email" => \Wonder\App\RuntimeDefaults::systemEmail(),
+            "email" => \Wonder\App\SeedDefaults::systemEmail(),
             "username" => "@system",
             "password" => $adminPassword,
             "authority" => "api_internal_user",

@@ -2,12 +2,7 @@
 
     if (!sqlSelect('analytics', ['id' => 1], 1)->exists) {
             
-        $values = [
-            "tag_manager" => "",
-            "active_tag_manager" => "false",
-            "pixel_facebook" => "",
-            "active_pixel_facebook" => "false"
-        ];
+        $values = \Wonder\App\SeedDefaults::analyticsRow();
         $values['id'] = 1;
 
         sqlInsert('analytics', $values);
@@ -17,10 +12,7 @@
 
     if (!sqlSelect('security', ['id' => 1], 1)->exists) {
 
-        $values = [
-            "api_key" => $API->key,
-            "mail_service" => "phpmailer"
-        ];
+        $values = \Wonder\App\SeedDefaults::securityRow((string) ($API->key ?? ''));
         $values['id'] = 1;
         sqlInsert('security', $values);
 

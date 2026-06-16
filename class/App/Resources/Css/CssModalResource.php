@@ -81,7 +81,7 @@ final class CssModalResource extends CssSingleton
 
     protected static function formDefaults(): array
     {
-        return \Wonder\App\RuntimeDefaults::cssModalRow();
+        return \Wonder\App\SeedDefaults::cssModalRow();
     }
 
     public static function navigationSchema(): NavigationSchema

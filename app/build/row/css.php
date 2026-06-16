@@ -23,7 +23,7 @@
 
     if (!sqlSelect('css_default', ['id' => 1], 1)->exists) {
                     
-        $values = \Wonder\App\RuntimeDefaults::cssDefaultRow();
+        $values = \Wonder\App\SeedDefaults::cssDefaultRow();
         $values['id'] = 1;
 
         sqlInsert('css_default', $values);
@@ -54,7 +54,7 @@
 
     if (!sqlSelect('css_input', ['id' => 1], 1)->exists) {
                     
-        $values = \Wonder\App\RuntimeDefaults::cssInputRow();
+        $values = \Wonder\App\SeedDefaults::cssInputRow();
         $values['id'] = 1;
 
         sqlInsert('css_input', $values);
@@ -63,7 +63,7 @@
 
     if (!sqlSelect('css_modal', ['id' => 1], 1)->exists) {
                     
-        $values = \Wonder\App\RuntimeDefaults::cssModalRow();
+        $values = \Wonder\App\SeedDefaults::cssModalRow();
         $values['id'] = 1;
 
         sqlInsert('css_modal', $values);
@@ -72,7 +72,7 @@
 
     if (!sqlSelect('css_dropdown', ['id' => 1], 1)->exists) {
                     
-        $values = \Wonder\App\RuntimeDefaults::cssDropdownRow();
+        $values = \Wonder\App\SeedDefaults::cssDropdownRow();
         $values['id'] = 1;
 
         sqlInsert('css_dropdown', $values);
@@ -81,7 +81,7 @@
 
     if (!sqlSelect('css_alert', ['id' => 1], 1)->exists) {
                     
-        $values = \Wonder\App\RuntimeDefaults::cssAlertRow();
+        $values = \Wonder\App\SeedDefaults::cssAlertRow();
         $values['id'] = 1;
 
         sqlInsert('css_alert', $values);

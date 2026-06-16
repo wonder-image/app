@@ -18,8 +18,8 @@ abstract class CssSingleton extends SingletonResource
      * Valori di default mostrati nel form backend quando il record
      * singleton è assente o ha campi vuoti.
      *
-     * Le pagine CSS condividono i default runtime con la generazione
-     * del `root.css` (vedi `RuntimeDefaults::css*Row()` usati in
+     * Le pagine CSS condividono i default seed con la generazione
+     * del `root.css` (vedi `SeedDefaults::css*Row()` usati in
      * `app/function/other/css.php`). Senza questo merge, il form di
      * modifica mostrerebbe campi vuoti finché il record non viene
      * salvato almeno una volta — anche se il CSS generato usa già i

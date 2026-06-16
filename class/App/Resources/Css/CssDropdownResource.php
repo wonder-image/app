@@ -84,7 +84,7 @@ final class CssDropdownResource extends CssSingleton
 
     protected static function formDefaults(): array
     {
-        return \Wonder\App\RuntimeDefaults::cssDropdownRow();
+        return \Wonder\App\SeedDefaults::cssDropdownRow();
     }
 
     public static function navigationSchema(): NavigationSchema

@@ -7,7 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
-use Wonder\App\RuntimeDefaults;
+use Wonder\App\SeedDefaults;
 
 abstract class LocalEnvironmentCommand extends Config
 {
@@ -86,11 +86,11 @@ abstract class LocalEnvironmentCommand extends Config
 
     protected function defaultEnvTemplate(): string
     {
-        $adminName = RuntimeDefaults::adminName();
-        $adminSurname = RuntimeDefaults::adminSurname();
-        $adminEmail = RuntimeDefaults::adminEmail();
-        $adminUsername = RuntimeDefaults::adminUsername();
-        $adminPassword = RuntimeDefaults::adminPassword();
+        $adminName = SeedDefaults::adminName();
+        $adminSurname = SeedDefaults::adminSurname();
+        $adminEmail = SeedDefaults::adminEmail();
+        $adminUsername = SeedDefaults::adminUsername();
+        $adminPassword = SeedDefaults::adminPassword();
 
         return <<<ENV
 # App Info

@@ -227,7 +227,7 @@ final class CssDefaultResource extends CssSingleton
 
     protected static function formDefaults(): array
     {
-        return \Wonder\App\RuntimeDefaults::cssDefaultRow();
+        return \Wonder\App\SeedDefaults::cssDefaultRow();
     }
 
     public static function navigationSchema(): NavigationSchema

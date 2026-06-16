@@ -145,7 +145,7 @@ final class CssInputResource extends CssSingleton
 
     protected static function formDefaults(): array
     {
-        return \Wonder\App\RuntimeDefaults::cssInputRow();
+        return \Wonder\App\SeedDefaults::cssInputRow();
     }
 
     public static function navigationSchema(): NavigationSchema

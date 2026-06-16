@@ -1,8 +1,8 @@
 <?php
 
     $SITEMAP_FILE = dirname($ROOT_APP)."/vendor-static/xml-sitemaps/data/generator.conf";
-    $sitemapLogin = trim((string) ($_ENV['USER_USERNAME'] ?? \Wonder\App\RuntimeDefaults::adminUsername()));
-    $sitemapPassword = (string) ($_ENV['USER_PASSWORD'] ?? 'admin');
+    $sitemapLogin = trim((string) ($_ENV['USER_USERNAME'] ?? \Wonder\App\SeedDefaults::adminUsername()));
+    $sitemapPassword = (string) ($_ENV['USER_PASSWORD'] ?? \Wonder\App\SeedDefaults::adminPassword());
 
     $ARRAY = [
         "xs_inc_skip" => "\.(xml|doc|docx|eps|ps|txt|rtf|ppt|xls|rss|pdf)",
