@@ -26,4 +26,9 @@ final class SocietyLegalAddress extends Model
     {
         return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->dataSchema();
     }
+
+    public static function decorate(array $row): array
+    {
+        return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->decorate($row);
+    }
 }

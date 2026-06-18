@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
+use Wonder\Support\Prettify\Address as PrettifyAddress;
 
 final class AddressExtension
 {
@@ -303,10 +304,49 @@ final class AddressExtension
         return array_keys($this->labels());
     }
 
+    public function decorate(array $row): array
+    {
+        $address = PrettifyAddress::prettifyRow(
+            $row,
+            $this->prefix !== '' ? $this->prefix : null,
+            $this->mode,
+        );
+
+        $row[$this->computedKey('address')] = $address->line ?? '--';
+        $row[$this->computedKey('prettyAddress')] = $address->pretty ?? '--';
+        $row[$this->computedKey('prettyPDF')] = $address->prettyPDF ?? '--';
+
+        if (property_exists($address, 'prettyPhone')) {
+            $row[$this->computedKey('prettyPhone')] = $address->prettyPhone ?? '';
+        }
+
+        return $row;
+    }
+
+    public function decorateKeys(): array
+    {
+        $keys = [
+            'address' => $this->computedKey('address'),
+            'prettyAddress' => $this->computedKey('prettyAddress'),
+            'prettyPDF' => $this->computedKey('prettyPDF'),
+        ];
+
+        if ($this->withPhone || $this->withContactName || $this->withType || $this->withCompanyData) {
+            $keys['prettyPhone'] = $this->computedKey('prettyPhone');
+        }
+
+        return $keys;
+    }
+
     private function key(string $name): string
     {
         $name = $this->normalizeFieldName($name);
 
+        return $this->prefix !== '' ? $this->prefix.'_'.$name : $name;
+    }
+
+    private function computedKey(string $name): string
+    {
         return $this->prefix !== '' ? $this->prefix.'_'.$name : $name;
     }
 

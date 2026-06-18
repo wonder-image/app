@@ -181,6 +181,25 @@ sulla **Resource** (`mutateRequestValues`, `afterStore`, `afterUpdate`,
 `afterDelete`), così lo stesso Model può essere usato da Resource diverse con
 comportamenti diversi. Vedi [Definire una Resource](resource.md).
 
+Esiste però un hook di **lettura** puro: `Model::decorate(array $row): array`.
+Serve per arricchire ogni riga ritornata da `all()`, `find()`, `findById()`
+con campi derivati, URL calcolati o payload già normalizzati.
+
+Esempio con una schema extension:
+
+```php
+use Wonder\App\Schema\Extensions\AddressExtension;
+
+public static function decorate(array $row): array
+{
+    return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->decorate($row);
+}
+```
+
+In questo modo l'extension legge già `legal_street`, `legal_city`, ecc. e
+aggiunge automaticamente chiavi derivate come `legal_address`,
+`legal_prettyAddress`, `legal_prettyPDF`.
+
 ## Migrazioni e aggiornamento tabelle
 
 - In locale: `php forge update --local`

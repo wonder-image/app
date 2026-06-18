@@ -122,6 +122,7 @@ Supporta:
 - campi dati (`dataSchema()`)
 - DDL (`tableSchema()`)
 - form backend (`formSchema()`)
+- decorazione righe (`decorate()`)
 
 I profili disponibili sono:
 
@@ -149,11 +150,42 @@ I profili disponibili sono:
 Per esempio, `AddressExtension::billing()` definisce il campo `type`, ma non
 introduce da sola lo show/hide first-class dei campi `private`/`business`.
 
+## Decorare una riga del Model
+
+Se l'extension conosce abbastanza bene il bundle dati, puo anche esporre un
+helper puro per arricchire una riga letta dal Model.
+
+`AddressExtension::decorate()` evita due duplicazioni tipiche:
+
+- passare a mano ogni colonna prefissata al formatter
+- rimappare a mano il risultato su chiavi nuovamente prefissate
+
+Esempio:
+
+```php
+use Wonder\App\Schema\Extensions\AddressExtension;
+
+public static function decorate(array $row): array
+{
+    return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->decorate($row);
+}
+```
+
+Per l'indirizzo, la extension aggiunge automaticamente chiavi derivate come:
+
+- `address`, `prettyAddress`, `prettyPDF`
+- con prefisso: `legal_address`, `legal_prettyAddress`, `legal_prettyPDF`
+- se presenti campi telefono: anche `prettyPhone` / `legal_prettyPhone`
+
+Internamente usa `Wonder\Support\Prettify\Address::prettifyRow(...)`, che legge
+la riga gia prefissata senza costringerti a fare mapping manuale.
+
 ## Checklist
 
 - [ ] la classe vive sotto `class/App/Schema/Extensions`
 - [ ] espone frammenti riusabili, non side effect
 - [ ] copre almeno `labels()`, `dataSchema()`, `tableSchema()`, `formSchema()`
+- [ ] eventuali helper come `decorate()` restano puri e senza query/side effect
 - [ ] usa `__t()` per le label shipped dal framework
 - [ ] la documentazione `docs/app/*`, `AGENTS.md` e la skill Wonder sono
       allineate se il pattern diventa convenzione architetturale

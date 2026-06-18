@@ -34,4 +34,9 @@ final class SocietyAddress extends Model
             Field::key('timetable')->text()->sanitize(false),
         ];
     }
+
+    public static function decorate(array $row): array
+    {
+        return AddressExtension::simple(linkKey: 'gmaps')->decorate($row);
+    }
 }
