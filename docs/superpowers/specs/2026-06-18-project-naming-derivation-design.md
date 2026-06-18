@@ -16,22 +16,27 @@ l'**ultimo segmento separato da `-` è il TLD**.
 
 Esempi: `wonderimage-it`, `spingy-it`, `progetto-site`, `acme-shop-com`.
 
-## Due identità distinte (oggi erroneamente unificate)
+## Un'unica identità, tre separatori (+ il dominio)
 
-| Cartella          | `APP_DOMAIN`      | `APP_URL` prod              | `APP_URL` locale (Herd)      | composer `name`           | `DB_DATABASE`        | `DB_USERNAME`       |
-|-------------------|-------------------|-----------------------------|------------------------------|---------------------------|----------------------|---------------------|
-| `wonderimage-it`  | `wonderimage.it`  | `https://wonderimage.it`    | `https://wonderimage.test`   | `wonder-image/wonderimage`| `main:wonderimage`   | `wonderimage_user`  |
-| `progetto-site`   | `progetto.site`   | `https://progetto.site`     | `https://progetto.test`      | `wonder-image/progetto`   | `main:progetto`      | `progetto_user`     |
-| `acme-shop-com`   | `acme-shop.com`   | `https://acme-shop.com`     | `https://acme-shop.test`     | `wonder-image/acme-shop`  | `main:acme_shop`     | `acme_shop_user`    |
+Il **nome progetto** è quello della cartella `<name>-<tld>` riformattato per
+target: cambia solo il **separatore dell'ultimo segmento (il TLD)**. Il TLD
+**resta sempre** parte del nome (non viene strippato): è solo reso `-`, `_` o `.`.
+
+| Cartella          | `APP_DOMAIN` (`.`) | `APP_URL` prod              | `APP_URL` locale (Herd)      | composer `name` (kebab `-`)   | `DB_DATABASE` (snake `_`) | `DB_USERNAME`           |
+|-------------------|--------------------|-----------------------------|------------------------------|-------------------------------|---------------------------|-------------------------|
+| `wonderimage-it`  | `wonderimage.it`   | `https://wonderimage.it`    | `https://wonderimage.test`   | `wonder-image/wonderimage-it` | `main:wonderimage_it`     | `wonderimage_it_user`   |
+| `progetto-site`   | `progetto.site`    | `https://progetto.site`     | `https://progetto.test`      | `wonder-image/progetto-site`  | `main:progetto_site`      | `progetto_site_user`    |
+| `acme-shop-com`   | `acme-shop.com`    | `https://acme-shop.com`     | `https://acme-shop.test`     | `wonder-image/acme-shop-com`  | `main:acme_shop_com`      | `acme_shop_com_user`    |
 
 ### Regole di formato
-- **`APP_DOMAIN`**: dominio **con estensione** (`name.tld`). `.site` è un TLD
-  valido a tutti gli effetti per il dominio.
-- **project name** (composer): **kebab**, TLD **strippato**. È il punto in cui
-  l'istruzione "non considerare `.site`" si applica: `.site`/`-site` (come ogni
-  TLD) non fa parte del nome progetto.
-- **DB** (`DB_DATABASE` main, `DB_USERNAME`): **snake** del project name; lo
-  username è `<snake>_user`.
+- **`APP_DOMAIN`**: dominio **con estensione** (`name.tld`, separatore `.`).
+  `.site` è un TLD valido a tutti gli effetti.
+- **project name** (composer): **kebab** (separatore `-`), **TLD incluso**:
+  `wonderimage-it`. È lo stesso identificatore del dominio, solo col `-`.
+- **DB** (`DB_DATABASE` main, `DB_USERNAME`): **snake** (separatore `_`), **TLD
+  incluso**: `wonderimage_it`; username `<snake>_user` → `wonderimage_it_user`.
+- **Host Herd locale**: il TLD reale viene sostituito con `.test` →
+  `wonderimage.test` (qui, e solo qui, l'ultimo segmento è rimpiazzato).
 - Le **chiavi** env NON cambiano (`DB_DATABASE`/`DB_USERNAME` restano tali);
   cambia solo il **valore derivato**. `EnvCompat`/`Credentials` (alias
   `DB_USER`/`DB_NAME`) non vengono toccati.
@@ -55,26 +60,26 @@ Esempi: `wonderimage-it`, `spingy-it`, `progetto-site`, `acme-shop-com`.
 - Nuovo helper `domainTld(string $value): string` — ritorna il TLD (`it`, `site`,
   `com`, …) se l'ultimo segmento (`-` o `.`) è in whitelist, altrimenti `''`.
 - Riscrivere `defaultAppDomain(cwd)`: ricostruisce il **dominio completo**
-  `name.tld` usando `defaultProjectLabel()` (per `name`) + `domainTld()` (per il
-  TLD). Se non c'è TLD riconosciuto ritorna `''` (→ il chiamante chiede il dominio).
-- Il nome composer deriva dal **project label della cartella** (kebab), non da
-  `APP_DOMAIN`: evita che `wonderimage.it` rientri come `wonderimage-it`.
-  `composerProjectName()` continua a normalizzare ma riceve la label già
-  TLD-strippata.
-- `buildAppUrl()` / `buildHerdHost()` restano invariati: funzionano già
-  correttamente una volta che `APP_DOMAIN` contiene l'estensione.
+  `name.tld` usando `defaultProjectLabel()` (per `name`, TLD strippato) +
+  `domainTld()` (per il TLD). Se non c'è TLD riconosciuto ritorna `''` (→ il
+  chiamante chiede il dominio).
+- Nuovo helper `projectName(cwd, fallbackDomain)`: kebab della **cartella con
+  TLD incluso** (`normalizeProjectSlug`, non `defaultProjectLabel`) →
+  `wonderimage-it`. Fallback sul kebab del dominio. Alimenta il nome composer.
+- `buildAppUrl()` / `buildHerdHost()` restano invariati: usano `defaultProjectLabel()`
+  (TLD strippato) per l'host Herd e funzionano una volta che `APP_DOMAIN`
+  contiene l'estensione.
 
 ### 2. `class/Console/Commands/LocalEnvironmentCommand.php`
-- `deriveDatabaseNameFromAppDomain()`: strippare prima il TLD via
-  `defaultProjectLabel()` e poi fare snake-case, così `wonderimage.it` →
-  `wonderimage` (non `wonderimage_it`). `buildDefaultDbUsername()` produce di
-  conseguenza `wonderimage_user`.
+- `deriveDatabaseNameFromAppDomain()`: snake-case via `normalizeProjectSlug()`
+  **mantenendo il TLD**, così `wonderimage.it` / `wonderimage-it` →
+  `wonderimage_it`. `buildDefaultDbUsername()` produce `wonderimage_it_user`.
 
 ### 3. `class/Console/Commands/DbInit.php`
 - Scrivere `APP_DOMAIN` come **dominio completo con estensione** (coerente con
   `config`), non come slug.
-- Derivare nome DB e username dal **project label della cartella**, così
-  `db:init` resta allineato a `config`.
+- Derivare nome DB e username dal **project name della cartella** (kebab con TLD),
+  così `db:init` resta allineato a `config`.
 
 ### 4. `class/Console/Commands/LocalStart.php` (impatto indiretto)
 - Condivide `defaultAppDomain()`: ora che ritorna il dominio completo, il
@@ -87,11 +92,11 @@ Esempi: `wonderimage-it`, `spingy-it`, `progetto-site`, `acme-shop-com`.
 
 Coprire con unit test deterministici i casi della tabella (più gli edge):
 
-- `wonderimage-it` → domain `wonderimage.it`, composer `wonder-image/wonderimage`,
-  DB `wonderimage` / `wonderimage_user`.
-- `progetto-site` → domain `progetto.site` (`.site` tenuto nel dominio, strippato
-  dal nome), composer `wonder-image/progetto`.
-- `acme-shop-com` → DB snake `acme_shop`, username `acme_shop_user`.
+- `wonderimage-it` → domain `wonderimage.it`, composer `wonder-image/wonderimage-it`,
+  DB `wonderimage_it` / `wonderimage_it_user`.
+- `progetto-site` → domain `progetto.site` (`.site` come TLD), composer
+  `wonder-image/progetto-site`, DB `progetto_site`.
+- `acme-shop-com` → DB snake `acme_shop_com`, username `acme_shop_com_user`.
 - `wonderimage` (no TLD) → `defaultAppDomain` ritorna `''`; project name
   `wonderimage`.
 - `acme-foo` (segmento finale non-TLD) → project name `acme-foo`, dominio chiesto.

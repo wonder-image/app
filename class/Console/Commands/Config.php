@@ -1379,12 +1379,14 @@ class Config extends Command
     }
 
     /**
-     * Nome di progetto canonico (kebab, SENZA estensione), usato per il `name`
-     * di composer e — in forma snake — per i nomi DB.
+     * Nome di progetto canonico in **kebab, TLD INCLUSO** (`wonderimage-it`),
+     * usato per il `name` di composer e — in forma snake (`wonderimage_it`) —
+     * per i nomi DB. È lo stesso identificatore del dominio (`wonderimage.it`)
+     * con solo il separatore diverso.
      *
      * Fonte di verità: il nome della **cartella** di progetto (`<name>-<tld>`).
-     * Se la cartella non è utilizzabile, fallback sulla label del dominio
-     * passato (`APP_DOMAIN`). Vedi
+     * Se la cartella non è utilizzabile, fallback sul kebab del dominio passato
+     * (`APP_DOMAIN`). Vedi
      * docs/superpowers/specs/2026-06-18-project-naming-derivation-design.md.
      */
     protected function projectName(string $cwd, string $fallbackDomain = ''): string
@@ -1392,14 +1394,14 @@ class Config extends Command
         $folder = trim(basename($cwd));
 
         if ($folder !== '' && $folder !== '.' && $folder !== DIRECTORY_SEPARATOR) {
-            $label = $this->defaultProjectLabel($folder);
+            $slug = $this->normalizeProjectSlug($folder);
 
-            if ($label !== '') {
-                return $label;
+            if ($slug !== '') {
+                return $slug;
             }
         }
 
-        return $this->defaultProjectLabel($fallbackDomain);
+        return $this->normalizeProjectSlug($fallbackDomain);
     }
 
     /**

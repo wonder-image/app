@@ -135,54 +135,62 @@ check('defaultAppDomain: cartella con segmento non-TLD → vuoto', function () u
     assertSame('', $config->call('defaultAppDomain', '/srv/sites/acme-foo'));
 });
 
-// --- projectName(): nome progetto dalla cartella (fallback dominio) ---
+// --- projectName(): nome progetto dalla cartella, kebab CON TLD ---
 
-check('projectName: dalla cartella wonderimage-it → wonderimage', function () use ($config) {
-    assertSame('wonderimage', $config->call('projectName', '/srv/sites/wonderimage-it', ''));
+check('projectName: dalla cartella wonderimage-it → wonderimage-it (TLD tenuto)', function () use ($config) {
+    assertSame('wonderimage-it', $config->call('projectName', '/srv/sites/wonderimage-it', ''));
 });
 
-check('projectName: cartella inutilizzabile → fallback dal dominio', function () use ($config) {
-    assertSame('wonderimage', $config->call('projectName', '/', 'wonderimage.it'));
+check('projectName: progetto-site → progetto-site (TLD tenuto)', function () use ($config) {
+    assertSame('progetto-site', $config->call('projectName', '/srv/sites/progetto-site', ''));
 });
 
-check('composer name: wonder-image/<projectName kebab>', function () use ($config) {
+check('projectName: cartella inutilizzabile → fallback dal dominio (kebab con TLD)', function () use ($config) {
+    assertSame('wonderimage-it', $config->call('projectName', '/', 'wonderimage.it'));
+});
+
+check('composer name: wonder-image/<projectName kebab con TLD>', function () use ($config) {
     $label = $config->call('projectName', '/srv/sites/acme-shop-com', '');
-    assertSame('wonder-image/acme-shop', 'wonder-image/' . $label);
+    assertSame('wonder-image/acme-shop-com', 'wonder-image/' . $label);
 });
 
-// --- DB: snake del project name, username con _user ---
+// --- DB: snake del project name (TLD tenuto), username con _user ---
 
-check('DB name: wonderimage.it → wonderimage (snake, no estensione)', function () use ($local) {
-    assertSame('wonderimage', $local->call('deriveDatabaseNameFromAppDomain', 'wonderimage.it'));
+check('DB name: wonderimage-it → wonderimage_it (snake con TLD)', function () use ($local) {
+    assertSame('wonderimage_it', $local->call('deriveDatabaseNameFromAppDomain', 'wonderimage-it'));
 });
 
-check('DB name: acme-shop-com → acme_shop (snake)', function () use ($local) {
-    assertSame('acme_shop', $local->call('deriveDatabaseNameFromAppDomain', 'acme-shop-com'));
+check('DB name: dal dominio wonderimage.it → wonderimage_it', function () use ($local) {
+    assertSame('wonderimage_it', $local->call('deriveDatabaseNameFromAppDomain', 'wonderimage.it'));
 });
 
-check('DB name: progetto-site → progetto', function () use ($local) {
-    assertSame('progetto', $local->call('deriveDatabaseNameFromAppDomain', 'progetto-site'));
+check('DB name: acme-shop-com → acme_shop_com (snake con TLD)', function () use ($local) {
+    assertSame('acme_shop_com', $local->call('deriveDatabaseNameFromAppDomain', 'acme-shop-com'));
 });
 
-check('DB username: acme_shop → acme_shop_user', function () use ($local) {
+check('DB name: progetto-site → progetto_site', function () use ($local) {
+    assertSame('progetto_site', $local->call('deriveDatabaseNameFromAppDomain', 'progetto-site'));
+});
+
+check('DB username: da acme-shop-com → acme_shop_com_user', function () use ($local) {
     $db = $local->call('deriveDatabaseNameFromAppDomain', 'acme-shop-com');
-    assertSame('acme_shop_user', $local->call('buildDefaultDbUsername', $db));
+    assertSame('acme_shop_com_user', $local->call('buildDefaultDbUsername', $db));
 });
 
 // --- updateComposerName(): scrive wonder-image/<kebab> nel composer.json ---
 
-check('updateComposerName: scrive wonder-image/acme-shop (kebab)', function () use ($config) {
+check('updateComposerName: scrive wonder-image/acme-shop-com (kebab con TLD)', function () use ($config) {
     $tmp = sys_get_temp_dir() . '/wi-composer-' . getmypid() . '-' . uniqid() . '.json';
     file_put_contents($tmp, json_encode(['name' => 'wonder-image/app'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
 
     $output = new \Symfony\Component\Console\Output\BufferedOutput();
-    $ok = $config->call('updateComposerName', $tmp, 'acme-shop', $output);
+    $ok = $config->call('updateComposerName', $tmp, 'acme-shop-com', $output);
 
     $written = json_decode((string) file_get_contents($tmp), true);
     @unlink($tmp);
 
     assertSame(true, $ok, 'updateComposerName deve avere successo');
-    assertSame('wonder-image/acme-shop', $written['name'] ?? null);
+    assertSame('wonder-image/acme-shop-com', $written['name'] ?? null);
 });
 
 echo "\n";
