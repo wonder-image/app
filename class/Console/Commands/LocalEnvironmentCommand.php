@@ -269,7 +269,10 @@ ENV;
 
     protected function deriveDatabaseNameFromAppDomain(string $appDomain): string
     {
-        $database = $this->normalizeProjectSlug($appDomain);
+        // Snake del PROJECT NAME (TLD strippato): `wonderimage.it` →
+        // `wonderimage`, non `wonderimage_it`. `defaultProjectLabel()` è
+        // idempotente su una label già pulita.
+        $database = $this->defaultProjectLabel($appDomain);
         $database = str_replace('-', '_', $database);
         $database = preg_replace('/[^a-z0-9_]+/', '', $database);
         $database = preg_replace('/_+/', '_', (string) $database);

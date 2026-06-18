@@ -157,12 +157,12 @@ class LocalStart extends LocalEnvironmentCommand
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
-        // Allineamento coi nuovi default: strippiamo la TLD invece di
-        // applicare dot→dash. Senza questo, un APP_DOMAIN già scritto
-        // dalla vecchia logica (`fatimagabrielewedding-com`) non
-        // matcherebbe il nuovo default (`fatimagabrielewedding`) e
-        // continuerebbe a sovrascriverlo ad ogni `forge start`.
-        $existingAppDomain = $this->defaultProjectLabel($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+        // APP_DOMAIN è il dominio COMPLETO con estensione (`wonderimage.it`).
+        // Confronto like-for-like (dominio vs dominio): un valore legacy
+        // strippato/dash (`wonderimage` o `wonderimage-com`) differisce dal
+        // nuovo default `wonderimage.it`, quindi il messaggio di sync segnala
+        // solo le migrazioni reali e non scatta a ogni `forge start`.
+        $existingAppDomain = $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
         $appDomain = $this->defaultAppDomain($cwd);
 
         if ($appDomain !== '' && $appDomain !== $existingAppDomain) {

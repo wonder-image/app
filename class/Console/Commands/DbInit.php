@@ -102,10 +102,12 @@ class DbInit extends LocalEnvironmentCommand
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
-        $appDomainOption = $this->normalizeProjectSlug(trim((string) $input->getOption('app-domain')));
+        // APP_DOMAIN è il dominio COMPLETO con estensione (`wonderimage.it`),
+        // non uno slug: `normalizeDomain` preserva il TLD.
+        $appDomainOption = $this->normalizeDomain(trim((string) $input->getOption('app-domain')));
         $appDomain = $appDomainOption !== ''
             ? $appDomainOption
-            : $this->normalizeProjectSlug($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
+            : $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
 
         if ($appDomain === '') {
             $appDomain = $this->defaultAppDomain($cwd);
@@ -123,7 +125,10 @@ class DbInit extends LocalEnvironmentCommand
             return Command::FAILURE;
         }
 
-        $derivedDatabase = $this->deriveDatabaseNameFromAppDomain($appDomain);
+        // Il nome DB (snake) deriva dal PROJECT NAME della cartella, non da
+        // APP_DOMAIN: se l'utente tiene in .env un APP_DOMAIN diverso dalla
+        // cartella, il DB resta agganciato al nome cartella.
+        $derivedDatabase = $this->deriveDatabaseNameFromAppDomain($this->projectName($cwd, $appDomain));
         $existingDbDatabase = $this->envValue($lines, $keyToIndex, 'DB_DATABASE');
         $existingMainDatabase = $this->parseMainDatabase($existingDbDatabase);
 

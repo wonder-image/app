@@ -42,7 +42,7 @@ class Config extends Command
         'it', 'de', 'fr', 'es', 'uk', 'eu', 'us', 'ca', 'au',
         'ch', 'at', 'be', 'nl', 'pl', 'pt', 'ie', 'dk', 'se', 'no', 'fi',
         // nuove gTLD usate da progetti web
-        'io', 'xyz', 'cloud', 'online', 'store', 'tech'
+        'io', 'xyz', 'cloud', 'online', 'store', 'tech', 'site'
     ];
 
 
@@ -171,7 +171,12 @@ class Config extends Command
 
         file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
 
-        if (!$this->updateComposerName($composerJsonPath, $appDomain, $output)) {
+        // Il `name` di composer deriva dal PROJECT NAME (kebab, dalla cartella),
+        // non da APP_DOMAIN: così `wonderimage.it` non rientra come
+        // `wonderimage-it`.
+        $projectName = $this->projectName($cwd, $appDomain);
+
+        if (!$this->updateComposerName($composerJsonPath, $projectName, $output)) {
             return Command::FAILURE;
         }
 
@@ -1021,7 +1026,7 @@ class Config extends Command
         return '';
     }
 
-    protected function updateComposerName(string $composerJsonPath, string $appDomain, OutputInterface $output): bool
+    protected function updateComposerName(string $composerJsonPath, string $projectName, OutputInterface $output): bool
     {
         if (!file_exists($composerJsonPath)) {
             $output->writeln('<error>❌ composer.json non trovato.</error>');
@@ -1035,7 +1040,7 @@ class Config extends Command
             return false;
         }
 
-        $name = 'wonder-image/'.$this->composerProjectName($appDomain);
+        $name = 'wonder-image/'.$this->composerProjectName($projectName);
 
         if (preg_match('/"name"\s*:\s*"([^"]+)"/', $composerJson, $matches) !== 1) {
             $output->writeln('<error>❌ Chiave name non trovata in composer.json</error>');
@@ -1373,6 +1378,38 @@ class Config extends Command
         return trim((string) $value, '-');
     }
 
+    /**
+     * Nome di progetto canonico (kebab, SENZA estensione), usato per il `name`
+     * di composer e — in forma snake — per i nomi DB.
+     *
+     * Fonte di verità: il nome della **cartella** di progetto (`<name>-<tld>`).
+     * Se la cartella non è utilizzabile, fallback sulla label del dominio
+     * passato (`APP_DOMAIN`). Vedi
+     * docs/superpowers/specs/2026-06-18-project-naming-derivation-design.md.
+     */
+    protected function projectName(string $cwd, string $fallbackDomain = ''): string
+    {
+        $folder = trim(basename($cwd));
+
+        if ($folder !== '' && $folder !== '.' && $folder !== DIRECTORY_SEPARATOR) {
+            $label = $this->defaultProjectLabel($folder);
+
+            if ($label !== '') {
+                return $label;
+            }
+        }
+
+        return $this->defaultProjectLabel($fallbackDomain);
+    }
+
+    /**
+     * Ricostruisce il dominio completo CON estensione (`name.tld`) a partire
+     * dal nome cartella `<name>-<tld>`.
+     *
+     * Ritorna stringa vuota se l'ultimo segmento non è un TLD riconosciuto
+     * (`domainTld()` vuoto): in quel caso il chiamante chiede il dominio
+     * all'utente invece di inventarne uno senza estensione.
+     */
     protected function defaultAppDomain(string $cwd): string
     {
         $folder = trim(basename($cwd));
@@ -1381,7 +1418,46 @@ class Config extends Command
             return '';
         }
 
-        return $this->defaultProjectLabel($folder);
+        $name = $this->defaultProjectLabel($folder);
+        $tld = $this->domainTld($folder);
+
+        if ($name === '' || $tld === '') {
+            return '';
+        }
+
+        return $name.'.'.$tld;
+    }
+
+    /**
+     * Estrae il TLD da un nome cartella (`<name>-<tld>`) o da un dominio
+     * puntato (`name.tld`): ritorna l'ultimo segmento separato da `-` o `.`
+     * SOLO se è nella whitelist `PROJECT_LABEL_TLDS`, altrimenti stringa vuota.
+     *
+     * Questo evita che un nome come `acme-foo` venga interpretato come dominio
+     * `acme.foo`: `foo` non è in whitelist, quindi `acme-foo` resta il nome
+     * progetto e nessun TLD viene dedotto.
+     */
+    protected function domainTld(string $value): string
+    {
+        $value = strtolower(trim($value));
+
+        if ($value === '') {
+            return '';
+        }
+
+        $value = preg_replace('#^https?://#i', '', $value);
+        $value = trim((string) $value, "/ \t\n\r\0\x0B");
+
+        $separator = str_contains($value, '.') ? '.' : '-';
+        $parts = explode($separator, $value);
+
+        if (count($parts) < 2) {
+            return '';
+        }
+
+        $candidate = (string) end($parts);
+
+        return in_array($candidate, self::PROJECT_LABEL_TLDS, true) ? $candidate : '';
     }
     
     protected function defaultProjectLabel(string $value): string
