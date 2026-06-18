@@ -12,6 +12,22 @@
             "password" : { "label" : "Contraseña" },
             "message" : { "label" : "Mensaje" },
             "request" : { "label" : "¿Qué necesitas?" },
+            "country" : { "label" : "País" },
+            "province" : { "label" : "Provincia" },
+            "city" : { "label" : "Ciudad" },
+            "cap" : { "label" : "Código postal" },
+            "street" : { "label" : "Calle" },
+            "number" : { "label" : "Número" },
+            "more" : { "label" : "Información adicional" },
+            "link" : { "label" : "Enlace" },
+            "gmaps" : { "label" : "Enlace de Google Maps" },
+            "type" : { "label" : "Tipo" },
+            "business_name" : { "label" : "Razón social" },
+            "cf" : { "label" : "Código fiscal" },
+            "pi" : { "label" : "NIF-IVA" },
+            "sdi" : { "label" : "SDI" },
+            "pec" : { "label" : "Correo certificado" },
+            "phone_prefix" : { "label" : "Prefijo telefónico" },
             "terms_conditions" : {
                 "label" : "Acepto los <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Términos y condiciones</a>"
             },
@@ -26,6 +42,12 @@
             },
             "privacy" : {
                 "label" : "Acepto la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Política de privacidad</a> y los <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Términos y condiciones</a>"
+            }
+        },
+        "options" : {
+            "address_type" : {
+                "private" : "Particular",
+                "business" : "Empresa"
             }
         },
         "password_rules" : {

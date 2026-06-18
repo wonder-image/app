@@ -3,9 +3,8 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\App\Support\SyncSchema;
-use Wonder\Data\UploadSchema as Field;
-use Wonder\Sql\TableSchema as Column;
 
 final class SocietyLegalAddress extends Model
 {
@@ -20,33 +19,11 @@ final class SocietyLegalAddress extends Model
 
     public static function tableSchema(): array
     {
-        return [
-            ...static::sqlColumnsFromDataSchema([
-                'legal_country',
-                'legal_province',
-                'legal_city',
-            ]),
-            Column::key('legal_cap')->int()->length(5),
-            ...static::sqlColumnsFromDataSchema([
-                'legal_street',
-                'legal_number',
-                'legal_more',
-                'legal_gmaps',
-            ]),
-        ];
+        return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->tableSchema();
     }
 
     public static function dataSchema(): array
     {
-        return [
-            Field::key('legal_country')->text(),
-            Field::key('legal_province')->text(),
-            Field::key('legal_city')->text(),
-            Field::key('legal_cap')->number(),
-            Field::key('legal_street')->text(),
-            Field::key('legal_number')->text(),
-            Field::key('legal_more')->text(),
-            Field::key('legal_gmaps')->text(),
-        ];
+        return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->dataSchema();
     }
 }

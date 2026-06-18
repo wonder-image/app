@@ -25,6 +25,7 @@ Key subareas:
 
 - `class/App/Models`: SQL/data definitions
 - `class/App/Resources`: backend/API modules
+- `class/App/Schema/Extensions`: reusable schema fragments for `Model`, `Resource`, `CustomPageSchema`
 - `class/App/Module`: module-system discovery, manifest, state, config, registry
 - `class/App/PageSchema`: custom backend pages
 - `class/App/ResourceSchema`: high-level form/table/repeater DSL (used by `Resource::formSchema()`)
@@ -110,6 +111,7 @@ php forge start
 - This framework must remain highly extensible and customizable for consumer projects and external modules; avoid closed designs that solve only the local case.
 - Code reuse is a primary design goal, especially across classes; before duplicating behavior, prefer extracting shared abstractions or reusable components.
 - `Concerns` and `Contracts` are strongly preferred when they improve reuse, consistency, and extension points across the framework.
+- When the same domain bundle must stay aligned across `Model::dataSchema()`, `Model::tableSchema()`, `Resource::labelSchema()`, and `Resource::formSchema()`, prefer a dedicated schema extension under `class/App/Schema/Extensions/*` instead of duplicating arrays in each class.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
 - The canonical module format is a Composer package, not a folder embedded in the core package.
 - Standard module package naming is `wonder-image/<slug>`.
@@ -130,6 +132,7 @@ php forge start
 
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.
+- `class/App/Schema/Extensions/*` is the place for reusable compound schema bundles (for example address/contact/fiscal blocks) that must generate coherent fragments for `dataSchema()`, `tableSchema()`, `labelSchema()`, and `formSchema()` without adding automatic registration to the core.
 - `Wonder\\App\\RuntimeDefaults` is for runtime fallbacks used while rendering or bootstrapping in-memory config; `Wonder\\App\\SeedDefaults` is for idempotent seed/bootstrap payloads used by `build/row` and seed-backed singleton forms.
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
 - `Credentials::loadEnv()` must resolve `.env` from the consumer `ROOT`, never from the package directory under `vendor/`.

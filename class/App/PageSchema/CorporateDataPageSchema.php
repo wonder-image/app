@@ -2,6 +2,7 @@
 
 namespace Wonder\App\PageSchema;
 
+use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 
@@ -21,22 +22,6 @@ final class CorporateDataPageSchema extends CustomPageSchema
             'rea' => 'R.E.A.',
             'pi' => 'P.Iva',
             'cf' => 'C.Fiscale',
-            'legal_country' => 'Paese',
-            'legal_province' => 'Provincia',
-            'legal_city' => 'Città',
-            'legal_cap' => 'Cap',
-            'legal_street' => 'Via',
-            'legal_number' => 'Civico',
-            'legal_more' => 'Altro',
-            'legal_gmaps' => 'Link gmaps',
-            'country' => 'Paese',
-            'province' => 'Provincia',
-            'city' => 'Città',
-            'cap' => 'Cap',
-            'street' => 'Via',
-            'number' => 'Civico',
-            'more' => 'Altro',
-            'gmaps' => 'Link gmaps',
             'site' => 'Sito',
             'instagram' => 'Instagram',
             'facebook' => 'Facebook',
@@ -47,6 +32,8 @@ final class CorporateDataPageSchema extends CustomPageSchema
             'day' => 'Giorno',
             'from_time' => 'Da (08:00)',
             'to_time' => 'A (17:30)',
+            ...AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->labels(),
+            ...AddressExtension::simple(linkKey: 'gmaps')->labels(),
         ];
     }
 
@@ -75,30 +62,16 @@ final class CorporateDataPageSchema extends CustomPageSchema
 
     public static function legalAddressFormSchema(string $country = 'IT'): array
     {
-        return static::applyLabelSchema([
-            'legal_country' => FormField::key('legal_country')->country('legal_province'),
-            'legal_province' => FormField::key('legal_province')->states($country),
-            'legal_city' => FormField::key('legal_city')->text(),
-            'legal_cap' => FormField::key('legal_cap')->text(),
-            'legal_street' => FormField::key('legal_street')->text(),
-            'legal_number' => FormField::key('legal_number')->text(),
-            'legal_more' => FormField::key('legal_more')->text(),
-            'legal_gmaps' => FormField::key('legal_gmaps')->url(),
-        ]);
+        return static::applyLabelSchema(
+            AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->formSchema($country)
+        );
     }
 
     public static function addressFormSchema(string $country = 'IT'): array
     {
-        return static::applyLabelSchema([
-            'country' => FormField::key('country')->country('province'),
-            'province' => FormField::key('province')->states($country),
-            'city' => FormField::key('city')->text(),
-            'cap' => FormField::key('cap')->text(),
-            'street' => FormField::key('street')->text(),
-            'number' => FormField::key('number')->text(),
-            'more' => FormField::key('more')->text(),
-            'gmaps' => FormField::key('gmaps')->url(),
-        ]);
+        return static::applyLabelSchema(
+            AddressExtension::simple(linkKey: 'gmaps')->formSchema($country)
+        );
     }
 
     public static function socialFormSchema(): array

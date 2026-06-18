@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -21,14 +22,7 @@ final class SocietyAddress extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('country'),
-            Column::key('province'),
-            Column::key('city'),
-            Column::key('cap')->int()->length(5),
-            Column::key('street'),
-            Column::key('number'),
-            Column::key('more'),
-            Column::key('gmaps'),
+            ...AddressExtension::simple(linkKey: 'gmaps')->tableSchema(),
             Column::key('timetable')->type('TEXT'),
         ];
     }
@@ -36,14 +30,7 @@ final class SocietyAddress extends Model
     public static function dataSchema(): array
     {
         return [
-            Field::key('country')->text(),
-            Field::key('province')->text(),
-            Field::key('city')->text(),
-            Field::key('cap')->number(),
-            Field::key('street')->text(),
-            Field::key('number')->text(),
-            Field::key('more')->text(),
-            Field::key('gmaps')->text(),
+            ...AddressExtension::simple(linkKey: 'gmaps')->dataSchema(),
             Field::key('timetable')->text()->sanitize(false),
         ];
     }

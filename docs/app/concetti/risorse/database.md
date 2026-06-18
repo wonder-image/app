@@ -33,6 +33,7 @@ Da un Model il framework deriva:
 - Base: `class/App/Model.php`
 - Builder dati: `Wonder\Data\UploadSchema` (alias comodo `as Field`)
 - Builder DDL: `Wonder\Sql\TableSchema` (alias comodo `as Column`)
+- Extension riusabili: `class/App/Schema/Extensions/*`
 - Esempi reali: `class/App/Models/*`
 
 ## Esempio completo (copiabile)
@@ -114,6 +115,34 @@ Field::key('password')->password()->minLength(8);
 
 Il Model usa il data schema per tre scopi: **SQL** (`sqlColumnsFromDataSchema`),
 **validazione** (`validate()`), **persistenza** (`prepare()`).
+
+### Schema extension riusabili
+
+Quando un blocco di campi deve restare coerente tra piu Model/Resource/Page,
+non duplicare lo schema a mano: estrailo in una **schema extension** sotto
+`class/App/Schema/Extensions/*`.
+
+Esempio:
+
+```php
+use Wonder\App\Schema\Extensions\AddressExtension;
+
+public static function dataSchema(): array
+{
+    return [
+        ...AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->dataSchema(),
+    ];
+}
+
+public static function tableSchema(): array
+{
+    return [
+        ...AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->tableSchema(),
+    ];
+}
+```
+
+Dettagli e convenzioni: [Schema extension](schema-extensions.md).
 
 ## Query API (statica)
 

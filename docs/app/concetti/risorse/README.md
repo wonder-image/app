@@ -53,6 +53,8 @@ Dove vanno le tue classi:
   soft-delete, migrazioni.
 - [Definire una Resource](resource.md) — tutti gli schema della Resource e gli
   hook del ciclo di vita.
+- [Schema extension](schema-extensions.md) — frammenti riusabili per comporre
+  `dataSchema()`, `tableSchema()`, `labelSchema()` e `formSchema()`.
 - [Pagine non-CRUD (CustomPageSchema)](custom-page-schema.md) — pagine backend
   che non sono CRUD.
 - [Resource Singleton](singleton.md) — risorse a riga unica (es. configurazione).

@@ -17,6 +17,7 @@
 * [Risorse e Model](concetti/risorse/README.md)
   * [Model e Database](concetti/risorse/database.md)
   * [Definire una Resource](concetti/risorse/resource.md)
+  * [Schema extension](concetti/risorse/schema-extensions.md)
   * [Pagine non-CRUD (CustomPageSchema)](concetti/risorse/custom-page-schema.md)
   * [Resource Singleton](concetti/risorse/singleton.md)
   * [Route e API generate](concetti/risorse/route-e-api.md)

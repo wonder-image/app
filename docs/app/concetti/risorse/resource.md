@@ -118,6 +118,11 @@ verifica che esista ed estenda `Wonder\App\Model`.
 | `path()`, `icon()`, `slug()` | — | override quando il valore è calcolato |
 | `labelSchema()`, `textSchema()` | `[]` | etichette leggibili (i form senza `label()` la pescano da qui) |
 
+`labelSchema()` e `formSchema()` possono anche comporre frammenti riusabili da
+una **schema extension** (`class/App/Schema/Extensions/*`) quando un bundle di
+campi deve restare coerente tra più Resource / Model / `CustomPageSchema`.
+Vedi [Schema extension](schema-extensions.md).
+
 ## Gli schema della Resource
 
 | Metodo | Cosa definisce | Pagina di dettaglio |
@@ -203,6 +208,34 @@ implementazioni base sono no-op):
 
 Quando la pagina non è legata a un singolo Model, usa invece
 [CustomPageSchema](custom-page-schema.md).
+
+## Schema extension riusabili
+
+Per bundle di campi ripetuti, preferisci una classe dedicata che esponga
+frammenti di schema invece di copiare manualmente le stesse chiavi in
+`labelSchema()` e `formSchema()`.
+
+Esempio:
+
+```php
+use Wonder\App\Schema\Extensions\AddressExtension;
+
+public static function labelSchema(): array
+{
+    return [
+        ...AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->labels(),
+    ];
+}
+
+public static function formSchema(): array
+{
+    return [
+        ...AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->formSchema(),
+    ];
+}
+```
+
+Dettagli e convenzioni: [Schema extension](schema-extensions.md).
 
 ## Errori comuni
 

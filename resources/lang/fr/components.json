@@ -12,6 +12,22 @@
             "password" : { "label" : "Mot de passe" },
             "message" : { "label" : "Message" },
             "request" : { "label" : "De quoi avez-vous besoin ?" },
+            "country" : { "label" : "Pays" },
+            "province" : { "label" : "Province" },
+            "city" : { "label" : "Ville" },
+            "cap" : { "label" : "Code postal" },
+            "street" : { "label" : "Rue" },
+            "number" : { "label" : "Numéro" },
+            "more" : { "label" : "Informations complémentaires" },
+            "link" : { "label" : "Lien" },
+            "gmaps" : { "label" : "Lien Google Maps" },
+            "type" : { "label" : "Type" },
+            "business_name" : { "label" : "Raison sociale" },
+            "cf" : { "label" : "Code fiscal" },
+            "pi" : { "label" : "Numéro de TVA" },
+            "sdi" : { "label" : "SDI" },
+            "pec" : { "label" : "E-mail certifié" },
+            "phone_prefix" : { "label" : "Préfixe téléphonique" },
             "terms_conditions" : {
                 "label" : "J’accepte les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
             },
@@ -26,6 +42,12 @@
             },
             "privacy" : {
                 "label" : "J’accepte la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a> et les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
+            }
+        },
+        "options" : {
+            "address_type" : {
+                "private" : "Particulier",
+                "business" : "Société"
             }
         },
         "password_rules" : {
