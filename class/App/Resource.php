@@ -7,6 +7,7 @@ use ReflectionObject;
 use RuntimeException;
 use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
+use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
@@ -193,6 +194,69 @@ abstract class Resource
         string $context = 'backend'
     ): array {
         return $values;
+    }
+
+    /**
+     * Verifica reCAPTCHA server-side in una sola riga, da chiamare nel hook
+     * API (tipicamente {@see mutateRequestValues()} per l'action `store`):
+     *
+     *   if ($context === 'api' && $action === 'store') {
+     *       static::verifyRecaptcha();
+     *   }
+     *
+     * Delega tutto a {@see \Wonder\App\Security\RecaptchaGuard}: lettura di
+     * `g-recaptcha-token` / `g-recaptcha-action` da `$_POST`, validazione,
+     * logging strutturato e `RuntimeException(617)` su fallimento. Nessun
+     * boilerplate da copiare nei singoli Resource.
+     *
+     * Se `$action` è omessa, viene derivata dall'unico campo `recaptcha`
+     * dichiarato in {@see formSchema()} (la `FormField::recaptcha('contact')`
+     * diventa così la singola sorgente di verità). Passa l'action esplicita
+     * se il form non ha un campo recaptcha o ne ha più d'uno.
+     */
+    public static function verifyRecaptcha(?string $action = null): void
+    {
+        \Wonder\App\Security\RecaptchaGuard::for($action ?? static::recaptchaAction())
+            ->withService('resource:'.static::slug())
+            ->verify();
+    }
+
+    /**
+     * Deriva l'action attesa dal campo `recaptcha` di {@see formSchema()}.
+     * Coerente col default frontend (`submit`) quando l'action non è esplicita
+     * sul `FormField`. Lancia se la configurazione è ambigua (zero o più campi
+     * recaptcha): in quel caso il consumer deve passare l'action a
+     * {@see verifyRecaptcha()}.
+     */
+    private static function recaptchaAction(): string
+    {
+        $actions = [];
+
+        foreach (static::formSchema() as $field) {
+            if (!$field instanceof Input || $field->get('helper') !== 'recaptcha') {
+                continue;
+            }
+
+            $context = (array) ($field->get('context') ?? []);
+            $value = trim((string) ($context['recaptcha_action'] ?? ''));
+            $actions[] = $value !== '' ? $value : 'submit';
+        }
+
+        if (count($actions) === 1) {
+            return $actions[0];
+        }
+
+        if ($actions === []) {
+            throw new RuntimeException(
+                'Nessun campo recaptcha in '.static::class.'::formSchema(): '
+                .'passa l\'action esplicita a verifyRecaptcha().'
+            );
+        }
+
+        throw new RuntimeException(
+            'Più campi recaptcha in '.static::class.'::formSchema(): '
+            .'passa l\'action esplicita a verifyRecaptcha().'
+        );
     }
 
     public static function prepareRepeaterRelationRow(

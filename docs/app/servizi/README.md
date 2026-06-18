@@ -4,6 +4,9 @@ Questa sezione è divisa in due aree operative:
 - setup/configurazione servizi
 - Google Tag Manager (configurazione contenitore e integrazioni collegate)
 
+## Sicurezza
+- [reCAPTCHA — verifica server-side](recaptcha.md)
+
 ## Google Tag Manager
 - [Configurazione](google-tag-manager/configurazione.md)
 - [iubenda](google-tag-manager/iubenda.md)

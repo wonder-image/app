@@ -6,23 +6,35 @@
      * - `inputRecaptcha()` è una compatibility shim sopra
      *   `Wonder\Plugin\Custom\Input\reCAPTCHA`. Nuovo codice: usa
      *   direttamente la classe.
-     * - `verifyRecaptcha()` resta funzione utility server-side (verifica
-     *   token post-submit). Non è un renderer: usa internamente
-     *   `Wonder\Plugin\Google\Security\reCAPTCHA`.
+     * - `verifyRecaptcha()` resta funzione utility server-side legacy.
      */
 
+    /**
+     * Verifica server-side legacy basata su `$GLOBALS['ALERT']`.
+     *
+     * @deprecated Nuovo codice: usa `Wonder\App\Security\RecaptchaGuard`
+     *             (o `static::verifyRecaptcha()` nei Resource), che centralizza
+     *             validazione, logging ed eccezione 617 senza toccare `$ALERT`.
+     *             Questa funzione resta solo per backward compatibility e ora
+     *             delega al guard preservando firma, return `bool` e `$ALERT`.
+     */
     function verifyRecaptcha($POST) {
 
         global $ALERT;
 
-        if ($POST['g-recaptcha-response'] === $POST['g-recaptcha-token']) {
-            $reCAPTCHA = new Wonder\Plugin\Google\Security\reCAPTCHA();
-            $ALERT = $reCAPTCHA->verify($POST['g-recaptcha-token'], $POST['g-recaptcha-action'])->valid ? null : 617;
-        } else {
+        // Match v2 storico (`g-recaptcha-response` == token) preservato per BC.
+        if (($POST['g-recaptcha-response'] ?? null) !== ($POST['g-recaptcha-token'] ?? null)) {
             $ALERT = 617;
+            return false;
         }
 
-        return empty($ALERT) ? true : false;
+        $passes = Wonder\App\Security\RecaptchaGuard::for((string) ($POST['g-recaptcha-action'] ?? ''))
+            ->withRequest($POST)
+            ->passes();
+
+        $ALERT = $passes ? null : 617;
+
+        return $passes;
 
     }
 
