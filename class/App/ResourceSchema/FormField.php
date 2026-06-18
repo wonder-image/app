@@ -263,6 +263,22 @@ class FormField extends Input
         return $this;
     }
 
+    public function bool(?string $version = null): self
+    {
+
+        return $this->select([ 'true' => 'Sì', 'false' => 'No' ], $version)->value('true');
+
+    }
+
+    public function position(?string $version = null): self
+    {
+        $options = [];
+        for ($i=0; $i < 11; $i++) { $options[$i] = $i; }
+
+        return $this->select($options, $version);
+
+    }
+
     public function radio(array $options = [], bool $searchBar = false): self
     {
         $this->helper = 'radio';
