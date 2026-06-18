@@ -1393,7 +1393,7 @@ class Config extends Command
         'it', 'de', 'fr', 'es', 'uk', 'eu', 'us', 'ca', 'au',
         'ch', 'at', 'be', 'nl', 'pl', 'pt', 'ie', 'dk', 'se', 'no', 'fi',
         // nuove gTLD usate da progetti web
-        'io', 'xyz', 'cloud', 'online', 'store', 'tech', 'site',
+        'io', 'xyz', 'cloud', 'online', 'store', 'tech'
     ];
 
     /**
