@@ -112,6 +112,7 @@ php forge start
 - Code reuse is a primary design goal, especially across classes; before duplicating behavior, prefer extracting shared abstractions or reusable components.
 - `Concerns` and `Contracts` are strongly preferred when they improve reuse, consistency, and extension points across the framework.
 - When the same domain bundle must stay aligned across `Model::dataSchema()`, `Model::tableSchema()`, `Resource::labelSchema()`, and `Resource::formSchema()`, prefer a dedicated schema extension under `class/App/Schema/Extensions/*` instead of duplicating arrays in each class.
+- Prefer expressing reusable bundle-level constraints (default country, allowed countries, required fields, derived row decorators) inside the schema extension itself instead of reapplying them ad hoc in each consuming Model/Resource/Page.
 - If a schema extension also exposes helpers like `decorate(array $row): array`, keep them pure: they may enrich read rows with derived values, but must not run queries or perform persistence side effects.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
 - The canonical module format is a Composer package, not a folder embedded in the core package.

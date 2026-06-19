@@ -244,8 +244,14 @@ final class FormFieldElementFactory
             return null;
         }
 
+        $options = (array) ($field->get('options') ?? []);
+
+        if ($options === []) {
+            $options = countries();
+        }
+
         $select = self::selectSearchElement($name, $field)
-            ->options(self::normalizeOptions(countries()));
+            ->options(self::normalizeOptions($options));
 
         $context = (array) ($field->get('context') ?? []);
         $stateField = $context['state_field'] ?? null;

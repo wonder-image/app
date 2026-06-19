@@ -14,6 +14,10 @@ final class AddressExtension
     private string $mode;
     private string $linkKey;
     private ?string $countryDefault;
+    /** @var list<string> */
+    private array $allowedCountries = [];
+    /** @var list<string> */
+    private array $requiredFields = [];
 
     private bool $withMore = true;
     private bool $withLink = true;
@@ -112,6 +116,26 @@ final class AddressExtension
         return $clone;
     }
 
+    public function allowedCountries(array $countries): self
+    {
+        $clone = clone $this;
+        $clone->allowedCountries = $this->normalizeCountries($countries);
+
+        if ($clone->countryDefault !== null && !$clone->isAllowedCountry($clone->countryDefault)) {
+            $clone->countryDefault = $clone->allowedCountries[0] ?? null;
+        }
+
+        return $clone;
+    }
+
+    public function requiredFields(array|string $fields): self
+    {
+        $clone = clone $this;
+        $clone->requiredFields = $this->normalizeFieldList($fields);
+
+        return $clone;
+    }
+
     public function labels(): array
     {
         $labels = [
@@ -159,45 +183,51 @@ final class AddressExtension
     public function dataSchema(): array
     {
         $fields = [
-            Field::key($this->key('country'))->text(),
-            Field::key($this->key('province'))->text(),
-            Field::key($this->key('city'))->text(),
-            Field::key($this->key('cap'))->text(),
-            Field::key($this->key('street'))->text(),
-            Field::key($this->key('number'))->text(),
+            $this->dataField(Field::key($this->key('country'))->text(), 'country'),
+            $this->dataField(Field::key($this->key('province'))->text(), 'province'),
+            $this->dataField(Field::key($this->key('city'))->text(), 'city'),
+            $this->dataField(Field::key($this->key('cap'))->text(), 'cap'),
+            $this->dataField(Field::key($this->key('street'))->text(), 'street'),
+            $this->dataField(Field::key($this->key('number'))->text(), 'number'),
         ];
 
         if ($this->withMore) {
-            $fields[] = Field::key($this->key('more'))->text();
+            $fields[] = $this->dataField(Field::key($this->key('more'))->text(), 'more');
         }
 
         if ($this->withLink) {
-            $fields[] = Field::key($this->key($this->linkKey))->text();
+            $fields[] = $this->dataField(Field::key($this->key($this->linkKey))->text(), 'link', $this->linkKey);
         }
 
         if ($this->withPhone) {
-            $fields[] = Field::key($this->key('phone_prefix'))->text();
-            $fields[] = Field::key($this->key('phone'))->text();
+            $fields[] = $this->dataField(Field::key($this->key('phone_prefix'))->text(), 'phone_prefix');
+            $fields[] = $this->dataField(Field::key($this->key('phone'))->text(), 'phone');
         }
 
         if ($this->withContactName) {
-            $fields[] = Field::key($this->key('name'))->text();
-            $fields[] = Field::key($this->key('surname'))->text();
+            $fields[] = $this->dataField(Field::key($this->key('name'))->text(), 'name');
+            $fields[] = $this->dataField(Field::key($this->key('surname'))->text(), 'surname');
         }
 
         if ($this->withType) {
-            $fields[] = Field::key($this->key('type'))->text()->lower();
+            $fields[] = $this->dataField(Field::key($this->key('type'))->text()->lower(), 'type');
         }
 
         if ($this->withCompanyData) {
-            $fields[] = Field::key($this->key('business_name'))->text();
-            $fields[] = Field::key($this->key('cf'))->tin()
-                ->countryField($this->key('country'))
-                ->type('all');
-            $fields[] = Field::key($this->key('pi'))->vat()
-                ->countryField($this->key('country'));
-            $fields[] = Field::key($this->key('sdi'))->text();
-            $fields[] = Field::key($this->key('pec'))->email();
+            $fields[] = $this->dataField(Field::key($this->key('business_name'))->text(), 'business_name');
+            $fields[] = $this->dataField(
+                Field::key($this->key('cf'))->tin()
+                    ->countryField($this->key('country'))
+                    ->type('all'),
+                'cf'
+            );
+            $fields[] = $this->dataField(
+                Field::key($this->key('pi'))->vat()
+                    ->countryField($this->key('country')),
+                'pi'
+            );
+            $fields[] = $this->dataField(Field::key($this->key('sdi'))->text(), 'sdi');
+            $fields[] = $this->dataField(Field::key($this->key('pec'))->email(), 'pec');
         }
 
         return $fields;
@@ -249,51 +279,70 @@ final class AddressExtension
 
     public function formSchema(?string $country = null): array
     {
-        $country = $this->normalizeCountry($country) ?? $this->countryDefault;
+        $country = $this->resolveCountry($country);
         $schema = [];
 
         if ($this->withType) {
-            $schema[$this->key('type')] = FormField::key($this->key('type'))
+            $schema[$this->key('type')] = $this->formField(
+                FormField::key($this->key('type'))
                 ->select([
                     'private' => __t('components.forms.options.address_type.private'),
                     'business' => __t('components.forms.options.address_type.business'),
                 ])
-                ->value('private');
+                ->value('private'),
+                'type'
+            );
         }
 
         if ($this->withContactName) {
-            $schema[$this->key('name')] = FormField::key($this->key('name'))->text();
-            $schema[$this->key('surname')] = FormField::key($this->key('surname'))->text();
+            $schema[$this->key('name')] = $this->formField(FormField::key($this->key('name'))->text(), 'name');
+            $schema[$this->key('surname')] = $this->formField(FormField::key($this->key('surname'))->text(), 'surname');
         }
 
         if ($this->withCompanyData) {
-            $schema[$this->key('business_name')] = FormField::key($this->key('business_name'))->text();
-            $schema[$this->key('cf')] = FormField::key($this->key('cf'))->text();
-            $schema[$this->key('pi')] = FormField::key($this->key('pi'))->text();
-            $schema[$this->key('sdi')] = FormField::key($this->key('sdi'))->text();
-            $schema[$this->key('pec')] = FormField::key($this->key('pec'))->email();
+            $schema[$this->key('business_name')] = $this->formField(FormField::key($this->key('business_name'))->text(), 'business_name');
+            $schema[$this->key('cf')] = $this->formField(FormField::key($this->key('cf'))->text(), 'cf');
+            $schema[$this->key('pi')] = $this->formField(FormField::key($this->key('pi'))->text(), 'pi');
+            $schema[$this->key('sdi')] = $this->formField(FormField::key($this->key('sdi'))->text(), 'sdi');
+            $schema[$this->key('pec')] = $this->formField(FormField::key($this->key('pec'))->email(), 'pec');
         }
 
-        $schema[$this->key('country')] = FormField::key($this->key('country'))
+        $countryField = FormField::key($this->key('country'))
             ->country($this->key('province'));
-        $schema[$this->key('province')] = FormField::key($this->key('province'))
-            ->states($country);
-        $schema[$this->key('city')] = FormField::key($this->key('city'))->text();
-        $schema[$this->key('cap')] = FormField::key($this->key('cap'))->text();
-        $schema[$this->key('street')] = FormField::key($this->key('street'))->text();
-        $schema[$this->key('number')] = FormField::key($this->key('number'))->text();
+
+        if ($country !== null) {
+            $countryField->value($country);
+        }
+
+        if ($this->allowedCountries !== []) {
+            $countryField->options($this->countryOptions());
+        }
+
+        $schema[$this->key('country')] = $this->formField($countryField, 'country');
+        $schema[$this->key('province')] = $this->formField(
+            FormField::key($this->key('province'))->states($country),
+            'province'
+        );
+        $schema[$this->key('city')] = $this->formField(FormField::key($this->key('city'))->text(), 'city');
+        $schema[$this->key('cap')] = $this->formField(FormField::key($this->key('cap'))->text(), 'cap');
+        $schema[$this->key('street')] = $this->formField(FormField::key($this->key('street'))->text(), 'street');
+        $schema[$this->key('number')] = $this->formField(FormField::key($this->key('number'))->text(), 'number');
 
         if ($this->withMore) {
-            $schema[$this->key('more')] = FormField::key($this->key('more'))->text();
+            $schema[$this->key('more')] = $this->formField(FormField::key($this->key('more'))->text(), 'more');
         }
 
         if ($this->withPhone) {
-            $schema[$this->key('phone_prefix')] = FormField::key($this->key('phone_prefix'))->phonePrefix();
-            $schema[$this->key('phone')] = FormField::key($this->key('phone'))->tel();
+            $schema[$this->key('phone_prefix')] = $this->formField(FormField::key($this->key('phone_prefix'))->phonePrefix(), 'phone_prefix');
+            $schema[$this->key('phone')] = $this->formField(FormField::key($this->key('phone'))->tel(), 'phone');
         }
 
         if ($this->withLink) {
-            $schema[$this->key($this->linkKey)] = FormField::key($this->key($this->linkKey))->url();
+            $schema[$this->key($this->linkKey)] = $this->formField(
+                FormField::key($this->key($this->linkKey))->url(),
+                'link',
+                $this->linkKey
+            );
         }
 
         return $schema;
@@ -350,6 +399,24 @@ final class AddressExtension
         return $this->prefix !== '' ? $this->prefix.'_'.$name : $name;
     }
 
+    private function dataField(object $field, string ...$aliases): object
+    {
+        if ($this->isRequiredField(...$aliases) && method_exists($field, 'required')) {
+            $field->required();
+        }
+
+        return $field;
+    }
+
+    private function formField(FormField $field, string ...$aliases): FormField
+    {
+        if ($this->isRequiredField(...$aliases)) {
+            $field->required();
+        }
+
+        return $field;
+    }
+
     private function linkLabel(): string
     {
         return $this->linkKey === 'gmaps'
@@ -380,5 +447,99 @@ final class AddressExtension
         $country = strtoupper(trim($country));
 
         return $country !== '' ? $country : null;
+    }
+
+    /**
+     * @param array<int, string> $countries
+     * @return list<string>
+     */
+    private function normalizeCountries(array $countries): array
+    {
+        $normalized = [];
+
+        foreach ($countries as $country) {
+            $value = $this->normalizeCountry($country);
+
+            if ($value !== null) {
+                $normalized[] = $value;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    /**
+     * @param array<int, string>|string $fields
+     * @return list<string>
+     */
+    private function normalizeFieldList(array|string $fields): array
+    {
+        $fields = is_array($fields) ? $fields : [$fields];
+        $normalized = [];
+
+        foreach ($fields as $field) {
+            $value = $this->normalizeFieldName((string) $field);
+
+            if ($value !== '') {
+                $normalized[] = $value;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    private function isRequiredField(string ...$aliases): bool
+    {
+        if ($this->requiredFields === []) {
+            return false;
+        }
+
+        foreach ($aliases as $alias) {
+            $alias = $this->normalizeFieldName($alias);
+
+            if ($alias !== '' && in_array($alias, $this->requiredFields, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function resolveCountry(?string $country): ?string
+    {
+        $country = $this->normalizeCountry($country) ?? $this->countryDefault;
+
+        if ($country !== null && $this->isAllowedCountry($country)) {
+            return $country;
+        }
+
+        return $this->allowedCountries[0] ?? $country;
+    }
+
+    private function isAllowedCountry(?string $country): bool
+    {
+        if ($country === null || $this->allowedCountries === []) {
+            return true;
+        }
+
+        return in_array($country, $this->allowedCountries, true);
+    }
+
+    private function countryOptions(): array
+    {
+        if (!function_exists('countries')) {
+            return [];
+        }
+
+        $countries = (array) countries();
+        $options = [];
+
+        foreach ($this->allowedCountries as $country) {
+            if (isset($countries[$country])) {
+                $options[$country] = $countries[$country];
+            }
+        }
+
+        return $options;
     }
 }

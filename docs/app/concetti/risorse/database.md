@@ -200,6 +200,18 @@ In questo modo l'extension legge già `legal_street`, `legal_city`, ecc. e
 aggiunge automaticamente chiavi derivate come `legal_address`,
 `legal_prettyAddress`, `legal_prettyPDF`.
 
+Le stesse schema extension possono anche esporre configurazioni riusabili del
+form, per esempio:
+
+```php
+AddressExtension::simple(countryDefault: 'IT')
+    ->allowedCountries(['IT', 'DE'])
+    ->requiredFields(['country', 'province', 'city', 'street', 'number']);
+```
+
+Così il Model e il form backend restano coerenti senza dover ripetere gli
+stessi vincoli a mano in più classi.
+
 ## Migrazioni e aggiornamento tabelle
 
 - In locale: `php forge update --local`

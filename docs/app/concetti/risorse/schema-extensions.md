@@ -61,7 +61,9 @@ $address = AddressExtension::simple(
     prefix: 'legal',
     linkKey: 'gmaps',
     countryDefault: 'IT',
-);
+)
+    ->allowedCountries(['IT', 'DE'])
+    ->requiredFields(['country', 'province', 'city', 'street', 'number']);
 ```
 
 ### In un Model
@@ -123,11 +125,63 @@ Supporta:
 - DDL (`tableSchema()`)
 - form backend (`formSchema()`)
 - decorazione righe (`decorate()`)
+- default paese coerente anche sul select `country`
+- filtro paesi ammessi con `allowedCountries([...])`
+- campi obbligatori con `requiredFields([...])`
 
 I profili disponibili sono:
 
 - `AddressExtension::simple(...)`
 - `AddressExtension::billing(...)`
+
+## Paese di default e paesi ammessi
+
+Se imposti `countryDefault: 'IT'`, la extension ora:
+
+- precarica le province corrette con `states('IT')`
+- imposta anche il valore del select `country` su `IT`
+
+Se vuoi limitare i paesi selezionabili:
+
+```php
+AddressExtension::simple(countryDefault: 'IT')
+    ->allowedCountries(['IT', 'DE']);
+```
+
+Il campo `country` mostrerà solo Italia e Germania.
+
+## Campi obbligatori
+
+Per marcare campi obbligatori usa:
+
+```php
+AddressExtension::simple()
+    ->requiredFields(['country', 'province', 'city', 'street', 'number']);
+```
+
+La lista usa i nomi logici del bundle, senza prefisso:
+
+- `country`
+- `province`
+- `city`
+- `cap`
+- `street`
+- `number`
+- `more`
+- `link` oppure il tuo `linkKey` (es. `gmaps`)
+- `phone_prefix`
+- `phone`
+- `name`
+- `surname`
+- `type`
+- `business_name`
+- `cf`
+- `pi`
+- `sdi`
+- `pec`
+
+L'effetto vale sia sul form backend (`->required()`) sia sul `dataSchema()`
+server-side (`Field::required()`).
 
 ## Convenzioni consigliate
 
