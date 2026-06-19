@@ -20,6 +20,17 @@
 
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
+
+    function js_e(mixed $value): string
+    {
+        if ($value === null) {
+            return 'null';
+        }
+
+        $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return $encoded === false ? 'null' : $encoded;
+    }
     
     function __t(string $key, array $replacements = []): mixed
     {
