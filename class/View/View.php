@@ -117,6 +117,14 @@ class View
         return is_array($data) ? $data : [];
     }
 
+    public static function currentSlots(): array
+    {
+        $data = self::currentData();
+        $slots = $data['slots'] ?? null;
+
+        return is_array($slots) ? $slots : [];
+    }
+
     private static function normalizeData(array $data): array
     {
         if (array_key_exists('_POST', $data) && !array_key_exists('VALUES', $data)) {

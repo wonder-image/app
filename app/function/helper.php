@@ -201,3 +201,25 @@
             return array_merge($defaults, $data);
         }
     }
+
+    if (!function_exists('slot')) {
+        /**
+         * Emette uno slot nominato del componente corrente. Se lo slot è un
+         * callable viene invocato e ne viene stampato il return; se è una stringa
+         * viene stampata; se assente viene stampato $default (o nulla).
+         */
+        function slot(string $name, mixed $default = null): void
+        {
+            $slots = \Wonder\View\View::currentSlots();
+            $value = $slots[$name] ?? $default;
+
+            if (is_callable($value)) {
+                echo (string) $value();
+                return;
+            }
+
+            if ($value !== null) {
+                echo (string) $value;
+            }
+        }
+    }
