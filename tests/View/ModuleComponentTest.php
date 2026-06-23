@@ -36,4 +36,34 @@ check('slot callable invoked', function () {
     return $out === 'CB';
 });
 
+// componente modulo "card" + override consumer dello stesso nome
+file_put_contents($moduleBase.'/card.php', '<?php echo "MODULE"; ?>');
+file_put_contents($consumerRoot.'/custom/view/components/demo/card.php', '<?php echo "CONSUMER"; ?>');
+file_put_contents($moduleBase.'/sub/leaf.php', '<?php echo "LEAF"; ?>');
+
+check('module file resolved when no override', function () {
+    return View::component('demo/withslot', ['slots' => ['body' => 'X']]) === 'X';
+});
+
+check('consumer override wins over module', function () {
+    return View::component('demo/card') === 'CONSUMER';
+});
+
+check('nested path resolves', function () {
+    return View::component('demo/sub/leaf') === 'LEAF';
+});
+
+check('dotted syntax also works', function () {
+    return View::component('demo.sub.leaf') === 'LEAF';
+});
+
+check('unregistered prefix falls back to legacy (throws when missing)', function () {
+    try {
+        View::component('totallyunknown/x');
+        return false;
+    } catch (\RuntimeException $e) {
+        return str_contains($e->getMessage(), 'Component non trovato');
+    }
+});
+
 summary();

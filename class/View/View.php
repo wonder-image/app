@@ -213,6 +213,30 @@ class View
             return $component;
         }
 
+        // Risoluzione module-aware: se il primo segmento è un namespace
+        // registrato, cerca prima l'override del consumer poi il file del modulo.
+        $normalized = trim(str_replace(['\\', '.'], '/', $component), '/');
+        $firstSlash = strpos($normalized, '/');
+        $prefix = $firstSlash === false ? '' : substr($normalized, 0, $firstSlash);
+        $rest = $firstSlash === false ? '' : substr($normalized, $firstSlash + 1);
+
+        if ($prefix !== '' && $rest !== '' && ComponentNamespaceRegistry::has($prefix)) {
+            $base = (string) ComponentNamespaceRegistry::base($prefix);
+            $candidates = [
+                $root.'/custom/view/components/'.$prefix.'/'.$rest.'.php',
+                $base.'/'.$rest.'.php',
+            ];
+
+            foreach ($candidates as $candidate) {
+                if (file_exists($candidate)) {
+                    return $candidate;
+                }
+            }
+
+            throw new RuntimeException("Component non trovato: {$component}");
+        }
+
+        // Comportamento legacy (componenti di sito).
         $relativeComponent = self::normalizeComponentPath($component);
         $candidates = [
             $root.'/custom/view/components/'.$relativeComponent.'.php',
