@@ -92,6 +92,7 @@ class ModulePublish extends Command
 
         $copied = 0;
         $skipped = 0;
+        $failed = 0;
 
         foreach ($files as $file) {
             $relative = ltrim(substr($file, strlen($viewsDir)), '/');
@@ -108,14 +109,19 @@ class ModulePublish extends Command
                 mkdir($destDir, 0777, true);
             }
 
-            copy($file, $dest);
+            if (!copy($file, $dest)) {
+                $output->writeln("  <error>✗ errore</error> {$relative}");
+                $failed++;
+                continue;
+            }
+
             $output->writeln("  <info>✓ copiato</info> {$relative}");
             $copied++;
         }
 
-        $output->writeln("\n{$copied} copiati, {$skipped} saltati.");
+        $output->writeln("\n{$copied} copiati, {$skipped} saltati, {$failed} falliti.");
 
-        return Command::SUCCESS;
+        return $failed > 0 ? Command::FAILURE : Command::SUCCESS;
     }
 
     /** @return string[] */
