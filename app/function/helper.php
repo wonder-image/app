@@ -179,3 +179,25 @@
         __log($error, 'fatture-in-cloud', $action, 'ERROR', 'error/fatture-in-cloud');
 
     }
+
+    if (!function_exists('props')) {
+        /**
+         * Normalizza i dati di un componente: applica i default e valida le chiavi
+         * obbligatorie. I valori passati in $data vincono sui $defaults.
+         *
+         * @param array<string,mixed> $data
+         * @param array<string,mixed> $defaults
+         * @param array<int,string>   $required
+         * @return array<string,mixed>
+         */
+        function props(array $data, array $defaults = [], array $required = []): array
+        {
+            foreach ($required as $key) {
+                if (!array_key_exists($key, $data)) {
+                    throw new \InvalidArgumentException("props: chiave obbligatoria mancante: {$key}");
+                }
+            }
+
+            return array_merge($defaults, $data);
+        }
+    }
