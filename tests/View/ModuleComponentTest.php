@@ -66,4 +66,13 @@ check('unregistered prefix falls back to legacy (throws when missing)', function
     }
 });
 
+check('traversal in rest is rejected', function () {
+    try {
+        View::component('demo/../../../etc/passwd');
+        return false;
+    } catch (\RuntimeException $e) {
+        return str_contains($e->getMessage(), 'non valido') || str_contains($e->getMessage(), 'non trovato');
+    }
+});
+
 summary();

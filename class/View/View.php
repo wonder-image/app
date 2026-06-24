@@ -221,6 +221,10 @@ class View
         $rest = $firstSlash === false ? '' : substr($normalized, $firstSlash + 1);
 
         if ($prefix !== '' && $rest !== '' && ComponentNamespaceRegistry::has($prefix)) {
+            if (in_array('..', explode('/', $rest), true)) {
+                throw new RuntimeException("Component non valido: {$component}");
+            }
+
             $base = (string) ComponentNamespaceRegistry::base($prefix);
             $candidates = [
                 $root.'/custom/view/components/'.$prefix.'/'.$rest.'.php',

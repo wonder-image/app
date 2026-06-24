@@ -79,6 +79,11 @@ class ModulePublish extends Command
         $only = trim((string) $input->getOption('only'), '/');
         $force = (bool) $input->getOption('force');
 
+        if ($only !== '' && in_array('..', explode('/', $only), true)) {
+            $output->writeln('<error>❌ --only non valido.</error>');
+            return Command::FAILURE;
+        }
+
         $sourcePath = $only !== '' ? $viewsDir.'/'.$only : $viewsDir;
 
         if (!file_exists($sourcePath)) {
