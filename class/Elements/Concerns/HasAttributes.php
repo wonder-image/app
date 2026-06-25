@@ -1,0 +1,67 @@
+<?php
+
+    namespace Wonder\Elements\Concerns;
+
+    use Wonder\Concerns\HasSchema;
+
+    trait HasAttributes {
+
+        use HasSchema;
+        
+        public function attr(string $key, $value): static
+        {
+
+            $this->schema['attributes'][$key] = $value;
+
+            return $this; 
+
+        }
+
+        public function pushAttr(string $key, $value): static
+        {
+
+            if (!isset($this->schema['attributes'][$key])) {
+                $this->schema['attributes'][$key] = [];
+            }
+
+            array_push($this->schema['attributes'][$key], $value);
+            
+            return $this; 
+
+        }
+
+        public function removeAttr(string $key): static
+        {
+
+            if (isset($this->schema['attributes'][$key])) { unset($this->schema['attributes'][$key]); }
+
+            return $this; 
+
+        }
+
+        public function getAttr($key = null)
+        {
+            $attributes = $this->getSchema('attributes');
+
+            if ($key == null || !is_array($attributes) || !array_key_exists($key, $attributes)) {
+                return null;
+            }
+            
+            return $attributes[$key];
+
+        }
+
+        public function attributes(array $attributes): static
+        {
+            foreach ($attributes as $key => $value) {
+                if (!is_string($key) || $key === '') {
+                    continue;
+                }
+
+                $this->attr($key, $value);
+            }
+
+            return $this;
+        }
+
+    }

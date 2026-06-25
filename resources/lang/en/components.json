@@ -1,0 +1,101 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "First Name" },
+            "surname" : { "label" : "Last Name" },
+            "full_name" : { "label" : "Full Name" },
+            "email" : { "label" : "Email" },
+            "prefix" : { "label" : "Prefix" },
+            "cel" : { "label" : "Mobile" },
+            "tel" : { "label" : "Telephone" },
+            "phone" : { "label" : "Phone" },
+            "password" : { "label" : "Password" },
+            "message" : { "label" : "Message" },
+            "request" : { "label" : "What do you need?" },
+            "country" : { "label" : "Country" },
+            "province" : { "label" : "Province" },
+            "city" : { "label" : "City" },
+            "cap" : { "label" : "Postal Code" },
+            "street" : { "label" : "Street" },
+            "number" : { "label" : "Street Number" },
+            "more" : { "label" : "Additional Info" },
+            "link" : { "label" : "Link" },
+            "gmaps" : { "label" : "Google Maps Link" },
+            "type" : { "label" : "Type" },
+            "business_name" : { "label" : "Business Name" },
+            "cf" : { "label" : "Tax Code" },
+            "pi" : { "label" : "VAT Number" },
+            "sdi" : { "label" : "SDI" },
+            "pec" : { "label" : "Certified Email" },
+            "phone_prefix" : { "label" : "Phone Prefix" },
+            "terms_conditions" : {
+                "label" : "I accept the <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Terms and Conditions</a>"
+            },
+            "privacy_policy" : {
+                "label" : "I acknowledge the <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a>"
+            },
+            "marketing" : {
+                "label" : "I consent to receive marketing communications"
+            },
+            "cookie_policy" : {
+                "label" : "I accept the <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Cookie Policy</a>"
+            },
+            "privacy" : {
+                "label" : "I accept the <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Privacy Policy</a> and the <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Terms and Conditions</a>"
+            }
+        },
+        "options" : {
+            "address_type" : {
+                "private" : "Private",
+                "business" : "Business"
+            }
+        },
+        "password_rules" : {
+            "min_length" : "At least {{count}} characters",
+            "uppercase" : "An uppercase letter",
+            "lowercase" : "A lowercase letter",
+            "number" : "A number",
+            "special" : "A special character"
+        },
+        "password_errors" : {
+            "min_length" : "The password must contain at least {{count}} characters.",
+            "uppercase" : "The password must contain at least one uppercase letter.",
+            "lowercase" : "The password must contain at least one lowercase letter.",
+            "number" : "The password must contain at least one number.",
+            "special" : "The password must contain at least one special character."
+        }
+    },
+    "buttons" : {
+        "send" : "Send",
+        "more" : "Learn more",
+        "back_site" : "Back to site",
+        "view" : "View",
+        "look" : "Look",
+        "download" : "Download",
+        "read" : "Read",
+        "back" : "Back",
+        "next" : "Next",
+        "retry" : "Retry",
+        "close" : "Close"
+    },
+    "terms" : {
+        "address" : "Address",
+        "contact" : "Contacts",
+        "credit_by" : "Credit By",
+        "tel" : "Tel",
+        "cel" : "Mobile",
+        "mail" : "Email",
+        "pi" : "VAT No.",
+        "cf" : "Tax Code",
+        "privacy_policy" : "I acknowledge the Privacy Policy",
+        "terms_conditions" : "I accept the Terms and Conditions",
+        "cookie_policy" : "I accept the Cookie Policy",
+        "marketing" : "I consent to receive marketing communications"
+    },
+    "legal" : {
+        "privacy_policy" : "Privacy Policy",
+        "terms_conditions" : "Terms and Conditions",
+        "cookie_policy" : "Cookie Policy",
+        "marketing" : "Marketing Consent"
+    }
+}

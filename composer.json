@@ -1,8 +1,9 @@
 {
     "name": "wonder-image/app",
-    "description": "Wonder Image",
+    "version": "2.1.0",
+    "description": "Wonder Image Framework",
     "homepage": "https://www.wonderimage.it/",
-    "keywords": ["Wonder Image", "Wonderimage"],
+    "keywords": [ "framework",  "Wonder Image", "Wonderimage" ],
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -13,17 +14,34 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": "^8.1",
-        "composer/composer": "^2.7",
+        "php": "^8.2",
         "fpdf/fpdf": "^1.86",
         "vlucas/phpdotenv": "^5.6",
         "phpmailer/phpmailer": "^6.9",
-        "gumlet/php-image-resize": "^2.0",
-        "chillerlan/php-qrcode": "^5.0"
+        "chillerlan/php-qrcode": "^5.0",
+        "stripe/stripe-php": "^17.2",
+        "firebase/php-jwt": "^7.0",
+        "phpoffice/phpspreadsheet": "^5.1",
+        "intervention/image": "^3.11",
+        "fattureincloud/fattureincloud-php-sdk": "^2.1",
+        "getbrevo/brevo-php": "^4.0",
+        "klaviyo/api": "^18.0",
+        "symfony/console": "^6.4 || ^7.0",
+        "symfony/dependency-injection": "^6.4 || ^7.0",
+        "symfony/http-foundation": "^6.4 || ^7.0",
+        "symfony/routing": "^6.4 || ^7.0"
     },
     "autoload": {
         "psr-4": {
             "Wonder\\": "class/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.30"
+        },
+        "allow-plugins": {
+            "php-http/discovery": true
         }
     }
 }

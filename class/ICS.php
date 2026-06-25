@@ -3,8 +3,13 @@
     namespace Wonder;
 
     /**
+     * Esporta il calendario in formato ICS
      * 
-     * Per verificare il corretto funzionamento dell'esportazione [https://icalendar.org/validator.html]
+     * Per verificare il corretto funzionamento dell'esportazione utilizzzare {@link https://icalendar.org/validator.html icalendar.org}
+     * 
+     * @author andreamarinoni <marinoni@wonderimage.it>
+     * @copyright 2024 andreamarinoni
+     * @license MIT
      * 
      */
     

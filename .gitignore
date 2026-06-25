@@ -1,5 +1,13 @@
 
 .DS_Store
+.claude/
+.agents/
+.codex-skill-build/
+skills-lock.json
+.agents/
 vendor/
-node_modules/
-.vscode/settings.json
+.phpdoc/
+COMMAND.md
+TODO.md
+AGENTS.md
+example/

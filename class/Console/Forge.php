@@ -1,0 +1,70 @@
+<?php
+
+    namespace Wonder\Console;
+
+    use Symfony\Component\Console\Application;
+    use Symfony\Component\Console\Input\InputInterface;
+    use Symfony\Component\Console\Output\OutputInterface;
+
+    class Forge
+    {
+        protected array $commands = [];
+
+        public function __construct()
+        {
+            
+            $this->commands = [
+                \Wonder\Console\Commands\Config::class,
+                \Wonder\Console\Commands\Skills::class,
+                \Wonder\Console\Commands\Provision::class,
+                \Wonder\Console\Commands\Update::class,
+                \Wonder\Console\Commands\Build::class,
+                \Wonder\Console\Commands\DbInit::class,
+                \Wonder\Console\Commands\LocalStart::class,
+                \Wonder\Console\Commands\MakeModel::class,
+                \Wonder\Console\Commands\MakeResource::class,
+                \Wonder\Console\Commands\ValidateModule::class,
+                \Wonder\Console\Commands\StatusModules::class,
+                \Wonder\Console\Commands\Export::class,
+                \Wonder\Console\Commands\Import::class,
+            ];
+
+        }
+
+        public function register(string $name, string $class): void
+        {
+            $this->commands[$name] = $class;
+        }
+
+        public function run(InputInterface $input, OutputInterface $output): int
+        {
+                    
+            $app = new Application();
+
+            $instances = [];
+            foreach ($this->commands as $class) {
+                $instances[] = new $class();
+            }
+            $app->addCommands($instances);
+
+            return $app->run($input, $output);
+
+        }
+
+        private function printAvailableCommands(OutputInterface $output): void
+        {
+            $output->writeln("📦 Comandi disponibili:");
+            foreach ($this->commands as $cmd => $class) {
+                $output->writeln("  → $cmd");
+            }
+        }
+
+        protected function listCommands(): void
+        {
+            echo "📦 Comandi disponibili:\n";
+            foreach ($this->commands as $name => $class) {
+                echo "  → $name\n";
+            }
+        }
+
+    }

@@ -2,142 +2,460 @@
 
     namespace Wonder\Backend\Table;
     
+    use Wonder\App\Path;
+    
+    use Wonder\Sql\Query;
+    use Wonder\Backend\Filter\FilterDate;
+    use Wonder\Backend\Filter\FilterCustom;
+    
+    use mysqli;
+
+    /**
+     * 
+     * Funzioni esterne utilizzate:
+     *  - sqlTableInfo
+     * 
+     */
+
+    /**
+     * Creazione tabelle dinamiche
+     * 
+     * La classe Table viene utilizzata per la creazione di tabelle dinamiche. Utilizza la libreria {@link https://datatables.net/ DataTables}.
+     * 
+     * @author andreamarinoni <marinoni@wonderimage.it>
+     * @copyright 2024 andreamarinoni
+     * @license MIT
+     * 
+     */
+
     class Table {
 
-        public $title = false;
-        public $titleName = "";
-        public $titleResult = false;
+        # Connessione alla tabella
+            public $table = "";
+            public $database = "";
+            private string|mysqli $mysqli = "";
+            private string|Query $SQL = "";
 
-        public $buttonAdd = false;
-        public $buttonAddName = "";
+        # Creazione query
+            private $query = "";
+            private $queryCustom = "`deleted` = 'false'";
+            private $queryFilter = "";
 
-        public $buttonCustom = [];
+            private $orderColumn = "";
+            private $orderDirection = "";
 
-        public $searchFields = [];
+            private $orderColumnFilterActive = "";
+            private $orderDirectionFilterActive = "";
 
-        public $filter = "";
-        public $filterCustom = [];
+            private $labels = [];
+            private $columns = [];
 
-        public $table = "";
-        public $database = "main";
+            public $default = [
+                'length' => 10,
+                'page' => 0,
+                'search' => ''
+            ];
+            
+        # Titolo
+            public $title = false;
+            public $titleValue = "";
+            public $titleNResult = false;
 
-        private $query = "";
+        # Bottoni
+            public $buttonAdd = [
+                'visible' => false,
+                'icon' => '',
+                'name' => '',
+                'href' => ''
+            ];
+            public $buttonDownload = [
+                'visible' => false,
+                'format' => [],
+                'endpoint' => '',   // se valorizzato, sostituisce exportTable() con redirect a "{endpoint}{format}"
+                'label' => 'Esporta'
+            ];
+            public $buttonCustom = [];
 
-        private $userArea = [];
-        private $userAuthority = [];
+        # Filtri
+            public $searchFields = [];
+
+            private $filterLimit = [
+                'visible' => false
+            ];
+
+            private $filterDate = [
+                'visible' => false,
+                'days' => '',
+                'column' => ''
+            ];
+
+            private $filterSearch = [
+                'visible' => false,
+                'fields' => []
+            ];
+
+            private $filterCustom = [];
+
+        # Endpoint
+            public $endpoint = "";
+            public $endpointValues = [];
+
+        # Utilità
+            private $id = [];
+            private $columnId = 0;
+            public $url = "";
+            public $link = [];
+            public $text = [
+                'titleS' => 'elemento',
+                'titleP' => 'elementi',
+                'last' => 'ultimi',
+                'all' => 'tutti',
+                'article' => 'gli',
+                'full' => 'pieno',
+                'empty' => 'vuoto',
+                'this' => 'questo'
+            ];
 
 
-        function __construct($table) {
+        /**
+         * Summary of __construct
+         * 
+         * @param string $table Nome della tabella
+         * @param mysqli $connection Connessione al database che ospita la tabella. {@see \Wonder\Sql\Connection}
+         * 
+         */
+        public function __construct( string $table, ?mysqli $connection = null ) {
 
             $this->table = $table;
 
-        }
+            $this->SQL = new Query( $connection );
+            $this->mysqli = $this->SQL->mysqli;
+            $this->database = $this->SQL->GetDatabase();
 
-        public function title( bool $title, bool $result = true ) { 
-
-            $this->title = $title;
-            $this->titleResult = $result; 
-
-        }
-
-        public function buttonAdd( string $name ) { 
-
-            $this->buttonAdd = empty($name) ? false : true;
-            $this->buttonAddName = $name;
-
-        }
-
-        public function buttonCustom( array $button ) { $this->buttonCustom = $button; }
-        
-        public function search( array $fields ) { $this->searchFields = $fields; }
-
-        public function queryCustom( string $query ) { $this->query .= $query; }
-
-        public function filter( string $filter ) { $this->filter = $filter; }
-        public function filterCustom( array $filter ) { $this->filterCustom = $filter; }
-
-
-        public function filterUser( array|string $authority, array|string $area ) {
-
-            $this->query .= empty($this->query) ? $this->query.' AND ' : '';
-
-            if (!empty($authority)) {
-
-                if (is_array($authority)) {
-    
-                    $this->query .= '(';
-
-                    foreach ($authority as $k => $auth) {
-
-                        $this->query .= "`authority` LIKE '%$auth%' OR "; 
-                        array_push($this->userAuthority, $auth);
-                    
-                    }
-
-                    $this->query = substr($this->query, 0, -4).')';
-    
-                } else {
-    
-                    $this->query .= "`authority` LIKE '%$authority%'";
-                    array_push($this->userAuthority, $authority);
-    
-                }
-
-            }
-    
-            if (!empty($authority) && !empty($area)) { $this->query .= " AND "; }
-    
-            if (!empty($area)) {
-
-                if (is_array($area)) {
-    
-                    $this->query .= '(';
-
-                    foreach ($area as $k => $v) { 
-                        
-                        $this->query .= "`area` LIKE '%$v%' OR "; 
-                        array_push($this->userArea, $v);
-                    
-                    }
-
-                    $this->query = substr($this->query, 0, -4).')';
-    
-                } else {
-    
-                    $this->query .= "`area` LIKE '%$area%'";
-                    array_push($this->userArea, $area);
-                    
-                }
-                
-            }
-
-        }
-
-        public function text($titleS = 'riga', $titleP = 'righe', $last = 'ultime', $all = 'tutte', $article = 'le', $full = 'piena', $empty = 'vuota', $this = 'questa') {
-
-        }
-
-        private function rowHeader() {
-
-            $RETURN = "";
-
-            if ($this->title) {
-
-                $col = ($this->buttonAdd) ? 'col-8' : 'col-12';
-
-                $RETURN .= '<div class="'.$col.'"><h3>'.$this->title.'</h3>';
-
-                if ($this->titleResult) { $RETURN .= '<figcaption class="text-muted"> Risultati: <span id="wi-table-result"></span> </figcaption>'; }
-
-                $RETURN .= '</div>';
-
-            }
+            $this->endpoint = (new Path)->apiDT;
             
-            if ($this->buttonAdd) {
+            $this->url = $_SERVER['REQUEST_URI'] ?? '';
+            
+            $this->id = [
+                'table' => $this->createId('table'),
+                'n_result' => $this->createId('n_result'),
+                'filter_container' => $this->createId('filter_container'),
+                'limit_input' => $this->createId('limit_input'),
+                'search_input' => $this->createId('search_input'),
+                'page' => $this->createId('page'),
+                'length' => $this->createId('length'),
+                'search' => $this->createId('search'),
+                'order' => $this->createId('order'),
+                'order_dir' => $this->createId('order_dir')
+            ];
 
-                $col = ($this->buttonAdd) ? 'col-4' : 'col-12';
+        }
 
-                $RETURN .= '<div class="'.$col.'"><a href="'.$PATH->backend.'/'.$NAME->folder.'/?redirect='.$PAGE->uriBase64.'" type="button" class="btn btn-dark btn-sm float-end"> <i class="bi bi-plus-lg"></i> Aggiungi '.$this->buttonAdd.' </a></div>';
+        public function title( bool $bool = true ): self 
+        { 
+            
+            $this->title = $bool; 
+
+            return $this;
+        
+        }
+
+        public function titleNResult( bool $bool = true ): self 
+        {
+            
+            $this->titleNResult = $bool; 
+        
+            return $this;
+
+        }
+
+        public function buttonAdd( string $href, string $name = 'Aggiungi', string $icon = '<i class="bi bi-plus-lg"></i>'): self 
+        { 
+
+            $this->buttonAdd['visible'] = empty($name) ? false : true;
+            $this->buttonAdd['name'] = $name;
+            $this->buttonAdd['href'] = $href;
+            $this->buttonAdd['icon'] = $icon;
+
+            return $this;
+
+        }
+
+        public function buttonDownload( bool $visible = true, array $format = [ 'csv' => 'CSV', 'print' => 'Stampa' ], string $endpoint = '', ?string $label = null ): self
+        {
+
+            $this->buttonDownload['visible'] = $visible;
+            $this->buttonDownload['format'] = $format;
+            $this->buttonDownload['endpoint'] = trim($endpoint);
+
+            if ($label !== null && trim($label) !== '') {
+                $this->buttonDownload['label'] = trim($label);
+            }
+
+            return $this;
+
+        }
+
+        public function addButtonCustom( string $value, bool $isHTML, string $action = '', string $color = 'dark' ): self 
+        { 
+
+            array_push($this->buttonCustom, [
+                'value' => $value,
+                'is_html' => $isHTML,
+                'action' => $action,
+                'color' => $color
+            ]);
+
+            return $this;
+        
+        }
+        
+        public function endpoint( string $endpoint ) { $this->endpoint = $endpoint; }
+        public function addEndpointValue( $key, $value ) { $this->endpointValues[$key] = $value; }
+
+        public function addLink( $key, $link ) { $this->link[$key] = $link; }
+
+        public function query( array | string $query = "`deleted` = 'false'" ) {
+
+            if (is_array($query) && $query === []) {
+                $this->queryCustom = '';
+                return;
+            }
+
+            if (is_string($query) && trim($query) === '') {
+                $this->queryCustom = '';
+                return;
+            }
+
+            $this->queryCustom = Query::Conditions($query, false);
+
+        }
+        public function queryOrder( string $column, string $direction = 'DESC', ?string $columnWhenFilterIsActive = null, ?string $directionWhenFilterIsActive = null ) { 
+
+            $this->orderColumn = $column; 
+            $this->orderDirection = $direction;
+
+            # Con i filtri attivi
+            $this->orderColumnFilterActive = $columnWhenFilterIsActive == null ? $column : $columnWhenFilterIsActive; 
+            $this->orderDirectionFilterActive = $directionWhenFilterIsActive == null ? $direction : $directionWhenFilterIsActive; 
+
+        }
+
+        public function length(int $value = 10 ) { $this->default['length'] = $value; }
+        
+        # Filtri
+            public function filterDate( bool $visible = true, int $days = 30, string $column = 'creation' ): self 
+            { 
+
+                $this->filterDate['visible'] = $visible; 
+                $this->filterDate['days'] = $days; 
+                $this->filterDate['column'] = $column;
+
+                return $this;
+            
+            }
+
+            public function filterLimit( bool $visible = true ): self 
+            { 
+                
+                $this->filterLimit['visible'] = $visible; 
+            
+                return $this;
+
+            }
+
+            public function filterSearch( bool $visible = true, array $fields = []): self 
+            {
+
+                $this->filterSearch['visible'] = $visible; 
+                $this->filterSearch['fields'] = $fields;
+
+                return $this;
+            
+            }
+
+            /**
+             * Undocumented function
+             *
+             * @param [type] $column
+             * @param array $array
+             * @param [type] $input = select || checkbox || radio || tree
+             * @param bool $search
+             * @param [type] $columnType = null || multiple
+             * @return void
+             */
+            public function addFilter( $label, $column, $array, $input = 'select', bool $search = false, $columnType = null, $value = null ): self 
+            {
+
+                array_push(
+                    $this->filterCustom, [
+                        'label' => $label,
+                        'column' => $column,
+                        'column_type' => $columnType,
+                        'array' => $array,
+                        'input' => $input,
+                        'search' => $search,
+                        'value' => $value
+                    ]
+                );
+
+                return $this;
+
+            }
+
+
+        #
+
+        
+        private function createId( string $id ) { return $this->table.'__'.$id; }
+
+        /**
+         * Undocumented function
+         *
+         * @param [type] $label
+         * @param [type] $column
+         * @param [type] $orderable
+         * @param [type] $class
+         * @param string $device = mobile || tablet || desktop
+         * @param int string $width = 
+         * @return void
+         */
+        public function addColumn( $label, $column, bool $orderable = false, $class = '', $hiddenDevice = null, $width = null, $format = []): self
+        {
+
+            if (empty($hiddenDevice)) {
+                $class .= ' all';
+            } else if ($hiddenDevice == 'mobile') {
+                $class .= ' not-mobile';
+            } else if ($hiddenDevice == 'tablet') {
+                $class .= ' not-tablet';
+            } else if ($hiddenDevice == 'desktop') {
+                $class .= ' not-desktop';
+            }
+
+            if (empty($width)) {
+                $width = 'auto';
+            } else if ($width == 'little') {
+                $width = '30px';
+            } else if ($width == 'medium') {
+                $width = '120px';
+            } else if ($width == 'big') {
+                $width = '180px';
+            }
+
+            array_push($this->columns, [
+                'id' => $this->columnId,
+                'name' => $column,
+                'title' => $label,
+                'orderable' => $orderable,
+                'className' => $class,
+                'width' => $width,
+                'searchable' => false,
+                'other' => $format
+            ]);
+
+            $this->columnId++;
+
+            return $this;
+
+        }
+
+        public function labels( array $labels ): self 
+        {
+
+            $this->labels = $labels;
+
+            return $this;
+
+        }
+
+        public function columns( array $columns ): self
+        {
+
+            foreach ($columns as $k => $column) {
+
+                $key = $column->name;
+                $type = $column->type;
+                $schema = $column->schema;
+
+                $format = [];
+                $format['format'] = $type;
+
+                if (isset($schema['function'])) { $format['function'] = $schema['function']; }
+                if (isset($schema['value'])) { $format['value'] = $schema['value']; }
+                if (isset($schema['link'])) { $format['href'] = $schema['link']; }
+
+                $this->addColumn(
+                    $schema['label'] ?? $this->labels[$key] ?? $key,
+                    $key,
+                    $schema['sortable'] ?? false,
+                    $schema['class'] ?? null,
+                    $schema['hidden-device'] ?? null,
+                    $schema['size'] ?? null,
+                    $format
+                );
+
+            }
+
+            return $this;
+
+        }
+
+        public function text( $titleS = 'elemento', $titleP = 'elementi', $last = 'ultimi', $all = 'tutti', $article = 'gli', $full = 'pieno', $empty = 'vuoto', $thiss = 'questo' ) {
+
+            $this->text['titleS'] = $titleS;
+            $this->text['titleP'] = $titleP;
+            $this->text['last'] = $last;
+            $this->text['all'] = $all;
+            $this->text['article'] = $article;
+            $this->text['full'] = $full;
+            $this->text['empty'] = $empty;
+            $this->text['this'] = $thiss;
+
+        }
+
+        private function getFromUrl( $element ) {
+
+            $array = [];
+
+            if ($element == 'filter_date') {
+                
+                if (isset($_GET['date_from']) && !empty($_GET['date_from'])) { $array['date_from'] = $_GET['date_from']; }
+                if (isset($_GET['date_to']) && !empty($_GET['date_to'])) { $array['date_to'] = $_GET['date_to']; }
+                if (isset($_GET['month']) && !empty($_GET['month'])) { $array['month'] = $_GET['month']; }
+                if (isset($_GET['year']) && !empty($_GET['year'])) { $array['year'] = $_GET['year']; }
+
+            } else if ($element == 'filter_custom') {
+
+                foreach ($this->filterCustom as $key => $options) {
+
+                    $columnName = $options['column'];
+                    $name = $this->createId($columnName);
+
+                    if (isset($_GET[$name]) && !empty($_GET[$name])) { $array[$name] = $_GET[$name]; }
+                    
+                }
+
+            }
+
+            $array['redirect'] = $_GET['redirect'] ?? '';
+            $array['id'] = $_GET['id'] ?? '';
+
+            return $array;
+
+        }
+
+        private function createFilterDate() {
+
+            $RETURN = '';
+
+            if ($this->filterDate['visible']) {
+
+                $FILTER = new FilterDate( $this->table, $this->mysqli, $this->filterDate['days'], $this->filterDate['column'], $this->getFromUrl('filter_custom'));
+
+                $RETURN = $FILTER->filter;
+                $this->titleValue = ucwords($this->text['titleP']).' '.$FILTER->title;
+                $this->queryFilter .= empty($this->queryFilter) ? $FILTER->query : $this->queryFilter.'AND '.$FILTER->query;
 
             }
 
@@ -145,23 +463,278 @@
 
         }
 
-        private function rowFilter() {
+        private function createFilterCustom() {
+
+            $FILTER_HTML = '';
+            $FILTER_BUTTON_HTML = '';
+
+            if (!empty($this->filterCustom)) {
+
+                $FILTER = new FilterCustom( $this->table, $this->mysqli, $this->filterCustom, true, $this->getFromUrl('filter_date') );
+
+                $FILTER_HTML = $FILTER->filter;
+                
+                if (!empty($this->queryFilter) && !empty($FILTER->query)) {
+                    $this->queryFilter .= 'AND '.$FILTER->query;
+                } else if (empty($this->queryFilter) && !empty($FILTER->query)) {
+                    $this->queryFilter .= $FILTER->query;
+                }
+                
+                $class = ($this->filterSearch['visible']) ? 'pe-0' : 'me-auto';
+
+                $FILTER_BUTTON_HTML .= '<div class="col-auto '.$class.'">';
+                $FILTER_BUTTON_HTML .=  $FILTER->button;
+                $FILTER_BUTTON_HTML .= '</div>';
+                
+            }
+
+            $RETURN = (object) [];
+            $RETURN->filter = $FILTER_HTML;
+            $RETURN->button = $FILTER_BUTTON_HTML;
+
+            return $RETURN;
+
+        }
+
+        private function createTitle() {
+
+            $RETURN = '';
+
+            if ($this->title) {
+
+                $col = ($this->buttonAdd['visible']) ? 'col-8' : 'col-12';
+
+                $title = empty($this->titleValue) ? 'Lista '.$this->text['titleP'] : $this->titleValue;
+
+                $RETURN .= '<div class="'.$col.'"><h3>'.$title.'</h3>';
+
+                if ($this->titleNResult) { $RETURN .= '<figcaption class="text-muted"> Risultati: <span id="'.$this->id['n_result'].'"></span> </figcaption>'; }
+
+                $RETURN .= '</div>';
+
+            } else if ($this->titleNResult) {
+
+                $col = ($this->buttonAdd['visible']) ? 'col-8' : 'col-12';
+
+                $RETURN .= '<div class="'.$col.'">';
+                $RETURN .= '<figcaption class="text-muted"> Risultati: <span id="'.$this->id['n_result'].'"></span> </figcaption>';
+                $RETURN .= '</div>';
+
+            }
+
+            return $RETURN;
+
+        }
+
+        private function rowHeader() {
+
+            $FILTER_DATE_HTML = $this->createFilterDate(); # Da mettere sempre prima di creare il titolo
+            $FILTER_CUSTOM = $this->createFilterCustom();
+
+            $TITLE_HTML = $this->createTitle();
+
+            $BUTTON_ADD_HTML = '';
+            
+            if ($this->buttonAdd['visible']) {
+
+                $col = ($this->title) ? 'col-4' : 'col-12';
+                $href = $this->buttonAdd['href'];
+                $name = $this->buttonAdd['name'];
+                $icon = $this->buttonAdd['icon'];
+
+                $BUTTON_ADD_HTML .= '<div class="'.$col.'"><a href="'.$href.'" type="button" class="btn btn-dark btn-sm float-end href-redirect"> '.$icon.' '.$name.' </a></div>';
+
+            }
 
 
+            $BUTTON_CUSTOM_HTML = '';
+
+            if (!empty($this->buttonCustom)) {
+
+                $BUTTON_CUSTOM_HTML .= '<div class="col-12 d-flex gap-2 justify-content-end">';
+
+                foreach ($this->buttonCustom as $key => $button) {
+
+                    $isHTML = isset($button['is_html']) ? $button['is_html'] : false;
+                    $value = isset($button['value']) ? $button['value'] : '';
+                    $action = isset($button['action']) ? $button['action'] : '';
+                    $color = isset($button['color']) ? $button['color'] : 'dark';
+
+                    if ($isHTML) {
+                        $BUTTON_CUSTOM_HTML .=  $value;
+                    } else {
+                        $BUTTON_CUSTOM_HTML .=  '<a '.$action.' type="button" class="btn btn-'.$color.' btn-sm">'.$value.'</a>';
+                    }
+                    
+                }
+                
+                $BUTTON_CUSTOM_HTML .= '</div>';
+
+            }
+
+
+            $SEARCH_HTML = '';
+
+            if ($this->filterSearch['visible']) {
+                
+                $SEARCH_HTML .= '<div class="col-4 me-auto">';
+                $SEARCH_HTML .= '<div class="input-group input-group-sm">';
+                $SEARCH_HTML .= '<span class="input-group-text user-select-none">Cerca: </span>';
+                $SEARCH_HTML .= '<input type="text" class="form-control" id="'.$this->id['search_input'].'">';
+                $SEARCH_HTML .= '</div>';
+                $SEARCH_HTML .= '</div>';
+
+            }
+
+
+            $FILTER_LIMIT_HTML = '';
+
+            if ($this->filterLimit['visible']) {
+
+                $FILTER_LIMIT_HTML .= '<div class="col-3">';
+                $FILTER_LIMIT_HTML .= '<div class="input-group input-group-sm">';
+                $FILTER_LIMIT_HTML .= '<span class="input-group-text user-select-none">Mostra:</span>';
+                $FILTER_LIMIT_HTML .= '<select class="form-select" id="'.$this->id['limit_input'].'">';
+                $FILTER_LIMIT_HTML .= '<option value="10">10 elementi</option>';
+                $FILTER_LIMIT_HTML .= '<option value="25">25 elementi</option>';
+                $FILTER_LIMIT_HTML .= '<option value="50">50 elementi</option>';
+                $FILTER_LIMIT_HTML .= '<option value="100">100 elementi</option>';
+                $FILTER_LIMIT_HTML .= '</select>';
+                $FILTER_LIMIT_HTML .= '</div>';
+                $FILTER_LIMIT_HTML .= '</div>';
+
+            }
+
+
+            $BUTTON_DOWNLOAD_HTML = '';
+
+            if ($this->buttonDownload['visible']) {
+
+                $endpoint = (string) ($this->buttonDownload['endpoint'] ?? '');
+                $btnLabel = (string) ($this->buttonDownload['label'] ?? 'Esporta');
+
+                $BUTTON_DOWNLOAD_HTML .= '<div class="col-auto ps-0">';
+                $BUTTON_DOWNLOAD_HTML .= '<div class="btn-group float-end" role="group">';
+                $BUTTON_DOWNLOAD_HTML .= '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> '.htmlspecialchars($btnLabel, ENT_QUOTES, 'UTF-8').' </button>';
+                $BUTTON_DOWNLOAD_HTML .= '<div class="dropdown-menu dropdown-menu-right">';
+
+                foreach ($this->buttonDownload['format'] as $format => $label) {
+
+                    if ($endpoint !== '') {
+                        // Endpoint Resource-aware: la Resource sa quali
+                        // colonne/callable applicare. Niente JS-side export.
+                        $href = $endpoint.rawurlencode((string) $format).'/';
+                        $BUTTON_DOWNLOAD_HTML .= '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" class="dropdown-item">'.htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8').'</a>';
+                    } else {
+                        // Legacy: sqlExport via app/api/export.php.
+                        $BUTTON_DOWNLOAD_HTML .= '<button onclick="exportTable(\''.$this->id['table'].'\', \''.$format.'\' )" class="dropdown-item">'.htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8').'</button>';
+                    }
+
+                }
+
+                $BUTTON_DOWNLOAD_HTML .= '</div>';
+                $BUTTON_DOWNLOAD_HTML .= '</div>';
+                $BUTTON_DOWNLOAD_HTML .= '</div>';
+
+            }
+
+            $RETURN = '';
+            $RETURN .= $TITLE_HTML;
+            $RETURN .= $BUTTON_ADD_HTML;
+            $RETURN .= $FILTER_DATE_HTML;
+            $RETURN .= $BUTTON_CUSTOM_HTML;
+            $RETURN .= $FILTER_CUSTOM->button;
+            $RETURN .= $SEARCH_HTML;
+            $RETURN .= $FILTER_LIMIT_HTML;
+            $RETURN .= $BUTTON_DOWNLOAD_HTML;
+            $RETURN .= $FILTER_CUSTOM->filter;
+
+            return $RETURN;
 
         }
 
         private function rowTable() {
 
+            $RETURN = '';
+            $RETURN .= '<div class="col-12">';
+            $RETURN .= '<table id="'.$this->id['table'].'" class="table table-hover w-100">';
+            $RETURN .= '<thead></thead>';
+            $RETURN .= '<tbody class="table-group-divider"></tbody>';
+            $RETURN .= '</table>';
+            $RETURN .= '</div>';
 
+            return $RETURN;
 
         }
 
-        public function generate() {
+        private function script() {
 
-            return $this->rowHeader().$this->rowFilter().$this->rowTable();
-            
+            $JSON = [];
+            $JSON['id'] = $this->id['table'];
+            $JSON['url'] = $this->url;
+            $JSON['fields'] = $this->columns;
+            $JSON['custom'] = $this->endpointValues;
+
+            if (empty($this->queryFilter)) {
+                $orderColumn = $this->orderColumn;
+                $orderDirection = $this->orderDirection;
+            } else {
+                $orderColumn = $this->orderColumnFilterActive;
+                $orderDirection = $this->orderDirectionFilterActive;
+            }
+
+            $JSON['default'] = [
+                'page' => isset($_GET[$this->id['page']]) ? $_GET[$this->id['page']] : $this->default['page'],
+                'length' => isset($_GET[$this->id['length']]) ? $_GET[$this->id['length']] : $this->default['length'],
+                'search' => isset($_GET[$this->id['search']]) ? $_GET[$this->id['search']] : $this->default['search'],
+                'order' => isset($_GET[$this->id['order']]) ? $_GET[$this->id['order']] : $orderColumn,
+                'order_direction' => isset($_GET[$this->id['order_dir']]) ? $_GET[$this->id['order_dir']] : $orderDirection,
+                'link' => $this->link
+            ];
+
+            $JSON['config'] = [
+                'table' => $this->table,
+                'database' =>$this->database,
+                'query' => base64_encode($this->query),
+                'query_filter' => base64_encode($this->queryFilter),
+                'query_custom' => base64_encode($this->queryCustom),
+                'search_columns' => base64_encode(json_encode($this->filterSearch['fields']))
+            ];
+
+            $JSON['text'] = $this->text;
+
+            $SCRIPT = '<script>';
+            $SCRIPT .= "window.addEventListener('loaded', (event) => {";
+            $SCRIPT .= "createDataTables('".$this->id['table']."', '".$this->endpoint."', ".json_encode($JSON).")";
+            $SCRIPT .= "})";
+            $SCRIPT .= '</script>';
+
+            return $SCRIPT;
+
         }
 
+        public function generate( $card = true ) {
+
+            if (empty($this->queryFilter) && empty($this->queryCustom)) {
+                $this->query = '';
+            } else if (!empty($this->queryFilter) && !empty($this->queryCustom)) {
+                $this->query = $this->queryFilter.'AND '.$this->queryCustom;
+            } else if (!empty($this->queryFilter)) {
+                $this->query = $this->queryFilter;
+            } else if (!empty($this->queryCustom)) {
+                $this->query = $this->queryCustom;
+            }
+
+            $CONTENT = $this->rowHeader();
+            $CONTENT .= $this->rowTable();
+            $CONTENT .= $this->script();
+
+            if ($card) {
+                return '<wi-card class="col-12">'.$CONTENT.'</wi-card>';
+            } else {
+                return $CONTENT;
+            }
+
+        }
 
     }

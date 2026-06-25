@@ -1,0 +1,101 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "Prénom" },
+            "surname" : { "label" : "Nom" },
+            "full_name" : { "label" : "Nom complet" },
+            "email" : { "label" : "E-mail" },
+            "prefix" : { "label" : "Préfixe" },
+            "cel" : { "label" : "Portable" },
+            "tel" : { "label" : "Téléphone" },
+            "phone" : { "label" : "Téléphone" },
+            "password" : { "label" : "Mot de passe" },
+            "message" : { "label" : "Message" },
+            "request" : { "label" : "De quoi avez-vous besoin ?" },
+            "country" : { "label" : "Pays" },
+            "province" : { "label" : "Province" },
+            "city" : { "label" : "Ville" },
+            "cap" : { "label" : "Code postal" },
+            "street" : { "label" : "Rue" },
+            "number" : { "label" : "Numéro" },
+            "more" : { "label" : "Informations complémentaires" },
+            "link" : { "label" : "Lien" },
+            "gmaps" : { "label" : "Lien Google Maps" },
+            "type" : { "label" : "Type" },
+            "business_name" : { "label" : "Raison sociale" },
+            "cf" : { "label" : "Code fiscal" },
+            "pi" : { "label" : "Numéro de TVA" },
+            "sdi" : { "label" : "SDI" },
+            "pec" : { "label" : "E-mail certifié" },
+            "phone_prefix" : { "label" : "Préfixe téléphonique" },
+            "terms_conditions" : {
+                "label" : "J’accepte les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
+            },
+            "privacy_policy" : {
+                "label" : "J’ai pris connaissance de la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a>"
+            },
+            "marketing" : {
+                "label" : "J’accepte de recevoir des communications marketing"
+            },
+            "cookie_policy" : {
+                "label" : "J’accepte la <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique des cookies</a>"
+            },
+            "privacy" : {
+                "label" : "J’accepte la <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Politique de confidentialité</a> et les <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Termes et conditions</a>"
+            }
+        },
+        "options" : {
+            "address_type" : {
+                "private" : "Particulier",
+                "business" : "Société"
+            }
+        },
+        "password_rules" : {
+            "min_length" : "Au moins {{count}} caractères",
+            "uppercase" : "Une lettre majuscule",
+            "lowercase" : "Une lettre minuscule",
+            "number" : "Un chiffre",
+            "special" : "Un caractère spécial"
+        },
+        "password_errors" : {
+            "min_length" : "Le mot de passe doit contenir au moins {{count}} caractères.",
+            "uppercase" : "Le mot de passe doit contenir au moins une lettre majuscule.",
+            "lowercase" : "Le mot de passe doit contenir au moins une lettre minuscule.",
+            "number" : "Le mot de passe doit contenir au moins un chiffre.",
+            "special" : "Le mot de passe doit contenir au moins un caractère spécial."
+        }
+    },
+    "buttons" : {
+        "send" : "Envoyer",
+        "more" : "En savoir plus",
+        "back_site" : "Retour au site",
+        "view" : "Voir",
+        "look" : "Regarder",
+        "download" : "Télécharger",
+        "read" : "Lire",
+        "back" : "Retour",
+        "next" : "Suivant",
+        "retry" : "Réessayer",
+        "close" : "Fermer"
+    },
+    "terms" : {
+        "address" : "Adresse",
+        "contact" : "Contacts",
+        "credit_by" : "Crédit par",
+        "tel" : "Tél",
+        "cel" : "Portable",
+        "mail" : "E-mail",
+        "pi" : "N° TVA",
+        "cf" : "Code fiscal",
+        "privacy_policy" : "J’ai pris connaissance de la Politique de confidentialité",
+        "terms_conditions" : "J’accepte les Termes et conditions",
+        "cookie_policy" : "J’accepte la Politique des cookies",
+        "marketing" : "J’accepte de recevoir des communications marketing"
+    },
+    "legal" : {
+        "privacy_policy" : "Politique de confidentialité",
+        "terms_conditions" : "Termes et conditions",
+        "cookie_policy" : "Politique des cookies",
+        "marketing" : "Consentement marketing"
+    }
+}

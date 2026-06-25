@@ -2,6 +2,8 @@
 
     namespace Wonder\Api;
 
+    use CurlHandle;
+
     class Call {
 
         private $endpoint = "";
@@ -10,9 +12,9 @@
         public $method = "POST";
         public $type, $values;
 
-        private $cURL = "";
+        private bool|CurlHandle $cURL;
 
-        function __construct( string $endpoint, array|string $values = "") {
+        public function __construct( string $endpoint, array|string $values = "") {
             
             $this->endpoint = $endpoint;
             $this->values = $values;
@@ -22,11 +24,24 @@
 
         }
 
-        function method($method) { $this->method = strtoupper($method); }
+        public function method($method): static 
+        { 
+            
+            $this->method = strtoupper($method);
+            return $this;
+        
+        }
 
-        function header($value) { array_push($this->headers, $value); }
+        public function header($value): static  
+        {
+            
+            array_push($this->headers, $value); 
+            return $this;
 
-        function contentType($type) {
+        }
+
+        public function contentType($type): static 
+        {
 
             $this->header('Content-Type: '.$type);
             $this->type = $type;
@@ -37,27 +52,52 @@
                 $this->values = http_build_query($this->values);
             }
 
+            return $this;
+
         }
 
-        function authBasic( string $username, string $password ) {
+        public function authBasic( string $username, string $password ): static 
+        {
 
             curl_setopt($this->cURL, CURLOPT_USERPWD, "$username:$password");
+            return $this;
 
         }
 
-        function authApiKey( string $apiKey ) {
+        public function authApiKey( string $apiKey ): static 
+        {
 
             $this->header('Authorization-Key: '.$apiKey);
+            return $this;
 
         }
 
-        function authBearer( string $token) {
+        public function authBearer( string $token): static 
+        {
 
             $this->header('Authorization: Bearer '.$token);
+            return $this;
 
         }
 
-        function result() {
+        public function timeout( int $seconds ): static 
+        {
+
+            curl_setopt($this->cURL, CURLOPT_TIMEOUT, $seconds);
+            return $this;
+
+        }
+
+        public function connectTimeout( int $seconds ): static 
+        {
+
+            curl_setopt($this->cURL, CURLOPT_CONNECTTIMEOUT, $seconds);
+            return $this;
+
+        }
+
+        private function create()
+        {
 
             # Metodo invio
                 if ($this->method == 'POST') {
@@ -70,6 +110,11 @@
                     if (!empty($this->values)) {
                         $this->endpoint .= "?".http_build_query($this->values);
                     }
+                    
+                } else if ($this->method == 'PATCH') {
+
+                    curl_setopt($this->cURL, CURLOPT_CUSTOMREQUEST, "PATCH");
+                    curl_setopt($this->cURL, CURLOPT_POSTFIELDS, $this->values);
                     
                 }
             
@@ -86,21 +131,56 @@
             # Chiedi risposta
                 curl_setopt($this->cURL, CURLOPT_RETURNTRANSFER, true);
 
+            return $this;
+
+        }
+
+        public function call()
+        {
+
+            $this->create();
+
+            # Risultato
+            $result = curl_exec($this->cURL);
+            $error = curl_error($this->cURL);
+            $errno = curl_errno($this->cURL);
+
+            # Verifica errori
+            if ($errno) {
+                return [
+                    'success' => false,
+                    'error' => $error,
+                    'errno' => $errno,
+                    'result' => null
+                ];
+            } else {
+                return [
+                    'success' => true,
+                    'error' => null,
+                    'errno' => 0,
+                    'result' => $result
+                ];
+            }
+            
+        }
+
+        public function result() 
+        {
+
+            $this->create();
+
             # Risultato
                 $result = curl_exec($this->cURL);
-                curl_close($this->cURL);
-            
+                $errno = curl_errno($this->cURL);
+
             # Verifica errori
-                if (curl_errno($this->cURL)) {
+                if ($errno) {
 
-                    $errno = curl_errno($this->cURL); 
                     return curl_strerror($errno);
-                    
-                } else {
-
-                    return $result;
 
                 }
+
+                return $result;
                 
         }
 

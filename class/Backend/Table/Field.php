@@ -2,9 +2,15 @@
 
     namespace Wonder\Backend\Table;
 
+    use Wonder\Support\Prettify\Phone;
+    use DateTime;
+    use Wonder\App\Support\CssFontFamily;
+    
     class Field {
 
         private $table;
+        private $customLinkOriginal; # Link custom originali
+        private $customLink; # Link custom modificati per ogni linea
         private $link;
         private $text;
         private $user;
@@ -13,6 +19,8 @@
         private $row;
         private $rowId;
         private $column;
+
+        private $function; # Cache per ogni funzione chiamata ( Ogni nuova riga viene inizializzata )
 
         private $redirect;        
         private $redirectBase64;
@@ -25,7 +33,6 @@
          * 
          * Alcune funzioni di questa classe sono esterne come:
          *  - returnButton()
-         *  - prettyPhone()
          *  - isEmpty()
          * 
          */
@@ -33,24 +40,26 @@
 
         public function __construct(object $TABLE, object $PATH, object $TEXT, object $USER, object $PAGE) { 
 
-            $this->table = (object) array();
+            $this->table = (object) [];
+            $this->table->id = $TABLE->id;
             $this->table->name = $TABLE->table;
             $this->table->connection = $TABLE->connection;
             $this->table->database = $TABLE->database;
-            $this->table->folder = $TABLE->folder;
             $this->table->field = $TABLE->field;
             $this->table->page = $TABLE->page;
             $this->table->length = $TABLE->length;
 
-            $this->link = (object) array();
+            $this->customLink = (object) [];
+            $this->customLinkOriginal = (object) [];
+            foreach ($TABLE->link as $key => $link) { $this->customLinkOriginal->$key = $link; }
+
+            $this->link = (object) [];
             $this->link->site = $PATH->site;
             $this->link->backend = $PATH->backend;
             $this->link->app = $PATH->app;
             $this->link->api = $PATH->api;
-            $this->link->folder = $this->link->backend.'/'.$this->table->folder;
-            $this->link->upload = $PATH->upload.'/'.$this->table->folder;
 
-            $this->text = (object) array();
+            $this->text = (object) [];
             $this->text->titleS = $TEXT->titleS;
             $this->text->titleP = $TEXT->titleP;
             $this->text->last = $TEXT->last;
@@ -60,7 +69,7 @@
             $this->text->empty = $TEXT->empty;
             $this->text->this = $TEXT->this;
 
-            $this->user = (object) array();
+            $this->user = (object) [];
             $this->user->area = $USER->area;
             $this->user->authority = $USER->authority;
 
@@ -76,15 +85,27 @@
             $this->row = $row;
             $this->column = $column;
 
-            if ($this->rowId != $row['id']) { $this->line++; }
+            # Se cambia la linea
+            if ($this->rowId != $row['id']) { 
+
+                $this->line++; 
+            
+                $this->function = [];
+
+            }
 
             if ($this->line == 1) { $this->line = $this->line + ($this->table->page * $this->table->length); }
 
             $this->rowId = $row['id'];
 
-            $this->link->view = $this->link->folder.'/view.php?redirect='.$this->redirectBase64.'&id='.$this->rowId;
-            $this->link->modify = $this->link->folder.'/?redirect='.$this->redirectBase64.'&modify='.$this->rowId;
-            $this->link->download = $this->link->folder.'/download.php?id='.$this->rowId;
+            foreach ($this->customLinkOriginal as $key => $link) {
+                
+                $link = str_replace('{redirectBase64}', $this->redirectBase64, $link);
+                $link = str_replace('{rowId}', $this->rowId, $link);
+
+                $this->customLink->$key = $link;
+
+            }
 
             if ($format != null) {
                 if ($column == 'action_button') {
@@ -140,7 +161,7 @@
             return "onclick=\"ajaxRequest(
                 '$url',
                 reloadDataTable, 
-                '#wi-table'
+                '#".$this->table->id."'
             )\"";
 
         }
@@ -162,7 +183,7 @@
                 'Chiudi',
                 'dark',
                 'reloadDataTable', 
-                '#wi-table'
+                '#".$this->table->id."'
             )\"";
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
@@ -180,7 +201,7 @@
                 'Chiudi',
                 'dark',
                 'reloadDataTable', 
-                '#wi-table'";
+                '#".$this->table->id."'";
             
             if ($this->user->authority != '') { $action .= "&authority={$this->user->authority}"; }
             if ($this->user->area != '') { $action .= "&area={$this->user->area}"; }
@@ -280,16 +301,33 @@
                 
                 foreach ($actionArray as $ACTION => $link) {
 
-                    if ($link && !is_array($link)) {
+                    if ($link && !is_array($link) && $link != 'false') {
 
-                        if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->view}' role='button'>Visualizza</a>"; }
-                        elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->modify}' role='button'>Modifica</a>"; }
-                        elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='{$this->link->download}'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
+                        if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
+                        elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
+                        elseif ($ACTION == 'duplicate') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->duplicate}' role='button'>Duplica</a>"; }
+                        elseif ($ACTION == 'download') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->download}'  target='_blank' rel='noopener noreferrer' role='button'>Scarica</a>"; }
                         elseif ($ACTION == 'visible') { $BUTTONS .= $this->changeVisible()->button; }
                         elseif ($ACTION == 'evidence') { $BUTTONS .= $this->changeEvidence()->button; }
                         elseif ($ACTION == 'delete' && $this->deleteButton) { $BUTTONS .= $this->deleteRow()->button; }
-                        elseif ($ACTION == 'authority' && $this->deleteButton && isset($this->user->authority) && isset($this->user->area) && !is_array($this->user->area) && !is_array($this->user->authority)) { $BUTTONS .= $this->deleteAuthority()->button; }
+                        elseif ($ACTION == 'authority' && $this->deleteButton) { 
+                            
+                            if ($this->table->name == 'user') {
+                                
+                                $userArea = json_decode($this->row['area'], true);
+                                $userAuthority = json_decode($this->row['authority'], true);
+
+                                if (count($userArea) == 1 && count($userAuthority) == 1) {
+                                    $BUTTONS .= $this->deleteRow()->button;
+                                } else if (!empty($this->user->area) && !empty($this->user->authority)) {
+                                    $BUTTONS .= $this->deleteAuthority()->button;
+                                }
+
+                            }
+                        
+                        }
                         elseif ($ACTION == 'active') { 
+
                             if ($this->table->name == 'user') {
 
                                 $userArea = json_decode($this->row['area'], true);
@@ -304,6 +342,7 @@
                                 $BUTTONS .= $this->changeActive()->button; 
 
                             }
+
                         }
 
                     } elseif (is_array($link)) {
@@ -316,11 +355,11 @@
                         $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
                         $filter = isset($link['filter']) ? $link['filter'] : [];
 
-                        if ($ACTION == 'delete') {
 
-                            $BUTTON = $this->deleteRow()->button;
-
-                        } else {
+                        if ($ACTION == 'view') { $BUTTON = "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
+                        else if ($ACTION == 'modify') { $BUTTON = "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
+                        else if ($ACTION == 'delete') {  $BUTTON = $this->deleteRow()->button; } 
+                        else {
 
                             if (!empty($href)) {
 
@@ -328,7 +367,7 @@
 
                                 if (count($listVar) > 0) {
                                     foreach ($listVar[1] as $k => $var) {
-                                        $href = str_replace('{'.$var.'}', $this->row[$var], $href);
+                                        $href = str_replace('{'.$var.'}', $this->row[$var] ?? '', $href);
                                     }
                                 }
 
@@ -350,7 +389,7 @@
     
                                 }
 
-                                $action = 'href="'.$href.'"';
+                                $action = empty($href) ? '' : 'href="'.$href.'"';
 
                             } else if (!empty($request)) {
 
@@ -368,7 +407,7 @@
                                 $label = isset($label[$this->row[$ACTION]]) ? $label[$this->row[$ACTION]] : '';
                             }
     
-                            $BUTTON = empty($label) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
+                            $BUTTON = empty($label) || empty($action) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
     
                         }
 
@@ -389,7 +428,10 @@
                             # Controlla che il valore sia quello specificato
                                 if (!empty($row)) {
                                     foreach ($row as $key => $value) {
-                                        if ($this->row[$key] != $value) { $public = false; break; }
+                                        if ((!is_array($value) && $this->row[$key] != $value) || (is_array($value) && in_array($this->row[$key], $value) == false)) { 
+                                            $public = false; 
+                                            break; 
+                                        }
                                     }
                                 }
 
@@ -429,7 +471,7 @@
             $action = "onclick=\"ajaxRequest(
                 '{$this->link->app}/api/backend/move.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}&action=$type',
                 reloadDataTable, 
-                '#wi-table'
+                '#".$this->table->id."'
             )\"";
 
             $button = "<a class='bi bi-chevron-$type text-dark' $action role='button'></a>";
@@ -499,9 +541,9 @@
 
                         $VALUE = $FUNCTION->icon;
 
-                        if (!$FUNCTION->return) { $this->deleteButton = false; }
+                        $this->deleteButton = ($FUNCTION->return) ? true : false;
 
-                    } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend") {
+                    } elseif ($functionName == "permissions" || $functionName == "permissionsBackend" || $functionName == "permissionsFrontend" || $functionName == "permissionsApi") {
 
                         $COLUMN_VALUE = json_decode($COLUMN_VALUE, true);
                         $functionReturn = $format['function']['return'];
@@ -525,25 +567,46 @@
 
                     } else {
 
-                        $args = [];
+                        # Controllo se è già stata chiamata questa funzione con gli stessi parametri così da non chiamarla due volte
 
-                        if (is_array($functionParameter)) {
-                            foreach ($functionParameter as $parameter) {
-                                if (isset($this->row[$parameter])) {
-                                    array_push($args, $this->row[$parameter]);
-                                } else {
-                                    array_push($args, $parameter);
-                                }
+                        if (isset($this->function[$functionName]) && $this->function[$functionName]['parameter'] == $functionParameter) {
+                            
+                            if (isset($format['function']['return']) && !empty($format['function']['return'])) {
+                                $functionReturn = $format['function']['return'];
+                                $VALUE = $this->function[$functionName]['return']->$functionReturn;
+                            } else {
+                                $VALUE = $this->function[$functionName]['return'];
                             }
-                        } else {
-                            array_push($args, $this->row[$functionParameter]);
-                        }
 
-                        if (isset($format['function']['return']) && !empty($format['function']['return'])) {
-                            $functionReturn = $format['function']['return'];
-                            $VALUE = call_user_func_array($functionName, $args)->$functionReturn;
                         } else {
-                            $VALUE = call_user_func_array($functionName, $args);
+                            
+                            $args = [];
+
+                            if (is_array($functionParameter)) {
+                                foreach ($functionParameter as $parameter) {
+                                    if (isset($this->row[$parameter])) {
+                                        array_push($args, $this->row[$parameter]);
+                                    } else {
+                                        array_push($args, $parameter);
+                                    }
+                                }
+                            } else {
+                                array_push($args, $this->row[$functionParameter]);
+                            }
+
+                            $return = call_user_func_array($functionName, $args);
+
+                            if (isset($format['function']['return']) && !empty($format['function']['return'])) {
+                                $functionReturn = $format['function']['return'];
+                                $VALUE = $return->$functionReturn;
+                            } else {
+                                $VALUE = $return;
+                            }
+
+                            $this->function[$functionName] = [];
+                            $this->function[$functionName]['parameter'] = $functionParameter;
+                            $this->function[$functionName]['return'] = $return;
+
                         }
 
                     }
@@ -551,6 +614,10 @@
                 } else {
 
                     $VALUE = $COLUMN_VALUE;
+
+                    if ($this->table->name === 'css_font' && $this->column === 'font_family') {
+                        $VALUE = CssFontFamily::normalize($VALUE);
+                    }
                     
                 }
 
@@ -567,41 +634,130 @@
 
                             $imageDir = isset($this->table->field[$this->column]['input']['format']['dir']) ? $this->table->field[$this->column]['input']['format']['dir'] : '/';
 
+                            // Default sicuri: nessuna resize, file servito dal
+                            // path nudo. Prima `$sizeBefore` non era
+                            // inizializzato nel ramo "no resize" → "Undefined
+                            // variable $sizeBefore" a riga ~672 nei resource
+                            // dove il field è `text()` ma la colonna è
+                            // formattata come `image()` (es. Media.file).
+                            $imageSize = '';
+                            $sizeBefore = false;
+
                             if (isset($this->table->field[$this->column]['input']['format']['resize'])) {
 
                                 $imageResize = $this->table->field[$this->column]['input']['format']['resize'];
 
-                                if (isset($imageResize['width']) && isset($imageResize['height'])) {
+                                if (isset($imageResize['width'])) {
 
-                                    $imageSize = $imageResize['width'].'x'.$imageResize['height'].'-';
+                                    $imageSize = $imageResize['width'].'x'.($imageResize['height'] ?? $imageResize['width']).'-';
+                                    $sizeBefore = true;
 
-                                } else {
-
+                                } else if (isset($imageResize[0]['width'])) {
                                     $s = 10000000;
 
                                     foreach ($imageResize as $key => $size) {
                                         if ($size['width'] < $s) {
                                             $s = $size['width'];
-                                            $imageSize = $size['width'].'x'.$size['height'].'-';
+                                            $imageSize = $size['width'].'x'.($size['height'] ?? $size['width']).'-';
                                         }
                                     }
 
+                                    $sizeBefore = true;
+
+                                } else if (isset($imageResize[0])) {
+
+                                    $imageSize = '-'.$imageResize[0];
+                                    $sizeBefore = false;
+
                                 }
-
-                            } else {
-
-                                $imageSize = "";
+                                // Altri pattern di resize non riconosciuti
+                                // → defaults sopra (no size suffix).
 
                             }
 
-                            $VALUE = isset($VALUE[0]) ? $this->link->upload.$imageDir.$imageSize.$VALUE[0] : "";
-                            
+                            // `customLink->file` può mancare se l'AJAX non
+                            // l'ha inviato (es. table caller legacy senza
+                            // addLink('file', ...)). Fall back a stringa
+                            // vuota: l'URL sarà relativo al dominio corrente
+                            // e l'<img> mostrerà broken se il path è errato,
+                            // ma niente PHP warning nel JSON di risposta.
+                            $fileBase = $this->customLink->file ?? '';
+
+                            if (isset($VALUE[0])) {
+                                if ($sizeBefore) {
+                                    $VALUE = $fileBase.$imageDir.$imageSize.$VALUE[0];
+                                } else {
+                                    $extension = pathinfo($VALUE[0], PATHINFO_EXTENSION);
+                                    $name = pathinfo($VALUE[0], PATHINFO_FILENAME);
+                                    $VALUE = $fileBase.$imageDir.$name.$imageSize.'.'.$extension;
+                                }
+                            } else {
+                                $VALUE = "";
+                            }
+
                         }
 
                         $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
                     
                     } else if ($type == 'date') {
-                        $VALUE = date('d/m/Y', strtotime($VALUE));
+
+                        $VALUE = empty($VALUE) ? "" : (new DateTime($VALUE))->format('d/m/Y');
+
+                    } else if ($type == 'datetime') {
+
+                        $VALUE = empty($VALUE) ? "" : (new DateTime($VALUE))->format('d/m/Y H:i');
+
+                    } else if ($type == 'phone') {
+
+                        $prefix = (isset($this->row['phone_prefix']) && !empty($VALUE)) ? $this->row['phone_prefix']." " : "";
+                        $VALUE = $prefix.Phone::prettify($VALUE);
+
+                    } else if ($type == 'price') {
+
+                        $VALUE = empty($VALUE) ? "" : number_format($VALUE, 2, '.', '').'€';
+
+                    } else if ($type == 'color') {
+
+                        if (!empty($VALUE)) {
+                            
+                            $colorInfo = colorInfo(hexToRgb($VALUE));
+
+                            $VALUE = empty($VALUE) ? "" : '<span class="badge" style="background: '.$VALUE.'; color: '.$colorInfo->neutral->color.'">'.$VALUE.'</span>';
+
+                        }
+
+                    } else if ($type == 'status') {
+
+                        if (!empty($VALUE)) {
+
+                            $bool = filter_var($VALUE, FILTER_VALIDATE_BOOLEAN);
+                            
+                            if ($bool) {
+                                $VALUE = '<span class="badge text-bg-success">SUCCESSO</span>';
+                            } else {
+                                $VALUE = '<span class="badge text-bg-danger">ERRORE</span>';
+                            }
+
+                        }
+
+                    } else if ($type == 'user' || $type == 'user_avatar' || $type == 'user_name') {
+
+                        if (!empty($VALUE)) {
+
+                            $U = infoUser($VALUE);
+                            
+                            if ($U->exists) {
+
+                                $VALUE = match ($type) {
+                                    'user' => '<div class="d-inline-flex"><div class="me-1" style="width: 23px; font-size: 10px">'.$U->avatar . '</div> ' . $U->fullName.'</div>',
+                                    'user_avatar' => '<div style="width: 23px; font-size: 10px">'.$U->avatar.'</div>',
+                                    'user_name' => $U->fullName,
+                                };
+                                
+                            }
+                            
+                        }
+
                     }
 
                 }
@@ -612,14 +768,16 @@
                     $href = $format['href'];
 
                     if ($href == 'modify') {
-                        $href = $this->link->modify;
+                        $href = $this->customLink->modify;
                     } elseif ($href == 'view') {
-                        $href = $this->link->view;
+                        $href = $this->customLink->view;
                     } elseif ($href == 'mailto') {
                         $href = "mailto:$VALUE";
                     } elseif ($href == 'tel') {
-                        $href = "tel:$VALUE";
-                        $VALUE = prettyPhone($VALUE);
+
+                        $href = "tel:".str_replace(' ', '', $VALUE);
+                        $VALUE = Phone::prettify($VALUE);
+
                     }
 
                     $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";

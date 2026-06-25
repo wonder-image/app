@@ -4,6 +4,17 @@
 
     use Fpdf\Fpdf;
 
+    /**
+     * Creazione PDF
+     * 
+     * Utilizza la libreria {@link http://www.fpdf.org/ FPDF}
+     * 
+     * @author andreamarinoni <marinoni@wonderimage.it>
+     * @copyright 2024 andreamarinoni
+     * @license MIT
+     * 
+     */
+
     class Pdf extends Fpdf {
 
         private $FONT = "";
@@ -19,7 +30,7 @@
                 $dir1 = $path[0];
                 $dir2 = $path[1];
                 
-                $this->AddFont($regular, "", $regular.'.php', $ROOT_APP.'/assets/font/'.$dir1.'/'.$dir2);
+                $this->AddFont($regular, "", $regular.'.php', dirname($ROOT_APP).'/resources/assets/font/'.$dir1.'/'.$dir2);
 
             }
 
@@ -31,7 +42,7 @@
                 $dir1 = $path[0];
                 $dir2 = $path[1];
 
-                $this->AddFont($bold, "B", $bold.'.php', $ROOT_APP.'/assets/font/'.$dir1.'/'.$dir2);
+                $this->AddFont($bold, "B", $bold.'.php', dirname($ROOT_APP).'/resources/assets/font/'.$dir1.'/'.$dir2);
 
             }
 
@@ -162,6 +173,27 @@
         function StopTransform(){
             //restore previous graphic state
             $this->_out('Q');
+        }
+
+        public function MultiCellHeight($width, $lineHeight, $text, $fontSize, $align = 'L', $bold = false) {
+
+            $PDF = new self;
+
+            $PDF->AddPage();
+            $PDF->SetXY(0,0);
+
+            $PDF->LoadFont($this->FONT, $this->FONT_BOLD);
+
+            if ($bold) {
+                $PDF->FontBold($fontSize);
+            } else {
+                $PDF->Font($fontSize);
+            };
+            
+            $PDF->MultiCell($width, $lineHeight, $text, 0, $align);
+
+            return $PDF->GetY();
+
         }
 
     }

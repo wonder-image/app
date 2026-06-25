@@ -1,0 +1,101 @@
+{
+    "forms" : {
+        "fields" : {
+            "name" : { "label" : "Vorname" },
+            "surname" : { "label" : "Nachname" },
+            "full_name" : { "label" : "Vollständiger Name" },
+            "email" : { "label" : "E-Mail" },
+            "prefix" : { "label" : "Vorwahl" },
+            "cel" : { "label" : "Handy" },
+            "tel" : { "label" : "Telefon" },
+            "phone" : { "label" : "Telefon" },
+            "password" : { "label" : "Passwort" },
+            "message" : { "label" : "Nachricht" },
+            "request" : { "label" : "Was brauchen Sie?" },
+            "country" : { "label" : "Land" },
+            "province" : { "label" : "Bundesland" },
+            "city" : { "label" : "Stadt" },
+            "cap" : { "label" : "Postleitzahl" },
+            "street" : { "label" : "Straße" },
+            "number" : { "label" : "Hausnummer" },
+            "more" : { "label" : "Zusätzliche Angaben" },
+            "link" : { "label" : "Link" },
+            "gmaps" : { "label" : "Google-Maps-Link" },
+            "type" : { "label" : "Typ" },
+            "business_name" : { "label" : "Firmenname" },
+            "cf" : { "label" : "Steuernummer" },
+            "pi" : { "label" : "USt-IdNr." },
+            "sdi" : { "label" : "SDI" },
+            "pec" : { "label" : "Zertifizierte E-Mail" },
+            "phone_prefix" : { "label" : "Telefonvorwahl" },
+            "terms_conditions" : {
+                "label" : "Ich akzeptiere die <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Allgemeinen Geschäftsbedingungen</a>"
+            },
+            "privacy_policy" : {
+                "label" : "Ich habe die <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Datenschutzerklärung</a> zur Kenntnis genommen"
+            },
+            "marketing" : {
+                "label" : "Ich stimme dem Erhalt von Marketing-Mitteilungen zu"
+            },
+            "cookie_policy" : {
+                "label" : "Ich akzeptiere die <a href=\"{{path_cookie_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Cookie-Richtlinie</a>"
+            },
+            "privacy" : {
+                "label" : "Ich akzeptiere die <a href=\"{{path_privacy_policy}}\" target=\"_blank\" rel=\"noopener noreferrer\">Datenschutzerklärung</a> und die <a href=\"{{path_terms_conditions}}\" target=\"_blank\" rel=\"noopener noreferrer\">Allgemeinen Geschäftsbedingungen</a>"
+            }
+        },
+        "options" : {
+            "address_type" : {
+                "private" : "Privat",
+                "business" : "Unternehmen"
+            }
+        },
+        "password_rules" : {
+            "min_length" : "Mindestens {{count}} Zeichen",
+            "uppercase" : "Ein Großbuchstabe",
+            "lowercase" : "Ein Kleinbuchstabe",
+            "number" : "Eine Zahl",
+            "special" : "Ein Sonderzeichen"
+        },
+        "password_errors" : {
+            "min_length" : "Das Passwort muss mindestens {{count}} Zeichen enthalten.",
+            "uppercase" : "Das Passwort muss mindestens einen Großbuchstaben enthalten.",
+            "lowercase" : "Das Passwort muss mindestens einen Kleinbuchstaben enthalten.",
+            "number" : "Das Passwort muss mindestens eine Zahl enthalten.",
+            "special" : "Das Passwort muss mindestens ein Sonderzeichen enthalten."
+        }
+    },
+    "buttons" : {
+        "send" : "Senden",
+        "more" : "Mehr erfahren",
+        "back_site" : "Zurück zur Website",
+        "view" : "Ansehen",
+        "look" : "Schauen",
+        "download" : "Herunterladen",
+        "read" : "Lesen",
+        "back" : "Zurück",
+        "next" : "Weiter",
+        "retry" : "Wiederholen",
+        "close" : "Schließen"
+    },
+    "terms" : {
+        "address" : "Adresse",
+        "contact" : "Kontakte",
+        "credit_by" : "Kredite von",
+        "tel" : "Tel",
+        "cel" : "Handy",
+        "mail" : "E-Mail",
+        "pi" : "USt-IdNr.",
+        "cf" : "Steuernummer",
+        "privacy_policy" : "Ich habe die Datenschutzerklärung zur Kenntnis genommen",
+        "terms_conditions" : "Ich akzeptiere die Allgemeinen Geschäftsbedingungen",
+        "cookie_policy" : "Ich akzeptiere die Cookie-Richtlinie",
+        "marketing" : "Ich stimme dem Erhalt von Marketing-Mitteilungen zu"
+    },
+    "legal" : {
+        "privacy_policy" : "Datenschutzerklärung",
+        "terms_conditions" : "Allgemeine Geschäftsbedingungen",
+        "cookie_policy" : "Cookie-Richtlinie",
+        "marketing" : "Marketing-Einwilligung"
+    }
+}

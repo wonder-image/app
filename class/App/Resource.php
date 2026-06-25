@@ -1,0 +1,779 @@
+<?php
+
+namespace Wonder\App;
+
+use mysqli;
+use ReflectionObject;
+use RuntimeException;
+use Throwable;
+use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
+use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
+use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
+use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
+use Wonder\App\ResourceSchema\RepeaterRelation;
+use Wonder\App\ResourceSchema\TableLayoutSchema as ResourceTableLayoutSchema;
+use Wonder\App\Support\Repeater;
+use Wonder\Elements\Form\Form as BackendFormLayout;
+use Wonder\Backend\Support\ResourceTableRenderer;
+use Wonder\Backend\Table\Table as BackendTable;
+use Wonder\Sql\Query;
+
+abstract class Resource
+{
+    public static string $model = '';
+    public static string $path = '';
+
+    public static array|string $condition = ['deleted' => 'false'];
+    public static string|int|null $limit = null;
+    public static string $orderColumn = 'creation';
+    public static string $orderDirection = 'DESC';
+
+    public static function modelClass(): string
+    {
+        $modelClass = trim(static::$model);
+
+        if ($modelClass === '' || !class_exists($modelClass)) {
+            throw new RuntimeException('Model non valido per la resource '.static::class.'.');
+        }
+
+        if (!is_subclass_of($modelClass, Model::class)) {
+            throw new RuntimeException("{$modelClass} deve estendere ".Model::class.'.');
+        }
+
+        return $modelClass;
+    }
+
+    public static function modelTable(): string
+    {
+        return static::modelClass()::$table;
+    }
+
+    public static function path(): string
+    {
+        $path = trim(static::$path);
+
+        if ($path !== '') {
+            return trim($path, '/');
+        }
+
+        return trim((string) (static::modelClass()::$folder ?? ''), '/');
+    }
+
+    public static function legacyFolder(): string
+    {
+        return static::path();
+    }
+
+    public static function slug(): string
+    {
+        $path = static::path();
+
+        if ($path === '') {
+            return '';
+        }
+
+        $slug = str_replace(['\\', '/'], '-', $path);
+        $slug = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $slug) ?? $slug;
+
+        return trim(strtolower($slug), '-');
+    }
+
+    public static function icon(): string
+    {
+        return trim((string) (static::modelClass()::$icon ?? ''));
+    }
+
+    public static function labelSchema(): array
+    {
+        return [];
+    }
+
+    public static function textSchema(): array
+    {
+        return [];
+    }
+
+    public static function formSchema(): array
+    {
+        return [];
+    }
+
+    public static function formLayoutSchema(): ?BackendFormLayout
+    {
+        return null;
+    }
+
+    public static function singletonRecordId(): int|string|null
+    {
+        return null;
+    }
+
+    public static function tableSchema(): array
+    {
+        return [];
+    }
+
+    public static function tableLayoutSchema(): ResourceTableLayoutSchema
+    {
+        return static::tableLayout();
+    }
+
+    public static function pageSchema(): ResourcePageSchema
+    {
+        return static::page();
+    }
+
+    public static function apiSchema(): ResourceApiSchema
+    {
+        return static::api();
+    }
+
+    public static function permissionSchema(): ResourcePermissionSchema
+    {
+        return static::permission();
+    }
+
+    public static function navigationSchema(): ResourceNavigationSchema
+    {
+        return static::navigation();
+    }
+
+    public static function querySchema(): array
+    {
+        return [
+            'condition' => static::$condition,
+            'limit' => static::$limit,
+            'order' => [
+                'column' => static::$orderColumn,
+                'direction' => static::$orderDirection,
+            ],
+        ];
+    }
+
+    public static function prepareSchemaName(): string
+    {
+        return 'resource:'.static::slug();
+    }
+
+    public static function prepareSchema(): array
+    {
+        $schema = [];
+        $fields = static::modelFields();
+        $inputs = static::safeFormFieldsByKey();
+
+        foreach (array_unique(array_merge(array_keys($fields), array_keys($inputs))) as $key) {
+            $entry = [];
+            $format = array_merge(
+                static::modelClass()::prepareFormatFromField($fields[$key] ?? null),
+                static::prepareFormatFromInput($inputs[$key] ?? null)
+            );
+
+            if ($format !== []) {
+                $entry['input']['format'] = $format;
+            }
+
+            $schema[$key] = $entry;
+        }
+
+        return $schema;
+    }
+
+    public static function mutateRequestValues(
+        array $values,
+        string $action,
+        string $context = 'backend',
+        ?array $oldValues = null
+    ): array {
+        return $values;
+    }
+
+    public static function mutateFormValues(
+        array $values,
+        string $mode,
+        string $context = 'backend'
+    ): array {
+        return $values;
+    }
+
+    /**
+     * Verifica reCAPTCHA server-side in una sola riga, da chiamare nel hook
+     * API (tipicamente {@see mutateRequestValues()} per l'action `store`):
+     *
+     *   if ($context === 'api' && $action === 'store') {
+     *       static::verifyRecaptcha();
+     *   }
+     *
+     * Delega tutto a {@see \Wonder\App\Security\RecaptchaGuard}: lettura di
+     * `g-recaptcha-token` / `g-recaptcha-action` da `$_POST`, validazione,
+     * logging strutturato e `RuntimeException(617)` su fallimento. Nessun
+     * boilerplate da copiare nei singoli Resource.
+     *
+     * Se `$action` è omessa, viene derivata dall'unico campo `recaptcha`
+     * dichiarato in {@see formSchema()} (la `FormField::recaptcha('contact')`
+     * diventa così la singola sorgente di verità). Passa l'action esplicita
+     * se il form non ha un campo recaptcha o ne ha più d'uno.
+     */
+    public static function verifyRecaptcha(?string $action = null): void
+    {
+        \Wonder\App\Security\RecaptchaGuard::for($action ?? static::recaptchaAction())
+            ->withService('resource:'.static::slug())
+            ->verify();
+    }
+
+    /**
+     * Deriva l'action attesa dal campo `recaptcha` di {@see formSchema()}.
+     * Coerente col default frontend (`submit`) quando l'action non è esplicita
+     * sul `FormField`. Lancia se la configurazione è ambigua (zero o più campi
+     * recaptcha): in quel caso il consumer deve passare l'action a
+     * {@see verifyRecaptcha()}.
+     */
+    private static function recaptchaAction(): string
+    {
+        $actions = [];
+
+        foreach (static::formSchema() as $field) {
+            if (!$field instanceof Input || $field->get('helper') !== 'recaptcha') {
+                continue;
+            }
+
+            $context = (array) ($field->get('context') ?? []);
+            $value = trim((string) ($context['recaptcha_action'] ?? ''));
+            $actions[] = $value !== '' ? $value : 'submit';
+        }
+
+        if (count($actions) === 1) {
+            return $actions[0];
+        }
+
+        if ($actions === []) {
+            throw new RuntimeException(
+                'Nessun campo recaptcha in '.static::class.'::formSchema(): '
+                .'passa l\'action esplicita a verifyRecaptcha().'
+            );
+        }
+
+        throw new RuntimeException(
+            'Più campi recaptcha in '.static::class.'::formSchema(): '
+            .'passa l\'action esplicita a verifyRecaptcha().'
+        );
+    }
+
+    public static function prepareRepeaterRelationRow(
+        string $inputName,
+        array $payload,
+        array $row,
+        ?array $existingRow = null,
+        string $action = 'store',
+        string $context = 'backend'
+    ): array {
+        return $payload;
+    }
+
+    public static function query(): Query
+    {
+        $modelClass = static::modelClass();
+
+        return $modelClass::query();
+    }
+
+    public static function connection(): mysqli
+    {
+        $modelClass = static::modelClass();
+
+        return $modelClass::connection();
+    }
+
+    public static function formFields(): array
+    {
+        $fields = [];
+
+        foreach (static::flattenFormItems(static::formSchema()) as $item) {
+            if (!is_object($item)) {
+                continue;
+            }
+
+            $fields[] = static::normalizeFormField($item);
+        }
+
+        return $fields;
+    }
+
+    public static function formFieldsByKey(): array
+    {
+        $fields = [];
+
+        foreach (static::formFields() as $field) {
+            if (!is_object($field) || !property_exists($field, 'name')) {
+                continue;
+            }
+
+            $fields[(string) $field->name] = clone $field;
+        }
+
+        return $fields;
+    }
+
+    public static function safeFormFieldsByKey(): array
+    {
+        try {
+            return static::formFieldsByKey();
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    public static function repeaterRelations(): array
+    {
+        $relations = [];
+
+        foreach (static::safeFormFieldsByKey() as $key => $field) {
+            if (!is_object($field) || !method_exists($field, 'get')) {
+                continue;
+            }
+
+            $context = (array) ($field->get('context') ?? []);
+            $relation = $context['relation'] ?? null;
+
+            if ($relation instanceof RepeaterRelation) {
+                $relations[$key] = [
+                    'field' => $field,
+                    'relation' => $relation,
+                ];
+            }
+        }
+
+        return $relations;
+    }
+
+    public static function stripRelationInputValues(array $values): array
+    {
+        foreach (array_keys(static::repeaterRelations()) as $inputName) {
+            unset($values[$inputName]);
+        }
+
+        return $values;
+    }
+
+    public static function syncRepeaterRelations(
+        int|string $parentId,
+        array $post,
+        array $files = [],
+        string $action = 'store',
+        string $context = 'backend'
+    ): array {
+        $summary = [];
+
+        foreach (static::repeaterRelations() as $inputName => $entry) {
+            /** @var RepeaterRelation $relation */
+            $relation = $entry['relation'];
+            $rows = Repeater::rowsFromRequest($inputName, $post, $files);
+
+            $summary[$inputName] = Repeater::syncRelatedRows(
+                $relation,
+                $parentId,
+                $rows,
+                fn (array $payload, array $row, ?array $existingRow): array => static::prepareRepeaterRelationRow(
+                    $inputName,
+                    $payload,
+                    $row,
+                    $existingRow,
+                    $action,
+                    $context
+                )
+            );
+        }
+
+        return $summary;
+    }
+
+    public static function appendRepeaterRelationsToItem(array $item): array
+    {
+        $parentId = $item['id'] ?? null;
+
+        if ($parentId === null || $parentId === '') {
+            return $item;
+        }
+
+        foreach (static::repeaterRelations() as $inputName => $entry) {
+            /** @var RepeaterRelation $relation */
+            $relation = $entry['relation'];
+            $item[$inputName] = Repeater::loadRelatedRows($relation, $parentId);
+        }
+
+        return $item;
+    }
+
+    public static function appendRepeaterRelationsToCollection(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $key => $item) {
+            $normalized[$key] = is_array($item)
+                ? static::appendRepeaterRelationsToItem($item)
+                : $item;
+        }
+
+        return $normalized;
+    }
+
+    public static function hydrateRepeaterFormValues(
+        array $values,
+        int|string|null $parentId = null,
+        ?array $post = null,
+        ?array $files = null
+    ): array {
+        $post ??= [];
+        $files ??= [];
+
+        $relationMap = static::repeaterRelations();
+
+        foreach (static::safeFormFieldsByKey() as $inputName => $field) {
+            if (!is_object($field) || !method_exists($field, 'get')) {
+                continue;
+            }
+
+            if ($field->get('helper') !== 'inputRepeater') {
+                continue;
+            }
+
+            if (Repeater::hasRowsInRequest($inputName, $post, $files)) {
+                $values[$inputName] = Repeater::rowsFromRequest($inputName, $post, $files);
+                continue;
+            }
+
+            $relation = $relationMap[$inputName]['relation'] ?? null;
+
+            if (
+                $relation instanceof RepeaterRelation
+                && ($parentId !== null && $parentId !== '' && (int) $parentId > 0)
+                && !array_key_exists($inputName, $values)
+            ) {
+                $values[$inputName] = Repeater::loadRelatedRows($relation, $parentId);
+            }
+        }
+
+        return $values;
+    }
+
+    public static function getInput(string $key): object
+    {
+        foreach (static::formFields() as $item) {
+            if (is_object($item) && property_exists($item, 'name') && $item->name === $key) {
+                return clone $item;
+            }
+        }
+
+        throw new RuntimeException("Input resource non trovato: {$key} in ".static::class.'.');
+    }
+
+    public static function getLabel(?string $key = null): string|array
+    {
+        $labels = static::labelSchema();
+
+        return $key === null ? $labels : ($labels[$key] ?? '');
+    }
+
+    public static function getText(?string $key = null): string|array
+    {
+        $texts = static::textSchema();
+
+        return $key === null ? $texts : ($texts[$key] ?? '');
+    }
+
+    public static function getTable(?string $key = null): mixed
+    {
+        $schema = static::tableSchema();
+
+        if ($key === null) {
+            return $schema;
+        }
+
+        foreach ($schema as $item) {
+            if (is_object($item) && property_exists($item, 'name') && $item->name === $key) {
+                return clone $item;
+            }
+        }
+
+        throw new RuntimeException("Colonna resource non trovata: {$key} in ".static::class.'.');
+    }
+
+    public static function getColumn(string $key): object
+    {
+        return static::getTable($key);
+    }
+
+    public static function getPage(?string $key = null): mixed
+    {
+        $schema = static::pageSchema();
+
+        return $key === null ? $schema : $schema->get($key);
+    }
+
+    public static function getApi(?string $key = null): mixed
+    {
+        $schema = static::apiSchema();
+
+        return $key === null ? $schema : $schema->get($key);
+    }
+
+    public static function getPermission(?string $key = null): mixed
+    {
+        $schema = static::permissionSchema();
+
+        return $key === null ? $schema : $schema->get($key);
+    }
+
+    public static function getNavigation(?string $key = null): mixed
+    {
+        $schema = static::navigationSchema();
+
+        return $key === null ? $schema : $schema->get($key);
+    }
+
+    public static function getQuery(?string $key = null): mixed
+    {
+        $schema = static::querySchema();
+
+        return $key === null ? $schema : ($schema[$key] ?? null);
+    }
+
+    public static function page(): ResourcePageSchema
+    {
+        return ResourcePageSchema::for(static::class);
+    }
+
+    public static function tableLayout(): ResourceTableLayoutSchema
+    {
+        return ResourceTableLayoutSchema::for(static::class);
+    }
+
+    public static function api(): ResourceApiSchema
+    {
+        return ResourceApiSchema::for(static::class);
+    }
+
+    public static function navigation(): ResourceNavigationSchema
+    {
+        return ResourceNavigationSchema::for(static::class);
+    }
+
+    public static function permission(): ResourcePermissionSchema
+    {
+        return ResourcePermissionSchema::for(static::class);
+    }
+
+    public static function backendTable(): BackendTable
+    {
+        return ResourceTableRenderer::make(static::class);
+    }
+
+    public static function isSingleton(): bool
+    {
+        $id = static::singletonRecordId();
+
+        return $id !== null && $id !== '';
+    }
+
+    public static function afterStore(object $result, array $values = []): void
+    {
+    }
+
+    public static function afterUpdate(int|string $id, object $result, array $values = []): void
+    {
+    }
+
+    public static function afterDelete(int|string $id, object $result, array $values = []): void
+    {
+    }
+
+    public static function findStoreExistingValues(array $requestValues, string $context = 'backend'): ?array
+    {
+        return null;
+    }
+
+    public static function registerBackendRoutes(string $rootApp, string $slug): void
+    {
+    }
+
+    public static function registerApiRoutes(string $rootApp, string $slug): void
+    {
+    }
+
+    public static function customBackendPages(): array
+    {
+        return [];
+    }
+
+    public static function hasCustomBackendPage(string $action): bool
+    {
+        return in_array(trim($action), static::customBackendPages(), true);
+    }
+
+    public static function label(): string
+    {
+        $label = trim((string) static::getText('label'));
+
+        return $label !== '' ? $label : static::fallbackTitle(static::pathLeaf());
+    }
+
+    public static function pluralLabel(): string
+    {
+        $pluralLabel = trim((string) static::getText('plural_label'));
+
+        if ($pluralLabel !== '') {
+            return $pluralLabel;
+        }
+
+        return static::label();
+    }
+
+    public static function titleLabel(): string
+    {
+        return static::fallbackTitle(static::label());
+    }
+
+    public static function titlePluralLabel(): string
+    {
+        return static::fallbackTitle(static::pluralLabel());
+    }
+
+    public static function defaultPageTitles(): array
+    {
+        return [
+            'list' => 'Lista '.static::pluralLabel(),
+            'create' => 'Aggiungi '.static::label(),
+            'edit' => 'Modifica '.static::label(),
+            'view' => static::titleLabel(),
+        ];
+    }
+
+    private static function flattenFormItems(array $items): array
+    {
+        $flattened = [];
+
+        foreach ($items as $item) {
+            if (is_array($item)) {
+                $flattened = array_merge($flattened, static::flattenFormItems($item));
+                continue;
+            }
+
+            $flattened[] = $item;
+        }
+
+        return $flattened;
+    }
+
+    private static function normalizeFormField(object $field): object
+    {
+        $clone = clone $field;
+
+        if (!property_exists($clone, 'name') || !method_exists($clone, 'label')) {
+            return $clone;
+        }
+
+        $name = trim((string) ($clone->name ?? ''));
+
+        if ($name === '') {
+            return $clone;
+        }
+
+        $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
+
+        if ($label !== '') {
+            return $clone;
+        }
+
+        $defaultLabel = trim((string) static::getLabel($name));
+
+        if ($defaultLabel === '') {
+            $defaultLabel = static::fallbackTitle($name);
+        }
+
+        if ($defaultLabel !== '') {
+            $clone->label($defaultLabel);
+        }
+
+        return $clone;
+    }
+
+    private static function modelFields(): array
+    {
+        return static::modelClass()::dataFields();
+    }
+
+    private static function prepareFormatFromInput(?object $input): array
+    {
+        if ($input === null || !method_exists($input, 'get')) {
+            return [];
+        }
+
+        $prepare = (array) ($input->get('prepare') ?? []);
+        $helper = '';
+
+        $reflection = new ReflectionObject($input);
+
+        if ($reflection->hasProperty('helper')) {
+            $property = $reflection->getProperty('helper');
+            $helper = (string) $property->getValue($input);
+        }
+
+        if (in_array($helper, ['inputFile', 'inputFileDragDrop'], true)) {
+            $prepare = array_merge([
+                'sanitize' => false,
+                'file' => true,
+                'reset' => true,
+                'max_size' => 5,
+                'max_file' => (bool) ($input->get('multiple') ?? false) ? 10 : 1,
+            ], $prepare);
+
+            $file = (string) ($input->get('file') ?? 'image');
+            $extensions = static::fileExtensionsFor($file);
+
+            if ($extensions !== [] && !isset($prepare['extensions'])) {
+                $prepare['extensions'] = $extensions;
+            }
+        }
+
+        return $prepare;
+    }
+
+    private static function fileExtensionsFor(string $file): array
+    {
+        return match (trim(strtolower($file))) {
+            'pdf' => ['pdf'],
+            'png' => ['png'],
+            'jpg', 'jpeg' => ['jpg', 'jpeg'],
+            'svg' => ['svg'],
+            'webp' => ['webp'],
+            default => [],
+        };
+    }
+
+    private static function fallbackTitle(string $value): string
+    {
+        $value = trim(str_replace(['-', '_'], ' ', $value));
+
+        if ($value === '') {
+            return '';
+        }
+
+        return function_exists('mb_convert_case')
+            ? mb_convert_case($value, MB_CASE_TITLE, 'UTF-8')
+            : ucfirst($value);
+    }
+
+    private static function pathLeaf(): string
+    {
+        $path = str_replace('\\', '/', static::path());
+        $path = trim($path, '/');
+
+        if ($path === '') {
+            return '';
+        }
+
+        $segments = explode('/', $path);
+
+        return (string) end($segments);
+    }
+}
