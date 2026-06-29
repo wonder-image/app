@@ -653,13 +653,13 @@
 
         }
 
-        private function rowTable() {
+        private function rowTable( string $rowsHtml = '' ) {
 
             $RETURN = '';
             $RETURN .= '<div class="col-12">';
             $RETURN .= '<table id="'.$this->id['table'].'" class="table table-hover w-100">';
             $RETURN .= '<thead></thead>';
-            $RETURN .= '<tbody class="table-group-divider"></tbody>';
+            $RETURN .= '<tbody class="table-group-divider">'.$rowsHtml.'</tbody>';
             $RETURN .= '</table>';
             $RETURN .= '</div>';
 
@@ -667,7 +667,7 @@
 
         }
 
-        private function script() {
+        private function buildConfig(): array {
 
             $JSON = [];
             $JSON['id'] = $this->id['table'];
@@ -703,9 +703,80 @@
 
             $JSON['text'] = $this->text;
 
+            return $JSON;
+
+        }
+
+        /**
+         * Pre-render the initial page server-side so the table shows rows
+         * without the first DataTables AJAX call. Returns [rowsHtml, deferLoading]
+         * where deferLoading is [recordsFiltered, recordsTotal] or null on failure
+         * (pre-render is an optimization: any failure falls back to AJAX-only).
+         */
+        private function prerender( array $config ): array {
+
+            $page   = (int) ($config['default']['page'] ?? 0);
+            $length = (int) ($config['default']['length'] ?? 10);
+
+            $request = $config;
+            $request['draw']   = 1;
+            $request['start']  = $page * $length;
+            $request['length'] = $length;
+            $request['search'] = ['value' => (string) ($config['default']['search'] ?? ''), 'regex' => false];
+            $request['order']  = [[
+                'name' => (string) ($config['default']['order'] ?? ''),
+                'dir'  => (string) ($config['default']['order_direction'] ?? 'desc'),
+            ]];
+
+            $name = (object) [
+                'id'         => $this->id['table'],
+                'table'      => $this->table,
+                'database'   => $this->database,
+                'connection' => $this->mysqli,
+                'field'      => [],
+                'schema'     => (string) ($this->endpointValues['schema'] ?? ''),
+                'link'       => $this->link,
+                'page'       => $page,
+                'length'     => $length,
+            ];
+
+            $text   = (object) $this->text;
+            $user   = (object) [
+                'area'      => $this->endpointValues['user_area'] ?? '',
+                'authority' => $this->endpointValues['user_authority'] ?? '',
+            ];
+            $page_o = (object) [
+                'redirect'       => '',
+                'redirectBase64' => '',
+                'domain'         => $_SERVER['HTTP_HOST'] ?? '',
+            ];
+
+            try {
+                $result = ListProvider::fetch($request, $name, $text, $user, $page_o, new Path);
+            } catch (\Throwable $e) {
+                return ['', null];
+            }
+
+            $rows = '';
+            foreach (($result['data'] ?? []) as $row) {
+                $rows .= '<tr>';
+                foreach ($row as $cell) {
+                    $rows .= '<td>'.$cell.'</td>';
+                }
+                $rows .= '</tr>';
+            }
+
+            $defer = [ (int) ($result['recordsFiltered'] ?? 0), (int) ($result['recordsTotal'] ?? 0) ];
+
+            return [$rows, $defer];
+
+        }
+
+        private function script( array $config ) {
+
             $SCRIPT = '<script>';
             $SCRIPT .= "window.addEventListener('loaded', (event) => {";
-            $SCRIPT .= "createDataTables('".$this->id['table']."', '".$this->endpoint."', ".json_encode($JSON).")";
+            $SCRIPT .= "createDataTables('".$this->id['table']."', '".$this->endpoint."', ".json_encode($config).")";
             $SCRIPT .= "})";
             $SCRIPT .= '</script>';
 
@@ -725,9 +796,21 @@
                 $this->query = $this->queryCustom;
             }
 
-            $CONTENT = $this->rowHeader();
-            $CONTENT .= $this->rowTable();
-            $CONTENT .= $this->script();
+            // rowHeader() popola $this->queryFilter (filtri data/custom): va
+            // eseguito PRIMA di buildConfig()/prerender() perche' la config e il
+            // pre-render riflettano i filtri attivi.
+            $HEADER = $this->rowHeader();
+
+            $config = $this->buildConfig();
+
+            [$rowsHtml, $defer] = $this->prerender($config);
+            if ($defer !== null) {
+                $config['default']['deferLoading'] = $defer;
+            }
+
+            $CONTENT = $HEADER;
+            $CONTENT .= $this->rowTable($rowsHtml);
+            $CONTENT .= $this->script($config);
 
             if ($card) {
                 return '<wi-card class="col-12">'.$CONTENT.'</wi-card>';
