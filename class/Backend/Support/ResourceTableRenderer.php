@@ -297,7 +297,47 @@ final class ResourceTableRenderer
 
         $resolved = self::resolveSearchFields(array_values(array_unique($strings)), $this->foreignKeyMap());
 
-        return array_merge($resolved, $descriptors);
+        return $this->validateSearchDescriptors(array_merge($resolved, $descriptors));
+    }
+
+    /**
+     * Drop relation descriptors / columns that do not exist in the DB so a
+     * malformed or hostile descriptor cannot inject unknown identifiers.
+     * Plain string entries pass through unchanged.
+     *
+     * @param array<int,string|array<string,mixed>> $fields
+     * @return array<int,string|array<string,mixed>>
+     */
+    private function validateSearchDescriptors(array $fields): array
+    {
+        $out = [];
+
+        foreach ($fields as $field) {
+            if (is_string($field)) {
+                $out[] = $field;
+                continue;
+            }
+
+            if (!is_array($field) || empty($field['table'])) {
+                continue;
+            }
+
+            $table = (string) $field['table'];
+
+            $validCols = array_values(array_filter(
+                (array) ($field['columns'] ?? []),
+                static fn ($col) => is_string($col) && $col !== '' && sqlColumnExists($table, $col)
+            ));
+
+            if ($validCols === [] || !sqlColumnExists($table, (string) ($field['foreign_key'] ?? 'id'))) {
+                continue;
+            }
+
+            $field['columns'] = $validCols;
+            $out[] = $field;
+        }
+
+        return $out;
     }
 
     /**
