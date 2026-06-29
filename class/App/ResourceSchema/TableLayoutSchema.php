@@ -129,10 +129,20 @@ final class TableLayoutSchema
 
     public function searchFields(array $fields): self
     {
-        $this->schema['search_fields'] = array_values(array_filter(array_map(
-            static fn ($field) => is_string($field) ? trim($field) : '',
-            $fields
-        )));
+        $clean = [];
+
+        foreach ($fields as $field) {
+            if (is_string($field)) {
+                $trimmed = trim($field);
+                if ($trimmed !== '') {
+                    $clean[] = $trimmed;
+                }
+            } elseif (is_array($field) && !empty($field['table']) && !empty($field['columns'])) {
+                $clean[] = $field;
+            }
+        }
+
+        $this->schema['search_fields'] = array_values($clean);
 
         return $this;
     }

@@ -279,15 +279,25 @@ final class ResourceTableRenderer
         }
 
         $fields = array_values(array_filter(array_map(
-            static fn ($field) => is_string($field) ? trim($field) : '',
+            static function ($field) {
+                if (is_string($field)) {
+                    return trim($field);
+                }
+                return (is_array($field) && !empty($field['table']) && !empty($field['columns'])) ? $field : '';
+            },
             $fields
-        )));
+        ), static fn ($f) => $f !== ''));
 
         if ($fields === []) {
             return $this->defaultSearchFields();
         }
 
-        return self::resolveSearchFields(array_values(array_unique($fields)), $this->foreignKeyMap());
+        $strings     = array_values(array_filter($fields, 'is_string'));
+        $descriptors = array_values(array_filter($fields, 'is_array'));
+
+        $resolved = self::resolveSearchFields(array_values(array_unique($strings)), $this->foreignKeyMap());
+
+        return array_merge($resolved, $descriptors);
     }
 
     /**
