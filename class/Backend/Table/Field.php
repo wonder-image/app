@@ -176,7 +176,7 @@
 
             $action = "onclick=\"modal(
                 'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '{$this->link->app}/api/backend/delete.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
+                '{$this->link->api}/backend/delete/?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
                 'ATTENZIONE',
                 'Elimina',
                 'danger',
@@ -192,21 +192,27 @@
 
         private function deleteAuthority() {
 
+            $url = "{$this->link->api}/backend/authority/?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}";
+
+            if ($this->user->authority != '') {
+                $url .= "&authority={$this->user->authority}";
+            }
+
+            if ($this->user->area != '') {
+                $url .= "&area={$this->user->area}";
+            }
+
             $action = "onclick=\"modal(
                 'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '{$this->link->app}/api/backend/authority.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId},
+                '$url',
                 'ATTENZIONE',
                 'Elimina',
                 'danger',
                 'Chiudi',
                 'dark',
                 'reloadDataTable', 
-                '#".$this->table->id."'";
-            
-            if ($this->user->authority != '') { $action .= "&authority={$this->user->authority}"; }
-            if ($this->user->area != '') { $action .= "&area={$this->user->area}"; }
-
-            $action .= "')\"";
+                '#".$this->table->id."'
+            )\"";
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
 
@@ -214,7 +220,7 @@
 
         private function changeVisible() {
 
-            $action = $this->ajaxRequest("{$this->link->app}/api/backend/change/boolean.php", [ 'column' => 'visible' ]);
+            $action = $this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => 'visible' ]);
 
             if ($this->row['visible'] == 'true') {
 
@@ -241,7 +247,7 @@
 
         private function changeActive() {
 
-            $action = $this->ajaxRequest("{$this->link->app}/api/backend/change/boolean.php", [ 'column' => 'active' ]);
+            $action = $this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => 'active' ]);
 
             if ($this->row['active'] == 'true') {
 
@@ -268,7 +274,7 @@
 
         private function changeEvidence() {
 
-            $action = $this->ajaxRequest("{$this->link->app}/api/backend/change/boolean.php", [ 'column' => 'evidence' ]);
+            $action = $this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => 'evidence' ]);
 
             if ($this->row['evidence'] == 'true') {
 
@@ -394,7 +400,7 @@
                             } else if (!empty($request)) {
 
                                 if ($request == 'boolean') {
-                                    $url = "{$this->link->app}/api/backend/change/boolean.php?column=$ACTION";
+                                    $url = "{$this->link->api}/backend/change/boolean/?column=$ACTION";
                                 } else {
                                     $url = $this->link->api.'/'.$request;
                                 }
@@ -469,7 +475,7 @@
             $RETURN = "";
 
             $action = "onclick=\"ajaxRequest(
-                '{$this->link->app}/api/backend/move.php?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}&action=$type',
+                '{$this->link->api}/backend/move/?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}&action=$type',
                 reloadDataTable, 
                 '#".$this->table->id."'
             )\"";

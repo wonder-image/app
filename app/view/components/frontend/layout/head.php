@@ -164,6 +164,7 @@
 
     const pathSite = <?=json_encode((string) ($PATH->site ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     const pathApp = <?=json_encode((string) ($PATH->app ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    const pathApi = <?=json_encode((string) ($PATH->api ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     const NO_INTERNET_ALERT = <?=json_encode((string) alertTheme(801), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
 
     const API_TOKEN = <?=json_encode((string) Wonder\App\Credentials::appToken(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;

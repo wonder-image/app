@@ -139,6 +139,8 @@ php forge start
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
 - `Credentials::loadEnv()` must resolve `.env` from the consumer `ROOT`, never from the package directory under `vendor/`.
 - Backend/API routes are driven from `app/config/routes` and the `ResourceRouteRegistrar`.
+- `app/http/api/*` is the canonical home for package API logic. Do not add or restore package handlers under `app/api/*`; that legacy tree has been removed.
+- `Wonder\\App\\Path::$appApi` and `::$apiDT` must point to canonical routed `/api/...` URLs. Do not introduce internal callers that build package-local `app/api/*.php` URLs.
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
 - Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars.

@@ -626,7 +626,7 @@
                         $href = $endpoint.rawurlencode((string) $format).'/';
                         $BUTTON_DOWNLOAD_HTML .= '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" class="dropdown-item">'.htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8').'</a>';
                     } else {
-                        // Legacy: sqlExport via app/api/export.php.
+                        // Export canonico via route /api/export/.
                         $BUTTON_DOWNLOAD_HTML .= '<button onclick="exportTable(\''.$this->id['table'].'\', \''.$format.'\' )" class="dropdown-item">'.htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8').'</button>';
                     }
 

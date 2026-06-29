@@ -98,6 +98,17 @@ Route::area('api')
     });
 ```
 
+Per endpoint API che devono comunque bootstrappare il contesto legacy backend/frontend (sessione, auth, dipendenze tema, ecc.), la route può restare in area `api` ma aggiungere `->backend()` o `->frontend()`:
+
+```php
+Route::post('/backend/change/boolean/', $ROOT_APP.'/http/api/backend/change-boolean.php')
+    ->backend()
+    ->guarded()
+    ->permit([]);
+```
+
+Questo è il pattern corretto per esporre nel router API flussi che richiedono ancora bootstrap backend/frontend legacy. Non ripristinare file sotto `app/api/*`.
+
 ## Metodi disponibili
 
 ### Definizione route

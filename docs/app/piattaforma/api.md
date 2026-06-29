@@ -16,6 +16,9 @@ Gli handler API stanno in:
 - `app/http/api/...`
 - `custom/http/api/...`
 
+I vecchi file sotto `app/api/*` sono stati rimossi dal package.
+La logica API vive in `app/http/api/*` e viene esposta solo tramite route dichiarate in `route.api.php`.
+
 Il boilerplate corretto non è più quello vecchio con `try/catch` scritto a mano in ogni file.
 Adesso il pattern da usare è questo.
 
@@ -168,3 +171,4 @@ Se l'endpoint è nel modello nuovo, usa:
 - Usa `Response::json()` come default
 - Usa `Response::raw()` solo quando hai davvero già il payload serializzato
 - Tieni i path coerenti con il gruppo route
+- Per gli URL interni usa i path canonici `/api/...` (`Path::$api`, `Path::$appApi`, `Path::$apiDT`), non i vecchi percorsi package-local `.php`

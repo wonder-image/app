@@ -69,7 +69,7 @@ $renderInput = static function (array $schema, string $key): string {
             return;
         }
 
-        const link = pathApp + '/api/export.php?table=' + encodeURIComponent(table) + '&format=' + encodeURIComponent(format);
+        const link = pathApi + '/export/?table=' + encodeURIComponent(table) + '&format=' + encodeURIComponent(format);
         window.open(link, '_blank');
     }
 </script>

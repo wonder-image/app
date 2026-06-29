@@ -22,7 +22,7 @@
         public $package = self::PACKAGE;
         public $app = self::APP;
         public $appResources = self::APP_RESOURCES;
-        public $appApi = self::APP_API;
+        public $appApi = APP_URL.'/api';
         public $appAssets = self::APP_ASSETS.'';
         public $appCss = self::APP_ASSETS.'/css';
         public $appJs = self::APP_ASSETS.'/js';
@@ -46,6 +46,6 @@
         public $favicon = self::UPLOAD.'/favicon.ico';
         public $appIcon = self::UPLOAD.'/logos/App-Icon.png';
 
-        public $apiDT = self::APP_API.'/backend/list/table.php'; # Api DataTable
+        public $apiDT = APP_URL.'/api/backend/list/table/'; # Api DataTable
 
     }

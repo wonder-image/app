@@ -49,7 +49,7 @@
         global $NAME;
         global $PATH;
 
-        $action = "onclick=\"ajaxRequest('$PATH->app/api/backend/visible.php?table=$NAME->table&id=$id')\"";
+        $action = "onclick=\"ajaxRequest('$PATH->api/backend/visible/?table=$NAME->table&id=$id')\"";
 
         $return = (object) array();
         $return->action = $action;
@@ -81,7 +81,7 @@
         global $NAME;
         global $PATH;
 
-        $action = "onclick=\"ajaxRequest('$PATH->app/api/backend/active.php?table=$NAME->table&id=$id')\"";
+        $action = "onclick=\"ajaxRequest('$PATH->api/backend/active/?table=$NAME->table&id=$id')\"";
 
         if ($active == 'true') {
 
@@ -110,7 +110,7 @@
         global $NAME;
         global $PATH;
 
-        $action = "onclick=\"ajaxRequest('$PATH->app/api/backend/change/boolean.php?table=$NAME->table&column=evidence&=$id')\"";
+        $action = "onclick=\"ajaxRequest('$PATH->api/backend/change/boolean/?table=$NAME->table&column=evidence&id=$id')\"";
 
         if ($evidence == 'true') {
 
@@ -140,7 +140,7 @@
         global $TEXT;
         global $PATH;
 
-        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->app/api/backend/delete.php?table=$NAME->table&id=$id')\"";
+        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->api/backend/delete/?table=$NAME->table&id=$id')\"";
 
         $RETURN = returnButton("Elimina", $action, 'danger', true);
 
@@ -154,7 +154,7 @@
         global $TEXT;
         global $PATH;
 
-        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->app/api/backend/authority.php?table=$NAME->table&id=$id";
+        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->api/backend/authority/?table=$NAME->table&id=$id";
         
         if ($authority != '') { $action .= "&authority=$authority"; }
         if ($area != '') { $action .= "&area=$area"; }
