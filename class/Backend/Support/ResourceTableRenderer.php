@@ -283,7 +283,95 @@ final class ResourceTableRenderer
             $fields
         )));
 
-        return $fields === [] ? $this->defaultSearchFields() : array_values(array_unique($fields));
+        if ($fields === []) {
+            return $this->defaultSearchFields();
+        }
+
+        return self::resolveSearchFields(array_values(array_unique($fields)), $this->foreignKeyMap());
+    }
+
+    /**
+     * Resolve dotted `foreign_table.column` search entries into relation
+     * descriptors using a foreign-key map. Plain entries pass through.
+     *
+     * @param array<int,string> $fields
+     * @param array<string,array{local_key:string,foreign_key:string}> $foreignMap
+     * @return array<int,string|array{table:string,local_key:string,foreign_key:string,columns:array<int,string>}>
+     */
+    public static function resolveSearchFields(array $fields, array $foreignMap): array
+    {
+        $plain     = [];
+        $relations = []; // foreign_table => descriptor
+        $order     = []; // preserves first-seen order of output entries
+
+        foreach ($fields as $field) {
+            if (!is_string($field) || $field === '') {
+                continue;
+            }
+
+            if (strpos($field, '.') === false) {
+                $plain[] = $field;
+                $order[] = ['plain', count($plain) - 1];
+                continue;
+            }
+
+            [$table, $column] = explode('.', $field, 2);
+            $table  = trim($table);
+            $column = trim($column);
+
+            if ($table === '' || $column === '' || !isset($foreignMap[$table])) {
+                continue; // unresolved relation -> drop
+            }
+
+            if (!isset($relations[$table])) {
+                $relations[$table] = [
+                    'table'       => $table,
+                    'local_key'   => $foreignMap[$table]['local_key'],
+                    'foreign_key' => $foreignMap[$table]['foreign_key'],
+                    'columns'     => [],
+                ];
+                $order[] = ['relation', $table];
+            }
+
+            if (!in_array($column, $relations[$table]['columns'], true)) {
+                $relations[$table]['columns'][] = $column;
+            }
+        }
+
+        $out = [];
+        foreach ($order as [$kind, $ref]) {
+            $out[] = $kind === 'plain' ? $plain[$ref] : $relations[$ref];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Map foreign_table => {local_key, foreign_key} from the Model tableSchema.
+     *
+     * @return array<string,array{local_key:string,foreign_key:string}>
+     */
+    private function foreignKeyMap(): array
+    {
+        $map = [];
+
+        foreach ($this->modelClass::tableSchema() as $column) {
+            if (!is_object($column) || !method_exists($column, 'getSchema')) {
+                continue;
+            }
+
+            $foreignTable = $column->getSchema('foreign_table');
+            if (!is_string($foreignTable) || trim($foreignTable) === '') {
+                continue;
+            }
+
+            $map[trim($foreignTable)] = [
+                'local_key'   => (string) $column->name,
+                'foreign_key' => (string) ($column->getSchema('foreign_key') ?: 'id'),
+            ];
+        }
+
+        return $map;
     }
 
     private function resolvedActions(array $buttonColumn): array
