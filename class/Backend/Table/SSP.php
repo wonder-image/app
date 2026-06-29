@@ -148,33 +148,75 @@
          *    sql_exec() function
          *  @return string SQL where clause
          */
-        static function filter ( $request, $columns)
+        static function filter ( $request, $columns )
         {
 
-            $QUERY = "";
-
-            $FILTER_SEARCH = $columns;
-
-            if ( isset($request['search']) && $request['search']['value'] != '' ) {
-
-                $searchValue = sanitize($request['search']['value']);
-
-                $QUERY_COLUMN = "CONCAT_WS(' ',";
-
-                foreach ($FILTER_SEARCH as $key => $value) { $QUERY_COLUMN .= "`$value`, "; }
-
-                $QUERY_COLUMN = substr($QUERY_COLUMN, 0, -2).") LIKE";
-
-                $searchArray = explode(' ', $searchValue);
-
-                foreach ($searchArray as $key => $search) { $QUERY .= $QUERY_COLUMN." '%$search%' AND "; }
-
-                $QUERY = 'WHERE '.substr($QUERY, 0, -5);
-
+            if ( !isset($request['search']) || $request['search']['value'] === '' ) {
+                return '';
             }
 
-            
-            return $QUERY;
+            $where = self::buildSearchWhere( sanitize($request['search']['value']), is_array($columns) ? $columns : [] );
+
+            return $where === '' ? '' : 'WHERE '.$where;
+
+        }
+
+
+        /**
+         * Build the search WHERE body (without the leading "WHERE").
+         *
+         * @param string $searchValue Already-sanitized search string
+         * @param array  $fields      Mixed list: string = main-table column;
+         *   array = relation descriptor with keys table, local_key, foreign_key, columns[]
+         * @return string WHERE body, or '' when nothing is searchable
+         */
+        static function buildSearchWhere ( string $searchValue, array $fields )
+        {
+            $searchValue = trim($searchValue);
+            if ( $searchValue === '' ) {
+                return '';
+            }
+
+            $mainCols  = [];
+            $relations = [];
+
+            foreach ( $fields as $field ) {
+                if ( is_string($field) && $field !== '' ) {
+                    $mainCols[] = $field;
+                } elseif ( is_array($field)
+                    && !empty($field['table'])
+                    && !empty($field['local_key'])
+                    && !empty($field['foreign_key'])
+                    && !empty($field['columns']) && is_array($field['columns']) ) {
+                    $relations[] = $field;
+                }
+            }
+
+            if ( $mainCols === [] && $relations === [] ) {
+                return '';
+            }
+
+            $words   = preg_split('/\s+/', $searchValue, -1, PREG_SPLIT_NO_EMPTY);
+            $perWord = [];
+
+            foreach ( $words as $word ) {
+                $like = "'%".$word."%'";
+                $ors  = [];
+
+                if ( $mainCols !== [] ) {
+                    $concat = "CONCAT_WS(' ', `".implode('`, `', $mainCols)."`)";
+                    $ors[]  = "(".$concat." LIKE ".$like.")";
+                }
+
+                foreach ( $relations as $rel ) {
+                    $concat = "CONCAT_WS(' ', `".implode('`, `', $rel['columns'])."`)";
+                    $ors[]  = "(`".$rel['local_key']."` IN (SELECT `".$rel['foreign_key']."` FROM `".$rel['table']."` WHERE ".$concat." LIKE ".$like."))";
+                }
+
+                $perWord[] = count($ors) === 1 ? $ors[0] : '('.implode(' OR ', $ors).')';
+            }
+
+            return implode(' AND ', $perWord);
 
         }
 
