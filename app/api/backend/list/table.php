@@ -10,8 +10,7 @@
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
     
     use Wonder\App\Table as AppTable;
-    use Wonder\Backend\Table\SSP;
-    use Wonder\Backend\Table\Field;
+    use Wonder\Backend\Table\ListProvider;
 
     # Importo tutte le variabili che mi servono
 
@@ -52,28 +51,6 @@
         $USER = (object) [];
         $USER->area = $_POST['custom']['user_area'] ?? "";
         $USER->authority = $_POST['custom']['user_authority'] ?? "";
-
-        $CUSTOM = (object) [];
-        $CUSTOM->field = $_POST['fields'];
-        $CUSTOM->arrow = ($_POST['default']['order'] == 'position') ? true : false;
-        $CUSTOM->action = $_POST['custom']['action'] ?? [];
-        $CUSTOM->query = base64_decode($_POST['config']['query']);
-        $CUSTOM->query_filter = base64_decode($_POST['config']['query_filter']);
-        $CUSTOM->query_all = base64_decode($_POST['config']['query_custom']);
-        $CUSTOM->search_field = isset($_POST['config']['search_columns']) ? json_decode(base64_decode($_POST['config']['search_columns']), true) : [];
-        
-        $CUSTOM->order_column = $_POST['order'][0]['name'] ?? $_POST['default']['order'];
-        $CUSTOM->order_direction = $_POST['order'][0]['dir'] ?? $_POST['default']['order_direction'];
-
-    #
-
-    # Se si sta effettuando una ricerca
-        if (isset($_POST['search']) && $_POST['search']['value'] != '') { $CUSTOM->arrow = false; }   
-    #
-
-    # Se i filtri sono attivi
-        if (!empty($CUSTOM->query_filter)) { $CUSTOM->arrow = false; }
-    #
 
     # Cambio la connessione al database se necessario
         $mysqli = $NAME->connection;
@@ -116,119 +93,9 @@
 
     #
 
-    # Conto le linee 
-        $CUSTOM->query_ln = sqlCount($NAME->table, $CUSTOM->query, 'id', true);
-        $CUSTOM->query_all_ln = sqlCount($NAME->table, $CUSTOM->query_all, 'id', true);
-
-    #
-
-    # Campi tabella
-        $TABLE_FIELD = new Field($NAME, $PATH, $TEXT, $USER, $PAGE);
-
-        $columnN = 0;
-        $COLUMNS = [];
-
-        foreach ($CUSTOM->field as $column => $format) {
-
-            $columnName = $format['name'];
-            $other = isset($format['other']) ? $format['other'] : [];
-
-            if ($columnName == 'position-up') {
-                
-                $columnName = 'id';
-                $format = [
-                    'visible' => $CUSTOM->arrow,
-                    'lines' => $CUSTOM->query_ln
-                ];
-
-                $formatter = function ($row, $column, $format) {
-
-                    global $TABLE_FIELD;
-        
-                    return $TABLE_FIELD->newField($row, 'position_arrow_up', $format);
-
-                };
-
-            } else if ($columnName == 'position-down') {
-                
-                $columnName = 'id';
-                $format = [
-                    'visible' => $CUSTOM->arrow,
-                    'lines' => $CUSTOM->query_ln
-                ];
-
-                $formatter = function ($row, $column, $format) {
-
-                    global $TABLE_FIELD;
-        
-                    return $TABLE_FIELD->newField($row, 'position_arrow_down', $format);
-
-                };
-
-            } else if ($columnName == 'menu') {
-
-                $columnName = 'id';
-                $format = $other;
-
-                $formatter = function ($row, $column, $format) {
-
-                    global $TABLE_FIELD;
-        
-                    return $TABLE_FIELD->newField($row, 'action_button', $format);
-
-                };
-
-            } else {  
-
-                $format = empty($other) ? $format : $other;
-
-                $formatter = function ($row, $column, $format) {
-
-                    global $TABLE_FIELD;
-        
-                    return $TABLE_FIELD->newField($row, $column, $format);
-
-                };
-
-            }
-
-
-            $field = [
-                'db' => $columnName, 
-                'dt' => $columnN,
-                'format' => $format,
-                'formatter' => $formatter
-            ];  
-
-            array_push($COLUMNS, $field);
-
-            $columnN++;
-
-        }
-
-    #
-    
-    # Connessione SQL
-        $sql_details = array(
-            'user' => $DB->username,
-            'pass' => $DB->password,
-            'db'   => $NAME->database,
-            'host' => $DB->hostname
-        );
-
+    # Risultato server-side (colonne + SSP) delegato a ListProvider
         echo json_encode(
-            SSP::complex(
-                $_POST, 
-                $sql_details, 
-                $NAME->table, 
-                'id',
-                $COLUMNS, 
-                $CUSTOM->search_field, 
-                $CUSTOM->query_filter, 
-                $CUSTOM->query_all, 
-                $CUSTOM->order_column, 
-                $CUSTOM->order_direction
-            )
+            ListProvider::fetch($_POST, $NAME, $TEXT, $USER, $PAGE, $PATH)
         );
 
     #
