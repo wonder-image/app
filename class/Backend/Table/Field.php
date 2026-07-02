@@ -817,8 +817,11 @@
 
             if ($preset !== '') {
 
-                # Special-case tabella user: badge mostrato solo per utenti con al
-                # massimo una area e una authority (parità col menu azioni).
+                # Special-case tabella user: replica il comportamento del badge
+                # legacy — nascosto solo se l'utente ha più di una area E più di
+                # una authority. Intenzionalmente diverso dal menu azioni
+                # (actionButton), che nasconde con più di una area O authority:
+                # divergenza storica confermata in review (2026-07-02).
                 if ($this->table->name == 'user') {
 
                     $areas = json_decode($this->row['area'] ?? '[]', true);

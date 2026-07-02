@@ -94,5 +94,13 @@ $got = $field->newField(
 );
 eq('user single area shown', $got, $expectedOn);
 
+$field = makeField('user');
+$got = $field->newField(
+    ['id' => 2, 'active' => 'true', 'area' => '["a","b"]', 'authority' => '["x"]'],
+    'active',
+    ['format' => 'badge', 'badge' => ['preset' => 'active', 'column' => 'active', 'variant' => 'automaticResize', 'clickable' => false]]
+);
+eq('user multi area single authority shown (legacy badge behavior)', $got, $expectedOn);
+
 echo $fail === 0 ? "\nALL PASS\n" : "\n$fail FAILURES\n";
 exit($fail === 0 ? 0 : 1);
