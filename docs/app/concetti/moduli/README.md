@@ -24,7 +24,7 @@ come pacchetto installabile, con un contratto chiaro verso il framework.
 | Manifest | `class/App/Module/Manifest.php` |
 | Validazione | `class/App/Module/ManifestValidator.php` |
 | Registro | `class/App/Module/Registry.php` |
-| Comandi forge | `class/Console/Commands/StatusModules.php`, `ValidateModule.php` |
+| Comandi forge | `class/Console/Commands/StatusModules.php`, `ValidateModule.php`, `PublishModule.php` |
 
 ## Come si collega al resto
 
@@ -40,10 +40,11 @@ come pacchetto installabile, con un contratto chiaro verso il framework.
 ```bash
 php forge status:modules     # stato dei moduli scoperti/abilitati
 php forge validate:module <slug>   # valida il manifest di un modulo
+php forge publish:module <slug>    # pubblica tutte le view overrideabili del modulo
 ```
 
 (I comandi esistono in `class/Console/Commands/StatusModules.php` e
-`ValidateModule.php`.)
+`ValidateModule.php`, `PublishModule.php`.)
 
 ## Abilitare un modulo (lato sito)
 

@@ -71,6 +71,44 @@ Quindi: **core → moduli → custom**. Vedi [Builder permessi](../utenti/permes
 insieme alle route di base del framework
 (`app/config/routes/route.<area>.php`).
 
+## Publish view dei moduli
+
+`php forge publish:module <slug>` copia tutte le view dichiarate dal modulo in
+`paths.views` verso il sito, sotto:
+
+```text
+custom/modules/<slug>/view/
+```
+
+Esempio:
+
+```bash
+php forge publish:module rsvp
+```
+
+Se il modulo `rsvp` dichiara `paths.views = "view"`, il comando copia, ad
+esempio:
+
+```text
+vendor/wonder-image/rsvp/view/components/form.php
+custom/modules/rsvp/view/components/form.php
+```
+
+Il comando non sovrascrive file già pubblicati. Usa `--force` per sovrascrivere,
+`--dry-run` per vedere cosa verrebbe copiato, `--list` per elencare i file
+publishabili, oppure un path relativo per pubblicare solo una parte:
+
+```bash
+php forge publish:module rsvp components/form.php
+php forge publish:module rsvp --components
+php forge publish:module rsvp --layouts
+php forge publish:module rsvp --pages
+```
+
+Il publish è solo una copia nel sito. Perché l'override venga usato a runtime,
+il modulo deve risolvere le proprie view passando prima dal path
+`custom/modules/<slug>/view/...` e poi dal fallback del package.
+
 ## Errori comuni
 
 - **Modulo non caricato** → non è abilitato in `custom/config/modules.php`, o il
@@ -79,6 +117,8 @@ insieme alle route di base del framework
   bundled); attenzione a moduli con lo stesso slug in più posti.
 - **Permessi del modulo non visibili** → il merge avviene nel registro permessi:
   verifica che il modulo dichiari `permissions` nel manifest.
+- **View pubblicata ma non usata** → verifica che il modulo risolva le view con
+  fallback su `custom/modules/<slug>/view/...`.
 
 ## Checklist
 
@@ -86,3 +126,4 @@ insieme alle route di base del framework
 - [ ] modulo abilitato in `custom/config/modules.php`
 - [ ] `php forge status:modules` lo mostra abilitato
 - [ ] `php forge validate:module <slug>` senza errori
+- [ ] `php forge publish:module <slug> --list` mostra le view attese, se il modulo espone view

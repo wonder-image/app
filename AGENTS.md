@@ -144,6 +144,7 @@ php forge start
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
 - Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars.
+- Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Runtime module validation must not require the package `composer.json`, because some production deploys strip it from installed packages.
 - Composer module discovery must remain compatible with both `vendor/composer/installed.php` and `vendor/composer/installed.json`, and must keep a filesystem fallback for `vendor/wonder-image/*/module.json`, because deploy environments may expose different metadata formats.

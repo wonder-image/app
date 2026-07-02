@@ -93,6 +93,7 @@ Vai su `https://nome.test/backend/` e accedi con le credenziali `USER_*` del
 | `php forge make:model` / `make:resource` | sviluppo | scaffolding di Model/Resource |
 | `php forge export` / `import` | multi-ambiente | sincronizza dati condivisi via JSON |
 | `php forge status:modules` / `validate:module` | moduli | stato e validazione manifest |
+| `php forge publish:module <slug>` | moduli | copia le view overrideabili in `custom/modules/<slug>/view` |
 
 I comandi vivono in `class/Console/Commands/*` e si lanciano dalla radice del
 **sito**.

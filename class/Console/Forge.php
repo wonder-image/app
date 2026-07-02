@@ -25,6 +25,7 @@
                 \Wonder\Console\Commands\MakeResource::class,
                 \Wonder\Console\Commands\ValidateModule::class,
                 \Wonder\Console\Commands\StatusModules::class,
+                \Wonder\Console\Commands\PublishModule::class,
                 \Wonder\Console\Commands\Export::class,
                 \Wonder\Console\Commands\Import::class,
             ];
