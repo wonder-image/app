@@ -1,21 +1,31 @@
 <?php
 
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Badge\BooleanBadge.
+     */
     function returnBadge($text, $classIcon, $bootstrapColor) {
 
-        $RETURN = (object) array();
-        $RETURN->color = bootstrapColor($bootstrapColor);
-        $RETURN->bootstrapColor = $bootstrapColor;
-        $RETURN->text = $text;
-        $RETURN->classIcon = $classIcon;
+        return \Wonder\Backend\Table\Badge\BooleanBadge::make(true)
+            ->on((string) $text, (string) $classIcon, (string) $bootstrapColor)
+            ->legacyObject();
 
-        $RETURN->icon = empty($RETURN->classIcon) ? "" : "<i class='$RETURN->classIcon'></i>";
-        $RETURN->tooltip = empty($RETURN->classIcon) || empty($RETURN->text) ? "" : "<i class='$RETURN->classIcon' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'></i>";
-        $RETURN->badge = empty($RETURN->bootstrapColor) || empty($RETURN->text) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor'>".strtoupper($RETURN->text)."</span>";
-        $RETURN->badgeTooltip = empty($RETURN->bootstrapColor) || empty($RETURN->text) || empty($RETURN->icon) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
-        $RETURN->badgeIcon = empty($RETURN->bootstrapColor) || empty($RETURN->text) || empty($RETURN->icon) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor'  data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='$RETURN->text'>$RETURN->icon</span>";
-        $RETURN->automaticResize = empty($RETURN->bootstrapColor) || empty($RETURN->icon) || empty($RETURN->text) ? "" : "<span class='badge text-bg-$RETURN->bootstrapColor'><span class='pc-none'>$RETURN->icon</span><span class='phone-none'>".strtoupper($RETURN->text)."</span></span>";
+    }
 
-        return $RETURN;
+    /**
+     * Contesto tabella per le action legacy: legge i global via LegacyGlobals
+     * con fallback safe (niente warning se il contesto manca, es. nel flusso
+     * Resource dove il render passa da Field con contesto iniettato).
+     */
+    function legacyTableContext(): ?object {
+
+        $NAME = \Wonder\App\LegacyGlobals::get('NAME');
+        $PATH = \Wonder\App\LegacyGlobals::get('PATH');
+
+        if (!is_object($NAME) || empty($NAME->table) || !is_object($PATH) || empty($PATH->api)) {
+            return null;
+        }
+
+        return (object) [ 'table' => $NAME->table, 'api' => $PATH->api ];
 
     }
 
@@ -44,93 +54,39 @@
 
     }
 
+    /**
+     * @deprecated Usare TableColumn::visibleBadge() / BooleanBadge::visible().
+     */
     function visible($visible, $id) {
 
-        global $NAME;
-        global $PATH;
+        $ctx = legacyTableContext();
+        $action = $ctx === null ? '' : "onclick=\"ajaxRequest('{$ctx->api}/backend/visible/?table={$ctx->table}&id=$id')\"";
 
-        $action = "onclick=\"ajaxRequest('$PATH->api/backend/visible/?table=$NAME->table&id=$id')\"";
-
-        $return = (object) array();
-        $return->action = $action;
-
-        if ($visible == 'true') {
-
-            $text = "Visibile";
-            $textButton = "Nascondi";
-            $classIcon = "bi bi-eye";
-            $bootstrapColor = "success";
-
-        } else {
-
-            $text = "Nascosto";
-            $textButton = "Mostra";
-            $classIcon = "bi bi-eye-slash";
-            $bootstrapColor = "danger";
-
-        }
-
-        $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
-    
-        return $RETURN;
+        return \Wonder\Backend\Table\Badge\BooleanBadge::visible($visible)->action($action)->legacyObject();
 
     }
 
+    /**
+     * @deprecated Usare TableColumn::activeBadge() / BooleanBadge::active().
+     */
     function active($active, $id) {
 
-        global $NAME;
-        global $PATH;
+        $ctx = legacyTableContext();
+        $action = $ctx === null ? '' : "onclick=\"ajaxRequest('{$ctx->api}/backend/active/?table={$ctx->table}&id=$id')\"";
 
-        $action = "onclick=\"ajaxRequest('$PATH->api/backend/active/?table=$NAME->table&id=$id')\"";
-
-        if ($active == 'true') {
-
-            $text = "Abilitato";
-            $textButton = "Disabilita";
-            $classIcon = "bi bi-check-circle";
-            $bootstrapColor = "success";
-
-        } else {
-
-            $text = "Disabilitato";
-            $textButton = "Abilita";
-            $classIcon = "bi bi-x-circle";
-            $bootstrapColor = "danger";
-
-        }
-        
-        $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
-
-        return $RETURN;
+        return \Wonder\Backend\Table\Badge\BooleanBadge::active($active)->action($action)->legacyObject();
 
     }
 
+    /**
+     * @deprecated Usare TableColumn::evidenceBadge() / BooleanBadge::evidence().
+     */
     function evidence($evidence, $id) {
 
-        global $NAME;
-        global $PATH;
+        $ctx = legacyTableContext();
+        $action = $ctx === null ? '' : "onclick=\"ajaxRequest('{$ctx->api}/backend/change/boolean/?table={$ctx->table}&column=evidence&id=$id')\"";
 
-        $action = "onclick=\"ajaxRequest('$PATH->api/backend/change/boolean/?table=$NAME->table&column=evidence&id=$id')\"";
-
-        if ($evidence == 'true') {
-
-            $text = "In evidenza";
-            $textButton = "Rimuovi evidenza";
-            $classIcon = "bi bi-star-fill";
-            $bootstrapColor = "warning";
-
-        } else {
-
-            $text = "Non in evidenza";
-            $textButton = "In evidenza";
-            $classIcon = "";
-            $bootstrapColor = "warning";
-
-        }
-        
-        $RETURN = (object) array_merge( (array) returnBadge($text, $classIcon, $bootstrapColor), (array) returnButton($textButton, $action));
-
-        return $RETURN;
+        return \Wonder\Backend\Table\Badge\BooleanBadge::evidence($evidence)->action($action)->legacyObject();
 
     }
 

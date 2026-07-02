@@ -222,26 +222,9 @@
 
             $action = $this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => 'visible' ]);
 
-            if ($this->row['visible'] == 'true') {
-
-                $text = "Visibile";
-                $textButton = "Nascondi";
-                $classIcon = "bi bi-eye";
-                $bootstrapColor = "success";
-
-            } else {
-
-                $text = "Nascosto";
-                $textButton = "Mostra";
-                $classIcon = "bi bi-eye-slash";
-                $bootstrapColor = "danger";
-
-            }
-
-            return (object) array_merge( 
-                (array) returnBadge($text, $classIcon, $bootstrapColor), 
-                (array) $this->actionButtonItem($textButton, $action)
-            );
+            return \Wonder\Backend\Table\Badge\BooleanBadge::visible($this->row['visible'] ?? '')
+                ->action($action)
+                ->legacyObject();
 
         }
 
@@ -249,26 +232,9 @@
 
             $action = $this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => 'active' ]);
 
-            if ($this->row['active'] == 'true') {
-
-                $text = "Abilitato";
-                $textButton = "Disabilita";
-                $classIcon = "bi bi-check-circle";
-                $bootstrapColor = "success";
-
-            } else {
-
-                $text = "Disabilitato";
-                $textButton = "Abilita";
-                $classIcon = "bi bi-x-circle";
-                $bootstrapColor = "danger";
-
-            }
-            
-            return (object) array_merge( 
-                (array) returnBadge($text, $classIcon, $bootstrapColor), 
-                (array) $this->actionButtonItem($textButton, $action)
-            );
+            return \Wonder\Backend\Table\Badge\BooleanBadge::active($this->row['active'] ?? '')
+                ->action($action)
+                ->legacyObject();
 
         }
 
@@ -276,26 +242,9 @@
 
             $action = $this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => 'evidence' ]);
 
-            if ($this->row['evidence'] == 'true') {
-
-                $text = "In evidenza";
-                $textButton = "Rimuovi evidenza";
-                $classIcon = "bi bi-star-fill";
-                $bootstrapColor = "warning";
-
-            } else {
-
-                $text = "";
-                $textButton = "In evidenza";
-                $classIcon = "";
-                $bootstrapColor = "";
-
-            }
-            
-            return (object) array_merge( 
-                (array) returnBadge($text, $classIcon, $bootstrapColor), 
-                (array) $this->actionButtonItem($textButton, $action)
-            );
+            return \Wonder\Backend\Table\Badge\BooleanBadge::evidence($this->row['evidence'] ?? '')
+                ->action($action)
+                ->legacyObject();
 
         }
 
