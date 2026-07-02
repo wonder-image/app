@@ -141,8 +141,7 @@ final class PopupResource extends Resource
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('title')->text(),
             TableColumn::key('visible')
-                ->badge()
-                ->function('visible', 'id', 'automaticResize')
+                ->visibleBadge()
                 ->size('little'),
             TableColumn::key('actions')
                 ->button()

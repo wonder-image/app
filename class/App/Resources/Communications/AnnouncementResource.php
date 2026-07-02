@@ -93,8 +93,7 @@ final class AnnouncementResource extends Resource
         return [
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('visible')
-                ->badge()
-                ->function('visible', 'id', 'automaticResize')
+                ->visibleBadge()
                 ->size('little'),
             TableColumn::key('actions')
                 ->button()

@@ -97,7 +97,7 @@ final class LegalDocumentResource extends Resource
             TableColumn::key('name')->text()->link('view'),
             TableColumn::key('language_code')->text()->size('little'),
             TableColumn::key('version')->text()->size('little'),
-            TableColumn::key('active')->badge()->function('active', 'id', 'automaticResize')->size('little'),
+            TableColumn::key('active')->activeBadge()->size('little'),
             TableColumn::key('published_at')->datetime()->size('medium'),
             TableColumn::key('actions')->button()->actions(['view', 'download', 'edit']),
         ];

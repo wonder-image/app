@@ -91,7 +91,7 @@ abstract class UserManagementResource extends Resource
             TableColumn::key('name')->text()->columns(['name', 'surname']),
             TableColumn::key('email')->text()->link('mailto'),
             TableColumn::key('authority')->badge()->function(static::permissionsFunction(), 'authority', 'automaticResize'),
-            TableColumn::key('active')->badge()->function('active', 'id', 'automaticResize')->size('little'),
+            TableColumn::key('active')->activeBadge()->size('little'),
             TableColumn::key('actions')->button()->actions(['edit']),
         ];
     }

@@ -94,8 +94,7 @@ final class CssFontResource extends Resource
             TableColumn::key('font_family')
                 ->text(),
             TableColumn::key('visible')
-                ->badge()
-                ->function('visible', 'id', 'automaticResize')
+                ->visibleBadge()
                 ->size('little'),
             TableColumn::key('actions')
                 ->button()
