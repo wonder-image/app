@@ -588,10 +588,20 @@
                         
                     } else {
 
-                        # Controllo se è già stata chiamata questa funzione con gli stessi parametri così da non chiamarla due volte
+                        # Whitelist server-side: il nome arriva dal POST di
+                        # list-table, senza controllo sarebbe una chiamata a
+                        # funzione PHP arbitraria.
+                        if (
+                            !\Wonder\Backend\Table\ColumnFunctionRegistry::isAllowed($functionName)
+                            || !function_exists($functionName)
+                        ) {
 
-                        if (isset($this->function[$functionName]) && $this->function[$functionName]['parameter'] == $functionParameter) {
-                            
+                            $VALUE = '';
+
+                        } else if (isset($this->function[$functionName]) && $this->function[$functionName]['parameter'] == $functionParameter) {
+
+                            # Controllo se è già stata chiamata questa funzione con gli stessi parametri così da non chiamarla due volte
+
                             if (isset($format['function']['return']) && !empty($format['function']['return'])) {
                                 $functionReturn = $format['function']['return'];
                                 $VALUE = $this->function[$functionName]['return']->$functionReturn;
