@@ -530,6 +530,26 @@
 
                 }
 
+            # Rimappa i descrittori legacy function(active|visible|evidence) sul
+            # percorso badge: niente funzioni globali, niente global $NAME/$PATH.
+                if (
+                    isset($format['function']['name'])
+                    && in_array($format['function']['name'], ['active', 'visible', 'evidence'], true)
+                ) {
+
+                    $format['badge'] = [
+                        'preset' => $format['function']['name'],
+                        'column' => $this->column,
+                        'variant' => (isset($format['function']['return']) && !empty($format['function']['return']))
+                            ? $format['function']['return']
+                            : 'automaticResize',
+                        'clickable' => false,
+                    ];
+
+                    unset($format['function']);
+
+                }
+
             # Render badge booleano (API dichiarativa, contesto iniettato — mai global)
                 if (isset($format['badge']) && is_array($format['badge'])) {
 
@@ -566,18 +586,6 @@
                             if (is_object($v)) { $VALUE .= $v->$functionReturn; }
                         }
                         
-                    } else if ($functionName == "active" || $functionName == "visible" || $functionName == "evidence") {
-
-                        $functionReturn = $format['function']['return'];
-
-                        if ($this->table->name == 'user') {
-                            if (count(json_decode($this->row['area'], true)) <= 1 || count(json_decode($this->row['authority'], true)) <= 1) {
-                                $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $this->rowId])->$functionReturn; 
-                            }
-                        } else {
-                            $VALUE = call_user_func_array($functionName, [$COLUMN_VALUE, $this->rowId])->$functionReturn; 
-                        }
-
                     } else {
 
                         # Controllo se è già stata chiamata questa funzione con gli stessi parametri così da non chiamarla due volte
