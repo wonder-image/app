@@ -46,6 +46,83 @@ final class TableColumn extends Column
         return $this->setType('status');
     }
 
+    public function activeBadge(bool $clickable = false): self
+    {
+        return $this->presetBadge('active', $clickable);
+    }
+
+    public function visibleBadge(bool $clickable = false): self
+    {
+        return $this->presetBadge('visible', $clickable);
+    }
+
+    public function evidenceBadge(bool $clickable = false): self
+    {
+        return $this->presetBadge('evidence', $clickable);
+    }
+
+    public function booleanBadge(?string $column = null): self
+    {
+        $this->setType('badge');
+
+        return $this->schema('badge', [
+            'preset' => null,
+            'column' => $column ?? $this->name,
+            'variant' => 'automaticResize',
+            'clickable' => false,
+        ]);
+    }
+
+    public function badgeOn(string $text, string $icon = '', string $color = '', string $buttonText = ''): self
+    {
+        return $this->mergeBadge('on', [
+            'text' => $text, 'icon' => $icon, 'color' => $color, 'button' => $buttonText,
+        ]);
+    }
+
+    public function badgeOff(string $text, string $icon = '', string $color = '', string $buttonText = ''): self
+    {
+        return $this->mergeBadge('off', [
+            'text' => $text, 'icon' => $icon, 'color' => $color, 'button' => $buttonText,
+        ]);
+    }
+
+    public function badgeVariant(string $variant): self
+    {
+        return $this->mergeBadge('variant', trim($variant));
+    }
+
+    public function badgeClickable(bool $clickable = true): self
+    {
+        return $this->mergeBadge('clickable', $clickable);
+    }
+
+    private function presetBadge(string $preset, bool $clickable): self
+    {
+        $this->setType('badge');
+
+        return $this->schema('badge', [
+            'preset' => $preset,
+            'column' => $this->name,
+            'variant' => 'automaticResize',
+            'clickable' => $clickable,
+        ]);
+    }
+
+    private function mergeBadge(string $key, mixed $value): self
+    {
+        $badge = (array) ($this->schema['badge'] ?? [
+            'preset' => null,
+            'column' => $this->name,
+            'variant' => 'automaticResize',
+            'clickable' => false,
+        ]);
+
+        $badge[$key] = $value;
+
+        return $this->schema('badge', $badge);
+    }
+
     public function user(): self
     {
         return $this->setType('user');
