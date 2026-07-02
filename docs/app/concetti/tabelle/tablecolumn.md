@@ -37,6 +37,38 @@ TableColumn::key('actions')->button()->actions(['edit', 'delete']);
 - `action(string $action, bool $enabled = true)` — abilita/disabilita una
   singola azione.
 
+### Badge booleani
+
+Per le colonne booleane `active` / `visible` / `evidence` esistono helper
+dedicati che sostituiscono il vecchio `->badge()->function('active', ...)`:
+
+```php
+TableColumn::key('active')->activeBadge()->size('little'),
+TableColumn::key('visible')->visibleBadge(),
+TableColumn::key('evidence')->evidenceBadge(),
+```
+
+Il badge è **statico**: il toggle resta nel menu azioni della riga
+(`->actions(['visible', ...])`). Per forzare il toggle direttamente sul badge
+(scelta esplicita, non il default): `->activeBadge(true)` oppure
+`->badgeClickable()`.
+
+Per badge booleani custom c'è la base generica:
+
+```php
+TableColumn::key('stato')->booleanBadge()
+    ->badgeOn('Aperto', 'bi bi-unlock', 'success', 'Chiudi')
+    ->badgeOff('Chiuso', 'bi bi-lock', 'danger', 'Apri')
+    ->badgeVariant('automaticResize')   // default; anche: badge, tooltip, badgeTooltip, icon
+    ->badgeClickable(),                 // opzionale, opt-in
+```
+
+`booleanBadge('altra_colonna')` legge il valore da una colonna diversa dalla
+key. Il render passa da `Wonder\Backend\Table\Badge\BooleanBadge`
+(`class/Backend/Table/Badge/BooleanBadge.php`), che è anche l'API da usare
+per renderizzare questi badge fuori dagli schema. Il valore è "on" solo se
+`'true'`/`true`.
+
 ### Link
 
 ```php

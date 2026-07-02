@@ -46,15 +46,25 @@ Il nome del metodo (`hiddenDevice`) è coerente con questo: "device nascosto".
 ## `function` — valore calcolato
 
 ```php
-TableColumn::key('visible')
-    ->badge()
-    ->function('visible', 'id', 'automaticResize');
+TableColumn::key('visible')->badge()->visibleBadge();
 ```
 
 Firma: `function($name, $parameter = 'id', $return = null)`. Esegue una funzione
 di formattazione: `name` è il nome della funzione, `parameter` il campo passato
 (default `'id'`), `return` un eventuale valore atteso. Utile per badge di stato,
 formattazioni custom, valori derivati.
+
+> **Deprecato per i booleani:** `function('active'|'visible'|'evidence', ...)`
+> è rimappato internamente sui badge booleani (vedi
+> [TableColumn](tablecolumn.md#badge-booleani)) e continua a funzionare, ma i
+> nuovi schema devono usare `activeBadge()` / `visibleBadge()` /
+> `evidenceBadge()`.
+>
+> **Whitelist:** per gli altri nomi, la funzione viene eseguita solo se
+> dichiarata in uno schema registrato lato server o consentita via
+> `Wonder\Backend\Table\ColumnFunctionRegistry::allow('nomeFunzione')`
+> (necessario per le pagine legacy con funzioni custom). Nomi non dichiarati
+> producono cella vuota.
 
 ## `link` — cella cliccabile
 
@@ -90,7 +100,7 @@ public static function tableSchema(): array
     return [
         TableColumn::key('name')->text()->link('edit')->sortable(),
         TableColumn::key('email')->text()->hiddenDevice('mobile'),
-        TableColumn::key('visible')->badge()->function('visible', 'id')->size('little'),
+        TableColumn::key('visible')->visibleBadge()->size('little'),
         TableColumn::key('created_at')->date()->size('medium')->hiddenDevice('tablet'),
         TableColumn::key('actions')->button()->actions(['edit', 'delete'])->size('little'),
     ];

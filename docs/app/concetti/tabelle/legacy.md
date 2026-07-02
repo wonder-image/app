@@ -73,3 +73,18 @@ Parametri (in ordine): `$label`, `$column`, `$orderable`, `$class`,
 Praticamente mai per codice nuovo. La incontri solo se mantieni pagine vecchie
 che costruiscono `Table` a mano. In quel caso, valuta di migrarle a una Resource
 con `tableSchema()`.
+
+## Funzioni badge deprecate (plugin.php)
+
+`active()`, `visible()`, `evidence()` e `returnBadge()` di
+`app/function/backend/plugin.php` sono wrapper deprecati che delegano a
+`Wonder\Backend\Table\Badge\BooleanBadge`. Se il global `$NAME` non è
+popolato l'`action` risulta vuota (niente più warning). Mappa di migrazione:
+
+| Legacy | Nuova API |
+|---|---|
+| `->badge()->function('active', 'id', 'automaticResize')` | `->activeBadge()` |
+| `->badge()->function('visible', 'id', 'automaticResize')` | `->visibleBadge()` |
+| `->badge()->function('evidence', 'id', 'automaticResize')` | `->evidenceBadge()` |
+| `active($value, $id)->automaticResize` | `BooleanBadge::active($value)->automaticResize()` |
+| `returnBadge($text, $icon, $color)->badge` | `BooleanBadge::make(true)->on($text, $icon, $color)->badge()` |
