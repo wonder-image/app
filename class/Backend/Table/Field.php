@@ -530,6 +530,13 @@
 
                 }
 
+            # Render badge booleano (API dichiarativa, contesto iniettato — mai global)
+                if (isset($format['badge']) && is_array($format['badge'])) {
+
+                    return $this->setBadgeValue($format, $COLUMN_VALUE);
+
+                }
+
             # Set value from function
                 if (isset($format['function']) && !empty($format['function'])) {
 
@@ -791,6 +798,58 @@
                 }
 
             return $VALUE;
+
+        }
+
+        private function setBadgeValue($format, $COLUMN_VALUE) {
+
+            $descriptor = $format['badge'];
+
+            $preset = isset($descriptor['preset']) && is_string($descriptor['preset']) ? trim($descriptor['preset']) : '';
+            $column = isset($descriptor['column']) && is_string($descriptor['column']) && trim($descriptor['column']) !== ''
+                ? trim($descriptor['column'])
+                : $this->column;
+            $variant = isset($descriptor['variant']) && is_string($descriptor['variant']) && trim($descriptor['variant']) !== ''
+                ? trim($descriptor['variant'])
+                : 'automaticResize';
+
+            $value = (is_array($this->row) && array_key_exists($column, $this->row)) ? $this->row[$column] : $COLUMN_VALUE;
+
+            if ($preset !== '') {
+
+                # Special-case tabella user: badge mostrato solo per utenti con al
+                # massimo una area e una authority (parità col menu azioni).
+                if ($this->table->name == 'user') {
+
+                    $areas = json_decode($this->row['area'] ?? '[]', true);
+                    $authorities = json_decode($this->row['authority'] ?? '[]', true);
+
+                    if (is_array($areas) && is_array($authorities) && count($areas) > 1 && count($authorities) > 1) {
+                        return '';
+                    }
+
+                }
+
+                $badge = \Wonder\Backend\Table\Badge\BooleanBadge::preset($preset, $value);
+
+                if ($badge === null) { return ''; }
+
+            } else {
+
+                $on = (array) ($descriptor['on'] ?? []);
+                $off = (array) ($descriptor['off'] ?? []);
+
+                $badge = \Wonder\Backend\Table\Badge\BooleanBadge::make($value)
+                    ->on((string) ($on['text'] ?? ''), (string) ($on['icon'] ?? ''), (string) ($on['color'] ?? ''), (string) ($on['button'] ?? ''))
+                    ->off((string) ($off['text'] ?? ''), (string) ($off['icon'] ?? ''), (string) ($off['color'] ?? ''), (string) ($off['button'] ?? ''));
+
+            }
+
+            $badge->action($this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => $column ]));
+
+            if (!empty($descriptor['clickable'])) { $badge->clickable(); }
+
+            return $badge->render($variant);
 
         }
 

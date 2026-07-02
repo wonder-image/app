@@ -244,6 +244,10 @@ final class ResourceTableRenderer
             $format['function'] = $config['function'];
         }
 
+        if (isset($config['badge']) && is_array($config['badge'])) {
+            $format['badge'] = $config['badge'];
+        }
+
         if (isset($config['value'])) {
             $format['value'] = $config['value'];
         }
