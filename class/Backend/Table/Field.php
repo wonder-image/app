@@ -539,9 +539,14 @@
 
                         # Whitelist server-side: il nome arriva dal POST di
                         # list-table, senza controllo sarebbe una chiamata a
-                        # funzione PHP arbitraria.
+                        # funzione PHP arbitraria. Guard is_string: il POST
+                        # può inviare un array al posto di una stringa
+                        # (es. function.name malformato) e ColumnFunctionRegistry
+                        # / function_exists richiedono una stringa, altrimenti
+                        # TypeError fatale (500).
                         if (
-                            !\Wonder\Backend\Table\ColumnFunctionRegistry::isAllowed($functionName)
+                            !is_string($functionName)
+                            || !\Wonder\Backend\Table\ColumnFunctionRegistry::isAllowed($functionName)
                             || !function_exists($functionName)
                         ) {
 
@@ -817,7 +822,9 @@
 
             $badge->action($this->ajaxRequest("{$this->link->api}/backend/change/boolean/", [ 'column' => $column ]));
 
-            if (!empty($descriptor['clickable'])) { $badge->clickable(); }
+            $clickable = $descriptor['clickable'] ?? false;
+
+            if ($clickable === true || $clickable === 'true') { $badge->clickable(); }
 
             return $badge->render($variant);
 

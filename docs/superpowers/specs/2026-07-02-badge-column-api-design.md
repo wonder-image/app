@@ -142,6 +142,21 @@ produce cella vuota (nessuna chiamata, nessun warning). Nessun uso legittimo
 si rompe: ogni uso legittimo è per definizione dichiarato in uno schema lato
 server.
 
+**Aggiornamento post-implementazione (2026-07-02):** la derivazione della
+whitelist da `Wonder\App\Table::$list`/`$TABLE` ipotizzata sopra si è
+rivelata impraticabile: questi oggetti contengono il `dataSchema` di input
+(i campi accettati in scrittura), non le funzioni colonna usate in lettura
+per il rendering; inoltre le pagine legacy dichiarano le proprie funzioni
+custom nel codice della pagina stessa, che non viene eseguito durante la
+richiesta AJAX di `list-table` (solo lo schema/config viaggia nel POST). La
+whitelist effettiva implementata in `ColumnFunctionRegistry` è quindi
+composta da: i default del framework (funzioni built-in note, es.
+`mailService`, `mailLogStatus`), le funzioni esposte via `ResourceRegistry`
+per le Resource moderne, e la registrazione esplicita
+`ColumnFunctionRegistry::allow('nomeCustom')` per le pagine legacy custom
+dei siti (vedi la nota di migrazione in
+`docs/app/concetti/tabelle/legacy.md`).
+
 ### 5. Legacy wrapper e migrazione interna
 
 - `app/function/backend/plugin.php`: `active()`, `visible()`, `evidence()`,

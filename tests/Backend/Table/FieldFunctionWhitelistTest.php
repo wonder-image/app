@@ -64,6 +64,18 @@ $got = $field->newField(
 );
 eq('missing function renders empty', $got, '');
 
+// function.name non-stringa (es. array malformato dal POST): cella vuota,
+// nessun TypeError. ColumnFunctionRegistry::isAllowed()/function_exists()
+// richiedono una stringa: senza guard is_string, un array qui produce un
+// TypeError fatale (500) invece di una cella vuota.
+$field = makeField();
+$got = $field->newField(
+    ['id' => 5, 'name' => 'hello'],
+    'name',
+    ['format' => 'text', 'function' => ['name' => ['x'], 'parameter' => 'name', 'return' => null]]
+);
+eq('non-string function name renders empty without error', $got, '');
+
 ColumnFunctionRegistry::reset();
 
 echo $fail === 0 ? "\nALL PASS\n" : "\n$fail FAILURES\n";

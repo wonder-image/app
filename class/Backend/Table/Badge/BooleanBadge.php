@@ -128,7 +128,13 @@ final class BooleanBadge
 
     public function icon(): string
     {
-        return $this->iconClass() === '' ? '' : "<i class='{$this->iconClass()}'></i>";
+        if ($this->iconClass() === '') {
+            return '';
+        }
+
+        $iconClass = htmlspecialchars($this->iconClass(), ENT_QUOTES);
+
+        return "<i class='{$iconClass}'></i>";
     }
 
     public function tooltip(): string
@@ -137,7 +143,10 @@ final class BooleanBadge
             return '';
         }
 
-        return "<i class='{$this->iconClass()}' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='{$this->text()}'></i>";
+        $iconClass = htmlspecialchars($this->iconClass(), ENT_QUOTES);
+        $text = htmlspecialchars($this->text(), ENT_QUOTES);
+
+        return "<i class='{$iconClass}' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='{$text}'></i>";
     }
 
     public function badge(): string
@@ -146,7 +155,10 @@ final class BooleanBadge
             return '';
         }
 
-        return $this->wrapClickable("<span class='badge text-bg-{$this->color()}'>".strtoupper($this->text())."</span>");
+        $color = htmlspecialchars($this->color(), ENT_QUOTES);
+        $text = htmlspecialchars(strtoupper($this->text()), ENT_QUOTES);
+
+        return $this->wrapClickable("<span class='badge text-bg-{$color}'>".$text."</span>");
     }
 
     public function badgeTooltip(): string
@@ -155,7 +167,10 @@ final class BooleanBadge
             return '';
         }
 
-        return $this->wrapClickable("<span class='badge text-bg-{$this->color()}' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='{$this->text()}'>{$this->icon()}</span>");
+        $color = htmlspecialchars($this->color(), ENT_QUOTES);
+        $text = htmlspecialchars($this->text(), ENT_QUOTES);
+
+        return $this->wrapClickable("<span class='badge text-bg-{$color}' data-bs-toggle='tooltip' data-bs-placement='top' data-bs-title='{$text}'>{$this->icon()}</span>");
     }
 
     public function automaticResize(): string
@@ -164,7 +179,10 @@ final class BooleanBadge
             return '';
         }
 
-        return $this->wrapClickable("<span class='badge text-bg-{$this->color()}'><span class='pc-none'>{$this->icon()}</span><span class='phone-none'>".strtoupper($this->text())."</span></span>");
+        $color = htmlspecialchars($this->color(), ENT_QUOTES);
+        $text = htmlspecialchars(strtoupper($this->text()), ENT_QUOTES);
+
+        return $this->wrapClickable("<span class='badge text-bg-{$color}'><span class='pc-none'>{$this->icon()}</span><span class='phone-none'>".$text."</span></span>");
     }
 
     public function button(): string
@@ -173,7 +191,9 @@ final class BooleanBadge
             return '';
         }
 
-        return "<a class='dropdown-item ' {$this->action} role='button'>{$this->buttonText()}</a>";
+        $buttonText = htmlspecialchars($this->buttonText(), ENT_QUOTES);
+
+        return "<a class='dropdown-item ' {$this->action} role='button'>{$buttonText}</a>";
     }
 
     public function render(string $variant): string

@@ -16,7 +16,7 @@
      * con fallback safe (niente warning se il contesto manca, es. nel flusso
      * Resource dove il render passa da Field con contesto iniettato).
      */
-    function legacyTableContext(): ?object {
+    function legacyBadgeTableContext(): ?object {
 
         $NAME = \Wonder\App\LegacyGlobals::get('NAME');
         $PATH = \Wonder\App\LegacyGlobals::get('PATH');
@@ -59,7 +59,7 @@
      */
     function visible($visible, $id) {
 
-        $ctx = legacyTableContext();
+        $ctx = legacyBadgeTableContext();
         $action = $ctx === null ? '' : "onclick=\"ajaxRequest('{$ctx->api}/backend/visible/?table={$ctx->table}&id=$id')\"";
 
         return \Wonder\Backend\Table\Badge\BooleanBadge::visible($visible)->action($action)->legacyObject();
@@ -71,7 +71,7 @@
      */
     function active($active, $id) {
 
-        $ctx = legacyTableContext();
+        $ctx = legacyBadgeTableContext();
         $action = $ctx === null ? '' : "onclick=\"ajaxRequest('{$ctx->api}/backend/active/?table={$ctx->table}&id=$id')\"";
 
         return \Wonder\Backend\Table\Badge\BooleanBadge::active($active)->action($action)->legacyObject();
@@ -83,7 +83,7 @@
      */
     function evidence($evidence, $id) {
 
-        $ctx = legacyTableContext();
+        $ctx = legacyBadgeTableContext();
         $action = $ctx === null ? '' : "onclick=\"ajaxRequest('{$ctx->api}/backend/change/boolean/?table={$ctx->table}&column=evidence&id=$id')\"";
 
         return \Wonder\Backend\Table\Badge\BooleanBadge::evidence($evidence)->action($action)->legacyObject();

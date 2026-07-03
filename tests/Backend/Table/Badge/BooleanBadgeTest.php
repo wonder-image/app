@@ -84,6 +84,14 @@ $custom = BooleanBadge::make('true')
     ->off('Chiuso', 'bi bi-lock', 'danger', 'Apri');
 eq('custom on badge', $custom->badge(), "<span class='badge text-bg-success'>APERTO</span>");
 
+// --- M1 hardening: escaping HTML dei testi/icone/colori interpolati.
+// L'apostrofo tipografico ASCII in un testo custom deve essere escapato
+// (ENT_QUOTES) per non rompere l'attributo class='...' o iniettare markup.
+eq('custom on badge escapes text',
+    BooleanBadge::make(true)->on("E' attivo", '', 'success')->badge(),
+    "<span class='badge text-bg-success'>E&#039; ATTIVO</span>"
+);
+
 // --- legacyObject: shape identica al merge returnBadge+returnButton
 $obj = BooleanBadge::active('true')->action("onclick=\"x()\"")->legacyObject();
 eq('legacyObject keys',

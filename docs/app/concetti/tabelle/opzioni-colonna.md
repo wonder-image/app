@@ -46,7 +46,7 @@ Il nome del metodo (`hiddenDevice`) è coerente con questo: "device nascosto".
 ## `function` — valore calcolato
 
 ```php
-TableColumn::key('visible')->badge()->visibleBadge();
+TableColumn::key('service')->badge()->function('mailService', 'service', 'automaticResize');
 ```
 
 Firma: `function($name, $parameter = 'id', $return = null)`. Esegue una funzione

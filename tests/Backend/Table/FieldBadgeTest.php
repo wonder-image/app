@@ -55,6 +55,26 @@ eq('clickable url has table', str_contains((string) $got, 'table=event'), true);
 eq('clickable url has id', str_contains((string) $got, 'id=7'), true);
 eq('clickable url has column', str_contains((string) $got, 'column=active'), true);
 
+// round-trip POST: 'clickable' arriva come stringa 'false'/'true' da jQuery.
+// La stringa "false" e' truthy in PHP: !empty('false') === true, quindi un
+// parse rigoroso e' necessario per non rendere cliccabile un badge che il
+// client aveva marcato come non cliccabile.
+$field = makeField();
+$got = $field->newField(
+    ['id' => 7, 'active' => 'true'],
+    'active',
+    ['format' => 'badge', 'badge' => ['preset' => 'active', 'column' => 'active', 'variant' => 'automaticResize', 'clickable' => 'false']]
+);
+eq('clickable string "false" is not clickable', str_contains((string) $got, 'onclick'), false);
+
+$field = makeField();
+$got = $field->newField(
+    ['id' => 7, 'active' => 'true'],
+    'active',
+    ['format' => 'badge', 'badge' => ['preset' => 'active', 'column' => 'active', 'variant' => 'automaticResize', 'clickable' => 'true']]
+);
+eq('clickable string "true" is clickable', str_contains((string) $got, 'onclick'), true);
+
 // badge generico con on/off custom
 $field = makeField();
 $got = $field->newField(

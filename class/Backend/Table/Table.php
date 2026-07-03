@@ -382,6 +382,7 @@
                 $format['format'] = $type;
 
                 if (isset($schema['function'])) { $format['function'] = $schema['function']; }
+                if (isset($schema['badge']) && is_array($schema['badge'])) { $format['badge'] = $schema['badge']; }
                 if (isset($schema['value'])) { $format['value'] = $schema['value']; }
                 if (isset($schema['link'])) { $format['href'] = $schema['link']; }
 

@@ -88,3 +88,13 @@ popolato l'`action` risulta vuota (niente più warning). Mappa di migrazione:
 | `->badge()->function('evidence', 'id', 'automaticResize')` | `->evidenceBadge()` |
 | `active($value, $id)->automaticResize` | `BooleanBadge::active($value)->automaticResize()` |
 | `returnBadge($text, $icon, $color)->badge` | `BooleanBadge::make(true)->on($text, $icon, $color)->badge()` |
+
+### Nota di migrazione (whitelist)
+
+Le pagine legacy dei siti che usano funzioni colonna custom via
+`->function('nomeCustom', ...)` devono registrarle in bootstrap con
+`\Wonder\Backend\Table\ColumnFunctionRegistry::allow('nomeCustom')`,
+altrimenti la cella risulta vuota: il renderer (`Field::setValue()`) esegue
+solo funzioni presenti nella whitelist server-side, per evitare che il nome
+funzione arrivato dal POST di `list-table` inneschi una chiamata a funzione
+PHP arbitraria.
