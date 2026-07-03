@@ -10,6 +10,7 @@
 ## Concetti fondamentali
 
 * [Mappa end-to-end](concetti/mappa-end-to-end.md)
+* [Localizzazione](concetti/localizzazione.md)
 * [Moduli](concetti/moduli/README.md)
   * [Sistema moduli](concetti/moduli/sistema.md)
   * [Contratto modulo (ModuleInterface)](concetti/moduli/contratto.md)

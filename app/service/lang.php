@@ -5,9 +5,16 @@
     $SOCIETY ??= (object) [];
 
     # Imposto le lingue
-        LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/')
-            ::defaultLang('it')
-            ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
+        LanguageContext::addLangPath($ROOT_APP.'/../resources/lang/');
+
+        // Il consumer può aver già registrato lingue e strategia (es.
+        // setLangFromPath) in custom/config/lang.php, caricato pre-routing
+        // dal RouteDispatcher: in quel caso lingua corrente e default non
+        // vanno sovrascritte.
+        if (LanguageContext::getLangs() === []) {
+            LanguageContext::defaultLang('it')
+                ::addLanguage('it', 'Italiano', "https://www.$PAGE->domain/", 'it', ['IT']);
+        }
 
         foreach (\Wonder\App\Module\Registry::languagePaths() as $languagePath) {
             LanguageContext::addLangPath($languagePath);

@@ -47,7 +47,13 @@
         {
 
             self::$defaultLang = $defaultLang;
-            self::$lang = $defaultLang;
+
+            // defaultLang() viene richiamato più volte durante il bootstrap
+            // (TranslationBootstrap::preload, app/service/lang.php): non deve
+            // sovrascrivere una lingua già scelta da una strategia setLangFromX.
+            if (self::$langSource === 'none') {
+                self::$lang = $defaultLang;
+            }
 
             return new self();
 

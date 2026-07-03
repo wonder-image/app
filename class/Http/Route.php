@@ -278,6 +278,12 @@ class Route
             $path = str_replace('{'.$key.'}', rawurlencode((string) $value), $path);
         }
 
+        // Modalità path-prefix ('/{lang}/...'): il segmento lingua non viene
+        // passato dai caller, va riempito con la lingua corrente.
+        if (str_contains($path, '{lang}')) {
+            $path = str_replace('{lang}', \Wonder\Localization\LanguageContext::getLang(), $path);
+        }
+
         return $path;
     }
 
