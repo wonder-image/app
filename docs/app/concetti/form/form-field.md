@@ -129,6 +129,34 @@ tra form e validazione server-side.
 - **Rendering**: come un `FormField` diventa HTML è spiegato in
   [Sistema Form / Theme / Element](theme-system.md).
 
+## Visibilità condizionale
+
+Un input può essere mostrato/nascosto in base al valore di un **altro campo** del
+form, senza scrivere JavaScript: il toggle è gestito dal JS backend di
+`wonder-image/lib` (`setConditional()`), quindi funziona con qualsiasi tipo di input.
+
+```php
+FormInput::key('provider')->select(['getrix' => 'Getrix', 'gestim' => 'Gestim']);
+
+// Mostrato solo se `provider` vale getrix o gestim
+FormInput::key('code')->text()->visibleWhen('provider', ['getrix', 'gestim']);
+
+// Mostrato solo per gestim
+FormInput::key('site_id')->text()->visibleWhen('provider', 'gestim');
+
+// Logica inversa: nascosto quando `provider` vale getrix
+FormInput::key('feed_url')->text()->hiddenWhen('provider', 'getrix');
+```
+
+- `->visibleWhen(string $field, string|array $values)` — mostra il campo solo
+  quando il campo di riferimento assume uno dei valori indicati.
+- `->hiddenWhen(string $field, string|array $values)` — logica inversa.
+
+Sotto il cofano vengono aggiunti i data-attribute `data-visible-when` /
+`data-hidden-when` (via `attribute()`); nessuna modifica ai renderer dei temi.
+I campi nascosti **non** vengono disabilitati: i loro valori vengono comunque
+inviati e salvati.
+
 ## Errori comuni
 
 - **`->inputFileDragDrop(...)`** → non esiste; usa **`->fileDragDrop(...)`**.

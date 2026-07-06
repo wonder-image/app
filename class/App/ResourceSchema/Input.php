@@ -85,6 +85,56 @@ abstract class Input
         return $this;
     }
 
+    /**
+     * Visibilità condizionale: mostra questo campo solo quando il campo di
+     * riferimento `$field` assume uno dei valori dati (altrimenti lo nasconde).
+     *
+     * Il toggle avviene lato client (JS backend di wonder-image/lib) leggendo i
+     * data-attribute qui aggiunti, quindi funziona con qualsiasi tipo di input
+     * senza modifiche ai renderer dei temi.
+     *
+     * @param string|array<int, string> $values
+     */
+    public function visibleWhen(string $field, string|array $values): static
+    {
+        return $this->conditionalVisibility('visible', $field, $values);
+    }
+
+    /**
+     * Visibilità condizionale inversa: nasconde questo campo quando il campo di
+     * riferimento `$field` assume uno dei valori dati.
+     *
+     * @param string|array<int, string> $values
+     */
+    public function hiddenWhen(string $field, string|array $values): static
+    {
+        return $this->conditionalVisibility('hidden', $field, $values);
+    }
+
+    /**
+     * @param string|array<int, string> $values
+     */
+    private function conditionalVisibility(string $mode, string $field, string|array $values): static
+    {
+        $field = trim($field);
+
+        if ($field === '') {
+            return $this;
+        }
+
+        $values = implode(',', array_map(
+            static fn ($value): string => trim((string) $value),
+            is_array($values) ? $values : [$values]
+        ));
+
+        return $this->attribute(sprintf(
+            'data-%1$s-when="%2$s" data-%1$s-when-values="%3$s"',
+            $mode,
+            htmlspecialchars($field, ENT_QUOTES),
+            htmlspecialchars($values, ENT_QUOTES)
+        ));
+    }
+
     public function required(bool $required = true): static
     {
         return $required ? $this->attribute('required') : $this;
