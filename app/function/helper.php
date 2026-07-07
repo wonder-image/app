@@ -148,10 +148,18 @@
     // Immagine Responsive
     function __ri(string $image)
     {
-        
+
         return __i($image)
             ->sizes(RESPONSIVE_IMAGE_SIZES)
             ->hasWebP();
+
+    }
+
+    // Gallery responsive con lightbox Fancybox
+    function __gallery(array $images = [])
+    {
+
+        return \Wonder\Elements\Media\Gallery::make($images);
 
     }
 
