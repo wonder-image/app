@@ -39,6 +39,7 @@
   * [Auth federata Google / Apple](concetti/utenti/auth-federata.md)
 * [Componenti UI](concetti/componenti/README.md)
   * [Charts](concetti/componenti/charts.md)
+  * [Swiper e Gallery](concetti/componenti/swiper-e-gallery.md)
 
 ## Piattaforma
 

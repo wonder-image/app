@@ -159,6 +159,13 @@ API principali:
 Per i grafici (LineChart, PieChart su Chart.js) vedi la pagina
 [Charts](charts.md).
 
+## Swiper e Gallery
+
+Per i caroselli di immagini (`__swiper()` con thumbnails + zoom Panzoom o
+lightbox Fancybox) e le gallery responsive (`__gallery()`, che sostituisce la
+vecchia `responsiveGallery()`) vedi la pagina
+[Swiper e Gallery](swiper-e-gallery.md).
+
 ## Checklist
 
 - [ ] layout in `formLayoutSchema()` con `Card`/`Container`
