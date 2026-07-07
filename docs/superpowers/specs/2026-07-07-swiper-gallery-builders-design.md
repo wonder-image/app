@@ -89,8 +89,9 @@ Estende `Wonder\Elements\Component`, usa il trait `Renderer`. Ogni metodo salva 
 
 ```php
 __swiper($images)
-    // $images: ['a.jpg', ...] oppure [['src'=>, 'alt'=>, 'caption'=>, 'thumb'=>], ...]
-    ->thumbnails(bool $on = true)      // strip miniature; usa 'thumb' se presente, altrimenti la stessa img
+    // $images: ['img.jpg' => 'alt', ...]  (chiave = path, valore = alt)   ← forma canonica
+    //          tollera anche lista semplice ['a.jpg', 'b.jpg'] (alt = '')
+    ->thumbnails(bool $on = true)      // strip miniature auto-derivate dagli stessi src (size piccola)
     ->zoom(bool $on = true)            // Panzoom in-place        ⟵ esclusivo con lightbox
     ->lightbox(?string $group = null)  // Fancybox gallery+thumbs ⟵ esclusivo con zoom
     ->loop(bool $on = true)
@@ -101,8 +102,11 @@ __swiper($images)
     ->spaceBetween(int $px)
     ->thumbsPerView(int $n)            // default 4
     ->download(bool $on = true)        // bottone download nel lightbox
-    // passthrough a __ri() per ogni slide:
-    ->size(int $px) ->sizes(array) ->fitCover(bool) ->fitContain(bool)
+    // size per contesto (default da RESPONSIVE_IMAGE_SIZES = [240..2400]):
+    ->size(int $px)                    // slide principale (default 1440, grande)
+    ->thumbsSize(int $px)              // strip miniature   (default 240, piccola)
+    ->fullSize(int $px)               // immagine lightbox (default 2400, max)
+    ->fitCover(bool) ->fitContain(bool)
     // ereditati da Component:
     ->id(string) ->addClass(string)
     ->render(): string
@@ -111,8 +115,10 @@ __swiper($images)
 Esclusività: `zoom(true)` imposta `lightbox=false` e viceversa (come `fitCover`/`fitContain`
 in `Image`). Default: entrambe off.
 
-Normalizzazione input: una stringa → `['src'=>stringa]`; l'array è passato così com'è. `alt`
-default = `''`; `caption` opzionale; `thumb` opzionale (fallback a `src`).
+Normalizzazione input: forma canonica associativa `['src' => 'alt', ...]`. Una lista a chiavi
+numeriche (`['a.jpg', ...]`) è accettata con `alt = ''`. La miniatura è derivata dallo stesso
+`src` a `thumbsSize` (nessun path thumb separato); il `data-src` del lightbox usa `fullSize`;
+`data-caption` = alt.
 
 ### 5.2 Renderer `Wonder\Themes\Wonder\Media\Swiper`
 
@@ -202,12 +208,14 @@ lightbox Fancybox), ma immagini via `__ri()`.
 
 ```php
 __gallery($images)
-    // $images: [['src'=>, 'src-original'=>, 'alt'=>, 'caption'=>], ...] o path semplici
+    // $images: ['img.jpg' => 'alt', ...]  (chiave = path immagine, valore = alt)   ← forma richiesta
+    //          tollera anche lista semplice ['a.jpg', 'b.jpg'] (alt = '')
     ->columns(int $desktop = 4, int $tablet = 3, int $mobile = 2)
     ->gap(int|array $gap = 6)          // int o ['desktop'=>, 'tablet'=>, 'mobile'=>]
     ->format(string $format = 'h-fit') // 'h-fit' (altezza naturale) o ratio '1-1','3-2',...
     ->download(bool $on = true)        // bottone download nel lightbox
-    ->size(int) ->sizes(array)         // passthrough a __ri()
+    ->size(int $px)                    // size ANTEPRIMA in griglia (default 480, piccola)
+    ->fullSize(int $px)                // size immagine LIGHTBOX  (default 2400, max)
     ->id(string) ->addClass(string)
     ->render(): string
 ```
@@ -217,9 +225,15 @@ __gallery($images)
 Riproduce l'algoritmo di distribuzione a colonne di `responsiveGallery` (blocchi
 `desktop`/`tablet`/`mobile` con `d-grid col-* col-t-* col-p-* gap-*`, visibilità
 `tablet-none` / `pc-none phone-none` / `pc-none tablet-none`) e le ancore nascoste Fancybox
-+ `Fancybox.bind`. Differenza: la card usa `__ri($src)->alt(...)->fitCover()->size(...)->render()`
-invece di `<img>` grezzo. `format === 'h-fit'` → immagine ad altezza naturale; altrimenti wrap
-`f-{format} o-hidden` con immagine `bg bg-cover`.
++ `Fancybox.bind`. Differenze rispetto al legacy:
+
+- **Anteprima in griglia**: `__ri($src)->alt($alt)->fitCover()->size($previewSize)->render()`
+  (default `previewSize = 480`, piccola) invece di `<img>` grezzo → webp + srcset + skeleton.
+- **Immagine del lightbox** (`data-src` dell'ancora nascosta Fancybox): `__ri($src)->size($fullSize)->url()`
+  (default `fullSize = 2400`, la variante più grande) → si apre l'immagine grande.
+- `data-caption` = alt.
+- `format === 'h-fit'` → immagine ad altezza naturale; altrimenti wrap `f-{format} o-hidden`
+  con immagine `bg bg-cover`.
 
 ## 7. Rimozione `responsiveGallery()`
 
