@@ -163,6 +163,14 @@
 
     }
 
+    // Swiper: carosello con thumbnails + zoom (Panzoom) o lightbox (Fancybox)
+    function __swiper(array $images = [])
+    {
+
+        return \Wonder\Elements\Media\Swiper::make($images);
+
+    }
+
     // Video
     function __v()
     {
