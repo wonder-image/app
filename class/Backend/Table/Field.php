@@ -615,16 +615,10 @@
 
                         if (!isset($format['function'])) {
 
-                            $VALUE = empty($VALUE) ? [] : json_decode($VALUE);
+                            $VALUE = empty($VALUE) ? [] : json_decode($VALUE, true);
 
                             $imageDir = isset($this->table->field[$this->column]['input']['format']['dir']) ? $this->table->field[$this->column]['input']['format']['dir'] : '/';
 
-                            // Default sicuri: nessuna resize, file servito dal
-                            // path nudo. Prima `$sizeBefore` non era
-                            // inizializzato nel ramo "no resize" → "Undefined
-                            // variable $sizeBefore" a riga ~672 nei resource
-                            // dove il field è `text()` ma la colonna è
-                            // formattata come `image()` (es. Media.file).
                             $imageSize = '';
                             $sizeBefore = false;
 
