@@ -319,6 +319,7 @@
                 self::$API->g_recaptcha_site_key         = self::envOrRow('G_RECAPTCHA_SITE_KEY',             $row, 'g_recaptcha_site_key',             self::$API->g_recaptcha_site_key);
                 self::$API->g_recaptcha_secret_key       = self::envOrRow('G_RECAPTCHA_SECRET_KEY',           $row, 'g_recaptcha_secret_key',           self::$API->g_recaptcha_secret_key);
                 self::$API->g_maps_place_id              = self::envOrRow('G_MAPS_PLACE_ID',                  $row, 'g_maps_place_id',                  self::$API->g_maps_place_id);
+                self::$API->g_maps_map_id                = self::envOrRow('G_MAPS_MAP_ID',                    $row, 'g_maps_map_id',                    self::$API->g_maps_map_id);
                 self::$API->klaviyo_api_key              = self::envOrRow('KLAVIYO_API_KEY',                  $row, 'klaviyo_api_key',                  self::$API->klaviyo_api_key);
                 self::$API->ipinfo_api_key               = self::envOrRow('IPINFO_API_KEY',                   $row, 'ipinfo_api_key',                   self::$API->ipinfo_api_key);
 
@@ -422,6 +423,7 @@
                 'g_recaptcha_site_key' => '',
                 'g_recaptcha_secret_key' => '',
                 'g_maps_place_id' => '',
+                'g_maps_map_id' => '',
                 'klaviyo_api_key' => '',
                 'ipinfo_api_key' => '',
                 'stripe_test' => false,

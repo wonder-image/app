@@ -42,6 +42,7 @@ final class SecurityResource extends SingletonResource
             'g_recaptcha_site_key' => 'Chiave Sito',
             'g_recaptcha_secret_key' => 'Chiave Segreta',
             'g_maps_place_id' => 'Place ID',
+            'g_maps_map_id' => 'Map ID',
             'google_oauth_client_id' => 'Google Client ID',
             'google_oauth_client_secret' => 'Google Client Secret',
             'google_oauth_redirect_uri' => 'Google Redirect URI',
@@ -76,6 +77,7 @@ final class SecurityResource extends SingletonResource
             FormField::key('g_recaptcha_site_key')->text(),
             FormField::key('g_recaptcha_secret_key')->text(),
             FormField::key('g_maps_place_id')->text(),
+            FormField::key('g_maps_map_id')->text(),
 
             FormField::key('google_oauth_client_id')->text(),
             FormField::key('google_oauth_client_secret')->password(),
@@ -129,8 +131,9 @@ final class SecurityResource extends SingletonResource
                     SectionTitle::make('Google reCAPTCHA*')->columnSpan(12),
                     static::getInput('g_recaptcha_site_key')->columnSpan(4),
                     static::getInput('g_recaptcha_secret_key')->columnSpan(4),
-                    SectionTitle::make('Google Place*')->columnSpan(12),
+                    SectionTitle::make('Google Maps*')->columnSpan(12),
                     static::getInput('g_maps_place_id')->columnSpan(4),
+                    static::getInput('g_maps_map_id')->columnSpan(4),
                     HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.')
                     ->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
