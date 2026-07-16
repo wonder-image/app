@@ -56,6 +56,25 @@ Nel file index.php è consigliato utilizzare questo codice per il redirect dell'
         ->redirectByCountry($_SESSION['system_cache']['country'] ?? null);
 ```
 
+## Ordine di precedenza dei file lingua
+
+I path registrati con `LanguageContext::addLangPath()` vengono caricati in
+ordine e i path successivi sovrascrivono solo i valori ridichiarati (le chiavi
+non ridichiarate sopravvivono al merge). Il bootstrap garantisce questo ordine
+finale:
+
+1. **core** (`resources/lang/` del framework)
+2. **moduli** (`lang/` di ogni modulo abilitato)
+3. **sito** (`lang/` del progetto)
+
+Il sito ha quindi sempre l'ultima parola: per sovrascrivere un testo del core o
+di un modulo basta ridichiarare la chiave nei file lingua del progetto
+(`lang/{locale}/*.json`). Il re-append del path del sito avviene in
+`app/service/lang.php` anche quando `custom/config/lang.php` è stato caricato
+pre-routing dal `RouteDispatcher`.
+
+Il contratto è coperto da `tests/App/TranslationPrecedenceTest.php`.
+
 ## Funzioni utili
 
 La funzione [`__t`](#user-content-fn-1)[^1] si usa per cercare testi. Nei file JSON, puoi inserire chiavi con `{{key}}` e utilizzare la variabile `$replacements` per inserire il nome effettivo.

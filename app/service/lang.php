@@ -19,7 +19,16 @@
         foreach (\Wonder\App\Module\Registry::languagePaths() as $languagePath) {
             LanguageContext::addLangPath($languagePath);
         }
-    
+
+        // Il sito ha l'ultima parola sulle traduzioni: il suo lang/ va
+        // (ri)registrato dopo core e moduli. Il RouteDispatcher carica
+        // custom/config/lang.php pre-routing, quindi il path del sito
+        // sarebbe altrimenti il primo — e in loadFiles() l'ultimo path
+        // vince sulle chiavi ridichiarate. Ordine finale: core → moduli → sito.
+        if (is_dir($ROOT.'/lang/')) {
+            LanguageContext::addLangPath($ROOT.'/lang/');
+        }
+
     # Inizializzo il sistema di traduzione
         TranslationProvider::init();
 
