@@ -32,22 +32,41 @@ class Submit extends Field
     /**
      * Sostituisce o aggiunge classi CSS al bottone. Default theme-specifico
      * (vedi `__construct`). La classe `wi-submit` è sempre aggiunta dal
-     * renderer.
+     * renderer (un eventuale `wi-submit` passato dal caller viene rimosso
+     * per evitare duplicati).
      */
     public function buttonClass(string $class): self
     {
-        return $this->schema('button_class', trim($class));
+        return $this->schema('button_class', self::stripWiSubmit($class));
     }
 
     /**
-     * Aggiunge classi mantenendo quelle di default.
+     * Aggiunge classi mantenendo quelle già impostate con `buttonClass()`
+     * / `class()`. Se nessuna classe è stata impostata, il default
+     * theme-specifico viene sostituito (vive nel renderer).
      */
     public function addButtonClass(string $class): self
     {
         $current = trim((string) ($this->getSchema('button_class') ?? ''));
-        $merged = trim($current.' '.$class);
+        $merged = trim($current.' '.self::stripWiSubmit($class));
 
         return $this->schema('button_class', $merged);
+    }
+
+    /**
+     * Sul bottone la classe va in `button_class` (il generico
+     * `attributes.class` di Component non è letto dai renderer Submit).
+     * `wi-submit` resta sempre presente: è l'hook del sistema di check
+     * JS frontend.
+     */
+    public function class(string $class): self
+    {
+        return $this->buttonClass($class);
+    }
+
+    public function addClass(string $class): self
+    {
+        return $this->addButtonClass($class);
     }
 
     /**
@@ -57,5 +76,15 @@ class Submit extends Field
     public function onclick(string $callback): self
     {
         return $this->schema('onclick', $callback);
+    }
+
+    private static function stripWiSubmit(string $class): string
+    {
+        $classes = array_filter(
+            preg_split('/\s+/', trim($class)) ?: [],
+            static fn (string $item): bool => $item !== 'wi-submit'
+        );
+
+        return implode(' ', $classes);
     }
 }
