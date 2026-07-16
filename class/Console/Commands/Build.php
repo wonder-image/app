@@ -241,8 +241,11 @@ $forceWwwBlock
   <FilesMatch "\.(jpe?g|png|gif|svg|ico|pdf|mp4|webm|ogg|woff2?)\$">
     Header set Cache-Control "public, max-age=86400, must-revalidate"
   </FilesMatch>
+  # Cache lunga sicura: gli URL css/js emessi dal framework sono versionati
+  # con ?v=filemtime (Wonder\App\Support\Asset), quindi cambiano al cambiare
+  # del file e invalidano la cache da soli.
   <FilesMatch "\.(js|css)\$">
-    Header set Cache-Control "public, max-age=604800, must-revalidate"
+    Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   <FilesMatch "\.(html|htm)\$">
     Header set Cache-Control "no-cache, must-revalidate"
@@ -257,8 +260,8 @@ FileETag MTime Size
   ExpiresByType image/png "access plus 1 day"
   ExpiresByType image/gif "access plus 1 day"
   ExpiresByType image/svg+xml "access plus 1 day"
-  ExpiresByType text/css "access plus 1 week"
-  ExpiresByType application/javascript "access plus 1 week"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
   ExpiresByType text/html "access plus 0 seconds"
 </IfModule>
 

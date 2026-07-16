@@ -357,7 +357,7 @@
 
                 foreach ($files as $file) {
 
-                    $url = self::$endpoint . $file;
+                    $url = Support\Asset::version(self::$endpoint . $file);
 
                     if (str_ends_with($file, '.js')) {
                         $html .= "<script src=\"$url\"></script>\n";

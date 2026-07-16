@@ -129,6 +129,20 @@
         return Wonder\App\Module\Assets::url($slug, $file);
     }
 
+    // URL versionato (?v=filemtime) di un file dentro assets/{ASSETS_VERSION}/.
+    // Es. __asset('css/main.css') → {APP_URL}/assets/{v}/css/main.css?v=1721035200
+    function __asset(string $file): string
+    {
+        return Wonder\App\Support\Asset::url($file);
+    }
+
+    // Appende ?v=filemtime a un URL locale già costruito (prefisso APP_URL o
+    // path relativo /...). URL esterni o file inesistenti restano invariati.
+    function __asset_version(string $url): string
+    {
+        return Wonder\App\Support\Asset::version($url);
+    }
+
     // Url Parser
     function __url(?string $url = null): Wonder\Http\UrlParser
     {

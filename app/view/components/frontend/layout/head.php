@@ -174,8 +174,8 @@
 
 </script>
 
-<link rel="stylesheet" href="<?=$PATH->css?>/set-up/root.css">
-<link rel="stylesheet" href="<?=$PATH->css?>/set-up/color.css">
+<link rel="stylesheet" href="<?=__asset_version($PATH->css.'/set-up/root.css')?>">
+<link rel="stylesheet" href="<?=__asset_version($PATH->css.'/set-up/color.css')?>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

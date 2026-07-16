@@ -47,6 +47,7 @@
 * [URL multilingua](piattaforma/urls-multilingua.md)
 * [Multilingua](piattaforma/multilingua.md)
 * [Layout e View](piattaforma/layout.md)
+* [Asset e cache busting](piattaforma/asset-e-cache.md)
 * [Freecode (override)](piattaforma/freecode.md)
 * [Multi-ambiente](piattaforma/multi-ambiente.md)
 * [Cron Job](piattaforma/cron-job.md)
