@@ -122,6 +122,13 @@
         return $path;
     }
 
+    // Asset di un modulo (css/js/img): copia pubblicata del sito se esiste,
+    // altrimenti il file del modulo. Stringa vuota se il file non esiste.
+    function module_asset(string $slug, string $file): string
+    {
+        return Wonder\App\Module\Assets::url($slug, $file);
+    }
+
     // Url Parser
     function __url(?string $url = null): Wonder\Http\UrlParser
     {

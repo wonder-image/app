@@ -9,7 +9,9 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Wonder\App\Credentials;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Module\Assets;
 use Wonder\App\Module\Manifest;
 use Wonder\App\Module\ManifestValidator;
 use Wonder\App\Module\Registry;
@@ -22,12 +24,13 @@ class PublishModule extends Command
     {
         $this
             ->setName($this->name)
-            ->setDescription('Pubblica le view di un modulo in custom/modules/<slug>/view')
+            ->setDescription('Pubblica le view di un modulo in custom/modules/<slug>/view (con --assets pubblica gli asset in assets/{ASSETS_VERSION})')
             ->addArgument('slug', InputArgument::REQUIRED, 'Slug del modulo')
-            ->addArgument('path', InputArgument::OPTIONAL, 'Path relativo dentro paths.views da pubblicare')
+            ->addArgument('path', InputArgument::OPTIONAL, 'Path relativo dentro paths.views (o paths.assets con --assets) da pubblicare')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Sovrascrive i file gia pubblicati')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Mostra le operazioni senza scrivere file')
             ->addOption('list', null, InputOption::VALUE_NONE, 'Mostra i file publishabili senza scrivere file')
+            ->addOption('assets', null, InputOption::VALUE_NONE, 'Pubblica gli asset (paths.assets) in assets/{ASSETS_VERSION} del sito')
             ->addOption('views', null, InputOption::VALUE_NONE, 'Pubblica tutte le view (default)')
             ->addOption('components', null, InputOption::VALUE_NONE, 'Pubblica solo view/components/*')
             ->addOption('layouts', null, InputOption::VALUE_NONE, 'Pubblica solo view/layout/*')
@@ -57,14 +60,30 @@ class PublishModule extends Command
 
         ManifestValidator::assertValid($manifest);
 
-        $sourceRoot = $manifest->viewsPath();
-        if ($sourceRoot === null || !is_dir($sourceRoot)) {
-            $output->writeln('<error>Il modulo '.$slug.' non dichiara una cartella view pubblicabile.</error>');
-            return Command::FAILURE;
+        $publishAssets = (bool) $input->getOption('assets');
+
+        if ($publishAssets) {
+            $sourceRoot = $manifest->assetsPath();
+            if ($sourceRoot === null || !is_dir($sourceRoot)) {
+                $output->writeln('<error>Il modulo '.$slug.' non dichiara una cartella asset pubblicabile.</error>');
+                return Command::FAILURE;
+            }
+
+            // ASSETS_VERSION arriva dall'env del sito (in console non è definita).
+            Credentials::loadEnv();
+
+            $targetRoot = Assets::publishTarget($root);
+        } else {
+            $sourceRoot = $manifest->viewsPath();
+            if ($sourceRoot === null || !is_dir($sourceRoot)) {
+                $output->writeln('<error>Il modulo '.$slug.' non dichiara una cartella view pubblicabile.</error>');
+                return Command::FAILURE;
+            }
+
+            $targetRoot = rtrim($root, '/').'/custom/modules/'.$manifest->slug().'/view';
         }
 
         $sourceRoot = rtrim((string) realpath($sourceRoot), '/');
-        $targetRoot = rtrim($root, '/').'/custom/modules/'.$manifest->slug().'/view';
 
         $files = $this->publishableFiles($sourceRoot, $input);
 
@@ -223,6 +242,11 @@ class PublishModule extends Command
      */
     private function selectedPrefixes(InputInterface $input): array
     {
+        // I filtri per prefisso riguardano solo le view.
+        if ((bool) $input->getOption('assets')) {
+            return [];
+        }
+
         $prefixes = [];
 
         if ((bool) $input->getOption('components')) {

@@ -109,6 +109,49 @@ Il publish è solo una copia nel sito. Perché l'override venga usato a runtime,
 il modulo deve risolvere le proprie view passando prima dal path
 `custom/modules/<slug>/view/...` e poi dal fallback del package.
 
+## Asset dei moduli (css/js/img)
+
+Un modulo può spedire i propri asset dentro `paths.assets` (default
+`resources/assets`). Nelle view si referenziano con l'helper globale
+`module_asset()`:
+
+```php
+<link rel="stylesheet" href="<?= module_asset('immobili', 'css/immobili-map.css') ?>">
+<script src="<?= module_asset('immobili', 'js/immobili-map.js') ?>"></script>
+```
+
+L'helper (che delega a `Wonder\App\Module\Assets::url()`) risolve l'URL in
+questo ordine:
+
+1. **copia pubblicata nel sito** — `assets/{ASSETS_VERSION}/<file>`: se esiste
+   vince sempre, così il sito può personalizzare l'asset;
+2. **file del modulo** — servito direttamente dal suo percorso reale sotto il
+   root del sito (`vendor/wonder-image/<slug>/resources/assets/...` oppure
+   `modules/<slug>/resources/assets/...`);
+3. **fallback vendor** — se il root del modulo risolve fuori dal sito
+   (repository Composer di tipo `path`), l'URL passa dal symlink
+   `vendor/<package>/...`.
+
+Se il file non esiste in nessuna posizione l'helper restituisce stringa vuota:
+la view può quindi saltare il tag. Ogni URL include `?v=` per il cache busting
+(versione del modulo, o `filemtime` per le copie pubblicate).
+
+Per pubblicare gli asset nel sito (opzione, non obbligatoria — gli asset
+funzionano anche serviti dal modulo):
+
+```bash
+php forge publish:module immobili --assets            # tutto paths.assets
+php forge publish:module immobili --assets css        # solo una sottocartella
+php forge publish:module immobili --assets --dry-run  # anteprima
+php forge publish:module immobili --assets --force    # ri-pubblica dopo un update
+```
+
+La destinazione è `assets/{ASSETS_VERSION}/` (stessa struttura interna del
+modulo, es. `css/immobili-map.css`). Attenzione: le copie pubblicate non si
+aggiornano da sole quando il modulo viene aggiornato — vanno ri-pubblicate con
+`--force`. Conviene prefissare i nomi file con lo slug del modulo
+(`immobili-map.css`, non `map.css`) per evitare collisioni tra moduli.
+
 ## Errori comuni
 
 - **Modulo non caricato** → non è abilitato in `custom/config/modules.php`, o il
