@@ -50,9 +50,9 @@ abstract class Column extends Component
         return $this->schema('sortable', $sortable);
     }
 
-    public function callback($callback): self
+    public function formatter(string $name): self
     {
-        return $this->schema('callback', $callback);
+        return $this->schema('formatter', trim($name));
     }
 
     public function function($name, $parameter = 'id', $return = null): self
