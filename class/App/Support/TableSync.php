@@ -204,6 +204,7 @@ final class TableSync
         $tables = $onlyTables !== null
             ? array_intersect($onlyTables, array_keys($discovered))
             : self::syncTables();
+        $tables = SyncTableSorter::sort($tables, ModelRegistry::all());
 
         $imported = 0;
 
