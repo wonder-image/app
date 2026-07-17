@@ -30,6 +30,10 @@ function makeField(): Field {
     return new Field($TABLE, $PATH, $TEXT, $USER, $PAGE);
 }
 
+// Funzione globale reale usata come "canary" di sicurezza: esiste
+// (function_exists === true) ma NON è registrata nel ColumnFormatterRegistry.
+function wi_test_formatter_canary(array $row): string { return 'CANARY-ESEGUITA'; }
+
 ColumnFormatterRegistry::reset();
 ColumnFormatterRegistry::register('immobili.prezzo', static fn (array $row): string =>
     '€ ' . number_format((int) ($row['prezzo'] ?? 0), 0, ',', '.'));
@@ -51,6 +55,18 @@ $got = $field->newField(
     ['format' => 'text', 'formatter' => 'immobili.non_registrato']
 );
 eq('formatter non registrato -> vuoto', $got, '');
+
+// Sicurezza (difesa a prova di refactoring): un nome che coincide con una
+// funzione globale REALE ma non registrata non deve essere invocato. Se un
+// giorno il dispatch acquisisse un fall-through function_exists()/call_user_func,
+// l'output sarebbe 'CANARY-ESEGUITA' e questo test fallirebbe.
+$field = makeField();
+$got = $field->newField(
+    ['id' => 5],
+    'prezzo',
+    ['format' => 'text', 'formatter' => 'wi_test_formatter_canary']
+);
+eq('funzione globale non registrata NON invocata come formatter', $got, '');
 
 ColumnFormatterRegistry::reset();
 

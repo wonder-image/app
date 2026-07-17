@@ -61,3 +61,18 @@ use Wonder\Backend\Table\ColumnFormatterRegistry;
 
 ColumnFormatterRegistry::register('immobili.prezzo', static fn (array $row): string => /* ... */);
 ```
+
+## Limiti
+
+Le colonne speciali `action_button` e `position_arrow_up`/`position_arrow_down`
+non passano da `Field::setValue()`: un `formatter` associato a queste non ha
+effetto. Usa `formatter` solo su colonne di valore.
+
+## Migrazione (BC)
+
+Il metodo `Column::callback(callable)`, mai cablato nel rendering (era di fatto
+un no-op: la sua chiave di schema non veniva letta da nessuna parte), è stato
+**rimosso**. Chi lo chiamava su una colonna tabella non otteneva alcun effetto;
+sostituiscilo con `formatter('nome')` + `ColumnFormatterRegistry::register(...)`.
+Tecnicamente è un cambiamento non retro-compatibile della libreria: un sito che
+invocava `->callback()` andrà aggiornato (raggio d'impatto atteso: nullo).
