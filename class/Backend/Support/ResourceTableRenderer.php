@@ -256,6 +256,10 @@ final class ResourceTableRenderer
             $format['href'] = $config['link'];
         }
 
+        if (isset($config['formatter']) && is_string($config['formatter']) && trim($config['formatter']) !== '') {
+            $format['formatter'] = trim($config['formatter']);
+        }
+
         return $format;
     }
 

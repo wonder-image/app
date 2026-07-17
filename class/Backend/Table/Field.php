@@ -506,6 +506,18 @@
 
                 }
 
+            # Render via formatter con nome (riceve l'intera riga). Il registry è
+            # la whitelist: nome non registrato => cella vuota, mai esecuzione
+            # arbitraria. Il formatter possiede l'intera cella (nessuna
+            # formattazione-tipo aggiuntiva, nessun href-wrap).
+                if (isset($format['formatter']) && is_string($format['formatter']) && trim($format['formatter']) !== '') {
+
+                    return \Wonder\Backend\Table\ColumnFormatterRegistry::has($format['formatter'])
+                        ? \Wonder\Backend\Table\ColumnFormatterRegistry::call($format['formatter'], $this->row)
+                        : '';
+
+                }
+
             # Set value from function
                 if (isset($format['function']) && !empty($format['function'])) {
 
