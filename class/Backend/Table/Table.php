@@ -500,10 +500,11 @@
         private function createTitle() {
 
             $RETURN = '';
+            $hasHeaderButtons = $this->buttonAdd['visible'] || !empty($this->buttonCustom);
 
             if ($this->title) {
 
-                $col = ($this->buttonAdd['visible']) ? 'col-8' : 'col-12';
+                $col = $hasHeaderButtons ? 'col-8' : 'col-12';
 
                 $title = empty($this->titleValue) ? 'Lista '.$this->text['titleP'] : $this->titleValue;
 
@@ -515,7 +516,7 @@
 
             } else if ($this->titleNResult) {
 
-                $col = ($this->buttonAdd['visible']) ? 'col-8' : 'col-12';
+                $col = $hasHeaderButtons ? 'col-8' : 'col-12';
 
                 $RETURN .= '<div class="'.$col.'">';
                 $RETURN .= '<figcaption class="text-muted"> Risultati: <span id="'.$this->id['n_result'].'"></span> </figcaption>';
@@ -534,25 +535,13 @@
 
             $TITLE_HTML = $this->createTitle();
 
-            $BUTTON_ADD_HTML = '';
-            
-            if ($this->buttonAdd['visible']) {
+            $BUTTONS_HTML = '';
+            $hasHeaderButtons = $this->buttonAdd['visible'] || !empty($this->buttonCustom);
 
-                $col = ($this->title) ? 'col-4' : 'col-12';
-                $href = $this->buttonAdd['href'];
-                $name = $this->buttonAdd['name'];
-                $icon = $this->buttonAdd['icon'];
-
-                $BUTTON_ADD_HTML .= '<div class="'.$col.'"><a href="'.$href.'" type="button" class="btn btn-dark btn-sm float-end href-redirect"> '.$icon.' '.$name.' </a></div>';
-
-            }
-
-
-            $BUTTON_CUSTOM_HTML = '';
-
-            if (!empty($this->buttonCustom)) {
-
-                $BUTTON_CUSTOM_HTML .= '<div class="col-12 d-flex gap-2 justify-content-end">';
+            if ($hasHeaderButtons) {
+                $hasTitleBlock = $this->title || $this->titleNResult;
+                $col = $hasTitleBlock ? 'col-4' : 'col-12';
+                $BUTTONS_HTML .= '<div class="'.$col.' d-flex gap-2 justify-content-end align-items-start flex-wrap">';
 
                 foreach ($this->buttonCustom as $key => $button) {
 
@@ -562,14 +551,22 @@
                     $color = isset($button['color']) ? $button['color'] : 'dark';
 
                     if ($isHTML) {
-                        $BUTTON_CUSTOM_HTML .=  $value;
+                        $BUTTONS_HTML .=  $value;
                     } else {
-                        $BUTTON_CUSTOM_HTML .=  '<a '.$action.' type="button" class="btn btn-'.$color.' btn-sm">'.$value.'</a>';
+                        $BUTTONS_HTML .=  '<a '.$action.' type="button" class="btn btn-'.$color.' btn-sm">'.$value.'</a>';
                     }
-                    
+
                 }
-                
-                $BUTTON_CUSTOM_HTML .= '</div>';
+
+                if ($this->buttonAdd['visible']) {
+                    $href = $this->buttonAdd['href'];
+                    $name = $this->buttonAdd['name'];
+                    $icon = $this->buttonAdd['icon'];
+
+                    $BUTTONS_HTML .= '<a href="'.$href.'" type="button" class="btn btn-dark btn-sm href-redirect"> '.$icon.' '.$name.' </a>';
+                }
+
+                $BUTTONS_HTML .= '</div>';
 
             }
 
@@ -641,9 +638,8 @@
 
             $RETURN = '';
             $RETURN .= $TITLE_HTML;
-            $RETURN .= $BUTTON_ADD_HTML;
+            $RETURN .= $BUTTONS_HTML;
             $RETURN .= $FILTER_DATE_HTML;
-            $RETURN .= $BUTTON_CUSTOM_HTML;
             $RETURN .= $FILTER_CUSTOM->button;
             $RETURN .= $SEARCH_HTML;
             $RETURN .= $FILTER_LIMIT_HTML;

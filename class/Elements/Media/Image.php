@@ -112,8 +112,8 @@
 
                 $pathInfo = pathinfo($image);
 
-                $name = $pathInfo['filename'];
-                $extension = $pathInfo['extension'];
+                $name = $pathInfo['filename'] ?? '';
+                $extension = $pathInfo['extension'] ?? '';
 
                 $directory = str_replace((new Path())->site, '', $pathInfo['dirname']);
                 $directoryUrl = (new Path())->site.$directory.DIRECTORY_SEPARATOR;

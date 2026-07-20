@@ -6,6 +6,8 @@ use RuntimeException;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\Backend\Table\Table;
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Dropdown;
 
 final class ResourceTableRenderer
 {
@@ -70,6 +72,7 @@ final class ResourceTableRenderer
         $this->applyQuery($table);
         $this->applyFilters($table);
         $this->applyButtonAdd($table);
+        $this->applyButtonsCustom($table);
         $this->applyButtonDownload($table);
         $this->applyColumns($table);
 
@@ -191,6 +194,37 @@ final class ResourceTableRenderer
             __r('backend.resource.'.$this->slug.'.create'),
             (string) ($buttonAdd['label'] ?? ('Aggiungi '.$this->resourceClass::label()))
         );
+    }
+
+    private function applyButtonsCustom(Table $table): void
+    {
+        foreach ((array) ($this->tableLayoutSchema['buttons_custom'] ?? []) as $button) {
+            $html = $this->renderButtonCustom($button);
+
+            if ($html !== '') {
+                $table->addButtonCustom($html, true);
+            }
+        }
+    }
+
+    private function renderButtonCustom(mixed $button): string
+    {
+        if (is_string($button)) {
+            return trim($button);
+        }
+
+        if (!$button instanceof Button && !$button instanceof Dropdown) {
+            return '';
+        }
+
+        $component = clone $button;
+        $component->schema('inline', true);
+
+        if (trim((string) $component->getSchema('size')) === '') {
+            $component->size('sm');
+        }
+
+        return $component->render('bootstrap');
     }
 
     private function applyColumns(Table $table): void

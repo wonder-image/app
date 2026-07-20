@@ -5,10 +5,11 @@ namespace Wonder\Themes\Bootstrap\Components;
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
 use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Concerns\RendersButtonPostForm;
 
 class Button extends Component
 {
-    use CanSpanColumn, HasAttributes;
+    use CanSpanColumn, HasAttributes, RendersButtonPostForm;
 
     public function render($class): string
     {
@@ -24,6 +25,7 @@ class Button extends Component
         $href = trim((string) $class->getHref());
         $type = trim((string) ($schema['type'] ?? 'button'));
         $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
+        $isPostButton = $this->isPostButton($schema);
 
         $classes[] = "text-decoration-none";
 
@@ -59,9 +61,13 @@ class Button extends Component
             default => $label,
         };
 
-        $tag = $href !== '' && !$disabled ? 'a' : 'button';
+        $tag = !$isPostButton && $href !== '' && !$disabled ? 'a' : 'button';
 
         $html = $inline ? '' : "<div class=\"{$this->getColumnSpan($class->columnSpan)}\">";
+
+        if ($isPostButton) {
+            $html .= $this->openButtonPostForm($class, $schema);
+        }
 
         if ($tag === 'a') {
             $attributeString = $this->renderAttributes($attributes);
@@ -79,6 +85,10 @@ class Button extends Component
 
             $attributeString = $this->renderAttributes($buttonAttributes);
             $html .= '<button'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</button>';
+        }
+
+        if ($isPostButton) {
+            $html .= '</form>';
         }
 
         if (!$inline) {

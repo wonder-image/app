@@ -99,6 +99,11 @@ Button::make('Salva')
     ->variant('success')
     ->icon('bi bi-check2', 'start');
 
+Button::post('/backend/publish/', 'Pubblica')
+    ->variant('primary')
+    ->icon('bi bi-cloud-arrow-up', 'start')
+    ->confirm('Pubblicare ora?');
+
 Badge::make('Bozza')
     ->variant('secondary')
     ->outline();
@@ -120,7 +125,8 @@ ButtonGroup::make([
 
 API principali:
 
-- `Button`: `variant()`, `outline()`, `size()`, `type()`, `disabled()`,
+- `Button`: `post()`, `variant()`, `outline()`, `size()`, `type()`, `confirm()`,
+  `formAttributes()`, `disabled()`,
   `active()`, `block()`, `nowrap()`, `icon()`, `arrow()`, `href()/blank()`,
   `target()`, `rel()`, `title()`, `onclick()`, `download()`
 - `Badge`: `variant()`, `outline()`, `pill()`, `icon()`, `href()/blank()`,
@@ -153,6 +159,11 @@ API principali:
 - **HTML a mano per un riquadro** → usa `Card`/`Container`, non markup custom.
 - **CTA o badge scritti a mano** → usa `Button` / `Badge` / `ButtonGroup` /
   `Dropdown`, non markup ad-hoc nel Resource o nella view.
+
+`Button::post($action, $label)` rende un `<form method="post">` con un vero
+`<button type="submit">`. `Button::to($action, $label)->type('post')` è
+equivalente. Usa `->confirm($message)` per la conferma e `->formAttributes()`
+solo per attributi aggiuntivi del form.
 
 ## Charts
 

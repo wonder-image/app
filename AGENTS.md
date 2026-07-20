@@ -30,6 +30,7 @@ Key subareas:
 - `class/App/PageSchema`: custom backend pages
 - `class/App/ResourceSchema`: high-level form/table/repeater DSL (used by `Resource::formSchema()`)
 - `class/App/Support/Repeater.php`: repeater request + relation sync
+- `class/App/Support/SyncTableSorter.php`: stable foreign-key-aware ordering for `forge import` and deploy sync
 - `class/App/Support/FormFieldElementFactory.php`: bridge from `ResourceSchema/FormField` DSL to `Elements/Form/Components/*` (low-level objects)
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
@@ -115,6 +116,7 @@ php forge start
 - Prefer expressing reusable bundle-level constraints (default country, allowed countries, required fields, derived row decorators) inside the schema extension itself instead of reapplying them ad hoc in each consuming Model/Resource/Page.
 - If a schema extension also exposes helpers like `decorate(array $row): array`, keep them pure: they may enrich read rows with derived values, but must not run queries or perform persistence side effects.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
+- Declare Resource-list header actions through `TableLayoutSchema::buttonCustom()` / `buttonsCustom()` with `Wonder\Elements\Components\Button` or `Dropdown`; use `Button::post($action, $label)->confirm(...)` for POST actions and reserve `buttonCustomHtml()` for trusted markup that no Element can represent.
 - The canonical module format is a Composer package, not a folder embedded in the core package.
 - Standard module package naming is `wonder-image/<slug>`.
 - Standard module namespace base is `Wonder\\Plugin\\<StudlySlug>\\`.
@@ -136,6 +138,7 @@ php forge start
 - Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.
 - `class/App/Schema/Extensions/*` is the place for reusable compound schema bundles (for example address/contact/fiscal blocks) that must generate coherent fragments for `dataSchema()`, `tableSchema()`, `labelSchema()`, and `formSchema()` without adding automatic registration to the core. When useful, the same extension may also expose pure row decorators for `Model::decorate()`.
 - `Wonder\\App\\RuntimeDefaults` is for runtime fallbacks used while rendering or bootstrapping in-memory config; `Wonder\\App\\SeedDefaults` is for idempotent seed/bootstrap payloads used by `build/row` and seed-backed singleton forms.
+- `TableSync` imports synchronized tables in foreign-key dependency order derived from `Model::tableSchema()`; preserve stable configured order for independent tables and cycle fallback.
 - `wonder-image.php` bootstraps the package by resolving the consumer project root and loading config/services/middleware.
 - `Credentials::loadEnv()` must resolve `.env` from the consumer `ROOT`, never from the package directory under `vendor/`.
 - Backend/API routes are driven from `app/config/routes` and the `ResourceRouteRegistrar`.

@@ -238,6 +238,11 @@ La logica centralizzata vive in `Wonder\App\Support\TableSync`:
 - `autoExport()` -- esporta automaticamente se `SYNC_AUTO_EXPORT=true`
 - `resetCache()` -- resetta la cache di discovery (utile nei test)
 
+Durante l'import, le tabelle vengono ordinate automaticamente in base alle
+foreign key dichiarate in `Model::tableSchema()`: una tabella referenziata viene
+popolata prima delle tabelle che la utilizzano. L'ordine configurato resta
+stabile tra tabelle indipendenti e viene usato come fallback in caso di cicli.
+
 ### Classe `SyncSchema`
 
 Value object che descrive il comportamento di sync di una tabella:

@@ -110,6 +110,10 @@ la cornice attorno alla tabella. Si costruisce con
 | `results($enabled = true)` | riga conteggio risultati |
 | `buttonAdd($enabled = true, $label = null)` | CTA "Aggiungi" in alto a destra |
 | `hideButtonAdd()` | nasconde la CTA |
+| `buttonCustom(Button\|Dropdown\|string $button)` | aggiunge un'azione accanto alla CTA "Aggiungi" |
+| `buttonsCustom(array $buttons)` | aggiunge più azioni custom in ordine |
+| `buttonCustomHtml(string $html)` | aggiunge HTML trusted accanto alla CTA |
+| `clearButtonsCustom()` | rimuove le azioni custom già configurate |
 | `filterSearch($enabled = true)` | casella di ricerca |
 | `filterLimit($enabled = true)` | selettore "righe per pagina" |
 | `filters($search = true, $limit = true)` | scorciatoia per i due sopra |
@@ -142,6 +146,39 @@ public static function tableLayoutSchema(): TableLayoutSchema
 
 L'export della cornice si appoggia alla route `export` generata dalla Resource
 (gated sul permesso `list`): vedi [Route e API](../risorse/route-e-api.md).
+
+### Azioni custom nell'header
+
+Usa i componenti `Button` e `Dropdown`: il renderer li porta automaticamente
+alla dimensione `sm` e li mostra accanto a `buttonAdd`.
+
+```php
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Dropdown;
+
+return TableLayoutSchema::for(static::class)
+    ->buttonAdd('Aggiungi elemento')
+    ->buttonCustom(
+        Button::post('/backend/sync/', 'Sincronizza')
+            ->icon('bi bi-arrow-repeat')
+            ->confirm('Avviare la sincronizzazione?')
+    )
+    ->buttonCustom(
+        Button::to('/backend/import/', 'Importa')
+            ->variant('secondary')
+            ->icon('bi bi-upload')
+    )
+    ->buttonCustom(
+        Dropdown::make('Altre azioni')
+            ->align('end')
+            ->item('Scarica esempio', '/backend/example/')
+    );
+```
+
+Per azioni POST usa `Button::post()`; il componente genera e sanifica il form.
+`buttonCustomHtml()` resta disponibile solo per markup non rappresentabile da un
+Element. L'HTML viene emesso senza escaping: deve essere trusted e ogni valore
+dinamico va sanificato prima di comporlo.
 
 ## Errori comuni
 

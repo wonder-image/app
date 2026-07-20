@@ -4,6 +4,8 @@ namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
 use Wonder\App\Resource;
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Dropdown;
 
 final class TableLayoutSchema
 {
@@ -26,6 +28,7 @@ final class TableLayoutSchema
                 'enabled' => true,
                 'label' => null,
             ],
+            'buttons_custom' => [],
             'filters' => [
                 'search' => [
                     'enabled' => true,
@@ -106,6 +109,60 @@ final class TableLayoutSchema
         return $this->buttonAdd(false);
     }
 
+    /**
+     * Aggiunge un'azione custom accanto al bottone "Aggiungi".
+     *
+     * I componenti vengono renderizzati con il tema Bootstrap del backend.
+     * Una stringa viene trattata come HTML trusted, come alias di
+     * `buttonCustomHtml()`.
+     */
+    public function buttonCustom(Button|Dropdown|string $button): self
+    {
+        if (is_string($button)) {
+            return $this->buttonCustomHtml($button);
+        }
+
+        $this->schema['buttons_custom'][] = $button;
+
+        return $this;
+    }
+
+    /**
+     * @param array<int, Button|Dropdown|string> $buttons
+     */
+    public function buttonsCustom(array $buttons): self
+    {
+        foreach ($buttons as $button) {
+            if ($button instanceof Button || $button instanceof Dropdown || is_string($button)) {
+                $this->buttonCustom($button);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Aggiunge HTML trusted accanto al bottone "Aggiungi".
+     *
+     * Il contenuto non viene escapato: usare questo metodo soltanto con markup
+     * costruito dal codice applicativo e valori dinamici già sanificati.
+     */
+    public function buttonCustomHtml(string $html): self
+    {
+        if (trim($html) !== '') {
+            $this->schema['buttons_custom'][] = $html;
+        }
+
+        return $this;
+    }
+
+    public function clearButtonsCustom(): self
+    {
+        $this->schema['buttons_custom'] = [];
+
+        return $this;
+    }
+
     public function filterSearch(bool $enabled = true): self
     {
         $this->schema['filters']['search']['enabled'] = $enabled;
@@ -179,7 +236,8 @@ final class TableLayoutSchema
         return $this
             ->hideTitle()
             ->results(false)
-            ->hideButtonAdd();
+            ->hideButtonAdd()
+            ->clearButtonsCustom();
     }
 
     /**

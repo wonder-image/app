@@ -11,7 +11,7 @@ class Button extends Link
     use CanSpanColumn, Renderer;
 
     private const ALLOWED_SIZES = ['', 'sm', 'lg'];
-    private const ALLOWED_TYPES = ['a', 'button', 'submit', 'reset'];
+    private const ALLOWED_TYPES = ['a', 'button', 'submit', 'reset', 'post'];
 
     public function __construct(string $label = '', string $href = '')
     {
@@ -29,6 +29,11 @@ class Button extends Link
     public static function to(string $href, string $label): self
     {
         return new self($label, $href);
+    }
+
+    public static function post(string $action, string $label): self
+    {
+        return (new self($label, $action))->type('post');
     }
 
     public function variant(string $variant): self
@@ -64,7 +69,41 @@ class Button extends Link
             );
         }
 
+        if ($normalized === 'post') {
+            return $this
+                ->schema('form_method', 'post')
+                ->schema('type', 'submit');
+        }
+
+        unset($this->schema['form_method']);
+
         return $this->schema('type', $normalized);
+    }
+
+    public function confirm(string $message): self
+    {
+        $message = trim($message);
+
+        if ($message === '') {
+            unset($this->schema['confirm']);
+
+            return $this;
+        }
+
+        return $this->schema('confirm', $message);
+    }
+
+    public function formAttributes(array $attributes): self
+    {
+        $normalized = [];
+
+        foreach ($attributes as $key => $value) {
+            if (is_string($key) && trim($key) !== '') {
+                $normalized[trim($key)] = $value;
+            }
+        }
+
+        return $this->schema('form_attributes', $normalized);
     }
 
     public function disabled(bool $disabled = true): self

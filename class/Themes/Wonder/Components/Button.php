@@ -3,9 +3,12 @@
 namespace Wonder\Themes\Wonder\Components;
 
 use Wonder\Themes\Wonder\Component;
+use Wonder\Themes\Concerns\RendersButtonPostForm;
 
 class Button extends Component
 {
+    use RendersButtonPostForm;
+
     public function render($class): string
     {
         $schema = $class->getSchema();
@@ -20,6 +23,7 @@ class Button extends Component
         $type = trim((string) ($schema['type'] ?? 'button'));
         $label = $this->escape((string) $class->getLabel());
         $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
+        $isPostButton = $this->isPostButton($schema);
 
         $classes[] = 'btn-'.($variant !== '' ? $variant : 'primary').($outline ? '-o' : '');
 
@@ -46,7 +50,7 @@ class Button extends Component
             $classes[] = $extraClass;
         }
 
-        $tag = $href !== '' && !$disabled ? 'a' : 'button';
+        $tag = !$isPostButton && $href !== '' && !$disabled ? 'a' : 'button';
         $attributes['class'] = array_values(array_unique(array_filter($classes)));
         $iconHtml = $icon !== '' ? '<i class="'.$this->escape($icon).'"></i>' : '';
         $content = match ($icon !== '' ? $iconPosition : 'none') {
@@ -72,8 +76,14 @@ class Button extends Component
         }
 
         $attributeString = $this->renderAttributes($buttonAttributes);
+        $html = $isPostButton ? $this->openButtonPostForm($class, $schema) : '';
+        $html .= '<button'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</button>';
 
-        return '<button'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</button>';
+        if ($isPostButton) {
+            $html .= '</form>';
+        }
+
+        return $html;
     }
 
     /**

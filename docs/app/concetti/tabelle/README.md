@@ -10,7 +10,7 @@ La tabella di una lista backend si definisce sulla **Resource** con due metodi:
 
 - `tableSchema(): array` — le **colonne** (lista di `TableColumn`);
 - `tableLayoutSchema(): TableLayoutSchema` — la **cornice**: titolo, filtri,
-  ricerca, bottone "Aggiungi", export.
+  ricerca, bottone "Aggiungi", azioni custom ed export.
 
 Questa è l'**API corrente**. La vecchia classe `Wonder\Backend\Table\Table` è
 ancora viva ma come **layer interno**, non come API da usare nei progetti nuovi.
