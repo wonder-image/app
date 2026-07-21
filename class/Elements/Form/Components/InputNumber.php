@@ -17,42 +17,42 @@
 
         }
 
-        public function decimal(int $decimal):self 
+        public function decimal(int $decimal):self
         {
 
-            return $this->attr('wi-number-decimal', $decimal);
+            return $this->attr('data-wi-number-decimal', $decimal);
 
         }
 
-        public function decimalSeparator(string $separator):self 
+        public function decimalSeparator(string $separator):self
         {
 
-            return $this->attr('wi-number-decimal-separator', $separator);
+            return $this->attr('data-wi-number-decimal-separator', $separator);
 
         }
 
-        public function groupSeparator(string $separator):self 
+        public function groupSeparator(string $separator):self
         {
 
-            return $this->attr('wi-number-group-separator', $separator);
+            return $this->attr('data-wi-number-group-separator', $separator);
 
         }
 
-        public function symbol(string $symbol):self 
+        public function symbol(string $symbol):self
         {
 
-            return $this->attr('wi-number-symbol', $symbol);
+            return $this->attr('data-wi-number-symbol', $symbol);
 
         }
 
-        public function symbolPlacement(string $placement):self 
+        public function symbolPlacement(string $placement):self
         {
 
             if (!in_array($placement, [ 's', 'p'])) {
                 throw new \Exception("Placement può essere p o s [ p = prefix, s = suffix ].");
             }
 
-            return $this->attr('wi-number-symbol', $placement);
+            return $this->attr('data-wi-number-symbol-placement', $placement);
 
         }
 
