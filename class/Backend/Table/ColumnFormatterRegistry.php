@@ -49,16 +49,20 @@ final class ColumnFormatterRegistry
         }
 
         foreach ($columns as $column) {
-            if (!is_object($column) || !method_exists($column, 'toArray')) {
+            try {
+                if (!is_object($column) || !method_exists($column, 'toArray')) {
+                    continue;
+                }
+
+                $schema = (array) $column->toArray();
+                $formatter = $schema['formatter'] ?? null;
+                $name = (string) ($schema['name'] ?? '');
+
+                if ($formatter instanceof \Closure && $name !== '') {
+                    self::register($slug.'.'.$name, $formatter);
+                }
+            } catch (\Throwable) {
                 continue;
-            }
-
-            $schema = (array) $column->toArray();
-            $formatter = $schema['formatter'] ?? null;
-            $name = (string) ($schema['name'] ?? '');
-
-            if ($formatter instanceof \Closure && $name !== '') {
-                self::register($slug.'.'.$name, $formatter);
             }
         }
     }
@@ -110,7 +114,11 @@ final class ColumnFormatterRegistry
         }
 
         foreach ($classes as $resourceClass) {
-            self::registerFromResource((string) $resourceClass);
+            try {
+                self::registerFromResource((string) $resourceClass);
+            } catch (\Throwable) {
+                continue;
+            }
         }
     }
 }
