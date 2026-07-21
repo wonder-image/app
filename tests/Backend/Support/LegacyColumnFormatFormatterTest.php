@@ -15,8 +15,8 @@ function eq(string $label, $got, $expected) {
 
 $rc = new ReflectionClass(ResourceTableRenderer::class);
 $renderer = $rc->newInstanceWithoutConstructor();
-$slugProp = $rc->getProperty('slug'); $slugProp->setAccessible(true); $slugProp->setValue($renderer, 'testfmt');
-$m = $rc->getMethod('legacyColumnFormat'); $m->setAccessible(true);
+$slugProp = $rc->getProperty('slug'); $slugProp->setValue($renderer, 'testfmt');
+$m = $rc->getMethod('legacyColumnFormat');
 
 // closure -> chiave derivata (stringa), mai la closure
 $outClosure = $m->invoke($renderer, ['name' => 'prezzo', 'type' => 'text', 'formatter' => static fn (array $r): string => 'X']);

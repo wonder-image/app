@@ -10,8 +10,8 @@ TableColumn::key('prezzo')->formatter('immobili.prezzo'),
 
 ## Registrazione
 
-Il formatter si registra sul registry, non si passa come closure inline sulla
-colonna:
+Il formatter si registra sul registry con un nome, oppure si passa come
+closure inline direttamente sulla colonna (vedi «Forma inline» più sotto):
 
 ```php
 use Wonder\Backend\Table\ColumnFormatterRegistry;
