@@ -1,6 +1,6 @@
 <?php
 
-    namespace Wonder\Themes\Wonder\Media\Concerns;
+    namespace Wonder\Themes\Concerns;
 
     use Wonder\Elements\Media\Image;
 

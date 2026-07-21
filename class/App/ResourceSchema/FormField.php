@@ -167,6 +167,72 @@ class FormField extends Input
         return $this;
     }
 
+    /**
+     * Configurazione del formatting numerico per i type `number()`, `price()`
+     * e `percentige()` — mirror del DSL di
+     * `Wonder\Elements\Form\Components\InputNumber` (da cui `InputPrice` e
+     * `InputPercentige` ereditano gli stessi setters).
+     *
+     * I valori finiscono in `context['number']`; al render il
+     * `FormFieldElementFactory::numberElement()` costruisce l'Element corretto
+     * e ri-applica ognuno chiamando il metodo omonimo sull'Element, così
+     * l'attributo `wi-number-*` emesso resta quello canonico della lib senza
+     * duplicarne i nomi qui. Sono opt-in: senza chiamate, number/price/
+     * percentige rendono esattamente come prima.
+     *
+     * `decimal()` limita le cifre decimali mostrate (attributo lib), mentre
+     * `decimals()` passa il valore allo schema dell'Element: nomi vicini ma
+     * concetti distinti, mantenuti entrambi per fedeltà all'API dell'Element.
+     */
+    public function decimal(int $decimal): self
+    {
+        return $this->numberConfig('decimal', max(0, $decimal));
+    }
+
+    public function decimalSeparator(string $separator): self
+    {
+        return $this->numberConfig('decimal_separator', $separator);
+    }
+
+    public function groupSeparator(string $separator): self
+    {
+        return $this->numberConfig('group_separator', $separator);
+    }
+
+    public function symbol(string $symbol): self
+    {
+        return $this->numberConfig('symbol', $symbol);
+    }
+
+    /**
+     * Posizione del simbolo: `p` = prefix, `s` = suffix (come nell'Element).
+     * Valori fuori da questi due vengono ignorati silenziosamente, così il
+     * DSL resta chainable e non solleva l'eccezione di `InputNumber`.
+     */
+    public function symbolPlacement(string $placement): self
+    {
+        $placement = strtolower(trim($placement));
+
+        if (!in_array($placement, ['p', 's'], true)) {
+            return $this;
+        }
+
+        return $this->numberConfig('symbol_placement', $placement);
+    }
+
+    public function decimals(int $decimals): self
+    {
+        return $this->numberConfig('decimals', max(0, $decimals));
+    }
+
+    private function numberConfig(string $key, mixed $value): self
+    {
+        $number = (array) (($this->schema['context']['number'] ?? []) ?: []);
+        $number[$key] = $value;
+
+        return $this->context('number', $number);
+    }
+
     public function password(): self
     {
         $this->helper = 'password';

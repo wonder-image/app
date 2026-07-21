@@ -3,7 +3,7 @@
     namespace Wonder\Themes\Wonder\Media;
 
     use Wonder\Themes\Wonder\Component;
-    use Wonder\Themes\Wonder\Media\Concerns\HandlesMedia;
+    use Wonder\Themes\Concerns\HandlesMedia;
 
     class Gallery extends Component {
 

@@ -58,6 +58,32 @@ Tutti chainable su `FormInput::key($name)`:
 `number()`, `price()`, `percentige()`, `color()`, `password()`,
 `textGenerator($callback = null, $buttonLabel = null)` (input + bottone "GENERA").
 
+#### Formatting numerico
+
+Su `number()`, `price()` e `percentige()` (i tre condividono l'Element
+`InputNumber`) sono chainable i setter di formatting, mirror dell'API di
+`Wonder\Elements\Form\Components\InputNumber`:
+
+- `decimal($n)` — cifre decimali mostrate.
+- `decimalSeparator($sep)` — separatore dei decimali (es. `','`).
+- `groupSeparator($sep)` — separatore delle migliaia (es. `'.'`).
+- `symbol($sym)` — simbolo/valuta (es. `'€'`).
+- `symbolPlacement('p'|'s')` — `p` = prefix, `s` = suffix (altri valori
+  vengono ignorati).
+- `decimals($n)` — valore passato allo schema dell'Element (distinto da
+  `decimal()`).
+
+Sono opt-in: senza chiamate i tre type rendono come prima.
+
+```php
+FormInput::key('prezzo')->number()
+    ->decimal(2)
+    ->decimalSeparator(',')
+    ->groupSeparator('.')
+    ->symbol('€')
+    ->symbolPlacement('p');
+```
+
 ### Date / ora
 
 `textDate()`, `textDatetime()`, `dateInput($min = null, $max = null)`,

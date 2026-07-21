@@ -76,9 +76,7 @@ final class FormFieldElementFactory
             'textGenerator' => self::textGeneratorElement($name, $field),
             'email' => new InputEmail($name),
             'tel', 'phone' => new InputTel($name),
-            'number' => new InputNumber($name),
-            'price' => new InputPrice($name),
-            'percentige' => new InputPercentige($name),
+            'number', 'price', 'percentige' => self::numberElement($name, $helper, $field),
             'password' => self::passwordElement($name, $field),
             'url' => new InputUrl($name),
             'color' => new InputColor($name),
@@ -371,6 +369,54 @@ final class FormFieldElementFactory
 
         if (!empty($rules['special'])) {
             $element->requireSpecial();
+        }
+
+        return $element;
+    }
+
+    /**
+     * Costruisce l'Element della famiglia number (`InputNumber` e le sue
+     * sottoclassi `InputPrice` / `InputPercentige`, che ne ereditano i
+     * setters) e vi ri-applica la configurazione di formatting raccolta dai
+     * metodi fluent su `FormField` (`decimal()`, `symbol()`, ...) in
+     * `context['number']`, delegando ai metodi omonimi dell'Element così che
+     * i nomi degli attributi `wi-number-*` restino definiti in un solo posto.
+     *
+     * La config è opt-in: senza chiavi in `context['number']` l'Element è
+     * identico a `new Input{Number,Price,Percentige}($name)` di prima.
+     */
+    private static function numberElement(string $name, string $helper, Input $field): InputNumber
+    {
+        $element = match ($helper) {
+            'price' => new InputPrice($name),
+            'percentige' => new InputPercentige($name),
+            default => new InputNumber($name),
+        };
+
+        $number = (array) ($field->get('context')['number'] ?? []);
+
+        if (isset($number['decimal']) && is_numeric($number['decimal'])) {
+            $element->decimal((int) $number['decimal']);
+        }
+
+        if (isset($number['decimal_separator']) && is_string($number['decimal_separator']) && $number['decimal_separator'] !== '') {
+            $element->decimalSeparator($number['decimal_separator']);
+        }
+
+        if (isset($number['group_separator']) && is_string($number['group_separator']) && $number['group_separator'] !== '') {
+            $element->groupSeparator($number['group_separator']);
+        }
+
+        if (isset($number['symbol']) && is_string($number['symbol']) && $number['symbol'] !== '') {
+            $element->symbol($number['symbol']);
+        }
+
+        if (isset($number['symbol_placement']) && in_array($number['symbol_placement'], ['p', 's'], true)) {
+            $element->symbolPlacement($number['symbol_placement']);
+        }
+
+        if (isset($number['decimals']) && is_numeric($number['decimals'])) {
+            $element->decimals((int) $number['decimals']);
         }
 
         return $element;

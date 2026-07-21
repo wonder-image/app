@@ -235,12 +235,12 @@ HTML;
     /**
      * Risolve i bottoni dell'header per una pagina.
      *
-     * Normalizza il risultato in un array di array con sempre presenti
-     * `label`, `href`, `class`, `icon`, `target`, `onclick`. Salta
-     * silenziosamente descriptor mal formati invece di lanciare eccezioni
-     * — un bottone "vuoto" durante una view non deve abbattere la pagina.
+     * La normalizzazione (bottoni piatti e bottoni con dropdown) è delegata
+     * a {@see PageActionNormalizer}. Salta silenziosamente descriptor mal
+     * formati invece di lanciare eccezioni — un bottone "vuoto" durante una
+     * view non deve abbattere la pagina.
      *
-     * @return array<int, array<string, string>>
+     * @return array<int, array<string, mixed>>
      */
     private function pageActions(string $page, array $item = []): array
     {
@@ -261,30 +261,7 @@ HTML;
             return [];
         }
 
-        $normalized = [];
-
-        foreach ($descriptors as $descriptor) {
-            if (!is_array($descriptor)) {
-                continue;
-            }
-
-            $label = trim((string) ($descriptor['label'] ?? ''));
-
-            if ($label === '') {
-                continue;
-            }
-
-            $normalized[] = [
-                'label' => $label,
-                'href' => (string) ($descriptor['href'] ?? ''),
-                'class' => trim((string) ($descriptor['class'] ?? 'btn-primary')),
-                'icon' => trim((string) ($descriptor['icon'] ?? '')),
-                'target' => trim((string) ($descriptor['target'] ?? '')),
-                'onclick' => trim((string) ($descriptor['onclick'] ?? '')),
-            ];
-        }
-
-        return $normalized;
+        return PageActionNormalizer::normalize($descriptors);
     }
 
     private function listUrl(): string

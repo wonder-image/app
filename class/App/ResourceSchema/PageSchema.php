@@ -137,6 +137,15 @@ final class PageSchema
      *    dove i bottoni dipendono dal record (es. "Scarica PDF",
      *    "Vai alla richiesta", ...)
      *
+     * Ogni descriptor può essere un **bottone piatto** oppure un **bottone
+     * con dropdown**: è sufficiente aggiungere una chiave `items` non vuota.
+     * Il toggle usa `label`/`icon`/`class` (variante del bottone) e `align`
+     * (`start`|`end`, default `end`). Ogni voce di `items` è:
+     *  - una voce cliccabile — `label` (+ `href`/`onclick`, opzionali `icon`,
+     *    `target`, `class` extra su `.dropdown-item`, `disabled`, `active`);
+     *  - un separatore — `['divider' => true]`;
+     *  - un'intestazione — `['header' => 'Testo']`.
+     *
      * Esempio:
      *
      * ```php
@@ -146,6 +155,15 @@ final class PageSchema
      *          'href' => '/admin/requests/'.$item['id'].'/pdf', 'class' => 'btn-secondary'],
      *         ['label' => 'Vai al sito', 'icon' => 'bi bi-box-arrow-up-right',
      *          'href' => $item['request_url'], 'target' => '_blank', 'class' => 'btn-outline-secondary'],
+     *         [
+     *             'label' => 'Altre azioni', 'icon' => 'bi bi-three-dots', 'class' => 'btn-outline-secondary',
+     *             'items' => [
+     *                 ['label' => 'Duplica', 'href' => '/admin/requests/'.$item['id'].'/duplicate', 'icon' => 'bi bi-files'],
+     *                 ['divider' => true],
+     *                 ['header' => 'Zona pericolosa'],
+     *                 ['label' => 'Elimina', 'onclick' => 'return confirm(\'Sicuro?\')', 'class' => 'text-danger'],
+     *             ],
+     *         ],
      *     ];
      * })
      * ```

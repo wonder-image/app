@@ -28,6 +28,32 @@ Wonder\App\Dependencies::swiper()::fancyapps();    // + zoom o lightbox (Panzoom
 > La concatenazione usa `::` (non `->`): `Dependencies::swiper()` ritorna un'istanza e i metodi
 > sono intercettati via `__callStatic`.
 
+## Rendering nel backend (tema Bootstrap)
+
+Gli stessi elementi (`Swiper`, `Gallery` e `Image`) hanno un renderer anche per il tema
+**Bootstrap**, quindi si possono usare nelle pagine backend / `CustomPageSchema`. Il `Resolver`
+sceglie il renderer in base a `Theme::get()`; in backend (`Theme::set('bootstrap')`) esce markup
+Bootstrap 5.3 nativo:
+
+| Elemento | Markup Bootstrap | Librerie |
+|---|---|---|
+| `Gallery` | griglia `row row-cols-* g-*`, ratio via `.ratio .ratio-*`, lightbox Fancybox | `fancyapps` |
+| `Swiper` | `.swiper` (Swiper.js reale) con utility Bootstrap; zoom Panzoom / lightbox Fancybox | `swiper` (+ `fancyapps` se zoom/lightbox) |
+| `Image` | `<picture>`/`<img>` con srcset+WebP; `object-fit-*` al posto delle classi lib | — |
+
+{% hint style="info" %}
+**Dipendenze on-demand:** a differenza del frontend Wonder, i renderer Bootstrap **abilitano da
+soli** le librerie necessarie via `Dependencies` durante il render (Swiper.js, e Fancybox/Panzoom
+solo per zoom/lightbox/download). Il contenuto di pagina è renderizzato prima di `Dependencies::Head()`
+nel layout, quindi gli asset finiscono in `<head>` automaticamente: in backend **non** serve
+dichiararle a mano.
+{% endhint %}
+
+Differenze rispetto al frontend Wonder: lo script di init gira su `window.addEventListener('load')`
+(il backend non emette l'evento `'loaded'` della lib); `gap` è mappato sui gutter Bootstrap
+`g-0..g-5` (clamp); `format='h-fit'` è una griglia ad altezza naturale (Bootstrap non ha masonry
+nativo).
+
 ## Input immagini
 
 Forma canonica associativa **`['percorso.jpg' => 'testo alt', ...]`** (la chiave è il percorso,

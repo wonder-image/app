@@ -1,9 +1,10 @@
 <?php
 
-    namespace Wonder\Themes\Wonder\Media;
+    namespace Wonder\Themes\Bootstrap\Media;
 
-    use Wonder\Themes\Wonder\Component;
+    use Wonder\Themes\Bootstrap\Component;
     use Wonder\Themes\Concerns\HandlesMedia;
+    use Wonder\App\Dependencies;
 
     class Swiper extends Component {
 
@@ -24,45 +25,41 @@
             $fullSize  = (int) ($class->getSchema('full-size') ?? max(RESPONSIVE_IMAGE_SIZES));
             $fit       = ($class->getSchema('fit-contain') ?? false) ? 'contain' : 'cover';
 
+            // Swiper.js sempre; Fancybox/Panzoom solo se zoom o lightbox: caricati on-demand.
+            Dependencies::swiper();
+            if ($zoom || $lightbox) { Dependencies::fancyapps(); }
+
             $slides = "";
             $thumbSlides = "";
-            $hidden = "";
-            $i = 0;
 
             foreach ($items as $item) {
 
                 if ($zoom) {
                     $img = $this->renderImage($item['src'], $item['alt'], $size, $fit, true);
-                    $slides .= "<div class='swiper-slide w-100'><div class='f-panzoom w-100'><div class='f-1-1 f-panzoom__viewport w-100 o-hidden'><div class='f-panzoom__content p-a top start w-100 h-100'>$img</div></div></div></div>";
+                    $slides .= "<div class='swiper-slide w-100'><div class='f-panzoom w-100'><div class='f-panzoom__viewport ratio ratio-1x1 w-100 overflow-hidden'><div class='f-panzoom__content position-absolute top-0 start-0 w-100 h-100'>$img</div></div></div></div>";
                 } elseif ($lightbox) {
-                    $img = $this->renderImage($item['src'], $item['alt'], $size, $fit);
-                    $slides .= "<a class='swiper-slide o-hidden' data-fancybox-trigger='$group' data-fancybox-index='$i'>$img</a>";
+                    $img     = $this->renderImage($item['src'], $item['alt'], $size, $fit);
                     $full    = $this->imageUrl($item['src'], $fullSize);
-                    $caption = $item['alt'] !== '' ? " data-caption=\"" . $this->escape($item['alt']) . "\"" : '';
-                    $hidden .= "<a data-fancybox=\"$group\" data-src=\"$full\"$caption></a>";
+                    $caption = $item['alt'] !== '' ? ' data-caption="' . $this->escape($item['alt']) . '"' : '';
+                    $slides .= "<a class='swiper-slide overflow-hidden' data-fancybox=\"$group\" href='" . $this->escape($full) . "'$caption>$img</a>";
                 } else {
                     $img = $this->renderImage($item['src'], $item['alt'], $size, $fit);
-                    $slides .= "<div class='swiper-slide o-hidden'>$img</div>";
+                    $slides .= "<div class='swiper-slide overflow-hidden'>$img</div>";
                 }
 
                 if ($thumbs) {
                     $thumbImg = $this->renderImage($item['src'], $item['alt'], $thumbSize, 'cover');
-                    $thumbSlides .= "<div class='swiper-slide o-hidden'>$thumbImg</div>";
+                    $thumbSlides .= "<div class='swiper-slide overflow-hidden'>$thumbImg</div>";
                 }
 
-                $i++;
             }
 
-            $html = "";
-
-            if ($lightbox && $hidden !== '') { $html .= "<div class='d-none'>$hidden</div>"; }
-
-            $html .= "<div id='$id' class='swiper w-100'><div class='swiper-wrapper'>$slides</div>";
+            $html  = "<div id='$id' class='swiper w-100'><div class='swiper-wrapper'>$slides</div>";
             if ($class->getSchema('pagination')) { $html .= "<div class='swiper-pagination'></div>"; }
             if ($class->getSchema('navigation')) { $html .= "<div class='swiper-button-next'></div><div class='swiper-button-prev'></div>"; }
             $html .= "</div>";
 
-            if ($thumbs) { $html .= "<div id='$id-thumbs' class='swiper w-100 o-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>"; }
+            if ($thumbs) { $html .= "<div id='$id-thumbs' class='swiper w-100 overflow-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>"; }
 
             $html .= $this->script($class, $id, $group, $thumbs, $zoom, $lightbox);
 
@@ -71,7 +68,7 @@
 
         private function script($class, string $id, string $group, bool $thumbs, bool $zoom, bool $lightbox): string
         {
-            $lines = [ "window.addEventListener('loaded', function () {" ];
+            $lines = [ "window.addEventListener('load', function () {" ];
 
             if ($thumbs) {
                 $tpv = (int) ($class->getSchema('thumbs-per-view') ?? 4);
