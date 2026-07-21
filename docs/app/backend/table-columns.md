@@ -23,14 +23,39 @@ ColumnFormatterRegistry::register('immobili.prezzo', static fn (array $row): str
 `ColumnFormatterRegistry` è la whitelist: un nome non registrato rende la
 cella vuota (`''`), il formatter **non** viene mai eseguito.
 
-## Vincolo: nomi, non closure
+## Vincolo: nomi, non closure sul filo
 
-`TableColumn::formatter()` accetta solo un **nome** (stringa), mai una
-closure diretta. Il nome viaggia nel POST del giro AJAX di DataTables
-(ordinamento, ricerca, paginazione) e deve poter essere risolto lato server a
-ogni richiesta: una closure non è serializzabile su quel giro. Registra la
-closure una volta sul registry (in boot) e riferiscila per nome nello schema
-della colonna.
+`TableColumn::formatter()` accetta un **nome** (stringa) oppure una closure
+inline — mai la closure direttamente sul filo del giro AJAX di DataTables
+(ordinamento, ricerca, paginazione): quel POST porta solo stringhe e deve
+poter essere risolto lato server a ogni richiesta. Una closure inline viene
+quindi risolta server-side in una chiave derivata (vedi "Forma inline" sotto)
+prima di raggiungere il client; solo quella chiave viaggia sul filo. In
+alternativa puoi registrare la closure una volta sul registry (in boot) e
+riferirla per nome nello schema della colonna.
+
+## Forma inline
+
+```php
+TableColumn::key('prezzo')->formatter(
+    fn (array $row): string => '€ ' . number_format((int) ($row['prezzo'] ?? 0), 0, ',', '.')
+),
+```
+
+Passare una closure direttamente a `->formatter()` è supportato: non serve
+registrarla esplicitamente su `ColumnFormatterRegistry::register()`. La
+closure **non viaggia mai sul filo** — il rendering della tabella (in
+`ResourceTableRenderer::legacyColumnFormat()`) la sostituisce con la chiave
+derivata `{slug}.{colonna}` (slug della resource + nome della colonna), e sul
+client/nel POST del giro AJAX viaggia solo quella stringa.
+
+`ColumnFormatterRegistry` acquisisce la closure con uno scan lazy delle
+resource (`registerFromResource()`, la stessa logica di
+`ColumnFunctionRegistry::fromResources` per le `function`): alla prima
+richiesta che tocca il registry, ogni `tableSchema()` viene ispezionato e le
+colonne con un `formatter` che è una `\Closure` vengono registrate sotto
+`{slug}.{colonna}`. Da quel momento la chiave derivata è risolvibile come
+qualunque altro formatter registrato per nome.
 
 ## Escape
 
