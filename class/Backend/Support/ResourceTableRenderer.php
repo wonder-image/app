@@ -290,8 +290,14 @@ final class ResourceTableRenderer
             $format['href'] = $config['link'];
         }
 
-        if (isset($config['formatter']) && is_string($config['formatter']) && trim($config['formatter']) !== '') {
-            $format['formatter'] = trim($config['formatter']);
+        if (isset($config['formatter'])) {
+            if ($config['formatter'] instanceof \Closure) {
+                // Chiave derivata: sul giro AJAX viaggia solo la stringa, mai la
+                // closure (che è risolta server-side da ColumnFormatterRegistry).
+                $format['formatter'] = $this->slug.'.'.((string) ($config['name'] ?? ''));
+            } elseif (is_string($config['formatter']) && trim($config['formatter']) !== '') {
+                $format['formatter'] = trim($config['formatter']);
+            }
         }
 
         return $format;
