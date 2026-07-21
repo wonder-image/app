@@ -40,6 +40,7 @@
 * [Componenti UI](concetti/componenti/README.md)
   * [Charts](concetti/componenti/charts.md)
   * [Swiper e Gallery](concetti/componenti/swiper-e-gallery.md)
+  * [Video e Iframe](concetti/componenti/video-e-iframe.md)
 
 ## Piattaforma
 

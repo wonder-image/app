@@ -3,11 +3,11 @@
     namespace Wonder\Elements\Media;
 
     use Wonder\Elements\Component;
-    use Wonder\Elements\Concerns\{ Renderer };
+    use Wonder\Elements\Concerns\{ HasMediaFit, Renderer };
 
     class Swiper extends Component {
 
-        use Renderer;
+        use HasMediaFit, Renderer;
 
         public function __construct( array $images = [] )
         {
@@ -53,17 +53,5 @@
         public function size( int $px ): self                  { return $this->schema('size', $px); }
         public function thumbsSize( int $px ): self            { return $this->schema('thumbs-size', $px); }
         public function fullSize( int $px ): self              { return $this->schema('full-size', $px); }
-
-        public function fitCover( bool $on = true ): self
-        {
-            if ($on) { $this->schema('fit-contain', false); }
-            return $this->schema('fit-cover', $on);
-        }
-
-        public function fitContain( bool $on = true ): self
-        {
-            if ($on) { $this->schema('fit-cover', false); }
-            return $this->schema('fit-contain', $on);
-        }
 
     }

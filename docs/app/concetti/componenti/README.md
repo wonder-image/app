@@ -177,6 +177,12 @@ lightbox Fancybox) e le gallery responsive (`__gallery()`, che sostituisce la
 vecchia `responsiveGallery()`) vedi la pagina
 [Swiper e Gallery](swiper-e-gallery.md).
 
+## Video e Iframe
+
+Per video HTML5 con poster, source WebM opzionale e avvio configurabile, oppure
+iframe con object fit coerente tra Wonder e Bootstrap, vedi
+[Video e Iframe](video-e-iframe.md).
+
 ## Checklist
 
 - [ ] layout in `formLayoutSchema()` con `Card`/`Container`

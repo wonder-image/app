@@ -4,12 +4,12 @@
 
     use Wonder\Elements\Component;
 
-    use Wonder\Elements\Concerns\{ Renderer };
+    use Wonder\Elements\Concerns\{ HasMediaFit, Renderer };
     use Wonder\App\Path;
 
     class Image extends Component {
 
-        use Renderer;
+        use HasMediaFit, Renderer;
 
         public array $sizes;
         public int $defaultSize;
@@ -53,22 +53,6 @@
         {
 
             return $this->schema('sizes', $sizes);
-
-        }
-
-        public function fitCover( bool $cover = true ): self
-        {
-
-            if ($cover === true) { $this->fitContain(false); }
-            return $this->schema('fit-cover', $cover);
-
-        }
-
-        public function fitContain( bool $contain = true ): self
-        {
-
-            if ($contain === true) { $this->fitCover(false); }
-            return $this->schema('fit-contain', $contain);
 
         }
 

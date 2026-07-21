@@ -193,8 +193,10 @@
     }
 
     // Video
-    function __v()
+    function __v(string $video)
     {
+
+        return \Wonder\Elements\Media\Video::src($video);
 
     }
 
