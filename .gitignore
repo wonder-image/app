@@ -4,10 +4,10 @@
 .agents/
 .codex-skill-build/
 skills-lock.json
-.agents/
 vendor/
 .phpdoc/
 COMMAND.md
 TODO.md
 AGENTS.md
 example/
+tests/
