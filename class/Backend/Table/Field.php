@@ -512,9 +512,21 @@
             # formattazione-tipo aggiuntiva, nessun href-wrap).
                 if (isset($format['formatter']) && is_string($format['formatter']) && trim($format['formatter']) !== '') {
 
-                    return \Wonder\Backend\Table\ColumnFormatterRegistry::has($format['formatter'])
+                    $formatted = \Wonder\Backend\Table\ColumnFormatterRegistry::has($format['formatter'])
                         ? \Wonder\Backend\Table\ColumnFormatterRegistry::call($format['formatter'], $this->row)
                         : '';
+
+                    # Colonne immagine: il formatter fornisce la SORGENTE (src),
+                    # non l'intera cella; il framework la avvolge nel medesimo
+                    # <img> del tipo image nativo. Per ogni altro tipo il
+                    # formatter possiede l'intera cella (HTML raw), come da
+                    # contratto.
+                    if (($format['format'] ?? '') === 'image') {
+                        $src = trim((string) $formatted);
+                        return $src === '' ? '' : $this->imageTag($src);
+                    }
+
+                    return $formatted;
 
                 }
 
@@ -688,8 +700,8 @@
 
                         }
 
-                        $VALUE = "<img src='$VALUE' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
-                    
+                        $VALUE = $this->imageTag((string) $VALUE);
+
                     } else if ($type == 'date') {
 
                         $VALUE = empty($VALUE) ? "" : (new DateTime($VALUE))->format('d/m/Y');
@@ -777,6 +789,14 @@
 
             return $VALUE;
 
+        }
+
+        # Markup <img> della cella immagine, unica fonte condivisa dal tipo
+        # image nativo e dalle colonne image con formatter (che forniscono il
+        # src). Il src è sempre escaped: può arrivare da dati non fidati (feed).
+        private function imageTag(string $src): string
+        {
+            return "<img src='".htmlspecialchars($src, ENT_QUOTES)."' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
         }
 
         private function setBadgeValue($format, $COLUMN_VALUE) {

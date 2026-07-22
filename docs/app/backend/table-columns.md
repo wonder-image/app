@@ -57,12 +57,36 @@ colonne con un `formatter` che è una `\Closure` vengono registrate sotto
 `{slug}.{colonna}`. Da quel momento la chiave derivata è risolvibile come
 qualunque altro formatter registrato per nome.
 
+## Colonne immagine: il formatter fornisce il `src`
+
+Su una colonna di tipo `image` (`TableColumn::key('image')->image()`) il
+formatter **non** possiede l'intera cella: fornisce la **sorgente**
+dell'immagine (URL/`src`) e il framework la avvolge nel medesimo `<img>` del
+tipo image nativo (con `htmlspecialchars` sul `src`). È il modo per rendere una
+copertina calcolata a runtime — per riga, magari da un'altra tabella — senza
+doverla denormalizzare come colonna:
+
+```php
+use Wonder\Plugin\Immobili\Services\ImmobilePresenter;
+
+TableColumn::key('image')->image()->formatter(
+    static fn (array $row): string => (new ImmobilePresenter())->coverImage($row)
+),
+```
+
+Il formatter riceve l'intera riga e ritorna una stringa: se vuota, la cella
+resta vuota (nessun `<img>` rotto). Vale sia per la forma inline (closure) sia
+per un formatter registrato per nome. Per ogni altro tipo di colonna il
+formatter possiede invece l'intera cella (vedi «Escape»).
+
 ## Escape
 
 Il formatter possiede l'intera cella: l'HTML restituito viene emesso **raw**,
 come già avviene per `function`/`badge`. Il formatter è responsabile del
 proprio escaping (`htmlspecialchars` sui dati non fidati) — nessun
-href-wrap o formattazione aggiuntiva viene applicata automaticamente.
+href-wrap o formattazione aggiuntiva viene applicata automaticamente. Fa
+eccezione il tipo `image`: lì il formatter fornisce solo il `src` e
+l'escaping/`<img>` sono a carico del framework (vedi sopra).
 
 ## Precedenza
 

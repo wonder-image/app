@@ -68,6 +68,40 @@ $got = $field->newField(
 );
 eq('funzione globale non registrata NON invocata come formatter', $got, '');
 
+// Colonne immagine: il formatter fornisce la SORGENTE (src), non l'intera
+// cella; il framework la avvolge nel medesimo <img> del tipo image nativo.
+$imgTag = static fn (string $src): string =>
+    "<img src='".htmlspecialchars($src, ENT_QUOTES)."' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
+
+ColumnFormatterRegistry::register('immobili.image', static fn (array $row): string =>
+    (string) ($row['cover'] ?? ''));
+
+$field = makeField();
+$got = $field->newField(
+    ['id' => 7, 'cover' => 'https://cdn.example.com/immobili/7-620.webp'],
+    'image',
+    ['format' => 'image', 'formatter' => 'immobili.image']
+);
+eq('image + formatter -> <img> con src dal formatter', $got, $imgTag('https://cdn.example.com/immobili/7-620.webp'));
+
+// formatter che ritorna '' -> cella vuota, nessun <img> rotto
+$field = makeField();
+$got = $field->newField(
+    ['id' => 8],
+    'image',
+    ['format' => 'image', 'formatter' => 'immobili.image']
+);
+eq('image + formatter vuoto -> cella vuota', $got, '');
+
+// src con carattere pericoloso (apice/&) -> escaped nell'attributo
+$field = makeField();
+$got = $field->newField(
+    ['id' => 9, 'cover' => "https://cdn.example.com/a'b?x=1&y=2.webp"],
+    'image',
+    ['format' => 'image', 'formatter' => 'immobili.image']
+);
+eq('image + formatter -> src escaped', $got, $imgTag("https://cdn.example.com/a'b?x=1&y=2.webp"));
+
 ColumnFormatterRegistry::reset();
 
 echo $fail === 0 ? "\nALL PASS\n" : "\n$fail FAILURES\n";
