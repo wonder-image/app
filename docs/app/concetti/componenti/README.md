@@ -50,6 +50,8 @@ I metodi di composizione arrivano da Concerns riusabili:
 - `components(array)` — figli del contenitore (`Concerns/IsContainer.php`)
 - `columns(int|array)` — numero di colonne (`Concerns/HasColumns.php`)
 - `columnSpan(int|array)` — quante colonne occupa (`Concerns/CanSpanColumn.php`)
+- `Container::noGrid()` — usa il Container come wrapper puro, senza classi
+  `row`/gutter generate dal layout Bootstrap
 - `href()/blank()/target()/rel()/title()/onclick()` — attributi link-like
   condivisi (`Concerns/HasLinkAttributes.php`) per `Link`, `Button`, `Badge`
   e per i link inline composti da `Text`
@@ -173,6 +175,36 @@ Nel tema Wonder gli span responsive sono proiettati sulle classi disponibili
 `col-*`, `col-t-*`, `col-p-*`; Bootstrap emette la classe desktop realmente
 disponibile `col-span-*`.
 
+Per applicare una utility che deve stare sul genitore diretto del media, come
+il `ratio` Bootstrap di un iframe, usa un `Container` con `noGrid()`:
+
+```php
+use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\SectionTitle;
+use Wonder\Elements\Form\Form;
+use Wonder\Elements\Media\Iframe;
+
+return (new Form())->components([
+    SectionTitle::make('Mappa')->level(5),
+
+    (new Container())
+        ->noGrid()
+        ->addClass('ratio ratio-16x9 img-thumbnail')
+        ->components([
+            Iframe::url($IMMOBILE->gmaps)
+                ->fitCover()
+                ->addClass('rounded')
+                ->attr('allowfullscreen', true)
+                ->attr('referrerpolicy', 'no-referrer-when-downgrade'),
+        ]),
+]);
+```
+
+Nel layout Resource resta il solo wrapper esterno `col-*` del Container;
+quello interno conserva classi, `id`, stili e attributi custom, ma non riceve
+`row` o `g-*`. Non impostare `columnSpan()` sull'iframe in questo caso: senza
+span il tag resta figlio diretto di `.ratio`.
+
 ## Collegamenti con il resto
 
 - I campi dentro le Card sono sempre `FormInput`/`FormField`: vedi
@@ -189,6 +221,8 @@ disponibile `col-span-*`.
   `Input resource non trovato`. Il campo deve stare in `formSchema()`.
 - **Colonne sballate** → `columns()` del contenitore e `columnSpan()` dei figli
   devono essere coerenti.
+- **`ratio` che non mantiene le proporzioni** → applicalo a un
+  `Container::noGrid()`, lasciando il media figlio senza `columnSpan()`.
 - **HTML a mano per un riquadro** → usa `Card`/`Container`, non markup custom.
 - **CTA o badge scritti a mano** → usa `Button` / `Badge` / `ButtonGroup` /
   `Dropdown`, non markup ad-hoc nel Resource o nella view.

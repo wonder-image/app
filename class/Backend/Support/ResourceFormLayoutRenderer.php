@@ -6,6 +6,7 @@ use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
+use Wonder\Themes\Bootstrap\Components\Container as BootstrapContainerRenderer;
 
 final class ResourceFormLayoutRenderer
 {
@@ -112,12 +113,39 @@ final class ResourceFormLayoutRenderer
     private static function renderContainer(Container $container, array $parentColumns): string
     {
         $containerColumns = self::columnsMap($container);
+        $content = $container->getSchema('no-grid') === true
+            ? self::renderComponentsRaw((array) ($container->components ?? []))
+            : self::renderComponents(
+                (array) ($container->components ?? []),
+                $containerColumns
+            );
+        $inner = (new BootstrapContainerRenderer())->renderInner(
+            $container,
+            $content,
+            [self::rowClass($container)]
+        );
 
         $html = '<div class="'.self::columnSpanClass($container, $parentColumns).'">';
-        $html .= '<div class="'.self::rowClass($container).'">';
-        $html .= self::renderComponents((array) ($container->components ?? []), $containerColumns);
+        $html .= $inner;
         $html .= '</div>';
-        $html .= '</div>';
+
+        return $html;
+    }
+
+    private static function renderComponentsRaw(array $components): string
+    {
+        $html = '';
+
+        foreach ($components as $component) {
+            if (is_object($component) && method_exists($component, 'render')) {
+                $html .= $component->render();
+                continue;
+            }
+
+            if (is_string($component)) {
+                $html .= $component;
+            }
+        }
 
         return $html;
     }

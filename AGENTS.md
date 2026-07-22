@@ -35,6 +35,7 @@ Key subareas:
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
 - `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, ...)
+- `Container::noGrid()` rende un `Elements/Components/Container` un wrapper puro nel backend Bootstrap; `ResourceFormLayoutRenderer` deve preservarne classi/id/style/attributi e delegare il nodo interno al renderer Bootstrap invece di ricostruirlo
 - `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
 - `class/Themes/Form/AbstractFieldRenderer.php`: base condivisa per i Field renderer di tutti i temi (schema/error/value/label helpers, render+renderField hook)
 - `class/Themes/Wonder/Form`: HTML rendering for the public-facing site (frontend theme, classes `wi-*`)

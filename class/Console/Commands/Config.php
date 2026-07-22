@@ -26,9 +26,15 @@ class Config extends Command
         'npx' => 'node',
         'gh' => 'gh',
     ];
+    // `--agent claude-code` è obbligatorio: senza `--agent` il CLI `skills`,
+    // eseguito con `-y` su una macchina dove non rileva alcun agent installato
+    // (nessun marker `~/.claude`, `~/.codex`, `~/.cursor`, ...), va in fallback
+    // e installa su TUTTI gli agent del registro, incluso Eve, che crea una
+    // cartella `agent/` nel progetto accanto a `.agents/`. Fissare l'agent
+    // rende l'install deterministico ovunque e limita l'output a `.claude/skills`.
     protected const NPX_SKILL = [
-        'wonder-image/skills' => "npx skills add wonder-image/skills --skill '*' -y",
-        'pbakaus/impeccable' => "npx skills add pbakaus/impeccable --skill '*' -y",
+        'wonder-image/skills' => "npx skills add wonder-image/skills --skill '*' --agent claude-code -y",
+        'pbakaus/impeccable' => "npx skills add pbakaus/impeccable --skill '*' --agent claude-code -y",
     ];
     protected const NPM_PACKAGE = [
         'wonder-image' => 'npm install wonder-image',

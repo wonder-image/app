@@ -13,6 +13,8 @@ require __DIR__ . '/../../../vendor/autoload.php';
 
 use Wonder\App\Theme;
 use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\SectionTitle;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Gallery;
 use Wonder\Elements\Media\Iframe;
@@ -98,6 +100,51 @@ $layoutSpanned = ResourceFormLayoutRenderer::render(
     (new Form())->components([Image::src('/assets/upload/layout.jpg')->columnSpan(1)])
 );
 same('layout Resource conserva il solo wrapper media esplicito', (string) substr_count($layoutSpanned, 'col-span-1'), '1');
+
+$mapContainer = (new Container())
+    ->noGrid()
+    ->id('map-ratio')
+    ->addClass('ratio ratio-16x9 img-thumbnail')
+    ->attr('data-role', 'map')
+    ->style('padding', '1rem')
+    ->components([
+        Iframe::url('https://example.test/embed')
+            ->fitCover()
+            ->addClass('rounded')
+            ->attr('allowfullscreen', true),
+    ]);
+$mapLayout = ResourceFormLayoutRenderer::render(
+    (new Form())->components([
+        SectionTitle::make('Mappa')->level(5),
+        $mapContainer,
+    ])
+);
+
+has('SectionTitle permette il livello h5', $mapLayout, '>Mappa</h5>');
+has('Container no-grid conserva il wrapper Resource', $mapLayout, '<div class="col-12"><div');
+has('Container no-grid conserva le classi ratio', $mapLayout, 'class="ratio ratio-16x9 img-thumbnail"');
+has('Container no-grid conserva id', $mapLayout, 'id="map-ratio"');
+has('Container no-grid conserva data attribute', $mapLayout, 'data-role="map"');
+has('Container no-grid conserva style', $mapLayout, 'style="padding: 1rem;"');
+has('Iframe resta figlio diretto del ratio', $mapLayout, 'id="map-ratio"><iframe');
+has('Iframe conserva classi custom e fit', $mapLayout, 'class="rounded object-fit-cover w-100 h-100"');
+has('Iframe conserva attributi booleani', $mapLayout, 'allowfullscreen');
+same('Container no-grid omette la row interna', str_contains($mapLayout, '<div class="col-12"><div class="row ') ? 'row' : 'plain', 'plain');
+same('Container no-grid emette una sola classe ratio', (string) substr_count($mapLayout, 'ratio-16x9'), '1');
+
+$directMap = $mapContainer->render('bootstrap');
+has('Container diretto conserva il wrapper di span', $directMap, '<div class="col-span-1"><div');
+has('Container diretto no-grid conserva le classi custom', $directMap, 'class="ratio ratio-16x9 img-thumbnail"');
+same('Container diretto non duplica class', (string) substr_count($directMap, 'ratio-16x9'), '1');
+
+$normalContainer = ResourceFormLayoutRenderer::render(
+    (new Form())->components([
+        (new Container())->components([
+            Iframe::url('https://example.test/default-grid'),
+        ]),
+    ])
+);
+has('Container standard mantiene la griglia Resource', $normalContainer, '<div class="col-12"><div class="row g-3"');
 Theme::set('wonder');
 
 echo "\n" . ($fail === 0 ? "PASS" : "FAIL ($fail)") . "\n";

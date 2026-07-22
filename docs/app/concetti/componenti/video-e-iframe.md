@@ -99,6 +99,40 @@ tema. Il contenuto interno di un iframe resta pero un documento separato: i
 browser non possono ritagliarlo con `object-fit` come avviene per immagini e
 video.
 
+### Iframe con ratio nel backend
+
+Le utility Bootstrap `ratio` devono essere applicate al genitore diretto
+dell'iframe. In un `formLayoutSchema()` usa `Container::noGrid()` per evitare
+che il layout aggiunga `row` e gutter al wrapper:
+
+```php
+use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\SectionTitle;
+use Wonder\Elements\Form\Form;
+use Wonder\Elements\Media\Iframe;
+
+return (new Form())->components([
+    SectionTitle::make('Mappa')->level(5),
+
+    (new Container())
+        ->noGrid()
+        ->addClass('ratio ratio-16x9 img-thumbnail')
+        ->components([
+            Iframe::url($IMMOBILE->gmaps)
+                ->fitCover()
+                ->addClass('rounded')
+                ->attr('allowfullscreen', true)
+                ->attr('referrerpolicy', 'no-referrer-when-downgrade'),
+        ]),
+]);
+```
+
+Il renderer Resource mantiene il wrapper esterno `col-*` del Container e
+produce all'interno un solo `<div class="ratio ratio-16x9 img-thumbnail">`.
+Classi, `id`, `style`, `data-*`, `aria-*` e attributi booleani impostati sul
+Container vengono conservati. Lascia l'iframe senza `columnSpan()`, cosi non
+compare alcun wrapper tra `.ratio` e il tag `<iframe>`.
+
 ## Classi per tema
 
 | Opzione | Wonder | Bootstrap 5.3 |

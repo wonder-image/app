@@ -10,4 +10,11 @@
 
         use IsContainer;
 
+        public function noGrid(bool $noGrid = true): self
+        {
+
+            return $this->schema('no-grid', $noGrid);
+
+        }
+
     }
