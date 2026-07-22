@@ -218,3 +218,47 @@
         __log($error, 'fatture-in-cloud', $action, 'ERROR', 'error/fatture-in-cloud');
 
     }
+
+    if (!function_exists('props')) {
+        /**
+         * Normalizza i dati di un componente: applica i default e valida le chiavi
+         * obbligatorie. I valori passati in $data vincono sui $defaults.
+         *
+         * @param array<string,mixed> $data
+         * @param array<string,mixed> $defaults
+         * @param array<int,string>   $required
+         * @return array<string,mixed>
+         */
+        function props(array $data, array $defaults = [], array $required = []): array
+        {
+            foreach ($required as $key) {
+                if (!array_key_exists($key, $data)) {
+                    throw new \InvalidArgumentException("props: chiave obbligatoria mancante: {$key}");
+                }
+            }
+
+            return array_merge($defaults, $data);
+        }
+    }
+
+    if (!function_exists('slot')) {
+        /**
+         * Emette uno slot nominato del componente corrente. Se lo slot è un
+         * callable viene invocato e ne viene stampato il return; se è una stringa
+         * viene stampata; se assente viene stampato $default (o nulla).
+         */
+        function slot(string $name, mixed $default = null): void
+        {
+            $slots = \Wonder\View\View::currentSlots();
+            $value = $slots[$name] ?? $default;
+
+            if (is_callable($value)) {
+                echo (string) $value();
+                return;
+            }
+
+            if ($value !== null) {
+                echo (string) $value;
+            }
+        }
+    }
