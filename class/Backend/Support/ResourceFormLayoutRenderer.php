@@ -2,11 +2,15 @@
 
 namespace Wonder\Backend\Support;
 
+use Wonder\Elements\Components\AbstractValueCard;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
+use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
+use Wonder\Themes\Bootstrap\Components\AbstractValueCard as BootstrapValueCardRenderer;
 use Wonder\Themes\Bootstrap\Components\Container as BootstrapContainerRenderer;
+use Wonder\Themes\Resolver;
 
 final class ResourceFormLayoutRenderer
 {
@@ -50,10 +54,18 @@ final class ResourceFormLayoutRenderer
      * le viste backend usano lo stesso motore di layout dei form (classi
      * Bootstrap `row`/`col-*`) invece di markup ad-hoc.
      */
-    public static function renderLayout(Form|Container|Card $layout): string
+    public static function renderLayout(Form|Container|Card|AbstractValueCard $layout): string
     {
+        if ($layout instanceof AbstractValueCard) {
+            return self::renderValueCardInner($layout);
+        }
+
         if ($layout instanceof Card) {
             return self::renderCard($layout, ['default' => 1]);
+        }
+
+        if ($layout instanceof Container) {
+            return self::renderContainerInner($layout);
         }
 
         $html = '<div class="'.self::rowClass($layout).'">';
@@ -71,6 +83,11 @@ final class ResourceFormLayoutRenderer
         $html = '';
 
         foreach ($components as $component) {
+            if ($component instanceof AbstractValueCard) {
+                $html .= self::renderValueCard($component, $parentColumns);
+                continue;
+            }
+
             if ($component instanceof Card) {
                 $html .= self::renderCard($component, $parentColumns);
                 continue;
@@ -82,7 +99,7 @@ final class ResourceFormLayoutRenderer
             }
 
             if (is_object($component) && method_exists($component, 'render')) {
-                $fieldHtml = $component->render();
+                $fieldHtml = self::renderComponent($component);
                 $html .= self::wrapField($component, $fieldHtml, $parentColumns);
                 continue;
             }
@@ -93,6 +110,27 @@ final class ResourceFormLayoutRenderer
         }
 
         return $html;
+    }
+
+    private static function renderValueCard(AbstractValueCard $card, array $parentColumns): string
+    {
+        return '<div class="'.self::columnSpanClass($card, $parentColumns).'">'
+            .self::renderValueCardInner($card)
+            .'</div>';
+    }
+
+    private static function renderValueCardInner(AbstractValueCard $card): string
+    {
+        $renderer = Resolver::renderer($card::class, 'bootstrap');
+
+        if (!$renderer instanceof BootstrapValueCardRenderer) {
+            throw new \RuntimeException(
+                'Il renderer Bootstrap di '.get_debug_type($card).' deve estendere '
+                .BootstrapValueCardRenderer::class.'.'
+            );
+        }
+
+        return $renderer->renderInner($card);
     }
 
     private static function renderCard(Card $card, array $parentColumns): string
@@ -112,6 +150,17 @@ final class ResourceFormLayoutRenderer
 
     private static function renderContainer(Container $container, array $parentColumns): string
     {
+        $inner = self::renderContainerInner($container);
+
+        $html = '<div class="'.self::columnSpanClass($container, $parentColumns).'">';
+        $html .= $inner;
+        $html .= '</div>';
+
+        return $html;
+    }
+
+    private static function renderContainerInner(Container $container): string
+    {
         $containerColumns = self::columnsMap($container);
         $content = $container->getSchema('no-grid') === true
             ? self::renderComponentsRaw((array) ($container->components ?? []))
@@ -125,11 +174,7 @@ final class ResourceFormLayoutRenderer
             [self::rowClass($container)]
         );
 
-        $html = '<div class="'.self::columnSpanClass($container, $parentColumns).'">';
-        $html .= $inner;
-        $html .= '</div>';
-
-        return $html;
+        return $inner;
     }
 
     private static function renderComponentsRaw(array $components): string
@@ -138,7 +183,7 @@ final class ResourceFormLayoutRenderer
 
         foreach ($components as $component) {
             if (is_object($component) && method_exists($component, 'render')) {
-                $html .= $component->render();
+                $html .= self::renderComponent($component);
                 continue;
             }
 
@@ -148,6 +193,15 @@ final class ResourceFormLayoutRenderer
         }
 
         return $html;
+    }
+
+    private static function renderComponent(object $component): string
+    {
+        if ($component instanceof ElementComponent) {
+            return $component->render('bootstrap');
+        }
+
+        return (string) $component->render();
     }
 
     private static function wrapField(object $component, string $html, array $parentColumns): string

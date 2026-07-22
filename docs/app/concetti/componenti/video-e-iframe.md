@@ -127,11 +127,14 @@ return (new Form())->components([
 ]);
 ```
 
-Il renderer Resource mantiene il wrapper esterno `col-*` del Container e
-produce all'interno un solo `<div class="ratio ratio-16x9 img-thumbnail">`.
-Classi, `id`, `style`, `data-*`, `aria-*` e attributi booleani impostati sul
-Container vengono conservati. Lascia l'iframe senza `columnSpan()`, cosi non
-compare alcun wrapper tra `.ratio` e il tag `<iframe>`.
+Se il Container e figlio di un layout, il renderer Resource mantiene il suo
+wrapper esterno `col-*` e produce all'interno un solo
+`<div class="ratio ratio-16x9 img-thumbnail">`. Se il Container `noGrid()` e
+invece la radice passata a `ResourceFormLayoutRenderer::renderLayout()`, il
+wrapper `ratio` viene emesso direttamente, senza `row` esterna. Classi, `id`,
+`style`, `data-*`, `aria-*` e attributi booleani impostati sul Container vengono
+conservati. Lascia l'iframe senza `columnSpan()`, cosi non compare alcun wrapper
+tra `.ratio` e il tag `<iframe>`.
 
 ## Classi per tema
 

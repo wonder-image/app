@@ -14,6 +14,8 @@ require __DIR__ . '/../../../vendor/autoload.php';
 use Wonder\App\Theme;
 use Wonder\Backend\Support\ResourceFormLayoutRenderer;
 use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\InfoCard;
+use Wonder\Elements\Components\MetricCard;
 use Wonder\Elements\Components\SectionTitle;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Gallery;
@@ -137,6 +139,12 @@ has('Container diretto conserva il wrapper di span', $directMap, '<div class="co
 has('Container diretto no-grid conserva le classi custom', $directMap, 'class="ratio ratio-16x9 img-thumbnail"');
 same('Container diretto non duplica class', (string) substr_count($directMap, 'ratio-16x9'), '1');
 
+$rootMapLayout = ResourceFormLayoutRenderer::renderLayout($mapContainer);
+has('Container root no-grid conserva le classi ratio', $rootMapLayout, '<div class="ratio ratio-16x9 img-thumbnail"');
+has('Container root no-grid conserva id e attributi', $rootMapLayout, 'id="map-ratio"');
+has('Container root no-grid mantiene iframe figlio diretto', $rootMapLayout, 'id="map-ratio"><iframe');
+same('Container root no-grid non genera row', str_contains($rootMapLayout, 'class="row ') ? 'row' : 'plain', 'plain');
+
 $normalContainer = ResourceFormLayoutRenderer::render(
     (new Form())->components([
         (new Container())->components([
@@ -145,6 +153,114 @@ $normalContainer = ResourceFormLayoutRenderer::render(
     ])
 );
 has('Container standard mantiene la griglia Resource', $normalContainer, '<div class="col-12"><div class="row g-3"');
+
+$normalRootContainer = ResourceFormLayoutRenderer::renderLayout(
+    (new Container())
+        ->id('root-grid')
+        ->addClass('root-custom')
+        ->components([
+            Iframe::url('https://example.test/root-grid'),
+        ])
+);
+has('Container root standard mantiene la griglia', $normalRootContainer, '<div class="row g-3 root-custom"');
+has('Container root standard conserva gli attributi', $normalRootContainer, 'id="root-grid"');
+
+$infoCard = InfoCard::make('<Camere>', 0)
+    ->id('rooms-card')
+    ->addClass('shadow-sm')
+    ->attr('data-role', 'info')
+    ->style('min-height', '8rem')
+    ->render('bootstrap');
+has('InfoCard fa escape del titolo', $infoCard, '&lt;Camere&gt;');
+has('InfoCard conserva lo zero', $infoCard, '<h5 class="card-title mb-0">0</h5>');
+has('InfoCard fonde classi e span sulla card', $infoCard, 'class="card border h-100 col-span-1 shadow-sm"');
+has('InfoCard conserva id e attributi custom', $infoCard, 'id="rooms-card"');
+has('InfoCard conserva data attribute', $infoCard, 'data-role="info"');
+has('InfoCard conserva gli style', $infoCard, 'style="min-height: 8rem;"');
+same('InfoCard non crea wrapper di span', str_starts_with($infoCard, '<div class="col-span-1"><div') ? 'wrapped' : 'direct', 'direct');
+
+$missingInfo = InfoCard::make('Bagni', null)->render('bootstrap');
+has('InfoCard usa il placeholder solo per valori mancanti', $missingInfo, '<h5 class="card-title mb-0">--</h5>');
+
+$infoGrid = ResourceFormLayoutRenderer::renderLayout(
+    (new Container())
+        ->columns(3)
+        ->components([
+            InfoCard::make('Locali', 4),
+            InfoCard::make('Camere', 2),
+            InfoCard::make('Bagni', 1),
+        ])
+);
+same('InfoCard in Resource usa tre colonne native', (string) substr_count($infoGrid, '<div class="col-4">'), '3');
+same('InfoCard in Resource non duplica col-span', (string) substr_count($infoGrid, 'col-span-'), '0');
+
+$wideInfoGrid = ResourceFormLayoutRenderer::renderLayout(
+    (new Container())
+        ->columns(3)
+        ->components([
+            InfoCard::make('Superficie', 120)->columnSpan(2),
+        ])
+);
+has('InfoCard rispetta columnSpan nel layout Resource', $wideInfoGrid, '<div class="col-8"><div class="card border h-100">');
+
+$metricUp = MetricCard::make('<Fatturato>', 120)
+    ->displayValue('EUR <120>')
+    ->unit(' EUR')
+    ->compareTo(100)
+    ->render('bootstrap');
+has('MetricCard fa escape di titolo e valore', $metricUp, '&lt;Fatturato&gt;');
+has('MetricCard fa escape del display value', $metricUp, 'EUR &lt;120&gt; EUR');
+has('MetricCard mostra incremento corretto', $metricUp, 'bi-arrow-up');
+has('MetricCard colora incremento positivo', $metricUp, 'text-success');
+has('MetricCard mostra percentuale con segno', $metricUp, '+20%');
+has('MetricCard espone il precedente nel tooltip', $metricUp, 'data-bs-title="100 EUR"');
+has('MetricCard rende il tooltip raggiungibile da tastiera', $metricUp, 'tabindex="0"');
+
+$metricDown = MetricCard::make('Churn', 80)
+    ->compareTo(100)
+    ->lowerIsBetter()
+    ->render('bootstrap');
+has('MetricCard mostra decremento corretto', $metricDown, 'bi-arrow-down');
+has('MetricCard lowerIsBetter colora il calo positivo', $metricDown, 'text-success');
+has('MetricCard mostra decremento con segno', $metricDown, '-20%');
+
+$metricEqual = MetricCard::make('Ordini', 100)
+    ->compareTo(100)
+    ->render('bootstrap');
+has('MetricCard gestisce valori uguali', $metricEqual, 'bi-dash');
+has('MetricCard rende zero percento', $metricEqual, '> 0%</h6>');
+
+$metricZeroBaseline = MetricCard::make('Ordini', 10)
+    ->compareTo(0)
+    ->render('bootstrap');
+has('MetricCard evita divisione per zero', $metricZeroBaseline, 'text-body-secondary');
+has('MetricCard segnala percentuale non definita', $metricZeroBaseline, '> --</h6>');
+
+$metricSmallDelta = MetricCard::make('Conversione', 105)
+    ->compareTo(100)
+    ->render('bootstrap');
+has('MetricCard mantiene due decimali per delta piccoli', $metricSmallDelta, '+5.00%');
+
+$metricNoComparison = MetricCard::make('Stato', 'n/a')
+    ->compareTo(100)
+    ->render('bootstrap');
+same('MetricCard ignora confronti non numerici', str_contains($metricNoComparison, 'data-bs-toggle="tooltip"') ? 'trend' : 'plain', 'plain');
+
+$metricRoundedToZero = MetricCard::make('Errore', 99.999)
+    ->compareTo(100)
+    ->render('bootstrap');
+has('MetricCard normalizza il delta arrotondato a zero', $metricRoundedToZero, 'bi-dash');
+has('MetricCard non mostra meno zero', $metricRoundedToZero, '> 0.00%</h6>');
+
+Theme::set('wonder');
+$forcedBootstrapLayout = ResourceFormLayoutRenderer::renderLayout(
+    (new Container())->components([
+        SectionTitle::make('Backend')->level(5),
+        InfoCard::make('Valore', 1),
+    ])
+);
+has('Resource layout forza Bootstrap per i componenti figli', $forcedBootstrapLayout, '>Backend</h5>');
+has('Resource layout mantiene InfoCard Bootstrap col tema globale Wonder', $forcedBootstrapLayout, '<div class="card border h-100">');
 Theme::set('wonder');
 
 echo "\n" . ($fail === 0 ? "PASS" : "FAIL ($fail)") . "\n";

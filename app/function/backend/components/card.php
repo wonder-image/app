@@ -33,6 +33,9 @@
         
     }
 
+    /**
+     * @deprecated Usa `Wonder\Elements\Components\MetricCard`.
+     */
     function wiCardStats($title, $value, $unit = '', $oldValue = null)
     {
 

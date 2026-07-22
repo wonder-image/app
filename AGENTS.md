@@ -34,8 +34,9 @@ Key subareas:
 - `class/App/Support/FormFieldElementFactory.php`: bridge from `ResourceSchema/FormField` DSL to `Elements/Form/Components/*` (low-level objects)
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
-- `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, ...)
-- `Container::noGrid()` rende un `Elements/Components/Container` un wrapper puro nel backend Bootstrap; `ResourceFormLayoutRenderer` deve preservarne classi/id/style/attributi e delegare il nodo interno al renderer Bootstrap invece di ricostruirlo
+- `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, ...)
+- `InfoCard` e `MetricCard` sono card semantiche backend per valori descrittivi e KPI; condividono `AbstractValueCard`, mantengono `Card` come container generico e, nel `ResourceFormLayoutRenderer`, usano un solo wrapper Bootstrap `col-*` esterno senza duplicare `col-span-*`; il renderer backend risolve sempre gli Element figli col tema Bootstrap esplicito
+- `Container::noGrid()` rende un `Elements/Components/Container` un wrapper puro nel backend Bootstrap; `ResourceFormLayoutRenderer` deve preservarne classi/id/style/attributi e delegare il nodo interno al renderer Bootstrap invece di ricostruirlo, anche quando il Container e la radice di `renderLayout()`
 - `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
 - `class/Themes/Form/AbstractFieldRenderer.php`: base condivisa per i Field renderer di tutti i temi (schema/error/value/label helpers, render+renderField hook)
 - `class/Themes/Wonder/Form`: HTML rendering for the public-facing site (frontend theme, classes `wi-*`)

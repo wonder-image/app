@@ -26,6 +26,8 @@ avvisi — senza scrivere HTML/CSS a mano.
 | Componente | File | Cosa fa |
 |---|---|---|
 | `Card` | `Elements/Components/Card.php` | riquadro contenitore |
+| `InfoCard` | `Elements/Components/InfoCard.php` | etichetta e valore descrittivo |
+| `MetricCard` | `Elements/Components/MetricCard.php` | KPI con unita e confronto opzionale |
 | `Container` | `Elements/Components/Container.php` | contenitore generico |
 | `Accordion` | `Elements/Components/Accordion.php` | sezioni collassabili |
 | `Alert` | `Elements/Components/Alert.php` | messaggio/avviso |
@@ -83,6 +85,61 @@ public static function formLayoutSchema(): ?Form
 ```
 
 Esempio reale completo: `class/App/Resources/Css/CssAlertResource.php`.
+
+## InfoCard e MetricCard
+
+`Card` resta il contenitore generico per componenti arbitrari. Per mostrare
+una coppia etichetta/valore nel backend usa invece `InfoCard`; sostituisce il
+vecchio pattern `prettyInfo()` senza HTML scritto nella view:
+
+```php
+use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\InfoCard;
+
+(new Container())
+    ->columns(3)
+    ->components([
+        InfoCard::make('Locali', $IMMOBILE->locali),
+        InfoCard::make('Camere da letto', $IMMOBILE->camere),
+        InfoCard::make('Bagni', $IMMOBILE->bagni),
+    ]);
+```
+
+Solo `null` e una stringa vuota usano il placeholder `--`: `0` e `'0'`
+restano valori validi. Il placeholder e il livello del valore sono
+configurabili con `->placeholder('n/d')` e `->valueLevel(4)`.
+
+Per un KPI usa `MetricCard`, che sostituisce `wiCardStats()`:
+
+```php
+use Wonder\Elements\Components\MetricCard;
+
+MetricCard::make('Fatturato', 120)
+    ->unit(' EUR')
+    ->compareTo(100);
+
+MetricCard::make('Churn', 4.2)
+    ->displayValue('4,2')
+    ->unit('%')
+    ->compareTo(5.1)
+    ->lowerIsBetter()
+    ->deltaPrecision(1);
+```
+
+`compareTo()` calcola il delta sul valore numerico originale; `displayValue()`
+permette di presentarne una versione gia formattata. `higherIsBetter()` e il
+default, mentre `lowerIsBetter()` inverte solo il significato del colore: la
+freccia continua a rappresentare la direzione reale. Una baseline pari a zero
+non causa divisioni per zero e mostra un delta non definito (`--`). Valore,
+titolo, unita, tooltip e attributi vengono sempre escapati.
+
+Entrambe le card sono componenti backend Bootstrap e supportano
+`columnSpan()`. Nel `ResourceFormLayoutRenderer` la griglia possiede l'unico
+wrapper `col-*`; per esempio, dentro `columns(3)` ogni card predefinita riceve
+`col-4`. Nel rendering Bootstrap diretto, invece, `col-span-*` viene applicato
+alla card stessa, senza un ulteriore contenitore. Essendo un renderer backend,
+`ResourceFormLayoutRenderer` risolve esplicitamente tutti gli Element figli con
+il tema Bootstrap, indipendentemente dal tema globale attivo.
 
 ## Esempio: Alert
 
@@ -200,10 +257,13 @@ return (new Form())->components([
 ]);
 ```
 
-Nel layout Resource resta il solo wrapper esterno `col-*` del Container;
-quello interno conserva classi, `id`, stili e attributi custom, ma non riceve
-`row` o `g-*`. Non impostare `columnSpan()` sull'iframe in questo caso: senza
-span il tag resta figlio diretto di `.ratio`.
+Quando il Container e figlio di un layout Resource resta il solo wrapper
+esterno `col-*`; quello interno conserva classi, `id`, stili e attributi custom,
+ma non riceve `row` o `g-*`. Se invece il Container `noGrid()` viene passato
+direttamente a `ResourceFormLayoutRenderer::renderLayout()`, viene renderizzato
+come unico wrapper radice, senza una `row` esterna. Non impostare
+`columnSpan()` sull'iframe in questo caso: senza span il tag resta figlio
+diretto di `.ratio`.
 
 ## Collegamenti con il resto
 
@@ -223,7 +283,8 @@ span il tag resta figlio diretto di `.ratio`.
   devono essere coerenti.
 - **`ratio` che non mantiene le proporzioni** → applicalo a un
   `Container::noGrid()`, lasciando il media figlio senza `columnSpan()`.
-- **HTML a mano per un riquadro** → usa `Card`/`Container`, non markup custom.
+- **HTML a mano per un riquadro** → usa `Card`/`Container`; per coppie
+  etichetta/valore e KPI usa `InfoCard`/`MetricCard`.
 - **CTA o badge scritti a mano** → usa `Button` / `Badge` / `ButtonGroup` /
   `Dropdown`, non markup ad-hoc nel Resource o nella view.
 
