@@ -83,15 +83,33 @@ formatter possiede invece l'intera cella (vedi «Escape»).
 
 Il formatter possiede l'intera cella: l'HTML restituito viene emesso **raw**,
 come già avviene per `function`/`badge`. Il formatter è responsabile del
-proprio escaping (`htmlspecialchars` sui dati non fidati) — nessun
-href-wrap o formattazione aggiuntiva viene applicata automaticamente. Fa
-eccezione il tipo `image`: lì il formatter fornisce solo il `src` e
-l'escaping/`<img>` sono a carico del framework (vedi sopra).
+proprio escaping (`htmlspecialchars` sui dati non fidati) — nessuna
+formattazione-tipo aggiuntiva viene applicata automaticamente. Fa eccezione il
+tipo `image`: lì il formatter fornisce solo il `src` e l'escaping/`<img>` sono
+a carico del framework (vedi sopra).
+
+## Comporre con `->link()`
+
+Un `formatter` **compone** con `->link()`: se la colonna ha anche un link
+(`->link('view')`, `'modify'`, `'mailto'`, `'tel'`), l'output del formatter
+viene avvolto nell'`<a href>` risolto per la riga (per il tipo `image` è
+l'`<img>` a diventare cliccabile):
+
+```php
+TableColumn::key('nome')
+    ->formatter(static fn (array $row): string => /* HTML della cella */)
+    ->link('view'),
+```
+
+Se il formatter rende una stringa vuota, la cella resta vuota e **non** viene
+avvolta in un link. L'href-wrap è l'unico wrapping automatico previsto: nessun
+altro markup viene aggiunto attorno all'output del formatter.
 
 ## Precedenza
 
 `badge` > `formatter` > `function` > valore semplice. Se la colonna ha sia
-`badge` che `formatter`, vince il badge.
+`badge` che `formatter`, vince il badge. Il `->link()` non è in competizione:
+si applica **dopo**, avvolgendo il risultato (formatter incluso).
 
 ## Dove registrare: `boot.files`
 

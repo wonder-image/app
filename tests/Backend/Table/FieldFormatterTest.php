@@ -15,10 +15,10 @@ function eq(string $label, $got, $expected) {
     else { echo "ok: $label\n"; }
 }
 
-function makeField(): Field {
+function makeField(array $links = []): Field {
     $TABLE = (object) [
         'id' => 'tbl-1', 'table' => 'immobili', 'connection' => null, 'database' => 'main',
-        'field' => [], 'page' => 0, 'length' => 10, 'link' => [],
+        'field' => [], 'page' => 0, 'length' => 10, 'link' => $links,
     ];
     $PATH = (object) [ 'site' => '', 'backend' => '/backend', 'app' => '/app', 'api' => '/api' ];
     $TEXT = (object) [
@@ -101,6 +101,35 @@ $got = $field->newField(
     ['format' => 'image', 'formatter' => 'immobili.image']
 );
 eq('image + formatter -> src escaped', $got, $imgTag("https://cdn.example.com/a'b?x=1&y=2.webp"));
+
+// formatter + link('view'): l'output del formatter viene avvolto nel <a href>
+$field = makeField(['view' => '/backend/immobili/{rowId}/view']);
+$got = $field->newField(
+    ['id' => 5, 'prezzo' => 255000, 'contratto_id' => 'V'],
+    'prezzo',
+    ['format' => 'text', 'formatter' => 'immobili.prezzo', 'href' => 'view']
+);
+eq('formatter + href=view -> output avvolto nel link', $got,
+    "<a href='/backend/immobili/5/view' class='fw-semibold text-dark'>€ 255.000</a>");
+
+// image + link('view'): l'<img> viene avvolta nel <a href>
+$field = makeField(['view' => '/backend/immobili/{rowId}/view']);
+$got = $field->newField(
+    ['id' => 7, 'cover' => 'https://cdn.example.com/immobili/7-620.webp'],
+    'image',
+    ['format' => 'image', 'formatter' => 'immobili.image', 'href' => 'view']
+);
+eq('image + href=view -> <img> avvolta nel link', $got,
+    "<a href='/backend/immobili/7/view' class='fw-semibold text-dark'>".$imgTag('https://cdn.example.com/immobili/7-620.webp')."</a>");
+
+// image + link ma copertina vuota: cella vuota, nessun link attorno al nulla
+$field = makeField(['view' => '/backend/immobili/{rowId}/view']);
+$got = $field->newField(
+    ['id' => 8],
+    'image',
+    ['format' => 'image', 'formatter' => 'immobili.image', 'href' => 'view']
+);
+eq('image + href=view ma vuoto -> cella vuota', $got, '');
 
 ColumnFormatterRegistry::reset();
 

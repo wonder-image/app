@@ -523,10 +523,16 @@
                     # contratto.
                     if (($format['format'] ?? '') === 'image') {
                         $src = trim((string) $formatted);
-                        return $src === '' ? '' : $this->imageTag($src);
+                        if ($src === '') {
+                            return '';
+                        }
+                        # Se la colonna ha anche ->link(), l'<img> è cliccabile.
+                        return $this->applyHref($this->imageTag($src), $format);
                     }
 
-                    return $formatted;
+                    # Se la colonna ha anche ->link(), l'output del formatter
+                    # viene avvolto nel <a href> (view/modify/mailto/tel).
+                    return $this->applyHref($formatted, $format);
 
                 }
 
@@ -766,29 +772,39 @@
                 }
 
             # Set link to value
-                if (isset($format['href']) && !empty($format['href'])) {
-
-                    $href = $format['href'];
-
-                    if ($href == 'modify') {
-                        $href = $this->customLink->modify;
-                    } elseif ($href == 'view') {
-                        $href = $this->customLink->view;
-                    } elseif ($href == 'mailto') {
-                        $href = "mailto:$VALUE";
-                    } elseif ($href == 'tel') {
-
-                        $href = "tel:".str_replace(' ', '', $VALUE);
-                        $VALUE = Phone::prettify($VALUE);
-
-                    }
-
-                    $VALUE = "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";
-
-                }
+                $VALUE = $this->applyHref($VALUE, $format);
 
             return $VALUE;
 
+        }
+
+        # Avvolge il valore della cella in <a href> quando la colonna ha un
+        # link (->link('view'/'modify'/'mailto'/'tel')). Unica fonte del
+        # link-wrap, condivisa dal rendering per-tipo e dalle colonne con
+        # formatter (così `->formatter()->link('view')` rende il link).
+        # No-op se la colonna non ha href.
+        private function applyHref(string $VALUE, $format): string
+        {
+            if (!isset($format['href']) || empty($format['href'])) {
+                return $VALUE;
+            }
+
+            $href = $format['href'];
+
+            if ($href == 'modify') {
+                $href = $this->customLink->modify;
+            } elseif ($href == 'view') {
+                $href = $this->customLink->view;
+            } elseif ($href == 'mailto') {
+                $href = "mailto:$VALUE";
+            } elseif ($href == 'tel') {
+
+                $href = "tel:".str_replace(' ', '', $VALUE);
+                $VALUE = Phone::prettify($VALUE);
+
+            }
+
+            return "<a href='$href' class='fw-semibold text-dark'>".$VALUE."</a>";
         }
 
         # Markup <img> della cella immagine, unica fonte condivisa dal tipo
