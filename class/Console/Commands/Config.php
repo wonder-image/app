@@ -27,8 +27,8 @@ class Config extends Command
         'gh' => 'gh',
     ];
     protected const NPX_SKILL = [
-        'wonder-image/skills' => 'npx skills add wonder-image/skills --all -y',
-        'pbakaus/impeccable' => 'npx skills add pbakaus/impeccable --all -y',
+        'wonder-image/skills' => "npx skills add wonder-image/skills --skill '*' -y",
+        'pbakaus/impeccable' => "npx skills add pbakaus/impeccable --skill '*' -y",
     ];
     protected const NPM_PACKAGE = [
         'wonder-image' => 'npm install wonder-image',
