@@ -3,14 +3,11 @@
 namespace Wonder\Elements\Media;
 
 use InvalidArgumentException;
-use Wonder\Elements\Component;
 use Wonder\Elements\Concerns\HasMediaFit;
-use Wonder\Elements\Concerns\Renderer;
 
-class Iframe extends Component
+class Iframe extends Media
 {
     use HasMediaFit;
-    use Renderer;
 
     public function __construct(string $url)
     {

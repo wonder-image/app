@@ -2,12 +2,11 @@
 
     namespace Wonder\Elements\Media;
 
-    use Wonder\Elements\Component;
-    use Wonder\Elements\Concerns\{ HasMediaFit, Renderer };
+    use Wonder\Elements\Concerns\HasMediaFit;
 
-    class Swiper extends Component {
+    class Swiper extends Media {
 
-        use HasMediaFit, Renderer;
+        use HasMediaFit;
 
         public function __construct( array $images = [] )
         {

@@ -51,6 +51,7 @@ possono essere composti in base al contesto.
 | `fitCover()` / `fitContain()` | off | Imposta l'object fit; le due modalita sono esclusive. |
 | `fixed(bool = true)` | off | Rende il video fixed e applica `z-index: -1` se non e gia definito. |
 | `filter(bool = true)` | off | Aggiunge dopo il video un overlay coerente con il tema. |
+| `columnSpan(int\|array)` | non dichiarato | Aggiunge un wrapper di colonna opt-in attorno a video e filtro. |
 
 Gli URL delle source sono emessi con `src`, non con il vecchio `data-src`: il
 componente non dipende dal JavaScript lazy-loading specifico dei vecchi siti.
@@ -81,8 +82,13 @@ echo Iframe::url('https://www.google.com/maps/embed')
 
 `fitCover()` e `fitContain()` sono mutuamente esclusivi. Sono inoltre disponibili
 i metodi ereditati `class()`, `addClass()`, `id()`, `attr()`, `attributes()`,
-`style()` e `styles()`. L'iframe usa di default `loading="lazy"` e `border: 0`;
-entrambi restano sovrascrivibili tramite l'API comune degli attributi e stili.
+`style()`, `styles()` e `columnSpan()`. L'iframe usa di default
+`loading="lazy"` e `border: 0`; entrambi restano sovrascrivibili tramite l'API
+comune degli attributi e stili.
+
+`columnSpan()` e opt-in anche per l'iframe: senza chiamata il risultato e il
+solo tag `<iframe>`; con uno span esplicito viene aggiunto un unico wrapper di
+colonna.
 
 Per sicurezza `url()` accetta URL relativi e schemi `http`/`https`, ma rifiuta
 schemi attivi come `javascript:` e `data:`. Per contenuti esterni non fidati e
@@ -100,6 +106,7 @@ video.
 | `fitCover()` | `bg bg-cover` | `object-fit-cover w-100 h-100` |
 | `fitContain()` | `bg bg-contain` | `object-fit-contain w-100 h-100` |
 | Video `fixed()` | `p-f w-100 h-100` | `position-fixed top-0 start-0 w-100 h-100` |
+| `columnSpan(6)` | wrapper `col-6` | wrapper `col-span-6` |
 
 Non sono richieste registrazioni o dipendenze: le classi sono risolte per
 convenzione di namespace dal sistema Element / Theme.

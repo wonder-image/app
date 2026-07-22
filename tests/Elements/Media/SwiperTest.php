@@ -64,5 +64,26 @@ $excl = Swiper::make([ '/assets/upload/a.jpg' => 'A' ])->id('x')->zoom()->lightb
 hasnt('zoom disattivato da lightbox', $excl, "f-panzoom__viewport");
 has('lightbox attivo',            $excl, "data-fancybox-trigger='g'");
 
+// Main slider, thumbnails e script restano nello stesso wrapper opt-in.
+foreach (['wonder' => 'col-6', 'bootstrap' => 'col-span-6'] as $theme => $spanClass) {
+    $prefix = '<div class="' . $spanClass . '">';
+    $factory = static fn () => Swiper::make(['/assets/upload/a.jpg' => 'A'])
+        ->id("swiper-span-$theme")
+        ->thumbnails();
+
+    $plain = $factory()->render($theme);
+    $wrapped = $factory()->columnSpan(6)->render($theme);
+
+    hasnt("$theme senza wrapper implicito", $plain, $prefix);
+    has("$theme wrapper esplicito", $wrapped, $prefix);
+
+    $inner = str_starts_with($wrapped, $prefix) && str_ends_with($wrapped, '</div>')
+        ? substr($wrapped, strlen($prefix), -strlen('</div>'))
+        : $wrapped;
+
+    if ($inner === $plain) { echo "ok: $theme wrapper contiene tutto\n"; }
+    else { $fail++; echo "FAIL: $theme wrapper contiene tutto\n"; }
+}
+
 echo "\n" . ($fail === 0 ? "PASS" : "FAIL ($fail)") . "\n";
 exit($fail === 0 ? 0 : 1);

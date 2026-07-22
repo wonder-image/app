@@ -210,6 +210,21 @@ Or per-call without touching global state:
 echo $field->render('bootstrap');   // one-off rendering
 ```
 
+### Media and optional column wrappers
+
+All media Elements (`Image`, `Video`, `Iframe`, `Gallery`, `Swiper`) extend
+`Wonder\Elements\Media\Media`, which owns `CanSpanColumn` and `Renderer`.
+Their theme renderers extend `Themes\{Wonder|Bootstrap}\Media\Media` and
+implement only `renderMedia()`: the abstract renderer adds the column wrapper
+around the complete fragment only after an explicit `columnSpan()` call.
+
+The default render must stay byte-for-byte unwrapped. An explicit span wraps
+the whole media output (`video` + filter, Gallery grid + script, Swiper main +
+thumbs + script). Wonder uses the real lib grid classes `col-*`, `col-t-*`,
+`col-p-*`; Bootstrap uses the available backend class `col-span-*`. Do not add
+wrapper-only positioning, overflow, or sizing styles that would alter the
+media containing block.
+
 ### Bridge with `Resource::formSchema()`
 
 The high-level DSL (`ResourceSchema/FormSchema` + `FormField` /

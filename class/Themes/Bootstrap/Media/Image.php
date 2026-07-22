@@ -2,14 +2,13 @@
 
     namespace Wonder\Themes\Bootstrap\Media;
 
-    use Wonder\Themes\Bootstrap\Component;
     use Wonder\Themes\Concerns\RendersResponsiveImage;
 
-    class Image extends Component {
+    class Image extends Media {
 
         use RendersResponsiveImage;
 
-        public function render($class): string
+        protected function renderMedia($class): string
         {
 
             return $this->renderResponsiveImage($class);

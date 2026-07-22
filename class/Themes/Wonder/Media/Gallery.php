@@ -2,14 +2,13 @@
 
     namespace Wonder\Themes\Wonder\Media;
 
-    use Wonder\Themes\Wonder\Component;
     use Wonder\Themes\Concerns\HandlesMedia;
 
-    class Gallery extends Component {
+    class Gallery extends Media {
 
         use HandlesMedia;
 
-        public function render($class): string
+        protected function renderMedia($class): string
         {
             $id          = $this->mediaId($class, 'gallery');
             $items       = $this->normalizeImages($class->getSchema('images') ?? []);

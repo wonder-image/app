@@ -2,15 +2,14 @@
 
     namespace Wonder\Themes\Bootstrap\Media;
 
-    use Wonder\Themes\Bootstrap\Component;
     use Wonder\Themes\Concerns\HandlesMedia;
     use Wonder\App\Dependencies;
 
-    class Swiper extends Component {
+    class Swiper extends Media {
 
         use HandlesMedia;
 
-        public function render($class): string
+        protected function renderMedia($class): string
         {
             $id       = $this->mediaId($class, 'swiper');
             $items    = $this->normalizeImages($class->getSchema('images') ?? []);
@@ -54,9 +53,9 @@
 
             }
 
-            $html  = "<div id='$id' class='swiper w-100'><div class='swiper-wrapper'>$slides</div>";
-            if ($class->getSchema('pagination')) { $html .= "<div class='swiper-pagination'></div>"; }
-            if ($class->getSchema('navigation')) { $html .= "<div class='swiper-button-next'></div><div class='swiper-button-prev'></div>"; }
+            $html  = "<div id='$id' class='swiper w-100 ratio ratio-16x9 img-thumbnail rounded'><div class='position-absolute top-0 swiper-wrapper w-100 h-100 swiper-wrapper'>$slides</div>";
+            if ($class->getSchema('pagination')) { $html .= "<div class='swiper-pagination' style='--swiper-theme-color: var(--bs-dark);'></div>"; }
+            if ($class->getSchema('navigation')) { $html .= "<div class='swiper-button-next' style='--swiper-navigation-size: 25px;--swiper-theme-color: var(--bs-dark);'></div><div class='swiper-button-prev' style='--swiper-navigation-size: 25px;--swiper-theme-color: var(--bs-dark);'></div>"; }
             $html .= "</div>";
 
             if ($thumbs) { $html .= "<div id='$id-thumbs' class='swiper w-100 overflow-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>"; }

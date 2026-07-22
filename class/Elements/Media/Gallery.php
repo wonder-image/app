@@ -2,12 +2,7 @@
 
     namespace Wonder\Elements\Media;
 
-    use Wonder\Elements\Component;
-    use Wonder\Elements\Concerns\{ Renderer };
-
-    class Gallery extends Component {
-
-        use Renderer;
+    class Gallery extends Media {
 
         public function __construct( array $images = [] )
         {

@@ -3,13 +3,12 @@
 namespace Wonder\Themes\Wonder\Media;
 
 use Wonder\Themes\Concerns\RendersVideo;
-use Wonder\Themes\Wonder\Component;
 
-class Video extends Component
+class Video extends Media
 {
     use RendersVideo;
 
-    public function render($class): string
+    protected function renderMedia($class): string
     {
         return $this->renderVideo($class);
     }

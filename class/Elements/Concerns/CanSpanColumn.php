@@ -4,6 +4,8 @@
 
     trait CanSpanColumn {
 
+        protected bool $columnSpanDeclared = false;
+
         public ?array $columnSpan = [
             'default' => 1,
             'sm' => null,
@@ -16,6 +18,8 @@
         public function columnSpan( array | int $span): static 
         {
 
+            $this->columnSpanDeclared = true;
+
             if (!is_array($span)) { 
                 $this->columnSpan['default'] = $span;
             } else {
@@ -23,6 +27,13 @@
             }
 
             return $this;
+
+        }
+
+        public function hasExplicitColumnSpan(): bool
+        {
+
+            return $this->columnSpanDeclared;
 
         }
 

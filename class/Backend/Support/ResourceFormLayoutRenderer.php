@@ -5,6 +5,7 @@ namespace Wonder\Backend\Support;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Form\Form;
+use Wonder\Elements\Media\Media;
 
 final class ResourceFormLayoutRenderer
 {
@@ -123,6 +124,10 @@ final class ResourceFormLayoutRenderer
 
     private static function wrapField(object $component, string $html, array $parentColumns): string
     {
+        if ($component instanceof Media) {
+            return $html;
+        }
+
         $spanClass = self::columnSpanClass($component, $parentColumns, false);
 
         if ($spanClass === '') {

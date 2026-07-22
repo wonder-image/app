@@ -41,6 +41,10 @@ Bootstrap 5.3 nativo:
 | `Swiper` | `.swiper` (Swiper.js reale) con utility Bootstrap; zoom Panzoom / lightbox Fancybox | `swiper` (+ `fancyapps` se zoom/lightbox) |
 | `Image` | `<picture>`/`<img>` con srcset+WebP; `object-fit-*` al posto delle classi lib | — |
 
+Tutti e tre supportano `columnSpan()`. Il wrapper di colonna viene emesso solo
+quando il metodo e stato chiamato esplicitamente; senza span il markup del
+media non riceve alcun contenitore aggiuntivo.
+
 {% hint style="info" %}
 **Dipendenze on-demand:** a differenza del frontend Wonder, i renderer Bootstrap **abilitano da
 soli** le librerie necessarie via `Dependencies` durante il render (Swiper.js, e Fancybox/Panzoom
@@ -89,6 +93,7 @@ echo __swiper([
 | `->thumbsSize(int $px)` | `240` | Size delle miniature. |
 | `->fullSize(int $px)` | max sizes | Size dell'immagine nel lightbox. |
 | `->fitCover()` / `->fitContain()` | cover | Adattamento immagine (contain consigliato con `zoom`). |
+| `->columnSpan(int\|array)` | non dichiarato | Wrapper di colonna opt-in attorno a slider, thumbnails e script. |
 | `->id(string)` / `->addClass(string)` | — | Ereditati da `Component`. |
 
 ### Esempio: zoom in-place (scheda prodotto)
@@ -123,6 +128,11 @@ echo __gallery([
 | `->download(bool = true)` | off | Bottone download nel lightbox. |
 | `->size(int $px)` | `480` | Size dell'anteprima in griglia (piccola). |
 | `->fullSize(int $px)` | max sizes | Size dell'immagine nel lightbox (grande). |
+| `->columnSpan(int\|array)` | non dichiarato | Wrapper di colonna opt-in attorno a griglia e script. |
+
+La stessa regola vale per `Image`: `->columnSpan(6)` aggiunge un solo wrapper
+attorno a `<img>` o `<picture>`; senza chiamata l'elemento resta privo di
+contenitori aggiuntivi.
 
 ## Migrazione da `responsiveGallery()`
 

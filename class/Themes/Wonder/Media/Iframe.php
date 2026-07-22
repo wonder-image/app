@@ -3,13 +3,12 @@
 namespace Wonder\Themes\Wonder\Media;
 
 use Wonder\Themes\Concerns\RendersIframe;
-use Wonder\Themes\Wonder\Component;
 
-class Iframe extends Component
+class Iframe extends Media
 {
     use RendersIframe;
 
-    public function render($class): string
+    protected function renderMedia($class): string
     {
         return $this->renderIframe($class);
     }

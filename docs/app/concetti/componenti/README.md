@@ -12,6 +12,10 @@ gruppi azioni e dropdown. Vivono in `class/Elements/Components/*` e si
 combinano con i campi (`FormInput`) per ottenere layout a colonne o CTA
 coerenti tra tema Bootstrap e tema Wonder.
 
+I componenti media (`Image`, `Video`, `Iframe`, `Gallery`, `Swiper`) vivono
+invece in `class/Elements/Media/*` e condividono lo stesso sistema Element /
+Theme.
+
 ## A cosa serve
 
 Strutturare un form (o una pagina) in sezioni ordinate — riquadri, colonne,
@@ -35,6 +39,11 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `Badge` | `Elements/Components/Badge.php` | badge / etichetta |
 | `ButtonGroup` | `Elements/Components/ButtonGroup.php` | gruppo di bottoni |
 | `Dropdown` | `Elements/Components/Dropdown.php` | bottone dropdown |
+| `Image` | `Elements/Media/Image.php` | immagine responsive |
+| `Video` | `Elements/Media/Video.php` | video HTML5 |
+| `Iframe` | `Elements/Media/Iframe.php` | contenuto iframe |
+| `Gallery` | `Elements/Media/Gallery.php` | gallery con lightbox |
+| `Swiper` | `Elements/Media/Swiper.php` | carosello immagini |
 
 I metodi di composizione arrivano da Concerns riusabili:
 
@@ -140,6 +149,30 @@ API principali:
 - `Text::link(...)`: stesse opzioni del concern link condiviso, più `icon`,
   `class`, `muted`, `attributes`
 
+## Layout dei media
+
+Tutti i media supportano `columnSpan(int|array)` tramite la base comune
+`Elements/Media/Media`. Il contenitore di colonna e strettamente opt-in:
+senza una chiamata esplicita a `columnSpan()` il renderer restituisce il media
+senza alcun wrapper aggiuntivo.
+
+```php
+echo Image::src('/assets/upload/cover.jpg')->render();
+// <img ...> oppure <picture>...</picture>
+
+echo Image::src('/assets/upload/cover.jpg')
+    ->columnSpan(6)
+    ->render();
+// Wonder:   <div class="col-6">...</div>
+// Bootstrap:<div class="col-span-6">...</div>
+```
+
+Per i componenti con piu nodi, il wrapper racchiude l'intero frammento: video
+e filtro, gallery e script, oppure Swiper principale, thumbnails e script.
+Nel tema Wonder gli span responsive sono proiettati sulle classi disponibili
+`col-*`, `col-t-*`, `col-p-*`; Bootstrap emette la classe desktop realmente
+disponibile `col-span-*`.
+
 ## Collegamenti con il resto
 
 - I campi dentro le Card sono sempre `FormInput`/`FormField`: vedi
@@ -188,4 +221,5 @@ iframe con object fit coerente tra Wonder e Bootstrap, vedi
 - [ ] layout in `formLayoutSchema()` con `Card`/`Container`
 - [ ] campi via `static::getInput('campo')` (presenti in `formSchema()`)
 - [ ] `columns()` / `columnSpan()` coerenti
+- [ ] media senza wrapper salvo `columnSpan()` esplicito
 - [ ] nessun markup di layout scritto a mano

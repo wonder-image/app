@@ -2,14 +2,12 @@
 
     namespace Wonder\Elements\Media;
 
-    use Wonder\Elements\Component;
-
-    use Wonder\Elements\Concerns\{ HasMediaFit, Renderer };
+    use Wonder\Elements\Concerns\HasMediaFit;
     use Wonder\App\Path;
 
-    class Image extends Component {
+    class Image extends Media {
 
-        use HasMediaFit, Renderer;
+        use HasMediaFit;
 
         public array $sizes;
         public int $defaultSize;

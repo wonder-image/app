@@ -2,11 +2,10 @@
 
     namespace Wonder\Themes\Bootstrap\Media;
 
-    use Wonder\Themes\Bootstrap\Component;
     use Wonder\Themes\Concerns\HandlesMedia;
     use Wonder\App\Dependencies;
 
-    class Gallery extends Component {
+    class Gallery extends Media {
 
         use HandlesMedia;
 
@@ -18,7 +17,7 @@
             '21-9' => 'ratio-21x9',
         ];
 
-        public function render($class): string
+        protected function renderMedia($class): string
         {
             $id          = $this->mediaId($class, 'gallery');
             $items       = $this->normalizeImages($class->getSchema('images') ?? []);

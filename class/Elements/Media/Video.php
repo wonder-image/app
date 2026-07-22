@@ -3,14 +3,11 @@
 namespace Wonder\Elements\Media;
 
 use InvalidArgumentException;
-use Wonder\Elements\Component;
 use Wonder\Elements\Concerns\HasMediaFit;
-use Wonder\Elements\Concerns\Renderer;
 
-class Video extends Component
+class Video extends Media
 {
     use HasMediaFit;
-    use Renderer;
 
     public function __construct(string $src)
     {
