@@ -4,11 +4,11 @@
 
     use Wonder\Elements\Component;
 
-    use Wonder\Elements\Concerns\{ IsContainer };
+    use Wonder\Elements\Concerns\{ IsContainer, HasRatio };
 
     class Container extends Component {
 
-        use IsContainer;
+        use IsContainer, HasRatio;
 
         public function noGrid(bool $noGrid = true): self
         {

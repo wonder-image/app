@@ -67,8 +67,9 @@ esempio `p-r` in Wonder o `position-relative` in Bootstrap).
 
 ## Iframe
 
-L'API dedicata resta intenzionalmente minima: URL e modalita fit. Attributi,
-classi, id e stili aggiuntivi arrivano dall'API comune di `Component`.
+L'API dedicata resta intenzionalmente minima: URL, modalita fit e apertura in
+lightbox (`expandable()`). Attributi, classi, id e stili aggiuntivi arrivano
+dall'API comune di `Component`.
 
 ```php
 use Wonder\Elements\Media\Iframe;
@@ -99,11 +100,14 @@ tema. Il contenuto interno di un iframe resta pero un documento separato: i
 browser non possono ritagliarlo con `object-fit` come avviene per immagini e
 video.
 
-### Iframe con ratio nel backend
+### Container con rapporto (`ratio` / `format`)
 
-Le utility Bootstrap `ratio` devono essere applicate al genitore diretto
-dell'iframe. In un `formLayoutSchema()` usa `Container::noGrid()` per evitare
-che il layout aggiunga `row` e gutter al wrapper:
+`Container::ratio(string $ratio)` (alias `format()`) imposta il rapporto
+d'aspetto del box. Emette la proprietà CSS nativa `aspect-ratio` più
+`position: relative`, quindi è **theme-agnostico** (funziona con Bootstrap e
+Wonder senza dipendere dalle classi `.ratio-*` o `f-*`) e copre qualsiasi
+rapporto: `16:9`, `9:16`, `3:2`, `2:3`, … I separatori accettati sono `:`, `x`,
+`/`, `-`. Il metodo implica `noGrid()`, così il box non riceve `row`/gutter.
 
 ```php
 use Wonder\Elements\Components\Container;
@@ -115,26 +119,49 @@ return (new Form())->components([
     SectionTitle::make('Mappa')->level(5),
 
     (new Container())
-        ->noGrid()
-        ->addClass('ratio ratio-16x9 img-thumbnail')
+        ->ratio('16:9')
+        ->addClass('img-thumbnail overflow-hidden')
         ->components([
             Iframe::url($IMMOBILE->gmaps)
                 ->fitCover()
-                ->addClass('rounded')
+                ->expandable()
                 ->attr('allowfullscreen', true)
                 ->attr('referrerpolicy', 'no-referrer-when-downgrade'),
         ]),
 ]);
 ```
 
-Se il Container e figlio di un layout, il renderer Resource mantiene il suo
-wrapper esterno `col-*` e produce all'interno un solo
-`<div class="ratio ratio-16x9 img-thumbnail">`. Se il Container `noGrid()` e
-invece la radice passata a `ResourceFormLayoutRenderer::renderLayout()`, il
-wrapper `ratio` viene emesso direttamente, senza `row` esterna. Classi, `id`,
-`style`, `data-*`, `aria-*` e attributi booleani impostati sul Container vengono
-conservati. Lascia l'iframe senza `columnSpan()`, cosi non compare alcun wrapper
-tra `.ratio` e il tag `<iframe>`.
+Il Container produce `<div style="aspect-ratio: 16 / 9; position: relative">`
+con le classi custom preservate; il figlio che riempie il box deve essere
+absolute-fill (`->expandable()` lo è già) oppure usare `->fitCover()`
+(`w-100 h-100`). In alternativa restano valide le utility del tema applicate a
+mano — Bootstrap `ratio ratio-16x9` o Wonder `f-16-9` — ma `ratio()` evita di
+scegliere la classe corretta per il tema attivo.
+
+### Iframe espandibile (lightbox)
+
+`expandable()` rende l'iframe apribile a schermo intero in un lightbox Fancybox
+(modalita iframe): il tema aggiunge un pulsante "Ingrandisci" in overlay. L'iframe
+inline resta interattivo (mappe trascinabili, video riproducibili) mentre il
+pulsante apre una copia ingrandita. Utile per mappe, video e virtual tour.
+
+```php
+(new Container())
+    ->ratio('16:9')
+    ->addClass('img-thumbnail overflow-hidden')
+    ->components([
+        Iframe::url($IMMOBILE->gmaps)->fitCover()->expandable(),
+    ]);
+```
+
+La dipendenza `fancyapps` viene accodata automaticamente
+(`Dependencies::fancyapps()`), quindi non serve richiederla a mano. Tutti gli
+iframe espandibili della pagina condividono il gruppo `wi-iframe` (galleria
+unica) e un solo script di bind emesso una volta per richiesta.
+
+Il pulsante e fratello dell'iframe dentro un wrapper posizionato — non figlio
+diretto del box `.ratio` — cosi le regole di riempimento del rapporto non lo
+stirano a tutta area. Abbinare `fitCover()` perche l'iframe riempia il wrapper.
 
 ## Classi per tema
 
@@ -144,6 +171,9 @@ tra `.ratio` e il tag `<iframe>`.
 | `fitContain()` | `bg bg-contain` | `object-fit-contain w-100 h-100` |
 | Video `fixed()` | `p-f w-100 h-100` | `position-fixed top-0 start-0 w-100 h-100` |
 | `columnSpan(6)` | wrapper `col-6` | wrapper `col-span-6` |
+| `expandable()` wrapper | `p-a top start w-100 h-100` | `position-absolute top-0 start-0 w-100 h-100` |
+| `expandable()` pulsante | `btn btn-dark p-a top end m-2` | `btn btn-sm btn-light shadow-sm position-absolute top-0 end-0 m-2` |
+| `expandable()` evento bind | `loaded` | `load` |
 
 Non sono richieste registrazioni o dipendenze: le classi sono risolte per
 convenzione di namespace dal sistema Element / Theme.

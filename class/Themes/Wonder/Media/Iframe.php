@@ -25,4 +25,19 @@ class Iframe extends Media
 
         return [];
     }
+
+    protected function expandWrapperClass(): string
+    {
+        return 'p-a top start w-100 h-100';
+    }
+
+    protected function expandButtonClass(): string
+    {
+        return 'btn btn-dark p-a top end m-2';
+    }
+
+    protected function expandLoadEvent(): string
+    {
+        return 'loaded';
+    }
 }

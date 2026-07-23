@@ -21,6 +21,16 @@ class Iframe extends Media
         return new self($url);
     }
 
+    /**
+     * Rende l'iframe apribile in un lightbox Fancybox (modalità iframe): il tema
+     * aggiunge un pulsante "Ingrandisci" in overlay e registra il bind. Utile per
+     * mappe, video e virtual tour, che restano interattivi anche inline.
+     */
+    public function expandable(bool $expandable = true): self
+    {
+        return $this->schema('expandable', $expandable);
+    }
+
     public function srcUrl(): string
     {
         return $this->validateUrl((string) $this->getSchema('src'));
