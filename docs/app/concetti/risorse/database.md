@@ -185,6 +185,14 @@ Esiste però un hook di **lettura** puro: `Model::decorate(array $row): array`.
 Serve per arricchire ogni riga ritornata da `all()`, `find()`, `findById()`
 con campi derivati, URL calcolati o payload già normalizzati.
 
+> **Normalizzazione automatica in lettura.** Prima di `decorate()`, il Model
+> applica `sanitizeEcho()` alle colonne che in scrittura passano da `sanitize()`
+> (cioè tutte tranne quelle `->sanitize(false)`, JSON e file). La lettura è così
+> l'inverso simmetrico della scrittura: lo slash di escape aggiunto da
+> `addslashes()` viene rimosso e le entità decodificate, senza doverlo fare a
+> mano in stampa. Non chiamare di nuovo `sanitizeEcho()`/`normalizeDB()` su
+> valori già letti via Model, per non normalizzare due volte.
+
 Esempio con una schema extension:
 
 ```php

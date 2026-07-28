@@ -607,13 +607,79 @@ abstract class Model
         }
 
         if (static::isAssoc($rows)) {
-            return static::decorate($rows);
+            return static::decorate(static::normalizeReadRow($rows));
         }
 
         return array_map(
-            static fn (mixed $row): mixed => is_array($row) ? static::decorate($row) : $row,
+            static fn (mixed $row): mixed => is_array($row)
+                ? static::decorate(static::normalizeReadRow($row))
+                : $row,
             $rows
         );
+    }
+
+    /**
+     * Colonne testo che in scrittura passano da `sanitize()` (che applica
+     * `addslashes()` + entity encoding). In lettura vanno riportate con
+     * `sanitizeEcho()` — l'inverso simmetrico (stripslashes + entity decode +
+     * correzione mojibake) — altrimenti lo slash di escape resta nel valore e
+     * viene stampato (es. `O\'Brien`).
+     *
+     * Il set rispecchia ESATTAMENTE la condizione di scrittura in
+     * `app/function/sql.php` (`sanitize` applicato salvo `sanitize === false`),
+     * così le colonne `->sanitize(false)`, JSON e file non vengono toccate.
+     * Cache per classe: `dataSchema()` è statico per Model.
+     *
+     * @return array<int, string>
+     */
+    protected static function sanitizedReadColumns(): array
+    {
+        static $cache = [];
+
+        $key = static::class;
+
+        if (!array_key_exists($key, $cache)) {
+            $columns = [];
+
+            foreach (static::dataFields() as $column => $field) {
+                $format = static::prepareFormatFromField($field);
+
+                // Specchio di sql.php: sanitize di default, saltato solo se false.
+                if (($format['sanitize'] ?? null) === false) {
+                    continue;
+                }
+
+                $columns[] = (string) $column;
+            }
+
+            $cache[$key] = $columns;
+        }
+
+        return $cache[$key];
+    }
+
+    /**
+     * Applica `sanitizeEcho()` alle sole colonne testo `sanitize=true` di una
+     * riga letta dal DB, rendendo la lettura l'inverso della scrittura. Hook
+     * chiamato da `decorateRows()` prima di `decorate()`, così ogni consumer
+     * (backend, frontend, email, moduli) riceve valori già de-slashati.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    protected static function normalizeReadRow(array $row): array
+    {
+        if (!function_exists('sanitizeEcho')) {
+            return $row;
+        }
+
+        foreach (static::sanitizedReadColumns() as $column) {
+            if (isset($row[$column]) && is_string($row[$column]) && $row[$column] !== '') {
+                $row[$column] = sanitizeEcho($row[$column]);
+            }
+        }
+
+        return $row;
     }
 
     public static function create(array $values): object
