@@ -184,7 +184,7 @@
 
     }
 
-    // Swiper: carosello con thumbnails + zoom (Panzoom) o lightbox (Fancybox)
+    // Swiper: carosello per immagini oppure contenuti HTML/componenti renderizzabili
     function __swiper(array $images = [])
     {
 

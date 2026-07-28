@@ -35,6 +35,12 @@ Key subareas:
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
 - `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, ...)
+- `Accordion` is a shared non-form Element: `make($text)`, `description()`,
+  and `components()` define its content; the Wonder renderer must reuse the
+  lib `wi-dropdown-box` / `wi-switcher` / `wi-dropdown-content` contract.
+  `expanded(true)` owns both the initial `wi-show` class and expanded icon,
+  while `icon()`, `titleSize()`, and `descriptionSize()` accept only the
+  icon pairs and typography presets supported by `wonder-image/lib`.
 - `InfoCard` e `MetricCard` sono card semantiche backend per valori descrittivi e KPI; condividono `AbstractValueCard`, mantengono `Card` come container generico e, nel `ResourceFormLayoutRenderer`, usano un solo wrapper Bootstrap `col-*` esterno senza duplicare `col-span-*`; il renderer backend risolve sempre gli Element figli col tema Bootstrap esplicito
 - `Container::noGrid()` rende un `Elements/Components/Container` un wrapper puro nel backend Bootstrap; `ResourceFormLayoutRenderer` deve preservarne classi/id/style/attributi e delegare il nodo interno al renderer Bootstrap invece di ricostruirlo, anche quando il Container e la radice di `renderLayout()`
 - `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
@@ -226,6 +232,23 @@ thumbs + script). Wonder uses the real lib grid classes `col-*`, `col-t-*`,
 `col-p-*`; Bootstrap uses the available backend class `col-span-*`. Do not add
 wrapper-only positioning, overflow, or sizing styles that would alter the
 media containing block.
+
+`Swiper` has two explicit, last-call-wins content modes: `images()` preserves
+the responsive image/zoom/lightbox pipeline, while `slides()` accepts trusted
+HTML strings or renderable objects and owns the `.swiper-slide` wrappers.
+Generic slides must render with the requested Wonder/Bootstrap theme, must not
+inherit the Bootstrap image ratio wrapper, and must ignore image-only features
+(thumbnails, zoom, lightbox, download and image sizes). Keep `__swiper($images)`
+backward compatible. Responsive options belong to the fluent component
+(`breakpoints()`, `autoHeight()`, `keyboard()`, `watchOverflow()`), not to
+site-specific Swiper initialization scripts. Explicit image and thumbnail
+ratios (`ratio()`, `thumbsRatio()`) belong to each slide/viewport through
+validated native `aspect-ratio`, never to the carousel root; this preserves
+multi-slide layouts. `slideClass()` applies to every main slide in both modes,
+while `thumbSlideClass()` applies only to thumbnails. Merge, deduplicate and
+escape configured classes without allowing the structural `.swiper-slide`
+class to disappear. When no explicit image ratio exists, preserve the legacy
+Bootstrap 16:9 root and the default 1:1 zoom viewport.
 
 ### Bridge with `Resource::formSchema()`
 

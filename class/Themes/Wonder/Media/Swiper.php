@@ -11,17 +11,32 @@
         protected function renderMedia($class): string
         {
             $id       = $this->mediaId($class, 'swiper');
-            $items    = $this->normalizeImages($class->getSchema('images') ?? []);
+            $contentMode = ($class->getSchema('mode') ?? 'images') === 'slides';
+            $items    = $contentMode
+                ? ($class->getSchema('slides') ?? [])
+                : $this->normalizeImages($class->getSchema('images') ?? []);
 
-            $thumbs   = (bool) ($class->getSchema('thumbnails') ?? false);
-            $zoom     = (bool) ($class->getSchema('zoom') ?? false);
-            $lightbox = (bool) ($class->getSchema('lightbox') ?? false);
+            $thumbs   = !$contentMode && (bool) ($class->getSchema('thumbnails') ?? false);
+            $zoom     = !$contentMode && (bool) ($class->getSchema('zoom') ?? false);
+            $lightbox = !$contentMode && (bool) ($class->getSchema('lightbox') ?? false);
             $group    = $class->getSchema('lightbox-group') ?? ($id . '-lightbox');
 
             $size      = (int) ($class->getSchema('size') ?? 1440);
             $thumbSize = (int) ($class->getSchema('thumbs-size') ?? 240);
             $fullSize  = (int) ($class->getSchema('full-size') ?? max(RESPONSIVE_IMAGE_SIZES));
             $fit       = ($class->getSchema('fit-contain') ?? false) ? 'contain' : 'cover';
+            $imageRatio = !$contentMode && is_array($class->getSchema('image-ratio'))
+                ? $class->getSchema('image-ratio')
+                : null;
+            $thumbsRatio = !$contentMode && is_array($class->getSchema('thumbs-ratio'))
+                ? $class->getSchema('thumbs-ratio')
+                : null;
+            $slideClasses = $class->getSchema('slide-classes') ?? [];
+            $thumbSlideClasses = $class->getSchema('thumb-slide-classes') ?? [];
+            $imageRatioAttributes = $this->mediaRatioAttributes($imageRatio);
+            $thumbsRatioAttributes = $this->mediaRatioAttributes($thumbsRatio);
+            $imageRatioSuffix = $imageRatioAttributes !== '' ? " $imageRatioAttributes" : '';
+            $thumbsRatioSuffix = $thumbsRatioAttributes !== '' ? " $thumbsRatioAttributes" : '';
 
             $slides = "";
             $thumbSlides = "";
@@ -30,23 +45,37 @@
 
             foreach ($items as $item) {
 
+                if ($contentMode) {
+                    $mainClasses = $this->escape($this->mediaClasses(['swiper-slide'], $slideClasses));
+                    $slides .= "<div class='$mainClasses'>".$this->renderSlideContent($item, 'wonder')."</div>";
+                    continue;
+                }
+
                 if ($zoom) {
                     $img = $this->renderImage($item['src'], $item['alt'], $size, $fit, true);
-                    $slides .= "<div class='swiper-slide w-100'><div class='f-panzoom w-100'><div class='f-1-1 f-panzoom__viewport w-100 o-hidden'><div class='f-panzoom__content p-a top start w-100 h-100'>$img</div></div></div></div>";
+                    $mainClasses = $this->escape($this->mediaClasses(['swiper-slide', 'w-100'], $slideClasses));
+                    $viewportDefaults = $imageRatio === null
+                        ? ['f-1-1', 'f-panzoom__viewport', 'w-100', 'o-hidden']
+                        : ['f-panzoom__viewport', 'w-100', 'o-hidden'];
+                    $viewportClasses = $this->escape($this->mediaClasses($viewportDefaults, []));
+                    $slides .= "<div class='$mainClasses'><div class='f-panzoom w-100'><div class='$viewportClasses'$imageRatioSuffix><div class='f-panzoom__content p-a top start w-100 h-100'>$img</div></div></div></div>";
                 } elseif ($lightbox) {
                     $img = $this->renderImage($item['src'], $item['alt'], $size, $fit);
-                    $slides .= "<a class='swiper-slide o-hidden' data-fancybox-trigger='$group' data-fancybox-index='$i'>$img</a>";
+                    $mainClasses = $this->escape($this->mediaClasses(['swiper-slide', 'o-hidden'], $slideClasses));
+                    $slides .= "<a class='$mainClasses' data-fancybox-trigger='$group' data-fancybox-index='$i'$imageRatioSuffix>$img</a>";
                     $full    = $this->imageUrl($item['src'], $fullSize);
                     $caption = $item['alt'] !== '' ? " data-caption=\"" . $this->escape($item['alt']) . "\"" : '';
                     $hidden .= "<a data-fancybox=\"$group\" data-src=\"$full\"$caption></a>";
                 } else {
                     $img = $this->renderImage($item['src'], $item['alt'], $size, $fit);
-                    $slides .= "<div class='swiper-slide o-hidden'>$img</div>";
+                    $mainClasses = $this->escape($this->mediaClasses(['swiper-slide', 'o-hidden'], $slideClasses));
+                    $slides .= "<div class='$mainClasses'$imageRatioSuffix>$img</div>";
                 }
 
                 if ($thumbs) {
                     $thumbImg = $this->renderImage($item['src'], $item['alt'], $thumbSize, 'cover');
-                    $thumbSlides .= "<div class='swiper-slide o-hidden'>$thumbImg</div>";
+                    $thumbClasses = $this->escape($this->mediaClasses(['swiper-slide', 'o-hidden'], $thumbSlideClasses));
+                    $thumbSlides .= "<div class='$thumbClasses'$thumbsRatioSuffix>$thumbImg</div>";
                 }
 
                 $i++;
@@ -56,7 +85,11 @@
 
             if ($lightbox && $hidden !== '') { $html .= "<div class='d-none'>$hidden</div>"; }
 
-            $html .= "<div id='$id' class='swiper w-100'><div class='swiper-wrapper'>$slides</div>";
+            $rootClasses = $this->escape($this->mediaRootClasses($class, ['swiper', 'w-100']));
+            $rootAttributes = $this->mediaRootAttributes($class);
+            $html .= "<div id='$id' class='$rootClasses'"
+                .($rootAttributes !== '' ? " $rootAttributes" : '')
+                ."><div class='swiper-wrapper'>$slides</div>";
             if ($class->getSchema('pagination')) { $html .= "<div class='swiper-pagination'></div>"; }
             if ($class->getSchema('navigation')) { $html .= "<div class='swiper-button-next'></div><div class='swiper-button-prev'></div>"; }
             $html .= "</div>";
@@ -80,6 +113,14 @@
             $opts = [ 'grabCursor: true', 'watchSlidesProgress: true' ];
             $opts[] = 'slidesPerView: ' . ($class->getSchema('slides-per-view') ?? 1);
             $opts[] = 'spaceBetween: ' . (int) ($class->getSchema('space-between') ?? 0);
+            if ($class->getSchema('auto-height')) { $opts[] = 'autoHeight: true'; }
+            if ($class->getSchema('keyboard'))    { $opts[] = 'keyboard: { enabled: true }'; }
+            if ($class->getSchema('watch-overflow') !== null) {
+                $opts[] = 'watchOverflow: '.($class->getSchema('watch-overflow') ? 'true' : 'false');
+            }
+            if ($class->getSchema('breakpoints')) {
+                $opts[] = 'breakpoints: ' . $this->encodeSwiperBreakpoints($class->getSchema('breakpoints'));
+            }
             if ($class->getSchema('loop'))       { $opts[] = 'loop: true'; }
             if ($class->getSchema('autoplay'))   { $opts[] = 'autoplay: { delay: ' . (int) $class->getSchema('autoplay') . ' }'; }
             if ($class->getSchema('pagination')) { $opts[] = "pagination: { el: '#$id .swiper-pagination', clickable: true }"; }
@@ -103,5 +144,4 @@
 
             return "<script>\n" . implode("\n", $lines) . "\n</script>";
         }
-
     }

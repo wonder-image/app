@@ -45,7 +45,7 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `Video` | `Elements/Media/Video.php` | video HTML5 |
 | `Iframe` | `Elements/Media/Iframe.php` | contenuto iframe |
 | `Gallery` | `Elements/Media/Gallery.php` | gallery con lightbox |
-| `Swiper` | `Elements/Media/Swiper.php` | carosello immagini |
+| `Swiper` | `Elements/Media/Swiper.php` | carosello immagini o contenuti HTML/componenti |
 
 I metodi di composizione arrivano da Concerns riusabili:
 
@@ -140,6 +140,59 @@ wrapper `col-*`; per esempio, dentro `columns(3)` ogni card predefinita riceve
 alla card stessa, senza un ulteriore contenitore. Essendo un renderer backend,
 `ResourceFormLayoutRenderer` risolve esplicitamente tutti gli Element figli con
 il tema Bootstrap, indipendentemente dal tema globale attivo.
+
+## Accordion
+
+`Accordion` usa lo stesso Element per il backend Bootstrap e per il frontend
+Wonder. Titolo e descrizione semplice possono essere passati direttamente:
+
+```php
+use Wonder\Elements\Components\Accordion;
+
+Accordion::make('Come funziona la spedizione?')
+    ->description(
+        'Prepariamo e affidiamo il pacco al corriere entro due giorni lavorativi.'
+    )
+    ->icon('chevron')
+    ->titleSize('text')
+    ->descriptionSize('text-small')
+    ->expanded();
+```
+
+Nel tema Wonder il renderer riusa il dropdown collassabile della lib:
+`wi-dropdown-box`, `wi-dropdown-title wi-switcher` e
+`wi-dropdown-content`. `expanded(true)` aggiunge `wi-show` al box e rende
+subito l'icona aperta corretta.
+
+Nel renderer Wonder le varianti di `icon()` sono:
+
+- `plus`: `bi-plus` da chiuso, `bi-dash` da aperto;
+- `chevron`: `bi-chevron-down` da chiuso, `bi-chevron-up` da aperto;
+- `plus-lg`: `bi-plus-lg` da chiuso, `bi-dash-lg` da aperto.
+
+Sono accettati anche gli alias Bootstrap Icons completi, per esempio
+`->icon('bi bi-plus-lg')`. Sempre nel renderer Wonder, i preset ammessi da
+`titleSize()` e `descriptionSize()` sono `title-big`, `title`, `subtitle`,
+`text` e `text-small`; una stringa vuota ripristina lo stile nativo del
+componente. Bootstrap mantiene invece indicatore e tipografia nativi.
+
+La descrizione stringa viene escapata. Per contenuti strutturati si possono
+aggiungere Element figli, renderizzati con lo stesso tema richiesto
+all'accordion:
+
+```php
+use Wonder\Elements\Components\Alert;
+
+Accordion::make('Serve aiuto?')
+    ->components([
+        Alert::make('Contattaci e ti risponderemo al più presto.')
+            ->dismissible(false),
+    ]);
+```
+
+`flush()` resta una variante del renderer Bootstrap. Nel tema Wonder non
+serve CSS o JavaScript aggiuntivo: il toggle e lo scambio icona sono già
+forniti da `wonder-image/lib`; il sito deve includere Bootstrap Icons.
 
 ## Esempio: Alert
 
@@ -300,9 +353,10 @@ Per i grafici (LineChart, PieChart su Chart.js) vedi la pagina
 
 ## Swiper e Gallery
 
-Per i caroselli di immagini (`__swiper()` con thumbnails + zoom Panzoom o
-lightbox Fancybox) e le gallery responsive (`__gallery()`, che sostituisce la
-vecchia `responsiveGallery()`) vedi la pagina
+Per i caroselli di immagini o componenti HTML (`__swiper()` / `->slides()`),
+con breakpoint responsive, ratio per immagini/miniature, classi slide e opzioni
+immagine come thumbnails, zoom Panzoom o lightbox Fancybox, e per le gallery
+responsive (`__gallery()`, che sostituisce la vecchia `responsiveGallery()`), vedi la pagina
 [Swiper e Gallery](swiper-e-gallery.md).
 
 ## Video e Iframe

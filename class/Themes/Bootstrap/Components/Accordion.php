@@ -5,31 +5,36 @@ namespace Wonder\Themes\Bootstrap\Components;
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
 use Wonder\Themes\Bootstrap\Concerns\RendersText;
-use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Concerns\RendersComponentAttributes;
+use Wonder\Themes\Concerns\RendersThemeComponents;
 
 class Accordion extends Component
 {
-    use CanSpanColumn, RendersText, HasAttributes;
+    use CanSpanColumn, RendersText, RendersComponentAttributes, RendersThemeComponents;
 
     public function render($class): string
     {
         $schema = $class->getSchema();
         $title = $this->escapeText(trim($class->getText()));
+        $description = $this->escapeText(trim($class->getDescription()));
         $expanded = (bool) ($schema['expanded'] ?? false);
         $flush = (bool) ($schema['flush'] ?? false);
         $classSpanColumn = $this->getColumnSpan($class->columnSpan);
-        $attributes = $this->renderAttributes($schema['attributes'] ?? null);
         $id = $this->createId();
 
         $collapsed = $expanded ? '' : ' collapsed';
         $show = $expanded ? ' show' : '';
         $ariaExpanded = $expanded ? 'true' : 'false';
-        $flushClass = $flush ? ' accordion-flush' : '';
+        $accordionClasses = ['accordion'];
+        if ($flush) {
+            $accordionClasses[] = 'accordion-flush';
+        }
 
-        $content = $this->renderComponents($class->components);
+        $attributes = $this->renderComponentAttributes($class, $accordionClasses);
+        $content = $description.$this->renderThemeComponents($class->components, 'bootstrap');
 
         $html = "<div class=\"{$classSpanColumn}\">";
-        $html .= "<div class=\"accordion{$flushClass}\" {$attributes}>";
+        $html .= "<div {$attributes}>";
         $html .= '<div class="accordion-item">';
         $html .= '<div class="accordion-header">';
         $html .= "<button class=\"accordion-button{$collapsed}\" type=\"button\""

@@ -70,6 +70,18 @@ Output atteso:
 Le chiavi presenti nel `.env` ma vuote (`KEY=`) vengono riempite. Quelle
 già valorizzate vengono lasciate intatte (per-project override vince).
 
+> **Manca `BWS_ACCESS_TOKEN`?** Su un sito non ancora provisioned (es. `.env`
+> copiato da `.env.example` senza aver eseguito `php forge provision`) il
+> merge dev-shared non può girare: `forge config` lo salta e ora lo dice
+> esplicitamente, invece di restare in silenzio:
+>
+> ```
+> ℹ️ BWS_ACCESS_TOKEN non impostato nel .env: salto il merge dev-shared (chiavi dev condivise come G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, ...). Esegui `php forge provision` per configurare Bitwarden, poi rilancia `php forge config`.
+> ```
+>
+> In CI il layer dev-shared resta invece un no-op totale e silenzioso (in
+> produzione il `.env` arriva dal project Bitwarden del sito).
+
 ## Auto-discovery vs override esplicito
 
 Di default il framework cerca un project Bitwarden chiamato `dev-shared`

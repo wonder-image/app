@@ -765,16 +765,26 @@
 
                 } else {
 
-                    if ($this->mysqli->query( $query )) {
-    
+                    # La migrazione può aggiungere FOREIGN KEY su tabelle che
+                    # contengono già dati (ALTER) o creare tabelle il cui
+                    # riferimento non è ancora stato creato (ordine di CREATE):
+                    # disabilita i controlli FK per il singolo DDL così ALTER/CREATE
+                    # non falliscono per dati pre-esistenti o dipendenze non ancora
+                    # presenti. L'integrità resta garantita dalle scritture runtime.
+                    $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 0');
+                    $ddlOk = $this->mysqli->query( $query );
+                    $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
+
+                    if ($ddlOk) {
+
                         $RETURN =  (object) array();
                         $RETURN->table = $name;
                         $RETURN->query = $query;
-                        
+
                         return $RETURN;
-                        
+
                     } else {
-    
+
                         new Error( 'Table', $name, $query, $this->mysqli );
             
                     }

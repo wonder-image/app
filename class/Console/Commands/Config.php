@@ -197,19 +197,19 @@ class Config extends Command
         // dev-shared layer: chiavi dev condivise tra tutti i progetti
         // locali (RECAPTCHA test, GTM/Pixel dev, SMTP locale/Mailtrap,
         // Klaviyo/Brevo dev, Maps API dev, ecc.). Auto-discovery per nome
-        // del project Bitwarden `dev-shared`. No-op se:
-        //   - sei in CI (su prod il .env viene da Bitwarden del progetto,
-        //     mai da dev-shared);
-        //   - non c'è ancora un BWS_ACCESS_TOKEN nel .env (prima esecuzione
-        //     post-clone: l'utente esegue dopo `forge provision` che lo crea).
-        // Idempotente: rilanciato non sovrascrive i valori già impostati
-        // localmente (per-project override vince).
-        if (!$isCi) {
-            $bwAccessToken = trim((string) ($_ENV['BWS_ACCESS_TOKEN'] ?? ''));
-            if ($bwAccessToken !== '') {
-                $this->applyDevSharedToLocalEnv($bwAccessToken, $envPath, $lines, $keyToIndex, $output);
-            }
-        }
+        // del project Bitwarden `dev-shared`. La decisione "eseguo/salto" è
+        // in syncDevSharedLayer(): in CI è un no-op silenzioso, in locale
+        // senza token diventa un messaggio esplicito (prima era un no-op
+        // muto che lasciava il developer senza spiegazione del perché le
+        // chiavi dev non comparivano nel .env).
+        $this->syncDevSharedLayer(
+            $isCi,
+            (string) ($_ENV['BWS_ACCESS_TOKEN'] ?? ''),
+            $envPath,
+            $lines,
+            $keyToIndex,
+            $output
+        );
 
         // Crea package.json se non esiste
         if (!file_exists($packageJsonPath)) {
@@ -888,6 +888,46 @@ class Config extends Command
      * NON viene mai chiamato da `forge provision` quando sincronizza il
      * project di produzione: dev-shared è puramente layer locale.
      */
+    /**
+     * Decide se applicare il merge dev-shared al .env locale e — quando lo
+     * salta — lo comunica in modo esplicito e azionabile.
+     *
+     * Tre esiti:
+     * - CI: no-op totale e silenzioso. In produzione il .env viene generato
+     *   dal project Bitwarden del sito, mai da dev-shared: non deve nemmeno
+     *   provare a leggere il token.
+     * - Locale SENZA BWS_ACCESS_TOKEN: messaggio informativo. Senza token il
+     *   merge non può girare; prima era un no-op muto e su un sito non ancora
+     *   provisioned (es. `.env` copiato da `.env.example` senza `forge
+     *   provision`) le chiavi dev — G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY,
+     *   MAIL_HOST, ... — semplicemente non comparivano, senza spiegazione. Il
+     *   messaggio rimanda a `php forge provision` che scrive il token.
+     * - Locale CON token: delega a applyDevSharedToLocalEnv(), che a sua
+     *   volta è graceful (bws mancante / project `dev-shared` assente →
+     *   messaggio informativo, non errore).
+     */
+    protected function syncDevSharedLayer(
+        bool $isCi,
+        string $bwAccessToken,
+        string $envPath,
+        array &$lines,
+        array &$keyToIndex,
+        OutputInterface $output
+    ): void {
+        if ($isCi) {
+            return;
+        }
+
+        $bwAccessToken = trim($bwAccessToken);
+
+        if ($bwAccessToken === '') {
+            $output->writeln('<comment>ℹ️ BWS_ACCESS_TOKEN non impostato nel .env: salto il merge dev-shared (chiavi dev condivise come G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, ...). Esegui `php forge provision` per configurare Bitwarden, poi rilancia `php forge config`.</comment>');
+            return;
+        }
+
+        $this->applyDevSharedToLocalEnv($bwAccessToken, $envPath, $lines, $keyToIndex, $output);
+    }
+
     protected function applyDevSharedToLocalEnv(
         string $bwAccessToken,
         string $envPath,
