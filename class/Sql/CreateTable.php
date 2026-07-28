@@ -773,9 +773,10 @@
                     # presenti. L'integrità resta garantita dalle scritture runtime.
                     $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 0');
                     $ddlOk = $this->mysqli->query( $query );
-                    $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
 
                     if ($ddlOk) {
+
+                        $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
 
                         $RETURN =  (object) array();
                         $RETURN->table = $name;
@@ -785,8 +786,12 @@
 
                     } else {
 
+                        # Riporta l'errore reale del DDL PRIMA di riabilitare i
+                        # controlli FK: un'ulteriore query (il SET) azzererebbe lo
+                        # stato di errore di mysqli letto da Error().
                         new Error( 'Table', $name, $query, $this->mysqli );
-            
+                        $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 1');
+
                     }
 
                 }

@@ -838,7 +838,7 @@ class Config extends Command
      *
      * Categorie:
      * - Bootstrap Bitwarden (BWS_*): ricorsivi, vanno nel .env locale
-     *   tramite `forge provision`.
+     *   tramite `forge credentials` o `forge provision`.
      * - Identità del progetto (APP_DOMAIN, APP_URL, APP_KEY): per
      *   definizione diverse tra progetti.
      * - Secret di solo produzione (FTP_*, APP_DEPLOY_TOKEN, ecc.): mai
@@ -867,6 +867,21 @@ class Config extends Command
         ];
     }
 
+    protected function isDevSharedDisabledKey(string $key): bool
+    {
+        if (in_array($key, $this->devSharedDisabledKeys(), true)) {
+            return true;
+        }
+
+        foreach (['BWS_', 'APP_', 'DB_', 'FTP_', 'USER_'] as $prefix) {
+            if (str_starts_with($key, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Merge "fill-missing" delle chiavi del project Bitwarden "dev-shared"
      * nel .env locale.
@@ -875,8 +890,8 @@ class Config extends Command
      * - Se la chiave è già presente e non vuota nel .env locale: NIENTE.
      *   Il per-project override vince sempre su dev-shared (così tieni
      *   una chiave diversa per un singolo progetto se serve).
-     * - Se la chiave è in `devSharedDisabledKeys()`: skip (project-
-     *   specific o ricorsiva).
+     * - Se la chiave è nella denylist o usa un prefisso project-specific
+     *   (`BWS_*`, `APP_*`, `DB_*`, `FTP_*`, `USER_*`): skip.
      * - Altrimenti: scrivi nel .env locale.
      *
      * No-op silenzioso se:
@@ -901,7 +916,8 @@ class Config extends Command
      *   provisioned (es. `.env` copiato da `.env.example` senza `forge
      *   provision`) le chiavi dev — G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY,
      *   MAIL_HOST, ... — semplicemente non comparivano, senza spiegazione. Il
-     *   messaggio rimanda a `php forge provision` che scrive il token.
+     *   messaggio rimanda al comando dedicato `php forge credentials`, che
+     *   chiede e salva il token senza avviare il provisioning di produzione.
      * - Locale CON token: delega a applyDevSharedToLocalEnv(), che a sua
      *   volta è graceful (bws mancante / project `dev-shared` assente →
      *   messaggio informativo, non errore).
@@ -921,7 +937,7 @@ class Config extends Command
         $bwAccessToken = trim($bwAccessToken);
 
         if ($bwAccessToken === '') {
-            $output->writeln('<comment>ℹ️ BWS_ACCESS_TOKEN non impostato nel .env: salto il merge dev-shared (chiavi dev condivise come G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, ...). Esegui `php forge provision` per configurare Bitwarden, poi rilancia `php forge config`.</comment>');
+            $output->writeln('<comment>ℹ️ BWS_ACCESS_TOKEN non impostato nel .env: salto il merge dev-shared (chiavi dev condivise come G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, ...). Esegui `php forge credentials` per scaricarle da Bitwarden.</comment>');
             return;
         }
 
@@ -950,34 +966,72 @@ class Config extends Command
             return;
         }
 
-        $disabled = array_flip($this->devSharedDisabledKeys());
+        $this->mergeDevSharedSecretsIntoLocalEnv(
+            $secrets,
+            $envPath,
+            $lines,
+            $keyToIndex,
+            $output
+        );
+    }
+
+    /**
+     * Applica al `.env` locale una mappa key/value già scaricata dal project
+     * Bitwarden `dev-shared`.
+     *
+     * @return int|null Numero di chiavi aggiunte, oppure null se il file non
+     *                  può essere scritto.
+     */
+    protected function mergeDevSharedSecretsIntoLocalEnv(
+        array $secrets,
+        string $envPath,
+        array &$lines,
+        array &$keyToIndex,
+        OutputInterface $output,
+        bool $force = false
+    ): ?int {
         $added = [];
         $skipped = [];
-        $dirty = false;
+        $invalid = [];
+        $empty = [];
 
         foreach ($secrets as $key => $value) {
-            if (isset($disabled[$key])) {
+            if (!is_string($key) || preg_match('/^[A-Z][A-Z0-9_]*$/', $key) !== 1) {
+                $invalid[] = (string) $key;
+                continue;
+            }
+
+            if ($this->isDevSharedDisabledKey($key)) {
                 $skipped[] = $key;
+                continue;
+            }
+
+            if ((string) $value === '') {
+                $empty[] = $key;
                 continue;
             }
 
             // Per-project override: se .env locale ha già un valore
             // non-vuoto, lo manteniamo. Vince sempre il progetto.
             $existing = $this->envValue($lines, $keyToIndex, $key);
-            if ($existing !== '') {
+            if (!$force && $existing !== '') {
                 continue;
             }
 
-            $this->setEnvValue($lines, $keyToIndex, $key, (string) $value);
+            $this->setQuotedEnvValue($lines, $keyToIndex, $key, (string) $value);
             $added[] = $key;
-            $dirty = true;
         }
 
-        if ($dirty) {
-            file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL);
+        if ($added !== []) {
+            if (file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL) === false) {
+                $output->writeln('<error>❌ Impossibile aggiornare il file .env con le credenziali dev-shared.</error>');
+                return null;
+            }
+
             // Re-sincronizziamo l'indice dopo gli insert.
             $keyToIndex = $this->envKeyToIndex($lines);
-            $output->writeln('<info>🔄 dev-shared → .env locale (fill-missing): '.implode(', ', $added).'</info>');
+            $mode = $force ? 'force' : 'fill-missing';
+            $output->writeln('<info>🔄 dev-shared → .env locale ('.$mode.'): '.implode(', ', $added).'</info>');
         } else {
             $output->writeln('<info>↺ dev-shared sincronizzato: niente da aggiungere al .env locale.</info>');
         }
@@ -985,6 +1039,16 @@ class Config extends Command
         if ($skipped !== []) {
             $output->writeln('<comment>⚠️ dev-shared contiene chiavi project-specific che ho ignorato: '.implode(', ', $skipped).'. Andrebbero rimosse da `dev-shared` (vivono nel project del singolo sito).</comment>');
         }
+
+        if ($invalid !== []) {
+            $output->writeln('<comment>⚠️ dev-shared contiene chiavi non valide per un file .env che ho ignorato: '.implode(', ', $invalid).'. Usa solo nomi A-Z, 0-9 e underscore.</comment>');
+        }
+
+        if ($empty !== []) {
+            $output->writeln('<comment>⚠️ dev-shared contiene secret senza valore che ho ignorato: '.implode(', ', $empty).'.</comment>');
+        }
+
+        return count($added);
     }
 
     protected function bitwardenProjectSecrets(string $bwProjectId, string $bwAccessToken, OutputInterface $output): ?array
@@ -1132,7 +1196,18 @@ class Config extends Command
 
         $line = $lines[$keyToIndex[$key]];
         $parts = explode('=', $line, 2);
-        $raw = $parts[1] ?? '';
+        $raw = trim($parts[1] ?? '');
+
+        if ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
+            try {
+                $parsed = Dotenv::parse('WONDER_ENV_VALUE='.$raw);
+                $value = $parsed['WONDER_ENV_VALUE'] ?? '';
+
+                return is_string($value) ? $value : '';
+            } catch (\Dotenv\Exception\InvalidFileException) {
+                // Mantiene la compatibilità con righe legacy non parseabili.
+            }
+        }
 
         return trim(trim($raw), "\"'");
     }
@@ -1148,6 +1223,30 @@ class Config extends Command
 
         $lines[] = $row;
         $keyToIndex[$key] = count($lines) - 1;
+    }
+
+    protected function setQuotedEnvValue(array &$lines, array &$keyToIndex, string $key, string $value): void
+    {
+        $this->setEnvValue($lines, $keyToIndex, $key, $this->quoteEnvValue($value));
+    }
+
+    /**
+     * Serializza un valore arbitrario su una sola riga `.env`, preservando
+     * caratteri che Dotenv altrimenti tratterebbe come commenti, variabili o
+     * delimitatori.
+     */
+    protected function quoteEnvValue(string $value): string
+    {
+        return '"'.strtr($value, [
+            '\\' => '\\\\',
+            '"' => '\\"',
+            '$' => '\\$',
+            "\n" => '\\n',
+            "\r" => '\\r',
+            "\t" => '\\t',
+            "\v" => '\\v',
+            "\f" => '\\f',
+        ]).'"';
     }
 
     protected function removeEnvValue(array &$lines, array &$keyToIndex, string $key): void

@@ -8,11 +8,12 @@ Klaviyo, SMTP di test, Stripe test, …) hanno valori diversi fra **locale** e
 in locale ti basta una set di chiavi "dev" personali che riusi su ogni
 progetto.
 
-`forge config` e `forge provision` supportano un **progetto Bitwarden
-condiviso** chiamato `dev-shared`: viene scoperto automaticamente per nome
-dal tuo `BWS_ACCESS_TOKEN` e i suoi secret vengono copiati nel `.env` locale
-del progetto in modalità **fill-missing** (se la chiave è già impostata
-localmente, non la sovrascrive).
+`forge credentials` scarica un **progetto Bitwarden condiviso** chiamato
+`dev-shared`: viene scoperto automaticamente per nome dal tuo
+`BWS_ACCESS_TOKEN` e i suoi secret vengono copiati nel `.env` locale del
+progetto in modalità **fill-missing** (se la chiave è già impostata
+localmente, non la sovrascrive). Anche `forge config` e `forge provision`
+mantengono questo merge opportunistico quando il token è già disponibile.
 
 In produzione `dev-shared` non viene MAI letto: il `.env` di prod è generato
 dal workflow CI partendo solo dal project Bitwarden specifico del sito.
@@ -52,31 +53,49 @@ var che il framework legge:
 > errore le metti in `dev-shared` vengono semplicemente ignorate, con un
 > warning a console.
 
-### 3. Esegui forge config
+### 3. Scarica le credenziali
 
-Su un qualsiasi progetto wonder-image con `BWS_ACCESS_TOKEN` impostato in
-`.env`:
+Da un qualsiasi sito Wonder:
 
 ```bash
-php forge config
+php forge credentials
 ```
+
+Se `BWS_ACCESS_TOKEN` manca, il comando lo chiede con input nascosto e lo
+salva nel `.env` locale solo dopo una lettura Bitwarden riuscita. Non
+configura GitHub e non legge il project Bitwarden di produzione del sito.
 
 Output atteso:
 
 ```
-🔄 dev-shared → .env locale: G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, BREVO_API_KEY
+🔄 dev-shared → .env locale (fill-missing): G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, BREVO_API_KEY
+✅ Credenziali Bitwarden dev-shared sincronizzate nel .env locale.
 ```
 
 Le chiavi presenti nel `.env` ma vuote (`KEY=`) vengono riempite. Quelle
 già valorizzate vengono lasciate intatte (per-project override vince).
 
-> **Manca `BWS_ACCESS_TOKEN`?** Su un sito non ancora provisioned (es. `.env`
-> copiato da `.env.example` senza aver eseguito `php forge provision`) il
-> merge dev-shared non può girare: `forge config` lo salta e ora lo dice
-> esplicitamente, invece di restare in silenzio:
+Per ripristinare intenzionalmente tutti i valori condivisi, sovrascrivendo
+gli override locali ma continuando a escludere `APP_*`, `DB_*`, `FTP_*`,
+`USER_*` e le altre chiavi project-specific:
+
+```bash
+php forge credentials --force
+```
+
+Se il token salvato è scaduto o revocato, chiedine e validane uno nuovo senza
+modificare manualmente il `.env`:
+
+```bash
+php forge credentials --refresh-token
+```
+
+> **Perché non basta il primo `forge config`?** Lo `.env.example` iniziale
+> non contiene `BWS_ACCESS_TOKEN`, quindi il setup Composer non può
+> autenticarsi a Bitwarden. `forge config` lo segnala senza bloccare:
 >
 > ```
-> ℹ️ BWS_ACCESS_TOKEN non impostato nel .env: salto il merge dev-shared (chiavi dev condivise come G_RECAPTCHA_SITE_KEY, KLAVIYO_API_KEY, MAIL_HOST, ...). Esegui `php forge provision` per configurare Bitwarden, poi rilancia `php forge config`.
+> ℹ️ BWS_ACCESS_TOKEN non impostato nel .env: salto il merge dev-shared (...). Esegui `php forge credentials` per scaricarle da Bitwarden.
 > ```
 >
 > In CI il layer dev-shared resta invece un no-op totale e silenzioso (in
@@ -120,8 +139,8 @@ riga `KEY=` non shadow-a un valore valido del DB).
 
 1. Installi `bws` CLI
 2. Generi un nuovo `BWS_ACCESS_TOKEN` su Bitwarden web
-3. Cloni i progetti, imposti il token in ogni `.env` locale
-4. Esegui `php forge config` o `php forge provision`
+3. Cloni i progetti
+4. Esegui `php forge credentials` e inserisci il token quando richiesto
 5. Auto-discovery trova `dev-shared` e riempie il `.env` automaticamente
 
 Nessuna chiave persa, nessun file di backup da mantenere.
@@ -138,8 +157,14 @@ bws secret list <UUID_DEV_SHARED>
 # Aggiungi un nuovo secret a dev-shared
 bws secret create G_RECAPTCHA_SITE_KEY "6LeIxAcT...test_key" <UUID_DEV_SHARED>
 
-# Forza un re-merge dev-shared → .env locale (idempotente)
-php forge config
+# Ripristina le sole chiavi mancanti (idempotente)
+php forge credentials
+
+# Sostituisce anche gli override locali con i default dev-shared
+php forge credentials --force
+
+# Sostituisce un BWS_ACCESS_TOKEN scaduto o revocato
+php forge credentials --refresh-token
 ```
 
 ## Cosa NON deve finire in dev-shared

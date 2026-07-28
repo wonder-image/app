@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- Comando `php forge credentials` (alias `bitwarden:pull`) per scaricare o
+  ripristinare nel `.env` locale le credenziali Bitwarden `dev-shared`;
+  preserva gli override per progetto per default e supporta `--force` e
+  `--refresh-token`.
 - Renderer Wonder per `Elements\Components\Accordion`, con stato iniziale
   `expanded`, tre coppie di icone, descrizione semplice e preset tipografici
   configurabili per titolo e contenuto.

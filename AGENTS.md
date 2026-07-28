@@ -52,6 +52,7 @@ Key subareas:
 - `app/config/routes`: Symfony routing definitions
 - `app/http`: backend/API handlers
 - `app/build/cli`, `app/build/update`, `app/build/row`, `app/build/stubs`: update/provisioning/build assets
+- `class/Console/Commands/BitwardenCredentials.php`: comando locale `forge credentials` per ripristinare nel `.env` i default Bitwarden `dev-shared` senza eseguire il provisioning GitHub/produzione
 
 ## Setup commands
 
@@ -66,6 +67,7 @@ Consumer project flow (from docs; run in the app that requires this package):
 
 ```bash
 php forge config
+php forge credentials
 php forge provision
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 php forge update --local

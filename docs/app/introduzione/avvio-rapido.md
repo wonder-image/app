@@ -44,6 +44,16 @@ Completa `.env`, normalizza `APP_DOMAIN` / `APP_URL` / `ASSETS_VERSION`,
 aggiorna `composer.json`, crea `package.json` se manca e in locale esegue
 `npm install wonder-image`.
 
+Per scaricare nel `.env` le credenziali di sviluppo condivise dal project
+Bitwarden `dev-shared` (anche nei progetti esistenti):
+
+```bash
+php forge credentials
+```
+
+Il comando chiede e salva `BWS_ACCESS_TOKEN` se manca, aggiunge solo le
+chiavi assenti o vuote e non avvia il provisioning GitHub/produzione.
+
 ## 3. Genera i file locali
 
 ```bash
@@ -84,6 +94,7 @@ Vai su `https://nome.test/backend/` e accedi con le credenziali `USER_*` del
 | Comando | Quando | Cosa fa |
 |---|---|---|
 | `php forge config` | setup iniziale, locale | completa `.env`, npm install |
+| `php forge credentials` | locale, setup o recovery | scarica i default `dev-shared` da Bitwarden |
 | `php forge provision` | solo locale | GitHub + Bitwarden + dev-shared |
 | `php forge update --local` | locale | genera `handler/`, applica tabelle, task CLI |
 | `php forge update` | CI / server | applica tabelle e update (no task CLI) |
@@ -103,6 +114,7 @@ I comandi vivono in `class/Console/Commands/*` e si lanciano dalla radice del
 - **Manca `handler/index.php`** → hai eseguito solo `php forge config`. Lancia
   `php forge update --local`.
 - **`npm WARN EBADENGINE`** → Node < 20. Aggiorna a Node 20+.
+- **Mancano le credenziali dev condivise** → esegui `php forge credentials`.
 - **403 / pagina backend vuota** → utente senza authority. Vedi
   [Utenti e Permessi](../concetti/utenti/README.md).
 - **Versione installata vecchia** → `composer clear-cache` e riusa `:dev-main`.
@@ -112,6 +124,7 @@ I comandi vivono in `class/Console/Commands/*` e si lanciano dalla radice del
 - [ ] `php --version` ≥ 8.2, `node --version` ≥ 20
 - [ ] progetto creato con `:dev-main`
 - [ ] `php forge config` eseguito
+- [ ] `php forge credentials` eseguito, se usi il project Bitwarden `dev-shared`
 - [ ] `php forge update --local` eseguito (esiste `handler/index.php`)
 - [ ] DB inizializzato con `php forge db:init`
 - [ ] sito raggiungibile e login backend ok

@@ -16,6 +16,7 @@
             $this->commands = [
                 \Wonder\Console\Commands\Config::class,
                 \Wonder\Console\Commands\Skills::class,
+                \Wonder\Console\Commands\BitwardenCredentials::class,
                 \Wonder\Console\Commands\Provision::class,
                 \Wonder\Console\Commands\Update::class,
                 \Wonder\Console\Commands\Build::class,

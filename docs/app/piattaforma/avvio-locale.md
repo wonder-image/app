@@ -19,6 +19,7 @@ il flusso pratico consigliato è questo:
 
 ```bash
 php forge config
+php forge credentials
 php forge provision
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 php forge update --local
@@ -28,6 +29,7 @@ php forge start
 Significato rapido:
 
 - `php forge config` prepara il progetto locale e prova a sincronizzare le AI skills raccomandate
+- `php forge credentials` recupera da Bitwarden i default locali `dev-shared` senza configurare GitHub o la produzione
 - `php forge provision` configura l’ambiente di progetto lato GitHub e Bitwarden, utile per il flusso di deploy/produzione
 - `php forge db:init` inizializza `.env` e crea database, utente e grant locali
 - `php forge update --local` genera i file locali necessari (handler, .htaccess) e importa `shared/sync-data.json` se presente nel progetto

@@ -9,6 +9,7 @@ Questa è la procedura reale oggi per usare `wonder-image/app` insieme a `wonder
 I comandi importanti sono questi:
 
 - `php forge config`
+- `php forge credentials`
 - `php forge provision`
 - `php forge update`
 - `php forge build`
@@ -37,6 +38,29 @@ Non fa più:
 - provisioning GitHub
 - provisioning Bitwarden
 
+### `php forge credentials`
+
+Serve solo in locale per scaricare nel `.env` i default di sviluppo dal
+project Bitwarden `dev-shared`, senza avviare il provisioning GitHub o quello
+di produzione.
+
+Fa questo:
+
+- verifica che la CLI `bws` sia disponibile
+- legge `BWS_ACCESS_TOKEN` dal `.env` o dall'ambiente; se manca lo chiede con
+  input nascosto e lo salva localmente solo dopo una lettura riuscita
+- scopre automaticamente il project `dev-shared` (oppure usa
+  `BWS_DEV_SHARED_PROJECT_ID`)
+- aggiunge le chiavi mancanti o vuote preservando gli override locali
+- con `--force` ripristina anche i valori già presenti
+- con `--refresh-token` sostituisce un token scaduto o revocato senza
+  richiedere modifiche manuali al `.env`
+- ignora sempre le chiavi project-specific (`BWS_*`, `APP_*`, `DB_*`,
+  `FTP_*`, `USER_*`, `ASSETS_VERSION`)
+
+È il comando da usare anche sui progetti storici dopo aver aggiornato
+`wonder-image/app`.
+
 ### `php forge provision`
 
 Serve solo in locale.
@@ -55,13 +79,20 @@ In CI viene saltato.
 
 #### Layer `dev-shared` per le chiavi di sviluppo
 
-Chiavi tipo `RECAPTCHA_SITE_KEY`, `GTM_ID`, `SMTP_*`, `KLAVIYO_API_KEY`, `GOOGLE_MAPS_API_KEY` sono diverse tra locale e produzione, ma quelle **dev** sono normalmente le stesse tra tutti i tuoi progetti locali. Mantenerne una copia separata in ogni `.env` significa: riconfigurarle a mano ad ogni nuovo progetto, e perderle se cambi laptop.
+Chiavi tipo `G_RECAPTCHA_SITE_KEY`, `MAIL_*`, `KLAVIYO_API_KEY`,
+`GCP_CLIENT_API_KEY` e `G_MAPS_MAP_ID` sono diverse tra locale e produzione,
+ma quelle **dev** sono normalmente le stesse tra tutti i tuoi progetti
+locali. Mantenerne una copia separata in ogni `.env` significa:
+riconfigurarle a mano ad ogni nuovo progetto, e perderle se cambi laptop.
 
-Soluzione: un singolo project Bitwarden chiamato `dev-shared` che contiene tutte le tue chiavi dev personali. `forge config` e `forge provision` lo scoprono automaticamente.
+Soluzione: un singolo project Bitwarden chiamato `dev-shared` che contiene
+tutte le tue chiavi dev personali. `forge credentials` lo scarica su
+richiesta; `forge config` e `forge provision` mantengono il merge
+opportunistico quando il token è già disponibile.
 
 **Auto-discovery per nome.** Niente UUID hardcoded nel codice, niente `.env` da modificare:
 
-1. `forge config` (o `forge provision`) chiama `bws project list`
+1. `forge credentials` (oppure `forge config` / `forge provision` con token già presente) chiama `bws project list`
 2. Cerca il project con `name == "dev-shared"`
 3. Scarica tutte le chiavi del project
 4. Le scrive nel `.env` locale **solo se non sono già presenti** (per-project override vince sempre)
@@ -69,10 +100,14 @@ Soluzione: un singolo project Bitwarden chiamato `dev-shared` che contiene tutte
 **Setup iniziale (una tantum).** Su Bitwarden Secrets Manager web:
 
 1. Crei un project chiamato esattamente `dev-shared`
-2. Aggiungi le tue chiavi dev (key/value): `RECAPTCHA_SITE_KEY`, `SMTP_HOST`, `GTM_ID`, ecc.
+2. Aggiungi le tue chiavi dev (key/value): `G_RECAPTCHA_SITE_KEY`,
+   `MAIL_HOST`, `GCP_CLIENT_API_KEY`, ecc.
 3. Assicurati che il tuo `BWS_ACCESS_TOKEN` (lo stesso che usi per i project dei progetti) abbia accesso lettura su `dev-shared`
 
-Da quel momento ogni `forge config` / `forge provision` in qualunque progetto popola automaticamente il `.env` locale dalle chiavi `dev-shared`. Idempotente: rilanciato non sovrascrive valori già impostati.
+Da quel momento `forge credentials` in qualunque progetto popola il `.env`
+locale dalle chiavi `dev-shared`. È idempotente: rilanciato non sovrascrive
+valori già impostati; usa `--force` solo per sostituire consapevolmente gli
+override locali.
 
 **Override esplicito.** Se per qualche edge case (es. dev-shared per cliente, multi-tenant) serve forzare un UUID specifico, basta aggiungere al `.env` del progetto:
 
@@ -86,7 +121,10 @@ L'override vince sull'auto-discovery per nome.
 
 **Mai in produzione.** Il deploy CI legge il `.env` di prod **solo** dal project Bitwarden del singolo sito, mai da `dev-shared`. La separazione locale/produzione resta netta.
 
-**Recovery se perdi il Mac.** Reinstalli `bws`, generi un nuovo `BWS_ACCESS_TOKEN`, cloni i progetti, esegui `forge provision` su ognuno. Tutte le chiavi dev tornano dal project `dev-shared` su Bitwarden. Zero chiavi perse.
+**Recovery se perdi il Mac.** Reinstalli `bws`, generi un nuovo
+`BWS_ACCESS_TOKEN`, cloni i progetti, esegui `forge credentials` su ognuno.
+Tutte le chiavi dev tornano dal project `dev-shared` su Bitwarden. Zero
+chiavi perse.
 
 ### `php forge build`
 
@@ -312,25 +350,31 @@ cd project-name
 php forge config
 ```
 
-### 3. Configura GitHub e Bitwarden
+### 3. Scarica i default Bitwarden locali
+
+```bash
+php forge credentials
+```
+
+### 4. Configura GitHub e Bitwarden di produzione
 
 ```bash
 php forge provision
 ```
 
-### 4. Genera handler e file locali
+### 5. Genera handler e file locali
 
 ```bash
 php forge update --local
 ```
 
-### 5. Inizializza database locale
+### 6. Inizializza database locale
 
 ```bash
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 ```
 
-### 6. Configura il proxy media locale (opzionale)
+### 7. Configura il proxy media locale (opzionale)
 
 Se vuoi vedere le immagini di produzione in locale senza scaricarle, aggiungi nel `.env`:
 
@@ -342,7 +386,7 @@ Herd farà redirect automatico per i media mancanti sotto `assets/upload/`.
 
 Vedi [Multi-ambiente](multi-ambiente.md) per i dettagli.
 
-### 7. Avvia o pubblica il progetto
+### 8. Avvia o pubblica il progetto
 
 Da questo punto hai:
 
@@ -952,7 +996,13 @@ Ad oggi il codice del package usa ancora `node_modules/wonder-image`, quindi que
 
 È corretto.
 
-Adesso quella parte sta in:
+Per i default locali `dev-shared` usa:
+
+```bash
+php forge credentials
+```
+
+Per GitHub e il project Bitwarden di produzione usa invece:
 
 ```bash
 php forge provision
@@ -1100,7 +1150,8 @@ Dal **secondo deploy** in poi continua a funzionare allo stesso modo (la shared 
 ## Best practice
 
 - `php forge config` per configurare il progetto
-- `php forge provision` solo quando devi configurare GitHub e Bitwarden
+- `php forge credentials` per scaricare o ripristinare i default locali `dev-shared`
+- `php forge provision` solo quando devi configurare GitHub e Bitwarden di produzione
 - `php forge update --local` solo in locale
 - `php forge db:init` per il provisioning esplicito del database locale
 - `php forge update` in CI o in contesti non locali
