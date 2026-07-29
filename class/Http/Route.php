@@ -41,14 +41,28 @@ class Route
                 continue;
             }
 
+            $directoryFiles = [];
+
             foreach (glob(rtrim($directory, '/').'/route.*.php') ?: [] as $file) {
                 if (is_string($file)) {
-                    $files[] = $file;
+                    $directoryFiles[] = $file;
                 }
             }
-        }
 
-        sort($files);
+            // Ordina i file DENTRO la cartella (deterministico), ma preserva
+            // l'ordine delle cartelle ricevuto dal chiamante. La dispatcher
+            // passa [framework, custom] apposta: le route del sito devono
+            // registrarsi DOPO quelle del framework/moduli, così da vincere
+            // sia il path-matching (first-match-wins) sia il registro dei
+            // nomi (last-wins). Un sort() globale ordinerebbe per path
+            // assoluto, mettendo 'custom/' prima di 'vendor/' e ribaltando
+            // questa precedenza.
+            sort($directoryFiles);
+
+            foreach ($directoryFiles as $file) {
+                $files[] = $file;
+            }
+        }
 
         return self::load(array_values(array_unique($files)), $context);
     }
