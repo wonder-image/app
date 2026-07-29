@@ -222,7 +222,8 @@ echo $field->render('bootstrap');   // one-off rendering
 
 ### Media and optional column wrappers
 
-All media Elements (`Image`, `Video`, `Iframe`, `Gallery`, `Swiper`) extend
+All media Elements (`Image`, `Video`, `Iframe`, `Gallery`, `Swiper`,
+`GoogleMap`) extend
 `Wonder\Elements\Media\Media`, which owns `CanSpanColumn` and `Renderer`.
 Their theme renderers extend `Themes\{Wonder|Bootstrap}\Media\Media` and
 implement only `renderMedia()`: the abstract renderer adds the column wrapper
@@ -234,6 +235,17 @@ thumbs + script). Wonder uses the real lib grid classes `col-*`, `col-t-*`,
 `col-p-*`; Bootstrap uses the available backend class `col-span-*`. Do not add
 wrapper-only positioning, overflow, or sizing styles that would alter the
 media containing block.
+
+`GoogleMap` is the declarative PHP boundary for the global
+`requireGoogleMaps()`, `MapManager`, and optional `MapNavigator` APIs shipped
+by `wonder-image/lib`. Keep marker/route data and options HTML-free in the
+Element; both themes share lifecycle, safe JSON encoding, credential fallback,
+multi-instance state, and the classic-marker fallback through
+`Themes\Concerns\RendersGoogleMap`. Every map owns an explicit default height.
+Custom marker renderers are validated global function paths and must build
+feed-derived content with safe DOM APIs. Navigation requires a route of at
+least two points and must not auto-start geolocation unless the caller opts in
+explicitly.
 
 `Swiper` has two explicit, last-call-wins content modes: `images()` preserves
 the responsive image/zoom/lightbox pipeline, while `slides()` accepts trusted
