@@ -64,13 +64,25 @@ final class ListProvider
      */
     public static function fetch(array $request, object $name, object $text, object $user, object $page, $path): array
     {
+        // query / query_filter / query_custom / search_columns are raw SQL
+        // fragments and identifier blobs generated server-side (see
+        // Table::buildConfig) and round-tripped through the untrusted client.
+        // Verify their HMAC signature before use; a tampered or missing value
+        // aborts the request so it can never inject SQL.
+        $query       = ConfigCodec::decode((string) ($request['config']['query'] ?? ''));
+        $queryFilter = ConfigCodec::decode((string) ($request['config']['query_filter'] ?? ''));
+        $queryCustom = ConfigCodec::decode((string) ($request['config']['query_custom'] ?? ''));
+        $searchBlob  = ConfigCodec::decode((string) ($request['config']['search_columns'] ?? ''));
+
+        if ($query === null || $queryFilter === null || $queryCustom === null || $searchBlob === null) {
+            return self::signatureError($request);
+        }
+
         $custom = (object) [];
-        $custom->query        = base64_decode($request['config']['query'] ?? '');
-        $custom->query_filter = base64_decode($request['config']['query_filter'] ?? '');
-        $custom->query_all    = base64_decode($request['config']['query_custom'] ?? '');
-        $custom->search_field = isset($request['config']['search_columns'])
-            ? json_decode(base64_decode($request['config']['search_columns']), true)
-            : [];
+        $custom->query        = $query;
+        $custom->query_filter = $queryFilter;
+        $custom->query_all    = $queryCustom;
+        $custom->search_field = json_decode($searchBlob, true);
         if (!is_array($custom->search_field)) {
             $custom->search_field = [];
         }
@@ -111,5 +123,24 @@ final class ListProvider
             $custom->order_column,
             $custom->order_direction
         );
+    }
+
+    /**
+     * DataTables-shaped error response returned when the signed config fails
+     * verification. Keeps `draw` so the client can correlate the response, and
+     * returns zero rows so no data leaks.
+     *
+     * @param array<string,mixed> $request
+     * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array,error:string}
+     */
+    private static function signatureError(array $request): array
+    {
+        return [
+            'draw'            => isset($request['draw']) ? (int) $request['draw'] : 0,
+            'recordsTotal'    => 0,
+            'recordsFiltered' => 0,
+            'data'            => [],
+            'error'           => 'Invalid table configuration signature.',
+        ];
     }
 }

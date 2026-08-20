@@ -122,14 +122,55 @@
             $order = "";
 
             if (!empty($column)) {
-                
-                $order = "ORDER BY `$column` ";
-                $order .= empty($direction) ? 'DESC': strtoupper($direction);
+
+                // `$column` / `$direction` arrive from the client
+                // (order[0][name] / order[0][dir]). Escape the identifier and
+                // whitelist the direction so neither can break out of the
+                // ORDER BY clause.
+                $safeColumn    = self::escapeIdentifier((string) $column);
+                $safeDirection = self::normalizeDirection((string) $direction);
+
+                $order = "ORDER BY $safeColumn $safeDirection";
 
             }
 
             return $order;
 
+        }
+
+        /**
+         * Quote a SQL identifier (table/column name), doubling any backtick so
+         * client-supplied identifiers can never break out of the quoted
+         * context. Never pass user input into SQL as a bare identifier.
+         */
+        static function escapeIdentifier ( string $identifier )
+        {
+            return '`' . str_replace('`', '``', $identifier) . '`';
+        }
+
+        /**
+         * Build a CONCAT_WS(' ', ...) list from a set of identifiers, escaping
+         * every identifier. Used to search across several columns at once.
+         *
+         * @param array $columns List of column identifiers
+         */
+        static function concatIdentifiers ( array $columns )
+        {
+            $escaped = array_map(
+                static fn ($column) => self::escapeIdentifier((string) $column),
+                array_values($columns)
+            );
+
+            return "CONCAT_WS(' ', ".implode(', ', $escaped).")";
+        }
+
+        /**
+         * Whitelist an ORDER BY direction. Anything that is not exactly ASC
+         * collapses to the safe default DESC.
+         */
+        static function normalizeDirection ( string $direction )
+        {
+            return strtoupper(trim($direction)) === 'ASC' ? 'ASC' : 'DESC';
         }
 
 
@@ -199,18 +240,25 @@
             $words   = preg_split('/\s+/', $searchValue, -1, PREG_SPLIT_NO_EMPTY);
             $perWord = [];
 
+            // All identifiers below (columns, table, keys) come from the
+            // client-round-tripped search_columns blob: escape every one so a
+            // tampered identifier cannot break out of the quoted context.
+            $mainConcat = $mainCols !== [] ? self::concatIdentifiers($mainCols) : '';
+
             foreach ( $words as $word ) {
                 $like = "'%".$word."%'";
                 $ors  = [];
 
-                if ( $mainCols !== [] ) {
-                    $concat = "CONCAT_WS(' ', `".implode('`, `', $mainCols)."`)";
-                    $ors[]  = "(".$concat." LIKE ".$like.")";
+                if ( $mainConcat !== '' ) {
+                    $ors[] = "(".$mainConcat." LIKE ".$like.")";
                 }
 
                 foreach ( $relations as $rel ) {
-                    $concat = "CONCAT_WS(' ', `".implode('`, `', $rel['columns'])."`)";
-                    $ors[]  = "(`".$rel['local_key']."` IN (SELECT `".$rel['foreign_key']."` FROM `".$rel['table']."` WHERE ".$concat." LIKE ".$like."))";
+                    $concat    = self::concatIdentifiers($rel['columns']);
+                    $localKey  = self::escapeIdentifier((string) $rel['local_key']);
+                    $foreignKey = self::escapeIdentifier((string) $rel['foreign_key']);
+                    $relTable  = self::escapeIdentifier((string) $rel['table']);
+                    $ors[]     = "(".$localKey." IN (SELECT ".$foreignKey." FROM ".$relTable." WHERE ".$concat." LIKE ".$like."))";
                 }
 
                 $perWord[] = count($ors) === 1 ? $ors[0] : '('.implode(' OR ', $ors).')';

@@ -689,13 +689,20 @@
                 'link' => $this->link
             ];
 
+            // query / query_filter / query_custom / search_columns are raw SQL
+            // fragments and identifier blobs round-tripped through the untrusted
+            // client. Sign each one (HMAC embedded in the base64, see
+            // ConfigCodec) so a tampered value is rejected server-side in
+            // ListProvider::fetch() and can never inject SQL. No client change
+            // is required: the signature travels inside the same base64 string
+            // the browser already forwards.
             $JSON['config'] = [
                 'table' => $this->table,
                 'database' =>$this->database,
-                'query' => base64_encode($this->query),
-                'query_filter' => base64_encode($this->queryFilter),
-                'query_custom' => base64_encode($this->queryCustom),
-                'search_columns' => base64_encode(json_encode($this->filterSearch['fields']))
+                'query' => ConfigCodec::encode((string) $this->query),
+                'query_filter' => ConfigCodec::encode((string) $this->queryFilter),
+                'query_custom' => ConfigCodec::encode((string) $this->queryCustom),
+                'search_columns' => ConfigCodec::encode((string) json_encode($this->filterSearch['fields']))
             ];
 
             $JSON['text'] = $this->text;
