@@ -162,6 +162,29 @@
         
     }
 
+    /**
+     * Build the WHERE used to shift sibling `position` rows on update.
+     *
+     * The filter value is re-read from the database (originally user input),
+     * so it must never be interpolated raw into the condition. The column is
+     * escaped as an identifier, the value is escaped for a single-quoted
+     * literal (addslashes, matching the framework's latin1 sanitize() path),
+     * and the old position is cast to int. Output is byte-identical to the
+     * previous raw interpolation for legitimate data.
+     *
+     * @param string $filterColumn   Config-defined grouping column
+     * @param mixed  $filterOldValue Previous value of the grouping column (from DB)
+     * @param mixed  $oldPosition    Previous position of the edited row
+     */
+    function sqlPositionReorderCondition(string $filterColumn, $filterOldValue, $oldPosition): string
+    {
+        $column = \Wonder\Sql\Query::escapeIdentifier($filterColumn);
+        $value  = addslashes((string) $filterOldValue);
+        $pos    = (int) $oldPosition;
+
+        return $column." = '".$value."' AND `position` > ".$pos." AND `deleted` = 'false'";
+    }
+
     function formToArray($table, $post, $tableFields, $OLD_VALUES = null) {
        
         global $NAME;
@@ -399,7 +422,7 @@
                             $VALUES['position'] = sqlSelect($table, [$columnName => $columnValue, 'deleted' => 'false'])->Nrow;
 
                             // ! Se la modifica non va a buon fine questi cambiamenti rimangono
-                            foreach (sqlSelect($table, "`$columnName` = '$columnOldValue' AND `position` > $oldPosition AND `deleted` = 'false'") as $key => $row) {
+                            foreach (sqlSelect($table, sqlPositionReorderCondition($columnName, $columnOldValue, $oldPosition)) as $key => $row) {
 
                                 $pos = $row['position'] - 1;
                                 sqlModify($table, ['position' => $pos], 'id', $row['id']);
