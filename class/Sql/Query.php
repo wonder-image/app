@@ -114,6 +114,40 @@
 
         }
 
+        /**
+         * Quote a SQL identifier (table / column name), doubling any backtick so
+         * a caller can never break out of the quoted context. Use this for every
+         * identifier interpolated into a query. Values (not identifiers) must go
+         * through valueToSql()/escapeString() instead.
+         */
+        public static function escapeIdentifier(string $identifier): string
+        {
+            return '`' . str_replace('`', '``', $identifier) . '`';
+        }
+
+        /**
+         * Whitelist a LIMIT clause. Only a plain count ("10") or the
+         * "offset, count" form ("0, 25") survive; anything else (injection
+         * attempts, expressions) collapses to '' so it is dropped from the
+         * query. Callers still pass trusted integers in normal use.
+         *
+         * @param mixed $limit
+         */
+        public static function sanitizeLimit($limit): string
+        {
+            if ($limit === null) {
+                return '';
+            }
+
+            $limit = trim((string) $limit);
+
+            if ($limit === '') {
+                return '';
+            }
+
+            return preg_match('/^\d+(\s*,\s*\d+)?$/', $limit) === 1 ? $limit : '';
+        }
+
         private function looksLikeJsonContainer(string $value): bool
         {
 
@@ -255,7 +289,7 @@
                 $query = "";
 
                 foreach ($values as $l => $v) {
-                    $query .= "`$l` = ".$this->valueToSql($v).", ";
+                    $query .= self::escapeIdentifier((string) $l)." = ".$this->valueToSql($v).", ";
                 }
 
                 return substr($query, 0, -2);
@@ -266,7 +300,7 @@
                 $value = "";
 
                 foreach ($values as $l => $v) {
-                    $label .= "`$l`, ";
+                    $label .= self::escapeIdentifier((string) $l).", ";
                     $value .= $this->valueToSql($v).", ";
                 }
 
@@ -320,7 +354,7 @@
         public function Insert( string $table, string | array $values ): object
         {
 
-            $query = "INSERT INTO `$table` ";
+            $query = "INSERT INTO ".self::escapeIdentifier($table)." ";
             $query .= $this->Values( $values );
 
             $RETURN = (object) [];
@@ -347,9 +381,9 @@
         public function Update( string $table, array $values, string $column, string | int $value ): object 
         {
 
-            $query = "UPDATE `$table` SET ";
+            $query = "UPDATE ".self::escapeIdentifier($table)." SET ";
             $query .= $this->Values( $values, true );
-            $query .= " WHERE `$column` = ".$this->valueToSql($value, false);
+            $query .= " WHERE ".self::escapeIdentifier($column)." = ".$this->valueToSql($value, false);
 
             $RETURN = (object) [];
             $RETURN->success = true;
@@ -378,12 +412,13 @@
             if (is_array($table)) {
                 $query .= self::JoinTable( $table );
             } else {
-                $query .= $this->informationSchema ? "INFORMATION_SCHEMA.$table" : "`$table`";
+                $query .= $this->informationSchema ? "INFORMATION_SCHEMA.$table" : self::escapeIdentifier($table);
             }
             $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
             $query .= ($order == null) ? "" : " ORDER BY $order";
             $query .= ($orderDirection == null) ? "" : " $orderDirection";
-            $query .= ($limit == null) ? "" : " LIMIT $limit";
+            $safeLimit = self::sanitizeLimit($limit);
+            $query .= ($safeLimit === '') ? "" : " LIMIT $safeLimit";
 
             $RETURN = (object) [];
 
@@ -427,7 +462,7 @@
         {
 
             $query = "DELETE FROM ";
-            $query .= "`$table`";
+            $query .= self::escapeIdentifier($table);
             $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
 
             if (!$RESULT = $this->mysqli->query( $query )) {
@@ -444,7 +479,7 @@
         {
 
             $query = "TRUNCATE TABLE ";
-            $query .= "`$table`";
+            $query .= self::escapeIdentifier($table);
 
             if (!$RESULT = $this->mysqli->query( $query )) {
                 
@@ -567,7 +602,7 @@
         {
 
             $query = "SHOW COLUMNS FROM ";
-            $query .= "`$table` ";
+            $query .= self::escapeIdentifier($table)." ";
             $query .= "LIKE ";
             $query .= "'".$this->escapeString($column)."'";
 
