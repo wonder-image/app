@@ -29,10 +29,12 @@ use Wonder\Elements\Form\Components\InputTime;
 use Wonder\Elements\Form\Components\InputUrl;
 use Wonder\Elements\Form\Components\reCAPTCHA;
 use Wonder\Elements\Form\Components\Repeater;
+use Wonder\Elements\Form\Components\SearchRemote;
 use Wonder\Elements\Form\Components\Select;
 use Wonder\Elements\Form\Components\Textarea;
 use Wonder\Elements\Form\Components\TextareaEditor;
 use Wonder\Elements\Form\Components\TextGenerator;
+use Wonder\Elements\Form\Components\TextList;
 use Wonder\Elements\Form\Field as ElementField;
 
 final class FormFieldElementFactory
@@ -88,6 +90,9 @@ final class FormFieldElementFactory
             'textarea' => self::textareaElement($name, $field),
             'select' => self::selectElement($name, $field),
             'selectSearch' => self::selectSearchElement($name, $field),
+            'textList' => self::textListElement($name, $field),
+            'searchText' => self::searchRemoteElement($name, $field, 'text'),
+            'searchRadio' => self::searchRemoteElement($name, $field, 'radio'),
             'inputCountry' => self::countryElement($name, $field),
             'inputStates' => self::statesElement($name, $field),
             'inputPhonePrefix' => self::phonePrefixElement($name, $field),
@@ -234,6 +239,19 @@ final class FormFieldElementFactory
         }
 
         return $select;
+    }
+
+    private static function textListElement(string $name, Input $field): TextList
+    {
+        return (new TextList($name))
+            ->options(self::normalizeOptions((array) ($field->get('options') ?? [])));
+    }
+
+    private static function searchRemoteElement(string $name, Input $field, string $type): SearchRemote
+    {
+        return (new SearchRemote($name))
+            ->url((string) ($field->get('url') ?? ''))
+            ->searchType($type);
     }
 
     private static function countryElement(string $name, Input $field): ?Select

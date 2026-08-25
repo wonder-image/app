@@ -102,6 +102,17 @@ l'editor rich-text.
 `dynamicCheck($url, $inputType = 'checkbox')`,
 `checkBoolean($values = ['', 'true', 'false'], $trueLabel = null, $falseLabel = null)`.
 
+`textList($options, $version = null)` — combobox "text + list": campo di
+testo con dropdown filtrabile lato client su una lista *statica* di opzioni
+(`[value => label]`). Da preferire a `select()` quando le opzioni sono molte e
+serve la ricerca senza chiamate remote. Tema Wonder: input + radio nascosto col
+value; tema Bootstrap: degrada a `select` ricercabile (`data-wi-select-search`).
+
+`searchText($url)`, `searchRadio($url)` — ricerca *remota*: la dropdown è
+popolata via AJAX dall'endpoint `$url` (`SearchRemote`). `searchText` è a testo
+libero, `searchRadio` a selezione singola. La ricerca remota è resa dal JS del
+tema Wonder (frontend); in Bootstrap degrada a un input testuale.
+
 ### Geo
 
 `country($stateField = null)`, `states($country = null)`, `phonePrefix()`,

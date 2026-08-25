@@ -364,6 +364,50 @@ class FormField extends Input
         return $this;
     }
 
+    /**
+     * Combobox "text + list": campo di testo con dropdown filtrabile su una
+     * lista *statica* di opzioni (`[value => label]`). Sul tema Wonder la
+     * selezione popola l'input con la label e un radio nascosto trasporta il
+     * value effettivo; sul tema Bootstrap degrada a un select ricercabile.
+     * Da preferire a `select()` quando le opzioni sono molte e serve la
+     * ricerca lato client senza chiamate remote (vedi `searchText()` per la
+     * ricerca via AJAX).
+     */
+    public function textList(array $options = [], ?string $version = null): self
+    {
+        $this->helper = 'textList';
+        $this->options($options);
+        $this->version($version);
+
+        return $this;
+    }
+
+    /**
+     * Ricerca remota a testo libero: input che popola una dropdown via AJAX
+     * dall'endpoint `$url`. La selezione invia il value scelto. Tema Wonder:
+     * dropdown remota `data-wi-search-text`; tema Bootstrap: input testuale
+     * (la ricerca remota è una feature del frontend).
+     */
+    public function searchText(string $url): self
+    {
+        $this->helper = 'searchText';
+        $this->schema['url'] = trim($url);
+
+        return $this;
+    }
+
+    /**
+     * Variante a selezione singola di `searchText()`: la scelta di una voce
+     * invia direttamente il relativo value (`data-wi-search-radio`).
+     */
+    public function searchRadio(string $url): self
+    {
+        $this->helper = 'searchRadio';
+        $this->schema['url'] = trim($url);
+
+        return $this;
+    }
+
     public function checkbox(): self
     {
         $this->helper = 'checkbox';
