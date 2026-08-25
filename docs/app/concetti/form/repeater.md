@@ -8,7 +8,7 @@ icon: clone
 
 Un **repeater** è un campo che permette di inserire **più righe** dello stesso
 gruppo di input (es. una lista di step, di domini, di immagini). Si dichiara con
-`->repeater([...])` su un `FormInput`, passando una o più `RepeaterColumn`.
+`->repeater([...])` su un `FormField`, passando una o più `RepeaterColumn`.
 
 ## A cosa serve
 
@@ -29,10 +29,10 @@ salvate in due modi:
 ## Esempio: repeater inline (JSON)
 
 ```php
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 
-FormInput::key('allowed_domains')
+FormField::key('allowed_domains')
     ->repeater([
         RepeaterColumn::key('allowed_domains')
             ->text()
@@ -47,14 +47,14 @@ FormInput::key('allowed_domains')
 ## Esempio: repeater su tabella correlata
 
 Quando le righe vivono in un'altra tabella, attacca un `RepeaterRelation` **sul
-`FormInput` di livello superiore** (quello che possiede il `->repeater([...])`):
+`FormField` di livello superiore** (quello che possiede il `->repeater([...])`):
 
 ```php
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\ResourceSchema\RepeaterRelation;
 
-FormInput::key('steps')
+FormField::key('steps')
     ->repeater([
         RepeaterColumn::key('title')->text()->required(),
         RepeaterColumn::key('position')->number()->columnSpan(2),
@@ -76,7 +76,7 @@ layer Resource lo legge **solo dal campo repeater di primo livello** in
 
 ## Modificatori del repeater
 
-Sul `FormInput` che chiama `->repeater(...)`:
+Sul `FormField` che chiama `->repeater(...)`:
 
 `repeaterSortable($b = true)`, `repeaterAddLabel($s)`, `repeaterButtonClass($s)`,
 `repeaterDeleteTitle($s)`, `repeaterDeleteText($s)`,
@@ -111,7 +111,7 @@ payload di una riga prima del salvataggio:
 
 - **Righe non salvate** → `syncRepeaterRelations($parentId, ...)` con `$parentId`
   mancante o zero è un no-op: le righe vengono silenziosamente scartate.
-- **`relation()` su una colonna figlia** → ignorato; va sul `FormInput`
+- **`relation()` su una colonna figlia** → ignorato; va sul `FormField`
   top-level.
 - **Ordinamento non persistito** → manca `->positionKey(...)` o
   `->repeaterSortable()`.

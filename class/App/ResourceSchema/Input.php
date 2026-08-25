@@ -3,46 +3,72 @@
 namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
-use Wonder\App\Support\FormFieldElementFactory;
+use Wonder\App\Support\AttributeString;
+use Wonder\App\Support\CssFontFamily;
 use Wonder\Elements\Concerns\CanSpanColumn;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Base condivisa fra `FormField` (facade retro-compatibile con i 45
  * type-helper) e le classi di tipo dedicate sotto
  * `Wonder\App\ResourceSchema\Inputs\` (mirror di `Wonder\Data\Fields\*`).
  *
- * Qui vive **solo l'API universale**, quella che ha senso su qualunque input:
- * `label`, `value`, `required`, `disabled`, `readonly`, `autocomplete`,
- * `attribute`, `visibleWhen`, `hiddenWhen`, `error`, `inputName`, `storeAs`,
- * `prepare`, `context`, `columnSpan`, `get`, `render`, `__toString`.
+ * ## Cosa vive qui
+ *
+ * Solo **l'API universale**, quella che ha senso su qualunque input: `label`,
+ * `value`, `required`, `disabled`, `readonly`, `autocomplete`, `attribute`,
+ * `visibleWhen`, `hiddenWhen`, `error`, `inputName`, `storeAs`, `prepare`,
+ * `context`, `columnSpan`, `get`, `compile`, `render`, `__toString`.
  *
  * I modificatori specifici di un tipo (`options()`, `decimals()`,
  * `minLength()`, `maxFile()`, ...) NON stanno qui: vivono sulla classe del
  * proprio tipo, così `FormField::key('x')->number()` espone in autocomplete
  * i soli setters numerici e non, per dire, `options()` o `requireUppercase()`.
  *
- * Il passaggio dal generico al tipizzato avviene in {@see morphInto()}: i
- * type-helper di `FormField` non ritornano più `self` ma l'istanza `Input*`
- * corrispondente, trasferendo nome e schema già accumulati.
+ * ## Come si arriva all'HTML
  *
- * Il `FormFieldElementFactory` lavora contro questa base (type hint `Input`),
- * quindi accetta indifferentemente la facade e le classi tipizzate: il
- * contratto verso i temi resta `helper` + `schema`.
+ * Ogni tipo costruisce **da sé** il proprio
+ * `Wonder\Elements\Form\Components\*` implementando {@see element()}: non c'è
+ * più una factory centrale che traduce una stringa in un Element. La catena è
+ *
+ *   Inputs\InputNumber::element()  ->  Elements\Form\Components\InputNumber
+ *                                  ->  Themes\{Wonder,Bootstrap}\...
+ *
+ * e {@see compile()} è il punto unico che la esegue: costruisce l'Element del
+ * tipo, applica l'idratazione universale ({@see hydrate()}) e lascia al tipo
+ * l'ultima parola con {@see decorate()}. Aggiungere un tipo significa quindi
+ * scrivere una classe sotto `Inputs\` con il suo `element()` — nient'altro da
+ * registrare altrove.
+ *
+ * ## `$helper`
+ *
+ * Non è più una chiave di dispatch: il render non lo guarda. Resta come
+ * **etichetta d'identità** del tipo, letta via `get('helper')` da chi deve
+ * riconoscere un campo senza dipendere dalla classe concreta (`Resource`, il
+ * renderer `Repeater`, i moduli) e dalle colonne repeater dichiarate in forma
+ * di array (`['name' => ..., 'helper' => ...]`).
  */
 abstract class Input
 {
     use CanSpanColumn;
 
     public string $name;
+
+    /**
+     * Nome DSL del tipo, per introspezione (`$input->get('helper')`).
+     *
+     * NON partecipa al render: l'Element lo costruisce {@see element()}.
+     */
     protected string $helper = 'text';
 
     /**
      * Chiavi dello schema condiviso.
      *
      * Restano tutte qui — anche quelle che solo alcuni tipi valorizzano
-     * (`options`, `version`, `date_min`, ...) — perché è il contratto che il
-     * `FormFieldElementFactory` legge, con default già pronti. A cambiare di
-     * posto sono i *setters*, che vivono sulla classe del tipo che li supporta.
+     * (`options`, `version`, `date_min`, ...) — perché è il contratto che
+     * `formToArray()`, `Resource` e i renderer leggono, con default già
+     * pronti. A cambiare di posto sono i *setters*, che vivono sulla classe
+     * del tipo che li supporta.
      *
      * @var array<string, mixed>
      */
@@ -76,6 +102,127 @@ abstract class Input
     }
 
     /**
+     * Costruisce l'Element del proprio tipo, già configurato con ciò che
+     * quel tipo sa di sé (opzioni, url, policy password, formatting numerico,
+     * ...). Label, value, error, attributi e autocomplete NON vanno toccati
+     * qui: li applica {@see hydrate()} per tutti allo stesso modo.
+     *
+     * Ritorna `null` quando il campo non è renderizzabile nel contesto
+     * corrente — per esempio `InputCountry` senza la funzione `countries()` —
+     * e in quel caso {@see render()} solleva.
+     */
+    abstract protected function element(): ?ElementField;
+
+    /**
+     * Hook post-idratazione, per la configurazione che deve vedere l'Element
+     * già valorizzato (limiti di data, step temporale, ...). Default: no-op.
+     */
+    protected function decorate(ElementField $element): void
+    {
+    }
+
+    /**
+     * Valore da consegnare all'Element. I tipi che devono normalizzarlo
+     * (date, intervalli) ridefiniscono questo hook.
+     */
+    protected function elementValue(): mixed
+    {
+        $value = $this->schema['value'] ?? null;
+
+        if ($this->name === 'font_family' && is_scalar($value)) {
+            $value = CssFontFamily::normalize((string) $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Valore dell'attributo `autocomplete` quando è richiesto con `true`.
+     * {@see Inputs\InputEmail} lo specializza in `email`.
+     */
+    protected function autocompleteOn(): string
+    {
+        return 'on';
+    }
+
+    /**
+     * Costruisce l'Element completo di questo campo, pronto per il render.
+     *
+     * Esposto pubblicamente perché serve anche a chi vuole comporre gli
+     * Element a mano (renderer custom, test, moduli) senza passare dall'HTML.
+     * Ritorna `null` se il campo non è renderizzabile (nome vuoto, o tipo che
+     * dipende da un contesto assente).
+     */
+    public function compile(): ?ElementField
+    {
+        if ($this->name === '') {
+            return null;
+        }
+
+        $element = $this->element();
+
+        if (!$element instanceof ElementField) {
+            return null;
+        }
+
+        $this->hydrate($element);
+        $this->decorate($element);
+
+        return $element;
+    }
+
+    /**
+     * Applica all'Element ciò che vale per ogni tipo: label (derivata dal
+     * `name` se non impostata), value, error, attributi e autocomplete.
+     */
+    protected function hydrate(ElementField $element): void
+    {
+        $label = trim((string) ($this->schema['label'] ?? ''));
+        $error = trim((string) ($this->schema['error'] ?? ''));
+        $attributes = AttributeString::parse((string) ($this->schema['attribute'] ?? ''));
+        $autocomplete = $this->resolveAutocomplete();
+
+        if ($label === '') {
+            $label = ucwords(str_replace(['_', '-'], ' ', $this->name));
+        }
+
+        $element->label($label)->value($this->elementValue());
+
+        if ($error !== '') {
+            $element->error($error);
+        }
+
+        if ($autocomplete !== null) {
+            $attributes['autocomplete'] = $autocomplete;
+        }
+
+        if ($attributes !== []) {
+            $element->attributes($attributes);
+        }
+    }
+
+    private function resolveAutocomplete(): ?string
+    {
+        $autocomplete = $this->schema['autocomplete'] ?? null;
+
+        if (is_string($autocomplete)) {
+            $autocomplete = trim($autocomplete);
+
+            return $autocomplete !== '' ? $autocomplete : null;
+        }
+
+        if ($autocomplete === false) {
+            return 'off';
+        }
+
+        if ($autocomplete !== true) {
+            return null;
+        }
+
+        return $this->autocompleteOn();
+    }
+
+    /**
      * Converte l'istanza corrente nella classe di input tipizzata `$inputClass`,
      * trasferendo nome, schema accumulato e column span.
      *
@@ -86,7 +233,7 @@ abstract class Input
      * `->number()` in poi l'oggetto è un `InputNumber` e l'autocomplete mostra
      * solo i suoi setters.
      *
-     * L'`helper` NON viene copiato: è la costante della classe di destinazione
+     * L'`helper` NON viene copiato: è la proprietà della classe di destinazione
      * a definirlo (`InputNumber::$helper = 'number'`), che è esattamente ciò
      * che il type-helper sta scegliendo.
      *
@@ -281,23 +428,23 @@ abstract class Input
     /**
      * Renderizza il campo come HTML del tema attivo (o di quello esplicito).
      *
-     * Unica strada: `FormFieldElementFactory::make()` mappa il `helper`
-     * a un Element neutro, che il `Wonder\Themes\Resolver` rende col
-     * tema corrente. Se l'helper non è gestito dalla Factory si lancia
-     * un'eccezione esplicita — niente fallback a funzioni procedurali.
+     * Unica strada: {@see compile()} costruisce l'Element del tipo, che il
+     * `Wonder\Themes\Resolver` rende col tema corrente. Se il tipo non riesce
+     * a costruirlo si solleva un'eccezione esplicita — niente fallback a
+     * funzioni procedurali, niente stringa vuota silenziosa.
      */
     public function render(?string $theme = null): string
     {
-        $rendered = FormFieldElementFactory::render($this, $theme);
+        $element = $this->compile();
 
-        if ($rendered === null) {
+        if ($element === null) {
             throw new RuntimeException(
-                "Helper form non supportato: {$this->helper}. "
-                ."Aggiungi la mappatura in Wonder\\App\\Support\\FormFieldElementFactory::make()."
+                'Campo form non renderizzabile: '.static::class." (helper: {$this->helper}). "
+                .'Il nome è vuoto oppure element() non ha potuto costruire il Component.'
             );
         }
 
-        return $rendered;
+        return $element->render($theme);
     }
 
     /**

@@ -5,10 +5,10 @@ declare(strict_types=1);
 require __DIR__ . '/../../../vendor/autoload.php';
 
 use Wonder\App\ResourceSchema\FormField;
-use Wonder\App\ResourceSchema\FormInput;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs;
 use Wonder\App\ResourceSchema\RepeaterColumn;
+use Wonder\Elements\Form\Components as Elements;
 
 $fail = 0;
 function eq(string $label, $got, $expected) {
@@ -80,9 +80,10 @@ $baseMethods = array_map(
 );
 sort($baseMethods);
 eq('API universale di Input', $baseMethods, [
-    '__construct', '__toString', 'attribute', 'autocomplete', 'columnSpan', 'context',
-    'disabled', 'error', 'get', 'hasExplicitColumnSpan', 'hiddenWhen', 'inputName', 'key',
-    'label', 'prepare', 'readonly', 'render', 'required', 'storeAs', 'value', 'visibleWhen',
+    '__construct', '__toString', 'attribute', 'autocomplete', 'columnSpan', 'compile',
+    'context', 'disabled', 'error', 'get', 'hasExplicitColumnSpan', 'hiddenWhen', 'inputName',
+    'key', 'label', 'prepare', 'readonly', 'render', 'required', 'storeAs', 'value',
+    'visibleWhen',
 ]);
 
 # ...e non compaiono nemmeno sui tipi che non li supportano
@@ -191,10 +192,8 @@ eq('l\'istanza tipizzata è nuova', $typed === $facade, false);
 eq('il nome viene trasferito', $typed->name, 'a');
 
 # ---------------------------------------------------------------------------
-# 5. FormInput e RepeaterColumn ereditano il comportamento
+# 5. RepeaterColumn eredita il comportamento
 # ---------------------------------------------------------------------------
-eq('FormInput estende FormField', is_subclass_of(FormInput::class, FormField::class), true);
-eq('FormInput::key()->text()', FormInput::key('a')->text()::class, Inputs\InputText::class);
 eq('RepeaterColumn::key()->select()', RepeaterColumn::key('a')->select(['1' => 'Uno'])::class, Inputs\InputSelect::class);
 
 # ---------------------------------------------------------------------------
@@ -215,6 +214,81 @@ foreach (['wonder', 'bootstrap'] as $theme) {
         $strip(FormField::key('a')->number()->decimals(2)->render($theme)),
         $strip(Inputs\InputNumber::key('a')->decimals(2)->render($theme)));
 }
+
+# ---------------------------------------------------------------------------
+# 7. ogni tipo compila da sé il proprio Element: niente factory, niente helper
+# ---------------------------------------------------------------------------
+$elements = [
+    'text' => Elements\InputText::class,
+    'hidden' => Elements\Hidden::class,
+    'email' => Elements\InputEmail::class,
+    'tel' => Elements\InputTel::class,
+    'url' => Elements\InputUrl::class,
+    'color' => Elements\InputColor::class,
+    'number' => Elements\InputNumber::class,
+    'price' => Elements\InputPrice::class,
+    'percentige' => Elements\InputPercentige::class,
+    'password' => Elements\InputPassword::class,
+    'textarea' => Elements\Textarea::class,
+    'textGenerator' => Elements\TextGenerator::class,
+    'textDate' => Elements\Date::class,
+    'textDatetime' => Elements\InputDatetime::class,
+    'dateInput' => Elements\DatePicker::class,
+    'dateRange' => Elements\DateRange::class,
+    'timeInput' => Elements\InputTime::class,
+    'select' => Elements\Select::class,
+    'selectSearch' => Elements\Select::class,
+    'textList' => Elements\TextList::class,
+    'checkbox' => Elements\Checkbox::class,
+    'checkTree' => Elements\CheckTree::class,
+    'dynamicCheck' => Elements\DynamicCheck::class,
+    'checkBoolean' => Elements\CheckBoolean::class,
+    'googleAddress' => Elements\GoogleAddress::class,
+    'inputRepeater' => Elements\Repeater::class,
+    'recaptcha' => Elements\reCAPTCHA::class,
+];
+
+foreach ($elements as $helper => $element) {
+    eq("compile() di {$helper} → " . substr(strrchr($element, '\\'), 1),
+        (new FormField('a', $helper))->compile()::class, $element);
+}
+
+# i tipi con opzioni cambiano Element in base a ciò che dichiarano
+eq('checkbox con opzioni → CheckGroup',
+    Inputs\InputCheckbox::key('a')->options(['1' => 'Uno'])->compile()::class, Elements\CheckGroup::class);
+eq('radio → CheckGroup',
+    Inputs\InputRadio::key('a')->compile()::class, Elements\CheckGroup::class);
+eq('textarea con version → TextareaEditor',
+    Inputs\InputTextarea::key('a')->version('plus')->compile()::class, Elements\TextareaEditor::class);
+eq('searchText → SearchRemote',
+    Inputs\InputSearchText::key('a')->url('/x')->compile()::class, Elements\SearchRemote::class);
+eq('file → File',
+    Inputs\InputFile::key('a')->compile()::class, Elements\File::class);
+eq('fileDragDrop → File',
+    Inputs\InputFileDragDrop::key('a')->compile()::class, Elements\File::class);
+
+# un campo senza nome non è renderizzabile
+eq('nome vuoto → compile() null', Inputs\InputText::key('')->compile(), null);
+
+# la configurazione del tipo finisce davvero sull'Element
+eq('la policy password arriva all\'Element',
+    Inputs\InputPassword::key('a')->minLength(8)->requireSpecial()->compile()->toArray()['password_rules'] ?? null,
+    ['min_length' => 8, 'special' => true]);
+eq('le opzioni arrivano all\'Element',
+    Inputs\InputSelect::key('a')->options(['1' => 'Uno'])->compile()->toArray()['options'] ?? null, ['1' => 'Uno']);
+eq('selectSearch marca l\'attributo della lib',
+    Inputs\InputSelectSearch::key('a')->compile()->getAttr('data-wi-select-search'), 'true');
+eq('i limiti di data arrivano all\'Element',
+    Inputs\InputDate::key('a')->dateMin('2020-01-01')->compile()->getAttr('data-wi-min-date'), '2020-01-01');
+eq('il date nativo usa l\'attributo HTML',
+    Inputs\InputTextDate::key('a')->dateMax('2030-12-31')->compile()->getAttr('max'), '2030-12-31');
+eq('lo step temporale arriva all\'Element',
+    Inputs\InputTime::key('a')->timeStep(900)->compile()->getAttr('step'), 900);
+
+# helper sconosciuto: la facade lo dice esplicitamente
+$thrown = null;
+try { (new FormField('a', 'inesistente'))->compile(); } catch (Throwable $e) { $thrown = $e::class; }
+eq('helper sconosciuto solleva', $thrown, RuntimeException::class);
 
 echo $fail === 0 ? "\nTUTTI I TEST OK\n" : "\n{$fail} TEST FALLITI\n";
 exit($fail === 0 ? 0 : 1);

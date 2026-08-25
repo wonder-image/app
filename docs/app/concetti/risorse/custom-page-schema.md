@@ -13,7 +13,7 @@ password, profilo account, dashboard di upload, strumenti batch.
 ## A cosa serve
 
 Permette di definire input e label di una pagina custom **rispettando la regola
-dei form** (ogni input passa da `FormInput`/`FormField`), senza essere legati a
+dei form** (ogni input passa da `FormField`), senza essere legati a
 un singolo Model né alle 7 azioni CRUD.
 
 ## Quando usarla
@@ -37,7 +37,7 @@ un singolo Model né alle 7 azioni CRUD.
 namespace App\PageSchema;
 
 use Wonder\App\PageSchema\CustomPageSchema;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 
 final class ContactPageSchema extends CustomPageSchema
 {
@@ -53,9 +53,9 @@ final class ContactPageSchema extends CustomPageSchema
     public static function contactFormSchema(): array
     {
         return static::applyLabelSchema([
-            'name'    => FormInput::key('name')->text()->required(),
-            'email'   => FormInput::key('email')->email()->required(),
-            'message' => FormInput::key('message')->textarea()->required(),
+            'name'    => FormField::key('name')->text()->required(),
+            'email'   => FormField::key('email')->email()->required(),
+            'message' => FormField::key('message')->textarea()->required(),
         ]);
     }
 }
@@ -84,11 +84,11 @@ label: non registra route da solo. Gli input passano comunque per
   estende nulla e i metodi base (`applyLabelSchema`) non esistono.
 - **Aspettarsi che la pagina compaia da sola** → mancano le route: vanno
   dichiarate nel progetto.
-- **Emettere `<input>` a mano** nella view → vietato: usa `FormInput`.
+- **Emettere `<input>` a mano** nella view → vietato: usa `FormField`.
 
 ## Checklist
 
 - [ ] estende `Wonder\App\PageSchema\CustomPageSchema`
-- [ ] input dichiarati con `FormInput::key(...)`
+- [ ] input dichiarati con `FormField::key(...)`
 - [ ] `labelSchema()` + `applyLabelSchema()` per le etichette
 - [ ] route registrate manualmente nel progetto

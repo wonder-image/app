@@ -3,7 +3,6 @@
 namespace Wonder\App;
 
 use mysqli;
-use ReflectionObject;
 use RuntimeException;
 use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
@@ -709,14 +708,7 @@ abstract class Resource
         }
 
         $prepare = (array) ($input->get('prepare') ?? []);
-        $helper = '';
-
-        $reflection = new ReflectionObject($input);
-
-        if ($reflection->hasProperty('helper')) {
-            $property = $reflection->getProperty('helper');
-            $helper = (string) $property->getValue($input);
-        }
+        $helper = (string) ($input->get('helper') ?? '');
 
         if (in_array($helper, ['inputFile', 'inputFileDragDrop'], true)) {
             $prepare = array_merge([

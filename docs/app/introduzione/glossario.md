@@ -39,7 +39,7 @@ riferimento nel codice.
 
 - **Resource** — classe che espone un Model come CRUD backend/API
   (`class/App/Resource.php`). Dichiara form, tabella, permessi, navigazione, API.
-- **`formSchema()`** — gli input del form backend (lista di `FormInput`).
+- **`formSchema()`** — gli input del form backend (lista di `FormField`).
 - **`tableSchema()` (Resource)** — le colonne della lista (lista di
   `TableColumn`). Da non confondere con il `tableSchema()` del Model (DDL).
 - **`permissionSchema()`** — quali authority possono fare quali azioni
@@ -52,16 +52,16 @@ riferimento nel codice.
 
 - **FormField** — classe base del DSL dei form
   (`class/App/ResourceSchema/FormField.php`). Espone i type-helper (`text()`,
-  `select()`, `fileDragDrop()`, …).
-- **FormInput** — sottoclasse di `FormField` usata in `formSchema()`:
-  `FormInput::key('nome')`. Il type-helper ritorna la classe `Inputs\Input*` del
-  tipo scelto, che espone i soli modificatori di quel tipo.
+  `select()`, `fileDragDrop()`, …) ed è il punto d'ingresso canonico dei
+  `formSchema()`. Il type-helper ritorna la classe `Inputs\Input*` del tipo
+  scelto, che espone i soli modificatori di quel tipo.
 - **RepeaterColumn** — un campo dentro una riga ripetibile; estende `FormField`.
 - **RepeaterRelation** — collega le righe di un repeater a una tabella correlata.
 - **Theme (Wonder / Bootstrap)** — i due renderer: `Wonder` per il frontend
-  (markup `.wi-*`), `Bootstrap` per il backend. Stesso `FormInput`, due rese.
-- **FormFieldElementFactory** — il dispatcher che traduce un `FormField` nel
-  componente concreto (`class/App/Support/FormFieldElementFactory.php`).
+  (markup `.wi-*`), `Bootstrap` per il backend. Stesso `FormField`, due rese.
+- **FormFieldElementFactory** — bridge deprecato che inoltra i vecchi call site
+  a `Input::compile()` / `Input::render()`; ogni `Inputs\Input*` costruisce ora
+  direttamente il proprio componente concreto.
 
 ## Tabelle
 

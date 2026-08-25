@@ -3,6 +3,8 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Elements\Form\Components\Repeater as RepeaterElement;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Blocco di righe ripetibili.
@@ -83,5 +85,15 @@ class InputRepeater extends Input
     public function repeaterSortable(bool $sortable = true): static
     {
         return $this->context('sortable', $sortable);
+    }
+
+    protected function element(): ElementField
+    {
+        $context = (array) ($this->schema['context'] ?? []);
+
+        return (new RepeaterElement($this->name))
+            ->columns(is_array($context['columns'] ?? null) ? $context['columns'] : [])
+            ->context($context)
+            ->value($this->schema['value'] ?? null);
     }
 }

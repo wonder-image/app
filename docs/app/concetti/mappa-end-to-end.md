@@ -22,9 +22,10 @@ Modulo → Risorsa → Form → Tabella → Database → Permessi → Componenti
    `tableSchema()`, `permissionSchema()`, `navigationSchema()`, `apiSchema()`.
    `ResourceRouteRegistrar` genera le route CRUD backend e API.
    → [Definire una Resource](risorse/resource.md)
-3. **Form** — `formSchema()` ritorna `FormInput` (estende `FormField`). Reso da
-   `FormField::render($theme)` via `FormFieldElementFactory` → componente → tema
-   `Wonder` (frontend) o `Bootstrap` (backend).
+3. **Form** — `formSchema()` dichiara i campi con `FormField`. Il type-helper
+   restituisce un `Inputs\Input*`, che costruisce il componente in
+   `element()` e lo rende via `Input::render($theme)` con il tema `Wonder`
+   (frontend) o `Bootstrap` (backend).
    → [Form](form/README.md)
 4. **Tabella** — `tableSchema()` ritorna `TableColumn`; `tableLayoutSchema()`
    definisce titolo, filtri, bottone aggiungi. `ResourceTableRenderer` produce
@@ -85,7 +86,7 @@ final class Project extends Model
 namespace App\Resources;
 
 use Wonder\App\Resource;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 
@@ -98,8 +99,8 @@ final class ProjectResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('name')->text()->required(),
-            FormInput::key('visible')->select(['true' => 'Visibile', 'false' => 'Nascosto'])->value('true'),
+            FormField::key('name')->text()->required(),
+            FormField::key('visible')->select(['true' => 'Visibile', 'false' => 'Nascosto'])->value('true'),
         ];
     }
 

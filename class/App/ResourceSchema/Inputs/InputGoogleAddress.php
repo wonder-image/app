@@ -3,6 +3,8 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Elements\Form\Components\GoogleAddress as GoogleAddressElement;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Indirizzo con autocomplete Google Places più i sei hidden field del
@@ -30,5 +32,24 @@ class InputGoogleAddress extends Input
         $alias = trim($alias);
 
         return $alias !== '' ? $this->context('alias', $alias) : $this;
+    }
+
+    protected function element(): ElementField
+    {
+        $context = (array) ($this->schema['context'] ?? []);
+        $value = $this->schema['value'] ?? null;
+
+        $element = (new GoogleAddressElement($this->name))
+            ->alias((string) ($context['alias'] ?? $this->name))
+            ->restriction(is_array($context['restriction'] ?? null) ? $context['restriction'] : []);
+
+        # breakdown: priorità a context['breakdown'], fallback al value se è array
+        if (is_array($context['breakdown'] ?? null)) {
+            $element->breakdown($context['breakdown']);
+        } elseif (is_array($value)) {
+            $element->breakdown($value);
+        }
+
+        return $element;
     }
 }

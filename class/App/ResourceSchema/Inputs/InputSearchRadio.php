@@ -10,4 +10,9 @@ namespace Wonder\App\ResourceSchema\Inputs;
 class InputSearchRadio extends InputSearchRemote
 {
     protected string $helper = 'searchRadio';
+
+    protected function searchType(): string
+    {
+        return 'radio';
+    }
 }

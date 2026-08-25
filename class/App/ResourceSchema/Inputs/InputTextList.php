@@ -5,6 +5,9 @@ namespace Wonder\App\ResourceSchema\Inputs;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasOptions;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasVersion;
+use Wonder\App\ResourceSchema\Inputs\Concerns\NormalizesOptions;
+use Wonder\Elements\Form\Components\TextList;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Combobox "text + list": campo di testo con dropdown filtrabile su una lista
@@ -18,8 +21,14 @@ use Wonder\App\ResourceSchema\Inputs\Concerns\HasVersion;
  */
 class InputTextList extends Input
 {
+    use NormalizesOptions;
     use HasOptions;
     use HasVersion;
 
     protected string $helper = 'textList';
+
+    protected function element(): ElementField
+    {
+        return (new TextList($this->name))->options($this->normalizedOptions());
+    }
 }

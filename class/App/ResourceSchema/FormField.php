@@ -2,6 +2,7 @@
 
 namespace Wonder\App\ResourceSchema;
 
+use RuntimeException;
 use Wonder\App\ResourceSchema\Inputs\Concerns\NormalizesExtensions;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesNumberConfig;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesPasswordRules;
@@ -41,6 +42,7 @@ use Wonder\App\ResourceSchema\Inputs\InputTextList;
 use Wonder\App\ResourceSchema\Inputs\InputTextarea;
 use Wonder\App\ResourceSchema\Inputs\InputTime;
 use Wonder\App\ResourceSchema\Inputs\InputUrl;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Facade retro-compatibile del DSL form.
@@ -55,7 +57,16 @@ use Wonder\App\ResourceSchema\Inputs\InputUrl;
  *
  * Chi vuole partire già tipizzato può istanziare direttamente la classe:
  * `InputNumber::key('prezzo')->decimals(2)` equivale a
- * `FormField::key('prezzo')->number()->decimals(2)`.
+ * `FormField::key('prezzo')->number()->decimals(2)`. Anche nei
+ * `formSchema()` il punto d'ingresso canonico è `FormField::key(...)`.
+ *
+ * ## Render
+ *
+ * La facade non costruisce Element propri: al render sceglie la classe
+ * tipizzata corrispondente all'helper corrente ({@see HELPERS}) e le delega
+ * tutto. È l'unico punto in cui la stringa `helper` conta ancora, e serve
+ * solo all'escape hatch `new FormField($name, 'select')` — chi passa dai
+ * type-helper è già sulla classe giusta.
  *
  * ## Shim `@deprecated`
  *
@@ -67,8 +78,7 @@ use Wonder\App\ResourceSchema\Inputs\InputUrl;
  * identico. Vanno rimossi solo quando nessun call site esterno li usa più:
  * la forma da preferire è sempre type-helper prima, modificatori poi.
  *
- * `FormInput` e `RepeaterColumn` estendono questa classe e ne ereditano
- * l'intero comportamento.
+ * `RepeaterColumn` estende questa classe e ne eredita l'intero comportamento.
  */
 class FormField extends Input
 {
@@ -76,12 +86,96 @@ class FormField extends Input
     use WritesNumberConfig;
     use WritesPasswordRules;
 
+    /**
+     * Helper legacy -> classe tipizzata che lo rende.
+     *
+     * Serve unicamente all'escape hatch `new FormField($name, $helper)`: i
+     * type-helper qui sotto istanziano già la classe giusta.
+     *
+     * @var array<string, class-string<Input>>
+     */
+    private const HELPERS = [
+        'text' => InputText::class,
+        'hidden' => InputHidden::class,
+        'textGenerator' => InputTextGenerator::class,
+        'email' => InputEmail::class,
+        'tel' => InputPhone::class,
+        'phone' => InputPhone::class,
+        'url' => InputUrl::class,
+        'color' => InputColor::class,
+        'number' => InputNumber::class,
+        'price' => InputPrice::class,
+        'percentige' => InputPercentige::class,
+        'password' => InputPassword::class,
+        'textDate' => InputTextDate::class,
+        'textDatetime' => InputTextDatetime::class,
+        'dateInput' => InputDate::class,
+        'dateRange' => InputDateRange::class,
+        'timeInput' => InputTime::class,
+        'textarea' => InputTextarea::class,
+        'select' => InputSelect::class,
+        'selectSearch' => InputSelectSearch::class,
+        'textList' => InputTextList::class,
+        'searchText' => InputSearchText::class,
+        'searchRadio' => InputSearchRadio::class,
+        'radio' => InputRadio::class,
+        'checkbox' => InputCheckbox::class,
+        'checkTree' => InputCheckTree::class,
+        'dynamicCheck' => InputDynamicCheck::class,
+        'checkBoolean' => InputCheckBoolean::class,
+        'inputCountry' => InputCountry::class,
+        'inputStates' => InputStates::class,
+        'inputPhonePrefix' => InputPhonePrefix::class,
+        'inputFile' => InputFile::class,
+        'inputFileDragDrop' => InputFileDragDrop::class,
+        'inputRepeater' => InputRepeater::class,
+        'inputAcceptDocument' => InputAcceptDocument::class,
+        'recaptcha' => InputReCaptcha::class,
+        'googleAddress' => InputGoogleAddress::class,
+    ];
+
     public function __construct(
         string $name,
         string $helper = 'text',
     ) {
         parent::__construct($name);
         $this->helper = trim($helper) !== '' ? trim($helper) : 'text';
+    }
+
+    /**
+     * La facade delega tutto alla classe del tipo scelto, così i suoi hook
+     * (`elementValue()`, `decorate()`, l'override di `render()` su
+     * `InputAcceptDocument`) valgono anche per chi arriva da qui.
+     */
+    public function compile(): ?ElementField
+    {
+        return $this->typedInput()->compile();
+    }
+
+    public function render(?string $theme = null): string
+    {
+        return $this->typedInput()->render($theme);
+    }
+
+    protected function element(): ?ElementField
+    {
+        return $this->typedInput()->element();
+    }
+
+    /** La classe `Inputs\Input*` che corrisponde all'helper corrente. */
+    protected function typedInput(): Input
+    {
+        $inputClass = self::HELPERS[$this->helper] ?? null;
+
+        if ($inputClass === null) {
+            throw new RuntimeException(
+                "Helper form non supportato: {$this->helper}. "
+                .'Crea la classe del tipo sotto Wonder\\App\\ResourceSchema\\Inputs\\ '
+                .'e mappala in FormField::HELPERS.'
+            );
+        }
+
+        return $this->morphInto($inputClass);
     }
 
     public function text(): InputText
@@ -309,9 +403,9 @@ class FormField extends Input
      * proprio quel prefisso nel POST per registrare il consenso in
      * `consent_events` / `user_consent_state`.
      *
-     * I dati del documento (id, label HTML, ...) vengono risolti al render
-     * in `FormFieldElementFactory::resolveLegalDocument()` per la lingua
-     * corrente, leggendo `context.document_type`.
+     * I dati del documento (id, label HTML, ...) vengono risolti al render da
+     * `InputAcceptDocument` per la lingua corrente, leggendo
+     * `context.document_type`.
      */
     public function acceptDocument(string $type): InputAcceptDocument
     {

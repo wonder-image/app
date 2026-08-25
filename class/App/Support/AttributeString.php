@@ -12,8 +12,8 @@ namespace Wonder\App\Support;
  *
  * Questa utility fa il bridge tra i due mondi.
  *
- * NB: il pattern di parsing è preso dalla copia privata in
- * `FormFieldElementFactory::parseAttributes()`; estratto qui per riuso.
+ * NB: il pattern di parsing proviene dal vecchio dispatcher dei form ed è
+ * stato estratto qui per riuso.
  */
 final class AttributeString
 {

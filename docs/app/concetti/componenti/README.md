@@ -9,7 +9,7 @@ icon: puzzle-piece
 I **componenti** sono i blocchi con cui si compongono i layout di form e di
 pagina nel backend, ma anche frammenti UI riusabili come bottoni, badge,
 gruppi azioni e dropdown. Vivono in `class/Elements/Components/*` e si
-combinano con i campi (`FormInput`) per ottenere layout a colonne o CTA
+combinano con i campi (`FormField`) per ottenere layout a colonne o CTA
 coerenti tra tema Bootstrap e tema Wonder.
 
 I componenti media (`Image`, `Video`, `Iframe`, `Gallery`, `Swiper`) vivono
@@ -320,7 +320,7 @@ diretto di `.ratio`.
 
 ## Collegamenti con il resto
 
-- I campi dentro le Card sono sempre `FormInput`/`FormField`: vedi
+- I campi dentro le Card sono sempre dichiarati con `FormField`: vedi
   [Form](../form/README.md).
 - Il layout della tabella usa una cornice analoga (`TableLayoutSchema`): vedi
   [Tabelle](../tabelle/tablecolumn.md).

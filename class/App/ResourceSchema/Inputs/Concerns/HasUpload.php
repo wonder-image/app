@@ -7,8 +7,8 @@ namespace Wonder\App\ResourceSchema\Inputs\Concerns;
  *
  * `accept()` scrive la *categoria* di file in `schema['file']` (il renderer la
  * traduce in `accept="..."` e in label informativa); gli altri limiti finiscono
- * in `prepare`, da dove `FormFieldElementFactory::fileFormat()` li rilegge —
- * e da dove li rilegge anche l'upload server-side.
+ * in `prepare`, da dove li rilegge sia `InputFile::fileFormat()` al render sia
+ * l'upload server-side.
  */
 trait HasUpload
 {

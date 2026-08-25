@@ -3,6 +3,8 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Elements\Form\Components\TextGenerator;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Campo testo affiancato da un bottone che ne genera il contenuto
@@ -26,5 +28,21 @@ class InputTextGenerator extends Input
         $label = trim($label);
 
         return $label !== '' ? $this->context('button_label', $label) : $this;
+    }
+
+    protected function element(): ElementField
+    {
+        $context = (array) ($this->schema['context'] ?? []);
+        $element = new TextGenerator($this->name);
+
+        if (isset($context['button_label']) && is_string($context['button_label'])) {
+            $element->buttonLabel($context['button_label']);
+        }
+
+        if (isset($context['callback']) && is_string($context['callback'])) {
+            $element->callback($context['callback']);
+        }
+
+        return $element;
     }
 }

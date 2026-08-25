@@ -3,6 +3,8 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Elements\Form\Components\CheckBoolean as CheckBooleanElement;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Toggle Sì/No a tre stati (nessuna scelta / vero / falso).
@@ -35,5 +37,26 @@ class InputCheckBoolean extends Input
         $label = trim($label);
 
         return $label !== '' ? $this->context('false_label', $label) : $this;
+    }
+
+    protected function element(): ElementField
+    {
+        $context = (array) ($this->schema['context'] ?? []);
+        $values = is_array($context['boolean_values'] ?? null) ? $context['boolean_values'] : ['', 'true', 'false'];
+        $values = array_pad($values, 3, '');
+
+        $element = (new CheckBooleanElement($this->name))
+            ->values((string) $values[0], (string) $values[1], (string) $values[2])
+            ->value($this->schema['value'] ?? null);
+
+        if (isset($context['true_label']) && is_string($context['true_label'])) {
+            $element->trueLabel($context['true_label']);
+        }
+
+        if (isset($context['false_label']) && is_string($context['false_label'])) {
+            $element->falseLabel($context['false_label']);
+        }
+
+        return $element;
     }
 }

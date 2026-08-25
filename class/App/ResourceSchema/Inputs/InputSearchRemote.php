@@ -3,6 +3,8 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Elements\Form\Components\SearchRemote;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Base delle ricerche remote: un input che popola la propria dropdown via
@@ -19,5 +21,15 @@ abstract class InputSearchRemote extends Input
         $this->schema['url'] = trim($url);
 
         return $this;
+    }
+
+    /** `text` o `radio`: lo decide la sottoclasse. */
+    abstract protected function searchType(): string;
+
+    protected function element(): ElementField
+    {
+        return (new SearchRemote($this->name))
+            ->url((string) ($this->schema['url'] ?? ''))
+            ->searchType($this->searchType());
     }
 }

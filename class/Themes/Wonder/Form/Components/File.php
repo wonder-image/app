@@ -50,8 +50,7 @@ HTML;
      * Il client (wonder-image/lib) usa `input.files` per rendere lo stato
      * `compiled` del controllo e per il check "max-file".
      *
-     * Il `value` arriva da `hydrate()` (class/App/Support/FormFieldElementFactory.php:149)
-     * via `->value($field->get('value'))`. Può essere:
+     * Il `value` arriva da `Input::hydrate()` via `Element::value()`. Può essere:
      *   - string JSON: '["/upload/.../a.jpg","/upload/.../b.jpg"]'
      *   - string singolo path: '/upload/.../a.jpg'
      *   - array di path già decodificato

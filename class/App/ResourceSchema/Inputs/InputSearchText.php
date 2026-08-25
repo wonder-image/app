@@ -10,4 +10,9 @@ namespace Wonder\App\ResourceSchema\Inputs;
 class InputSearchText extends InputSearchRemote
 {
     protected string $helper = 'searchText';
+
+    protected function searchType(): string
+    {
+        return 'text';
+    }
 }

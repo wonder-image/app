@@ -101,7 +101,7 @@ ogni Resource registrata. Dettagli in
 | Bootstrap | `wonder-image.php`, `class/App/Credentials.php`, `class/App/LegacyGlobals.php` |
 | Model / DB | `class/App/Model.php` |
 | Resource | `class/App/Resource.php`, `class/App/ResourceSchema/*` |
-| Form | `class/App/ResourceSchema/FormField.php`, `class/App/Support/FormFieldElementFactory.php`, `class/Themes/{Wonder,Bootstrap}/*` |
+| Form | `class/App/ResourceSchema/{Input,FormField}.php`, `class/App/ResourceSchema/Inputs/*`, `class/Themes/{Wonder,Bootstrap}/*` |
 | Tabelle | `class/App/ResourceSchema/TableColumn.php`, `class/Backend/Support/ResourceTableRenderer.php` |
 | Permessi | `class/App/Permission/{Permissions,Area,Permission}.php` |
 | Utenti | `class/App/Resources/Support/UserManagementResource.php`, `class/App/Resources/User/*` |

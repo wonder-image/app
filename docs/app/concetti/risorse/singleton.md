@@ -32,7 +32,7 @@ validazione, permessi) ma senza pagina di lista e senza creazione/eliminazione.
 namespace App\Resources;
 
 use Wonder\App\Resources\Support\SingletonResource;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\PageSchema;
 
 final class SiteConfigResource extends SingletonResource
@@ -55,8 +55,8 @@ final class SiteConfigResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('site_name')->text()->required(),
-            FormInput::key('contact_email')->email(),
+            FormField::key('site_name')->text()->required(),
+            FormField::key('contact_email')->email(),
         ];
     }
 }

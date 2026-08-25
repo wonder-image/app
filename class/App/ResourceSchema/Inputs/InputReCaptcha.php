@@ -3,6 +3,8 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Elements\Form\Components\reCAPTCHA;
+use Wonder\Elements\Form\Field as ElementField;
 
 /**
  * Google reCAPTCHA v2 — "Casella di controllo: Non sono un robot".
@@ -36,5 +38,25 @@ class InputReCaptcha extends Input
         $size = trim($size);
 
         return $size !== '' ? $this->context('recaptcha_size', $size) : $this;
+    }
+
+    protected function element(): ElementField
+    {
+        $context = (array) ($this->schema['context'] ?? []);
+        $element = new reCAPTCHA($this->name);
+
+        if (isset($context['recaptcha_action']) && is_string($context['recaptcha_action'])) {
+            $element->action($context['recaptcha_action']);
+        }
+
+        if (isset($context['recaptcha_theme']) && is_string($context['recaptcha_theme'])) {
+            $element->theme($context['recaptcha_theme']);
+        }
+
+        if (isset($context['recaptcha_size']) && is_string($context['recaptcha_size'])) {
+            $element->size($context['recaptcha_size']);
+        }
+
+        return $element;
     }
 }

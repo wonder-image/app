@@ -42,7 +42,15 @@ class TextList extends Field
         }
 
         $escapedInputValue = $this->escape($inputValue);
-        $listArray = $this->escape(strtolower(str_replace("'", '', implode('|', $listValues))));
+        // `data-wi-list-array` è la lista di validazione letta da `controlList`
+        // (JS lib): `element.value.toLowerCase()` deve combaciare *esattamente*
+        // con uno dei segmenti separati da `|`. Quindi la trasformazione qui
+        // deve rispecchiare quella del valore impostato in selezione
+        // (`checkInput` → `input.value = data-wi-name`): solo lowercase, senza
+        // rimuovere apostrofi (che nel valore restano) e senza alterare i
+        // caratteri. Nota: le label NON devono contenere `|`, riservato dalla
+        // lib come separatore tra opzioni.
+        $listArray = $this->escape(mb_strtolower(implode('|', $listValues), 'UTF-8'));
 
         return <<<HTML
 <div class="{$this->containerClass('text-list')}">

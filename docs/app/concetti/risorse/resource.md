@@ -19,7 +19,7 @@ route a mano.
 ## Dove si trova nel codice
 
 - Base: `class/App/Resource.php`
-- Schema: `class/App/ResourceSchema/*` (`FormInput`, `PermissionSchema`,
+- Schema: `class/App/ResourceSchema/*` (`FormField`, `PermissionSchema`,
   `NavigationSchema`, `TableColumn`, `TableLayoutSchema`, `ApiSchema`,
   `PageSchema`)
 - Esempi completi: `class/App/Resources/*` (es.
@@ -33,7 +33,7 @@ route a mano.
 namespace App\Resources;
 
 use Wonder\App\Resource;
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableColumn;
@@ -62,8 +62,8 @@ final class ProjectResource extends Resource
     public static function formSchema(): array
     {
         return [
-            FormInput::key('name')->text()->required(),
-            FormInput::key('visible')->select([
+            FormField::key('name')->text()->required(),
+            FormField::key('visible')->select([
                 'true'  => 'Visibile',
                 'false' => 'Nascosto',
             ])->value('true')->required(),
@@ -127,7 +127,7 @@ Vedi [Schema extension](schema-extensions.md).
 
 | Metodo | Cosa definisce | Pagina di dettaglio |
 |---|---|---|
-| `formSchema()` | input del form (lista di `FormInput`) | [Form](../form/README.md) |
+| `formSchema()` | input del form (lista di `FormField`) | [Form](../form/README.md) |
 | `formLayoutSchema()` | layout del form (Card/Container) | [Componenti](../componenti/README.md) |
 | `tableSchema()` | colonne della lista (`TableColumn`) | [Tabelle](../tabelle/README.md) |
 | `tableLayoutSchema()` | cornice della lista | [Tabelle](../tabelle/tablecolumn.md) |

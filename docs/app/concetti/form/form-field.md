@@ -2,14 +2,14 @@
 icon: pen-field
 ---
 
-# FormField e FormInput
+# FormField
 
 ## Cos'è
 
 `FormField` (`class/App/ResourceSchema/FormField.php`) è il DSL dei campi: una
 facade con ~45 type-helper a catena (`text()`, `select()`, `fileDragDrop()`, …).
-`FormInput` ne è la sottoclasse usata in `formSchema()`: si parte sempre da
-`FormInput::key('nome')`.
+È anche il punto d'ingresso canonico nei `formSchema()`:
+`FormField::key('nome')`.
 
 Il type-helper **sceglie il tipo e cambia la classe dell'oggetto**: restituisce
 l'istanza `Inputs\Input*` corrispondente (`->number()` → `InputNumber`,
@@ -18,7 +18,7 @@ quel tipo. Da lì in poi l'autocomplete smette di suggerire `options()` su un
 numero o `maxFile()` su una password.
 
 ```php
-FormInput::key('prezzo')->number()   // → Inputs\InputNumber
+FormField::key('prezzo')->number()   // → Inputs\InputNumber
     ->decimals(2)                    // ✔ setter numerico
     ->required();                    // ✔ modificatore universale
     // ->options([...])              // ✘ non esiste su InputNumber
@@ -44,21 +44,21 @@ Bootstrap backend) con validazione, label ed errori coerenti.
   `Inputs/Concerns/`.
 - `class/App/ResourceSchema/FormField.php` — la facade coi type-helper, che
   passa da generico a tipizzato via `Input::morphInto()`.
-- `class/App/ResourceSchema/FormInput.php`, `RepeaterColumn.php` — sottoclassi
-  di `FormField`, stesso comportamento.
+- `class/App/ResourceSchema/RepeaterColumn.php` — specializzazione contestuale
+  di `FormField` per i campi dentro un repeater.
 
 ## Esempio completo (copiabile)
 
 ```php
-use Wonder\App\ResourceSchema\FormInput;
+use Wonder\App\ResourceSchema\FormField;
 
 public static function formSchema(): array
 {
     return [
-        FormInput::key('name')->text()->required(),
-        FormInput::key('description')->textarea(),
-        FormInput::key('cover')->fileDragDrop('image', 'classic'),  // NON inputFileDragDrop
-        FormInput::key('visible')->select([
+        FormField::key('name')->text()->required(),
+        FormField::key('description')->textarea(),
+        FormField::key('cover')->fileDragDrop('image', 'classic'),  // NON inputFileDragDrop
+        FormField::key('visible')->select([
             'true'  => 'Visibile',
             'false' => 'Nascosto',
         ])->value('true')->required(),
@@ -75,7 +75,7 @@ metodo pubblico è `fileDragDrop()` (`FormField.php:311`).
 
 ## Type-helper disponibili
 
-Tutti chainable su `FormInput::key($name)`:
+Tutti chainable su `FormField::key($name)`:
 
 ### Testo
 
@@ -101,7 +101,7 @@ Su `number()`, `price()` e `percentige()` (i tre condividono l'Element
 Sono opt-in: senza chiamate i tre type rendono come prima.
 
 ```php
-FormInput::key('prezzo')->number()
+FormField::key('prezzo')->number()
     ->decimal(2)
     ->decimalSeparator(',')
     ->groupSeparator('.')
@@ -236,16 +236,16 @@ form, senza scrivere JavaScript: il toggle è gestito dal JS backend di
 `wonder-image/lib` (`setConditional()`), quindi funziona con qualsiasi tipo di input.
 
 ```php
-FormInput::key('provider')->select(['getrix' => 'Getrix', 'gestim' => 'Gestim']);
+FormField::key('provider')->select(['getrix' => 'Getrix', 'gestim' => 'Gestim']);
 
 // Mostrato solo se `provider` vale getrix o gestim
-FormInput::key('code')->text()->visibleWhen('provider', ['getrix', 'gestim']);
+FormField::key('code')->text()->visibleWhen('provider', ['getrix', 'gestim']);
 
 // Mostrato solo per gestim
-FormInput::key('site_id')->text()->visibleWhen('provider', 'gestim');
+FormField::key('site_id')->text()->visibleWhen('provider', 'gestim');
 
 // Logica inversa: nascosto quando `provider` vale getrix
-FormInput::key('feed_url')->text()->hiddenWhen('provider', 'getrix');
+FormField::key('feed_url')->text()->hiddenWhen('provider', 'getrix');
 ```
 
 - `->visibleWhen(string $field, string|array $values)` — mostra il campo solo
@@ -260,7 +260,7 @@ inviati e salvati.
 ## Errori comuni
 
 - **`->inputFileDragDrop(...)`** → non esiste; usa **`->fileDragDrop(...)`**.
-- **HTML di input scritto a mano** → vietato; modella sempre con `FormInput`.
+- **HTML di input scritto a mano** → vietato; modella sempre con `FormField`.
 - **Modificatore chiamato prima del type-helper** → funziona ma può essere
   sovrascritto (vedi il riquadro sopra): metti sempre il type-helper per primo.
 - **`Call to undefined method`** su un modificatore → stai chiamando un setter
@@ -273,8 +273,8 @@ inviati e salvati.
 
 ## Checklist
 
-- [ ] import `use Wonder\App\ResourceSchema\FormInput;`
-- [ ] ogni input dichiarato con `FormInput::key(...)`
+- [ ] import `use Wonder\App\ResourceSchema\FormField;`
+- [ ] ogni input dichiarato con `FormField::key(...)`
 - [ ] drag&drop con `fileDragDrop()` (non `inputFileDragDrop`)
 - [ ] storage del file configurato nel Model (`dataSchema()` + `$folder`)
 - [ ] nessun `<input>` HTML nelle view

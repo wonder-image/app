@@ -23,7 +23,7 @@
   * [Resource Singleton](concetti/risorse/singleton.md)
   * [Route e API generate](concetti/risorse/route-e-api.md)
 * [Form](concetti/form/README.md)
-  * [FormField e FormInput](concetti/form/form-field.md)
+  * [FormField](concetti/form/form-field.md)
   * [Repeater](concetti/form/repeater.md)
   * [Sistema Form / Theme / Element](concetti/form/theme-system.md)
 * [Render delle tabelle](concetti/tabelle/README.md)

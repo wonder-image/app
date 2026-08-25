@@ -31,7 +31,7 @@ Key subareas:
 - `class/App/ResourceSchema`: high-level form/table/repeater DSL (used by `Resource::formSchema()`)
 - `class/App/Support/Repeater.php`: repeater request + relation sync
 - `class/App/Support/SyncTableSorter.php`: stable foreign-key-aware ordering for `forge import` and deploy sync
-- `class/App/Support/FormFieldElementFactory.php`: bridge from `ResourceSchema/FormField` DSL to `Elements/Form/Components/*` (low-level objects)
+- `class/App/Support/FormFieldElementFactory.php`: deprecated compatibility pass-through to `Input::compile()` / `Input::render()` for external callers
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
 - `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, ...)
@@ -134,7 +134,7 @@ php forge start
   - `Model::tableSchema()` = SQL structure
   - `Model::dataSchema()` = data treatment / prepare / upload
   - `Resource::formSchema()` = backend inputs (high-level DSL via `ResourceSchema/FormField`)
-  - Under the hood, rendering goes through `Elements/Form` + `Themes/Bootstrap/Form/Components/*` via `FormFieldElementFactory`. See the Form / Element / Theme system section below.
+  - Under the hood, each typed `ResourceSchema/Inputs/Input*` builds its `Elements/Form/Components/*` object in `element()`, then `Input::compile()` / `render()` hands it to the selected theme. See the Form / Element / Theme system section below.
 - For non-CRUD backend pages, use `CustomPageSchema`.
 - For repeatable rows, use `FormField::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
 - When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, the work is not complete until all three are updated in the same change:
@@ -266,12 +266,13 @@ Bootstrap 16:9 root and the default 1:1 zoom viewport.
 
 ### Bridge with `Resource::formSchema()`
 
-The high-level DSL (`ResourceSchema/FormSchema` + `FormField` /
-`FormField`) goes through `Wonder\App\Support\FormFieldElementFactory`:
-it converts each `FormField` to the matching `Elements/Form/Components/*`
-object, hydrates it (label, value, attributes, error), and calls
-`$element->render($theme)`. So consumers writing `Resource::formSchema()`
-automatically benefit from the Element + Theme system.
+The high-level DSL (`ResourceSchema/FormField` and `RepeaterColumn`) morphs
+into a typed
+`ResourceSchema/Inputs/Input*`. Each type builds its matching
+`Elements/Form/Components/*` object in `element()`; `Input::compile()` hydrates
+the universal state (label, value, attributes, error), and
+`Input::render($theme)` delegates to the selected theme. The deprecated
+`FormFieldElementFactory` remains only as a pass-through for external callers.
 
 ### Adding a new Component
 
@@ -283,8 +284,8 @@ automatically benefit from the Element + Theme system.
 3. Create `class/Themes/Bootstrap/Form/Components/<Name>.php` extending
    `Wonder\Themes\Bootstrap\Form\Field` (same base). Implement
    `renderInput(): string`.
-4. Optional: add a case in `FormFieldElementFactory::make()` so the
-   high-level `FormSchema` DSL can build it too.
+4. Optional: expose it through the high-level Resource form DSL with a typed
+   class under `ResourceSchema/Inputs/` and a type-helper on `FormField`.
 
 No registration step needed: the Resolver discovers the new component
 by namespace convention. Helpers (`hasError`, `resolvedLabel`,

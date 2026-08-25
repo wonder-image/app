@@ -115,14 +115,10 @@ FormField::key('accept_terms_conditions')->acceptDocument('terms_conditions')->r
 
 Genera lo stesso HTML del legacy: checkbox `accept_<doc_type>` + hidden
 `<doc_type>_id` con id e label HTML del documento attivo nella lingua
-corrente, risolto dal `FormFieldElementFactory` al render. La
-`->required()` aggiunge anche l'`*` alla label.
-
-> `acceptDocument()` resta sul `FormField` legacy finché il refactor
-> "Inputs/*" (vedi `elementi/form-system.md`) non estrae anche
-> `InputAcceptDocument` come classe dedicata. Quando arriverà
-> (`Wonder\App\ResourceSchema\Inputs\InputAcceptDocument`), la firma
-> sarà la stessa: `->document($type)`.
+corrente, risolto da `Inputs\InputAcceptDocument` quando costruisce il proprio
+Element. La `->required()` aggiunge anche l'`*` alla label. Il type-helper
+`acceptDocument($type)` restituisce già la classe tipizzata; in alternativa si
+può usare direttamente `InputAcceptDocument::key($name)->documentType($type)`.
 
 Per i tipi documento custom, il service salva `consent_type` come `doc_<doc_type>`.
 
