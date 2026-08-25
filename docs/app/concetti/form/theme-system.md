@@ -88,12 +88,17 @@ stesso Element. Un `helper` non mappato ritorna `null` (nessun render).
 Se serve un input non coperto, l'intervento è a livello **framework**, non al
 call site:
 
-1. aggiungi il type-helper su `FormField` (e, se utile, su `FormSchema`);
-2. mappa la chiave `helper` in `FormFieldElementFactory::make()` verso un Element
+1. crea la classe del tipo sotto `class/App/ResourceSchema/Inputs/`
+   (`class InputFoo extends Input { protected string $helper = 'foo'; }`) con i
+   soli modificatori che quel tipo supporta — riusa i trait in `Inputs/Concerns/`
+   per i gruppi già esistenti (opzioni, versione, upload, …);
+2. aggiungi il type-helper su `FormField` (e, se utile, su `FormSchema`):
+   `public function foo(): InputFoo { return $this->morphInto(InputFoo::class); }`;
+3. mappa la chiave `helper` in `FormFieldElementFactory::make()` verso un Element
    (nuovo o esistente);
-3. aggiungi il renderer sotto `class/Themes/Wonder/Form/` **e**
+4. aggiungi il renderer sotto `class/Themes/Wonder/Form/` **e**
    `class/Themes/Bootstrap/Form/` così entrambi i temi sono coperti;
-4. dichiara il campo con `FormInput::key(...)->nuovoHelper(...)`.
+5. dichiara il campo con `FormInput::key(...)->foo(...)`.
 
 {% hint style="danger" %}
 Non aggirare un tipo mancante con HTML scritto a mano: rompe theme switching,

@@ -36,7 +36,16 @@ abstract class Input
     public string $name;
     protected string $helper = 'text';
 
-    /** @var array<string, mixed> */
+    /**
+     * Chiavi dello schema condiviso.
+     *
+     * Restano tutte qui — anche quelle che solo alcuni tipi valorizzano
+     * (`options`, `version`, `date_min`, ...) — perché è il contratto che il
+     * `FormFieldElementFactory` legge, con default già pronti. A cambiare di
+     * posto sono i *setters*, che vivono sulla classe del tipo che li supporta.
+     *
+     * @var array<string, mixed>
+     */
     protected array $schema = [
         'label' => '',
         'attribute' => '',
@@ -198,13 +207,6 @@ abstract class Input
         return $this;
     }
 
-    public function multiple(bool $multiple = true): static
-    {
-        $this->schema['multiple'] = $multiple;
-
-        return $multiple ? $this->attribute('multiple') : $this;
-    }
-
     public function value(mixed $value): static
     {
         $this->schema['value'] = $value;
@@ -215,60 +217,6 @@ abstract class Input
     public function inputName(string $name): static
     {
         $this->name = trim($name);
-
-        return $this;
-    }
-
-    public function options(array $options): static
-    {
-        $this->schema['options'] = $options;
-
-        return $this;
-    }
-
-    public function searchBar(bool $searchBar = true): static
-    {
-        $this->schema['search_bar'] = $searchBar;
-
-        return $this;
-    }
-
-    public function version(?string $version): static
-    {
-        $this->schema['version'] = $version;
-
-        return $this;
-    }
-
-    public function old(): static
-    {
-        return $this->version('old');
-    }
-
-    public function uploader(string $uploader = 'classic'): static
-    {
-        $this->schema['uploader'] = trim($uploader);
-
-        return $this;
-    }
-
-    public function dateMin(?string $dateMin): static
-    {
-        $this->schema['date_min'] = $dateMin;
-
-        return $this;
-    }
-
-    public function dateMax(?string $dateMax): static
-    {
-        $this->schema['date_max'] = $dateMax;
-
-        return $this;
-    }
-
-    public function timeStep(?int $timeStep): static
-    {
-        $this->schema['time_step'] = $timeStep;
 
         return $this;
     }
@@ -315,42 +263,6 @@ abstract class Input
     public function storeAs(string $name): static
     {
         return $this->prepare('name', $name);
-    }
-
-    public function maxSize(int $size): static
-    {
-        return $this->prepare('max_size', $size);
-    }
-
-    public function maxFile(int $count): static
-    {
-        return $this->prepare('max_file', $count);
-    }
-
-    /**
-     * Estensioni accettate per l'upload (post-server validation).
-     * Accetta sia un array (`['png', 'jpg']`) sia una stringa
-     * separata da virgole/spazi/pipe (`'png,jpg'`, `'png jpg'`,
-     * `'.png|.jpg'`). Le estensioni vengono normalizzate a
-     * lowercase senza punto iniziale.
-     */
-    public function extensions(string|array $extensions): static
-    {
-        if (is_string($extensions)) {
-            $extensions = preg_split('/[\s,|]+/', $extensions, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        }
-
-        $normalized = [];
-
-        foreach ($extensions as $ext) {
-            $value = ltrim(strtolower(trim((string) $ext)), '.');
-
-            if ($value !== '') {
-                $normalized[] = $value;
-            }
-        }
-
-        return $this->prepare('extensions', array_values(array_unique($normalized)));
     }
 
     public function get(?string $key = null): mixed

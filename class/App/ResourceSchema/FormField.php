@@ -2,6 +2,9 @@
 
 namespace Wonder\App\ResourceSchema;
 
+use Wonder\App\ResourceSchema\Inputs\Concerns\NormalizesExtensions;
+use Wonder\App\ResourceSchema\Inputs\Concerns\WritesNumberConfig;
+use Wonder\App\ResourceSchema\Inputs\Concerns\WritesPasswordRules;
 use Wonder\App\ResourceSchema\Inputs\InputAcceptDocument;
 use Wonder\App\ResourceSchema\Inputs\InputCheckBoolean;
 use Wonder\App\ResourceSchema\Inputs\InputCheckTree;
@@ -40,79 +43,45 @@ use Wonder\App\ResourceSchema\Inputs\InputTime;
 use Wonder\App\ResourceSchema\Inputs\InputUrl;
 
 /**
- * Facade storica del DSL form: espone i 45 type-helper (`text()`,
- * `password()`, `file()`, `select()`, `acceptDocument()`, ...) come
- * metodi d'istanza che mutano `$this` e tornano `self`.
+ * Facade retro-compatibile del DSL form.
  *
- * La "macchina" condivisa (label, attribute, prepare, context, render,
- * __toString) vive in `Wonder\App\ResourceSchema\Input` — `FormField`
- * estende `Input` per ereditarla.
+ * Espone i 45 type-helper (`text()`, `password()`, `file()`, `select()`,
+ * `acceptDocument()`, ...) come punto d'ingresso unico:
+ * `FormField::key('nome')->tipo()->modificatori()`. Ogni type-helper NON muta
+ * più `$this` — costruisce e ritorna l'istanza `Inputs\Input*` del tipo scelto
+ * (vedi {@see Input::morphInto()}), che espone i soli modificatori sensati per
+ * quel tipo. Da lì in poi l'autocomplete smette di suggerire `options()` su un
+ * numero o `maxFile()` su una password.
  *
- * **Direzione del refactor**: gradualmente i type-helper vengono migrati
- * in classi dedicate sotto `Wonder\App\ResourceSchema\Inputs\` (es.
- * `InputText`, `InputPassword`). Quando tutti i tipi saranno migrati,
- * `FormField::key()` diventerà un dispatcher che ritorna direttamente
- * la `Input*` corretta. Per ora i due mondi convivono: entrambi
- * estendono `Input` e sono accettati dal `FormFieldElementFactory`.
+ * Chi vuole partire già tipizzato può istanziare direttamente la classe:
+ * `InputNumber::key('prezzo')->decimals(2)` equivale a
+ * `FormField::key('prezzo')->number()->decimals(2)`.
+ *
+ * ## Shim `@deprecated`
+ *
+ * I modificatori type-specific vivono ora sulle classi tipizzate, ma restano
+ * qui come delegatori marcati `@deprecated`: servono alle catene che chiamano
+ * un modificatore *prima* del type-helper (`->options([...])->select()`), un
+ * ordine ancora diffuso nei siti e nei moduli `wonder-image/<slug>`. Lo
+ * schema accumulato sopravvive al morph, quindi quelle catene rendono HTML
+ * identico. Vanno rimossi solo quando nessun call site esterno li usa più:
+ * la forma da preferire è sempre type-helper prima, modificatori poi.
+ *
+ * `FormInput` e `RepeaterColumn` estendono questa classe e ne ereditano
+ * l'intero comportamento.
  */
 class FormField extends Input
 {
+    use NormalizesExtensions;
+    use WritesNumberConfig;
+    use WritesPasswordRules;
+
     public function __construct(
         string $name,
         string $helper = 'text',
     ) {
         parent::__construct($name);
         $this->helper = trim($helper) !== '' ? trim($helper) : 'text';
-    }
-
-    public function nested(bool $nested = true): self
-    {
-        return $this->context('nested', $nested);
-    }
-
-    public function repeaterAddLabel(string $label): self
-    {
-        return $this->context('add_label', trim($label));
-    }
-
-    public function repeaterButtonClass(string $class): self
-    {
-        return $this->context('add_button_class', trim($class));
-    }
-
-    public function repeaterDeleteTitle(string $title): self
-    {
-        return $this->context('delete_modal_title', trim($title));
-    }
-
-    public function repeaterDeleteText(string $text): self
-    {
-        return $this->context('delete_modal_text', trim($text));
-    }
-
-    public function repeaterDeleteCancelLabel(string $label): self
-    {
-        return $this->context('delete_modal_cancel_label', trim($label));
-    }
-
-    public function repeaterDeleteConfirmLabel(string $label): self
-    {
-        return $this->context('delete_modal_confirm_label', trim($label));
-    }
-
-    public function repeaterDeleteConfirmClass(string $class): self
-    {
-        return $this->context('delete_modal_confirm_class', trim($class));
-    }
-
-    public function repeaterSortable(bool $sortable = true): self
-    {
-        return $this->context('sortable', $sortable);
-    }
-
-    public function relation(object $relation): self
-    {
-        return $this->context('relation', $relation);
     }
 
     public function text(): InputText
@@ -179,128 +148,9 @@ class FormField extends Input
         return $this->morphInto(InputPercentige::class);
     }
 
-    /**
-     * Configurazione del formatting numerico per i type `number()`, `price()`
-     * e `percentige()` — mirror del DSL di
-     * `Wonder\Elements\Form\Components\InputNumber` (da cui `InputPrice` e
-     * `InputPercentige` ereditano gli stessi setters).
-     *
-     * I valori finiscono in `context['number']`; al render il
-     * `FormFieldElementFactory::numberElement()` costruisce l'Element corretto
-     * e ri-applica ognuno chiamando il metodo omonimo sull'Element, così
-     * l'attributo `wi-number-*` emesso resta quello canonico della lib senza
-     * duplicarne i nomi qui. Sono opt-in: senza chiamate, number/price/
-     * percentige rendono esattamente come prima.
-     *
-     * `decimal()` limita le cifre decimali mostrate (attributo lib), mentre
-     * `decimals()` passa il valore allo schema dell'Element: nomi vicini ma
-     * concetti distinti, mantenuti entrambi per fedeltà all'API dell'Element.
-     */
-    public function decimal(int $decimal): self
-    {
-        return $this->numberConfig('decimal', max(0, $decimal));
-    }
-
-    public function decimalSeparator(string $separator): self
-    {
-        return $this->numberConfig('decimal_separator', $separator);
-    }
-
-    public function groupSeparator(string $separator): self
-    {
-        return $this->numberConfig('group_separator', $separator);
-    }
-
-    public function symbol(string $symbol): self
-    {
-        return $this->numberConfig('symbol', $symbol);
-    }
-
-    /**
-     * Posizione del simbolo: `p` = prefix, `s` = suffix (come nell'Element).
-     * Valori fuori da questi due vengono ignorati silenziosamente, così il
-     * DSL resta chainable e non solleva l'eccezione di `InputNumber`.
-     */
-    public function symbolPlacement(string $placement): self
-    {
-        $placement = strtolower(trim($placement));
-
-        if (!in_array($placement, ['p', 's'], true)) {
-            return $this;
-        }
-
-        return $this->numberConfig('symbol_placement', $placement);
-    }
-
-    public function decimals(int $decimals): self
-    {
-        return $this->numberConfig('decimals', max(0, $decimals));
-    }
-
-    private function numberConfig(string $key, mixed $value): self
-    {
-        $number = (array) (($this->schema['context']['number'] ?? []) ?: []);
-        $number[$key] = $value;
-
-        return $this->context('number', $number);
-    }
-
     public function password(): InputPassword
     {
         return $this->morphInto(InputPassword::class);
-    }
-
-    /**
-     * Setters della password policy.
-     *
-     * Le regole finiscono in `prepare['password_rules']` (un singolo array
-     * assoc): `Resource::prepareFormatFromInput()` le copia in
-     * `format['password_rules']`, da dove le legge sia il render (via
-     * `FormFieldElementFactory::passwordElement()` che le propaga
-     * all'`InputPassword` Element) sia la validazione server-side dentro
-     * `formToArray()`, tramite `PasswordPolicyValidator`.
-     *
-     * Le stesse API sono mirror di quelle su `Wonder\Data\Fields\Password`,
-     * così un Model che dichiara `Field::key('password')->password()
-     * ->minLength(8)` ottiene la stessa policy senza dover ripassare dal
-     * FormField del Resource.
-     */
-    public function minLength(int $length): self
-    {
-        return $this->passwordRuleSet('min_length', max(0, $length));
-    }
-
-    public function requireUppercase(bool $required = true): self
-    {
-        return $this->passwordRuleSet('uppercase', $required);
-    }
-
-    public function requireLowercase(bool $required = true): self
-    {
-        return $this->passwordRuleSet('lowercase', $required);
-    }
-
-    public function requireNumber(bool $required = true): self
-    {
-        return $this->passwordRuleSet('number', $required);
-    }
-
-    public function requireSpecial(bool $required = true): self
-    {
-        return $this->passwordRuleSet('special', $required);
-    }
-
-    private function passwordRuleSet(string $key, mixed $value): self
-    {
-        $rules = (array) (($this->schema['prepare']['password_rules'] ?? []) ?: []);
-
-        if ($value === false || $value === 0 || $value === '0') {
-            unset($rules[$key]);
-        } else {
-            $rules[$key] = $value;
-        }
-
-        return $this->prepare('password_rules', $rules);
     }
 
     public function tel(): InputPhone
@@ -584,5 +434,287 @@ class FormField extends Input
         $input = $this->morphInto(InputGoogleAddress::class)->restriction($restriction);
 
         return $alias !== null ? $input->alias($alias) : $input;
+    }
+
+    # ------------------------------------------------------------------
+    # Shim retro-compatibili
+    #
+    # Ognuno di questi modificatori vive ora sulla classe del tipo che lo
+    # supporta; restano qui perché una catena può ancora chiamarli *prima*
+    # del type-helper (`FormField::key('x')->options([...])->select()`), e in
+    # quel punto l'oggetto è ancora la facade. Scrivono nello schema, che il
+    # morph poi trasferisce alla classe tipizzata: il risultato è identico.
+    #
+    # Attenzione (semantica invariata dal refactor): se il type-helper riceve
+    # lo stesso valore come argomento, il suo default vince — `->options([...])
+    # ->select()` perde le opzioni, perché `select()` applica il proprio
+    # `$options = []` dopo il morph. Vale per options/version/multiple/
+    # searchBar/dateMin/dateMax/accept/uploader. Gli shim sono affidabili per i
+    # modificatori che il type-helper NON prende come argomento (`decimals()`,
+    # `minLength()`, `maxFile()`, `extensions()`, ...).
+    #
+    # Nel codice nuovo chiama prima il type-helper: `->select()->options([...])`.
+    # ------------------------------------------------------------------
+
+    /**
+     * @deprecated Usa `->select()->options(...)` (o il type-helper del caso):
+     *             il modificatore vive su `Inputs\InputSelect`, `InputRadio`,
+     *             `InputCheckbox`, `InputCheckTree`, `InputTextList`,
+     *             `InputCountry`.
+     */
+    public function options(array $options): self
+    {
+        $this->schema['options'] = $options;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputRadio`,
+     *             `InputCheckbox`, `InputCheckTree`.
+     */
+    public function searchBar(bool $searchBar = true): self
+    {
+        $this->schema['search_bar'] = $searchBar;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputSelect`,
+     *             `InputSelectSearch`, `InputTextarea`, `InputTextList`.
+     */
+    public function version(?string $version): self
+    {
+        $this->schema['version'] = $version;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive sulle stesse classi di `version()`.
+     */
+    public function old(): self
+    {
+        return $this->version('old');
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputSelect`,
+     *             `InputSelectSearch`, `InputFile`, `InputFileDragDrop`.
+     */
+    public function multiple(bool $multiple = true): self
+    {
+        $this->schema['multiple'] = $multiple;
+
+        return $multiple ? $this->attribute('multiple') : $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputFileDragDrop`.
+     */
+    public function uploader(string $uploader = 'classic'): self
+    {
+        $this->schema['uploader'] = trim($uploader);
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputFile` (e sottoclassi).
+     */
+    public function maxFile(int $count): self
+    {
+        return $this->prepare('max_file', $count);
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputFile` (e sottoclassi).
+     */
+    public function maxSize(int $size): self
+    {
+        return $this->prepare('max_size', $size);
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputFile` (e sottoclassi).
+     */
+    public function extensions(string|array $extensions): self
+    {
+        return $this->extensionsSet($extensions);
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputTextDate`,
+     *             `InputDate`, `InputDateRange`.
+     */
+    public function dateMin(?string $dateMin): self
+    {
+        $this->schema['date_min'] = $dateMin;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive sulle stesse classi di `dateMin()`.
+     */
+    public function dateMax(?string $dateMax): self
+    {
+        $this->schema['date_max'] = $dateMax;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Il modificatore vive su `Inputs\InputTime`.
+     */
+    public function timeStep(?int $timeStep): self
+    {
+        $this->schema['time_step'] = $timeStep;
+
+        return $this;
+    }
+
+    /**
+     * Configurazione del formatting numerico.
+     *
+     * @deprecated I sei setters vivono su `Inputs\InputNumber` (e quindi su
+     *             `InputPrice` / `InputPercentige`), che ne documenta la
+     *             differenza fra `decimal()` e `decimals()`.
+     */
+    public function decimal(int $decimal): self
+    {
+        return $this->numberConfig('decimal', max(0, $decimal));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputNumber`. */
+    public function decimalSeparator(string $separator): self
+    {
+        return $this->numberConfig('decimal_separator', $separator);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputNumber`. */
+    public function groupSeparator(string $separator): self
+    {
+        return $this->numberConfig('group_separator', $separator);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputNumber`. */
+    public function symbol(string $symbol): self
+    {
+        return $this->numberConfig('symbol', $symbol);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputNumber`. */
+    public function symbolPlacement(string $placement): self
+    {
+        return $this->numberSymbolPlacement($placement);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputNumber`. */
+    public function decimals(int $decimals): self
+    {
+        return $this->numberConfig('decimals', max(0, $decimals));
+    }
+
+    /**
+     * Password policy.
+     *
+     * @deprecated I cinque setters vivono su `Inputs\InputPassword`, che
+     *             documenta dove finiscono le regole e chi le rilegge
+     *             (render + validazione server-side).
+     */
+    public function minLength(int $length): self
+    {
+        return $this->passwordRuleSet('min_length', max(0, $length));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputPassword`. */
+    public function requireUppercase(bool $required = true): self
+    {
+        return $this->passwordRuleSet('uppercase', $required);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputPassword`. */
+    public function requireLowercase(bool $required = true): self
+    {
+        return $this->passwordRuleSet('lowercase', $required);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputPassword`. */
+    public function requireNumber(bool $required = true): self
+    {
+        return $this->passwordRuleSet('number', $required);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputPassword`. */
+    public function requireSpecial(bool $required = true): self
+    {
+        return $this->passwordRuleSet('special', $required);
+    }
+
+    /**
+     * Configurazione del repeater.
+     *
+     * @deprecated I setter `nested()`, `relation()` e `repeater*()` vivono su
+     *             `Inputs\InputRepeater`: chiama prima `->repeater([...])`.
+     */
+    public function nested(bool $nested = true): self
+    {
+        return $this->context('nested', $nested);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function relation(object $relation): self
+    {
+        return $this->context('relation', $relation);
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterAddLabel(string $label): self
+    {
+        return $this->context('add_label', trim($label));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterButtonClass(string $class): self
+    {
+        return $this->context('add_button_class', trim($class));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterDeleteTitle(string $title): self
+    {
+        return $this->context('delete_modal_title', trim($title));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterDeleteText(string $text): self
+    {
+        return $this->context('delete_modal_text', trim($text));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterDeleteCancelLabel(string $label): self
+    {
+        return $this->context('delete_modal_cancel_label', trim($label));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterDeleteConfirmLabel(string $label): self
+    {
+        return $this->context('delete_modal_confirm_label', trim($label));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterDeleteConfirmClass(string $class): self
+    {
+        return $this->context('delete_modal_confirm_class', trim($class));
+    }
+
+    /** @deprecated Il modificatore vive su `Inputs\InputRepeater`. */
+    public function repeaterSortable(bool $sortable = true): self
+    {
+        return $this->context('sortable', $sortable);
     }
 }

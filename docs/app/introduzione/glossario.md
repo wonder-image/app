@@ -53,7 +53,9 @@ riferimento nel codice.
 - **FormField** — classe base del DSL dei form
   (`class/App/ResourceSchema/FormField.php`). Espone i type-helper (`text()`,
   `select()`, `fileDragDrop()`, …).
-- **FormInput** — sottoclasse usata in `formSchema()`: `FormInput::key('nome')`.
+- **FormInput** — sottoclasse di `FormField` usata in `formSchema()`:
+  `FormInput::key('nome')`. Il type-helper ritorna la classe `Inputs\Input*` del
+  tipo scelto, che espone i soli modificatori di quel tipo.
 - **RepeaterColumn** — un campo dentro una riga ripetibile; estende `FormField`.
 - **RepeaterRelation** — collega le righe di un repeater a una tabella correlata.
 - **Theme (Wonder / Bootstrap)** — i due renderer: `Wonder` per il frontend

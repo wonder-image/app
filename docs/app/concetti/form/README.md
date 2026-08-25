@@ -38,7 +38,10 @@ Se manca un tipo di input, **non** lo si aggira con HTML al volo: si estende
 
 | Elemento | File |
 |---|---|
-| DSL dei campi | `class/App/ResourceSchema/FormField.php` (base `Input`) |
+| API universale (base) | `class/App/ResourceSchema/Input.php` |
+| Una classe per tipo di input | `class/App/ResourceSchema/Inputs/Input*.php` |
+| Gruppi di modificatori condivisi | `class/App/ResourceSchema/Inputs/Concerns/*.php` |
+| Facade coi type-helper | `class/App/ResourceSchema/FormField.php` |
 | Campo per `formSchema()` | `class/App/ResourceSchema/FormInput.php` |
 | Riga di repeater | `class/App/ResourceSchema/RepeaterColumn.php` |
 | Dispatcher | `class/App/Support/FormFieldElementFactory.php` |
