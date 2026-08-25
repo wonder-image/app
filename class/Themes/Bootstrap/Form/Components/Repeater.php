@@ -3,6 +3,7 @@
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\Input;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class Repeater extends Field
@@ -110,7 +111,7 @@ HTML;
 
     private function renderColumn(mixed $column, string $name, array $rowValue, string $rowKey, array $context): array
     {
-        if ($column instanceof FormField) {
+        if ($column instanceof Input) {
             $field = clone $column;
             $columnName = trim((string) $field->name);
             $fieldValue = $rowValue[$columnName] ?? $field->get('value');
@@ -137,7 +138,15 @@ HTML;
         ];
     }
 
-    private function buildField(array $column, string $name, array $rowValue, string $rowKey, array $context): FormField
+    /**
+     * Colonna dichiarata in forma di array (`['name' => ..., 'helper' => ...]`)
+     * invece che come `RepeaterColumn`.
+     *
+     * I type-helper di `FormField` non mutano più `$this`: ritornano l'istanza
+     * `Input*` del tipo scelto (vedi `Input::morphInto()`). Il risultato del
+     * `match` va quindi *riassegnato*, non scartato.
+     */
+    private function buildField(array $column, string $name, array $rowValue, string $rowKey, array $context): Input
     {
         $columnName = trim((string) ($column['name'] ?? $name));
         $helper = trim((string) ($column['helper'] ?? 'text'));
@@ -161,7 +170,7 @@ HTML;
         $searchBar = (bool) ($column['search_bar'] ?? false);
         $version = isset($column['version']) ? (string) $column['version'] : null;
 
-        match ($helper) {
+        return match ($helper) {
             'hidden' => $field->hidden(),
             'select' => $field->select($options, $version),
             'selectSearch' => $field->selectSearch($options, false, $version),
@@ -186,8 +195,6 @@ HTML;
             'inputPhonePrefix' => $field->phonePrefix(),
             default => $field->text(),
         };
-
-        return $field;
     }
 
     private function normalizeRows(mixed $value): array
@@ -221,7 +228,7 @@ HTML;
         return $rows;
     }
 
-    private function resolvedColumnWidth(FormField $field): int
+    private function resolvedColumnWidth(Input $field): int
     {
         $span = $field->columnSpan['default'] ?? null;
 

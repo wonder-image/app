@@ -2,6 +2,43 @@
 
 namespace Wonder\App\ResourceSchema;
 
+use Wonder\App\ResourceSchema\Inputs\InputAcceptDocument;
+use Wonder\App\ResourceSchema\Inputs\InputCheckBoolean;
+use Wonder\App\ResourceSchema\Inputs\InputCheckTree;
+use Wonder\App\ResourceSchema\Inputs\InputCheckbox;
+use Wonder\App\ResourceSchema\Inputs\InputColor;
+use Wonder\App\ResourceSchema\Inputs\InputCountry;
+use Wonder\App\ResourceSchema\Inputs\InputDate;
+use Wonder\App\ResourceSchema\Inputs\InputDateRange;
+use Wonder\App\ResourceSchema\Inputs\InputDynamicCheck;
+use Wonder\App\ResourceSchema\Inputs\InputEmail;
+use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
+use Wonder\App\ResourceSchema\Inputs\InputGoogleAddress;
+use Wonder\App\ResourceSchema\Inputs\InputHidden;
+use Wonder\App\ResourceSchema\Inputs\InputNumber;
+use Wonder\App\ResourceSchema\Inputs\InputPassword;
+use Wonder\App\ResourceSchema\Inputs\InputPercentige;
+use Wonder\App\ResourceSchema\Inputs\InputPhone;
+use Wonder\App\ResourceSchema\Inputs\InputPhonePrefix;
+use Wonder\App\ResourceSchema\Inputs\InputPrice;
+use Wonder\App\ResourceSchema\Inputs\InputRadio;
+use Wonder\App\ResourceSchema\Inputs\InputReCaptcha;
+use Wonder\App\ResourceSchema\Inputs\InputRepeater;
+use Wonder\App\ResourceSchema\Inputs\InputSearchRadio;
+use Wonder\App\ResourceSchema\Inputs\InputSearchText;
+use Wonder\App\ResourceSchema\Inputs\InputSelect;
+use Wonder\App\ResourceSchema\Inputs\InputSelectSearch;
+use Wonder\App\ResourceSchema\Inputs\InputStates;
+use Wonder\App\ResourceSchema\Inputs\InputText;
+use Wonder\App\ResourceSchema\Inputs\InputTextDate;
+use Wonder\App\ResourceSchema\Inputs\InputTextDatetime;
+use Wonder\App\ResourceSchema\Inputs\InputTextGenerator;
+use Wonder\App\ResourceSchema\Inputs\InputTextList;
+use Wonder\App\ResourceSchema\Inputs\InputTextarea;
+use Wonder\App\ResourceSchema\Inputs\InputTime;
+use Wonder\App\ResourceSchema\Inputs\InputUrl;
+
 /**
  * Facade storica del DSL form: espone i 45 type-helper (`text()`,
  * `password()`, `file()`, `select()`, `acceptDocument()`, ...) come
@@ -78,93 +115,68 @@ class FormField extends Input
         return $this->context('relation', $relation);
     }
 
-    public function text(): self
+    public function text(): InputText
     {
-        $this->helper = 'text';
-
-        return $this;
+        return $this->morphInto(InputText::class);
     }
 
-    public function hidden(): self
+    public function hidden(): InputHidden
     {
-        $this->helper = 'hidden';
-
-        return $this;
+        return $this->morphInto(InputHidden::class);
     }
 
-    public function textDate(): self
+    public function textDate(): InputTextDate
     {
-        $this->helper = 'textDate';
-
-        return $this;
+        return $this->morphInto(InputTextDate::class);
     }
 
-    public function textDatetime(): self
+    public function textDatetime(): InputTextDatetime
     {
-        $this->helper = 'textDatetime';
-
-        return $this;
+        return $this->morphInto(InputTextDatetime::class);
     }
 
-    public function dateInput(?string $dateMin = null, ?string $dateMax = null): self
+    public function dateInput(?string $dateMin = null, ?string $dateMax = null): InputDate
     {
-        $this->helper = 'dateInput';
-        $this->dateMin($dateMin);
-        $this->dateMax($dateMax);
-
-        return $this;
+        return $this->morphInto(InputDate::class)
+            ->dateMin($dateMin)
+            ->dateMax($dateMax);
     }
 
-    public function timeInput(?int $step = 900): self
+    public function timeInput(?int $step = 900): InputTime
     {
-        $this->helper = 'timeInput';
-        $this->timeStep($step);
-
-        return $this;
+        return $this->morphInto(InputTime::class)->timeStep($step);
     }
 
-    public function dateRange(?string $dateMin = null, ?string $dateMax = null): self
+    public function dateRange(?string $dateMin = null, ?string $dateMax = null): InputDateRange
     {
-        $this->helper = 'dateRange';
-        $this->dateMin($dateMin);
-        $this->dateMax($dateMax);
-
-        return $this;
+        return $this->morphInto(InputDateRange::class)
+            ->dateMin($dateMin)
+            ->dateMax($dateMax);
     }
 
-    public function color(): self
+    public function color(): InputColor
     {
-        $this->helper = 'color';
-
-        return $this;
+        return $this->morphInto(InputColor::class);
     }
 
-    public function email(): self
+    public function email(): InputEmail
     {
-        $this->helper = 'email';
-
-        return $this;
+        return $this->morphInto(InputEmail::class);
     }
 
-    public function number(): self
+    public function number(): InputNumber
     {
-        $this->helper = 'number';
-
-        return $this;
+        return $this->morphInto(InputNumber::class);
     }
 
-    public function price(): self
+    public function price(): InputPrice
     {
-        $this->helper = 'price';
-
-        return $this;
+        return $this->morphInto(InputPrice::class);
     }
 
-    public function percentige(): self
+    public function percentige(): InputPercentige
     {
-        $this->helper = 'percentige';
-
-        return $this;
+        return $this->morphInto(InputPercentige::class);
     }
 
     /**
@@ -233,11 +245,9 @@ class FormField extends Input
         return $this->context('number', $number);
     }
 
-    public function password(): self
+    public function password(): InputPassword
     {
-        $this->helper = 'password';
-
-        return $this;
+        return $this->morphInto(InputPassword::class);
     }
 
     /**
@@ -293,75 +303,62 @@ class FormField extends Input
         return $this->prepare('password_rules', $rules);
     }
 
-    public function tel(): self
+    public function tel(): InputPhone
     {
-        $this->helper = 'phone';
-
-        return $this;
+        return $this->morphInto(InputPhone::class);
     }
 
-    public function phone(): self
+    public function phone(): InputPhone
     {
         return $this->tel();
     }
 
-    public function url(): self
+    public function url(): InputUrl
     {
-        $this->helper = 'url';
-
-        return $this;
+        return $this->morphInto(InputUrl::class);
     }
 
-    public function textarea(?string $version = null): self
+    public function textarea(?string $version = null): InputTextarea
     {
-        $this->helper = 'textarea';
-        $this->version($version);
-
-        return $this;
+        return $this->morphInto(InputTextarea::class)->version($version);
     }
 
-    public function select(array $options = [], ?string $version = null): self
+    public function select(array $options = [], ?string $version = null): InputSelect
     {
-        $this->helper = 'select';
-        $this->options($options);
-        $this->version($version);
-
-        return $this;
+        return $this->morphInto(InputSelect::class)
+            ->options($options)
+            ->version($version);
     }
 
-    public function bool(?string $version = null): self
+    public function bool(?string $version = null): InputSelect
     {
-
-        return $this->select([ 'true' => 'Sì', 'false' => 'No' ], $version)->value('true');
-
+        return $this->select(['true' => 'Sì', 'false' => 'No'], $version)->value('true');
     }
 
-    public function position(?string $version = null): self
+    public function position(?string $version = null): InputSelect
     {
         $options = [];
-        for ($i=0; $i < 11; $i++) { $options[$i] = $i; }
+
+        for ($i = 0; $i < 11; $i++) {
+            $options[$i] = $i;
+        }
 
         return $this->select($options, $version);
-
     }
 
-    public function radio(array $options = [], bool $searchBar = false): self
+    public function radio(array $options = [], bool $searchBar = false): InputRadio
     {
-        $this->helper = 'radio';
-        $this->options($options);
-        $this->searchBar($searchBar);
-
-        return $this;
+        return $this->morphInto(InputRadio::class)
+            ->options($options)
+            ->searchBar($searchBar);
     }
 
-    public function selectSearch(array $options = [], bool $multiple = false, ?string $version = null): self
+    public function selectSearch(array $options = [], bool $multiple = false, ?string $version = null): InputSelectSearch
     {
-        $this->helper = 'selectSearch';
-        $this->options($options);
-        $this->multiple($multiple);
-        $this->version($version);
-
-        return $this;
+        return $this->morphInto(InputSelectSearch::class)
+            ->options($options)
+            ->multiple($multiple)
+            ->version($version);
     }
 
     /**
@@ -373,13 +370,11 @@ class FormField extends Input
      * ricerca lato client senza chiamate remote (vedi `searchText()` per la
      * ricerca via AJAX).
      */
-    public function textList(array $options = [], ?string $version = null): self
+    public function textList(array $options = [], ?string $version = null): InputTextList
     {
-        $this->helper = 'textList';
-        $this->options($options);
-        $this->version($version);
-
-        return $this;
+        return $this->morphInto(InputTextList::class)
+            ->options($options)
+            ->version($version);
     }
 
     /**
@@ -388,31 +383,23 @@ class FormField extends Input
      * dropdown remota `data-wi-search-text`; tema Bootstrap: input testuale
      * (la ricerca remota è una feature del frontend).
      */
-    public function searchText(string $url): self
+    public function searchText(string $url): InputSearchText
     {
-        $this->helper = 'searchText';
-        $this->schema['url'] = trim($url);
-
-        return $this;
+        return $this->morphInto(InputSearchText::class)->url($url);
     }
 
     /**
      * Variante a selezione singola di `searchText()`: la scelta di una voce
      * invia direttamente il relativo value (`data-wi-search-radio`).
      */
-    public function searchRadio(string $url): self
+    public function searchRadio(string $url): InputSearchRadio
     {
-        $this->helper = 'searchRadio';
-        $this->schema['url'] = trim($url);
-
-        return $this;
+        return $this->morphInto(InputSearchRadio::class)->url($url);
     }
 
-    public function checkbox(): self
+    public function checkbox(): InputCheckbox
     {
-        $this->helper = 'checkbox';
-
-        return $this;
+        return $this->morphInto(InputCheckbox::class);
     }
 
     /**
@@ -421,12 +408,9 @@ class FormField extends Input
      * (es. `image`, `pdf`, `video`, `font`, `media`): il renderer la
      * traduce in attributo `accept="..."` e in label informativa.
      */
-    public function file(string $accept = 'image'): self
+    public function file(string $accept = 'image'): InputFile
     {
-        $this->helper = 'inputFile';
-        $this->schema['file'] = trim($accept);
-
-        return $this;
+        return $this->morphInto(InputFile::class)->accept($accept);
     }
 
     /**
@@ -434,53 +418,35 @@ class FormField extends Input
      * `$uploader` è la strategia di upload lato client (`classic` o un
      * uploader registrato).
      */
-    public function fileDragDrop(string $accept = 'image', string $uploader = 'classic'): self
+    public function fileDragDrop(string $accept = 'image', string $uploader = 'classic'): InputFileDragDrop
     {
-        $this->helper = 'inputFileDragDrop';
-        $this->schema['file'] = trim($accept);
-        $this->uploader($uploader);
-
-        return $this;
+        return $this->morphInto(InputFileDragDrop::class)
+            ->accept($accept)
+            ->uploader($uploader);
     }
 
-    public function country(?string $stateField = null): self
+    public function country(?string $stateField = null): InputCountry
     {
-        $this->helper = 'inputCountry';
+        $input = $this->morphInto(InputCountry::class);
 
-        if ($stateField !== null && trim($stateField) !== '') {
-            $this->context('state_field', trim($stateField));
-        }
-
-        return $this;
+        return $stateField !== null ? $input->stateField($stateField) : $input;
     }
 
-    public function states(?string $country = null): self
+    public function states(?string $country = null): InputStates
     {
-        $this->helper = 'inputStates';
+        $input = $this->morphInto(InputStates::class);
 
-        if ($country !== null && trim($country) !== '') {
-            $this->context('country', trim($country));
-        }
-
-        return $this;
+        return $country !== null ? $input->country($country) : $input;
     }
 
-    public function phonePrefix(): self
+    public function phonePrefix(): InputPhonePrefix
     {
-        $this->helper = 'inputPhonePrefix';
-
-        return $this;
+        return $this->morphInto(InputPhonePrefix::class);
     }
 
-    public function repeater(array $columns = []): self
+    public function repeater(array $columns = []): InputRepeater
     {
-        $this->helper = 'inputRepeater';
-
-        if ($columns !== []) {
-            $this->context('columns', $columns);
-        }
-
-        return $this;
+        return $this->morphInto(InputRepeater::class)->columns($columns);
     }
 
     /**
@@ -497,15 +463,9 @@ class FormField extends Input
      * in `FormFieldElementFactory::resolveLegalDocument()` per la lingua
      * corrente, leggendo `context.document_type`.
      */
-    public function acceptDocument(string $type): self
+    public function acceptDocument(string $type): InputAcceptDocument
     {
-        $type = strtolower(trim($type));
-        $type = preg_replace('/[^a-z0-9_-]/', '', $type) ?? '';
-
-        $this->helper = 'inputAcceptDocument';
-        $this->context('document_type', $type);
-
-        return $this;
+        return $this->morphInto(InputAcceptDocument::class)->documentType($type);
     }
 
     /**
@@ -514,19 +474,19 @@ class FormField extends Input
      * @param string|null $callback   Funzione JS chiamata al click (default `generateCode`).
      * @param string|null $buttonLabel Label del bottone (default `GENERA`).
      */
-    public function textGenerator(?string $callback = null, ?string $buttonLabel = null): self
+    public function textGenerator(?string $callback = null, ?string $buttonLabel = null): InputTextGenerator
     {
-        $this->helper = 'textGenerator';
+        $input = $this->morphInto(InputTextGenerator::class);
 
-        if ($callback !== null && trim($callback) !== '') {
-            $this->context('callback', trim($callback));
+        if ($callback !== null) {
+            $input->callback($callback);
         }
 
-        if ($buttonLabel !== null && trim($buttonLabel) !== '') {
-            $this->context('button_label', trim($buttonLabel));
+        if ($buttonLabel !== null) {
+            $input->buttonLabel($buttonLabel);
         }
 
-        return $this;
+        return $input;
     }
 
     /**
@@ -537,27 +497,23 @@ class FormField extends Input
      * @param bool   $searchBar  Aggiunge la barra di ricerca testuale.
      * @param string $inputType  'checkbox' (default) o 'radio'.
      */
-    public function checkTree(array $options = [], bool $searchBar = false, string $inputType = 'checkbox'): self
+    public function checkTree(array $options = [], bool $searchBar = false, string $inputType = 'checkbox'): InputCheckTree
     {
-        $this->helper = 'checkTree';
-        $this->options($options);
-        $this->searchBar($searchBar);
-
-        return $this->context('input_type', $inputType === 'radio' ? 'radio' : 'checkbox');
+        return $this->morphInto(InputCheckTree::class)
+            ->options($options)
+            ->searchBar($searchBar)
+            ->inputType($inputType);
     }
 
     /**
      * Check (checkbox/radio) con risultati caricati via AJAX
      * (Wonder\Elements\Form\Components\DynamicCheck).
      */
-    public function dynamicCheck(string $url, string $inputType = 'checkbox'): self
+    public function dynamicCheck(string $url, string $inputType = 'checkbox'): InputDynamicCheck
     {
-        $this->helper = 'dynamicCheck';
-
-        return $this->context([
-            'url' => trim($url),
-            'input_type' => $inputType === 'radio' ? 'radio' : 'checkbox',
-        ]);
+        return $this->morphInto(InputDynamicCheck::class)
+            ->url($url)
+            ->inputType($inputType);
     }
 
     /**
@@ -567,21 +523,19 @@ class FormField extends Input
      * @param array $values Tripla [valueNull, valueTrue, valueFalse] dei valori
      *                      effettivamente postati dal form. Default `['', 'true', 'false']`.
      */
-    public function checkBoolean(array $values = ['', 'true', 'false'], ?string $trueLabel = null, ?string $falseLabel = null): self
+    public function checkBoolean(array $values = ['', 'true', 'false'], ?string $trueLabel = null, ?string $falseLabel = null): InputCheckBoolean
     {
-        $this->helper = 'checkBoolean';
+        $input = $this->morphInto(InputCheckBoolean::class)->values($values);
 
-        $this->context('boolean_values', array_pad($values, 3, ''));
-
-        if ($trueLabel !== null && trim($trueLabel) !== '') {
-            $this->context('true_label', trim($trueLabel));
+        if ($trueLabel !== null) {
+            $input->trueLabel($trueLabel);
         }
 
-        if ($falseLabel !== null && trim($falseLabel) !== '') {
-            $this->context('false_label', trim($falseLabel));
+        if ($falseLabel !== null) {
+            $input->falseLabel($falseLabel);
         }
 
-        return $this;
+        return $input;
     }
 
     /**
@@ -597,23 +551,23 @@ class FormField extends Input
      * @param string|null $theme  `light` (default) o `dark`.
      * @param string|null $size   `normal` (default) o `compact`.
      */
-    public function recaptcha(?string $action = null, ?string $theme = null, ?string $size = null): self
+    public function recaptcha(?string $action = null, ?string $theme = null, ?string $size = null): InputReCaptcha
     {
-        $this->helper = 'recaptcha';
+        $input = $this->morphInto(InputReCaptcha::class);
 
-        if ($action !== null && trim($action) !== '') {
-            $this->context('recaptcha_action', trim($action));
+        if ($action !== null) {
+            $input->action($action);
         }
 
-        if ($theme !== null && trim($theme) !== '') {
-            $this->context('recaptcha_theme', trim($theme));
+        if ($theme !== null) {
+            $input->theme($theme);
         }
 
-        if ($size !== null && trim($size) !== '') {
-            $this->context('recaptcha_size', trim($size));
+        if ($size !== null) {
+            $input->size($size);
         }
 
-        return $this;
+        return $input;
     }
 
     /**
@@ -625,18 +579,10 @@ class FormField extends Input
      *                                  del campo; passa una stringa esplicita se vuoi
      *                                  più indirizzi nello stesso form.
      */
-    public function googleAddress(array $restriction = [], ?string $alias = null): self
+    public function googleAddress(array $restriction = [], ?string $alias = null): InputGoogleAddress
     {
-        $this->helper = 'googleAddress';
+        $input = $this->morphInto(InputGoogleAddress::class)->restriction($restriction);
 
-        if ($restriction !== []) {
-            $this->context('restriction', $restriction);
-        }
-
-        if ($alias !== null && trim($alias) !== '') {
-            $this->context('alias', trim($alias));
-        }
-
-        return $this;
+        return $alias !== null ? $input->alias($alias) : $input;
     }
 }

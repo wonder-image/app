@@ -4,6 +4,30 @@ namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
 use Wonder\App\Resource;
+use Wonder\App\ResourceSchema\Inputs\InputCheckBoolean;
+use Wonder\App\ResourceSchema\Inputs\InputCheckTree;
+use Wonder\App\ResourceSchema\Inputs\InputCheckbox;
+use Wonder\App\ResourceSchema\Inputs\InputColor;
+use Wonder\App\ResourceSchema\Inputs\InputDate;
+use Wonder\App\ResourceSchema\Inputs\InputDateRange;
+use Wonder\App\ResourceSchema\Inputs\InputDynamicCheck;
+use Wonder\App\ResourceSchema\Inputs\InputEmail;
+use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
+use Wonder\App\ResourceSchema\Inputs\InputGoogleAddress;
+use Wonder\App\ResourceSchema\Inputs\InputNumber;
+use Wonder\App\ResourceSchema\Inputs\InputPassword;
+use Wonder\App\ResourceSchema\Inputs\InputPercentige;
+use Wonder\App\ResourceSchema\Inputs\InputPhone;
+use Wonder\App\ResourceSchema\Inputs\InputPrice;
+use Wonder\App\ResourceSchema\Inputs\InputSelect;
+use Wonder\App\ResourceSchema\Inputs\InputSelectSearch;
+use Wonder\App\ResourceSchema\Inputs\InputText;
+use Wonder\App\ResourceSchema\Inputs\InputTextDate;
+use Wonder\App\ResourceSchema\Inputs\InputTextDatetime;
+use Wonder\App\ResourceSchema\Inputs\InputTextGenerator;
+use Wonder\App\ResourceSchema\Inputs\InputTextarea;
+use Wonder\App\ResourceSchema\Inputs\InputUrl;
 
 final class FormSchema
 {
@@ -31,134 +55,141 @@ final class FormSchema
         return new self($resourceClass);
     }
 
+    /**
+     * Escape hatch generico: costruisce la facade `FormField` con l'helper
+     * dato, per i tipi che non hanno (ancora) una factory dedicata qui.
+     *
+     * Le factory tipizzate qui sotto sono da preferire: ritornano la classe
+     * `Inputs\Input*` del tipo, quindi espongono in autocomplete solo i
+     * modificatori che quel tipo supporta davvero.
+     */
     public static function input(string $helper, string $name): FormField
     {
-        return new FormField(trim($helper), $name);
+        return new FormField($name, $helper);
     }
 
-    public static function text(string $name): FormField
+    public static function text(string $name): InputText
     {
-        return self::input('text', $name);
+        return new InputText($name);
     }
 
-    public static function textGenerator(string $name): FormField
+    public static function textGenerator(string $name): InputTextGenerator
     {
-        return self::input('textGenerator', $name);
+        return new InputTextGenerator($name);
     }
 
-    public static function textDate(string $name): FormField
+    public static function textDate(string $name): InputTextDate
     {
-        return self::input('textDate', $name);
+        return new InputTextDate($name);
     }
 
-    public static function textDatetime(string $name): FormField
+    public static function textDatetime(string $name): InputTextDatetime
     {
-        return self::input('textDatetime', $name);
+        return new InputTextDatetime($name);
     }
 
-    public static function dateInput(string $name): FormField
+    public static function dateInput(string $name): InputDate
     {
-        return self::input('dateInput', $name);
+        return new InputDate($name);
     }
 
-    public static function dateRange(string $name): FormField
+    public static function dateRange(string $name): InputDateRange
     {
-        return self::input('dateRange', $name);
+        return new InputDateRange($name);
     }
 
-    public static function color(string $name): FormField
+    public static function color(string $name): InputColor
     {
-        return self::input('color', $name);
+        return new InputColor($name);
     }
 
-    public static function email(string $name): FormField
+    public static function email(string $name): InputEmail
     {
-        return self::input('email', $name);
+        return new InputEmail($name);
     }
 
-    public static function number(string $name): FormField
+    public static function number(string $name): InputNumber
     {
-        return self::input('number', $name);
+        return new InputNumber($name);
     }
 
-    public static function price(string $name): FormField
+    public static function price(string $name): InputPrice
     {
-        return self::input('price', $name);
+        return new InputPrice($name);
     }
 
-    public static function percentige(string $name): FormField
+    public static function percentige(string $name): InputPercentige
     {
-        return self::input('percentige', $name);
+        return new InputPercentige($name);
     }
 
-    public static function password(string $name): FormField
+    public static function password(string $name): InputPassword
     {
-        return self::input('password', $name);
+        return new InputPassword($name);
     }
 
-    public static function tel(string $name): FormField
+    public static function tel(string $name): InputPhone
     {
-        return self::input('phone', $name);
+        return new InputPhone($name);
     }
 
-    public static function url(string $name): FormField
+    public static function url(string $name): InputUrl
     {
-        return self::input('url', $name);
+        return new InputUrl($name);
     }
 
-    public static function textarea(string $name): FormField
+    public static function textarea(string $name): InputTextarea
     {
-        return self::input('textarea', $name);
+        return new InputTextarea($name);
     }
 
-    public static function select(string $name, array $options = []): FormField
+    public static function select(string $name, array $options = []): InputSelect
     {
-        return self::input('select', $name)->options($options);
+        return (new InputSelect($name))->options($options);
     }
 
-    public static function selectSearch(string $name, array $options = []): FormField
+    public static function selectSearch(string $name, array $options = []): InputSelectSearch
     {
-        return self::input('selectSearch', $name)->options($options);
+        return (new InputSelectSearch($name))->options($options);
     }
 
-    public static function checkbox(string $name): FormField
+    public static function checkbox(string $name): InputCheckbox
     {
-        return self::input('checkbox', $name);
+        return new InputCheckbox($name);
     }
 
-    public static function inputFile(string $name, string $file = 'image'): FormField
+    public static function inputFile(string $name, string $file = 'image'): InputFile
     {
-        return self::input('inputFile', $name)->file($file);
+        return (new InputFile($name))->accept($file);
     }
 
-    public static function inputFileDragDrop(string $name, string $file = 'image', string $uploader = 'classic'): FormField
+    public static function inputFileDragDrop(string $name, string $file = 'image', string $uploader = 'classic'): InputFileDragDrop
     {
-        return self::input('inputFileDragDrop', $name)
-            ->file($file)
+        return (new InputFileDragDrop($name))
+            ->accept($file)
             ->uploader($uploader);
     }
 
-    public static function checkTree(string $name, array $options = []): FormField
+    public static function checkTree(string $name, array $options = []): InputCheckTree
     {
-        return self::input('checkTree', $name)->options($options);
+        return (new InputCheckTree($name))->options($options);
     }
 
-    public static function dynamicCheck(string $name, string $url): FormField
+    public static function dynamicCheck(string $name, string $url): InputDynamicCheck
     {
-        return self::input('dynamicCheck', $name)->context([
-            'url' => trim($url),
-            'input_type' => 'checkbox',
-        ]);
+        return (new InputDynamicCheck($name))
+            ->url($url)
+            ->inputType('checkbox');
     }
 
-    public static function checkBoolean(string $name): FormField
+    public static function checkBoolean(string $name): InputCheckBoolean
     {
-        return self::input('checkBoolean', $name);
+        return new InputCheckBoolean($name);
     }
 
-    public static function googleAddress(string $name): FormField
+    public static function googleAddress(string $name): InputGoogleAddress
     {
-        return self::input('googleAddress', $name);
+        return new InputGoogleAddress($name);
     }
 
     public function method(string $method): self

@@ -4,6 +4,7 @@ namespace Wonder\App\Schema\Extensions;
 
 use InvalidArgumentException;
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\Input;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 use Wonder\Support\Prettify\Address as PrettifyAddress;
@@ -408,7 +409,12 @@ final class AddressExtension
         return $field;
     }
 
-    private function formField(FormField $field, string ...$aliases): FormField
+    /**
+     * Il type hint è `Input` (non `FormField`): i type-helper della facade
+     * ritornano l'istanza tipizzata del tipo scelto — `FormField::key('pec')
+     * ->email()` è un `Inputs\InputEmail` — e tutte estendono `Input`.
+     */
+    private function formField(Input $field, string ...$aliases): Input
     {
         if ($this->isRequiredField(...$aliases)) {
             $field->required();

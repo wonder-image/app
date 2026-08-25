@@ -7,25 +7,27 @@ use Wonder\App\Support\FormFieldElementFactory;
 use Wonder\Elements\Concerns\CanSpanColumn;
 
 /**
- * Base condivisa fra `FormField` (facade storica con i 45 type-helper) e le
- * classi di tipo dedicate sotto `Wonder\App\ResourceSchema\Inputs\` (nuovo
- * pattern, mirror di `Wonder\Data\Fields\*`).
+ * Base condivisa fra `FormField` (facade retro-compatibile con i 45
+ * type-helper) e le classi di tipo dedicate sotto
+ * `Wonder\App\ResourceSchema\Inputs\` (mirror di `Wonder\Data\Fields\*`).
  *
- * Tutta la "macchina" dello schema (label/attribute/value/prepare/context/
- * render/...) vive qui. Le sottoclassi aggiungono solo i setters specifici
- * del proprio tipo (es. `InputPassword::minLength()`, `InputFile::extensions()`).
+ * Qui vive **solo l'API universale**, quella che ha senso su qualunque input:
+ * `label`, `value`, `required`, `disabled`, `readonly`, `autocomplete`,
+ * `attribute`, `visibleWhen`, `hiddenWhen`, `error`, `inputName`, `storeAs`,
+ * `prepare`, `context`, `columnSpan`, `get`, `render`, `__toString`.
  *
- * Migrazione (vedi piano):
- *   1. `Input` + `InputText` + `InputPassword` ← questa PR (foundation).
- *   2. `InputFile` + `InputAcceptDocument`.
- *   3. Choice family (Select/Radio/Checkbox/CheckTree/...).
- *   4. Date/Time/DateRange.
- *   5. Repeater, GoogleAddress, ReCAPTCHA, ecc.
- *   6. Rimozione dei type-helper da `FormField` (resta come dispatcher).
+ * I modificatori specifici di un tipo (`options()`, `decimals()`,
+ * `minLength()`, `maxFile()`, ...) NON stanno qui: vivono sulla classe del
+ * proprio tipo, così `FormField::key('x')->number()` espone in autocomplete
+ * i soli setters numerici e non, per dire, `options()` o `requireUppercase()`.
  *
- * Il `FormFieldElementFactory` lavora già contro questa base (type hint
- * `Input`), così sia `FormField` legacy sia le nuove `Input*` sono accettate
- * indifferentemente al render.
+ * Il passaggio dal generico al tipizzato avviene in {@see morphInto()}: i
+ * type-helper di `FormField` non ritornano più `self` ma l'istanza `Input*`
+ * corrispondente, trasferendo nome e schema già accumulati.
+ *
+ * Il `FormFieldElementFactory` lavora contro questa base (type hint `Input`),
+ * quindi accetta indifferentemente la facade e le classi tipizzate: il
+ * contratto verso i temi resta `helper` + `schema`.
  */
 abstract class Input
 {
@@ -62,6 +64,38 @@ abstract class Input
     public static function key(string $name): static
     {
         return new static($name);
+    }
+
+    /**
+     * Converte l'istanza corrente nella classe di input tipizzata `$inputClass`,
+     * trasferendo nome, schema accumulato e column span.
+     *
+     * È il meccanismo che rende i type-helper di `FormField` retro-compatibili
+     * pur cambiando tipo di ritorno: `FormField::key('p')->label('Prezzo')
+     * ->number()` continua a funzionare — la `label()` chiamata *prima* del
+     * type-helper viaggia nello schema e sopravvive al morph — ma da
+     * `->number()` in poi l'oggetto è un `InputNumber` e l'autocomplete mostra
+     * solo i suoi setters.
+     *
+     * L'`helper` NON viene copiato: è la costante della classe di destinazione
+     * a definirlo (`InputNumber::$helper = 'number'`), che è esattamente ciò
+     * che il type-helper sta scegliendo.
+     *
+     * @template T of Input
+     * @param class-string<T> $inputClass
+     * @return T
+     */
+    protected function morphInto(string $inputClass): Input
+    {
+        $input = new $inputClass($this->name);
+
+        $input->schema = $this->schema;
+
+        if ($this->hasExplicitColumnSpan()) {
+            $input->columnSpan($this->columnSpan);
+        }
+
+        return $input;
     }
 
     public function label(string $label): static
