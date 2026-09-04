@@ -36,3 +36,5 @@ Wonder\App\Dependencies::jquery()
     ::jqueryPlugin()
     ::wiLib()
     ::wiFrontend();
+
+\Wonder\App\Diagnostics\MemoryProfiler::register();

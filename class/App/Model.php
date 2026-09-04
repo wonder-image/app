@@ -4,6 +4,7 @@ namespace Wonder\App;
 
 use Exception;
 use mysqli;
+use Wonder\App\Diagnostics\MemoryProfiler;
 use Wonder\App\Path;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\App\Support\SyncSchema;
@@ -531,6 +532,8 @@ abstract class Model
             null,
             $columns
         )->row;
+
+        MemoryProfiler::noteQuery(static::class, is_array($rows) ? count($rows) : 0);
 
         return (array) static::decorateRows($rows);
     }

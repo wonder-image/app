@@ -390,22 +390,6 @@ class RouteDispatcher
 
     private function debugEnabled(): bool
     {
-        $env = $_ENV['APP_DEBUG'] ?? ($_SERVER['APP_DEBUG'] ?? null);
-
-        if (is_bool($env)) {
-            return $env;
-        }
-
-        $envValue = strtolower(trim((string) $env));
-
-        if (in_array($envValue, ['1', 'true', 'on', 'yes'], true)) {
-            return true;
-        }
-
-        $remoteAddr = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
-        $serverName = trim((string) ($_SERVER['SERVER_NAME'] ?? ''));
-
-        return in_array($remoteAddr, ['127.0.0.1', '::1'], true)
-            || in_array($serverName, ['127.0.0.1', 'localhost'], true);
+        return \Wonder\App\Debug::enabled();
     }
 }

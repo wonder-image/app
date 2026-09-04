@@ -10,6 +10,9 @@
     {
         use HasAttributes;
 
+        /** @var array<class-string, array{public: bool, params: bool}> */
+        private static array $renderSignatureCache = [];
+
         /**
          * Normalizza l'input immagini nella forma canonica.
          * ['src.jpg' => 'alt', ...]  oppure lista numerica ['a.jpg', ...] (alt = '').
@@ -93,13 +96,24 @@
         protected function renderSlideContent(mixed $slide, string $theme): string
         {
             if (is_object($slide) && method_exists($slide, 'render')) {
-                $method = new ReflectionMethod($slide, 'render');
+                $class = $slide::class;
 
-                if (!$method->isPublic()) {
+                if (!isset(self::$renderSignatureCache[$class])) {
+                    $method = new ReflectionMethod($slide, 'render');
+
+                    self::$renderSignatureCache[$class] = [
+                        'public' => $method->isPublic(),
+                        'params' => $method->getNumberOfParameters() > 0,
+                    ];
+                }
+
+                $signature = self::$renderSignatureCache[$class];
+
+                if (!$signature['public']) {
                     return '';
                 }
 
-                $rendered = $method->getNumberOfParameters() > 0
+                $rendered = $signature['params']
                     ? $slide->render($theme)
                     : $slide->render();
 
