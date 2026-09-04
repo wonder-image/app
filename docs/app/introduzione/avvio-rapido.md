@@ -25,14 +25,31 @@ node --version
 
 ## 1. Crea il progetto
 
+Scegli lo **scaffold** di partenza. Sono tutti progetti che installano
+`wonder-image/app` sotto `vendor/` e proseguono con lo stesso flusso `forge`;
+cambia solo cosa trovi già pronto al primo avvio:
+
+| Scaffold | Quando usarlo |
+|---|---|
+| [`wonder-image/new-site`](https://github.com/wonder-image/new-site) | sito **generico**: parti da vuoto |
+| [`wonder-image/immobili-site`](https://github.com/wonder-image/immobili-site) | sito **immobiliare** preconfigurato (Model, Resource e pagine di settore già pronti) |
+| [`wonder-image/rsvp-site`](https://github.com/wonder-image/rsvp-site) | sito **eventi / RSVP** preconfigurato (inviti e conferme di partecipazione) |
+
 ```bash
+# scaffold generico (default)
 composer create-project wonder-image/new-site:dev-main nome-progetto
+
+# oppure uno scaffold verticale già preconfigurato
+composer create-project wonder-image/immobili-site:dev-main nome-progetto
+composer create-project wonder-image/rsvp-site:dev-main nome-progetto
+
 cd nome-progetto
 ```
 
-Il suffisso `:dev-main` forza l'ultimo commit del branch `main` di
-`wonder-image/new-site`. Se vedi una versione vecchia: `composer clear-cache` e
-ripeti.
+Il suffisso `:dev-main` forza l'ultimo commit del branch `main` dello scaffold
+scelto. Se vedi una versione vecchia: `composer clear-cache` e ripeti. I passi
+successivi (`forge config`, `update --local`, `db:init`, `start`) sono identici
+per tutti e tre.
 
 ## 2. Configura il progetto
 

@@ -311,6 +311,18 @@ composer create-project wonder-image/new-site:dev-main project-name
 cd project-name
 ```
 
+In alternativa allo scaffold generico `new-site` puoi partire da uno scaffold
+**verticale già preconfigurato** (stesso flusso di installazione e deploy, cambia
+solo il contenuto iniziale del sito):
+
+```bash
+# sito immobiliare preconfigurato
+composer create-project wonder-image/immobili-site:dev-main project-name
+
+# sito eventi / RSVP preconfigurato
+composer create-project wonder-image/rsvp-site:dev-main project-name
+```
+
 > **Nota su `:dev-main`**
 >
 > Il suffisso `:dev-main` forza Composer a usare l'ultimo commit del branch

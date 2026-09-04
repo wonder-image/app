@@ -24,7 +24,7 @@ ordine) → Piattaforma come reference quando serve.
 | Termine | Cos'è | Dove vive |
 |---|---|---|
 | **framework** (`wonder-image/app`) | Il core: Model, Resource, Form, Tabelle, Permessi, Moduli | repo `wonder-image/app`; in un sito sta in `vendor/wonder-image/app/` |
-| **site** (es. `new-site`) | Il progetto reale: pagine, contenuti, configurazioni | repo del progetto; usa il framework sotto `vendor/` |
+| **site** (scaffold: `new-site`, `immobili-site`, `rsvp-site`) | Il progetto reale: pagine, contenuti, configurazioni | repo del progetto; usa il framework sotto `vendor/` |
 | **lib** (`wonder-image/lib`) | Il design system JS/CSS (classi `.wi-*`) | pacchetto npm `wonder-image` |
 | **module** (`wonder-image/<slug>`) | Pacchetto opzionale che aggiunge Model/Resource/route | scoperto via Composer, abilitato dal sito |
 
@@ -57,6 +57,13 @@ php forge update --local
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 php forge start
 ```
+
+Oltre allo scaffold generico `wonder-image/new-site` puoi partire da uno
+scaffold **verticale già preconfigurato** — stesso flusso, contenuti di settore
+già pronti:
+
+- [`wonder-image/immobili-site`](https://github.com/wonder-image/immobili-site) — sito immobiliare
+- [`wonder-image/rsvp-site`](https://github.com/wonder-image/rsvp-site) — sito eventi / RSVP
 
 Dettagli in [Avvio rapido](introduzione/avvio-rapido.md) e
 [Installazione e Deploy](piattaforma/installazione-e-deploy.md).

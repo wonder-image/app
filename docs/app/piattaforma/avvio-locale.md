@@ -12,8 +12,12 @@ cd project-name
 ```
 
 > Il suffisso `:dev-main` garantisce di prendere l'ultimo commit del
-> branch `main` di `new-site` invece di un tag stabile potenzialmente
+> branch `main` dello scaffold scelto invece di un tag stabile potenzialmente
 > superato.
+
+> Al posto di `new-site` puoi usare uno scaffold verticale già preconfigurato —
+> `wonder-image/immobili-site` (immobiliare) o `wonder-image/rsvp-site`
+> (eventi / RSVP): il flusso locale qui sotto è identico.
 
 il flusso pratico consigliato è questo:
 

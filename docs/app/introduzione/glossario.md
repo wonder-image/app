@@ -12,8 +12,11 @@ riferimento nel codice.
 
 - **framework / app** — `wonder-image/app`, il core distribuito come pacchetto
   Composer. In un sito vive in `vendor/wonder-image/app/`.
-- **site / new-site** — un progetto che dipende da `wonder-image/app`. Lo
-  scaffold ufficiale è `wonder-image/new-site`.
+- **site / scaffold** — un progetto che dipende da `wonder-image/app`. Lo
+  scaffold generico è `wonder-image/new-site`; in alternativa esistono scaffold
+  verticali già preconfigurati — `wonder-image/immobili-site` (immobiliare) e
+  `wonder-image/rsvp-site` (eventi / RSVP). Si installano tutti con
+  `composer create-project wonder-image/<scaffold>:dev-main`.
 - **lib** — `wonder-image/lib`, il design system JS/CSS (classi `.wi-*`),
   pacchetto npm `wonder-image`.
 - **module** — pacchetto `wonder-image/<slug>` che aggiunge Model, Resource,
