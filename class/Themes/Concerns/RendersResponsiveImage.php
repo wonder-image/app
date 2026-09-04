@@ -4,6 +4,7 @@
 
     use Wonder\Concerns\HasSchema;
     use Wonder\App\Path;
+    use Wonder\Elements\Media\Image;
     use Wonder\Http\UrlParser;
 
     use RuntimeException;
@@ -103,6 +104,12 @@
 
             $this->defaultSize = $this->getSchema('default-size') ?? null;
             $this->sizes = $this->getSchema('sizes') ?? [];
+
+            if (!Image::supportsResponsiveVariants($this->src)) {
+                $this->defaultSize = null;
+                $this->sizes = [];
+                $this->webp = false;
+            }
 
             if ($this->defaultSize != null) {
                 $this->src = sprintf('%s%s-%d.%s', $this->directoryUrl, $this->imageName, $this->defaultSize, $this->extension);

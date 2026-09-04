@@ -78,6 +78,48 @@ has('download buttons',          $light, "buttons: ['download', 'thumbs', 'close
 has('loop attivo',               $light, "loop: true");
 hasnt('lightbox non usa panzoom', $light, "f-panzoom__viewport");
 
+// --- URL esterni opachi; URL relativi e same-site conservano le varianti
+foreach (['wonder', 'bootstrap'] as $theme) {
+    $external = 'https://cdn.remote.test/media/external.jpg';
+    $externalHtml = Swiper::make([$external => 'External'])
+        ->id("swiper-external-$theme")
+        ->thumbnails()
+        ->lightbox("external-$theme")
+        ->size(1440)
+        ->thumbsSize(240)
+        ->fullSize(2400)
+        ->render($theme);
+
+    countIs("$theme URL esterno invariato su main e thumb", $externalHtml, '<img src="'.$external.'"', 2);
+    has(
+        "$theme URL esterno invariato nel lightbox",
+        $externalHtml,
+        $theme === 'wonder' ? 'data-src="'.$external.'"' : "href='".$external."'"
+    );
+    hasnt("$theme URL esterno senza variante main", $externalHtml, 'external-1440.');
+    hasnt("$theme URL esterno senza variante thumb", $externalHtml, 'external-240.');
+    hasnt("$theme URL esterno senza variante lightbox", $externalHtml, 'external-2400.');
+
+    foreach ([
+        'relativo' => '/assets/upload/relative.jpg',
+        'same-site' => APP_URL.'/assets/upload/same-site.jpg',
+    ] as $kind => $src) {
+        $internalHtml = Swiper::make([$src => ucfirst($kind)])
+            ->id("swiper-$kind-$theme")
+            ->thumbnails()
+            ->lightbox("$kind-$theme")
+            ->size(1440)
+            ->thumbsSize(240)
+            ->fullSize(2400)
+            ->render($theme);
+
+        $base = substr($src, 0, -strlen('.jpg'));
+        has("$theme URL $kind con variante main", $internalHtml, $base.'-1440.jpg');
+        has("$theme URL $kind con variante thumb", $internalHtml, $base.'-240.jpg');
+        has("$theme URL $kind con variante lightbox", $internalHtml, $base.'-2400.jpg');
+    }
+}
+
 // --- Esclusività: lightbox() dopo zoom() vince
 $excl = Swiper::make([ '/assets/upload/a.jpg' => 'A' ])->id('x')->zoom()->lightbox('g')->render();
 hasnt('zoom disattivato da lightbox', $excl, "f-panzoom__viewport");

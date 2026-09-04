@@ -4,6 +4,7 @@
 
     use Wonder\Elements\Concerns\HasMediaFit;
     use Wonder\App\Path;
+    use Wonder\Http\UrlParser;
 
     class Image extends Media {
 
@@ -86,7 +87,7 @@
                 
                 return '';
 
-            } else if (empty($size)) {
+            } else if (empty($size) || !self::supportsResponsiveVariants($image)) {
 
                 return $image;
 
@@ -104,6 +105,23 @@
 
             }
 
+        }
+
+        /** URL relativi o assoluti del sito possono usare le varianti generate localmente. */
+        public static function supportsResponsiveVariants(string $src): bool
+        {
+            $source = new UrlParser($src);
+
+            if (!$source->isAbsolute()) {
+                return true;
+            }
+
+            $sourceBase = $source->getBaseUrl();
+            $siteBase = (new UrlParser(APP_URL))->getBaseUrl();
+
+            return $sourceBase !== null
+                && $siteBase !== null
+                && strcasecmp(rtrim($sourceBase, '/'), rtrim($siteBase, '/')) === 0;
         }
 
     }

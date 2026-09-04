@@ -7,6 +7,7 @@ use RuntimeException;
 use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputFile;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
@@ -677,6 +678,8 @@ abstract class Resource
             return $clone;
         }
 
+        static::inheritModelUploadDirectory($clone, $name);
+
         $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
 
         if ($label !== '') {
@@ -694,6 +697,42 @@ abstract class Resource
         }
 
         return $clone;
+    }
+
+    /**
+     * Propaga al form input del backend la sottocartella di upload dichiarata
+     * via UploadSchema::dir() nella dataSchema() del Model.
+     *
+     * Senza questa propagazione il renderer File (Bootstrap/Wonder) calcola
+     * `data-wi-dir` come `upload/{folder}/` ignorando la sottocartella: la
+     * preview del file già caricato cerca il file nella cartella sbagliata e
+     * va in 404, mentre il frontend — che legge la dataSchema del Model — lo
+     * risolve correttamente.
+     *
+     * La dir viene copiata VERBATIM (es. `/photo/`): il merge in
+     * {@see prepareSchema()} resta identico, perché l'input ripete il valore
+     * che il Model già forniva, quindi il percorso di salvataggio non cambia.
+     * Non sovrascrive una dir eventualmente già dichiarata sul form field.
+     */
+    private static function inheritModelUploadDirectory(object $field, string $name): void
+    {
+        if (!$field instanceof InputFile || !method_exists($field, 'prepare') || !method_exists($field, 'get')) {
+            return;
+        }
+
+        $prepare = (array) ($field->get('prepare') ?? []);
+        $current = $prepare['dir'] ?? null;
+
+        if (is_string($current) && trim($current) !== '') {
+            return;
+        }
+
+        $format = static::modelClass()::prepareFormatFromField(static::modelFields()[$name] ?? null);
+        $dir = $format['dir'] ?? null;
+
+        if (is_string($dir) && trim($dir, '/') !== '') {
+            $field->prepare('dir', $dir);
+        }
     }
 
     private static function modelFields(): array

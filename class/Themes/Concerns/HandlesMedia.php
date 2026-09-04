@@ -46,12 +46,15 @@
         protected function renderImage(string $src, string $alt, int $size, string $fit = 'cover', bool $draggable = false): string
         {
             $img = Image::src($src)
-                ->sizes(RESPONSIVE_IMAGE_SIZES)
-                ->hasWebP()
                 ->alt($alt)
-                ->size($size)
                 ->skeleton()
                 ->loading();
+
+            if (Image::supportsResponsiveVariants($src)) {
+                $img->sizes(RESPONSIVE_IMAGE_SIZES)
+                    ->hasWebP()
+                    ->size($size);
+            }
 
             $draggable ? $img->notDraggable(false) : $img->notDraggable();
 

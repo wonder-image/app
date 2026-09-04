@@ -118,16 +118,19 @@ class InputFile extends Input
 
         $folder = is_object($name) ? trim((string) ($name->folder ?? ''), '/') : '';
         $directory = rtrim((string) ($path->upload ?? ''), '/');
-        $directory .= $folder !== '' ? '/'.$folder : '';
 
-        $subDirectory = $subDirectory !== null ? trim($subDirectory) : '';
+        if ($folder !== '') {
+            $directory .= '/'.$folder;
+        }
+
+        // La sottocartella può arrivare in qualunque forma (`photo`, `photo/`,
+        // `/photo/`): normalizziamo togliendo le slash ai bordi e uniamo con
+        // un solo separatore, così una dir come `/photo/` — quella dichiarata
+        // via UploadSchema::dir() nel Model — non produca più `.../teamphoto//`.
+        $subDirectory = $subDirectory !== null ? trim($subDirectory, " \t\n\r\0\x0B/") : '';
 
         if ($subDirectory !== '') {
-            if ($subDirectory[0] !== '/') {
-                $directory .= '/';
-            }
-
-            $directory .= ltrim($subDirectory, '/');
+            $directory .= '/'.$subDirectory;
         }
 
         return $directory.'/';

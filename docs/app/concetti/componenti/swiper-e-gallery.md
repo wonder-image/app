@@ -67,6 +67,12 @@ nativo).
 Forma canonica associativa **`['percorso.jpg' => 'testo alt', ...]`** (la chiave è il percorso,
 il valore è l'`alt`). È accettata anche una lista semplice `['a.jpg', 'b.jpg']` (alt vuoto).
 
+Gli URL relativi e gli URL assoluti sullo stesso sito usano le varianti responsive generate
+(`size`, `thumbsSize`, `fullSize`, WebP e `srcset`). Un URL assoluto off-site viene invece
+trattato come sorgente opaca: `Image` (`__ri()`), Swiper e Gallery riusano l'URL originale
+per anteprime, immagini principali, miniature e lightbox, senza presumere che sul server
+remoto esistano file con suffissi di dimensione.
+
 ## Input contenuti
 
 `->slides()` accetta un array di:

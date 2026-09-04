@@ -61,6 +61,44 @@ has('script Fancybox.bind',        $html, "Fancybox.bind('[data-fancybox=\"galle
 $html2 = Gallery::make([ '/assets/upload/c.jpg' ])->id('g2')->render();
 has('lista numerica: trigger indice 0', $html2, "data-fancybox-index='0'");
 
+foreach (['wonder', 'bootstrap'] as $theme) {
+    $external = 'https://cdn.remote.test/media/gallery.jpg';
+    $externalGallery = Gallery::make([$external => 'Remote'])
+        ->id("gallery-external-$theme")
+        ->size(480)
+        ->fullSize(2400)
+        ->render($theme);
+
+    has("$theme Gallery conserva URL esterno", $externalGallery, $external);
+    same(
+        "$theme Gallery non inventa varianti esterne",
+        str_contains($externalGallery, 'gallery-480.') || str_contains($externalGallery, 'gallery-2400.')
+            ? 'variants'
+            : 'original',
+        'original'
+    );
+
+    $externalImage = Image::src($external)
+        ->sizes(RESPONSIVE_IMAGE_SIZES)
+        ->hasWebP()
+        ->size(480)
+        ->render($theme);
+    has("$theme Image conserva URL esterno", $externalImage, 'src="'.$external.'"');
+    same(
+        "$theme Image non inventa varianti esterne",
+        str_contains($externalImage, 'gallery-480.') || str_contains($externalImage, '<picture>')
+            ? 'variants'
+            : 'original',
+        'original'
+    );
+}
+
+same(
+    'Image::url conserva URL esterno',
+    Image::src('https://cdn.remote.test/media/full.jpg')->size(2400)->url(),
+    'https://cdn.remote.test/media/full.jpg'
+);
+
 // Il wrapper di colonna e opt-in e deve contenere l'intero frammento media.
 $mediaFactories = [
     'image' => static fn () => Image::src('/assets/upload/span.jpg')->hasWebP(),
