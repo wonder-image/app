@@ -164,8 +164,18 @@ class Config extends Command
             $updatedKeys[] = 'APP_DOMAIN';
         }
 
-        $appUrl = $this->buildAppUrl($appDomain);
-        if ($this->envValue($lines, $keyToIndex, 'APP_URL') !== $appUrl) {
+        // APP_URL è specifico per ambiente: in locale deve restare l'URL
+        // locale (`.test`/host:port) scritto da `forge start`/`forge db:init`.
+        // `resolveConfigAppUrl` non tocca un valore già presente e, quando
+        // manca, genera l'URL locale in dev e quello di produzione solo in CI.
+        // Prima si sovrascriveva sempre con l'URL di produzione, rompendo il
+        // locale a ogni `composer update` (post-update-cmd → forge config).
+        $appUrl = $this->resolveConfigAppUrl(
+            $this->envValue($lines, $keyToIndex, 'APP_URL'),
+            $appDomain,
+            $isCi
+        );
+        if ($appUrl !== null && $this->envValue($lines, $keyToIndex, 'APP_URL') !== $appUrl) {
             $this->setEnvValue($lines, $keyToIndex, 'APP_URL', $appUrl);
             $updatedKeys[] = 'APP_URL';
         }
@@ -1654,6 +1664,85 @@ class Config extends Command
         $slug = $this->normalizeProjectSlug($appDomain);
 
         return 'https://'.($slug !== '' ? $slug : 'app').'.test';
+    }
+
+    protected function buildLocalAppUrl(string $host, int $port): string
+    {
+        return 'http://'.$host.':'.$port;
+    }
+
+    protected function buildHerdHost(string $appDomain): string
+    {
+        // `defaultProjectLabel` strippa la TLD per non costruire host tipo
+        // `fatimagabrielewedding-com.test` da `fatimagabrielewedding.com`.
+        // Vedi `Config::defaultProjectLabel()` per la regola precisa.
+        $slug = $this->defaultProjectLabel($appDomain);
+
+        return ($slug !== '' ? $slug : 'app').'.test';
+    }
+
+    protected function buildHerdAppUrl(string $appDomain): string
+    {
+        return 'https://'.$this->buildHerdHost($appDomain);
+    }
+
+    protected function resolveLocalRuntimeDriver(string $driver = 'auto'): string
+    {
+        $driver = strtolower(trim($driver));
+
+        if (!in_array($driver, ['auto', 'php', 'herd'], true)) {
+            return 'invalid';
+        }
+
+        if ($driver === 'php') {
+            return 'php';
+        }
+
+        if ($driver === 'herd') {
+            return $this->commandExists('herd') ? 'herd' : 'missing-herd';
+        }
+
+        return $this->commandExists('herd') ? 'herd' : 'php';
+    }
+
+    protected function resolveLocalAppUrl(string $appDomain, string $host, int $port, string $driver = 'auto'): string
+    {
+        return $this->resolveLocalRuntimeDriver($driver) === 'herd'
+            ? $this->buildHerdAppUrl($appDomain)
+            : $this->buildLocalAppUrl($host, $port);
+    }
+
+    /**
+     * Decide quale APP_URL `forge config` deve scrivere nel `.env`.
+     *
+     * `forge config` gira a ogni `composer update` (post-update-cmd). Prima
+     * ricalcolava APP_URL con `buildAppUrl()` (URL di PRODUZIONE per qualsiasi
+     * dominio con estensione) e lo SOVRASCRIVEVA sempre, cancellando il valore
+     * locale `.test` scritto da `forge start` / `forge db:init`. Poiché tutto
+     * il runtime costruisce le URL da APP_URL (vedi `class/App/Path.php`), in
+     * locale asset/API/link finivano per puntare alla produzione.
+     *
+     * Nuova policy, allineata a `db:init`/`start`:
+     * - APP_URL già valorizzato → nessuna modifica (ritorna null);
+     * - APP_URL mancante in locale → URL locale (Herd `.test` o host:port);
+     * - APP_URL mancante in CI → URL di produzione (`https://<dominio.tld>`).
+     *
+     * @return string|null L'URL da scrivere, oppure null se non va toccato.
+     */
+    protected function resolveConfigAppUrl(string $existingAppUrl, string $appDomain, bool $isCi): ?string
+    {
+        // Un APP_URL già presente vince sempre: in locale è il valore corretto
+        // scritto da `forge start`/`forge db:init`, in CI/produzione è quello
+        // generato dal workflow. Non lo tocchiamo a ogni `composer update`.
+        if (trim($existingAppUrl) !== '') {
+            return null;
+        }
+
+        if ($isCi) {
+            return $this->buildAppUrl($appDomain);
+        }
+
+        return $this->resolveLocalAppUrl($appDomain, '127.0.0.1', 8088);
     }
 
     protected function composerProjectName(string $appDomain): string
