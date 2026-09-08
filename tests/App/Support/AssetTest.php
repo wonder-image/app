@@ -15,6 +15,11 @@ function same(string $label, string $actual, string $expected): void {
     if ($actual === $expected) { echo "ok: $label\n"; }
     else { $fail++; echo "FAIL: $label\n  expected: $expected\n  actual:   $actual\n"; }
 }
+function pathIs(string $label, ?string $actual, ?string $expected): void {
+    global $fail;
+    if ($actual === $expected) { echo "ok: $label\n"; }
+    else { $fail++; echo "FAIL: $label\n  expected: ".var_export($expected, true)."\n  actual:   ".var_export($actual, true)."\n"; }
+}
 
 // Sandbox con file reali per il filemtime
 $root = sys_get_temp_dir().'/asset-test-'.uniqid();
@@ -88,6 +93,34 @@ same('url() con file mancante: URL senza ?v',
     APP_URL.'/assets/1.0.0/css/missing.css');
 
 same('url() con stringa vuota', Asset::url('', $root), '');
+
+// --- Asset::path() ---
+
+pathIs('path() risolve un file locale (prefisso APP_URL)',
+    Asset::path(APP_URL.'/assets/1.0.0/css/set-up/root.css', $root),
+    $rootCss);
+
+pathIs('path() risolve un path relativo alla radice',
+    Asset::path('/assets/1.0.0/css/set-up/root.css', $root),
+    $rootCss);
+
+pathIs('path() su file inesistente → null',
+    Asset::path(APP_URL.'/assets/1.0.0/css/missing.css', $root),
+    null);
+
+pathIs('path() su URL esterno → null',
+    Asset::path('https://cdn.example.com/lib.css', $root),
+    null);
+
+pathIs('path() con query string → null',
+    Asset::path(APP_URL.'/assets/1.0.0/css/set-up/root.css?v=1', $root),
+    null);
+
+pathIs('path() con traversal → null',
+    Asset::path(APP_URL.'/assets/../.env', $root),
+    null);
+
+pathIs('path() con stringa vuota → null', Asset::path('', $root), null);
 
 // Cleanup
 unlink($rootCss);

@@ -60,6 +60,8 @@
             'jquery-plugin' => [
                 'name' => 'JQuery Plugin',
                 'site' => 'https://plugins.jquery.com',
+                'defer' => true,     // Performance: JS fuori dal render-blocking (solo frontend; init via eventi/DOM-ready)
+                'css_defer' => true, // Performance: CSS dei widget, applicato a init (post-load)
                 'files' => [
                     'head' => [
                         '/dist/lib/jquery/jquery-plugin.js',
@@ -82,6 +84,7 @@
             'bootstrap-icons' => [
                 'name' => 'Bootstrap Icons',
                 'site' => 'https://icons.getbootstrap.com',
+                'css_defer' => true, // Performance: icon font, non critico per l'LCP (solo frontend)
                 'files' => [
                     'head' => [
                         '/dist/lib/bootstrap/bootstrap-icons.css'
@@ -91,6 +94,7 @@
             'flag-icons' => [
                 'name' => 'Flag Icons',
                 'site' => 'https://flagicons.lipis.dev',
+                'css_defer' => true, // Performance: icone bandiere, non critiche per l'LCP (solo frontend)
                 'files' => [
                     'head' => [
                         '/dist/lib/lipis/flag-icons.css'
@@ -360,9 +364,22 @@
                     $url = Support\Asset::version(self::$endpoint . $file);
 
                     if (str_ends_with($file, '.js')) {
-                        $html .= "<script src=\"$url\"></script>\n";
+                        // defer solo su frontend: sposta il download fuori dal render-blocking
+                        // mantenendo l'ordine di esecuzione. Sicuro solo per librerie non
+                        // usate da <script> inline a parse-time (vedi flag 'defer' della dipendenza).
+                        $defer = (!empty($dep['defer']) && !empty($GLOBALS['FRONTEND'])) ? ' defer' : '';
+                        $html .= "<script src=\"$url\"$defer></script>\n";
                     } elseif (str_ends_with($file, '.css')) {
-                        $html .= "<link href=\"$url\" rel=\"stylesheet\">\n";
+                        // css_defer solo su frontend: carica il foglio di stile fuori dal
+                        // render-blocking (preload + swap a stylesheet on-load), con fallback
+                        // <noscript>. Sicuro solo per CSS non above-the-fold (icone, widget
+                        // inizializzati tardi), non per i CSS core del layout.
+                        if (!empty($dep['css_defer']) && !empty($GLOBALS['FRONTEND'])) {
+                            $html .= "<link rel=\"preload\" as=\"style\" href=\"$url\" onload=\"this.onload=null;this.rel='stylesheet'\">\n";
+                            $html .= "<noscript><link href=\"$url\" rel=\"stylesheet\"></noscript>\n";
+                        } else {
+                            $html .= "<link href=\"$url\" rel=\"stylesheet\">\n";
+                        }
                     }
 
                     $html .= "\n";

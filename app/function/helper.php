@@ -143,6 +143,22 @@
         return Wonder\App\Support\Asset::version($url);
     }
 
+    // Inlina il contenuto di un CSS locale in un tag <style>, per toglierlo dal
+    // render-blocking (es. i design token root.css/color.css: piccoli e usati da
+    // tutta la cascata). Se il file non è risolvibile o è vuoto, ricade sul
+    // <link rel="stylesheet"> versionato. Da usare solo per CSS piccoli e critici.
+    function __inline_css(string $url): string
+    {
+        $path = Wonder\App\Support\Asset::path($url);
+        $css = ($path !== null) ? @file_get_contents($path) : false;
+
+        if ($css === false || $css === '') {
+            return '<link href="'.htmlspecialchars(__asset_version($url), ENT_QUOTES).'" rel="stylesheet">';
+        }
+
+        return '<style>'.$css.'</style>';
+    }
+
     // Url Parser
     function __url(?string $url = null): Wonder\Http\UrlParser
     {

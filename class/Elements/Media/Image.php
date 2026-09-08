@@ -77,6 +77,25 @@
 
         }
 
+        /**
+         * Segnala l'immagine come candidata LCP (hero above-the-fold): alza la priorità
+         * di fetch (fetchpriority=high) e disabilita il lazy-load (loading=eager), così il
+         * browser la scarica tra le prime risorse. Da usare su UNA sola immagine per pagina
+         * (quella che domina il primo viewport), mai a tappeto.
+         */
+        public function priority( bool $priority = true ): self
+        {
+
+            if (!$priority) {
+                return $this;
+            }
+
+            $this->attr('fetchpriority', 'high');
+
+            return $this->attr('loading', 'eager');
+
+        }
+
         public function url() : string 
         {
 

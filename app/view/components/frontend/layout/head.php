@@ -174,8 +174,13 @@
 
 </script>
 
-<link rel="stylesheet" href="<?=__asset_version($PATH->css.'/set-up/root.css')?>">
-<link rel="stylesheet" href="<?=__asset_version($PATH->css.'/set-up/color.css')?>">
+<?php
+    // Design token (variabili CSS) inline: piccoli e alla base di tutta la cascata,
+    // toglierli dal render-blocking anticipa il primo paint. Fallback a <link> se
+    // il file non è risolvibile (vedi __inline_css).
+?>
+<?=__inline_css($PATH->css.'/set-up/root.css')?>
+<?=__inline_css($PATH->css.'/set-up/color.css')?>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -183,7 +188,14 @@
 
     if (sqlTableExists('css_font')) {
         foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) {
-            echo "<link href='".e($row['link'] ?? '')."' rel='stylesheet'>";
+            $fontLink = (string) ($row['link'] ?? '');
+            if ($fontLink === '') { continue; }
+            // display=swap sui Google Fonts: testo subito visibile con fallback, evita il
+            // FOIT (testo invisibile) che ritarda FCP/LCP. Solo se non già presente.
+            if (str_contains($fontLink, 'fonts.googleapis.com') && !str_contains($fontLink, 'display=')) {
+                $fontLink .= (str_contains($fontLink, '?') ? '&' : '?') . 'display=swap';
+            }
+            echo "<link href='".e($fontLink)."' rel='stylesheet'>";
         }
     }
 

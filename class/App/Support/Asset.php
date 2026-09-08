@@ -29,14 +29,47 @@ final class Asset
      */
     public static function version(string $url, ?string $root = null, ?string $appUrl = null): string
     {
+        $path = self::resolve($url, $root, $appUrl);
+
+        if ($path !== null && is_file($path)) {
+            return $url.'?v='.(string) filemtime($path);
+        }
+
+        return $url;
+    }
+
+    /**
+     * Path su disco di un asset locale, o `null` se l'URL è esterno, malformato
+     * o non corrisponde a un file esistente sotto ROOT. Stessa normalizzazione
+     * di `version()` (niente query/fragment, niente traversal). Utile per
+     * inlinare il contenuto di un asset nell'HTML (es. i CSS dei design token,
+     * per toglierli dal render-blocking). Non solleva mai eccezioni.
+     *
+     * `$root` e `$appUrl` sono iniettabili per i test.
+     */
+    public static function path(string $url, ?string $root = null, ?string $appUrl = null): ?string
+    {
+        $path = self::resolve($url, $root, $appUrl);
+
+        return ($path !== null && is_file($path)) ? $path : null;
+    }
+
+    /**
+     * Normalizza un URL (prefissato da APP_URL oppure root-relative `/...`) nel
+     * path su disco corrispondente sotto ROOT. Ritorna `null` per URL vuoti, con
+     * query string/fragment, esterni o con traversal `..`. Non verifica
+     * l'esistenza del file: quello spetta al chiamante.
+     */
+    private static function resolve(string $url, ?string $root = null, ?string $appUrl = null): ?string
+    {
         if ($url === '' || str_contains($url, '?') || str_contains($url, '#')) {
-            return $url;
+            return null;
         }
 
         $root = rtrim($root ?? self::root(), '/');
 
         if ($root === '') {
-            return $url;
+            return null;
         }
 
         $appUrl = rtrim($appUrl ?? (defined('APP_URL') ? (string) APP_URL : ''), '/');
@@ -47,23 +80,17 @@ final class Asset
             $relative = $url;
         } else {
             // Esterno o non riconducibile a ROOT.
-            return $url;
+            return null;
         }
 
         // Niente traversal fuori da ROOT.
         foreach (explode('/', $relative) as $segment) {
             if ($segment === '..') {
-                return $url;
+                return null;
             }
         }
 
-        $path = $root.$relative;
-
-        if (is_file($path)) {
-            return $url.'?v='.(string) filemtime($path);
-        }
-
-        return $url;
+        return $root.$relative;
     }
 
     /**
