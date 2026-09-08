@@ -99,6 +99,23 @@ same(
     'https://cdn.remote.test/media/full.jpg'
 );
 
+// Classi e stile applicati alle <img> renderizzate dalla gallery
+foreach (['wonder', 'bootstrap'] as $theme) {
+    $styled = Gallery::make(['/assets/upload/styled.jpg' => 'Styled'])
+        ->id("gallery-styled-$theme")
+        ->imageClass('gallery-thumb')
+        ->addImageClass('rounded')
+        ->imageStyle('border-radius', '12px')
+        ->imageStyles(['opacity' => '0.9'])
+        ->render($theme);
+
+    has("$theme Gallery applica imageClass alle img", $styled, 'gallery-thumb');
+    has("$theme Gallery accoda addImageClass alle img", $styled, 'rounded');
+    has("$theme Gallery applica imageStyle alle img", $styled, 'border-radius: 12px;');
+    has("$theme Gallery fonde imageStyles alle img", $styled, 'opacity: 0.9;');
+    has("$theme Gallery conserva la classe strutturale w-100", $styled, 'w-100');
+}
+
 // Il wrapper di colonna e opt-in e deve contenere l'intero frammento media.
 $mediaFactories = [
     'image' => static fn () => Image::src('/assets/upload/span.jpg')->hasWebP(),

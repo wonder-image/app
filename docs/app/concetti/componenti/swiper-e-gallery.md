@@ -220,7 +220,23 @@ echo __gallery([
 | `->download(bool = true)` | off | Bottone download nel lightbox. |
 | `->size(int $px)` | `480` | Size dell'anteprima in griglia (piccola). |
 | `->fullSize(int $px)` | max sizes | Size dell'immagine nel lightbox (grande). |
+| `->imageClass(string)` | nessuna | Sostituisce le classi custom applicate a ogni `<img>` di anteprima. |
+| `->addImageClass(string)` | — | Accoda una classe custom alle `<img>` senza rimuovere le precedenti. |
+| `->imageStyle(string $prop, $value)` | nessuno | Aggiunge una dichiarazione di stile inline a ogni `<img>`. |
+| `->imageStyles(array)` | — | Aggiunge più dichiarazioni inline (`['prop' => 'valore', …]`). |
 | `->columnSpan(int\|array)` | non dichiarato | Wrapper di colonna opt-in attorno a griglia e script. |
+
+Le classi e lo stile di `->imageClass()` / `->imageStyle()` finiscono sul tag
+`<img>` (dopo le classi strutturali del fit, es. `w-100`), non sull'ancora o sul
+box ratio della cella:
+
+```php
+echo __gallery($images)
+    ->format('1-1')
+    ->imageClass('gallery-thumb')
+    ->addImageClass('rounded')
+    ->imageStyles(['filter' => 'grayscale(1)', 'opacity' => '0.9']);
+```
 
 La stessa regola vale per `Image`: `->columnSpan(6)` aggiunge un solo wrapper
 attorno a `<img>` o `<picture>`; senza chiamata l'elemento resta privo di

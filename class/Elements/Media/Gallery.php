@@ -2,7 +2,11 @@
 
     namespace Wonder\Elements\Media;
 
+    use Wonder\Elements\Concerns\HasImageStyle;
+
     class Gallery extends Media {
+
+        use HasImageStyle;
 
         public function __construct( array $images = [] )
         {

@@ -27,6 +27,8 @@
             $download    = (bool) ($class->getSchema('download') ?? false);
             $previewSize = (int) ($class->getSchema('preview-size') ?? 480);
             $fullSize    = (int) ($class->getSchema('full-size') ?? max(RESPONSIVE_IMAGE_SIZES));
+            $imageClass  = $class->getSchema('image-class') ?? [];
+            $imageStyle  = $class->getSchema('image-style') ?? [];
 
             $colDesktop = (int) $columns['desktop'];
             $colTablet  = (int) $columns['tablet'];
@@ -43,7 +45,7 @@
             foreach ($items as $item) {
                 $full    = $this->imageUrl($item['src'], $fullSize);
                 $caption = $item['alt'] !== '' ? ' data-caption="' . $this->escape($item['alt']) . '"' : '';
-                $thumb   = $this->thumb($item, $format, $previewSize);
+                $thumb   = $this->thumb($item, $format, $previewSize, $imageClass, $imageStyle);
 
                 $cells .= "<div class='col'>"
                     . "<a href='" . $this->escape($full) . "' data-fancybox=\"$id\"$caption class='d-block rounded overflow-hidden'>$thumb</a>"
@@ -62,23 +64,23 @@
         }
 
         /** Anteprima della cella: altezza naturale (h-fit) o box con aspect-ratio + cover. */
-        private function thumb(array $item, string $format, int $previewSize): string
+        private function thumb(array $item, string $format, int $previewSize, array|string $imageClass = [], array $imageStyle = []): string
         {
             // ratio nativo Bootstrap (ratio-1x1/4x3/16x9/21x9)
             if (isset(self::RATIOS[$format])) {
-                $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'cover');
+                $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'cover', false, $imageClass, $imageStyle);
                 return "<div class='ratio " . self::RATIOS[$format] . "'>$img</div>";
             }
 
             // ratio arbitrario "W-H" via custom property (.ratio usa --bs-aspect-ratio)
             if (preg_match('/^(\d+)-(\d+)$/', $format, $m) && (int) $m[1] > 0) {
                 $pct = round((int) $m[2] / (int) $m[1] * 100, 4);
-                $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'cover');
+                $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'cover', false, $imageClass, $imageStyle);
                 return "<div class='ratio' style='--bs-aspect-ratio: $pct%'>$img</div>";
             }
 
             // altezza naturale (h-fit o formato sconosciuto)
-            return $this->renderImage($item['src'], $item['alt'], $previewSize, 'natural');
+            return $this->renderImage($item['src'], $item['alt'], $previewSize, 'natural', false, $imageClass, $imageStyle);
         }
 
         /** Gutter Bootstrap (g-0..g-5) da uno spacing scalare o responsive [desktop,tablet,mobile]. */

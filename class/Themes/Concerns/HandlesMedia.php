@@ -45,8 +45,15 @@
         /**
          * Renderizza un'immagine via il builder Image (webp + srcset + skeleton).
          * $fit: 'cover' | 'contain' | 'natural'.
+         *
+         * $classes / $styles sono classi e dichiarazioni di stile aggiuntive
+         * applicate alla <img> (oltre a quelle strutturali del fit), tipicamente
+         * provenienti dalle `image-class` / `image-style` di un media configurabile.
+         *
+         * @param string[]|string           $classes
+         * @param array<string, scalar>     $styles
          */
-        protected function renderImage(string $src, string $alt, int $size, string $fit = 'cover', bool $draggable = false): string
+        protected function renderImage(string $src, string $alt, int $size, string $fit = 'cover', bool $draggable = false, array|string $classes = [], array $styles = []): string
         {
             $img = Image::src($src)
                 ->alt($alt)
@@ -68,6 +75,13 @@
             } else {
                 $img->addClass('w-100');
             }
+
+            foreach ((array) $classes as $name) {
+                $name = trim((string) $name);
+                if ($name !== '') { $img->addClass($name); }
+            }
+
+            if ($styles !== []) { $img->styles($styles); }
 
             return $img->render();
         }

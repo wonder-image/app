@@ -18,6 +18,8 @@
             $download    = (bool) ($class->getSchema('download') ?? false);
             $previewSize = (int) ($class->getSchema('preview-size') ?? 480);
             $fullSize    = (int) ($class->getSchema('full-size') ?? max(RESPONSIVE_IMAGE_SIZES));
+            $imageClass  = $class->getSchema('image-class') ?? [];
+            $imageStyle  = $class->getSchema('image-style') ?? [];
 
             $colDesktop = (int) $columns['desktop'];
             $colTablet  = (int) $columns['tablet'];
@@ -56,9 +58,9 @@
 
             $html  = "<div class='d-none'>$hidden</div>";
             $html .= "<div class='w-100 d-grid col-$colDesktop col-t-$colTablet col-p-$colMobile gap-$gapDesktop gap-t-$gapTablet gap-p-$gapMobile'>";
-            $html .= $this->deviceColumns($id, $buckets['desktop'], $colDesktop, $gapDesktop, $format, $previewSize, 'tablet-none', false);
-            $html .= $this->deviceColumns($id, $buckets['tablet'],  $colTablet,  $gapTablet,  $format, $previewSize, 'pc-none phone-none', false);
-            $html .= $this->deviceColumns($id, $buckets['mobile'],  $colMobile,  $gapMobile,  $format, $previewSize, 'pc-none tablet-none', true);
+            $html .= $this->deviceColumns($id, $buckets['desktop'], $colDesktop, $gapDesktop, $format, $previewSize, 'tablet-none', false, $imageClass, $imageStyle);
+            $html .= $this->deviceColumns($id, $buckets['tablet'],  $colTablet,  $gapTablet,  $format, $previewSize, 'pc-none phone-none', false, $imageClass, $imageStyle);
+            $html .= $this->deviceColumns($id, $buckets['mobile'],  $colMobile,  $gapMobile,  $format, $previewSize, 'pc-none tablet-none', true, $imageClass, $imageStyle);
             $html .= "</div>";
 
             $options = '{';
@@ -70,28 +72,28 @@
             return $html;
         }
 
-        private function deviceColumns(string $id, array $buckets, int $cols, $gap, string $format, int $previewSize, string $visibility, bool $extraHFit): string
+        private function deviceColumns(string $id, array $buckets, int $cols, $gap, string $format, int $previewSize, string $visibility, bool $extraHFit, array|string $imageClass = [], array $imageStyle = []): string
         {
             $html  = "";
             $extra = $extraHFit ? ' h-fit' : '';
 
             for ($i = 0; $i < $cols; $i++) {
                 $html .= "<div class='w-100 $visibility$extra'><div class='w-100 d-grid col-1 gap-$gap'>";
-                foreach ($buckets[$i] as $item) { $html .= $this->card($id, $item, $format, $previewSize); }
+                foreach ($buckets[$i] as $item) { $html .= $this->card($id, $item, $format, $previewSize, $imageClass, $imageStyle); }
                 $html .= "</div></div>";
             }
 
             return $html;
         }
 
-        private function card(string $id, array $item, string $format, int $previewSize): string
+        private function card(string $id, array $item, string $format, int $previewSize, array|string $imageClass = [], array $imageStyle = []): string
         {
             if ($format === 'h-fit') {
-                $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'natural');
+                $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'natural', false, $imageClass, $imageStyle);
                 return "<a href='javascript:;' data-fancybox-trigger='$id' data-fancybox-index='{$item['position']}' class='col-1 h-fit'>$img</a>";
             }
 
-            $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'cover');
+            $img = $this->renderImage($item['src'], $item['alt'], $previewSize, 'cover', false, $imageClass, $imageStyle);
             return "<a href='javascript:;' data-fancybox-trigger='$id' data-fancybox-index='{$item['position']}' class='col-1'><div class='f-$format o-hidden'>$img</div></a>";
         }
 
