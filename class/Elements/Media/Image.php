@@ -4,6 +4,7 @@
 
     use Wonder\Elements\Concerns\HasMediaFit;
     use Wonder\App\Path;
+    use Wonder\App\Support\Asset;
     use Wonder\Http\UrlParser;
 
     class Image extends Media {
@@ -108,7 +109,7 @@
 
             } else if (empty($size) || !self::supportsResponsiveVariants($image)) {
 
-                return $image;
+                return Asset::version($image);
 
             } else {
 
@@ -120,7 +121,7 @@
                 $directory = str_replace((new Path())->site, '', $pathInfo['dirname']);
                 $directoryUrl = (new Path())->site.$directory.DIRECTORY_SEPARATOR;
 
-                return sprintf('%s%s-%d.%s', $directoryUrl, $name, $size, $extension);
+                return Asset::version(sprintf('%s%s-%d.%s', $directoryUrl, $name, $size, $extension));
 
             }
 

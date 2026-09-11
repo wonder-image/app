@@ -1,5 +1,10 @@
 # Caricamento frontend e cache degli asset
 
+In Herd, APP_URL deve corrispondere all'origine locale effettiva, ad esempio
+`https://agliati.test`. Per upload assenti localmente, MEDIA_FALLBACK_URL puo
+indicare il sito remoto: il driver risponde direttamente con un redirect 302,
+senza restituire script PHP come file statici a Nginx.
+
 Nei siti con inizializzazioni JavaScript compatibili con `DOMContentLoaded` o
 con l'evento Wonder `loaded`, attivare in `custom/config/config.php`:
 
@@ -26,7 +31,11 @@ dipendenze; Fancyapps e richiesta solo per Gallery, zoom o lightbox. Renderizzar
 i componenti prima dell'head, usando il buffering di View::layout.
 
 Le immagini responsive emettono `?v=filemtime` per src e ogni variante srcset
-esistente localmente. File assenti, URL esterni o URL gia parametrizzati restano
+esistente localmente. Anche `Image::url()` applica la stessa verifica al file
+originale o alla variante selezionata con `size()`. Sostituendo un file allo
+stesso percorso con una data di modifica diversa, cambia il parametro `v`;
+la data viene riletta anche all'interno della stessa richiesta PHP.
+File assenti, URL esterni o URL gia parametrizzati restano
 invariati. Usare `Image::priority()` sulla hero visibile inizialmente, mai su tutte
 le immagini: disabilita lazy loading e assegna fetchpriority high.
 

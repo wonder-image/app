@@ -31,8 +31,16 @@ final class Asset
     {
         $path = self::resolve($url, $root, $appUrl);
 
+        if ($path !== null) {
+            clearstatcache(true, $path);
+        }
+
         if ($path !== null && is_file($path)) {
-            return $url.'?v='.(string) filemtime($path);
+            $modified = @filemtime($path);
+
+            if ($modified !== false) {
+                return $url.'?v='.(string) $modified;
+            }
         }
 
         return $url;
