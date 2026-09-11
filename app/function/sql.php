@@ -243,9 +243,13 @@
 
             }
 
-            if (isset($post[$name]) && $CONTINUE) {
+            $fileManifest = ($FORMAT['file'] ?? false) === true
+                && array_key_exists($name.'__wi_files', $post);
 
-                $VALUE = $post[$name];
+            if ((isset($post[$name]) || $fileManifest) && $CONTINUE) {
+
+                $VALUE = $post[$name] ?? ['name' => []];
+                $OLD_VALUE = null;
 
                 if ($OLD_VALUES != null && isset($OLD_VALUES[$name])) {
                     $OLD_VALUE = $OLD_VALUES[$name];
@@ -255,7 +259,7 @@
                     
                     if (isset($RULES['format']['file']) && $RULES['format']['file'] === true && isset($VALUE['name'])) {
 
-                        $ARRAY_VALUES = (isset($OLD_VALUE)) ? json_decode($OLD_VALUE, true) : [];
+                        $ARRAY_VALUES = \Wonder\App\Support\MediaFileManager::decodeStoredFiles($OLD_VALUE);
 
                         $folder = (isset($NAME->folder) && $NAME->folder) ? '/' . $NAME->folder : '';
 
@@ -282,7 +286,8 @@
 
                         }
 
-                        $VALUE = uploadFiles($VALUE, $RULES['format'], $PATH->rUpload.$folder, $ARRAY_VALUES);
+                        $VALUE = uploadFiles($VALUE, $RULES['format'], $PATH->rUpload.$folder, $ARRAY_VALUES,
+                            $fileManifest ? $post[$name.'__wi_files'] : null);
 
                     } else {
 

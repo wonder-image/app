@@ -33,10 +33,13 @@ class File extends Field
         $maxSize = max(1, (int) ($this->schema['max_size'] ?? 5));
         $directory = $this->escape((string) ($this->schema['directory'] ?? ''));
         $rawValue = $this->schema['file_value'] ?? '';
-        $value = is_array($rawValue) ? '' : $this->escape((string) $rawValue);
+        $value = $this->escape(is_array($rawValue) ? json_encode(array_values($rawValue), JSON_THROW_ON_ERROR) : (string) $rawValue);
         $imageSize = $this->escape((string) ($this->schema['min_size_image'] ?? ''));
         $sizeBefore = !empty($this->schema['size_before']) ? 'true' : 'false';
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->renderAttributes(array_merge(
+            ['data-wi-file-references' => 'true'],
+            (array) ($this->schema['attributes'] ?? [])
+        ));
         $accept = $this->acceptByType($file);
         $acceptLabel = $this->acceptLabelByType($file);
         $multiple = $maxFile > 1 ? 'multiple' : '';

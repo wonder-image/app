@@ -173,6 +173,16 @@ php forge start
 
 ## Form / Element / Theme system
 
+- Backend FilePond fields opt into reference persistence with
+  `data-wi-file-references="true"`. The lib sends only new file bytes plus a
+  sibling `<field>__wi_files` JSON manifest (stored filenames / new upload
+  indexes), including within repeater rows. `formToArray()` forwards it to
+  `uploadFiles()` / `MediaFileManager::syncFiles()`, which validates references
+  against the record's old filenames. Unchanged/reordered files must preserve
+  names, bytes and derived images. An empty manifest removes all; no manifest
+  retains legacy semantics. Keep PHP and lib assets aligned; custom upload
+  handlers must forward old values and the manifest or explicitly opt out.
+
 Two-layer architecture for building and rendering forms:
 
 - **`class/Elements/Form/`** — config layer. Fluent API objects

@@ -274,10 +274,14 @@
         if (isset($POST['active'])) { $UPLOAD['active'] = $POST['active']; }
 
         // Upload foto profilo secondo le regole configurate.
-        if (isset($POST['profile_picture'])) {
+        if (isset($POST['profile_picture']) || isset($POST['profile_picture__wi_files'])) {
             $USER_SCHEMA = \Wonder\App\Table::key('user')->schema();
             $RULES = isset($USER_SCHEMA['profile_picture']['input']['format']) ? $USER_SCHEMA['profile_picture']['input']['format'] : [];
-            $UPLOAD['profile_picture'] = uploadFiles($POST['profile_picture'], $RULES, $PATH->rUpload.'/user', []);
+            $oldPictures = $MODIFY_ID !== null
+                ? (sqlSelect('user', ['id' => $MODIFY_ID], 1)->row['profile_picture'] ?? [])
+                : [];
+            $UPLOAD['profile_picture'] = uploadFiles($POST['profile_picture'] ?? ['name' => []], $RULES,
+                $PATH->rUpload.'/user', $oldPictures, $POST['profile_picture__wi_files'] ?? null);
         }
 
         // Normalizza il colore se presente.

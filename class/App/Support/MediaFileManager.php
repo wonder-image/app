@@ -4,6 +4,70 @@ namespace Wonder\App\Support;
 
 final class MediaFileManager
 {
+    public static function syncFiles(array $files, array $format, string $pathDir, array $oldFiles, mixed $manifest): string
+    {
+        global $ALERT;
+
+        $order = is_string($manifest) ? json_decode($manifest) : null;
+        $unchanged = json_encode($oldFiles, JSON_PRETTY_PRINT);
+
+        if (!is_array($order) || !array_is_list($order)) {
+            $ALERT = 920;
+            return $unchanged;
+        }
+
+        if (count($order) > ($format['max_file'] ?? 1)) {
+            $ALERT = 923;
+            return $unchanged;
+        }
+
+        $retained = [];
+        $uploadIndexes = [];
+        foreach ($order as $entry) {
+            if (is_string($entry) && in_array($entry, $oldFiles, true) && !in_array($entry, $retained, true)) {
+                $retained[] = $entry;
+            } elseif (is_int($entry) && $entry >= 0 && !in_array($entry, $uploadIndexes, true)
+                && ($files['error'][$entry] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK
+                && is_uploaded_file($files['tmp_name'][$entry] ?? '')) {
+                $uploadIndexes[] = $entry;
+            } else {
+                $ALERT = 920;
+                return $unchanged;
+            }
+        }
+
+        $uploads = ['name' => [], 'type' => [], 'tmp_name' => [], 'error' => [], 'size' => []];
+        foreach ((array) ($files['error'] ?? []) as $index => $error) {
+            if ($error !== UPLOAD_ERR_NO_FILE && !in_array($index, $uploadIndexes, true)) {
+                $ALERT = 920;
+                return $unchanged;
+            }
+        }
+        foreach ($uploadIndexes as $index) {
+            foreach ($uploads as $key => $_) {
+                $uploads[$key][] = $files[$key][$index] ?? null;
+            }
+        }
+
+        if (!empty($ALERT)) {
+            return $unchanged;
+        }
+
+        $newFiles = $uploadIndexes === [] ? [] : self::decodeStoredFiles(
+            uploadFiles($uploads, array_replace($format, ['reset' => false]), $pathDir)
+        );
+        if (!empty($ALERT) || count($newFiles) !== count($uploadIndexes)) {
+            $ALERT = $ALERT ?: 920;
+            return $unchanged;
+        }
+
+        $newByIndex = $uploadIndexes === [] ? [] : array_combine($uploadIndexes, $newFiles);
+        $result = array_map(static fn ($entry) => is_int($entry) ? $newByIndex[$entry] : $entry, $order);
+        self::deleteFiles($pathDir, $format, array_values(array_diff($oldFiles, $result)));
+
+        return json_encode($result, JSON_PRETTY_PRINT);
+    }
+
     public static function hasUploadedFiles(mixed $files): bool
     {
         if (!is_array($files) || !isset($files['tmp_name'])) {

@@ -218,6 +218,27 @@ Su un campo `password()` puoi dichiarare la policy: `.minLength($n)`,
 (`Field::key('password')->password()->minLength(8)`), così la policy è coerente
 tra form e validazione server-side.
 
+## File gia salvati e riordino
+
+Nel backend, `fileDragDrop()` conserva i file gia salvati: salvare senza
+modificare le immagini o cambiarne l'ordine non deve inviarne nuovamente i
+byte, rinominarle o rigenerare le varianti. Vengono caricati solo i file nuovi;
+la rimozione esplicita elimina i file esclusi dall'elenco finale.
+
+Questo comportamento richiede le versioni aggiornate sia del framework sia
+di `wonder-image/lib`, inclusi gli asset copiati nel sito. Il renderer abilita
+il protocollo con `data-wi-file-references="true"`. Al `formdata` la lib invia
+un campo JSON fratello `<nome>__wi_files`: stringhe per i nomi gia salvati,
+interi per gli indici dei nuovi upload. Il nome fratello resta nella stessa
+riga per i repeater. Il server accetta riferimenti solo dai valori precedenti
+del record e valida l'elenco prima di rimuovere file; `[]` indica rimozione
+totale, mentre l'assenza del campo mantiene il comportamento legacy.
+
+Gli handler personalizzati che chiamano `uploadFiles()` direttamente devono
+passare il valore salvato come quarto argomento e il manifest come quinto.
+Se un handler non supporta ancora il protocollo, il campo puo disabilitarlo
+tramite l'attributo `data-wi-file-references="false"`.
+
 ## Collegamenti con il resto
 
 - **Upload**: il campo file nel form configura solo la resa. La logica di storage

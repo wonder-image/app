@@ -1,10 +1,14 @@
 <?php
 
-    function uploadFiles($FILES, $FORMAT, $PATH_DIR, $OLD_FILE = []) {
+    function uploadFiles($FILES, $FORMAT, $PATH_DIR, $OLD_FILE = [], $MANIFEST = null) {
 
         global $ALERT;
 
         $OLD_FILE = \Wonder\App\Support\MediaFileManager::decodeStoredFiles($OLD_FILE);
+
+        if ($MANIFEST !== null) {
+            return \Wonder\App\Support\MediaFileManager::syncFiles($FILES, $FORMAT, $PATH_DIR, $OLD_FILE, $MANIFEST);
+        }
         
         $MAX_FILE = $FORMAT['max_file'] ?? 1;
         $MAX_SIZE = isset($FORMAT['max_size']) ? $FORMAT['max_size'] * 1048576 : 2 * 1048576;
