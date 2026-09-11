@@ -93,14 +93,20 @@
                 ? 'swiper-wrapper'
                 : 'position-absolute top-0 swiper-wrapper w-100 h-100 swiper-wrapper';
 
-            $html  = "<div id='$id' class='$rootClasses'"
+            $layoutKey = hash('sha256', $id);
+            $html = $this->swiperInitialLayout($class, $id);
+            $html .= "<div id='$id' data-swiper-layout='$layoutKey' class='$rootClasses'"
                 .($rootAttributes !== '' ? " $rootAttributes" : '')
                 ."><div class='$wrapperClasses'>$slides</div>";
             if ($class->getSchema('pagination')) { $html .= "<div class='swiper-pagination' style='--swiper-theme-color: var(--bs-dark);'></div>"; }
             if ($class->getSchema('navigation')) { $html .= "<div class='swiper-button-next' style='--swiper-navigation-size: 25px;--swiper-theme-color: var(--bs-dark);'></div><div class='swiper-button-prev' style='--swiper-navigation-size: 25px;--swiper-theme-color: var(--bs-dark);'></div>"; }
             $html .= "</div>";
 
-            if ($thumbs) { $html .= "<div id='$id-thumbs' class='swiper w-100 overflow-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>"; }
+            if ($thumbs) {
+                $thumbLayoutKey = hash('sha256', $id.'-thumbs');
+                $html .= $this->swiperInitialLayout($class, $id.'-thumbs', true);
+                $html .= "<div id='$id-thumbs' data-swiper-layout='$thumbLayoutKey' class='swiper w-100 overflow-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>";
+            }
 
             $html .= $this->script($class, $id, $group, $thumbs, $zoom, $lightbox);
 

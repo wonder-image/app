@@ -213,10 +213,36 @@
             return $this->renderAttributes($attributes);
         }
 
+        /** Reserve the configured slide widths before the loaded event initializes Swiper. */
+        protected function swiperInitialLayout(mixed $class, string $id, bool $thumbs = false): string
+        {
+            $key = hash('sha256', $id);
+            $root = '[data-swiper-layout="'.$key.'"]:not(.swiper-initialized)';
+            $base = [
+                'slidesPerView' => $thumbs ? ($class->getSchema('thumbs-per-view') ?? 4) : ($class->getSchema('slides-per-view') ?? 1),
+                'spaceBetween' => $thumbs ? 8 : ($class->getSchema('space-between') ?? 0),
+            ];
+            $rule = static function (array $options) use ($root): string {
+                $count = max(0.01, (float) $options['slidesPerView']);
+                $gap = (float) $options['spaceBetween'];
+                $width = 'calc('.json_encode(100 / $count).'% - '.json_encode($gap * ($count - 1) / $count).'px)';
+
+                return $root.' > .swiper-wrapper > .swiper-slide{width:'.$width.';flex-shrink:0;margin-inline-end:'.json_encode($gap).'px;}';
+            };
+            $css = $root.'{min-width:0;}'.$root.' > .swiper-wrapper{display:flex;}'.$rule($base);
+            $breakpoints = $thumbs ? [] : ($class->getSchema('breakpoints') ?? []);
+            ksort($breakpoints, SORT_NUMERIC);
+
+            foreach ($breakpoints as $minimumWidth => $options) {
+                // Swiper merges the active breakpoint with the base, not the previous breakpoint.
+                $css .= '@media(min-width:'.(int) $minimumWidth.'px){'.$rule(array_replace($base, $options)).'}';
+            }
+
+            return '<style>'.$css.'</style>';
+        }
+
         /**
-         * Serializza i breakpoint come oggetto JavaScript senza consentire
-         * la chiusura del tag script da valori configurabili.
-         *
+         * Serializza i breakpoint senza consentire la chiusura del tag script.
          * @param array<int, array<string, mixed>> $breakpoints
          */
         protected function encodeSwiperBreakpoints(array $breakpoints): string

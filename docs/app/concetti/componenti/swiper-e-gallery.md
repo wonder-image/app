@@ -9,6 +9,12 @@ alle immagini.
   **zoom in-place** (Panzoom) oppure **gallery a schermo intero** (Fancybox).
 - `__swiper()->slides($slides)` — carosello di stringhe HTML trusted o oggetti renderizzabili.
   Il componente aggiunge il wrapper `.swiper-slide` a ogni elemento.
+
+I renderer Wonder e Bootstrap riservano gia nell'HTML le larghezze delle slide e
+gli spazi configurati, incluse colonne frazionarie, breakpoint e miniature.
+Questi stili sono limitati al singolo Swiper e si disattivano con
+`.swiper-initialized`: durante un reload a meta pagina la prima slide non occupa
+temporaneamente tutta la larghezza in attesa dell'inizializzazione JavaScript.
 - `__gallery($images)` — griglia responsive di immagini con lightbox Fancybox. Sostituisce la
   vecchia funzione `responsiveGallery()`.
 

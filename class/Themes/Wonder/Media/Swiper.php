@@ -83,20 +83,25 @@
                 $i++;
             }
 
-            $html = "";
+            $html = $this->swiperInitialLayout($class, $id);
 
             if ($lightbox && $hidden !== '') { $html .= "<div class='d-none'>$hidden</div>"; }
 
             $rootClasses = $this->escape($this->mediaRootClasses($class, ['swiper', 'w-100']));
             $rootAttributes = $this->mediaRootAttributes($class);
-            $html .= "<div id='$id' class='$rootClasses'"
+            $layoutKey = hash('sha256', $id);
+            $html .= "<div id='$id' data-swiper-layout='$layoutKey' class='$rootClasses'"
                 .($rootAttributes !== '' ? " $rootAttributes" : '')
                 ."><div class='swiper-wrapper'>$slides</div>";
             if ($class->getSchema('pagination')) { $html .= "<div class='swiper-pagination'></div>"; }
             if ($class->getSchema('navigation')) { $html .= "<div class='swiper-button-next'></div><div class='swiper-button-prev'></div>"; }
             $html .= "</div>";
 
-            if ($thumbs) { $html .= "<div id='$id-thumbs' class='swiper w-100 o-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>"; }
+            if ($thumbs) {
+                $thumbLayoutKey = hash('sha256', $id.'-thumbs');
+                $html .= $this->swiperInitialLayout($class, $id.'-thumbs', true);
+                $html .= "<div id='$id-thumbs' data-swiper-layout='$thumbLayoutKey' class='swiper w-100 o-hidden mt-2'><div class='swiper-wrapper'>$thumbSlides</div></div>";
+            }
 
             $html .= $this->script($class, $id, $group, $thumbs, $zoom, $lightbox);
 
