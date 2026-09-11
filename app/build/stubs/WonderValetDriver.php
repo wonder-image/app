@@ -22,7 +22,8 @@ class WonderValetDriver extends ValetDriver
         }
 
         if ($this->shouldProxyMedia($sitePath, $uri)) {
-            return $this->mediaProxyScript($sitePath, $uri);
+            header('Location: '.$this->mediaFallbackUrl($sitePath).$uri, true, 302);
+            exit;
         }
 
         return false;
@@ -121,22 +122,4 @@ class WonderValetDriver extends ValetDriver
         return $cache[$sitePath] = '';
     }
 
-    private function mediaProxyScript(string $sitePath, string $uri): string
-    {
-        $fallbackUrl = $this->mediaFallbackUrl($sitePath);
-        $targetUrl = $fallbackUrl.$uri;
-
-        $tmpDir = $sitePath.'/storage/tmp';
-
-        if (!is_dir($tmpDir)) {
-            @mkdir($tmpDir, 0777, true);
-        }
-
-        $script = $tmpDir.'/_media_proxy.php';
-        $escaped = addslashes($targetUrl);
-
-        file_put_contents($script, "<?php header('Location: {$escaped}', true, 302); exit;");
-
-        return $script;
-    }
 }

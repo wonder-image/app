@@ -144,6 +144,8 @@ php forge start
 
 ## Architecture notes
 
+- Herd missing-media fallback sends a direct 302 from the driver. Never return a generated PHP proxy from `isStaticFile`: Nginx treats that path as static and can enter an internal redirect loop.
+
 - Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend()` is opt-in for compatible inline consumers; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
 
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
