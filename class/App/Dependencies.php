@@ -313,6 +313,19 @@
 
         protected static array $toLoad = [];
 
+        private static bool $deferFrontendScripts = false;
+
+        /** Opt in after moving inline dependency consumers to DOMContentLoaded/loaded. */
+        public static function deferFrontend(bool $value = true): void
+        {
+            self::$deferFrontendScripts = $value;
+        }
+
+        public static function isFrontendDeferred(): bool
+        {
+            return self::$deferFrontendScripts && !empty($GLOBALS['FRONTEND']);
+        }
+
         
         private static function set($key, bool $value): Dependencies 
         { 
@@ -367,7 +380,7 @@
                         // defer solo su frontend: sposta il download fuori dal render-blocking
                         // mantenendo l'ordine di esecuzione. Sicuro solo per librerie non
                         // usate da <script> inline a parse-time (vedi flag 'defer' della dipendenza).
-                        $defer = (!empty($dep['defer']) && !empty($GLOBALS['FRONTEND'])) ? ' defer' : '';
+                        $defer = (self::isFrontendDeferred() || (!empty($dep['defer']) && !empty($GLOBALS['FRONTEND']))) ? ' defer' : '';
                         $html .= "<script src=\"$url\"$defer></script>\n";
                     } elseif (str_ends_with($file, '.css')) {
                         // css_defer solo su frontend: carica il foglio di stile fuori dal

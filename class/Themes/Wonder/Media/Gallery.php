@@ -10,6 +10,7 @@
 
         protected function renderMedia($class): string
         {
+            \Wonder\App\Dependencies::fancyapps();
             $id          = $this->mediaId($class, 'gallery');
             $items       = $this->normalizeImages($class->getSchema('images') ?? []);
             $columns     = $class->getSchema('columns') ?? [ 'desktop' => 4, 'tablet' => 3, 'mobile' => 2 ];
@@ -67,7 +68,7 @@
             if ($download) { $options .= "buttons: ['download', 'thumbs', 'close']"; }
             $options .= '}';
 
-            $html .= "<script>Fancybox.bind('[data-fancybox=\"$id\"]', $options);</script>";
+            $html .= "<script>document.addEventListener('DOMContentLoaded', function () { Fancybox.bind('[data-fancybox=\"$id\"]', $options); }, { once: true });</script>";
 
             return $html;
         }

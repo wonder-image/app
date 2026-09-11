@@ -205,10 +205,16 @@
 
 <script>
 
-    TranslationProvider.init(
+    <?php if (Wonder\App\Dependencies::isFrontendDeferred()) : ?>
+    document.addEventListener('DOMContentLoaded', function () {
+    <?php endif; ?>
+      TranslationProvider.init(
         <?=json_encode(Wonder\Localization\TranslationProvider::$translations)?>,
         <?=json_encode(Wonder\Localization\TranslationProvider::$defaultTranslations)?>
-    );
+      );
+    <?php if (Wonder\App\Dependencies::isFrontendDeferred()) : ?>
+    }, { once: true });
+    <?php endif; ?>
 
 </script>
 

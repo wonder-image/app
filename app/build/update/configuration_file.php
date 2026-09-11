@@ -27,7 +27,7 @@
     $ROUTER_BLOCK .= "# WONDER ROUTER END";
 
     // --- .htaccess ---
-    // Se esiste già: aggiorna solo il blocco WONDER ROUTER (preserva
+    // Se esiste già: aggiorna i blocchi WONDER ROUTER e PERFORMANCE (preserva
     // personalizzazioni dell'utente). Se non esiste: crea da template
     // unico (Build::htaccessTemplate), con force-www parametrico.
 
@@ -70,6 +70,8 @@
             if (!$routerInserted) {
                 $updatedContent = rtrim((string) $updatedContent)."\n\n".$ROUTER_BLOCK."\n";
             }
+
+            $updatedContent = \Wonder\Console\Commands\Build::updateHtaccessPerformance((string) $updatedContent);
 
             // Pulizia: evita troppe righe vuote consecutive
             $updatedContent = preg_replace("/\n{3,}/", "\n\n", (string) $updatedContent);

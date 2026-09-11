@@ -144,6 +144,8 @@ php forge start
 
 ## Architecture notes
 
+- Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend()` is opt-in for compatible inline consumers; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
+
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.
 - `class/App/Schema/Extensions/*` is the place for reusable compound schema bundles (for example address/contact/fiscal blocks) that must generate coherent fragments for `dataSchema()`, `tableSchema()`, `labelSchema()`, and `formSchema()` without adding automatic registration to the core. When useful, the same extension may also expose pure row decorators for `Model::decorate()`.

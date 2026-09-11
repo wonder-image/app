@@ -11,6 +11,7 @@ class SelectDate extends DatePicker
 {
     public function renderInput(): string
     {
+        \Wonder\App\Dependencies::moment();
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
@@ -34,7 +35,7 @@ class SelectDate extends DatePicker
     {$this->renderError()}
 </div>
 <script>
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         var options = {
             showAnim: 'slideDown',
             yearRange: '1900:3000',

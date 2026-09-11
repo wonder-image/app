@@ -31,10 +31,14 @@ $SESSION_ID = session_id();
 $ACTIVE_STATISTICS ??= true;
 
 Wonder\App\Dependencies::jquery()
-    ::moment()
     ::bootstrapIcons()
     ::jqueryPlugin()
     ::wiLib()
     ::wiFrontend();
+
+// Preserve the implicit Moment global for legacy sites only.
+if (!Wonder\App\Dependencies::isFrontendDeferred()) {
+    Wonder\App\Dependencies::moment();
+}
 
 \Wonder\App\Diagnostics\MemoryProfiler::register();

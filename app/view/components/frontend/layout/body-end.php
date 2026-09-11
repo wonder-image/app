@@ -3,4 +3,7 @@
 
 <?=Wonder\App\Dependencies::Body()?>
 
-<script> setAos(); window.addEventListener('load', (event) => { setUpPage(); <?=alert()?> }); </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () { setAos(); }, { once: true });
+    window.addEventListener('load', function () { setUpPage(); <?=alert()?> }, { once: true });
+</script>

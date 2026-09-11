@@ -39,5 +39,16 @@ has('file mancante senza ?v',
 
 unlink($jquery);
 
+$GLOBALS['FRONTEND'] = true;
+Dependencies::deferFrontend();
+Dependencies::wiFrontend();
+has('frontend opt-in defers head scripts', Dependencies::Head(), 'moment.js" defer></script>');
+has('frontend opt-in defers body scripts', Dependencies::Body(), 'body-end.js" defer></script>');
+$GLOBALS['FRONTEND'] = false;
+has('backend remains synchronous', Dependencies::Head(), 'moment.js"></script>');
+$GLOBALS['FRONTEND'] = true;
+Dependencies::deferFrontend(false);
+has('legacy frontend remains synchronous', Dependencies::Head(), 'moment.js"></script>');
+
 echo $fail === 0 ? "\nTutti i test passati\n" : "\n$fail test falliti\n";
 exit($fail === 0 ? 0 : 1);

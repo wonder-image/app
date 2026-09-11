@@ -174,6 +174,7 @@ PHP;
      */
     public static function htaccessTemplate(bool $forceWww = false): string
     {
+        $performanceBlock = self::htaccessPerformanceBlock();
         $forceWwwBlock = $forceWww
             ? <<<'HTACCESS'
 
@@ -237,17 +238,28 @@ $forceWwwBlock
 # ----------------------------------------------------------------------
 # Cache ottimizzata
 # ----------------------------------------------------------------------
+$performanceBlock
+
 <IfModule mod_headers.c>
-  <FilesMatch "\.(jpe?g|png|gif|svg|ico|pdf|mp4|webm|ogg|woff2?)\$">
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+HTACCESS;
+    }
+
+    public static function htaccessPerformanceBlock(): string
+    {
+        return <<<'HTACCESS'
+# WONDER PERFORMANCE START
+<IfModule mod_headers.c>
+  <FilesMatch "\.(jpe?g|png|gif|webp|avif|svg|ico|pdf|mp4|webm|ogg|woff2?|js|css)$">
     Header set Cache-Control "public, max-age=86400, must-revalidate"
+    Header set Cache-Control "public, max-age=31536000, immutable" "expr=%{QUERY_STRING} =~ m#(^|&)v=[0-9]+(&|$)#"
   </FilesMatch>
-  # Cache lunga sicura: gli URL css/js emessi dal framework sono versionati
-  # con ?v=filemtime (Wonder\App\Support\Asset), quindi cambiano al cambiare
-  # del file e invalidano la cache da soli.
-  <FilesMatch "\.(js|css)\$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
-  <FilesMatch "\.(html|htm)\$">
+  <FilesMatch "\.(html|htm)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
 </IfModule>
@@ -259,31 +271,41 @@ FileETag MTime Size
   ExpiresByType image/jpeg "access plus 1 day"
   ExpiresByType image/png "access plus 1 day"
   ExpiresByType image/gif "access plus 1 day"
+  ExpiresByType image/webp "access plus 1 day"
+  ExpiresByType image/avif "access plus 1 day"
   ExpiresByType image/svg+xml "access plus 1 day"
-  ExpiresByType text/css "access plus 1 year"
-  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/css "access plus 1 day"
+  ExpiresByType application/javascript "access plus 1 day"
   ExpiresByType text/html "access plus 0 seconds"
 </IfModule>
 
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/json
-  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)\$" no-gzip dont-vary
+  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-gzip dont-vary
 </IfModule>
 
 <IfModule mod_brotli.c>
   BrotliCompressionQuality 5
   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json
-  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)\$" no-brotli dont-vary
+  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-brotli dont-vary
 </IfModule>
-
-<IfModule mod_headers.c>
-  Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set X-Content-Type-Options "nosniff"
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-  Header always set X-XSS-Protection "1; mode=block"
-</IfModule>
+# WONDER PERFORMANCE END
 HTACCESS;
+    }
+
+    public static function updateHtaccessPerformance(string $content): string
+    {
+        $block = self::htaccessPerformanceBlock();
+        if (str_contains($content, '# WONDER PERFORMANCE START')) {
+            return preg_replace_callback(
+                '/# WONDER PERFORMANCE START.*?# WONDER PERFORMANCE END/s',
+                static fn () => $block,
+                $content
+            ) ?? $content;
+        }
+
+        // Append overriding rules on legacy installations without deleting custom rules.
+        return rtrim($content)."\n\n".$block."\n";
     }
 
     private static function removeDirectory(string $dir): void

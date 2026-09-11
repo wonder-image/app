@@ -4,6 +4,7 @@
 
     use Wonder\Concerns\HasSchema;
     use Wonder\App\Path;
+    use Wonder\App\Support\Asset;
     use Wonder\Elements\Media\Image;
     use Wonder\Http\UrlParser;
 
@@ -48,8 +49,9 @@
 
             $sizes = $this->renderSizes();
             $srcSet = $this->renderSrcSet();
+            $src = htmlspecialchars(Asset::version($this->src), ENT_QUOTES, 'UTF-8');
 
-            return "<img src=\"{$this->src}\" srcset=\"$srcSet\" sizes=\"$sizes\" {$this->attributes} />";
+            return "<img src=\"{$src}\" srcset=\"$srcSet\" sizes=\"$sizes\" {$this->attributes} />";
 
         }
 
@@ -59,7 +61,8 @@
             $source1 = $this->renderSource('webp');
             $source2 = $this->renderSource();
 
-            $image = "<img src=\"{$this->src}\" {$this->attributes} />";
+            $src = htmlspecialchars(Asset::version($this->src), ENT_QUOTES, 'UTF-8');
+            $image = "<img src=\"{$src}\" {$this->attributes} />";
 
             return "<picture>\n$source1\n$source2\n$image\n</picture>";
 
@@ -148,6 +151,7 @@
 
             foreach ($this->sizes as $size) {
                 $src = sprintf('%s%s-%d.%s', $this->directoryUrl, $this->imageName, $size, $extension);
+                $src = htmlspecialchars(Asset::version($src), ENT_QUOTES, 'UTF-8');
                 $srcset[] = "{$src} {$size}w";
             }
 

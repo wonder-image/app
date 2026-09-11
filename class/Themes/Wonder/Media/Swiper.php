@@ -19,6 +19,8 @@
             $thumbs   = !$contentMode && (bool) ($class->getSchema('thumbnails') ?? false);
             $zoom     = !$contentMode && (bool) ($class->getSchema('zoom') ?? false);
             $lightbox = !$contentMode && (bool) ($class->getSchema('lightbox') ?? false);
+            \Wonder\App\Dependencies::swiper();
+            if ($zoom || $lightbox) { \Wonder\App\Dependencies::fancyapps(); }
             $group    = $class->getSchema('lightbox-group') ?? ($id . '-lightbox');
 
             $size      = (int) ($class->getSchema('size') ?? 1440);
