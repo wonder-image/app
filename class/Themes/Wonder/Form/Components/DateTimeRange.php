@@ -29,7 +29,7 @@ class DateTimeRange extends Field
     {$this->renderError()}
 </div>
 <script>
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         var options = {
             showAnim: 'slideDown',
             yearRange: '1900:3000',
@@ -67,7 +67,7 @@ class DateTimeRange extends Field
         if ({$max} !== '') { options.maxDate = {$max}; }
 
         $('#{$baseId}-from, #{$baseId}-to').datetimepicker(options);
-    });
+    }, { once: true });
 </script>
 HTML;
     }

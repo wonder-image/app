@@ -144,9 +144,11 @@ php forge start
 
 ## Architecture notes
 
+- Frontend performance defaults to ordered deferred scripts and bounded inlining of `wi-lib` on frontend; Google Fonts are loaded asynchronously. Responsive raster images infer dimensions only from existing local files and preserve explicit dimensions; see `docs/app/concetti/frontend-performance.md`.
+
 - Herd missing-media fallback sends a direct 302 from the driver. Never return a generated PHP proxy from `isStaticFile`: Nginx treats that path as static and can enter an internal redirect loop.
 
-- Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend()` is opt-in for compatible inline consumers; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
+- Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend(false)` is a temporary legacy opt-out; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
 
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.

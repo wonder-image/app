@@ -31,7 +31,7 @@ class DateRange extends Field
     {$this->renderError()}
 </div>
 <script>
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         var options = {
             showAnim: 'slideDown',
             yearRange: '1900:3000',
@@ -78,7 +78,7 @@ class DateRange extends Field
         if ({$toValueJs} !== '') {
             $('#{$baseId}-to').datepicker('setDate', {$toValueJs});
         }
-    });
+    }, { once: true });
 </script>
 HTML;
     }

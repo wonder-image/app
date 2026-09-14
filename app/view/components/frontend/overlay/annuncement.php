@@ -8,6 +8,7 @@ if (!is_array($announcements) || $announcements === []) {
     return;
 }
 
+Wonder\App\Dependencies::swiper();
 $swiperId = 'swiper-header-'.strtolower(code(6, 'letters'));
 ?>
 <section class="p-a ph-2 bg-primary tx-white" style="z-index: 90; margin-top: var(--header-height);">
@@ -23,11 +24,13 @@ $swiperId = 'swiper-header-'.strtolower(code(6, 'letters'));
 </section>
 
 <script>
-    new Swiper(<?=json_encode('.'.$swiperId)?>, {
-        slidesPerView: 1,
-        loop: true,
-        autoplay: {
-            delay: 2000,
-        },
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        new Swiper(<?=json_encode('.'.$swiperId)?>, {
+            slidesPerView: 1,
+            loop: true,
+            autoplay: {
+                delay: 2000,
+            },
+        });
+    }, { once: true });
 </script>

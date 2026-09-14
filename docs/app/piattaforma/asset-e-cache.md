@@ -41,21 +41,21 @@ che applica lo stesso schema `?v=`.
 
 ## Ridurre il render-blocking (LCP)
 
-`Dependencies::generate()` supporta due flag opt-in per dipendenza, attivi **solo
-sul frontend** (`$GLOBALS['FRONTEND']`), per togliere risorse dal percorso di
-rendering iniziale:
+`Dependencies::generate()` applica sul frontend (`$GLOBALS['FRONTEND']`) un
+caricamento ordinato e differito degli script. Il backend resta sincrono.
+Le singole dipendenze possono inoltre dichiarare `css_defer`:
 
-- `'defer' => true` — emette `<script ... defer>`: il download non blocca il
-  parsing e l'esecuzione resta in ordine. Sicuro **solo** per librerie non usate
-  da `<script>` inline a parse-time (init via eventi o `DOMContentLoaded`/`load`).
-  Attivo su `jquery-plugin`. **Non** deferibile ciò che è consumato inline (es.
-  `jquery` per i `$()`, `wi-lib`/`wi-frontend` per `TranslationProvider.init`,
-  `swiper` per i `new Swiper()` inline dei componenti).
+- gli script emettono `<script ... defer>` e mantengono l'ordine. I consumer
+  inline del framework partono da `DOMContentLoaded`, `load` o `loaded`;
+  `Dependencies::deferFrontend(false)` esiste solo come uscita temporanea per
+  siti legacy non ancora migrati;
 - `'css_defer' => true` — carica il foglio di stile fuori dal render-blocking
   (`<link rel=preload as=style onload=...>` + fallback `<noscript>`). Sicuro
   **solo** per CSS non above-the-fold. Attivo su `bootstrap-icons`, `flag-icons`,
   `jquery-plugin`. Richiede che gli `onload` inline siano permessi (nessuna CSP
   stretta sugli handler inline).
+- il CSS piccolo e autocontenuto di `wi-lib` viene inlinato automaticamente;
+  `url()`, `@import`, file oltre 32 KiB o contenuti non sicuri ricadono sul link.
 
 Altre ottimizzazioni lato layout:
 
@@ -67,9 +67,8 @@ Altre ottimizzazioni lato layout:
   **piccoli e critici**: non inlinare `lib.css`/`head.css` (grandi) senza prima
   estrarre il critical CSS.
 - **Font**: i Google Fonts (`css_font.link`) ricevono automaticamente
-  `display=swap` in `head.php` se non già presente — testo subito visibile,
-  niente FOIT che ritarda FCP/LCP. Font self-hosted o su altri CDN vanno gestiti
-  nel loro `@font-face`.
+  `display=swap` e sono caricati con preload asincrono più fallback `noscript`.
+  Font self-hosted o su altri CDN vanno gestiti nel loro `@font-face`.
 - **Immagine LCP**: `Image::src(...)->priority()` marca l'immagine hero
   above-the-fold con `fetchpriority="high"` e `loading="eager"`, così il browser
   la scarica tra le prime risorse. Usare su **una sola** immagine per pagina; il

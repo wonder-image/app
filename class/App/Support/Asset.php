@@ -17,6 +17,18 @@ use Wonder\App\LegacyGlobals;
  */
 final class Asset
 {
+    /** Inline bounded, self-contained CSS without changing relative URL resolution. */
+    public static function inlineStyle(string $url, ?string $root = null, ?string $appUrl = null): ?string
+    {
+        $path = self::path($url, $root, $appUrl);
+        if ($path === null || filesize($path) > 32768) { return null; }
+        $css = file_get_contents($path);
+        if ($css === false || trim($css) === '' || preg_match('/@import|url\s*\(|<\/style/i', $css)) {
+            return null;
+        }
+        return '<style>'.$css.'</style>';
+    }
+
     /**
      * Appende `?v={filemtime}` a un URL che punta a un file sotto ROOT.
      *

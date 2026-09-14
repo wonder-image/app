@@ -469,7 +469,9 @@ class EditorBlocksRenderer
             return '';
         }
 
-        $script = "<script>(function () {";
+        \Wonder\App\Dependencies::swiper();
+
+        $script = "<script>document.addEventListener('DOMContentLoaded', function () {";
         $script .= "if (typeof Swiper === 'undefined') { return; }";
 
         foreach ($this->swiperInstances as $instance) {
@@ -486,7 +488,7 @@ class EditorBlocksRenderer
             $script .= "})();";
         }
 
-        $script .= "})();</script>";
+        $script .= "}, { once: true });</script>";
 
         return $script;
     }

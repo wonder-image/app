@@ -25,7 +25,7 @@ class DatePicker extends Field
     {$this->renderError()}
 </div>
 <script>
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         var options = {
             showAnim: 'slideDown',
             yearRange: '1900:3000',
@@ -62,7 +62,7 @@ class DatePicker extends Field
         if ({$valueJs} !== '') {
             $('#{$id}').datepicker('setDate', {$valueJs});
         }
-    });
+    }, { once: true });
 </script>
 HTML;
     }

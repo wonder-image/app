@@ -1,28 +1,54 @@
 # Caricamento frontend e cache degli asset
 
+## CSS piccoli e font
+
+Sul frontend `Dependencies` inlina automaticamente il piccolo foglio `wi-lib`.
+Il limite e 32 KiB per file; CSS con url(), @import o contenuti non adatti a un
+tag style mantengono il link esterno. `inlineFrontendStyles()` resta disponibile
+per sostituire esplicitamente l'elenco, ma i siti non devono configurare `wi-lib`.
+Conservare esterni i fogli grandi e misurare anche il peso HTML.
+
+I Google Fonts configurati in `css_font` ricevono `display=swap` e vengono
+caricati come stylesheet asincroni con fallback `noscript`. I link verso altri
+provider restano stylesheet normali, perche il framework non puo presumerne il
+comportamento. I siti che distribuiscono font locali devono includere anche la
+relativa licenza.
+
+Le immagini locali raster ricevono width e height intrinseci se entrambi gli
+attributi sono assenti. Nessun download viene effettuato per URL esterni o file
+assenti; le dimensioni specificate dal progetto restano prioritarie.
+
+## reCAPTCHA
+
+La lib inizializza il widget quando arriva entro 300px dal viewport oppure al
+focus/pointerdown sul form. Il loader e unico e ogni widget viene renderizzato
+una sola volta. Il form mantiene i campi token/action richiesti e la verifica
+server; scadenza ed errore azzerano il token. Dopo un errore di caricamento,
+una nuova interazione consente di riprovare.
+
+Il report Lighthouse puo elencare lo stesso script Google in piu iframe:
+questo, da solo, non dimostra tre inserimenti del loader nel documento padre.
+Controllare separatamente script della pagina, widget e iframe Google.
+La scelta del caricamento ritardato riduce il contesto osservato da reCAPTCHA
+prima dell'interazione; monitorare gli esiti antispam dopo il rilascio.
+Riferimento: https://developers.google.com/recaptcha/docs/loading
+
 In Herd, APP_URL deve corrispondere all'origine locale effettiva, ad esempio
 `https://agliati.test`. Per upload assenti localmente, MEDIA_FALLBACK_URL puo
 indicare il sito remoto: il driver risponde direttamente con un redirect 302,
 senza restituire script PHP come file statici a Nginx.
 
-Nei siti con inizializzazioni JavaScript compatibili con `DOMContentLoaded` o
-con l'evento Wonder `loaded`, attivare in `custom/config/config.php`:
-
-```php
-use Wonder\App\Dependencies;
-Dependencies::deferFrontend();
-```
-
 Gli script esterni registrati con Dependencies mantengono l'ordine e ricevono
-`defer`, inclusi quelli di fine body. Il backend conserva il caricamento sincrono.
+automaticamente `defer` sul frontend, inclusi quelli di fine body. Il backend
+conserva il caricamento sincrono.
 I CSS strutturali restano bloccanti per evitare layout incompleti al primo paint.
 La traduzione viene inizializzata a DOMContentLoaded prima dei componenti;
 `setUpPage` e l'evento `loaded` conservano il ciclo di vita su window.load.
 
-La modalita legacy resta il default. Prima di attivare defer su un sito esistente,
-spostare le chiamate inline immediate a `$`, `Swiper`, `Fancybox` o altri globali
-in un listener DOMContentLoaded/loaded. Non aggiungere `async`: perderebbe
-l'ordine fra dipendenze. `Dependencies::deferFrontend(false)` ripristina il default.
+Le chiamate inline a `$`, `Swiper`, `Fancybox` o altri globali devono partire da
+`DOMContentLoaded` o dall'evento `loaded`. Non aggiungere `async`: perderebbe
+l'ordine fra dipendenze. Solo un sito legacy non ancora migrato puo usare
+temporaneamente `Dependencies::deferFrontend(false)`.
 
 In modalita differita Moment non viene caricato implicitamente: SelectDate lo
 registra quando serve. Codice personalizzato che lo usa deve richiedere

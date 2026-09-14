@@ -313,9 +313,16 @@
 
         protected static array $toLoad = [];
 
-        private static bool $deferFrontendScripts = false;
+        private static bool $deferFrontendScripts = true;
+        private static array $inlineFrontendStyleKeys = ['wi-lib'];
 
-        /** Opt in after moving inline dependency consumers to DOMContentLoaded/loaded. */
+        /** Inline selected small stylesheets; unsafe or large files retain their link. */
+        public static function inlineFrontendStyles(array $keys): void
+        {
+            self::$inlineFrontendStyleKeys = $keys;
+        }
+
+        /** Override the frontend default. Pass false only for a legacy parse-time consumer. */
         public static function deferFrontend(bool $value = true): void
         {
             self::$deferFrontendScripts = $value;
@@ -377,12 +384,20 @@
                     $url = Support\Asset::version(self::$endpoint . $file);
 
                     if (str_ends_with($file, '.js')) {
-                        // defer solo su frontend: sposta il download fuori dal render-blocking
-                        // mantenendo l'ordine di esecuzione. Sicuro solo per librerie non
-                        // usate da <script> inline a parse-time (vedi flag 'defer' della dipendenza).
+                        // Sul frontend il defer ordinato e il default; i consumer inline
+                        // del framework inizializzano da DOMContentLoaded/load/loaded.
+                        // Il flag della singola dipendenza mantiene il comportamento per
+                        // configurazioni legacy che disattivano il default globale.
                         $defer = (self::isFrontendDeferred() || (!empty($dep['defer']) && !empty($GLOBALS['FRONTEND']))) ? ' defer' : '';
                         $html .= "<script src=\"$url\"$defer></script>\n";
                     } elseif (str_ends_with($file, '.css')) {
+                        if (!empty($GLOBALS['FRONTEND']) && in_array($key, self::$inlineFrontendStyleKeys, true)) {
+                            $inline = Support\Asset::inlineStyle(self::$endpoint . $file);
+                            if ($inline !== null) {
+                                $html .= $inline."\n";
+                                continue;
+                            }
+                        }
                         // css_defer solo su frontend: carica il foglio di stile fuori dal
                         // render-blocking (preload + swap a stylesheet on-load), con fallback
                         // <noscript>. Sicuro solo per CSS non above-the-fold (icone, widget

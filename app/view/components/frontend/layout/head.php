@@ -182,11 +182,11 @@
 <?=__inline_css($PATH->css.'/set-up/root.css')?>
 <?=__inline_css($PATH->css.'/set-up/color.css')?>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <?php
 
     if (sqlTableExists('css_font')) {
+        echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+        echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
         foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) {
             $fontLink = (string) ($row['link'] ?? '');
             if ($fontLink === '') { continue; }
@@ -195,7 +195,13 @@
             if (str_contains($fontLink, 'fonts.googleapis.com') && !str_contains($fontLink, 'display=')) {
                 $fontLink .= (str_contains($fontLink, '?') ? '&' : '?') . 'display=swap';
             }
-            echo "<link href='".e($fontLink)."' rel='stylesheet'>";
+            if (str_contains($fontLink, 'fonts.googleapis.com')) {
+                $escapedFontLink = e($fontLink);
+                echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
+                echo "<noscript><link href='".$escapedFontLink."' rel='stylesheet'></noscript>";
+            } else {
+                echo "<link href='".e($fontLink)."' rel='stylesheet'>";
+            }
         }
     }
 

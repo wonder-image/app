@@ -120,7 +120,17 @@
 
             $this->applyThemeClasses($class);
 
-            $this->attributes = $this->renderAttributes($class->getSchema('attributes'));
+            $attributes = (array) $class->getSchema('attributes');
+            if (!isset($attributes['width']) && !isset($attributes['height'])
+                && in_array($this->extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'], true)) {
+                $imagePath = Asset::path($this->src);
+                $dimensions = $imagePath !== null ? @getimagesize($imagePath) : false;
+                if ($dimensions !== false) {
+                    $attributes['width'] = $dimensions[0];
+                    $attributes['height'] = $dimensions[1];
+                }
+            }
+            $this->attributes = $this->renderAttributes($attributes);
 
         }
 
