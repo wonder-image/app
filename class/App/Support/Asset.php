@@ -17,16 +17,95 @@ use Wonder\App\LegacyGlobals;
  */
 final class Asset
 {
-    /** Inline bounded, self-contained CSS without changing relative URL resolution. */
-    public static function inlineStyle(string $url, ?string $root = null, ?string $appUrl = null): ?string
+    /** Inline bounded CSS, optionally resolving relative asset URLs first. */
+    public static function inlineStyle(
+        string $url,
+        ?string $root = null,
+        ?string $appUrl = null,
+        int $maxBytes = 32768,
+        bool $rewriteRelativeUrls = false,
+    ): ?string
     {
         $path = self::path($url, $root, $appUrl);
-        if ($path === null || filesize($path) > 32768) { return null; }
+        if ($path === null || $maxBytes < 1 || filesize($path) > $maxBytes) { return null; }
         $css = file_get_contents($path);
-        if ($css === false || trim($css) === '' || preg_match('/@import|url\s*\(|<\/style/i', $css)) {
+        if ($css === false || trim($css) === '' || preg_match('/@import|<\/style/i', $css)) {
             return null;
         }
+
+        if (preg_match('/url\s*\(/i', $css)) {
+            if (!$rewriteRelativeUrls) { return null; }
+            $css = self::rewriteRelativeCssUrls($css, $url);
+            if ($css === null) { return null; }
+        }
+
         return '<style>'.$css.'</style>';
+    }
+
+    private static function rewriteRelativeCssUrls(string $css, string $stylesheetUrl): ?string
+    {
+        $failed = false;
+        $rewritten = preg_replace_callback(
+            '~url\(\s*(?:(["\'])(.*?)\1|([^)]*))\s*\)~i',
+            static function (array $matches) use ($stylesheetUrl, &$failed): string {
+                $quote = (string) ($matches[1] ?? '');
+                $reference = trim((string) (($matches[2] ?? '') !== '' ? $matches[2] : ($matches[3] ?? '')));
+
+                if (
+                    $reference === ''
+                    || str_starts_with($reference, '/')
+                    || str_starts_with($reference, '#')
+                    || str_starts_with($reference, 'data:')
+                    || preg_match('~^[a-z][a-z0-9+.-]*:~i', $reference)
+                ) {
+                    return $matches[0];
+                }
+
+                $resolved = self::resolveCssReference($stylesheetUrl, $reference);
+                if ($resolved === null) {
+                    $failed = true;
+                    return $matches[0];
+                }
+
+                return 'url('.$quote.$resolved.$quote.')';
+            },
+            $css,
+        );
+
+        return $failed || $rewritten === null ? null : $rewritten;
+    }
+
+    private static function resolveCssReference(string $stylesheetUrl, string $reference): ?string
+    {
+        $stylesheet = parse_url($stylesheetUrl);
+        $target = parse_url($reference);
+
+        if ($stylesheet === false || $target === false || empty($stylesheet['path']) || empty($target['path'])) {
+            return null;
+        }
+
+        $segments = [];
+        foreach (explode('/', dirname((string) $stylesheet['path']).'/'.$target['path']) as $segment) {
+            if ($segment === '' || $segment === '.') { continue; }
+            if ($segment === '..') {
+                if ($segments === []) { return null; }
+                array_pop($segments);
+                continue;
+            }
+            $segments[] = $segment;
+        }
+
+        $origin = '';
+        if (isset($stylesheet['scheme'], $stylesheet['host'])) {
+            $origin = $stylesheet['scheme'].'://'.$stylesheet['host'];
+            if (isset($stylesheet['port'])) { $origin .= ':'.$stylesheet['port']; }
+        }
+
+        $resolved = $origin.'/'.implode('/', $segments);
+        if (isset($target['query'])) { $resolved .= '?'.$target['query']; }
+        if (isset($target['fragment'])) { $resolved .= '#'.$target['fragment']; }
+
+        return $resolved;
     }
 
     /**

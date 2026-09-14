@@ -34,6 +34,8 @@ $libCss = $root.'/assets/lib/wonder-image/dist/frontend/lib.css';
 file_put_contents($libCss, 'body {}');
 touch($libCss, 1721040000);
 
+$headCss = $root.'/assets/lib/wonder-image/dist/frontend/head.css';
+
 // --- Asset::version() ---
 
 same('URL con prefisso APP_URL',
@@ -122,9 +124,35 @@ pathIs('path() con traversal → null',
 
 pathIs('path() con stringa vuota → null', Asset::path('', $root), null);
 
+// --- Asset::inlineStyle() ---
+
+file_put_contents($headCss, '.glass{filter:url(../images/glass.svg#container-glass)}');
+clearstatcache();
+
+pathIs('inlineStyle() rifiuta URL relativi senza riscrittura',
+    Asset::inlineStyle(APP_URL.'/assets/lib/wonder-image/dist/frontend/head.css', $root),
+    null);
+
+same('inlineStyle() risolve URL relativi quando richiesto',
+    Asset::inlineStyle(APP_URL.'/assets/lib/wonder-image/dist/frontend/head.css', $root, APP_URL, 262144, true) ?? '',
+    '<style>.glass{filter:url('.APP_URL.'/assets/lib/wonder-image/dist/images/glass.svg#container-glass)}</style>');
+
+file_put_contents($headCss, str_repeat(' ', 33));
+clearstatcache();
+pathIs('inlineStyle() rispetta il limite per file',
+    Asset::inlineStyle(APP_URL.'/assets/lib/wonder-image/dist/frontend/head.css', $root, APP_URL, 32, true),
+    null);
+
+file_put_contents($headCss, '@import "other.css";');
+clearstatcache();
+pathIs('inlineStyle() rifiuta @import',
+    Asset::inlineStyle(APP_URL.'/assets/lib/wonder-image/dist/frontend/head.css', $root, APP_URL, 262144, true),
+    null);
+
 // Cleanup
 unlink($rootCss);
 unlink($libCss);
+unlink($headCss);
 
 echo $fail === 0 ? "\nTutti i test passati\n" : "\n$fail test falliti\n";
 exit($fail === 0 ? 0 : 1);

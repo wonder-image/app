@@ -2,11 +2,18 @@
 
 ## CSS piccoli e font
 
-Sul frontend `Dependencies` inlina automaticamente il piccolo foglio `wi-lib`.
-Il limite e 32 KiB per file; CSS con url(), @import o contenuti non adatti a un
-tag style mantengono il link esterno. `inlineFrontendStyles()` resta disponibile
-per sostituire esplicitamente l'elenco, ma i siti non devono configurare `wi-lib`.
-Conservare esterni i fogli grandi e misurare anche il peso HTML.
+Sul frontend `Dependencies` inlina automaticamente `wi-lib`, il CSS di Swiper e
+il foglio strutturale `wi-frontend`. `wi-lib` e Swiper hanno un limite di 32 KiB;
+`wi-frontend` ha un limite esplicito di 256 KiB e risolve gli URL relativi degli
+asset rispetto al percorso originale del foglio. `@import`, contenuti non adatti
+a un tag style e file oltre il rispettivo limite mantengono il link esterno.
+`inlineFrontendStyles()` resta disponibile per sostituire esplicitamente
+l'elenco, ma i siti non devono configurare questi fogli.
+
+Questa scelta elimina dal percorso critico le richieste separate per il CSS del
+framework e di Swiper. Aumenta il peso dell'HTML e rinuncia alla cache separata di
+quei fogli; i limiti impediscono che la crescita del bundle aumenti il documento
+senza controllo.
 
 I Google Fonts configurati in `css_font` ricevono `display=swap` e vengono
 caricati come stylesheet asincroni con fallback `noscript`. I link verso altri
@@ -41,7 +48,8 @@ senza restituire script PHP come file statici a Nginx.
 Gli script esterni registrati con Dependencies mantengono l'ordine e ricevono
 automaticamente `defer` sul frontend, inclusi quelli di fine body. Il backend
 conserva il caricamento sincrono.
-I CSS strutturali restano bloccanti per evitare layout incompleti al primo paint.
+Il CSS strutturale resta disponibile prima del primo paint perché viene inserito
+direttamente nell'head.
 La traduzione viene inizializzata a DOMContentLoaded prima dei componenti;
 `setUpPage` e l'evento `loaded` conservano il ciclo di vita su window.load.
 

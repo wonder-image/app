@@ -49,14 +49,39 @@ visualizzazione lista, accesso negato) parti dalla
 
 ## Avvio rapido
 
+Definisci una sola volta il nome del progetto nel terminale (Bash/Zsh): usa il dominio completo con i punti sostituiti da trattini. Per esempio, `wonderimage.it` diventa `wonderimage-it`. La variabile resta disponibile nella stessa sessione.
+
 ```bash
-composer create-project wonder-image/new-site:dev-main nome-progetto
-cd nome-progetto
-php forge config
+NOME_PROGETTO="wonderimage-it"
+composer create-project wonder-image/new-site:dev-main "$NOME_PROGETTO"
+cd "$NOME_PROGETTO"
+composer update
+git init
+git remote add origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"
+php forge provision
+php forge db:init
 php forge update --local
-php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
 php forge start
 ```
+
+Dopo l’avvio, esegui dalla cartella del progetto (in un secondo terminale se il server PHP occupa il primo):
+
+```bash
+git add .
+git commit -m "Initial commit"
+git push -u origin HEAD
+```
+
+Apri **GitHub Desktop → Add → Add existing repository** e seleziona la cartella locale del progetto. Il repository è già collegato e pubblicato.
+
+Configura `origin` prima di `provision`: così il comando crea (se necessario) e configura `wonder-image/${NOME_PROGETTO}`. Senza remote usa invece l’account personale autenticato. Se `origin` esiste già, controlla `git remote -v`; se punta al repository sbagliato, correggilo con `git remote set-url origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"`.
+
+**Scorciatoie alternative:** dopo il commit, se il repository remoto non esiste ancora, [GitHub Desktop](https://docs.github.com/en/desktop/adding-and-cloning-repositories/adding-an-existing-project-to-github-using-github-desktop) permette **Publish repository → Organization: wonder-image**. Con [GitHub CLI](https://cli.github.com/manual/gh_repo_create), se non esistono ancora né il repository remoto né `origin`, puoi usare `gh repo create "wonder-image/${NOME_PROGETTO}" --private --source=. --remote=origin --push`. Nel flusso sopra `provision` crea già il repository: basta `git push -u origin HEAD`, oppure **Publish branch** in Desktop se il primo push non è ancora stato eseguito.
+
+Lo scaffold include `composer.lock`: `create-project` installa le versioni bloccate, mentre il successivo `composer update` aggiorna le dipendenze consentite da `composer.json`, incluso `wonder-image/app`. `:dev-main` seleziona il branch dello scaffold, non aggiorna le dipendenze bloccate. Entrambi i passaggi eseguono `php forge config` tramite gli script Composer: non occorre aggiungerlo alla sequenza iniziale. `provision` configura GitHub e Bitwarden e recupera i default locali `dev-shared`; `db:init` deve precedere `update --local`, che genera handler e tabelle. `db:init` chiede i dati mancanti: usa le credenziali del tuo MySQL locale.
+
+Prerequisiti: PHP 8.2+, Composer, Node 20+, MySQL/MariaDB locale avviato, Git, GitHub CLI (`gh`) autenticata e accesso a Bitwarden Secrets Manager (`bws`). Herd è opzionale. Senza un remote, `provision` usa l’account GitHub autenticato e il nome della cartella.
+
 
 Oltre allo scaffold generico `wonder-image/new-site` puoi partire da uno
 scaffold **verticale già preconfigurato** — stesso flusso, contenuti di settore

@@ -46,8 +46,19 @@ has('frontend defers body scripts by default', Dependencies::Body(), 'body-end.j
 
 mkdir($sandbox.'/assets/lib/wonder-image/dist/frontend', 0777, true);
 file_put_contents($sandbox.'/assets/lib/wonder-image/dist/frontend/lib.css', '.test{display:block}');
+file_put_contents($sandbox.'/assets/lib/wonder-image/dist/frontend/head.css', '.glass{filter:url(../images/glass.svg#container-glass)}');
 Dependencies::wiLib();
 has('frontend inlines wi-lib by default', Dependencies::Head(), '<style>.test{display:block}</style>');
+has(
+    'frontend inlines core CSS and resolves its assets',
+    Dependencies::Head(),
+    'url('.APP_URL.'/assets/lib/wonder-image/dist/images/glass.svg#container-glass)',
+);
+
+mkdir($sandbox.'/assets/lib/wonder-image/dist/lib/swiperjs', 0777, true);
+file_put_contents($sandbox.'/assets/lib/wonder-image/dist/lib/swiperjs/swiper.css', '.swiper{display:block}');
+Dependencies::swiper();
+has('frontend inlines Swiper CSS by default', Dependencies::Head(), '<style>.swiper{display:block}</style>');
 
 $GLOBALS['FRONTEND'] = false;
 has('backend remains synchronous', Dependencies::Head(), 'moment.js"></script>');

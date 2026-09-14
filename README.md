@@ -1,29 +1,10 @@
----
-icon: rocket
----
+# Wonder Image App
 
-# Avvio rapido
+Core PHP del framework Wonder, installato dai siti come dipendenza Composer.
 
-Questa pagina porta da zero a un sito Wonder funzionante in locale. Per la
-procedura completa (deploy, GitHub Actions, Bitwarden) vedi
-[Installazione e Deploy](../piattaforma/installazione-e-deploy.md).
+[Documentazione](docs/app/README.md) · [Avvio rapido](docs/app/introduzione/avvio-rapido.md)
 
-## Prerequisiti
-
-- **PHP 8.2+** e **Composer**
-- **Node 20+** (il pacchetto npm `wonder-image` richiede Node ≥ 20)
-- **MySQL / MariaDB** locale (per `php forge db:init`)
-- Consigliato: **Laravel Herd** per servire il sito su `https://nome.test`
-
-Verifica:
-
-```bash
-php --version
-composer --version
-node --version
-```
-
-## Procedura iniziale
+## Crea e avvia un progetto
 
 Definisci una sola volta il nome del progetto nel terminale (Bash/Zsh): usa il dominio completo con i punti sostituiti da trattini. Per esempio, `wonderimage.it` diventa `wonderimage-it`. La variabile resta disponibile nella stessa sessione.
 
@@ -75,33 +56,3 @@ Il codice attuale di `forge config`, richiamato anche da `composer update`, cons
 ## Dipendenze npm
 
 `forge config` esegue `npm install wonder-image` e poi `npm install`: può aggiornare il pacchetto `wonder-image`, `package.json` e `package-lock.json`. Non esegue un aggiornamento esplicito del programma npm; se Node/npm mancano, il setup può installare Node tramite Homebrew, includendo npm.
-
-## Comandi forge essenziali
-
-| Comando | Quando | Cosa fa |
-|---|---|---|
-| `php forge config` | setup iniziale, locale | completa `.env`, npm install |
-| `php forge credentials` | locale, setup o recovery | scarica i default `dev-shared` da Bitwarden |
-| `php forge provision` | solo locale | GitHub + Bitwarden + dev-shared |
-| `php forge update --local` | locale | genera `handler/`, applica tabelle, task CLI |
-| `php forge update` | CI / server | applica tabelle e update (no task CLI) |
-| `php forge db:init` | locale | crea DB e utente applicativo |
-| `php forge build` | CI, pre-deploy | genera file statici senza DB |
-| `php forge start` | locale | avvia il sito (Herd o `php -S`) |
-| `php forge make:model` / `make:resource` | sviluppo | scaffolding di Model/Resource |
-| `php forge export` / `import` | multi-ambiente | sincronizza dati condivisi via JSON |
-| `php forge status:modules` / `validate:module` | moduli | stato e validazione manifest |
-| `php forge publish:module <slug>` | moduli | copia le view overrideabili in `custom/modules/<slug>/view` |
-
-I comandi vivono in `class/Console/Commands/*` e si lanciano dalla radice del
-**sito**.
-
-## Errori comuni
-
-- **Manca `handler/index.php`** → hai eseguito solo `php forge config`. Lancia
-  `php forge update --local`.
-- **`npm WARN EBADENGINE`** → Node < 20. Aggiorna a Node 20+.
-- **Mancano le credenziali dev condivise** → esegui `php forge credentials`.
-- **403 / pagina backend vuota** → utente senza authority. Vedi
-  [Utenti e Permessi](../concetti/utenti/README.md).
-- **Versione installata vecchia** → `composer clear-cache` e riusa `:dev-main`.

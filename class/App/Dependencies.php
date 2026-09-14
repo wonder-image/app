@@ -314,7 +314,14 @@
         protected static array $toLoad = [];
 
         private static bool $deferFrontendScripts = true;
-        private static array $inlineFrontendStyleKeys = ['wi-lib'];
+        private static array $inlineFrontendStyleKeys = ['wi-lib', 'wi-frontend', 'swiper'];
+
+        private const INLINE_FRONTEND_STYLE_OPTIONS = [
+            'wi-frontend' => [
+                'max_bytes' => 262144,
+                'rewrite_relative_urls' => true,
+            ],
+        ];
 
         /** Inline selected small stylesheets; unsafe or large files retain their link. */
         public static function inlineFrontendStyles(array $keys): void
@@ -392,7 +399,14 @@
                         $html .= "<script src=\"$url\"$defer></script>\n";
                     } elseif (str_ends_with($file, '.css')) {
                         if (!empty($GLOBALS['FRONTEND']) && in_array($key, self::$inlineFrontendStyleKeys, true)) {
-                            $inline = Support\Asset::inlineStyle(self::$endpoint . $file);
+                            $options = self::INLINE_FRONTEND_STYLE_OPTIONS[$key] ?? [];
+                            $inline = Support\Asset::inlineStyle(
+                                self::$endpoint . $file,
+                                null,
+                                null,
+                                (int) ($options['max_bytes'] ?? 32768),
+                                (bool) ($options['rewrite_relative_urls'] ?? false),
+                            );
                             if ($inline !== null) {
                                 $html .= $inline."\n";
                                 continue;

@@ -54,8 +54,10 @@ Le singole dipendenze possono inoltre dichiarare `css_defer`:
   **solo** per CSS non above-the-fold. Attivo su `bootstrap-icons`, `flag-icons`,
   `jquery-plugin`. Richiede che gli `onload` inline siano permessi (nessuna CSP
   stretta sugli handler inline).
-- il CSS piccolo e autocontenuto di `wi-lib` viene inlinato automaticamente;
-  `url()`, `@import`, file oltre 32 KiB o contenuti non sicuri ricadono sul link.
+- `wi-lib` e il CSS di Swiper vengono inlinati automaticamente fino a 32 KiB;
+  il CSS strutturale `wi-frontend` viene inlinato fino a 256 KiB, risolvendo gli
+  URL relativi rispetto al foglio originale. `@import`, file oltre il rispettivo
+  limite o contenuti non sicuri ricadono sul link esterno.
 
 Altre ottimizzazioni lato layout:
 
@@ -64,8 +66,9 @@ Altre ottimizzazioni lato layout:
   invece di essere `<link>` bloccanti — vedi sopra. L'helper usa
   `Asset::path()` (URL→file su disco, con le stesse guardie di `Asset::version()`)
   e ricade sul `<link>` versionato se il file non esiste. Riservato a CSS
-  **piccoli e critici**: non inlinare `lib.css`/`head.css` (grandi) senza prima
-  estrarre il critical CSS.
+  **piccoli e critici**. Il caso `head.css` del framework è gestito direttamente
+  da `Dependencies`, con limite dedicato e riscrittura degli URL relativi; non
+  replicare questa logica nei progetti.
 - **Font**: i Google Fonts (`css_font.link`) ricevono automaticamente
   `display=swap` e sono caricati con preload asincrono più fallback `noscript`.
   Font self-hosted o su altri CDN vanno gestiti nel loro `@font-face`.

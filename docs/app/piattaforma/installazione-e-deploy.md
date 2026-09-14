@@ -184,7 +184,7 @@ Esempio:
 php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret --app-db-username=new_site_user --app-db-password=secret123
 ```
 
-Con `APP_DOMAIN=new-site` il valore scritto è `DB_DATABASE=main:new_site`.
+Con `APP_DOMAIN=wonderimage.it` il valore scritto è `DB_DATABASE=main:wonderimage_it`.
 
 ### `php forge start`
 
@@ -194,7 +194,7 @@ Fa questo:
 
 - completa automaticamente `.env` solo per i valori locali non DB critici
 - controlla la connessione DB
-- usa Laravel Herd se disponibile e pubblica il sito su `https://APP_DOMAIN.test`
+- usa Laravel Herd se disponibile e pubblica il sito su `https://wonderimage.test`
 - esegue `herd link`, `herd secure` e `herd isolate`
 - sincronizza `WonderValetDriver.php` nella configurazione globale di Herd per fare routing corretto sotto Herd
 - in fallback avvia il server PHP integrato
@@ -208,7 +208,7 @@ Uso tipico:
 php forge start
 ```
 
-Quando il progetto nasce da una cartella come `new.site` o `New Site`, il bootstrap locale normalizza automaticamente `APP_DOMAIN` in `new-site`.
+La cartella `wonderimage-it` determina `APP_DOMAIN=wonderimage.it`; con Herd l’URL locale è `APP_URL=https://wonderimage.test`.
 
 ### `php forge export`
 
@@ -304,109 +304,56 @@ php forge update --local
 
 ## Prima installazione locale
 
-### 1. Crea il progetto
+Definisci una sola volta il nome del progetto nel terminale (Bash/Zsh): usa il dominio completo con i punti sostituiti da trattini. Per esempio, `wonderimage.it` diventa `wonderimage-it`. La variabile resta disponibile nella stessa sessione.
 
 ```bash
-composer create-project wonder-image/new-site:dev-main project-name
-cd project-name
-```
-
-In alternativa allo scaffold generico `new-site` puoi partire da uno scaffold
-**verticale già preconfigurato** (stesso flusso di installazione e deploy, cambia
-solo il contenuto iniziale del sito):
-
-```bash
-# sito immobiliare preconfigurato
-composer create-project wonder-image/immobili-site:dev-main project-name
-
-# sito eventi / RSVP preconfigurato
-composer create-project wonder-image/rsvp-site:dev-main project-name
-```
-
-> **Nota su `:dev-main`**
->
-> Il suffisso `:dev-main` forza Composer a usare l'ultimo commit del branch
-> `main` di `wonder-image/new-site` invece di un eventuale tag stabile
-> superato. Anche senza il suffisso il `composer.json` dello skeleton ha
-> `minimum-stability: dev`, quindi se Packagist non è ancora aggiornato
-> all'ultimo release il fallback su `dev-main` avviene comunque.
->
-> Se vedi un progetto installato vecchio: `composer clear-cache` e ripeti
-> con `:dev-main` esplicito.
-
-> **Prerequisito Node 20+**
->
-> `forge config` esegue `npm install wonder-image` come ultimo step. Il
-> package npm `wonder-image` richiede Node `>=20`: se hai Node 16 / 18
-> installato Composer va a buon fine ma vedrai `npm WARN EBADENGINE`
-> e l'install potrebbe rompersi a runtime (i build target ES2022 non sono
-> compilabili).
->
-> Verifica `node --version`. Se sei sotto 20:
-> - **Herd**: aggiorna Herd (versioni recenti spediscono Node 20+)
-> - **nvm**: `nvm install 20 && nvm use 20`
-> - **brew**: `brew install node@20 && brew link --overwrite node@20`
->
-> Sul locale `forge config` prova anche a sincronizzare le AI skills
-> raccomandate per Wonder (`wonder-image/skills` e
-> `pbakaus/impeccable`) tramite `npx skills`. Se il sync fallisce, il
-> setup applicativo continua e puoi rilanciarlo manualmente con:
->
-> ```bash
-> php forge skills
-> ```
-
-### 2. Configura il progetto
-
-```bash
-php forge config
-```
-
-### 3. Scarica i default Bitwarden locali
-
-```bash
-php forge credentials
-```
-
-### 4. Configura GitHub e Bitwarden di produzione
-
-```bash
+NOME_PROGETTO="wonderimage-it"
+composer create-project wonder-image/new-site:dev-main "$NOME_PROGETTO"
+cd "$NOME_PROGETTO"
+composer update
+git init
+git remote add origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"
 php forge provision
-```
-
-### 5. Genera handler e file locali
-
-```bash
+php forge db:init
 php forge update --local
+php forge start
 ```
 
-### 6. Inizializza database locale
+Dopo l’avvio, esegui dalla cartella del progetto (in un secondo terminale se il server PHP occupa il primo):
 
 ```bash
-php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
+git add .
+git commit -m "Initial commit"
+git push -u origin HEAD
 ```
 
-### 7. Configura il proxy media locale (opzionale)
+Apri **GitHub Desktop → Add → Add existing repository** e seleziona la cartella locale del progetto. Il repository è già collegato e pubblicato.
 
-Se vuoi vedere le immagini di produzione in locale senza scaricarle, aggiungi nel `.env`:
+Configura `origin` prima di `provision`: così il comando crea (se necessario) e configura `wonder-image/${NOME_PROGETTO}`. Senza remote usa invece l’account personale autenticato. Se `origin` esiste già, controlla `git remote -v`; se punta al repository sbagliato, correggilo con `git remote set-url origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"`.
+
+**Scorciatoie alternative:** dopo il commit, se il repository remoto non esiste ancora, [GitHub Desktop](https://docs.github.com/en/desktop/adding-and-cloning-repositories/adding-an-existing-project-to-github-using-github-desktop) permette **Publish repository → Organization: wonder-image**. Con [GitHub CLI](https://cli.github.com/manual/gh_repo_create), se non esistono ancora né il repository remoto né `origin`, puoi usare `gh repo create "wonder-image/${NOME_PROGETTO}" --private --source=. --remote=origin --push`. Nel flusso sopra `provision` crea già il repository: basta `git push -u origin HEAD`, oppure **Publish branch** in Desktop se il primo push non è ancora stato eseguito.
+
+Lo scaffold include `composer.lock`: `create-project` installa le versioni bloccate, mentre il successivo `composer update` aggiorna le dipendenze consentite da `composer.json`, incluso `wonder-image/app`. `:dev-main` seleziona il branch dello scaffold, non aggiorna le dipendenze bloccate. Entrambi i passaggi eseguono `php forge config` tramite gli script Composer: non occorre aggiungerlo alla sequenza iniziale. `provision` configura GitHub e Bitwarden e recupera i default locali `dev-shared`; `db:init` deve precedere `update --local`, che genera handler e tabelle. `db:init` chiede i dati mancanti: usa le credenziali del tuo MySQL locale.
+
+Prerequisiti: PHP 8.2+, Composer, Node 20+, MySQL/MariaDB locale avviato, Git, GitHub CLI (`gh`) autenticata e accesso a Bitwarden Secrets Manager (`bws`). Herd è opzionale. Senza un remote, `provision` usa l’account GitHub autenticato e il nome della cartella.
+
+## Dominio e URL locale
+
+Per la cartella `wonderimage-it`, con Herd:
 
 ```dotenv
-MEDIA_FALLBACK_URL=https://www.example.it
+APP_DOMAIN=wonderimage.it
+APP_URL=https://wonderimage.test
+DB_DATABASE=main:wonderimage_it
 ```
 
-Herd farà redirect automatico per i media mancanti sotto `assets/upload/`.
+`APP_DOMAIN` identifica il dominio completo; l’indirizzo locale si configura in `APP_URL`. Senza Herd, il valore predefinito di `APP_URL` è `http://127.0.0.1:8088`. `provision` non riscrive queste chiavi locali con i valori di produzione.
 
-Vedi [Multi-ambiente](multi-ambiente.md) per i dettagli.
+Il codice attuale di `forge config`, richiamato anche da `composer update`, conserva un `APP_URL` già valorizzato. Se un progetto ha ancora l’URL errato prodotto da una versione precedente, esegui `php forge start` per riallinearlo al driver locale. Con Herd il backend è su `https://wonderimage.test/backend/`.
 
-### 8. Avvia o pubblica il progetto
+## Dipendenze npm
 
-Da questo punto hai:
-
-- `.env` pronto
-- `handler/index.php` generato
-- `.htaccess` generato (non tracciato in git)
-- CSS rigenerati da `shared/sync-data.json` (se presente nel repo)
-- route e layout attivi
+`forge config` esegue `npm install wonder-image` e poi `npm install`: può aggiornare il pacchetto `wonder-image`, `package.json` e `package-lock.json`. Non esegue un aggiornamento esplicito del programma npm; se Node/npm mancano, il setup può installare Node tramite Homebrew, includendo npm.
 
 ## Import progetto legacy già esistente
 

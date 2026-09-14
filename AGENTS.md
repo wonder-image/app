@@ -63,16 +63,38 @@ composer update
 composer dumpautoload
 ```
 
-Consumer project flow (from docs; run in the app that requires this package):
+Consumer project flow (run from the site; full guide in `docs/app/introduzione/avvio-rapido.md`):
+
+Definisci una sola volta il nome del progetto nel terminale (Bash/Zsh): usa il dominio completo con i punti sostituiti da trattini. Per esempio, `wonderimage.it` diventa `wonderimage-it`. La variabile resta disponibile nella stessa sessione.
 
 ```bash
-php forge config
-php forge credentials
+NOME_PROGETTO="wonderimage-it"
+composer create-project wonder-image/new-site:dev-main "$NOME_PROGETTO"
+cd "$NOME_PROGETTO"
+composer update
+git init
+git remote add origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"
 php forge provision
-php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root --admin-password=secret
+php forge db:init
 php forge update --local
 php forge start
 ```
+
+Dopo l’avvio, esegui dalla cartella del progetto (in un secondo terminale se il server PHP occupa il primo):
+
+```bash
+git add .
+git commit -m "Initial commit"
+git push -u origin HEAD
+```
+
+Apri **GitHub Desktop → Add → Add existing repository** e seleziona la cartella locale del progetto. Il repository è già collegato e pubblicato.
+
+Configura `origin` prima di `provision`: così il comando crea (se necessario) e configura `wonder-image/${NOME_PROGETTO}`. Senza remote usa invece l’account personale autenticato. Se `origin` esiste già, controlla `git remote -v`; se punta al repository sbagliato, correggilo con `git remote set-url origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"`.
+
+**Scorciatoie alternative:** dopo il commit, se il repository remoto non esiste ancora, [GitHub Desktop](https://docs.github.com/en/desktop/adding-and-cloning-repositories/adding-an-existing-project-to-github-using-github-desktop) permette **Publish repository → Organization: wonder-image**. Con [GitHub CLI](https://cli.github.com/manual/gh_repo_create), se non esistono ancora né il repository remoto né `origin`, puoi usare `gh repo create "wonder-image/${NOME_PROGETTO}" --private --source=. --remote=origin --push`. Nel flusso sopra `provision` crea già il repository: basta `git push -u origin HEAD`, oppure **Publish branch** in Desktop se il primo push non è ancora stato eseguito.
+
+The scaffold includes composer.lock, so run composer update after cd to refresh locked dependencies. Composer already runs `forge config`. Initialize the DB before `update --local`. Keep `APP_DOMAIN=wonderimage.it` distinct from Herd's `APP_URL=https://wonderimage.test`; config preserves existing APP_URL. Config runs `npm install wonder-image`, which can update the JS dependency and lockfile.
 
 ## Development commands
 
@@ -144,7 +166,7 @@ php forge start
 
 ## Architecture notes
 
-- Frontend performance defaults to ordered deferred scripts and bounded inlining of `wi-lib` on frontend; Google Fonts are loaded asynchronously. Responsive raster images infer dimensions only from existing local files and preserve explicit dimensions; see `docs/app/concetti/frontend-performance.md`.
+- Frontend performance defaults to ordered deferred scripts and bounded inlining of `wi-lib`, Swiper CSS, and the structural `wi-frontend` stylesheet. Relative asset URLs in `wi-frontend` are resolved before inlining; Google Fonts are loaded asynchronously. Responsive raster images infer dimensions only from existing local files and preserve explicit dimensions; see `docs/app/concetti/frontend-performance.md`.
 
 - Herd missing-media fallback sends a direct 302 from the driver. Never return a generated PHP proxy from `isStaticFile`: Nginx treats that path as static and can enter an internal redirect loop.
 
