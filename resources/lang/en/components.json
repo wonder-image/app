@@ -1,4 +1,5 @@
 {
+    "media": { "load_content": "Load content" },
     "forms" : {
         "fields" : {
             "name" : { "label" : "First Name" },

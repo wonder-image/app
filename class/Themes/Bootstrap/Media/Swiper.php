@@ -11,6 +11,7 @@
 
         protected function renderMedia($class): string
         {
+            $this->imageTheme = 'bootstrap';
             $id       = $this->mediaId($class, 'swiper');
             $contentMode = ($class->getSchema('mode') ?? 'images') === 'slides';
             $items    = $contentMode
@@ -54,6 +55,9 @@
                     continue;
                 }
 
+                $this->imageDisplaySizes = $class->getSchema('image-sizes');
+                $this->imagePriority = $item['position'] === 0 && (bool) $class->getSchema('image-priority');
+
                 if ($zoom) {
                     $img = $this->renderImage($item['src'], $item['alt'], $size, $fit, true);
                     $mainClasses = $this->escape($this->mediaClasses(['swiper-slide', 'w-100'], $slideClasses));
@@ -75,6 +79,8 @@
                 }
 
                 if ($thumbs) {
+                    $this->imageDisplaySizes = $class->getSchema('thumbs-image-sizes');
+                    $this->imagePriority = false;
                     $thumbImg = $this->renderImage($item['src'], $item['alt'], $thumbSize, 'cover');
                     $thumbClasses = $this->escape($this->mediaClasses(['swiper-slide', 'overflow-hidden'], $thumbSlideClasses));
                     $thumbSlides .= "<div class='$thumbClasses'$thumbsRatioSuffix>$thumbImg</div>";

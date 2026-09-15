@@ -26,6 +26,13 @@
             $colTablet  = (int) $columns['tablet'];
             $colMobile  = (int) $columns['mobile'];
 
+            $this->imageTheme = 'wonder';
+            $this->imagePriority = false;
+            $this->imageDisplaySizes = $class->getSchema('image-sizes')
+                ?? '(max-width: 768px) '.(100 / max(1, $colMobile)).'vw, '
+                    .'(max-width: 992px) '.(100 / max(1, $colTablet)).'vw, '
+                    .(100 / max(1, $colDesktop)).'vw';
+
             if (is_array($gap)) {
                 $gapDesktop = $gap['desktop'] ?? 6;
                 $gapTablet  = $gap['tablet'] ?? $gapDesktop;

@@ -12,6 +12,8 @@
 * [Mappa end-to-end](concetti/mappa-end-to-end.md)
 * [Localizzazione](concetti/localizzazione.md)
 * [Performance frontend e cache](concetti/frontend-performance.md)
+* [Iframe e contenuti differiti](elementi/deferred-media.md)
+* [Immagini di Swiper e Gallery](elementi/responsive-media.md)
 * [Moduli](concetti/moduli/README.md)
   * [Sistema moduli](concetti/moduli/sistema.md)
   * [Contratto modulo (ModuleInterface)](concetti/moduli/contratto.md)

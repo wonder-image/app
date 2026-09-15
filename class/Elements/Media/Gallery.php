@@ -28,6 +28,12 @@
             return $this->schema('columns', [ 'desktop' => $desktop, 'tablet' => $tablet, 'mobile' => $mobile ]);
         }
 
+        /** Sovrascrive le larghezze responsive ricavate dalle colonne. */
+        public function imageSizes(string $sizes): self
+        {
+            return $this->schema('image-sizes', $sizes);
+        }
+
         public function gap( int|array $gap = 6 ): self
         {
             return $this->schema('gap', $gap);

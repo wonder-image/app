@@ -3,6 +3,7 @@
 namespace Wonder\Themes\Concerns;
 
 use Wonder\App\Dependencies;
+use Wonder\Elements\Media\Deferred;
 
 trait RendersIframe
 {
@@ -10,6 +11,9 @@ trait RendersIframe
 
     protected function renderIframe(object $class): string
     {
+        if ($class->getSchema('deferred-mode')) {
+            return $this->renderDeferredIframe($class);
+        }
         $attributes = $this->renderMediaAttributes(
             $class,
             $this->iframeThemeClasses($class),
@@ -23,6 +27,48 @@ trait RendersIframe
         }
 
         return $this->renderExpandableIframe($class, $iframe);
+    }
+
+    protected function renderDeferredIframe(object $class): string
+    {
+        $iframe = clone $class;
+        $iframe->deferred(false)->schema('deferred-content', true)->attr('loading', 'eager');
+        $wrapper = Deferred::make($iframe)
+            ->mode($class->getSchema('deferred-mode'))->fallbackUrl($class->srcUrl());
+        $button = $class->getSchema('deferred-button');
+        if ($button !== null) {
+            $wrapper->button($button);
+        }
+        $ratio = $class->getStyle('aspect-ratio');
+        $width = $class->getAttr('width');
+        $height = $class->getAttr('height');
+        if ($ratio) {
+            $wrapper->ratio($ratio);
+        } elseif (is_numeric($width) && is_numeric($height) && $width > 0 && $height > 0) {
+            $wrapper->ratio($width.':'.$height);
+        } elseif ($class->getSchema('fit-cover') || $class->getSchema('fit-contain')) {
+            $wrapper->fill();
+        }
+        foreach (['width', 'height', 'max-width', 'min-width', 'min-height', 'max-height', 'border-radius', 'margin'] as $property) {
+            if (($value = $class->getStyle($property)) !== null) {
+                $wrapper->style($property, $value);
+                $iframe->removeStyle($property);
+            }
+        }
+        $classes = $class->getAttr('class');
+        if ($classes) {
+            $wrapper->attr('class', $classes);
+            $iframe->removeAttr('class');
+        }
+        $iframe->style('width', '100%')->style('height', '100%')
+            ->style('display', 'block')->style('border-radius', 'inherit')->removeStyle('aspect-ratio');
+
+        return $wrapper->render($this->iframeTheme());
+    }
+
+    protected function iframeTheme(): string
+    {
+        return 'bootstrap';
     }
 
     /**
@@ -44,7 +90,7 @@ trait RendersIframe
             . ' title="' . $label . '" aria-label="' . $label . '">' . $this->expandIcon() . '</a>';
 
         return '<div class="' . $this->expandWrapperClass() . '">' . $iframe . $button . '</div>'
-            . $this->expandBindScript($group);
+            . $this->expandBindScript($group, (bool) $class->getSchema('deferred-content'));
     }
 
     /**
@@ -57,19 +103,21 @@ trait RendersIframe
      * striscia sottile. Disattivandola l'iframe riempie il modale a dimensione
      * piena.
      */
-    protected function expandBindScript(string $group): string
+    protected function expandBindScript(string $group, bool $deferred = false): string
     {
         static $bound = [];
 
-        if (isset($bound[$group])) {
+        if (!$deferred && isset($bound[$group])) {
             return '';
         }
 
-        $bound[$group] = true;
+        if (!$deferred) { $bound[$group] = true; }
 
-        return '<script>window.addEventListener(' . json_encode($this->expandLoadEvent()) . ',function(){'
+        return '<script>(function(){const bind=function(){'
             . 'if(typeof Fancybox!=="undefined"){Fancybox.bind(\'[data-fancybox="' . $group . '"]\',{Html:{autoSize:false}});}'
-            . '});</script>';
+            . '};if(document.readyState!=="loading"){bind();}'
+            . 'window.addEventListener('.json_encode($this->expandLoadEvent()).',bind,{once:true});'
+            . '})();</script>';
     }
 
     /** @return string[] */

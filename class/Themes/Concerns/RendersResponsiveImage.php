@@ -171,6 +171,10 @@
 
         public function renderSizes(): string
         {
+            if ($this->getSchema('display-sizes') !== null) {
+                return htmlspecialchars($this->getSchema('display-sizes'), ENT_QUOTES, 'UTF-8');
+            }
+
             $mobile = 768;
             $tablet = 992;
 

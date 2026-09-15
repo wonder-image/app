@@ -34,6 +34,13 @@
             $colTablet  = (int) $columns['tablet'];
             $colMobile  = (int) $columns['mobile'];
 
+            $this->imageTheme = 'bootstrap';
+            $this->imagePriority = false;
+            $this->imageDisplaySizes = $class->getSchema('image-sizes')
+                ?? '(max-width: 767.98px) '.(100 / max(1, $colMobile)).'vw, '
+                    .'(max-width: 1199.98px) '.(100 / max(1, $colTablet)).'vw, '
+                    .(100 / max(1, $colDesktop)).'vw';
+
             $rowCols = "row-cols-$colMobile row-cols-md-$colTablet row-cols-xl-$colDesktop";
             $gutter  = $this->gutter($gap);
 

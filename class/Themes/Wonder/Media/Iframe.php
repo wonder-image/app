@@ -8,6 +8,11 @@ class Iframe extends Media
 {
     use RendersIframe;
 
+    protected function iframeTheme(): string
+    {
+        return 'wonder';
+    }
+
     protected function renderMedia($class): string
     {
         return $this->renderIframe($class);

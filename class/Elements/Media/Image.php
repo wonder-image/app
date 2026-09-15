@@ -56,6 +56,12 @@
 
         }
 
+        /** HTML sizes: larghezza visualizzata, distinta dalle varianti sizes(array). */
+        public function displaySizes(string $sizes): self
+        {
+            return $this->schema('display-sizes', $sizes);
+        }
+
         public function skeleton( bool $skeleton = true ): self
         {
 

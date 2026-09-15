@@ -45,6 +45,22 @@
             return $this->schema('slides', $slides);
         }
 
+        /** Priorità solo alla prima immagine principale, mai alle miniature. */
+        public function priority(bool $on = true): self
+        {
+            return $this->schema('image-priority', $on);
+        }
+
+        public function imageSizes(string $sizes): self
+        {
+            return $this->schema('image-sizes', $sizes);
+        }
+
+        public function thumbsImageSizes(string $sizes): self
+        {
+            return $this->schema('thumbs-image-sizes', $sizes);
+        }
+
         public function thumbnails( bool $on = true ): self
         {
             return $this->schema('thumbnails', $on);

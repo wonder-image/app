@@ -10,4 +10,6 @@ COMMAND.md
 TODO.md
 AGENTS.md
 example/
-tests/
+/tests/*
+!/tests/deferred-media.php
+!/tests/responsive-media.php

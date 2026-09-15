@@ -10,6 +10,10 @@
     {
         use HasAttributes;
 
+        protected ?string $imageDisplaySizes = null;
+        protected bool $imagePriority = false;
+        protected ?string $imageTheme = null;
+
         /** @var array<class-string, array{public: bool, params: bool}> */
         private static array $renderSignatureCache = [];
 
@@ -57,8 +61,12 @@
         {
             $img = Image::src($src)
                 ->alt($alt)
-                ->skeleton()
-                ->loading();
+                ->skeleton(!$this->imagePriority)
+                ->loading()
+                ->attr('decoding', 'async');
+
+            if ($this->imagePriority) { $img->priority(); }
+            if ($this->imageDisplaySizes !== null) { $img->displaySizes($this->imageDisplaySizes); }
 
             if (Image::supportsResponsiveVariants($src)) {
                 $img->sizes(RESPONSIVE_IMAGE_SIZES)
@@ -83,7 +91,7 @@
 
             if ($styles !== []) { $img->styles($styles); }
 
-            return $img->render();
+            return $img->render($this->imageTheme);
         }
 
         /** URL della variante alla size richiesta (per il data-src del lightbox). */

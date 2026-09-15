@@ -4,10 +4,12 @@ namespace Wonder\Elements\Media;
 
 use InvalidArgumentException;
 use Wonder\Elements\Concerns\HasMediaFit;
+use Wonder\Elements\Concerns\HasRatio;
+use Wonder\Elements\Components\Button;
 
 class Iframe extends Media
 {
-    use HasMediaFit;
+    use HasMediaFit, HasRatio;
 
     public function __construct(string $url)
     {
@@ -19,6 +21,23 @@ class Iframe extends Media
     public static function url(string $url): self
     {
         return new self($url);
+    }
+
+    public function deferred(bool|string $mode = true, ?Button $button = null): self
+    {
+        $mode = $mode === true ? 'interaction' : $mode;
+        if ($mode !== false && !in_array($mode, ['interaction', 'visible'], true)) {
+            throw new InvalidArgumentException('Deferred mode must be interaction or visible.');
+        }
+        if ($button !== null) {
+            $this->deferredButton($button);
+        }
+        return $this->schema('deferred-mode', $mode);
+    }
+
+    public function deferredButton(Button $button): self
+    {
+        return $this->schema('deferred-button', $button);
     }
 
     /**

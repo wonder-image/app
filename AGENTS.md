@@ -2,6 +2,8 @@
 
 ## Project overview
 
+- Responsive media: use Image::displaySizes() for HTML sizes, Swiper::priority()/imageSizes()/thumbsImageSizes(), and Gallery::imageSizes() to override column-derived sizes. Keep these in shared renderers, not site wrappers; see docs/app/elementi/responsive-media.md.
+
 `wonder-image/app` is the core package for the Wonder framework. It is a PHP library, not a standalone app. It provides:
 
 - bootstrap/runtime glue in [wonder-image.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/wonder-image.php)
@@ -165,6 +167,8 @@ php forge start
   - the relevant AI skill source/fork/prompt that codifies the affected workflow or architecture guidance
 
 ## Architecture notes
+
+- Deferred media uses `Iframe::deferred()` / `deferredButton(Button)` and the generic `Elements/Media/Deferred` wrapper. Keep rendering in the shared concern with Wonder/Bootstrap adapters; JavaScript and structural `wi-deferred` CSS belong to wonder-image/lib. Reserve geometry through aspect ratio or a sized parent, not cross-origin iframe measurements. See `docs/app/elementi/deferred-media.md`.
 
 - Frontend performance defaults to ordered deferred scripts and bounded inlining of `wi-lib`, Swiper CSS, and the structural `wi-frontend` stylesheet. Relative asset URLs in `wi-frontend` are resolved before inlining; Google Fonts are loaded asynchronously. Responsive raster images infer dimensions only from existing local files and preserve explicit dimensions; see `docs/app/concetti/frontend-performance.md`.
 
