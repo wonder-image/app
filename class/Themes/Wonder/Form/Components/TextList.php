@@ -36,7 +36,7 @@ class TextList extends Field
             $escapedLabel = $this->escape((string) $optionLabel);
 
             $optionsHtml .= "<div class=\"wi-input-list-value{$rowClass}\" data-wi-list-value=\"true\">"
-                ."<input id=\"{$rowId}\" data-wi-keyword=\"{$escapedLabel} {$escapedValue}\" data-wi-input=\"{$id}\" data-wi-name=\"{$escapedLabel}\" type=\"radio\" name=\"{$name}\" value=\"{$escapedValue}\"{$checked}>"
+                ."<input id=\"{$rowId}\" aria-label=\"{$escapedLabel}\" data-wi-keyword=\"{$escapedLabel} {$escapedValue}\" data-wi-input=\"{$id}\" data-wi-name=\"{$escapedLabel}\" type=\"radio\" name=\"{$name}\" value=\"{$escapedValue}\"{$checked}>"
                 ."{$escapedLabel}"
                 ."</div>";
         }
