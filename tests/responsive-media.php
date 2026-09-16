@@ -37,6 +37,7 @@ foreach (['wonder', 'bootstrap'] as $theme) {
     }
     $gallery = Gallery::make($photos)->columns(5, 4, 2);
     $html = $gallery->render($theme);
+    check(str_contains($html, 'height: auto'), 'Natural gallery preserves intrinsic proportions');
     check(str_contains($html, '50vw, (max-width: '.($theme === 'wonder' ? '992' : '1199.98').'px) 25vw, 20vw'), 'Column sizes match theme');
     check(!str_contains($html, 'fetchpriority'), 'Gallery remains lazy');
     check(str_contains($gallery->imageSizes('40vw')->render($theme), 'sizes="40vw"'), 'Gallery sizes override');

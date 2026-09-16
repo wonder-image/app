@@ -93,6 +93,30 @@ class Button extends Link
         return $this->schema('confirm', $message);
     }
 
+    /** Open one URL or a gallery. Extensionless image endpoints can use type: 'image'. */
+    public function lightbox(string|array $urls, ?string $type = null): self
+    {
+        if ($type !== null && !in_array($type, ['image', 'iframe'], true)) {
+            throw new InvalidArgumentException('Lightbox type must be image or iframe.');
+        }
+        $items = [];
+        foreach (is_array($urls) ? $urls : [$urls] as $url) {
+            if (!is_string($url) || trim($url) === '') {
+                throw new InvalidArgumentException('Lightbox URLs must be non-empty strings.');
+            }
+            $url = trim($url);
+            if (preg_match('/[\x00-\x20\x7f]/', $url)
+                || (parse_url($url, PHP_URL_SCHEME) !== null
+                    && !in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true))) {
+                throw new InvalidArgumentException('Lightbox URLs must use HTTP(S) or relative paths.');
+            }
+            $path = (string) parse_url($url, PHP_URL_PATH);
+            $items[] = ['src' => $url, 'type' => $type
+                ?? (preg_match('/\.(?:avif|webp|png|jpe?g|gif|svg|bmp|ico)$/i', $path) ? 'image' : 'iframe')];
+        }
+        return $this->schema('lightbox', $items);
+    }
+
     public function formAttributes(array $attributes): self
     {
         $normalized = [];

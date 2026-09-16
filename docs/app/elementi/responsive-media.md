@@ -20,3 +20,5 @@ Gallery ricava sizes dalle colonne: breakpoint Wonder 768/992px, Bootstrap md/xl
 Entrambi i temi usano il renderer Image del tema esplicito. Gli URL remoti non ricevono varianti inventate; per le immagini locali le varianti devono già esistere. Il rendering non converte né scarica immagini.
 
 Verifica: `php tests/responsive-media.php`.
+
+Le immagini Gallery con formato naturale usano width 100% e height auto: gli attributi HTML width/height riservano il rapporto intrinseco senza bloccare l'altezza alla risoluzione del file. I formati cover/contain mantengono il riempimento del contenitore.

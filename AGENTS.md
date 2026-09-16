@@ -2,6 +2,8 @@
 
 ## Project overview
 
+- Button::lightbox(string|array, ?string) opens image/iframe URL groups in both themes through RendersButtonLightbox. Preserve disabled behavior and native URL fallback; disallow form actions. See docs/app/elementi/button-lightbox.md.
+
 - Responsive media: use Image::displaySizes() for HTML sizes, Swiper::priority()/imageSizes()/thumbsImageSizes(), and Gallery::imageSizes() to override column-derived sizes. Keep these in shared renderers, not site wrappers; see docs/app/elementi/responsive-media.md.
 
 `wonder-image/app` is the core package for the Wonder framework. It is a PHP library, not a standalone app. It provides:

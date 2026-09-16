@@ -10,9 +10,11 @@ use Wonder\Themes\Concerns\RendersButtonPostForm;
 class Button extends Component
 {
     use CanSpanColumn, HasAttributes, RendersButtonPostForm;
+    use \Wonder\Themes\Concerns\RendersButtonLightbox;
 
     public function render($class): string
     {
+        if ($class->getSchema('lightbox')) { return $this->renderLightboxButton($class); }
         $schema = $class->getSchema();
         $inline = (bool) ($schema['inline'] ?? false);
         $classes = ['btn'];

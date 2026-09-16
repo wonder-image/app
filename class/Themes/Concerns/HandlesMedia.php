@@ -81,7 +81,7 @@
             } elseif ($fit === 'cover') {
                 $img->fitCover();
             } else {
-                $img->addClass('w-100');
+                $img->addClass('w-100')->style('height', 'auto');
             }
 
             foreach ((array) $classes as $name) {

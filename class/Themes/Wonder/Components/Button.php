@@ -8,9 +8,11 @@ use Wonder\Themes\Concerns\RendersButtonPostForm;
 class Button extends Component
 {
     use RendersButtonPostForm;
+    use \Wonder\Themes\Concerns\RendersButtonLightbox;
 
     public function render($class): string
     {
+        if ($class->getSchema('lightbox')) { return $this->renderLightboxButton($class); }
         $schema = $class->getSchema();
         $classes = ['btn'];
         $variant = strtolower(trim((string) ($schema['variant'] ?? 'primary')));

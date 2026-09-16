@@ -13,3 +13,4 @@ example/
 /tests/*
 !/tests/deferred-media.php
 !/tests/responsive-media.php
+!/tests/button-lightbox.php

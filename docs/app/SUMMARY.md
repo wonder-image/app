@@ -14,6 +14,7 @@
 * [Performance frontend e cache](concetti/frontend-performance.md)
 * [Iframe e contenuti differiti](elementi/deferred-media.md)
 * [Immagini di Swiper e Gallery](elementi/responsive-media.md)
+* [Button con lightbox](elementi/button-lightbox.md)
 * [Moduli](concetti/moduli/README.md)
   * [Sistema moduli](concetti/moduli/sistema.md)
   * [Contratto modulo (ModuleInterface)](concetti/moduli/contratto.md)
