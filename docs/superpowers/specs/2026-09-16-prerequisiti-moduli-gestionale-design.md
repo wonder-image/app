@@ -2,7 +2,7 @@
 
 - **Data:** 2026-09-16
 - **Repo:** `wonder-image/app` (framework)
-- **Stato:** design approvato, in attesa di piano di implementazione
+- **Stato:** design approvato (parte E rivista il 2026-09-17), in attesa di piano di implementazione
 - **Origine:** spec di architettura di `wonder-image/gestionale` + `wonder-image/ecommerce`
   (`packages/gestionale/docs/superpowers/specs/2026-09-11-gestionale-ecommerce-architettura-design.md`,
   capitolo 10.2, lavori "prima del gestionale")
@@ -26,7 +26,7 @@ dichiarano nei propri `.env.example` e `forge start` le scrive nel `.env` locale
 | Sync | export senza `id` e `deleted`, senza ordine; import delle tabelle `multiRow` con `TRUNCATE` e reinserimento, quindi `id` rinumerati e righe cancellate che tornano visibili | `class/App/Support/TableSync.php` |
 | Import in `forge update` | chiamato da un file di update prima della rigenerazione dei CSS | `app/build/update/css.php` |
 | Moduli | `Registry::enabled()` restituisce i moduli nell'ordine della configurazione, senza ordinamento per dipendenze; il manifest espone `get('database.*')` e i `boot.files` | `class/App/Module/Registry.php`, `Manifest.php` |
-| Dati aziendali | indirizzo e orari sono sezioni della pagina legacy che salva insieme società, sede legale, indirizzo, social e orari; gli orari finiscono sia in `society_timetable` sia nel JSON `society_address.timetable` | `app/http/backend/config/corporate-data.php`, `class/App/PageSchema/CorporateDataPageSchema.php` |
+| Dati aziendali | una sola sede: quattro tabelle a riga unica (`society`, `society_address`, `society_legal_address`, `society_social`) salvate insieme dalla pagina legacy; orari sia in `society_timetable` sia nel JSON `society_address.timetable`; `infoSociety()` le unisce in un oggetto con campi calcolati, caricato a ogni richiesta in `$SOCIETY` (email, head, documenti legali, footer dei boilerplate) | `app/http/backend/config/corporate-data.php`, `app/function/info.php`, `app/service/lang.php` |
 | Transazioni | nessun helper; `ConsentService` usa direttamente `begin_transaction`, `commit`, `rollback` e `FOR UPDATE`; le funzioni `sql*()` e i Model sembrano condividere la connessione di `Connection::Connect()` (cache per host, utente e database) | `class/Consent/Service/ConsentService.php`, `class/Sql/Connection.php`, `class/Sql/ConnectionPool.php` |
 | Lock | `UpdateLock` con `GET_LOCK` e `RELEASE_LOCK` | `class/App/UpdateLock.php` |
 | Pagine backend | `PageSchema` con titoli, sottotitoli e azioni dell'header, resi da `ResourcePagePresenter` tramite `PageActionNormalizer` | `class/App/ResourceSchema/PageSchema.php`, `class/Backend/Support/ResourcePagePresenter.php` |
@@ -40,7 +40,8 @@ Dare ai moduli del framework:
 2. una sincronizzazione tra locale e produzione che non rompe le chiavi esterne;
 3. tabelle di configurazione modificabili solo in locale;
 4. righe precaricate dichiarate dai moduli;
-5. un modo per comandare indirizzo e orari della società da un modulo;
+5. più sedi della società in "Dati aziendali", con orari e chiusure sul modello di
+   Google;
 6. transazioni, letture con lock e lock nominali;
 7. il pulsante "Guida" nelle pagine del backend;
 8. le classi fiscali mancanti.
@@ -48,10 +49,10 @@ Dare ai moduli del framework:
 ## Non-obiettivi
 
 - Nessuna logica del gestionale nel core (sedi, listini, fatture restano nel modulo).
-- Nessun cambiamento per le tabelle sincronizzate esistenti (CSS, SEO, società): non
-  usano `keepIds()` né `localOnly()` e continuano a funzionare come oggi.
-- Nessuna riscrittura della pagina "Dati aziendali" oltre all'estrazione del
-  salvataggio e al blocco delle sezioni.
+- Nessun cambiamento per le tabelle sincronizzate CSS e SEO: non usano `keepIds()` né
+  `localOnly()` e continuano a funzionare come oggi.
+- Nessuna integrazione con le API di Google in questo lavoro: si salva il Place ID;
+  cron, autocomplete ed embed sono funzionalità future (E7).
 - Nessun supporto a transazioni distribuite su più database.
 
 ## Design
@@ -130,27 +131,126 @@ Dare ai moduli del framework:
   `sync_export`.
 - **In produzione** i passi 5 e 6 non partono mai.
 
-### E. Indirizzo e orari della società comandati da un modulo
+### E. Sedi della società in "Dati aziendali" (rivista il 2026-09-17)
 
-- **Servizio** `Wonder\App\Support\CorporateData`, unico punto di salvataggio:
-  - `saveAddress(array $values): object` scrive `society_address` (riga `id = 1`);
-  - `saveTimetable(array $rows): object` sincronizza le righe di `society_timetable` e
-    scrive il JSON `society_address.timetable` nello stesso formato di oggi
-    (`{giorno: [{from, to}]}`);
-  - dopo il salvataggio chiama `TableSync::autoExport()`.
-- **La pagina "Dati aziendali"** usa il servizio per indirizzo e orari, senza cambiare
-  l'aspetto.
-- **Blocco delle sezioni:**
-  `CorporateData::lock(string|array $sections, string $notice, ?string $url = null, ?string $linkLabel = null): void`.
-  - Sezioni: `company`, `legal`, `legal_address`, `address`, `social`, `timetable`.
-  - Un modulo lo chiama da un file di boot (`boot.files` del manifest).
-  - La pagina mostra le sezioni bloccate con campi disabilitati, avviso e link.
-  - Il salvataggio ignora i valori inviati per le sezioni bloccate: il blocco vale
-    lato server, non solo nell'interfaccia.
-  - `CorporateData::lockedSections(): array` e `CorporateData::resetLocks()` per la
-    pagina e per i test.
-- **Telefono ed email** restano nei dati della società (`society`) e non si bloccano
-  con l'indirizzo.
+"Dati aziendali" diventa la pagina delle sedi della società: i clienti chiedono spesso
+di aggiungere indirizzi. Ogni sede ha i propri dati, una è predefinita e le altre
+prendono dalla predefinita ciò che manca. Orari e chiusure ricalcano il modello di
+Google, perché in futuro un cron li verificherà sulla scheda Google Business tramite
+il Place ID.
+
+#### E1. Tabelle
+
+| Tabella | Gruppo | Colonne |
+|---|---|---|
+| `society_locations` | Sede | slug (unico), label (es. "Negozio di Milano"), is_default (una sola), visible, position, business_status (`operational`, `closed_temporarily`, `closed_permanently`, `future_opening`), opening_date |
+| | Indirizzo | `AddressExtension::simple(linkKey: 'gmaps')`, google_place_id (uno per sede), google_synced_at |
+| | Contatti | email, pec, tel, cel |
+| | Dati aziendali e legali | name, legal_name, pi, cf, sdi, rea, share_capital |
+| | Sede legale | `AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')` |
+| | Link | site, instagram, facebook, tiktok, linkedin, whatsapp, youtube |
+| `society_location_hours` | Orari regolari e secondari | society_location_id, hours_type, open_day, open_time, close_day, close_time, position |
+| `society_location_special_hours` | Orari speciali e chiusure | society_location_id, start_date, end_date, closed, open_time, close_time, note, source (`manual`, `google`) |
+
+- **Loghi:** restano unici per la società (`logos`), invariati.
+- **Orari regolari e secondari** (come `regularHours.periods` della Business Profile
+  API e `regularOpeningHours` della Places API):
+  - `hours_type`: `regular`, oppure un tipo secondario di Google in minuscolo
+    (`drive_through`, `happy_hour`, `delivery`, `takeout`, `kitchen`, `breakfast`,
+    `lunch`, `dinner`, `brunch`, `pickup`, `access`, `senior_hours`,
+    `online_service_hours`);
+  - più fasce nello stesso giorno sono più righe (es. 9–13 e 15–19);
+  - `close_day` può essere il giorno dopo; `24:00` indica la mezzanotte a fine
+    giornata;
+  - chiusura vuota = sempre aperto, come nella Places API;
+  - giorni `Mon`…`Sun`, già usati dal core e da `prettyTimeTable()`; la conversione
+    verso Google (0 = domenica nella Places API, `MONDAY`… nella Business Profile API)
+    sta nella futura classe di sincronizzazione.
+- **Orari speciali e chiusure** (come `specialHours.specialHourPeriods`):
+  - `closed = true`: chiusura; per comodità vale anche su un intervallo di date (es.
+    ferie dal 10 al 25 agosto), che la sincronizzazione con Google divide in giorni;
+  - `closed = false` con orari: apertura straordinaria, con `end_date` vuota o al
+    massimo il giorno dopo `start_date`, come in Google.
+- **Google Place ID:** compilato a mano, con un link al Place ID Finder di Google. Se
+  `gmaps` è vuoto, il link a Google Maps si costruisce dal Place ID senza chiave API:
+  `https://www.google.com/maps/search/?api=1&query=<indirizzo>&query_place_id=<ID>`.
+
+#### E2. Sincronizzazione e modifica
+
+- **`society_locations`:** `SyncSchema::multiRow()->keepIds()`, perché altri moduli
+  puntano agli `id` delle sedi. Nel core non è `localOnly()`: si modifica come oggi i
+  dati aziendali. Un modulo può renderla modificabile solo in locale sostituendo la
+  Resource con la propria (priorità dei moduli nel `ResourceRegistry`).
+- **`society_location_hours` e `society_location_special_hours`:** non sincronizzate,
+  sono dati di produzione. Si modificano nella pagina "Orari e chiusure" di ogni sede,
+  da `admin` e `administrator`, sempre anche in produzione: le chiusure cambiano spesso
+  e il futuro cron da Google scriverà qui.
+
+#### E3. Dati presi dalla sede predefinita
+
+- **Campo per campo:** contatti e link (es. telefono proprio, email della
+  predefinita).
+- **Gruppo intero:** dati aziendali e legali, sede legale, indirizzo, orari. Se il
+  gruppo della sede è tutto vuoto si usa quello della predefinita, così non si
+  mescolano dati di sedi diverse.
+- **Orari speciali:** seguono gli orari regolari; una sede senza orari propri eredita
+  dalla predefinita anche le chiusure.
+- **Calcolo:** classe pura `SocietyLocationResolver`, testabile senza database.
+- **Nel form:** i campi vuoti mostrano come suggerimento il valore ereditato.
+
+#### E4. Lettura
+
+- **`Wonder\App\Support\SocietyLocations`**, con dati già completati dall'eredità e
+  calcolati una volta per richiesta:
+  - `default(): object`, `find(int|string $idOrSlug): ?object`,
+    `all(bool $onlyVisible = true): array`;
+  - `hoursFor(object $location, DateTimeInterface $date): array`: orari effettivi di
+    una data, con gli orari speciali che prevalgono su quelli regolari;
+  - `isOpen(object $location, ?DateTimeInterface $at = null): bool`;
+  - fuso orario del sito; calcolo degli orari in una classe pura `OpeningHours`.
+- **`infoSociety(int|string|null $location = null)`:**
+  - senza argomento: sede predefinita, come oggi;
+  - con id o slug: quella sede; se non esiste, la predefinita;
+  - stessi campi di oggi (`name`, `email`, `tel`, `cel`, `prettyAddress`,
+    `prettyLegal`, `social`, `domain`, loghi…); `timetable`, `timeGroup` e
+    `prettyTime` ricavati dagli orari regolari nel formato di oggi;
+  - in più: `location` (id, slug, label, is_default), `google_place_id`, `hours`,
+    `specialHours` (da oggi in avanti), `businessStatus`.
+- **`infoSocietyLocations(): array`:** tutte le sedi visibili, già completate.
+- **`$SOCIETY`** resta la sede predefinita.
+
+#### E5. Pagine del backend
+
+- **"Dati aziendali":** Resource con l'elenco delle sedi, stessa voce di menu e stesso
+  percorso (`app/config/corporate-data`). Elenco con nome, città, badge "Predefinita"
+  e visibilità; aggiunta, modifica ed eliminazione.
+- **Scheda della sede:** riquadri Sede, Indirizzo con Place ID, Contatti, Dati
+  aziendali e legali, Sede legale, Link; collegamento a "Orari e chiusure".
+- **"Orari e chiusure"** di una sede: orari regolari, orari secondari, orari speciali e
+  chiusure; accessibile ad `admin` e `administrator`.
+- **Sede predefinita:** sempre una sola; impostarne una toglie il flag alle altre; non
+  si può eliminare; la prima sede creata è predefinita.
+
+#### E6. Siti esistenti
+
+- **Migrazione:** passo di `UpdateRunner` eseguito una sola volta, dopo le tabelle e
+  prima dell'import del sync: se `society_locations` è vuota, crea la sede predefinita
+  con `id = 1` ("Sede principale", slug `sede-principale`) da `society`,
+  `society_address`, `society_legal_address` e `society_social`, e i suoi orari
+  regolari da `society_timetable` (o dal JSON `society_address.timetable`).
+- **Vecchie tabelle:** restano per una versione, senza essere più scritte né
+  sincronizzate (i loro Model perdono `syncSchema()`).
+- **Vecchia pagina:** handler e vista legacy di `corporate-data` sostituiti dalla
+  Resource.
+
+#### E7. Funzionalità future
+
+- Cron che verifica i cambi di orario sulla scheda Google tramite il Place ID. Con la
+  Places API gli orari speciali sono visibili solo per i prossimi 7 giorni
+  (`currentOpeningHours`); l'elenco completo richiede la Business Profile API con
+  l'accesso del proprietario. Aggiornare o solo avvisare si decide nella sua spec.
+- Place ID compilato dall'autocomplete dell'indirizzo (anche in `wonder-image/lib`).
+- Embed della mappa generato in automatico.
 
 ### F. Transazioni, letture con lock e lock nominali
 
@@ -212,6 +312,9 @@ In `Wonder\Plugin\Custom\Fattura\Valori`, nello stile delle classi esistenti
   senza cambiare i dati.
 - Il manifest accetta la nuova chiave `database.defaults`; i moduli che non la
   dichiarano non cambiano.
+- Dati aziendali: la migrazione crea la sede predefinita dai dati esistenti;
+  `infoSociety()` senza argomenti e `$SOCIETY` restituiscono gli stessi campi di oggi,
+  quindi footer, email e documenti legali dei siti non cambiano.
 - Rilascio come versione minore di `wonder-image/app`.
 
 ## Validazione
@@ -224,7 +327,11 @@ In `Wonder\Plugin\Custom\Fattura\Valori`, nello stile delle classi esistenti
   righe cancellate nel file, file vuoto.
 - `ModuleDependencySorter`: ordine per dipendenze, moduli indipendenti, cicli.
 - `PageSchema::docs()` e azione "Guida": pagine, URL non ammessi.
-- `CorporateData`: sezioni bloccate e filtro dei valori inviati.
+- `SocietyLocationResolver`: eredità campo per campo (contatti, link) e per gruppo
+  (dati legali, sede legale, indirizzo, orari con le chiusure).
+- `OpeningHours`: fasce multiple, chiusura il giorno dopo, `24:00`, sempre aperto,
+  chiusure su intervallo, aperture straordinarie, orari secondari.
+- Link a Google Maps dal Place ID.
 - Classi fiscali: formato dei codici, `Natura::VALIDE` contenuta in `Natura::Valori`.
 
 **Verifica da un sito** (`boilerplates/new-site` con database locale):
@@ -239,8 +346,12 @@ In `Wonder\Plugin\Custom\Fattura\Valori`, nello stile delle classi esistenti
 - `Transaction::run()`: `sqlInsert()` e `Model::create()` annullati insieme; letture
   `ForUpdate` fuori transazione rifiutate; `NamedLock` non eseguito due volte in
   parallelo.
-- Pagina "Dati aziendali" con indirizzo e orari bloccati: campi disabilitati, valori
-  inviati ignorati, sezioni libere salvate normalmente.
+- Migrazione dei dati aziendali su un database con le vecchie tabelle compilate: sede
+  predefinita con `id = 1`, orari convertiti, `infoSociety()` con gli stessi campi di
+  prima; al secondo avvio nessuna modifica.
+- "Dati aziendali" con più sedi: una sola predefinita, predefinita non eliminabile,
+  `infoSociety('<slug>')` con eredità; "Orari e chiusure" modificabile da
+  `administrator`.
 
 Ogni file PHP toccato passa `php -l`; `composer dump-autoload` dopo le nuove classi.
 
@@ -252,7 +363,8 @@ Aggiornamenti in `docs/app/`, nello stesso lavoro:
 |---|---|
 | `piattaforma/multi-ambiente.md` | `APP_ENV`, `keepIds()`, `localOnly()`, import e defaults nei passi di `forge update` |
 | `piattaforma/installazione-e-deploy.md` | passi di `UpdateRunner` e differenze tra locale e produzione |
-| `concetti/moduli/manifest.md` e `contratto.md` | `database.defaults`, `ModuleDefaults`, `DefaultRows`, blocco dei dati aziendali dai file di boot |
+| `concetti/moduli/manifest.md` e `contratto.md` | `database.defaults`, `ModuleDefaults`, `DefaultRows` |
+| `concetti/dati-aziendali.md` (nuova, aggiunta a `SUMMARY.md`) | sedi, eredità dalla predefinita, orari e chiusure, `infoSociety()`, `SocietyLocations`, Place ID, migrazione |
 | `concetti/risorse/database.md` | `Transaction`, letture `ForUpdate`, `NamedLock` |
 | `concetti/risorse/resource.md` | `PageSchema::docs()`, `Resource::isReadonly()` |
 | `servizi/fatturapa-valori.md` (nuova, aggiunta a `SUMMARY.md`) | classi di `Custom\Fattura\Valori`, con `AliquoteIva`, `Natura::valide()`, `EsigibilitaIva` |
