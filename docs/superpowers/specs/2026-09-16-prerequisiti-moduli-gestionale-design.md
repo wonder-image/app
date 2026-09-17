@@ -74,6 +74,9 @@ Dare ai moduli del framework:
   - l'import inserisce o aggiorna per `id`, senza `TRUNCATE`;
   - le righe assenti dal file vengono segnate `deleted = 'true'`, mai eliminate;
   - le righe presenti nel file mantengono il proprio valore di `deleted`.
+- **Cancellazione dal backend e dalle API** delle tabelle con `keepIds()`: sempre logica
+  (`deleted = 'true'`, `Resource::deleteRecord()`), così la riga resta nel sync e le
+  righe precaricate non vengono ricreate.
 - **Tabelle senza `keepIds()`:** comportamento attuale invariato.
 - **Export ordinato per `id`** per tutte le tabelle, così il file ha differenze
   stabili in git.
@@ -94,7 +97,9 @@ Dare ai moduli del framework:
     disabilitati, nessun pulsante di salvataggio, aggiunta o eliminazione, avviso "Si
     modifica in locale e si pubblica con il deploy";
   - il controllo sta in un unico metodo della base, `Resource::isReadonly(): bool`,
-    sovrascrivibile.
+    sovrascrivibile;
+  - anche gli endpoint generici `api/backend/*` che ricevono `table` (eliminazione,
+    posizione, stato, permessi, file) rifiutano le modifiche con HTTP 403.
 - **Export dopo il salvataggio:** la base `Resource` chiama `TableSync::autoExport()`
   dopo store, update e delete di ogni Model sincronizzato; `SYNC_AUTO_EXPORT` mantiene
   il significato attuale. Le Resource CSS che oggi lo chiamano a mano non lo
