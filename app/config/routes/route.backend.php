@@ -34,13 +34,6 @@ Route::area('backend')
             ->prefix('/app/config')
             ->group(function () use ($ROOT_APP) {
 
-                Route::get('/corporate-data/', $ROOT_APP.'/http/backend/config/corporate-data.php')
-                    ->name('corporate-data')
-                    ->permit(['admin']);
-
-                Route::post('/corporate-data/', $ROOT_APP.'/http/backend/config/corporate-data.php')
-                    ->permit(['admin']);
-
                 Route::get('/configuration-file/', $ROOT_APP.'/http/backend/config/configuration-file.php')
                     ->name('configuration-file')
                     ->permit(['admin']);
