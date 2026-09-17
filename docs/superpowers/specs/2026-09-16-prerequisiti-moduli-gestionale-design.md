@@ -2,7 +2,7 @@
 
 - **Data:** 2026-09-16
 - **Repo:** `wonder-image/app` (framework)
-- **Stato:** design approvato (parte E rivista il 2026-09-17), in attesa di piano di implementazione
+- **Stato:** implementata in tre piani e verificata con database su `new-site` (2026-09-17)
 - **Origine:** spec di architettura di `wonder-image/gestionale` + `wonder-image/ecommerce`
   (`packages/gestionale/docs/superpowers/specs/2026-09-11-gestionale-ecommerce-architettura-design.md`,
   capitolo 10.2, lavori "prima del gestionale")
