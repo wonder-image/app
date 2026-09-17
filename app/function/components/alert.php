@@ -8,8 +8,10 @@ function alert() {
         $ALERT = $_GET['alert'];
     }
 
-    if (!empty($ALERT)) {
-        echo "alertToast($ALERT);";
+    // Nello script solo codici numerici: i messaggi testuali li mostra il form
+    // e il valore di `?alert=` non deve poter iniettare codice.
+    if (!empty($ALERT) && is_numeric($ALERT)) {
+        echo 'alertToast('.(int) $ALERT.');';
     }
 
 }
