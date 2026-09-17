@@ -272,6 +272,19 @@ abstract class Resource
         );
     }
 
+    /**
+     * Righe di un repeater con relazione, prima della sincronizzazione: la
+     * Resource può normalizzarle o scartarle (es. righe senza dati utili).
+     */
+    public static function prepareRepeaterRows(
+        string $inputName,
+        array $rows,
+        string $action = 'store',
+        string $context = 'backend'
+    ): array {
+        return $rows;
+    }
+
     public static function prepareRepeaterRelationRow(
         string $inputName,
         array $payload,
@@ -380,7 +393,12 @@ abstract class Resource
         foreach (static::repeaterRelations() as $inputName => $entry) {
             /** @var RepeaterRelation $relation */
             $relation = $entry['relation'];
-            $rows = Repeater::rowsFromRequest($inputName, $post, $files);
+            $rows = static::prepareRepeaterRows(
+                $inputName,
+                Repeater::rowsFromRequest($inputName, $post, $files),
+                $action,
+                $context
+            );
 
             $summary[$inputName] = Repeater::syncRelatedRows(
                 $relation,

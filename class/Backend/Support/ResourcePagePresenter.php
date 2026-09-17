@@ -51,12 +51,24 @@ final class ResourcePagePresenter
                 : $this->createUrl(),
             'BACK_URL' => $this->backUrl(),
             'FORM_ERRORS' => $errors,
+            'FORM_ERROR_MESSAGE' => self::errorMessage($errors),
             'USER' => $this->viewUser(),
             'VALUES' => $values,
             'NAME' => $this->legacyName(),
             'READONLY' => $this->resourceClass::isReadonly(),
             'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
         ];
+    }
+
+    /**
+     * Messaggio testuale per l'avviso d'errore del form: un `alert` non numerico
+     * (i codici legacy e gli errori dei singoli campi restano col testo generico).
+     */
+    public static function errorMessage(array $errors): string
+    {
+        $alert = $errors['alert'] ?? null;
+
+        return is_string($alert) && trim($alert) !== '' && !is_numeric(trim($alert)) ? trim($alert) : '';
     }
 
     public function show(array $item): array
