@@ -197,37 +197,17 @@ final class SocietyLocationResource extends Resource
             (new Container)->components([
 
                 (new Card)->components([
-                    SectionTitle::make('Sede')->columnSpan(12),
-                    static::getInput('label')->columnSpan(8),
+                    SectionTitle::make('Sede')
+                        ->tooltip('I campi vuoti prendono i dati dalla sede predefinita: contatti e link uno per uno; indirizzo, sede legale, dati legali e orari solo se il riquadro è tutto vuoto. Il nome dell\'attività si compila nella sede predefinita e vale per tutte le sedi. Lo slug nasce dal nome della sede alla creazione e non cambia.')
+                        ->columnSpan(12),
+                    static::getInput('label')->columnSpan(5),
                     static::getInput('slug')->columnSpan(4),
-                    HelpText::make('I campi vuoti prendono i dati dalla sede predefinita: contatti e link uno per uno; indirizzo, sede legale, dati legali e orari solo se il riquadro è tutto vuoto.')->columnSpan(12),
+                    static::getInput('visible')->columnSpan(3),
+                    static::getInput('is_default')->columnSpan(3),
+                    static::getInput('business_status')->columnSpan(3),
+                    static::getInput('opening_date')->columnSpan(3),
+                    static::getInput('name')->columnSpan(3),
                 ])->columns(12)->columnSpan(2),
-
-                (new Card)->components([
-                    SectionTitle::make('Indirizzo')->columnSpan(12),
-                    static::getInput('country')->columnSpan(6),
-                    static::getInput('province')->columnSpan(6),
-                    static::getInput('city')->columnSpan(8),
-                    static::getInput('cap')->columnSpan(4),
-                    static::getInput('street')->columnSpan(10),
-                    static::getInput('number')->columnSpan(2),
-                    static::getInput('more')->columnSpan(12),
-                    static::getInput('gmaps')->columnSpan(12),
-                    static::getInput('google_place_id')->columnSpan(12),
-                    HelpText::make('Trova il Place ID con il <a href="'.self::PLACE_ID_FINDER_URL.'" target="_blank" rel="noopener noreferrer">Place ID Finder di Google</a>. Se il link a Google Maps è vuoto si costruisce dal Place ID.')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
-
-                (new Card)->components([
-                    SectionTitle::make('Sede legale')->columnSpan(12),
-                    static::getInput('legal_country')->columnSpan(6),
-                    static::getInput('legal_province')->columnSpan(6),
-                    static::getInput('legal_city')->columnSpan(8),
-                    static::getInput('legal_cap')->columnSpan(4),
-                    static::getInput('legal_street')->columnSpan(10),
-                    static::getInput('legal_number')->columnSpan(2),
-                    static::getInput('legal_more')->columnSpan(12),
-                    static::getInput('legal_gmaps')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
                     SectionTitle::make('Contatti')->columnSpan(12),
@@ -248,28 +228,44 @@ final class SocietyLocationResource extends Resource
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    static::getInput('hours')->columnSpan(12),
-                    HelpText::make('Più fasce nello stesso giorno sono più righe (es. 9–13 e 15–19). Per chiudere dopo la mezzanotte scegli il giorno dopo in "Chiude il"; per chiudere a mezzanotte usa 00:00 dello stesso giorno. Una riga senza orario di chiusura indica "sempre aperto". Una sede senza orari propri usa orari e chiusure della sede predefinita.')->columnSpan(12),
-                ])->columns(12)->columnSpan(2),
+                    SectionTitle::make('Indirizzo')
+                        ->tooltip('Se il link a Google Maps è vuoto si costruisce dal Place ID.')
+                        ->columnSpan(12),
+                    static::getInput('country')->columnSpan(6),
+                    static::getInput('province')->columnSpan(6),
+                    static::getInput('city')->columnSpan(8),
+                    static::getInput('cap')->columnSpan(4),
+                    static::getInput('street')->columnSpan(10),
+                    static::getInput('number')->columnSpan(2),
+                    static::getInput('more')->columnSpan(12),
+                    static::getInput('gmaps')->columnSpan(12),
+                    static::getInput('google_place_id')->columnSpan(12),
+                    HelpText::make('<a href="'.self::PLACE_ID_FINDER_URL.'" target="_blank" rel="noopener noreferrer">Trova il Place ID</a>')->columnSpan(12),
+                ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
+                    SectionTitle::make('Sede legale')->columnSpan(12),
+                    static::getInput('legal_country')->columnSpan(6),
+                    static::getInput('legal_province')->columnSpan(6),
+                    static::getInput('legal_city')->columnSpan(8),
+                    static::getInput('legal_cap')->columnSpan(4),
+                    static::getInput('legal_street')->columnSpan(10),
+                    static::getInput('legal_number')->columnSpan(2),
+                    static::getInput('legal_more')->columnSpan(12),
+                    static::getInput('legal_gmaps')->columnSpan(12),
+                ])->columns(12)->columnSpan(1),
+
+                (new Card)->components([
+                    SectionTitle::make('Orari e chiusure')
+                        ->tooltip('Più fasce nello stesso giorno sono più righe (es. 9–13 e 15–19). Per chiudere dopo la mezzanotte scegli il giorno dopo; per chiudere a mezzanotte usa 00:00. Senza orario di chiusura la sede è sempre aperta. Le chiusure possono durare più giorni; un\'apertura straordinaria vale un giorno e vale per gli orari regolari. Una sede senza orari propri usa orari e chiusure della predefinita.')
+                        ->columnSpan(12),
+                    static::getInput('hours')->columnSpan(12),
                     static::getInput('special_hours')->columnSpan(12),
-                    HelpText::make('Le chiusure possono durare più giorni (es. ferie dal 10 al 25 agosto). Per un\'apertura straordinaria compila "Dal" e gli orari: se chiude dopo la mezzanotte vale fino al giorno dopo. Valgono per gli orari regolari.')->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
 
             ])->columns(2)->columnSpan(9),
 
             (new Container)->components([
-
-                (new Card)->components([
-                    SectionTitle::make('Stato')->columnSpan(12),
-                    static::getInput('is_default')->columnSpan(12),
-                    static::getInput('name')->columnSpan(12),
-                    static::getInput('visible')->columnSpan(12),
-                    static::getInput('business_status')->columnSpan(12),
-                    static::getInput('opening_date')->columnSpan(12),
-                    HelpText::make('Il nome dell\'attività (es. il marchio) si compila nella sede predefinita e vale per tutte le sedi.')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
                     SectionTitle::make('Link')->columnSpan(12),
