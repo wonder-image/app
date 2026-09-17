@@ -145,9 +145,9 @@ final class SocietyLocations
 
         if (sqlTableExists(SocietyLocation::$table)) {
             return self::assemble(
-                self::rows(SocietyLocation::$table),
-                sqlTableExists(SocietyLocationHour::$table) ? self::rows(SocietyLocationHour::$table) : [],
-                sqlTableExists(SocietyLocationSpecialHour::$table) ? self::rows(SocietyLocationSpecialHour::$table) : []
+                self::rows(SocietyLocation::class),
+                sqlTableExists(SocietyLocationHour::$table) ? self::rows(SocietyLocationHour::class) : [],
+                sqlTableExists(SocietyLocationSpecialHour::$table) ? self::rows(SocietyLocationSpecialHour::class) : []
             );
         }
 
@@ -163,9 +163,15 @@ final class SocietyLocations
         return self::assemble([['id' => 1] + SocietyLocationsMigration::legacyLocation()], $hours, []);
     }
 
-    private static function rows(string $table): array
+    /**
+     * Righe non cancellate lette dal Model, che toglie l'escape di scrittura
+     * (es. `McDonald\'s` → `McDonald's`).
+     *
+     * @param class-string<\Wonder\App\Model> $modelClass
+     */
+    private static function rows(string $modelClass): array
     {
-        $rows = sqlSelect($table, ['deleted' => 'false'])->row;
+        $rows = $modelClass::find(['deleted' => 'false']);
 
         return is_array($rows) ? array_values(array_filter($rows, 'is_array')) : [];
     }
