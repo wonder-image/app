@@ -173,11 +173,11 @@ final class TableSync
                     ? [self::cleanRow($result->row, $schema->excludeColumns)]
                     : [];
             } else {
-                $result = sqlSelect($table);
+                $result = sqlSelect($table, null, null, 'id', 'ASC');
                 $rows = [];
 
-                foreach ($result->row as $row) {
-                    $rows[] = self::cleanRow($row, $schema->excludeColumns);
+                foreach ((array) $result->row as $row) {
+                    $rows[] = self::cleanRow($row, $schema->excludeColumns, self::keptColumns($schema));
                 }
             }
 
@@ -235,6 +235,8 @@ final class TableSync
                 } else {
                     sqlInsert($table, $values);
                 }
+            } elseif ($schema->keepIds) {
+                self::importKeepingIds($table, $config[$table], $schema);
             } else {
                 sqlTruncate($table);
 
@@ -257,8 +259,7 @@ final class TableSync
      * Se il file di sync esiste nel root del progetto, importa la
      * configurazione nel DB.
      *
-     * Pensato per essere chiamato da `build/update/css.php` e simili
-     * durante `forge update`.
+     * Chiamato da `UpdateRunner` durante `forge update`.
      */
     public static function importIfExists(string $root): bool
     {
@@ -281,6 +282,73 @@ final class TableSync
         }
 
         return self::importConfig($config);
+    }
+
+    /**
+     * Import di una tabella con `keepIds()`: inserisce o aggiorna per `id`,
+     * segna `deleted = 'true'` le righe assenti dal file, non elimina nulla.
+     */
+    private static function importKeepingIds(string $table, array $rows, SyncSchema $schema): void
+    {
+        $fileRows = [];
+
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $fileRows[] = self::cleanRow($row, $schema->excludeColumns, self::keptColumns($schema));
+            }
+        }
+
+        $existing = sqlSelect($table, null, null, null, null, 'id');
+        $existingIds = array_column((array) ($existing->row ?? []), 'id');
+        $plan = SyncImportPlan::make($fileRows, $existingIds);
+
+        foreach ($plan->inserts as $values) {
+            sqlInsert($table, $values);
+        }
+
+        foreach ($plan->updates as $id => $values) {
+            if ($values !== []) {
+                sqlModify($table, $values, 'id', $id);
+            }
+        }
+
+        foreach ($plan->softDeletes as $id) {
+            sqlModify($table, ['deleted' => 'true'], 'id', $id);
+        }
+    }
+
+    /**
+     * Scrive `shared/sync-data.json` (o `$file`) con le tabelle attive.
+     * Non riscrive il file se il contenuto non cambia.
+     */
+    public static function exportToFile(string $root, ?string $file = null): bool
+    {
+        $root = rtrim($root, '/');
+
+        if ($root === '' || !is_dir($root)) {
+            return false;
+        }
+
+        $path = $file ?? $root.'/'.self::CONFIG_PATH;
+        $json = json_encode(self::exportConfig(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        if ($json === false) {
+            return false;
+        }
+
+        $dir = dirname($path);
+
+        if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
+            return false;
+        }
+
+        $content = $json."\n";
+
+        if (file_exists($path) && file_get_contents($path) === $content) {
+            return true;
+        }
+
+        return file_put_contents($path, $content) !== false;
     }
 
     // ------------------------------------------------------------------
@@ -308,30 +376,11 @@ final class TableSync
 
             $root = $GLOBALS['ROOT'] ?? '';
 
-            if ($root === '' || !is_dir($root)) {
+            if (!is_string($root) || $root === '') {
                 return;
             }
 
-            $config = self::exportConfig();
-            $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            if ($json === false) {
-                return;
-            }
-
-            $file = rtrim($root, '/').'/'.self::CONFIG_PATH;
-            $dir = dirname($file);
-
-            if (!is_dir($dir)) {
-                @mkdir($dir, 0777, true);
-            }
-
-            $current = file_exists($file) ? file_get_contents($file) : '';
-            $newContent = $json."\n";
-
-            if ($current !== $newContent) {
-                file_put_contents($file, $newContent);
-            }
+            self::exportToFile($root);
         } catch (\Throwable) {
             // Non-blocking: il salvataggio non deve mai fallire
             // per colpa dell'auto-export.
@@ -346,10 +395,11 @@ final class TableSync
      * Rimuove le colonne di sistema e quelle escluse dallo schema.
      *
      * @param string[] $extraExclude Colonne aggiuntive da escludere.
+     * @param string[] $keep Colonne di sistema da mantenere (es. `id`, `deleted`).
      */
-    private static function cleanRow(array $row, array $extraExclude = []): array
+    private static function cleanRow(array $row, array $extraExclude = [], array $keep = []): array
     {
-        $exclude = array_merge(self::SYSTEM_COLUMNS, $extraExclude);
+        $exclude = array_diff(array_merge(self::SYSTEM_COLUMNS, $extraExclude), $keep);
         $cleaned = [];
 
         foreach ($row as $column => $value) {
@@ -361,5 +411,15 @@ final class TableSync
         }
 
         return $cleaned;
+    }
+
+    /**
+     * Colonne di sistema mantenute per lo schema (`id` e `deleted` con `keepIds()`).
+     *
+     * @return string[]
+     */
+    private static function keptColumns(SyncSchema $schema): array
+    {
+        return $schema->keepIds && !$schema->singleton ? ['id', 'deleted'] : [];
     }
 }
