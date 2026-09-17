@@ -192,6 +192,9 @@ final class Repeater
         }
 
         foreach ($existingById as $existingId => $existingRow) {
+            // Le chiavi numeriche diventano interi: si confronta come stringa.
+            $existingId = (string) $existingId;
+
             if (in_array($existingId, $seenIds, true)) {
                 continue;
             }
