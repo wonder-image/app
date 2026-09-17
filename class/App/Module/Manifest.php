@@ -232,6 +232,16 @@ final class Manifest
         return $src !== null ? $src.'/Resources' : null;
     }
 
+    /**
+     * Classe delle righe precaricate (`database.defaults`), se dichiarata.
+     */
+    public function defaultsClass(): ?string
+    {
+        $class = $this->get('database.defaults');
+
+        return is_string($class) && trim($class) !== '' ? trim($class) : null;
+    }
+
     public function permissionsFile(): ?string
     {
         $path = $this->get('permissions.definitions', 'config/permissions.php');

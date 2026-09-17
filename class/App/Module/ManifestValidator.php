@@ -3,6 +3,7 @@
 namespace Wonder\App\Module;
 
 use RuntimeException;
+use Wonder\App\Module\Contracts\ModuleDefaults;
 use Wonder\App\Module\Contracts\ModuleInterface;
 
 final class ManifestValidator
@@ -60,6 +61,16 @@ final class ManifestValidator
                 $errors[] = 'Entrypoint non autoloadabile: '.$entrypoint;
             } elseif (!$legacy && !is_subclass_of($entrypoint, ModuleInterface::class)) {
                 $errors[] = $entrypoint.' deve implementare '.ModuleInterface::class;
+            }
+        }
+
+        $defaultsClass = $manifest->defaultsClass();
+
+        if ($defaultsClass !== null) {
+            if (!class_exists($defaultsClass)) {
+                $errors[] = 'Classe database.defaults non autoloadabile: '.$defaultsClass;
+            } elseif (!is_subclass_of($defaultsClass, ModuleDefaults::class)) {
+                $errors[] = $defaultsClass.' deve implementare '.ModuleDefaults::class;
             }
         }
 
