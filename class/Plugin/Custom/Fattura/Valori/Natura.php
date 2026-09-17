@@ -31,4 +31,22 @@
             "N7" => "IVA assolta in altro stato UE (prestazione di servizi di telecomunicazioni, tele-radiodiffusione ed elettronici ex art. 7-octies, comma 1 lett. a, b, art. 74-sexies DPR 633/72)"
         ];
 
+        /** Codici validi dal 1 gennaio 2021 (N2, N3 e N6 generici esclusi). */
+        public const VALIDE = [
+            "N1",
+            "N2.1", "N2.2",
+            "N3.1", "N3.2", "N3.3", "N3.4", "N3.5", "N3.6",
+            "N4",
+            "N5",
+            "N6.1", "N6.2", "N6.3", "N6.4", "N6.5", "N6.6", "N6.7", "N6.8", "N6.9",
+            "N7"
+        ];
+
+        /** Nature valide con descrizione, nell'ordine di `Valori`. */
+        public static function valide(): array {
+
+            return array_intersect_key(self::Valori, array_flip(self::VALIDE));
+
+        }
+
     }
