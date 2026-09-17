@@ -1644,7 +1644,7 @@ e subito dopo il metodo `isSingleton()`:
      */
     public static function isReadonly(): bool
     {
-        $schema = static::modelClass()::syncSchema();
+        $schema = static::syncSchemaOrNull();
 
         return $schema instanceof SyncSchema
             && $schema->localOnly
@@ -1684,11 +1684,23 @@ e subito dopo il metodo `isSingleton()`:
      */
     public static function exportSyncData(): void
     {
-        if (static::modelClass()::syncSchema() instanceof SyncSchema) {
+        if (static::syncSchemaOrNull() instanceof SyncSchema) {
             TableSync::autoExport();
         }
     }
+
+    /** Resource senza Model (es. NavigationOnlyResource): nessuno schema. */
+    private static function syncSchemaOrNull(): ?SyncSchema
+    {
+        try {
+            return static::modelClass()::syncSchema();
+        } catch (RuntimeException) {
+            return null;
+        }
+    }
 ```
+
+> Variante emersa in esecuzione: `NavigationOnlyResource::modelClass()` lancia un'eccezione e `ResourceRouteRegistrar` chiama `isReadonly()` su tutte le Resource; senza `syncSchemaOrNull()` la registrazione delle route si interromperebbe. Il test include il caso.
 
 - [ ] **Step 4: Eseguire il test**
 

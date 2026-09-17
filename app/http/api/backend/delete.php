@@ -7,6 +7,11 @@ if (!ApiRequest::isPost()) {
 }
 
 $table = ApiRequest::string('table');
+
+if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
+    ApiRequest::error('Tabella in sola lettura in questo ambiente.', 403);
+}
+
 $id = ApiRequest::int('id');
 
 if ($table === '' || $id <= 0) {
@@ -66,6 +71,8 @@ if ($position !== null && sqlColumnExists($table, 'position')) {
         sqlModify($table, ['position' => $row['position'] - 1], 'id', $row['id']);
     }
 }
+
+\Wonder\App\Support\SyncedTables::exportIfSynced($table);
 
 ApiRequest::success('Riga eliminata.', [
     'table' => $table,

@@ -70,6 +70,13 @@ final class ResourceApiController
 
     private function store(Endpoint $endpoint): array
     {
+        if ($this->resourceClass::isReadonly()) {
+            return $endpoint->response(
+                $this->presenter->validationErrorPayload(['readonly' => $this->resourceClass::readonlyNotice()]),
+                403
+            );
+        }
+
         $modelClass = $this->resourceClass::modelClass();
         $requestValues = $this->requestValues($endpoint);
         $existingValues = $this->resourceClass::findStoreExistingValues($requestValues, 'api');
@@ -97,6 +104,7 @@ final class ResourceApiController
             $fields = $this->presenter->fieldsFor('show', ['*']);
             $item = $this->resourceRow($targetId, $fields);
             $this->resourceClass::afterUpdate($targetId, $result, $values);
+            $this->resourceClass::exportSyncData();
 
             return $endpoint->response($this->presenter->updatePayload($item));
         }
@@ -112,6 +120,7 @@ final class ResourceApiController
         }
 
         $this->resourceClass::afterStore($result, $values);
+        $this->resourceClass::exportSyncData();
 
         // Registra i consensi GDPR loggandoli in `consent_events`.
         // `$requestValues` (non `$values`) perché contiene anche gli hidden
@@ -140,6 +149,13 @@ final class ResourceApiController
 
     private function update(Endpoint $endpoint, int $id): array
     {
+        if ($this->resourceClass::isReadonly()) {
+            return $endpoint->response(
+                $this->presenter->validationErrorPayload(['readonly' => $this->resourceClass::readonlyNotice()]),
+                403
+            );
+        }
+
         $modelClass = $this->resourceClass::modelClass();
         $existingValues = $this->resourceRow($id);
         $values = $this->preparedValues($endpoint, 'update', $existingValues);
@@ -161,6 +177,7 @@ final class ResourceApiController
         );
 
         $this->resourceClass::afterUpdate($id, $result, $values);
+        $this->resourceClass::exportSyncData();
 
         $fields = $this->presenter->fieldsFor('show', ['*']);
         $item = $this->resourceRow($id, $fields);
@@ -170,10 +187,17 @@ final class ResourceApiController
 
     private function destroy(Endpoint $endpoint, int $id): array
     {
+        if ($this->resourceClass::isReadonly()) {
+            return $endpoint->response(
+                $this->presenter->validationErrorPayload(['readonly' => $this->resourceClass::readonlyNotice()]),
+                403
+            );
+        }
+
         $values = $this->resourceRow($id);
-        $modelClass = $this->resourceClass::modelClass();
-        $result = $modelClass::delete($id);
+        $result = $this->resourceClass::deleteRecord($id);
         $this->resourceClass::afterDelete($id, $result, $values);
+        $this->resourceClass::exportSyncData();
 
         return $endpoint->response($this->presenter->destroyPayload($id, !empty($result->success)));
     }

@@ -65,6 +65,8 @@ final class ResourcePageController
     {
         global $ALERT;
 
+        $this->guardWritable();
+
         $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
         $existingValues = $this->resourceClass::findStoreExistingValues($this->requestValues(), 'backend');
@@ -119,6 +121,7 @@ final class ResourcePageController
                 );
             }
 
+            $this->resourceClass::exportSyncData();
             $this->redirectToConfiguredPage('store');
         }
 
@@ -149,6 +152,8 @@ final class ResourcePageController
     {
         global $ALERT;
 
+        $this->guardWritable();
+
         $this->guardPositiveId($id);
         $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
@@ -175,6 +180,7 @@ final class ResourcePageController
                 'backend'
             );
             $this->resourceClass::afterUpdate($id, $result, $values);
+            $this->resourceClass::exportSyncData();
             $this->redirectToConfiguredPage('update');
         }
 
@@ -184,10 +190,11 @@ final class ResourcePageController
 
     private function delete(int $id): never
     {
+        $this->guardWritable();
         $values = $this->resourceRow($id);
-        $modelClass = $this->resourceClass::modelClass();
-        $result = $modelClass::delete($id);
+        $result = $this->resourceClass::deleteRecord($id);
         $this->resourceClass::afterDelete($id, $result, $values);
+        $this->resourceClass::exportSyncData();
 
         $this->redirectToConfiguredPage('delete');
     }
@@ -255,6 +262,13 @@ final class ResourcePageController
     {
         if ($id <= 0) {
             throw new RuntimeException('ID resource non valido.');
+        }
+    }
+
+    private function guardWritable(): void
+    {
+        if ($this->resourceClass::isReadonly()) {
+            throw new RuntimeException('Resource in sola lettura in questo ambiente: '.$this->resourceClass::slug());
         }
     }
 

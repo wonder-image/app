@@ -14,6 +14,8 @@ use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
 use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\ResourceSchema\TableLayoutSchema as ResourceTableLayoutSchema;
 use Wonder\App\Support\Repeater;
+use Wonder\App\Support\SyncSchema;
+use Wonder\App\Support\TableSync;
 use Wonder\Elements\Form\Form as BackendFormLayout;
 use Wonder\Backend\Support\ResourceTableRenderer;
 use Wonder\Backend\Table\Table as BackendTable;
@@ -573,6 +575,67 @@ abstract class Resource
         $id = static::singletonRecordId();
 
         return $id !== null && $id !== '';
+    }
+
+    /**
+     * Sola lettura: Model con `SyncSchema::localOnly()` fuori da APP_ENV=local.
+     * Le Resource senza Model (es. navigation-only) sono sempre modificabili.
+     * Sovrascrivibile (es. un modulo che rende locale una Resource del core).
+     */
+    public static function isReadonly(): bool
+    {
+        $schema = static::syncSchemaOrNull();
+
+        return $schema instanceof SyncSchema
+            && $schema->localOnly
+            && !Environment::isLocal();
+    }
+
+    public static function readonlyNotice(): string
+    {
+        return 'Si modifica in locale e si pubblica con il deploy.';
+    }
+
+    /**
+     * Cancella un record: con `keepIds()` segna `deleted = 'true'`, così la
+     * riga resta nel sync e le righe precaricate non vengono ricreate.
+     */
+    public static function deleteRecord(int|string $id): object
+    {
+        $modelClass = static::modelClass();
+        $schema = $modelClass::syncSchema();
+
+        if ($schema instanceof SyncSchema && $schema->keepIds) {
+            $result = $modelClass::query()->Update($modelClass::$table, ['deleted' => 'true'], 'id', $id);
+
+            return (object) [
+                'success' => !empty($result->success),
+                'table' => $modelClass::$table,
+                'id' => $id,
+            ];
+        }
+
+        return $modelClass::delete($id);
+    }
+
+    /**
+     * Aggiorna shared/sync-data.json dopo una modifica di un Model
+     * sincronizzato (rispetta SYNC_AUTO_EXPORT).
+     */
+    public static function exportSyncData(): void
+    {
+        if (static::syncSchemaOrNull() instanceof SyncSchema) {
+            TableSync::autoExport();
+        }
+    }
+
+    private static function syncSchemaOrNull(): ?SyncSchema
+    {
+        try {
+            return static::modelClass()::syncSchema();
+        } catch (RuntimeException) {
+            return null;
+        }
     }
 
     public static function afterStore(object $result, array $values = []): void

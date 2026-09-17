@@ -8,6 +8,11 @@ if (!ApiRequest::isPost()) {
 
 $routeMeta = is_array($ROUTE_META ?? null) ? $ROUTE_META : [];
 $table = ApiRequest::string('table');
+
+if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
+    ApiRequest::error('Tabella in sola lettura in questo ambiente.', 403);
+}
+
 $column = trim((string) (($routeMeta['legacy_column'] ?? null) ?: ApiRequest::string('column')));
 $id = ApiRequest::int('id');
 
@@ -26,6 +31,8 @@ if ($row === []) {
 
 $bool = (($row[$column] ?? 'false') === 'true') ? 'false' : 'true';
 sqlModify($table, [$column => $bool], 'id', $id);
+
+\Wonder\App\Support\SyncedTables::exportIfSynced($table);
 
 ApiRequest::success('Stato aggiornato.', [
     'value' => $bool,

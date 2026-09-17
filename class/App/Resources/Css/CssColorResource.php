@@ -134,7 +134,5 @@ final class CssColorResource extends Resource
         if (function_exists('cssColor')) {
             cssColor();
         }
-
-        \Wonder\App\Support\TableSync::autoExport();
     }
 }

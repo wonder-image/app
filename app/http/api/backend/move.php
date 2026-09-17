@@ -7,6 +7,11 @@ if (!ApiRequest::isPost()) {
 }
 
 $table = ApiRequest::string('table');
+
+if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
+    ApiRequest::error('Tabella in sola lettura in questo ambiente.', 403);
+}
+
 $rowId = ApiRequest::int('id');
 $action = ApiRequest::string('action');
 
@@ -50,6 +55,8 @@ if ($filter !== null && $filter !== '' && $filterId !== '') {
 }
 
 sqlModify($table, ['position' => $newPosition, 'deleted' => 'false'], 'id', $rowId);
+
+\Wonder\App\Support\SyncedTables::exportIfSynced($table);
 
 ApiRequest::success('Posizione aggiornata.', [
     'table' => $table,

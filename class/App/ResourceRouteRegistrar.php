@@ -14,6 +14,7 @@ final class ResourceRouteRegistrar
                     $pages = (array) $resourceClass::pageSchema()->get('pages');
                     $permissions = (array) $resourceClass::permissionSchema()->get('backend');
                     $path = trim((string) $resourceClass::path(), '/');
+                    $readonly = $resourceClass::isReadonly();
 
                     if ($path === '') {
                         continue;
@@ -21,7 +22,7 @@ final class ResourceRouteRegistrar
 
                     Route::name($slug.'.')
                         ->prefix('/'.$path)
-                        ->group(function () use ($rootApp, $slug, $pages, $permissions, $resourceClass) {
+                        ->group(function () use ($rootApp, $slug, $pages, $permissions, $resourceClass, $readonly) {
                             if (!empty($pages['list'])) {
                                 Route::get('/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
@@ -29,14 +30,14 @@ final class ResourceRouteRegistrar
                                 ])->name('list')->permit($permissions['list'] ?? []);
                             }
 
-                            if (!empty($pages['create']) && !$resourceClass::hasCustomBackendPage('create')) {
+                            if (!empty($pages['create']) && !$readonly && !$resourceClass::hasCustomBackendPage('create')) {
                                 Route::get('/create/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'create',
                                 ])->name('create')->permit($permissions['create'] ?? []);
                             }
 
-                            if (!empty($pages['store']) && !$resourceClass::hasCustomBackendPage('store')) {
+                            if (!empty($pages['store']) && !$readonly && !$resourceClass::hasCustomBackendPage('store')) {
                                 Route::post('/create/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'store',
@@ -61,7 +62,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($pages['update']) && !$resourceClass::hasCustomBackendPage('update')) {
+                            if (!empty($pages['update']) && !$readonly && !$resourceClass::hasCustomBackendPage('update')) {
                                 Route::post('/{id}/edit/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'update',
@@ -70,7 +71,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($pages['delete']) && !$resourceClass::hasCustomBackendPage('delete')) {
+                            if (!empty($pages['delete']) && !$readonly && !$resourceClass::hasCustomBackendPage('delete')) {
                                 Route::post('/{id}/delete/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'delete',
@@ -111,10 +112,11 @@ final class ResourceRouteRegistrar
 
                     $routes = (array) $apiSchema->get('routes');
                     $permissions = (array) $resourceClass::permissionSchema()->get('api');
+                    $readonly = $resourceClass::isReadonly();
 
                     Route::name($slug.'.')
                         ->prefix('/'.$slug)
-                        ->group(function () use ($rootApp, $slug, $routes, $permissions, $resourceClass) {
+                        ->group(function () use ($rootApp, $slug, $routes, $permissions, $resourceClass, $readonly) {
                             if (!empty($routes['index'])) {
                                 Route::get('/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
@@ -122,7 +124,7 @@ final class ResourceRouteRegistrar
                                 ])->name('index')->permit($permissions['index'] ?? []);
                             }
 
-                            if (!empty($routes['store'])) {
+                            if (!empty($routes['store']) && !$readonly) {
                                 Route::post('/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'store',
@@ -138,7 +140,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($routes['update'])) {
+                            if (!empty($routes['update']) && !$readonly) {
                                 Route::put('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'update',
@@ -154,7 +156,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($routes['destroy'])) {
+                            if (!empty($routes['destroy']) && !$readonly) {
                                 Route::delete('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'destroy',
