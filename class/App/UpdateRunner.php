@@ -4,6 +4,7 @@ namespace Wonder\App;
 
 use mysqli;
 use Throwable;
+use Wonder\App\Support\TableSync;
 use Wonder\Sql\Connection;
 
 class UpdateRunner
@@ -66,7 +67,10 @@ class UpdateRunner
             'stats' => (object) [
                 'tables' => 0,
                 'rows' => 0,
+                'sync_import' => false,
                 'update' => 0,
+                'defaults' => 0,
+                'sync_export' => false,
                 'local' => 0,
             ],
             'api_sync' => null,
@@ -101,6 +105,7 @@ class UpdateRunner
 
             $result->stats->tables = $this->runTables();
             $result->stats->rows = $this->runFiles($this->rowDirectories());
+            $result->stats->sync_import = $this->runSyncImport();
             $result->stats->update = $this->runFiles($this->updateDirectories());
 
             if ($includeCliFiles) {
@@ -360,6 +365,20 @@ class UpdateRunner
         }
 
         return $count;
+    }
+
+    /**
+     * Importa `shared/sync-data.json` se esiste nella radice del sito.
+     */
+    private function runSyncImport(): bool
+    {
+        global $ROOT;
+
+        if (!is_string($ROOT ?? null) || trim($ROOT) === '') {
+            return false;
+        }
+
+        return TableSync::importIfExists($ROOT);
     }
 
     private function rowDirectories(): array
