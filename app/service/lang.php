@@ -36,7 +36,7 @@
     # Informazioni della società
         try {
 
-            if (sqlTableExists('society')) {
+            if (sqlTableExists('society_locations') || sqlTableExists('society')) {
 
                 $SOCIETY = infoSociety();
 

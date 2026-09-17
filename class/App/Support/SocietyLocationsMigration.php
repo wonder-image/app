@@ -34,6 +34,8 @@ final class SocietyLocationsMigration
             }
         });
 
+        SocietyLocations::reset();
+
         return true;
     }
 

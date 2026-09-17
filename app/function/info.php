@@ -43,30 +43,27 @@
 
     }
 
-    function infoSociety() {
+    function infoSociety(int|string|null $location = null) {
 
         global $PATH;
-        
+
+        $LOCATION = $location === null || $location === ''
+            ? \Wonder\App\Support\SocietyLocations::default()
+            : (\Wonder\App\Support\SocietyLocations::find($location) ?? \Wonder\App\Support\SocietyLocations::default());
+
         $RETURN = (object) array();
 
-        $TABLE = ["society", "society_address", "society_legal_address", "society_social"];
-
-        foreach ($TABLE  as $key => $table) {
-            
-            $SQL = sqlSelect($table, ['id' => 1], 1);
-            foreach ($SQL->row as $column => $value) { $RETURN->$column = isset($value) ? $value : ''; }
-
+        foreach (get_object_vars($LOCATION) as $column => $value) {
+            if (is_scalar($value) || $value === null) { $RETURN->$column = $value ?? ''; }
         }
 
         $RETURN->social = [];
-        $SQL = sqlSelect("society_social", ['id' => 1], 1);
-        foreach ($SQL->row as $column => $value) { 
-            if ($column != 'id' && $column != 'deleted' && $column != 'last_modified' && $column != 'site' && $column != 'creation' && !empty($value)) {
-                $RETURN->social[$column] = isset($value) ? $value : ''; 
+
+        foreach (\Wonder\App\Support\SocietyLocationResolver::LINK_FIELDS as $column) {
+            if ($column !== 'site' && !empty($RETURN->$column ?? '')) {
+                $RETURN->social[$column] = $RETURN->$column;
             }
         }
-
-        $RETURN->domain = empty($RETURN->site) ? '' : parse_url($RETURN->site)['host'];
 
         foreach ([
             'street',
@@ -75,6 +72,7 @@
             'city',
             'province',
             'country',
+            'gmaps',
             'legal_street',
             'legal_number',
             'legal_cap',
@@ -84,16 +82,25 @@
             'name',
             'legal_name',
             'email',
+            'site',
+            'pi',
+            'cf',
         ] as $field) {
             if (!isset($RETURN->$field)) {
                 $RETURN->$field = '';
             }
         }
 
+        $RETURN->domain = empty($RETURN->site) ? '' : (parse_url($RETURN->site, PHP_URL_HOST) ?? '');
+
         $address = prettyAddress($RETURN->street, $RETURN->number, $RETURN->cap, $RETURN->city, $RETURN->province, $RETURN->country);
         $RETURN->address = "$RETURN->street $RETURN->number, $RETURN->cap $RETURN->city ($RETURN->province)";
         $RETURN->prettyAddress = $address->pretty;
         $RETURN->prettyAddressPDF = $address->prettyPDF;
+
+        if (empty($RETURN->gmaps) && !empty($RETURN->google_place_id)) {
+            $RETURN->gmaps = \Wonder\App\Support\GoogleMapsLink::forPlace((string) $RETURN->google_place_id, $RETURN->address);
+        }
 
         $legalAddress = prettyAddress($RETURN->legal_street, $RETURN->legal_number, $RETURN->legal_cap, $RETURN->legal_city, $RETURN->legal_province, $RETURN->legal_country);
         $RETURN->addressLegal = "$RETURN->legal_street $RETURN->legal_number, $RETURN->legal_cap $RETURN->legal_city ($RETURN->legal_province)";
@@ -108,12 +115,12 @@
             if ($RETURN->pi == $RETURN->cf) {
                 $RETURN->prettyLegal .= ' - P.Iva e C.Fiscale '.$RETURN->pi;
             } else {
-                if (!empty($RETURN->pi)) { $RETURN->prettyLegal .= ' - P.Iva '.$RETURN->pi; } 
+                if (!empty($RETURN->pi)) { $RETURN->prettyLegal .= ' - P.Iva '.$RETURN->pi; }
                 if (!empty($RETURN->cf)) { $RETURN->prettyLegal .= ' - C.Fiscale '.$RETURN->cf; }
             }
         }
 
-        $RETURN->timetable = empty($RETURN->timetable) ? [] : json_decode($RETURN->timetable, true);
+        $RETURN->timetable = \Wonder\App\Support\OpeningHours::timetable((array) ($LOCATION->hours ?? []));
 
         $PRETTY_TIMEGROUP = prettyTimeTable($RETURN->timetable);
 
@@ -121,11 +128,25 @@
         $RETURN->prettyTime = $PRETTY_TIMEGROUP->prettyTime;
         $RETURN->prettyTimeGroup = $PRETTY_TIMEGROUP->prettyTimeGroup;
 
+        $RETURN->location = (object) [
+            'id' => (int) ($LOCATION->id ?? 0),
+            'slug' => (string) ($LOCATION->slug ?? ''),
+            'label' => (string) ($LOCATION->label ?? ''),
+            'is_default' => (string) ($LOCATION->is_default ?? '') === 'true',
+        ];
+        $RETURN->google_place_id = (string) ($LOCATION->google_place_id ?? '');
+        $RETURN->hours = (array) ($LOCATION->hours ?? []);
+        $RETURN->specialHours = \Wonder\App\Support\OpeningHours::upcomingSpecial(
+            (array) ($LOCATION->specialHours ?? []),
+            new DateTimeImmutable('today')
+        );
+        $RETURN->businessStatus = (string) ($LOCATION->business_status ?? 'operational');
+
         $LOGOS = sqlSelect('logos', [ 'id' => '1'], 1)->row;
 
         $LOGO = [];
 
-        foreach ($LOGOS as $key => $value) {
+        foreach ((array) $LOGOS as $key => $value) {
             if (!empty($value) && !empty(json_decode($value)) && is_array(json_decode($value))) {
                 $logo = json_decode($value)[0];
                 $LOGO[$key] = $logo;
@@ -144,6 +165,19 @@
         $RETURN->appIcon = isset($LOGO['app_icon']) ? $PATH->upload.'/logos/'.$LOGO['app_icon'] : "";
 
         return $RETURN;
+
+    }
+
+    /** Tutte le sedi visibili, nel formato di `infoSociety()`. */
+    function infoSocietyLocations(): array {
+
+        $LOCATIONS = [];
+
+        foreach (\Wonder\App\Support\SocietyLocations::all() as $location) {
+            $LOCATIONS[] = infoSociety((int) $location->id);
+        }
+
+        return $LOCATIONS;
 
     }
 
