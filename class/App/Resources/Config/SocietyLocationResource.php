@@ -75,6 +75,7 @@ final class SocietyLocationResource extends Resource
     {
         return [
             'label' => 'Nome della sede',
+            'slug' => 'Slug',
             'name' => 'Nome dell\'attività',
             'is_default' => 'Predefinita',
             'visible' => 'Stato',
@@ -123,7 +124,7 @@ final class SocietyLocationResource extends Resource
             ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->formSchema()),
             FormField::key('google_place_id')->text(),
             FormField::key('email')->email(),
-            FormField::key('pec')->text(),
+            FormField::key('pec')->email(),
             FormField::key('tel')->text(),
             FormField::key('cel')->text(),
             FormField::key('legal_name')->text(),
@@ -208,10 +209,10 @@ final class SocietyLocationResource extends Resource
 
                 (new Card)->components([
                     SectionTitle::make('Contatti')->columnSpan(12),
-                    static::getInput('email')->columnSpan(4),
-                    static::getInput('pec')->columnSpan(4),
-                    static::getInput('tel')->columnSpan(4),
-                    static::getInput('cel')->columnSpan(4),
+                    static::getInput('email')->columnSpan(3),
+                    static::getInput('pec')->columnSpan(3),
+                    static::getInput('tel')->columnSpan(3),
+                    static::getInput('cel')->columnSpan(3),
                 ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
@@ -284,6 +285,7 @@ final class SocietyLocationResource extends Resource
     {
         return [
             TableColumn::key('label')->text()->link('edit'),
+            TableColumn::key('slug')->text(),
             TableColumn::key('city')->text(),
             TableColumn::key('is_default')
                 ->booleanBadge()

@@ -230,7 +230,7 @@ il Place ID.
 #### E5. Pagine del backend
 
 - **"Sedi"** (ex "Dati aziendali"): Resource nel menu Set Up, percorso
-  `app/config/locations`. Elenco con nome della sede, città, badge "Predefinita" e
+  `app/config/locations`. Elenco con nome della sede, slug, città, badge "Predefinita" e
   visibilità; aggiunta, modifica ed eliminazione; tutto riservato ad `admin`.
 - **Scheda della sede:** riquadri Sede (nome della sede, predefinita, nome
   dell'attività visibile solo nella predefinita, attività della sede, data di apertura,
@@ -238,8 +238,8 @@ il Place ID.
   a lato i Link. Le istruzioni stanno nei tooltip dei titoli. Gli orari si validano e si
   salvano con la sede: se una riga non è valida la sede non si salva e il messaggio
   indica riga e problema.
-- **Slug:** generato dal nome della sede alla creazione, mai modificabile, non compare
-  nella scheda; unico tra le sedi non eliminate, senza indice `UNIQUE` (così il nome di
+- **Slug:** generato dal nome della sede alla creazione, mai modificabile, compare
+  nell'elenco ma non nella scheda; unico tra le sedi non eliminate, senza indice `UNIQUE` (così il nome di
   una sede eliminata si può riusare).
 - **Sede predefinita:** sempre una sola; impostarne una toglie il flag alle altre e le
   passa il nome dell'attività; non si può eliminare; la prima sede creata è predefinita.
