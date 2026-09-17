@@ -40,6 +40,16 @@ check('colonne della sede per gruppo', function () {
     return $missing === [];
 });
 
+check('slug unico solo tra le sedi non eliminate (nessun indice UNIQUE)', function () {
+    $columns = SocietyLocation::getColumns();
+    $fields = SocietyLocation::dataFields();
+
+    // Una sede eliminata resta nella tabella: con l'indice, ricreare "MC Nembro" darebbe
+    // "Duplicate entry" perché create_link() ignora le righe eliminate.
+    return !array_key_exists('unique', $columns['slug'] ?? [])
+        && ($fields['slug']->getSchema('link_unique') ?? false) === true;
+});
+
 check('orari e orari speciali non sincronizzati, legati alla sede', function () {
     $hours = SocietyLocationHour::getColumns();
     $special = SocietyLocationSpecialHour::getColumns();

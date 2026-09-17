@@ -41,7 +41,7 @@ final class SocietyLocation extends Model
     public static function tableSchema(): array
     {
         return [
-            Column::key('slug')->length(100)->unique(),
+            Column::key('slug')->length(100),
             Column::key('label'),
             Column::key('is_default')->enum(['true', 'false'])->default('false'),
             Column::key('visible')->enum(['true', 'false'])->default('true'),

@@ -148,7 +148,7 @@ il Place ID.
 
 | Tabella | Gruppo | Colonne |
 |---|---|---|
-| `society_locations` | Sede | slug (unico, generato dal nome della sede alla creazione e mai modificato), label = nome della sede (es. "MC Nembro"), is_default (una sola), visible, position, business_status (`operational`, `closed_temporarily`, `closed_permanently`, `future_opening`), opening_date |
+| `society_locations` | Sede | slug (unico tra le sedi non eliminate, generato dal nome della sede alla creazione e mai modificato), label = nome della sede (es. "MC Nembro"), is_default (una sola), visible, position, business_status (`operational`, `closed_temporarily`, `closed_permanently`, `future_opening`), opening_date |
 | | Indirizzo | `AddressExtension::simple(linkKey: 'gmaps')`, google_place_id (uno per sede), google_synced_at |
 | | Contatti | email, pec, tel, cel |
 | | Attività | name = nome dell'attività (es. "McDonald's"), unico per la società: si compila solo nella sede predefinita |
@@ -232,12 +232,15 @@ il Place ID.
 - **"Sedi"** (ex "Dati aziendali"): Resource nel menu Set Up, percorso
   `app/config/locations`. Elenco con nome della sede, città, badge "Predefinita" e
   visibilità; aggiunta, modifica ed eliminazione; tutto riservato ad `admin`.
-- **Scheda della sede:** riquadri Sede (nome e slug in sola lettura), Attività (nome
-  dell'attività, visibile solo quando la sede è predefinita), Indirizzo con Place ID,
-  Sede legale, Contatti, Dati legali, Link, Stato, Orari regolari e secondari, Orari
-  speciali e chiusure. Gli orari si validano e si salvano con la sede: se una riga non
-  è valida la sede non si salva e il messaggio indica riga e problema.
-- **Slug:** generato dal nome della sede alla creazione, reso unico, mai modificabile.
+- **Scheda della sede:** riquadri Sede (nome della sede, predefinita, nome
+  dell'attività visibile solo nella predefinita, attività della sede, data di apertura,
+  stato), Contatti, Dati legali, Sede legale, Indirizzo con Place ID, Orari e chiusure;
+  a lato i Link. Le istruzioni stanno nei tooltip dei titoli. Gli orari si validano e si
+  salvano con la sede: se una riga non è valida la sede non si salva e il messaggio
+  indica riga e problema.
+- **Slug:** generato dal nome della sede alla creazione, mai modificabile, non compare
+  nella scheda; unico tra le sedi non eliminate, senza indice `UNIQUE` (così il nome di
+  una sede eliminata si può riusare).
 - **Sede predefinita:** sempre una sola; impostarne una toglie il flag alle altre e le
   passa il nome dell'attività; non si può eliminare; la prima sede creata è predefinita.
 

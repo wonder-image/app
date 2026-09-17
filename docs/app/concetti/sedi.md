@@ -39,7 +39,7 @@ I loghi restano unici per la società (`logos`).
 
 - C'è sempre una sola sede predefinita: impostarne una toglie il flag alle altre e le passa il nome dell'attività, la prima sede creata lo diventa, non si può eliminare.
 - **Nome dell'attività** (`name`): si compila solo nella predefinita (il campo compare quando "Predefinita" è "Sì") e vale per tutte le sedi, anche per una sede in franchising con dati legali propri.
-- **Slug:** generato dal nome della sede alla creazione, reso unico, mai modificabile; nella scheda è in sola lettura.
+- **Slug:** generato dal nome della sede alla creazione e mai modificato; non compare nella scheda. È unico tra le sedi non eliminate (nessun indice `UNIQUE`: una sede eliminata resta nella tabella e il suo nome si può riusare).
 - **Contatti** (`email`, `pec`, `tel`, `cel`) e **link** (`site`, `instagram`, `facebook`, `tiktok`, `linkedin`, `whatsapp`, `youtube`): campo per campo.
 - **Dati legali**, **indirizzo** (con Place ID) e **sede legale**: per gruppo intero, solo se il gruppo della sede è tutto vuoto (il paese da solo non conta). Così non si mescolano dati di sedi diverse.
 - **Orari**: una sede senza orari propri usa orari e chiusure della predefinita.
