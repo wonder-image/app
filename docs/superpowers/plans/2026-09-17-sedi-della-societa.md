@@ -3894,7 +3894,8 @@ use Wonder\App\Models\Config\SocietyLocation;
 use Wonder\Sql\Connection;
 use Wonder\Sql\Transaction;
 
-verifica('sql*() e Transaction sulla stessa connessione', Connection::Connect('main') === $GLOBALS['mysqli']);
+// `sql*()` crea `new Query()` senza connessione globale: usa `Connection::Connect('main')`, come i Model.
+verifica('sql*(), Model e Transaction sulla stessa connessione', VerificaCoreItem::connection() === Connection::Connect('main') && (new \ReflectionProperty(\Wonder\Sql\Query::class, 'mysqli'))->getValue(new \Wonder\Sql\Query()) === Connection::Connect('main'));
 
 try {
     Transaction::run(static function (): void {
@@ -3995,7 +3996,7 @@ $upsert = static function (string $table, array $values): void {
 
 try {
     Transaction::run(static function () use ($upsert): void {
-        global $mysqli;
+        $mysqli = \Wonder\Sql\Connection::Connect('main');
 
         $mysqli->query('DELETE FROM society_location_special_hours');
         $mysqli->query('DELETE FROM society_location_hours');
@@ -4068,7 +4069,7 @@ try {
         verifica('infoSociety(id) restituisce la sede', infoSociety($id)->location->slug === 'negozio-di-prova');
         verifica('telefono proprio, email della predefinita', $branch->tel === '030 000' && $branch->email === 'info@esempio.it');
         verifica('indirizzo proprio, dati legali della predefinita', $branch->city === 'Brescia' && $branch->street === 'Via Prova' && $branch->legal_name === 'Esempio srl' && $branch->pi === '01234567890');
-        verifica('orari e chiusure della predefinita', $branch->timetable === ['Mon' => [['from' => '09:00', 'to' => '18:00']]] && count($branch->specialHours) === 1);
+        verifica('orari e chiusure della predefinita', $branch->timetable === $default->timetable && in_array(['from' => '09:00', 'to' => '18:00'], $branch->timetable['Mon'] ?? [], true) && $branch->hoursInherited === true && count($branch->specialHours) === count($default->specialHours) && count($default->specialHours) >= 1, json_encode([$branch->timetable, count($branch->specialHours)]));
         verifica('slug inesistente → predefinita', infoSociety('non-esiste')->location->id === $default->location->id);
         verifica('infoSocietyLocations() con due sedi', count(infoSocietyLocations()) === 2);
         verifica('isOpen() senza errori', is_bool(SocietyLocations::isOpen(SocietyLocations::find($id))));
@@ -4227,3 +4228,13 @@ Expected: `app` torna una cartella.
 - [ ] **Step 14: Registrare l'esito**
 
 Nel TODO del gestionale (`packages/gestionale/TODO.md`) segnare come fatte le verifiche con database dei piani 1 e 2 e il piano 3, annotando eventuali verifiche rimaste solo visive.
+
+---
+
+## Note di esecuzione (2026-09-17)
+
+- **Task 6:** `tests/App/ResourceSchema/FormFieldTypedInputsTest.php` elenca l'API pubblica di `Input`; aggiunto `placeholder` all'elenco atteso (commit a parte).
+- **Task 10, step 7:** nessun codice imposta più `global $mysqli`; `sql*()` crea `new Query()`, che usa `Connection::Connect('main')`, la stessa connessione in cache dei Model e di `Transaction`. Il controllo iniziale confrontava con `$GLOBALS['mysqli']` (null) ed è stato corretto; per lo stesso motivo `migration.php` usa `Connection::Connect('main')` al posto di `global $mysqli`.
+- **Task 10, step 9:** `new-site` aveva già orari migrati (lun 8–17, mar 8–17:40); il controllo degli orari ereditati confronta ora gli orari della sede con quelli della predefinita invece di un valore fisso.
+- **Task 10, controllo aggiunto:** `render.php` rende in CLI i form "Dati aziendali" (nuova sede, con suggerimenti ereditati) e "Orari e chiusure" (con le righe migrate) con `ResourceFormLayoutRenderer`, dopo `\Wonder\App\Theme::set('bootstrap')` come in `app/bootstrap/backend.php`: tutto ok.
+- **Esito su `new-site`:** migrazione reale con `infoSociety()` identica prima e dopo; piano 1 (righe precaricate 3 → 0, export/import con `id` stabili, sola lettura in produzione) e piano 2 (annullamento congiunto `sqlInsert()`/`Model::create()`, letture `ForUpdate`, `NamedLock` tra due processi) verificati con database. File di `new-site` ripristinati; nel database restano `verifica_core_items` e le tabelle delle sedi con i dati migrati. Resta il controllo visivo nel browser (step 13).
