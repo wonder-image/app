@@ -155,6 +155,7 @@ Fa questo:
   - `build/row` e' il lifecycle di seed/bootstrap idempotente
   - i payload statici condivisi dei seed stanno in `Wonder\App\SeedDefaults`
   - `Wonder\App\RuntimeDefaults` non e' il posto giusto per i row seed: resta per fallback runtime
+- se `society_locations` è vuota, crea la sede predefinita dai vecchi dati aziendali (`stats.society_locations`)
 - importa `shared/sync-data.json` se presente (`stats.sync_import`)
 - esegue i file in `build/update` (include: rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
 - solo con `APP_ENV=local`: righe precaricate dei moduli (`database.defaults`, `stats.defaults`) e, se ne ha inserite, scrittura di `shared/sync-data.json` (`stats.sync_export`)

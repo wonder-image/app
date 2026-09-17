@@ -27,7 +27,7 @@ un singolo Model né alle 7 azioni CRUD.
 
 - Base: `class/App/PageSchema/CustomPageSchema.php`
 - Esempi reali: `class/App/PageSchema/AccountPageSchema.php`,
-  `class/App/PageSchema/CorporateDataPageSchema.php`
+  `class/App/PageSchema/UploadMassivePageSchema.php`
 
 ## Esempio completo (copiabile)
 

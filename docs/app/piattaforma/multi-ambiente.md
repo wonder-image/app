@@ -119,11 +119,7 @@ I Model vengono scoperti via `ModelRegistry` -- framework, moduli e sito contrib
 | `css_dropdown` | Singleton | Stili dropdown |
 | `css_alert` | Singleton | Stili alert/toast |
 | `seo` | Singleton | Meta tag SEO default |
-| `society` | Singleton | Dati aziendali |
-| `society_address` | Singleton | Indirizzo sede operativa |
-| `society_legal_address` | Singleton | Indirizzo sede legale |
-| `society_social` | Singleton | Link social |
-| `society_timetable` | Multi-row | Orari di apertura |
+| `society_locations` | Multi-row con `keepIds()` | Sedi della società (orari e chiusure non sincronizzati, vedi [Dati aziendali e sedi](../concetti/dati-aziendali.md)) |
 
 Le colonne di sistema (`id`, `last_modified`, `creation`, `deleted`) vengono escluse dall'export/import.
 

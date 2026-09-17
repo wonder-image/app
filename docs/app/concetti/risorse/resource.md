@@ -224,6 +224,25 @@ Il pulsante compare nell'header di elenco, form e scheda, si apre in una nuova
 scheda ed è tradotto con `components.buttons.docs`. Sono ammessi solo URL
 `http(s)` o relativi; ogni modulo compone l'URL dalla propria configurazione.
 
+## Azioni e suggerimenti nei form
+
+Le azioni di `PageSchema::actions()` compaiono nell'header di scheda **e** form, prima del pulsante "Guida"; il callable riceve i valori del record:
+
+```php
+public static function pageSchema(): PageSchema
+{
+    return PageSchema::for(static::class)
+        ->actions('edit', static fn (array $item): array => [[
+            'label' => 'Orari e chiusure',
+            'icon' => 'bi bi-clock',
+            'class' => 'btn-outline-secondary',
+            'href' => __r('backend.resource.app-config-opening-hours.edit', ['id' => (int) $item['id']]),
+        ]]);
+}
+```
+
+`formPlaceholders(array $values, string $mode): array` restituisce i suggerimenti dei campi vuoti (nome campo => testo), per esempio i valori ereditati da un altro record. Sugli input singoli: `FormField::key('email')->email()->placeholder('info@esempio.it')`.
+
 ## Estendere oltre il CRUD
 
 - `customBackendPages(): array` — elenco di azioni che la Resource gestisce da
