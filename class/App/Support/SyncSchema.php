@@ -13,8 +13,13 @@ namespace Wonder\App\Support;
  * - `SyncSchema::singleton()` — la tabella ha una sola riga (id=1)
  * - `SyncSchema::multiRow()` — la tabella ha righe multiple
  *
- * Opzionalmente si possono escludere colonne specifiche dall'export
- * con `->exclude(['colonna1', 'colonna2'])`.
+ * Opzioni (nuove istanze immutabili, componibili):
+ * - `->exclude([...])` — colonne escluse dall'export;
+ * - `->keepIds()` — export con `id` e `deleted`; import che inserisce o
+ *   aggiorna per `id` senza svuotare la tabella e segna `deleted = 'true'`
+ *   le righe assenti dal file (per tabelle referenziate da chiavi esterne);
+ * - `->localOnly()` — la tabella si modifica solo con `APP_ENV=local`;
+ *   altrove le Resource dei suoi Model sono in sola lettura.
  */
 final class SyncSchema
 {
@@ -23,10 +28,20 @@ final class SyncSchema
     /** @var string[] Colonne escluse dall'export (oltre a quelle di sistema). */
     public readonly array $excludeColumns;
 
-    private function __construct(bool $singleton, array $excludeColumns = [])
-    {
+    public readonly bool $keepIds;
+
+    public readonly bool $localOnly;
+
+    private function __construct(
+        bool $singleton,
+        array $excludeColumns = [],
+        bool $keepIds = false,
+        bool $localOnly = false,
+    ) {
         $this->singleton = $singleton;
         $this->excludeColumns = $excludeColumns;
+        $this->keepIds = $keepIds;
+        $this->localOnly = $localOnly;
     }
 
     /**
@@ -53,6 +68,22 @@ final class SyncSchema
      */
     public function exclude(array $columns): self
     {
-        return new self($this->singleton, $columns);
+        return new self($this->singleton, $columns, $this->keepIds, $this->localOnly);
+    }
+
+    /**
+     * Mantieni gli `id` tra gli ambienti (solo tabelle multi-row).
+     */
+    public function keepIds(): self
+    {
+        return new self($this->singleton, $this->excludeColumns, true, $this->localOnly);
+    }
+
+    /**
+     * Tabella modificabile solo con `APP_ENV=local`.
+     */
+    public function localOnly(): self
+    {
+        return new self($this->singleton, $this->excludeColumns, $this->keepIds, true);
     }
 }
