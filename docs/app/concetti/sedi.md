@@ -47,6 +47,8 @@ I loghi restano unici per la società (`logos`).
 
 ## Orari e chiusure
 
+Nel form l'orario di chiusura a mezzanotte si mostra come 00:00 (il campo orario del browser non accetta 24:00) e si salva come `24:00`.
+
 Orari e chiusure si modificano nella scheda della sede, riservata ad `admin`, anche in produzione (la tabella delle sedi non è `localOnly()`). Si salvano insieme alla sede: se una riga non è valida la sede non viene salvata e il messaggio indica riga e problema. Il modello è quello di Google, così un futuro cron potrà confrontarlo con la scheda Google Business.
 
 **Orari regolari e secondari** (`regularHours`):
