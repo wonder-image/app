@@ -57,6 +57,12 @@
 
     }
 
+    function sqlTransaction(callable $callback, string $database = 'main') {
+
+        return \Wonder\Sql\Transaction::run($callback, $database);
+
+    }
+
     function sqlDelete($table, $condition = null) {
         
         global $mysqli;
