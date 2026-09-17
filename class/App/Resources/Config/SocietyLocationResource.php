@@ -392,6 +392,18 @@ final class SocietyLocationResource extends Resource
 
     public static function mutateFormValues(array $values, string $mode, string $context = 'backend'): array
     {
+        // Dopo un errore il form riceve i valori preparati, senza lo slug immutabile.
+        if (trim((string) ($values['slug'] ?? '')) === '' && (int) ($values['id'] ?? 0) > 0) {
+            $row = sqlSelect(SocietyLocation::$table, ['id' => (int) $values['id']], 1)->row;
+            $values['slug'] = is_array($row) ? (string) ($row['slug'] ?? '') : '';
+        }
+
+        foreach (['hours', 'special_hours'] as $inputName) {
+            if (is_array($values[$inputName] ?? null)) {
+                $values[$inputName] = OpeningHoursInput::forForm($values[$inputName]);
+            }
+        }
+
         if (is_array($values['special_hours'] ?? null)) {
             usort(
                 $values['special_hours'],

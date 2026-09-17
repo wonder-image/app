@@ -149,6 +149,22 @@ final class OpeningHoursInput
         return ['rows' => $valid, 'errors' => $errors];
     }
 
+    /**
+     * Righe pronte per il form: il campo orario del browser non accetta `24:00`,
+     * quindi la mezzanotte a fine giornata si mostra come `00:00`
+     * (al salvataggio `hours()` e `specialHours()` la riportano a `24:00`).
+     */
+    public static function forForm(array $rows): array
+    {
+        foreach ($rows as $key => $row) {
+            if (is_array($row) && OpeningHours::time($row['close_time'] ?? '') === '24:00') {
+                $rows[$key]['close_time'] = '00:00';
+            }
+        }
+
+        return $rows;
+    }
+
     /** `Y-m-d` da `d/m/Y`, `Y-m-d` o `Y-m-d H:i:s`; stringa vuota se non valida. */
     public static function date(string $value): string
     {

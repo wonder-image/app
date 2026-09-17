@@ -66,4 +66,18 @@ check('errori su chiusure e aperture', function () {
     return $result['rows'] === [] && count($result['errors']) === 4;
 });
 
+check('nel form 24:00 diventa 00:00, che al salvataggio torna 24:00', function () {
+    $form = OpeningHoursInput::forForm([
+        ['id' => '11', 'hours_type' => 'regular', 'open_day' => 'Mon', 'open_time' => '11:00', 'close_day' => 'Mon', 'close_time' => '24:00'],
+        ['id' => '12', 'hours_type' => 'regular', 'open_day' => 'Fri', 'open_time' => '22:00', 'close_day' => 'Sat', 'close_time' => '02:00'],
+    ]);
+    $saved = OpeningHoursInput::hours($form);
+
+    return $form[0]['close_time'] === '00:00'
+        && $form[1]['close_time'] === '02:00'
+        && $saved['errors'] === []
+        && $saved['rows'][0]['close_time'] === '24:00'
+        && $saved['rows'][0]['close_day'] === 'Mon';
+});
+
 summary();
