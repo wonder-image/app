@@ -569,6 +569,42 @@ abstract class Model
     }
 
     /**
+     * Come `find()` con `SELECT ... FOR UPDATE`: solo dentro `Transaction::run()`.
+     */
+    public static function findForUpdate(
+        string|array|null $condition = null,
+        string|int|null $limit = null,
+        ?string $order = null,
+        ?string $orderDirection = null,
+        string|array $columns = '*'
+    ): mixed {
+        $rows = static::query()->SelectForUpdate(
+            static::$table,
+            static::queryCondition($condition),
+            $limit,
+            $order,
+            $orderDirection,
+            $columns
+        )->row;
+
+        return static::decorateRows($rows);
+    }
+
+    /**
+     * Come `findById()` con `SELECT ... FOR UPDATE`: solo dentro `Transaction::run()`.
+     */
+    public static function findByIdForUpdate(int|string $id): mixed
+    {
+        $row = static::query()->SelectForUpdate(
+            static::$table,
+            static::queryCondition(['id' => $id]),
+            1
+        )->row;
+
+        return static::decorateRows($row);
+    }
+
+    /**
      * Hook opzionale: ogni Model può override per arricchire/rielaborare
      * una riga prima che venga restituita da `all()`, `find()`, `findById()`.
      *

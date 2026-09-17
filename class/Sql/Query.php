@@ -6,6 +6,7 @@
     use Wonder\Sql\Utility\Error;
 
     use mysqli;
+    use RuntimeException;
 
     class Query {
 
@@ -406,6 +407,28 @@
         public function Select( string | array $table, string | array | null $condition = null, string | int | null $limit = null, ?string $order = null, ?string $orderDirection = null, string | array $attributes = '*' ) 
         {
 
+            return $this->runSelect($table, $condition, $limit, $order, $orderDirection, $attributes, false);
+
+        }
+
+        /**
+         * Come `Select()` con `FOR UPDATE`: blocca le righe lette fino alla fine
+         * della transazione. Consentito solo dentro `Transaction::run()`.
+         */
+        public function SelectForUpdate( string | array $table, string | array | null $condition = null, string | int | null $limit = null, ?string $order = null, ?string $orderDirection = null, string | array $attributes = '*' ) 
+        {
+
+            if (!Transaction::activeForMysqli($this->mysqli)) {
+                throw new RuntimeException('SelectForUpdate richiede una transazione attiva (Transaction::run).');
+            }
+
+            return $this->runSelect($table, $condition, $limit, $order, $orderDirection, $attributes, true);
+
+        }
+
+        private function runSelect( string | array $table, string | array | null $condition, string | int | null $limit, ?string $order, ?string $orderDirection, string | array $attributes, bool $forUpdate ) 
+        {
+
             $query = "SELECT ";
             $query .= is_array($attributes) ? implode(",", $attributes) : $attributes;
             $query .= " FROM ";
@@ -419,6 +442,7 @@
             $query .= ($orderDirection == null) ? "" : " $orderDirection";
             $safeLimit = self::sanitizeLimit($limit);
             $query .= ($safeLimit === '') ? "" : " LIMIT $safeLimit";
+            $query .= $forUpdate ? " FOR UPDATE" : "";
 
             $RETURN = (object) [];
 

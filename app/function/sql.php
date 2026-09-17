@@ -57,6 +57,16 @@
 
     }
 
+    function sqlSelectForUpdate($table, $condition = null, $limit = null, $order = null, $orderDirection = null, $attributes = '*') {
+
+        global $mysqli;
+
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->SelectForUpdate( $table, $condition, $limit, $order, $orderDirection, $attributes );
+
+    }
+
     function sqlTransaction(callable $callback, string $database = 'main') {
 
         return \Wonder\Sql\Transaction::run($callback, $database);
