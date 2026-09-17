@@ -34,13 +34,16 @@ final class ResourcePagePresenter
         $formSchema = $this->resourceClass::formSchema();
         $formLayout = $this->resourceClass::formLayoutSchema();
         $values = $this->resourceClass::mutateFormValues($values, $mode, 'backend');
+        $placeholders = $this->resourceClass::formPlaceholders($values, $mode);
 
         return [
             'TITLE' => $this->pageTitle($mode),
+            'SUBTITLE' => $this->pageSubtitle($mode),
+            'ACTIONS' => $this->withDocsAction($mode, $this->pageActions($mode, $values)),
             'RESOURCE_CLASS' => $this->resourceClass,
-            'FIELDS' => $this->hydrateFields($formSchema, $values, $errors, $mode),
+            'FIELDS' => $this->hydrateFields($formSchema, $values, $errors, $mode, $placeholders),
             'SIDEBAR_FIELDS' => [],
-            'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, $errors, $mode),
+            'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, $errors, $mode, $placeholders),
             'FORM_METHOD' => 'POST',
             'FORM_ENCTYPE' => 'multipart/form-data',
             'FORM_ACTION' => $mode === 'edit' && $id !== null
@@ -53,8 +56,6 @@ final class ResourcePagePresenter
             'NAME' => $this->legacyName(),
             'READONLY' => $this->resourceClass::isReadonly(),
             'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
-            'DOCS_URL' => $this->resourceClass::pageSchema()->docsUrl($mode),
-            'DOCS_LABEL' => DocsAction::label(),
         ];
     }
 
@@ -119,7 +120,7 @@ HTML;
         ];
     }
 
-    private function hydrateFields(array $fields, array $values, array $errors, string $mode): array
+    private function hydrateFields(array $fields, array $values, array $errors, string $mode, array $placeholders = []): array
     {
         $hydrated = [];
 
@@ -133,6 +134,10 @@ HTML;
 
             if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
                 $clone->value($values[$name]);
+            }
+
+            if ($name !== '' && isset($placeholders[$name]) && method_exists($clone, 'placeholder')) {
+                $clone->placeholder((string) $placeholders[$name]);
             }
 
             if ($name !== '' && isset($errors[$name]) && method_exists($clone, 'error')) {
@@ -152,7 +157,7 @@ HTML;
         return $hydrated;
     }
 
-    private function hydrateLayout(mixed $layout, array $values, array $errors, string $mode): mixed
+    private function hydrateLayout(mixed $layout, array $values, array $errors, string $mode, array $placeholders = []): mixed
     {
         if (!is_object($layout)) {
             return null;
@@ -161,13 +166,13 @@ HTML;
         $clone = clone $layout;
 
         if (!property_exists($clone, 'components') || !is_array($clone->components ?? null)) {
-            return $this->hydrateField($clone, $values, $errors, $mode);
+            return $this->hydrateField($clone, $values, $errors, $mode, $placeholders);
         }
 
         $components = [];
 
         foreach ($clone->components as $component) {
-            $components[] = $this->hydrateLayout($component, $values, $errors, $mode);
+            $components[] = $this->hydrateLayout($component, $values, $errors, $mode, $placeholders);
         }
 
         $clone->components = $components;
@@ -175,13 +180,17 @@ HTML;
         return $clone;
     }
 
-    private function hydrateField(object $field, array $values, array $errors, string $mode): object
+    private function hydrateField(object $field, array $values, array $errors, string $mode, array $placeholders = []): object
     {
         $clone = $this->applyModelFieldState(clone $field, $mode);
         $name = property_exists($clone, 'name') ? (string) ($clone->name ?? '') : '';
 
         if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
             $clone->value($values[$name]);
+        }
+
+        if ($name !== '' && isset($placeholders[$name]) && method_exists($clone, 'placeholder')) {
+            $clone->placeholder((string) $placeholders[$name]);
         }
 
         if ($name !== '' && isset($errors[$name]) && method_exists($clone, 'error')) {

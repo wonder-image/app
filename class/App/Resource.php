@@ -199,6 +199,17 @@ abstract class Resource
     }
 
     /**
+     * Suggerimenti dei campi vuoti nel form backend: nome campo => testo
+     * (es. il valore ereditato da un altro record).
+     *
+     * @return array<string, string>
+     */
+    public static function formPlaceholders(array $values, string $mode): array
+    {
+        return [];
+    }
+
+    /**
      * Verifica reCAPTCHA server-side in una sola riga, da chiamare nel hook
      * API (tipicamente {@see mutateRequestValues()} per l'action `store`):
      *

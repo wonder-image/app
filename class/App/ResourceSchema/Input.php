@@ -196,6 +196,12 @@ abstract class Input
             $attributes['autocomplete'] = $autocomplete;
         }
 
+        $placeholder = (string) ($this->schema['placeholder'] ?? '');
+
+        if ($placeholder !== '') {
+            $attributes['placeholder'] = $placeholder;
+        }
+
         if ($attributes !== []) {
             $element->attributes($attributes);
         }
@@ -257,6 +263,16 @@ abstract class Input
     public function label(string $label): static
     {
         $this->schema['label'] = $label;
+
+        return $this;
+    }
+
+    /**
+     * Suggerimento mostrato nel campo vuoto (attributo `placeholder`).
+     */
+    public function placeholder(string $placeholder): static
+    {
+        $this->schema['placeholder'] = $placeholder;
 
         return $this;
     }
