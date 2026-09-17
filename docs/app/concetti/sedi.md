@@ -2,11 +2,16 @@
 icon: building
 ---
 
-# Dati aziendali e sedi
+# Sedi
 
 ## Cos'è
 
-"Dati aziendali" è l'elenco delle **sedi della società**. Ogni sede ha nome, indirizzo con Google Place ID, contatti, dati aziendali e legali, sede legale e link. Una sede è **predefinita**: le altre prendono da lei ciò che manca.
+"Sedi" (menu Set Up, ex "Dati aziendali") è l'elenco delle **sedi della società**. Ogni sede ha nome della sede, indirizzo con Google Place ID, contatti, dati legali, sede legale, link, orari e chiusure. Una sede è **predefinita**: contiene il nome dell'attività e le altre sedi prendono da lei ciò che manca.
+
+| Nome | Esempio | Dove si legge |
+|---|---|---|
+| Nome dell'attività | McDonald's | `$SOCIETY->name`, uguale per tutte le sedi |
+| Nome della sede | MC Nembro, MC Drive Dalmine, Orio Center | `$SOCIETY->location->name` |
 
 ## Dove si trova nel codice
 
@@ -16,7 +21,8 @@ icon: building
 | Eredità | `class/App/Support/SocietyLocationResolver.php` |
 | Orari | `class/App/Support/OpeningHours.php` |
 | Lettura | `class/App/Support/SocietyLocations.php`, `infoSociety()` in `app/function/info.php` |
-| Backend | `class/App/Resources/Config/CorporateDataResource.php`, `OpeningHoursResource.php` |
+| Backend | `class/App/Resources/Config/SocietyLocationResource.php` |
+| Validazione degli orari | `class/App/Support/OpeningHoursInput.php` |
 | Migrazione | `class/App/Support/SocietyLocationsMigration.php` |
 
 ## Tabelle
@@ -31,15 +37,17 @@ I loghi restano unici per la società (`logos`).
 
 ## Sede predefinita ed eredità
 
-- C'è sempre una sola sede predefinita: impostarne una toglie il flag alle altre, la prima sede creata lo diventa, non si può eliminare.
+- C'è sempre una sola sede predefinita: impostarne una toglie il flag alle altre e le passa il nome dell'attività, la prima sede creata lo diventa, non si può eliminare.
+- **Nome dell'attività** (`name`): si compila solo nella predefinita (il campo compare quando "Predefinita" è "Sì") e vale per tutte le sedi, anche per una sede in franchising con dati legali propri.
+- **Slug:** generato dal nome della sede alla creazione, reso unico, mai modificabile; nella scheda è in sola lettura.
 - **Contatti** (`email`, `pec`, `tel`, `cel`) e **link** (`site`, `instagram`, `facebook`, `tiktok`, `linkedin`, `whatsapp`, `youtube`): campo per campo.
-- **Dati aziendali e legali**, **indirizzo** (con Place ID) e **sede legale**: per gruppo intero, solo se il gruppo della sede è tutto vuoto (il paese da solo non conta). Così non si mescolano dati di sedi diverse.
+- **Dati legali**, **indirizzo** (con Place ID) e **sede legale**: per gruppo intero, solo se il gruppo della sede è tutto vuoto (il paese da solo non conta). Così non si mescolano dati di sedi diverse.
 - **Orari**: una sede senza orari propri usa orari e chiusure della predefinita.
 - Nel form i campi vuoti mostrano come suggerimento il valore ereditato.
 
 ## Orari e chiusure
 
-La pagina "Orari e chiusure" (menu Set Up) è modificabile da `admin` e `administrator`, anche in produzione. Il modello è quello di Google, così un futuro cron potrà confrontarlo con la scheda Google Business.
+Orari e chiusure si modificano nella scheda della sede, riservata ad `admin`, anche in produzione (la tabella delle sedi non è `localOnly()`). Si salvano insieme alla sede: se una riga non è valida la sede non viene salvata e il messaggio indica riga e problema. Il modello è quello di Google, così un futuro cron potrà confrontarlo con la scheda Google Business.
 
 **Orari regolari e secondari** (`regularHours`):
 
@@ -67,7 +75,7 @@ infoSocietyLocations();         // tutte le sedi visibili, stesso formato
 
 | Campo | Contenuto |
 |---|---|
-| `location` | `id`, `slug`, `label`, `is_default` |
+| `location` | `id`, `slug`, `name` (nome della sede), `is_default` |
 | `google_place_id` | Place ID della sede |
 | `hours` | righe degli orari effettivi |
 | `specialHours` | orari speciali da oggi in avanti (`closed` booleano) |
@@ -92,7 +100,7 @@ Al primo `forge update` dopo l'aggiornamento, se `society_locations` è vuota, l
 
 ## Moduli
 
-Gli altri moduli puntano all'`id` delle sedi. Un modulo che vuole le sedi modificabili solo in locale sostituisce `CorporateDataResource` con una propria Resource di priorità maggiore che sovrascrive `isReadonly()`.
+Gli altri moduli puntano all'`id` delle sedi. Un modulo che vuole le sedi modificabili solo in locale sostituisce `SocietyLocationResource` con una propria Resource di priorità maggiore che sovrascrive `isReadonly()`; in quel caso anche orari e chiusure diventano in sola lettura fuori dal locale.
 
 ## In futuro
 

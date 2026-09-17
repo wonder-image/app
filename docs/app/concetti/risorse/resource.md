@@ -233,15 +233,18 @@ public static function pageSchema(): PageSchema
 {
     return PageSchema::for(static::class)
         ->actions('edit', static fn (array $item): array => [[
-            'label' => 'Orari e chiusure',
-            'icon' => 'bi bi-clock',
+            'label' => 'Anteprima',
+            'icon' => 'bi bi-eye',
             'class' => 'btn-outline-secondary',
-            'href' => __r('backend.resource.app-config-opening-hours.edit', ['id' => (int) $item['id']]),
+            'href' => '/progetti/'.$item['slug'].'/',
+            'target' => '_blank',
         ]]);
 }
 ```
 
 `formPlaceholders(array $values, string $mode): array` restituisce i suggerimenti dei campi vuoti (nome campo => testo), per esempio i valori ereditati da un altro record. Sugli input singoli: `FormField::key('email')->email()->placeholder('info@esempio.it')`.
+
+Se `mutateRequestValues()` imposta `$ALERT` con un testo (non un codice numerico), il record non viene salvato e il form mostra quel testo. `prepareRepeaterRows(string $inputName, array $rows, string $action, string $context): array` normalizza o scarta le righe di un repeater con relazione prima del salvataggio.
 
 ## Estendere oltre il CRUD
 

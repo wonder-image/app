@@ -12,7 +12,7 @@
 * [Mappa end-to-end](concetti/mappa-end-to-end.md)
 * [Localizzazione](concetti/localizzazione.md)
 * [Performance frontend e cache](concetti/frontend-performance.md)
-* [Dati aziendali e sedi](concetti/dati-aziendali.md)
+* [Sedi](concetti/sedi.md)
 * [Iframe e contenuti differiti](elementi/deferred-media.md)
 * [Immagini di Swiper e Gallery](elementi/responsive-media.md)
 * [Button con lightbox](elementi/button-lightbox.md)
