@@ -48,7 +48,7 @@ class Phone
                 }
             }
 
-            $RETURN->number = str_replace($RETURN->prefix, '', $number);
+            $RETURN->number = substr($number, strlen($RETURN->prefix));
         }
 
         return $RETURN;
@@ -64,9 +64,19 @@ class Phone
             if (strlen($analyze->number) <= 4) {
                 $number = $analyze->number;
             } elseif (substr($analyze->number, 0, 1) == '0') {
-                $number = substr($analyze->number, 0, 4) . ' ' . substr($analyze->number, 4, 6);
+                $prefixLength = 4;
+
+                if ($analyze->prefix === '+39') {
+                    if (preg_match('/^0[26]/', $analyze->number)) {
+                        $prefixLength = 2;
+                    } elseif (preg_match('/^0[13-57-9][0159]/', $analyze->number)) {
+                        $prefixLength = 3;
+                    }
+                }
+
+                $number = substr($analyze->number, 0, $prefixLength) . ' ' . substr($analyze->number, $prefixLength);
             } else {
-                $number = substr($analyze->number, 0, 3) . ' ' . substr($analyze->number, 3, 3) . ' ' . substr($analyze->number, 6, 4);
+                $number = trim(substr($analyze->number, 0, 3) . ' ' . substr($analyze->number, 3, 3) . ' ' . substr($analyze->number, 6));
             }
 
             if (!empty($analyze->prefix)) {
