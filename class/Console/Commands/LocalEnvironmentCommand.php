@@ -94,6 +94,7 @@ abstract class LocalEnvironmentCommand extends Config
 
         return <<<ENV
 # App Info
+APP_ENV=local
 APP_DEBUG=true
 APP_DOMAIN=
 APP_URL=
