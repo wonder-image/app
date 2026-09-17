@@ -204,7 +204,7 @@ implementazioni base sono no-op):
 |---|---|---|
 | `isReadonly(): bool` | `true` se il Model dichiara `SyncSchema::...->localOnly()` e `APP_ENV` non è `local`; `false` per le Resource senza Model | sovrascrivibile, es. un modulo che rende locale una Resource del core |
 | `readonlyNotice(): string` | `Si modifica in locale e si pubblica con il deploy.` | testo dell'avviso |
-| `assertDeletable(int\|string $id): void` | nessun vincolo | lancia `RuntimeException` con un messaggio per vietare l'eliminazione; vale anche per il pulsante "Elimina" dell'elenco (`api/backend/delete`) |
+| `assertDeletable(int\|string $id): void` | nessun vincolo | lancia `RuntimeException` con un messaggio per vietare l'eliminazione; vale anche per il pulsante "Elimina" dell'elenco (`api/backend/delete`, risposta 422 mostrata come avviso da `wonder-image/lib`) |
 | `deleteRecord(int\|string $id): object` | chiama `assertDeletable()`, poi cancellazione logica con `keepIds()`, altrimenti `Model::delete()` | usato dai controller backend e API |
 | `exportSyncData(): void` | `TableSync::autoExport()` per i Model sincronizzati | chiamato dopo store, update e delete |
 

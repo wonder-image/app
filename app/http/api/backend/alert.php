@@ -7,12 +7,17 @@ Handler::run('/api/backend/alert/', 'POST', 'api_internal_user', function (Endpo
         'code',
     ]);
 
+    // alertToast() di wonder-image/lib invia alertType, alertTitle e alertText.
+    $parameter = static fn (string $name): mixed => $call->parameters[$name]
+        ?? $call->parameters['alert'.ucfirst($name)]
+        ?? null;
+
     return Response::json(
         $call->response(alertTheme(
             $call->parameters['code'],
-            $call->parameters['type'] ?? null,
-            $call->parameters['title'] ?? null,
-            $call->parameters['text'] ?? null
+            $parameter('type'),
+            $parameter('title'),
+            $parameter('text')
         ))
     );
 });
