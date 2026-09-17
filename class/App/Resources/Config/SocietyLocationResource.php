@@ -16,6 +16,7 @@ use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
+use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\App\Support\OpeningHours;
 use Wonder\App\Support\OpeningHoursInput;
 use Wonder\App\Support\Repeater;
@@ -74,7 +75,7 @@ final class SocietyLocationResource extends Resource
     {
         return [
             'label' => 'Nome della sede',
-            'slug' => 'Slug',
+            'slug' => 'Slug (generato dal nome)',
             'name' => 'Nome dell\'attività',
             'is_default' => 'Predefinita',
             'visible' => 'Stato',
@@ -121,7 +122,7 @@ final class SocietyLocationResource extends Resource
                 'future_opening' => 'Apertura futura',
             ])->value('operational')->required(),
             FormField::key('opening_date')->dateInput(),
-            ...array_values(SocietyLocation::address()->formSchema()),
+            ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->formSchema()),
             FormField::key('google_place_id')->text(),
             FormField::key('email')->email(),
             FormField::key('pec')->text(),
@@ -133,7 +134,7 @@ final class SocietyLocationResource extends Resource
             FormField::key('rea')->text(),
             FormField::key('pi')->text(),
             FormField::key('cf')->text(),
-            ...array_values(SocietyLocation::legalAddress()->formSchema()),
+            ...array_values(AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps', countryDefault: 'IT')->formSchema()),
             FormField::key('site')->url(),
             FormField::key('instagram')->url(),
             FormField::key('facebook')->url(),
@@ -247,15 +248,13 @@ final class SocietyLocationResource extends Resource
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
-                    SectionTitle::make('Orari regolari e secondari')->columnSpan(12),
-                    HelpText::make('Più fasce nello stesso giorno sono più righe (es. 9–13 e 15–19). Per chiudere dopo la mezzanotte scegli il giorno dopo in "Chiude il"; per chiudere a mezzanotte usa 00:00 dello stesso giorno. Una riga senza orario di chiusura indica "sempre aperto". Una sede senza orari propri usa orari e chiusure della sede predefinita.')->columnSpan(12),
                     static::getInput('hours')->columnSpan(12),
+                    HelpText::make('Più fasce nello stesso giorno sono più righe (es. 9–13 e 15–19). Per chiudere dopo la mezzanotte scegli il giorno dopo in "Chiude il"; per chiudere a mezzanotte usa 00:00 dello stesso giorno. Una riga senza orario di chiusura indica "sempre aperto". Una sede senza orari propri usa orari e chiusure della sede predefinita.')->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
-                    SectionTitle::make('Orari speciali e chiusure')->columnSpan(12),
-                    HelpText::make('Le chiusure possono durare più giorni (es. ferie dal 10 al 25 agosto). Per un\'apertura straordinaria compila "Dal" e gli orari: se chiude dopo la mezzanotte vale fino al giorno dopo. Valgono per gli orari regolari.')->columnSpan(12),
                     static::getInput('special_hours')->columnSpan(12),
+                    HelpText::make('Le chiusure possono durare più giorni (es. ferie dal 10 al 25 agosto). Per un\'apertura straordinaria compila "Dal" e gli orari: se chiude dopo la mezzanotte vale fino al giorno dopo. Valgono per gli orari regolari.')->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
 
             ])->columns(2)->columnSpan(9),
@@ -414,9 +413,15 @@ final class SocietyLocationResource extends Resource
 
         $default = SocietyLocation::find(['is_default' => 'true'], 1);
 
-        return is_array($default) && $default !== []
-            ? SocietyLocationResolver::inheritedValues($values, $default)
-            : [];
+        if (!is_array($default) || $default === []) {
+            return [];
+        }
+
+        // Paese e provincia sono select: il suggerimento non si vedrebbe.
+        return array_diff_key(
+            SocietyLocationResolver::inheritedValues($values, $default),
+            array_flip(['country', 'province', 'legal_country', 'legal_province'])
+        );
     }
 
     public static function afterStore(object $result, array $values = []): void
