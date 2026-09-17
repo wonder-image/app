@@ -167,6 +167,43 @@ Usa sempre le varianti `safe*` quando il risultato va verso un client (API o
 qualsiasi cosa serializzata in JSON).
 {% endhint %}
 
+## Transazioni e lock
+
+```php
+use Wonder\Sql\Transaction;
+
+$order = Transaction::run(function () use ($orderId) {
+    $sequence = DocumentSequence::findForUpdate(['document_type' => 'order', 'year' => 2026, 'month' => 9], 1);
+    // ... scarico del magazzino, righe, numero ...
+    return Order::findById($orderId);
+});
+```
+
+- `Transaction::run(callable, ?string $database = null)`: conferma a fine callback,
+  annulla e rilancia su qualunque eccezione. Le transazioni annidate usano
+  `SAVEPOINT wi_sp_<n>`: un errore interno gestito annulla solo il proprio livello.
+- Legacy: `sqlTransaction(fn () => ..., 'main')`.
+- Letture con lock: `Model::findForUpdate()`, `Model::findByIdForUpdate()`,
+  `Query::SelectForUpdate()`, `sqlSelectForUpdate()`. Fuori da una transazione
+  lanciano `RuntimeException`.
+- `sql*()` e Model condividono la connessione di `Connection::Connect()`, quindi
+  finiscono nella stessa transazione.
+
+### Lock nominali per i cron
+
+```php
+use Wonder\App\Support\NamedLock;
+
+$result = NamedLock::run('gestionale:invoices', fn () => sendInvoices());
+
+if ($result === NamedLock::NOT_ACQUIRED) {
+    return; // un'altra esecuzione è in corso
+}
+```
+
+Basati su `GET_LOCK` / `RELEASE_LOCK`; il lock viene rilasciato anche in caso di
+eccezione. I nomi oltre 64 caratteri diventano un hash stabile.
+
 ## Soft-delete
 
 Non esiste un metodo `softDelete()`. Il soft-delete è una `update()` che imposta

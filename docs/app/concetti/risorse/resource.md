@@ -209,6 +209,21 @@ implementazioni base sono no-op):
 
 In sola lettura le route di modifica non vengono registrate, i campi sono disabilitati, la tabella non mostra "Aggiungi" né "Elimina" e le pagine mostrano l'avviso.
 
+## Pulsante "Guida"
+
+```php
+public static function pageSchema(): PageSchema
+{
+    return PageSchema::for(static::class)
+        ->docs('https://guide.example.it/catalogo/prodotti');             // list, create, edit, view
+        // ->docs('https://guide.example.it/catalogo/scheda', ['edit']);  // solo alcune pagine
+}
+```
+
+Il pulsante compare nell'header di elenco, form e scheda, si apre in una nuova
+scheda ed è tradotto con `components.buttons.docs`. Sono ammessi solo URL
+`http(s)` o relativi; ogni modulo compone l'URL dalla propria configurazione.
+
 ## Estendere oltre il CRUD
 
 - `customBackendPages(): array` — elenco di azioni che la Resource gestisce da
