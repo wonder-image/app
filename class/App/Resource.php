@@ -629,8 +629,19 @@ abstract class Resource
      * Cancella un record: con `keepIds()` segna `deleted = 'true'`, così la
      * riga resta nel sync e le righe precaricate non vengono ricreate.
      */
+    /**
+     * Vieta l'eliminazione di un record lanciando `RuntimeException` con un
+     * messaggio per l'utente. Vale per la pagina della Resource e per
+     * l'eliminazione dall'elenco (`api/backend/delete`).
+     */
+    public static function assertDeletable(int|string $id): void
+    {
+    }
+
     public static function deleteRecord(int|string $id): object
     {
+        static::assertDeletable($id);
+
         $modelClass = static::modelClass();
         $schema = $modelClass::syncSchema();
 

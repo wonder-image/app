@@ -20,6 +20,16 @@ if ($table === '' || $id <= 0) {
 
 ApiRequest::selectDatabase(ApiRequest::string('database', 'main'));
 
+$resourceClass = \Wonder\App\ResourceRegistry::resolveByTable($table);
+
+if ($resourceClass !== null) {
+    try {
+        $resourceClass::assertDeletable($id);
+    } catch (RuntimeException $exception) {
+        ApiRequest::error($exception->getMessage(), 422);
+    }
+}
+
 $position = null;
 $filter = null;
 $filterId = null;

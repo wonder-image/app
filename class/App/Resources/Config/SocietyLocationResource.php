@@ -448,15 +448,13 @@ final class SocietyLocationResource extends Resource
         SocietyLocations::reset();
     }
 
-    public static function deleteRecord(int|string $id): object
+    public static function assertDeletable(int|string $id): void
     {
         $row = SocietyLocation::findById($id);
 
         if (is_array($row) && !SocietyLocationDefaults::canDelete($row)) {
             throw new RuntimeException('La sede predefinita non si può eliminare: imposta prima un\'altra sede come predefinita.');
         }
-
-        return parent::deleteRecord($id);
     }
 
     /**
