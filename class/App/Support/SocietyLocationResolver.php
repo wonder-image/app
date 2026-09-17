@@ -5,8 +5,9 @@ namespace Wonder\App\Support;
 /**
  * Completa una sede con i dati della sede predefinita.
  *
+ * - Nome dell'attività: sempre quello della predefinita, unico per la società.
  * - Contatti e link: campo per campo.
- * - Dati aziendali e legali, indirizzo (con Place ID), sede legale: per gruppo
+ * - Dati legali, indirizzo (con Place ID), sede legale: per gruppo
  *   intero, solo se il gruppo della sede è tutto vuoto, così non si mescolano
  *   dati di sedi diverse.
  * - Orari: quelli della predefinita, con i suoi orari speciali, solo se la sede
@@ -14,12 +15,15 @@ namespace Wonder\App\Support;
  */
 final class SocietyLocationResolver
 {
+    /** Dati della società, uguali per tutte le sedi: si compilano nella predefinita. */
+    public const SOCIETY_FIELDS = ['name'];
+
     public const CONTACT_FIELDS = ['email', 'pec', 'tel', 'cel'];
 
     public const LINK_FIELDS = ['site', 'instagram', 'facebook', 'tiktok', 'linkedin', 'whatsapp', 'youtube'];
 
     public const GROUPS = [
-        'legal' => ['name', 'legal_name', 'pi', 'cf', 'sdi', 'rea', 'share_capital'],
+        'legal' => ['legal_name', 'pi', 'cf', 'sdi', 'rea', 'share_capital'],
         'address' => ['country', 'province', 'city', 'cap', 'street', 'number', 'more', 'gmaps', 'google_place_id', 'google_synced_at'],
         'legal_address' => ['legal_country', 'legal_province', 'legal_city', 'legal_cap', 'legal_street', 'legal_number', 'legal_more', 'legal_gmaps'],
     ];
@@ -36,6 +40,11 @@ final class SocietyLocationResolver
         }
 
         $inherited = [];
+
+        foreach (self::SOCIETY_FIELDS as $field) {
+            $location[$field] = $default[$field] ?? null;
+            $inherited[] = $field;
+        }
 
         foreach (array_merge(self::CONTACT_FIELDS, self::LINK_FIELDS) as $field) {
             if (self::isEmpty($location[$field] ?? null) && !self::isEmpty($default[$field] ?? null)) {

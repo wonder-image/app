@@ -65,7 +65,16 @@ check('dati legali compilati in parte restano della sede', function () use ($def
     $branch['legal_name'] = 'Negozio Brescia srl';
     $r = SocietyLocationResolver::resolve($branch, $default);
 
-    return $r['legal_name'] === 'Negozio Brescia srl' && $r['pi'] === '' && $r['name'] === '';
+    return $r['legal_name'] === 'Negozio Brescia srl' && $r['pi'] === '' && $r['name'] === 'Esempio';
+});
+
+check('nome dell\'attività sempre della predefinita, anche se la sede lo ha', function () use ($default, $branch) {
+    $branch['name'] = 'Altro nome';
+    $branch['legal_name'] = 'Franchising srl';
+    $r = SocietyLocationResolver::resolve($branch, $default);
+
+    return $r['name'] === 'Esempio' && in_array('name', $r['inherited_fields'], true)
+        && SocietyLocationResolver::resolve($default, $default)['name'] === 'Esempio';
 });
 
 check('la predefinita non eredita da sé stessa', fn () =>
@@ -77,6 +86,7 @@ check('valori ereditati per i suggerimenti del form', function () use ($default,
     $values = SocietyLocationResolver::inheritedValues($branch, $default);
 
     return ($values['email'] ?? null) === 'info@esempio.it' && ($values['legal_name'] ?? null) === 'Esempio srl'
+        && ($values['name'] ?? null) === 'Esempio'
         && !array_key_exists('tel', $values) && !array_key_exists('street', $values) && !array_key_exists('cel', $values);
 });
 
