@@ -84,6 +84,7 @@ final class SocietyLocation extends Model
             Field::key('label')->text()->required(),
             Field::key('is_default')->text()->sanitize(false),
             Field::key('visible')->text()->sanitize(false),
+            Field::key('position')->number(),
             Field::key('business_status')->text()->sanitize(false),
             Field::key('opening_date')->date(),
             ...static::address()->dataSchema(),

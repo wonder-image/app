@@ -351,6 +351,7 @@ final class SocietyLocationResource extends Resource
 
         if ($action === 'store') {
             $values['slug'] = (string) ($values['label'] ?? '');
+            $values['position'] = self::nextPosition();
         } else {
             unset($values['slug']);
         }
@@ -482,6 +483,14 @@ final class SocietyLocationResource extends Resource
         }
 
         return false;
+    }
+
+    /** Posizione in fondo all'elenco per una nuova sede. */
+    private static function nextPosition(): int
+    {
+        $last = sqlSelect(SocietyLocation::$table, ['deleted' => 'false'], 1, 'position', 'DESC')->row;
+
+        return is_array($last) && $last !== [] ? (int) ($last['position'] ?? 0) + 1 : 1;
     }
 
     /** @return list<array<string, mixed>> */
