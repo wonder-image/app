@@ -37,6 +37,7 @@ final class PageSchema
             // page → static array di descriptor `{href,label,class?,icon?,target?,onclick?}`
             // oppure callable($item): array
             'actions' => [],
+            'docs' => [],
             'redirects' => [
                 'store' => 'list',
                 'update' => 'list',
@@ -173,6 +174,48 @@ final class PageSchema
         $this->schema['actions'][trim($page)] = $actions;
 
         return $this;
+    }
+
+    /**
+     * Pulsante "Guida" nell'header: URL completo della pagina della guida.
+     * Senza `$pages` vale per `list`, `create`, `edit` e `view`. Sono
+     * ammessi solo URL `http(s)` o relativi; gli altri vengono ignorati.
+     */
+    public function docs(string $url, string|array|null $pages = null): self
+    {
+        $url = trim($url);
+
+        if (!self::isAllowedDocsUrl($url)) {
+            return $this;
+        }
+
+        $pages = $pages === null ? ['list', 'create', 'edit', 'view'] : $this->normalizeKeys($pages);
+
+        foreach ($pages as $page) {
+            $this->schema['docs'][$page] = $url;
+        }
+
+        return $this;
+    }
+
+    public function docsUrl(string $page): string
+    {
+        return (string) ($this->schema['docs'][trim($page)] ?? '');
+    }
+
+    public static function isAllowedDocsUrl(string $url): bool
+    {
+        $url = trim($url);
+
+        if ($url === '' || str_starts_with($url, '//')) {
+            return false;
+        }
+
+        if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $url) === 1) {
+            return preg_match('#^https?://#i', $url) === 1;
+        }
+
+        return true;
     }
 
     public function view(string $slot, ?string $view): self
