@@ -75,7 +75,6 @@ final class SocietyLocationResource extends Resource
     {
         return [
             'label' => 'Nome della sede',
-            'slug' => 'Slug (generato dal nome)',
             'name' => 'Nome dell\'attività',
             'is_default' => 'Predefinita',
             'visible' => 'Stato',
@@ -111,7 +110,6 @@ final class SocietyLocationResource extends Resource
     {
         return [
             FormField::key('label')->text()->required(),
-            FormField::key('slug')->text()->readonly()->placeholder('Generato dal nome della sede'),
             FormField::key('name')->text()->visibleWhen('is_default', 'true'),
             FormField::key('is_default')->select(['true' => 'Sì', 'false' => 'No'])->value('false')->required(),
             FormField::key('visible')->select(['true' => 'Visibile', 'false' => 'Nascosta'])->value('true')->required(),
@@ -200,31 +198,42 @@ final class SocietyLocationResource extends Resource
                     SectionTitle::make('Sede')
                         ->tooltip('I campi vuoti prendono i dati dalla sede predefinita: contatti e link uno per uno; indirizzo, sede legale, dati legali e orari solo se il riquadro è tutto vuoto. Il nome dell\'attività si compila nella sede predefinita e vale per tutte le sedi. Lo slug nasce dal nome della sede alla creazione e non cambia.')
                         ->columnSpan(12),
-                    static::getInput('label')->columnSpan(5),
-                    static::getInput('slug')->columnSpan(4),
-                    static::getInput('visible')->columnSpan(3),
+                    static::getInput('label')->columnSpan(6),
                     static::getInput('is_default')->columnSpan(3),
-                    static::getInput('business_status')->columnSpan(3),
-                    static::getInput('opening_date')->columnSpan(3),
                     static::getInput('name')->columnSpan(3),
+                    static::getInput('business_status')->columnSpan(4),
+                    static::getInput('opening_date')->columnSpan(4),
+                    static::getInput('visible')->columnSpan(4),
                 ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
                     SectionTitle::make('Contatti')->columnSpan(12),
-                    static::getInput('email')->columnSpan(6),
-                    static::getInput('pec')->columnSpan(6),
-                    static::getInput('tel')->columnSpan(6),
-                    static::getInput('cel')->columnSpan(6),
-                ])->columns(12)->columnSpan(1),
+                    static::getInput('email')->columnSpan(4),
+                    static::getInput('pec')->columnSpan(4),
+                    static::getInput('tel')->columnSpan(4),
+                    static::getInput('cel')->columnSpan(4),
+                ])->columns(12)->columnSpan(2),
 
                 (new Card)->components([
                     SectionTitle::make('Dati legali')->columnSpan(12),
-                    static::getInput('legal_name')->columnSpan(12),
-                    static::getInput('pi')->columnSpan(6),
-                    static::getInput('cf')->columnSpan(6),
+                    static::getInput('legal_name')->columnSpan(6),
+                    static::getInput('pi')->columnSpan(3),
+                    static::getInput('cf')->columnSpan(3),
                     static::getInput('sdi')->columnSpan(4),
                     static::getInput('rea')->columnSpan(4),
                     static::getInput('share_capital')->columnSpan(4),
+                ])->columns(12)->columnSpan(2),
+
+                (new Card)->components([
+                    SectionTitle::make('Sede legale')->columnSpan(12),
+                    static::getInput('legal_country')->columnSpan(6),
+                    static::getInput('legal_province')->columnSpan(6),
+                    static::getInput('legal_city')->columnSpan(8),
+                    static::getInput('legal_cap')->columnSpan(4),
+                    static::getInput('legal_street')->columnSpan(10),
+                    static::getInput('legal_number')->columnSpan(2),
+                    static::getInput('legal_more')->columnSpan(12),
+                    static::getInput('legal_gmaps')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
@@ -241,18 +250,6 @@ final class SocietyLocationResource extends Resource
                     static::getInput('gmaps')->columnSpan(12),
                     static::getInput('google_place_id')->columnSpan(12),
                     HelpText::make('<a href="'.self::PLACE_ID_FINDER_URL.'" target="_blank" rel="noopener noreferrer">Trova il Place ID</a>')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
-
-                (new Card)->components([
-                    SectionTitle::make('Sede legale')->columnSpan(12),
-                    static::getInput('legal_country')->columnSpan(6),
-                    static::getInput('legal_province')->columnSpan(6),
-                    static::getInput('legal_city')->columnSpan(8),
-                    static::getInput('legal_cap')->columnSpan(4),
-                    static::getInput('legal_street')->columnSpan(10),
-                    static::getInput('legal_number')->columnSpan(2),
-                    static::getInput('legal_more')->columnSpan(12),
-                    static::getInput('legal_gmaps')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
@@ -338,8 +335,8 @@ final class SocietyLocationResource extends Resource
     }
 
     /**
-     * Slug generato dal nome della sede solo alla creazione; nome dell'attività
-     * solo nella predefinita; orari validati prima di salvare la sede.
+     * Slug generato dal nome della sede solo alla creazione (non è nel form);
+     * nome dell'attività solo nella predefinita; orari validati prima di salvare.
      */
     public static function mutateRequestValues(
         array $values,
@@ -392,12 +389,6 @@ final class SocietyLocationResource extends Resource
 
     public static function mutateFormValues(array $values, string $mode, string $context = 'backend'): array
     {
-        // Dopo un errore il form riceve i valori preparati, senza lo slug immutabile.
-        if (trim((string) ($values['slug'] ?? '')) === '' && (int) ($values['id'] ?? 0) > 0) {
-            $row = sqlSelect(SocietyLocation::$table, ['id' => (int) $values['id']], 1)->row;
-            $values['slug'] = is_array($row) ? (string) ($row['slug'] ?? '') : '';
-        }
-
         foreach (['hours', 'special_hours'] as $inputName) {
             if (is_array($values[$inputName] ?? null)) {
                 $values[$inputName] = OpeningHoursInput::forForm($values[$inputName]);
