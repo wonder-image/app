@@ -2,7 +2,7 @@
 
 - **Data:** 2026-09-16
 - **Repo:** `wonder-image/app` (framework)
-- **Stato:** implementata in tre piani e verificata con database su `new-site` (2026-09-17)
+- **Stato:** implementata in tre piani e verificata con database su `new-site` (2026-09-17); parte E rivista dopo il controllo: pagina "Sedi" con orari nella scheda, slug automatico, nome dell'attività unico (2026-09-17)
 - **Origine:** spec di architettura di `wonder-image/gestionale` + `wonder-image/ecommerce`
   (`packages/gestionale/docs/superpowers/specs/2026-09-11-gestionale-ecommerce-architettura-design.md`,
   capitolo 10.2, lavori "prima del gestionale")
@@ -40,8 +40,8 @@ Dare ai moduli del framework:
 2. una sincronizzazione tra locale e produzione che non rompe le chiavi esterne;
 3. tabelle di configurazione modificabili solo in locale;
 4. righe precaricate dichiarate dai moduli;
-5. più sedi della società in "Dati aziendali", con orari e chiusure sul modello di
-   Google;
+5. più sedi della società nella pagina "Sedi" (ex "Dati aziendali"), con orari e chiusure
+   sul modello di Google;
 6. transazioni, letture con lock e lock nominali;
 7. il pulsante "Guida" nelle pagine del backend;
 8. le classi fiscali mancanti.
@@ -136,9 +136,9 @@ Dare ai moduli del framework:
   `sync_export`.
 - **In produzione** i passi 5 e 6 non partono mai.
 
-### E. Sedi della società in "Dati aziendali" (rivista il 2026-09-17)
+### E. Sedi della società (rivista il 2026-09-17)
 
-"Dati aziendali" diventa la pagina delle sedi della società: i clienti chiedono spesso
+"Dati aziendali" diventa la pagina **"Sedi"** della società: i clienti chiedono spesso
 di aggiungere indirizzi. Ogni sede ha i propri dati, una è predefinita e le altre
 prendono dalla predefinita ciò che manca. Orari e chiusure ricalcano il modello di
 Google, perché in futuro un cron li verificherà sulla scheda Google Business tramite
@@ -148,10 +148,11 @@ il Place ID.
 
 | Tabella | Gruppo | Colonne |
 |---|---|---|
-| `society_locations` | Sede | slug (unico), label (es. "Negozio di Milano"), is_default (una sola), visible, position, business_status (`operational`, `closed_temporarily`, `closed_permanently`, `future_opening`), opening_date |
+| `society_locations` | Sede | slug (unico, generato dal nome della sede alla creazione e mai modificato), label = nome della sede (es. "MC Nembro"), is_default (una sola), visible, position, business_status (`operational`, `closed_temporarily`, `closed_permanently`, `future_opening`), opening_date |
 | | Indirizzo | `AddressExtension::simple(linkKey: 'gmaps')`, google_place_id (uno per sede), google_synced_at |
 | | Contatti | email, pec, tel, cel |
-| | Dati aziendali e legali | name, legal_name, pi, cf, sdi, rea, share_capital |
+| | Attività | name = nome dell'attività (es. "McDonald's"), unico per la società: si compila solo nella sede predefinita |
+| | Dati legali | legal_name, pi, cf, sdi, rea, share_capital |
 | | Sede legale | `AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')` |
 | | Link | site, instagram, facebook, tiktok, linkedin, whatsapp, youtube |
 | `society_location_hours` | Orari regolari e secondari | society_location_id, hours_type, open_day, open_time, close_day, close_time, position |
@@ -187,15 +188,16 @@ il Place ID.
   dati aziendali. Un modulo può renderla modificabile solo in locale sostituendo la
   Resource con la propria (priorità dei moduli nel `ResourceRegistry`).
 - **`society_location_hours` e `society_location_special_hours`:** non sincronizzate,
-  sono dati di produzione. Si modificano nella pagina "Orari e chiusure" di ogni sede,
-  da `admin` e `administrator`, sempre anche in produzione: le chiusure cambiano spesso
-  e il futuro cron da Google scriverà qui.
+  sono dati di produzione. Si modificano nella scheda della sede, da `admin`, anche in
+  produzione: le chiusure cambiano spesso e il futuro cron da Google scriverà qui.
 
 #### E3. Dati presi dalla sede predefinita
 
+- **Sempre dalla predefinita:** il nome dell'attività (`name`), unico per la società,
+  anche per una sede con dati legali propri.
 - **Campo per campo:** contatti e link (es. telefono proprio, email della
   predefinita).
-- **Gruppo intero:** dati aziendali e legali, sede legale, indirizzo, orari. Se il
+- **Gruppo intero:** dati legali, sede legale, indirizzo, orari. Se il
   gruppo della sede è tutto vuoto si usa quello della predefinita, così non si
   mescolano dati di sedi diverse.
 - **Orari speciali:** seguono gli orari regolari; una sede senza orari propri eredita
@@ -219,22 +221,25 @@ il Place ID.
   - stessi campi di oggi (`name`, `email`, `tel`, `cel`, `prettyAddress`,
     `prettyLegal`, `social`, `domain`, loghi…); `timetable`, `timeGroup` e
     `prettyTime` ricavati dagli orari regolari nel formato di oggi;
-  - in più: `location` (id, slug, label, is_default), `google_place_id`, `hours`,
+  - `name` è sempre il nome dell'attività; il nome della sede è `location->name`;
+  - in più: `location` (id, slug, name, is_default), `google_place_id`, `hours`,
     `specialHours` (da oggi in avanti), `businessStatus`.
 - **`infoSocietyLocations(): array`:** tutte le sedi visibili, già completate.
 - **`$SOCIETY`** resta la sede predefinita.
 
 #### E5. Pagine del backend
 
-- **"Dati aziendali":** Resource con l'elenco delle sedi, stessa voce di menu e stesso
-  percorso (`app/config/corporate-data`). Elenco con nome, città, badge "Predefinita"
-  e visibilità; aggiunta, modifica ed eliminazione.
-- **Scheda della sede:** riquadri Sede, Indirizzo con Place ID, Contatti, Dati
-  aziendali e legali, Sede legale, Link; collegamento a "Orari e chiusure".
-- **"Orari e chiusure"** di una sede: orari regolari, orari secondari, orari speciali e
-  chiusure; accessibile ad `admin` e `administrator`.
-- **Sede predefinita:** sempre una sola; impostarne una toglie il flag alle altre; non
-  si può eliminare; la prima sede creata è predefinita.
+- **"Sedi"** (ex "Dati aziendali"): Resource nel menu Set Up, percorso
+  `app/config/locations`. Elenco con nome della sede, città, badge "Predefinita" e
+  visibilità; aggiunta, modifica ed eliminazione; tutto riservato ad `admin`.
+- **Scheda della sede:** riquadri Sede (nome e slug in sola lettura), Attività (nome
+  dell'attività, visibile solo quando la sede è predefinita), Indirizzo con Place ID,
+  Sede legale, Contatti, Dati legali, Link, Stato, Orari regolari e secondari, Orari
+  speciali e chiusure. Gli orari si validano e si salvano con la sede: se una riga non
+  è valida la sede non si salva e il messaggio indica riga e problema.
+- **Slug:** generato dal nome della sede alla creazione, reso unico, mai modificabile.
+- **Sede predefinita:** sempre una sola; impostarne una toglie il flag alle altre e le
+  passa il nome dell'attività; non si può eliminare; la prima sede creata è predefinita.
 
 #### E6. Siti esistenti
 
@@ -354,9 +359,10 @@ In `Wonder\Plugin\Custom\Fattura\Valori`, nello stile delle classi esistenti
 - Migrazione dei dati aziendali su un database con le vecchie tabelle compilate: sede
   predefinita con `id = 1`, orari convertiti, `infoSociety()` con gli stessi campi di
   prima; al secondo avvio nessuna modifica.
-- "Dati aziendali" con più sedi: una sola predefinita, predefinita non eliminabile,
-  `infoSociety('<slug>')` con eredità; "Orari e chiusure" modificabile da
-  `administrator`.
+- "Sedi" con più sedi: una sola predefinita, predefinita non eliminabile, slug generato
+  alla creazione e invariato dopo, nome dell'attività uguale per tutte le sedi,
+  `infoSociety('<slug>')` con eredità; orari e chiusure salvati dalla scheda della sede,
+  righe non valide rifiutate.
 
 Ogni file PHP toccato passa `php -l`; `composer dump-autoload` dopo le nuove classi.
 
@@ -369,7 +375,7 @@ Aggiornamenti in `docs/app/`, nello stesso lavoro:
 | `piattaforma/multi-ambiente.md` | `APP_ENV`, `keepIds()`, `localOnly()`, import e defaults nei passi di `forge update` |
 | `piattaforma/installazione-e-deploy.md` | passi di `UpdateRunner` e differenze tra locale e produzione |
 | `concetti/moduli/manifest.md` e `contratto.md` | `database.defaults`, `ModuleDefaults`, `DefaultRows` |
-| `concetti/dati-aziendali.md` (nuova, aggiunta a `SUMMARY.md`) | sedi, eredità dalla predefinita, orari e chiusure, `infoSociety()`, `SocietyLocations`, Place ID, migrazione |
+| `concetti/sedi.md` (nuova, aggiunta a `SUMMARY.md`) | sedi, nome della sede e nome dell'attività, eredità dalla predefinita, orari e chiusure, `infoSociety()`, `SocietyLocations`, Place ID, migrazione |
 | `concetti/risorse/database.md` | `Transaction`, letture `ForUpdate`, `NamedLock` |
 | `concetti/risorse/resource.md` | `PageSchema::docs()`, `Resource::isReadonly()` |
 | `servizi/fatturapa-valori.md` (nuova, aggiunta a `SUMMARY.md`) | classi di `Custom\Fattura\Valori`, con `AliquoteIva`, `Natura::valide()`, `EsigibilitaIva` |
