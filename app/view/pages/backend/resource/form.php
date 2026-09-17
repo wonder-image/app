@@ -1,5 +1,23 @@
 <?php \Wonder\View\View::layout('backend.form'); ?>
 
+<?php
+    $readonly = (bool) ($READONLY ?? false);
+    $readonlyNotice = htmlspecialchars((string) ($READONLY_NOTICE ?? ''), ENT_QUOTES, 'UTF-8');
+    $noticeHtml = '
+        <div class="col-12">
+            <wi-card class="col-12">
+                <div class="alert alert-warning mb-0">'.$readonlyNotice.'</div>
+            </wi-card>
+        </div>';
+    $submitHtml = function (string $class = ''): string {
+        if (!function_exists('submit')) {
+            return '<button type="submit" class="btn btn-dark'.($class !== '' ? ' '.$class : '').'">Salva</button>';
+        }
+
+        return $class !== '' ? submit('Salva', 'upload', $class) : submit('Salva', 'upload');
+    };
+?>
+
 <?php if (is_object($FORM_LAYOUT ?? null)) { ?>
     <?=
         \Wonder\Backend\Support\ResourceFormLayoutRenderer::render(
@@ -8,15 +26,13 @@
                 'id' => 'resource-layout-form',
                 'method' => (string) ($FORM_METHOD ?? 'POST'),
                 'enctype' => (string) ($FORM_ENCTYPE ?? 'multipart/form-data'),
-                'action' => (string) ($FORM_ACTION ?? ''),
-                'footer' => '
+                'action' => $readonly ? '' : (string) ($FORM_ACTION ?? ''),
+                'footer' => $readonly
+                    ? $noticeHtml
+                    : '
                     <div class="col-12">
                         <wi-card class="col-12">
-                            <div class="col-12">'.
-                                (function_exists('submit')
-                                    ? submit('Salva', 'upload')
-                                    : '<button type="submit" class="btn btn-dark">Salva</button>')
-                            .'</div>
+                            <div class="col-12">'.$submitHtml().'</div>
                         </wi-card>
                     </div>',
             ]
@@ -25,9 +41,10 @@
 <?php } else { ?>
 <form method="<?=htmlspecialchars((string) ($FORM_METHOD ?? 'POST'), ENT_QUOTES, 'UTF-8')?>"
       enctype="<?=htmlspecialchars((string) ($FORM_ENCTYPE ?? 'multipart/form-data'), ENT_QUOTES, 'UTF-8')?>"
-      action="<?=htmlspecialchars((string) ($FORM_ACTION ?? ''), ENT_QUOTES, 'UTF-8')?>"
-      onsubmit="loadingSpinner()">
+      action="<?=$readonly ? '' : htmlspecialchars((string) ($FORM_ACTION ?? ''), ENT_QUOTES, 'UTF-8')?>"
+      <?=$readonly ? 'onsubmit="return false"' : 'onsubmit="loadingSpinner()"'?>>
     <div class="row g-3">
+        <?php if ($readonly) { echo $noticeHtml; } ?>
         <div class="<?=!empty($SIDEBAR_FIELDS) ? 'col-9' : 'col-12'?>">
             <wi-card class="col-12">
                 <?php foreach ((array) ($FIELDS ?? []) as $field) { ?>
@@ -50,16 +67,18 @@
                         }
                     ?>
                 <?php } ?>
+                <?php if (!$readonly) { ?>
                 <div class="col-12">
-                    <?=function_exists('submit') ? submit('Salva', 'upload', 'w-100') : '<button type="submit" class="btn btn-dark w-100">Salva</button>'?>
+                    <?=$submitHtml('w-100')?>
                 </div>
+                <?php } ?>
             </wi-card>
         </div>
-        <?php } else { ?>
+        <?php } elseif (!$readonly) { ?>
         <div class="col-12">
             <wi-card class="col-12">
                 <div class="col-12">
-                    <?=function_exists('submit') ? submit('Salva', 'upload') : '<button type="submit" class="btn btn-dark">Salva</button>'?>
+                    <?=$submitHtml()?>
                 </div>
             </wi-card>
         </div>

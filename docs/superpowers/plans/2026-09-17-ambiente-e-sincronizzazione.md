@@ -2090,9 +2090,11 @@ Sostituire l'intero contenuto di `app/view/pages/backend/resource/form.php` con:
             </wi-card>
         </div>';
     $submitHtml = function (string $class = ''): string {
-        return function_exists('submit')
-            ? submit('Salva', 'upload', $class)
-            : '<button type="submit" class="btn btn-dark '.$class.'">Salva</button>';
+        if (!function_exists('submit')) {
+            return '<button type="submit" class="btn btn-dark'.($class !== '' ? ' '.$class : '').'">Salva</button>';
+        }
+
+        return $class !== '' ? submit('Salva', 'upload', $class) : submit('Salva', 'upload');
     };
 ?>
 

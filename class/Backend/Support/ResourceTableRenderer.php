@@ -186,7 +186,7 @@ final class ResourceTableRenderer
     {
         $buttonAdd = (array) ($this->tableLayoutSchema['button_add'] ?? []);
 
-        if (empty($this->pageSchema['pages']['create']) || empty($buttonAdd['enabled'])) {
+        if ($this->resourceClass::isReadonly() || empty($this->pageSchema['pages']['create']) || empty($buttonAdd['enabled'])) {
             return;
         }
 
@@ -477,8 +477,10 @@ final class ResourceTableRenderer
         $actions = (array) ($buttonColumn['actions'] ?? []);
         $resolved = [];
 
+        $readonly = $this->resourceClass::isReadonly();
+
         foreach ($actions as $action => $enabled) {
-            if (!$enabled) {
+            if (!$enabled || ($readonly && in_array($action, ['delete', 'duplicate'], true))) {
                 continue;
             }
 

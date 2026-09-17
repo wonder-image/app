@@ -24,6 +24,8 @@ final class ResourcePagePresenter
             'RESOURCE_CLASS' => $this->resourceClass,
             'TABLE_HTML' => $tableHtml,
             'USER' => $this->viewUser(),
+            'READONLY' => $this->resourceClass::isReadonly(),
+            'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
         ];
     }
 
@@ -49,6 +51,8 @@ final class ResourcePagePresenter
             'USER' => $this->viewUser(),
             'VALUES' => $values,
             'NAME' => $this->legacyName(),
+            'READONLY' => $this->resourceClass::isReadonly(),
+            'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
         ];
     }
 
@@ -194,6 +198,10 @@ HTML;
 
     private function applyModelFieldState(object $field, string $mode): object
     {
+        if ($this->resourceClass::isReadonly() && method_exists($field, 'disabled')) {
+            $field->disabled();
+        }
+
         if ($mode !== 'edit' || !property_exists($field, 'name') || !method_exists($field, 'readonly')) {
             return $field;
         }
