@@ -82,7 +82,7 @@ sort($baseMethods);
 eq('API universale di Input', $baseMethods, [
     '__construct', '__toString', 'attribute', 'autocomplete', 'columnSpan', 'compile',
     'context', 'disabled', 'error', 'get', 'hasExplicitColumnSpan', 'hiddenWhen', 'inputName',
-    'key', 'label', 'prepare', 'readonly', 'render', 'required', 'storeAs', 'value',
+    'key', 'label', 'placeholder', 'prepare', 'readonly', 'render', 'required', 'storeAs', 'value',
     'visibleWhen',
 ]);
 
