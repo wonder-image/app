@@ -9,8 +9,9 @@ use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
 /**
- * Sede della società: dati, indirizzo con Google Place ID, contatti, dati
- * aziendali e legali, sede legale e link. Una sola sede è predefinita; le
+ * Sede della società: nome della sede (`label`), indirizzo con Google Place
+ * ID, contatti, dati legali, sede legale e link. Una sola sede è predefinita e
+ * contiene anche il nome dell'attività (`name`), uguale per tutte le sedi; le
  * altre prendono dalla predefinita ciò che manca
  * (`Wonder\App\Support\SocietyLocationResolver`).
  */
@@ -19,7 +20,7 @@ final class SocietyLocation extends Model
     public const BUSINESS_STATUSES = ['operational', 'closed_temporarily', 'closed_permanently', 'future_opening'];
 
     public static string $table = 'society_locations';
-    public static string $folder = 'app/config/corporate-data';
+    public static string $folder = 'app/config/locations';
     public static string $icon = 'bi bi-buildings';
 
     public static function syncSchema(): ?SyncSchema
@@ -79,7 +80,7 @@ final class SocietyLocation extends Model
     public static function dataSchema(): array
     {
         return [
-            Field::key('slug')->text()->slug(),
+            Field::key('slug')->text()->slug()->readonlyOnUpdate()->immutableOnUpdate(),
             Field::key('label')->text()->required(),
             Field::key('is_default')->text()->sanitize(false),
             Field::key('visible')->text()->sanitize(false),

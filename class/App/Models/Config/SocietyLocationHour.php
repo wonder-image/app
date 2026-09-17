@@ -15,7 +15,7 @@ use Wonder\Sql\TableSchema as Column;
 final class SocietyLocationHour extends Model
 {
     public static string $table = 'society_location_hours';
-    public static string $folder = 'app/config/opening-hours';
+    public static string $folder = 'app/config/locations';
     public static string $icon = 'bi bi-clock';
 
     public static function tableSchema(): array

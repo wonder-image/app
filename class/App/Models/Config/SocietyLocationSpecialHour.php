@@ -17,7 +17,7 @@ final class SocietyLocationSpecialHour extends Model
     public const SOURCES = ['manual', 'google'];
 
     public static string $table = 'society_location_special_hours';
-    public static string $folder = 'app/config/opening-hours';
+    public static string $folder = 'app/config/locations';
     public static string $icon = 'bi bi-calendar-x';
 
     public static function tableSchema(): array

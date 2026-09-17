@@ -131,7 +131,7 @@
         $RETURN->location = (object) [
             'id' => (int) ($LOCATION->id ?? 0),
             'slug' => (string) ($LOCATION->slug ?? ''),
-            'label' => (string) ($LOCATION->label ?? ''),
+            'name' => (string) ($LOCATION->label ?? ''),
             'is_default' => (string) ($LOCATION->is_default ?? '') === 'true',
         ];
         $RETURN->google_place_id = (string) ($LOCATION->google_place_id ?? '');

@@ -16,14 +16,14 @@ $render = static function (array $ACTIONS): string {
 
 check('pulsanti con link, classe, icona e nuova scheda', function () use ($render) {
     $html = $render(PageActionNormalizer::normalize([
-        ['label' => 'Orari e chiusure', 'href' => '/backend/app/config/opening-hours/1/edit/', 'icon' => 'bi bi-clock', 'class' => 'btn-outline-secondary'],
+        ['label' => 'Anteprima', 'href' => '/backend/app/config/locations/1/edit/', 'icon' => 'bi bi-eye', 'class' => 'btn-outline-secondary'],
         ['label' => 'Guida', 'href' => 'https://guide.example.it', 'target' => '_blank'],
     ]));
 
-    return str_contains($html, 'href="/backend/app/config/opening-hours/1/edit/"')
+    return str_contains($html, 'href="/backend/app/config/locations/1/edit/"')
         && str_contains($html, 'btn btn-outline-secondary')
-        && str_contains($html, 'bi bi-clock')
-        && str_contains($html, 'Orari e chiusure')
+        && str_contains($html, 'bi bi-eye')
+        && str_contains($html, 'Anteprima')
         && str_contains($html, 'target="_blank" rel="noopener noreferrer"');
 });
 
