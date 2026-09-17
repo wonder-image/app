@@ -4,6 +4,11 @@ namespace Wonder\App;
 
 use mysqli;
 use Throwable;
+use RuntimeException;
+use Wonder\App\Module\Contracts\ModuleDefaults;
+use Wonder\App\Module\ModuleDependencySorter;
+use Wonder\App\Module\Registry as ModuleRegistry;
+use Wonder\App\Support\DefaultRows;
 use Wonder\App\Support\TableSync;
 use Wonder\Sql\Connection;
 
@@ -107,6 +112,14 @@ class UpdateRunner
             $result->stats->rows = $this->runFiles($this->rowDirectories());
             $result->stats->sync_import = $this->runSyncImport();
             $result->stats->update = $this->runFiles($this->updateDirectories());
+
+            if (Environment::isLocal()) {
+                $result->stats->defaults = $this->runModuleDefaults();
+
+                if ($result->stats->defaults > 0) {
+                    $result->stats->sync_export = $this->runSyncExport();
+                }
+            }
 
             if ($includeCliFiles) {
                 $result->stats->local = $this->runFiles($this->cliDirectories());
@@ -379,6 +392,46 @@ class UpdateRunner
         }
 
         return TableSync::importIfExists($ROOT);
+    }
+
+    /**
+     * Righe precaricate dei moduli abilitati, in ordine di dipendenza.
+     * Chiamato solo con APP_ENV=local.
+     */
+    private function runModuleDefaults(): int
+    {
+        $rows = new DefaultRows();
+
+        foreach (ModuleDependencySorter::sortManifests(ModuleRegistry::enabled()) as $manifest) {
+            $defaultsClass = $manifest->defaultsClass();
+
+            if ($defaultsClass === null) {
+                continue;
+            }
+
+            if (!is_subclass_of($defaultsClass, ModuleDefaults::class)) {
+                throw new RuntimeException($defaultsClass.' deve implementare '.ModuleDefaults::class);
+            }
+
+            $defaultsClass::seed($rows);
+        }
+
+        return $rows->total();
+    }
+
+    /**
+     * Scrive shared/sync-data.json dopo l'aggiunta di righe precaricate,
+     * anche con SYNC_AUTO_EXPORT spento.
+     */
+    private function runSyncExport(): bool
+    {
+        global $ROOT;
+
+        if (!is_string($ROOT ?? null) || trim($ROOT) === '') {
+            return false;
+        }
+
+        return TableSync::exportToFile($ROOT);
     }
 
     private function rowDirectories(): array
