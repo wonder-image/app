@@ -155,11 +155,15 @@ Fa questo:
   - `build/row` e' il lifecycle di seed/bootstrap idempotente
   - i payload statici condivisi dei seed stanno in `Wonder\App\SeedDefaults`
   - `Wonder\App\RuntimeDefaults` non e' il posto giusto per i row seed: resta per fallback runtime
-- esegue i file in `build/update` (include: import `shared/sync-data.json` se presente, rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
+- importa `shared/sync-data.json` se presente (`stats.sync_import`)
+- esegue i file in `build/update` (include: rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
+- solo con `APP_ENV=local`: righe precaricate dei moduli (`database.defaults`, `stats.defaults`) e, se ne ha inserite, scrittura di `shared/sync-data.json` (`stats.sync_export`)
 
 Con `--local` esegue anche:
 
 - i file in `build/cli`
+
+In produzione (`APP_ENV` assente o `production`) le righe precaricate dei moduli non vengono mai create: arrivano da `shared/sync-data.json`.
 
 Quindi:
 

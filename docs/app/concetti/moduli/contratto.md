@@ -120,6 +120,34 @@ final class Module implements ModuleInterface
 - **implementi** `ModuleInterface` (a meno che il modulo non sia marcato
   legacy).
 
+## Righe precaricate (`ModuleDefaults`)
+
+```php
+namespace Wonder\Plugin\Gestionale\Database;
+
+use Wonder\App\Module\Contracts\ModuleDefaults;
+use Wonder\App\Support\DefaultRows;
+use Wonder\Plugin\Gestionale\Models\System\Settings;
+use Wonder\Plugin\Gestionale\Models\Tax\Tax;
+
+final class Defaults implements ModuleDefaults
+{
+    public static function seed(DefaultRows $rows): void
+    {
+        $rows->ensure(Tax::class, 'code', [
+            ['code' => 'vat-22', 'name' => '22% - Aliquota ordinaria', 'rate' => '22.00'],
+        ]);
+
+        $rows->ensureSingleton(Settings::class, ['return_days' => 14]);
+    }
+}
+```
+
+- `ensure()` inserisce solo le righe il cui valore chiave non esiste, contando anche le righe cancellate, e non modifica mai le righe esistenti;
+- `ensureSingleton()` crea la riga `id = 1` se manca;
+- i moduli vengono eseguiti in ordine di dipendenza (`dependencies.modules`, `ModuleDependencySorter`);
+- dichiarazione nel manifest: [`database.defaults`](manifest.md).
+
 ## Errori comuni
 
 - **`Entrypoint non autoloadabile`** → namespace/PSR-4 non allineato; manca

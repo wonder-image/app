@@ -72,11 +72,25 @@ Inoltre, i **percorsi** dichiarati devono stare **dentro** la radice del modulo
 | `dependencies()` / `dependencySlugs()` | da `dependencies.modules` |
 | `modelsPath()` | default `src/Models` |
 | `resourcesPath()` | default `src/Resources` |
+| `defaultsClass()` | da `database.defaults`, `null` se assente |
 | `handlersPath()`, `viewsPath()`, `assetsPath()`, `langPath()`, `testsPath()` | da `paths.*` |
 | `routeFile($area)` | da `paths.routes.<area>` |
 | `permissionsFile()` | file dei permessi del modulo |
 | `bootFiles()` | file caricati al boot del modulo |
 | `priority()`, `source()`, `composerPackage()` | metadati di scoperta |
+
+### `database.defaults`
+
+Classe delle righe precaricate del modulo:
+
+```json
+"database": {
+    "models": "src/Models",
+    "defaults": "Wonder\\Plugin\\Gestionale\\Database\\Defaults"
+}
+```
+
+La classe implementa `Wonder\App\Module\Contracts\ModuleDefaults` (vedi [Contratto](contratto.md)). Il validator segnala classi inesistenti o che non implementano il contratto. Eseguita solo da `forge update` con `APP_ENV=local`.
 
 ## Permessi del modulo
 

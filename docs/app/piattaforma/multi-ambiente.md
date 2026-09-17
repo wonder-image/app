@@ -14,6 +14,19 @@ Le soluzioni introdotte coprono tre aree: **media**, **sincronizzazione dati** e
 
 ---
 
+## Ambiente: `APP_ENV`
+
+Il framework distingue locale e produzione con `APP_ENV` (`local` o `production`).
+Se la variabile manca o non è valida vale `production`. `php forge start` scrive
+`APP_ENV=local` nel `.env` locale; i boilerplate la dichiarano in `.env.example`.
+
+```php
+use Wonder\App\Environment;
+
+Environment::isLocal();      // true solo con APP_ENV=local
+Environment::isProduction();
+```
+
 ## Media: proxy fallback in locale
 
 ### Problema
@@ -182,12 +195,46 @@ php forge import --no-rebuild         # solo DB, senza rigenerare CSS
 
 #### Import automatico in `forge update`
 
-`build/update/css.php` chiama `TableSync::importIfExists($ROOT)` **prima** di rigenerare i CSS. Se `shared/sync-data.json` esiste nel root del progetto, viene importato automaticamente nel DB.
+`UpdateRunner` importa `shared/sync-data.json`, se esiste, subito dopo le tabelle e prima dei file di update (quindi prima della rigenerazione dei CSS).
 
 Questo significa che:
 
 - il deploy con `forge update` allinea automaticamente il DB ai dati committati
 - non serve chiamare `forge import` manualmente in CI
+
+#### Tabelle con `id` stabili: `keepIds()`
+
+Per le tabelle referenziate da chiavi esterne (es. metodi di pagamento usati dagli ordini) l'import non deve rinumerare gli `id`:
+
+```php
+public static function syncSchema(): ?SyncSchema
+{
+    return SyncSchema::multiRow()->keepIds();
+}
+```
+
+- l'export include `id` e `deleted`, ordinato per `id`;
+- l'import inserisce o aggiorna per `id`, senza `TRUNCATE`;
+- le righe assenti dal file vengono segnate `deleted = 'true'`, mai eliminate;
+- la cancellazione dal backend e dalle API di queste tabelle è sempre logica.
+
+Le tabelle senza `keepIds()` mantengono il comportamento storico (svuotate e reinserite). L'export di tutte le tabelle è ordinato per `id`.
+
+#### Tabelle modificabili solo in locale: `localOnly()`
+
+```php
+return SyncSchema::multiRow()->keepIds()->localOnly();
+```
+
+Fuori da `APP_ENV=local` le Resource di questi Model sono in sola lettura: nessuna route di creazione, salvataggio o eliminazione (anche API), campi disabilitati e avviso "Si modifica in locale e si pubblica con il deploy." Anche gli endpoint generici `api/backend/*` che ricevono `table` rispondono 403.
+
+#### Righe precaricate dei moduli
+
+Con `APP_ENV=local`, `forge update` esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe, riscrive `shared/sync-data.json` da committare. In produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
+
+#### Export dopo il salvataggio
+
+I controller backend e API chiamano `Resource::exportSyncData()` dopo store, update e delete di ogni Model sincronizzato: con `SYNC_AUTO_EXPORT=true` il file si aggiorna senza chiamate manuali nelle Resource.
 
 ### Scegliere le tabelle da sincronizzare
 

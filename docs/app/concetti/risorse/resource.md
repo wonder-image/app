@@ -198,6 +198,17 @@ implementazioni base sono no-op):
 | `afterUpdate($id, $result, $values = [])` | dopo l'update |
 | `afterDelete($id, $result, $values = [])` | dopo il delete |
 
+## Sola lettura, cancellazione ed export
+
+| Metodo | Default | Uso |
+|---|---|---|
+| `isReadonly(): bool` | `true` se il Model dichiara `SyncSchema::...->localOnly()` e `APP_ENV` non è `local`; `false` per le Resource senza Model | sovrascrivibile, es. un modulo che rende locale una Resource del core |
+| `readonlyNotice(): string` | `Si modifica in locale e si pubblica con il deploy.` | testo dell'avviso |
+| `deleteRecord(int\|string $id): object` | cancellazione logica con `keepIds()`, altrimenti `Model::delete()` | usato dai controller backend e API |
+| `exportSyncData(): void` | `TableSync::autoExport()` per i Model sincronizzati | chiamato dopo store, update e delete |
+
+In sola lettura le route di modifica non vengono registrate, i campi sono disabilitati, la tabella non mostra "Aggiungi" né "Elimina" e le pagine mostrano l'avviso.
+
 ## Estendere oltre il CRUD
 
 - `customBackendPages(): array` — elenco di azioni che la Resource gestisce da
