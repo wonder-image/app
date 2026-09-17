@@ -4120,7 +4120,7 @@ Route::area('backend')->prefix('/backend')->name('backend.')->group(function () 
     ResourceRouteRegistrar::registerBackend($ROOT_APP);
 });
 
-verifica('route delle sedi', __r('backend.resource.app-config-corporate-data.list') === (new \Wonder\App\Path)->site.'/backend/app/config/corporate-data/' || str_ends_with(__r('backend.resource.app-config-corporate-data.list'), '/backend/app/config/corporate-data/'), __r('backend.resource.app-config-corporate-data.list'));
+verifica('route delle sedi', str_ends_with(__r('backend.resource.app-config-corporate-data.list'), '/backend/app/config/corporate-data/'), __r('backend.resource.app-config-corporate-data.list'));
 verifica('route di orari e chiusure', str_ends_with(__r('backend.resource.app-config-opening-hours.update', ['id' => 1]), '/backend/app/config/opening-hours/1/edit/'));
 
 $sections = json_encode(BackendNavigation::all(), JSON_UNESCAPED_UNICODE);
