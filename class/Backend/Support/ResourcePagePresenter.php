@@ -53,6 +53,8 @@ final class ResourcePagePresenter
             'NAME' => $this->legacyName(),
             'READONLY' => $this->resourceClass::isReadonly(),
             'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
+            'DOCS_URL' => $this->resourceClass::pageSchema()->docsUrl($mode),
+            'DOCS_LABEL' => DocsAction::label(),
         ];
     }
 
@@ -61,7 +63,7 @@ final class ResourcePagePresenter
         return [
             'TITLE' => $this->pageTitle('view'),
             'SUBTITLE' => $this->pageSubtitle('view'),
-            'ACTIONS' => $this->pageActions('view', $item),
+            'ACTIONS' => $this->withDocsAction('view', $this->pageActions('view', $item)),
             'RESOURCE_CLASS' => $this->resourceClass,
             'ITEM' => $item,
             'BACK_URL' => $this->backUrl(),
@@ -270,6 +272,26 @@ HTML;
         }
 
         return PageActionNormalizer::normalize($descriptors);
+    }
+
+    /**
+     * Aggiunge in coda il pulsante "Guida" se la pagina ha un URL della guida.
+     *
+     * @param array<int, array<string, mixed>> $actions
+     * @return array<int, array<string, mixed>>
+     */
+    private function withDocsAction(string $page, array $actions): array
+    {
+        $url = $this->resourceClass::pageSchema()->docsUrl($page);
+
+        if ($url === '') {
+            return $actions;
+        }
+
+        return array_merge(
+            $actions,
+            PageActionNormalizer::normalize([DocsAction::descriptor($url, DocsAction::label())])
+        );
     }
 
     private function listUrl(): string

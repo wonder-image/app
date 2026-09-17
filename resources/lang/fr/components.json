@@ -66,6 +66,7 @@
         }
     },
     "buttons" : {
+        "docs" : "Guide",
         "send" : "Envoyer",
         "more" : "En savoir plus",
         "back_site" : "Retour au site",

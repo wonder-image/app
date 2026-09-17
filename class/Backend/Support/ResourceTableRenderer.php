@@ -73,6 +73,7 @@ final class ResourceTableRenderer
         $this->applyFilters($table);
         $this->applyButtonAdd($table);
         $this->applyButtonsCustom($table);
+        $this->applyButtonDocs($table);
         $this->applyButtonDownload($table);
         $this->applyColumns($table);
 
@@ -205,6 +206,22 @@ final class ResourceTableRenderer
                 $table->addButtonCustom($html, true);
             }
         }
+    }
+
+    private function applyButtonDocs(Table $table): void
+    {
+        $url = $this->resourceClass::pageSchema()->docsUrl('list');
+
+        if ($url === '') {
+            return;
+        }
+
+        $button = Button::to($url, DocsAction::label())
+            ->variant('secondary')
+            ->outline()
+            ->blank();
+
+        $table->addButtonCustom($this->renderButtonCustom($button), true);
     }
 
     private function renderButtonCustom(mixed $button): string
