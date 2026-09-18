@@ -8,6 +8,7 @@ use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
+use Wonder\Backend\Support\FlashAlert;
 use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\View\View;
 
@@ -232,6 +233,9 @@ final class ResourcePageController
 
         if (trim($message) !== '') {
             $_SESSION['wi_form_page_message_'.$this->resourceClass::slug()] = $message;
+            FlashAlert::saved($message);
+        } else {
+            FlashAlert::code(650);
         }
 
         header('Location: '.__r('backend.resource.'.$this->resourceClass::slug().'.form'));
@@ -307,6 +311,10 @@ final class ResourcePageController
 
     private function redirectToConfiguredPage(string $action): never
     {
+        // Salvataggio o eliminazione andati a buon fine: il toast lo mostra
+        // la pagina dove arriviamo dopo il redirect.
+        FlashAlert::code(650);
+
         header('Location: '.$this->presenter->redirectUrl($action));
         exit();
     }

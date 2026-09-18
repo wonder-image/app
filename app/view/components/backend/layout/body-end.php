@@ -11,7 +11,7 @@
         if (localStorage.theme != theme) { bootstrapTheme(theme); }
 
         setUpPage();
-        <?=alert()?>
+        <?=alert('backend')?>
 
     });
 

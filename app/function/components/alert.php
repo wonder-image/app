@@ -1,6 +1,9 @@
 <?php
 
-function alert() {
+// `$surface` dice dove sta girando la pagina: nel frontend il JavaScript
+// della lib accetta solo il codice della notifica, nel backend anche un
+// avviso scritto al momento.
+function alert(string $surface = 'frontend') {
 
     global $ALERT;
 
@@ -13,6 +16,9 @@ function alert() {
     if (!empty($ALERT) && is_numeric($ALERT)) {
         echo 'alertToast('.(int) $ALERT.');';
     }
+
+    // Avviso messo in coda prima di un redirect, tipico del salvataggio.
+    echo \Wonder\Backend\Support\FlashAlert::script($surface === 'backend');
 
 }
 

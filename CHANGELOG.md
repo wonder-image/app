@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- `Wonder\Backend\Support\FlashAlert`: avviso in coda in sessione, letto da
+  `alert()` in body-end. `code()` per i codici di `notifications.json`,
+  `custom()` e `saved()` per i messaggi composti al momento (solo backend).
+  Le Resource lo usano da sole: dopo store, update e delete il toast 650
+  compare sulla pagina di arrivo, e le pagine-form mostrano il messaggio di
+  `submitFormPage()` anche come toast.
 - Comando `php forge credentials` (alias `bitwarden:pull`) per scaricare o
   ripristinare nel `.env` locale le credenziali Bitwarden `dev-shared`;
   preserva gli override per progetto per default e supporta `--force` e
