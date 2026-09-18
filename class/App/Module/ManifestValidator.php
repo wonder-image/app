@@ -109,6 +109,18 @@ final class ManifestValidator
             }
         }
 
+        $consoleCommands = $manifest->get('console.commands', []);
+
+        if (!is_array($consoleCommands)) {
+            $errors[] = 'console.commands deve essere una lista di classi';
+        } else {
+            foreach ($consoleCommands as $class) {
+                if (!is_string($class) || trim($class) === '') {
+                    $errors[] = 'console.commands: nome della classe non valido';
+                }
+            }
+        }
+
         $permissionsFile = $manifest->permissionsFile();
 
         if ($permissionsFile !== null && !self::isPathInsideRoot($permissionsFile, $manifest->root())) {

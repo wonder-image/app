@@ -20,6 +20,7 @@
                 \Wonder\Console\Commands\Provision::class,
                 \Wonder\Console\Commands\Update::class,
                 \Wonder\Console\Commands\Build::class,
+                \Wonder\Console\Commands\ScheduleRun::class,
                 \Wonder\Console\Commands\DbInit::class,
                 \Wonder\Console\Commands\LocalStart::class,
                 \Wonder\Console\Commands\MakeModel::class,
@@ -40,7 +41,15 @@
 
         public function run(InputInterface $input, OutputInterface $output): int
         {
-                    
+
+            $modules = ModuleCommands::all();
+
+            foreach ($modules['errors'] as $error) {
+                $output->writeln('<comment>⚠️  '.$error.'</comment>');
+            }
+
+            $this->commands = array_merge($this->commands, $modules['commands']);
+
             $app = new Application();
 
             $instances = [];

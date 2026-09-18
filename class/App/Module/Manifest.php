@@ -242,6 +242,18 @@ final class Manifest
         return is_string($class) && trim($class) !== '' ? trim($class) : null;
     }
 
+    /**
+     * Comandi `forge` dichiarati dal modulo (`console.commands`).
+     *
+     * @return list<string>
+     */
+    public function consoleCommands(): array
+    {
+        $commands = $this->get('console.commands', []);
+
+        return is_array($commands) ? array_values(array_filter($commands, 'is_string')) : [];
+    }
+
     public function permissionsFile(): ?string
     {
         $path = $this->get('permissions.definitions', 'config/permissions.php');
