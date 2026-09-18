@@ -6,6 +6,7 @@
 skills-lock.json
 vendor/
 /storage/
+/vendor-static/xml-sitemaps/data/generator.conf
 .phpdoc/
 COMMAND.md
 TODO.md
