@@ -2,6 +2,9 @@
 <?php $navigation = \Wonder\Backend\Support\BackendNavigation::all(); ?>
 <div class="row g-3">
 
+    <?php // Riquadri dichiarati dai moduli abilitati (backend.home_widgets). ?>
+    <?=\Wonder\Backend\Support\HomeWidgets::renderAll((array) ($USER->authority ?? []))?>
+
     <wi-card class="col-3">
 
         <?php
