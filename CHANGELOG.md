@@ -24,6 +24,10 @@
 - `Swiper::slides()` per caroselli di HTML trusted e componenti renderizzabili,
   più ratio separati per immagini/thumb e classi aggiuntive sulle slide.
 
+### Changed
+- Il pulsante "Guida" è `btn-info btn-sm` in ogni pagina: prima nell'elenco e
+  nell'header era un `btn-outline-secondary` a dimensione piena.
+
 ### Fixed
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
   off-site per cover, anteprime, slide, thumbnail e lightbox, senza generare

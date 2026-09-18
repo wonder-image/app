@@ -226,7 +226,8 @@ public static function pageSchema(): PageSchema
 ```
 
 Il pulsante compare nell'header di elenco, form e scheda, si apre in una nuova
-scheda ed è tradotto con `components.buttons.docs`. Sono ammessi solo URL
+scheda ed è tradotto con `components.buttons.docs`. È sempre uguale ovunque:
+`btn-info btn-sm`. Sono ammessi solo URL
 `http(s)` o relativi; ogni modulo compone l'URL dalla propria configurazione.
 
 ## Azioni e suggerimenti nei form

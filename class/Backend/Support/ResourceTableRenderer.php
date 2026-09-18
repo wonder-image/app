@@ -217,8 +217,8 @@ final class ResourceTableRenderer
         }
 
         $button = Button::to($url, DocsAction::label())
-            ->variant('secondary')
-            ->outline()
+            ->variant('info')
+            ->size('sm')
             ->blank();
 
         $table->addButtonCustom($this->renderButtonCustom($button), true);

@@ -67,9 +67,21 @@ check('descriptor del pulsante', function () {
         'label' => 'Guida',
         'href' => 'https://guide.example.test/a',
         'target' => '_blank',
-        'class' => 'btn-outline-secondary',
+        'class' => 'btn-info btn-sm',
         'icon' => 'bi bi-question-circle',
     ];
+});
+
+check('nell\'elenco il pulsante è lo stesso', function () {
+    $html = (string) (new \Wonder\Elements\Components\Button('Guida', 'https://guide.example.test/a'))
+        ->variant('info')
+        ->size('sm')
+        ->blank()
+        ->render();
+
+    return str_contains($html, 'btn-info')
+        && str_contains($html, 'btn-sm')
+        && !str_contains($html, 'btn-outline');
 });
 
 check('etichetta di ripiego senza traduzioni', function () {

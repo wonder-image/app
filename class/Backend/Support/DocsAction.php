@@ -22,7 +22,7 @@ final class DocsAction
             'label' => $label,
             'href' => $url,
             'target' => '_blank',
-            'class' => 'btn-outline-secondary',
+            'class' => 'btn-info btn-sm',
             'icon' => 'bi bi-question-circle',
         ];
     }
