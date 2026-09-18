@@ -290,7 +290,7 @@ final class SocietyLocationResource extends Resource
             TableColumn::key('is_default')
                 ->booleanBadge()
                 ->badgeOn('Predefinita', 'bi bi-star-fill', 'primary')
-                ->badgeOff('Secondaria')
+                ->badgeOff('Secondaria', 'bi bi-geo', 'secondary')
                 ->size('little'),
             TableColumn::key('visible')->visibleBadge()->size('little'),
             TableColumn::key('actions')->button()->actions(['edit', 'delete']),
