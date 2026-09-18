@@ -125,7 +125,21 @@ l'editor rich-text.
 `selectSearch($options, $multiple = false, $version = null)`, `checkbox()`,
 `checkTree($options, $searchBar = false, $inputType = 'checkbox')`,
 `dynamicCheck($url, $inputType = 'checkbox')`,
-`checkBoolean($values = ['', 'true', 'false'], $trueLabel = null, $falseLabel = null)`.
+`checkBoolean($values = ['', 'true', 'false'], $trueLabel = null, $falseLabel = null)`,
+`toggle($on = 'true', $off = 'false')`.
+
+`toggle()` è l'interruttore acceso/spento delle pagine di configurazione: ogni
+riga è una scelta con la sua etichetta e una descrizione breve sotto.
+
+```php
+FormField::key('orders')->toggle()
+    ->label('Ordini')
+    ->description('Gestione degli ordini con stati e scarico del magazzino.');
+```
+
+Un campo nascosto manda il valore "spento" quando l'interruttore è staccato,
+quindi il form trasmette sempre un valore; `values('si', 'no')` cambia i due
+valori postati.
 
 `textList($options, $version = null)` — combobox "text + list": campo di
 testo con dropdown filtrabile lato client su una lista *statica* di opzioni
@@ -188,6 +202,7 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 | `dynamicCheck()` | `InputDynamicCheck` | `url`, `inputType` |
 | `searchText()`, `searchRadio()` | `InputSearchText`, `InputSearchRadio` | `url` |
 | `checkBoolean()` | `InputCheckBoolean` | `values`, `trueLabel`, `falseLabel` |
+| `toggle()` | `InputToggle` | `values`, `description` (più `label()` della base) |
 | `file()`, `fileDragDrop()` | `InputFile`, `InputFileDragDrop` | `accept`, `maxFile`, `maxSize`, `extensions`, `multiple` (+ `uploader` sul drag&drop) |
 | `textDate()`, `dateInput()`, `dateRange()` | `InputTextDate`, `InputDate`, `InputDateRange` | `dateMin`, `dateMax` |
 | `timeInput()` | `InputTime` | `timeStep` |

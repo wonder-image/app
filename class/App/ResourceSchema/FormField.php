@@ -8,6 +8,7 @@ use Wonder\App\ResourceSchema\Inputs\Concerns\WritesNumberConfig;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesPasswordRules;
 use Wonder\App\ResourceSchema\Inputs\InputAcceptDocument;
 use Wonder\App\ResourceSchema\Inputs\InputCheckBoolean;
+use Wonder\App\ResourceSchema\Inputs\InputToggle;
 use Wonder\App\ResourceSchema\Inputs\InputCheckTree;
 use Wonder\App\ResourceSchema\Inputs\InputCheckbox;
 use Wonder\App\ResourceSchema\Inputs\InputColor;
@@ -123,6 +124,7 @@ class FormField extends Input
         'checkTree' => InputCheckTree::class,
         'dynamicCheck' => InputDynamicCheck::class,
         'checkBoolean' => InputCheckBoolean::class,
+        'toggle' => InputToggle::class,
         'inputCountry' => InputCountry::class,
         'inputStates' => InputStates::class,
         'inputPhonePrefix' => InputPhonePrefix::class,
@@ -467,6 +469,15 @@ class FormField extends Input
      * @param array $values Tripla [valueNull, valueTrue, valueFalse] dei valori
      *                      effettivamente postati dal form. Default `['', 'true', 'false']`.
      */
+    /**
+     * Interruttore acceso/spento con etichetta e descrizione, per le pagine di
+     * configurazione.
+     */
+    public function toggle(string $on = 'true', string $off = 'false'): InputToggle
+    {
+        return $this->morphInto(InputToggle::class)->values($on, $off);
+    }
+
     public function checkBoolean(array $values = ['', 'true', 'false'], ?string $trueLabel = null, ?string $falseLabel = null): InputCheckBoolean
     {
         $input = $this->morphInto(InputCheckBoolean::class)->values($values);
