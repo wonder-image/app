@@ -17,10 +17,15 @@ class Container extends Component
     {
         $classSpanColumn = $this->getColumnSpan($class->columnSpan);
 
+        $schema = $class->getSchema();
+        $masonry = (int) ($schema['masonry'] ?? 0);
+
         $html = "<div class=\"{$classSpanColumn}\">";
         $html .= $this->renderInner(
             $class,
-            $this->renderComponents($class->components)
+            $masonry > 0
+                ? $this->renderMasonryComponents($class->components, (string) ($schema['masonry-gap'] ?? '1rem'))
+                : $this->renderComponents($class->components)
         );
         $html .= '</div>';
 
@@ -35,10 +40,15 @@ class Container extends Component
     {
         $schema = $class->getSchema();
         $noGrid = ($schema['no-grid'] ?? false) === true;
+        $masonry = (int) ($schema['masonry'] ?? 0);
 
-        if ($noGrid) {
+        if ($masonry > 0) {
+            // Multi-colonna: i figli si impilano dall'alto in basso e passano
+            // alla colonna dopo, senza i buchi della griglia a righe.
             $layoutClasses = [];
-        } elseif ($layoutClasses === null) {
+        } elseif ($noGrid) {
+            $layoutClasses = [];
+        } elseif ($layoutClasses === null && $masonry === 0) {
             $layoutClasses = [
                 $this->getColumns($class->columns),
                 $this->getGap($class->gap),
@@ -48,6 +58,16 @@ class Container extends Component
         $attributes = is_array($schema['attributes'] ?? null)
             ? $schema['attributes']
             : [];
+
+        if ($masonry > 0) {
+            $minWidth = (string) ($schema['masonry-min-width'] ?? '22rem');
+            $gap = (string) ($schema['masonry-gap'] ?? '1rem');
+            $attributes['style'] = trim(
+                'columns: '.$this->escape($minWidth).' '.$masonry.';'
+                .' column-gap: '.$this->escape($gap).';'
+                .' '.(string) ($attributes['style'] ?? '')
+            );
+        }
         $classes = $this->mergeClasses(
             $layoutClasses,
             $attributes['class'] ?? null
@@ -69,6 +89,28 @@ class Container extends Component
         return '<div'.($attributeString !== '' ? ' '.$attributeString : '').'>'
             .$content
             .'</div>';
+    }
+
+    /**
+     * Disegna i figli del multi-colonna: ognuno in un blocco che non si spezza
+     * tra due colonne. Il margine sotto tiene la distanza verticale, che
+     * `column-gap` non dà.
+     */
+    public function renderMasonryComponents(array $components, string $gap = '1rem'): string
+    {
+        $html = '';
+
+        foreach ($components as $component) {
+            if (!is_object($component) || !method_exists($component, 'render')) {
+                continue;
+            }
+
+            $html .= '<div style="break-inside: avoid; margin-bottom: '.$this->escape($gap).';">'
+                .$component->render()
+                .'</div>';
+        }
+
+        return $html;
     }
 
     /** @return string[] */

@@ -54,6 +54,11 @@ I metodi di composizione arrivano da Concerns riusabili:
 - `columnSpan(int|array)` — quante colonne occupa (`Concerns/CanSpanColumn.php`)
 - `Container::noGrid()` — usa il Container come wrapper puro, senza classi
   `row`/gutter generate dal layout Bootstrap
+- `Container::masonry(int $columns = 2, string $minWidth = '22rem', string $gap = '1rem')`
+  — i figli si impilano dall'alto in basso e riempiono le colonne (multi-colonna
+  CSS) invece di allinearsi per righe: niente buchi quando le schede hanno
+  altezze diverse. Sotto `$minWidth` il contenuto torna a una colonna sola,
+  senza media query. Ogni figlio resta intero, senza spezzarsi tra due colonne.
 - `href()/blank()/target()/rel()/title()/onclick()` — attributi link-like
   condivisi (`Concerns/HasLinkAttributes.php`) per `Link`, `Button`, `Badge`
   e per i link inline composti da `Text`

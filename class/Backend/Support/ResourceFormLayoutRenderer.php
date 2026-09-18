@@ -162,16 +162,27 @@ final class ResourceFormLayoutRenderer
     private static function renderContainerInner(Container $container): string
     {
         $containerColumns = self::columnsMap($container);
-        $content = $container->getSchema('no-grid') === true
-            ? self::renderComponentsRaw((array) ($container->components ?? []))
-            : self::renderComponents(
+        $masonry = (int) ($container->getSchema('masonry') ?? 0);
+
+        if ($masonry > 0) {
+            // Multi-colonna: i figli si impilano e riempiono le colonne, quindi
+            // niente classi di griglia e ognuno in un blocco che non si spezza.
+            $content = (new BootstrapContainerRenderer())->renderMasonryComponents(
+                (array) ($container->components ?? []),
+                (string) ($container->getSchema('masonry-gap') ?? '1rem')
+            );
+        } elseif ($container->getSchema('no-grid') === true) {
+            $content = self::renderComponentsRaw((array) ($container->components ?? []));
+        } else {
+            $content = self::renderComponents(
                 (array) ($container->components ?? []),
                 $containerColumns
             );
+        }
         $inner = (new BootstrapContainerRenderer())->renderInner(
             $container,
             $content,
-            [self::rowClass($container)]
+            $masonry > 0 ? [] : [self::rowClass($container)]
         );
 
         return $inner;
