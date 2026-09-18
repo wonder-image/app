@@ -2,6 +2,11 @@
 
 <?php
     $readonly = (bool) ($READONLY ?? false);
+    // Sola lettura parziale: la pagina arriva dal deploy ma alcuni campi
+    // (es. orari e chiusure della sede) restano modificabili in produzione.
+    $editableWhenReadonly = (array) ($READONLY_EDITABLE ?? []);
+    $partial = $readonly && $editableWhenReadonly !== [];
+    $locked = $readonly && !$partial;
     $readonlyNotice = htmlspecialchars((string) ($READONLY_NOTICE ?? ''), ENT_QUOTES, 'UTF-8');
     $noticeHtml = '
         <div class="col-12">
@@ -26,10 +31,10 @@
                 'id' => 'resource-layout-form',
                 'method' => (string) ($FORM_METHOD ?? 'POST'),
                 'enctype' => (string) ($FORM_ENCTYPE ?? 'multipart/form-data'),
-                'action' => $readonly ? '' : (string) ($FORM_ACTION ?? ''),
-                'footer' => $readonly
+                'action' => $locked ? '' : (string) ($FORM_ACTION ?? ''),
+                'footer' => $locked
                     ? $noticeHtml
-                    : '
+                    : ($partial ? $noticeHtml : '').'
                     <div class="col-12">
                         <wi-card class="col-12">
                             <div class="col-12">'.$submitHtml().'</div>
@@ -41,8 +46,8 @@
 <?php } else { ?>
 <form method="<?=htmlspecialchars((string) ($FORM_METHOD ?? 'POST'), ENT_QUOTES, 'UTF-8')?>"
       enctype="<?=htmlspecialchars((string) ($FORM_ENCTYPE ?? 'multipart/form-data'), ENT_QUOTES, 'UTF-8')?>"
-      action="<?=$readonly ? '' : htmlspecialchars((string) ($FORM_ACTION ?? ''), ENT_QUOTES, 'UTF-8')?>"
-      <?=$readonly ? 'onsubmit="return false"' : 'onsubmit="loadingSpinner()"'?>>
+      action="<?=$locked ? '' : htmlspecialchars((string) ($FORM_ACTION ?? ''), ENT_QUOTES, 'UTF-8')?>"
+      <?=$locked ? 'onsubmit="return false"' : 'onsubmit="loadingSpinner()"'?>>
     <div class="row g-3">
         <?php if ($readonly) { echo $noticeHtml; } ?>
         <div class="<?=!empty($SIDEBAR_FIELDS) ? 'col-9' : 'col-12'?>">
@@ -67,14 +72,14 @@
                         }
                     ?>
                 <?php } ?>
-                <?php if (!$readonly) { ?>
+                <?php if (!$locked) { ?>
                 <div class="col-12">
                     <?=$submitHtml('w-100')?>
                 </div>
                 <?php } ?>
             </wi-card>
         </div>
-        <?php } elseif (!$readonly) { ?>
+        <?php } elseif (!$locked) { ?>
         <div class="col-12">
             <wi-card class="col-12">
                 <div class="col-12">

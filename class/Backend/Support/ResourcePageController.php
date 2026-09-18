@@ -8,6 +8,7 @@ use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
+use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\View\View;
 
 final class ResourcePageController
@@ -152,7 +153,12 @@ final class ResourcePageController
     {
         global $ALERT;
 
-        $this->guardWritable();
+        $editable = $this->editableWhenReadonly();
+        $readonly = $this->resourceClass::isReadonly();
+
+        if (!ReadonlyFields::allowsUpdate($readonly, $editable)) {
+            throw new RuntimeException('Resource in sola lettura in questo ambiente: '.$this->resourceClass::slug());
+        }
 
         $this->guardPositiveId($id);
         $ALERT = '';
@@ -174,8 +180,8 @@ final class ResourcePageController
         if (!empty($result->success)) {
             $this->resourceClass::syncRepeaterRelations(
                 $id,
-                $_POST,
-                $_FILES,
+                $readonly ? ReadonlyFields::filter($_POST, $editable) : $_POST,
+                $readonly ? ReadonlyFields::filter($_FILES, $editable) : $_FILES,
                 'update',
                 'backend'
             );
@@ -216,7 +222,21 @@ final class ResourcePageController
 
     private function requestValues(): array
     {
-        return array_merge($_POST, $_FILES);
+        $values = array_merge($_POST, $_FILES);
+
+        // In sola lettura passano solo i campi dichiarati modificabili: il
+        // resto della scheda arriva dal deploy e non si tocca da qui.
+        if (!$this->resourceClass::isReadonly()) {
+            return $values;
+        }
+
+        return ReadonlyFields::filter($values, $this->editableWhenReadonly());
+    }
+
+    /** @return list<string> */
+    private function editableWhenReadonly(): array
+    {
+        return ReadonlyFields::normalize($this->resourceClass::editableWhenReadonly());
     }
 
     private function preparedValues(?array $oldValues = null): array

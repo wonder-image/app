@@ -2,6 +2,7 @@
 
 namespace Wonder\App;
 
+use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\Http\Route;
 
 final class ResourceRouteRegistrar
@@ -15,6 +16,12 @@ final class ResourceRouteRegistrar
                     $permissions = (array) $resourceClass::permissionSchema()->get('backend');
                     $path = trim((string) $resourceClass::path(), '/');
                     $readonly = $resourceClass::isReadonly();
+                    // In sola lettura la modifica resta possibile se la Resource
+                    // dichiara dei campi modificabili (es. orari e chiusure).
+                    $updatable = ReadonlyFields::allowsUpdate(
+                        $readonly,
+                        $resourceClass::editableWhenReadonly()
+                    );
 
                     if ($path === '') {
                         continue;
@@ -22,7 +29,7 @@ final class ResourceRouteRegistrar
 
                     Route::name($slug.'.')
                         ->prefix('/'.$path)
-                        ->group(function () use ($rootApp, $slug, $pages, $permissions, $resourceClass, $readonly) {
+                        ->group(function () use ($rootApp, $slug, $pages, $permissions, $resourceClass, $readonly, $updatable) {
                             if (!empty($pages['list'])) {
                                 Route::get('/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
@@ -62,7 +69,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($pages['update']) && !$readonly && !$resourceClass::hasCustomBackendPage('update')) {
+                            if (!empty($pages['update']) && $updatable && !$resourceClass::hasCustomBackendPage('update')) {
                                 Route::post('/{id}/edit/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'update',

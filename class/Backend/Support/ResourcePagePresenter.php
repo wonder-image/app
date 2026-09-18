@@ -6,6 +6,7 @@ use RuntimeException;
 use Throwable;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
+use Wonder\Backend\Support\ReadonlyFields;
 
 final class ResourcePagePresenter
 {
@@ -57,6 +58,7 @@ final class ResourcePagePresenter
             'NAME' => $this->legacyName(),
             'READONLY' => $this->resourceClass::isReadonly(),
             'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
+            'READONLY_EDITABLE' => ReadonlyFields::normalize($this->resourceClass::editableWhenReadonly()),
         ];
     }
 
@@ -221,15 +223,22 @@ HTML;
 
     private function applyModelFieldState(object $field, string $mode): object
     {
-        if ($this->resourceClass::isReadonly() && method_exists($field, 'disabled')) {
+        $name = property_exists($field, 'name') ? trim((string) ($field->name ?? '')) : '';
+
+        if (
+            method_exists($field, 'disabled')
+            && ReadonlyFields::shouldDisable(
+                $name,
+                $this->resourceClass::isReadonly(),
+                $this->resourceClass::editableWhenReadonly()
+            )
+        ) {
             $field->disabled();
         }
 
         if ($mode !== 'edit' || !property_exists($field, 'name') || !method_exists($field, 'readonly')) {
             return $field;
         }
-
-        $name = trim((string) ($field->name ?? ''));
 
         if ($name === '') {
             return $field;
