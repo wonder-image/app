@@ -626,6 +626,17 @@ abstract class Resource
     }
 
     /**
+     * Campi che restano modificabili quando la pagina è in sola lettura.
+     * Vuoto: la pagina non si modifica per niente.
+     *
+     * @return list<string>
+     */
+    public static function editableWhenReadonly(): array
+    {
+        return [];
+    }
+
+    /**
      * Cancella un record: con `keepIds()` segna `deleted = 'true'`, così la
      * riga resta nel sync e le righe precaricate non vengono ricreate.
      */
