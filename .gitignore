@@ -5,6 +5,7 @@
 .codex-skill-build/
 skills-lock.json
 vendor/
+/storage/
 .phpdoc/
 COMMAND.md
 TODO.md
