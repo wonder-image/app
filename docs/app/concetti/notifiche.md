@@ -53,5 +53,4 @@ a buon fine, `ResourcePageController` mette in coda il codice 650 e il toast
 compare sulla pagina dove arriva il redirect. Non serve scrivere niente.
 
 Una pagina-form (`isFormPage()`) mostra il messaggio restituito da
-`submitFormPage()` in due posti: il toast e il riquadro verde sotto il
-titolo.
+`submitFormPage()` come toast: in pagina non resta niente.

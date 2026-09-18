@@ -211,13 +211,9 @@ final class ResourcePageController
     /** Pagina fatta di un solo form (`Resource::isFormPage()`). */
     private function formPage(): void
     {
-        $key = 'wi_form_page_message_'.$this->resourceClass::slug();
-        $message = (string) ($_SESSION[$key] ?? '');
-        unset($_SESSION[$key]);
-
         View::make(
             $this->presenter->viewPath('form'),
-            $this->presenter->formPage($message)
+            $this->presenter->formPage()
         )->render();
     }
 
@@ -232,7 +228,6 @@ final class ResourcePageController
         $message = $this->resourceClass::submitFormPage($this->requestValues());
 
         if (trim($message) !== '') {
-            $_SESSION['wi_form_page_message_'.$this->resourceClass::slug()] = $message;
             FlashAlert::saved($message);
         } else {
             FlashAlert::code(650);

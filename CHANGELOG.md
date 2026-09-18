@@ -8,7 +8,8 @@
   `custom()` e `saved()` per i messaggi composti al momento (solo backend).
   Le Resource lo usano da sole: dopo store, update e delete il toast 650
   compare sulla pagina di arrivo, e le pagine-form mostrano il messaggio di
-  `submitFormPage()` anche come toast.
+  `submitFormPage()` come toast (`FORM_MESSAGE` e il riquadro verde in pagina
+  non ci sono più).
 - Comando `php forge credentials` (alias `bitwarden:pull`) per scaricare o
   ripristinare nel `.env` locale le credenziali Bitwarden `dev-shared`;
   preserva gli override per progetto per default e supporta `--force` e

@@ -20,14 +20,6 @@
         </div>
     </wi-card>
 
-    <?php if (!empty($FORM_MESSAGE)) { ?>
-    <wi-card class="col-12">
-        <div class="col-12">
-            <div class="alert alert-success mb-0"><?=htmlspecialchars((string) $FORM_MESSAGE, ENT_QUOTES, 'UTF-8')?></div>
-        </div>
-    </wi-card>
-    <?php } ?>
-
     <?php if (!empty($FORM_ERRORS)) { ?>
     <wi-card class="col-12">
         <div class="col-12">

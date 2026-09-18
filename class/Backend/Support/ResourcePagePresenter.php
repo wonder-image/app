@@ -67,7 +67,7 @@ final class ResourcePagePresenter
      * dietro. I valori arrivano da `formPageValues()` e l'azione è la pagina
      * stessa.
      */
-    public function formPage(string $message = ''): array
+    public function formPage(): array
     {
         $values = $this->resourceClass::mutateFormValues(
             $this->resourceClass::formPageValues(),
@@ -93,7 +93,6 @@ final class ResourcePagePresenter
             'BACK_URL' => '',
             'FORM_ERRORS' => [],
             'FORM_ERROR_MESSAGE' => '',
-            'FORM_MESSAGE' => $message,
             'USER' => $this->viewUser(),
             'VALUES' => $values,
             'READONLY' => $this->resourceClass::isReadonly(),
