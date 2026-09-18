@@ -53,4 +53,28 @@ check('reset() rilegge il valore', function () {
     return $first === true && Environment::isProduction();
 });
 
+check('il .env del sito viene letto anche se nessuno lo ha ancora caricato', function () {
+    // Simula una richiesta web che chiede l'ambiente prima del database.
+    $root = sys_get_temp_dir().'/wi-env-'.bin2hex(random_bytes(4));
+    mkdir($root);
+    file_put_contents($root.'/.env', "APP_ENV=local\n");
+
+    unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+    putenv('APP_ENV');
+    \Wonder\App\LegacyGlobals::share(['ROOT' => $root]);
+    \Wonder\App\Credentials::resetEnv();
+    Environment::reset();
+
+    $letto = Environment::current();
+
+    unlink($root.'/.env');
+    rmdir($root);
+    unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+    putenv('APP_ENV');
+    \Wonder\App\Credentials::resetEnv();
+    Environment::reset();
+
+    return $letto === 'local';
+});
+
 summary();

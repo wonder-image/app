@@ -22,6 +22,13 @@ final class Environment
             return self::$current;
         }
 
+        // Il valore sta nel .env del sito: senza questo caricamento una
+        // richiesta web che chiede l'ambiente presto (es. registrazione delle
+        // route) memorizzerebbe "production" anche in locale.
+        if (class_exists(Credentials::class)) {
+            Credentials::loadEnv();
+        }
+
         $value = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV');
         $value = is_string($value) ? strtolower(trim($value)) : '';
 

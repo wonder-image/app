@@ -31,6 +31,15 @@
 
         }
 
+        /** Azzera il caricamento del .env (uso nei test). */
+        public static function resetEnv(): void
+        {
+
+            self::$ENV = null;
+            EnvCompat::reset();
+
+        }
+
         private static function envRoot(): string
         {
 
