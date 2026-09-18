@@ -73,6 +73,7 @@ Inoltre, i **percorsi** dichiarati devono stare **dentro** la radice del modulo
 | `modelsPath()` | default `src/Models` |
 | `resourcesPath()` | default `src/Resources` |
 | `defaultsClass()` | da `database.defaults`, `null` se assente |
+| `consoleCommands()` | da `console.commands`, lista vuota se assente |
 | `handlersPath()`, `viewsPath()`, `assetsPath()`, `langPath()`, `testsPath()` | da `paths.*` |
 | `routeFile($area)` | da `paths.routes.<area>` |
 | `permissionsFile()` | file dei permessi del modulo |
@@ -91,6 +92,21 @@ Classe delle righe precaricate del modulo:
 ```
 
 La classe implementa `Wonder\App\Module\Contracts\ModuleDefaults` (vedi [Contratto](contratto.md)). Il validator segnala classi inesistenti o che non implementano il contratto. Eseguita solo da `forge update` con `APP_ENV=local`.
+
+### `console.commands`
+
+Comandi `forge` del modulo:
+
+```json
+"console": {
+    "commands": ["Wonder\\Plugin\\Gestionale\\Console\\DemoCommand"]
+}
+```
+
+Le classi estendono `Symfony\Component\Console\Command\Command` e vengono
+registrate da `Wonder\Console\ModuleCommands` solo per i moduli abilitati del
+sito. Una classe che non esiste o che non estende `Command` viene saltata: `forge`
+stampa un avviso e continua a funzionare.
 
 ## Permessi del modulo
 

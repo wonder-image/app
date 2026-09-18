@@ -109,6 +109,32 @@ Il publish è solo una copia nel sito. Perché l'override venga usato a runtime,
 il modulo deve risolvere le proprie view passando prima dal path
 `custom/modules/<slug>/view/...` e poi dal fallback del package.
 
+## Riquadri della home del backend
+
+Un modulo può aggiungere riquadri in cima alla home del backend dichiarandoli
+nella propria configurazione:
+
+```php
+// config/module.php del modulo
+'backend' => [
+    'home_widgets' => [ \Wonder\Plugin\Gestionale\Backend\SetupWidget::class ],
+],
+```
+
+Ogni classe implementa `Wonder\Backend\Contracts\HomeWidget`:
+
+| Metodo | Cosa restituisce |
+|---|---|
+| `title()` | titolo del riquadro |
+| `render()` | markup completo del riquadro |
+| `authorities()` | ruoli che lo vedono; vuoto: tutti |
+| `order()` | ordine crescente tra i riquadri |
+
+`Wonder\Backend\Support\HomeWidgets::renderAll()` li raccoglie dai moduli
+abilitati, filtra per ruolo dell'utente e li ordina. Una classe che non esiste o
+un riquadro che solleva un'eccezione viene saltato e finisce nel log: la home
+resta in piedi.
+
 ## Asset dei moduli (css/js/img)
 
 Un modulo può spedire i propri asset dentro `paths.assets` (default

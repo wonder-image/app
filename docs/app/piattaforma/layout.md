@@ -105,6 +105,7 @@ Il bootstrap backend carica tema e dipendenze, mentre i componenti/layout che de
 Per i partial in `app/view/components/*` la convenzione pratica e':
 
 - usare `e(...)` per testo e attributi HTML
+- usare `e_br($testo)` nel contenuto HTML per preservare gli a capo (`\n`, `\r\n`, `<br>`, `<br/>`, `<br />`); gli altri tag restano escapati. Accetta stringhe o `null` (output vuoto). Non usarlo negli attributi: li' resta necessario `e(...)`.
 - usare `json_encode(...)` quando un valore PHP entra in uno script inline JavaScript
 - preferire una fase iniziale di preparazione dati PHP e poi markup HTML leggibile, invece di grandi `echo` multilinea
 - lasciare raw solo output esplicitamente HTML o snippet gia' prodotti da helper dedicati
