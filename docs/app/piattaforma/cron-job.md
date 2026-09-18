@@ -1,41 +1,17 @@
-# Attivita pianificate e cron
+# Cron job da codice
 
 Wonder usa un unico cron del server per eseguire le attivita scadute. Il menu
 **Backend > Attivita pianificate**, riservato ad `admin`, contiene riepilogo,
 pianificazioni e registro esecuzioni.
 
-## Installazione nel sito
+## Prima di iniziare
 
-Aggiornare le dipendenze Composer (inclusa `dragonmantank/cron-expression`),
-quindi eseguire dal sito:
+Configurare una sola volta il richiamo del server seguendo
+[Avvio rapido: cron sul server](../introduzione/avvio-rapido.md#cron-sul-server).
+Le singole attivita si dichiarano nel codice: aggiungerle, modificarle o
+rimuoverle non richiede nuovi cron in cPanel.
 
-```sh
-php forge update --local
-php forge schedule:run
-```
-
-`forge build` e `forge update` generano `bin/scheduler.php`. Nel cPanel
-configurare una sola esecuzione al minuto (`* * * * *`), se consentita dal piano:
-
-```sh
-/usr/local/bin/php /home/h624uw5n/public_html/bin/scheduler.php
-```
-
-Il file generato del sito viene escluso da Git con `/bin/scheduler.php`,
-aggiunto automaticamente a `.gitignore`. Non ignorare tutta `bin/`: gli
-script personalizzati del sito possono essere versionati. La cartella `bin/`
-del framework contiene invece sorgenti e deve essere versionata. La pipeline
-di deploy deve eseguire `forge build` prima del caricamento oppure l'update
-sul server, cosi il file generato e presente anche in produzione.
-
-Percorso, utente e binario PHP dipendono dal sito. PHP CLI deve consentire
-`proc_open`. All'inizio mantenere visibile l'output per verificare l'avvio;
-il backend mostra l'ultimo contatto ricevuto in UTC. Non serve un token nel
-comando cPanel. Il vecchio file `api/task/sitemap.php` viene rimosso dal build:
-sostituire il vecchio cron dopo aver verificato la nuova generazione, senza
-lasciare entrambi attivi.
-
-## Attivita da codice
+## Aggiungere un cron nel sito
 
 La logica applicativa resta in servizi riutilizzabili. `Api\Handler::run()`,
 come in `app/http/api/backend/alert.php`, rimane il confine HTTP: autentica,
@@ -60,6 +36,13 @@ return [
 ];
 ```
 
+Se `custom/config/tasks.php` esiste gia, aggiungere la nuova attivita all'array
+restituito senza eliminare le altre. Usare una chiave stabile e univoca, come
+`site.example`. Dal sito eseguire `php forge update --local` per registrare
+la pianificazione iniziale e controllarla nel backend. Anche il prossimo
+tick dello scheduler sincronizza le definizioni mancanti. In produzione
+distribuire il file insieme al normale aggiornamento del sito.
+
 `->parameters(callable)` valida e restituisce un array di parametri normalizzati.
 `->withDefaults(['feed' => 1])` imposta quelli della pianificazione iniziale.
 Senza validatore sono ammessi solo parametri vuoti. I custom sono sospesi per
@@ -70,10 +53,82 @@ Per attivita complesse estendere `AbstractTask`, implementando `key()` e
 `enabled()`, `timeout()`, `defaultParameters()` e `validate(array): array`.
 E possibile implementare direttamente `Contracts\TaskInterface`.
 
+Per esempio, creare `app/Tasks/ExampleTask.php` nel sito:
+
+```php
+<?php
+
+namespace App\Tasks;
+
+use Wonder\App\Scheduler\{AbstractTask, Context};
+
+class ExampleTask extends AbstractTask
+{
+    public function key(): string { return 'site.example'; }
+    public function label(): string { return 'Elaborazione del sito'; }
+    public function expression(): string { return '*/10 * * * *'; }
+    public function enabled(): bool { return true; }
+
+    public function run(Context $context): array
+    {
+        $context->checkDeadline();
+        $context->log("Avvio elaborazione\n");
+        // Richiamare il servizio applicativo.
+        return ['processed' => 0];
+    }
+}
+```
+
+Registrarla nell'array di `custom/config/tasks.php` con
+`new \App\Tasks\ExampleTask()`, in alternativa al callback con la stessa chiave.
+
 Non usare `exit`, `die` o `Api\Response` nelle attivita: restituire risultati
 oppure lanciare un'eccezione. Un'uscita prematura viene registrata come
 interruzione. Leggere le credenziali dalla configurazione del sito, senza
 inserirle nei parametri persistiti o nell'output.
+
+## Modificare un cron
+
+Per cambiare il lavoro svolto, modificare il callback o il metodo `run()`
+della classe e distribuire il codice, mantenendo la stessa chiave. Anche
+validazione dei parametri e timeout vengono letti dalla definizione corrente.
+Se il nuovo validatore cambia i parametri ammessi, aggiornare nel backend
+anche le pianificazioni gia salvate.
+
+`schedule()`, `active()` e `withDefaults()` (oppure i corrispondenti metodi
+della classe) definiscono **solo i valori iniziali**. Cambiarli nel codice
+non modifica frequenza, stato o parametri delle pianificazioni esistenti:
+questi si aggiornano in **Backend > Attivita pianificate > Pianificazioni**.
+Per esempio, passare da `*/10 * * * *` a `0 3 * * *` nel codice cambia il
+default per nuove installazioni; sul sito gia configurato modificare anche
+la pianificazione nel backend.
+
+Non rinominare la chiave per modificare una frequenza: una chiave nuova
+identifica un'altra attivita e puo creare una nuova pianificazione.
+
+## Togliere un cron
+
+Per rimuovere un'attivita custom, togliere il relativo `Task::make(...)` o
+l'istanza della classe dall'array di `custom/config/tasks.php`, quindi
+distribuire il file. Eliminare anche la classe solo se non e usata altrove.
+Per un modulo, togliere la definizione da `tasks()` oppure disabilitare il
+modulo se non serve piu.
+
+Lo scheduler non esegue le attivita che non sono piu presenti nel registro.
+Le pianificazioni e lo storico rimangono nel database; lo storico continua
+a rispettare i 180 giorni. Una rimozione non interrompe un processo gia
+avviato. Per una pausa temporanea, sospendere la pianificazione nel backend.
+
+Rimuovere un override del sito rende nuovamente disponibile l'eventuale
+definizione omonima del framework o di un modulo: per fermare anche quella,
+sospendere le sue pianificazioni. In particolare, per disattivare la sitemap
+predefinita usare il backend, senza modificare i file sotto `vendor/`.
+
+Se una definizione viene aggiunta di nuovo con la stessa chiave, tornano a
+essere utilizzabili le pianificazioni conservate e il loro stato precedente.
+Se erano state eliminate dal database, il default non viene ricreato:
+aggiungere una nuova pianificazione dal backend. Il cron unico cPanel resta
+invariato per tutte queste operazioni.
 
 ## Moduli e override
 

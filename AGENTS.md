@@ -183,6 +183,9 @@ php forge start
   crawler; Euribor adapts the site's existing service. Google reviews/hours
   are future integrations, not active placeholder jobs. See
   `docs/app/piattaforma/cron-job.md` for contracts, metrics and migration.
+  Keep code-side add/edit/remove instructions on that page; put the single
+  cPanel command and every-minute frequency in the quick-start guide directly
+  after GitHub Desktop setup. Definition defaults never overwrite saved schedules.
 
 - Deferred media uses `Iframe::deferred()` / `deferredButton(Button)` and the generic `Elements/Media/Deferred` wrapper. Keep rendering in the shared concern with Wonder/Bootstrap adapters; JavaScript and structural `wi-deferred` CSS belong to wonder-image/lib. Reserve geometry through aspect ratio or a sized parent, not cross-origin iframe measurements. See `docs/app/elementi/deferred-media.md`.
 

@@ -56,7 +56,7 @@
 * [Asset e cache busting](piattaforma/asset-e-cache.md)
 * [Freecode (override)](piattaforma/freecode.md)
 * [Multi-ambiente](piattaforma/multi-ambiente.md)
-* [Cron Job](piattaforma/cron-job.md)
+* [Cron job da codice](piattaforma/cron-job.md)
 * [API](piattaforma/api.md)
 * [Installazione e Deploy](piattaforma/installazione-e-deploy.md)
 * [Avvio locale (PHP 8.4)](piattaforma/avvio-locale.md)

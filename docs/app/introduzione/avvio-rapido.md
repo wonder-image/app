@@ -50,6 +50,41 @@ git push -u origin HEAD
 
 Apri **GitHub Desktop → Add → Add existing repository** e seleziona la cartella locale del progetto. Il repository è già collegato e pubblicato.
 
+### Cron sul server
+
+Dopo il primo deploy, apri **cPanel → Processi Cron** e aggiungi un solo
+cron per lo scheduler Wonder:
+
+```sh
+/usr/local/bin/php /home/h624uw5n/public_html/bin/scheduler.php
+```
+
+Sostituisci `h624uw5n` e il percorso con quelli del tuo hosting. Il binario
+PHP indicato è quello dell'esempio Aruba; PHP CLI deve consentire `proc_open`.
+
+**Frequenza: ogni minuto (`* * * * *`).** Compila i campi cPanel così:
+
+| Minuto | Ora | Giorno del mese | Mese | Giorno della settimana |
+|---|---|---|---|---|
+| `*` | `*` | `*` | `*` | `*` |
+
+`forge build` e `forge update` generano `bin/scheduler.php`: il deploy deve
+eseguire il build prima del caricamento oppure l'update sul server.
+Il file generato è escluso da Git con `/bin/scheduler.php`; gli altri script
+personalizzati in `bin/` possono essere versionati.
+
+Ogni minuto lo scheduler controlla cosa è dovuto: le frequenze delle singole
+attività si gestiscono nel backend. Non aggiungere un cron cPanel per ogni
+attività e non inserire il token `@system` nel comando CLI. Se esistono vecchi
+cron dedicati, sostituiscili dopo aver verificato le attività corrispondenti
+nel nuovo scheduler, evitando esecuzioni duplicate.
+
+Controlla **Backend → Attività pianificate → Riepilogo** per verificare
+l'ultimo contatto ricevuto. Per definire le attività del sito e dei moduli,
+vedi [Cron job da codice](../piattaforma/cron-job.md).
+
+### Note sulla procedura iniziale
+
 Configura `origin` prima di `provision`: così il comando crea (se necessario) e configura `wonder-image/${NOME_PROGETTO}`. Senza remote usa invece l’account personale autenticato. Se `origin` esiste già, controlla `git remote -v`; se punta al repository sbagliato, correggilo con `git remote set-url origin "https://github.com/wonder-image/${NOME_PROGETTO}.git"`.
 
 **Scorciatoie alternative:** dopo il commit, se il repository remoto non esiste ancora, [GitHub Desktop](https://docs.github.com/en/desktop/adding-and-cloning-repositories/adding-an-existing-project-to-github-using-github-desktop) permette **Publish repository → Organization: wonder-image**. Con [GitHub CLI](https://cli.github.com/manual/gh_repo_create), se non esistono ancora né il repository remoto né `origin`, puoi usare `gh repo create "wonder-image/${NOME_PROGETTO}" --private --source=. --remote=origin --push`. Nel flusso sopra `provision` crea già il repository: basta `git push -u origin HEAD`, oppure **Publish branch** in Desktop se il primo push non è ancora stato eseguito.
@@ -87,6 +122,7 @@ Il codice attuale di `forge config`, richiamato anche da `composer update`, cons
 | `php forge update` | CI / server | applica tabelle e update (no task CLI) |
 | `php forge db:init` | locale | crea DB e utente applicativo |
 | `php forge build` | CI, pre-deploy | genera file statici senza DB |
+| `php forge schedule:run` | sito, verifica manuale | esegue le attività pianificate scadute |
 | `php forge start` | locale | avvia il sito (Herd o `php -S`) |
 | `php forge make:model` / `make:resource` | sviluppo | scaffolding di Model/Resource |
 | `php forge export` / `import` | multi-ambiente | sincronizza dati condivisi via JSON |
