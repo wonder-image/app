@@ -626,6 +626,38 @@ abstract class Resource
     }
 
     /**
+     * Pagina fatta di un solo form, senza record dietro: la Resource dichiara
+     * `formSchema()`, `formLayoutSchema()`, i valori e il salvataggio. La usano
+     * le pagine di configurazione che non sono elenchi (es. il pannello delle
+     * funzionalità di un modulo).
+     */
+    public static function isFormPage(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Valori del form di una pagina-form.
+     *
+     * @return array<string, mixed>
+     */
+    public static function formPageValues(): array
+    {
+        return [];
+    }
+
+    /**
+     * Salva una pagina-form e restituisce il messaggio da mostrare dopo il
+     * redirect; stringa vuota per non mostrare niente.
+     *
+     * @param array<string, mixed> $values valori inviati dal form
+     */
+    public static function submitFormPage(array $values): string
+    {
+        return '';
+    }
+
+    /**
      * Campi che restano modificabili quando la pagina è in sola lettura.
      * Vuoto: la pagina non si modifica per niente.
      *

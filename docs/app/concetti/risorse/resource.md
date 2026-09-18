@@ -204,6 +204,9 @@ implementazioni base sono no-op):
 |---|---|---|
 | `isReadonly(): bool` | `true` se il Model dichiara `SyncSchema::...->localOnly()` e `APP_ENV` non è `local`; `false` per le Resource senza Model | sovrascrivibile, es. un modulo che rende locale una Resource del core |
 | `readonlyNotice(): string` | `Si modifica in locale e si pubblica con il deploy.` | testo dell'avviso |
+| `isFormPage(): bool` | `false` | la pagina è un solo form senza record: il core registra `GET /` e `POST /` sul percorso della Resource e usa `formSchema()` e `formLayoutSchema()` |
+| `formPageValues(): array` | `[]` | valori del form di una pagina-form |
+| `submitFormPage(array $values): string` | `''` | salva la pagina-form e restituisce il messaggio mostrato dopo il redirect |
 | `editableWhenReadonly(): array` | `[]` | campi che restano modificabili quando la pagina è in sola lettura: la route `update` resta registrata, gli altri campi sono disabilitati e il salvataggio accetta solo questi |
 | `assertDeletable(int\|string $id): void` | nessun vincolo | lancia `RuntimeException` con un messaggio per vietare l'eliminazione; vale anche per il pulsante "Elimina" dell'elenco (`api/backend/delete`, risposta 422 mostrata come avviso da `wonder-image/lib`) |
 | `deleteRecord(int\|string $id): object` | chiama `assertDeletable()`, poi cancellazione logica con `keepIds()`, altrimenti `Model::delete()` | usato dai controller backend e API |

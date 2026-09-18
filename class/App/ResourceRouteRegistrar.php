@@ -30,6 +30,22 @@ final class ResourceRouteRegistrar
                     Route::name($slug.'.')
                         ->prefix('/'.$path)
                         ->group(function () use ($rootApp, $slug, $pages, $permissions, $resourceClass, $readonly, $updatable) {
+                            // Pagina-form: un solo indirizzo, in lettura e in
+                            // salvataggio; nessuna route CRUD.
+                            if ($resourceClass::isFormPage()) {
+                                Route::get('/', $rootApp.'/http/backend/resource/index.php', [
+                                    'resource' => $slug,
+                                    'resource_action' => 'form',
+                                ])->name('form')->permit($permissions['edit'] ?? $permissions['list'] ?? []);
+
+                                if ($updatable) {
+                                    Route::post('/', $rootApp.'/http/backend/resource/index.php', [
+                                        'resource' => $slug,
+                                        'resource_action' => 'submit',
+                                    ])->name('submit')->permit($permissions['update'] ?? $permissions['edit'] ?? []);
+                                }
+                            }
+
                             if (!empty($pages['list'])) {
                                 Route::get('/', $rootApp.'/http/backend/resource/index.php', [
                                     'resource' => $slug,

@@ -41,6 +41,8 @@ final class ResourcePageController
             'edit' => $this->edit((int) ($routeParameters['id'] ?? 0)),
             'update' => $this->update((int) ($routeParameters['id'] ?? 0)),
             'delete' => $this->delete((int) ($routeParameters['id'] ?? 0)),
+            'form' => $this->formPage(),
+            'submit' => $this->submitFormPage(),
             default => throw new RuntimeException("Azione resource backend non supportata: {$action}"),
         };
     }
@@ -203,6 +205,37 @@ final class ResourcePageController
         $this->resourceClass::exportSyncData();
 
         $this->redirectToConfiguredPage('delete');
+    }
+
+    /** Pagina fatta di un solo form (`Resource::isFormPage()`). */
+    private function formPage(): void
+    {
+        $key = 'wi_form_page_message_'.$this->resourceClass::slug();
+        $message = (string) ($_SESSION[$key] ?? '');
+        unset($_SESSION[$key]);
+
+        View::make(
+            $this->presenter->viewPath('form'),
+            $this->presenter->formPage($message)
+        )->render();
+    }
+
+    /** Salvataggio della pagina-form: la Resource fa il lavoro e detta il messaggio. */
+    private function submitFormPage(): never
+    {
+        if ($this->resourceClass::isReadonly()) {
+            http_response_code(403);
+            exit($this->resourceClass::readonlyNotice());
+        }
+
+        $message = $this->resourceClass::submitFormPage($this->requestValues());
+
+        if (trim($message) !== '') {
+            $_SESSION['wi_form_page_message_'.$this->resourceClass::slug()] = $message;
+        }
+
+        header('Location: '.__r('backend.resource.'.$this->resourceClass::slug().'.form'));
+        exit();
     }
 
     private function renderForm(string $mode, array $values = [], array $errors = [], ?int $id = null): void

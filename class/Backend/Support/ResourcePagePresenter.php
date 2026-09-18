@@ -63,6 +63,46 @@ final class ResourcePagePresenter
     }
 
     /**
+     * Dati della pagina-form: stesso form delle Resource, ma senza record
+     * dietro. I valori arrivano da `formPageValues()` e l'azione è la pagina
+     * stessa.
+     */
+    public function formPage(string $message = ''): array
+    {
+        $values = $this->resourceClass::mutateFormValues(
+            $this->resourceClass::formPageValues(),
+            'form',
+            'backend'
+        );
+
+        $formSchema = $this->resourceClass::formSchema();
+        $formLayout = $this->resourceClass::formLayoutSchema();
+        $placeholders = $this->resourceClass::formPlaceholders($values, 'form');
+
+        return [
+            'TITLE' => $this->pageTitle('form') !== '' ? $this->pageTitle('form') : $this->resourceClass::titleLabel(),
+            'SUBTITLE' => $this->pageSubtitle('form'),
+            'ACTIONS' => $this->withDocsAction('form', $this->pageActions('form', $values)),
+            'RESOURCE_CLASS' => $this->resourceClass,
+            'FIELDS' => $this->hydrateFields($formSchema, $values, [], 'form', $placeholders),
+            'SIDEBAR_FIELDS' => [],
+            'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, [], 'form', $placeholders),
+            'FORM_METHOD' => 'POST',
+            'FORM_ENCTYPE' => 'multipart/form-data',
+            'FORM_ACTION' => __r('backend.resource.'.$this->resourceClass::slug().'.submit'),
+            'BACK_URL' => '',
+            'FORM_ERRORS' => [],
+            'FORM_ERROR_MESSAGE' => '',
+            'FORM_MESSAGE' => $message,
+            'USER' => $this->viewUser(),
+            'VALUES' => $values,
+            'READONLY' => $this->resourceClass::isReadonly(),
+            'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
+            'READONLY_EDITABLE' => ReadonlyFields::normalize($this->resourceClass::editableWhenReadonly()),
+        ];
+    }
+
+    /**
      * Messaggio testuale per l'avviso d'errore del form: un `alert` non numerico
      * (i codici legacy e gli errori dei singoli campi restano col testo generico).
      */
