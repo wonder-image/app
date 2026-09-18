@@ -9,7 +9,7 @@ class Alert extends Component
     public function render($class): string
     {
         $schema = $class->getSchema();
-        $message = $this->escape((string) ($schema['message'] ?? ''));
+        $message = $this->escapeWithLineBreaks((string) ($schema['message'] ?? ''));
         $title = trim((string) ($schema['title'] ?? ''));
         $level = strtolower((string) ($schema['level'] ?? 'info'));
         $dismissible = (bool) ($schema['dismissible'] ?? true);
@@ -30,7 +30,7 @@ class Alert extends Component
         }
 
         $html .= "</div>";
-        $html .= "<div class='wi-alert-body'>" . nl2br($message) . "</div>";
+        $html .= "<div class='wi-alert-body'>" . $message . "</div>";
         $html .= "</div>";
 
         return $html;

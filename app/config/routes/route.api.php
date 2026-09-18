@@ -137,7 +137,10 @@ Route::area('api')
             ->prefix('/task')
             ->group(function () use ($ROOT_APP) {
 
-                Route::get('/sitemap/', $ROOT_APP.'/http/api/task/sitemap.php')
+                Route::post('/scheduler/', $ROOT_APP.'/http/api/task/scheduler.php')
+                    ->name('scheduler')->frontend();
+
+                Route::post('/sitemap/', $ROOT_APP.'/http/api/task/sitemap.php')
                     ->name('sitemap')
                     ->frontend();
 

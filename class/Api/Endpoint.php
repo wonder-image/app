@@ -305,7 +305,15 @@
 
         }
 
-        public function checkParameters( array $parameters ): static 
+        public function requireUsername(string $username): static
+        {
+            if (($this->user->username ?? '') !== $username) {
+                throw new EndpointException('Utente non autorizzato per questa operazione.', 403);
+            }
+            return $this;
+        }
+
+        public function checkParameters( array $parameters ): static
         {
 
             if (is_array($this->parameters)) {

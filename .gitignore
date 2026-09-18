@@ -14,3 +14,5 @@ example/
 !/tests/deferred-media.php
 !/tests/responsive-media.php
 !/tests/button-lightbox.php
+!/tests/scheduler.php
+!/tests/scheduler-integration.php

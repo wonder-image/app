@@ -21,6 +21,11 @@
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
+    function e_br(?string $value): string
+    {
+        return \Wonder\Support\Html\Entity::encodeWithLineBreaks($value ?? '');
+    }
+
     function js_e(mixed $value): string
     {
         if ($value === null) {

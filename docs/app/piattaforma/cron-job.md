@@ -21,6 +21,13 @@ configurare una sola esecuzione al minuto (`* * * * *`), se consentita dal piano
 /usr/local/bin/php /home/h624uw5n/public_html/bin/scheduler.php
 ```
 
+Il file generato del sito viene escluso da Git con `/bin/scheduler.php`,
+aggiunto automaticamente a `.gitignore`. Non ignorare tutta `bin/`: gli
+script personalizzati del sito possono essere versionati. La cartella `bin/`
+del framework contiene invece sorgenti e deve essere versionata. La pipeline
+di deploy deve eseguire `forge build` prima del caricamento oppure l'update
+sul server, cosi il file generato e presente anche in produzione.
+
 Percorso, utente e binario PHP dipendono dal sito. PHP CLI deve consentire
 `proc_open`. All'inizio mantenere visibile l'output per verificare l'avvio;
 il backend mostra l'ultimo contatto ricevuto in UTC. Non serve un token nel
@@ -152,8 +159,9 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
 
 - **Sitemap**: `Tasks\SitemapTask`, attiva ogni notte alle 00:00. Riusa il
   crawler XML-Sitemaps esistente in un processo isolato e la configurazione
-  gestita da Forge. La classe e estendibile. L'esito si basa sul codice di
-  uscita del crawler: verificare anche il file XML nel sito reale.
+  gestita da Forge. La classe e estendibile. Il runner controlla configurazione,
+  codice di uscita e aggiornamento di un file XML valido: il crawler puo
+  segnalare errori anche uscendo con codice zero.
 - **Euribor**: `Tasks\EuriborTask`, disponibile automaticamente dove esiste
   `App\Models\Site\Euribor::sync()`, come nel sito Agliati. Pianificazione
   iniziale sospesa, ore 12:00 dal lunedi al venerdi. Riusa il servizio gia

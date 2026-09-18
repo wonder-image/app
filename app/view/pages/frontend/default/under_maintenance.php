@@ -94,9 +94,9 @@
                     <i class="bi bi-geo-alt tx-primary"></i>
                     <span>
                         <?php if (empty($SOCIETY->gmaps)) { ?>
-                            <?=e($SOCIETY->prettyAddress ?? '')?>
+                            <?=e_br($SOCIETY->prettyAddress ?? '')?>
                         <?php } else { ?>
-                            <a href="<?=e($SOCIETY->gmaps)?>" target="_blank" rel="noopener noreferrer"><?=e($SOCIETY->prettyAddress ?? '')?></a>
+                            <a href="<?=e($SOCIETY->gmaps)?>" target="_blank" rel="noopener noreferrer"><?=e_br($SOCIETY->prettyAddress ?? '')?></a>
                         <?php } ?>
                     </span>
                 </div>

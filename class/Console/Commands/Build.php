@@ -52,6 +52,7 @@ class Build extends Command
 
         // 1. Crea le cartelle di runtime se mancano.
         $directories = [
+            $root.'/bin/',
             $root.'/assets/upload/user/profile-picture/',
             $root.'/storage/cache/',
             $root.'/storage/logs/',
@@ -71,6 +72,8 @@ class Build extends Command
                 }
             }
         }
+
+        self::writeScheduler($root);
 
         // 2. Pulisci endpoint legacy che ora vivono come route.
         $legacyPaths = [
@@ -248,6 +251,33 @@ $performanceBlock
   Header always set X-XSS-Protection "1; mode=block"
 </IfModule>
 HTACCESS;
+    }
+
+    public static function writeScheduler(string $root): void
+    {
+        $directory = $root.'/bin';
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            throw new \RuntimeException('Impossibile creare bin/');
+        }
+        $scheduler = <<<'PHP'
+<?php
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+$ROOT = dirname(__DIR__);
+require $ROOT.'/vendor/wonder-image/app/bin/scheduler.php';
+PHP;
+        if (file_put_contents($directory.'/scheduler.php', $scheduler.PHP_EOL) === false) {
+            throw new \RuntimeException('Impossibile generare bin/scheduler.php');
+        }
+        $ignorePath = $root.'/.gitignore';
+        $ignore = is_file($ignorePath) ? file_get_contents($ignorePath) : '';
+        if ($ignore === false) {
+            throw new \RuntimeException('Impossibile leggere .gitignore');
+        }
+        if (!preg_match('~^/?bin/scheduler\.php\s*$~m', $ignore)) {
+            if (file_put_contents($ignorePath, rtrim($ignore)."\n\n# Generated Wonder scheduler\n/bin/scheduler.php\n") === false) {
+                throw new \RuntimeException('Impossibile aggiornare .gitignore');
+            }
+        }
     }
 
     public static function htaccessPerformanceBlock(): string

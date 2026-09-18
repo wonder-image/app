@@ -4,6 +4,13 @@ namespace Wonder\Support\Html;
 
 class Entity
 {
+    public static function encodeWithLineBreaks(string $value): string
+    {
+        $value = preg_replace('~<br\s*/?>~i', "\n", $value) ?? $value;
+
+        return nl2br(self::encode($value, ENT_QUOTES | ENT_SUBSTITUTE));
+    }
+
     public static function encode(
         string $value,
         int $flags = ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE,
@@ -53,4 +60,3 @@ class Entity
         }, $decoded) ?? $decoded;
     }
 }
-

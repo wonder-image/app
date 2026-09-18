@@ -11,4 +11,9 @@ trait EscapesHtml
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
+
+    protected function escapeWithLineBreaks(string $value): string
+    {
+        return \Wonder\Support\Html\Entity::encodeWithLineBreaks($value);
+    }
 }

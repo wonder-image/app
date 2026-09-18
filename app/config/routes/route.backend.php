@@ -17,6 +17,11 @@ Route::area('backend')
         Route::post('/', $ROOT_APP.'/http/backend/home.php')
             ->permit([]);
 
+        Route::get('/app/scheduler/', $ROOT_APP.'/http/backend/scheduler.php')
+            ->name('scheduler')->permit(['admin']);
+        Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/scheduler.php')
+            ->permit(['admin']);
+
         Route::name('media.')
             ->prefix('/app/media')
             ->group(function () use ($ROOT_APP) {
