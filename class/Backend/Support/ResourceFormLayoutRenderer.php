@@ -165,12 +165,17 @@ final class ResourceFormLayoutRenderer
         $masonry = (int) ($container->getSchema('masonry') ?? 0);
 
         if ($masonry > 0) {
-            // Multi-colonna: i figli si impilano e riempiono le colonne, quindi
-            // niente classi di griglia e ognuno in un blocco che non si spezza.
-            $content = (new BootstrapContainerRenderer())->renderMasonryComponents(
-                (array) ($container->components ?? []),
-                (string) ($container->getSchema('masonry-gap') ?? '1rem')
-            );
+            // Multi-colonna: i figli si impilano e riempiono le colonne. Ogni
+            // figlio passa comunque dal layout delle Resource (Card, campi e
+            // colonne interne) e finisce in un blocco che non si spezza.
+            $gap = (string) ($container->getSchema('masonry-gap') ?? '1rem');
+            $content = '';
+
+            foreach ((array) ($container->components ?? []) as $component) {
+                $content .= '<div style="break-inside: avoid; margin-bottom: '.$gap.';">'
+                    .self::renderComponents([$component], $containerColumns)
+                    .'</div>';
+            }
         } elseif ($container->getSchema('no-grid') === true) {
             $content = self::renderComponentsRaw((array) ($container->components ?? []));
         } else {
