@@ -827,8 +827,12 @@ abstract class Resource
         static::inheritModelUploadDirectory($clone, $name);
 
         $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
+        // `->label('')` è una scelta, non un campo lasciato in bianco: vuol dire
+        // "niente etichetta", e chi la scrive di solito ha già un titolo sopra
+        // il campo. Solo un'etichetta mai dichiarata prende il nome di ripiego.
+        $declared = method_exists($clone, 'hasDeclaredLabel') && $clone->hasDeclaredLabel();
 
-        if ($label !== '') {
+        if ($label !== '' || $declared) {
             return $clone;
         }
 

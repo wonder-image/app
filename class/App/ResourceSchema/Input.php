@@ -61,6 +61,9 @@ abstract class Input
      */
     protected string $helper = 'text';
 
+    /** Vero quando l'autore ha chiamato `label()`, anche con la stringa vuota. */
+    protected bool $labelDeclared = false;
+
     /**
      * Chiavi dello schema condiviso.
      *
@@ -252,6 +255,7 @@ abstract class Input
         $input = new $inputClass($this->name);
 
         $input->schema = $this->schema;
+        $input->labelDeclared = $this->labelDeclared;
 
         if ($this->hasExplicitColumnSpan()) {
             $input->columnSpan($this->columnSpan);
@@ -260,11 +264,26 @@ abstract class Input
         return $input;
     }
 
+    /**
+     * Etichetta del campo.
+     *
+     * La stringa vuota è una scelta, non un campo lasciato in bianco: dice
+     * "niente etichetta", e chi la scrive di solito ha già un titolo sopra il
+     * campo. Per questo la chiamata si ricorda, e {@see Resource::getInput()}
+     * non ci mette sopra il nome della colonna.
+     */
     public function label(string $label): static
     {
         $this->schema['label'] = $label;
+        $this->labelDeclared = true;
 
         return $this;
+    }
+
+    /** Vero se `label()` è stata chiamata, anche con la stringa vuota. */
+    public function hasDeclaredLabel(): bool
+    {
+        return $this->labelDeclared;
     }
 
     /**
