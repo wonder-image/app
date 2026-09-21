@@ -57,6 +57,58 @@ Parametri (in ordine): `$label`, `$column`, `$orderable`, `$class`,
 `filterLimit()`, `filterSearch()`, `addFilter()`, `columns(array $columns)`
 (accetta oggetti `Column` dalla `tableSchema()` moderna), `generate()`.
 
+## Tabelle aggregate (GROUP BY)
+
+Il flusso moderno `Resource::tableSchema()` rende **righe di una tabella** (una
+riga = un record). Per una tabella **aggregata** (una riga = un gruppo, es.
+statistiche per attività) si usa direttamente `Backend\Table\Table` con due
+metodi dedicati:
+
+```php
+$table = new \Wonder\Backend\Table\Table('scheduler_runs');
+$table->query("started_at >= '$cutoff' AND status NOT IN ('pending','running','skipped')");
+$table->select("MIN(id) AS id, task_key, COUNT(*) AS runs, AVG(duration_ms) AS average_ms, …");
+$table->groupBy('task_key');
+$table->queryOrder('runs', 'DESC');
+$table->addColumn('Esecuzioni', 'runs', true);
+$table->addColumn('Durata (s)', 'average_ms', true, '', '', '', ['formatter' => 'app-scheduler.duration']);
+echo $table->generate(false);
+```
+
+Regole:
+
+- **`select(string|array $columns)`** — la lista SELECT esplicita (aggregati con
+  alias). Le colonne mostrate (`addColumn`) referenziano quegli **alias**
+  (`runs`, `average_ms`, …); l'ordinamento server-side usa gli stessi alias.
+- **`groupBy(string|array $columns)`** — la clausola `GROUP BY`. Con il group by
+  i conteggi `recordsTotal` / `recordsFiltered` contano i **gruppi** (SSP avvolge
+  la query raggruppata in una subquery).
+- **`id` sintetico obbligatorio** — il renderer di cella (`Field`) richiede
+  `$row['id']`: includi sempre `MIN(id) AS id` (o simile) nella `select()`.
+- **Filtro dati** — passa il `WHERE` (es. il periodo) con `query(...)`; viene
+  applicato **prima** del raggruppamento.
+- **Formattazione delle celle in PHP, non in JS** — usa `->formatter()` (vedi
+  sotto), mai uno `<script>new DataTable(...)>` a mano.
+
+**Sicurezza**: `select` e `group_by` sono frammenti SQL generati server-side e
+**firmati** (`ConfigCodec`, HMAC con `APP_KEY`) esattamente come `query` /
+`query_filter`; `ListProvider::fetch` li verifica prima di passarli a
+`SSP::complex`. Il client non può alterarli senza rompere la firma. Chiave
+assente ⇒ nessun group by (tabelle non aggregate invariate).
+
+### Formatter di cella (`->formatter()`)
+
+Per formattare una cella in PHP ricevendo **l'intera riga** (utile per gli
+aggregati: valore medio + "Max… · Tot…"), dichiara la colonna in un
+`tableSchema()` con `->formatter(fn(array $row): string => …)`. La closure viene
+auto-registrata in `ColumnFormatterRegistry` sotto `{slug}.{colonna}` in **ogni**
+request (rendering e endpoint SSP), e la si referenzia da `addColumn` con
+`['formatter' => '{slug}.{colonna}']`. Come per `->function()`, il nome è una
+**whitelist**: un nome non registrato ⇒ cella vuota, mai esecuzione arbitraria.
+
+Riferimento completo: `Wonder\App\Resources\Scheduler\DashboardResource`
+(`statisticsTable()` + `tableSchema()` con i formatter delle celle).
+
 ## Mappa legacy → moderno
 
 | Legacy (`Table`) | Moderno (`TableColumn` / `TableLayoutSchema`) |

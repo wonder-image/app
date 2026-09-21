@@ -66,6 +66,30 @@ formattazioni custom, valori derivati.
 > (necessario per le pagine legacy con funzioni custom). Nomi non dichiarati
 > producono cella vuota.
 
+## `formatter` — cella calcolata in PHP (riga intera)
+
+```php
+TableColumn::key('duration')->text()->formatter(fn(array $row): string =>
+    Presentation::number($row['average_ms'] ?? null, 1000)
+    .'<div class="small text-body-secondary">Max '.Presentation::number($row['maximum_ms'] ?? null, 1000).'</div>'
+);
+```
+
+Firma: `formatter(string|\Closure $formatter)`. La closure riceve **l'intera
+riga** e ritorna l'HTML della cella: utile quando il valore dipende da più
+campi (medie con "Max… · Tot…", valori derivati). La formattazione resta in
+**PHP** (es. `Presentation::number`), non in JavaScript.
+
+- **Auto-registrazione + whitelist:** la closure dichiarata in `tableSchema()`
+  viene registrata in `Wonder\Backend\Table\ColumnFormatterRegistry` sotto
+  `{slug}.{colonna}` in ogni request (rendering **e** endpoint SSP). Come per
+  `function`, un nome non registrato produce cella vuota — mai esecuzione
+  arbitraria dal POST di `list-table`.
+- **Differenza da `function`:** `function` esegue un formatter per **nome** con
+  un `parameter` singolo; `formatter` passa l'intera riga a una closure. Per gli
+  aggregati (`GROUP BY`) è la via giusta — vedi
+  [Appendice: Table legacy → Tabelle aggregate](legacy.md#tabelle-aggregate-group-by).
+
 ## `link` — cella cliccabile
 
 ```php
