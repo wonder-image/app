@@ -37,7 +37,12 @@ class RunResource extends Resource
     public static function permissionSchema(): PermissionSchema { return PermissionSchema::for(static::class)->backend(['list', 'view'], ['admin']); }
     public static function navigationSchema(): NavigationSchema
     {
-        return NavigationSchema::for(static::class)->inSection('dev')->title('Registro esecuzioni')->authority(['admin'])->order(20);
+        return NavigationSchema::for(static::class)
+            ->inSection('dev')
+            ->inGroup('automations')
+            ->title('Registro esecuzioni')
+            ->authority(['admin'])
+            ->order(20);
     }
     public static function querySchema(): array
     {

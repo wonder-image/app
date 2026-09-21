@@ -95,8 +95,12 @@ class ScheduleResource extends Resource
     public static function permissionSchema(): PermissionSchema { return PermissionSchema::for(static::class)->backendCrud(['admin']); }
     public static function navigationSchema(): NavigationSchema
     {
-        return NavigationSchema::for(static::class)->inSection('dev')
-            ->title('Pianificazioni')->order(10)->authority(['admin']);
+        return NavigationSchema::for(static::class)
+            ->inSection('dev')
+            ->group('automations', 'Automazioni', 20)
+            ->title('Pianificazioni')
+            ->order(10)
+            ->authority(['admin']);
     }
     public static function mutateRequestValues(array $values, string $action, string $context = 'backend', ?array $oldValues = null): array
     {

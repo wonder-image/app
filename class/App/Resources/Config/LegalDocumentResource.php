@@ -150,7 +150,7 @@ final class LegalDocumentResource extends Resource
         return NavigationSchema::for(static::class)
             ->inSection('set-up')
             ->title('Documenti legali')
-            ->order(30)
+            ->order(20)
             ->authority(['admin']);
     }
 

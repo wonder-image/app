@@ -155,6 +155,12 @@ php forge start
 - If a schema extension also exposes helpers like `decorate(array $row): array`, keep them pure: they may enrich read rows with derived values, but must not run queries or perform persistence side effects.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
 - Declare Resource-list header actions through `TableLayoutSchema::buttonCustom()` / `buttonsCustom()` with `Wonder\Elements\Components\Button` or `Dropdown`; use `Button::post($action, $label)->confirm(...)` for POST actions and reserve `buttonCustomHtml()` for trusted markup that no Element can represent.
+- Backend navigation supports `section → optional group → Resource`. Declare a
+  group with `NavigationSchema::group($key, $title, $order, $authority)` and
+  attach peers with `inGroup($key)` inside the same section. Keep ungrouped
+  entries direct for frequent access; groups are headings without URLs. Both
+  the sidebar and backend home must render `subnavs` recursively and apply
+  authority filters at every level.
 - The canonical module format is a Composer package, not a folder embedded in the core package.
 - Standard module package naming is `wonder-image/<slug>`.
 - Standard module namespace base is `Wonder\\Plugin\\<StudlySlug>\\`.

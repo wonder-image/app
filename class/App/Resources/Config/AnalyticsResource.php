@@ -81,9 +81,10 @@ final class AnalyticsResource extends SingletonResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('set-up')
+            ->inSection('dev')
+            ->group('api-services', 'API e servizi', 30)
             ->title('Analitica')
-            ->order(60)
+            ->order(10)
             ->authority(['admin']);
     }
 }

@@ -6,7 +6,7 @@ use Wonder\App\Resources\Support\NavigationOnlyResource;
 use Wonder\App\ResourceSchema\NavigationSchema;
 
 /**
- * Voce "Download" del menu Set Up. La pagina vera è gestita da
+ * Voce "Download" del menu Dev. La pagina vera è gestita da
  * `Wonder\App\PageSchema\SqlDownloadPageSchema`. Questa Resource
  * esiste solo per dichiarare il link nella navigation.
  */
@@ -30,9 +30,9 @@ final class SqlDownloadResource extends NavigationOnlyResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('set-up')
+            ->inSection('dev')
             ->title('Download')
-            ->order(100)
+            ->order(60)
             ->authority(['admin']);
     }
 }

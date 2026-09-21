@@ -25,6 +25,60 @@
 
             return $request === $targetPath || str_starts_with($request.'/', $targetPath.'/');
         };
+        $buildOffcanvasItems = static function (array $items) use (&$buildOffcanvasItems, $USER, $PATH, $currentDir, $currentFile, $matchesNavPath): array {
+            $result = [];
+
+            foreach ($items as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $authority = (array) ($item['authority'] ?? []);
+
+                if ($authority && count(array_intersect($authority, (array) $USER->authority)) < 1) {
+                    continue;
+                }
+
+                $declaredChildren = (array) ($item['subnavs'] ?? []);
+                $children = $buildOffcanvasItems($declaredChildren);
+
+                if ($declaredChildren !== []) {
+                    if ($children === []) {
+                        continue;
+                    }
+
+                    $result[] = [
+                        'title' => (string) ($item['title'] ?? 'ND'),
+                        'active' => array_reduce(
+                            $children,
+                            static fn (bool $active, array $child): bool => $active || !empty($child['active']),
+                            false
+                        ),
+                        'children' => $children,
+                    ];
+                    continue;
+                }
+
+                $folder = (string) ($item['folder'] ?? '');
+                $file = (string) ($item['file'] ?? '');
+                $urlParser = new \Wonder\Http\UrlParser($file);
+                $link = $urlParser->isAbsolute()
+                    ? $file
+                    : rtrim((string) $PATH->backend, '/').'/'.trim($folder.'/'.$file, '/');
+                $active = (
+                    $currentDir === $folder
+                    && ($file === '' || $currentFile === $file)
+                ) || $matchesNavPath($folder, $file);
+
+                $result[] = [
+                    'title' => (string) ($item['title'] ?? 'ND'),
+                    'link' => $link,
+                    'active' => $active,
+                ];
+            }
+
+            return $result;
+        };
         $sidebarItems = [];
         $offcanvasMarkup = [];
 
@@ -42,35 +96,18 @@
 
             $activeNav = $currentDir === $folderNav || $matchesNavPath($folderNav, $fileNav);
             $targetId = code(10, 'numbers', 'sidebar-');
-            $offcanvas = [];
+            $offcanvas = $buildOffcanvasItems((array) $subNav);
 
-            foreach ($subNav as $sub) {
-                $titleSub = (string) ($sub['title'] ?? 'ND');
-                $folderSub = (string) ($sub['folder'] ?? '');
-                $authSub = $sub['authority'] ?? [];
-                $fileSub = (string) ($sub['file'] ?? '');
+            if ($subNav !== [] && $offcanvas === []) {
+                continue;
+            }
 
-                if ($authSub && count(array_intersect($authSub, $USER->authority)) < 1) {
-                    continue;
-                }
-
-                $activeSub = false;
-
-                if ($folderNav === $folderSub) {
-                    if (($currentDir === $folderNav && $currentFile === $fileSub) || $matchesNavPath($folderSub, $fileSub)) {
-                        $activeSub = true;
-                        $activeNav = true;
-                    }
-                } elseif ($currentDir === $folderSub || $matchesNavPath($folderSub, $fileSub)) {
-                    $activeSub = true;
-                    $activeNav = true;
-                }
-
-                $offcanvas[] = [
-                    'title' => $titleSub,
-                    'link' => $PATH->backend.'/'.$folderSub.'/'.$fileSub,
-                    'active' => $activeSub,
-                ];
+            if (array_reduce(
+                $offcanvas,
+                static fn (bool $active, array $item): bool => $active || !empty($item['active']),
+                false
+            )) {
+                $activeNav = true;
             }
 
             $hasOffcanvas = !empty($offcanvas);

@@ -159,15 +159,39 @@ extra oltre all'essere autenticati nell'area".
 
 ```php
 NavigationSchema::for(static::class)
-    ->section('Avvisi', 'notices', 'bi-megaphone')
+    ->section('notices', 'Avvisi', 'bi-megaphone')
     ->title('Annunci')
     ->order(20)
     ->authority(['admin', 'administrator']);
 ```
 
-Metodi: `.enabled(bool)`, `.section($title, $folder, $icon, $authority = [])`,
-`.title()`, `.order()` (default 100), `.file()` (pagina linkata, default `list`),
-`.authority([])`.
+Una sezione può contenere voci dirette e gruppi organizzativi. Una Resource
+dichiara il gruppo, le altre vi si collegano:
+
+```php
+NavigationSchema::for(static::class)
+    ->inSection('dev')
+    ->group('diagnostics', 'Log e diagnostica', 40)
+    ->title('Errori')
+    ->order(10);
+
+NavigationSchema::for(static::class)
+    ->inSection('dev')
+    ->inGroup('diagnostics')
+    ->title('Email')
+    ->order(20);
+```
+
+La gerarchia supportata è `sezione → gruppo → Resource`. Il gruppo è
+un'intestazione senza URL; le Resource lasciate fuori dai gruppi restano
+direttamente accessibili nella sezione. Dichiarazioni ripetute dello stesso
+gruppo sono ammesse solo con metadati identici.
+
+Metodi: `.enabled(bool)`,
+`.section($key, $title, $icon, $order = 500, $authority = [])`,
+`.inSection($key)`, `.group($key, $title, $order = 100, $authority = [])`,
+`.inGroup($key)`, `.sectionOrder()`, `.title()`, `.order()` (default 100),
+`.file()` (pagina linkata, default `list`), `.authority([])`.
 
 ### `querySchema()`
 

@@ -62,9 +62,9 @@ final class ConfigurationFileResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('set-up')
+            ->inSection('dev')
             ->title('File configurazione')
-            ->order(80)
+            ->order(50)
             ->authority(['admin']);
     }
 

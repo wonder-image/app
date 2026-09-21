@@ -100,6 +100,12 @@ La sorgente corretta e':
 
 Il bootstrap backend carica tema e dipendenze, mentre i componenti/layout che devono leggere la navigazione la recuperano direttamente da `BackendNavigation`.
 
+`NavigationSchema` produce una gerarchia massima di tre livelli:
+`sezione → gruppo → Resource`. Le Resource possono rimanere direttamente nella
+sezione; i gruppi sono facoltativi e servono solo come intestazioni senza URL.
+La sidebar e la home backend attraversano ricorsivamente `subnavs`, applicano i
+permessi a ogni livello e mantengono visibili le pagine contenute nei gruppi.
+
 ### Convenzioni nei componenti layout
 
 Per i partial in `app/view/components/*` la convenzione pratica e':

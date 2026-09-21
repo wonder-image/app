@@ -1,5 +1,50 @@
 <?php \Wonder\View\View::layout('backend.main'); ?>
-<?php $navigation = \Wonder\Backend\Support\BackendNavigation::all(); ?>
+<?php
+$navigation = \Wonder\Backend\Support\BackendNavigation::all();
+$renderNavigationItems = static function (array $items, int $depth = 0) use (&$renderNavigationItems, $USER, $PATH): string {
+    $markup = '';
+
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $authority = (array) ($item['authority'] ?? []);
+
+        if ($authority && count(array_intersect($authority, (array) $USER->authority)) < 1) {
+            continue;
+        }
+
+        $children = (array) ($item['subnavs'] ?? []);
+        $title = (string) ($item['title'] ?? 'ND');
+
+        if ($children !== []) {
+            $childrenMarkup = $renderNavigationItems($children, $depth + 1);
+
+            if ($childrenMarkup === '') {
+                continue;
+            }
+
+            $padding = $depth > 0 ? 'ps-4' : 'ps-3';
+            $markup .= '<div class="list-group-item bg-body-secondary fw-semibold '.e($padding).'">'.e($title).'</div>';
+            $markup .= $childrenMarkup;
+            continue;
+        }
+
+        $folder = trim((string) ($item['folder'] ?? ''), '/');
+        $file = trim((string) ($item['file'] ?? ''), '/');
+        $urlParser = new \Wonder\Http\UrlParser($file);
+        $href = $urlParser->isAbsolute()
+            ? $file
+            : rtrim((string) $PATH->backend, '/').'/'.trim($folder.'/'.$file, '/');
+        $padding = $depth > 0 ? 'ps-4' : '';
+        $markup .= '<a class="list-group-item list-group-item-action '.e($padding).'" href="'.e($href).'">'
+            .e($title).'<i class="bi bi-chevron-right float-end"></i></a>';
+    }
+
+    return $markup;
+};
+?>
 <div class="row g-3">
 
     <?php // Riquadri dichiarati dai moduli abilitati (backend.home_widgets). ?>
@@ -7,68 +52,39 @@
 
     <wi-card class="col-3">
 
-        <?php
+        <?php foreach ($navigation as $navs) {
+            $titleNav = (string) ($navs['title'] ?? 'ND');
+            $authNav = (array) ($navs['authority'] ?? []);
 
-            foreach ($navigation as $navs) {
-
-                $titleNav = isset($navs['title']) ? $navs['title'] : 'ND';
-                $folderNav = isset($navs['folder']) ? $navs['folder'] : 'home';
-                $iconNav = isset($navs['icon']) ? $navs['icon'] : 'bi-bug';
-                $fileNav = isset($navs['file']) ? $navs['file'] : '';
-                $authNav = isset($navs['authority']) ? $navs['authority'] : [];
-                $subNav = isset($navs['subnavs']) ? $navs['subnavs'] : [];
-
-                if ($titleNav != 'Home') {
-                    if (!$authNav || count(array_intersect($authNav, $USER->authority)) >= 1) {
-
-                        if (empty($subNav)) {
-
-                            $subnavsList = '';
-
-                        }else{
-                            
-                            $subNavs = "";
-
-                            foreach ($subNav as $sub) {
-                                
-                                $titleSub = isset($sub['title']) ? $sub['title'] : 'ND';
-                                $folderSub = isset($sub['folder']) ? $sub['folder'] : 'home';
-                                $authSub = isset($sub['authority']) ? $sub['authority'] : [];
-                                $fileSub = isset($sub['file']) ? $sub['file'] : '';
-
-                                if (!$authSub || count(array_intersect($authSub, $USER->authority)) >= 1) {
-                                    $subNavs .= "<a class='list-group-item list-group-item-action' href='$PATH->backend/$folderSub/$fileSub'>$titleSub <i class='bi bi-chevron-right float-end'></i></a>";
-                                }
-                                
-                            }
-
-                            $subnavsList = "$subNavs";
-
-                        }
-
-                        if (!empty($subnavsList)) {
-
-                            echo "
-                            <div class='list-group ps-2'>
-                                <li class='list-group-item list-group-item-dark'><i class='bi $iconNav'></i> $titleNav</li>
-                                $subnavsList
-                            </div>";
-
-                        }else{
-
-                            echo "
-                            <div class='list-group ps-2'>
-                                <a href='$PATH->backend/$folderNav/$fileNav' type='button' class='list-group-item list-group-item-dark list-group-item-action'><i class='bi $iconNav mr-2'></i> $titleNav <i class='bi bi-chevron-right float-end'></i></a>
-                            </div>";
-
-                        }
-
-                    }
-                }
-
+            if ($titleNav === 'Home' || ($authNav && count(array_intersect($authNav, (array) $USER->authority)) < 1)) {
+                continue;
             }
 
+            $iconNav = (string) ($navs['icon'] ?? 'bi-bug');
+            $subnavs = (array) ($navs['subnavs'] ?? []);
+            $folderNav = trim((string) ($navs['folder'] ?? ''), '/');
+            $fileNav = trim((string) ($navs['file'] ?? ''), '/');
+            $urlParser = new \Wonder\Http\UrlParser($fileNav);
+            $hrefNav = $urlParser->isAbsolute()
+                ? $fileNav
+                : rtrim((string) $PATH->backend, '/').'/'.trim($folderNav.'/'.$fileNav, '/');
+            $subnavsMarkup = $renderNavigationItems($subnavs);
+
+            if ($subnavs !== [] && $subnavsMarkup === '') {
+                continue;
+            }
         ?>
+            <div class="list-group ps-2">
+                <?php if ($subnavs !== []) { ?>
+                    <div class="list-group-item list-group-item-dark"><i class="bi <?=e($iconNav)?>"></i> <?=e($titleNav)?></div>
+                    <?=$subnavsMarkup?>
+                <?php } else { ?>
+                    <a href="<?=e($hrefNav)?>" class="list-group-item list-group-item-dark list-group-item-action">
+                        <i class="bi <?=e($iconNav)?>"></i> <?=e($titleNav)?> <i class="bi bi-chevron-right float-end"></i>
+                    </a>
+                <?php } ?>
+            </div>
+        <?php } ?>
     </wi-card>
 
     <div class="col-9">

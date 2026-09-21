@@ -97,7 +97,8 @@ final class AuthLogResource extends Resource
     {
         return NavigationSchema::for(static::class)
             ->inSection('dev')
-            ->title('Accessi Utente')
+            ->inGroup('diagnostics')
+            ->title('Accessi utente')
             ->order(40)
             ->authority(['admin', 'administrator']);
     }

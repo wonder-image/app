@@ -147,9 +147,10 @@ final class ErrorReportResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('set-up')
+            ->inSection('dev')
+            ->group('diagnostics', 'Log e diagnostica', 40)
             ->title('Errori')
-            ->order(80)
+            ->order(10)
             ->authority(['admin']);
     }
 

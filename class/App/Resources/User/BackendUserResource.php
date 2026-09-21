@@ -50,7 +50,7 @@ final class BackendUserResource extends UserManagementResource
         return NavigationSchema::for(static::class)
             ->inSection('set-up')
             ->title('Utenti')
-            ->order(40)
+            ->order(30)
             ->authority(['admin']);
     }
 }

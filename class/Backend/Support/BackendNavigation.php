@@ -22,13 +22,14 @@ use Wonder\App\ResourceRegistry;
  *     la sezione nel registry. Quando il Pass 1 è completo, il
  *     catalogo è completamente popolato.
  *
- *  2. **Pass 2 (build)**: ri-itera le Resource e costruisce sezioni
- *     + subnav usando `resolveSection()` per ottenere i metadati
- *     della sezione dal registry. Valida che ogni `inSection(key)`
- *     referenzi una sezione effettivamente dichiarata.
+ *  2. **Pass 2 (build)**: ri-itera le Resource e costruisce sezioni,
+ *     gruppi opzionali e subnav usando `resolveSection()` per ottenere i
+ *     metadati della sezione dal registry. Valida i riferimenti dichiarati
+ *     con `inSection(key)` e `inGroup(key)`.
  *
- * Output: array `[section, …]` ordinato per `__section_order`,
- * pronto per il rendering del menu.
+ * Output: array `[section, …]` ordinato per `__section_order`, con
+ * Resource dirette o raggruppate (`section -> group -> resource`), pronto
+ * per il rendering del menu.
  */
 final class BackendNavigation
 {
@@ -104,6 +105,7 @@ final class BackendNavigation
     private static function buildSections(array $schemas): array
     {
         $sections = [];
+        $groups = self::collectGroups($schemas);
 
         foreach ($schemas as $resourceClass => $navigationSchema) {
             $schema = $navigationSchema->all();
@@ -172,6 +174,36 @@ final class BackendNavigation
                 (array) ($schema['authority'] ?? [])
             );
 
+            $groupKey = trim((string) ($schema['group_key'] ?? ''));
+
+            if ($groupKey !== '') {
+                $groupId = self::groupId((string) $sectionKey, $groupKey);
+                $group = $groups[$groupId] ?? null;
+
+                if ($group === null) {
+                    throw new RuntimeException(
+                        "Resource {$resourceClass} referenzia il gruppo '{$groupKey}' "
+                        ."nella sezione '{$sectionKey}', ma nessuna Resource lo dichiara con group()."
+                    );
+                }
+
+                $groupNode = [
+                    'type' => 'group',
+                    'key' => $group['key'],
+                    'title' => $group['title'],
+                    'authority' => $group['authority'],
+                    'subnavs' => [$subnav],
+                    '__resource_order' => $group['order'],
+                ];
+
+                $sections[$sectionFolder]['subnavs'] = self::mergeSubnavs(
+                    (array) ($sections[$sectionFolder]['subnavs'] ?? []),
+                    $groupNode
+                );
+
+                continue;
+            }
+
             $sections[$sectionFolder]['subnavs'] = self::mergeSubnavs(
                 (array) ($sections[$sectionFolder]['subnavs'] ?? []),
                 $subnav
@@ -182,8 +214,61 @@ final class BackendNavigation
     }
 
     /**
-     * Sort top-level + cleanup degli internal markers (`__section_order`,
-     * `__resource_order` nelle subnav).
+     * Raccoglie le dichiarazioni dei gruppi per sezione. La stessa key può
+     * essere dichiarata più volte solo con metadati identici.
+     *
+     * @return array<string, array{key:string,title:string,order:int,authority:array<int,string>}>
+     */
+    private static function collectGroups(array $schemas): array
+    {
+        $groups = [];
+
+        foreach ($schemas as $resourceClass => $navigationSchema) {
+            $schema = $navigationSchema->all();
+
+            if (empty($schema['enabled'])) {
+                continue;
+            }
+
+            $group = $schema['group'] ?? null;
+
+            if (!is_array($group)) {
+                continue;
+            }
+
+            $sectionKey = trim((string) ($schema['section_key'] ?? ''));
+
+            if ($sectionKey === '') {
+                throw new RuntimeException(
+                    "Resource {$resourceClass} dichiara un gruppo senza appartenere a una sezione."
+                );
+            }
+
+            $record = [
+                'key' => trim((string) ($group['key'] ?? '')),
+                'title' => trim((string) ($group['title'] ?? '')),
+                'order' => (int) ($group['order'] ?? 100),
+                'authority' => self::normalizeAuthority((array) ($group['authority'] ?? [])),
+            ];
+            sort($record['authority']);
+            $groupId = self::groupId($sectionKey, $record['key']);
+
+            if (isset($groups[$groupId]) && $groups[$groupId] !== $record) {
+                throw new RuntimeException(
+                    "Conflitto nella registrazione del gruppo '{$record['key']}' "
+                    ."della sezione '{$sectionKey}': valori incompatibili."
+                );
+            }
+
+            $groups[$groupId] = $record;
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Sort top-level + cleanup ricorsivo degli internal markers
+     * (`__section_order`, `__resource_order` nelle subnav).
      */
     private static function sortAndCleanup(array $navigation): array
     {
@@ -271,11 +356,23 @@ final class BackendNavigation
                     continue;
                 }
 
-                $sameFolder = (($existing['folder'] ?? null) === ($subnav['folder'] ?? null));
-                $sameTitle = self::normalizeTitle((string) ($existing['title'] ?? ''))
-                    === self::normalizeTitle((string) ($subnav['title'] ?? ''));
+                $existingIsGroup = (($existing['type'] ?? '') === 'group')
+                    || !empty($existing['subnavs']);
+                $incomingIsGroup = (($subnav['type'] ?? '') === 'group')
+                    || !empty($subnav['subnavs']);
+                $sameGroup = $existingIsGroup && $incomingIsGroup
+                    && (
+                        (($existing['key'] ?? null) === ($subnav['key'] ?? null))
+                        || self::normalizeTitle((string) ($existing['title'] ?? ''))
+                            === self::normalizeTitle((string) ($subnav['title'] ?? ''))
+                    );
+                $sameFolder = !$existingIsGroup && !$incomingIsGroup
+                    && (($existing['folder'] ?? null) === ($subnav['folder'] ?? null));
+                $sameTitle = !$existingIsGroup && !$incomingIsGroup
+                    && self::normalizeTitle((string) ($existing['title'] ?? ''))
+                        === self::normalizeTitle((string) ($subnav['title'] ?? ''));
 
-                if (!$sameFolder && !$sameTitle) {
+                if (!$sameGroup && !$sameFolder && !$sameTitle) {
                     continue;
                 }
 
@@ -283,6 +380,10 @@ final class BackendNavigation
                 $baseSubnavs[$index]['authority'] = self::mergeAuthority(
                     (array) ($existing['authority'] ?? []),
                     (array) ($subnav['authority'] ?? [])
+                );
+                $baseSubnavs[$index]['subnavs'] = self::mergeSubnavs(
+                    (array) ($existing['subnavs'] ?? []),
+                    ...(array) ($subnav['subnavs'] ?? [])
                 );
                 $merged = true;
                 break;
@@ -311,6 +412,10 @@ final class BackendNavigation
 
         foreach ($subnavs as $index => $subnav) {
             unset($subnavs[$index]['__resource_order']);
+
+            if (isset($subnav['subnavs']) && is_array($subnav['subnavs'])) {
+                $subnavs[$index]['subnavs'] = self::sortSubnavs($subnav['subnavs']);
+            }
         }
 
         return array_values($subnavs);
@@ -340,5 +445,10 @@ final class BackendNavigation
     private static function normalizeTitle(string $title): string
     {
         return mb_strtolower(trim($title));
+    }
+
+    private static function groupId(string $sectionKey, string $groupKey): string
+    {
+        return mb_strtolower(trim($sectionKey)).':'.mb_strtolower(trim($groupKey));
     }
 }

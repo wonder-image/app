@@ -79,9 +79,6 @@ final class SeoResource extends SingletonResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('set-up')
-            ->title('Seo')
-            ->order(20)
-            ->authority(['admin']);
+            ->enabled(false);
     }
 }

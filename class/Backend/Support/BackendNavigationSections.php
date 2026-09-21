@@ -112,7 +112,7 @@ final class BackendNavigationSections
     /**
      * `true` se la `key` è registrata. Wrapper conveniente per
      * validazione di `inSection()` references da
-     * `BackendNavigation::resourceSections()`.
+     * `BackendNavigation::buildSections()`.
      */
     public static function has(string $key): bool
     {

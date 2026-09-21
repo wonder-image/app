@@ -100,6 +100,7 @@ final class MailLogResource extends Resource
     {
         return NavigationSchema::for(static::class)
             ->inSection('dev')
+            ->inGroup('diagnostics')
             ->title('Email')
             ->order(30)
             ->authority(['admin', 'administrator']);

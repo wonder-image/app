@@ -110,7 +110,9 @@ final class CssColorResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('css')
+            ->inSection('dev')
+            ->inGroup('style')
+            ->title('Colori')
             ->authority(['admin'])
             ->order(20);
     }

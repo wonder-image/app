@@ -23,10 +23,14 @@ use Wonder\Backend\Support\BackendNavigationSections;
  *    Resource appartiene alla sezione con questa key" senza dichiararne
  *    i metadati. La sezione deve essere stata registrata da una
  *    qualche Resource (anche dopo, perché la risoluzione è in due
- *    pass — vedi `BackendNavigation::resourceSections`).
+ *    pass — vedi `BackendNavigation::buildSections()`).
  *
  * Una Resource che non chiama né `section()` né `inSection()` diventa
  * una sezione top-level standalone (no sub-menu).
+ *
+ * Dentro una sezione, `group()` dichiara un'intestazione organizzativa e
+ * vi attacca la Resource; `inGroup()` collega le altre Resource. Le voci
+ * senza gruppo rimangono direttamente nella sezione.
  */
 final class NavigationSchema
 {
@@ -50,6 +54,11 @@ final class NavigationSchema
             # null = usa l'order dichiarato in `section()`. int = forza.
             # Tipicamente usato solo per Resource standalone.
             'section_order' => null,
+
+            # Gruppo opzionale dentro la sezione. `group()` dichiara
+            # metadati + appartenenza; `inGroup()` imposta solo la key.
+            'group_key' => null,
+            'group' => null,
 
             'title' => $this->resourceClass::titleLabel(),
             'order' => 100,
@@ -117,12 +126,56 @@ final class NavigationSchema
      *
      * Non valida immediatamente: la verifica che la `key` sia
      * effettivamente registrata avviene in
-     * `BackendNavigation::resourceSections()` dopo la PASS 1 di
+     * `BackendNavigation::buildSections()` dopo la PASS 1 di
      * collezione delle dichiarazioni.
      */
     public function inSection(string $key): self
     {
         $this->schema['section_key'] = trim($key);
+
+        return $this;
+    }
+
+    /**
+     * Dichiara un gruppo organizzativo dentro la sezione e vi attacca
+     * questa Resource. Dichiarazioni identiche della stessa key sono
+     * idempotenti; BackendNavigation segnala eventuali conflitti.
+     */
+    public function group(
+        string $key,
+        string $title,
+        int $order = 100,
+        array $authority = [],
+    ): self {
+        $key = trim($key);
+        $title = trim($title);
+
+        if ($key === '') {
+            throw new RuntimeException('NavigationSchema::group(): key vuota.');
+        }
+
+        if ($title === '') {
+            throw new RuntimeException("NavigationSchema::group('{$key}'): titolo vuoto.");
+        }
+
+        $this->schema['group_key'] = $key;
+        $this->schema['group'] = [
+            'key' => $key,
+            'title' => $title,
+            'order' => $order,
+            'authority' => $authority,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Attacca la Resource a un gruppo dichiarato da un'altra Resource
+     * della stessa sezione.
+     */
+    public function inGroup(string $key): self
+    {
+        $this->schema['group_key'] = trim($key);
 
         return $this;
     }
@@ -135,7 +188,8 @@ final class NavigationSchema
     }
 
     /**
-     * Ordine della voce DENTRO la sezione (subnav order).
+     * Ordine della voce dentro il gruppo, oppure direttamente dentro la
+     * sezione quando nessun gruppo è configurato.
      */
     public function order(int $order): self
     {
@@ -181,7 +235,7 @@ final class NavigationSchema
      * - dati dal registry se la key è registrata
      * - `null` (silente) se la key è impostata ma non registrata. La
      *   validazione "errore se non registrata" è responsabilità di
-     *   `BackendNavigation::resourceSections()`, che ha visibilità su
+     *   `BackendNavigation::buildSections()`, che ha visibilità su
      *   TUTTE le Resource (questo metodo invece è per-singola Resource).
      *
      * @return array{key:string,title:string,folder:string,icon:string,order:int,authority:array}|null

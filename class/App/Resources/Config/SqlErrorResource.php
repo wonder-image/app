@@ -85,8 +85,9 @@ final class SqlErrorResource extends Resource
     {
         return NavigationSchema::for(static::class)
             ->inSection('dev')
+            ->inGroup('diagnostics')
             ->title('Errori SQL')
-            ->order(60)
+            ->order(20)
             ->authority(['admin', 'administrator']);
     }
 
