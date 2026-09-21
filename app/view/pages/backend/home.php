@@ -26,7 +26,7 @@ $renderNavigationItems = static function (array $items, int $depth = 0) use (&$r
             }
 
             $padding = $depth > 0 ? 'ps-4' : 'ps-3';
-            $markup .= '<div class="list-group-item bg-body-secondary fw-semibold '.e($padding).'">'.e($title).'</div>';
+            $markup .= '<div class="list-group-item border-0 bg-transparent be-nav-heading text-uppercase fw-semibold pt-2 pb-1 '.e($padding).'">'.e($title).'</div>';
             $markup .= $childrenMarkup;
             continue;
         }
@@ -74,7 +74,7 @@ $renderNavigationItems = static function (array $items, int $depth = 0) use (&$r
                 continue;
             }
         ?>
-            <div class="list-group ps-2">
+            <div class="list-group be-nav-list ps-2">
                 <?php if ($subnavs !== []) { ?>
                     <div class="list-group-item list-group-item-dark"><i class="bi <?=e($iconNav)?>"></i> <?=e($titleNav)?></div>
                     <?=$subnavsMarkup?>

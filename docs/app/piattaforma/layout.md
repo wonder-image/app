@@ -106,6 +106,15 @@ sezione; i gruppi sono facoltativi e servono solo come intestazioni senza URL.
 La sidebar e la home backend attraversano ricorsivamente `subnavs`, applicano i
 permessi a ogni livello e mantengono visibili le pagine contenute nei gruppi.
 
+Presentazione: nell'offcanvas della sidebar i gruppi sono resi come toggle
+`collapse` di Bootstrap, aperti di default (`aria-expanded="true"` + `.show`),
+così le voci restano raggiungibili senza click ma i gruppi si possono richiudere.
+L'overview della home resta una lista statica alla stessa densità. Le due liste
+condividono le classi `be-nav-*` (`.be-nav-link`, `.be-nav-heading`,
+`.be-nav-toggle`, `.be-nav-chev`, `.be-nav-active`, `.be-nav-list`), definite in
+`wonder-image/lib` (`src/build/backend/css/header.css`, bundle `backend/head`):
+il framework emette solo il markup, nessun CSS vive in `wonder-image/app`.
+
 ### Convenzioni nei componenti layout
 
 Per i partial in `app/view/components/*` la convenzione pratica e':

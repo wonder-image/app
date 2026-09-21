@@ -188,6 +188,8 @@
 
         </div>
 
+        <?php /* Stile della navigazione backend (classi be-nav-*) in wonder-image/lib:
+                 src/build/backend/css/header.css, bundle backend/head. */ ?>
         <div class="sidebar-offcanvas">
             <?=implode('', $offcanvasMarkup)?>
             <?=$settingsOffcanvas?>

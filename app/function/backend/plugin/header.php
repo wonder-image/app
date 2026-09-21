@@ -16,23 +16,26 @@
                 $children = (array) ($value['children'] ?? []);
 
                 if ($children !== []) {
-                    $padding = $depth > 0 ? 'ps-3' : 'ps-0';
+                    $collapseId = code(10, 'numbers', 'navgrp-');
                     $titleClass = !empty($value['active']) ? 'text-body-emphasis' : 'text-body-secondary';
                     $markup .= "<li class='list-group-item border-0 m-0 p-0 w-100 float-none'>"
-                        ."<div class='small text-uppercase fw-semibold pt-3 pb-1 ".e($titleClass).' '.e($padding)."'>".e($listTitle)."</div>"
+                        ."<button type='button' class='be-nav-toggle be-nav-heading d-flex align-items-center gap-2 w-100 border-0 bg-transparent text-start text-uppercase fw-semibold mt-2 mb-1 py-1 px-2 ".e($titleClass)."' data-bs-toggle='collapse' data-bs-target='#".e($collapseId)."' aria-expanded='true' aria-controls='".e($collapseId)."'>"
+                        ."<i class='bi bi-chevron-right be-nav-chev'></i><span>".e($listTitle)."</span>"
+                        ."</button>"
+                        ."<div class='collapse show' id='".e($collapseId)."'>"
                         ."<ul class='list-group list-group-flush mt-0 w-100'>".$renderItems($children, $depth + 1)."</ul>"
+                        ."</div>"
                         ."</li>";
                     continue;
                 }
 
                 $listHref = (string) ($value['link'] ?? '');
                 $listActive = (bool) ($value['active'] ?? false);
-                $listClass = $listActive ? 'fw-semibold text-body-emphasis' : 'text-secondary';
-                $padding = $depth > 0 ? 'ps-3' : 'ps-0';
-                $label = $listActive ? '• '.$listTitle : $listTitle;
+                $stateClass = $listActive ? 'fw-semibold text-body-emphasis be-nav-active' : 'text-secondary';
+                $padding = $depth > 0 ? 'ps-4' : 'ps-2';
 
                 $markup .= "<li class='list-group-item border-0 m-0 p-0 w-100 float-none'>"
-                    ."<a href='".e($listHref)."' class='d-block w-100 m-0 py-2 pe-0 float-none ".e($padding).' '.e($listClass)." text-decoration-none'>".e($label)."</a>"
+                    ."<a href='".e($listHref)."' class='be-nav-link d-block w-100 m-0 py-1 pe-2 float-none ".e($padding).' '.e($stateClass)." text-decoration-none'>".e($listTitle)."</a>"
                     ."</li>";
             }
 
@@ -45,7 +48,7 @@
             <div class='offcanvas-header'>
                 <h5 class='offcanvas-title'>".e($title)."</h5>
             </div>
-            <div class='offcanvas-body pt-0'>
+            <div class='offcanvas-body pt-2 px-2'>
                 <ul class='list-group list-group-flush mt-0 w-100'>$listGroup</ul>
             </div>
         </div>
