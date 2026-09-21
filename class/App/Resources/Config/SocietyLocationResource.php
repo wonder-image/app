@@ -33,8 +33,13 @@ use Wonder\Elements\Form\Form;
  * "Sedi" della società, con orari e chiusure nella scheda. Una sede è
  * predefinita: le altre prendono da lei ciò che manca e il nome dell'attività.
  * Questa Resource dichiara la sezione "set-up" del backend (prima voce).
+ *
+ * Non è `final` apposta: un modulo che aggiunge dati alla sede (per esempio il
+ * gestionale con il magazzino) la estende e si registra con lo stesso percorso,
+ * così il `ResourceRegistry` mette la sua al posto di questa invece di
+ * affiancarle una seconda pagina "Sedi".
  */
-final class SocietyLocationResource extends Resource
+class SocietyLocationResource extends Resource
 {
     public const PLACE_ID_FINDER_URL = 'https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder';
 

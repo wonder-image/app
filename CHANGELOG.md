@@ -27,6 +27,9 @@
 ### Changed
 - Il pulsante "Guida" è `btn-info btn-sm` in ogni pagina: prima nell'elenco e
   nell'header era un `btn-outline-secondary` a dimensione piena.
+- `SocietyLocationResource` non è più `final`: un modulo che aggiunge dati alla
+  sede la estende e, registrandosi con lo stesso percorso, prende il posto della
+  pagina del core invece di affiancarne una seconda.
 
 ### Fixed
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
