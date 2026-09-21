@@ -16,6 +16,9 @@ use Wonder\Themes\Form\AbstractFieldRenderer;
  */
 abstract class Field extends AbstractFieldRenderer
 {
+    /** Lo script condiviso della creazione rapida va emesso una volta per pagina. */
+    private static bool $quickCreateScriptEmitted = false;
+
     /**
      * Override del render del parent: prima di costruire il wrap,
      * leggiamo `isNoFloating()` per decidere se applicare il pattern
@@ -163,7 +166,104 @@ abstract class Field extends AbstractFieldRenderer
             .'<button type="submit" class="btn btn-primary">Salva</button>'
             .'</div></form></div></div></div>';
 
-        return $trigger.$modal;
+        return $trigger.$modal.self::quickCreateScript();
+    }
+
+    /**
+     * Script condiviso (emesso una volta): invia il modal al proxy backend e,
+     * su {id,label}, inserisce+seleziona la nuova opzione con un adapter per
+     * famiglia. L'adapter `select` è completo; checkbox/checktree/searchremote/
+     * dynamiccheck sono best-effort e vanno rifiniti contro i widget di
+     * `wonder-image/lib` in un sito.
+     */
+    private static function quickCreateScript(): string
+    {
+        if (self::$quickCreateScriptEmitted) {
+            return '';
+        }
+
+        self::$quickCreateScriptEmitted = true;
+
+        return <<<'HTML'
+<script>
+(function () {
+  if (window.wiQuickCreateReady) return;
+  window.wiQuickCreateReady = true;
+
+  function appendOption(select, id, label) {
+    select.appendChild(new Option(label, id, true, true));
+    select.value = String(id);
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function optionInto(input, family, id, label) {
+    if (!input) {
+      document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { id: id, label: label, family: family } }));
+      return;
+    }
+    if ((family === 'select' || family === 'searchremote' || family === 'dynamiccheck') && input.tagName === 'SELECT') {
+      appendOption(input, id, label);
+      return;
+    }
+    if (family === 'checktree' && window.jQuery && window.jQuery.fn && window.jQuery.fn.jstree) {
+      try {
+        var tree = window.jQuery(input).closest('[id]').jstree(true);
+        if (tree) { var node = tree.create_node('#', { text: label, li_attr: { 'data-id': id } }); tree.check_node(node); return; }
+      } catch (e) {}
+    }
+    if (family === 'checkbox' || family === 'checktree') {
+      var group = input.closest('[data-wi-qc-group]') || input.parentElement || input;
+      var wrap = document.createElement('div');
+      wrap.className = 'form-check';
+      wrap.innerHTML = '<input class="form-check-input" type="checkbox" checked value="' + id + '"> <label class="form-check-label">' + label + '</label>';
+      group.appendChild(wrap);
+      return;
+    }
+    // Widget non gestito direttamente: hook per un listener del widget.
+    document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family } }));
+  }
+
+  function showError(modal, msg) {
+    var box = modal.querySelector('.wi-qc-alert');
+    if (box) { box.innerHTML = '<div class="alert alert-danger py-2 mb-2">' + (msg || 'Errore') + '</div>'; }
+    else if (window.alertToast) { window.alertToast('custom', 'error', 'Errore', msg || 'Errore'); }
+  }
+
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form.classList || !form.classList.contains('wi-qc-form')) return;
+    ev.preventDefault();
+    var modal = form.closest('.modal');
+    if (!modal) return;
+    var endpoint = modal.getAttribute('data-wi-qc-endpoint');
+    if (!endpoint) { showError(modal, 'Endpoint non configurato.'); return; }
+
+    fetch(endpoint, {
+      method: 'POST',
+      body: new FormData(form),
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.success) {
+          var inputId = modal.getAttribute('data-wi-qc-input');
+          optionInto(inputId ? document.getElementById(inputId) : null, modal.getAttribute('data-wi-qc-family'), res.id, res.label);
+          form.reset();
+          var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
+          if (window.bootstrap && window.bootstrap.Modal) {
+            var m = window.bootstrap.Modal.getInstance(modal) || new window.bootstrap.Modal(modal);
+            m.hide();
+          }
+        } else {
+          showError(modal, res && res.error);
+        }
+      })
+      .catch(function () { showError(modal, 'Errore di rete.'); });
+  });
+})();
+</script>
+HTML;
     }
 
     /** Famiglia dell'input FK (per l'adapter JS), dedotta dal renderer concreto. */
