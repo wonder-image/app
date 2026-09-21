@@ -39,6 +39,50 @@ Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
 `Inputs\Concerns\HasQuickCreate`.
 
+### Esempi per famiglia di input
+
+```php
+// FK singola (select): il caso più comune
+FormField::key('category_id')->select($categorie)
+    ->quickCreate(CategoryResource::class, ['name']);
+
+// FK singola con ricerca
+FormField::key('brand_id')->selectSearch($brand)
+    ->quickCreate(BrandResource::class, ['name', 'slug'], label: 'name');
+
+// Relazione multipla ad albero (many-to-many)
+FormField::key('tags')->checkTree($albero)
+    ->quickCreate(TagResource::class, ['name']);
+
+// Select remoto (opzioni via AJAX)
+FormField::key('supplier_id')->searchRadio(__r('backend.resource.suppliers.index'))
+    ->quickCreate(SupplierResource::class, ['company_name', 'vat'], label: 'company_name');
+
+// Check caricati via AJAX
+FormField::key('roles')->dynamicCheck(__r('backend.resource.roles.index'))
+    ->quickCreate(RoleResource::class, ['name']);
+```
+
+### Precondizione: lo store API della risorsa target
+
+La creazione passa dallo **store API** della risorsa collegata: il target deve
+esporlo. Basta che l'`apiSchema()` includa `store` con i campi del sottoinsieme:
+
+```php
+// In CategoryResource
+public static function apiSchema(): ApiSchema
+{
+    return ApiSchema::for(static::class)
+        ->only(['store'])
+        ->fields('store', ['name']);   // deve includere le chiavi del subset
+}
+```
+
+Non serve permettere lo store a ruoli backend: la chiamata viene fatta come
+utente `@system` (`api_internal_user`). Il controllo dei permessi è sul
+**bottone** (visibile solo a chi può creare quella risorsa) e ripetuto nel
+proxy server-side.
+
 ## Come funziona (flusso)
 
 1. Il renderer Bootstrap emette il "+" e un modal **solo** se l'utente backend

@@ -225,6 +225,21 @@ valore come argomento il suo default **sovrascrive** quello impostato prima:
 `multiple`, `searchBar`, `dateMin`/`dateMax`, `accept`, `uploader`.
 {% endhint %}
 
+### Creazione rapida (`quickCreate`)
+
+Sui campi **foreign key** (`select`, `selectSearch`, `checkbox`, `checkTree`,
+`searchText`/`searchRadio`, `dynamicCheck`) puoi aggiungere un "+ Aggiungi" che
+apre un modal per creare al volo la risorsa collegata:
+
+```php
+FormField::key('category_id')->select($categorie)
+    ->quickCreate(CategoryResource::class, ['name'], label: 'name');
+```
+
+`quickCreate(string $resourceClass, array $fields, ?string $label = null)` —
+API, precondizioni (store API del target), permessi e adapter per tipo sono in
+[Creazione rapida da campo FK](quick-create.md).
+
 ### Password policy
 
 Su un campo `password()` puoi dichiarare la policy: `.minLength($n)`,
