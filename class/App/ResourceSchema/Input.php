@@ -176,7 +176,7 @@ abstract class Input
 
     /**
      * Applica all'Element ciò che vale per ogni tipo: label (derivata dal
-     * `name` se non impostata), value, error, attributi e autocomplete.
+     * `name` se non dichiarata), value, error, attributi e autocomplete.
      */
     protected function hydrate(ElementField $element): void
     {
@@ -185,7 +185,9 @@ abstract class Input
         $attributes = AttributeString::parse((string) ($this->schema['attribute'] ?? ''));
         $autocomplete = $this->resolveAutocomplete();
 
-        if ($label === '') {
+        // Un'etichetta mai dichiarata prende il nome del campo; una dichiarata
+        // vuota resta vuota, perché è quello che l'autore ha chiesto.
+        if ($label === '' && !$this->labelDeclared) {
             $label = ucwords(str_replace(['_', '-'], ' ', $this->name));
         }
 

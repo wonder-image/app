@@ -42,4 +42,12 @@ check('un\'etichetta vuota per scelta resta vuota', function () use ($label) {
     return $label('silent') === '';
 });
 
+check('l\'etichetta arriva al campo renderizzato', function () {
+    $compiled = LabelProbeResource::getInput('guessed_name')->compile();
+    $muto = LabelProbeResource::getInput('silent')->compile();
+
+    return (string) ($compiled->schema['label'] ?? '') === 'Guessed Name'
+        && (string) ($muto->schema['label'] ?? '') === '';
+});
+
 summary();
