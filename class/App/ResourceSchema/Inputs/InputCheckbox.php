@@ -5,6 +5,7 @@ namespace Wonder\App\ResourceSchema\Inputs;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\BuildsCheckGroupElement;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasOptions;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasSearchBar;
 use Wonder\Elements\Form\Components\Checkbox;
 use Wonder\Elements\Form\Field as ElementField;
@@ -21,6 +22,7 @@ class InputCheckbox extends Input
     use BuildsCheckGroupElement;
     use HasOptions;
     use HasSearchBar;
+    use HasQuickCreate;
 
     protected string $helper = 'checkbox';
 

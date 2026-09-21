@@ -6,6 +6,7 @@ use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\BuildsCheckGroupElement;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasInputType;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasOptions;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasSearchBar;
 use Wonder\Elements\Form\Components\CheckTree;
 use Wonder\Elements\Form\Field as ElementField;
@@ -21,6 +22,7 @@ class InputCheckTree extends Input
     use BuildsCheckGroupElement;
     use HasOptions;
     use HasSearchBar;
+    use HasQuickCreate;
     use HasInputType;
 
     protected string $helper = 'checkTree';

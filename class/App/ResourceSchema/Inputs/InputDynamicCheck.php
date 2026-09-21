@@ -4,6 +4,7 @@ namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasInputType;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\Elements\Form\Components\DynamicCheck;
 use Wonder\Elements\Form\Field as ElementField;
 
@@ -16,6 +17,7 @@ use Wonder\Elements\Form\Field as ElementField;
 class InputDynamicCheck extends Input
 {
     use HasInputType;
+    use HasQuickCreate;
 
     protected string $helper = 'dynamicCheck';
 

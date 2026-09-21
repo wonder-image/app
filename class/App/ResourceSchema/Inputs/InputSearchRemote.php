@@ -3,6 +3,7 @@
 namespace Wonder\App\ResourceSchema\Inputs;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\Elements\Form\Components\SearchRemote;
 use Wonder\Elements\Form\Field as ElementField;
 
@@ -16,6 +17,8 @@ use Wonder\Elements\Form\Field as ElementField;
  */
 abstract class InputSearchRemote extends Input
 {
+    use HasQuickCreate;
+
     public function url(string $url): static
     {
         $this->schema['url'] = trim($url);

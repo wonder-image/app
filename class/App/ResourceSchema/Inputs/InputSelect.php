@@ -6,6 +6,7 @@ use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\BuildsSelectElement;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasMultiple;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasOptions;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasVersion;
 use Wonder\Elements\Form\Field as ElementField;
 
@@ -21,6 +22,7 @@ class InputSelect extends Input
     use HasOptions;
     use HasMultiple;
     use HasVersion;
+    use HasQuickCreate;
 
     protected string $helper = 'select';
 
