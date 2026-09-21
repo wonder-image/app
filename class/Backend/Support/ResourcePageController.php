@@ -86,6 +86,10 @@ final class ResourcePageController
             }
         }
 
+        // La riga su cui abbiamo scritto: serve al redirect, che può portare
+        // sulla sua scheda invece che sull'elenco.
+        $recordId = $targetId;
+
         if (!empty($result->success)) {
             if ($targetId > 0) {
                 $this->resourceClass::syncRepeaterRelations(
@@ -98,6 +102,7 @@ final class ResourcePageController
                 $this->resourceClass::afterUpdate($targetId, $result, $values);
             } else {
                 $insertId = (int) ($result->insert_id ?? 0);
+                $recordId = $insertId;
 
                 if ($insertId > 0) {
                     $this->resourceClass::syncRepeaterRelations(
@@ -126,7 +131,7 @@ final class ResourcePageController
             }
 
             $this->resourceClass::exportSyncData();
-            $this->redirectToConfiguredPage('store');
+            $this->redirectToConfiguredPage('store', $recordId);
         }
 
         $errors = !empty($ALERT) ? ['alert' => (string) $ALERT] : (array) ($result->response ?? []);
@@ -190,7 +195,7 @@ final class ResourcePageController
             );
             $this->resourceClass::afterUpdate($id, $result, $values);
             $this->resourceClass::exportSyncData();
-            $this->redirectToConfiguredPage('update');
+            $this->redirectToConfiguredPage('update', $id);
         }
 
         $errors = !empty($ALERT) ? ['alert' => (string) $ALERT] : (array) ($result->response ?? []);
@@ -307,13 +312,13 @@ final class ResourcePageController
         }
     }
 
-    private function redirectToConfiguredPage(string $action): never
+    private function redirectToConfiguredPage(string $action, int|string|null $id = null): never
     {
         // Salvataggio o eliminazione andati a buon fine: il toast lo mostra
         // la pagina dove arriviamo dopo il redirect.
         FlashAlert::code(650);
 
-        header('Location: '.$this->presenter->redirectUrl($action));
+        header('Location: '.$this->presenter->redirectUrl($action, $id));
         exit();
     }
 

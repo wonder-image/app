@@ -139,13 +139,22 @@ final class ResourcePagePresenter
         return $rootApp.'/view/pages/backend/resource/'.$view.'.php';
     }
 
-    public function redirectUrl(string $action): string
+    /**
+     * Dove si va dopo un salvataggio o un'eliminazione.
+     *
+     * `$id` è la riga appena scritta, e serve solo alla destinazione `edit`:
+     * dopo aver creato qualcosa si può atterrare sulla sua scheda invece che
+     * su un elenco dove bisogna ritrovarla. Senza id non c'è scheda dove
+     * andare, e si torna all'elenco.
+     */
+    public function redirectUrl(string $action, int|string|null $id = null): string
     {
         $redirects = (array) $this->resourceClass::pageSchema()->get('redirects');
         $page = (string) ($redirects[$action] ?? 'list');
 
         return match ($page) {
             'create' => $this->createPageUrl(),
+            'edit' => (int) $id > 0 ? $this->editUrl((int) $id) : $this->listUrl(),
             default => $this->listUrl(),
         };
     }
