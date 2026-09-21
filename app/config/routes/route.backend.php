@@ -26,6 +26,12 @@ Route::area('backend')
         Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
             ->permit(['admin']);
 
+        // Creazione rapida dal modal FK: proxy che crea la risorsa collegata via
+        // store API come @system. Ogni utente backend autenticato può chiamarlo;
+        // l'autorizzazione fine per-target è nel QuickCreateController.
+        Route::post('/resource/quick-create/', $ROOT_APP.'/http/backend/resource/quick-create.php')
+            ->name('resource.quick-create')->permit([]);
+
         Route::name('media.')
             ->prefix('/app/media')
             ->group(function () use ($ROOT_APP) {
