@@ -52,10 +52,13 @@ class Repeater extends Field
         }
 
         $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
+        // Senza etichetta niente titolo: il riquadro che contiene il repeater
+        // ha già il suo, e due titoli uguali di fila si leggono male.
+        $heading = trim($label) === '' ? '' : "<h6>{$label}</h6>";
 
         return <<<HTML
 <div id="{$id}" class="w-100 wi-input-repeater">
-    <h6>{$label}</h6>
+    {$heading}
     <div id="{$rowId}" class="row g-2">
         {$rowsHtml}
     </div>
@@ -269,6 +272,13 @@ HTML;
             }
         });
         container.appendChild(fragment);
+
+        // La riga nuova è solo HTML: senza questo i campi che diventano un
+        // widget (caricamento file, editor, albero, select con ricerca)
+        // restano il campo grezzo, mentre nelle righe già in pagina no.
+        if (row && typeof window.setInput === 'function') {
+            window.setInput(row);
+        }
     };
 
     window.wiRepeaterEnsureDeleteModal = window.wiRepeaterEnsureDeleteModal || function (config = {}) {
