@@ -171,6 +171,13 @@ abstract class Input
         $this->hydrate($element);
         $this->decorate($element);
 
+        // Porta la config di creazione rapida sull'Element: il renderer del
+        // tema riceve l'Element (non l'Input) e da lì emette "+" e modal.
+        $quickCreate = $this->schema['context']['quick_create'] ?? null;
+        if ($quickCreate !== null) {
+            $element->schema['context']['quick_create'] = $quickCreate;
+        }
+
         return $element;
     }
 

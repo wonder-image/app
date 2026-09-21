@@ -52,4 +52,26 @@ $check(QuickCreateAuthorizer::userCanCreate($permClass, ['viewer']) === false, '
 $kept = QuickCreateController::whitelist(['name', 'slug'], ['name' => 'Scarpe', 'slug' => 'scarpe', 'evil' => 'x', 'id' => '9']);
 $check($kept === ['name' => 'Scarpe', 'slug' => 'scarpe'], 'whitelist keeps only declared subset keys');
 
+// --- Task 4: Bootstrap renderer emits "+" + modal ---------------------------
+
+$openTarget = new class {
+    public static function slug(): string { return 'category'; }
+    public static function permissionSchema(): object {
+        return new class { public function get(string $k): array { return []; } };
+    }
+    public static function getInput(string $key): object { return FormField::key($key)->text(); }
+};
+$openClass = get_class($openTarget);
+
+$html = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($openClass, ['name'], 'name')->render('bootstrap');
+
+$check(str_contains($html, 'data-wi-quick-create'), 'renders the quick-create trigger');
+$check(str_contains($html, 'name="quick_fields[]"'), 'emits the subset hidden field');
+$check(str_contains($html, 'name="resource"'), 'emits the target slug hidden field');
+$check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family');
+
+// Senza quickCreate() nessun markup extra.
+$plain = FormField::key('category_id')->select(['1' => 'A'])->render('bootstrap');
+$check(!str_contains($plain, 'data-wi-quick-create'), 'no trigger when not declared');
+
 echo "OK: {$checks} checks passed\n";
