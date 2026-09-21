@@ -32,7 +32,7 @@ check('gli errori non si creano a mano', function () {
         && !in_array('delete', $attive, true);
 });
 
-check('l\'elenco dice servizio, gruppo, occorrenze e quando', function () {
+check('l\'elenco dice servizio, azione, occorrenze e quando', function () {
     $colonne = array_map(
         static fn (object $column): string => (string) $column->name,
         ErrorReportResource::tableSchema()
@@ -40,7 +40,6 @@ check('l\'elenco dice servizio, gruppo, occorrenze e quando', function () {
 
     return in_array('service', $colonne, true)
         && in_array('action', $colonne, true)
-        && in_array('audience', $colonne, true)
         && in_array('occurrences', $colonne, true)
         && in_array('last_seen_at', $colonne, true);
 });

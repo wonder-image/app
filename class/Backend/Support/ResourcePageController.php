@@ -275,12 +275,15 @@ final class ResourcePageController
     {
         $tableName = $this->resourceClass::modelTable();
         LegacyGlobals::set('NAME', $this->presenter->legacyName());
-        $requestValues = $this->resourceClass::mutateRequestValues(
-            $this->resourceClass::stripRelationInputValues($this->requestValues()),
-            $oldValues === null ? 'store' : 'update',
-            'backend',
-            $oldValues
-        );
+        $requestValues = $this->resourceClass::stripRelationInputValues($this->requestValues());
+        try {
+            $requestValues = $this->resourceClass::mutateRequestValues(
+                $requestValues, $oldValues === null ? 'store' : 'update', 'backend', $oldValues
+            );
+        } catch (\InvalidArgumentException|\JsonException $error) {
+            $GLOBALS['ALERT'] = $error instanceof \JsonException ? 'Parametri JSON non validi: controllare virgolette, virgole e parentesi.' : $error->getMessage();
+            return $requestValues;
+        }
 
         $resourceSchemaName = $this->resourceClass::prepareSchemaName();
 

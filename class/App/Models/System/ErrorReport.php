@@ -14,6 +14,9 @@ use Wonder\Sql\TableSchema as Column;
  * resta una riga sola con il contatore, così la casella di chi riceve gli
  * avvisi non si riempie di copie dello stesso problema.
  *
+ * Sono errori **per chi sviluppa**: un guasto tecnico da correggere. Quello che
+ * riguarda chi usa il sito non è un errore ma una notifica, e non passa di qui.
+ *
  * Non si sincronizza: è la storia di un ambiente.
  */
 final class ErrorReport extends Model
@@ -31,7 +34,6 @@ final class ErrorReport extends Model
     {
         return [
             Column::key('fingerprint')->length(191)->null(false)->unique(),
-            Column::key('audience')->length(50)->default('developer'),
             Column::key('service')->length(100),
             Column::key('action')->length(100),
             Column::key('message')->type('TEXT'),
@@ -48,7 +50,7 @@ final class ErrorReport extends Model
     public static function tablePseudos(): array
     {
         return [
-            'ind_audience' => ['index' => ['audience', 'resolved_at']],
+            'ind_resolved' => ['index' => 'resolved_at'],
         ];
     }
 
@@ -56,7 +58,6 @@ final class ErrorReport extends Model
     {
         return [
             Field::key('fingerprint')->text()->sanitize(false),
-            Field::key('audience')->text()->sanitize(false),
             Field::key('service')->text()->sanitize(false),
             Field::key('action')->text()->sanitize(false),
             Field::key('message')->text(),

@@ -3,11 +3,12 @@
 ## Unreleased
 
 ### Added
-- `error_reports` con `Wonder\App\Support\Errors\ErrorReporter`: gli errori
-  ripetuti che non hanno un documento su cui restare diventano una riga sola con
-  un contatore, l'email parte alla prima occorrenza e riparte solo se il problema
-  torna dopo essere stato segnato risolto. I destinatari li decide chi segnala
-  con `recipientsUsing()`. Pagina "Errori" in Set Up per `admin`.
+- `error_reports` con `Wonder\App\Support\Errors\ErrorReporter`: i guasti
+  tecnici ripetuti diventano una riga sola con un contatore, l'email parte alla
+  prima occorrenza e riparte solo se il problema torna dopo essere stato segnato
+  risolto. Gli indirizzi li passa il sito con `recipientsUsing()`. Pagina
+  "Errori" in Set Up per `admin`. Sono errori per chi sviluppa: quello che
+  riguarda chi usa il sito è una notifica, non un errore, e non passa di qui.
 - `Wonder\Backend\Support\FlashAlert`: avviso in coda in sessione, letto da
   `alert()` in body-end. `code()` per i codici di `notifications.json`,
   `custom()` e `saved()` per i messaggi composti al momento (solo backend).

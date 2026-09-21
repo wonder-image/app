@@ -20,9 +20,13 @@ use Wonder\Elements\Form\Form;
 /**
  * "Errori": gli errori ripetuti raccolti da `ErrorReporter`.
  *
- * Non si creano e non si eliminano: si guardano e si segnano risolti. Un
- * errore chiuso che si ripresenta torna aperto da solo e fa ripartire
- * l'avviso, quindi chiudere non nasconde niente.
+ * Sono i guasti tecnici, quelli di chi sviluppa: non si creano e non si
+ * eliminano, si guardano e si segnano risolti. Un errore chiuso che si
+ * ripresenta torna aperto da solo e fa ripartire l'avviso, quindi chiudere non
+ * nasconde niente.
+ *
+ * Quello che deve vedere chi usa il sito non è un errore ma una notifica: sta
+ * altrove, con parole sue.
  */
 final class ErrorReportResource extends Resource
 {
@@ -62,7 +66,6 @@ final class ErrorReportResource extends Resource
         return [
             'service' => 'Servizio',
             'action' => 'Azione',
-            'audience' => 'Avvisa',
             'message' => 'Messaggio',
             'occurrences' => 'Volte',
             'first_seen_at' => 'Prima volta',
@@ -101,7 +104,6 @@ final class ErrorReportResource extends Resource
         return [
             TableColumn::key('service')->text()->link('edit'),
             TableColumn::key('action')->text(),
-            TableColumn::key('audience')->text()->size('little'),
             TableColumn::key('occurrences')->text()->size('little'),
             TableColumn::key('last_seen_at')->datetime()->size('little'),
             TableColumn::key('resolved_at')

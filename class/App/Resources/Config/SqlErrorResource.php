@@ -84,9 +84,9 @@ final class SqlErrorResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('log')
+            ->inSection('dev')
             ->title('Errori SQL')
-            ->order(40)
+            ->order(60)
             ->authority(['admin', 'administrator']);
     }
 

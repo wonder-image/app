@@ -3,6 +3,7 @@
 namespace Wonder\App\Resources\Scheduler;
 
 use Wonder\App\Resource;
+use Wonder\App\Scheduler\Presentation;
 use Wonder\App\ResourceSchema\{ApiSchema, NavigationSchema, PageSchema, PermissionSchema, TableColumn, TableLayoutSchema};
 
 class RunResource extends Resource
@@ -12,13 +13,15 @@ class RunResource extends Resource
     public static function labelSchema(): array
     {
         return ['task_key' => 'Attivita', 'status' => 'Esito', 'started_at' => 'Avvio (UTC)', 'finished_at' => 'Fine (UTC)',
-            'duration_ms' => 'Durata (ms)', 'memory_bytes' => 'Picco PHP (byte)', 'cpu_ms' => 'CPU (ms)', 'output' => 'Output', 'result' => 'Risultato'];
+            'duration_ms' => 'Durata', 'memory_bytes' => 'Picco memoria PHP', 'cpu_ms' => 'CPU', 'output' => 'Output', 'result' => 'Risultato'];
     }
     public static function tableSchema(): array
     {
-        return [TableColumn::key('task_key')->text()->link('view'), TableColumn::key('status')->text(),
-            TableColumn::key('started_at')->text(), TableColumn::key('duration_ms')->text(),
-            TableColumn::key('memory_bytes')->text(), TableColumn::key('cpu_ms')->text()];
+        return [TableColumn::key('task_key')->text()->link('view'), TableColumn::key('status')->text()->formatter(static fn ($row) => Presentation::status($row['status'])),
+            TableColumn::key('started_at')->text(),
+            TableColumn::key('duration_ms')->text()->formatter(static fn ($row) => e(Presentation::number($row['duration_ms'], 1000, 's'))),
+            TableColumn::key('memory_bytes')->text()->formatter(static fn ($row) => e(Presentation::number($row['memory_bytes'], 1048576, 'MiB'))),
+            TableColumn::key('cpu_ms')->text()->formatter(static fn ($row) => e(Presentation::number($row['cpu_ms'], 1, 'ms')))];
     }
     public static function tableLayoutSchema(): TableLayoutSchema
     {
@@ -34,7 +37,7 @@ class RunResource extends Resource
     public static function permissionSchema(): PermissionSchema { return PermissionSchema::for(static::class)->backend(['list', 'view'], ['admin']); }
     public static function navigationSchema(): NavigationSchema
     {
-        return NavigationSchema::for(static::class)->inSection('scheduler')->title('Registro esecuzioni')->authority(['admin'])->order(110);
+        return NavigationSchema::for(static::class)->inSection('dev')->title('Registro esecuzioni')->authority(['admin'])->order(20);
     }
     public static function querySchema(): array
     {

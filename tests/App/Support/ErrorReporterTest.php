@@ -37,26 +37,23 @@ check('l\'impronta è una stringa breve e stabile', function () use ($errore) {
 check('senza risolutore non si sa a chi scrivere', function () {
     ErrorReporter::recipientsUsing(null);
 
-    return ErrorReporter::recipients('developer') === [];
+    return ErrorReporter::recipients() === [];
 });
 
-check('il risolutore decide i destinatari', function () {
-    ErrorReporter::recipientsUsing(static fn (string $audience): array => $audience === 'developer'
-        ? ['dev@esempio.it']
-        : ['negozio@esempio.it']);
+check('il risolutore dice a chi scrivere', function () {
+    ErrorReporter::recipientsUsing(static fn (): array => ['dev@esempio.it']);
 
-    $sviluppatore = ErrorReporter::recipients('developer');
-    $commerciante = ErrorReporter::recipients('merchant');
+    $destinatari = ErrorReporter::recipients();
 
     ErrorReporter::recipientsUsing(null);
 
-    return $sviluppatore === ['dev@esempio.it'] && $commerciante === ['negozio@esempio.it'];
+    return $destinatari === ['dev@esempio.it'];
 });
 
 check('gli indirizzi storti vengono scartati', function () {
     ErrorReporter::recipientsUsing(static fn (): array => ['dev@esempio.it', '', 'non-un-indirizzo', 'due@esempio.it']);
 
-    $destinatari = ErrorReporter::recipients('developer');
+    $destinatari = ErrorReporter::recipients();
 
     ErrorReporter::recipientsUsing(null);
 

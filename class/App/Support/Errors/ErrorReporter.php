@@ -14,13 +14,17 @@ use Wonder\App\Models\System\ErrorReport;
  * qualcuno segna l'errore risolto la riga si chiude, e se il problema torna
  * l'email riparte: è il modo per accorgersi che la correzione non ha tenuto.
  *
- * Il core non sa chi debba ricevere l'avviso — "sviluppatore" e "commerciante"
- * sono parole di chi usa il framework — quindi chi segnala passa un risolutore
- * con `recipientsUsing()`. Senza risolutore resta solo la riga.
+ * Qui stanno i guasti tecnici, quelli che deve vedere chi sviluppa: un
+ * provider che non risponde, una chiamata che va in timeout. Quello che
+ * riguarda chi usa il sito — un ordine da controllare, una spedizione ferma —
+ * non è un errore ma una notifica, e non passa di qui.
+ *
+ * Gli indirizzi a cui scrivere li conosce il sito, non il core: si passano con
+ * `recipientsUsing()`. Senza risolutore resta solo la riga.
  */
 final class ErrorReporter
 {
-    /** @var callable(string): array<int, string>|null */
+    /** @var callable(): array<int, string>|null */
     private static $recipients = null;
 
     /** Impronta dell'errore: stesso problema, stessa riga. */
@@ -45,7 +49,6 @@ final class ErrorReporter
      * @return bool vero se è partita un'email (prima occorrenza o riapertura)
      */
     public static function report(
-        string $audience,
         string $service,
         string $action,
         Throwable|string $error,
@@ -59,7 +62,6 @@ final class ErrorReporter
         if ($existing === null) {
             sqlInsert(ErrorReport::$table, [
                 'fingerprint' => $fingerprint,
-                'audience' => trim($audience),
                 'service' => trim($service),
                 'action' => trim($action),
                 'message' => $message,
@@ -69,7 +71,7 @@ final class ErrorReporter
                 'last_seen_at' => $now,
             ]);
 
-            return self::notify($audience, $service, $action, $message, $context, 1, $fingerprint);
+            return self::notify($service, $action, $message, $context, 1, $fingerprint);
         }
 
         $wasResolved = trim((string) ($existing['resolved_at'] ?? '')) !== '';
@@ -90,7 +92,7 @@ final class ErrorReporter
             return false;
         }
 
-        return self::notify($audience, $service, $action, $message, $context, $occurrences, $fingerprint);
+        return self::notify($service, $action, $message, $context, $occurrences, $fingerprint);
     }
 
     /** Segna risolto: se il problema torna, l'avviso riparte. */
@@ -105,15 +107,9 @@ final class ErrorReporter
     }
 
     /** Errori ancora aperti, dal più recente. @return list<array<string, mixed>> */
-    public static function open(?string $audience = null): array
+    public static function open(): array
     {
-        $condition = ['deleted' => 'false'];
-
-        if ($audience !== null && trim($audience) !== '') {
-            $condition['audience'] = trim($audience);
-        }
-
-        $rows = ErrorReport::find($condition, null, 'last_seen_at', 'DESC');
+        $rows = ErrorReport::find(['deleted' => 'false'], null, 'last_seen_at', 'DESC');
 
         if (!is_array($rows) || $rows === []) {
             return [];
@@ -127,14 +123,14 @@ final class ErrorReporter
         ));
     }
 
-    /** Chi riceve gli avvisi di questo gruppo. @return list<string> */
-    public static function recipients(string $audience): array
+    /** Chi riceve gli avvisi. @return list<string> */
+    public static function recipients(): array
     {
         if (self::$recipients === null) {
             return [];
         }
 
-        $addresses = (self::$recipients)($audience);
+        $addresses = (self::$recipients)();
 
         if (!is_array($addresses)) {
             return [];
@@ -162,7 +158,6 @@ final class ErrorReporter
 
     /** Una mail per gruppo di destinatari, con quello che serve per capire. */
     private static function notify(
-        string $audience,
         string $service,
         string $action,
         string $message,
@@ -170,7 +165,7 @@ final class ErrorReporter
         int $occurrences,
         string $fingerprint
     ): bool {
-        $recipients = self::recipients($audience);
+        $recipients = self::recipients();
 
         if ($recipients === [] || !function_exists('sendMail')) {
             return false;

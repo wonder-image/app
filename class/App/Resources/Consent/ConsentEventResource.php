@@ -104,9 +104,9 @@ final class ConsentEventResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('log')
+            ->inSection('dev')
             ->title('Consensi')
-            ->order(30)
+            ->order(50)
             ->authority(['admin', 'administrator']);
     }
 

@@ -36,7 +36,7 @@ final class Worker
             $bufferLevel = ob_get_level();
             ob_start(static function (string $chunk) use (&$context): string { $context->log($chunk); return ''; }, 4096);
             try {
-                $task = TaskRegistry::get($run['task_key']);
+                $task = ConfiguredTask::resolve($schedule);
                 $parameters = json_decode($schedule['parameters'] ?: '{}', true, 32, JSON_THROW_ON_ERROR);
                 if (!is_array($parameters)) { throw new \InvalidArgumentException('Parametri JSON non validi.'); }
                 $context = new Context($task->validate($parameters), microtime(true) + $task->timeout());

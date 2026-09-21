@@ -31,8 +31,8 @@ final class Scheduler
             $rows = $repository->rows("SELECT * FROM scheduler_schedules WHERE deleted = 'false' AND enabled = 'true' AND (requested = 'true' OR next_due <= ?) ORDER BY COALESCE(last_started, '1970-01-01'), id LIMIT 100", [gmdate('Y-m-d H:i:s')]);
             foreach ($rows as $row) {
                 if (microtime(true) >= $deadline) { break; }
-                if (!isset(TaskRegistry::all()[$row['task_key']])) { continue; }
-                $task = TaskRegistry::get($row['task_key']);
+                if (($row['kind'] ?? 'task') === 'task' && !isset(TaskRegistry::all()[$row['task_key']])) { continue; }
+                $task = ConfiguredTask::resolve($row);
                 $next = Repository::next($row['expression'], $row['timezone']);
                 $repository->execute("UPDATE scheduler_schedules SET requested = 'false', next_due = ?, last_started = ? WHERE id = ?", [$next, gmdate('Y-m-d H:i:s'), $row['id']]);
                 $repository->execute("INSERT INTO scheduler_runs (schedule_id, task_key, status, started_at) VALUES (?, ?, 'pending', ?)", [$row['id'], $row['task_key'], gmdate('Y-m-d H:i:s')]);

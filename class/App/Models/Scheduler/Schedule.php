@@ -16,6 +16,11 @@ class Schedule extends Model
     {
         return [
             Column::key('name'), Column::key('task_key')->length(120),
+            Column::key('origin')->length(20)->default('backend'),
+            Column::key('kind')->length(20)->default('task'),
+            Column::key('target')->type('TEXT')->null(),
+            Column::key('http_method')->length(10)->default('GET'),
+            Column::key('timeout')->type('INT')->default(300),
             Column::key('expression')->length(100)->default('0 0 * * *'),
             Column::key('timezone')->length(100)->default('Europe/Rome'),
             Column::key('parameters')->type('TEXT')->null(),
@@ -32,6 +37,6 @@ class Schedule extends Model
     public static function dataSchema(): array
     {
         return array_map(static fn (string $key) => Field::key($key)->text()->sanitize(false),
-            ['name', 'task_key', 'expression', 'timezone', 'parameters', 'enabled', 'requested', 'next_due', 'last_started']);
+            ['name', 'task_key', 'origin', 'kind', 'target', 'http_method', 'timeout', 'expression', 'timezone', 'parameters', 'enabled', 'requested', 'next_due', 'last_started']);
     }
 }
