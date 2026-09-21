@@ -65,6 +65,8 @@ L'esito di un invio — e in particolare l'**errore** — si comunica con un
   tabella.
 - [Sistema Form / Theme / Element](theme-system.md) — la pipeline di rendering e
   come aggiungere un nuovo tipo di input.
+- [Creazione rapida da campo FK](quick-create.md) — un "+" che crea al volo la
+  risorsa collegata in un modal e aggiorna il campo.
 
 ## Esempio minimo
 

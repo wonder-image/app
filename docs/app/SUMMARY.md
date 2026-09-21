@@ -33,6 +33,7 @@
   * [FormField](concetti/form/form-field.md)
   * [Repeater](concetti/form/repeater.md)
   * [Sistema Form / Theme / Element](concetti/form/theme-system.md)
+  * [Creazione rapida da campo FK](concetti/form/quick-create.md)
 * [Render delle tabelle](concetti/tabelle/README.md)
   * [TableColumn e tableLayoutSchema](concetti/tabelle/tablecolumn.md)
   * [Opzioni colonna (size, hiddenDevice, format)](concetti/tabelle/opzioni-colonna.md)
