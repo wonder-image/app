@@ -71,17 +71,36 @@ class ScheduleResource extends Resource
             TableColumn::key('origin')->text()->formatter(static fn ($row) => e(($row['origin'] ?? '') === 'code' ? 'Predefinita' : 'Backend')),
             TableColumn::key('expression')->text(), TableColumn::key('enabled')->activeBadge(),
             TableColumn::key('next_due')->text(), TableColumn::key('last_started')->text(),
-            TableColumn::key('actions')->text()->formatter(static function (array $row): string {
-                $url = '/backend/app/scheduler/schedules/'.(int) $row['id'];
-                $html = Button::to($url.'/edit/', 'Modifica')->variant('light')->size('sm')->schema('inline', true)->render('bootstrap');
-                if (($row['origin'] ?? 'code') !== 'code') {
-                    $_SESSION['scheduler_csrf'] ??= bin2hex(random_bytes(32));
-                    $html .= '<form method="post" action="'.e($url.'/delete/').'" class="d-inline ms-2" onsubmit="return window.confirm(\'Eliminare questa pianificazione? Lo storico verra conservato.\')">'
-                        .FormField::key('scheduler_csrf')->hidden()->value($_SESSION['scheduler_csrf'])->render('bootstrap')
-                        .Button::make('Elimina')->type('submit')->variant('danger')->outline()->size('sm')->schema('inline', true)->render('bootstrap').'</form>';
-                }
-                return '<div class="text-nowrap">'.$html.'</div>';
-            })];
+            TableColumn::key('actions')->text()->formatter(static fn (array $row): string => static::actionsCell($row))];
+    }
+
+    /**
+     * Menu azioni della riga: lo stesso dropdown a tre puntini delle altre
+     * liste del backend. "Visualizza" apre il Registro esecuzioni gia filtrato
+     * sull'attivita di questa pianificazione; "Elimina" resta riservata alle
+     * pianificazioni create dal backend e passa dalla rotta protetta della
+     * resource (CSRF + soft-delete), mai dall'endpoint di delete generico.
+     */
+    private static function actionsCell(array $row): string
+    {
+        $base = '/backend/app/scheduler/schedules/'.(int) $row['id'];
+        $runs = __r('backend.resource.'.RunResource::slug().'.list')
+            .'?'.RunResource::modelTable().'__search='.rawurlencode((string) ($row['task_key'] ?? ''));
+
+        $items = '<a class="dropdown-item" href="'.e($base.'/edit/').'" role="button">Modifica</a>'
+            .'<a class="dropdown-item" href="'.e($runs).'" role="button">Visualizza</a>';
+
+        if (($row['origin'] ?? 'code') !== 'code') {
+            $_SESSION['scheduler_csrf'] ??= bin2hex(random_bytes(32));
+            $items .= '<form method="post" action="'.e($base.'/delete/').'" onsubmit="return window.confirm(\'Eliminare questa pianificazione? Lo storico verra conservato.\')">'
+                .FormField::key('scheduler_csrf')->hidden()->value($_SESSION['scheduler_csrf'])->render('bootstrap')
+                .'<button type="submit" class="dropdown-item text-danger">Elimina</button></form>';
+        }
+
+        return '<div class="dropdown">'
+            .'<span class="badge text-dark" role="button" data-bs-toggle="dropdown" aria-bs-haspopup="true" aria-bs-expanded="false"><i class="bi bi-three-dots"></i></span>'
+            .'<div class="dropdown-menu dropdown-menu-right">'.$items.'</div>'
+            .'</div>';
     }
     public static function tableLayoutSchema(): TableLayoutSchema
     {

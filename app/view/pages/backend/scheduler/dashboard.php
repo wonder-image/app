@@ -61,6 +61,17 @@ echo Layout::renderLayout((new Container())->columns(12)->components([
             ]),
         ]));
         ?>
+        <div class="card border mt-3"><div class="card-body">
+            <h6 class="mb-2">Cron sul server</h6>
+            <p class="small text-body-secondary mb-2">Aggiungi in cPanel &rarr; Processi Cron un solo comando per lo scheduler:</p>
+            <pre class="bg-body-tertiary border rounded p-2 mb-2 small text-wrap"><code><?= e('/usr/local/bin/php '.ROOT.'/bin/scheduler.php') ?></code></pre>
+            <p class="small text-body-secondary mb-1">Frequenza: ogni minuto (<code>* * * * *</code>).</p>
+            <div class="table-responsive"><table class="table table-sm table-bordered small text-center mb-2">
+                <thead><tr><th>Minuto</th><th>Ora</th><th>Giorno del mese</th><th>Mese</th><th>Giorno della settimana</th></tr></thead>
+                <tbody><tr><td>*</td><td>*</td><td>*</td><td>*</td><td>*</td></tr></tbody>
+            </table></div>
+            <p class="small text-body-secondary mb-0">Il binario PHP (<code>/usr/local/bin/php</code>) dipende dall'hosting; PHP CLI deve consentire <code>proc_open</code>.</p>
+        </div></div>
     </div>
 </div>
 <?php \Wonder\View\View::end(); ?>
