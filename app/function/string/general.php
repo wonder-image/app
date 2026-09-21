@@ -71,6 +71,50 @@
 
     }
 
+    /**
+     * Porta un numero scritto da una persona nella forma che capisce PHP.
+     *
+     * In Italia i decimali si scrivono con la virgola e le migliaia con il
+     * punto; in inglese è il contrario. Vince l'ultimo separatore: in
+     * "1.234,50" la virgola separa i decimali, in "1,234.50" lo fa il punto.
+     * Con un solo separatore e due cifre dopo — "19,90" — è un decimale.
+     */
+    function normalize_number($value): string
+    {
+
+        $str = trim(str_replace([ '€', '%', ' ', "\xc2\xa0" ], '', (string) $value));
+
+        if ($str === '') { return ''; }
+
+        $comma = strrpos($str, ',');
+        $dot = strrpos($str, '.');
+
+        if ($comma !== false && $dot !== false) {
+
+            $decimal = $comma > $dot ? ',' : '.';
+            $thousands = $decimal === ',' ? '.' : ',';
+            $str = str_replace($thousands, '', $str);
+
+            return str_replace($decimal, '.', $str);
+
+        }
+
+        if ($comma !== false) {
+
+            # Una sola virgola con al massimo due cifre dopo è un decimale;
+            # "1,234" resta un numero con le migliaia separate.
+            $after = strlen($str) - $comma - 1;
+
+            return substr_count($str, ',') === 1 && $after > 0 && $after <= 2
+                ? str_replace(',', '.', $str)
+                : str_replace(',', '', $str);
+
+        }
+
+        return $str;
+
+    }
+
     function create_number($str, $decimals = 0)
     {
 

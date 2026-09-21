@@ -363,12 +363,16 @@
                         }
                     }
                     
-                    if (isset($RULES['format']['number']) && $RULES['format']['number'] === true) {
-                        $VALUE = $VALUE == '' ? '' : create_number($VALUE, 0);
-                    }
-    
-                    if (isset($RULES['format']['decimals']) && !empty($RULES['format']['decimals'])) {
-                        $VALUE = $VALUE == '' ? '' : create_number($VALUE, $RULES['format']['decimals']);
+                    # Un numero si arrotonda una volta sola, e con i decimali
+                    # che il campo dichiara: arrotondare prima a intero
+                    # trasformava 24,50 in 25,00. Il separatore lo decide
+                    # normalize_number(), perché chi scrive usa la virgola.
+                    if (
+                        (isset($RULES['format']['number']) && $RULES['format']['number'] === true)
+                        || (isset($RULES['format']['decimals']) && !empty($RULES['format']['decimals']))
+                    ) {
+                        $DECIMALS = (int) ($RULES['format']['decimals'] ?? 0);
+                        $VALUE = $VALUE == '' ? '' : create_number(normalize_number($VALUE), $DECIMALS);
                     }
 
                     if (isset($RULES['format']['json']) && $RULES['format']['json'] === true) {
