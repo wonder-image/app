@@ -54,6 +54,20 @@ class Image extends File
         return $this->schema('quality', $quality);
     }
 
+    /**
+     * Il ridimensionamento non si fa al salvataggio: lo farà qualcun altro.
+     *
+     * Un campo immagine, senza dire niente, prende le misure responsive del
+     * sito: caricare venti foto vuol dire generarne centinaia e far aspettare
+     * chi sta salvando. Con `deferResize()` l'upload scrive solo l'originale, e
+     * chi ha dichiarato il campo si prende la responsabilità di generare le
+     * misure dopo (una coda, un comando, un'attività pianificata).
+     */
+    public function deferResize(bool $deferred = true): self
+    {
+        return $this->schema('resize_deferred', $deferred);
+    }
+
     public function responsive(?array $widths = null, int $quality = 80): self
     {
         $widths ??= defined('RESPONSIVE_IMAGE_SIZES')

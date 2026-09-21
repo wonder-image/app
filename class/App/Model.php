@@ -348,6 +348,15 @@ abstract class Model
             $format['sanitizeFirst'] = true;
         }
 
+        // Un campo che ha dichiarato `deferResize()` non vuole le misure ora:
+        // l'upload scrive l'originale e chi lo ha dichiarato le genera dopo.
+        if (($schema['resize_deferred'] ?? false) === true) {
+            $format['resize'] = [];
+            $format['webp'] = false;
+
+            return $format;
+        }
+
         if (($format['file'] ?? false) === true && static::isResponsiveImageFormat($field, $schema, $format)) {
             if (!isset($format['resize']) && defined('RESPONSIVE_IMAGE_SIZES')) {
                 $format['resize'] = RESPONSIVE_IMAGE_SIZES;
