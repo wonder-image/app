@@ -376,12 +376,24 @@
             $whereResult=null,
             $whereAll=null,
             $orderCol=null,
-            $orderDir=null
+            $orderDir=null,
+            $select=null,
+            $groupBy=null
         ) {
             $bindings = array();
             $whereAllBindings = array();
             $db = self::db( $conn );
             $whereAllSql = '';
+
+            // GROUP BY opzionale. $select e $groupBy sono frammenti SQL generati
+            // server-side e firmati (ConfigCodec), verificati in
+            // ListProvider::fetch prima di arrivare qui: stesso modello di
+            // fiducia dei $whereResult/$whereAll, nessuna nuova superficie di
+            // injection. Con il group by i conteggi contano i GRUPPI (subquery),
+            // non le righe, e il SELECT diventa la lista di aggregati.
+            $groupBy    = ( $groupBy !== null && trim((string) $groupBy) !== '' ) ? trim((string) $groupBy) : '';
+            $selectList = ( $select  !== null && trim((string) $select)  !== '' ) ? trim((string) $select)  : '*';
+            $groupSql   = $groupBy !== '' ? 'GROUP BY '.$groupBy : '';
 
             // Build the SQL query string from the request
             $limit = self::limit( $request, $columns );
@@ -427,28 +439,47 @@
 
             // Main query to actually get the data
             $data = self::sql_exec( $db, $bindings,
-                "SELECT *
+                "SELECT $selectList
                 FROM `$table`
                 $where
+                $groupSql
                 $order
                 $limit"
             );
 
-            // Data set length after filtering
-            $resFilterLength = self::sql_exec( $db, $bindings,
-                "SELECT COUNT(`{$primaryKey}`)
-                FROM   `$table`
-                $where"
-            );
-            $recordsFiltered = $resFilterLength[0][0];
+            if ( $groupBy !== '' ) {
 
-            // Total data set length
-            $resTotalLength = self::sql_exec( $db, $whereAllBindings,
-                "SELECT COUNT(`{$primaryKey}`)
-                FROM   `$table` ".
-                $whereAllSql
-            );
-            $recordsTotal = $resTotalLength[0][0];
+                // Con il GROUP BY il conteggio delle righe è il numero di
+                // GRUPPI: si avvolge la query raggruppata in una subquery.
+                $resFilterLength = self::sql_exec( $db, $bindings,
+                    "SELECT COUNT(*) FROM (SELECT 1 FROM `$table` $where $groupSql) `wi_grouped`"
+                );
+                $recordsFiltered = $resFilterLength[0][0];
+
+                $resTotalLength = self::sql_exec( $db, $whereAllBindings,
+                    "SELECT COUNT(*) FROM (SELECT 1 FROM `$table` $whereAllSql $groupSql) `wi_grouped`"
+                );
+                $recordsTotal = $resTotalLength[0][0];
+
+            } else {
+
+                // Data set length after filtering
+                $resFilterLength = self::sql_exec( $db, $bindings,
+                    "SELECT COUNT(`{$primaryKey}`)
+                    FROM   `$table`
+                    $where"
+                );
+                $recordsFiltered = $resFilterLength[0][0];
+
+                // Total data set length
+                $resTotalLength = self::sql_exec( $db, $whereAllBindings,
+                    "SELECT COUNT(`{$primaryKey}`)
+                    FROM   `$table` ".
+                    $whereAllSql
+                );
+                $recordsTotal = $resTotalLength[0][0];
+
+            }
 
             /*
             * Output

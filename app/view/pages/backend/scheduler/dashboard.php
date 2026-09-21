@@ -1,45 +1,66 @@
 <?php
 
 use Wonder\App\PageSchema\SchedulerPageSchema;
-use Wonder\Elements\Components\{Button, InfoCard, Link, MetricCard, Text};
+use Wonder\App\Resources\Scheduler\DashboardResource;
+use Wonder\App\Scheduler\Presentation;
+use Wonder\Backend\Support\ResourceFormLayoutRenderer as Layout;
+use Wonder\Elements\Components\{Button, Card, Container, InfoCard, Link, MetricCard, Text};
+use Wonder\Elements\Form\Form;
 
-\Wonder\View\View::layout('backend.main');
-$format = static fn ($number, $factor = 1): string => $number === null ? 'Non disponibile' : number_format((float) $number / $factor, 2, ',', '.');
-echo (new InfoCard('Ultimo contatto scheduler (UTC)', $HEARTBEAT ?: 'Mai ricevuto'))->render('bootstrap');
-echo Text::make('Storico unico: 180 giorni. Le metriche dei processi esterni possono non essere disponibili.')->render('bootstrap');
-echo Link::to('/backend/app/scheduler/schedules/', 'Gestisci pianificazioni')->render('bootstrap');
-echo Link::to('/backend/app/scheduler/runs/', 'Registro esecuzioni')->render('bootstrap');
-if ($MESSAGE !== '') { echo Text::make($MESSAGE)->render('bootstrap'); }
-?>
-<form method="get" class="my-3">
-    <?= SchedulerPageSchema::periodField($DAYS)->render('bootstrap') ?>
-    <?= Button::make('Aggiorna periodo')->type('submit')->render('bootstrap') ?>
-</form>
-<?php if ($OPTIONS !== []): ?>
-<form method="post" class="my-3">
-    <?php foreach (SchedulerPageSchema::requestFields($OPTIONS, $CSRF) as $field) { echo $field->render('bootstrap'); } ?>
-    <?= Button::make('Esegui appena possibile')->type('submit')->render('bootstrap') ?>
-</form>
-<?php endif; ?>
-<?php
+// La pagina legge i propri dati dal dominio (DashboardResource) e li mostra con
+// i Componenti wonder-image/app.
+$DAYS = DashboardResource::period($_GET);
+$STATS = DashboardResource::statistics($DAYS);
+$LOG_COUNTS = DashboardResource::logCounts($DAYS);
+$HEARTBEAT = DashboardResource::heartbeat();
+$OPTIONS = DashboardResource::runOptions();
+$CSRF = DashboardResource::csrfToken();
+
+$TITLE = 'Riepilogo';
+$SUBTITLE = 'Attivita e log degli ultimi '.$DAYS.' giorni';
+\Wonder\View\View::layout('backend.show', ['TITLE' => $TITLE, 'SUBTITLE' => $SUBTITLE]);
+$format = Presentation::number(...);
 $runs = array_sum(array_column($STATS, 'runs'));
 $successes = array_sum(array_column($STATS, 'successes'));
-echo (new MetricCard('Esecuzioni nel periodo', $runs))->render('bootstrap');
-echo (new MetricCard('Esecuzioni riuscite', $runs ? $format(100 * $successes / $runs).'%' : 'Nessuna esecuzione'))->render('bootstrap');
+$total = array_sum(array_column($STATS, 'total_ms'));
+$measured = array_sum(array_column($STATS, 'measured_runs'));
+echo Layout::renderLayout((new Container())->columns(12)->components([
+    (new MetricCard('Esecuzioni', $runs))->columnSpan(['default' => 12, 'md' => 3]),
+    (new MetricCard('Riuscite', $runs ? $format(100 * $successes / $runs).'%' : '--'))->columnSpan(['default' => 12, 'md' => 3]),
+    (new MetricCard('Fallite o interrotte', $runs - $successes))->columnSpan(['default' => 12, 'md' => 3]),
+    (new MetricCard('Durata media', $measured ? $format($total / $measured, 1000).' s' : '--'))->columnSpan(['default' => 12, 'md' => 3]),
+    (new MetricCard('Email inviate', $LOG_COUNTS['emails_sent']))->columnSpan(['default' => 12, 'md' => 6]),
+    (new MetricCard('Accessi riusciti', $LOG_COUNTS['logins']))->columnSpan(['default' => 12, 'md' => 6]),
+]));
 ?>
-<div class="table-responsive">
-<table class="table">
-    <thead><tr><th>Attivita</th><th>Esecuzioni</th><th>Riuscite</th><th>Durata media / massima / totale (s)</th><th>Picco PHP medio / massimo (MiB)</th><th>CPU media / totale (ms)</th></tr></thead>
-    <tbody>
-    <?php foreach ($STATS as $row): ?>
-        <tr>
-            <td><?= e($row['task_key']) ?></td><td><?= e($row['runs']) ?></td><td><?= e($row['successes']) ?></td>
-            <td><?= e($format($row['average_ms'], 1000).' / '.$format($row['maximum_ms'], 1000).' / '.$format($row['total_ms'], 1000)) ?></td>
-            <td><?= e($format($row['average_memory'], 1048576).' / '.$format($row['maximum_memory'], 1048576)) ?></td>
-            <td><?= e($format($row['average_cpu']).' / '.$format($row['total_cpu'])) ?></td>
-        </tr>
-    <?php endforeach; ?>
-    </tbody>
-</table>
+<div class="row g-3 mt-0">
+    <div class="col-12 col-lg-8">
+        <div class="card border"><div class="card-body">
+            <h6 class="mb-3">Statistiche per attivita</h6>
+            <?= Layout::render((new Form())->columns(12)->components([
+                SchedulerPageSchema::periodField($DAYS)->columnSpan(['default' => 12, 'md' => 8]), Button::make('Aggiorna periodo')->variant('light')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
+            ]), ['id' => 'scheduler-period', 'method' => 'get']) ?>
+            <div class="mt-3"><?= DashboardResource::statisticsTable($DAYS) ?></div>
+            <p class="small text-body-secondary mb-0 mt-3">Medie delle esecuzioni concluse, con massimo e totale. I valori non rilevabili sono esclusi dalle medie. Gli accessi contano i login riusciti, inclusi quelli automatici; le email contano gli invii riusciti registrati.</p>
+            <div class="d-flex gap-3 mt-3"><?= Link::to('/backend/app/log/email/', 'Log email')->render('bootstrap') ?><?= Link::to('/backend/app/log/auth-users/', 'Log accessi')->render('bootstrap') ?></div>
+        </div></div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <?php
+        echo Layout::renderLayout((new Container())->components([
+            (new InfoCard('Ultimo contatto scheduler (UTC)', $HEARTBEAT ?: 'Mai ricevuto'))->valueLevel(5),
+            (new Card())->gap(2)->components([
+                Text::make('Avvio manuale')->tag('div')->bold(),
+                Text::make('Richiedi un\'esecuzione aggiuntiva. Partira al prossimo passaggio del cron del server.')->tag('div')->small()->muted(),
+                $OPTIONS !== [] ? Layout::render((new Form())->components([
+                    ...SchedulerPageSchema::requestFields($OPTIONS, $CSRF),
+                    Button::make('Richiedi esecuzione')->type('submit'),
+                ]), ['id' => 'scheduler-request']) : Text::make('Nessuna pianificazione attiva.')->muted(),
+                Link::to('/backend/app/scheduler/schedules/', 'Gestisci pianificazioni'),
+                Link::to('/backend/app/scheduler/runs/', 'Registro esecuzioni'),
+            ]),
+        ]));
+        ?>
+    </div>
 </div>
 <?php \Wonder\View\View::end(); ?>

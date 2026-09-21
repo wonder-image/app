@@ -46,6 +46,37 @@ Il testo entra nell'avviso come HTML, esattamente come le traduzioni (che
 contengono `<br>`): scrivilo nel codice, non passarci quello che ha digitato
 un utente.
 
+## Errori dei form
+
+{% hint style="danger" %}
+**Nel backend l'esito dell'invio di un form/modulo si comunica con un alert.
+Sempre.** Che sia un salvataggio riuscito, un'eccezione intercettata, un CSRF
+non valido o un errore di validazione globale, il messaggio esce come toast /
+notifica — `FlashAlert::custom($titolo, $testo, 'error')`, oppure un codice di
+`notifications.json` via `FlashAlert::code(650)` / `$ALERT` — **prima** del
+redirect.
+
+Mai stampare l'errore come testo grezzo nella pagina (una variabile
+`$MESSAGE` sputata nel markup) né chiuderlo con `exit('...')`: sono i due
+anti-pattern che questa regola vieta.
+{% endhint %}
+
+È il comportamento che `ResourcePageController` ha già di serie (vedi
+`submitFormPage()`). Gli handler scritti a mano sotto `app/http/backend/*` e
+le pagine `CustomPageSchema` devono adeguarsi allo stesso schema.
+
+Gli errori di **singolo campo** restano nel wiring di `FormField`: qui si
+parla del messaggio d'**esito** dell'invio, non dei suggerimenti campo per
+campo.
+
+### Frontend: consigliato
+
+Nel frontend la stessa scelta è **consigliata**, non obbligatoria: preferisci
+il componente `Alert` (o un codice notifica via `$ALERT` / `?alert=`) al testo
+d'errore stampato dentro la pagina. Il JavaScript della lib accetta solo il
+codice, quindi un messaggio scritto a mano non diventa toast: modella l'errore
+come codice di `notifications.json` oppure rendi un `Alert` in pagina.
+
 ## Cosa fa già il core
 
 Le Resource notificano da sole: dopo un salvataggio o un'eliminazione andati

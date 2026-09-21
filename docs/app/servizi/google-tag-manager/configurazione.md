@@ -9,7 +9,7 @@ Link di accesso  \[ [https://tagmanager.google.com](https://tagmanager.google.co
 1. **Accedi al Pannello di Controllo:** Effettua l'accesso per creare un nuovo account.
 2. **Copia il Codice del Contenitore:** Assicurati di copiare correttamente il codice fornito.
 3. **Accedi al Backend del Sito Web:**
-   * Vai alla sezione `Set Up > Analitica`.
+   * Vai alla sezione `Dev > API e servizi > Analitica`.
    * Incolla il codice nell'input appropriato.
 4. **Attivazione:** Decidi se attivare immediatamente il codice incollato.
 
@@ -42,5 +42,4 @@ Per i progetti Wonder il setup standard desiderato e':
 - tag Google Analytics 4 configurato dentro GTM
 
 Nel tempo questo sostituira' progressivamente il vecchio blocco statistiche proprietario del framework.
-
 

@@ -2,7 +2,7 @@
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
-use Wonder\App\Scheduler\{Context, Process, Repository, Task};
+use Wonder\App\Scheduler\{ConfiguredTask, Context, Process, Repository, Task};
 
 $checks = 0;
 $check = static function (bool $condition, string $message) use (&$checks): void {
@@ -36,4 +36,33 @@ $check($code === 7 && str_contains($output, '$(echo injected)') && str_contains(
 $start = microtime(true);
 try { Process::run([PHP_BINARY, '-r', 'sleep(5);'], __DIR__, 1, static fn ($text) => null); $check(false, 'Timeout not enforced'); }
 catch (RuntimeException $error) { $check(str_contains($error->getMessage(), 'Timeout') && microtime(true) - $start < 3, 'Timeout enforced'); }
+$root = sys_get_temp_dir().'/wonder-custom-'.bin2hex(random_bytes(6));
+mkdir($root);
+$GLOBALS['ROOT'] = $root;
+file_put_contents($root.'/job.php', '<?php echo json_encode(array_slice($argv, 1));');
+try {
+    $schedule = ['task_key' => 'custom.test', 'name' => 'Test', 'kind' => 'php', 'target' => 'job.php', 'timeout' => 2];
+    $custom = ConfiguredTask::resolve($schedule);
+    $args = ['sync', '--feed=1', 'a b', '$(touch unwanted)', '; exit 9'];
+    $context = new Context($custom->validate($args), microtime(true) + 3);
+    $check($custom->run($context) === ['exit_code' => 0] && json_decode($context->output(), true) === $args, 'PHP job preserves argument boundaries without shell');
+    $check($context->externalProcess && $context->processMetrics === null, 'Unavailable child metrics are not worker metrics');
+    foreach (['../outside.php', '/etc/passwd', 'php://input', 'missing.php'] as $target) {
+        try { ConfiguredTask::script($target); $check(false, 'Unsafe script accepted'); }
+        catch (InvalidArgumentException) { $checks++; }
+    }
+    $http = new ConfiguredTask(array_replace($schedule, ['kind' => 'https', 'target' => 'https://example.com/task', 'http_method' => 'POST']));
+    $check($http->validate(['feed' => '1']) === ['feed' => '1'], 'Named HTTPS parameters');
+    foreach (['http://example.com/task', 'file:///etc/passwd', 'https://user:pass@example.com/task'] as $target) {
+        try { (new ConfiguredTask(array_replace($schedule, ['kind' => 'https', 'target' => $target])))->validate([]); $check(false, 'Unsafe URL accepted'); }
+        catch (InvalidArgumentException) { $checks++; }
+    }
+    $resource = \Wonder\App\Resources\Scheduler\ScheduleResource::class;
+    $input = ['name' => 'Custom', 'kind' => 'php', 'target' => 'job.php', 'arguments' => "sync\n--feed=1", 'expression' => '*/5 * * * *', 'timezone' => 'Europe/Rome', 'enabled' => 'false', 'timeout' => 5, 'origin' => 'code'];
+    $saved = $resource::mutateRequestValues($input, 'store');
+    $check($saved['origin'] === 'backend' && json_decode($saved['parameters'], true) === ['sync', '--feed=1'], 'Custom origin and args persisted');
+    $check($resource::mutateFormValues($saved, 'edit')['arguments'] === "sync\n--feed=1", 'PHP args edit round trip');
+    try { $resource::mutateRequestValues($input, 'update', 'backend', ['origin' => 'code', 'task_key' => 'wonder.sitemap']); $check(false, 'Code task replaced'); }
+    catch (InvalidArgumentException) { $checks++; }
+} finally { unlink($root.'/job.php'); rmdir($root); }
 echo "$checks scheduler checks passed.\n";

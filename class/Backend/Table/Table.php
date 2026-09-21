@@ -41,6 +41,10 @@
             private $queryCustom = "`deleted` = 'false'";
             private $queryFilter = "";
 
+            # SELECT list + GROUP BY opzionali (tabelle aggregate)
+            private $select = "";
+            private $groupBy = "";
+
             private $orderColumn = "";
             private $orderDirection = "";
 
@@ -230,7 +234,27 @@
             $this->queryCustom = Query::Conditions($query, false);
 
         }
-        public function queryOrder( string $column, string $direction = 'DESC', ?string $columnWhenFilterIsActive = null, ?string $directionWhenFilterIsActive = null ) { 
+        /**
+         * Lista SELECT esplicita (per tabelle aggregate). Va usata con
+         * groupBy(). Le colonne mostrate (addColumn) referenziano gli alias
+         * prodotti qui. Frammento SQL generato server-side e firmato.
+         */
+        public function select( array | string $select ): self
+        {
+            $this->select = is_array($select) ? implode(', ', $select) : (string) $select;
+
+            return $this;
+        }
+
+        /** Clausola GROUP BY (per tabelle aggregate). Frammento firmato. */
+        public function groupBy( array | string $groupBy ): self
+        {
+            $this->groupBy = is_array($groupBy) ? implode(', ', $groupBy) : (string) $groupBy;
+
+            return $this;
+        }
+
+        public function queryOrder( string $column, string $direction = 'DESC', ?string $columnWhenFilterIsActive = null, ?string $directionWhenFilterIsActive = null ) {
 
             $this->orderColumn = $column; 
             $this->orderDirection = $direction;
@@ -702,7 +726,9 @@
                 'query' => ConfigCodec::encode((string) $this->query),
                 'query_filter' => ConfigCodec::encode((string) $this->queryFilter),
                 'query_custom' => ConfigCodec::encode((string) $this->queryCustom),
-                'search_columns' => ConfigCodec::encode((string) json_encode($this->filterSearch['fields']))
+                'search_columns' => ConfigCodec::encode((string) json_encode($this->filterSearch['fields'])),
+                'select' => ConfigCodec::encode((string) $this->select),
+                'group_by' => ConfigCodec::encode((string) $this->groupBy)
             ];
 
             $JSON['text'] = $this->text;

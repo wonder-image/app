@@ -23,6 +23,23 @@ un singolo Model né alle 7 azioni CRUD.
 | Pagina legata a un Model, dentro lo spazio URL della risorsa | **Resource** con `customBackendPages()` |
 | Pagina trasversale (auth, impostazioni, batch) non legata a un Model | **CustomPageSchema** |
 
+{% hint style="danger" %}
+**La prima scelta è sempre una Resource.** Una pagina backend che mostra o
+salva dati di un Model si modella sotto `class/App/Resources/*` (o
+`app/Resources/*` in un sito) come `Resource` — CRUD, singleton (vedi
+`CssDefaultResource`, con un `formLayoutSchema()` completo) o sola lettura con
+`pageSchema()->only(['list', 'view'])`. Così le route le genera
+`ResourceRouteRegistrar` e `ResourcePageController` gestisce rendering, CSRF,
+pipeline `FormField`, permessi e i toast `FlashAlert`.
+
+**Anti-pattern:** scrivere a mano un handler `app/http/backend/*.php` che fa la
+propria query SQL, costruisce il form, controlla il CSRF e stampa una view.
+Scavalca routing, validazione, permessi e la regola degli
+[errori dei form](../notifiche.md#errori-dei-form). Gli handler `app/http/*`
+scritti a mano restano solo per endpoint che non sono risorse (webhook, stream
+grezzi). `CustomPageSchema` è la via per i soli form **non-CRUD** trasversali.
+{% endhint %}
+
 ## Dove si trova nel codice
 
 - Base: `class/App/PageSchema/CustomPageSchema.php`

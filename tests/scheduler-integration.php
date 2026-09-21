@@ -58,6 +58,9 @@ try {
     $repository->sync();
     $row = $repository->rows("SELECT * FROM scheduler_schedules WHERE task_key = 'test.scheduler.ok'")[0];
     $check($row['enabled'] === 'false' && $row['expression'] === '0 3 * * *', 'Overrides preserved');
+    $check($row['origin'] === 'code', 'Default has protected origin');
+    try { ScheduleResource::assertDeletable($row['id']); $check(false, 'Code schedule deletion allowed'); }
+    catch (RuntimeException) { $checks++; }
     try { $repository->request((int) $row['id']); $check(false, 'Disabled request accepted'); }
     catch (InvalidArgumentException) { $checks++; }
     $values = ScheduleResource::mutateRequestValues(['name' => 'Custom', 'task_key' => 'test.scheduler.ok', 'expression' => '*/5 * * * *', 'timezone' => 'Europe/Rome', 'parameters' => '{}', 'enabled' => 'true', 'last_started' => 'tampered'], 'store');
@@ -65,6 +68,19 @@ try {
     $check(ScheduleResource::formLayoutSchema() !== null && RunResource::pageSchema() !== null, 'Backend schemas');
     $html = \Wonder\Backend\Support\ResourceFormLayoutRenderer::render(ScheduleResource::formLayoutSchema());
     $check(str_contains($html, 'scheduler_csrf') && str_contains($html, 'expression'), 'Backend form rendering');
+    file_put_contents($ROOT.'/custom/scheduler-check.php', '<?php echo json_encode(array_slice($argv, 1));');
+    $repository->execute("INSERT INTO scheduler_schedules (name, task_key, kind, origin, target, parameters, enabled, timeout) VALUES ('Custom PHP', 'test.scheduler.custom', 'php', 'backend', 'custom/scheduler-check.php', ?, 'true', 3)", [json_encode(['sync', '--feed=1', 'two words'])]);
+    $custom = $repository->rows("SELECT * FROM scheduler_schedules WHERE task_key = 'test.scheduler.custom'")[0];
+    $repository->request((int) $custom['id']);
+    $repository->execute("INSERT INTO scheduler_runs (schedule_id, task_key, status, started_at) VALUES (?, 'test.scheduler.custom', 'pending', ?)", [$custom['id'], gmdate('Y-m-d H:i:s')]);
+    $runId = \Wonder\Sql\Connection::Connect('main')->insert_id;
+    $output = '';
+    $exit = Process::run([PHP_BINARY, $ROOT.'/bin/scheduler.php', '--worker='.$runId], $ROOT, 10, static function ($chunk) use (&$output): void { $output .= $chunk; });
+    $customRun = $repository->rows('SELECT * FROM scheduler_runs WHERE id = ?', [$runId])[0];
+    $check($exit === 0 && $customRun['status'] === 'success' && json_decode($customRun['output'], true) === ['sync', '--feed=1', 'two words'], 'Custom PHP worker and arguments: '.$output);
+    $check($customRun['memory_bytes'] === null && $customRun['cpu_ms'] === null && $customRun['duration_ms'] !== null, 'External job metrics');
+    $check(ScheduleResource::deleteRecord($custom['id'])->success, 'Backend job deletable');
+    $check(count($repository->rows('SELECT id FROM scheduler_runs WHERE id = ?', [$runId])) === 1, 'Delete retains execution history');
     $busy = \Wonder\App\Support\NamedLock::run('scheduler:tick', static function () use ($ROOT): string {
         $output = '';
         Process::run([PHP_BINARY, $ROOT.'/bin/scheduler.php'], $ROOT, 10, static function ($chunk) use (&$output): void { $output .= $chunk; });
@@ -86,5 +102,7 @@ try {
     $repository->execute("DELETE FROM scheduler_runs WHERE task_key LIKE 'test.scheduler.%'");
     $repository->execute("DELETE FROM scheduler_schedules WHERE task_key LIKE 'test.scheduler.%'");
     $repository->execute("DELETE FROM scheduler_state WHERE state_key LIKE 'default:test.scheduler.%'");
+    $repository->execute("DELETE FROM scheduler_state WHERE state_key LIKE 'default-origin:test.scheduler.%'");
+    if (is_file($ROOT.'/custom/scheduler-check.php')) { unlink($ROOT.'/custom/scheduler-check.php'); }
     unlink($config);
 }

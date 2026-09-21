@@ -109,6 +109,11 @@ function __su(string $url, string $lang) {}
 
 ## SEO
 
+Titolo e descrizione delle singole pagine arrivano dai file `lang`. Il
+singleton SEO resta disponibile al runtime come fallback per i metadati
+globali, ma non compare nella navigazione backend e non va usato come editor
+SEO pagina per pagina.
+
 Per migliorare l'indicizzazione del sito aggiungere in ogni file:
 
 ```php

@@ -25,7 +25,13 @@
             $this->extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
             $this->imageName = pathinfo($imagePath, PATHINFO_FILENAME);
             $this->directory = rtrim(dirname($imagePath), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-            $this->directoryUrl = (new Path)->site.str_replace(__DIR__, '', rtrim(dirname($imagePath), DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR;
+            # L'indirizzo pubblico serve a chi disegna il markup, non a chi
+            # ridimensiona: in un comando `forge` le costanti del sito non
+            # esistono, e pretenderle qui impedirebbe di generare le misure
+            # fuori da una richiesta web.
+            $this->directoryUrl = defined('ROOT') && defined('APP_URL')
+                ? (new Path)->site.str_replace(__DIR__, '', rtrim(dirname($imagePath), DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR
+                : '';
             
             sort($this->sizes);
 

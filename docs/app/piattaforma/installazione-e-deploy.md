@@ -1034,7 +1034,7 @@ L'utente `@github` non viene più creato a ogni `forge update` perché:
 
 Se vuoi un utente API dedicato per il deploy CI:
 
-1. Backend → Utenti API → crea utente con username `@github`, authority `api_public_access`, area `api`, allowed_domains = il tuo dominio
+1. Backend → Dev → API e servizi → Utenti API → crea utente con username `@github`, authority `api_public_access`, area `api`, allowed_domains = il tuo dominio
 2. Copia il token generato dal record
 3. `gh secret set GITHUB_API_TOKEN --repo "$REPO_FULL_NAME" --body "<token>"`
 

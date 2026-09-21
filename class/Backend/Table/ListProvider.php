@@ -74,7 +74,16 @@ final class ListProvider
         $queryCustom = ConfigCodec::decode((string) ($request['config']['query_custom'] ?? ''));
         $searchBlob  = ConfigCodec::decode((string) ($request['config']['search_columns'] ?? ''));
 
-        if ($query === null || $queryFilter === null || $queryCustom === null || $searchBlob === null) {
+        // select / group_by: firmati come i query*. Chiave assente (tutte le
+        // tabelle non raggruppate) => stringa vuota, nessun GROUP BY; presente
+        // ma manomessa => decode null => signatureError come gli altri frammenti.
+        $selectEnc   = (string) ($request['config']['select'] ?? '');
+        $groupEnc    = (string) ($request['config']['group_by'] ?? '');
+        $select      = $selectEnc === '' ? '' : ConfigCodec::decode($selectEnc);
+        $groupBy     = $groupEnc  === '' ? '' : ConfigCodec::decode($groupEnc);
+
+        if ($query === null || $queryFilter === null || $queryCustom === null || $searchBlob === null
+            || $select === null || $groupBy === null) {
             return self::signatureError($request);
         }
 
@@ -121,7 +130,9 @@ final class ListProvider
             $custom->query_filter,
             $custom->query_all,
             $custom->order_column,
-            $custom->order_direction
+            $custom->order_direction,
+            $select,
+            $groupBy
         );
     }
 

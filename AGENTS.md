@@ -178,6 +178,13 @@ php forge start
 
 ## Architecture notes
 
+- Backend navigation groups scheduler and logs under `dev` (Dev), preserving
+  per-resource permissions. ConfiguredTask resolves backend PHP/HTTPS jobs
+  through the existing worker. Code-origin schedules cannot be deleted or
+  converted from the backend. Use the shared Bootstrap layout and DataTables;
+  never render standalone h-100 metric cards outside a grid. Log counts use
+  sent mail and successful login/remember events without federated duplicates.
+
 - Scheduled work lives in `class/App/Scheduler`: extend `AbstractTask` or use
   `Task::make()` callbacks in site `custom/config/tasks.php`; enabled modules
   opt into `ModuleTasks`. Keep API transport in `Api\Handler`, never include

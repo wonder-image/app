@@ -49,7 +49,7 @@ indirizzi che non sono indirizzi vengono scartati.
 
 ## Guardare e chiudere
 
-La pagina **Set Up → Errori** (`admin`) elenca gli errori aperti con servizio,
+La pagina **Dev → Log e diagnostica → Errori** (`admin`) elenca gli errori aperti con servizio,
 azione, occorrenze, prima e ultima volta. Da lì si segna risolto.
 Da codice:
 

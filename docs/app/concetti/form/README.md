@@ -29,6 +29,15 @@ classe tipizzata sotto `ResourceSchema/Inputs`, si implementa `element()` e si
 espone il relativo type-helper su `FormField` (vedi
 [Sistema Form / Theme / Element](theme-system.md)).
 
+## Errori di invio
+
+{% hint style="warning" %}
+L'esito di un invio — e in particolare l'**errore** — si comunica con un
+**alert**, non con testo grezzo in pagina: **obbligatorio nel backend**,
+**consigliato nel frontend**. Regola e API in
+[Notifiche → Errori dei form](../notifiche.md#errori-dei-form).
+{% endhint %}
+
 ## A cosa serve
 
 - Stesso codice di dichiarazione per frontend e backend, due rese diverse.

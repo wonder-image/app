@@ -1,8 +1,26 @@
 # Cron job da codice
 
 Wonder usa un unico cron del server per eseguire le attivita scadute. Il menu
-**Backend > Attivita pianificate**, riservato ad `admin`, contiene riepilogo,
-pianificazioni e registro esecuzioni.
+**Backend > Dev** raccoglie riepilogo, pianificazioni, registro esecuzioni e
+log. Le funzioni scheduler restano riservate ad `admin`; i log mantengono
+i propri permessi. Il riepilogo conta anche email inviate e accessi riusciti
+nel periodo selezionato, senza duplicare gli eventi dei login federati.
+
+## Pianificazioni dal backend
+
+In **Dev > Pianificazioni** si possono aggiungere attivita da codice, script
+PHP o URL HTTPS. Per PHP inserire un percorso relativo al sito e un argomento
+per riga: il runner non interpreta comandi shell. Per HTTPS scegliere GET
+(parametri nella query) o POST (corpo form) e fornire i parametri come oggetto
+JSON. La verifica TLS resta attiva, i redirect non vengono seguiti e soltanto
+le risposte 2xx sono considerate riuscite. Il token `@system` non viene
+inoltrato automaticamente alle destinazioni custom.
+
+Frequenza, fuso, stato e timeout si configurano nel modulo. Le pianificazioni
+create dal backend sono eliminabili mantenendo lo storico; quelle generate
+da codice si possono sospendere ma non eliminare o convertire in altri tipi.
+Script esterni e richieste HTTPS registrano durata ed esito; memoria e CPU
+non rilevabili rimangono nulle, senza usare il consumo del worker come stima.
 
 ## Prima di iniziare
 

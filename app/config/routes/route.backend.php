@@ -17,9 +17,13 @@ Route::area('backend')
         Route::post('/', $ROOT_APP.'/http/backend/home.php')
             ->permit([]);
 
-        Route::get('/app/scheduler/', $ROOT_APP.'/http/backend/scheduler.php')
+        // Pagina "Riepilogo" dello scheduler: nessun handler dedicato, la logica
+        // vive in DashboardResource; l'entry condivisa `resource/page.php` la
+        // risolve dallo slug e ne chiama handle().
+        $schedulerSlug = \Wonder\App\Resources\Scheduler\DashboardResource::slug();
+        Route::get('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
             ->name('scheduler')->permit(['admin']);
-        Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/scheduler.php')
+        Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
             ->permit(['admin']);
 
         Route::name('media.')
