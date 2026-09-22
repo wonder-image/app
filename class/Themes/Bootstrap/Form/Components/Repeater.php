@@ -636,6 +636,10 @@ HTML;
             const header = fragment.querySelector('.wi-repeater-group-header');
             const count = bucket.rows.length;
 
+            // Un template che non è quello delle testate: meglio nessun gruppo
+            // che una pagina che si ferma a metà.
+            if (!header) return;
+
             header.dataset.wiGroupKey = key;
             header.style.order = String(position++);
             header.querySelector('.wi-repeater-group-label').textContent = bucket.label || 'Senza scelta';
