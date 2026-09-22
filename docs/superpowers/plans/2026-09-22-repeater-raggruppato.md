@@ -61,7 +61,7 @@ browser. Il renderer e il JS diventano ignoranti.
   - `RepeaterGroups::nameOf(mixed $column): string`
   - `RepeaterGroups::labelOfColumn(mixed $column): string`
 
-- [ ] **Step 1: Scrivi il test che fallisce**
+- [x] **Step 1: Scrivi il test che fallisce**
 
 `tests/Support/RepeaterGroupsTest.php`:
 
@@ -151,7 +151,7 @@ check('più colonne insieme danno più chiavi per riga', function () use ($colon
 summary();
 ```
 
-- [ ] **Step 2: Esegui il test e verifica che fallisca**
+- [x] **Step 2: Esegui il test e verifica che fallisca**
 
 ```bash
 php tests/Support/RepeaterGroupsTest.php
@@ -159,7 +159,7 @@ php tests/Support/RepeaterGroupsTest.php
 
 Atteso: errore fatale, `Class "Wonder\App\Support\RepeaterGroups" not found`.
 
-- [ ] **Step 3: Scrivi la classe**
+- [x] **Step 3: Scrivi la classe**
 
 `class/App/Support/RepeaterGroups.php`:
 
@@ -276,7 +276,7 @@ final class RepeaterGroups
 }
 ```
 
-- [ ] **Step 4: Esegui il test e verifica che passi**
+- [x] **Step 4: Esegui il test e verifica che passi**
 
 ```bash
 php tests/Support/RepeaterGroupsTest.php
@@ -284,7 +284,7 @@ php tests/Support/RepeaterGroupsTest.php
 
 Atteso: `8 test, 0 falliti`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add class/App/Support/RepeaterGroups.php tests/Support/RepeaterGroupsTest.php
@@ -308,7 +308,7 @@ git commit -m "Repeater groups: pure value and label resolution"
   Scrivono in `context` le chiavi `group_by`, `group_command`,
   `group_collapsed`, `group_count_label`.
 
-- [ ] **Step 1: Scrivi il test che fallisce**
+- [x] **Step 1: Scrivi il test che fallisce**
 
 `tests/Support/RepeaterGroupsContextTest.php`:
 
@@ -380,7 +380,7 @@ check('i setter si concatenano e tornano il repeater', function () use ($campo) 
 summary();
 ```
 
-- [ ] **Step 2: Esegui il test e verifica che fallisca**
+- [x] **Step 2: Esegui il test e verifica che fallisca**
 
 ```bash
 php tests/Support/RepeaterGroupsContextTest.php
@@ -388,7 +388,7 @@ php tests/Support/RepeaterGroupsContextTest.php
 
 Atteso: `Call to undefined method ... ::repeaterGroupBy()`.
 
-- [ ] **Step 3: Aggiungi i setter**
+- [x] **Step 3: Aggiungi i setter**
 
 In `class/App/ResourceSchema/Inputs/InputRepeater.php`, dopo
 `repeaterSortable()`:
@@ -446,7 +446,7 @@ In `class/App/ResourceSchema/Inputs/InputRepeater.php`, dopo
     }
 ```
 
-- [ ] **Step 4: Esegui il test e verifica che passi**
+- [x] **Step 4: Esegui il test e verifica che passi**
 
 ```bash
 php tests/Support/RepeaterGroupsContextTest.php
@@ -454,7 +454,7 @@ php tests/Support/RepeaterGroupsContextTest.php
 
 Atteso: `7 test, 0 falliti`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add class/App/ResourceSchema/Inputs/InputRepeater.php tests/Support/RepeaterGroupsContextTest.php
@@ -478,7 +478,7 @@ git commit -m "Repeater groups: declaration setters"
   `.wi-repeater-groupbar` con `select.wi-repeater-groupby`; il
   `<template id="<id>-group-template">` con dentro `.wi-repeater-group-header`.
 
-- [ ] **Step 1: Scrivi il test che fallisce**
+- [x] **Step 1: Scrivi il test che fallisce**
 
 `tests/Themes/RepeaterGroupRenderTest.php`:
 
@@ -577,7 +577,7 @@ check('una colonna dichiarata ma assente non rompe niente', function () use ($co
 summary();
 ```
 
-- [ ] **Step 2: Esegui il test e verifica che fallisca**
+- [x] **Step 2: Esegui il test e verifica che fallisca**
 
 ```bash
 php tests/Themes/RepeaterGroupRenderTest.php
@@ -585,7 +585,7 @@ php tests/Themes/RepeaterGroupRenderTest.php
 
 Atteso: passa il primo test, falliscono gli altri (nessun `data-wi-group-`).
 
-- [ ] **Step 3: Scrivi il render**
+- [x] **Step 3: Scrivi il render**
 
 In `class/Themes/Bootstrap/Form/Components/Repeater.php`.
 
@@ -742,7 +742,7 @@ E due metodi nuovi, in fondo alla classe prima di `script()`:
     }
 ```
 
-- [ ] **Step 4: Esegui il test e verifica che passi**
+- [x] **Step 4: Esegui il test e verifica che passi**
 
 ```bash
 php tests/Themes/RepeaterGroupRenderTest.php
@@ -750,7 +750,7 @@ php tests/Themes/RepeaterGroupRenderTest.php
 
 Atteso: `6 test, 0 falliti`.
 
-- [ ] **Step 5: Esegui tutti i test toccati finora**
+- [x] **Step 5: Esegui tutti i test toccati finora**
 
 ```bash
 php tests/Support/RepeaterGroupsTest.php && php tests/Support/RepeaterGroupsContextTest.php && php tests/Themes/RepeaterGroupRenderTest.php
@@ -758,7 +758,7 @@ php tests/Support/RepeaterGroupsTest.php && php tests/Support/RepeaterGroupsCont
 
 Atteso: tre volte `0 falliti`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add class/Themes/Bootstrap/Form/Components/Repeater.php tests/Themes/RepeaterGroupRenderTest.php
@@ -781,7 +781,7 @@ nel sito, allo Step 4.
 - Produces: `wiRepeaterGroupInit`, `wiRepeaterGroupApply`, `wiRepeaterGroupValue`,
   `wiRepeaterGroupToggle`, `wiRepeaterGroupCommand`, `wiRepeaterGroupRefresh`.
 
-- [ ] **Step 1: Scrivi le funzioni nuove**
+- [x] **Step 1: Scrivi le funzioni nuove**
 
 Dentro l'HEREDOC di `script()`, prima di `</script>`:
 
@@ -961,7 +961,7 @@ Dentro l'HEREDOC di `script()`, prima di `</script>`:
     };
 ```
 
-- [ ] **Step 2: Aggancia aggiunta ed eliminazione**
+- [x] **Step 2: Aggancia aggiunta ed eliminazione**
 
 In fondo a `wiRepeaterAddRow`, dopo `container.appendChild(fragment);`:
 
@@ -980,7 +980,7 @@ dove `container` è l'elemento `.row` che conteneva la riga: se la funzione non
 ce l'ha già in una variabile, prenderlo **prima** della rimozione con
 `const container = row.parentElement;`.
 
-- [ ] **Step 3: Controlla la sintassi**
+- [x] **Step 3: Controlla la sintassi**
 
 ```bash
 php -l class/Themes/Bootstrap/Form/Components/Repeater.php && php tests/Themes/RepeaterGroupRenderTest.php
@@ -988,7 +988,7 @@ php -l class/Themes/Bootstrap/Form/Components/Repeater.php && php tests/Themes/R
 
 Atteso: `No syntax errors` e `6 test, 0 falliti`.
 
-- [ ] **Step 4: Prova nel sito**
+- [x] **Step 4: Prova nel sito**
 
 Serve un repeater con più righe e una colonna select. Nel sito di prova
 `boilerplates/ecommerce-site` non ce n'è ancora uno (arriva con G2c): aggiungi
@@ -1008,7 +1008,7 @@ prodotto con più versioni su `https://ecommerce.test/backend/` e verifica:
 
 Poi **togli** la modifica temporanea dal modulo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add class/Themes/Bootstrap/Form/Components/Repeater.php
@@ -1027,7 +1027,7 @@ git commit -m "Repeater groups: headers, collapse and group command in JS"
 - Produces: il corpo dell'Accordion diventa un contenitore a griglia come il
   `card-body` della Card.
 
-- [ ] **Step 1: Scrivi il test che fallisce**
+- [x] **Step 1: Scrivi il test che fallisce**
 
 `tests/Themes/AccordionGridTest.php`:
 
@@ -1071,7 +1071,7 @@ check('il titolo e il bottone restano quelli di prima', function () use ($html) 
 summary();
 ```
 
-- [ ] **Step 2: Esegui il test e verifica che fallisca**
+- [x] **Step 2: Esegui il test e verifica che fallisca**
 
 ```bash
 php tests/Themes/AccordionGridTest.php
@@ -1083,7 +1083,7 @@ non avere `columns()` (usa `CanSpanColumn`, non `IsContainer`). In quel caso
 aggiungi il trait `IsContainer` all'elemento
 `class/Elements/Components/Accordion.php`, come ce l'ha `Card`, e rilancia.
 
-- [ ] **Step 3: Correggi il renderer**
+- [x] **Step 3: Correggi il renderer**
 
 In `class/Themes/Bootstrap/Components/Accordion.php`:
 
@@ -1111,7 +1111,7 @@ e, dentro `render()`:
         $html .= "<div class=\"accordion-body {$classColumn} {$classGap}\">{$content}</div>";
 ```
 
-- [ ] **Step 4: Esegui il test e verifica che passi**
+- [x] **Step 4: Esegui il test e verifica che passi**
 
 ```bash
 php tests/Themes/AccordionGridTest.php
@@ -1119,7 +1119,7 @@ php tests/Themes/AccordionGridTest.php
 
 Atteso: `3 test, 0 falliti`.
 
-- [ ] **Step 5: Verifica che un Accordion di solo testo non cambi**
+- [x] **Step 5: Verifica che un Accordion di solo testo non cambi**
 
 ```bash
 grep -rn "Accordion" docs/app --include=*.md | head
@@ -1128,7 +1128,7 @@ grep -rn "Accordion" docs/app --include=*.md | head
 Apri nel sito una pagina che ne usa uno con dentro solo testo (se non ce ne
 sono, salta): l'aspetto non deve cambiare.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add class/Themes/Bootstrap/Components/Accordion.php tests/Themes/AccordionGridTest.php
@@ -1143,7 +1143,7 @@ git commit -m "Accordion: grid body so form fields keep their width"
 - Modify: `docs/app/concetti/form/repeater.md`
 - Modify: `CHANGELOG.md` (se il repo ne ha uno; altrimenti salta)
 
-- [ ] **Step 1: Documenta il raggruppamento**
+- [x] **Step 1: Documenta il raggruppamento**
 
 In `docs/app/concetti/form/repeater.md`, una sezione nuova "Righe raggruppate"
 con: i quattro setter, l'esempio completo qui sotto, la regola che il
@@ -1164,7 +1164,7 @@ FormField::key('products')
     ->repeaterGroupCountLabel('versione', 'versioni');
 ```
 
-- [ ] **Step 2: Esegui tutti i test nuovi**
+- [x] **Step 2: Esegui tutti i test nuovi**
 
 ```bash
 php tests/Support/RepeaterGroupsTest.php && php tests/Support/RepeaterGroupsContextTest.php && php tests/Themes/RepeaterGroupRenderTest.php && php tests/Themes/AccordionGridTest.php
@@ -1172,7 +1172,7 @@ php tests/Support/RepeaterGroupsTest.php && php tests/Support/RepeaterGroupsCont
 
 Atteso: quattro volte `0 falliti`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/app/concetti/form/repeater.md
