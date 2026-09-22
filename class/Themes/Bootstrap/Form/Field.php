@@ -48,6 +48,23 @@ abstract class Field extends AbstractFieldRenderer
      */
     protected function renderField(string $input, bool $floating = true): string
     {
+        $quick = $this->quickCreateParts();
+
+        // Su un controllo singolo (select/selectSearch/searchRemote) il "+" è
+        // attaccato all'input in un `input-group`, con la label sopra (niente
+        // form-floating: l'append non ci convive bene).
+        if ($quick !== null && in_array($quick['family'], ['select', 'searchremote'], true)) {
+            $button = '<button type="button" class="btn btn-outline-secondary" '.$quick['attributes'].'>'
+                .'<i class="bi bi-plus-lg"></i> Aggiungi</button>';
+
+            return '<div>'
+                .$this->renderLabel()
+                .'<div class="input-group">'.$input.$button.'</div>'
+                .$this->renderError()
+                .'</div>'
+                .$quick['modal'].$quick['script'];
+        }
+
         if ($floating) {
             $html = '<div><div class="form-floating">'
                 .$input
@@ -59,7 +76,15 @@ abstract class Field extends AbstractFieldRenderer
             $html = '<div>'.$input.$this->renderError().'</div>';
         }
 
-        return $html.$this->renderQuickCreate();
+        // Gruppi (checkbox/checkTree/dynamicCheck): il "+" resta un bottoncino
+        // sotto, non c'è un singolo controllo a cui attaccarlo.
+        if ($quick !== null) {
+            $button = '<button type="button" class="btn btn-outline-secondary btn-sm" '.$quick['attributes'].'>'
+                .'<i class="bi bi-plus-lg"></i> Aggiungi</button>';
+            $html .= '<div class="mt-1">'.$button.'</div>'.$quick['modal'].$quick['script'];
+        }
+
+        return $html;
     }
 
     /**
@@ -102,25 +127,27 @@ abstract class Field extends AbstractFieldRenderer
     }
 
     /**
-     * "Creazione rapida": se l'input dichiara `quickCreate(...)` e l'utente
-     * backend corrente può creare la risorsa target, emette un "+" e un modal
-     * Bootstrap con il sottoinsieme di campi (resi dal form della risorsa
-     * target). Stringa vuota per ogni altro campo. Vedi
+     * Pezzi della "creazione rapida" quando l'input dichiara `quickCreate(...)`
+     * e l'utente backend corrente può creare la risorsa target: family,
+     * attributi del trigger, modal e script. `null` per ogni altro campo — la
+     * posizione del "+" la decide `renderField()`. Vedi
      * docs/app/concetti/form/quick-create.md.
+     *
+     * @return array{family:string,attributes:string,modal:string,script:string}|null
      */
-    protected function renderQuickCreate(): string
+    protected function quickCreateParts(): ?array
     {
         $config = $this->schema['context']['quick_create'] ?? null;
 
         if (!is_array($config) || empty($config['resource'])) {
-            return '';
+            return null;
         }
 
         $user = LegacyGlobals::get('USER');
         $authority = (array) (is_object($user) ? ($user->authority ?? []) : []);
 
         if (!QuickCreateAuthorizer::userCanCreate($config['resource'], $authority)) {
-            return '';
+            return null;
         }
 
         $inputId = (string) ($this->schema['id'] ?? $this->schema['name'] ?? '');
@@ -141,12 +168,10 @@ abstract class Field extends AbstractFieldRenderer
         $hidden = '<input type="hidden" name="resource" value="'.$this->escape($slug).'">'
             .'<input type="hidden" name="quick_label" value="'.$this->escape($label).'">';
 
-        $trigger = '<button type="button" class="btn btn-outline-secondary btn-sm mt-1"'
-            .' data-wi-quick-create="'.$this->escape($modalId).'"'
+        $attributes = 'data-wi-quick-create="'.$this->escape($modalId).'"'
             .' data-wi-qc-input="'.$this->escape($inputId).'"'
             .' data-wi-qc-family="'.$this->escape($family).'"'
-            .' data-bs-toggle="modal" data-bs-target="#'.$this->escape($modalId).'">'
-            .'<i class="bi bi-plus-lg"></i> Aggiungi</button>';
+            .' data-bs-toggle="modal" data-bs-target="#'.$this->escape($modalId).'"';
 
         $modal = '<div class="modal fade" id="'.$this->escape($modalId).'" tabindex="-1" aria-hidden="true"'
             .' data-wi-qc-endpoint="'.$this->escape($endpoint).'"'
@@ -166,7 +191,12 @@ abstract class Field extends AbstractFieldRenderer
             .'<button type="button" class="btn btn-primary wi-qc-submit">Salva</button>'
             .'</div></div></div></div></div>';
 
-        return $trigger.$modal.self::quickCreateScript();
+        return [
+            'family' => $family,
+            'attributes' => $attributes,
+            'modal' => $modal,
+            'script' => self::quickCreateScript(),
+        ];
     }
 
     /**

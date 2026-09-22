@@ -92,6 +92,14 @@ $check(str_contains($html, 'name="resource"'), 'emits the target slug hidden fie
 $check(str_contains($html, 'name="quick_label"'), 'emits the label hidden field');
 $check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family');
 
+// Placement: select = "+" attaccato nell'input-group (bottone senza btn-sm);
+// checkbox = bottone sotto (btn-sm).
+$check(str_contains($html, 'class="btn btn-outline-secondary" data-wi-quick-create'), 'select attaches the "+" in the input-group');
+
+$checkHtml = FormField::key('tags')->checkbox()->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');
+$check(str_contains($checkHtml, 'data-wi-qc-family="checkbox"'), 'checkbox family tagged');
+$check(str_contains($checkHtml, 'class="btn btn-outline-secondary btn-sm" data-wi-quick-create'), 'checkbox keeps the "+" as a button below');
+
 $plain = FormField::key('category_id')->select(['1' => 'A'])->render('bootstrap');
 $check(!str_contains($plain, 'data-wi-quick-create'), 'no trigger when not declared');
 

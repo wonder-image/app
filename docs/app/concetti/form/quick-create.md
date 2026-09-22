@@ -126,6 +126,10 @@ proxy server-side.
   [Notifiche → Errori dei form](../notifiche.md#errori-dei-form)), mai come
   testo inline.
 - **v1 single-level**: il form del modal non ha a sua volta un quick-create.
+- **Posizione del "+"**: per i controlli singoli (`select`/`selectSearch`/
+  `searchRemote`) è **attaccato all'input** in un `input-group`, con la label
+  sopra (niente `form-floating`); per i **gruppi** (`checkbox`/`checkTree`/
+  `dynamicCheck`) resta un bottoncino sotto.
 - Gli adapter JS per `select` sono completi; `checkTree` / `searchRemote` /
   `dynamicCheck` dipendono dai widget di `wonder-image/lib` e vanno verificati
   in un sito.
