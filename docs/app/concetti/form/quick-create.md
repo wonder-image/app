@@ -140,11 +140,16 @@ proxy server-side.
 - **Adapter JS**: il framework emette sempre l'evento `wi:quick-create:created`
   e `wonder-image/lib` (`src/build/backend/js/form/quickCreate.js`) inserisce e
   seleziona l'opzione nel widget. Coperti: `select` (baseline nel framework),
-  `selectSearch` (select2, con re-render) e `dynamicCheck` (card AJAX). **Limite
-  noto — `checkTree` (jstree)**: inizializzato con `check_callback: false`, non
-  accetta nodi a runtime, quindi la riga viene creata nel DB ma l'albero va
-  ricaricato per vederla/selezionarla. `searchRemote` sul backend è un input
-  inerte (il comportamento remoto vive solo sul tema Wonder).
+  `selectSearch` (select2, con re-render), `dynamicCheck` (card AJAX) e
+  `checkTree` (jstree). `searchRemote` sul backend è un input inerte (il
+  comportamento remoto vive solo sul tema Wonder).
+- **La riga appartiene alla risorsa, non al campo**: il detail dell'evento
+  porta anche `resource` (lo slug), e l'adapter aggiorna **ogni** campo della
+  pagina marcato `data-wi-qc-resource` con quello slug — non solo quello che
+  ha aperto il modale. Un campo che la risorsa la elenca soltanto lo dichiara
+  con `->listsResource(XResource::class)`. È così che una categoria creata dal
+  select «Categoria principale» compare anche nell'albero «Categorie» della
+  stessa scheda.
 
 ## Dove si trova nel codice
 
