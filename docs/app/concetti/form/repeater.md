@@ -86,7 +86,8 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`,
 `repeaterGroupFixed($colonna)`, `repeaterAddButton($b = true)`,
 `repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
-`repeaterAdvancedLabel($s)`.
+`repeaterAdvancedLabel($s)`, `repeaterUndoDelete($b = true)`,
+`repeaterUndoLabel($etichetta, $testo = '')`.
 
 ## Larghezza delle colonne
 
@@ -99,6 +100,31 @@ colonna, quella di elimina e riordino, è sempre in coda e vale uno (tre con
 Una colonna con `->columnSpan(12)` va a capo e si prende la riga intera: è il
 modo di dare respiro a un campo che non si legge stretto, come un'area di
 trascinamento per i file.
+
+## Righe che si possono rimettere
+
+Cancellare è una decisione che si rimpiange. Con `repeaterUndoDelete()` la
+riga non se ne va: resta a schermo, sbiadita, con un bottone «Annulla».
+
+```php
+FormField::key('products')
+    ->repeater([...])
+    ->repeaterUndoDelete()
+    ->repeaterUndoLabel('Annulla', 'Questa riga verrà eliminata al salvataggio.');
+```
+
+Il contratto è il `fieldset`: i campi della riga ci stanno dentro, e
+disabilitarlo li toglie dal POST — `FormData` salta i controlli di un fieldset
+spento, FilePond compreso. Per il server non cambia niente: una riga che non
+arriva è una riga cancellata, come quando spariva dal DOM.
+
+Due eventi salgono dal contenitore, per chi deve reagire:
+`wi-repeater-row-delete` e `wi-repeater-row-restore`.
+
+Con le righe annullabili il contenitore stampa anche una sentinella nascosta
+(`nome[__wi_present]`): spegnendole tutte, il browser non posterebbe più la
+chiave del repeater, e chi a valle controlla «c'è ma è vuoto» non avrebbe più
+niente da guardare. Non è un array, quindi le righe non la vedono.
 
 ## Informazioni avanzate
 

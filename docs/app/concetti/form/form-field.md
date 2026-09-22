@@ -310,6 +310,23 @@ Sotto il cofano vengono aggiunti i data-attribute `data-visible-when` /
 I campi nascosti **non** vengono disabilitati: i loro valori vengono comunque
 inviati e salvati.
 
+### Spunte a pillole
+
+`checkbox()->pills()` rende le voci come pillole in linea invece che
+incolonnate in un riquadro alto centoventi pixel che scorre. Serve agli
+elenchi corti — cinque taglie, tre gusti — dove il riquadro occupa dieci volte
+lo spazio di quello che mostra. Per un elenco lungo resta la forma normale,
+con la sua barra di ricerca.
+
+### Chi elenca una risorsa
+
+`listsResource(CategoryResource::class)` dichiara di quale risorsa un campo
+elenca le righe. Serve al quick-create: una riga creata dal «+ Aggiungi» di un
+campo appartiene alla risorsa, non a quel campo, e ogni altro campo della
+pagina che la elenca deve vedersela comparire. Chi dichiara `quickCreate()` lo
+ottiene da sé; questo metodo è per i campi che la risorsa la elencano
+soltanto.
+
 ### Un riquadro intero
 
 Gli stessi due metodi stanno anche sui componenti di layout (`Card`,
