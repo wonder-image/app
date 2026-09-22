@@ -132,9 +132,14 @@ proxy server-side.
   è una **testata in alto a destra** — `+ Aggiungi <Nome risorsa>`, sulla riga
   del titolo del gruppo. Il nome viene da `Resource::label()` (la stessa fonte
   di `defaultPageTitles()['create']`), con ripiego sullo slug.
-- Gli adapter JS per `select` sono completi; `checkTree` / `searchRemote` /
-  `dynamicCheck` dipendono dai widget di `wonder-image/lib` e vanno verificati
-  in un sito.
+- **Adapter JS**: il framework emette sempre l'evento `wi:quick-create:created`
+  e `wonder-image/lib` (`src/build/backend/js/form/quickCreate.js`) inserisce e
+  seleziona l'opzione nel widget. Coperti: `select` (baseline nel framework),
+  `selectSearch` (select2, con re-render) e `dynamicCheck` (card AJAX). **Limite
+  noto — `checkTree` (jstree)**: inizializzato con `check_callback: false`, non
+  accetta nodi a runtime, quindi la riga viene creata nel DB ma l'albero va
+  ricaricato per vederla/selezionarla. `searchRemote` sul backend è un input
+  inerte (il comportamento remoto vive solo sul tema Wonder).
 
 ## Dove si trova nel codice
 
@@ -145,7 +150,8 @@ proxy server-side.
 | Permesso (fonte unica) | `class/Backend/Support/QuickCreateAuthorizer.php` |
 | Proxy backend | `class/Backend/Support/QuickCreateController.php` + `app/http/backend/resource/quick-create.php` |
 | Rotta | `app/config/routes/route.backend.php` (`backend.resource.quick-create`) |
-| Render "+" + modal + JS | `class/Themes/Bootstrap/Form/Field.php` |
+| Render "+" + modal + JS (emette `wi:quick-create:created`) | `class/Themes/Bootstrap/Form/Field.php` |
+| Adapter widget (select2 / card AJAX) | `wonder-image/lib` → `src/build/backend/js/form/quickCreate.js` |
 
 Spec e piano: `docs/superpowers/specs/2026-09-21-backend-fk-quick-create-design.md`,
 `docs/superpowers/plans/2026-09-21-backend-fk-quick-create.md`.

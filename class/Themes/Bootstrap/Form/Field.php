@@ -251,39 +251,39 @@ abstract class Field extends AbstractFieldRenderer
       || document.querySelector('[name="' + inputId + '"], [name="' + inputId + '[]"]');
   }
 
+  function appendCheck(group, id, label) {
+    // Il nome si copia da una casella che c'è già: senza, la spunta nuova
+    // non verrebbe postata e il valore appena creato si perderebbe al primo
+    // salvataggio.
+    var gemella = group.querySelector('input[type="checkbox"][name]');
+    var name = gemella ? ' name="' + gemella.getAttribute('name') + '"' : '';
+    var wrap = document.createElement('div');
+    wrap.className = 'form-check';
+    wrap.innerHTML = '<input class="form-check-input" type="checkbox" checked value="' + id + '"' + name + '> <label class="form-check-label">' + label + '</label>';
+    // In fondo all'elenco, non dopo la prima casella: l'opzione nuova è
+    // l'ultima arrivata e lì la si cerca.
+    var caselle = group.querySelectorAll('.form-check');
+    var ultima = caselle.length ? caselle[caselle.length - 1] : null;
+    (ultima && ultima.parentElement ? ultima.parentElement : group).appendChild(wrap);
+  }
+
+  /*
+   * Inserimento "baseline", che funziona senza wonder-image/lib:
+   *   - <select> semplice: aggiunge e seleziona l'opzione;
+   *   - gruppo di checkbox semplice: appende una casella spuntata.
+   * I widget potenziati dalla lib (select2, card dinamica, jstree) NON vengono
+   * toccati qui: si emette sempre `wi:quick-create:created` e li gestisce
+   * l'adapter della lib (src/build/backend/js/form/quickCreate.js), che sa
+   * ridisegnarli. jstree resta un limite noto (nodi non creabili a runtime).
+   */
   function optionInto(input, family, id, label) {
-    if (!input) {
-      document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { id: id, label: label, family: family } }));
-      return;
+    if (input) {
+      if (input.tagName === 'SELECT' && !input.matches('[data-wi-select-search]')) {
+        appendOption(input, id, label);
+      } else if (family === 'checkbox') {
+        appendCheck(input.closest('[data-wi-qc-group]') || input, id, label);
+      }
     }
-    if ((family === 'select' || family === 'searchremote' || family === 'dynamiccheck') && input.tagName === 'SELECT') {
-      appendOption(input, id, label);
-      return;
-    }
-    if (family === 'checktree' && window.jQuery && window.jQuery.fn && window.jQuery.fn.jstree) {
-      try {
-        var tree = window.jQuery(input).closest('[id]').jstree(true);
-        if (tree) { var node = tree.create_node('#', { text: label, li_attr: { 'data-id': id } }); tree.check_node(node); return; }
-      } catch (e) {}
-    }
-    if (family === 'checkbox' || family === 'checktree') {
-      var group = input.closest('[data-wi-qc-group]') || input;
-      // Il nome si copia da una casella che c'è già: senza, la spunta nuova
-      // non verrebbe postata e il valore appena creato si perderebbe al primo
-      // salvataggio.
-      var gemella = group.querySelector('input[type="checkbox"][name]');
-      var name = gemella ? ' name="' + gemella.getAttribute('name') + '"' : '';
-      var wrap = document.createElement('div');
-      wrap.className = 'form-check';
-      wrap.innerHTML = '<input class="form-check-input" type="checkbox" checked value="' + id + '"' + name + '> <label class="form-check-label">' + label + '</label>';
-      // In fondo all'elenco, non dopo la prima casella: l'opzione nuova è
-      // l'ultima arrivata e lì la si cerca.
-      var caselle = group.querySelectorAll('.form-check');
-      var ultima = caselle.length ? caselle[caselle.length - 1] : null;
-      (ultima && ultima.parentElement ? ultima.parentElement : group).appendChild(wrap);
-      return;
-    }
-    // Widget non gestito direttamente: hook per un listener del widget.
     document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family } }));
   }
 
