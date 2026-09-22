@@ -87,6 +87,57 @@ class InputRepeater extends Input
         return $this->context('sortable', $sortable);
     }
 
+    /**
+     * Le colonne per cui si può raggruppare, nell'ordine del selettore.
+     *
+     * Dichiararle non raggruppa niente: alla nascita il repeater è piatto, e
+     * il raggruppamento lo sceglie chi guarda.
+     */
+    public function repeaterGroupBy(string ...$columnKeys): static
+    {
+        $keys = [];
+
+        foreach ($columnKeys as $key) {
+            $key = trim($key);
+
+            if ($key !== '' && !in_array($key, $keys, true)) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys === [] ? $this : $this->context('group_by', $keys);
+    }
+
+    /**
+     * La casella sulla testata del gruppo: scrive il suo valore in quella
+     * colonna di ogni riga del gruppo.
+     *
+     * È un comando, non un dato: non viene postata e non esiste nel
+     * salvataggio.
+     */
+    public function repeaterGroupCommand(string $columnKey, string $label = ''): static
+    {
+        $columnKey = trim($columnKey);
+
+        return $columnKey === ''
+            ? $this
+            : $this->context('group_command', ['column' => $columnKey, 'label' => trim($label)]);
+    }
+
+    public function repeaterGroupCollapsed(bool $collapsed = true): static
+    {
+        return $this->context('group_collapsed', $collapsed);
+    }
+
+    /** Le parole del conteggio in testata: "4 versioni", "1 versione". */
+    public function repeaterGroupCountLabel(string $singular, string $plural): static
+    {
+        return $this->context('group_count_label', [
+            'singular' => trim($singular),
+            'plural' => trim($plural),
+        ]);
+    }
+
     protected function element(): ElementField
     {
         $context = (array) ($this->schema['context'] ?? []);
