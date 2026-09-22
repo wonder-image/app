@@ -19,8 +19,8 @@
                     $collapseId = code(10, 'numbers', 'navgrp-');
                     $titleClass = !empty($value['active']) ? 'text-body-emphasis' : 'text-body-secondary';
                     $markup .= "<li class='list-group-item border-0 m-0 p-0 w-100 float-none'>"
-                        ."<button type='button' class='be-nav-toggle be-nav-heading d-flex align-items-center gap-2 w-100 border-0 bg-transparent text-start text-uppercase fw-semibold mt-2 mb-1 py-1 px-2 ".e($titleClass)."' data-bs-toggle='collapse' data-bs-target='#".e($collapseId)."' aria-expanded='true' aria-controls='".e($collapseId)."'>"
-                        ."<i class='bi bi-chevron-right be-nav-chev'></i><span>".e($listTitle)."</span>"
+                        ."<button type='button' class='be-nav-toggle be-nav-heading d-flex align-items-center justify-content-between w-100 border-0 bg-transparent text-start text-uppercase fw-semibold mt-2 mb-1 py-1 px-2 ".e($titleClass)."' data-bs-toggle='collapse' data-bs-target='#".e($collapseId)."' aria-expanded='true' aria-controls='".e($collapseId)."'>"
+                        ."<span>".e($listTitle)."</span><i class='bi bi-chevron-right be-nav-chev'></i>"
                         ."</button>"
                         ."<div class='collapse show' id='".e($collapseId)."'>"
                         ."<ul class='list-group list-group-flush mt-0 w-100'>".$renderItems($children, $depth + 1)."</ul>"
