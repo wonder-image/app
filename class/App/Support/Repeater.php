@@ -271,12 +271,31 @@ final class Repeater
         return $prepared;
     }
 
-    private static function isEmptyRow(array $row): bool
+    protected static function isEmptyRow(array $row): bool
     {
-        foreach ($row as $value) {
+        foreach ($row as $key => $value) {
+            // Il campo file porta con sé l'elenco dei file già caricati, e
+            // quando non ce n'è nessuno vale la stringa `[]`: presa per un
+            // valore qualsiasi, teneva in piedi righe senza niente dentro.
+            if (is_string($key) && str_ends_with($key, '__wi_files')) {
+                $decoded = json_decode((string) $value, true);
+
+                if (is_array($decoded) && $decoded !== []) {
+                    return false;
+                }
+
+                continue;
+            }
+
             if (is_array($value)) {
-                if (isset($value['name']) && is_array($value['name'])) {
-                    foreach ($value['name'] as $fileName) {
+                // Un campo file posta sempre la sua busta, anche quando non
+                // hai scelto niente: `name` vuoto ma `error` 4 e `size` 0.
+                // Guardare la busta intera faceva passare per piena una riga
+                // in cui non c'era nessun file.
+                if (array_key_exists('name', $value)) {
+                    $names = is_array($value['name']) ? $value['name'] : [$value['name']];
+
+                    foreach ($names as $fileName) {
                         if (trim((string) $fileName) !== '') {
                             return false;
                         }
@@ -285,7 +304,10 @@ final class Repeater
                     continue;
                 }
 
-                if ($value !== []) {
+                // Un array di valori tutti vuoti è vuoto: un campo file in una
+                // riga nuova posta `['']`, e prendere quello per "riga piena"
+                // creava una riga senza niente dentro a ogni salvataggio.
+                if (!static::isEmptyRow($value)) {
                     return false;
                 }
 
