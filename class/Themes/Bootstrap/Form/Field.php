@@ -196,6 +196,21 @@ abstract class Field extends AbstractFieldRenderer
     select.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  /*
+   * L'elemento in cui infilare l'opzione nuova.
+   *
+   * Un `select` porta l'id del campo; un gruppo di caselle, sul tema
+   * Bootstrap, lo mette sul contenitore con il prefisso `container-`, e
+   * cercare solo l'id nudo non trova niente.
+   */
+  function targetInput(inputId) {
+    if (!inputId) return null;
+
+    return document.getElementById(inputId)
+      || document.getElementById('container-' + inputId)
+      || document.querySelector('[name="' + inputId + '"], [name="' + inputId + '[]"]');
+  }
+
   function optionInto(input, family, id, label) {
     if (!input) {
       document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { id: id, label: label, family: family } }));
@@ -212,11 +227,20 @@ abstract class Field extends AbstractFieldRenderer
       } catch (e) {}
     }
     if (family === 'checkbox' || family === 'checktree') {
-      var group = input.closest('[data-wi-qc-group]') || input.parentElement || input;
+      var group = input.closest('[data-wi-qc-group]') || input;
+      // Il nome si copia da una casella che c'è già: senza, la spunta nuova
+      // non verrebbe postata e il valore appena creato si perderebbe al primo
+      // salvataggio.
+      var gemella = group.querySelector('input[type="checkbox"][name]');
+      var name = gemella ? ' name="' + gemella.getAttribute('name') + '"' : '';
       var wrap = document.createElement('div');
       wrap.className = 'form-check';
-      wrap.innerHTML = '<input class="form-check-input" type="checkbox" checked value="' + id + '"> <label class="form-check-label">' + label + '</label>';
-      group.appendChild(wrap);
+      wrap.innerHTML = '<input class="form-check-input" type="checkbox" checked value="' + id + '"' + name + '> <label class="form-check-label">' + label + '</label>';
+      // In fondo all'elenco, non dopo la prima casella: l'opzione nuova è
+      // l'ultima arrivata e lì la si cerca.
+      var caselle = group.querySelectorAll('.form-check');
+      var ultima = caselle.length ? caselle[caselle.length - 1] : null;
+      (ultima && ultima.parentElement ? ultima.parentElement : group).appendChild(wrap);
       return;
     }
     // Widget non gestito direttamente: hook per un listener del widget.
@@ -305,8 +329,7 @@ abstract class Field extends AbstractFieldRenderer
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (res && res.success) {
-          var inputId = modal.getAttribute('data-wi-qc-input');
-          optionInto(inputId ? document.getElementById(inputId) : null, modal.getAttribute('data-wi-qc-family'), res.id, res.label);
+          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), res.id, res.label);
           resetFields(form);
           var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
           if (window.bootstrap && window.bootstrap.Modal) {
