@@ -6,28 +6,30 @@ use Wonder\App\Path;
 use Wonder\App\ResourceRegistry;
 
 /**
- * Proxy backend della creazione rapida: autorizza, whitelista il sottoinsieme,
- * chiama lo store API della risorsa target come @system (token solo server-side)
+ * Proxy backend della creazione rapida: autorizza, ripulisce il payload dai
+ * campi di controllo, chiama lo store API del target come @system (token solo server-side)
  * e restituisce {id, label} letti dall'item creato dalla risposta dello store.
  * Vedi docs/app/concetti/form/quick-create.md.
  */
 final class QuickCreateController
 {
     /**
-     * Tiene solo le chiavi del subset dichiarato. È una comodità UI, non un
+     * Payload per lo store: rimuove i campi di controllo del modal. Non è un
      * confine di sicurezza: la creazione passa comunque dallo store API della
      * risorsa target, che accetta solo i propri campi `apiSchema('store')` ed è
      * gato dal permesso di creazione (verificato prima).
      *
      * @return array<string,mixed>
      */
-    public static function whitelist(array $fields, array $post): array
+    public static function payload(array $post): array
     {
-        return array_intersect_key($post, array_flip(array_values($fields)));
+        unset($post['resource'], $post['quick_label'], $post['quick_fields']);
+
+        return $post;
     }
 
     /**
-     * @param array<string,mixed> $post          POST del modal (resource, quick_fields, quick_label, campi subset).
+     * @param array<string,mixed> $post          POST del modal (resource, quick_label, e i campi da creare).
      * @param list<string>        $userAuthority authority dell'utente backend corrente.
      * @return array<string,mixed> {success:true,id,label} | {success:false,error,status}
      */
@@ -45,9 +47,8 @@ final class QuickCreateController
             return ['success' => false, 'error' => 'Non sei autorizzato a creare questa risorsa.', 'status' => 403];
         }
 
-        $fields = array_values(array_filter((array) ($post['quick_fields'] ?? []), 'is_string'));
         $labelField = trim((string) ($post['quick_label'] ?? ''));
-        $values = self::whitelist($fields, $post);
+        $values = self::payload($post);
 
         $token = self::systemToken();
 

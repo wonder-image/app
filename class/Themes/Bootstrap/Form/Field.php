@@ -5,6 +5,7 @@ namespace Wonder\Themes\Bootstrap\Form;
 use ReflectionClass;
 use Wonder\App\LegacyGlobals;
 use Wonder\Backend\Support\QuickCreateAuthorizer;
+use Wonder\Backend\Support\QuickCreatePanel;
 use Wonder\Themes\Form\AbstractFieldRenderer;
 
 /**
@@ -127,8 +128,9 @@ abstract class Field extends AbstractFieldRenderer
         $modalId = 'wi-qc-'.preg_replace('/[^a-zA-Z0-9_-]+/', '-', $seed);
         $family = $this->quickCreateFamily();
         $slug = (string) $config['slug'];
-        $fields = array_values(array_filter((array) $config['fields'], 'is_string'));
-        $label = (string) ($config['label'] ?? '');
+        $fields = QuickCreatePanel::fields($config);
+        $label = QuickCreatePanel::label($config, $fields);
+        $body = QuickCreatePanel::bodyHtml($config, $fields);
 
         try {
             $endpoint = function_exists('__r') ? (string) __r('backend.resource.quick-create') : '';
@@ -138,12 +140,6 @@ abstract class Field extends AbstractFieldRenderer
 
         $hidden = '<input type="hidden" name="resource" value="'.$this->escape($slug).'">'
             .'<input type="hidden" name="quick_label" value="'.$this->escape($label).'">';
-        $body = '';
-
-        foreach ($fields as $key) {
-            $hidden .= '<input type="hidden" name="quick_fields[]" value="'.$this->escape($key).'">';
-            $body .= $config['resource']::getInput($key)->render('bootstrap');
-        }
 
         $trigger = '<button type="button" class="btn btn-outline-secondary btn-sm mt-1"'
             .' data-wi-quick-create="'.$this->escape($modalId).'"'

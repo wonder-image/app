@@ -5,6 +5,7 @@ require dirname(__DIR__).'/vendor/autoload.php';
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Backend\Support\QuickCreateAuthorizer;
 use Wonder\Backend\Support\QuickCreateController;
+use Wonder\Backend\Support\QuickCreatePanel;
 
 $checks = 0;
 $check = static function (bool $c, string $m) use (&$checks): void {
@@ -12,15 +13,14 @@ $check = static function (bool $c, string $m) use (&$checks): void {
     $checks++;
 };
 
-// --- Task 1: HasQuickCreate concern -----------------------------------------
+// --- Task 1: HasQuickCreate concern (firma con default + layout) ------------
 
-// A tiny fake target resource with a slug.
 $fakeResource = new class {
     public static function slug(): string { return 'category'; }
 };
 $fakeClass = get_class($fakeResource);
 
-$input = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($fakeClass, ['name'], 'name');
+$input = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($fakeClass, ['name'], label: 'name');
 $config = ($input->get()['context']['quick_create'] ?? null);
 
 $check(is_array($config), 'quick_create config stored');
@@ -28,6 +28,10 @@ $check($config['slug'] === 'category', 'slug resolved from target');
 $check($config['fields'] === ['name'], 'subset fields stored');
 $check($config['label'] === 'name', 'label field stored');
 $check($config['resource'] === $fakeClass, 'target class stored');
+$check(array_key_exists('layout', $config) && $config['layout'] === null, 'layout null by default');
+
+$defConfig = FormField::key('c')->select([])->quickCreate($fakeClass)->get()['context']['quick_create'];
+$check(array_key_exists('fields', $defConfig) && $defConfig['fields'] === null, 'fields null when omitted (required resolved later)');
 
 // --- Task 2: QuickCreateAuthorizer ------------------------------------------
 
@@ -47,30 +51,47 @@ $check(QuickCreateAuthorizer::createAuthority($permClass) === ['admin', 'editor'
 $check(QuickCreateAuthorizer::userCanCreate($permClass, ['editor']) === true, 'intersecting authority allowed');
 $check(QuickCreateAuthorizer::userCanCreate($permClass, ['viewer']) === false, 'non-intersecting denied');
 
-// --- Task 3: QuickCreateController::whitelist (pure, DB-free) ----------------
+// --- Task 3: QuickCreateController::payload (strip control keys) -------------
 
-$kept = QuickCreateController::whitelist(['name', 'slug'], ['name' => 'Scarpe', 'slug' => 'scarpe', 'evil' => 'x', 'id' => '9']);
-$check($kept === ['name' => 'Scarpe', 'slug' => 'scarpe'], 'whitelist keeps only declared subset keys');
+$vals = QuickCreateController::payload([
+    'resource' => 'category', 'quick_label' => 'name', 'quick_fields' => ['name'],
+    'name' => 'Scarpe', 'slug' => 'scarpe',
+]);
+$check($vals === ['name' => 'Scarpe', 'slug' => 'scarpe'], 'payload strips control keys, keeps data');
 
-// --- Task 4: Bootstrap renderer emits "+" + modal ---------------------------
+// --- QuickCreatePanel: required fields, fields(), label() --------------------
 
-$openTarget = new class {
+$target = new class {
     public static function slug(): string { return 'category'; }
     public static function permissionSchema(): object {
-        return new class { public function get(string $k): array { return []; } };
+        return new class { public function get($k): array { return []; } };
+    }
+    public static function formSchema(): array {
+        return [
+            FormField::key('name')->text()->required(),
+            FormField::key('note')->textarea(),
+            FormField::key('slug')->text()->required(),
+        ];
     }
     public static function getInput(string $key): object { return FormField::key($key)->text(); }
 };
-$openClass = get_class($openTarget);
+$targetClass = get_class($target);
 
-$html = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($openClass, ['name'], 'name')->render('bootstrap');
+$check(QuickCreatePanel::requiredFields($targetClass) === ['name', 'slug'], 'required fields detected');
+$check(QuickCreatePanel::fields(['resource' => $targetClass, 'fields' => null]) === ['name', 'slug'], 'fields() default = required');
+$check(QuickCreatePanel::fields(['resource' => $targetClass, 'fields' => ['note']]) === ['note'], 'fields() honors subset');
+$check(QuickCreatePanel::label(['label' => null], ['note', 'name']) === 'name', 'label() prefers name');
+$check(QuickCreatePanel::label(['label' => 'note'], ['note']) === 'note', 'label() honors declared');
+
+// --- Task 4: Bootstrap renderer emits "+" + modal ---------------------------
+
+$html = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');
 
 $check(str_contains($html, 'data-wi-quick-create'), 'renders the quick-create trigger');
-$check(str_contains($html, 'name="quick_fields[]"'), 'emits the subset hidden field');
 $check(str_contains($html, 'name="resource"'), 'emits the target slug hidden field');
+$check(str_contains($html, 'name="quick_label"'), 'emits the label hidden field');
 $check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family');
 
-// Senza quickCreate() nessun markup extra.
 $plain = FormField::key('category_id')->select(['1' => 'A'])->render('bootstrap');
 $check(!str_contains($plain, 'data-wi-quick-create'), 'no trigger when not declared');
 

@@ -20,20 +20,26 @@ categoria" crea la categoria senza lasciare la pagina.
 ```php
 use Wonder\App\Resources\CategoryResource;
 
+// Default: il modal mostra i campi OBBLIGATORI di CategoryResource
 FormField::key('category_id')
     ->select($categorie)
-    ->quickCreate(CategoryResource::class, ['name'], label: 'name');
+    ->quickCreate(CategoryResource::class);
 ```
 
-`quickCreate(string $resourceClass, array $fields, ?string $label = null)`:
+`quickCreate(string $resourceClass, ?array $fields = null, ?Closure $layout = null, ?string $label = null)`:
 
 - **`$resourceClass`** — la Resource collegata. Deve esporre lo **store API**
   (`apiSchema()` con `store`).
-- **`$fields`** — le chiavi del **sottoinsieme** mostrate nel modal. I campi si
-  **riusano** dalla risorsa target (`Target::getInput($key)`): stesso tipo,
-  stessa validazione.
-- **`$label`** — il campo che fa da etichetta dell'opzione (default: il campo
-  label della risorsa target).
+- **`$fields`** — chiavi del sottoinsieme. **`null` (default) = i campi
+  obbligatori del target** (rilevati da `formSchema()`). I campi si **riusano**
+  dalla risorsa target (`Target::getInput($key)`): stesso tipo, stessa
+  validazione.
+- **`$layout`** — layout custom del modal: una closure che ritorna un
+  `Form`/`Container`/`Card` composto con `Target::getInput(...)`. `null`
+  (default) = i campi avvolti in un **`Container`**. Puoi anche riusare il
+  pannello della risorsa: `layout: fn() => Target::formLayoutSchema()`.
+- **`$label`** — campo etichetta dell'opzione. `null` (default) =
+  `name` / `title` / primo campo mostrato.
 
 Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
@@ -42,7 +48,11 @@ Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 ### Esempi per famiglia di input
 
 ```php
-// FK singola (select): il caso più comune
+// Default: i campi OBBLIGATORI del target
+FormField::key('category_id')->select($categorie)
+    ->quickCreate(CategoryResource::class);
+
+// FK singola (select) con subset esplicito
 FormField::key('category_id')->select($categorie)
     ->quickCreate(CategoryResource::class, ['name']);
 
@@ -61,6 +71,15 @@ FormField::key('supplier_id')->searchRadio(__r('backend.resource.suppliers.index
 // Check caricati via AJAX
 FormField::key('roles')->dynamicCheck(__r('backend.resource.roles.index'))
     ->quickCreate(RoleResource::class, ['name']);
+
+// Layout custom del modal: pannello arrangiato da te, input da getInput()
+FormField::key('category_id')->select($categorie)
+    ->quickCreate(CategoryResource::class, layout: fn() => (new Form)->components([
+        (new Card)->components([
+            CategoryResource::getInput('name'),
+            CategoryResource::getInput('slug'),
+        ]),
+    ]));
 ```
 
 ### Precondizione: lo store API della risorsa target
@@ -90,16 +109,18 @@ proxy server-side.
    (`permissionSchema()->get('backend')['create']`, ripiego su `store`).
 2. All'invio, un piccolo JS fa POST a `backend.resource.quick-create`
    (`app/http/backend/resource/quick-create.php`), gato dalla sessione backend.
-3. Il `QuickCreateController` ri-verifica il permesso, whitelista il
-   sottoinsieme, e chiama lo **store API** della risorsa target **lato server
-   come `@system`** (`api_internal_user`): il token non tocca mai il browser.
+3. Il `QuickCreateController` ri-verifica il permesso, rimuove i campi di
+   controllo del modal e passa il resto allo **store API** della risorsa target
+   (che filtra coi propri `apiSchema('store')`), **lato server come `@system`**
+   (`api_internal_user`): il token non tocca mai il browser.
 4. Dalla risposta dello store estrae `{id, label}` (dall'item creato) e il JS
    inserisce+seleziona la nuova opzione.
 
 ## Vincoli
 
-- Il **sottoinsieme deve bastare a creare una riga valida**: i campi
-  obbligatori del target non mostrati nel modal devono avere un default,
+- I campi mostrati **devono bastare a creare una riga valida**. Il default (i
+  campi obbligatori del target) di norma basta; se mostri un subset o un layout
+  parziale, gli altri campi obbligatori del target devono avere un default,
   altrimenti lo store rifiuta.
 - Gli **errori dello store** si mostrano nel modal come **alert** (coerente con
   [Notifiche → Errori dei form](../notifiche.md#errori-dei-form)), mai come
@@ -114,6 +135,7 @@ proxy server-side.
 | Elemento | File |
 |---|---|
 | Dichiarazione (concern) | `class/App/ResourceSchema/Inputs/Concerns/HasQuickCreate.php` |
+| Campi/label/corpo del modal | `class/Backend/Support/QuickCreatePanel.php` |
 | Permesso (fonte unica) | `class/Backend/Support/QuickCreateAuthorizer.php` |
 | Proxy backend | `class/Backend/Support/QuickCreateController.php` + `app/http/backend/resource/quick-create.php` |
 | Rotta | `app/config/routes/route.backend.php` (`backend.resource.quick-create`) |

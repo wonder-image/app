@@ -232,12 +232,14 @@ Sui campi **foreign key** (`select`, `selectSearch`, `checkbox`, `checkTree`,
 apre un modal per creare al volo la risorsa collegata:
 
 ```php
+// Default: i campi obbligatori del target
 FormField::key('category_id')->select($categorie)
-    ->quickCreate(CategoryResource::class, ['name'], label: 'name');
+    ->quickCreate(CategoryResource::class);
 ```
 
-`quickCreate(string $resourceClass, array $fields, ?string $label = null)` —
-API, precondizioni (store API del target), permessi e adapter per tipo sono in
+`quickCreate(string $resourceClass, ?array $fields = null, ?Closure $layout = null, ?string $label = null)`
+— `$fields` `null` = campi obbligatori; `$layout` = pannello custom. API,
+precondizioni (store API del target), permessi e adapter per tipo sono in
 [Creazione rapida da campo FK](quick-create.md).
 
 ### Password policy
