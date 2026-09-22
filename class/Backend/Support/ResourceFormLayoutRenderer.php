@@ -257,12 +257,16 @@ final class ResourceFormLayoutRenderer
         }
 
         $spanClass = self::columnSpanClass($component, $parentColumns, false);
+        $attributes = self::attributes($component);
 
-        if ($spanClass === '') {
+        if ($spanClass === '' && $attributes === '') {
             return $html;
         }
 
-        return '<div class="'.$spanClass.'">'.$html.'</div>';
+        // Anche un pezzo di testo può dipendere da un interruttore: senza gli
+        // attributi qui, `visibleWhen()` su un RichText verrebbe ignorato in
+        // silenzio, come succedeva alle Card.
+        return '<div class="'.$spanClass.'"'.$attributes.'>'.$html.'</div>';
     }
 
     /**

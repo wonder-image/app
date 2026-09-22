@@ -40,6 +40,14 @@
 
         }
 
+        /** Di quale risorsa questo campo elenca le righe. */
+        public function listsResource(string $slug): self
+        {
+
+            return $this->schema('lists_resource', $slug);
+
+        }
+
         protected function renderInput(): string {
 
             return '';

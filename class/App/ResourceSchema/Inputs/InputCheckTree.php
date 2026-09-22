@@ -41,6 +41,7 @@ class InputCheckTree extends Input
         return (new CheckTree($this->name))
             ->options($this->normalizedOptions())
             ->searchBar((bool) ($this->schema['search_bar'] ?? false))
+            ->listsResource((string) ($this->schema['lists_resource'] ?? ''))
             ->inputType($inputType)
             ->value($this->groupValue($inputType));
     }
