@@ -29,6 +29,38 @@ final class QuickCreateController
     }
 
     /**
+     * Campi obbligatori del target mostrati nel modal (quindi presenti nel
+     * payload) ma lasciati vuoti. È il controllo che impedisce la riga vuota:
+     * il modal non è un <form> e lo store API non valida i required. I campi
+     * obbligatori NON mostrati nel modal si assumono con default lato store.
+     *
+     * @param array<string,mixed> $values payload già ripulito dai campi di controllo
+     * @return list<string> nomi dei campi obbligatori lasciati vuoti
+     */
+    public static function missingRequired(string $resourceClass, array $values): array
+    {
+        $missing = [];
+
+        foreach (QuickCreatePanel::requiredFields($resourceClass) as $key) {
+            if (!array_key_exists($key, $values)) {
+                continue;
+            }
+
+            $value = $values[$key];
+
+            if (is_array($value)) {
+                if (array_filter($value, static fn ($v): bool => trim((string) $v) !== '') === []) {
+                    $missing[] = $key;
+                }
+            } elseif (trim((string) $value) === '') {
+                $missing[] = $key;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
      * @param array<string,mixed> $post          POST del modal (resource, quick_label, e i campi da creare).
      * @param list<string>        $userAuthority authority dell'utente backend corrente.
      * @return array<string,mixed> {success:true,id,label} | {success:false,error,status}
@@ -49,6 +81,19 @@ final class QuickCreateController
 
         $labelField = trim((string) ($post['quick_label'] ?? ''));
         $values = self::payload($post);
+
+        // Il modal non è un <form>, quindi la validazione HTML5 `required` non
+        // scatta, e lo store API non rifiuta gli empty: senza questo controllo
+        // si crea una riga vuota. Blocca prima di chiamare lo store.
+        $missing = self::missingRequired($resourceClass, $values);
+
+        if ($missing !== []) {
+            return [
+                'success' => false,
+                'error' => 'Compila i campi obbligatori: '.implode(', ', $missing).'.',
+                'status' => 422,
+            ];
+        }
 
         $token = self::systemToken();
 

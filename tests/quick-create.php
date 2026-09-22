@@ -91,6 +91,15 @@ $named = new class {
 $check(QuickCreatePanel::buttonLabel(['resource' => get_class($named), 'slug' => 'tag']) === 'Aggiungi Tag', 'buttonLabel() uses resource label()');
 $check(QuickCreatePanel::buttonLabel(['resource' => $targetClass, 'slug' => 'category']) === 'Aggiungi category', 'buttonLabel() falls back to slug');
 
+// --- missingRequired: impedisce la riga vuota (campi obbligatori vuoti) ------
+
+$check(QuickCreateController::missingRequired($targetClass, ['name' => 'Scarpe', 'slug' => 'scarpe']) === [], 'missingRequired: tutti pieni => nessuno');
+$check(QuickCreateController::missingRequired($targetClass, ['name' => '', 'slug' => 'scarpe']) === ['name'], 'missingRequired: obbligatorio vuoto => flag');
+$check(QuickCreateController::missingRequired($targetClass, ['name' => '  ', 'slug' => '']) === ['name', 'slug'], 'missingRequired: whitespace/empty => entrambi');
+$check(QuickCreateController::missingRequired($targetClass, ['slug' => 'x']) === [], 'missingRequired: campo assente (non mostrato) => saltato');
+$check(QuickCreateController::missingRequired($targetClass, ['name' => ['', ''], 'slug' => 'x']) === ['name'], 'missingRequired: array tutto vuoto => flag');
+$check(QuickCreateController::missingRequired($targetClass, ['name' => ['', 'a'], 'slug' => 'x']) === [], 'missingRequired: array con un valore => ok');
+
 // --- Task 4: Bootstrap renderer emits "+" + modal ---------------------------
 
 $html = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');
@@ -130,5 +139,7 @@ $check(str_contains($html, 'wi-qc-submit'), 'the save button is bound by class')
 $check(str_contains($html, 'data-wi-qc-endpoint'), 'the modal carries its endpoint');
 $check(str_contains($html, 'function detachModals'), 'the client moves the modals out of the form');
 $check(str_contains($html, 'function valuesOf'), 'the client collects the fields by itself');
+$check(str_contains($html, 'function invalidFields'), 'the client checks validity before posting');
+$check(str_contains($html, 'Compila i campi obbligatori'), 'the client surfaces the required-fields alert');
 
 echo "OK: {$checks} checks passed\n";

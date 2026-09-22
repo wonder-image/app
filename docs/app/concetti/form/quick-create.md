@@ -122,9 +122,14 @@ proxy server-side.
   campi obbligatori del target) di norma basta; se mostri un subset o un layout
   parziale, gli altri campi obbligatori del target devono avere un default,
   altrimenti lo store rifiuta.
-- Gli **errori dello store** si mostrano nel modal come **alert** (coerente con
-  [Notifiche → Errori dei form](../notifiche.md#errori-dei-form)), mai come
-  testo inline.
+- **Campi obbligatori vuoti**: il modal non è un `<form>`, quindi la validazione
+  HTML5 non parte da sola. Doppio argine, così non si crea mai una riga vuota:
+  il **client** valida i campi con `checkValidity()` prima dell'invio, e il
+  **proxy backend** (`QuickCreateController::missingRequired`) rifiuta con `422`
+  i campi obbligatori mostrati ma vuoti — prima ancora di chiamare lo store.
+- Gli **errori** (validazione e store) si mostrano nel modal come **alert**
+  (coerente con [Notifiche → Errori dei form](../notifiche.md#errori-dei-form)),
+  mai come testo inline.
 - **v1 single-level**: il form del modal non ha a sua volta un quick-create.
 - **Posizione del "+"**: per i controlli singoli (`select`/`selectSearch`/
   `searchRemote`) è **attaccato all'input a destra** in un `input-group`

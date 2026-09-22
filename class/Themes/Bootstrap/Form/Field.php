@@ -350,6 +350,32 @@ abstract class Field extends AbstractFieldRenderer
     return data;
   }
 
+  /*
+   * Campi non validi del modal. Il modal non è un <form>, quindi la validazione
+   * HTML5 non parte da sola: la interroghiamo per campo con `checkValidity()`.
+   * È il primo argine alla riga vuota (il secondo, decisivo, è lato server).
+   */
+  function invalidFields(container) {
+    var out = [];
+    var fields = container.querySelectorAll('input, select, textarea');
+
+    for (var i = 0; i < fields.length; i++) {
+      var field = fields[i];
+      if (field.disabled || field.type === 'hidden') { continue; }
+      if (typeof field.checkValidity === 'function' && !field.checkValidity()) { out.push(field); }
+    }
+
+    return out;
+  }
+
+  // Toglie il rosso mentre l'utente corregge.
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t && t.classList && t.classList.contains('is-invalid') && t.closest && t.closest('.wi-qc-form')) {
+      t.classList.remove('is-invalid');
+    }
+  });
+
   document.addEventListener('click', function (ev) {
     var button = ev.target.closest ? ev.target.closest('.wi-qc-submit') : null;
     if (!button) return;
@@ -359,6 +385,14 @@ abstract class Field extends AbstractFieldRenderer
     if (!form || !modal) return;
     var endpoint = modal.getAttribute('data-wi-qc-endpoint');
     if (!endpoint) { showError(modal, 'Endpoint non configurato.'); return; }
+
+    var invalid = invalidFields(form);
+    if (invalid.length) {
+      for (var n = 0; n < invalid.length; n++) { invalid[n].classList.add('is-invalid'); }
+      showError(modal, 'Compila i campi obbligatori.');
+      if (invalid[0].reportValidity) { invalid[0].reportValidity(); } else if (invalid[0].focus) { invalid[0].focus(); }
+      return;
+    }
 
     fetch(endpoint, {
       method: 'POST',
