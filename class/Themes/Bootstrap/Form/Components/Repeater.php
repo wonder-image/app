@@ -62,8 +62,12 @@ class Repeater extends Field
             : '';
         $groupBarHtml = $groupable ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy) : '';
         $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context) : '';
+        // La scelta si ricorda sul **nome** del campo, non sull'id: l'id del
+        // repeater lo genera il render, cambia a ogni caricamento, e una
+        // memoria con una chiave nuova ogni volta non ricorda niente.
+        $groupMemory = $this->escape($name);
         $groupInitHtml = $groupable
-            ? "<script>window.wiRepeaterGroupInit('{$rowId}', '{$groupTemplateId}', '{$id}-groupby');</script>"
+            ? "<script>window.wiRepeaterGroupInit('{$rowId}', '{$groupTemplateId}', '{$id}-groupby', '{$groupMemory}');</script>"
             : '';
 
         $rowsHtml = '';
@@ -520,7 +524,8 @@ HTML;
         container.dataset.wiGroupColumn = columnKey;
         container.dataset.wiGroupTemplate = templateId;
 
-        try { window.localStorage.setItem('wi-repeater-group:' + rowsId, columnKey); } catch (error) {}
+        const memory = container.dataset.wiGroupMemory || rowsId;
+        try { window.localStorage.setItem('wi-repeater-group:' + memory, columnKey); } catch (error) {}
 
         container.querySelectorAll(':scope > .wi-repeater-group-header').forEach(function (header) {
             header.remove();
@@ -623,10 +628,67 @@ HTML;
             const field = row.querySelector('[name$="[' + target + ']"], [name="' + target + '[]"]');
             if (!field) return;
 
-            field.value = input.value;
+            window.wiRepeaterSetFieldValue(field, input.value);
+        });
+    };
+
+    /*
+     * Scrivere in un campo che un widget si è preso.
+     *
+     * I campi numerici del pannello sono di AutoNumeric: assegnare `value` gli
+     * lascia lo stato vecchio, e al salvataggio riscrive lui. Il valore va
+     * quindi passato alla sua API, e in forma grezza — `set('31,50')` svuota
+     * il campo, `set(31.5)` no.
+     */
+    window.wiRepeaterSetFieldValue = window.wiRepeaterSetFieldValue || function (field, value) {
+        const numeric = (typeof window.AutoNumeric !== 'undefined'
+            && typeof window.AutoNumeric.getAutoNumericElement === 'function')
+            ? window.AutoNumeric.getAutoNumericElement(field)
+            : null;
+
+        if (!numeric) {
+            field.value = value;
             field.dispatchEvent(new Event('input', { bubbles: true }));
             field.dispatchEvent(new Event('change', { bubbles: true }));
-        });
+            return;
+        }
+
+        const raw = window.wiRepeaterNumberFromText(value);
+
+        if (raw === null) {
+            numeric.clear();
+            return;
+        }
+
+        numeric.set(raw);
+    };
+
+    /*
+     * Il numero dietro a quello che si è scritto.
+     *
+     * Chi compila scrive "31,50" o "1.299,90"; qualcun altro scrive "31.50".
+     * Con tutti e due i separatori l'ultimo è quello decimale.
+     */
+    window.wiRepeaterNumberFromText = window.wiRepeaterNumberFromText || function (value) {
+        let text = String(value === null || value === undefined ? '' : value).trim();
+        if (text === '') return null;
+
+        text = text.replace(/[^0-9,.-]/g, '');
+        const lastComma = text.lastIndexOf(',');
+        const lastDot = text.lastIndexOf('.');
+
+        if (lastComma > -1 && lastDot > -1) {
+            const decimal = lastComma > lastDot ? ',' : '.';
+            const thousands = decimal === ',' ? '.' : ',';
+            text = text.split(thousands).join('');
+            text = text.replace(decimal, '.');
+        } else if (lastComma > -1) {
+            text = text.replace(',', '.');
+        }
+
+        const number = parseFloat(text);
+
+        return isNaN(number) ? null : number;
     };
 
     window.wiRepeaterGroupRefresh = window.wiRepeaterGroupRefresh || function (container) {
@@ -639,13 +701,15 @@ HTML;
         );
     };
 
-    window.wiRepeaterGroupInit = window.wiRepeaterGroupInit || function (rowsId, templateId, selectId) {
+    window.wiRepeaterGroupInit = window.wiRepeaterGroupInit || function (rowsId, templateId, selectId, memoryKey) {
         const container = document.getElementById(rowsId);
         const select = document.getElementById(selectId);
         if (!container || !select) return;
 
+        container.dataset.wiGroupMemory = memoryKey || rowsId;
+
         let remembered = '';
-        try { remembered = window.localStorage.getItem('wi-repeater-group:' + rowsId) || ''; } catch (error) {}
+        try { remembered = window.localStorage.getItem('wi-repeater-group:' + container.dataset.wiGroupMemory) || ''; } catch (error) {}
 
         const known = Array.prototype.slice.call(select.options).some(function (option) {
             return option.value === remembered;
