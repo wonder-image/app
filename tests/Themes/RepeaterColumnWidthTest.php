@@ -99,24 +99,26 @@ check('senza parole proprie il bottone ne ha di sue', function () use ($render, 
     );
 });
 
-check('una riga senza niente di avanzato nasce chiusa', function () use ($render, $markup, $riga) {
+check('il blocco nasce chiuso', function () use ($render, $markup, $riga) {
     return str_contains($markup($render($riga, ['advanced' => ['sku']])), 'wi-repeater-advanced d-none');
 });
 
-check('una riga che ha già un codice nasce aperta', function () use ($render, $markup) {
+check('nasce chiuso anche su una riga che ha già i suoi codici', function () use ($render, $markup) {
+    // Lo SKU lo propone il pannello: una griglia in cui ogni riga si apre da
+    // sola è la griglia lunga da cui si scappava.
     $riga = ['row_1' => ['option' => 'S', 'price' => '19.90', 'sku' => 'MAG-9-S', 'photo' => '']];
     $html = $markup($render($riga, ['advanced' => ['sku', 'photo']]));
 
-    return str_contains($html, 'class="col-12 wi-repeater-advanced"')
-        && str_contains($html, 'bi-chevron-up');
+    return str_contains($html, 'wi-repeater-advanced d-none')
+        && !str_contains($html, 'bi-chevron-up');
 });
 
-check('il template resta chiuso anche quando le righe sono aperte', function () use ($render) {
+check('le caselle nascoste restano nel modulo, quindi si salvano', function () use ($render, $markup) {
     $riga = ['row_1' => ['option' => 'S', 'sku' => 'MAG-9-S']];
-    $html = $render($riga, ['advanced' => ['sku']]);
-    $template = substr($html, (int) strpos($html, '<template'));
+    $html = $markup($render($riga, ['advanced' => ['sku']]));
 
-    return str_contains($template, 'wi-repeater-advanced d-none');
+    return str_contains($html, 'name="products[row_1][sku]"')
+        && str_contains($html, 'MAG-9-S');
 });
 
 summary();

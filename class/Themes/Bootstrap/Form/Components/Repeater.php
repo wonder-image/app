@@ -177,7 +177,6 @@ HTML;
         $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body"><div class="row g-2 align-items-start">';
 
         $advancedHtml = '';
-        $advancedFilled = false;
 
         foreach ($columns as $column) {
             [$fieldHtml, $isHidden, $col] = $this->renderColumn($column, $name, $rowValue, $rowKey, $context);
@@ -191,10 +190,6 @@ HTML;
 
             if ($key !== '' && in_array($key, $advanced, true)) {
                 $advancedHtml .= '<div class="col-'.$col.'">'.$fieldHtml.'</div>';
-
-                if (!$template && $this->carriesValue($rowValue[$key] ?? null)) {
-                    $advancedFilled = true;
-                }
 
                 continue;
             }
@@ -215,16 +210,14 @@ HTML;
 
         if ($advancedHtml !== '') {
             $label = trim((string) ($context['advanced_label'] ?? '')) ?: 'Compila le informazioni avanzate';
-            $open = $advancedFilled ? '' : ' d-none';
-            $chevron = $advancedFilled ? 'bi-chevron-up' : 'bi-chevron-down';
 
             $html .= '<div class="col-12">'
                 .'<button type="button" class="btn btn-link btn-sm px-0 text-decoration-none wi-repeater-advanced-toggle"'
                 .' onclick="window.wiRepeaterToggleAdvanced(this)">'
-                .'<i class="bi '.$chevron.' me-1"></i>'.$this->escape($label)
+                .'<i class="bi bi-chevron-down me-1"></i>'.$this->escape($label)
                 .'</button>'
                 .'</div>';
-            $html .= '<div class="col-12 wi-repeater-advanced'.$open.'"><div class="row g-2 align-items-start">'
+            $html .= '<div class="col-12 wi-repeater-advanced d-none"><div class="row g-2 align-items-start">'
                 .$advancedHtml
                 .'</div></div>';
         }
@@ -242,20 +235,6 @@ HTML;
         }
 
         return is_array($column) ? trim((string) ($column['name'] ?? '')) : '';
-    }
-
-    /** Se una casella avanzata porta già qualcosa: allora la riga nasce aperta. */
-    private function carriesValue(mixed $value): bool
-    {
-        if (is_array($value)) {
-            return $value !== [];
-        }
-
-        if ($value === null || is_bool($value)) {
-            return $value === true;
-        }
-
-        return trim((string) $value) !== '';
     }
 
     private function renderColumn(mixed $column, string $name, array $rowValue, string $rowKey, array $context): array

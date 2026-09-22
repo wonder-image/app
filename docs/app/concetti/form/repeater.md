@@ -120,9 +120,11 @@ FormField::key('products')
 ```
 
 Le colonne avanzate restano nel DOM e vengono postate come tutte le altre:
-sono nascoste, non tolte. Una riga che ne ha già una piena nasce aperta —
-nascondere un dato che c'è lo fa sembrare perduto. Le larghezze dentro il
-blocco si contano su dodici, senza togliere niente per i bottoni.
+sono nascoste, non tolte. Il blocco nasce sempre chiuso, anche su una riga che
+ha già i suoi codici — molti di quei valori li propone il pannello, e una
+griglia in cui ogni riga si apre da sola è la griglia lunga da cui si
+scappava. Le larghezze dentro il blocco si contano su dodici, senza togliere
+niente per i bottoni.
 
 ## Righe raggruppate
 

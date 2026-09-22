@@ -180,8 +180,11 @@ class InputRepeater extends Input
      * blocco che si apre da un bottone, a tutta larghezza sotto le altre.
      * La riga resta corta e le caselle tornano larghe quanto devono.
      *
-     * Una riga che ha già qualcosa scritto in una colonna avanzata nasce
-     * aperta: nascondere un dato che c'è lo fa sembrare perduto.
+     * Il blocco nasce sempre chiuso, anche su una riga che ha già i suoi
+     * codici: molti di quei valori li propone il pannello, e una griglia in
+     * cui ogni riga si apre da sola è la griglia lunga da cui si scappava.
+     * I valori non si perdono — sono nascosti, non tolti — e il bottone dice
+     * cosa c'è sotto.
      */
     public function repeaterAdvanced(string ...$columnKeys): static
     {
