@@ -95,4 +95,19 @@ $check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family
 $plain = FormField::key('category_id')->select(['1' => 'A'])->render('bootstrap');
 $check(!str_contains($plain, 'data-wi-quick-create'), 'no trigger when not declared');
 
+// --- Il modal vive dentro il form della Resource ----------------------------
+// Un <form> annidato il browser lo scarta in fase di parsing: restava un
+// bottone submit che salvava il record, e i campi del modal venivano postati
+// insieme a quelli della scheda (un `name` nel modal vinceva su quello del
+// record). Niente form annidato, bottone non-submit, e il JS sposta i modal
+// in fondo al body.
+
+$check(!str_contains($html, '<form class="wi-qc-form"'), 'no nested form inside the resource form');
+$check(str_contains($html, '<div class="wi-qc-form">'), 'the modal body is a plain container');
+$check(!str_contains($html, 'type="submit"'), 'no submit button that would save the record');
+$check(str_contains($html, 'wi-qc-submit'), 'the save button is bound by class');
+$check(str_contains($html, 'data-wi-qc-endpoint'), 'the modal carries its endpoint');
+$check(str_contains($html, 'function detachModals'), 'the client moves the modals out of the form');
+$check(str_contains($html, 'function valuesOf'), 'the client collects the fields by itself');
+
 echo "OK: {$checks} checks passed\n";

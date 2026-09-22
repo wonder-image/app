@@ -153,14 +153,18 @@ abstract class Field extends AbstractFieldRenderer
             .' data-wi-qc-input="'.$this->escape($inputId).'"'
             .' data-wi-qc-family="'.$this->escape($family).'">'
             .'<div class="modal-dialog modal-dialog-centered"><div class="modal-content">'
-            .'<form class="wi-qc-form" onsubmit="return false">'
+            // Non un `<form>`: il modal nasce dentro il form della Resource, e
+            // un form annidato il browser lo butta via in fase di parsing —
+            // restava un bottone submit che salvava il record invece di
+            // creare la riga collegata.
+            .'<div class="wi-qc-form">'
             .'<div class="modal-header"><h5 class="modal-title">Aggiungi</h5>'
             .'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button></div>'
             .'<div class="modal-body"><div class="wi-qc-alert"></div>'.$hidden.$body.'</div>'
             .'<div class="modal-footer">'
             .'<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>'
-            .'<button type="submit" class="btn btn-primary">Salva</button>'
-            .'</div></form></div></div></div>';
+            .'<button type="button" class="btn btn-primary wi-qc-submit">Salva</button>'
+            .'</div></div></div></div></div>';
 
         return $trigger.$modal.self::quickCreateScript();
     }
@@ -219,24 +223,82 @@ abstract class Field extends AbstractFieldRenderer
     document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family } }));
   }
 
+  /** Svuota i campi del modal: `reset()` era del form che non c'è più. */
+  function resetFields(container) {
+    var fields = container.querySelectorAll('input:not([type="hidden"]), select, textarea');
+
+    for (var i = 0; i < fields.length; i++) {
+      if (fields[i].type === 'checkbox' || fields[i].type === 'radio') { fields[i].checked = false; }
+      else { fields[i].value = ''; }
+    }
+  }
+
   function showError(modal, msg) {
     var box = modal.querySelector('.wi-qc-alert');
     if (box) { box.innerHTML = '<div class="alert alert-danger py-2 mb-2">' + (msg || 'Errore') + '</div>'; }
     else if (window.alertToast) { window.alertToast('custom', 'error', 'Errore', msg || 'Errore'); }
   }
 
-  document.addEventListener('submit', function (ev) {
-    var form = ev.target;
-    if (!form.classList || !form.classList.contains('wi-qc-form')) return;
+  /*
+   * I modal escono dal form della Resource.
+   *
+   * Nascono dentro, perché li stampa il renderer del campo, e i loro input
+   * verrebbero postati insieme al record: un campo `name` nel modal e uno
+   * nella scheda, e vince l'ultimo — il prodotto si ritrovava col nome del
+   * marchio che stavi creando. Spostarli in fondo al body li toglie di mezzo.
+   */
+  function detachModals() {
+    var modals = document.querySelectorAll('.modal[data-wi-qc-endpoint]');
+    for (var i = 0; i < modals.length; i++) {
+      if (modals[i].parentElement !== document.body) { document.body.appendChild(modals[i]); }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', detachModals);
+  } else {
+    detachModals();
+  }
+
+  /** I campi del modal, che non sono più in un form da serializzare. */
+  function valuesOf(container) {
+    var data = new FormData();
+    var fields = container.querySelectorAll('[name]');
+
+    for (var i = 0; i < fields.length; i++) {
+      var field = fields[i];
+      if (field.disabled) continue;
+      if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) continue;
+
+      if (field.type === 'file') {
+        for (var f = 0; f < field.files.length; f++) { data.append(field.name, field.files[f]); }
+        continue;
+      }
+
+      if (field.multiple && field.selectedOptions) {
+        for (var o = 0; o < field.selectedOptions.length; o++) { data.append(field.name, field.selectedOptions[o].value); }
+        continue;
+      }
+
+      data.append(field.name, field.value);
+    }
+
+    return data;
+  }
+
+  document.addEventListener('click', function (ev) {
+    var button = ev.target.closest ? ev.target.closest('.wi-qc-submit') : null;
+    if (!button) return;
     ev.preventDefault();
-    var modal = form.closest('.modal');
-    if (!modal) return;
+    var form = button.closest('.wi-qc-form');
+    var modal = button.closest('.modal');
+    if (!form || !modal) return;
     var endpoint = modal.getAttribute('data-wi-qc-endpoint');
     if (!endpoint) { showError(modal, 'Endpoint non configurato.'); return; }
 
     fetch(endpoint, {
       method: 'POST',
-      body: new FormData(form),
+      body: valuesOf(form),
       credentials: 'same-origin',
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
@@ -245,7 +307,7 @@ abstract class Field extends AbstractFieldRenderer
         if (res && res.success) {
           var inputId = modal.getAttribute('data-wi-qc-input');
           optionInto(inputId ? document.getElementById(inputId) : null, modal.getAttribute('data-wi-qc-family'), res.id, res.label);
-          form.reset();
+          resetFields(form);
           var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
           if (window.bootstrap && window.bootstrap.Modal) {
             var m = window.bootstrap.Modal.getInstance(modal) || new window.bootstrap.Modal(modal);
