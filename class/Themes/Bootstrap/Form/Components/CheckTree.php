@@ -40,8 +40,16 @@ class CheckTree extends Field
         $inputHidden = $type === 'checkbox' ? '<input type="hidden" name="'.$this->escape($fieldName).'">' : '';
         $optionsHtml = $this->renderOptions($options, $fieldName, $value, $attributesStr);
 
+        // Di quale risorsa questo albero elenca le righe: chi crea una riga
+        // da un altro campo della stessa pagina lo legge per aggiungerla
+        // anche qui.
+        $listsResource = trim((string) ($this->schema['lists_resource'] ?? ''));
+        $listsAttr = $listsResource === ''
+            ? ''
+            : ' data-wi-qc-resource="'.$this->escape($listsResource).'"';
+
         return <<<HTML
-<div id="container-{$id}" class="w-100 wi-container-{$type} {$required}">
+<div id="container-{$id}" class="w-100 wi-container-{$type} {$required}"{$listsAttr}>
     <h6>{$label}</h6>
     <div class="card border mt-1">
         {$bar}

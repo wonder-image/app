@@ -207,6 +207,29 @@ class InputRepeater extends Input
         return $this->context('advanced_label', trim($label));
     }
 
+    /**
+     * Eliminare una riga la spegne invece di toglierla.
+     *
+     * La riga resta a schermo, sbiadita, con un bottone per ripensarci: i
+     * suoi campi stanno in un `fieldset` che si disabilita, e un fieldset
+     * spento non viene postato — che per il server vuol dire «questa riga
+     * non c'è più», la stessa cosa che diceva la riga tolta dal DOM.
+     *
+     * Serve dove cancellare è una decisione che si rimpiange: una riga
+     * appena eliminata per sbaglio, senza questo, si ricostruisce a mano.
+     */
+    public function repeaterUndoDelete(bool $undo = true): static
+    {
+        return $this->context('undo_delete', $undo);
+    }
+
+    /** Le parole del bottone che rimette la riga, e della frase accanto. */
+    public function repeaterUndoLabel(string $label, string $text = ''): static
+    {
+        return $this->context('undo_label', trim($label))
+            ->context('undo_text', trim($text));
+    }
+
     public function repeaterGroupCollapsed(bool $collapsed = true): static
     {
         return $this->context('group_collapsed', $collapsed);

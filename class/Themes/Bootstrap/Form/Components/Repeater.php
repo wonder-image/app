@@ -125,6 +125,13 @@ class Repeater extends Field
         // Il nome del campo sul contenitore: chi genera righe da fuori trova
         // il repeater senza dipendere da un id che cambia a ogni render.
         $nameAttr = $this->escape($name);
+        // Con le righe annullabili si possono spegnere tutte: senza questa
+        // sentinella il browser non posterebbe più la chiave del repeater, e
+        // chi a valle controlla «il repeater c'è ma è vuoto» non avrebbe più
+        // niente da guardare. Non è un array, quindi le righe non la vedono.
+        $sentinel = ($context['undo_delete'] ?? false) === true
+            ? '<input type="hidden" name="'.$nameAttr.'[__wi_present]" value="1">'
+            : '';
         // Senza etichetta niente titolo: il riquadro che contiene il repeater
         // ha già il suo, e due titoli uguali di fila si leggono male.
         $heading = trim($label) === '' ? '' : "<h6>{$label}</h6>";
@@ -134,6 +141,7 @@ class Repeater extends Field
     {$heading}
     {$groupBarHtml}
     <div id="{$rowId}" class="row g-2"{$rowsAttrs}>
+        {$sentinel}
         {$rowsHtml}
     </div>
     <template id="{$templateId}">{$templateHtml}</template>
@@ -173,8 +181,15 @@ HTML;
             (array) ($context['advanced'] ?? [])
         ), static fn (string $key): bool => $key !== ''));
 
+        // I campi stanno in un `fieldset`: disabilitandolo escono dal POST
+        // — `FormData` salta i controlli dentro un fieldset spento, FilePond
+        // compreso — ed è così che una riga «eliminata» resta a schermo senza
+        // arrivare al salvataggio.
+        $undoDelete = ($context['undo_delete'] ?? false) === true;
+
         $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}>";
-        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body"><div class="row g-2 align-items-start">';
+        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
+            .'<fieldset class="row g-2 align-items-start border-0 p-0 m-0">';
 
         $advancedHtml = '';
 
@@ -222,7 +237,21 @@ HTML;
                 .'</div></div>';
         }
 
-        $html .= '</div></div></div></div>';
+        $html .= '</fieldset>';
+
+        if ($undoDelete) {
+            $label = trim((string) ($context['undo_label'] ?? '')) ?: 'Annulla';
+            $text = trim((string) ($context['undo_text'] ?? '')) ?: 'Questa riga verrà eliminata al salvataggio.';
+
+            $html .= '<div class="wi-repeater-row-undo d-none mt-2 d-flex align-items-center gap-2">'
+                .'<button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.wiRepeaterUndoRemoveRow(this)">'
+                .'<i class="bi bi-arrow-counterclockwise me-1"></i>'.$this->escape($label)
+                .'</button>'
+                .'<span class="small text-body-secondary">'.$this->escape($text).'</span>'
+                .'</div>';
+        }
+
+        $html .= '</div></div></div>';
 
         return $html;
     }
@@ -577,11 +606,31 @@ HTML;
             confirmClass: button.getAttribute('data-wi-delete-confirm-class') || 'btn btn-danger',
         };
         window.wiRepeaterConfirmDelete(function () {
+            const undo = row.querySelector('.wi-repeater-row-undo');
+
+            // Con l'annullamento la riga non se ne va: si spegne. Il fieldset
+            // disabilitato la toglie dal POST, che per il server vuol dire
+            // «cancellala», ma a schermo resta con il suo bottone per
+            // ripensarci.
+            if (undo) {
+                const fieldset = row.querySelector('fieldset');
+                if (fieldset) fieldset.disabled = true;
+                row.classList.add('wi-repeater-row-deleted', 'opacity-50');
+                undo.classList.remove('d-none');
+                row.dispatchEvent(new CustomEvent('wi-repeater-row-delete', { bubbles: true }));
+
+                if (typeof window.wiRepeaterGroupRefresh === 'function') {
+                    window.wiRepeaterGroupRefresh(container);
+                }
+
+                return;
+            }
+
             // Svuotare invece di togliere ha senso finché si può aggiungerne
             // un'altra: senza il bottone resterebbe una riga vuota per sempre.
             const canAddRows = container.dataset.wiAddButton !== 'false';
 
-            if (canAddRows && container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
+            if (canAddRows && container.querySelectorAll('.wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)').length <= 1) {
                 row.querySelectorAll('input, textarea, select').forEach((input) => {
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         input.checked = false;
@@ -597,6 +646,22 @@ HTML;
                 window.wiRepeaterGroupRefresh(container);
             }
         }, deleteConfig);
+    };
+
+    window.wiRepeaterUndoRemoveRow = window.wiRepeaterUndoRemoveRow || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        const container = row ? row.parentElement : null;
+        if (!row || !container) return;
+        const fieldset = row.querySelector('fieldset');
+        if (fieldset) fieldset.disabled = false;
+        row.classList.remove('wi-repeater-row-deleted', 'opacity-50');
+        const undo = row.querySelector('.wi-repeater-row-undo');
+        if (undo) undo.classList.add('d-none');
+        row.dispatchEvent(new CustomEvent('wi-repeater-row-restore', { bubbles: true }));
+
+        if (typeof window.wiRepeaterGroupRefresh === 'function') {
+            window.wiRepeaterGroupRefresh(container);
+        }
     };
 
     window.wiRepeaterMoveRowUp = window.wiRepeaterMoveRowUp || function (button) {
@@ -696,7 +761,12 @@ HTML;
             const bucket = buckets.get(key);
             const fragment = template.content.cloneNode(true);
             const header = fragment.querySelector('.wi-repeater-group-header');
-            const count = bucket.rows.length;
+            // Le righe annullate restano nel loro gruppo — spostarle
+            // scombinerebbe la lettura — ma non si contano: dicono «questa
+            // non la vendo più».
+            const count = bucket.rows.filter(function (r) {
+                return !r.classList.contains('wi-repeater-row-deleted');
+            }).length;
 
             // Un template che non è quello delle testate: meglio nessun gruppo
             // che una pagina che si ferma a metà.

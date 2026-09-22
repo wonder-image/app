@@ -29,6 +29,17 @@
 
         }
 
+        /**
+         * Le voci come pillole in linea invece che incolonnate in un
+         * riquadro che scorre.
+         */
+        public function pills(bool $pills = true): self
+        {
+
+            return $this->schema('pills', $pills);
+
+        }
+
         protected function renderInput(): string {
 
             return '';

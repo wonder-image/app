@@ -180,12 +180,16 @@ abstract class Field extends AbstractFieldRenderer
         $attributes = 'data-wi-quick-create="'.$this->escape($modalId).'"'
             .' data-wi-qc-input="'.$this->escape($inputId).'"'
             .' data-wi-qc-family="'.$this->escape($family).'"'
+            .' data-wi-qc-resource="'.$this->escape($slug).'"'
             .' data-bs-toggle="modal" data-bs-target="#'.$this->escape($modalId).'"';
 
         $modal = '<div class="modal fade" id="'.$this->escape($modalId).'" tabindex="-1" aria-hidden="true"'
             .' data-wi-qc-endpoint="'.$this->escape($endpoint).'"'
             .' data-wi-qc-input="'.$this->escape($inputId).'"'
-            .' data-wi-qc-family="'.$this->escape($family).'">'
+            .' data-wi-qc-family="'.$this->escape($family).'"'
+            // Quale risorsa nasce da qui: serve a chi, nella stessa pagina,
+            // elenca le stesse righe e deve accorgersi della nuova.
+            .' data-wi-qc-resource="'.$this->escape($slug).'">'
             .'<div class="modal-dialog modal-dialog-centered"><div class="modal-content">'
             // Non un `<form>`: il modal nasce dentro il form della Resource, e
             // un form annidato il browser lo butta via in fase di parsing —
@@ -276,7 +280,7 @@ abstract class Field extends AbstractFieldRenderer
    * l'adapter della lib (src/build/backend/js/form/quickCreate.js), che sa
    * ridisegnarli. jstree resta un limite noto (nodi non creabili a runtime).
    */
-  function optionInto(input, family, id, label) {
+  function optionInto(input, family, id, label, resource) {
     if (input) {
       if (input.tagName === 'SELECT' && !input.matches('[data-wi-select-search]')) {
         appendOption(input, id, label);
@@ -284,7 +288,7 @@ abstract class Field extends AbstractFieldRenderer
         appendCheck(input.closest('[data-wi-qc-group]') || input, id, label);
       }
     }
-    document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family } }));
+    document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family, resource: resource || '' } }));
   }
 
   /** Svuota i campi del modal: `reset()` era del form che non c'è più. */
@@ -403,7 +407,7 @@ abstract class Field extends AbstractFieldRenderer
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (res && res.success) {
-          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), res.id, res.label);
+          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), res.id, res.label, modal.getAttribute('data-wi-qc-resource'));
           resetFields(form);
           var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
           if (window.bootstrap && window.bootstrap.Modal) {

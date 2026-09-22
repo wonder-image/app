@@ -8,6 +8,7 @@ use Wonder\App\ResourceSchema\Inputs\Concerns\HasInputType;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasOptions;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasSearchBar;
+use Wonder\App\ResourceSchema\Inputs\Concerns\ListsResource;
 use Wonder\Elements\Form\Components\CheckTree;
 use Wonder\Elements\Form\Field as ElementField;
 
@@ -22,6 +23,7 @@ class InputCheckTree extends Input
     use BuildsCheckGroupElement;
     use HasOptions;
     use HasSearchBar;
+    use ListsResource;
     use HasQuickCreate;
     use HasInputType;
 

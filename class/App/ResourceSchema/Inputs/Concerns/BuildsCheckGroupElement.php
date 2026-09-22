@@ -18,6 +18,7 @@ trait BuildsCheckGroupElement
         return (new CheckGroup($this->name))
             ->options($this->normalizedOptions())
             ->searchBar((bool) ($this->schema['search_bar'] ?? false))
+            ->pills((bool) ($this->schema['pills'] ?? false))
             ->inputType($inputType)
             ->value($this->groupValue($inputType));
     }

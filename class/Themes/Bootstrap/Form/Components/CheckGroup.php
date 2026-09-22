@@ -27,6 +27,21 @@ class CheckGroup extends Field
         $bar = $searchBar ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : '';
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
         $inputHidden = $type === 'checkbox' ? '<input type="hidden" name="'.$this->escape($fieldName).'">' : '';
+
+        if (!empty($this->schema['pills'])) {
+            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes);
+
+            return <<<HTML
+<div id="container-{$id}" class="w-100 wi-container-{$type} wi-check-pills {$required}">
+    <h6 class="small text-body-secondary mb-1">{$label}</h6>
+    {$inputHidden}
+    <div class="d-flex flex-wrap gap-1">
+        {$pillsHtml}
+    </div>
+</div>
+HTML;
+        }
+
         $optionsHtml = $this->renderOptions($options, $type, $fieldName, $value, $attributes);
 
         return <<<HTML
@@ -41,6 +56,46 @@ class CheckGroup extends Field
     </div>
 </div>
 HTML;
+    }
+
+    /**
+     * Le voci come pillole: la spunta è il bottone stesso.
+     *
+     * Niente annidamento e niente barra di ricerca — le pillole servono agli
+     * elenchi corti, quelli che si leggono tutti in una riga; per un elenco
+     * lungo resta il riquadro che scorre.
+     */
+    private function renderPills(array $options, string $type, string $name, mixed $value, string $attributes): string
+    {
+        $html = '';
+
+        foreach ($options as $optionValue => $optionName) {
+            if (is_array($optionName)) {
+                $optionName = (string) ($optionName['name'] ?? $optionValue);
+            }
+
+            $checked = '';
+
+            if (is_array($value)) {
+                $checked = in_array($optionValue, $value, true) ? ' checked' : '';
+            } elseif ($value !== null && (string) $value === (string) $optionValue) {
+                $checked = ' checked';
+            }
+
+            $escapedValue = $this->escape((string) $optionValue);
+            $escapedLabel = $this->escape((string) $optionName);
+            $escapedId = $this->escape($type.'-'.$name.'-'.$optionValue);
+            $escapedType = $this->escape($type);
+            $escapedName = $this->escape($name);
+            $optionAttributes = trim($attributes);
+
+            $html .= <<<HTML
+<input class="btn-check" type="{$escapedType}" name="{$escapedName}" value="{$escapedValue}" id="{$escapedId}" autocomplete="off" data-wi-check="true" {$optionAttributes}{$checked}>
+<label class="btn btn-sm btn-outline-secondary wi-check-label user-select-none" for="{$escapedId}">{$escapedLabel}</label>
+HTML;
+        }
+
+        return $html;
     }
 
     private function renderOptions(array $options, string $type, string $name, mixed $value, string $attributes): string

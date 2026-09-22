@@ -27,6 +27,21 @@ class InputCheckbox extends Input
     protected string $helper = 'checkbox';
 
     /**
+     * Le voci come pillole in linea, senza il riquadro che scorre.
+     *
+     * Una colonna di spunte alta centoventi pixel dice «qui c'è un elenco
+     * lungo»; cinque taglie non sono un elenco lungo, e incolonnarle in un
+     * riquadro con la barra di scorrimento occupa dieci volte lo spazio di
+     * quello che mostra.
+     */
+    public function pills(bool $pills = true): static
+    {
+        $this->schema['pills'] = $pills;
+
+        return $this;
+    }
+
+    /**
      * Senza opzioni un singolo checkbox booleano; con opzioni un gruppo.
      */
     protected function element(): ElementField
