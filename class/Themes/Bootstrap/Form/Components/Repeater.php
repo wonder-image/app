@@ -4,6 +4,7 @@ namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\Support\RepeaterGroups;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class Repeater extends Field
@@ -45,10 +46,38 @@ class Repeater extends Field
             $value = ['row_1' => []];
         }
 
+        $groupBy = array_values(array_filter(
+            array_map(static fn ($key): string => trim((string) $key), (array) ($context['group_by'] ?? [])),
+            static fn (string $key): bool => $key !== '' && RepeaterGroups::columnByKey($columns, $key) !== null
+        ));
+
+        // Con una riga sola non c'è niente da raggruppare, e la barra sarebbe
+        // solo un comando in più da leggere.
+        $groupable = $groupBy !== [] && count($value) > 1;
+        $groupTemplateId = $id.'-group-template';
+        $groups = $groupable ? RepeaterGroups::of($columns, $value, $groupBy) : [];
+        $groupAttrs = $groupable
+            ? ' data-wi-group-template="'.$this->escape($groupTemplateId).'"'
+                .' data-wi-group-collapsed="'.(!empty($context['group_collapsed']) ? 'true' : 'false').'"'
+            : '';
+        $groupBarHtml = $groupable ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy) : '';
+        $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context) : '';
+        $groupInitHtml = $groupable
+            ? "<script>window.wiRepeaterGroupInit('{$rowId}', '{$groupTemplateId}', '{$id}-groupby');</script>"
+            : '';
+
         $rowsHtml = '';
 
         foreach ($value as $rowKey => $rowValue) {
-            $rowsHtml .= $this->renderRow($columns, $name, is_array($rowValue) ? $rowValue : [], (string) $rowKey, false, $context);
+            $rowsHtml .= $this->renderRow(
+                $columns,
+                $name,
+                is_array($rowValue) ? $rowValue : [],
+                (string) $rowKey,
+                false,
+                $context,
+                $groups[(string) $rowKey] ?? []
+            );
         }
 
         $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
@@ -59,19 +88,22 @@ class Repeater extends Field
         return <<<HTML
 <div id="{$id}" class="w-100 wi-input-repeater">
     {$heading}
-    <div id="{$rowId}" class="row g-2">
+    {$groupBarHtml}
+    <div id="{$rowId}" class="row g-2"{$groupAttrs}>
         {$rowsHtml}
     </div>
     <template id="{$templateId}">{$templateHtml}</template>
+    {$groupTemplateHtml}
     <div class="mt-2 d-flex justify-content-end">
         <button type="button" class="{$addButtonClass}" onclick="window.wiRepeaterAddRow('{$rowId}', '{$templateId}')"><i class="bi bi-plus-lg"></i> {$addLabel}</button>
     </div>
     {$this->script()}
+    {$groupInitHtml}
 </div>
 HTML;
     }
 
-    private function renderRow(array $columns, string $name, array $rowValue, string $rowKey, bool $template, array $context): string
+    private function renderRow(array $columns, string $name, array $rowValue, string $rowKey, bool $template, array $context, array $groupData = []): string
     {
         $sortable = !empty($context['sortable']);
         $rowClass = $template ? ' d-none' : '';
@@ -84,7 +116,15 @@ HTML;
             $this->escape((string) ($context['delete_modal_confirm_class'] ?? 'btn btn-danger')),
         );
 
-        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\">";
+        $groupAttrs = '';
+
+        foreach ($groupData as $columnKey => $info) {
+            $columnKey = $this->escape((string) $columnKey);
+            $groupAttrs .= ' data-wi-group-'.$columnKey.'="'.$this->escape((string) ($info['value'] ?? '')).'"'
+                .' data-wi-group-label-'.$columnKey.'="'.$this->escape((string) ($info['label'] ?? '')).'"';
+        }
+
+        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}>";
         $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body"><div class="row g-2 align-items-start">';
 
         foreach ($columns as $column) {
@@ -246,6 +286,62 @@ HTML;
         }
 
         return max(1, min(12, $span));
+    }
+
+    /** La barra "Raggruppa per": una voce per colonna dichiarata, più "Nessuno". */
+    private function renderGroupBar(string $id, string $rowsId, string $templateId, array $columns, array $groupBy): string
+    {
+        $options = '<option value="">Nessuno</option>';
+
+        foreach ($groupBy as $key) {
+            $column = RepeaterGroups::columnByKey($columns, $key);
+            $label = RepeaterGroups::labelOfColumn($column);
+            $options .= '<option value="'.$this->escape($key).'">'
+                .$this->escape($label !== '' ? $label : $key).'</option>';
+        }
+
+        return '<div class="wi-repeater-groupbar d-flex align-items-center gap-2 mb-2">'
+            .'<label class="form-label mb-0 small text-body-secondary" for="'.$this->escape($id).'-groupby">Raggruppa per</label>'
+            .'<select id="'.$this->escape($id).'-groupby" class="form-select form-select-sm w-auto wi-repeater-groupby"'
+            .' onchange="window.wiRepeaterGroupApply(\''.$rowsId.'\', \''.$templateId.'\', this.value)">'
+            .$options
+            .'</select></div>';
+    }
+
+    /**
+     * Il modello della testata di gruppo.
+     *
+     * Sta in un `<template>` e non fra le righe di proposito: una testata nel
+     * contenitore sarebbe una riga finta, che il posting e i conteggi
+     * dovrebbero imparare a saltare.
+     */
+    private function renderGroupTemplate(string $templateId, array $context): string
+    {
+        $command = is_array($context['group_command'] ?? null) ? $context['group_command'] : [];
+        $countLabel = is_array($context['group_count_label'] ?? null) ? $context['group_count_label'] : [];
+        $singular = $this->escape((string) ($countLabel['singular'] ?? 'riga'));
+        $plural = $this->escape((string) ($countLabel['plural'] ?? 'righe'));
+        $commandHtml = '';
+
+        if (($command['column'] ?? '') !== '') {
+            $commandHtml = '<div class="ms-auto wi-repeater-group-command" style="max-width:14rem"'
+                .' data-wi-command-column="'.$this->escape((string) $command['column']).'">'
+                .'<input type="text" class="form-control form-control-sm"'
+                .' placeholder="'.$this->escape((string) ($command['label'] ?? '')).'"'
+                .' oninput="window.wiRepeaterGroupCommand(this)">'
+                .'</div>';
+        }
+
+        return '<template id="'.$this->escape($templateId).'">'
+            .'<div class="col-12 wi-repeater-group-header"'
+            .' data-wi-count-singular="'.$singular.'" data-wi-count-plural="'.$plural.'">'
+            .'<div class="card border-0 bg-body-secondary"><div class="card-body py-2 d-flex align-items-center gap-2">'
+            .'<button type="button" class="btn btn-sm btn-link text-decoration-none p-0 wi-repeater-group-toggle"'
+            .' onclick="window.wiRepeaterGroupToggle(this)"><i class="bi bi-chevron-down"></i></button>'
+            .'<strong class="wi-repeater-group-label"></strong>'
+            .'<span class="small text-body-secondary wi-repeater-group-count"></span>'
+            .$commandHtml
+            .'</div></div></div></template>';
     }
 
     private function script(): string
