@@ -83,7 +83,9 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterDeleteCancelLabel($s)`, `repeaterDeleteConfirmLabel($s)`,
 `repeaterDeleteConfirmClass($s)`, `relation($relation)`,
 `repeaterGroupBy(...$colonne)`, `repeaterGroupCommand($colonna, $etichetta)`,
-`repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`.
+`repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`,
+`repeaterGroupFixed($colonna)`, `repeaterAddButton($b = true)`,
+`repeaterStartEmpty($b = true)`.
 
 ## Righe raggruppate
 
@@ -127,6 +129,47 @@ Quello che v1 **non** fa:
 Il selettore compare solo se le righe sono più di una, e la scelta si ricorda
 in `localStorage` sul **nome del campo** (l'id del repeater lo genera il
 render, cambia a ogni caricamento).
+
+### Quando i gruppi sono il significato
+
+`repeaterGroupFixed('colonna')` raggruppa **sempre** per quella colonna: niente
+selettore — non c'è niente da scegliere — e i gruppi ci sono anche quando la
+riga è una sola. Si usa quando senza i gruppi non si capisce cosa si sta
+leggendo: le taglie di un colore, le righe di un documento.
+
+Con la colonna decisa il riordino a mano si spegne da sé (`sortable` torna
+falso), così la colonna dei bottoni non resta larga e vuota, e la memoria in
+`localStorage` non si scrive: ricorderebbe una scelta che nessuno ha fatto.
+
+Una colonna fissa che non esiste fra quelle dichiarate non raggruppa niente,
+come già succede alle colonne di `repeaterGroupBy()`.
+
+## Righe che nascono da fuori
+
+Un repeater si compila a mano, ma può anche ricevere le righe da altro codice
+della pagina — una spunta, un calcolo, un elenco che arriva da un'API:
+
+```php
+FormField::key('products')
+    ->repeater([...])
+    ->repeaterGroupFixed('variant')
+    ->repeaterAddButton(false)   // le righe non si aggiungono a mano
+    ->repeaterStartEmpty();      // e senza righe non se ne mostra una vuota
+```
+
+- `repeaterAddButton(false)` toglie il bottone «Aggiungi». Con il bottone via,
+  anche l'**ultima** riga si può eliminare: la guardia che la svuota invece di
+  toglierla esiste perché se ne possa aggiungere un'altra.
+- `repeaterStartEmpty()` non stampa la riga vuota di cortesia. Senza, quella
+  riga viene postata comunque e a valle diventa un record senza niente dentro.
+- `window.wiRepeaterAddRow(contenitoreId, templateId, chiave)` aggiunge una
+  riga e **la restituisce**, così chi l'ha chiesta la riempie. La chiave è
+  facoltativa: passandola, i campi si chiamano `campo[chiave][colonna]` — utile
+  quando la riga corrisponde a qualcosa che ha già un nome altrove. Viene
+  ripulita di tutto ciò che non è lettera, cifra, trattino o underscore, e una
+  chiave già presente non crea una seconda riga (nel posting si fonderebbero).
+- Il contenitore esterno porta `data-wi-repeater="<nome del campo>"`: è la
+  maniglia per trovarlo senza dipendere dall'id, che cambia a ogni render.
 
 ## RepeaterRelation
 

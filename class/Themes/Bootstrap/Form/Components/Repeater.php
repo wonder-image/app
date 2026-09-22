@@ -42,7 +42,10 @@ class Repeater extends Field
             ]];
         }
 
-        if ($value === []) {
+        // Un form che si compila a mano parte con una riga pronta; uno che le
+        // righe le riceve da altrove parte vuoto, o quella riga finta viene
+        // postata e a valle diventa un record senza niente dentro.
+        if ($value === [] && ($context['start_empty'] ?? false) !== true) {
             $value = ['row_1' => []];
         }
 
@@ -51,23 +54,46 @@ class Repeater extends Field
             static fn (string $key): bool => $key !== '' && RepeaterGroups::columnByKey($columns, $key) !== null
         ));
 
+        // Il raggruppamento fisso decide da solo: una colonna, sempre quella.
+        // Una colonna che non esiste non raggruppa niente, come già succede a
+        // quelle dichiarate con `repeaterGroupBy()`.
+        $groupFixed = trim((string) ($context['group_fixed'] ?? ''));
+
+        if ($groupFixed !== '' && RepeaterGroups::columnByKey($columns, $groupFixed) === null) {
+            $groupFixed = '';
+        }
+
+        if ($groupFixed !== '') {
+            $groupBy = [$groupFixed];
+            // Le frecce di riordino, con i gruppi accesi, sposterebbero una
+            // riga dentro un ordine già deciso: il render le nasconde, e il
+            // loro posto vuoto sballerebbe le larghezze.
+            $context['sortable'] = false;
+        }
+
         // Con una riga sola non c'è niente da raggruppare, e la barra sarebbe
-        // solo un comando in più da leggere.
-        $groupable = $groupBy !== [] && count($value) > 1;
+        // solo un comando in più da leggere. A meno che i gruppi non siano
+        // parte del significato: allora ci sono da subito.
+        $groupable = $groupBy !== [] && ($groupFixed !== '' || count($value) > 1);
         $groupTemplateId = $id.'-group-template';
         $groups = $groupable ? RepeaterGroups::of($columns, $value, $groupBy) : [];
         $groupAttrs = $groupable
             ? ' data-wi-group-template="'.$this->escape($groupTemplateId).'"'
                 .' data-wi-group-collapsed="'.(!empty($context['group_collapsed']) ? 'true' : 'false').'"'
+                .($groupFixed !== '' ? ' data-wi-group-fixed="true"' : '')
             : '';
-        $groupBarHtml = $groupable ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy) : '';
+        // Niente tendina quando la colonna è decisa: non c'è niente da scegliere.
+        $groupBarHtml = $groupable && $groupFixed === ''
+            ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy)
+            : '';
         $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context) : '';
         // La scelta si ricorda sul **nome** del campo, non sull'id: l'id del
         // repeater lo genera il render, cambia a ogni caricamento, e una
         // memoria con una chiave nuova ogni volta non ricorda niente.
         $groupMemory = $this->escape($name);
+        $groupFixedAttr = $this->escape($groupFixed);
         $groupInitHtml = $groupable
-            ? "<script>window.wiRepeaterGroupInit('{$rowId}', '{$groupTemplateId}', '{$id}-groupby', '{$groupMemory}');</script>"
+            ? "<script>window.wiRepeaterGroupInit('{$rowId}', '{$groupTemplateId}', '{$id}-groupby', '{$groupMemory}', '{$groupFixedAttr}');</script>"
             : '';
 
         $rowsHtml = '';
@@ -85,22 +111,34 @@ class Repeater extends Field
         }
 
         $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
+        $addButton = ($context['add_button'] ?? true) !== false;
+        $addButtonHtml = $addButton
+            ? '<div class="mt-2 d-flex justify-content-end">'
+                .'<button type="button" class="'.$addButtonClass.'"'
+                ." onclick=\"window.wiRepeaterAddRow('{$rowId}', '{$templateId}')\">"
+                .'<i class="bi bi-plus-lg"></i> '.$addLabel.'</button></div>'
+            : '';
+        // Senza il bottone la riga resta una sola per sempre: la guardia che
+        // impedisce di svuotare il contenitore non ha più senso, perché
+        // nessuno potrebbe rimetterne una.
+        $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"');
+        // Il nome del campo sul contenitore: chi genera righe da fuori trova
+        // il repeater senza dipendere da un id che cambia a ogni render.
+        $nameAttr = $this->escape($name);
         // Senza etichetta niente titolo: il riquadro che contiene il repeater
         // ha già il suo, e due titoli uguali di fila si leggono male.
         $heading = trim($label) === '' ? '' : "<h6>{$label}</h6>";
 
         return <<<HTML
-<div id="{$id}" class="w-100 wi-input-repeater">
+<div id="{$id}" class="w-100 wi-input-repeater" data-wi-repeater="{$nameAttr}">
     {$heading}
     {$groupBarHtml}
-    <div id="{$rowId}" class="row g-2"{$groupAttrs}>
+    <div id="{$rowId}" class="row g-2"{$rowsAttrs}>
         {$rowsHtml}
     </div>
     <template id="{$templateId}">{$templateHtml}</template>
     {$groupTemplateHtml}
-    <div class="mt-2 d-flex justify-content-end">
-        <button type="button" class="{$addButtonClass}" onclick="window.wiRepeaterAddRow('{$rowId}', '{$templateId}')"><i class="bi bi-plus-lg"></i> {$addLabel}</button>
-    </div>
+    {$addButtonHtml}
     {$this->script()}
     {$groupInitHtml}
 </div>
@@ -352,13 +390,30 @@ HTML;
     {
         return <<<'HTML'
 <script>
-    window.wiRepeaterAddRow = window.wiRepeaterAddRow || function (containerId, templateId) {
+    window.wiRepeaterAddRow = window.wiRepeaterAddRow || function (containerId, templateId, rowKey) {
         const container = document.getElementById(containerId);
         const template = document.getElementById(templateId);
-        if (!container || !template) return;
+        if (!container || !template) return null;
+
+        // La chiave finisce dentro i `name` dei campi: una virgoletta o una
+        // parentesi quadra li spezzerebbe, e il posting diventerebbe
+        // imprevedibile. Si normalizza qui, non fidandosi di chi chiama.
+        rowKey = String(rowKey === null || rowKey === undefined ? '' : rowKey)
+            .trim()
+            .replace(/[^A-Za-z0-9_-]/g, '');
+
+        if (rowKey === '') {
+            rowKey = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        }
+
+        // Due righe con la stessa chiave si fondono già dentro il posting: la
+        // seconda cancellerebbe la prima senza che nessuno se ne accorga.
+        if (container.querySelector('.wi-repeater-row[data-wi-row-key="' + rowKey + '"]')) {
+            return null;
+        }
+
         const fragment = template.content.cloneNode(true);
         const row = fragment.querySelector('.wi-repeater-row');
-        const rowKey = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
         if (row) {
             row.classList.remove('d-none');
             row.setAttribute('data-wi-row-key', rowKey);
@@ -383,6 +438,9 @@ HTML;
         if (typeof window.wiRepeaterGroupRefresh === 'function') {
             window.wiRepeaterGroupRefresh(container);
         }
+
+        // Chi ha chiesto la riga la vuole anche riempire.
+        return row;
     };
 
     window.wiRepeaterEnsureDeleteModal = window.wiRepeaterEnsureDeleteModal || function (config = {}) {
@@ -457,7 +515,11 @@ HTML;
             confirmClass: button.getAttribute('data-wi-delete-confirm-class') || 'btn btn-danger',
         };
         window.wiRepeaterConfirmDelete(function () {
-            if (container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
+            // Svuotare invece di togliere ha senso finché si può aggiungerne
+            // un'altra: senza il bottone resterebbe una riga vuota per sempre.
+            const canAddRows = container.dataset.wiAddButton !== 'false';
+
+            if (canAddRows && container.querySelectorAll('.wi-repeater-row:not(.d-none)').length <= 1) {
                 row.querySelectorAll('input, textarea, select').forEach((input) => {
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         input.checked = false;
@@ -524,8 +586,13 @@ HTML;
         container.dataset.wiGroupColumn = columnKey;
         container.dataset.wiGroupTemplate = templateId;
 
-        const memory = container.dataset.wiGroupMemory || rowsId;
-        try { window.localStorage.setItem('wi-repeater-group:' + memory, columnKey); } catch (error) {}
+        // La memoria serve a ricordare una scelta: con la colonna fissa non
+        // c'è nessuna scelta da ricordare, e scriverla qui la preselezionerebbe
+        // altrove, dove invece si sceglie.
+        if (container.dataset.wiGroupFixed !== 'true') {
+            const memory = container.dataset.wiGroupMemory || rowsId;
+            try { window.localStorage.setItem('wi-repeater-group:' + memory, columnKey); } catch (error) {}
+        }
 
         container.querySelectorAll(':scope > .wi-repeater-group-header').forEach(function (header) {
             header.remove();
@@ -701,21 +768,26 @@ HTML;
         );
     };
 
-    window.wiRepeaterGroupInit = window.wiRepeaterGroupInit || function (rowsId, templateId, selectId, memoryKey) {
+    window.wiRepeaterGroupInit = window.wiRepeaterGroupInit || function (rowsId, templateId, selectId, memoryKey, fixedColumn) {
         const container = document.getElementById(rowsId);
         const select = document.getElementById(selectId);
-        if (!container || !select) return;
+        fixedColumn = String(fixedColumn || '');
+        if (!container || (!select && fixedColumn === '')) return;
 
         container.dataset.wiGroupMemory = memoryKey || rowsId;
 
-        let remembered = '';
-        try { remembered = window.localStorage.getItem('wi-repeater-group:' + container.dataset.wiGroupMemory) || ''; } catch (error) {}
+        let remembered = fixedColumn;
 
-        const known = Array.prototype.slice.call(select.options).some(function (option) {
-            return option.value === remembered;
-        });
+        // Con la colonna decisa non si legge niente da nessuna parte: quella è.
+        if (fixedColumn === '') {
+            try { remembered = window.localStorage.getItem('wi-repeater-group:' + container.dataset.wiGroupMemory) || ''; } catch (error) {}
 
-        if (!known) remembered = '';
+            const known = Array.prototype.slice.call(select.options).some(function (option) {
+                return option.value === remembered;
+            });
+
+            if (!known) remembered = '';
+        }
 
         if (!container.dataset.wiGroupBound) {
             container.dataset.wiGroupBound = 'true';
@@ -730,7 +802,8 @@ HTML;
             });
         }
 
-        select.value = remembered;
+        if (select) select.value = fixedColumn === '' ? remembered : '';
+
         container.dataset.wiGroupTemplate = templateId;
         window.wiRepeaterGroupApply(rowsId, templateId, remembered);
     };

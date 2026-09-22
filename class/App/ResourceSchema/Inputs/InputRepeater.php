@@ -124,6 +124,53 @@ class InputRepeater extends Input
             : $this->context('group_command', ['column' => $columnKey, 'label' => trim($label)]);
     }
 
+    /**
+     * Raggruppa sempre per questa colonna: niente selettore, e i gruppi ci
+     * sono anche quando la riga è una sola.
+     *
+     * `repeaterGroupBy()` offre una comodità a chi guarda; questo dichiara che
+     * il raggruppamento **è parte del significato** — le taglie di un colore,
+     * le righe di un documento — e che senza non si capisce cosa si sta
+     * leggendo. Per questo la tendina non si stampa: non c'è niente da
+     * scegliere.
+     *
+     * Con il raggruppamento fisso il riordino a mano si spegne: le frecce
+     * spostano una riga dentro un ordine che i gruppi hanno già deciso.
+     */
+    public function repeaterGroupFixed(string $columnKey): static
+    {
+        $columnKey = trim($columnKey);
+
+        return $columnKey === ''
+            ? $this
+            : $this->context('group_fixed', $columnKey)->context('group_by', [$columnKey]);
+    }
+
+    /**
+     * Il bottone che aggiunge una riga a mano.
+     *
+     * Si toglie quando le righe non le scrive chi guarda ma qualcos'altro —
+     * una spunta altrove nella pagina, un calcolo — e una riga vuota aggiunta
+     * a mano sarebbe solo una riga da cancellare.
+     */
+    public function repeaterAddButton(bool $visible = true): static
+    {
+        return $this->context('add_button', $visible);
+    }
+
+    /**
+     * Senza righe da mostrare, il repeater ne stampa una vuota: con questo
+     * non la stampa.
+     *
+     * La riga finta è comoda in un form che si compila a mano, ma quando le
+     * righe arrivano da altrove viene postata comunque, e a valle diventa un
+     * record vuoto da riconoscere e scartare.
+     */
+    public function repeaterStartEmpty(bool $empty = true): static
+    {
+        return $this->context('start_empty', $empty);
+    }
+
     public function repeaterGroupCollapsed(bool $collapsed = true): static
     {
         return $this->context('group_collapsed', $collapsed);

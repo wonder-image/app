@@ -19,7 +19,30 @@ check('senza setter il context non parla di gruppi', function () use ($campo) {
 
     return !isset($context['group_by'])
         && !isset($context['group_command'])
-        && !isset($context['group_collapsed']);
+        && !isset($context['group_collapsed'])
+        && !isset($context['group_fixed'])
+        && !isset($context['add_button'])
+        && !isset($context['start_empty']);
+});
+
+check('il raggruppamento fisso dichiara la colonna e la sceglie da sé', function () use ($campo) {
+    $context = (array) ($campo()->repeaterGroupFixed('product_variant_id')->get('context') ?? []);
+
+    return $context['group_fixed'] === 'product_variant_id'
+        && $context['group_by'] === ['product_variant_id'];
+});
+
+check('una colonna vuota non fissa niente', function () use ($campo) {
+    $context = (array) ($campo()->repeaterGroupFixed('  ')->get('context') ?? []);
+
+    return !isset($context['group_fixed']) && !isset($context['group_by']);
+});
+
+check('il bottone «Aggiungi» e la riga di partenza si spengono', function () use ($campo) {
+    $context = (array) ($campo()->repeaterAddButton(false)->repeaterStartEmpty()->get('context') ?? []);
+
+    return ($context['add_button'] ?? null) === false
+        && ($context['start_empty'] ?? null) === true;
 });
 
 check('le colonne raggruppabili finiscono nel context', function () use ($campo) {

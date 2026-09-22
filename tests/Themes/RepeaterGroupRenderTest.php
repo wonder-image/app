@@ -115,4 +115,58 @@ check('il template della riga resta fuori da ogni gruppo', function () use ($ren
     return !str_contains(substr($template, 0, (int) strpos($template, '</template>')), 'data-wi-group-');
 });
 
+check('il raggruppamento fisso non stampa la tendina, e i gruppi ci sono lo stesso', function () use ($render, $righe) {
+    $html = $render($righe, ['group_fixed' => 'product_variant_id']);
+
+    return !str_contains($html, 'wi-repeater-groupbar')
+        && str_contains($html, 'data-wi-group-fixed="true"')
+        && str_contains($html, "wiRepeaterGroupInit('products-rows', 'products-group-template', 'products-groupby', 'products', 'product_variant_id')")
+        && str_contains($html, 'data-wi-group-product_variant_id="10"');
+});
+
+check('fisso, i gruppi ci sono anche con una riga sola', function () use ($render) {
+    $una = ['row_1' => ['name' => 'Blu / S', 'price' => '19.90', 'product_variant_id' => '10']];
+    $html = $render($una, ['group_fixed' => 'product_variant_id']);
+
+    return str_contains($html, 'data-wi-group-fixed="true"')
+        && str_contains($html, 'wi-repeater-group-header')
+        && str_contains($html, 'data-wi-group-label-product_variant_id="Blu"');
+});
+
+check('fisso, le frecce di riordino non si stampano', function () use ($render, $markup, $righe) {
+    // Solo il markup: il blocco <script> nomina le frecce in ogni caso.
+    $html = $markup($render($righe, ['group_fixed' => 'product_variant_id', 'sortable' => true]));
+
+    // Niente frecce e niente colonna larga tre a tenere il loro posto vuoto.
+    return !str_contains($html, 'wi-repeater-move-up')
+        && !str_contains($html, 'col-3 d-flex align-items-stretch');
+});
+
+check('una colonna fissa che non esiste non raggruppa niente', function () use ($render, $markup, $righe) {
+    $html = $markup($render($righe, ['group_fixed' => 'colore']));
+
+    return !str_contains($html, 'data-wi-group-fixed')
+        && !str_contains($html, 'wi-repeater-group-header');
+});
+
+check('senza bottone «Aggiungi» il contenitore lo dice, e il template resta', function () use ($render, $markup, $righe) {
+    $html = $markup($render($righe, ['add_button' => false]));
+
+    return !str_contains($html, 'wiRepeaterAddRow(')
+        && str_contains($html, 'data-wi-add-button="false"')
+        && str_contains($html, '<template id="products-template">');
+});
+
+check('senza righe ne compare una vuota, salvo quando si chiede di partire vuoti', function () use ($render, $markup) {
+    $conFinta = $markup($render([], []));
+    $vuoto = $markup($render([], ['start_empty' => true]));
+
+    return substr_count($conFinta, 'wi-repeater-row') > substr_count($vuoto, 'wi-repeater-row')
+        && !str_contains($vuoto, 'data-wi-row-key="row_1"');
+});
+
+check('il contenitore porta il nome del campo, per chi genera righe da fuori', function () use ($render, $markup, $righe) {
+    return str_contains($markup($render($righe, [])), 'data-wi-repeater="products"');
+});
+
 summary();
