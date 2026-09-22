@@ -85,7 +85,44 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupBy(...$colonne)`, `repeaterGroupCommand($colonna, $etichetta)`,
 `repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`,
 `repeaterGroupFixed($colonna)`, `repeaterAddButton($b = true)`,
-`repeaterStartEmpty($b = true)`.
+`repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
+`repeaterAdvancedLabel($s)`.
+
+## Larghezza delle colonne
+
+La riga è una griglia da dodici: `->columnSpan(n)` su una `RepeaterColumn` le
+assegna `n` dodicesimi, **uno compreso**. Una colonna che non dichiara niente
+prende undici dodicesimi — lo spazio che resta accanto ai bottoni. L'ultima
+colonna, quella di elimina e riordino, è sempre in coda e vale uno (tre con
+`repeaterSortable()`): le colonne dichiarate devono stare in undici.
+
+Una colonna con `->columnSpan(12)` va a capo e si prende la riga intera: è il
+modo di dare respiro a un campo che non si legge stretto, come un'area di
+trascinamento per i file.
+
+## Informazioni avanzate
+
+Una riga chiede tutto quello che si può sapere, ma quasi nessuno lo sa nel
+momento in cui la riga nasce: il codice a barre, lo stato, la foto arrivano
+dopo. `repeaterAdvanced()` elenca le colonne che escono dalla riga e vanno in
+un blocco a tutta larghezza, chiuso, che si apre da un bottone:
+
+```php
+FormField::key('products')
+    ->repeater([
+        RepeaterColumn::key('option')->text()->columnSpan(3),
+        RepeaterColumn::key('price')->number()->columnSpan(2),
+        RepeaterColumn::key('sku')->text()->columnSpan(4),
+        RepeaterColumn::key('photo')->fileDragDrop('gallery')->columnSpan(12),
+    ])
+    ->repeaterAdvanced('sku', 'photo')
+    ->repeaterAdvancedLabel('Compila le informazioni avanzate');
+```
+
+Le colonne avanzate restano nel DOM e vengono postate come tutte le altre:
+sono nascoste, non tolte. Una riga che ne ha già una piena nasce aperta —
+nascondere un dato che c'è lo fa sembrare perduto. Le larghezze dentro il
+blocco si contano su dodici, senza togliere niente per i bottoni.
 
 ## Righe raggruppate
 
@@ -206,6 +243,12 @@ payload di una riga prima del salvataggio:
 - **Raggruppamento che non compare** → la colonna dichiarata in
   `repeaterGroupBy()` non esiste fra quelle del repeater, oppure la riga è una
   sola.
+- **Colonne larghe quanto la riga, una sotto l'altra** → la somma degli span
+  supera undici, e Bootstrap manda a capo. Si contano le colonne dichiarate,
+  non quelle nascoste.
+- **`repeaterAdvanced()` che non nasconde niente** → il nome passato non è
+  quello di una colonna del repeater: la chiave è la stessa di
+  `RepeaterColumn::key(...)`.
 
 ## Checklist
 

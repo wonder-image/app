@@ -310,6 +310,22 @@ Sotto il cofano vengono aggiunti i data-attribute `data-visible-when` /
 I campi nascosti **non** vengono disabilitati: i loro valori vengono comunque
 inviati e salvati.
 
+### Un riquadro intero
+
+Gli stessi due metodi stanno anche sui componenti di layout (`Card`,
+`Container`, `Accordion`): un interruttore che governa un blocco lo apre e lo
+chiude tutto, invece che una casella alla volta.
+
+```php
+(new Card)->components([...])->columns(12)->columnSpan(12)
+    ->visibleWhen('has_variants', 'true');
+```
+
+Il riquadro si marca da sé come contenitore, così il JS nasconde esattamente
+lui e non un suo genitore. Anche qui i campi dentro continuano a essere
+inviati: se il "no" deve significare qualcosa, il server lo deve rileggere dal
+POST e comportarsi di conseguenza.
+
 ## Errori comuni
 
 - **`->inputFileDragDrop(...)`** → non esiste; usa **`->fileDragDrop(...)`**.

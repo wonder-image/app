@@ -166,14 +166,36 @@ HTML;
                 .' data-wi-group-label-'.$columnKey.'="'.$this->escape((string) ($info['label'] ?? '')).'"';
         }
 
+        // Le colonne dichiarate avanzate escono dalla riga: stanno in un
+        // blocco a tutta larghezza che si apre da un bottone.
+        $advanced = array_values(array_filter(array_map(
+            static fn ($key): string => trim((string) $key),
+            (array) ($context['advanced'] ?? [])
+        ), static fn (string $key): bool => $key !== ''));
+
         $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}>";
         $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body"><div class="row g-2 align-items-start">';
+
+        $advancedHtml = '';
+        $advancedFilled = false;
 
         foreach ($columns as $column) {
             [$fieldHtml, $isHidden, $col] = $this->renderColumn($column, $name, $rowValue, $rowKey, $context);
 
             if ($isHidden) {
                 $html .= $fieldHtml;
+                continue;
+            }
+
+            $key = $this->columnKey($column);
+
+            if ($key !== '' && in_array($key, $advanced, true)) {
+                $advancedHtml .= '<div class="col-'.$col.'">'.$fieldHtml.'</div>';
+
+                if (!$template && $this->carriesValue($rowValue[$key] ?? null)) {
+                    $advancedFilled = true;
+                }
+
                 continue;
             }
 
@@ -189,9 +211,51 @@ HTML;
         }
 
         $html .= '<button type="button" class="btn btn-danger flex-fill wi-repeater-delete" onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
-        $html .= '</div></div></div></div></div></div>';
+        $html .= '</div></div>';
+
+        if ($advancedHtml !== '') {
+            $label = trim((string) ($context['advanced_label'] ?? '')) ?: 'Compila le informazioni avanzate';
+            $open = $advancedFilled ? '' : ' d-none';
+            $chevron = $advancedFilled ? 'bi-chevron-up' : 'bi-chevron-down';
+
+            $html .= '<div class="col-12">'
+                .'<button type="button" class="btn btn-link btn-sm px-0 text-decoration-none wi-repeater-advanced-toggle"'
+                .' onclick="window.wiRepeaterToggleAdvanced(this)">'
+                .'<i class="bi '.$chevron.' me-1"></i>'.$this->escape($label)
+                .'</button>'
+                .'</div>';
+            $html .= '<div class="col-12 wi-repeater-advanced'.$open.'"><div class="row g-2 align-items-start">'
+                .$advancedHtml
+                .'</div></div>';
+        }
+
+        $html .= '</div></div></div></div>';
 
         return $html;
+    }
+
+    /** La chiave di una colonna, qualunque delle due forme abbia. */
+    private function columnKey(mixed $column): string
+    {
+        if ($column instanceof Input) {
+            return trim((string) $column->name);
+        }
+
+        return is_array($column) ? trim((string) ($column['name'] ?? '')) : '';
+    }
+
+    /** Se una casella avanzata porta già qualcosa: allora la riga nasce aperta. */
+    private function carriesValue(mixed $value): bool
+    {
+        if (is_array($value)) {
+            return $value !== [];
+        }
+
+        if ($value === null || is_bool($value)) {
+            return $value === true;
+        }
+
+        return trim((string) $value) !== '';
     }
 
     private function renderColumn(mixed $column, string $name, array $rowValue, string $rowKey, array $context): array
@@ -313,21 +377,27 @@ HTML;
         return $rows;
     }
 
+    /**
+     * Quante delle dodici colonne prende una casella.
+     *
+     * Chi non dichiara niente prende tutto lo spazio che resta: una riga di
+     * una casella sola non ha bisogno di dirlo. Chi dichiara un numero lo
+     * ottiene, uno compreso: `columnSpan(1)` vale un dodicesimo, non tutta la
+     * riga. Il non dichiarato si riconosce da `hasExplicitColumnSpan()`, non
+     * dal valore: il valore di partenza è già `1`. Prima l'uno contava come
+     * "non dichiarato" e prezzi, quantità e stati — le caselle che stanno in
+     * un dodicesimo — venivano fuori larghi quanto la riga, uno sotto
+     * l'altro.
+     */
     private function resolvedColumnWidth(Input $field): int
     {
         $span = $field->columnSpan['default'] ?? null;
 
-        if (!is_numeric($span)) {
+        if (!$field->hasExplicitColumnSpan() || !is_numeric($span)) {
             return 11;
         }
 
-        $span = (int) $span;
-
-        if ($span <= 1) {
-            return 11;
-        }
-
-        return max(1, min(12, $span));
+        return max(1, min(12, (int) $span));
     }
 
     /** La barra "Raggruppa per": una voce per colonna dichiarata, più "Nessuno". */
@@ -485,6 +555,19 @@ HTML;
         confirmBtn.textContent = options.confirmLabel;
         confirmBtn.className = options.confirmClass;
         return modalEl;
+    };
+
+    window.wiRepeaterToggleAdvanced = window.wiRepeaterToggleAdvanced || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        if (!row) return;
+        const box = row.querySelector('.wi-repeater-advanced');
+        if (!box) return;
+        const aperto = box.classList.toggle('d-none') === false;
+        const icona = button.querySelector('i');
+        if (icona) {
+            icona.classList.toggle('bi-chevron-down', !aperto);
+            icona.classList.toggle('bi-chevron-up', aperto);
+        }
     };
 
     window.wiRepeaterConfirmDelete = window.wiRepeaterConfirmDelete || function (onConfirm, config = {}) {

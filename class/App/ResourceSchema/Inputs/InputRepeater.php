@@ -171,6 +171,39 @@ class InputRepeater extends Input
         return $this->context('start_empty', $empty);
     }
 
+    /**
+     * Le colonne che stanno dietro «compila le informazioni avanzate».
+     *
+     * Una riga chiede tutto quello che si può sapere, ma quasi nessuno lo
+     * sa al momento in cui la riga nasce: il codice a barre, lo stato, la
+     * foto arrivano dopo. Queste colonne escono dalla riga e vanno in un
+     * blocco che si apre da un bottone, a tutta larghezza sotto le altre.
+     * La riga resta corta e le caselle tornano larghe quanto devono.
+     *
+     * Una riga che ha già qualcosa scritto in una colonna avanzata nasce
+     * aperta: nascondere un dato che c'è lo fa sembrare perduto.
+     */
+    public function repeaterAdvanced(string ...$columnKeys): static
+    {
+        $keys = [];
+
+        foreach ($columnKeys as $key) {
+            $key = trim($key);
+
+            if ($key !== '' && !in_array($key, $keys, true)) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys === [] ? $this : $this->context('advanced', $keys);
+    }
+
+    /** Le parole del bottone che apre le colonne avanzate. */
+    public function repeaterAdvancedLabel(string $label): static
+    {
+        return $this->context('advanced_label', trim($label));
+    }
+
     public function repeaterGroupCollapsed(bool $collapsed = true): static
     {
         return $this->context('group_collapsed', $collapsed);
