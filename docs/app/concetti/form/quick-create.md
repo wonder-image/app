@@ -127,9 +127,11 @@ proxy server-side.
   testo inline.
 - **v1 single-level**: il form del modal non ha a sua volta un quick-create.
 - **Posizione del "+"**: per i controlli singoli (`select`/`selectSearch`/
-  `searchRemote`) è **attaccato all'input** in un `input-group`, con la label
-  sopra (niente `form-floating`); per i **gruppi** (`checkbox`/`checkTree`/
-  `dynamicCheck`) resta un bottoncino sotto.
+  `searchRemote`) è **attaccato all'input a destra** in un `input-group`
+  (versione floating); per i **gruppi** (`checkbox`/`checkTree`/`dynamicCheck`)
+  è una **testata in alto a destra** — `+ Aggiungi <Nome risorsa>`, sulla riga
+  del titolo del gruppo. Il nome viene da `Resource::label()` (la stessa fonte
+  di `defaultPageTitles()['create']`), con ripiego sullo slug.
 - Gli adapter JS per `select` sono completi; `checkTree` / `searchRemote` /
   `dynamicCheck` dipendono dai widget di `wonder-image/lib` e vanno verificati
   in un sito.

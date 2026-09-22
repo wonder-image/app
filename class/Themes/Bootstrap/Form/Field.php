@@ -51,18 +51,23 @@ abstract class Field extends AbstractFieldRenderer
         $quick = $this->quickCreateParts();
 
         // Su un controllo singolo (select/selectSearch/searchRemote) il "+" è
-        // attaccato all'input in un `input-group`, con la label sopra (niente
-        // form-floating: l'append non ci convive bene).
+        // attaccato all'input a destra, dentro un `input-group`. Col floating il
+        // label sta dentro il `form-floating`; senza (noFloating), sopra.
         if ($quick !== null && in_array($quick['family'], ['select', 'searchremote'], true)) {
             $button = '<button type="button" class="btn btn-outline-secondary" '.$quick['attributes'].'>'
                 .'<i class="bi bi-plus-lg"></i> Aggiungi</button>';
 
-            return '<div>'
-                .$this->renderLabel()
-                .'<div class="input-group">'.$input.$button.'</div>'
-                .$this->renderError()
-                .'</div>'
-                .$quick['modal'].$quick['script'];
+            if ($floating) {
+                $control = '<div class="input-group">'
+                    .'<div class="form-floating">'.$input.$this->renderLabel().'</div>'
+                    .$button
+                    .'</div>';
+            } else {
+                $control = $this->renderLabel()
+                    .'<div class="input-group">'.$input.$button.'</div>';
+            }
+
+            return '<div>'.$control.$this->renderError().'</div>'.$quick['modal'].$quick['script'];
         }
 
         if ($floating) {
@@ -76,12 +81,16 @@ abstract class Field extends AbstractFieldRenderer
             $html = '<div>'.$input.$this->renderError().'</div>';
         }
 
-        // Gruppi (checkbox/checkTree/dynamicCheck): il "+" resta un bottoncino
-        // sotto, non c'è un singolo controllo a cui attaccarlo.
+        // Gruppi (checkbox/checkTree/dynamicCheck): niente singolo controllo a
+        // cui attaccarsi. Il "+" diventa una testata "Aggiungi <Nome>" in alto a
+        // destra, sulla riga del titolo `<h6>` che il componente stampa dentro
+        // il gruppo (bottone `position-absolute`, wrapper `position-relative`).
         if ($quick !== null) {
-            $button = '<button type="button" class="btn btn-outline-secondary btn-sm" '.$quick['attributes'].'>'
-                .'<i class="bi bi-plus-lg"></i> Aggiungi</button>';
-            $html .= '<div class="mt-1">'.$button.'</div>'.$quick['modal'].$quick['script'];
+            $button = '<button type="button"'
+                .' class="btn btn-sm btn-link p-0 text-decoration-none position-absolute top-0 end-0 wi-qc-header" '
+                .$quick['attributes'].'>'
+                .'<i class="bi bi-plus-lg"></i> '.$this->escape($quick['button_label']).'</button>';
+            $html = '<div class="position-relative">'.$button.$html.'</div>'.$quick['modal'].$quick['script'];
         }
 
         return $html;
@@ -133,7 +142,7 @@ abstract class Field extends AbstractFieldRenderer
      * posizione del "+" la decide `renderField()`. Vedi
      * docs/app/concetti/form/quick-create.md.
      *
-     * @return array{family:string,attributes:string,modal:string,script:string}|null
+     * @return array{family:string,button_label:string,attributes:string,modal:string,script:string}|null
      */
     protected function quickCreateParts(): ?array
     {
@@ -193,6 +202,7 @@ abstract class Field extends AbstractFieldRenderer
 
         return [
             'family' => $family,
+            'button_label' => QuickCreatePanel::buttonLabel($config),
             'attributes' => $attributes,
             'modal' => $modal,
             'script' => self::quickCreateScript(),

@@ -83,6 +83,14 @@ $check(QuickCreatePanel::fields(['resource' => $targetClass, 'fields' => ['note'
 $check(QuickCreatePanel::label(['label' => null], ['note', 'name']) === 'name', 'label() prefers name');
 $check(QuickCreatePanel::label(['label' => 'note'], ['note']) === 'note', 'label() honors declared');
 
+// buttonLabel(): nome leggibile della risorsa (label()), ripiego sullo slug.
+$named = new class {
+    public static function slug(): string { return 'tag'; }
+    public static function label(): string { return 'Tag'; }
+};
+$check(QuickCreatePanel::buttonLabel(['resource' => get_class($named), 'slug' => 'tag']) === 'Aggiungi Tag', 'buttonLabel() uses resource label()');
+$check(QuickCreatePanel::buttonLabel(['resource' => $targetClass, 'slug' => 'category']) === 'Aggiungi category', 'buttonLabel() falls back to slug');
+
 // --- Task 4: Bootstrap renderer emits "+" + modal ---------------------------
 
 $html = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');
@@ -92,13 +100,18 @@ $check(str_contains($html, 'name="resource"'), 'emits the target slug hidden fie
 $check(str_contains($html, 'name="quick_label"'), 'emits the label hidden field');
 $check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family');
 
-// Placement: select = "+" attaccato nell'input-group (bottone senza btn-sm);
-// checkbox = bottone sotto (btn-sm).
+// Placement select = "+" attaccato nell'input-group, versione floating.
 $check(str_contains($html, 'class="btn btn-outline-secondary" data-wi-quick-create'), 'select attaches the "+" in the input-group');
+$check(str_contains($html, 'input-group') && str_contains($html, 'form-floating'), 'select keeps the floating input inside the input-group');
 
+// Placement checkbox = testata "Aggiungi <Nome>" in alto a destra (position-absolute),
+// non più un bottone sotto.
 $checkHtml = FormField::key('tags')->checkbox()->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');
 $check(str_contains($checkHtml, 'data-wi-qc-family="checkbox"'), 'checkbox family tagged');
-$check(str_contains($checkHtml, 'class="btn btn-outline-secondary btn-sm" data-wi-quick-create'), 'checkbox keeps the "+" as a button below');
+$check(str_contains($checkHtml, 'wi-qc-header" data-wi-quick-create'), 'checkbox renders the "+" as a top-right header');
+$check(str_contains($checkHtml, 'position-absolute top-0 end-0'), 'checkbox header is pinned top-right');
+$check(str_contains($checkHtml, '> Aggiungi category</button>'), 'checkbox header names the resource');
+$check(!str_contains($checkHtml, 'btn-outline-secondary btn-sm'), 'checkbox no longer uses the button-below markup');
 
 $plain = FormField::key('category_id')->select(['1' => 'A'])->render('bootstrap');
 $check(!str_contains($plain, 'data-wi-quick-create'), 'no trigger when not declared');

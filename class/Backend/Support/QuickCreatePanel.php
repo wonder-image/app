@@ -44,6 +44,27 @@ final class QuickCreatePanel
         return self::requiredFields((string) $config['resource']);
     }
 
+    /**
+     * Testo del bottone "Aggiungi …": nome leggibile della risorsa target
+     * (`label()`, la stessa fonte di `defaultPageTitles()['create']`), con
+     * ripiego sullo slug quando la risorsa non lo espone.
+     */
+    public static function buttonLabel(array $config): string
+    {
+        $resource = (string) ($config['resource'] ?? '');
+        $name = '';
+
+        if ($resource !== '' && method_exists($resource, 'label')) {
+            $name = trim((string) $resource::label());
+        }
+
+        if ($name === '') {
+            $name = trim((string) ($config['slug'] ?? ''));
+        }
+
+        return $name === '' ? 'Aggiungi' : 'Aggiungi '.$name;
+    }
+
     /** Campo etichetta dell'opzione: dichiarato, altrimenti name/title/primo campo. */
     public static function label(array $config, array $fields): string
     {
