@@ -112,6 +112,9 @@ HTML;
             'ico' => 'image/ico, image/x-icon',
             'media' => 'image/png, image/jpeg, image/webp, application/pdf',
             'video' => 'video/mp4',
+            // Foto e video insieme: un catalogo ha bisogno di tutti e due, e
+            // un campo per tipo vorrebbe dire due caselle da spiegare.
+            'gallery' => 'image/png, image/jpeg, image/webp, video/mp4',
             'jpg' => 'image/jpeg',
             'font' => 'font/ttf',
             default => '',
@@ -125,6 +128,7 @@ HTML;
             'pdf' => 'il tuo PDF',
             'media' => 'i tuoi file',
             'video' => 'il tuo video',
+            'gallery' => 'le tue foto e i tuoi video',
             'font' => 'il tuo font',
             default => 'il tuo file',
         };

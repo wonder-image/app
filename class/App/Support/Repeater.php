@@ -34,15 +34,32 @@ final class Repeater
         ));
     }
 
-    public static function loadRelatedRows(
-        RepeaterRelation $relation,
-        int|string $parentId
-    ): array {
-        $condition = [$relation->parentKey => $parentId];
+    /**
+     * La condizione con cui si leggono (e si cancellano) le righe di un
+     * repeater: il padre, la fetta dichiarata e, se c'è, il soft delete.
+     *
+     * Sta in un metodo suo perché lettura e sincronizzazione devono usare la
+     * **stessa**: se la cancellazione guardasse più righe della lettura,
+     * toglierebbe quelle che il repeater non ha mai mostrato.
+     *
+     * @return array<string, mixed>
+     */
+    public static function relationCondition(RepeaterRelation $relation, int|string $parentId): array
+    {
+        $condition = array_merge($relation->condition, [$relation->parentKey => $parentId]);
 
         if ($relation->softDelete) {
             $condition[$relation->deletedColumn] = 'false';
         }
+
+        return $condition;
+    }
+
+    public static function loadRelatedRows(
+        RepeaterRelation $relation,
+        int|string $parentId
+    ): array {
+        $condition = static::relationCondition($relation, $parentId);
 
         $result = sqlSelect(
             $relation->table,
@@ -110,11 +127,7 @@ final class Repeater
         ];
 
         $rowKey = $relation->rowKey;
-        $existingCondition = [$relation->parentKey => $parentId];
-
-        if ($relation->softDelete) {
-            $existingCondition[$relation->deletedColumn] = 'false';
-        }
+        $existingCondition = static::relationCondition($relation, $parentId);
 
         $existingRows = (array) sqlSelect(
             $relation->table,
@@ -154,7 +167,14 @@ final class Repeater
                 $seenIds[] = (string) $rawId;
             }
 
+            $payload = array_merge($relation->condition, $payload);
             $payload[$relation->parentKey] = $parentId;
+
+            // La fetta vince su quello che arriva dal form: una riga di questo
+            // repeater appartiene a questa fetta per definizione.
+            foreach ($relation->condition as $colonna => $valore) {
+                $payload[$colonna] = $valore;
+            }
 
             if ($relation->positionKey !== null) {
                 $payload[$relation->positionKey] = $position;

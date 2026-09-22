@@ -20,12 +20,39 @@ final class RepeaterRelation
         public ?string $folder = null,
         public ?string $modelClass = null,
         public ?string $resourceClass = null,
+        /**
+         * Condizione che restringe le righe di questo repeater.
+         *
+         * Serve quando un padre ha più repeater sulla stessa tabella, ognuno
+         * su una fetta: le foto di un colore, le righe di un reparto. Vale in
+         * lettura **e** in cancellazione — senza, un repeater filtrato
+         * cancellerebbe le righe degli altri, che non vede fra quelle postate.
+         *
+         * @var array<string, mixed>
+         */
+        public array $condition = [],
     ) {
     }
 
     public static function make(string $table, string $parentKey, string $rowKey = 'id'): self
     {
         return new self($table, $parentKey, $rowKey);
+    }
+
+    /**
+     * Restringe il repeater a una fetta delle righe del padre.
+     *
+     * I valori della condizione finiscono anche nelle righe nuove: una foto
+     * trascinata in "Foto Blu" nasce con il colore giusto senza che nessuno
+     * lo scriva.
+     *
+     * @param array<string, mixed> $condition
+     */
+    public function condition(array $condition): self
+    {
+        $this->condition = $condition;
+
+        return $this;
     }
 
     public function positionKey(?string $positionKey): self

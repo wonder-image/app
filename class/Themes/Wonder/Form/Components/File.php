@@ -38,6 +38,9 @@ HTML;
             'png' => 'image/png',
             'ico' => 'image/ico',
             'video' => 'video/mp4',
+            // Foto e video insieme: un catalogo ha bisogno di tutti e due, e
+            // un campo per tipo vorrebbe dire due caselle da spiegare.
+            'gallery' => 'image/png, image/jpeg, image/webp, video/mp4',
             'jpg' => 'image/jpeg',
             'font' => 'font/ttf',
             default => '',
