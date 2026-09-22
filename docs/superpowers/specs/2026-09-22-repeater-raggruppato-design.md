@@ -193,7 +193,7 @@ oggi contiene solo testo non cambia aspetto.
 
 ## Testing
 
-- `RepeaterGroups::of()` e `labelOf()`: PHPUnit, con colonne `select`, testo,
+- `RepeaterGroups::of()` e `labelOf()`: i test del repo (`tests/harness.php`, `check()`), con colonne `select`, testo,
   valori mancanti, valori che non stanno fra le opzioni.
 - Render: un test che monta un repeater con `repeaterGroupBy()` e verifica gli
   attributi `data-wi-group-*`, la presenza del selettore e del template della
