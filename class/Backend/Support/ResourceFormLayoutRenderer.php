@@ -144,7 +144,7 @@ final class ResourceFormLayoutRenderer
     {
         $cardColumns = self::columnsMap($card);
 
-        $html = '<div class="'.self::columnSpanClass($card, $parentColumns).'">';
+        $html = '<div class="'.self::columnSpanClass($card, $parentColumns).'"'.self::attributes($card).'>';
         $html .= '<div class="card border">';
         $html .= '<div class="card-body '.self::rowClass($card).'">';
         $html .= self::renderComponents((array) ($card->components ?? []), $cardColumns);
@@ -180,6 +180,8 @@ final class ResourceFormLayoutRenderer
     {
         $inner = self::renderContainerInner($container);
 
+        // Niente attributi qui: il Container li stampa già sul suo nodo
+        // interno, e ripeterli darebbe due nodi con la stessa maniglia.
         $html = '<div class="'.self::columnSpanClass($container, $parentColumns).'">';
         $html .= $inner;
         $html .= '</div>';
@@ -261,6 +263,52 @@ final class ResourceFormLayoutRenderer
         }
 
         return '<div class="'.$spanClass.'">'.$html.'</div>';
+    }
+
+    /**
+     * Gli attributi dichiarati sul componente, sul div esterno.
+     *
+     * Questo renderer scrive il markup dei riquadri da sé — le colonne del
+     * form le sa solo lui — e senza questo un `visibleWhen()` su una Card
+     * verrebbe ignorato in silenzio: il tema lo stamperebbe, il backend no.
+     */
+    private static function attributes(object $component): string
+    {
+        $attributes = method_exists($component, 'getSchema')
+            ? $component->getSchema('attributes')
+            : null;
+
+        if (!is_array($attributes) || $attributes === []) {
+            return '';
+        }
+
+        $html = [];
+
+        foreach ($attributes as $key => $value) {
+            $key = trim((string) $key);
+
+            // La classe la compone questo renderer: sovrascriverla qui
+            // cancellerebbe le colonne.
+            if ($key === '' || $key === 'class') {
+                continue;
+            }
+
+            if (is_bool($value)) {
+                if ($value) {
+                    $html[] = $key;
+                }
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $value = implode(' ', array_map(static fn ($piece): string => (string) $piece, $value));
+            }
+
+            $html[] = $key.'="'.htmlspecialchars((string) $value, ENT_QUOTES).'"';
+        }
+
+        return $html === [] ? '' : ' '.implode(' ', $html);
     }
 
     private static function columnSpanClass(object $component, array $parentColumns = [], bool $fallback = true): string
