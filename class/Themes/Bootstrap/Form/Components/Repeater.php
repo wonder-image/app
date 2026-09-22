@@ -4,6 +4,7 @@ namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\Support\RepeaterGroups;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class Repeater extends Field
@@ -45,10 +46,42 @@ class Repeater extends Field
             $value = ['row_1' => []];
         }
 
+        $groupBy = array_values(array_filter(
+            array_map(static fn ($key): string => trim((string) $key), (array) ($context['group_by'] ?? [])),
+            static fn (string $key): bool => $key !== '' && RepeaterGroups::columnByKey($columns, $key) !== null
+        ));
+
+        // Con una riga sola non c'è niente da raggruppare, e la barra sarebbe
+        // solo un comando in più da leggere.
+        $groupable = $groupBy !== [] && count($value) > 1;
+        $groupTemplateId = $id.'-group-template';
+        $groups = $groupable ? RepeaterGroups::of($columns, $value, $groupBy) : [];
+        $groupAttrs = $groupable
+            ? ' data-wi-group-template="'.$this->escape($groupTemplateId).'"'
+                .' data-wi-group-collapsed="'.(!empty($context['group_collapsed']) ? 'true' : 'false').'"'
+            : '';
+        $groupBarHtml = $groupable ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy) : '';
+        $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context) : '';
+        // La scelta si ricorda sul **nome** del campo, non sull'id: l'id del
+        // repeater lo genera il render, cambia a ogni caricamento, e una
+        // memoria con una chiave nuova ogni volta non ricorda niente.
+        $groupMemory = $this->escape($name);
+        $groupInitHtml = $groupable
+            ? "<script>window.wiRepeaterGroupInit('{$rowId}', '{$groupTemplateId}', '{$id}-groupby', '{$groupMemory}');</script>"
+            : '';
+
         $rowsHtml = '';
 
         foreach ($value as $rowKey => $rowValue) {
-            $rowsHtml .= $this->renderRow($columns, $name, is_array($rowValue) ? $rowValue : [], (string) $rowKey, false, $context);
+            $rowsHtml .= $this->renderRow(
+                $columns,
+                $name,
+                is_array($rowValue) ? $rowValue : [],
+                (string) $rowKey,
+                false,
+                $context,
+                $groups[(string) $rowKey] ?? []
+            );
         }
 
         $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
@@ -59,19 +92,22 @@ class Repeater extends Field
         return <<<HTML
 <div id="{$id}" class="w-100 wi-input-repeater">
     {$heading}
-    <div id="{$rowId}" class="row g-2">
+    {$groupBarHtml}
+    <div id="{$rowId}" class="row g-2"{$groupAttrs}>
         {$rowsHtml}
     </div>
     <template id="{$templateId}">{$templateHtml}</template>
+    {$groupTemplateHtml}
     <div class="mt-2 d-flex justify-content-end">
         <button type="button" class="{$addButtonClass}" onclick="window.wiRepeaterAddRow('{$rowId}', '{$templateId}')"><i class="bi bi-plus-lg"></i> {$addLabel}</button>
     </div>
     {$this->script()}
+    {$groupInitHtml}
 </div>
 HTML;
     }
 
-    private function renderRow(array $columns, string $name, array $rowValue, string $rowKey, bool $template, array $context): string
+    private function renderRow(array $columns, string $name, array $rowValue, string $rowKey, bool $template, array $context, array $groupData = []): string
     {
         $sortable = !empty($context['sortable']);
         $rowClass = $template ? ' d-none' : '';
@@ -84,7 +120,15 @@ HTML;
             $this->escape((string) ($context['delete_modal_confirm_class'] ?? 'btn btn-danger')),
         );
 
-        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\">";
+        $groupAttrs = '';
+
+        foreach ($groupData as $columnKey => $info) {
+            $columnKey = $this->escape((string) $columnKey);
+            $groupAttrs .= ' data-wi-group-'.$columnKey.'="'.$this->escape((string) ($info['value'] ?? '')).'"'
+                .' data-wi-group-label-'.$columnKey.'="'.$this->escape((string) ($info['label'] ?? '')).'"';
+        }
+
+        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}>";
         $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body"><div class="row g-2 align-items-start">';
 
         foreach ($columns as $column) {
@@ -248,6 +292,62 @@ HTML;
         return max(1, min(12, $span));
     }
 
+    /** La barra "Raggruppa per": una voce per colonna dichiarata, più "Nessuno". */
+    private function renderGroupBar(string $id, string $rowsId, string $templateId, array $columns, array $groupBy): string
+    {
+        $options = '<option value="">Nessuno</option>';
+
+        foreach ($groupBy as $key) {
+            $column = RepeaterGroups::columnByKey($columns, $key);
+            $label = RepeaterGroups::labelOfColumn($column);
+            $options .= '<option value="'.$this->escape($key).'">'
+                .$this->escape($label !== '' ? $label : $key).'</option>';
+        }
+
+        return '<div class="wi-repeater-groupbar d-flex align-items-center gap-2 mb-2">'
+            .'<label class="form-label mb-0 small text-body-secondary" for="'.$this->escape($id).'-groupby">Raggruppa per</label>'
+            .'<select id="'.$this->escape($id).'-groupby" class="form-select form-select-sm w-auto wi-repeater-groupby"'
+            .' onchange="window.wiRepeaterGroupApply(\''.$rowsId.'\', \''.$templateId.'\', this.value)">'
+            .$options
+            .'</select></div>';
+    }
+
+    /**
+     * Il modello della testata di gruppo.
+     *
+     * Sta in un `<template>` e non fra le righe di proposito: una testata nel
+     * contenitore sarebbe una riga finta, che il posting e i conteggi
+     * dovrebbero imparare a saltare.
+     */
+    private function renderGroupTemplate(string $templateId, array $context): string
+    {
+        $command = is_array($context['group_command'] ?? null) ? $context['group_command'] : [];
+        $countLabel = is_array($context['group_count_label'] ?? null) ? $context['group_count_label'] : [];
+        $singular = $this->escape((string) ($countLabel['singular'] ?? 'riga'));
+        $plural = $this->escape((string) ($countLabel['plural'] ?? 'righe'));
+        $commandHtml = '';
+
+        if (($command['column'] ?? '') !== '') {
+            $commandHtml = '<div class="ms-auto wi-repeater-group-command" style="max-width:14rem"'
+                .' data-wi-command-column="'.$this->escape((string) $command['column']).'">'
+                .'<input type="text" class="form-control form-control-sm"'
+                .' placeholder="'.$this->escape((string) ($command['label'] ?? '')).'"'
+                .' oninput="window.wiRepeaterGroupCommand(this)">'
+                .'</div>';
+        }
+
+        return '<template id="'.$this->escape($templateId).'">'
+            .'<div class="col-12 wi-repeater-group-header"'
+            .' data-wi-count-singular="'.$singular.'" data-wi-count-plural="'.$plural.'">'
+            .'<div class="card border-0 bg-body-secondary"><div class="card-body py-2 d-flex align-items-center gap-2">'
+            .'<button type="button" class="btn btn-sm btn-link text-decoration-none p-0 wi-repeater-group-toggle"'
+            .' onclick="window.wiRepeaterGroupToggle(this)"><i class="bi bi-chevron-down"></i></button>'
+            .'<strong class="wi-repeater-group-label"></strong>'
+            .'<span class="small text-body-secondary wi-repeater-group-count"></span>'
+            .$commandHtml
+            .'</div></div></div></template>';
+    }
+
     private function script(): string
     {
         return <<<'HTML'
@@ -278,6 +378,10 @@ HTML;
         // restano il campo grezzo, mentre nelle righe già in pagina no.
         if (row && typeof window.setInput === 'function') {
             window.setInput(row);
+        }
+
+        if (typeof window.wiRepeaterGroupRefresh === 'function') {
+            window.wiRepeaterGroupRefresh(container);
         }
     };
 
@@ -364,6 +468,10 @@ HTML;
                 return;
             }
             row.remove();
+
+            if (typeof window.wiRepeaterGroupRefresh === 'function') {
+                window.wiRepeaterGroupRefresh(container);
+            }
         }, deleteConfig);
     };
 
@@ -379,6 +487,252 @@ HTML;
         const next = row ? row.nextElementSibling : null;
         if (!row || !next) return;
         row.parentElement.insertBefore(next, row);
+    };
+    /*
+     * Righe raggruppate.
+     *
+     * Il DOM delle righe non si sposta mai: le testate si aggiungono in fondo
+     * al contenitore e l'ordine visivo lo fa `order` di flexbox. Così il
+     * posting, le posizioni e il riordino restano quelli di sempre, e togliere
+     * il raggruppamento è azzerare due proprietà.
+     */
+    window.wiRepeaterGroupValue = window.wiRepeaterGroupValue || function (row, columnKey) {
+        const field = row.querySelector('[name$="[' + columnKey + ']"], [name="' + columnKey + '[]"]');
+
+        if (field) {
+            const value = String(field.value === null || field.value === undefined ? '' : field.value);
+            let label = value;
+
+            if (field.tagName === 'SELECT' && field.selectedIndex >= 0) {
+                label = field.options[field.selectedIndex].textContent.trim();
+            }
+
+            return { value: value, label: value === '' ? '' : label };
+        }
+
+        return {
+            value: row.getAttribute('data-wi-group-' + columnKey) || '',
+            label: row.getAttribute('data-wi-group-label-' + columnKey) || ''
+        };
+    };
+
+    window.wiRepeaterGroupApply = window.wiRepeaterGroupApply || function (rowsId, templateId, columnKey) {
+        const container = document.getElementById(rowsId);
+        if (!container) return;
+
+        columnKey = columnKey || '';
+        container.dataset.wiGroupColumn = columnKey;
+        container.dataset.wiGroupTemplate = templateId;
+
+        const memory = container.dataset.wiGroupMemory || rowsId;
+        try { window.localStorage.setItem('wi-repeater-group:' + memory, columnKey); } catch (error) {}
+
+        container.querySelectorAll(':scope > .wi-repeater-group-header').forEach(function (header) {
+            header.remove();
+        });
+
+        const rows = Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row'));
+
+        rows.forEach(function (row) {
+            row.style.order = '';
+            row.style.display = '';
+            row.querySelectorAll('.wi-repeater-move-up, .wi-repeater-move-down').forEach(function (button) {
+                button.classList.toggle('d-none', columnKey !== '');
+            });
+        });
+
+        if (columnKey === '') return;
+
+        const template = document.getElementById(templateId);
+        if (!template) return;
+
+        const order = [];
+        const buckets = new Map();
+
+        rows.forEach(function (row) {
+            const found = window.wiRepeaterGroupValue(row, columnKey);
+
+            if (!buckets.has(found.value)) {
+                buckets.set(found.value, { label: found.label, rows: [] });
+                order.push(found.value);
+            }
+
+            buckets.get(found.value).rows.push(row);
+        });
+
+        const collapsed = container.dataset.wiGroupCollapsed === 'true';
+        let position = 0;
+
+        order.forEach(function (key) {
+            const bucket = buckets.get(key);
+            const fragment = template.content.cloneNode(true);
+            const header = fragment.querySelector('.wi-repeater-group-header');
+            const count = bucket.rows.length;
+
+            header.dataset.wiGroupKey = key;
+            header.style.order = String(position++);
+            header.querySelector('.wi-repeater-group-label').textContent = bucket.label || 'Senza scelta';
+            header.querySelector('.wi-repeater-group-count').textContent =
+                count + ' ' + (count === 1
+                    ? (header.dataset.wiCountSingular || 'riga')
+                    : (header.dataset.wiCountPlural || 'righe'));
+
+            if (collapsed) {
+                header.classList.add('wi-repeater-group-closed');
+                const icon = header.querySelector('.wi-repeater-group-toggle i');
+                if (icon) icon.className = 'bi bi-chevron-right';
+            }
+
+            container.appendChild(fragment);
+
+            bucket.rows.forEach(function (row) {
+                row.style.order = String(position++);
+                row.style.display = collapsed ? 'none' : '';
+            });
+        });
+    };
+
+    window.wiRepeaterGroupToggle = window.wiRepeaterGroupToggle || function (button) {
+        const header = button.closest('.wi-repeater-group-header');
+        if (!header) return;
+
+        const container = header.parentElement;
+        const columnKey = container.dataset.wiGroupColumn || '';
+        const key = header.dataset.wiGroupKey || '';
+        const closed = header.classList.toggle('wi-repeater-group-closed');
+
+        Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row')).forEach(function (row) {
+            if (window.wiRepeaterGroupValue(row, columnKey).value === key) {
+                row.style.display = closed ? 'none' : '';
+            }
+        });
+
+        const icon = button.querySelector('i');
+        if (icon) icon.className = closed ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+    };
+
+    window.wiRepeaterGroupCommand = window.wiRepeaterGroupCommand || function (input) {
+        const header = input.closest('.wi-repeater-group-header');
+        const box = input.closest('.wi-repeater-group-command');
+        if (!header || !box) return;
+
+        const container = header.parentElement;
+        const columnKey = container.dataset.wiGroupColumn || '';
+        const target = box.dataset.wiCommandColumn || '';
+        const key = header.dataset.wiGroupKey || '';
+        if (target === '') return;
+
+        Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row')).forEach(function (row) {
+            if (window.wiRepeaterGroupValue(row, columnKey).value !== key) return;
+
+            const field = row.querySelector('[name$="[' + target + ']"], [name="' + target + '[]"]');
+            if (!field) return;
+
+            window.wiRepeaterSetFieldValue(field, input.value);
+        });
+    };
+
+    /*
+     * Scrivere in un campo che un widget si è preso.
+     *
+     * I campi numerici del pannello sono di AutoNumeric: assegnare `value` gli
+     * lascia lo stato vecchio, e al salvataggio riscrive lui. Il valore va
+     * quindi passato alla sua API, e in forma grezza — `set('31,50')` svuota
+     * il campo, `set(31.5)` no.
+     */
+    window.wiRepeaterSetFieldValue = window.wiRepeaterSetFieldValue || function (field, value) {
+        const numeric = (typeof window.AutoNumeric !== 'undefined'
+            && typeof window.AutoNumeric.getAutoNumericElement === 'function')
+            ? window.AutoNumeric.getAutoNumericElement(field)
+            : null;
+
+        if (!numeric) {
+            field.value = value;
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+            return;
+        }
+
+        const raw = window.wiRepeaterNumberFromText(value);
+
+        if (raw === null) {
+            numeric.clear();
+            return;
+        }
+
+        numeric.set(raw);
+    };
+
+    /*
+     * Il numero dietro a quello che si è scritto.
+     *
+     * Chi compila scrive "31,50" o "1.299,90"; qualcun altro scrive "31.50".
+     * Con tutti e due i separatori l'ultimo è quello decimale.
+     */
+    window.wiRepeaterNumberFromText = window.wiRepeaterNumberFromText || function (value) {
+        let text = String(value === null || value === undefined ? '' : value).trim();
+        if (text === '') return null;
+
+        text = text.replace(/[^0-9,.-]/g, '');
+        const lastComma = text.lastIndexOf(',');
+        const lastDot = text.lastIndexOf('.');
+
+        if (lastComma > -1 && lastDot > -1) {
+            const decimal = lastComma > lastDot ? ',' : '.';
+            const thousands = decimal === ',' ? '.' : ',';
+            text = text.split(thousands).join('');
+            text = text.replace(decimal, '.');
+        } else if (lastComma > -1) {
+            text = text.replace(',', '.');
+        }
+
+        const number = parseFloat(text);
+
+        return isNaN(number) ? null : number;
+    };
+
+    window.wiRepeaterGroupRefresh = window.wiRepeaterGroupRefresh || function (container) {
+        if (!container || !container.dataset || !container.dataset.wiGroupColumn) return;
+
+        window.wiRepeaterGroupApply(
+            container.id,
+            container.dataset.wiGroupTemplate || '',
+            container.dataset.wiGroupColumn
+        );
+    };
+
+    window.wiRepeaterGroupInit = window.wiRepeaterGroupInit || function (rowsId, templateId, selectId, memoryKey) {
+        const container = document.getElementById(rowsId);
+        const select = document.getElementById(selectId);
+        if (!container || !select) return;
+
+        container.dataset.wiGroupMemory = memoryKey || rowsId;
+
+        let remembered = '';
+        try { remembered = window.localStorage.getItem('wi-repeater-group:' + container.dataset.wiGroupMemory) || ''; } catch (error) {}
+
+        const known = Array.prototype.slice.call(select.options).some(function (option) {
+            return option.value === remembered;
+        });
+
+        if (!known) remembered = '';
+
+        if (!container.dataset.wiGroupBound) {
+            container.dataset.wiGroupBound = 'true';
+            container.addEventListener('change', function (event) {
+                const columnKey = container.dataset.wiGroupColumn || '';
+                const name = event.target && event.target.name ? event.target.name : '';
+                if (columnKey === '' || name === '') return;
+
+                if (name.endsWith('[' + columnKey + ']') || name === columnKey + '[]') {
+                    window.wiRepeaterGroupRefresh(container);
+                }
+            });
+        }
+
+        select.value = remembered;
+        container.dataset.wiGroupTemplate = templateId;
+        window.wiRepeaterGroupApply(rowsId, templateId, remembered);
     };
 </script>
 HTML;

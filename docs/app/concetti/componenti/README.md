@@ -181,6 +181,28 @@ Sono accettati anche gli alias Bootstrap Icons completi, per esempio
 `text` e `text-small`; una stringa vuota ripristina lo stile nativo del
 componente. Bootstrap mantiene invece indicatore e tipografia nativi.
 
+### Accordion dentro un form di Resource
+
+Un accordion può contenere i campi di un form, ed è il modo di dare a una
+scheda dei riquadri che si chiudono. Serve dichiarare le colonne, come su una
+`Card`:
+
+```php
+(new Accordion('Scheda tecnica'))
+    ->columns(12)
+    ->columnSpan(12)
+    ->components([
+        static::getInput('material')->columnSpan(6),
+        static::getInput('country')->columnSpan(6),
+    ]);
+```
+
+`ResourceFormLayoutRenderer` lo tratta come un contenitore, al pari di `Card` e
+`Container`: rende i figli da sé, dando a ognuno la larghezza calcolata sulle
+colonne dell'accordion, e chiede al tema solo la cornice. Senza `columns()` il
+corpo resta quello di sempre e i figli prendono tutta la larghezza — che è
+anche il motivo per cui un accordion di solo testo non cambia aspetto.
+
 La descrizione stringa viene escapata. Per contenuti strutturati si possono
 aggiungere Element figli, renderizzati con lo stesso tema richiesto
 all'accordion:

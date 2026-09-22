@@ -154,23 +154,31 @@ colore, la riga salta nel suo gruppo.
 
 ### 5. La correzione all'Accordion
 
-`class/Themes/Bootstrap/Components/Accordion.php` passa i componenti al proprio
-`accordion-body` **senza la riga a griglia** che la Card mette sul `card-body`:
+*Sezione corretta in corso d'opera: la diagnosi di partenza era giusta ma
+incompleta.*
 
-```php
-// Card
-$html .= "<div class=\"card-body $classColumn $classGap\">";
-// Accordion (oggi)
-$html .= "<div class=\"accordion-body\">{$content}</div>";
-```
+Il corpo dell'Accordion non ha la riga a griglia che la Card mette sul
+`card-body`, ed è vero; ma da sola quella mancanza non spiega tutto, perché la
+larghezza dei campi di un form **non la decide il tema**. La calcola
+`Backend\Support\ResourceFormLayoutRenderer`, che percorre il layout
+(`Form` → `Container` → `Card` → campi) e dà a ogni figlio la classe calcolata
+sulle colonne del genitore.
 
-Risultato: dentro un Accordion i campi di un form, che portano `col-span-*`,
-non hanno nessun `row d-grid row-col-*` in cui stare, e si schiacciano. Per
-questo il modulo gestionale ha un `foldable()` che è una Card travestita.
+Quel renderer conosceva `AbstractValueCard`, `Card` e `Container`. Tutto il
+resto finiva nel ramo dei componenti generici: la cornice si disegnava, ma i
+figli li rendeva il tema senza sapere niente delle colonne — e si schiacciavano
+in una striscia. È per questo che il modulo gestionale ha un `foldable()` che è
+una Card travestita.
 
-Correzione: l'Accordion usa `HasColumns` e `HasGap` come la Card e mette
-`$classColumn $classGap` sul corpo, con gli stessi default. Un Accordion che
-oggi contiene solo testo non cambia aspetto.
+Correzione, in due punti:
+
+- `ResourceFormLayoutRenderer` tratta l'`Accordion` come un contenitore: rende
+  i figli da sé con le colonne dell'accordion e chiede al tema solo la cornice,
+  esattamente come fa già con il `Container` (`renderInner()`).
+- Il renderer Bootstrap dell'Accordion espone `renderInner($class, $content,
+  $bodyClasses)` e mette sul corpo le classi di griglia **solo se qualcuno ha
+  chiesto le colonne**. L'Element guadagna `columns()` e `gap()`, che nascono
+  `null`: un accordion di solo testo non cambia di un carattere.
 
 ## Vincoli e casi limite
 
@@ -221,7 +229,9 @@ Chiude con il tag **v.2.3.0**, che porta fuori anche il **quick-create FK**
 | R5 | Testate costruite dal JS, non dal server | Una testata nel DOM delle righe sarebbe una finta riga |
 | R6 | Frecce nascoste quando si raggruppa | "Sposta su" dentro un gruppo non ha significato |
 | R7 | Alla nascita nessun raggruppamento | Un repeater che si apre già diviso sorprende chi non ha chiesto niente |
-| R8 | L'Accordion prende la griglia della Card | Stessa correzione, e senza di essa i blocchi richiudibili restano finti |
+| R8 | L'Accordion diventa un contenitore del layout dei form | Il corpo senza griglia era solo metà del problema: i figli li rendeva il tema, che le colonne non le conosce |
+| R9 | Il comando di gruppo scrive dall'API di AutoNumeric | I campi numerici del pannello sono suoi: assegnare `value` gli lascia lo stato vecchio e al salvataggio riscrive lui |
+| R10 | La memoria del raggruppamento sta sul nome del campo | L'id del repeater lo genera il render e cambia a ogni caricamento: sull'id la memoria non ricorda niente |
 
 ## Piani
 

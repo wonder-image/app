@@ -45,6 +45,17 @@ class Accordion extends Component
 
     public array $components = [];
 
+    /**
+     * Colonne e spaziatura del corpo, quando dentro ci sono campi di un form.
+     *
+     * Restano `null` finché non le si chiede: un accordion di solo testo deve
+     * rendersi esattamente come prima, e una griglia a una colonna con il suo
+     * gap gli cambierebbe l'aspetto.
+     */
+    public ?array $columns = null;
+
+    public ?array $gap = null;
+
     public function __construct(string $text = '')
     {
         $this->text = $text;
@@ -69,6 +80,25 @@ class Accordion extends Component
     public function components(array $components): self
     {
         $this->components = $components;
+
+        return $this;
+    }
+
+    /** La griglia del corpo: `columns(12)` per tenerci dentro dei campi. */
+    public function columns(array|int $columns = 2): self
+    {
+        $this->columns = is_array($columns)
+            ? $columns
+            : ['default' => $columns, 'sm' => null, 'md' => null, 'lg' => null, 'xl' => null, '2xl' => null];
+
+        return $this;
+    }
+
+    public function gap(array|int $gap = 3): self
+    {
+        $this->gap = is_array($gap)
+            ? $gap
+            : ['default' => $gap, 'sm' => null, 'md' => null, 'lg' => null, 'xl' => null, '2xl' => null];
 
         return $this;
     }
