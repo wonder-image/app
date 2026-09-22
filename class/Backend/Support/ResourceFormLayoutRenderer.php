@@ -3,12 +3,14 @@
 namespace Wonder\Backend\Support;
 
 use Wonder\Elements\Components\AbstractValueCard;
+use Wonder\Elements\Components\Accordion;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
 use Wonder\Themes\Bootstrap\Components\AbstractValueCard as BootstrapValueCardRenderer;
+use Wonder\Themes\Bootstrap\Components\Accordion as BootstrapAccordionRenderer;
 use Wonder\Themes\Bootstrap\Components\Container as BootstrapContainerRenderer;
 use Wonder\Themes\Resolver;
 
@@ -98,6 +100,11 @@ final class ResourceFormLayoutRenderer
                 continue;
             }
 
+            if ($component instanceof Accordion) {
+                $html .= self::renderAccordion($component, $parentColumns);
+                continue;
+            }
+
             if (is_object($component) && method_exists($component, 'render')) {
                 $fieldHtml = self::renderComponent($component);
                 $html .= self::wrapField($component, $fieldHtml, $parentColumns);
@@ -146,6 +153,27 @@ final class ResourceFormLayoutRenderer
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * Un riquadro che si chiude, con dentro dei campi.
+     *
+     * Senza questo l'accordion finisce fra i componenti generici: la cornice
+     * si disegna, ma i figli li rende il tema senza sapere niente delle
+     * colonne, e i campi si schiacciano in una striscia.
+     */
+    private static function renderAccordion(Accordion $accordion, array $parentColumns): string
+    {
+        $accordionColumns = self::columnsMap($accordion);
+        $content = self::renderComponents((array) ($accordion->components ?? []), $accordionColumns);
+
+        return '<div class="'.self::columnSpanClass($accordion, $parentColumns).'">'
+            .(new BootstrapAccordionRenderer())->renderInner(
+                $accordion,
+                $content,
+                $accordionColumns === [] ? [] : [self::rowClass($accordion)]
+            )
+            .'</div>';
     }
 
     private static function renderContainer(Container $container, array $parentColumns): string
