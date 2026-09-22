@@ -3,6 +3,8 @@
 namespace Wonder\Backend\Table;
 
 use Wonder\App\Credentials;
+use Wonder\App\LegacyGlobals;
+use Wonder\App\Table as AppTable;
 use Wonder\Backend\Table\Field;
 use Wonder\Backend\Table\SSP;
 
@@ -54,6 +56,73 @@ final class ListProvider
         }
 
         return $columns;
+    }
+
+    /**
+     * Metadati delle colonne della tabella, nell'ordine di precedenza storico:
+     * schema legacy, schema della tabella, schema della resource.
+     *
+     * Serve a chi renderizza le righe (Field li legge per immagini e formati):
+     * endpoint AJAX e pre-render devono partire dagli stessi metadati, o la
+     * prima pagina uscirebbe diversa dalle successive.
+     *
+     * @return array<string,mixed>
+     */
+    public static function fields(string $table, string $schema = ''): array
+    {
+        $legacyStore = LegacyGlobals::get('TABLE');
+        $legacyKey   = strtoupper($table);
+
+        if (is_object($legacyStore)) {
+            $legacy = $legacyStore->$legacyKey ?? [];
+        } elseif (is_array($legacyStore)) {
+            $legacy = $legacyStore[$legacyKey] ?? [];
+        } else {
+            $legacy = [];
+        }
+
+        $tableFields    = AppTable::$list[strtolower($table)] ?? [];
+        $schema         = trim($schema);
+        $resourceFields = $schema !== '' ? (AppTable::$list[strtolower($schema)] ?? []) : [];
+
+        return array_replace_recursive(
+            is_array($legacy) ? $legacy : [],
+            is_array($tableFields) ? $tableFields : [],
+            is_array($resourceFields) ? $resourceFields : []
+        );
+    }
+
+    /**
+     * URL assoluto a cui tornare dopo un'azione su una riga: la stessa lista,
+     * con pagina, lunghezza, ricerca e ordinamento correnti.
+     *
+     * @param array<string,mixed> $state page / length / search / order / order_direction
+     */
+    public static function redirect(string $url, string $domain, string $table, array $state): string
+    {
+        $parts  = parse_url($url);
+        $params = [];
+
+        if (isset($parts['query'])) {
+            parse_str($parts['query'], $params);
+        }
+
+        $params[$table.'__page']   = (int) ($state['page'] ?? 0);
+        $params[$table.'__length'] = (int) ($state['length'] ?? 10);
+        // urlencode() prima di http_build_query e' storico e produce una doppia
+        // codifica della ricerca: resta per non cambiare gli URL gia' in giro.
+        $params[$table.'__search'] = urlencode((string) ($state['search'] ?? ''));
+
+        if ((string) ($state['order'] ?? '') !== '') {
+            $params[$table.'__order']     = (string) $state['order'];
+            $params[$table.'__order_dir'] = (string) ($state['order_direction'] ?? '');
+        }
+
+        // L'host puo' arrivare con o senza www (PAGE->domain lo toglie,
+        // HTTP_HOST no): normalizzarlo qui evita il doppio www.
+        $domain = preg_replace('/^www\./i', '', trim($domain));
+
+        return 'https://www.'.$domain.($parts['path'] ?? '').'?'.http_build_query($params);
     }
 
     /**

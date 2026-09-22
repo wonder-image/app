@@ -29,6 +29,7 @@ scrivere HTML di tabella né query.
 | Base colonna | `class/Elements/Table/Column.php` | metodi comuni (`size`, `hiddenDevice`, …) |
 | Renderer/ponte | `class/Backend/Support/ResourceTableRenderer.php` | converte `TableColumn` in resa concreta |
 | Table legacy | `class/Backend/Table/Table.php` | runtime storico (DataTables) |
+| Primo draw | `class/Backend/Table/Prerender.php` | prepara i dati della prima pagina |
 
 {% hint style="info" %}
 **Esistono tre classi `Table.php`** nel codice:
@@ -65,6 +66,22 @@ public static function tableLayoutSchema(): TableLayoutSchema
         ->searchFields(['name']);         // colonne interrogate dalla ricerca
 }
 ```
+
+## Il primo caricamento
+
+La prima pagina della lista **non passa dall'endpoint**: viene calcolata dal
+server insieme alla pagina e consegnata a DataTables gia' pronta, quindi la
+tabella nasce piena senza una chiamata di rete in piu'.
+
+Succede da solo, non c'e' niente da attivare. Dal secondo draw in poi (pagina,
+ricerca, ordinamento, filtri) si torna a `/api/backend/list-table/` come sempre.
+Se il calcolo non riesce — per esempio una Resource senza tabella SQL — la
+tabella riparte semplicemente dall'AJAX.
+
+Per chi mette le mani nel runtime: `Prerender::request()` compone la richiesta
+del primo draw, `ListProvider::fetch()` la esegue, `Prerender::script()` la
+consegna al client come quarto argomento di `createDataTables`. Il payload resta
+fuori dalla config, che e' anche il corpo delle richieste successive.
 
 ## Collegamenti con il resto
 

@@ -1,6 +1,5 @@
 <?php
 
-use Wonder\App\Table as AppTable;
 use Wonder\App\Support\ApiRequest;
 use Wonder\Backend\Table\ListProvider;
 
@@ -16,18 +15,7 @@ $name->connection = $MYSQLI_CONNECTION[$name->database];
 $name->link = $_POST['default']['link'] ?? [];
 $name->schema = $_POST['custom']['schema'] ?? '';
 
-$nameTable = strtoupper((string) $name->table);
-$legacyField = isset($TABLE->$nameTable) ? $TABLE->$nameTable : [];
-$tableField = AppTable::$list[strtolower((string) $name->table)] ?? [];
-$resourceField = is_string($name->schema) && trim($name->schema) !== ''
-    ? (AppTable::$list[strtolower(trim($name->schema))] ?? [])
-    : [];
-
-$name->field = array_replace_recursive(
-    is_array($legacyField) ? $legacyField : [],
-    is_array($tableField) ? $tableField : [],
-    is_array($resourceField) ? $resourceField : []
-);
+$name->field = ListProvider::fields((string) $name->table, (string) $name->schema);
 
 $text = (object) [];
 $text->titleS = $_POST['text']['titleS'] ?? '';
@@ -48,26 +36,18 @@ $mysqli = $name->connection;
 $start = (int) ($_POST['start'] ?? 0);
 $length = max((int) ($_POST['length'] ?? 10), 1);
 $pageNumber = $start === 0 ? 0 : (int) ($start / $length);
-$url = (string) ($_POST['url'] ?? '');
-$urlParts = parse_url($url);
-
-if (isset($urlParts['query'])) {
-    parse_str($urlParts['query'], $params);
-} else {
-    $params = [];
-}
-
-$params[$name->table.'__page'] = $pageNumber;
-$params[$name->table.'__length'] = $length;
-$params[$name->table.'__search'] = urlencode((string) ($_POST['search']['value'] ?? ''));
-
-if (isset($_POST['order'][0])) {
-    $params[$name->table.'__order'] = $_POST['order'][0]['name'] ?? '';
-    $params[$name->table.'__order_dir'] = $_POST['order'][0]['dir'] ?? '';
-}
-
-$urlParts['query'] = http_build_query($params);
-$PAGE->redirect = 'https://www.'.$PAGE->domain.($urlParts['path'] ?? '').'?'.$urlParts['query'];
+$PAGE->redirect = ListProvider::redirect(
+    (string) ($_POST['url'] ?? ''),
+    (string) $PAGE->domain,
+    (string) $name->table,
+    [
+        'page'            => $pageNumber,
+        'length'          => $length,
+        'search'          => (string) ($_POST['search']['value'] ?? ''),
+        'order'           => $_POST['order'][0]['name'] ?? '',
+        'order_direction' => $_POST['order'][0]['dir'] ?? '',
+    ]
+);
 $PAGE->redirectBase64 = base64_encode($PAGE->redirect);
 
 $name->page = $pageNumber;
