@@ -81,7 +81,52 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterSortable($b = true)`, `repeaterAddLabel($s)`, `repeaterButtonClass($s)`,
 `repeaterDeleteTitle($s)`, `repeaterDeleteText($s)`,
 `repeaterDeleteCancelLabel($s)`, `repeaterDeleteConfirmLabel($s)`,
-`repeaterDeleteConfirmClass($s)`, `relation($relation)`.
+`repeaterDeleteConfirmClass($s)`, `relation($relation)`,
+`repeaterGroupBy(...$colonne)`, `repeaterGroupCommand($colonna, $etichetta)`,
+`repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`.
+
+## Righe raggruppate
+
+Con molte righe la griglia diventa un muro. Dichiarando una o più colonne
+raggruppabili, sopra il repeater compare un selettore **"Raggruppa per"**: le
+righe si dividono in blocchi richiudibili con la loro testata, e la testata può
+portare una casella che scrive su tutte le righe del gruppo.
+
+```php
+FormField::key('products')
+    ->repeater([
+        RepeaterColumn::key('product_variant_id')->select($colori)->label('Colore')->columnSpan(2),
+        RepeaterColumn::key('name')->text()->label('Versione')->columnSpan(2),
+        RepeaterColumn::key('price')->number()->decimal(2)->label('Prezzo')->columnSpan(2),
+    ])
+    ->repeaterGroupBy('product_variant_id')
+    ->repeaterGroupCommand('price', 'Prezzo del gruppo')
+    ->repeaterGroupCountLabel('versione', 'versioni');
+```
+
+**È una vista, non una struttura.** Le testate si aggiungono in fondo al
+contenitore e l'ordine visivo lo fa `order` di flexbox: il DOM delle righe non
+si sposta mai, quindi posting, `positionKey` e riordino restano quelli di
+sempre, e tornare a "Nessuno" è azzerare due proprietà.
+
+**La casella sulla testata è un comando, non un dato.** Non viene postata:
+scrive il valore negli input delle righe del gruppo, sotto gli occhi di chi
+guarda, e da lì in poi è una modifica come le altre. Se la colonna di
+destinazione è un campo numerico del pannello, il valore passa dall'API di
+AutoNumeric — assegnargli `value` lascerebbe il widget con lo stato vecchio, e
+al salvataggio riscriverebbe lui.
+
+Quello che v1 **non** fa:
+
+- raggruppare per più colonne insieme: una per volta;
+- raggruppare per una colonna senza valori enumerabili — serve una `select` (o
+  una colonna di testo, che si etichetta da sé);
+- convivere con il riordino: con un gruppo attivo le frecce spariscono, perché
+  "sposta su" dentro un gruppo non vuol dire niente. Tornano con "Nessuno".
+
+Il selettore compare solo se le righe sono più di una, e la scelta si ricorda
+in `localStorage` sul **nome del campo** (l'id del repeater lo genera il
+render, cambia a ogni caricamento).
 
 ## RepeaterRelation
 
@@ -115,6 +160,9 @@ payload di una riga prima del salvataggio:
   top-level.
 - **Ordinamento non persistito** → manca `->positionKey(...)` o
   `->repeaterSortable()`.
+- **Raggruppamento che non compare** → la colonna dichiarata in
+  `repeaterGroupBy()` non esiste fra quelle del repeater, oppure la riga è una
+  sola.
 
 ## Checklist
 
@@ -123,3 +171,5 @@ payload di una riga prima del salvataggio:
       top-level
 - [ ] padre creato/risolto prima di `syncRepeaterRelations()`
 - [ ] `positionKey` + `repeaterSortable()` se l'ordine conta
+- [ ] con molte righe: `repeaterGroupBy()` sulla colonna che le distingue, e
+      `repeaterGroupCommand()` sulla colonna che si ripete
