@@ -375,6 +375,10 @@ HTML;
         if (row && typeof window.setInput === 'function') {
             window.setInput(row);
         }
+
+        if (typeof window.wiRepeaterGroupRefresh === 'function') {
+            window.wiRepeaterGroupRefresh(container);
+        }
     };
 
     window.wiRepeaterEnsureDeleteModal = window.wiRepeaterEnsureDeleteModal || function (config = {}) {
@@ -460,6 +464,10 @@ HTML;
                 return;
             }
             row.remove();
+
+            if (typeof window.wiRepeaterGroupRefresh === 'function') {
+                window.wiRepeaterGroupRefresh(container);
+            }
         }, deleteConfig);
     };
 
@@ -475,6 +483,192 @@ HTML;
         const next = row ? row.nextElementSibling : null;
         if (!row || !next) return;
         row.parentElement.insertBefore(next, row);
+    };
+    /*
+     * Righe raggruppate.
+     *
+     * Il DOM delle righe non si sposta mai: le testate si aggiungono in fondo
+     * al contenitore e l'ordine visivo lo fa `order` di flexbox. Così il
+     * posting, le posizioni e il riordino restano quelli di sempre, e togliere
+     * il raggruppamento è azzerare due proprietà.
+     */
+    window.wiRepeaterGroupValue = window.wiRepeaterGroupValue || function (row, columnKey) {
+        const field = row.querySelector('[name$="[' + columnKey + ']"], [name="' + columnKey + '[]"]');
+
+        if (field) {
+            const value = String(field.value === null || field.value === undefined ? '' : field.value);
+            let label = value;
+
+            if (field.tagName === 'SELECT' && field.selectedIndex >= 0) {
+                label = field.options[field.selectedIndex].textContent.trim();
+            }
+
+            return { value: value, label: value === '' ? '' : label };
+        }
+
+        return {
+            value: row.getAttribute('data-wi-group-' + columnKey) || '',
+            label: row.getAttribute('data-wi-group-label-' + columnKey) || ''
+        };
+    };
+
+    window.wiRepeaterGroupApply = window.wiRepeaterGroupApply || function (rowsId, templateId, columnKey) {
+        const container = document.getElementById(rowsId);
+        if (!container) return;
+
+        columnKey = columnKey || '';
+        container.dataset.wiGroupColumn = columnKey;
+        container.dataset.wiGroupTemplate = templateId;
+
+        try { window.localStorage.setItem('wi-repeater-group:' + rowsId, columnKey); } catch (error) {}
+
+        container.querySelectorAll(':scope > .wi-repeater-group-header').forEach(function (header) {
+            header.remove();
+        });
+
+        const rows = Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row'));
+
+        rows.forEach(function (row) {
+            row.style.order = '';
+            row.style.display = '';
+            row.querySelectorAll('.wi-repeater-move-up, .wi-repeater-move-down').forEach(function (button) {
+                button.classList.toggle('d-none', columnKey !== '');
+            });
+        });
+
+        if (columnKey === '') return;
+
+        const template = document.getElementById(templateId);
+        if (!template) return;
+
+        const order = [];
+        const buckets = new Map();
+
+        rows.forEach(function (row) {
+            const found = window.wiRepeaterGroupValue(row, columnKey);
+
+            if (!buckets.has(found.value)) {
+                buckets.set(found.value, { label: found.label, rows: [] });
+                order.push(found.value);
+            }
+
+            buckets.get(found.value).rows.push(row);
+        });
+
+        const collapsed = container.dataset.wiGroupCollapsed === 'true';
+        let position = 0;
+
+        order.forEach(function (key) {
+            const bucket = buckets.get(key);
+            const fragment = template.content.cloneNode(true);
+            const header = fragment.querySelector('.wi-repeater-group-header');
+            const count = bucket.rows.length;
+
+            header.dataset.wiGroupKey = key;
+            header.style.order = String(position++);
+            header.querySelector('.wi-repeater-group-label').textContent = bucket.label || 'Senza scelta';
+            header.querySelector('.wi-repeater-group-count').textContent =
+                count + ' ' + (count === 1
+                    ? (header.dataset.wiCountSingular || 'riga')
+                    : (header.dataset.wiCountPlural || 'righe'));
+
+            if (collapsed) {
+                header.classList.add('wi-repeater-group-closed');
+                const icon = header.querySelector('.wi-repeater-group-toggle i');
+                if (icon) icon.className = 'bi bi-chevron-right';
+            }
+
+            container.appendChild(fragment);
+
+            bucket.rows.forEach(function (row) {
+                row.style.order = String(position++);
+                row.style.display = collapsed ? 'none' : '';
+            });
+        });
+    };
+
+    window.wiRepeaterGroupToggle = window.wiRepeaterGroupToggle || function (button) {
+        const header = button.closest('.wi-repeater-group-header');
+        if (!header) return;
+
+        const container = header.parentElement;
+        const columnKey = container.dataset.wiGroupColumn || '';
+        const key = header.dataset.wiGroupKey || '';
+        const closed = header.classList.toggle('wi-repeater-group-closed');
+
+        Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row')).forEach(function (row) {
+            if (window.wiRepeaterGroupValue(row, columnKey).value === key) {
+                row.style.display = closed ? 'none' : '';
+            }
+        });
+
+        const icon = button.querySelector('i');
+        if (icon) icon.className = closed ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+    };
+
+    window.wiRepeaterGroupCommand = window.wiRepeaterGroupCommand || function (input) {
+        const header = input.closest('.wi-repeater-group-header');
+        const box = input.closest('.wi-repeater-group-command');
+        if (!header || !box) return;
+
+        const container = header.parentElement;
+        const columnKey = container.dataset.wiGroupColumn || '';
+        const target = box.dataset.wiCommandColumn || '';
+        const key = header.dataset.wiGroupKey || '';
+        if (target === '') return;
+
+        Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row')).forEach(function (row) {
+            if (window.wiRepeaterGroupValue(row, columnKey).value !== key) return;
+
+            const field = row.querySelector('[name$="[' + target + ']"], [name="' + target + '[]"]');
+            if (!field) return;
+
+            field.value = input.value;
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    };
+
+    window.wiRepeaterGroupRefresh = window.wiRepeaterGroupRefresh || function (container) {
+        if (!container || !container.dataset || !container.dataset.wiGroupColumn) return;
+
+        window.wiRepeaterGroupApply(
+            container.id,
+            container.dataset.wiGroupTemplate || '',
+            container.dataset.wiGroupColumn
+        );
+    };
+
+    window.wiRepeaterGroupInit = window.wiRepeaterGroupInit || function (rowsId, templateId, selectId) {
+        const container = document.getElementById(rowsId);
+        const select = document.getElementById(selectId);
+        if (!container || !select) return;
+
+        let remembered = '';
+        try { remembered = window.localStorage.getItem('wi-repeater-group:' + rowsId) || ''; } catch (error) {}
+
+        const known = Array.prototype.slice.call(select.options).some(function (option) {
+            return option.value === remembered;
+        });
+
+        if (!known) remembered = '';
+
+        if (!container.dataset.wiGroupBound) {
+            container.dataset.wiGroupBound = 'true';
+            container.addEventListener('change', function (event) {
+                const columnKey = container.dataset.wiGroupColumn || '';
+                const name = event.target && event.target.name ? event.target.name : '';
+                if (columnKey === '' || name === '') return;
+
+                if (name.endsWith('[' + columnKey + ']') || name === columnKey + '[]') {
+                    window.wiRepeaterGroupRefresh(container);
+                }
+            });
+        }
+
+        select.value = remembered;
+        container.dataset.wiGroupTemplate = templateId;
+        window.wiRepeaterGroupApply(rowsId, templateId, remembered);
     };
 </script>
 HTML;

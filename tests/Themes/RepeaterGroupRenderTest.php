@@ -49,12 +49,17 @@ $conGruppi = static fn (array $righe) => [
     'group_count_label' => ['singular' => 'versione', 'plural' => 'versioni'],
 ];
 
-check('senza raggruppamento il markup non cambia', function () use ($render, $righe) {
-    $html = $render($righe, []);
+// Il blocco <script> è condiviso da tutti i repeater e contiene le funzioni
+// del raggruppamento: quello che non deve cambiare è il markup.
+$markup = static fn (string $html): string => substr($html, 0, (int) strpos($html, '<script'));
+
+check('senza raggruppamento il markup non cambia', function () use ($render, $markup, $righe) {
+    $html = $markup($render($righe, []));
 
     return !str_contains($html, 'wi-repeater-groupbar')
         && !str_contains($html, 'data-wi-group-')
-        && !str_contains($html, 'group-template');
+        && !str_contains($html, 'group-template')
+        && !str_contains($html, 'wiRepeaterGroupInit');
 });
 
 check('le righe portano valore ed etichetta del gruppo', function () use ($render, $righe, $conGruppi) {
