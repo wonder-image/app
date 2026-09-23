@@ -62,7 +62,9 @@ Il comando:
    (`gh release create --generate-notes`).
 
 Lo script è in `bin/release.php` ed è registrato come script Composer
-`release`, come `npm run release` in `wonder-image/lib`.
+`release`, come `npm run release` in `wonder-image/lib`. Il file è in
+`.gitignore`: resta sulla macchina di chi pubblica e va copiato a mano su
+un'altra postazione, altrimenti `composer release` fallisce.
 
 ## Formato dei tag
 
