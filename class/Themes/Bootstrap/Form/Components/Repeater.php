@@ -86,7 +86,7 @@ class Repeater extends Field
         $groupBarHtml = $groupable && $groupFixed === ''
             ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy)
             : '';
-        $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context) : '';
+        $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context, $groupFixed !== '') : '';
         // La scelta si ricorda sul **nome** del campo, non sull'id: l'id del
         // repeater lo genera il render, cambia a ogni caricamento, e una
         // memoria con una chiave nuova ogni volta non ricorda niente.
@@ -488,7 +488,7 @@ HTML;
      * contenitore sarebbe una riga finta, che il posting e i conteggi
      * dovrebbero imparare a saltare.
      */
-    private function renderGroupTemplate(string $templateId, array $context): string
+    private function renderGroupTemplate(string $templateId, array $context, bool $fixed = false): string
     {
         $command = is_array($context['group_command'] ?? null) ? $context['group_command'] : [];
         $countLabel = is_array($context['group_count_label'] ?? null) ? $context['group_count_label'] : [];
@@ -497,7 +497,7 @@ HTML;
         $commandHtml = '';
 
         if (($command['column'] ?? '') !== '') {
-            $commandHtml = '<div class="ms-auto wi-repeater-group-command" style="max-width:14rem"'
+            $commandHtml = '<div class="wi-repeater-group-command" style="max-width:14rem"'
                 .' data-wi-command-column="'.$this->escape((string) $command['column']).'">'
                 .'<input type="text" class="form-control form-control-sm"'
                 .' placeholder="'.$this->escape((string) ($command['label'] ?? '')).'"'
@@ -505,7 +505,11 @@ HTML;
                 .'</div>';
         }
 
-        return '<template id="'.$this->escape($templateId).'">'
+        [$filesButton, $filesPanel, $filesAttrs] = $fixed ? $this->renderGroupFiles($context) : ['', '', ''];
+        $tools = $filesButton.$commandHtml;
+        $toolsHtml = $tools === '' ? '' : '<div class="ms-auto d-flex align-items-center gap-2">'.$tools.'</div>';
+
+        return '<template id="'.$this->escape($templateId).'"'.$filesAttrs.'>'
             .'<div class="col-12 wi-repeater-group-header"'
             .' data-wi-count-singular="'.$singular.'" data-wi-count-plural="'.$plural.'">'
             .'<div class="card border-0 bg-body-secondary"><div class="card-body py-2 d-flex align-items-center gap-2">'
@@ -513,8 +517,55 @@ HTML;
             .' onclick="window.wiRepeaterGroupToggle(this)"><i class="bi bi-chevron-down"></i></button>'
             .'<strong class="wi-repeater-group-label"></strong>'
             .'<span class="small text-body-secondary wi-repeater-group-count"></span>'
-            .$commandHtml
-            .'</div></div></div></template>';
+            .$toolsHtml
+            .'</div>'
+            .$filesPanel
+            .'</div></div></template>';
+    }
+
+    /**
+     * Il campo file della testata: il bottone che lo apre, il pannello che lo
+     * contiene e, sul `<template>`, i file già salvati di ogni gruppo.
+     *
+     * Il campo si stampa una volta sola, con `__GROUP_KEY__` al posto della
+     * chiave: la mette lo script quando crea la testata, come fa con
+     * `__ROW_KEY__` per le righe.
+     *
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function renderGroupFiles(array $context): array
+    {
+        $files = is_array($context['group_files'] ?? null) ? $context['group_files'] : [];
+        $source = $files['field'] ?? null;
+        $keyColumn = trim((string) ($files['key_column'] ?? ''));
+
+        if (!$source instanceof Input || $keyColumn === '') {
+            return ['', '', ''];
+        }
+
+        $field = clone $source;
+        $fieldName = trim((string) $field->name);
+        $values = [];
+
+        foreach ((array) ($field->get('value') ?? []) as $key => $names) {
+            $values[(string) $key] = array_values(array_filter(
+                array_map('strval', is_array($names) ? $names : [$names]),
+                static fn (string $name): bool => $name !== ''
+            ));
+        }
+
+        $field->inputName($fieldName.'[__GROUP_KEY__]')->value(null);
+        $label = $this->escape((string) ($files['label'] ?? 'Foto'));
+
+        $button = '<button type="button" class="btn btn-sm btn-outline-secondary text-nowrap wi-repeater-group-files-toggle"'
+            .' aria-expanded="false" onclick="window.wiRepeaterGroupFilesToggle(this)">'
+            .'<i class="bi bi-images"></i> '.$label
+            .' (<span class="wi-repeater-group-files-count">0</span>)</button>';
+        $panel = '<div class="card-body pt-0 d-none wi-repeater-group-files">'.$field->render('bootstrap').'</div>';
+        $attrs = ' data-wi-group-files-key="'.$this->escape($keyColumn).'"'
+            .' data-wi-group-files-values="'.$this->escape(json_encode((object) $values, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)).'"';
+
+        return [$button, $panel, $attrs];
     }
 
     private function script(): string
@@ -774,8 +825,13 @@ HTML;
             try { window.localStorage.setItem('wi-repeater-group:' + memory, columnKey); } catch (error) {}
         }
 
+        // Le testate restano da un giro all'altro: dentro possono avere un
+        // campo file con i caricamenti in corso, che rifarle da capo
+        // butterebbe via. Si ritrovano per gruppo e per chiave dei file.
+        const previous = new Map();
+
         container.querySelectorAll(':scope > .wi-repeater-group-header').forEach(function (header) {
-            header.remove();
+            previous.set(header.dataset.wiGroupId || '', header);
         });
 
         const rows = Array.prototype.slice.call(container.querySelectorAll(':scope > .wi-repeater-row'));
@@ -788,65 +844,195 @@ HTML;
             });
         });
 
-        if (columnKey === '') return;
+        const template = columnKey === '' ? null : document.getElementById(templateId);
+        const kept = new Set();
 
-        const template = document.getElementById(templateId);
-        if (!template) return;
+        if (template) {
+            const order = [];
+            const buckets = new Map();
 
-        const order = [];
-        const buckets = new Map();
+            rows.forEach(function (row) {
+                const found = window.wiRepeaterGroupValue(row, columnKey);
 
-        rows.forEach(function (row) {
-            const found = window.wiRepeaterGroupValue(row, columnKey);
+                if (!buckets.has(found.value)) {
+                    buckets.set(found.value, { label: found.label, rows: [] });
+                    order.push(found.value);
+                }
 
-            if (!buckets.has(found.value)) {
-                buckets.set(found.value, { label: found.label, rows: [] });
-                order.push(found.value);
-            }
-
-            buckets.get(found.value).rows.push(row);
-        });
-
-        const collapsed = container.dataset.wiGroupCollapsed === 'true';
-        let position = 0;
-
-        order.forEach(function (key) {
-            const bucket = buckets.get(key);
-            const fragment = template.content.cloneNode(true);
-            const header = fragment.querySelector('.wi-repeater-group-header');
-            // Le righe annullate restano nel loro gruppo — spostarle
-            // scombinerebbe la lettura — ma non si contano: dicono «questa
-            // non la vendo più».
-            const count = bucket.rows.filter(function (r) {
-                return !r.classList.contains('wi-repeater-row-deleted');
-            }).length;
-
-            // Un template che non è quello delle testate: meglio nessun gruppo
-            // che una pagina che si ferma a metà.
-            if (!header) return;
-
-            header.dataset.wiGroupKey = key;
-            header.style.order = String(position++);
-            header.querySelector('.wi-repeater-group-label').textContent = bucket.label || 'Senza scelta';
-            header.querySelector('.wi-repeater-group-count').textContent =
-                count + ' ' + (count === 1
-                    ? (header.dataset.wiCountSingular || 'riga')
-                    : (header.dataset.wiCountPlural || 'righe'));
-
-            if (collapsed) {
-                header.classList.add('wi-repeater-group-closed');
-                const icon = header.querySelector('.wi-repeater-group-toggle i');
-                if (icon) icon.className = 'bi bi-chevron-right';
-            }
-
-            container.appendChild(fragment);
-
-            bucket.rows.forEach(function (row) {
-                row.style.order = String(position++);
-                row.style.display = collapsed ? 'none' : '';
+                buckets.get(found.value).rows.push(row);
             });
+
+            const collapsed = container.dataset.wiGroupCollapsed === 'true';
+            const filesColumn = template.dataset.wiGroupFilesKey || '';
+            let position = 0;
+
+            order.forEach(function (key) {
+                const bucket = buckets.get(key);
+                const fileKey = filesColumn === ''
+                    ? ''
+                    : window.wiRepeaterGroupValue(bucket.rows[0], filesColumn).value.replace(/[^A-Za-z0-9_-]/g, '');
+                const groupId = JSON.stringify([key, fileKey]);
+                let header = previous.get(groupId) || null;
+                const fresh = header === null;
+
+                if (fresh) {
+                    header = window.wiRepeaterGroupHeader(template, fileKey);
+
+                    // Un template che non è quello delle testate: meglio
+                    // nessun gruppo che una pagina che si ferma a metà.
+                    if (!header) return;
+
+                    header.dataset.wiGroupId = groupId;
+
+                    if (collapsed) {
+                        header.classList.add('wi-repeater-group-closed');
+                        const icon = header.querySelector('.wi-repeater-group-toggle i');
+                        if (icon) icon.className = 'bi bi-chevron-right';
+                    }
+                }
+
+                // Le righe annullate restano nel loro gruppo — spostarle
+                // scombinerebbe la lettura — ma non si contano: dicono «questa
+                // non la vendo più».
+                const count = bucket.rows.filter(function (r) {
+                    return !r.classList.contains('wi-repeater-row-deleted');
+                }).length;
+                const closed = header.classList.contains('wi-repeater-group-closed');
+
+                kept.add(header);
+                header.dataset.wiGroupKey = key;
+                header.style.order = String(position++);
+                header.querySelector('.wi-repeater-group-label').textContent = bucket.label || 'Senza scelta';
+                header.querySelector('.wi-repeater-group-count').textContent =
+                    count + ' ' + (count === 1
+                        ? (header.dataset.wiCountSingular || 'riga')
+                        : (header.dataset.wiCountPlural || 'righe'));
+
+                if (fresh) {
+                    container.appendChild(header);
+                    window.wiRepeaterGroupSetUp(header);
+                }
+
+                bucket.rows.forEach(function (row) {
+                    row.style.order = String(position++);
+                    row.style.display = closed ? 'none' : '';
+                });
+            });
+        }
+
+        previous.forEach(function (header) {
+            if (!kept.has(header)) window.wiRepeaterGroupDrop(header);
         });
     };
+
+    /*
+     * Una testata nuova, presa dal template.
+     *
+     * Il campo file c'è solo se il gruppo ha una chiave: senza, i file non
+     * saprebbero a chi appartengono. La chiave va nei `name`, negli `id` —
+     * il template è uno, le testate tante — e i file già salvati di quel
+     * gruppo in `data-wi-value`, dove li cerca il caricamento.
+     */
+    window.wiRepeaterGroupHeader = window.wiRepeaterGroupHeader || function (template, fileKey) {
+        const fragment = template.content.cloneNode(true);
+        const header = fragment.querySelector('.wi-repeater-group-header');
+        if (!header) return null;
+
+        const panel = header.querySelector('.wi-repeater-group-files');
+        const button = header.querySelector('.wi-repeater-group-files-toggle');
+
+        if (fileKey === '') {
+            if (panel) panel.remove();
+            if (button) button.remove();
+            return header;
+        }
+
+        if (!panel) return header;
+
+        let values = {};
+        try { values = JSON.parse(template.dataset.wiGroupFilesValues || '{}') || {}; } catch (error) {}
+        const names = Array.isArray(values[fileKey]) ? values[fileKey] : [];
+
+        panel.querySelectorAll('[name]').forEach(function (element) {
+            element.name = element.name.replaceAll('__GROUP_KEY__', fileKey);
+        });
+        panel.querySelectorAll('[id]').forEach(function (element) {
+            element.id = element.id + '-' + fileKey;
+        });
+        panel.querySelectorAll('label[for]').forEach(function (element) {
+            element.htmlFor = element.htmlFor + '-' + fileKey;
+        });
+        panel.querySelectorAll('input[type="file"]').forEach(function (element) {
+            element.setAttribute('data-wi-value', JSON.stringify(names));
+        });
+
+        const count = header.querySelector('.wi-repeater-group-files-count');
+        if (count) count.textContent = String(names.length);
+
+        return header;
+    };
+
+    /*
+     * I widget di una testata appena entrata in pagina.
+     *
+     * Prima della fine del caricamento non serve: il giro di `setInput` su
+     * tutta la pagina la trova da solo, e montarla due volte darebbe due
+     * caricamenti sullo stesso campo.
+     */
+    window.wiRepeaterGroupSetUp = window.wiRepeaterGroupSetUp || function (header) {
+        if (!header.querySelector('.wi-repeater-group-files')) return;
+
+        ['FilePond:init', 'FilePond:updatefiles', 'FilePond:addfile', 'FilePond:removefile'].forEach(function (name) {
+            header.addEventListener(name, function () { window.wiRepeaterGroupFilesCount(header); });
+        });
+
+        if (window.wiRepeaterPageReady && typeof window.setInput === 'function') {
+            window.setInput(header);
+        }
+    };
+
+    /*
+     * Una testata che non serve più.
+     *
+     * Il caricamento va spento prima di togliere la testata: acceso, resta
+     * registrato e continua ad ascoltare l'invio del form.
+     */
+    window.wiRepeaterGroupDrop = window.wiRepeaterGroupDrop || function (header) {
+        if (window.FilePond && typeof window.FilePond.find === 'function') {
+            header.querySelectorAll('.filepond--root').forEach(function (root) {
+                const pond = window.FilePond.find(root);
+                if (pond) pond.destroy();
+            });
+        }
+
+        header.remove();
+    };
+
+    window.wiRepeaterGroupFilesCount = window.wiRepeaterGroupFilesCount || function (header) {
+        const count = header.querySelector('.wi-repeater-group-files-count');
+        const root = header.querySelector('.wi-repeater-group-files .filepond--root');
+        if (!count || !root || !window.FilePond || typeof window.FilePond.find !== 'function') return;
+
+        const pond = window.FilePond.find(root);
+        if (pond) count.textContent = String(pond.getFiles().length);
+    };
+
+    window.wiRepeaterGroupFilesToggle = window.wiRepeaterGroupFilesToggle || function (button) {
+        const header = button.closest('.wi-repeater-group-header');
+        const panel = header ? header.querySelector('.wi-repeater-group-files') : null;
+        if (!panel) return;
+
+        const open = panel.classList.toggle('d-none') === false;
+        button.classList.toggle('active', open);
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    // Il segnale che il giro di `setInput` sulla pagina è passato: da qui in
+    // poi le testate nuove i loro widget se li montano da sole.
+    if (!window.wiRepeaterPageReadyBound) {
+        window.wiRepeaterPageReadyBound = true;
+        window.addEventListener('loaded', function () { window.wiRepeaterPageReady = true; }, { once: true });
+    }
 
     window.wiRepeaterGroupToggle = window.wiRepeaterGroupToggle || function (button) {
         const header = button.closest('.wi-repeater-group-header');

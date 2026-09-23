@@ -114,6 +114,73 @@ final class Repeater
         return $rows;
     }
 
+    /**
+     * I file che le testate dei gruppi hanno postato, gruppo per gruppo
+     * (vedi `InputRepeater::repeaterGroupFiles()`).
+     *
+     * Il manifesto elenca quello che resta: una stringa è un file già
+     * salvato, un numero l'indice di uno appena caricato nella busta. Un
+     * gruppo senza manifesto non compare: il suo campo non era in pagina, e
+     * trattarlo come svuotato cancellerebbe i suoi file.
+     *
+     * @return array<string, array{manifest: list<mixed>, files: array<string, array<int|string, mixed>>|null}>
+     */
+    public static function groupFilesFromRequest(string $name, array $post = [], array $files = []): array
+    {
+        $posted = $post[$name] ?? null;
+
+        if (!is_array($posted)) {
+            return [];
+        }
+
+        $bag = $files[$name] ?? null;
+        $groups = [];
+
+        foreach ($posted as $key => $manifest) {
+            $key = (string) $key;
+
+            if (!str_ends_with($key, '__wi_files')) {
+                continue;
+            }
+
+            $groupKey = substr($key, 0, -strlen('__wi_files'));
+            $decoded = is_array($manifest) ? $manifest : json_decode((string) $manifest, true);
+
+            if ($groupKey === '' || !is_array($decoded)) {
+                continue;
+            }
+
+            $groups[$groupKey] = [
+                'manifest' => array_values($decoded),
+                'files' => static::groupFileBag($bag, $groupKey),
+            ];
+        }
+
+        return $groups;
+    }
+
+    /**
+     * La busta di `$_FILES` di un gruppo, nella forma di un campo singolo.
+     *
+     * @return array<string, array<int|string, mixed>>|null
+     */
+    private static function groupFileBag(mixed $bag, string $groupKey): ?array
+    {
+        if (!is_array($bag) || !is_array($bag['name'][$groupKey] ?? null)) {
+            return null;
+        }
+
+        $defaults = ['name' => '', 'type' => '', 'tmp_name' => '', 'error' => 4, 'size' => 0];
+        $out = [];
+
+        foreach ($defaults as $field => $default) {
+            $values = $bag[$field][$groupKey] ?? [];
+            $out[$field] = is_array($values) ? $values : [$values ?? $default];
+        }
+
+        return $out;
+    }
+
     public static function syncRelatedRows(
         RepeaterRelation $relation,
         int|string $parentId,

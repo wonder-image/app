@@ -84,7 +84,9 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterDeleteConfirmClass($s)`, `relation($relation)`,
 `repeaterGroupBy(...$colonne)`, `repeaterGroupCommand($colonna, $etichetta)`,
 `repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`,
-`repeaterGroupFixed($colonna)`, `repeaterAddButton($b = true)`,
+`repeaterGroupFixed($colonna)`,
+`repeaterGroupFiles($campo, $colonnaChiave, $etichetta = 'Foto')`,
+`repeaterAddButton($b = true)`,
 `repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
 `repeaterAdvancedLabel($s)`, `repeaterUndoDelete($b = true)`,
 `repeaterUndoLabel($etichetta, $testo = '')`.
@@ -243,6 +245,51 @@ falso), così la colonna dei bottoni non resta larga e vuota, e la memoria in
 Una colonna fissa che non esiste fra quelle dichiarate non raggruppa niente,
 come già succede alle colonne di `repeaterGroupBy()`.
 
+### File che stanno al gruppo
+
+Certi file non sono di una riga ma del suo gruppo: le foto di un colore valgono
+per tutte le sue taglie. `repeaterGroupFiles()` mette sulla testata un bottone
+«Foto (n)» che apre, sotto la testata, un campo file:
+
+```php
+FormField::key('products')
+    ->repeater([
+        RepeaterColumn::key('group')->hidden(),        // l'etichetta del gruppo
+        RepeaterColumn::key('group_value')->hidden(),  // la sua chiave
+        // ...
+    ])
+    ->repeaterGroupFixed('group')
+    ->repeaterGroupFiles(
+        FormField::key('group_images')
+            ->fileDragDrop('gallery')
+            ->maxFile(10)
+            ->value(['12' => ['blu-1.jpg'], '13' => []]),  // chiave → file
+        'group_value',
+        'Foto del colore'
+    );
+```
+
+- **La chiave non è l'etichetta.** La colonna che raggruppa porta un nome da
+  leggere; i file si legano a `$colonnaChiave`, letta nella prima riga del
+  gruppo e ripulita di tutto ciò che non è lettera, cifra, trattino o
+  underscore. Un gruppo con la chiave vuota non ha il bottone.
+- **Il valore è una mappa** `chiave → nomi dei file`: il campo si stampa una
+  volta sola nel `<template>` delle testate, e ogni testata prende i suoi.
+- **Si posta come un campo a sé**: `group_images[12][]` con il manifesto
+  `group_images[12__wi_files]`. Sul server
+  `Support\Repeater::groupFilesFromRequest('group_images', $_POST, $_FILES)`
+  restituisce, per chiave, `['manifest' => [...], 'files' => busta|null]`, con
+  il manifesto già decodificato. Un gruppo senza manifesto non compare: il suo
+  campo non era in pagina, e trattarlo come svuotato cancellerebbe i suoi file.
+- **Solo con `repeaterGroupFixed()`**: con una colonna scelta da chi guarda, un
+  gruppo potrebbe mescolare righe di chiavi diverse.
+
+Per non perdere i caricamenti in corso, le testate **restano** da un
+ricalcolo all'altro: si ritrovano per gruppo e per chiave, e ricordano anche
+se erano chiuse. Una testata che sparisce spegne prima il suo FilePond. Quelle
+che nascono dopo il caricamento della pagina (evento `loaded`) montano i loro
+widget con `setInput(testata)`; prima ci pensa il giro su tutta la pagina.
+
 ## Righe che nascono da fuori
 
 Un repeater si compila a mano, ma può anche ricevere le righe da altro codice
@@ -321,3 +368,5 @@ payload di una riga prima del salvataggio:
 - [ ] `positionKey` + `repeaterSortable()` se l'ordine conta
 - [ ] con molte righe: `repeaterGroupBy()` sulla colonna che le distingue, e
       `repeaterGroupCommand()` sulla colonna che si ripete
+- [ ] file del gruppo: `repeaterGroupFixed()` + `repeaterGroupFiles()` con una
+      colonna chiave nascosta, e `groupFilesFromRequest()` nel salvataggio

@@ -125,6 +125,30 @@ class InputRepeater extends Input
     }
 
     /**
+     * Un campo file sulla testata del gruppo: i file stanno al gruppo, non
+     * alle sue righe — le foto di un colore valgono per tutte le sue taglie.
+     *
+     * `$field` è un campo file (di solito `fileDragDrop()`) il cui valore è la
+     * mappa `chiave del gruppo → nomi dei file`. La chiave si legge da
+     * `$keyColumn` nella prima riga del gruppo, perché la colonna che
+     * raggruppa porta un'etichetta, non un identificativo; un gruppo con la
+     * chiave vuota non ha il campo. Si posta come `campo[chiave][]` con il
+     * manifesto `campo[chiave__wi_files]`, e lo rilegge
+     * `Support\Repeater::groupFilesFromRequest()`.
+     *
+     * Vale con `repeaterGroupFixed()`: con una colonna scelta da chi guarda
+     * un gruppo potrebbe mescolare righe di chiavi diverse.
+     */
+    public function repeaterGroupFiles(Input $field, string $keyColumn, string $label = 'Foto'): static
+    {
+        $keyColumn = trim($keyColumn);
+
+        return $keyColumn === ''
+            ? $this
+            : $this->context('group_files', ['field' => $field, 'key_column' => $keyColumn, 'label' => trim($label)]);
+    }
+
+    /**
      * Raggruppa sempre per questa colonna: niente selettore, e i gruppi ci
      * sono anche quando la riga è una sola.
      *
