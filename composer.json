@@ -37,6 +37,15 @@
             "Wonder\\": "class/"
         }
     },
+    "scripts": {
+        "release": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php bin/release.php"
+        ]
+    },
+    "scripts-descriptions": {
+        "release": "Pubblica una release o pre-release: composer release -- X.Y.Z[-beta.N] | patch | minor | major"
+    },
     "config": {
         "platform": {
             "php": "8.2.30"

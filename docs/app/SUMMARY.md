@@ -62,6 +62,7 @@
 * [Cron job da codice](piattaforma/cron-job.md)
 * [API](piattaforma/api.md)
 * [Installazione e Deploy](piattaforma/installazione-e-deploy.md)
+* [Versioni e release](piattaforma/versioni-e-release.md)
 * [Avvio locale (PHP 8.4)](piattaforma/avvio-locale.md)
 * [Dev-shared](piattaforma/dev-shared.md)
 * [Estensioni consigliate](piattaforma/estensioni-consigliate.md)

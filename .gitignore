@@ -18,3 +18,4 @@ example/
 !/tests/button-lightbox.php
 !/tests/scheduler.php
 !/tests/scheduler-integration.php
+/bin/release.php

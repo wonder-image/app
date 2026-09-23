@@ -40,11 +40,12 @@
     $ROOT = wonder_resolve_root();
     $GLOBALS['ROOT'] = $ROOT;
 
-    $APP_VERSION = "2.3.0";
     $ROOT_APP = __DIR__."/app";
     $ROOT_RESOURCES = __DIR__."/resources";
 
     require_once $ROOT."/vendor/autoload.php";
+
+    $APP_VERSION = \Wonder\App\Version::get();
 
     $legacyRuntime = \Wonder\App\LegacyGlobals::scope();
     if (is_array($legacyRuntime) && $legacyRuntime !== []) {
