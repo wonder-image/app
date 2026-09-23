@@ -339,6 +339,11 @@
         "title": "Sign-in failed",
         "text": "Invalid credentials.<br>Enter a valid username or email and check your password."
     },
+    "926": {
+        "type": "danger",
+        "title": "Error 926",
+        "text": "Image conversion failed: upload a valid PNG or JPG file."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

@@ -339,6 +339,11 @@
         "title": "Connexion impossible",
         "text": "Identifiants invalides.<br>Saisissez un nom d'utilisateur ou un e-mail valide et vérifiez le mot de passe."
     },
+    "926": {
+        "type": "danger",
+        "title": "Erreur 926",
+        "text": "La conversion de l'image a échoué : téléverse un fichier PNG ou JPG valide."
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

@@ -339,6 +339,11 @@
         "title": "Accesso non riuscito",
         "text": "Credenziali non valide.<br>Inserisci username o email corretti e verifica la password."
     },
+    "926": {
+        "type": "danger",
+        "title": "Errore 926",
+        "text": "La conversione dell'immagine non è riuscita: carica un file PNG o JPG valido."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",

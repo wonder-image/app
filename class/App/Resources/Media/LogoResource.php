@@ -55,7 +55,7 @@ final class LogoResource extends SingletonResource
             FormField::key('icon')->fileDragDrop('png'),
             FormField::key('icon_black')->fileDragDrop('png'),
             FormField::key('icon_white')->fileDragDrop('png'),
-            FormField::key('app_icon')->fileDragDrop('png'),
+            FormField::key('app_icon')->fileDragDrop('image'),
             FormField::key('favicon')->fileDragDrop('ico'),
         ];
     }

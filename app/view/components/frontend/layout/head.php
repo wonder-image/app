@@ -5,6 +5,11 @@
     $ANALYTICS ??= (object) [];
     $DB ??= (object) [ 'database' => [] ];
 
+    // Il componente riceve solo le chiavi di LegacyGlobals::scope(): se l'head viene
+    // renderizzato senza il bootstrap frontend il flag non arriva e le statistiche
+    // resterebbero spente in silenzio. Stesso default di app/bootstrap/frontend.php.
+    $ACTIVE_STATISTICS ??= \Wonder\App\LegacyGlobals::get('ACTIVE_STATISTICS', true);
+
     foreach ([
         'title' => '',
         'description' => '',
@@ -45,7 +50,6 @@
     $seoCreator = (string) ($SEO->creator ?? '');
     $societyName = (string) ($SOCIETY->name ?? '');
     $faviconPath = (string) ($PATH->favicon ?? '');
-    $uploadLogoPath = (string) ($PATH->upload->logos ?? '');
 
     $SQL_ANALYTICS = [];
 
@@ -144,15 +148,26 @@
 
         echo "<link rel='apple-touch-icon' href='".e($SOCIETY->appIcon)."'>";
 
-        $pathInfo = pathinfo($SOCIETY->appIcon);
+        # Le misure stanno accanto all'originale: la cartella va letta
+        # dall'URL dell'icona, non ricostruita a mano. La resource che
+        # ospita i loghi può cambiare cartella, e ricomporla qui vuol dire
+        # sbagliarla in silenzio.
+        $pathInfo = pathinfo((string) $SOCIETY->appIcon);
 
-        $name = $pathInfo['filename'];
-        $extension = $pathInfo['extension'];
+        $appIconDirectory = rtrim((string) ($pathInfo['dirname'] ?? ''), '/');
+        $name = (string) ($pathInfo['filename'] ?? '');
+        $extension = (string) ($pathInfo['extension'] ?? '');
 
-        foreach ($DEFAULT->appIcon as $size) {
+        if ($name !== '' && $extension !== '') {
 
-            echo "<link rel='icon' sizes='".e($size)."x".e($size)."' href='".e($uploadLogoPath."/{$name}-{$size}.{$extension}")."'>";
-            echo "<link rel='apple-touch-icon' sizes='".e($size)."x".e($size)."' href='".e($uploadLogoPath."/{$name}-{$size}.{$extension}")."'>";
+            foreach (\Wonder\App\RuntimeDefaults::appIconSizes() as $size) {
+
+                $appIconSized = $appIconDirectory."/{$name}-{$size}.{$extension}";
+
+                echo "<link rel='icon' sizes='".e($size)."x".e($size)."' href='".e($appIconSized)."'>";
+                echo "<link rel='apple-touch-icon' sizes='".e($size)."x".e($size)."' href='".e($appIconSized)."'>";
+
+            }
 
         }
 

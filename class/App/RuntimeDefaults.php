@@ -57,6 +57,29 @@ class RuntimeDefaults
         return [ '196', '180', '152', '144', '120', '114', '76', '72', '57', '32', '16' ];
     }
 
+    /**
+     * Le misure dell'icona app come le vede chi sta caricando un file.
+     *
+     * `$DEFAULT->appIcon` è la proiezione runtime di queste misure, e un sito
+     * può ridefinirla dal suo `custom/config`. Ma il runtime non c'è sempre:
+     * `php forge update` e la costruzione delle prepare schema girano fuori da
+     * una richiesta, e lì un `$GLOBALS['DEFAULT']` vuoto farebbe ricadere il
+     * campo sulle misure responsive del sito — icone da 2400px al posto di
+     * quelle da 180. Qui il fallback è esplicito.
+     *
+     * @return array<int, string>
+     */
+    public static function appIconSizes(): array
+    {
+        $runtime = $GLOBALS['DEFAULT']->appIcon ?? null;
+
+        if (is_array($runtime) && $runtime !== []) {
+            return array_values($runtime);
+        }
+
+        return self::defaultAppIconSizes();
+    }
+
     public static function defaultImage(?object $path = null): string
     {
         $assets = is_object($path) ? (string) ($path->assets ?? '') : '';

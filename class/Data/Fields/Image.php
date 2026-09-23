@@ -49,6 +49,26 @@ class Image extends File
         return $this->webp($webp);
     }
 
+    /**
+     * Il file resta in un formato solo, qualunque sia quello caricato.
+     *
+     * Un'icona app arriva volentieri in JPG — è l'export che ti dà il
+     * grafico — ma sul sito deve restare un PNG, perché i `<link rel>` nel
+     * `<head>` e le misure generate accanto all'originale si aspettano
+     * un'estensione sola. Con
+     * `->extensions(['png', 'jpg', 'jpeg'])->convertTo('png')` l'upload
+     * accetta entrambi e scrive sempre un `.png`: la conversione avviene
+     * dopo lo spostamento del file e prima del ridimensionamento, così le
+     * misure nascono già nel formato giusto.
+     *
+     * Formati scrivibili: `png`, `jpg`, `webp`. Convertire verso `jpg`
+     * appiattisce la trasparenza, quindi va usato solo dove non serve.
+     */
+    public function convertTo(string $format): self
+    {
+        return $this->schema('convert', $format);
+    }
+
     public function quality(int $quality): self
     {
         return $this->schema('quality', $quality);

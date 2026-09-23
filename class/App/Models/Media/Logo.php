@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Media;
 
 use Wonder\App\Model;
+use Wonder\App\RuntimeDefaults;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -60,11 +61,15 @@ final class Logo extends Model
                 ->maxSize(1)
                 ->name('favicon')
                 ->dir('/../../../favicon'),
+            # L'icona app la si esporta quasi sempre in JPG: la accettiamo e la
+            # riscriviamo in PNG, così i `<link rel>` nel `<head>` e le misure
+            # generate accanto all'originale hanno sempre la stessa estensione.
             Field::key('app_icon')->image()
-                ->extensions(['png'])
+                ->extensions(['png', 'jpg', 'jpeg'])
                 ->name('{slug}-app-icon-{rand}')
                 ->webp(false)
-                ->resize($GLOBALS['DEFAULT']->appIcon ?? []),
+                ->convertTo('png')
+                ->resize(RuntimeDefaults::appIconSizes()),
         ];
     }
 }

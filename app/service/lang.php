@@ -85,7 +85,10 @@
         $PATH->logoBlack = isset($SOCIETY->logoBlack) ? __i($SOCIETY->logoBlack)->size(480)->url() : '';
         $PATH->logoIcon = isset($SOCIETY->logoIcon) ? __i($SOCIETY->icon)->size(480)->url() : '';
         $PATH->favicon = $SOCIETY->favicon ?? '';
-        $PATH->appIcon = isset($SOCIETY->appIcon) ? __i($SOCIETY->appIcon)->size(480)->url() : '';
+        # L'icona app non ha le misure responsive degli altri loghi: le sue
+        # misure le decide `RuntimeDefaults::appIconSizes()` e si fermano a
+        # 196px, quindi una variante `-480` non esiste e sarebbe un 404.
+        $PATH->appIcon = (string) ($SOCIETY->appIcon ?? '');
 
     # Imposto le variabili globali
         TranslationProvider::setGlobals([

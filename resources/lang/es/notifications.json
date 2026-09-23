@@ -339,6 +339,11 @@
         "title": "No se pudo iniciar sesión",
         "text": "Credenciales no válidas.<br>Introduce un nombre de usuario o correo válido y revisa la contraseña."
     },
+    "926": {
+        "type": "danger",
+        "title": "Error 926",
+        "text": "La conversión de la imagen ha fallado: sube un archivo PNG o JPG válido."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

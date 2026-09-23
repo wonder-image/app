@@ -18,6 +18,7 @@
         $RESIZE = $FORMAT['resize'] ?? [];
         $WEBP = $FORMAT['webp'] ?? false;
         $RESET = $FORMAT['reset'] ?? false;
+        $CONVERT = \Wonder\App\Support\ImageConverter::normalizeFormat($FORMAT['convert'] ?? '');
 
         if ($RESIZE === true) {
             $RESIZE = null;
@@ -119,10 +120,36 @@
 
                         if (empty($ALERT) && move_uploaded_file($TEMPORARY, $NEW_PATH)) {
 
-                            $NEW_FILE[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
+                            # Il campo può accettare più estensioni e volerne
+                            # conservare una sola: si converte qui, prima del
+                            # ridimensionamento, così le misure nascono già
+                            # nel formato che verrà registrato a database.
+                            if ($CONVERT !== '') {
 
-                            if ((!empty($RESIZE) || $WEBP) && in_array($EXTENSION, ['jpg', 'jpeg', 'png', 'webp'])) {
-                                imageResize($NEW_PATH, $RESIZE, $WEBP);
+                                $CONVERTED = \Wonder\App\Support\ImageConverter::convert($NEW_PATH, $CONVERT);
+
+                                if ($CONVERTED === null) {
+
+                                    @unlink($NEW_PATH);
+                                    $ALERT = 926;
+
+                                } else {
+
+                                    $NEW_PATH = $CONVERTED;
+                                    $EXTENSION = strtolower((string) pathinfo($NEW_PATH, PATHINFO_EXTENSION));
+
+                                }
+
+                            }
+
+                            if (empty($ALERT)) {
+
+                                $NEW_FILE[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
+
+                                if ((!empty($RESIZE) || $WEBP) && in_array($EXTENSION, ['jpg', 'jpeg', 'png', 'webp'])) {
+                                    imageResize($NEW_PATH, $RESIZE, $WEBP);
+                                }
+
                             }
 
                         } else if (empty($ALERT)) {

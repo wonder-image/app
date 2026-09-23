@@ -33,6 +33,7 @@ class LegacyGlobals
         'FRONTEND' => [ 'group' => 'runtime', 'kind' => 'route_flag' ],
         'PRIVATE' => [ 'group' => 'runtime', 'kind' => 'route_flag' ],
         'PERMIT' => [ 'group' => 'runtime', 'kind' => 'route_flag' ],
+        'ACTIVE_STATISTICS' => [ 'group' => 'runtime', 'kind' => 'feature_flag' ],
         'ROUTE_PARAMETERS' => [ 'group' => 'runtime', 'kind' => 'route_data' ],
         'ROUTE_META' => [ 'group' => 'runtime', 'kind' => 'route_data' ],
         'ALERT' => [ 'group' => 'runtime', 'kind' => 'flash_state' ],

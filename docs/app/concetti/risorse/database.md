@@ -116,6 +116,53 @@ Field::key('password')->password()->minLength(8);
 Il Model usa il data schema per tre scopi: **SQL** (`sqlColumnsFromDataSchema`),
 **validazione** (`validate()`), **persistenza** (`prepare()`).
 
+### Campi immagine
+
+`Field::key('...')->image()` accetta un file e genera le misure accanto
+all'originale (`nome-480.png`, `nome-960.png`, ...). Le opzioni principali:
+
+| Metodo | Cosa fa |
+| --- | --- |
+| `->extensions([...])` | Estensioni accettate in ingresso |
+| `->responsive()` | Misure responsive del sito + WebP, in un colpo solo |
+| `->resize([...])` | Misure su misura, al posto di quelle responsive |
+| `->webp(bool)` | Genera (o no) la copia `.webp` accanto a ogni misura |
+| `->deferResize()` | Scrive solo l'originale: le misure le genera qualcun altro |
+| `->convertTo('png')` | Riscrive il file nel formato indicato, qualunque sia quello caricato |
+
+`convertTo()` serve quando un campo deve accettare più estensioni ma
+conservarne una sola. L'icona app è il caso tipico: arriva quasi sempre in
+JPG, ma sul sito deve restare un PNG, perché i `<link rel="apple-touch-icon">`
+nel `<head>` e le misure generate accanto all'originale si aspettano
+un'estensione sola.
+
+```php
+Field::key('app_icon')->image()
+    ->extensions(['png', 'jpg', 'jpeg'])
+    ->webp(false)
+    ->convertTo('png')
+    ->resize(RuntimeDefaults::appIconSizes());
+```
+
+La conversione avviene dentro `uploadFiles()`, subito dopo lo spostamento del
+file e prima del ridimensionamento: a database finisce il nome col formato
+finale e le misure nascono già nell'estensione giusta. Formati scrivibili:
+`png`, `jpg`, `webp`; convertire verso `jpg` appiattisce la trasparenza.
+Se la conversione fallisce l'upload si ferma con l'errore `926` e il file non
+viene registrato.
+
+Lato Resource il campo va aperto anche in input, altrimenti il browser filtra
+il JPG prima ancora di inviarlo:
+
+```php
+FormField::key('app_icon')->fileDragDrop('image'); // image/png, image/jpeg
+```
+
+> Le misure dichiarate con `resize()` vanno lette da un helper, non da
+> `$GLOBALS['DEFAULT']`: le prepare schema si costruiscono durante il boot,
+> quando i globals legacy non sono ancora pubblicati, e un fallback vuoto fa
+> ricadere il campo sulle misure responsive del sito.
+
 ### Schema extension riusabili
 
 Quando un blocco di campi deve restare coerente tra piu Model/Resource/Page,

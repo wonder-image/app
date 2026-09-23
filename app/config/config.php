@@ -6,6 +6,14 @@
 
     \Wonder\App\TranslationBootstrap::preload($ROOT_APP, $ROOT);
 
+    # `wonder-image.php` viene incluso dentro un metodo del dispatcher: finché
+    # non pubblichiamo lo scope, `$DEFAULT`, `$PATH` & co. restano variabili
+    # locali e `$GLOBALS['DEFAULT']` non esiste. `app/app.php` costruisce le
+    # prepare schema dei Model, e quelle schema leggono i globals (le misure
+    # dell'icona app, per dirne una): senza questa riga leggerebbero sempre il
+    # fallback vuoto e il campo finirebbe con le misure responsive del sito.
+    \Wonder\App\LegacyGlobals::capture(get_defined_vars());
+
     require_once __DIR__."/app/app.php";
 
     $MODULES = \Wonder\App\Module\ConfigRepository::all();

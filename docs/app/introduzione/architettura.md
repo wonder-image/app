@@ -45,6 +45,15 @@ Tutto ciò che tocca la risoluzione di `ROOT`, i global iniziali, l'ordine di
 caricamento di config/service/middleware è **sensibile al bootstrap**: va
 cambiato con cautela.
 
+> **Variabili visibili nelle view.** `Wonder\View\View::component()` e
+> `View::render()` estraggono soltanto `LegacyGlobals::scope()` più i `$data`
+> passati esplicitamente. Un global impostato dal bootstrap ma **non** presente
+> in `LegacyGlobals::DEFINITIONS` non arriva nei componenti: dentro il template
+> resta `undefined` e le condizioni che lo usano diventano silenziosamente
+> false. Quando una view deve leggere un flag di runtime, registralo nelle
+> `DEFINITIONS`. Nota anche la precedenza: lo scope runtime è estratto per primo
+> con `EXTR_SKIP`, quindi **vince sui `$data`** del componente.
+
 ## Risoluzione ambiente (`.env`)
 
 - `Wonder\App\Credentials::loadEnv()` risolve `.env` dalla `ROOT` del **sito**,

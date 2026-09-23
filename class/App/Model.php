@@ -6,6 +6,7 @@ use Exception;
 use mysqli;
 use Wonder\App\Diagnostics\MemoryProfiler;
 use Wonder\App\Path;
+use Wonder\App\Support\ImageConverter;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\Fields\Field as DataField;
@@ -308,6 +309,14 @@ abstract class Model
 
         if (array_key_exists('webp', $schema)) {
             $format['webp'] = (bool) $schema['webp'];
+        }
+
+        if (isset($schema['convert'])) {
+            $convert = ImageConverter::normalizeFormat($schema['convert']);
+
+            if ($convert !== '') {
+                $format['convert'] = $convert;
+            }
         }
 
         if ($field instanceof NumberField) {
