@@ -3,9 +3,12 @@
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\Themes\Bootstrap\Form\Field;
+use Wonder\Themes\Concerns\RendersOptionVisual;
 
 class CheckGroup extends Field
 {
+    use RendersOptionVisual;
+
     public function render($class): string
     {
         $this->schema = (array) ($class->schema ?? []);
@@ -72,6 +75,8 @@ HTML;
         $html = '';
 
         foreach ($options as $optionValue => $optionName) {
+            $visual = $this->optionVisual($optionName);
+
             if (is_array($optionName)) {
                 $optionName = (string) ($optionName['name'] ?? $optionValue);
             }
@@ -93,7 +98,7 @@ HTML;
 
             $html .= <<<HTML
 <input class="btn-check" type="{$escapedType}" name="{$escapedName}" value="{$escapedValue}" id="{$escapedId}" autocomplete="off" data-wi-check="true" {$optionAttributes}{$checked}>
-<label class="btn btn-sm btn-outline-secondary wi-check-label user-select-none" for="{$escapedId}">{$escapedLabel}</label>
+<label class="btn btn-sm btn-outline-secondary wi-check-label user-select-none" for="{$escapedId}">{$visual}{$escapedLabel}</label>
 HTML;
         }
 
@@ -107,6 +112,7 @@ HTML;
         foreach ($options as $optionValue => $optionName) {
             $optionAttributes = trim($attributes);
             $childHtml = '';
+            $visual = $this->optionVisual($optionName);
 
             if (is_array($optionName)) {
                 $filters = is_array($optionName['filter'] ?? null) ? $optionName['filter'] : [];
@@ -140,7 +146,7 @@ HTML;
 <div class="w-100">
     <div id="{$this->escape($name)}-{$escapedValue}" class="form-check">
         <input class="form-check-input" type="{$this->escape($type)}" name="{$this->escape($name)}" value="{$escapedValue}" id="{$escapedId}" data-wi-check="true" {$optionAttributes}{$checked}>
-        <label class="form-check-label wi-check-label user-select-none" for="{$escapedId}">{$escapedLabel}</label>
+        <label class="form-check-label wi-check-label user-select-none" for="{$escapedId}">{$visual}{$escapedLabel}</label>
     </div>
     {$childHtml}
 </div>

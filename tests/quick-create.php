@@ -51,6 +51,17 @@ $check(QuickCreateAuthorizer::createAuthority($permClass) === ['admin', 'editor'
 $check(QuickCreateAuthorizer::userCanCreate($permClass, ['editor']) === true, 'intersecting authority allowed');
 $check(QuickCreateAuthorizer::userCanCreate($permClass, ['viewer']) === false, 'non-intersecting denied');
 
+$readonlyResource = new class {
+    public static function slug(): string { return 'tax-category'; }
+    public static function isReadonly(): bool { return true; }
+    public static function permissionSchema(): object {
+        return new class {
+            public function get(string $k): array { return []; }
+        };
+    }
+};
+$check(QuickCreateAuthorizer::userCanCreate(get_class($readonlyResource), ['admin']) === false, 'readonly resource denied');
+
 // --- Task 3: QuickCreateController::payload (strip control keys) -------------
 
 $vals = QuickCreateController::payload([

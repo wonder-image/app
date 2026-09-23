@@ -21,6 +21,7 @@ use Wonder\App\ResourceSchema\Inputs\InputFile;
 use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
 use Wonder\App\ResourceSchema\Inputs\InputGoogleAddress;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
+use Wonder\App\ResourceSchema\Inputs\InputIcon;
 use Wonder\App\ResourceSchema\Inputs\InputNumber;
 use Wonder\App\ResourceSchema\Inputs\InputPassword;
 use Wonder\App\ResourceSchema\Inputs\InputPercentige;
@@ -104,6 +105,7 @@ class FormField extends Input
         'phone' => InputPhone::class,
         'url' => InputUrl::class,
         'color' => InputColor::class,
+        'icon' => InputIcon::class,
         'number' => InputNumber::class,
         'price' => InputPrice::class,
         'percentige' => InputPercentige::class,
@@ -222,6 +224,12 @@ class FormField extends Input
     public function color(): InputColor
     {
         return $this->morphInto(InputColor::class);
+    }
+
+    /** Il nome di un'icona Bootstrap, scelto da una griglia con la ricerca. */
+    public function icon(): InputIcon
+    {
+        return $this->morphInto(InputIcon::class);
     }
 
     public function email(): InputEmail

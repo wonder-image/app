@@ -3,9 +3,12 @@
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\Themes\Bootstrap\Form\Field;
+use Wonder\Themes\Concerns\RendersOptionVisual;
 
 class Select extends Field
 {
+    use RendersOptionVisual;
+
     /**
      * Override del render del parent: per la modalità "legacy_container"
      * (vecchia API `select(..., 'old', ...)`) produciamo un wrapping
@@ -56,7 +59,9 @@ HTML;
         $html .= "<select class=\"{$class}\" name=\"{$inputName}\" id=\"{$id}\" {$attributes}>";
 
         foreach ($options as $optionValue => $label) {
-            $dataAttributes = '';
+            // Un `<option>` non contiene HTML: icona, colore o immagine
+            // viaggiano in `data-wi-*`, e li disegna Select2.
+            $dataAttributes = $this->optionVisualData($label);
 
             if (is_array($label)) {
                 $filters = is_array($label['filter'] ?? null) ? $label['filter'] : [];

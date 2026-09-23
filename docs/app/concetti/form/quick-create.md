@@ -110,7 +110,9 @@ proxy server-side.
 
 1. Il renderer Bootstrap emette il "+" e un modal **solo** se l'utente backend
    corrente è autorizzato a creare la risorsa target
-   (`permissionSchema()->get('backend')['create']`, ripiego su `store`).
+   (`permissionSchema()->get('backend')['create']`, ripiego su `store`) e se
+   la risorsa non è in sola lettura (`isReadonly()`: una tabella che si
+   modifica in locale e si pubblica con il deploy rifiuterebbe lo store).
 2. All'invio, un piccolo JS fa POST a `backend.resource.quick-create`
    (`app/http/backend/resource/quick-create.php`), gato dalla sessione backend.
 3. Il `QuickCreateController` ri-verifica il permesso, rimuove i campi di

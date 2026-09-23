@@ -9,7 +9,8 @@ namespace Wonder\App\ResourceSchema\Inputs\Concerns;
  * Gestisce anche la forma estesa `['name' => ..., 'filter' => [...],
  * 'child' => [...]]` usata da `checkTree()` e dalle liste filtrabili: le
  * chiavi mancanti vengono riempite con default coerenti così i renderer non
- * devono difendersi da array parziali.
+ * devono difendersi da array parziali. `image`, `icon` e `color` passano
+ * così come sono: li controlla `OptionVisual` al momento di disegnarli.
  */
 trait NormalizesOptions
 {
@@ -28,6 +29,12 @@ trait NormalizesOptions
                     'filter' => is_array($label['filter'] ?? null) ? $label['filter'] : [],
                     'child' => is_array($label['child'] ?? null) ? $label['child'] : [],
                 ];
+
+                foreach (['image', 'icon', 'color'] as $visual) {
+                    if (is_string($label[$visual] ?? null) && $label[$visual] !== '') {
+                        $normalized[$value][$visual] = $label[$visual];
+                    }
+                }
                 continue;
             }
 

@@ -19,6 +19,13 @@ final class QuickCreateAuthorizer
 
     public static function userCanCreate(string $resourceClass, array $userAuthority): bool
     {
+        // Una risorsa in sola lettura (una tabella che si modifica in locale e
+        // si pubblica con il deploy) rifiuta lo store qualunque cosa dica il
+        // permesso: il "+" comparirebbe e risponderebbe 403.
+        if (method_exists($resourceClass, 'isReadonly') && $resourceClass::isReadonly()) {
+            return false;
+        }
+
         $required = self::createAuthority($resourceClass);
 
         // Nessuna authority richiesta = aperta a ogni utente backend autenticato.

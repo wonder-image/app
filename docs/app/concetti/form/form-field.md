@@ -80,8 +80,14 @@ Tutti chainable su `FormField::key($name)`:
 ### Testo
 
 `text()`, `hidden()`, `email()`, `tel()` / `phone()` (alias), `url()`,
-`number()`, `price()`, `percentige()`, `color()`, `password()`,
+`number()`, `price()`, `percentige()`, `color()`, `icon()`, `password()`,
 `textGenerator($callback = null, $buttonLabel = null)` (input + bottone "GENERA").
+
+`icon()` è un nome di Bootstrap Icons (`bi-star`): a sinistra l'anteprima, a
+destra un bottone che apre la raccolta con la ricerca (anche in italiano, lo
+monta la lib con `data-wi-icon-picker`). Il valore si normalizza con
+`OptionVisual::icon()`: minuscolo, `bi-` aggiunto se manca, e vuoto se non è un
+nome valido — un'icona sconosciuta mostra `bi-question-square`.
 
 #### Formatting numerico
 
@@ -225,7 +231,7 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 | `recaptcha()` | `InputReCaptcha` | `action`, `theme`, `size` |
 | `googleAddress()` | `InputGoogleAddress` | `restriction`, `alias` |
 
-`text()`, `hidden()`, `color()`, `email()`, `tel()`/`phone()`, `url()`,
+`text()`, `hidden()`, `color()`, `icon()`, `email()`, `tel()`/`phone()`, `url()`,
 `textDatetime()` e `phonePrefix()` hanno solo i modificatori universali.
 
 {% hint style="warning" %}
@@ -332,6 +338,26 @@ condizionale si marca `data-wi-conditional-container`: la lib nasconde la
 colonna intera e non solo la casella, così dentro una `row g-3` non resta il
 margine di una colonna vuota. Per la stessa ragione un campo `hidden()` sta
 direttamente nella riga, senza colonna.
+
+### Opzioni con un segno
+
+Nelle opzioni di `select()`, `checkbox()`, `radio()` una voce può essere un
+array con, oltre a `name`, un segno da mostrare accanto all'etichetta:
+
+```php
+FormField::key('color')->checkbox()->pills()->options([
+    '1' => ['name' => 'Rosso', 'color' => '#d33'],
+    '2' => ['name' => 'Fantasia', 'image' => 'https://…/fantasia.webp'],
+    '3' => ['name' => 'Vegano', 'icon' => 'bi-leaf'],
+]);
+```
+
+Vale un segno solo, in quest'ordine: `image`, poi `icon`, poi `color`. Li
+sceglie `OptionVisual::of()`, che li ripulisce anche — un colore solo
+esadecimale, un'immagine solo `http(s)` o relativa e senza virgolette, un'icona
+solo `bi-…` — e scarta quello che non passa. Spunte e pillole lo stampano
+davanti all'etichetta; `select()` lo mette in `data-wi-image|icon|color`
+sull'`<option>`, dove lo legge Select2 della lib.
 
 ### Spunte a pillole
 
