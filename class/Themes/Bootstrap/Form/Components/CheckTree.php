@@ -48,13 +48,19 @@ class CheckTree extends Field
             ? ''
             : ' data-wi-qc-resource="'.$this->escape($listsResource).'"';
 
+        // Il campo in cui la lib scrive la voce con la stella.
+        $primary = trim((string) ($this->schema['primary_field'] ?? ''));
+        $primaryAttr = $primary === '' || $type !== 'checkbox'
+            ? ''
+            : ' data-wi-tree-primary="'.$this->escape($primary).'"';
+
         return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-{$type} {$required}"{$listsAttr}>
     <h6>{$label}</h6>
     <div class="card border mt-1">
         {$bar}
         {$inputHidden}
-        <div class="card-body overflow-scroll p-2" style="max-height: 300px;" data-wi-tree="{$type}">
+        <div class="card-body overflow-scroll p-2" style="max-height: 300px;" data-wi-tree="{$type}"{$primaryAttr}>
             {$optionsHtml}
         </div>
     </div>
@@ -72,7 +78,9 @@ HTML;
             $childHtml = '';
 
             if (is_array($value)) {
-                if (in_array($optionValue, $value, true)) {
+                // Le chiavi numeriche delle opzioni PHP le rende intere, i
+                // valori salvati arrivano stringa: si confronta fra stringhe.
+                if (in_array((string) $optionValue, array_map('strval', $value), true)) {
                     $optionAttribute .= ' checked';
                     $listAttribute .= ' data-jstree=\'{"selected": true }\'';
                 }

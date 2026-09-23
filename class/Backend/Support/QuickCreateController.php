@@ -63,7 +63,7 @@ final class QuickCreateController
     /**
      * @param array<string,mixed> $post          POST del modal (resource, quick_label, e i campi da creare).
      * @param list<string>        $userAuthority authority dell'utente backend corrente.
-     * @return array<string,mixed> {success:true,id,label} | {success:false,error,status}
+     * @return array<string,mixed> {success:true,id,label,item} | {success:false,error,status}
      */
     public static function handle(array $post, array $userAuthority): array
     {
@@ -116,7 +116,31 @@ final class QuickCreateController
             return ['success' => false, 'error' => 'Creazione non riuscita.', 'status' => 422];
         }
 
-        return ['success' => true, 'id' => $id, 'label' => self::deriveLabel($item, $labelField, $values, $id)];
+        return [
+            'success' => true,
+            'id' => $id,
+            'label' => self::deriveLabel($item, $labelField, $values, $id),
+            'item' => self::responseItem($item, $values),
+        ];
+    }
+
+    /**
+     * La riga appena nata, per chi la riceve nella pagina.
+     *
+     * Lo store restituisce quello che la sua API mostra, spesso poco più
+     * dell'id; i valori scritti nel modal completano il quadro — per esempio
+     * il genitore sotto cui mettere la categoria nuova. Vince la riga
+     * salvata; dei valori postati restano solo quelli semplici.
+     *
+     * @param array<string,mixed> $item
+     * @param array<string,mixed> $values
+     * @return array<string,mixed>
+     */
+    public static function responseItem(array $item, array $values): array
+    {
+        $posted = array_filter($values, static fn ($value): bool => is_scalar($value) || $value === null);
+
+        return array_merge($posted, $item);
     }
 
     private static function systemToken(): string

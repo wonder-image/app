@@ -113,6 +113,36 @@ check('nasce chiuso anche su una riga che ha già i suoi codici', function () us
         && !str_contains($html, 'bi-chevron-up');
 });
 
+check('una casella che riempie prende lo spazio che resta: col', function () {
+    $field = new class {
+        public array $schema = [
+            'id' => 'values',
+            'name' => 'values',
+            'label' => '',
+            'value' => ['row_1' => ['label' => 'Blu']],
+            'columns' => [],
+            'context' => ['nested' => true],
+        ];
+    };
+    $field->schema['columns'] = [
+        RepeaterColumn::key('label')->text()->label('Valore')->columnFill(),
+        // Il riempimento vince sulla larghezza dichiarata.
+        RepeaterColumn::key('code')->text()->label('Codice')->columnSpan(4)->columnFill(),
+        RepeaterColumn::key('note')->text()->label('Nota')->columnSpan(3)->columnFill(false),
+    ];
+    $html = (new Repeater)->render($field);
+    // Solo la riga vera: il modello della riga nuova le ripete.
+    $html = substr($html, 0, (int) strpos($html, '<template'));
+
+    return substr_count($html, '<div class="col">') === 2
+        && str_contains($html, '<div class="col-3">')
+        && !str_contains($html, '<div class="col-4">');
+});
+
+check('senza columnFill le larghezze non cambiano', function () use ($render, $markup, $riga) {
+    return !str_contains($markup($render($riga, [])), '<div class="col">');
+});
+
 check('le caselle nascoste restano nel modulo, quindi si salvano', function () use ($render, $markup) {
     $riga = ['row_1' => ['option' => 'S', 'sku' => 'MAG-9-S']];
     $html = $markup($render($riga, ['advanced' => ['sku']]));

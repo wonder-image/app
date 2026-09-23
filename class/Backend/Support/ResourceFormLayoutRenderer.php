@@ -9,6 +9,8 @@ use Wonder\Elements\Components\Container;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
+use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\Themes\Bootstrap\Components\AbstractValueCard as BootstrapValueCardRenderer;
 use Wonder\Themes\Bootstrap\Components\Accordion as BootstrapAccordionRenderer;
 use Wonder\Themes\Bootstrap\Components\Container as BootstrapContainerRenderer;
@@ -258,6 +260,21 @@ final class ResourceFormLayoutRenderer
 
         $spanClass = self::columnSpanClass($component, $parentColumns, false);
         $attributes = self::attributes($component);
+
+        // Un campo nascosto non occupa spazio, ma la sua colonna sì: dentro
+        // una `row g-3` una colonna vuota lascia comunque il margine della
+        // riga, e un riquadro con un campo nascosto in mezzo mostrava un buco.
+        if ($component instanceof InputHidden) {
+            return $html;
+        }
+
+        // Un campo che compare e scompare con un altro porta la regola
+        // sull'input, e la lib nasconde il contenitore più vicino marcato
+        // così: senza il marcatore sparisce la casella ma la colonna resta,
+        // e con lei il margine della riga.
+        if ($spanClass !== '' && $component instanceof Input && $component->conditionalAttributes() !== []) {
+            $attributes .= ' data-wi-conditional-container="true"';
+        }
 
         if ($spanClass === '' && $attributes === '') {
             return $html;

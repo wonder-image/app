@@ -194,22 +194,23 @@ HTML;
         $advancedHtml = '';
 
         foreach ($columns as $column) {
-            [$fieldHtml, $isHidden, $col] = $this->renderColumn($column, $name, $rowValue, $rowKey, $context);
+            [$fieldHtml, $isHidden, $colClass, $colAttrs] = $this->renderColumn($column, $name, $rowValue, $rowKey, $context);
 
             if ($isHidden) {
                 $html .= $fieldHtml;
                 continue;
             }
 
+            $cell = '<div class="'.$colClass.'"'.$colAttrs.'>'.$fieldHtml.'</div>';
             $key = $this->columnKey($column);
 
             if ($key !== '' && in_array($key, $advanced, true)) {
-                $advancedHtml .= '<div class="col-'.$col.'">'.$fieldHtml.'</div>';
+                $advancedHtml .= $cell;
 
                 continue;
             }
 
-            $html .= '<div class="col-'.$col.'">'.$fieldHtml.'</div>';
+            $html .= $cell;
         }
 
         $actionColumnClass = $sortable ? 'col-3' : 'col-1';
@@ -266,6 +267,12 @@ HTML;
         return is_array($column) ? trim((string) ($column['name'] ?? '')) : '';
     }
 
+    /**
+     * L'HTML di una colonna, se è nascosta, la classe e gli attributi del suo
+     * contenitore.
+     *
+     * @return array{0: string, 1: bool, 2: string, 3: string}
+     */
     private function renderColumn(mixed $column, string $name, array $rowValue, string $rowKey, array $context): array
     {
         if ($column instanceof Input) {
@@ -281,7 +288,8 @@ HTML;
             return [
                 $field->render('bootstrap'),
                 $field->get('helper') === 'hidden',
-                $this->resolvedColumnWidth($field),
+                $this->resolvedColumnClass($field),
+                $this->conditionalContainerAttributes($field),
             ];
         }
 
@@ -291,8 +299,36 @@ HTML;
         return [
             $field->render('bootstrap'),
             ($column['helper'] ?? 'text') === 'hidden',
-            max(1, min(12, (int) ($column['col'] ?? 11))),
+            'col-'.max(1, min(12, (int) ($column['col'] ?? 11))),
+            '',
         ];
+    }
+
+    /**
+     * La regola di visibilità di una colonna, stampata sul suo contenitore.
+     *
+     * Sull'input la regola c'è già, ma da lì il JS della lib nasconderebbe il
+     * genitore sbagliato — o, se il repeater sta in un riquadro che si
+     * nasconde da sé, il riquadro intero — e un campo che il widget
+     * sostituisce (FilePond) la perderebbe. Il contenitore si marca come
+     * tale, così il JS nasconde esattamente lui: sparisce la colonna, non
+     * solo la casella.
+     */
+    private function conditionalContainerAttributes(Input $field): string
+    {
+        $attributes = $field->conditionalAttributes();
+
+        if ($attributes === []) {
+            return '';
+        }
+
+        $html = '';
+
+        foreach ($attributes as $attribute => $value) {
+            $html .= ' '.$this->escape($attribute).'="'.$this->escape($value).'"';
+        }
+
+        return $html.' data-wi-conditional-container="true"';
     }
 
     /**
@@ -406,6 +442,23 @@ HTML;
         }
 
         return max(1, min(12, (int) $span));
+    }
+
+    /**
+     * La classe del contenitore di una casella.
+     *
+     * Chi ha chiesto `columnFill()` prende `col`: lo spazio che le altre
+     * colonne della riga lasciano, bottoni compresi. È il modo di non lasciare
+     * un buco quando accanto c'è una colonna che si nasconde con
+     * `visibleWhen()`. Gli altri contano in dodicesimi, come sempre.
+     */
+    private function resolvedColumnClass(Input $field): string
+    {
+        if ($field->get('column_fill') === true) {
+            return 'col';
+        }
+
+        return 'col-'.$this->resolvedColumnWidth($field);
     }
 
     /** La barra "Raggruppa per": una voce per colonna dichiarata, più "Nessuno". */

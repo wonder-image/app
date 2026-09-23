@@ -45,12 +45,19 @@ final class QuickCreatePanel
     }
 
     /**
-     * Testo del bottone "Aggiungi …": nome leggibile della risorsa target
-     * (`label()`, la stessa fonte di `defaultPageTitles()['create']`), con
-     * ripiego sullo slug quando la risorsa non lo espone.
+     * Testo del bottone "Aggiungi …": quello dichiarato con `button:`,
+     * altrimenti il nome leggibile della risorsa target (`label()`, la stessa
+     * fonte di `defaultPageTitles()['create']`), con ripiego sullo slug quando
+     * la risorsa non lo espone.
      */
     public static function buttonLabel(array $config): string
     {
+        $declared = trim((string) ($config['button'] ?? ''));
+
+        if ($declared !== '') {
+            return $declared;
+        }
+
         $resource = (string) ($config['resource'] ?? '');
         $name = '';
 

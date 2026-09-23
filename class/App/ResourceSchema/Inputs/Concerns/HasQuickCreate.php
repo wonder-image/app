@@ -17,12 +17,14 @@ trait HasQuickCreate
      * @param Closure|null $layout        layout custom del modal (ritorna un Form/Container/Card composto con
      *                                    `Target::getInput(...)`); `null` = i campi in un Container.
      * @param string|null  $label         campo che fa da etichetta dell'opzione; `null` = ripiego (name/title/primo campo).
+     * @param string|null  $button        testo del bottone e titolo del modal; `null` = «Aggiungi <label() della risorsa>».
      */
     public function quickCreate(
         string $resourceClass,
         ?array $fields = null,
         ?Closure $layout = null,
-        ?string $label = null
+        ?string $label = null,
+        ?string $button = null
     ): static {
         return $this->context('quick_create', [
             'resource' => $resourceClass,
@@ -30,6 +32,7 @@ trait HasQuickCreate
             'fields'   => $fields === null ? null : array_values($fields),
             'layout'   => $layout,
             'label'    => $label,
+            'button'   => $button,
         ]);
     }
 }

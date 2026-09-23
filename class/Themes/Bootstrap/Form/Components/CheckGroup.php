@@ -29,7 +29,9 @@ class CheckGroup extends Field
         $inputHidden = $type === 'checkbox' ? '<input type="hidden" name="'.$this->escape($fieldName).'">' : '';
 
         if (!empty($this->schema['pills'])) {
-            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes);
+            // Il "+" della creazione rapida è l'ultima pillola della fila.
+            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes)
+                .$this->inlineQuickCreateButton();
 
             return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-{$type} wi-check-pills {$required}">
@@ -77,7 +79,7 @@ HTML;
             $checked = '';
 
             if (is_array($value)) {
-                $checked = in_array($optionValue, $value, true) ? ' checked' : '';
+                $checked = in_array((string) $optionValue, array_map('strval', $value), true) ? ' checked' : '';
             } elseif ($value !== null && (string) $value === (string) $optionValue) {
                 $checked = ' checked';
             }
@@ -125,7 +127,7 @@ HTML;
             $checked = '';
 
             if (is_array($value)) {
-                $checked = in_array($optionValue, $value, true) ? ' checked' : '';
+                $checked = in_array((string) $optionValue, array_map('strval', $value), true) ? ' checked' : '';
             } elseif ($value !== null && (string) $value === (string) $optionValue) {
                 $checked = ' checked';
             }

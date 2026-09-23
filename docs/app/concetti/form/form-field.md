@@ -181,11 +181,23 @@ base `Input`:
 
 `.label($s)`, `.value($v)`, `.required()`, `.disabled()`, `.readonly()`,
 `.autocomplete($b|$s)`, `.attribute($s)`, `.visibleWhen(...)`,
-`.hiddenWhen(...)`, `.error($s)`, `.columnSpan($n)`, `.prepare($k, $v)`,
-`.context($k, $v)`, `.storeAs($s)`, `.inputName($s)`.
+`.hiddenWhen(...)`, `.error($s)`, `.columnSpan($n)`, `.columnFill($b = true)`,
+`.prepare($k, $v)`, `.context($k, $v)`, `.storeAs($s)`, `.inputName($s)`.
+
+`.conditionalAttributes()` non modifica: restituisce le regole di
+`visibleWhen()` / `hiddenWhen()` come data-attribute, per i renderer che le
+devono ripetere su un contenitore. `.columnFill()` conta solo nelle colonne di
+un repeater (vedi [Repeater](repeater.md#larghezza-delle-colonne)).
 
 I campi senza `.label()` esplicita pescano l'etichetta da `labelSchema()` della
 Resource.
+
+**Larghezza di default.** Nel backend un campo senza `.columnSpan()` dentro
+un `Card`/`Container` a più colonne prende **una** colonna (la stessa regola
+di Filament): in un contenitore `->columns(12)` è un dodicesimo, con
+l'etichetta che va a capo parola per parola. Chi deve occupare la riga intera
+lo dichiara: `->columnSpan(12)`. Vale anche per i campi riusati nel layout di
+un `quickCreate()`.
 
 ### Type-specific
 
@@ -198,7 +210,7 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 | `select()`, `selectSearch()` | `InputSelect`, `InputSelectSearch` | `options`, `multiple`, `version`, `old` |
 | `textarea()`, `textList()` | `InputTextarea`, `InputTextList` | `version`, `old` (+ `options` su textList) |
 | `radio()`, `checkbox()` | `InputRadio`, `InputCheckbox` | `options`, `searchBar` |
-| `checkTree()` | `InputCheckTree` | `options`, `searchBar`, `inputType` |
+| `checkTree()` | `InputCheckTree` | `options`, `searchBar`, `inputType`, `primaryField` |
 | `dynamicCheck()` | `InputDynamicCheck` | `url`, `inputType` |
 | `searchText()`, `searchRadio()` | `InputSearchText`, `InputSearchRadio` | `url` |
 | `checkBoolean()` | `InputCheckBoolean` | `values`, `trueLabel`, `falseLabel` |
@@ -237,8 +249,9 @@ FormField::key('category_id')->select($categorie)
     ->quickCreate(CategoryResource::class);
 ```
 
-`quickCreate(string $resourceClass, ?array $fields = null, ?Closure $layout = null, ?string $label = null)`
-— `$fields` `null` = campi obbligatori; `$layout` = pannello custom. API,
+`quickCreate(string $resourceClass, ?array $fields = null, ?Closure $layout = null, ?string $label = null, ?string $button = null)`
+— `$fields` `null` = campi obbligatori; `$layout` = pannello custom; `$button`
+= testo del bottone e titolo del modal. API,
 precondizioni (store API del target), permessi e adapter per tipo sono in
 [Creazione rapida da campo FK](quick-create.md).
 
@@ -306,9 +319,19 @@ FormField::key('feed_url')->text()->hiddenWhen('provider', 'getrix');
 - `->hiddenWhen(string $field, string|array $values)` — logica inversa.
 
 Sotto il cofano vengono aggiunti i data-attribute `data-visible-when` /
-`data-hidden-when` (via `attribute()`); nessuna modifica ai renderer dei temi.
+`data-hidden-when` (via `attribute()`), e la regola resta anche nello schema
+del campo (`conditionalAttributes()`). Fuori dai repeater i renderer non la
+usano. In una colonna di repeater il renderer Bootstrap la ripete sul
+contenitore della colonna, che si nasconde tutto
+(vedi [Repeater](repeater.md#colonne-che-compaiono-con-un-altro-campo)).
 I campi nascosti **non** vengono disabilitati: i loro valori vengono comunque
 inviati e salvati.
+
+Nei layout del backend (`ResourceFormLayoutRenderer`) la colonna di un campo
+condizionale si marca `data-wi-conditional-container`: la lib nasconde la
+colonna intera e non solo la casella, così dentro una `row g-3` non resta il
+margine di una colonna vuota. Per la stessa ragione un campo `hidden()` sta
+direttamente nella riga, senza colonna.
 
 ### Spunte a pillole
 
@@ -317,6 +340,16 @@ incolonnate in un riquadro alto centoventi pixel che scorre. Serve agli
 elenchi corti — cinque taglie, tre gusti — dove il riquadro occupa dieci volte
 lo spazio di quello che mostra. Per un elenco lungo resta la forma normale,
 con la sua barra di ricerca.
+
+### La voce principale di un albero
+
+`checkTree()->primaryField('main_category')` segna con una stella la voce
+principale fra quelle spuntate, e ne tiene l'id nel campo indicato (di solito
+un `hidden()` dello stesso form). La lib lo tiene aggiornato: la prima spunta
+prende la stella, un clic sulla stella vuota di un'altra voce spuntata la
+sposta, togliere la spunta alla principale la passa alla prima rimasta. Solo
+per gli alberi a checkbox. Il server deve comunque ricontrollare che l'id stia
+fra le voci spuntate.
 
 ### Chi elenca una risorsa
 

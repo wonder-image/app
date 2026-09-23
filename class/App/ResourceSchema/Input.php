@@ -18,7 +18,8 @@ use Wonder\Elements\Form\Field as ElementField;
  * Solo **l'API universale**, quella che ha senso su qualunque input: `label`,
  * `value`, `required`, `disabled`, `readonly`, `autocomplete`, `attribute`,
  * `visibleWhen`, `hiddenWhen`, `error`, `inputName`, `storeAs`, `prepare`,
- * `context`, `columnSpan`, `get`, `compile`, `render`, `__toString`.
+ * `context`, `columnSpan`, `columnFill`, `get`, `compile`, `render`,
+ * `__toString`.
  *
  * I modificatori specifici di un tipo (`options()`, `decimals()`,
  * `minLength()`, `maxFile()`, ...) NON stanno qui: vivono sulla classe del
@@ -324,8 +325,10 @@ abstract class Input
      * riferimento `$field` assume uno dei valori dati (altrimenti lo nasconde).
      *
      * Il toggle avviene lato client (JS backend di wonder-image/lib) leggendo i
-     * data-attribute qui aggiunti, quindi funziona con qualsiasi tipo di input
-     * senza modifiche ai renderer dei temi.
+     * data-attribute qui aggiunti, quindi funziona con qualsiasi tipo di input.
+     * L'unico renderer che se ne occupa è il repeater: in una sua colonna
+     * ripete la regola sul contenitore (vedi {@see conditionalAttributes()}),
+     * così sparisce la colonna intera.
      *
      * @param string|array<int, string> $values
      */
@@ -356,17 +359,66 @@ abstract class Input
             return $this;
         }
 
-        $values = implode(',', array_map(
+        $values = array_map(
             static fn ($value): string => trim((string) $value),
             is_array($values) ? $values : [$values]
-        ));
+        );
+
+        // La regola resta anche nello schema: chi rende il campo dentro un
+        // contenitore suo — la colonna di un repeater — la stampa sul
+        // contenitore, perché è lui che deve sparire. Sull'input da solo il
+        // JS nasconderebbe il suo genitore sbagliato, e un campo che il
+        // widget sostituisce (FilePond) la perderebbe del tutto.
+        $this->schema['conditional'][$mode] = ['field' => $field, 'values' => $values];
 
         return $this->attribute(sprintf(
             'data-%1$s-when="%2$s" data-%1$s-when-values="%3$s"',
             $mode,
             htmlspecialchars($field, ENT_QUOTES),
-            htmlspecialchars($values, ENT_QUOTES)
+            htmlspecialchars(implode(',', $values), ENT_QUOTES)
         ));
+    }
+
+    /**
+     * Gli attributi della visibilità condizionale, non ancora escapati.
+     *
+     * Sono gli stessi che {@see visibleWhen()} e {@see hiddenWhen()} scrivono
+     * sull'input, pronti per chi li deve mettere su un contenitore:
+     * `['data-visible-when' => 'type', 'data-visible-when-values' => 'color']`.
+     * Vuoto quando il campo non ha regole.
+     *
+     * @return array<string, string>
+     */
+    public function conditionalAttributes(): array
+    {
+        $attributes = [];
+
+        foreach ((array) ($this->schema['conditional'] ?? []) as $mode => $rule) {
+            if (!is_array($rule) || trim((string) ($rule['field'] ?? '')) === '') {
+                continue;
+            }
+
+            $attributes['data-'.$mode.'-when'] = (string) $rule['field'];
+            $attributes['data-'.$mode.'-when-values'] = implode(',', (array) ($rule['values'] ?? []));
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Nella riga di un repeater, la colonna prende lo spazio che le altre
+     * lasciano: `col` invece di `col-N`.
+     *
+     * Serve quando accanto ci sono colonne che compaiono e spariscono con
+     * {@see visibleWhen()}: una larghezza fissa lascerebbe un buco dove
+     * c'era la colonna nascosta. Vince su {@see columnSpan()}, e fuori da un
+     * repeater non fa niente — il layout del form conta in dodicesimi.
+     */
+    public function columnFill(bool $fill = true): static
+    {
+        $this->schema['column_fill'] = $fill;
+
+        return $this;
     }
 
     public function required(bool $required = true): static

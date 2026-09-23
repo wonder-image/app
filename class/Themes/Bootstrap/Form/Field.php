@@ -21,6 +21,19 @@ abstract class Field extends AbstractFieldRenderer
     private static bool $quickCreateScriptEmitted = false;
 
     /**
+     * I pezzi della creazione rapida del campo che si sta disegnando.
+     *
+     * Le pillole li chiedono dentro `renderInput()`, per mettere il "+" in
+     * fila; `renderField()` li richiede per il modal. Calcolarli due volte
+     * vorrebbe dire disegnare due volte il corpo del modal e perdere lo
+     * script, che esce una volta sola: si tengono per lo schema che li ha
+     * prodotti.
+     *
+     * @var array{schema:array<string,mixed>,parts:?array}|null
+     */
+    private ?array $quickCreateMemo = null;
+
+    /**
      * Override del render del parent: prima di costruire il wrap,
      * leggiamo `isNoFloating()` per decidere se applicare il pattern
      * `form-floating`. Questo permette ai consumer di usare
@@ -81,6 +94,12 @@ abstract class Field extends AbstractFieldRenderer
             $html = '<div>'.$input.$this->renderError().'</div>';
         }
 
+        // Le pillole hanno già il loro "+" in fila, stampato dal componente
+        // (`inlineQuickCreateButton()`): qui resta solo il modal.
+        if ($quick !== null && !empty($this->schema['pills'])) {
+            return $html.$quick['modal'].$quick['script'];
+        }
+
         // Gruppi (checkbox/checkTree/dynamicCheck): niente singolo controllo a
         // cui attaccarsi. Il "+" diventa una testata "Aggiungi <Nome>" in alto a
         // destra, sulla riga del titolo `<h6>` che il componente stampa dentro
@@ -94,6 +113,27 @@ abstract class Field extends AbstractFieldRenderer
         }
 
         return $html;
+    }
+
+    /**
+     * Il "+" come ultima pillola della riga.
+     *
+     * Chi disegna le pillole lo mette in fondo, dopo le voci: la voce nuova
+     * nasce accanto alle altre e il bottone resta lì, pronto per la
+     * successiva. Stringa vuota quando il campo non ha creazione rapida o
+     * l'utente non può creare la risorsa.
+     */
+    protected function inlineQuickCreateButton(): string
+    {
+        $quick = $this->quickCreateParts();
+
+        if ($quick === null) {
+            return '';
+        }
+
+        return '<button type="button" class="btn btn-sm btn-outline-primary wi-qc-inline" style="border-style:dashed" '
+            .$quick['attributes'].'>'
+            .'<i class="bi bi-plus-lg"></i> '.$this->escape($quick['button_label']).'</button>';
     }
 
     /**
@@ -146,6 +186,19 @@ abstract class Field extends AbstractFieldRenderer
      */
     protected function quickCreateParts(): ?array
     {
+        if ($this->quickCreateMemo !== null && $this->quickCreateMemo['schema'] === $this->schema) {
+            return $this->quickCreateMemo['parts'];
+        }
+
+        $parts = $this->buildQuickCreateParts();
+        $this->quickCreateMemo = ['schema' => $this->schema, 'parts' => $parts];
+
+        return $parts;
+    }
+
+    /** @return array{family:string,button_label:string,attributes:string,modal:string,script:string}|null */
+    private function buildQuickCreateParts(): ?array
+    {
         $config = $this->schema['context']['quick_create'] ?? null;
 
         if (!is_array($config) || empty($config['resource'])) {
@@ -167,6 +220,7 @@ abstract class Field extends AbstractFieldRenderer
         $fields = QuickCreatePanel::fields($config);
         $label = QuickCreatePanel::label($config, $fields);
         $body = QuickCreatePanel::bodyHtml($config, $fields);
+        $buttonLabel = QuickCreatePanel::buttonLabel($config);
 
         try {
             $endpoint = function_exists('__r') ? (string) __r('backend.resource.quick-create') : '';
@@ -196,7 +250,7 @@ abstract class Field extends AbstractFieldRenderer
             // restava un bottone submit che salvava il record invece di
             // creare la riga collegata.
             .'<div class="wi-qc-form">'
-            .'<div class="modal-header"><h5 class="modal-title">Aggiungi</h5>'
+            .'<div class="modal-header"><h5 class="modal-title">'.$this->escape($buttonLabel).'</h5>'
             .'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button></div>'
             .'<div class="modal-body"><div class="wi-qc-alert"></div>'.$hidden.$body.'</div>'
             .'<div class="modal-footer">'
@@ -206,7 +260,7 @@ abstract class Field extends AbstractFieldRenderer
 
         return [
             'family' => $family,
-            'button_label' => QuickCreatePanel::buttonLabel($config),
+            'button_label' => $buttonLabel,
             'attributes' => $attributes,
             'modal' => $modal,
             'script' => self::quickCreateScript(),
@@ -255,20 +309,85 @@ abstract class Field extends AbstractFieldRenderer
       || document.querySelector('[name="' + inputId + '"], [name="' + inputId + '[]"]');
   }
 
+  /*
+   * Il nome da dare alla casella nuova: quello di una casella che c'è già,
+   * altrimenti quello del campo nascosto del gruppo. Senza nome la spunta
+   * non verrebbe postata e il valore appena creato si perderebbe al primo
+   * salvataggio.
+   */
+  function checkName(group) {
+    var gemella = group.querySelector('input[type="checkbox"][name]') || group.querySelector('input[type="hidden"][name]');
+    return gemella ? gemella.getAttribute('name') : '';
+  }
+
+  /*
+   * Una pillola in più, uguale alle altre: casella `btn-check` e label
+   * collegata per `for`. Va prima del "+", che resta l'ultimo della fila.
+   */
+  function appendPill(group, id, label) {
+    var name = checkName(group);
+    var fila = group.querySelector('.d-flex') || group;
+    var gemella = group.querySelector('input.btn-check');
+    var input = gemella ? gemella.cloneNode(false) : document.createElement('input');
+
+    if (!gemella) {
+      input.className = 'btn-check';
+      input.type = 'checkbox';
+      input.setAttribute('autocomplete', 'off');
+      input.setAttribute('data-wi-check', 'true');
+    }
+
+    input.setAttribute('name', name);
+    input.value = String(id);
+    input.id = (input.type || 'checkbox') + '-' + name + '-' + id;
+    input.checked = true;
+
+    var testo = document.createElement('label');
+    testo.className = 'btn btn-sm btn-outline-secondary wi-check-label user-select-none';
+    testo.htmlFor = input.id;
+    testo.textContent = label;
+
+    var piu = fila.querySelector('.wi-qc-inline');
+    fila.insertBefore(input, piu);
+    fila.insertBefore(testo, piu);
+
+    return input;
+  }
+
   function appendCheck(group, id, label) {
-    // Il nome si copia da una casella che c'è già: senza, la spunta nuova
-    // non verrebbe postata e il valore appena creato si perderebbe al primo
-    // salvataggio.
-    var gemella = group.querySelector('input[type="checkbox"][name]');
-    var name = gemella ? ' name="' + gemella.getAttribute('name') + '"' : '';
-    var wrap = document.createElement('div');
-    wrap.className = 'form-check';
-    wrap.innerHTML = '<input class="form-check-input" type="checkbox" checked value="' + id + '"' + name + '> <label class="form-check-label">' + label + '</label>';
-    // In fondo all'elenco, non dopo la prima casella: l'opzione nuova è
-    // l'ultima arrivata e lì la si cerca.
-    var caselle = group.querySelectorAll('.form-check');
-    var ultima = caselle.length ? caselle[caselle.length - 1] : null;
-    (ultima && ultima.parentElement ? ultima.parentElement : group).appendChild(wrap);
+    var pillole = group.classList.contains('wi-check-pills') ? group : group.querySelector('.wi-check-pills');
+    var input;
+
+    if (pillole) {
+      input = appendPill(pillole, id, label);
+    } else {
+      input = document.createElement('input');
+      input.className = 'form-check-input';
+      input.type = 'checkbox';
+      input.setAttribute('name', checkName(group));
+      input.value = String(id);
+      input.checked = true;
+
+      var testo = document.createElement('label');
+      testo.className = 'form-check-label';
+      testo.textContent = label;
+
+      var wrap = document.createElement('div');
+      wrap.className = 'form-check';
+      wrap.appendChild(input);
+      wrap.appendChild(document.createTextNode(' '));
+      wrap.appendChild(testo);
+
+      // In fondo all'elenco, non dopo la prima casella: l'opzione nuova è
+      // l'ultima arrivata e lì la si cerca.
+      var caselle = group.querySelectorAll('.form-check');
+      var ultima = caselle.length ? caselle[caselle.length - 1] : null;
+      (ultima && ultima.parentElement ? ultima.parentElement : group).appendChild(wrap);
+    }
+
+    // Una spunta nuova è una spunta come le altre: chi ascolta i cambi del
+    // gruppo (una griglia che nasce dalle spunte, un contatore) deve saperlo.
+    input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   /*
@@ -280,7 +399,7 @@ abstract class Field extends AbstractFieldRenderer
    * l'adapter della lib (src/build/backend/js/form/quickCreate.js), che sa
    * ridisegnarli. jstree resta un limite noto (nodi non creabili a runtime).
    */
-  function optionInto(input, family, id, label, resource) {
+  function optionInto(input, family, id, label, resource, item) {
     if (input) {
       if (input.tagName === 'SELECT' && !input.matches('[data-wi-select-search]')) {
         appendOption(input, id, label);
@@ -288,16 +407,31 @@ abstract class Field extends AbstractFieldRenderer
         appendCheck(input.closest('[data-wi-qc-group]') || input, id, label);
       }
     }
-    document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family, resource: resource || '' } }));
+    document.dispatchEvent(new CustomEvent('wi:quick-create:created', { detail: { input: input, id: id, label: label, family: family, resource: resource || '', item: item || {} } }));
   }
 
-  /** Svuota i campi del modal: `reset()` era del form che non c'è più. */
+  /*
+   * Rimette i campi del modal com'erano all'apertura della pagina: `reset()`
+   * era del form che non c'è più. Non li svuota: un campo con un valore
+   * proposto (un tipo, uno stato) deve riproporlo alla creazione dopo.
+   *
+   * Gli alberi restano come sono: jstree non rilegge le caselle, e
+   * rimetterle a posto sotto un albero che mostra altro posterebbe un valore
+   * diverso da quello che si vede. Tenere la scelta serve anche: si creano
+   * di fila più figli dello stesso genitore.
+   */
   function resetFields(container) {
     var fields = container.querySelectorAll('input:not([type="hidden"]), select, textarea');
 
     for (var i = 0; i < fields.length; i++) {
-      if (fields[i].type === 'checkbox' || fields[i].type === 'radio') { fields[i].checked = false; }
-      else { fields[i].value = ''; }
+      var field = fields[i];
+      if (field.closest('[data-wi-tree]')) continue;
+
+      if (field.type === 'checkbox' || field.type === 'radio') { field.checked = field.defaultChecked; }
+      else if (field.tagName === 'SELECT') {
+        for (var o = 0; o < field.options.length; o++) { field.options[o].selected = field.options[o].defaultSelected; }
+      } else if (field.type !== 'file') { field.value = field.defaultValue; }
+      else { field.value = ''; }
     }
   }
 
@@ -407,7 +541,7 @@ abstract class Field extends AbstractFieldRenderer
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (res && res.success) {
-          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), res.id, res.label, modal.getAttribute('data-wi-qc-resource'));
+          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), res.id, res.label, modal.getAttribute('data-wi-qc-resource'), res.item);
           resetFields(form);
           var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
           if (window.bootstrap && window.bootstrap.Modal) {

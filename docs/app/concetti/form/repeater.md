@@ -101,6 +101,40 @@ Una colonna con `->columnSpan(12)` va a capo e si prende la riga intera: è il
 modo di dare respiro a un campo che non si legge stretto, come un'area di
 trascinamento per i file.
 
+`->columnFill()` fa riempire alla colonna lo spazio che le altre lasciano
+libero (classe `col` al posto di `col-N`) e vince su `columnSpan()`. Serve
+quando accanto ci sono colonne che compaiono e spariscono: il campo che
+riempie si allarga da sé invece di lasciare un buco. Fuori da un repeater non
+fa niente.
+
+### Colonne che compaiono con un altro campo
+
+`visibleWhen()` e `hiddenWhen()` funzionano anche su una `RepeaterColumn`. Il
+renderer ripete la regola sul contenitore della colonna e lo marca con
+`data-wi-conditional-container`, così il JS nasconde la colonna intera — non
+il genitore sbagliato, né il riquadro che contiene il repeater — e la regola
+resta anche quando un widget sostituisce l'input (FilePond). Vale per le righe
+già salvate, per la riga nuova e per il blocco delle informazioni avanzate.
+
+```php
+FormField::key('values')->repeater([
+    RepeaterColumn::key('image')->fileDragDrop('image')->label('Fantasia')
+        ->columnSpan(2)->visibleWhen('type', 'pattern'),
+    RepeaterColumn::key('label')->text()->label('Valore')->columnFill(),
+    RepeaterColumn::key('color')->color()->label('Colore')
+        ->columnSpan(3)->visibleWhen('type', 'color'),
+]);
+```
+
+```html
+<div class="col-2" data-visible-when="type" data-visible-when-values="pattern" data-wi-conditional-container="true">…</div>
+<div class="col">…</div>
+```
+
+Una colonna nascosta non lascia buchi: la colonna che riempie si prende il suo
+spazio. I valori delle colonne nascoste vengono comunque inviati. Le colonne
+scritte come array (`['col' => 4, ...]`) non hanno né regole né riempimento.
+
 ## Righe che si possono rimettere
 
 Cancellare è una decisione che si rimpiange. Con `repeaterUndoDelete()` la

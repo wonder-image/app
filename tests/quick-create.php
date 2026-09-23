@@ -142,4 +142,33 @@ $check(str_contains($html, 'function valuesOf'), 'the client collects the fields
 $check(str_contains($html, 'function invalidFields'), 'the client checks validity before posting');
 $check(str_contains($html, 'Compila i campi obbligatori'), 'the client surfaces the required-fields alert');
 
+// --- Sesto giro: bottone con testo proprio, pillole in linea -----------------
+// Il testo del "+" si può dire con `button:`: «Aggiungi opzione» invece del
+// nome della risorsa. Lo stesso testo fa da titolo al modal.
+
+$check(QuickCreatePanel::buttonLabel(['resource' => $targetClass, 'slug' => 'category', 'button' => 'Aggiungi opzione']) === 'Aggiungi opzione', 'buttonLabel() honors the declared text');
+$declared = FormField::key('c')->select([])->quickCreate($targetClass, button: 'Aggiungi opzione')->get()['context']['quick_create'];
+$check(($declared['button'] ?? null) === 'Aggiungi opzione', 'button text stored in the config');
+
+// Pillole: il "+" è l'ultima pillola della riga, non una testata in alto.
+$pillsHtml = FormField::key('sizes')->checkbox()->options(['1' => 'S', '2' => 'M'])->pills()
+    ->quickCreate($targetClass, ['name'], label: 'name', button: 'Aggiungi opzione')->render('bootstrap');
+$check(str_contains($pillsHtml, 'wi-qc-inline'), 'pills render the "+" inline');
+$check(!str_contains($pillsHtml, 'wi-qc-header'), 'pills drop the top-right header');
+$check(str_contains($pillsHtml, '> Aggiungi opzione</button>'), 'the inline "+" uses the declared text');
+$check(strpos($pillsHtml, 'wi-qc-inline') > strpos($pillsHtml, 'for="checkbox-sizes[]-2"'), 'the inline "+" comes after the pills');
+$check(substr_count($pillsHtml, 'class="modal fade"') === 1, 'the modal is printed once');
+$check(str_contains($pillsHtml, '<h5 class="modal-title">Aggiungi opzione</h5>'), 'the modal title repeats the button text');
+
+// Script: la voce nuova nasce pillola, spuntata, e lo dice con `change`.
+$script = $html.$checkHtml.$pillsHtml;
+$check(str_contains($script, 'function appendPill'), 'the client knows how to add a pill');
+$check(str_contains($script, "new Event('change', { bubbles: true })"), 'the new check fires change');
+$check(str_contains($script, 'defaultValue'), 'resetFields restores the defaults');
+
+// La risposta porta la riga: chi la riceve sa, per esempio, sotto quale
+// genitore metterla.
+$check(QuickCreateController::responseItem(['id' => 9, 'name' => 'Polo'], ['name' => 'Polo', 'parent_id' => '4']) === ['name' => 'Polo', 'parent_id' => '4', 'id' => 9], 'responseItem merges posted values under the stored row');
+$check(QuickCreateController::responseItem(['id' => 9], ['tags' => ['a', 'b']]) === ['id' => 9], 'responseItem keeps only scalar posted values');
+
 echo "OK: {$checks} checks passed\n";

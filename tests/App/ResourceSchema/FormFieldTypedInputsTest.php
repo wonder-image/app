@@ -80,7 +80,8 @@ $baseMethods = array_map(
 );
 sort($baseMethods);
 eq('API universale di Input', $baseMethods, [
-    '__construct', '__toString', 'attribute', 'autocomplete', 'columnSpan', 'compile',
+    '__construct', '__toString', 'attribute', 'autocomplete', 'columnFill', 'columnSpan', 'compile',
+    'conditionalAttributes',
     'context', 'disabled', 'error', 'get', 'hasDeclaredLabel', 'hasExplicitColumnSpan', 'hiddenWhen', 'inputName',
     'key', 'label', 'placeholder', 'prepare', 'readonly', 'render', 'required', 'storeAs', 'value',
     'visibleWhen',

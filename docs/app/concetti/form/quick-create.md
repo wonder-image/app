@@ -26,7 +26,7 @@ FormField::key('category_id')
     ->quickCreate(CategoryResource::class);
 ```
 
-`quickCreate(string $resourceClass, ?array $fields = null, ?Closure $layout = null, ?string $label = null)`:
+`quickCreate(string $resourceClass, ?array $fields = null, ?Closure $layout = null, ?string $label = null, ?string $button = null)`:
 
 - **`$resourceClass`** — la Resource collegata. Deve esporre lo **store API**
   (`apiSchema()` con `store`).
@@ -40,6 +40,10 @@ FormField::key('category_id')
   pannello della risorsa: `layout: fn() => Target::formLayoutSchema()`.
 - **`$label`** — campo etichetta dell'opzione. `null` (default) =
   `name` / `title` / primo campo mostrato.
+- **`$button`** — testo del bottone e titolo del modal. `null` (default) =
+  «Aggiungi <`label()` della risorsa>». Serve quando la risorsa ha un nome
+  tecnico e il campo uno più chiaro: `button: 'Aggiungi opzione'` su un elenco
+  di valori d'attributo.
 
 Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
@@ -113,8 +117,15 @@ proxy server-side.
    controllo del modal e passa il resto allo **store API** della risorsa target
    (che filtra coi propri `apiSchema('store')`), **lato server come `@system`**
    (`api_internal_user`): il token non tocca mai il browser.
-4. Dalla risposta dello store estrae `{id, label}` (dall'item creato) e il JS
-   inserisce+seleziona la nuova opzione.
+4. Dalla risposta dello store estrae `{id, label, item}` e il JS
+   inserisce+seleziona la nuova opzione. `item` è la riga salvata, completata
+   dai valori semplici scritti nel modal (vince la riga salvata): lo store
+   spesso restituisce poco più dell'id, e chi riceve la riga può aver bisogno
+   del resto — per esempio del genitore sotto cui mettere una categoria.
+5. Il modal torna com'era all'apertura della pagina, non vuoto: un campo con
+   un valore proposto lo ripropone alla creazione dopo. Gli alberi dentro il
+   modal restano come sono, così si creano di fila più figli dello stesso
+   genitore.
 
 ## Vincoli
 
@@ -135,14 +146,22 @@ proxy server-side.
   `searchRemote`) è **attaccato all'input a destra** in un `input-group`
   (versione floating); per i **gruppi** (`checkbox`/`checkTree`/`dynamicCheck`)
   è una **testata in alto a destra** — `+ Aggiungi <Nome risorsa>`, sulla riga
-  del titolo del gruppo. Il nome viene da `Resource::label()` (la stessa fonte
-  di `defaultPageTitles()['create']`), con ripiego sullo slug.
+  del titolo del gruppo. Il nome viene da `button:` se dichiarato, altrimenti
+  da `Resource::label()` (la stessa fonte di `defaultPageTitles()['create']`),
+  con ripiego sullo slug. Per i gruppi a pillole (`checkbox()->pills()`) il
+  "+" è l'**ultima pillola della riga**, tratteggiata: la voce nuova nasce
+  come pillola spuntata accanto alle altre, prima del "+", e lancia `change`
+  così chi ascolta il gruppo (un repeater che genera righe, per esempio) la
+  vede.
 - **Adapter JS**: il framework emette sempre l'evento `wi:quick-create:created`
   e `wonder-image/lib` (`src/build/backend/js/form/quickCreate.js`) inserisce e
   seleziona l'opzione nel widget. Coperti: `select` (baseline nel framework),
   `selectSearch` (select2, con re-render), `dynamicCheck` (card AJAX) e
   `checkTree` (jstree). `searchRemote` sul backend è un input inerte (il
-  comportamento remoto vive solo sul tema Wonder).
+  comportamento remoto vive solo sul tema Wonder). Nel `checkTree` il nodo
+  nasce **sotto il genitore** (`item.parent_id`) quando l'albero lo contiene,
+  altrimenti in cima; solo un albero a spunte lo spunta, uno a scelta singola
+  (il «padre» dentro un modal) lo aggiunge e basta.
 - **La riga appartiene alla risorsa, non al campo**: il detail dell'evento
   porta anche `resource` (lo slug), e l'adapter aggiorna **ogni** campo della
   pagina marcato `data-wi-qc-resource` con quello slug — non solo quello che
