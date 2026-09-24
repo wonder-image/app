@@ -439,7 +439,8 @@ chiude tutto, invece che una casella alla volta.
 ```
 
 Il riquadro si marca da sé come contenitore, così il JS nasconde esattamente
-lui e non un suo genitore. Anche qui i campi dentro continuano a essere
+lui e non un suo genitore. Card, Accordion e bottone di creazione rapida, dentro
+il form di una Resource, portano le regole sulla loro colonna. Anche qui i campi dentro continuano a essere
 inviati: se il "no" deve significare qualcosa, il server lo deve rileggere dal
 POST e comportarsi di conseguenza.
 

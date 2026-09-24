@@ -175,13 +175,56 @@ final class ResourceFormLayoutRenderer
         $accordionColumns = self::columnsMap($accordion);
         $content = self::renderComponents((array) ($accordion->components ?? []), $accordionColumns);
 
-        return '<div class="'.self::columnSpanClass($accordion, $parentColumns).'">'
+        // Le regole di `visibleWhen()`/`hiddenWhen()` passano alla colonna:
+        // nascosto solo l'accordion, la colonna vuota lascerebbe il margine
+        // della riga. Il nodo interno le perde, perché due contenitori con la
+        // stessa regola si nasconderebbero due volte.
+        [$visibility, $inner] = self::splitVisibility($accordion);
+
+        return '<div class="'.self::columnSpanClass($accordion, $parentColumns).'"'.$visibility.'>'
             .(new BootstrapAccordionRenderer())->renderInner(
-                $accordion,
+                $inner,
                 $content,
                 $accordionColumns === [] ? [] : [self::rowClass($accordion)]
             )
             .'</div>';
+    }
+
+    /**
+     * Separa le regole di visibilità dal resto degli attributi.
+     *
+     * @return array{0: string, 1: ElementComponent} gli attributi da stampare sulla
+     *         colonna (con lo spazio davanti) e il componente senza di loro
+     */
+    private static function splitVisibility(ElementComponent $component): array
+    {
+        $attributes = $component->getSchema('attributes');
+        $attributes = is_array($attributes) ? $attributes : [];
+        $visibility = [];
+        $rest = [];
+
+        foreach ($attributes as $key => $value) {
+            if (self::isVisibilityAttribute((string) $key)) {
+                $visibility[] = $key.'="'.htmlspecialchars((string) $value, ENT_QUOTES).'"';
+            } else {
+                $rest[$key] = $value;
+            }
+        }
+
+        if ($visibility === []) {
+            return ['', $component];
+        }
+
+        $inner = clone $component;
+        $inner->schema('attributes', $rest);
+
+        return [' '.implode(' ', $visibility), $inner];
+    }
+
+    private static function isVisibilityAttribute(string $key): bool
+    {
+        return str_starts_with($key, 'data-visible-when') || str_starts_with($key, 'data-hidden-when')
+            || $key === 'data-wi-conditional-container';
     }
 
     /**
@@ -205,20 +248,9 @@ final class ResourceFormLayoutRenderer
             return '';
         }
 
-        $attributes = $button->getSchema('attributes');
-        $visibility = [];
+        [$visibility] = self::splitVisibility($button);
 
-        foreach (is_array($attributes) ? $attributes : [] as $key => $value) {
-            $key = (string) $key;
-
-            if (str_starts_with($key, 'data-visible-when') || str_starts_with($key, 'data-hidden-when')
-                || $key === 'data-wi-conditional-container') {
-                $visibility[] = $key.'="'.htmlspecialchars((string) $value, ENT_QUOTES).'"';
-            }
-        }
-
-        return '<div class="'.self::columnSpanClass($button, $parentColumns).'"'
-            .($visibility === [] ? '' : ' '.implode(' ', $visibility)).'>'
+        return '<div class="'.self::columnSpanClass($button, $parentColumns).'"'.$visibility.'>'
             .$html
             .'</div>';
     }

@@ -65,6 +65,10 @@ class Accordion extends Component
             ];
         }
 
+        if ((bool) ($schema['link'] ?? false)) {
+            return $this->renderLink($class, $content, $bodyClasses, $title, $id, $expanded);
+        }
+
         $bodyClass = trim(implode(' ', array_filter(array_merge(['accordion-body'], $bodyClasses))));
 
         $html = "<div {$attributes}>";
@@ -82,5 +86,29 @@ class Accordion extends Component
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * La variante a link: il bottone di testo di «Compila le informazioni
+     * avanzate» e sotto il corpo, senza bordi. La freccia gira con il CSS
+     * della lib (`.wi-accordion-link`); senza, resta ferma e basta.
+     *
+     * @param array<int, string> $bodyClasses
+     */
+    private function renderLink(object $class, string $content, array $bodyClasses, string $title, string $id, bool $expanded): string
+    {
+        $attributes = $this->renderComponentAttributes($class, ['wi-accordion-link']);
+        $bodyClass = trim(implode(' ', array_filter(array_merge(['pt-2'], $bodyClasses))));
+
+        return "<div {$attributes}>"
+            .'<button class="btn btn-link btn-sm px-0 text-decoration-none'.($expanded ? '' : ' collapsed').'" type="button"'
+            ." data-bs-toggle=\"collapse\" data-bs-target=\"#{$id}\""
+            .' aria-expanded="'.($expanded ? 'true' : 'false')."\" aria-controls=\"{$id}\">"
+            .'<i class="bi bi-chevron-down me-1"></i>'.$title
+            .'</button>'
+            ."<div id=\"{$id}\" class=\"collapse".($expanded ? ' show' : '').'">'
+            ."<div class=\"{$bodyClass}\">{$content}</div>"
+            .'</div>'
+            .'</div>';
     }
 }

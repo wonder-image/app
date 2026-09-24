@@ -137,6 +137,23 @@ class Accordion extends Component
         return $this->schema('flush', $flush);
     }
 
+    /**
+     * Il titolo come un link con la freccia, senza la cornice dell'accordion.
+     *
+     * È la forma di «Compila le informazioni avanzate» del repeater: dentro
+     * un riquadro già incorniciato un secondo bordo pesa, e i campi che si
+     * aprono sono un di più, non una sezione.
+     */
+    public function link(bool $link = true): self
+    {
+        return $this->schema('link', $link);
+    }
+
+    public function isLink(): bool
+    {
+        return (bool) ($this->getSchema('link') ?? false);
+    }
+
     private function normalizeTextSize(string $size): string
     {
         $normalized = strtolower(trim($size));

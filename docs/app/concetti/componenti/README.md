@@ -203,6 +203,32 @@ colonne dell'accordion, e chiede al tema solo la cornice. Senza `columns()` il
 corpo resta quello di sempre e i figli prendono tutta la larghezza — che è
 anche il motivo per cui un accordion di solo testo non cambia aspetto.
 
+Se l'accordion porta `visibleWhen()`/`hiddenWhen()`, le regole passano alla
+colonna che lo contiene: a sparire è lei, e la riga non tiene il margine di una
+colonna vuota.
+
+### Accordion a link
+
+Dentro un riquadro già incorniciato un secondo bordo pesa. `link()` rende il
+titolo come il «Compila le informazioni avanzate» del repeater — un bottone di
+testo con `bi-chevron-down` — e sotto il corpo senza cornice, sempre con il
+collapse di Bootstrap:
+
+```php
+Accordion::make('Compila le informazioni avanzate')
+    ->link()
+    ->columns(12)
+    ->columnSpan(12)
+    ->components([
+        static::getInput('sku')->columnSpan(6),
+        static::getInput('ean')->columnSpan(6),
+    ]);
+```
+
+Il nodo porta la classe `wi-accordion-link`: con il CSS di `wonder-image/lib`
+la freccia gira quando si apre; senza, resta ferma e il resto funziona.
+`link()` è una variante del renderer Bootstrap, come `flush()`.
+
 La descrizione stringa viene escapata. Per contenuti strutturati si possono
 aggiungere Element figli, renderizzati con lo stesso tema richiesto
 all'accordion:
