@@ -86,6 +86,100 @@ FormField::key('category_id')->select($categorie)
     ]));
 ```
 
+## Bottone staccato da un campo
+
+Quando la riga nuova non deve diventare un'opzione di un campo, ma qualcosa
+che la pagina mette in scena da sé (una riga di un pannello, una card), c'è
+il componente di layout **`QuickCreateButton`**. Sta in
+`formLayoutSchema()` come `Card`, `Container`, `SectionTitle` e `RichText`,
+e apre **lo stesso modal** del "+" di `quickCreate(...)`, con gli stessi
+permessi, lo stesso endpoint e lo stesso evento.
+
+```php
+use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\QuickCreateButton;
+
+public static function formLayoutSchema(): array
+{
+    return [
+        (new Card)->title('Caratteristiche')->components([
+            static::getInput('attributes'),
+            QuickCreateButton::make(AttributeResource::class)
+                ->text('Nuova caratteristica')
+                ->fields(['name', 'type', 'unit'])
+                ->label('name')
+                ->id('nuova-caratteristica'),
+        ]),
+    ];
+}
+```
+
+L'API ricalca gli argomenti di `quickCreate(...)`:
+
+| Metodo | Come in `quickCreate` | Cosa fa |
+|---|---|---|
+| `make(string $resourceClass)` | `$resourceClass` | La Resource da creare; deve esporre lo store API. |
+| `->text(string $text)` | `$button` | Testo del bottone e titolo del modal. Senza: «Aggiungi <`label()` della risorsa>». |
+| `->fields(?array $fields)` | `$fields` | Campi del modal. Senza (o `null`): i campi obbligatori della risorsa. |
+| `->layout(?Closure $layout)` | `$layout` | Layout custom del corpo del modal, come per il campo. |
+| `->label(?string $field)` | `$label` | Il campo che fa da etichetta della riga (`detail.label`). |
+| `->size(string $size)` | — | `''` (default), `'sm'` o `'lg'`, come `Button::size()`. |
+
+Valgono anche quelli di ogni componente: `->id()`, `->class()`, `->attr()`,
+`->visibleWhen()` / `->hiddenWhen()` (a sparire è la colonna del bottone),
+`->columnSpan()` (default: una colonna, come un campo).
+
+- **Aspetto**: un `Button` secondario a contorno con il "+" davanti, come gli
+  altri bottoni secondari del backend.
+- **Permessi**: gli stessi del "+" (`QuickCreateAuthorizer`). Chi non può
+  creare la risorsa, o una risorsa in sola lettura, **non vede niente**:
+  né il bottone, né il modal, né una colonna vuota.
+- **Tema Wonder**: il bottone non si disegna (stringa vuota). La creazione
+  rapida vive solo nel backend Bootstrap, ma una scheda condivisa fra i due
+  temi non cade.
+- **Script**: uno solo per pagina, qualunque sia il numero di "+" e di
+  bottoni (`QuickCreateModal::script()`).
+- **Dopo il salvataggio** il modal torna com'era all'apertura della pagina e
+  si chiude, come per il "+" di un campo.
+
+### Raccogliere la riga nuova in uno script della pagina
+
+Il bottone non ha un input in cui far entrare l'opzione: l'evento
+`wi:quick-create:created` parte con **`input: null`** e la riga salvata in
+**`item`**. Il detail:
+
+```js
+{
+  input: null,              // il campo di partenza; null per il bottone
+  id: 7,                    // id della riga creata
+  label: 'Colore',          // etichetta (dal campo di ->label(), o name/title)
+  family: 'button',         // select, checkbox, checktree, dynamiccheck, searchremote; 'button' per il bottone
+  resource: 'attribute',    // lo slug della risorsa (Resource::slug())
+  item: { id: 7, name: 'Colore', type: 'text', unit: '' }, // la riga salvata
+  trigger: HTMLElement      // l'elemento che ha aperto il modal (il bottone)
+}
+```
+
+Chi lo ascolta filtra per risorsa e, se nella pagina ci sono più bottoni
+della stessa risorsa, per `trigger`:
+
+```js
+document.addEventListener('wi:quick-create:created', function (ev) {
+  var d = ev.detail || {};
+  if (d.input || d.family !== 'button' || d.resource !== 'attribute') return;
+  if (d.trigger && d.trigger.id !== 'nuova-caratteristica') return;
+
+  // d.item è la riga salvata: metterla in scena, per esempio come riga di
+  // un repeater o card del pannello.
+  aggiungiCaratteristica(d.id, d.label, d.item);
+});
+```
+
+Lo script va stampato dalla pagina (per esempio con un `RichText` o in un
+file JS del modulo): il bottone non sa dove va a finire la riga. Gli alberi
+della pagina che elencano la stessa risorsa (`data-wi-qc-resource`) la
+ricevono comunque dall'adapter della lib, come con il "+" di un campo.
+
 ### Precondizione: lo store API della risorsa target
 
 La creazione passa dallo **store API** della risorsa collegata: il target deve
@@ -156,7 +250,8 @@ proxy server-side.
   così chi ascolta il gruppo (un repeater che genera righe, per esempio) la
   vede.
 - **Adapter JS**: il framework emette sempre l'evento `wi:quick-create:created`
-  e `wonder-image/lib` (`src/build/backend/js/form/quickCreate.js`) inserisce e
+  (detail `{input, id, label, family, resource, item, trigger}`; `trigger` è
+  l'elemento che ha aperto il modal) e `wonder-image/lib` (`src/build/backend/js/form/quickCreate.js`) inserisce e
   seleziona l'opzione nel widget. Coperti: `select` (baseline nel framework),
   `selectSearch` (select2, con re-render), `dynamicCheck` (card AJAX) e
   `checkTree` (jstree). `searchRemote` sul backend è un input inerte (il
@@ -181,7 +276,11 @@ proxy server-side.
 | Permesso (fonte unica) | `class/Backend/Support/QuickCreateAuthorizer.php` |
 | Proxy backend | `class/Backend/Support/QuickCreateController.php` + `app/http/backend/resource/quick-create.php` |
 | Rotta | `app/config/routes/route.backend.php` (`backend.resource.quick-create`) |
-| Render "+" + modal + JS (emette `wi:quick-create:created`) | `class/Themes/Bootstrap/Form/Field.php` |
+| Render "+" attaccato al campo | `class/Themes/Bootstrap/Form/Field.php` |
+| Modal + JS condivisi (emette `wi:quick-create:created`, script una volta per pagina) | `class/Backend/Support/QuickCreateModal.php` |
+| Bottone staccato (componente di layout) | `class/Elements/Components/QuickCreateButton.php` |
+| Bottone: renderer Bootstrap / Wonder (vuoto) | `class/Themes/Bootstrap/Components/QuickCreateButton.php`, `class/Themes/Wonder/Components/QuickCreateButton.php` |
+| Bottone nella scheda (colonna, visibilità) | `class/Backend/Support/ResourceFormLayoutRenderer.php` |
 | Adapter widget (select2 / card AJAX) | `wonder-image/lib` → `src/build/backend/js/form/quickCreate.js` |
 
 Spec e piano: `docs/superpowers/specs/2026-09-21-backend-fk-quick-create-design.md`,

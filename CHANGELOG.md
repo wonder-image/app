@@ -3,6 +3,19 @@
 ## Unreleased
 
 ### Added
+- `Field::richText()` sui campi dati: il testo scritto dall'editor si pulisce
+  in scrittura con la whitelist di `Wonder\Support\Html\SafeHtml::clean()`
+  (`p`, `br`, `strong`, `b`, `em`, `i`, `u`, `s`, `strike`, `del`, `a` senza
+  attributi, salvo un `href` `http(s)`/`mailto`/`tel`; `script`, `style`,
+  `iframe`, `svg`, `math`… tolti col contenuto; editor vuoto → `''`). Vale per
+  `Model::create()`/`update()` (`RichTextFormatter`) e per `formToArray()`
+  (`format['rich_text']`); il campo è `sanitize(false)` in scrittura e in
+  lettura, e sul `FormField` non serve più `->prepare('sanitize', false)`.
+- `integer()` e `suffix($testo)` sui campi numerici (`number()`, `price()`,
+  `percentige()` e colonne dei repeater): `integer()` è `decimal(0)`,
+  `suffix(' kg')` mette l'unità in coda al posto del simbolo (non per i
+  prezzi).
+- `maxLength($n)` su `text()`: l'input esce con `maxlength` in entrambi i temi.
 - `error_reports` con `Wonder\App\Support\Errors\ErrorReporter`: i guasti
   tecnici ripetuti diventano una riga sola con un contatore, l'email parte alla
   prima occorrenza e riparte solo se il problema torna dopo essere stato segnato
@@ -29,15 +42,42 @@
 - Comando forge `module:publish <slug> [--only=<path>] [--force]`: pubblica le view di un modulo negli override del sito (`custom/view/...`).
 - `Swiper::slides()` per caroselli di HTML trusted e componenti renderizzabili,
   più ratio separati per immagini/thumb e classi aggiuntive sulle slide.
+- `Wonder\Elements\Components\QuickCreateButton`: la creazione rapida
+  staccata da un campo, come componente di layout di `formLayoutSchema()`
+  (`make(Resource::class)->text()->fields()->layout()->label()->size()`).
+  Apre lo stesso modal del "+" di `quickCreate(...)`, con gli stessi permessi
+  (chi non può creare non vede niente) e lo stesso evento
+  `wi:quick-create:created`, che parte con `input: null`, `family: 'button'`
+  e la riga salvata in `item`. Sul tema Wonder non si disegna.
+- Il detail di `wi:quick-create:created` porta anche `trigger`, l'elemento
+  che ha aperto il modal.
 
 ### Changed
+- Numeri, prezzi e percentuali escono nel formato italiano senza
+  configurazione: virgola decimale e niente migliaia per numero e percentuale,
+  «1.299,90 €» per il prezzo. I default stanno negli Element, quindi valgono
+  nei due temi, nelle colonne dei repeater e negli helper legacy; una config
+  esplicita vince sempre, anche vuota (`groupSeparator('')`, `symbol('')`
+  arrivano ad AutoNumeric come `''`).
+- `Elements\Form\Components\InputPrice` estende `InputNumber` e non più
+  `InputPercentige`: il prezzo non emette più `data-wi-percentige`.
+- `ScheduleResource`: il timeout è `integer()` invece di `decimals(0)`.
 - Il pulsante "Guida" è `btn-info btn-sm` in ogni pagina: prima nell'elenco e
   nell'header era un `btn-outline-secondary` a dimensione piena.
 - `SocietyLocationResource` non è più `final`: un modulo che aggiunge dati alla
   sede la estende e, registrandosi con lo stesso percorso, prende il posto della
   pagina del core invece di affiancarne una seconda.
+- Modal e script della creazione rapida stanno in
+  `Wonder\Backend\Support\QuickCreateModal`, condivisi fra il "+" dei campi
+  (`Themes\Bootstrap\Form\Field`) e `QuickCreateButton`; lo script si
+  stampa una volta per pagina.
 
 ### Fixed
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
   off-site per cover, anteprime, slide, thumbnail e lightbox, senza generare
   percorsi responsive inesistenti sul server remoto.
+- Repeater: le righe aggiunte avviano AutoNumeric (`setAutonumeric()` dopo
+  `setInput()`), così prezzi e quantità si formattano come nelle righe già in
+  pagina anche con le lib che non lo fanno dentro `setInput()`.
+- Repeater: il comando di gruppo legge i numeri scritti all'italiana con un
+  solo separatore ripetuto ("1.234.567" è 1234567, non 1,234).

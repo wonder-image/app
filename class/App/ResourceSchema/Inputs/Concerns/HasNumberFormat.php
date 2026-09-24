@@ -12,8 +12,13 @@ use Wonder\Elements\Form\Components\InputNumber as NumberElement;
  * I valori finiscono in `context['number']` e {@see applyNumberConfig()} li
  * ri-applica all'Element chiamando i metodi omonimi, così l'attributo
  * `wi-number-*` emesso resta quello canonico della lib senza duplicarne i
- * nomi qui. Sono opt-in: senza chiamate, number/price/percentige rendono
- * esattamente come un Element appena costruito.
+ * nomi qui. Senza chiamate, number/price/percentige rendono esattamente come
+ * un Element appena costruito, che porta già il formato italiano: virgola
+ * decimale e niente migliaia per numero e percentuale, «1.299,90 €» per il
+ * prezzo. Una config esplicita vince sempre, anche quando è vuota:
+ * `groupSeparator('')` toglie il punto delle migliaia al prezzo e
+ * `symbol('')` gli toglie il «€». Un `decimalSeparator('')` invece è
+ * ignorato, perché un numero senza separatore decimale non si scrive.
  *
  * `decimal()` limita le cifre decimali mostrate (attributo lib), mentre
  * `decimals()` passa il valore allo schema dell'Element: nomi vicini ma
@@ -48,6 +53,26 @@ trait HasNumberFormat
         return $this->numberSymbolPlacement($placement);
     }
 
+    /**
+     * Numero intero: nessuna cifra decimale mostrata. Equivale a `decimal(0)`.
+     */
+    public function integer(): static
+    {
+        return $this->decimal(0);
+    }
+
+    /**
+     * Testo in coda al numero, per l'unità di misura: `suffix(' kg')` mostra
+     * «2,50 kg». Equivale a `symbol($text)->symbolPlacement('s')`.
+     *
+     * Occupa lo stesso posto del simbolo di valuta e lo sostituisce: su un
+     * prezzo toglierebbe il «€», quindi non va usato sui prezzi.
+     */
+    public function suffix(string $text): static
+    {
+        return $this->symbol($text)->symbolPlacement('s');
+    }
+
     public function decimals(int $decimals): static
     {
         return $this->numberConfig('decimals', max(0, $decimals));
@@ -69,11 +94,14 @@ trait HasNumberFormat
             $element->decimalSeparator($number['decimal_separator']);
         }
 
-        if (isset($number['group_separator']) && is_string($number['group_separator']) && $number['group_separator'] !== '') {
+        // Qui la stringa vuota è una scelta ("nessun separatore", "nessun
+        // simbolo") e deve sovrascrivere il default dell'Element: la lib
+        // legge '' dal dataset e lo applica.
+        if (isset($number['group_separator']) && is_string($number['group_separator'])) {
             $element->groupSeparator($number['group_separator']);
         }
 
-        if (isset($number['symbol']) && is_string($number['symbol']) && $number['symbol'] !== '') {
+        if (isset($number['symbol']) && is_string($number['symbol'])) {
             $element->symbol($number['symbol']);
         }
 

@@ -3,9 +3,12 @@
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\Themes\Bootstrap\Form\Field;
+use Wonder\Themes\Concerns\RendersMaxLength;
 
 class InputText extends Field
 {
+    use RendersMaxLength;
+
     public function renderInput(): string
     {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
@@ -15,6 +18,6 @@ class InputText extends Field
         $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
         $class = $this->inputClass('form-control');
 
-        return "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\" {$attributes} />";
+        return "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\"{$this->renderMaxLength()} {$attributes} />";
     }
 }

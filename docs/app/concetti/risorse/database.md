@@ -116,6 +116,41 @@ Field::key('password')->password()->minLength(8);
 Il Model usa il data schema per tre scopi: **SQL** (`sqlColumnsFromDataSchema`),
 **validazione** (`validate()`), **persistenza** (`prepare()`).
 
+### Testo formattato (`richText()`)
+
+Un testo scritto con l'editor (descrizioni, note formattate) si dichiara con
+`richText()`:
+
+```php
+Field::key('description')->text()->richText();
+```
+
+In scrittura l'HTML passa da `Wonder\Support\Html\SafeHtml::clean()`, una
+whitelist:
+
+- restano solo `p`, `br`, `strong`, `b`, `em`, `i`, `u`, `s`, `strike`, `del`
+  e `a`, sempre **senza attributi**;
+- sui link resta solo `href`, e solo se inizia con `http:`, `https:`, `mailto:`
+  o `tel:` (il controllo ignora maiuscole, entità, spazi e caratteri di
+  controllo). Un link relativo, `javascript:`, `data:`, `vbscript:` o `//host`
+  perde il tag e tiene il testo;
+- gli altri tag si tolgono tenendo il testo; `script`, `style`, `iframe`,
+  `object`, `embed`, `template`, `noscript`, `svg` e `math` spariscono con
+  tutto il contenuto; i commenti si tolgono;
+- l'UTF-8 resta com'è (`perché`, `€`, emoji), `&nbsp;` resta `&nbsp;`;
+- un editor vuoto (`<p><br></p>`, solo spazi o `&nbsp;`) diventa `''`.
+
+La pulizia gira su ogni strada di scrittura: `Model::create()`/`update()` (il
+`RichTextFormatter` aggiunto al campo) e il salvataggio dal backend
+(`formToArray()`, che legge `format['rich_text']`). Il campo è
+`sanitize(false)` in scrittura e in lettura: l'HTML si salva senza slash né
+entità e si rilegge senza `sanitizeEcho()`. Un `sanitize(true)` messo dopo non
+lo riaccende e `htmlToText()` si spegne.
+
+In stampa l'HTML si stampa così com'è, senza `htmlspecialchars()`: è già
+pulito. `SafeHtml::clean($html)` si può chiamare anche da solo, per esempio su
+un HTML che arriva da un import.
+
 ### Campi immagine
 
 `Field::key('...')->image()` accetta un file e genera le misure accanto
@@ -271,7 +306,7 @@ con campi derivati, URL calcolati o payload già normalizzati.
 
 > **Normalizzazione automatica in lettura.** Prima di `decorate()`, il Model
 > applica `sanitizeEcho()` alle colonne che in scrittura passano da `sanitize()`
-> (cioè tutte tranne quelle `->sanitize(false)`, JSON e file). La lettura è così
+> (cioè tutte tranne quelle `->sanitize(false)`, `->richText()`, JSON e file). La lettura è così
 > l'inverso simmetrico della scrittura: lo slash di escape aggiunto da
 > `addslashes()` viene rimosso e le entità decodificate, senza doverlo fare a
 > mano in stampa. Non chiamare di nuovo `sanitizeEcho()`/`normalizeDB()` su

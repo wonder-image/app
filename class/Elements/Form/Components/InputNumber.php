@@ -15,6 +15,12 @@
             
             $this->attr('data-wi-number', 'true');
 
+            // Formato italiano di default: virgola decimale e nessun
+            // separatore delle migliaia («20000,5», non «20.000,5» che si
+            // leggerebbe ventimila). Chi chiama lo sovrascrive con i setter.
+            $this->decimalSeparator(',');
+            $this->groupSeparator('');
+
         }
 
         public function decimal(int $decimal):self

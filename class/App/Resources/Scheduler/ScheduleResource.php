@@ -33,7 +33,7 @@ class ScheduleResource extends Resource
             FormField::key('target')->text()->visibleWhen('kind', ['php', 'https'])->placeholder('custom/tasks/import.php oppure https://example.com/api/task'),
             FormField::key('arguments')->textarea()->visibleWhen('kind', 'php')->placeholder("sync\n--feed=1"),
             FormField::key('http_method')->select(['GET' => 'GET — parametri nella query', 'POST' => 'POST — parametri nel corpo'], 'old')->value('GET')->visibleWhen('kind', 'https'),
-            FormField::key('timeout')->number()->decimals(0)->value(300)->attribute('min="1" max="3600"')->hiddenWhen('kind', 'task'),
+            FormField::key('timeout')->number()->integer()->value(300)->attribute('min="1" max="3600"')->hiddenWhen('kind', 'task'),
             FormField::key('frequency')->select(['custom' => 'Personalizzata', '*/5 * * * *' => 'Ogni 5 minuti', '0 * * * *' => 'Ogni ora', '0 0 * * *' => 'Ogni giorno a mezzanotte', '0 3 * * 1' => 'Ogni lunedi alle 03:00'], 'old')->label('Frequenza')->value('custom')->attribute('onchange="if (this.value !== \'custom\') this.form.elements.expression.value = this.value"'),
             FormField::key('expression')->text()->value('0 0 * * *')->required()->attribute('oninput="this.form.elements.frequency.value = \'custom\'"'),
             FormField::key('timezone')->select(array_combine(\DateTimeZone::listIdentifiers(), \DateTimeZone::listIdentifiers()), 'old')->value('Europe/Rome')->required(),

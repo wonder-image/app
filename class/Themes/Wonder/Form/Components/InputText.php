@@ -3,9 +3,12 @@
 namespace Wonder\Themes\Wonder\Form\Components;
 
 use Wonder\Themes\Wonder\Form\Field;
+use Wonder\Themes\Concerns\RendersMaxLength;
 
 class InputText extends Field
 {
+    use RendersMaxLength;
+
     public function renderInput(): string
     {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
@@ -19,7 +22,7 @@ class InputText extends Field
         return <<<HTML
 <div class="{$this->containerClass($typeClass)}">
     {$this->renderLabel()}
-    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}"{$this->labelMarker()} {$attributes}>
+    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}"{$this->renderMaxLength()}{$this->labelMarker()} {$attributes}>
     {$this->renderError()}
 </div>
 HTML;

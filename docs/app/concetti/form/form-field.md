@@ -83,6 +83,15 @@ Tutti chainable su `FormField::key($name)`:
 `number()`, `price()`, `percentige()`, `color()`, `icon()`, `password()`,
 `textGenerator($callback = null, $buttonLabel = null)` (input + bottone "GENERA").
 
+`text()` accetta `maxLength($n)`: l'input esce con l'attributo `maxlength`
+in entrambi i temi, così il browser non lascia scrivere oltre. È solo un limite
+di interfaccia: il controllo vero sulla lunghezza resta sul Model. Se passi già
+`->attribute('maxlength="10"')` vince quello e l'attributo non esce due volte.
+
+```php
+FormField::key('sku')->text()->maxLength(32);
+```
+
 `icon()` è un nome di Bootstrap Icons (`bi-star`): a sinistra l'anteprima, a
 destra un bottone che apre la raccolta con la ricerca (anche in italiano, lo
 monta la lib con `data-wi-icon-picker`). Il valore si normalizza con
@@ -96,23 +105,47 @@ Su `number()`, `price()` e `percentige()` (i tre condividono l'Element
 `Wonder\Elements\Form\Components\InputNumber`:
 
 - `decimal($n)` — cifre decimali mostrate.
+- `integer()` — numero intero, nessuna cifra decimale: equivale a `decimal(0)`.
 - `decimalSeparator($sep)` — separatore dei decimali (es. `','`).
 - `groupSeparator($sep)` — separatore delle migliaia (es. `'.'`).
 - `symbol($sym)` — simbolo/valuta (es. `'€'`).
 - `symbolPlacement('p'|'s')` — `p` = prefix, `s` = suffix (altri valori
   vengono ignorati).
+- `suffix($testo)` — unità di misura in coda al numero (`suffix(' kg')` →
+  «2,50 kg»): equivale a `symbol($testo)->symbolPlacement('s')`. Prende il posto
+  del simbolo di valuta, quindi **non va usato sui prezzi** (toglierebbe il €).
 - `decimals($n)` — valore passato allo schema dell'Element (distinto da
   `decimal()`).
 
-Sono opt-in: senza chiamate i tre type rendono come prima.
+Senza chiamate i tre tipi escono già nel formato italiano, impostato
+dall'Element (quindi uguale nei due temi, nelle colonne dei repeater e negli
+helper legacy):
+
+| Tipo | Decimali | Migliaia | Simbolo | Esempio |
+|---|---|---|---|---|
+| `number()` | `,` | nessuno | — | `1299,50` |
+| `percentige()` | `,` | nessuno | `%` in coda (dalla lib) | `12,50%` |
+| `price()` | `,` | `.` | ` €` in coda | `1.299,90 €` |
+
+Una configurazione esplicita vince sempre, anche quando è vuota:
+`groupSeparator('')` toglie il punto delle migliaia al prezzo e `symbol('')`
+gli toglie il €. Un `decimalSeparator('')` invece è ignorato, perché un numero
+senza separatore decimale non si scrive.
+
+Il formato è solo di visualizzazione: AutoNumeric al submit del form manda il
+numero puro (`1299.9`) e il PHP non deve interpretare «1.299,90 €». Vale per il
+submit nativo dei form del backend; un invio che costruisce `FormData` a mano
+senza passare dall'evento `submit` manderebbe il valore formattato.
 
 ```php
-FormField::key('prezzo')->number()
+FormField::key('prezzo')->price();                   // «1.299,90 €»
+FormField::key('peso')->number()->suffix(' kg');     // «2,50 kg»
+FormField::key('pezzi')->number()->integer();        // «12»
+FormField::key('importo')->number()
     ->decimal(2)
-    ->decimalSeparator(',')
     ->groupSeparator('.')
     ->symbol('€')
-    ->symbolPlacement('p');
+    ->symbolPlacement('p');                          // «€1.299,90»
 ```
 
 ### Date / ora
@@ -124,6 +157,13 @@ FormField::key('prezzo')->number()
 
 `textarea($version = null)` — passa una stringa di versione per abilitare
 l'editor rich-text.
+
+L'HTML scritto dall'editor si dichiara sul Model con `Field::richText()` (vedi
+[Model e database](../risorse/database.md#testo-formattato-richtext)): il campo
+esce dal `sanitize` in scrittura e in lettura e l'HTML passa dalla whitelist di
+`SafeHtml`. Per questo sul `FormField` non serve più
+`->prepare('sanitize', false)`: la Resource unisce il formato del Model a quello
+del form, e `rich_text` fa saltare il `sanitize` anche se il form lo chiedesse.
 
 ### Scelta
 
@@ -211,7 +251,8 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 
 | Tipo | Classe | Modificatori |
 |---|---|---|
-| `number()`, `price()`, `percentige()` | `InputNumber`, `InputPrice`, `InputPercentige` | `decimal`, `decimalSeparator`, `groupSeparator`, `symbol`, `symbolPlacement`, `decimals` |
+| `text()` | `InputText` | `maxLength` |
+| `number()`, `price()`, `percentige()` | `InputNumber`, `InputPrice`, `InputPercentige` | `decimal`, `integer`, `decimalSeparator`, `groupSeparator`, `symbol`, `symbolPlacement`, `suffix`, `decimals` |
 | `password()` | `InputPassword` | `minLength`, `requireUppercase`, `requireLowercase`, `requireNumber`, `requireSpecial` |
 | `select()`, `selectSearch()` | `InputSelect`, `InputSelectSearch` | `options`, `multiple`, `version`, `old` |
 | `textarea()`, `textList()` | `InputTextarea`, `InputTextList` | `version`, `old` (+ `options` su textList) |
@@ -231,7 +272,7 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 | `recaptcha()` | `InputReCaptcha` | `action`, `theme`, `size` |
 | `googleAddress()` | `InputGoogleAddress` | `restriction`, `alias` |
 
-`text()`, `hidden()`, `color()`, `icon()`, `email()`, `tel()`/`phone()`, `url()`,
+`hidden()`, `color()`, `icon()`, `email()`, `tel()`/`phone()`, `url()`,
 `textDatetime()` e `phonePrefix()` hanno solo i modificatori universali.
 
 {% hint style="warning" %}

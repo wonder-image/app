@@ -617,6 +617,12 @@ HTML;
             window.setInput(row);
         }
 
+        // I numeri della riga nuova (prezzi, giacenze) si formattano come
+        // quelli delle righe già in pagina. Le lib recenti lo fanno dentro
+        // `setInput`; qui è per quelle più vecchie, e non si avvia due
+        // volte: `setAutonumeric` salta i campi già avviati.
+        if (typeof window.setAutonumeric === 'function') window.setAutonumeric();
+
         if (typeof window.wiRepeaterGroupRefresh === 'function') {
             window.wiRepeaterGroupRefresh(container);
         }
@@ -1108,8 +1114,11 @@ HTML;
     /*
      * Il numero dietro a quello che si è scritto.
      *
-     * Chi compila scrive "31,50" o "1.299,90"; qualcun altro scrive "31.50".
-     * Con tutti e due i separatori l'ultimo è quello decimale.
+     * Chi compila scrive "31,50" o "1.299,90 €", o copia "12 pz" da una
+     * riga; qualcun altro scrive "31.50". Valuta e unità si scartano. Con
+     * tutti e due i separatori l'ultimo è quello decimale; un separatore
+     * solo, ripetuto ("1.234.567"), è quello delle migliaia; un separatore
+     * solo, una volta, è decimale.
      */
     window.wiRepeaterNumberFromText = window.wiRepeaterNumberFromText || function (value) {
         let text = String(value === null || value === undefined ? '' : value).trim();
@@ -1124,8 +1133,10 @@ HTML;
             const thousands = decimal === ',' ? '.' : ',';
             text = text.split(thousands).join('');
             text = text.replace(decimal, '.');
-        } else if (lastComma > -1) {
-            text = text.replace(',', '.');
+        } else if (lastComma > -1 || lastDot > -1) {
+            const separator = lastComma > -1 ? ',' : '.';
+            const pieces = text.split(separator);
+            text = pieces.length > 2 ? pieces.join('') : pieces.join('.');
         }
 
         const number = parseFloat(text);

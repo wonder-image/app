@@ -5,6 +5,7 @@ namespace Wonder\Data\Fields;
 use Exception;
 use Wonder\Concerns\HasSchema;
 use Wonder\Data\Formatters\Formatter;
+use Wonder\Data\Formatters\String\RichTextFormatter;
 use Wonder\Data\Support\ValidationResult;
 use Wonder\Data\Validators\RequiredValidator;
 use Wonder\Data\Validators\Validator;
@@ -132,6 +133,36 @@ abstract class Field
     public function htmlToText(bool $enabled = true): static
     {
         return $this->schema('html_to_text', $enabled);
+    }
+
+    /**
+     * Testo formattato scritto da un editor (paragrafi, grassetto, link…).
+     *
+     * In scrittura l'HTML passa da `Wonder\Support\Html\SafeHtml::clean()`:
+     * restano solo i tag della formattazione di base, senza attributi (tranne
+     * un `href` assoluto sui link), e un editor vuoto (`<p><br></p>`) diventa
+     * ''. Vale per ogni strada di scrittura: `Field::format()` (quindi
+     * `Model::create()`/`update()`) e `formToArray()`, che legge
+     * `format['rich_text']`.
+     *
+     * Il campo è `sanitize(false)` in scrittura e in lettura: niente
+     * `addslashes()`/entità sull'HTML salvato e niente `sanitizeEcho()` quando
+     * si rilegge. Anche un `sanitize(true)` messo dopo non lo riaccende, e
+     * `htmlToText()` si spegne: i due modi sono alternativi.
+     */
+    public function richText(): static
+    {
+        $this->schema('rich_text', true)
+            ->sanitize(false)
+            ->htmlToText(false);
+
+        foreach ((array) ($this->getSchema('formatters') ?? []) as $formatter) {
+            if ($formatter instanceof RichTextFormatter) {
+                return $this;
+            }
+        }
+
+        return $this->addFormatter(new RichTextFormatter());
     }
 
     public function fileToArray(bool $enabled = true): static

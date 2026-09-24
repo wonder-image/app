@@ -6,6 +6,7 @@ use Wonder\Elements\Components\AbstractValueCard;
 use Wonder\Elements\Components\Accordion;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\QuickCreateButton;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
@@ -107,6 +108,11 @@ final class ResourceFormLayoutRenderer
                 continue;
             }
 
+            if ($component instanceof QuickCreateButton) {
+                $html .= self::renderQuickCreateButton($component, $parentColumns);
+                continue;
+            }
+
             if (is_object($component) && method_exists($component, 'render')) {
                 $fieldHtml = self::renderComponent($component);
                 $html .= self::wrapField($component, $fieldHtml, $parentColumns);
@@ -175,6 +181,45 @@ final class ResourceFormLayoutRenderer
                 $content,
                 $accordionColumns === [] ? [] : [self::rowClass($accordion)]
             )
+            .'</div>';
+    }
+
+    /**
+     * Il bottone di creazione rapida staccato da un campo.
+     *
+     * Prende la sua colonna come un campo, ma solo se si disegna: a chi non
+     * può creare la risorsa non arriva niente, e una colonna vuota dentro una
+     * `row g-3` lascerebbe comunque il margine della riga.
+     *
+     * Gli attributi li stampa il bottone stesso: ripeterli sulla colonna
+     * darebbe due nodi con la stessa maniglia, e un `querySelector` della
+     * pagina troverebbe il div invece del bottone. Sulla colonna vanno solo
+     * quelli di `visibleWhen()`/`hiddenWhen()`, perché a sparire dev'essere
+     * lei.
+     */
+    private static function renderQuickCreateButton(QuickCreateButton $button, array $parentColumns): string
+    {
+        $html = $button->render('bootstrap');
+
+        if ($html === '') {
+            return '';
+        }
+
+        $attributes = $button->getSchema('attributes');
+        $visibility = [];
+
+        foreach (is_array($attributes) ? $attributes : [] as $key => $value) {
+            $key = (string) $key;
+
+            if (str_starts_with($key, 'data-visible-when') || str_starts_with($key, 'data-hidden-when')
+                || $key === 'data-wi-conditional-container') {
+                $visibility[] = $key.'="'.htmlspecialchars((string) $value, ENT_QUOTES).'"';
+            }
+        }
+
+        return '<div class="'.self::columnSpanClass($button, $parentColumns).'"'
+            .($visibility === [] ? '' : ' '.implode(' ', $visibility)).'>'
+            .$html
             .'</div>';
     }
 

@@ -13,6 +13,7 @@ use Wonder\Data\Fields\Field as DataField;
 use Wonder\Data\Fields\Number as NumberField;
 use Wonder\Data\Fields\Text as TextField;
 use Wonder\Data\Formatters\String\LowercaseFormatter;
+use Wonder\Data\Formatters\String\RichTextFormatter;
 use Wonder\Data\Formatters\String\SlugFormatter;
 use Wonder\Data\Formatters\String\TitleCaseFormatter;
 use Wonder\Data\Formatters\String\UppercaseFormatter;
@@ -347,6 +348,22 @@ abstract class Model
                     $format['link'] = true;
                 }
             }
+
+            if ($class === RichTextFormatter::class) {
+                $format['rich_text'] = true;
+            }
+        }
+
+        // Testo formattato (`Field::richText()`): l'HTML si pulisce con
+        // SafeHtml in formToArray() e non passa mai da sanitize, né in
+        // scrittura né in lettura (sanitizedReadColumns() lo salta).
+        if (($schema['rich_text'] ?? false) === true) {
+            $format['rich_text'] = true;
+        }
+
+        if (($format['rich_text'] ?? false) === true) {
+            $format['sanitize'] = false;
+            unset($format['html_to_text']);
         }
 
         if ($field instanceof TextField

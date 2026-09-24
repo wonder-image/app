@@ -346,7 +346,16 @@
                         $VALUE = fileToArray($VALUE);
                     }
 
-                    if (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false) {
+                    # Testo formattato (Field::richText()): l'HTML passa dalla
+                    # whitelist di SafeHtml e non da sanitize(), anche se un
+                    # `sanitize` arrivato dal form lo chiedesse.
+                    $RICH_TEXT = isset($RULES['format']['rich_text']) && $RULES['format']['rich_text'] === true;
+
+                    if ($RICH_TEXT) {
+                        $VALUE = \Wonder\Support\Html\SafeHtml::clean(is_scalar($VALUE) ? (string) $VALUE : '');
+                    }
+
+                    if (!$RICH_TEXT && (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false)) {
                         $VALUE = sanitize($VALUE);
                     }
     
