@@ -57,6 +57,10 @@ Parametri (in ordine): `$label`, `$column`, `$orderable`, `$class`,
 `filterLimit()`, `filterSearch()`, `addFilter()`, `columns(array $columns)`
 (accetta oggetti `Column` dalla `tableSchema()` moderna), `generate()`.
 
+`addFilter()` accetta come ottavo argomento una `Closure` con una condizione
+propria: è quella di `tableLayoutSchema()->filterQuery()` (vedi
+[TableColumn e tableLayoutSchema](tablecolumn.md)).
+
 ## Tabelle aggregate (GROUP BY)
 
 Il flusso moderno `Resource::tableSchema()` rende **righe di una tabella** (una
@@ -95,6 +99,10 @@ Regole:
 `query_filter`; `ListProvider::fetch` li verifica prima di passarli a
 `SSP::complex`. Il client non può alterarli senza rompere la firma. Chiave
 assente ⇒ nessun group by (tabelle non aggregate invariate).
+
+Nelle Resource le colonne calcolate si dichiarano con `tableLayoutSchema()->select()`
+([TableColumn e tableLayoutSchema](tablecolumn.md)): il renderer passa a
+`Table::select()` `` `tabella`.* `` più quelle colonne, senza `groupBy()`.
 
 ### Formatter di cella (`->formatter()`)
 

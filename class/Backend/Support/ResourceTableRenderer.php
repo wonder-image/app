@@ -2,12 +2,14 @@
 
 namespace Wonder\Backend\Support;
 
+use Closure;
 use RuntimeException;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\Backend\Table\Table;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Dropdown;
+use Wonder\Sql\Query;
 
 final class ResourceTableRenderer
 {
@@ -130,6 +132,12 @@ final class ResourceTableRenderer
 
     private function applyQuery(Table $table): void
     {
+        $select = self::selectList($this->resourceClass::modelTable(), (string) ($this->tableLayoutSchema['select'] ?? ''));
+
+        if ($select !== '') {
+            $table->select($select);
+        }
+
         $condition = $this->querySchema['condition'] ?? null;
 
         if ($condition !== null) {
@@ -150,7 +158,10 @@ final class ResourceTableRenderer
 
     private function applyFilters(Table $table): void
     {
-        $searchFields = $this->tableLayoutSearchFields();
+        $searchFields = self::withoutAliases(
+            $this->tableLayoutSearchFields(),
+            self::selectAliases((string) ($this->tableLayoutSchema['select'] ?? ''))
+        );
         $searchEnabled = (bool) ($this->tableLayoutSchema['filters']['search']['enabled'] ?? true);
         if ($searchEnabled && $searchFields !== []) {
             $table->filterSearch(true, $searchFields);
@@ -159,28 +170,89 @@ final class ResourceTableRenderer
         $table->filterLimit((bool) ($this->tableLayoutSchema['filters']['limit']['enabled'] ?? true));
 
         foreach ((array) ($this->tableLayoutSchema['custom_filters'] ?? []) as $filter) {
-            if (!is_array($filter)) {
-                continue;
+            $arguments = self::filterArguments($filter);
+
+            if ($arguments !== null) {
+                $table->addFilter(...$arguments);
             }
-
-            $label = trim((string) ($filter['label'] ?? ''));
-            $column = trim((string) ($filter['column'] ?? ''));
-            $options = (array) ($filter['array'] ?? []);
-
-            if ($label === '' || $column === '' || $options === []) {
-                continue;
-            }
-
-            $table->addFilter(
-                $label,
-                $column,
-                $options,
-                (string) ($filter['input'] ?? 'select'),
-                (bool) ($filter['search'] ?? false),
-                $filter['column_type'] ?? null,
-                $filter['value'] ?? null
-            );
         }
+    }
+
+    /**
+     * Argomenti di `Table::addFilter()` per un filtro di
+     * `tableLayoutSchema()`; null se mancano l'etichetta, la colonna o le
+     * opzioni.
+     *
+     * @return array<int, mixed>|null
+     */
+    public static function filterArguments(mixed $filter): ?array
+    {
+        if (!is_array($filter)) {
+            return null;
+        }
+
+        $label = trim((string) ($filter['label'] ?? ''));
+        $column = trim((string) ($filter['column'] ?? ''));
+        $options = (array) ($filter['array'] ?? []);
+
+        if ($label === '' || $column === '' || $options === []) {
+            return null;
+        }
+
+        $where = $filter['where'] ?? null;
+
+        return [
+            $label,
+            $column,
+            $options,
+            (string) ($filter['input'] ?? 'select'),
+            (bool) ($filter['search'] ?? false),
+            $filter['column_type'] ?? null,
+            $filter['value'] ?? null,
+            $where instanceof Closure ? $where : null,
+        ];
+    }
+
+    /**
+     * Lista SELECT della tabella: `tabella`.* più le colonne calcolate di
+     * `tableLayoutSchema()->select()`. Vuota se non ce ne sono: resta il
+     * `SELECT *` di sempre.
+     */
+    public static function selectList(string $table, string $computed): string
+    {
+        $computed = trim($computed);
+
+        return $computed === '' ? '' : Query::escapeIdentifier($table).'.*, '.$computed;
+    }
+
+    /**
+     * Alias dichiarati con AS nelle colonne calcolate.
+     *
+     * @return array<int, string>
+     */
+    public static function selectAliases(string $select): array
+    {
+        preg_match_all('/\bAS\s+`?([A-Za-z0-9_]+)`?/i', $select, $matches);
+
+        return array_values(array_unique($matches[1]));
+    }
+
+    /**
+     * Toglie dai campi di ricerca gli alias delle colonne calcolate, che il
+     * WHERE non vede. I descrittori di relazione restano.
+     *
+     * @param array<int, string|array<string, mixed>> $fields
+     * @param array<int, string> $aliases
+     * @return array<int, string|array<string, mixed>>
+     */
+    public static function withoutAliases(array $fields, array $aliases): array
+    {
+        $aliases = array_map('strtolower', $aliases);
+
+        return array_values(array_filter(
+            $fields,
+            static fn ($field) => !is_string($field) || !in_array(strtolower($field), $aliases, true)
+        ));
     }
 
     private function applyButtonAdd(Table $table): void
@@ -348,7 +420,7 @@ final class ResourceTableRenderer
                 if (is_string($field)) {
                     return trim($field);
                 }
-                return (is_array($field) && !empty($field['table']) && !empty($field['columns'])) ? $field : '';
+                return (is_array($field) && !empty($field['table']) && (!empty($field['columns']) || !empty($field['relations']))) ? $field : '';
             },
             $fields
         ), static fn ($f) => $f !== ''));
@@ -362,18 +434,24 @@ final class ResourceTableRenderer
 
         $resolved = self::resolveSearchFields(array_values(array_unique($strings)), $this->foreignKeyMap());
 
-        return $this->validateSearchDescriptors(array_merge($resolved, $descriptors));
+        return self::validSearchDescriptors(
+            array_merge($resolved, $descriptors),
+            $this->resourceClass::modelTable(),
+            static fn (string $table, string $column): bool => (bool) sqlColumnExists($table, $column)
+        );
     }
 
     /**
      * Drop relation descriptors / columns that do not exist in the DB so a
      * malformed or hostile descriptor cannot inject unknown identifiers.
-     * Plain string entries pass through unchanged.
+     * Plain string entries pass through unchanged. Nested `relations` are
+     * checked the same way, each against its parent table.
      *
      * @param array<int,string|array<string,mixed>> $fields
+     * @param callable(string, string): bool $columnExists
      * @return array<int,string|array<string,mixed>>
      */
-    private function validateSearchDescriptors(array $fields): array
+    public static function validSearchDescriptors(array $fields, string $table, callable $columnExists): array
     {
         $out = [];
 
@@ -383,26 +461,67 @@ final class ResourceTableRenderer
                 continue;
             }
 
-            if (!is_array($field) || empty($field['table'])) {
-                continue;
+            $relation = self::validRelation($field, $table, $columnExists);
+
+            if ($relation !== null) {
+                $out[] = $relation;
             }
-
-            $table = (string) $field['table'];
-
-            $validCols = array_values(array_filter(
-                (array) ($field['columns'] ?? []),
-                static fn ($col) => is_string($col) && $col !== '' && sqlColumnExists($table, $col)
-            ));
-
-            if ($validCols === [] || !sqlColumnExists($table, (string) ($field['foreign_key'] ?? 'id'))) {
-                continue;
-            }
-
-            $field['columns'] = $validCols;
-            $out[] = $field;
         }
 
         return $out;
+    }
+
+    /**
+     * One relation descriptor, cleaned: `local_key` must exist in the parent
+     * table, `foreign_key` (default `id`) and the columns in the related
+     * table. Null when nothing searchable is left.
+     *
+     * @param callable(string, string): bool $columnExists
+     * @return array<string,mixed>|null
+     */
+    private static function validRelation(mixed $field, string $parentTable, callable $columnExists): ?array
+    {
+        if (!is_array($field) || !is_string($field['table'] ?? null) || $field['table'] === '') {
+            return null;
+        }
+
+        $table = $field['table'];
+        $localKey = is_string($field['local_key'] ?? null) ? $field['local_key'] : '';
+        $foreignKey = is_string($field['foreign_key'] ?? null) && $field['foreign_key'] !== '' ? $field['foreign_key'] : 'id';
+
+        if ($localKey === '' || !$columnExists($parentTable, $localKey) || !$columnExists($table, $foreignKey)) {
+            return null;
+        }
+
+        $columns = array_values(array_filter(
+            (array) ($field['columns'] ?? []),
+            static fn ($column) => is_string($column) && $column !== '' && $columnExists($table, $column)
+        ));
+
+        $relations = [];
+
+        foreach ((array) ($field['relations'] ?? []) as $child) {
+            $child = self::validRelation($child, $table, $columnExists);
+
+            if ($child !== null) {
+                $relations[] = $child;
+            }
+        }
+
+        if ($columns === [] && $relations === []) {
+            return null;
+        }
+
+        $field['foreign_key'] = $foreignKey;
+        $field['columns'] = $columns;
+
+        if ($relations !== []) {
+            $field['relations'] = $relations;
+        } else {
+            unset($field['relations']);
+        }
+
+        return $field;
     }
 
     /**
@@ -491,17 +610,30 @@ final class ResourceTableRenderer
 
     private function resolvedActions(array $buttonColumn): array
     {
-        $actions = (array) ($buttonColumn['actions'] ?? []);
-        $resolved = [];
+        return self::resolveActions(
+            (array) ($buttonColumn['actions'] ?? []),
+            $this->resourceClass::isReadonly()
+        );
+    }
 
-        $readonly = $this->resourceClass::isReadonly();
+    /**
+     * Voci del menu azioni della riga pronte per `Table::addColumn()`:
+     * `edit` diventa `modify`, le voci ad array passano intere, in sola
+     * lettura `delete` e `duplicate` spariscono.
+     *
+     * @param array<string, mixed> $actions
+     * @return array<string, true|array<string, mixed>>
+     */
+    public static function resolveActions(array $actions, bool $readonly): array
+    {
+        $resolved = [];
 
         foreach ($actions as $action => $enabled) {
             if (!$enabled || ($readonly && in_array($action, ['delete', 'duplicate'], true))) {
                 continue;
             }
 
-            $resolved[$action === 'edit' ? 'modify' : $action] = true;
+            $resolved[$action === 'edit' ? 'modify' : $action] = is_array($enabled) ? $enabled : true;
         }
 
         return $resolved;

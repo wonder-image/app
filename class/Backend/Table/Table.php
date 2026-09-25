@@ -235,9 +235,10 @@
 
         }
         /**
-         * Lista SELECT esplicita (per tabelle aggregate). Va usata con
-         * groupBy(). Le colonne mostrate (addColumn) referenziano gli alias
-         * prodotti qui. Frammento SQL generato server-side e firmato.
+         * Lista SELECT esplicita: per le tabelle aggregate, con groupBy(), o
+         * per aggiungere colonne calcolate (`tabella`.*, ... AS alias). Le
+         * colonne mostrate (addColumn) referenziano gli alias prodotti qui.
+         * Frammento SQL generato server-side e firmato.
          */
         public function select( array | string $select ): self
         {
@@ -306,9 +307,10 @@
              * @param [type] $input = select || checkbox || radio || tree
              * @param bool $search
              * @param [type] $columnType = null || multiple
+             * @param \Closure|null $where = condizione propria (filterQuery), riceve i valori ammessi
              * @return void
              */
-            public function addFilter( $label, $column, $array, $input = 'select', bool $search = false, $columnType = null, $value = null ): self 
+            public function addFilter( $label, $column, $array, $input = 'select', bool $search = false, $columnType = null, $value = null, ?\Closure $where = null ): self 
             {
 
                 array_push(
@@ -319,7 +321,8 @@
                         'array' => $array,
                         'input' => $input,
                         'search' => $search,
-                        'value' => $value
+                        'value' => $value,
+                        'where' => $where
                     ]
                 );
 

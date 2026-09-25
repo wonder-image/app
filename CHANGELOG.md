@@ -51,6 +51,23 @@
   e la riga salvata in `item`. Sul tema Wonder non si disegna.
 - Il detail di `wi:quick-create:created` porta anche `trigger`, l'elemento
   che ha aperto il modal.
+- Voci personalizzate nel menu azioni della riga delle Resource:
+  `TableColumn::actions()` e `action()` accettano un array (`label`, `href`
+  con i segnaposto `{colonna}`, `target`, `filter.row`) e lo passano intero a
+  `Field::actionButton()`, come le Table dirette. `label` può essere un array
+  indicizzato dal valore della colonna con il nome della voce.
+- `TableLayoutSchema::select(string $sql)`: colonne calcolate con alias nella
+  lista di una Resource (`tabella`.* resta davanti). Gli alias si mostrano e si
+  ordinano; restano fuori da ricerca, filtri e conteggi.
+- `TableLayoutSchema::filterQuery($label, $key, $options, Closure $where)`:
+  filtro con una condizione propria. La closure riceve solo i valori presenti
+  fra le opzioni (figli degli alberi compresi) e restituisce l'SQL, che
+  viaggia firmato come gli altri filtri. `Table::addFilter()` ha l'ottavo
+  argomento `?Closure $where`.
+- Ricerca annidata: un descrittore di relazione in `searchFields()` può
+  contenerne altri in `relations`, così la ricerca scende di più tabelle
+  (movimento → versione → articolo). Basta anche un descrittore con sole
+  `relations`.
 
 ### Changed
 - Numeri, prezzi e percentuali escono nel formato italiano senza
@@ -71,6 +88,10 @@
   `Wonder\Backend\Support\QuickCreateModal`, condivisi fra il "+" dei campi
   (`Themes\Bootstrap\Form\Field`) e `QuickCreateButton`; lo script si
   stampa una volta per pagina.
+- `FilterCustom`: il valore predefinito `0` filtra come la stringa `'0'`;
+  `true`, e un array su un filtro a scelta singola, non filtrano più (prima
+  `= '1'` e `= 'Array'` con un warning). I filtri `multiple` con un valore solo
+  escono fra parentesi come quelli con più valori.
 
 ### Fixed
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
@@ -81,3 +102,18 @@
   pagina anche con le lib che non lo fanno dentro `setInput()`.
 - Repeater: il comando di gruppo legge i numeri scritti all'italiana con un
   solo separatore ripetuto ("1.234.567" è 1234567, non 1,234).
+- Menu azioni della riga: al primo disegno (pre-render) usciva vuoto, perché
+  le azioni arrivano come `true` e `true != 'false'` in PHP 8 è falso.
+- Menu azioni della riga, voci ad array: `href` e `target` escono escapati;
+  un'etichetta senza il valore della riga o un `filter.row` su una colonna
+  assente nascondono la voce senza warning; `delete` ad array rispetta il
+  permesso di eliminare la riga.
+- `FilterCustom`: valori escapati nell'SQL (prima un GET costruito apposta
+  entrava così com'era), `%` e `_` escapati nelle LIKE, `OR` dei filtri
+  `multiple` fra parentesi, nome della colonna fra backtick escapati. Una
+  checkbox o un albero senza spunte non producono più SQL rotto e non alzano
+  il contatore dei filtri. Gli input nascosti (`redirect`, `id`, date) escono
+  escapati: prima `?redirect=` iniettava HTML nella pagina.
+- Ricerca nelle tabelle collegate: il `local_key` si controlla sulla tabella
+  del padre, e un `foreign_key` mancante vale `id` anche nella query (prima la
+  validazione lo dava per `id` ma `SSP` scartava il descrittore).

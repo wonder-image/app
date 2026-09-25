@@ -256,7 +256,7 @@
                 
                 foreach ($actionArray as $ACTION => $link) {
 
-                    if ($link && !is_array($link) && $link != 'false') {
+                    if ($link && !is_array($link) && $link !== 'false') {
 
                         if ($ACTION == 'view') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
                         elseif ($ACTION == 'modify') { $BUTTONS .= "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
@@ -307,13 +307,13 @@
                         $key = isset($link['key']) ? $link['key'] : [];
                         $request = isset($link['request']) ? $link['request'] : '';
                         $action = isset($link['action']) ? $link['action'] : '';
-                        $target = isset($link['target']) ? 'target="'.$link['target'].'"' : '';
+                        $target = isset($link['target']) ? 'target="'.htmlspecialchars((string) $link['target'], ENT_QUOTES, 'UTF-8').'"' : '';
                         $filter = isset($link['filter']) ? $link['filter'] : [];
 
 
                         if ($ACTION == 'view') { $BUTTON = "<a class='dropdown-item' href='{$this->customLink->view}' role='button'>Visualizza</a>"; }
                         else if ($ACTION == 'modify') { $BUTTON = "<a class='dropdown-item' href='{$this->customLink->modify}' role='button'>Modifica</a>"; }
-                        else if ($ACTION == 'delete') {  $BUTTON = $this->deleteRow()->button; } 
+                        else if ($ACTION == 'delete') { $BUTTON = $this->deleteButton ? $this->deleteRow()->button : ''; }
                         else {
 
                             if (!empty($href)) {
@@ -344,7 +344,7 @@
     
                                 }
 
-                                $action = empty($href) ? '' : 'href="'.$href.'"';
+                                $action = empty($href) ? '' : 'href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'"';
 
                             } else if (!empty($request)) {
 
@@ -359,7 +359,8 @@
                             }
 
                             if (is_array($label)) {
-                                $label = isset($label[$this->row[$ACTION]]) ? $label[$this->row[$ACTION]] : '';
+                                $labelKey = $this->row[$ACTION] ?? null;
+                                $label = $labelKey !== null && isset($label[$labelKey]) ? $label[$labelKey] : '';
                             }
     
                             $BUTTON = empty($label) || empty($action) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
@@ -382,10 +383,14 @@
 
                             # Controlla che il valore sia quello specificato
                                 if (!empty($row)) {
-                                    foreach ($row as $key => $value) {
-                                        if ((!is_array($value) && $this->row[$key] != $value) || (is_array($value) && in_array($this->row[$key], $value) == false)) { 
-                                            $public = false; 
-                                            break; 
+                                    foreach ($row as $column => $value) {
+                                        if (
+                                            !array_key_exists($column, $this->row)
+                                            || (!is_array($value) && $this->row[$column] != $value)
+                                            || (is_array($value) && !in_array($this->row[$column], $value))
+                                        ) {
+                                            $public = false;
+                                            break;
                                         }
                                     }
                                 }

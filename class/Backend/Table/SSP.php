@@ -208,7 +208,8 @@
          *
          * @param string $searchValue Already-sanitized search string
          * @param array  $fields      Mixed list: string = main-table column;
-         *   array = relation descriptor with keys table, local_key, foreign_key, columns[]
+         *   array = relation descriptor with keys table, local_key, foreign_key,
+         *   columns[] and/or relations[] (nested descriptors, same shape)
          * @return string WHERE body, or '' when nothing is searchable
          */
         static function buildSearchWhere ( string $searchValue, array $fields )
@@ -224,11 +225,7 @@
             foreach ( $fields as $field ) {
                 if ( is_string($field) && $field !== '' ) {
                     $mainCols[] = $field;
-                } elseif ( is_array($field)
-                    && !empty($field['table'])
-                    && !empty($field['local_key'])
-                    && !empty($field['foreign_key'])
-                    && !empty($field['columns']) && is_array($field['columns']) ) {
+                } elseif ( self::isRelation($field) ) {
                     $relations[] = $field;
                 }
             }
@@ -254,11 +251,7 @@
                 }
 
                 foreach ( $relations as $rel ) {
-                    $concat    = self::concatIdentifiers($rel['columns']);
-                    $localKey  = self::escapeIdentifier((string) $rel['local_key']);
-                    $foreignKey = self::escapeIdentifier((string) $rel['foreign_key']);
-                    $relTable  = self::escapeIdentifier((string) $rel['table']);
-                    $ors[]     = "(".$localKey." IN (SELECT ".$foreignKey." FROM ".$relTable." WHERE ".$concat." LIKE ".$like."))";
+                    $ors[] = self::relationCondition($rel, $like);
                 }
 
                 $perWord[] = count($ors) === 1 ? $ors[0] : '('.implode(' OR ', $ors).')';
@@ -266,6 +259,65 @@
 
             return implode(' AND ', $perWord);
 
+        }
+
+        /**
+         * A relation descriptor is usable when it names the table and both
+         * keys, and has columns to search or at least one usable nested
+         * relation.
+         */
+        static function isRelation ( $field )
+        {
+            if ( !is_array($field)
+                || empty($field['table'])
+                || empty($field['local_key'])
+                || empty($field['foreign_key']) ) {
+                return false;
+            }
+
+            if ( !empty($field['columns']) && is_array($field['columns']) ) {
+                return true;
+            }
+
+            foreach ( (array) ($field['relations'] ?? []) as $child ) {
+                if ( self::isRelation($child) ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * `local_key IN (SELECT foreign_key FROM table WHERE ...)` for one
+         * relation: its own columns and its nested relations, OR-ed, so the
+         * search can walk movement -> version -> product. Every identifier is
+         * escaped at every level.
+         */
+        static function relationCondition ( array $relation, string $like )
+        {
+            $conditions = [];
+
+            if ( !empty($relation['columns']) && is_array($relation['columns']) ) {
+                $conditions[] = self::concatIdentifiers($relation['columns'])." LIKE ".$like;
+            }
+
+            foreach ( (array) ($relation['relations'] ?? []) as $child ) {
+                if ( self::isRelation($child) ) {
+                    $conditions[] = self::relationCondition($child, $like);
+                }
+            }
+
+            if ( $conditions === [] ) {
+                return '';
+            }
+
+            $where = count($conditions) === 1 ? $conditions[0] : '('.implode(' OR ', $conditions).')';
+
+            return "(".self::escapeIdentifier((string) $relation['local_key'])
+                ." IN (SELECT ".self::escapeIdentifier((string) $relation['foreign_key'])
+                ." FROM ".self::escapeIdentifier((string) $relation['table'])
+                ." WHERE ".$where."))";
         }
 
 

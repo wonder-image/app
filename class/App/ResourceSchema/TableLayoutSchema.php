@@ -2,6 +2,7 @@
 
 namespace Wonder\App\ResourceSchema;
 
+use Closure;
 use RuntimeException;
 use Wonder\App\Resource;
 use Wonder\Elements\Components\Button;
@@ -39,6 +40,7 @@ final class TableLayoutSchema
             ],
             'search_fields' => [],
             'custom_filters' => [],
+            'select' => '',
             // Bottone "Esporta" nel header della tabella. `formats` mappa
             // codice → label visibile (es. ['csv' => 'CSV', 'xlsx' =>
             // 'Excel']). `columns` può contenere stringhe (nome colonna
@@ -184,6 +186,22 @@ final class TableLayoutSchema
             ->filterLimit($limit);
     }
 
+    /**
+     * Colonne calcolate da aggiungere alla lista, ognuna con il suo alias:
+     * `(SELECT SUM(s.qty) FROM gst_stock s WHERE s.product_id = gst_product.id) AS qty`.
+     * Il renderer mette davanti `tabella`.*, quindi le colonne del record
+     * restano. Gli alias si mostrano e si ordinano, ma non entrano nella
+     * ricerca, nei filtri e nei conteggi. SQL scritto dallo sviluppatore, mai
+     * da input dell'utente: viaggia firmato come `query`. Una seconda
+     * chiamata sostituisce la prima.
+     */
+    public function select(string $sql): self
+    {
+        $this->schema['select'] = trim($sql);
+
+        return $this;
+    }
+
     public function searchFields(array $fields): self
     {
         $clean = [];
@@ -194,7 +212,7 @@ final class TableLayoutSchema
                 if ($trimmed !== '') {
                     $clean[] = $trimmed;
                 }
-            } elseif (is_array($field) && !empty($field['table']) && !empty($field['columns'])) {
+            } elseif (is_array($field) && !empty($field['table']) && (!empty($field['columns']) || !empty($field['relations']))) {
                 $clean[] = $field;
             }
         }
@@ -229,6 +247,38 @@ final class TableLayoutSchema
     public function filterRadio(string $label, string $column, array $options, bool $search = false, mixed $value = null): self
     {
         return $this->filterCustom($label, $column, $options, 'radio', $search, null, $value);
+    }
+
+    /**
+     * Filtro con una condizione propria: `$where` riceve i valori scelti,
+     * solo quelli presenti fra le opzioni (figli compresi), e restituisce il
+     * frammento SQL. `$key` dà il nome al parametro GET, non è una colonna.
+     * La closure gira al render e il frammento viaggia firmato come gli
+     * altri filtri.
+     *
+     * @param Closure(array<int, string>): string $where
+     */
+    public function filterQuery(
+        string $label,
+        string $key,
+        array $options,
+        Closure $where,
+        string $input = 'select',
+        bool $search = false,
+        mixed $value = null
+    ): self {
+        $this->schema['custom_filters'][] = [
+            'label' => trim($label),
+            'column' => trim($key),
+            'array' => $options,
+            'input' => trim($input) !== '' ? trim($input) : 'select',
+            'search' => $search,
+            'column_type' => null,
+            'value' => $value,
+            'where' => $where,
+        ];
+
+        return $this;
     }
 
     public function cleanHeader(): self
