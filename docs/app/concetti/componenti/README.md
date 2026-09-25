@@ -30,6 +30,7 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `MetricCard` | `Elements/Components/MetricCard.php` | KPI con unita e confronto opzionale |
 | `Container` | `Elements/Components/Container.php` | contenitore generico |
 | `Accordion` | `Elements/Components/Accordion.php` | sezioni collassabili |
+| `Modal` | `Elements/Components/Modal.php` | finestra Bootstrap con campi e bottoni (solo backend) |
 | `Alert` | `Elements/Components/Alert.php` | messaggio/avviso |
 | `Text` | `Elements/Components/Text.php` | testo |
 | `RichText` | `Elements/Components/RichText.php` | testo formattato |
@@ -246,6 +247,68 @@ Accordion::make('Serve aiuto?')
 `flush()` resta una variante del renderer Bootstrap. Nel tema Wonder non
 serve CSS o JavaScript aggiuntivo: il toggle e lo scambio icona sono già
 forniti da `wonder-image/lib`; il sito deve includere Bootstrap Icons.
+
+## Modal
+
+`Modal` è una finestra Bootstrap che si scrive nel layout di una Resource come
+un `Accordion`: un titolo, un corpo a griglia con i suoi campi e i bottoni in
+fondo. La apre un bottone fra i campi con `opensModal()` (vedi
+[FormField → button()](../form/form-field.md#testo)), anche dalle righe di un
+repeater.
+
+```php
+use Wonder\App\ResourceSchema\FormField;
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Modal;
+
+Modal::make('Costo del fornitore')
+    ->id('wi-cost-modal')
+    ->size('lg')
+    ->columns(12)
+    ->components([
+        FormField::key('wi_cost_code')->text()->label('Codice fornitore')->columnSpan(6),
+        FormField::key('wi_cost_price')->price()->label('Costo')->columnSpan(6),
+    ])
+    ->footer([
+        Button::make('Annulla')->variant('secondary')->attr('data-bs-dismiss', 'modal'),
+        Button::make('Salva')->attr('data-wi-cost-save', 'true'),
+    ]);
+```
+
+| Metodo | Effetto |
+|---|---|
+| `make(string $title)` | titolo nell'intestazione (`h5.modal-title[data-wi-modal-title]`, escapato) |
+| `id(string)` | l'id della finestra, quello di `opensModal()`; senza, `wi-modal-<casuale>` |
+| `size('sm'\|'lg'\|'xl')` | larghezza del dialogo; altri valori lanciano `InvalidArgumentException` |
+| `scrollable()` | il corpo scorre, intestazione e bottoni restano fermi |
+| `columns()` / `gap()` | la griglia del corpo (`modal-body row g-3`), come su una `Card` |
+| `components(array)` | i campi e i componenti del corpo |
+| `footer(array)` | i bottoni in fondo, in fila (`Components\Button`, senza colonna) |
+
+Il markup è `.modal.fade[tabindex=-1][data-wi-modal-detach]` →
+`.modal-dialog.modal-dialog-centered` → `.modal-content` con
+`.modal-header`, `.modal-body` e `.modal-footer`.
+
+Tre cose da sapere:
+
+- **Niente `<form>` dentro.** La finestra nasce nel form della Resource e un
+  form annidato il browser lo butta via. I bottoni del fondo sono
+  `type="button"`: a leggere e scrivere i campi è uno script della pagina,
+  che trova la riga che ha aperto la finestra in `event.relatedTarget` di
+  `show.bs.modal`.
+- **Esce dal form.** Uno script, stampato una volta per pagina, sposta ogni
+  `.modal[data-wi-modal-detach]` in fondo al `body` al `DOMContentLoaded`:
+  i campi della finestra non partono con il record. È lo stesso passo della
+  [creazione rapida](../form/quick-create.md).
+- **Nessuna colonna attorno.** `ResourceFormLayoutRenderer` rende il corpo con
+  le colonne della finestra (un campo con `columnSpan(6)` su `columns(12)`
+  diventa `col-6`) ma non mette la finestra in una colonna della scheda. Anche
+  `renderLayout()` la tratta così. I campi del corpo ricevono valori ed errori
+  come gli altri, perché `ResourcePagePresenter` scende nei `components`.
+
+`Modal` vive solo nel backend Bootstrap: sul tema Wonder il renderer
+restituisce una stringa vuota, così una scheda condivisa fra i due temi resta
+in piedi.
 
 ## Esempio: Alert
 

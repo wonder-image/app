@@ -188,6 +188,28 @@ griglia in cui ogni riga si apre da sola è la griglia lunga da cui si
 scappava. Le larghezze dentro il blocco si contano su dodici, senza togliere
 niente per i bottoni.
 
+Fra le colonne avanzate può stare anche un bottone: `button()` non ha `name`,
+quindi non posta niente, e il value della colonna diventa la didascalia
+accanto. Con `opensModal()` apre una [finestra](../componenti/README.md#modal)
+dichiarata una volta sola nel layout; la riga che l'ha aperta la trova lo
+script della pagina in `event.relatedTarget` di `show.bs.modal`.
+
+```php
+FormField::key('products')
+    ->repeater([
+        RepeaterColumn::key('option')->text()->columnSpan(3),
+        RepeaterColumn::key('sku')->text()->columnSpan(4),
+        RepeaterColumn::key('cost_summary')->button('Costo')
+            ->emptyCaption('Nessun fornitore')
+            ->opensModal('wi-cost-modal')
+            ->columnSpan(4),
+    ])
+    ->repeaterAdvanced('sku', 'cost_summary');
+```
+
+Ogni riga ha il suo bottone e la sua didascalia, anche la riga modello che il
+bottone «Aggiungi» clona.
+
 ## Righe raggruppate
 
 Con molte righe la griglia diventa un muro. Dichiarando una o più colonne
@@ -314,6 +336,9 @@ FormField::key('products')
   quando la riga corrisponde a qualcosa che ha già un nome altrove. Viene
   ripulita di tutto ciò che non è lettera, cifra, trattino o underscore, e una
   chiave già presente non crea una seconda riga (nel posting si fonderebbero).
+  La chiave va al posto di `__ROW_KEY__` nei `name`, negli `id` e nei `for`
+  delle etichette: le pillole hanno l'id fatto dal `name`, e con l'id del
+  template in due righe il clic sulla seconda spunterebbe la prima.
 - Il contenitore esterno porta `data-wi-repeater="<nome del campo>"`: è la
   maniglia per trovarlo senza dipendere dall'id, che cambia a ogni render.
 
@@ -358,6 +383,10 @@ payload di una riga prima del salvataggio:
 - **`repeaterAdvanced()` che non nasconde niente** → il nome passato non è
   quello di una colonna del repeater: la chiave è la stessa di
   `RepeaterColumn::key(...)`.
+- **Una radio che si spunta in una riga sola** → manca `->nested()`: i campi
+  si chiamano `colonna[]`, e le radio di tutte le righe fanno un gruppo solo,
+  con gli stessi id. Radio e pillole in un repeater vogliono le righe
+  annidate, `campo[chiave][colonna]`.
 
 ## Checklist
 

@@ -35,10 +35,17 @@ class CheckGroup extends Field
             // Il "+" della creazione rapida è l'ultima pillola della fila.
             $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes)
                 .$this->inlineQuickCreateButton();
+            // Senza etichetta niente titolo: un `<h6>` vuoto lascerebbe il
+            // suo margine sopra una pillola sola, come il «Preferito» di
+            // una riga. Si guarda l'etichetta dello schema, non quella con
+            // l'asterisco dell'obbligatorio: da solo non è un titolo.
+            $heading = trim((string) ($this->schema['label'] ?? '')) === ''
+                ? ''
+                : "<h6 class=\"small text-body-secondary mb-1\">{$label}</h6>";
 
             return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-{$type} wi-check-pills {$required}">
-    <h6 class="small text-body-secondary mb-1">{$label}</h6>
+    {$heading}
     {$inputHidden}
     <div class="d-flex flex-wrap gap-1">
         {$pillsHtml}

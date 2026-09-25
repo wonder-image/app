@@ -603,6 +603,15 @@ HTML;
         fragment.querySelectorAll('[name]').forEach((input) => {
             input.name = input.name.replaceAll('__ROW_KEY__', rowKey);
         });
+        // Anche gli `id` e i `for`: le pillole hanno l'id fatto dal `name`,
+        // e l'etichetta è l'unica cosa da cliccare. Con lo stesso id in due
+        // righe aggiunte, il clic sulla seconda spunterebbe la prima.
+        fragment.querySelectorAll('[id*="__ROW_KEY__"]').forEach((element) => {
+            element.id = element.id.replaceAll('__ROW_KEY__', rowKey);
+        });
+        fragment.querySelectorAll('label[for*="__ROW_KEY__"]').forEach((label) => {
+            label.htmlFor = label.htmlFor.replaceAll('__ROW_KEY__', rowKey);
+        });
         fragment.querySelectorAll('[data-wi-row-key]').forEach((element) => {
             if (element.getAttribute('data-wi-row-key') === '__ROW_KEY__') {
                 element.setAttribute('data-wi-row-key', rowKey);

@@ -66,4 +66,33 @@ check('il raggruppamento si avvia anche senza la tendina', function () use ($scr
         && str_contains($js, "if (!container || (!select && fixedColumn === '')) return;");
 });
 
+// Le pillole hanno l'id fatto dal `name`: nel template porta `__ROW_KEY__`.
+// L'input è nascosto e l'etichetta è l'unica cosa da cliccare: se l'id
+// restasse quello del template, il clic sulla seconda riga aggiunta
+// spunterebbe la prima.
+check('la chiave della riga va anche negli id e nei for, come nei name', function () use ($script) {
+    $field = new class {
+        public array $schema = [];
+    };
+
+    $field->schema = [
+        'id' => 'products',
+        'name' => 'products',
+        'label' => 'Quello che si vende',
+        'value' => [],
+        'columns' => [RepeaterColumn::key('preferred')->radio(['1' => 'Preferito'])->pills()->label('')->columnSpan(2)],
+        'context' => ['nested' => true],
+    ];
+
+    $html = (new Repeater)->render($field);
+    $js = $script();
+
+    return str_contains($html, 'id="radio-products[__ROW_KEY__][preferred]-1"')
+        && str_contains($html, 'for="radio-products[__ROW_KEY__][preferred]-1"')
+        && str_contains($js, "fragment.querySelectorAll('[id*=\"__ROW_KEY__\"]')")
+        && str_contains($js, "element.id = element.id.replaceAll('__ROW_KEY__', rowKey);")
+        && str_contains($js, "fragment.querySelectorAll('label[for*=\"__ROW_KEY__\"]')")
+        && str_contains($js, "label.htmlFor = label.htmlFor.replaceAll('__ROW_KEY__', rowKey);");
+});
+
 summary();
