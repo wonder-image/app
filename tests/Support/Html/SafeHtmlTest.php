@@ -557,6 +557,25 @@ check('< sciolto davanti a </body>: resta testo, come in HTML5', fn () => same(
     '&lt;p&gt;b'
 ));
 
+# Togliendo una chiusura, il testo che aveva attorno può comporne un'altra:
+# quella resta come testo e non chiude il body.
+
+foreach ([
+    'nel mezzo del nome' => '</bo</body>dy>',
+    'subito dopo la barra' => '</</html>body>',
+] as $label => $close) {
+    check("chiusura tolta {$label} di un'altra: quella resta testo, il paragrafo che segue resta", fn () => same(
+        SafeHtml::clean("<p>a</p>{$close}<p>b</p>"),
+        '<p>a</p>&lt;/body&gt;<p>b</p>'
+    ));
+}
+
+check('chiusure tolte una dentro l\'altra: il paragrafo che segue resta', function () {
+    $out = SafeHtml::clean('<p>a</p></b</bo</body>dy>ody><p>b</p>');
+
+    return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
+});
+
 # Senza un tetto, una chiusura lunghissima esaurisce pcre.backtrack_limit e la
 # regex che la toglie non dà risultato.
 

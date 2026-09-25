@@ -107,6 +107,15 @@ final class SafeHtml
         // risultato è lo stesso con tutte e due.
         $html = preg_replace(self::BODY_CLOSE_PATTERN, '', $html) ?? $html;
 
+        // Togliendo una chiusura, il testo che aveva attorno può comporne
+        // un'altra (`</bo</body>dy>`). Quella resta come testo, come i `<`
+        // sciolti: qui non si toglie niente, e così non se ne compongono altre.
+        $html = preg_replace_callback(
+            self::BODY_CLOSE_PATTERN,
+            static fn (array $match): string => '&lt;'.substr($match[0], 1),
+            $html
+        ) ?? $html;
+
         return mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0x1FFFFF], 'UTF-8');
     }
 
