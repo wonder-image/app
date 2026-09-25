@@ -81,3 +81,13 @@
   pagina anche con le lib che non lo fanno dentro `setInput()`.
 - Repeater: il comando di gruppo legge i numeri scritti all'italiana con un
   solo separatore ripetuto ("1.234.567" è 1234567, non 1,234).
+- Filtro per data del backend (`FilterDate`): chiuse una SQL injection e una
+  XSS dai parametri GET. Le date entrano nella query solo se sono gg/mm/aaaa
+  valide (con un solo estremo valido la condizione diventa `>=` o `<=`, senza
+  nessuno restano gli ultimi N giorni), mese e anno solo come interi, la
+  colonna passa da `Query::escapeIdentifier()` e campi data, titolo e link dei
+  mesi sono escapati. La firma `ConfigCodec` di `Table::buildConfig()` non
+  proteggeva: firmava l'SQL già iniettato. I link dei mesi usano il mese
+  numerico (`?month=9&year=2026`), quindi i vecchi link con il nome inglese
+  (`?month=September`) mostrano il periodo predefinito; i filtri personalizzati
+  a più valori restano nei link invece di diventare "Array".
