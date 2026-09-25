@@ -90,9 +90,12 @@ final class SafeHtml
     private static function parse(string $html): ?DOMElement
     {
         $document = new DOMDocument('1.0', 'UTF-8');
+
+        // Niente `</body></html>` in fondo: a fine input libxml chiude da sé, e
+        // un attributo o un `xmp`, `textarea`, `title`, `plaintext` (da libxml
+        // 2.14) lasciati aperti se lo mangerebbero come testo.
         $wrapped = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>'
-            .$html
-            .'</body></html>';
+            .$html;
 
         $previous = libxml_use_internal_errors(true);
 

@@ -34,6 +34,18 @@ function same(string $got, string $expected): bool
     return false;
 }
 
+/** Il documento in cui SafeHtml avvolge l'input non deve finire nel risultato. */
+function noWrapper(string $html): bool
+{
+    if (preg_match('/body|html/i', $html) !== 1) {
+        return true;
+    }
+
+    echo "    pezzi del documento nel risultato: {$html}\n";
+
+    return false;
+}
+
 # ---------------------------------------------------------------------------
 # Il testo ammesso passa com'è
 # ---------------------------------------------------------------------------
@@ -349,6 +361,48 @@ check('annidamento normale (100 livelli) tiene il testo', fn () => same(
 check('annidamento assurdo (oltre il limite di libxml): esce vuoto, senza errori', fn () => same(
     SafeHtml::clean(str_repeat('<span>', 5000) . '<script>alert(1)</script>x' . str_repeat('</span>', 5000)),
     ''
+));
+
+# ---------------------------------------------------------------------------
+# Tag e attributi lasciati aperti a fine testo
+# ---------------------------------------------------------------------------
+
+# Da libxml 2.14 il testo di xmp, textarea e title finisce solo alla loro
+# chiusura, quello di plaintext mai: lasciati aperti arrivano a fine input, e
+# la chiusura del documento in cui SafeHtml avvolge l'input non deve diventare
+# testo. Il risultato deve essere lo stesso con la 2.9.
+
+foreach (['xmp', 'textarea', 'title', 'plaintext'] as $tag) {
+    check("<{$tag}> non chiuso: resta il testo, niente pezzi del documento", fn () => same(
+        SafeHtml::clean("<p>a</p><{$tag}>b"),
+        '<p>a</p>b'
+    ));
+
+    check("<{$tag}> vuoto e non chiuso → ''", fn () => same(SafeHtml::clean("<{$tag}>"), ''));
+}
+
+check('xmp, textarea e title chiusi: resta il testo e quello che segue', fn () => same(
+    SafeHtml::clean('<p>a</p><xmp>b</xmp><textarea>c &amp; d</textarea><title>e</title><p>f</p>'),
+    '<p>a</p>bc &amp; de<p>f</p>'
+));
+
+# Un tag tagliato a metà ogni libxml lo chiude a modo suo (la 2.9 tiene il link
+# vuoto, la 2.15 lo toglie): conta che la chiusura del documento resti fuori.
+
+foreach ([
+    'tra virgolette' => '<p>a</p><a href="https://x.it',
+    'senza virgolette' => '<p>a</p><a href=https://x.it',
+] as $label => $input) {
+    check("href {$label} lasciato aperto: niente pezzi del documento", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return noWrapper($out) && str_starts_with($out, '<p>a</p>');
+    });
+}
+
+check('html e body scritti e chiusi dall\'utente: quello che segue resta', fn () => same(
+    SafeHtml::clean('<html><body><p>ok</p></body></html><p>dopo</p>'),
+    '<p>ok</p><p>dopo</p>'
 ));
 
 summary();

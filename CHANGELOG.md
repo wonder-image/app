@@ -122,3 +122,10 @@
   contenitore; dalla 2.14 è vuoto come in HTML5 e il testo restava. Ora
   `embed` si toglie come gli altri tag non ammessi e il testo resta con ogni
   libxml. Il tag e i suoi attributi non uscivano con nessuna versione.
+- SafeHtml: con libxml 2.14 e successive un `xmp`, `textarea`, `title` o
+  `plaintext` lasciato aperto si leggeva come testo fino a fine input,
+  compresa la chiusura del documento in cui SafeHtml avvolge l'input: il
+  risultato finiva con `&lt;/body&gt;&lt;/html&gt;`. Un href lasciato aperto
+  la metteva invece nel link (`<a href="https://x.it` con la 2.9, senza
+  virgolette con ogni versione). Ora quel documento resta aperto e lo chiude
+  libxml: la chiusura non finisce più nel risultato.
