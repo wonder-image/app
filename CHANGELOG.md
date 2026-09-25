@@ -117,3 +117,8 @@
 - Ricerca nelle tabelle collegate: il `local_key` si controlla sulla tabella
   del padre, e un `foreign_key` mancante vale `id` anche nella query (prima la
   validazione lo dava per `id` ma `SSP` scartava il descrittore).
+- SafeHtml: con libxml prima della 2.14 un `<embed>` si portava via il testo
+  che lo seguiva, a volte il resto del documento, perché libxml lo apre come
+  contenitore; dalla 2.14 è vuoto come in HTML5 e il testo restava. Ora
+  `embed` si toglie come gli altri tag non ammessi e il testo resta con ogni
+  libxml. Il tag e i suoi attributi non uscivano con nessuna versione.
