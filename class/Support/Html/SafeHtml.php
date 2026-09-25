@@ -37,9 +37,16 @@ final class SafeHtml
     /** Tag vuoti: si scrivono senza chiusura. */
     private const VOID = ['br'];
 
-    /** Tag tolti insieme a tutto il contenuto. */
+    /**
+     * Tag tolti insieme a tutto il contenuto.
+     *
+     * Niente `embed`: in HTML5 è vuoto e quello che lo segue non è suo. libxml
+     * prima della 2.14 lo apre invece come contenitore, e toglierlo con il
+     * contenuto si portava via il testo seguente, a volte il resto del
+     * documento. Tolto come gli altri tag, quel testo resta.
+     */
     private const DROPPED = [
-        'script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math',
+        'script', 'style', 'iframe', 'object', 'template', 'noscript', 'svg', 'math',
         'applet', 'frame', 'frameset', 'noembed', 'noframes',
     ];
 

@@ -135,8 +135,9 @@ whitelist:
   controllo). Un link relativo, `javascript:`, `data:`, `vbscript:` o `//host`
   perde il tag e tiene il testo;
 - gli altri tag si tolgono tenendo il testo; `script`, `style`, `iframe`,
-  `object`, `embed`, `template`, `noscript`, `svg` e `math` spariscono con
-  tutto il contenuto; i commenti si tolgono;
+  `object`, `template`, `noscript`, `svg` e `math` spariscono con tutto il
+  contenuto; i commenti si tolgono. `embed` è vuoto come in HTML5: il tag
+  sparisce e il testo che lo segue resta;
 - l'UTF-8 resta com'è (`perché`, `€`, emoji), `&nbsp;` resta `&nbsp;`;
 - un editor vuoto (`<p><br></p>`, solo spazi o `&nbsp;`) diventa `''`.
 

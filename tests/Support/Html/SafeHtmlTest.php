@@ -191,13 +191,34 @@ check('tag non ammessi scartati tenendo il contenuto', fn () => same(
     'uno due tre quattro'
 ));
 
-foreach (['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math'] as $tag) {
+foreach (['script', 'style', 'iframe', 'object', 'template', 'noscript', 'svg', 'math'] as $tag) {
     check("<{$tag}> tolto con il contenuto", function () use ($tag) {
         $out = SafeHtml::clean("<p>prima</p><{$tag}>SEGRETO alert(1)</{$tag}><p>dopo</p>");
 
         return same($out, '<p>prima</p><p>dopo</p>') && inert($out);
     });
 }
+
+# In HTML5 <embed> è vuoto: quello che lo segue non è suo e il browser lo mostra.
+# libxml dalla 2.14 lo legge così, la 2.9 gli metteva dentro il testo seguente:
+# il risultato deve essere lo stesso con tutte e due.
+
+check('<embed> tolto, il testo che segue resta come nel browser', function () {
+    $out = SafeHtml::clean('<p>prima</p><embed>SEGRETO alert(1)</embed><p>dopo</p>');
+
+    return same($out, '<p>prima</p>SEGRETO alert(1)<p>dopo</p>') && inert($out);
+});
+
+check('<embed> senza chiusura non si porta via il resto del documento', fn () => same(
+    SafeHtml::clean('<p>Guarda <embed src="video.swf"> e poi leggi.</p><embed src="x"><p>due</p><p>tre</p>'),
+    '<p>Guarda  e poi leggi.</p><p>due</p><p>tre</p>'
+));
+
+check('<embed> con src javascript o data: sparisce, quello che segue passa pulito', function () {
+    $out = SafeHtml::clean('<embed src="javascript:alert(1)"><embed type="image/svg+xml" src="data:image/svg+xml;base64,PHN2Zz4="><embed><script>alert(2)</script><a href="javascript:alert(3)">x</a></embed>ok');
+
+    return same($out, 'xok') && inert($out);
+});
 
 check('<img onerror> tolto', function () {
     $out = SafeHtml::clean('<p>a<img src="x" onerror="alert(1)">b</p>');
