@@ -46,6 +46,18 @@ function noWrapper(string $html): bool
     return false;
 }
 
+/** I nomi e il segnaposto con cui SafeHtml fa leggere xmp e plaintext non devono finire nel risultato. */
+function noRename(string $html): bool
+{
+    if (preg_match('/listing|wi-plaintext|[0-9a-f]{16}/i', $html) !== 1) {
+        return true;
+    }
+
+    echo "    tracce della rinomina nel risultato: {$html}\n";
+
+    return false;
+}
+
 # ---------------------------------------------------------------------------
 # Il testo ammesso passa com'è
 # ---------------------------------------------------------------------------
@@ -584,5 +596,128 @@ check('chiusura con una coda enorme di attributi: niente errori, il testo attorn
 
     return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
 });
+
+# ---------------------------------------------------------------------------
+# Contenuto di xmp e plaintext
+# ---------------------------------------------------------------------------
+
+# libxml dalla 2.14 legge xmp come raw text e plaintext fino a fine input: le
+# entità in cui normalizeInput() scrive le lettere accentate e i < sciolti
+# restavano testo e si escapavano di nuovo (perch&amp;#233;), e i tag dentro
+# uscivano come testo. La 2.9 li legge come gli altri tag: il risultato deve
+# essere il suo con ogni libxml.
+
+foreach ([
+    'xmp' => ['<xmp>', '</xmp>'],
+    'plaintext' => ['<plaintext>', ''],
+] as $tag => [$open, $close]) {
+    foreach ([
+        'lettere accentate' => ['perché', 'perché'],
+        'un < sciolto' => ['3 < 5', '3 &lt; 5'],
+        'un\'entità' => ['a &amp; b', 'a &amp; b'],
+        'le entità di un tag' => ['&lt;b&gt;', '&lt;b&gt;'],
+        'entità con nome e numeriche' => ['&hellip; &euro; &#8364; &#x20AC;', '… € € €'],
+        'un tag ammesso' => ['<b>x</b>', '<b>x</b>'],
+    ] as $label => [$text, $expected]) {
+        check("{$label} dentro <{$tag}>: come negli altri tag", fn () => same(
+            SafeHtml::clean($open . $text . $close),
+            $expected
+        ));
+    }
+
+    check("script dentro <{$tag}>: sparisce, quello che segue resta", function () use ($open, $close) {
+        $out = SafeHtml::clean($open . '<script>alert(1)</script>' . $close . '<p>ok</p>');
+
+        return same($out, '<p>ok</p>') && inert($out);
+    });
+}
+
+check('commento dentro <xmp>: si toglie, il testo resta', fn () => same(
+    SafeHtml::clean('<xmp><!-- c -->d</xmp>'),
+    'd'
+));
+
+# Come con la 2.9, xmp chiude il paragrafo aperto e plaintext no, e plaintext
+# finisce alla sua chiusura.
+
+check('<xmp> dentro un paragrafo lo chiude', fn () => same(
+    SafeHtml::clean('<p>a<xmp>b</xmp>c</p>'),
+    '<p>a</p>bc'
+));
+
+check('<plaintext> dentro un paragrafo: il paragrafo continua', fn () => same(
+    SafeHtml::clean('<p>a<plaintext>b</plaintext>c</p>'),
+    '<p>abc</p>'
+));
+
+check('</plaintext> chiude plaintext: il paragrafo che segue resta', fn () => same(
+    SafeHtml::clean('<plaintext>a</plaintext><p>b</p>'),
+    'a<p>b</p>'
+));
+
+check('<plaintext> dentro <math>: sparisce con math, quello che segue resta', fn () => same(
+    SafeHtml::clean('<math><plaintext>a</plaintext></math><p>b</p>'),
+    '<p>b</p>'
+));
+
+check('<xmp> dentro <xmp>: resta tutto il testo', fn () => same(
+    SafeHtml::clean('<xmp>a<xmp>b</xmp>c</xmp>d'),
+    'abcd'
+));
+
+check('</b> dentro <xmp> chiude il grassetto', fn () => same(
+    SafeHtml::clean('<b><xmp>x</b>y</xmp>z'),
+    '<b>x</b>yz'
+));
+
+foreach ([
+    'maiuscolo' => '<XMP>perché</XMP>',
+    'con un attributo' => '<xmp class="x">perché</xmp>',
+    'chiuso con la barra' => '<xmp/>perché',
+    'composto togliendo un </body>' => '<xm</body>p>perché</xmp>',
+] as $label => $input) {
+    check("<xmp> {$label}: il testo resta", fn () => same(SafeHtml::clean($input), 'perché'));
+}
+
+check('</xmp> senza >: il testo resta', fn () => same(SafeHtml::clean('<xmp>a</xmp'), 'a'));
+
+check('</xmp> con un attributo: il testo che segue resta', fn () => same(
+    SafeHtml::clean('<xmp>a</xmp x="1">b'),
+    'ab'
+));
+
+check('chiusura di body composta dentro <xmp>: resta testo', fn () => same(
+    SafeHtml::clean('<xmp>a</bo</body>dy>b</xmp>'),
+    'a&lt;/body&gt;b'
+));
+
+# Nel valore di un attributo xmp e plaintext restano com'erano.
+
+foreach ([
+    'tra virgolette' => ['<a href="https://x.it/<xmp>">l</a>', '<a href="https://x.it/&lt;xmp&gt;">l</a>'],
+    'maiuscolo' => ['<a href="https://x.it/<XMP>">l</a>', '<a href="https://x.it/&lt;XMP&gt;">l</a>'],
+    'plaintext' => ['<a href="https://x.it/<plaintext>">l</a>', '<a href="https://x.it/&lt;plaintext&gt;">l</a>'],
+    'dopo un &amp; letterale' => ['<a href="https://x.it/?a=1&amp;amp;b=<xmp>">l</a>', '<a href="https://x.it/?a=1&amp;amp;b=&lt;xmp&gt;">l</a>'],
+    'prima di un\'entità e di una lettera accentata' => ['<a href="https://x.it/<xmp>&amp;x=perché">l</a>', '<a href="https://x.it/&lt;xmp&gt;&amp;x=perché">l</a>'],
+    'senza virgolette' => ['<a href=https://x.it/<xmp>l</a>', '<a href="https://x.it/&lt;xmp">l</a>'],
+] as $label => [$input, $expected]) {
+    check("tag nell'href {$label}: resta com'era", fn () => same(SafeHtml::clean($input), $expected));
+}
+
+# Dentro textarea e title libxml dalla 2.14 legge anche i tag come testo, la
+# 2.9 come tag: il risultato cambia con la versione, ma non deve restare
+# traccia del nome con cui SafeHtml fa leggere xmp e plaintext.
+
+foreach ([
+    'textarea' => '<textarea><xmp>perché</xmp></textarea>',
+    'title' => '<title><plaintext>perché</title><p>y</p>',
+    'una textarea lunga' => '<textarea>' . str_repeat('perché ', 800) . '<xmp>x</xmp></textarea>',
+] as $label => $input) {
+    check("xmp o plaintext dentro {$label}: il testo resta, senza tracce della rinomina", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return noRename($out) && str_contains($out, 'perché');
+    });
+}
 
 summary();

@@ -2,10 +2,12 @@
 
 namespace Wonder\Support\Html;
 
+use DOMAttr;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
+use DOMXPath;
 
 /**
  * Pulizia a whitelist dell'HTML scritto dall'editor dei testi formattati.
@@ -68,6 +70,20 @@ final class SafeHtml
      */
     private const BODY_CLOSE_PATTERN = '~</(?:body|html)(?![a-z0-9:_.-])(?:[^<>"\'-]++|"[^"<>]*+"|\'[^\'<>]*+\'|-(?!-!?>)){0,64}+>?~i';
 
+    /**
+     * Tag che libxml dalla 2.14 legge come testo semplice, con il nome che
+     * prendono per la lettura: `xmp` è raw text, `plaintext` arriva fino in
+     * fondo all'input. `listing` chiude gli stessi tag di `xmp` e si fa
+     * chiudere dagli stessi; `plaintext` non ne chiude nessuno, come il nome
+     * inventato che lo sostituisce. Le chiusure si accoppiano per nome: in
+     * `<xmp>a<listing>b</xmp>` la chiusura di `xmp` prende il `listing` vero,
+     * e quello che segue può chiudersi in un punto diverso che con la 2.9.
+     */
+    private const RAW_TEXT_RENAMES = ['xmp' => 'listing', 'plaintext' => 'wi-plaintext'];
+
+    /** Apertura o chiusura di `xmp` o `plaintext`: il nome finisce dove lo fa finire libxml. */
+    private const RAW_TEXT_PATTERN = '~<(/?)(xmp|plaintext)(?=[\t\n\f\r />])~i';
+
     public static function clean(string $html): string
     {
         if (trim($html) === '') {
@@ -102,9 +118,9 @@ final class SafeHtml
         // Un `</body>` o `</html>` senza la sua apertura chiuderebbe il body in
         // cui parse() avvolge l'input, e quello che segue resterebbe fuori. Come
         // in HTML5, dove quel contenuto torna nel body, le chiusure si tolgono
-        // tutte, anche dentro `xmp`, `textarea` o `script`. Lì libxml dalla
-        // 2.14 le legge come testo e la 2.9 come chiusure: togliendole, il
-        // risultato è lo stesso con tutte e due.
+        // tutte, anche dentro `textarea` o `script`. Lì libxml dalla 2.14 le
+        // legge come testo e la 2.9 come chiusure: togliendole, il risultato è
+        // lo stesso con tutte e due.
         $html = preg_replace(self::BODY_CLOSE_PATTERN, '', $html) ?? $html;
 
         // Togliendo una chiusura, il testo che aveva attorno può comporne
@@ -122,10 +138,20 @@ final class SafeHtml
     private static function parse(string $html): ?DOMElement
     {
         $document = new DOMDocument('1.0', 'UTF-8');
+        $marker = null;
+
+        // Solo dalla 2.14: la 2.9 legge già `xmp` e `plaintext` come gli altri
+        // tag, e in una chiusura non salta quello che segue il nome
+        // (`</listing/…>` lascerebbe `/…>` come testo). Conta la libxml
+        // caricata: LIBXML_VERSION è quella con cui è stato compilato PHP.
+        if ((int) LIBXML_LOADED_VERSION >= 21400 && preg_match(self::RAW_TEXT_PATTERN, $html) === 1) {
+            $marker = bin2hex(random_bytes(8));
+            $html = self::renameRawTextTags($html, $marker);
+        }
 
         // Niente `</body></html>` in fondo: a fine input libxml chiude da sé, e
-        // un attributo o un `xmp`, `textarea`, `title`, `plaintext` (da libxml
-        // 2.14) lasciati aperti se lo mangerebbero come testo.
+        // un attributo, un `textarea` o un `title` (da libxml 2.14) lasciati
+        // aperti se lo mangerebbero come testo.
         $wrapped = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>'
             .$html;
 
@@ -142,9 +168,53 @@ final class SafeHtml
             return null;
         }
 
+        if ($marker !== null) {
+            self::restoreRawTextTags($document, $marker);
+        }
+
         $body = $document->getElementsByTagName('body')->item(0);
 
         return $body instanceof DOMElement ? $body : null;
+    }
+
+    /**
+     * Rinomina `xmp` e `plaintext`, che libxml dalla 2.14 legge come testo
+     * semplice: le entità scritte da normalizeInput() restano come testo e si
+     * escapano di nuovo (`perch&amp;#233;`), e i tag dentro non si leggono. La
+     * 2.9 li legge come tag normali; rinominati, si leggono così con tutte e
+     * due.
+     *
+     * Il nome nuovo è seguito da `/`, dal segnaposto e dal nome vecchio: libxml
+     * fa finire il nome al `/` e legge il resto come un attributo, che si perde
+     * con il tag. Dove il tag era testo (dentro `textarea` o `title`, nel
+     * valore di un attributo) restoreRawTextTags() rimette il nome vecchio. Il
+     * pezzo aggiunto (lettere, cifre, `-` e `/`, senza `--`) non sposta la fine
+     * di un attributo, di un commento o di un testo.
+     */
+    private static function renameRawTextTags(string $html, string $marker): string
+    {
+        return preg_replace_callback(
+            self::RAW_TEXT_PATTERN,
+            static fn (array $match): string => '<'.$match[1].self::RAW_TEXT_RENAMES[strtolower($match[2])].'/'.$marker.$match[2],
+            $html
+        ) ?? $html;
+    }
+
+    /** Toglie quello che renameRawTextTags() ha aggiunto dove il tag era testo. */
+    private static function restoreRawTextTags(DOMDocument $document, string $marker): void
+    {
+        $inserted = array_map(static fn (string $name): string => $name.'/'.$marker, self::RAW_TEXT_RENAMES);
+        $nodes = (new DOMXPath($document))->query('//text()[contains(., "'.$marker.'")] | //@*[contains(., "'.$marker.'")]');
+
+        foreach ($nodes ?: [] as $node) {
+            // Il valore di un attributo si cambia sui suoi nodi di testo:
+            // assegnato all'attributo, libxml ci rileggerebbe le entità.
+            foreach ($node instanceof DOMAttr ? $node->childNodes : [$node] as $text) {
+                if ($text instanceof DOMText) {
+                    $text->data = str_replace($inserted, '', $text->data);
+                }
+            }
+        }
     }
 
     private static function serializeChildren(DOMNode $node): string

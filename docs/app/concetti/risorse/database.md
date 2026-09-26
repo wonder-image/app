@@ -138,6 +138,9 @@ whitelist:
   `object`, `template`, `noscript`, `svg` e `math` spariscono con tutto il
   contenuto; i commenti si tolgono. `embed` è vuoto come in HTML5: il tag
   sparisce e il testo che lo segue resta;
+- `xmp` e `plaintext` si tolgono come gli altri tag, e il loro contenuto si
+  legge come HTML anche se in HTML5 sarebbe testo semplice:
+  `<xmp><b>x</b></xmp>` dà `<b>x</b>`;
 - `</body>` e `</html>` si tolgono dovunque siano, anche con attributi o
   dentro `textarea` e `xmp`, e il testo che li segue resta: un import con un
   documento intero o con frammenti che li contengono non perde il seguito;

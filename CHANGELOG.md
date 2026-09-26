@@ -133,6 +133,14 @@
   del documento in cui SafeHtml avvolge l'input, e quello che seguiva spariva
   con ogni libxml (`<p>a</p></body><p>b</p>` dava `<p>a</p>`). Ora queste
   chiusure si tolgono prima della lettura, anche maiuscole, con spazi o con
-  attributi, e il testo che segue resta. Si tolgono anche dentro `xmp`,
-  `textarea`, `title` e `script`, dove libxml 2.9 le legge come chiusure e la
-  2.14 e successive come testo: il risultato è lo stesso con tutte e due.
+  attributi, e il testo che segue resta. Si tolgono anche dentro `textarea`,
+  `title` e `script`, dove libxml 2.9 le legge come chiusure e la 2.14 e
+  successive come testo: il risultato è lo stesso con tutte e due.
+- SafeHtml: con libxml 2.14 e successive il contenuto di `xmp` e `plaintext`
+  si leggeva come testo semplice: le lettere accentate e i `<` sciolti, che
+  SafeHtml passa a libxml come entità, uscivano escapati due volte
+  (`perch&amp;#233;`, `3 &amp;lt; 5`), le entità scritte nel testo pure
+  (`a &amp;amp; b`) e i tag dentro restavano testo. Ora questi due tag si
+  leggono come gli altri con ogni libxml, come già con la 2.9 (`perché`,
+  `3 &lt; 5`, `a &amp; b`): i tag ammessi restano e quelli da togliere
+  spariscono con il loro contenuto.
