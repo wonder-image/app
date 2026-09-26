@@ -135,9 +135,16 @@ whitelist:
   controllo). Un link relativo, `javascript:`, `data:`, `vbscript:` o `//host`
   perde il tag e tiene il testo;
 - gli altri tag si tolgono tenendo il testo; `script`, `style`, `iframe`,
-  `object`, `template`, `noscript`, `svg` e `math` spariscono con tutto il
-  contenuto; i commenti si tolgono. `embed` è vuoto come in HTML5: il tag
-  sparisce e il testo che lo segue resta;
+  `object`, `template`, `noscript`, `svg`, `math`, `noembed` e `noframes`
+  spariscono con tutto il contenuto; i commenti si tolgono. `embed` è vuoto
+  come in HTML5: il tag sparisce e il testo che lo segue resta;
+- di `script`, `style`, `iframe`, `noembed` e `noframes` è contenuto tutto
+  quello che sta fino alla loro chiusura, come in HTML5: in
+  `<p>a<iframe>b</p>c` il paragrafo si chiude ma `b</p>c` è dentro l'iframe, e
+  il risultato è `<p>a</p>`. Vale con ogni versione di libxml. Unica eccezione:
+  una chiusura `</style>` scritta dentro `iframe`, `noembed` o `noframes` (o
+  una loro chiusura scritta dentro uno `style`) finisce il contenuto lì, e
+  quello che segue resta come testo;
 - `xmp` e `plaintext` si tolgono come gli altri tag, e il loro contenuto si
   legge come HTML anche se in HTML5 sarebbe testo semplice:
   `<xmp><b>x</b></xmp>` dà `<b>x</b>`;
