@@ -446,6 +446,47 @@ righe aggiunte con «Aggiungi» hanno id e `for` propri, come i `name` (vedi
 [Repeater](repeater.md)). Un campo `required()` con `->label('')` resta senza
 titolo: l'asterisco da solo non ne fa uno.
 
+### I valori di un albero
+
+Un `checkTree()` non posta dai nodi. jstree tiene l'HTML di un nodo come
+testo: chiudendo un genitore toglie dal DOM i figli, e ridisegnando un nodo lo
+rimette com'era arrivato dal server. Una casella dentro il nodo sparirebbe dal
+salvataggio, o tornerebbe con la spunta di partenza.
+
+Per questo i nodi portano solo l'etichetta, e le caselle che il form posta
+stanno in un contenitore nascosto accanto all'albero, fuori dal DOM di jstree:
+
+```html
+<input type="hidden" name="categories[]">
+<div class="d-none" data-wi-tree-values="categories[]">
+    <input class="d-none" type="checkbox" name="categories[]" value="2" data-wi-check="true" checked>
+    <!-- una casella per voce; una voce ripetuta nei rami ne ha una sola -->
+</div>
+<div data-wi-tree="checkbox">
+    <ul><li id="2">Magliette</li></ul>
+</div>
+```
+
+La lib (`setJsTreeValues()` in `src/build/backend/js/form/set.js`) allinea le
+caselle a `get_checked()` di jstree a ogni spunta, da clic, tastiera o API, e
+quando un nodo nasce o sparisce. Aggiorna `checked` e `defaultChecked`, così un
+reset del form non torna alle spunte del server. Se qualcosa è cambiato lancia
+un `change` nativo sul contenitore (risale, quindi chi ascolta il form lo vede)
+e riarma la validazione dei `required`; all'avvio non ne lancia.
+
+- **A spunte**: resta il campo vuoto `name[]`, che posta la lista vuota quando
+  non c'è nessuna spunta.
+- **A scelta singola** (`inputType = 'radio'`): il nome non ha le parentesi,
+  niente campo vuoto, e resta una voce sola anche quando la spunta arriva
+  dall'API.
+- **Filtri**: gli attributi `filter` di una voce (`data-*`) stanno sulla sua
+  casella nel contenitore.
+
+Il markup di prima (caselle dentro i `<li>`) funziona ancora con la lib
+nuova, che le sposta nel contenitore prima di avviare jstree. Il markup nuovo
+con una lib vecchia non perde più le spunte chiudendo i rami, ma la creazione
+rapida dentro l'albero chiede la lib nuova.
+
 ### La voce principale di un albero
 
 `checkTree()->primaryField('main_category')` segna con una stella la voce

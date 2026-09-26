@@ -258,7 +258,12 @@ proxy server-side.
   comportamento remoto vive solo sul tema Wonder). Nel `checkTree` il nodo
   nasce **sotto il genitore** (`item.parent_id`) quando l'albero lo contiene,
   altrimenti in cima; solo un albero a spunte lo spunta, uno a scelta singola
-  (il «padre» dentro un modal) lo aggiunge e basta.
+  (il «padre» dentro un modal) lo aggiunge e basta. Il nodo nasce con l'API di
+  jstree e porta solo l'etichetta: la casella che il form posta la scrive la
+  lib nel contenitore `[data-wi-tree-values]` accanto all'albero (vedi
+  [I valori di un albero](form-field.md#i-valori-di-un-albero)). Serve la lib
+  con `setJsTreeValues()`: con una lib vecchia il nodo compare ma la spunta
+  non arriva al salvataggio.
 - **La riga appartiene alla risorsa, non al campo**: il detail dell'evento
   porta anche `resource` (lo slug), e l'adapter aggiorna **ogni** campo della
   pagina marcato `data-wi-qc-resource` con quello slug — non solo quello che

@@ -246,6 +246,15 @@ php forge start
   retains legacy semantics. Keep PHP and lib assets aligned; custom upload
   handlers must forward old values and the manifest or explicitly opt out.
 
+- Backend `CheckTree` nodes (`[data-wi-tree]`) carry only escaped labels:
+  never put named inputs in jstree node text, which jstree drops on collapse
+  and rebuilds from server HTML on redraw. Posted inputs live in the sibling
+  `[data-wi-tree-values="<name>"]` container (one per value, deduped, filter
+  `data-*` on it); the lib's `setJsTreeValues()` syncs them from
+  `get_checked()`, keeps radio to one value and dispatches a bubbling native
+  `change` only on real differences. Keep the empty `name[]` hidden input for
+  checkbox trees. See `docs/app/concetti/form/form-field.md`.
+
 Two-layer architecture for building and rendering forms:
 
 - **`class/Elements/Form/`** — config layer. Fluent API objects
