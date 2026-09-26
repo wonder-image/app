@@ -400,9 +400,189 @@ foreach ([
     });
 }
 
+# ---------------------------------------------------------------------------
+# Chiusure di body e html scritte nel testo
+# ---------------------------------------------------------------------------
+
+# Un </body> o </html> senza apertura chiuderebbe il body del documento in cui
+# SafeHtml avvolge l'input, e quello che segue resterebbe fuori. Come in HTML5,
+# dove quel contenuto torna nel body, il testo continua. Il risultato deve
+# essere lo stesso con ogni libxml.
+
 check('html e body scritti e chiusi dall\'utente: quello che segue resta', fn () => same(
     SafeHtml::clean('<html><body><p>ok</p></body></html><p>dopo</p>'),
     '<p>ok</p><p>dopo</p>'
 ));
+
+check('<html> dell\'utente abbinato: quello che segue resta', fn () => same(
+    SafeHtml::clean('<html><p>a</p></html><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('<body> dell\'utente abbinato e un </html> in più: quello che segue resta', fn () => same(
+    SafeHtml::clean('<body><p>a</p></body><p>b</p></html>c'),
+    '<p>a</p><p>b</p>c'
+));
+
+check('</body> senza apertura: il paragrafo che segue resta', fn () => same(
+    SafeHtml::clean('<p>a</p></body><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</html> senza apertura: il paragrafo che segue resta', fn () => same(
+    SafeHtml::clean('<p>a</p></html><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</body> in testa: il testo resta', fn () => same(SafeHtml::clean('</body>testo'), 'testo'));
+
+check('</body></html> a metà: resta tutto quello che segue', fn () => same(
+    SafeHtml::clean('<p>a</p></body></html>b<p>c</p>'),
+    '<p>a</p>b<p>c</p>'
+));
+
+check('chiusure ripetute: il testo continua ogni volta', fn () => same(
+    SafeHtml::clean('<p>a</p></body><p>b</p></html></body><p>c</p>'),
+    '<p>a</p><p>b</p><p>c</p>'
+));
+
+check('</body> dentro un paragrafo: il paragrafo continua', fn () => same(
+    SafeHtml::clean('<p>a</body>b</p>c'),
+    '<p>ab</p>c'
+));
+
+check('</body> e </html> in fondo, ognuno sulla sua riga', fn () => same(
+    SafeHtml::clean("<p>a</p>\n</body>\n</html>"),
+    '<p>a</p>'
+));
+
+check('documento intero con doctype e head: resta il testo, anche dopo </html>', fn () => same(
+    SafeHtml::clean("<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n<meta charset=\"utf-8\">\n</head>\n<body>\n<p>a</p>\n</body>\n</html>\n<p>b</p>"),
+    "<p>a</p>\n\n\n<p>b</p>"
+));
+
+# Le varianti della chiusura. Virgolette, simboli o lettere non ASCII attaccati
+# al nome chiudono il body con libxml 2.9, non dalla 2.14: si tolgono lo stesso,
+# così il risultato non cambia con la versione.
+
+foreach ([
+    'maiuscola' => '</BODY>',
+    'con uno spazio' => '</body >',
+    'con un a capo' => "</Html\n>",
+    'con un tab' => "</body\t>",
+    'con attributi' => '</body class="x" data-x=\'1\'>',
+    'con la barra' => '</body/>',
+    'senza >' => '</body',
+    'con un attributo e senza >' => '</body x',
+    'con le virgolette attaccate al nome' => '</body"x">',
+    'con un simbolo attaccato al nome' => '</body@>',
+    'con una lettera accentata attaccata al nome' => "</body\u{00E9}>",
+] as $label => $close) {
+    check("chiusura {$label}: il paragrafo che segue resta", fn () => same(
+        SafeHtml::clean("<p>a</p>{$close}<p>b</p>"),
+        '<p>a</p><p>b</p>'
+    ));
+}
+
+# Dentro xmp, textarea, title e plaintext libxml dalla 2.14 legge </body> come
+# testo, la 2.9 come chiusura: si toglie con tutte e due, e il testo attorno
+# resta.
+
+foreach (['xmp', 'textarea', 'title'] as $tag) {
+    check("</body> dentro <{$tag}>: si toglie, il testo resta", fn () => same(
+        SafeHtml::clean("<{$tag}>b</body>c</{$tag}><p>d</p>"),
+        'bc<p>d</p>'
+    ));
+}
+
+check('</body> dentro <plaintext>: si toglie, il testo resta', fn () => same(
+    SafeHtml::clean('<plaintext>b</body>c'),
+    'bc'
+));
+
+# Nei tag che spariscono con il contenuto, un </body> non deve portarsi via
+# quello che segue il tag.
+
+foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
+    check("</body> dentro <{$tag}>: il tag sparisce intero, quello che segue resta", function () use ($tag) {
+        $out = SafeHtml::clean("<p>a</p><{$tag}>x</body>alert(1)</{$tag}><p>b</p>");
+
+        return same($out, '<p>a</p><p>b</p>') && inert($out);
+    });
+}
+
+check('"</body" in una stringa di uno script: lo script sparisce intero', function () {
+    $out = SafeHtml::clean('<script>if (s.indexOf("</body") > 0) { alert(1); }</script><p>d</p>');
+
+    return same($out, '<p>d</p>') && inert($out);
+});
+
+# La chiusura tolta non arriva oltre la fine di un commento o di un attributo
+# che la contengono: commento e attributo spariscono interi, senza pezzi.
+
+check('</body dentro un commento: il commento sparisce intero', fn () => same(
+    SafeHtml::clean('<p>a</p><!-- prima di </body "x" -- dopo --><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</body dentro un commento chiuso con --!>: il commento sparisce intero', fn () => same(
+    SafeHtml::clean('<p>a</p><!-- prima di </body --!><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</body dentro un attributo: l\'attributo sparisce intero', fn () => same(
+    SafeHtml::clean('<a href="https://x.it/" title="</body x">l</a><p>b</p>'),
+    '<a href="https://x.it/">l</a><p>b</p>'
+));
+
+foreach ([
+    'istruzione di elaborazione' => '<p>a</p><?php echo "</body>"; ?><p>b</p>',
+    'CDATA' => '<p>a</p><![CDATA[</body>]]><p>b</p>',
+] as $label => $input) {
+    check("</body> dentro un {$label}: sparisce senza pezzi", fn () => same(
+        SafeHtml::clean($input),
+        '<p>a</p><p>b</p>'
+    ));
+}
+
+# Le chiusure si tolgono dopo i caratteri di controllo e i < sciolti.
+
+check('</body> spezzato da un carattere di controllo: si toglie lo stesso', fn () => same(
+    SafeHtml::clean("<p>a</p></bo\x01dy><p>b</p>"),
+    '<p>a</p><p>b</p>'
+));
+
+check('< sciolto davanti a </body>: resta testo, come in HTML5', fn () => same(
+    SafeHtml::clean('<</body>p>b'),
+    '&lt;p&gt;b'
+));
+
+# Togliendo una chiusura, il testo che aveva attorno può comporne un'altra:
+# quella resta come testo e non chiude il body.
+
+foreach ([
+    'nel mezzo del nome' => '</bo</body>dy>',
+    'subito dopo la barra' => '</</html>body>',
+] as $label => $close) {
+    check("chiusura tolta {$label} di un'altra: quella resta testo, il paragrafo che segue resta", fn () => same(
+        SafeHtml::clean("<p>a</p>{$close}<p>b</p>"),
+        '<p>a</p>&lt;/body&gt;<p>b</p>'
+    ));
+}
+
+check('chiusure tolte una dentro l\'altra: il paragrafo che segue resta', function () {
+    $out = SafeHtml::clean('<p>a</p></b</bo</body>dy>ody><p>b</p>');
+
+    return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
+});
+
+# Senza un tetto, una chiusura lunghissima esaurisce pcre.backtrack_limit e la
+# regex che la toglie non dà risultato.
+
+check('chiusura con una coda enorme di attributi: niente errori, il testo attorno resta', function () {
+    $out = SafeHtml::clean('<p>a</p></body ' . str_repeat('-a', 1500000) . '><p>b</p>');
+
+    return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
+});
 
 summary();

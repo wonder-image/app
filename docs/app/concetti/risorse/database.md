@@ -138,6 +138,9 @@ whitelist:
   `object`, `template`, `noscript`, `svg` e `math` spariscono con tutto il
   contenuto; i commenti si tolgono. `embed` è vuoto come in HTML5: il tag
   sparisce e il testo che lo segue resta;
+- `</body>` e `</html>` si tolgono dovunque siano, anche con attributi o
+  dentro `textarea` e `xmp`, e il testo che li segue resta: un import con un
+  documento intero o con frammenti che li contengono non perde il seguito;
 - l'UTF-8 resta com'è (`perché`, `€`, emoji), `&nbsp;` resta `&nbsp;`;
 - un editor vuoto (`<p><br></p>`, solo spazi o `&nbsp;`) diventa `''`.
 

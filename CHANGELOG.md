@@ -129,3 +129,10 @@
   la metteva invece nel link (`<a href="https://x.it` con la 2.9, senza
   virgolette con ogni versione). Ora quel documento resta aperto e lo chiude
   libxml: la chiusura non finisce più nel risultato.
+- SafeHtml: un `</body>` o `</html>` senza la sua apertura chiudeva il body
+  del documento in cui SafeHtml avvolge l'input, e quello che seguiva spariva
+  con ogni libxml (`<p>a</p></body><p>b</p>` dava `<p>a</p>`). Ora queste
+  chiusure si tolgono prima della lettura, anche maiuscole, con spazi o con
+  attributi, e il testo che segue resta. Si tolgono anche dentro `xmp`,
+  `textarea`, `title` e `script`, dove libxml 2.9 le legge come chiusure e la
+  2.14 e successive come testo: il risultato è lo stesso con tutte e due.

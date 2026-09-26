@@ -18,7 +18,8 @@ use DOMText;
  *
  * Gli altri tag si tolgono tenendo il contenuto, tranne quelli che portano
  * codice o markup estraneo (`script`, `style`, `iframe`, `svg`, `math`…), che
- * spariscono insieme al contenuto. I commenti si tolgono sempre.
+ * spariscono insieme al contenuto. I commenti si tolgono sempre. `</body>` e
+ * `</html>` non chiudono niente: quello che li segue resta.
  *
  * Il risultato è riscritto da zero a partire dall'albero del documento, non
  * ritoccato sulla stringa: quello che esce è solo quello che il serializzatore
@@ -53,6 +54,20 @@ final class SafeHtml
     /** Schemi ammessi per l'href dei link. */
     private const HREF_PATTERN = '/^(?:https?|mailto|tel):/i';
 
+    /**
+     * Chiusura di `body` o `html`, con eventuali attributi.
+     *
+     * Il nome si riconosce come fa libxml 2.9, che chiude il body in più casi
+     * delle versioni dalla 2.14: `body` o `html` non seguiti da una lettera,
+     * una cifra, `:`, `_`, `.` o `-`. Il resto del tag arriva fino al primo
+     * `>` compreso, ma non passa un `<`, la fine di un commento (`-->`, `--!>`)
+     * o una virgoletta senza la sua chiusura: un commento o un attributo che
+     * contengono `</body` finiscono dove finivano. Il tetto di 64 ripetizioni
+     * tiene la regex sotto `pcre.backtrack_limit` anche su un input ostile;
+     * oltre, il resto del tag resta come testo.
+     */
+    private const BODY_CLOSE_PATTERN = '~</(?:body|html)(?![a-z0-9:_.-])(?:[^<>"\'-]++|"[^"<>]*+"|\'[^\'<>]*+\'|-(?!-!?>)){0,64}+>?~i';
+
     public static function clean(string $html): string
     {
         if (trim($html) === '') {
@@ -72,8 +87,8 @@ final class SafeHtml
 
     /**
      * UTF-8 valido, niente caratteri di controllo (NUL compreso), i `<` sciolti
-     * come testo e i caratteri non ASCII come entità numeriche, così il parser
-     * non deve indovinare la codifica.
+     * come testo, via le chiusure di `body` e `html` e i caratteri non ASCII
+     * come entità numeriche, così il parser non deve indovinare la codifica.
      */
     private static function normalizeInput(string $html): string
     {
@@ -83,6 +98,23 @@ final class SafeHtml
         // Come in HTML5, un `<` che non apre un tag (`3 < 5`) è testo: libxml
         // invece lo prenderebbe per un tag rotto e si mangerebbe il pezzo.
         $html = preg_replace('/<(?![a-zA-Z\/!?])/', '&lt;', $html) ?? '';
+
+        // Un `</body>` o `</html>` senza la sua apertura chiuderebbe il body in
+        // cui parse() avvolge l'input, e quello che segue resterebbe fuori. Come
+        // in HTML5, dove quel contenuto torna nel body, le chiusure si tolgono
+        // tutte, anche dentro `xmp`, `textarea` o `script`. Lì libxml dalla
+        // 2.14 le legge come testo e la 2.9 come chiusure: togliendole, il
+        // risultato è lo stesso con tutte e due.
+        $html = preg_replace(self::BODY_CLOSE_PATTERN, '', $html) ?? $html;
+
+        // Togliendo una chiusura, il testo che aveva attorno può comporne
+        // un'altra (`</bo</body>dy>`). Quella resta come testo, come i `<`
+        // sciolti: qui non si toglie niente, e così non se ne compongono altre.
+        $html = preg_replace_callback(
+            self::BODY_CLOSE_PATTERN,
+            static fn (array $match): string => '&lt;'.substr($match[0], 1),
+            $html
+        ) ?? $html;
 
         return mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0x1FFFFF], 'UTF-8');
     }
