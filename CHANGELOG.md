@@ -155,6 +155,6 @@
   quello di HTML5 con ogni libxml: `script` e `style` si leggono passando
   `HTML_PARSE_RECOVER` a libxml, gli altri tre facendoli leggere con il nome di
   `style`. Il nome della lettura è condiviso e le chiusure si accoppiano per
-  nome: una chiusura `</style>` scritta dentro `iframe`, `noembed` o `noframes`,
-  o una loro chiusura scritta dentro uno `style`, finisce il contenuto lì e
-  quello che segue resta come testo escapato.
+  nome: `</style>`, `</iframe>`, `</noembed>` e `</noframes>` finiscono il
+  contenuto di qualunque di questi quattro tag, anche prima di quanto direbbe
+  HTML5, e quello che segue resta come testo escapato.

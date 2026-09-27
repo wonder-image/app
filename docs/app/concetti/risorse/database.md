@@ -142,9 +142,9 @@ whitelist:
   quello che sta fino alla loro chiusura, come in HTML5: in
   `<p>a<iframe>b</p>c` il paragrafo si chiude ma `b</p>c` è dentro l'iframe, e
   il risultato è `<p>a</p>`. Vale con ogni versione di libxml. Unica eccezione:
-  una chiusura `</style>` scritta dentro `iframe`, `noembed` o `noframes` (o
-  una loro chiusura scritta dentro uno `style`) finisce il contenuto lì, e
-  quello che segue resta come testo;
+  `style`, `iframe`, `noembed` e `noframes` condividono la lettura, quindi una
+  chiusura fra `</style>`, `</iframe>`, `</noembed>` e `</noframes>` finisce il
+  contenuto di qualunque dei quattro, e quello che segue resta come testo;
 - `xmp` e `plaintext` si tolgono come gli altri tag, e il loro contenuto si
   legge come HTML anche se in HTML5 sarebbe testo semplice:
   `<xmp><b>x</b></xmp>` dà `<b>x</b>`;

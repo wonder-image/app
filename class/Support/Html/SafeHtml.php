@@ -94,12 +94,12 @@ final class SafeHtml
      * in `style`, li legge come testo semplice con tutte e due, e `style` è già
      * in DROPPED: sparisce con il contenuto senza rimettere il nome vecchio.
      *
-     * Il nome è condiviso, e le chiusure si accoppiano per nome: una chiusura
-     * `</style>` scritta dentro di loro, o una loro chiusura scritta dentro uno
-     * `style`, finisce il testo semplice prima della fine che direbbe HTML5. Il
-     * tag sparisce comunque con il contenuto e quello che resta è testo
-     * escapato. `script` tiene il suo nome: una loro chiusura scritta in uno
-     * script (`document.write('…</iframe>')`) non lo finisce prima.
+     * Il nome è condiviso, e le chiusure si accoppiano per nome: `</style>`,
+     * `</iframe>`, `</noembed>` e `</noframes>` finiscono il testo semplice di
+     * qualunque di questi quattro tag, anche prima della fine che direbbe
+     * HTML5. Il tag sparisce comunque con il contenuto e quello che resta è
+     * testo escapato. `script` tiene il suo nome: una loro chiusura scritta in
+     * uno script (`document.write('…</iframe>')`) non lo finisce prima.
      */
     private const DROPPED_RAW_TEXT_RENAMES = ['iframe' => 'style', 'noembed' => 'style', 'noframes' => 'style'];
 

@@ -647,13 +647,21 @@ check('<iframe> dentro <iframe>: chiude la prima chiusura', fn () => same(
 
 # Eccezione dichiarata: per leggere iframe, noembed e noframes come testo
 # semplice anche con la 2.9 SafeHtml li fa leggere con il nome di style, l'unico
-# insieme a script che entra in quella lettura con tutte le libxml. Una chiusura
-# </style> scritta dentro di loro, o una loro chiusura scritta dentro uno style,
-# finisce quindi il testo semplice prima di quanto direbbe HTML5. Il tag
-# sparisce comunque con il contenuto e quello che resta è testo escapato.
+# insieme a script che entra in quella lettura con tutte le libxml. Il nome è
+# quindi condiviso da style, iframe, noembed e noframes, e le chiusure si
+# accoppiano per nome: </style>, </iframe>, </noembed> e </noframes> finiscono
+# il testo semplice di qualunque dei quattro, anche prima di quanto direbbe
+# HTML5. Il tag sparisce comunque con il contenuto e quello che resta è testo
+# escapato.
 
 check('</style> dentro un iframe: l\'iframe sparisce, il resto resta testo', function () {
     $out = SafeHtml::clean('<iframe>a</style>b</iframe>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+check('</iframe> dentro un noembed: il noembed sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<noembed>a</iframe>b</noembed>c');
 
     return same($out, 'bc') && inert($out) && noRename($out);
 });
