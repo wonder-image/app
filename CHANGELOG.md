@@ -92,6 +92,8 @@
   `true`, e un array su un filtro a scelta singola, non filtrano più (prima
   `= '1'` e `= 'Array'` con un warning). I filtri `multiple` con un valore solo
   escono fra parentesi come quelli con più valori.
+- La pagina "Errori" (`ErrorReportResource`) sta in Dev → Log e diagnostica,
+  sempre solo per `admin`: prima era in Set Up.
 
 ### Fixed
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
