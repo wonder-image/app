@@ -147,6 +147,9 @@ whitelist:
   dentro `textarea` e `xmp`, e il testo che li segue resta: un import con un
   documento intero o con frammenti che li contengono non perde il seguito;
 - l'UTF-8 resta com'è (`perché`, `€`, emoji), `&nbsp;` resta `&nbsp;`;
+- gli a capo escono come `\n` con ogni versione di libxml: `\r\n` e `\r`
+  diventano `\n`, come quando un browser legge l'HTML, e anche `&#13;` esce
+  come `\n`;
 - un editor vuoto (`<p><br></p>`, solo spazi o `&nbsp;`) diventa `''`.
 
 La pulizia gira su ogni strada di scrittura: `Model::create()`/`update()` (il

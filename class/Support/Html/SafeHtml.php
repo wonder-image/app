@@ -27,7 +27,8 @@ use DOMXPath;
  *
  * Il risultato è riscritto da zero a partire dall'albero del documento, non
  * ritoccato sulla stringa: quello che esce è solo quello che il serializzatore
- * qui sotto sa scrivere. Un testo vuoto per l'editor (`<p><br></p>`, solo
+ * qui sotto sa scrivere. Gli a capo escono come `\n`, anche quelli scritti
+ * `\r\n`, `\r` o `&#13;`. Un testo vuoto per l'editor (`<p><br></p>`, solo
  * spazi o `&nbsp;`) diventa ''. Un HTML che libxml non riesce a leggere (per
  * esempio oltre 255 livelli di annidamento) esce anche lui '': meglio perdere
  * un input assurdo che farlo passare a metà.
@@ -128,19 +129,26 @@ final class SafeHtml
             return '';
         }
 
-        $output = trim(self::serializeChildren($body));
+        $output = trim(self::normalizeNewlines(self::serializeChildren($body)));
 
         return self::isBlank($output) ? '' : $output;
     }
 
     /**
-     * UTF-8 valido, niente caratteri di controllo (NUL compreso), i `<` sciolti
-     * come testo, via le chiusure di `body` e `html` e i caratteri non ASCII
-     * come entità numeriche, così il parser non deve indovinare la codifica.
+     * UTF-8 valido, a capo solo `\n`, niente caratteri di controllo (NUL
+     * compreso), i `<` sciolti come testo, via le chiusure di `body` e `html` e
+     * i caratteri non ASCII come entità numeriche, così il parser non deve
+     * indovinare la codifica.
      */
     private static function normalizeInput(string $html): string
     {
         $html = mb_scrub($html, 'UTF-8');
+
+        // libxml 2.15 normalizza gli a capo da sé, la 2.9 tiene i `\r`. Come
+        // nella preelaborazione di HTML5 si fa prima di togliere qualcosa: un
+        // `\r` e un `\n` separati da un carattere di controllo o da un
+        // `</body>` restano due a capo.
+        $html = self::normalizeNewlines($html);
         $html = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $html) ?? '';
 
         // Come in HTML5, un `<` che non apre un tag (`3 < 5`) è testo: libxml
@@ -165,6 +173,17 @@ final class SafeHtml
         ) ?? $html;
 
         return mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0x1FFFFF], 'UTF-8');
+    }
+
+    /**
+     * `\r\n` e `\r` diventano `\n`, come nella preelaborazione dell'input di
+     * HTML5. Sull'input prima della lettura, e di nuovo sul risultato: un
+     * `&#13;` mette un `\r` nel documento, che scritto così com'è un browser
+     * leggerebbe come `\n` e una seconda pulizia cambierebbe.
+     */
+    private static function normalizeNewlines(string $html): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", $html);
     }
 
     private static function parse(string $html): ?DOMElement

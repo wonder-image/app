@@ -156,3 +156,12 @@
   non solo il testo che si perdeva. Il tag e i suoi attributi non escono con
   nessuna versione, mentre dove è testo (dentro `xmp`, in un valore di
   attributo) o dove il nome è un altro (`<wbrx>`) il risultato resta com'era.
+- SafeHtml: con libxml 2.9 i `\r` restavano nel testo, anche dentro `xmp`,
+  `listing` e `textarea`, e negli href (`<p>a\r\nb</p>` usciva così com'era),
+  mentre la 2.15 li normalizza come HTML5 (`<p>a\nb</p>`). Ora `\r\n` e `\r`
+  diventano `\n` prima della lettura, e il risultato è lo stesso con ogni
+  libxml. Come in HTML5 si fa prima di togliere i caratteri di controllo e le
+  chiusure di `body` e `html`: un `\r` e un `\n` separati da uno di questi
+  restano due a capo (con la 2.15 diventavano uno). Anche un `&#13;`, che
+  mette un `\r` nel documento, esce come `\n`: prima usciva `\r` con ogni
+  libxml, e con la 2.15 una seconda pulizia lo cambiava.
