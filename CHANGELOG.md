@@ -102,3 +102,16 @@
   (`?wi-month=September&wi-year=2026`) mostrano l'anno intero; i parametri a
   più valori restano nei link invece di diventare "Array". La funzione è
   deprecata: per le pagine nuove si usa `Table::filterDate()`.
+- Filtri legacy delle liste in `app/function/backend/filter.php`
+  (`filterCustom()`, `createFilterCustom()`, `filterLimit()`, `filterSearch()`
+  e `createSearchBar()`): chiuse le SQL injection e le XSS dai parametri GET.
+  Il valore di un filtro personalizzato entra nella query solo se è fra le
+  opzioni del form, sempre con l'escape della connessione; un filtro senza
+  opzioni note ha solo l'escape. Le colonne di filtri, ricerca e ordinamento
+  passano da `Query::escapeIdentifier()`, `$FILTER_DIRECTION` vale solo `ASC`
+  o `DESC` (altrimenti `ASC`) e `limit` solo i valori dei bottoni (altrimenti
+  gli ultimi 25). Campi nascosti del form (chiavi comprese), barra e titolo
+  della ricerca sono escapati, e un apice nella ricerca non mostra più la barra
+  di `addslashes()`. I valori fuori dalle opzioni, anche da un link scritto a
+  mano, valgono come assenti; i parametri a più valori restano nel form invece
+  di diventare "Array".

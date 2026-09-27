@@ -172,3 +172,36 @@ query entrano solo date gg/mm/aaaa valide, con la condizione di
 data e campi nascosti sono escapati. I link dei mesi usano il mese numerico
 (`?wi-month=9&wi-year=2026`): un vecchio link con il nome inglese
 (`?wi-month=September&wi-year=2026`) mostra l'anno intero.
+
+## Filtri legacy delle liste (filter.php)
+
+Anche le altre funzioni globali di `app/function/backend/filter.php`
+(`filter()`, `filterCustom()`, `createFilterCustom()`, `filterLimit()`,
+`filterSearch()` e `createSearchBar()`) validano i parametri GET prima di
+usarli:
+
+- **Filtri personalizzati (`$FILTER_CUSTOM`)**: un valore entra nella query
+  solo se è fra le opzioni che il form mostra (`array`, `database`,
+  `function`, i filtri `visible`, `active` ed `evidence`, sezioni, categorie e
+  sottocategorie; nei `tree` anche i figli in `child`), e sempre con l'escape
+  della connessione. Gli altri valori valgono come assenti, anche quando
+  arrivano da un link scritto a mano. Un filtro senza opzioni note ha solo
+  l'escape. Form e query leggono le opzioni dalla stessa funzione,
+  `filterCustomOptions()`: con un filtro attivo `filterCustom()` fa una query
+  in più per le opzioni da database e chiama la funzione dei filtri
+  `function`.
+- **Colonne**: la `column` dei filtri, le colonne di `$FILTER_SEARCH` e
+  `$FILTER_ORDER` passano da `Query::escapeIdentifier()`.
+- **Direzione**: `$FILTER_DIRECTION` vale solo `ASC` o `DESC`, altrimenti
+  `ASC`.
+- **Limite**: `limit` vale solo `25`, `50`, `100`, `250`, `500` o `all`, cioè
+  i bottoni; il resto mostra gli ultimi 25.
+- **Ricerca**: i termini entrano nel `LIKE` con l'escape della connessione.
+  Barra e titolo mostrano la ricerca codificata, senza la barra di
+  `addslashes()`.
+- **Campi nascosti** del form dei filtri: chiavi e valori codificati; i
+  parametri a più valori restano nel form invece di diventare "Array".
+
+`$QUERY_CUSTOM`, `$QUERY_ORDER` e `$QUERY_DIRECTION` restano frammenti SQL
+scritti dal sito e finiscono nella query così come sono: non vanno mai
+composti con valori della richiesta.

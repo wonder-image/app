@@ -230,6 +230,7 @@ php forge start
 - `build/src/backend` and `build/table` have been intentionally cleaned out. Do not reintroduce them for new modules.
 - `SortableInput` is deprecated. Keep it only for compatibility; do not add new usages.
 - The global `filterDate()` in `app/function/backend/filter.php` is deprecated: keep it only for compatibility and use `Table::filterDate()` (backed by `Backend\Filter\FilterDate`) for new code. Its GET validation must stay aligned with `FilterDate::parseDate()`, `parseInteger()` and `buildCondition()`.
+- The other legacy list filters in `app/function/backend/filter.php` whitelist `$FILTER_CUSTOM` values against `filterCustomOptions()`, the single source of options for both `createFilterCustom()` and `filterCustom()`: add any new option source there, never only in the form. SQL values go through the connection escape, identifiers through `Query::escapeIdentifier()`, HTML through `htmlspecialchars()`, not `e()`, which the tests do not load. `$QUERY_CUSTOM`, `$QUERY_ORDER` and `$QUERY_DIRECTION` stay raw site-written SQL.
 - Local Herd routing uses a global driver stub:
   - `app/build/stubs/WonderValetDriver.php`
   - generated into `~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php` by consumer-project Forge commands
