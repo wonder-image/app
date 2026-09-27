@@ -22,7 +22,7 @@ Per aggiungere più lingue è possibile aggiungere un file in `/custom/config/la
     TranslationProvider::init();
 ```
 
-E aggiungere al file .htaccess nel `Backend` reparto `Set Up` -> `Editor` il seguente codice:
+E aggiungere al file .htaccess nel `Backend` reparto `Dev` -> `File configurazione` il seguente codice:
 
 ```
 ## Aggiunge lo slash finale a tutte le URL se manca

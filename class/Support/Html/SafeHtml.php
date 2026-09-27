@@ -24,11 +24,14 @@ use DOMXPath;
  * `noframes` è contenuto tutto quello che sta fino alla loro chiusura, come in
  * HTML5: anche la chiusura di un tag che li contiene, e il testo che la segue.
  * I commenti si tolgono sempre. `</body>` e `</html>` non chiudono niente:
- * quello che li segue resta.
+ * quello che li segue resta. I tag vuoti di HTML5 (`wbr`, `source`, `embed`…)
+ * restano vuoti: quello che li segue non è loro e si chiude dove si chiude nel
+ * browser.
  *
  * Il risultato è riscritto da zero a partire dall'albero del documento, non
  * ritoccato sulla stringa: quello che esce è solo quello che il serializzatore
- * qui sotto sa scrivere. Un testo vuoto per l'editor (`<p><br></p>`, solo
+ * qui sotto sa scrivere. Gli a capo escono come `\n`, anche quelli scritti
+ * `\r\n`, `\r` o `&#13;`. Un testo vuoto per l'editor (`<p><br></p>`, solo
  * spazi o `&nbsp;`) diventa ''. Un HTML che libxml non riesce a leggere (per
  * esempio oltre 255 livelli di annidamento) esce anche lui '': meglio perdere
  * un input assurdo che farlo passare a metà.
@@ -46,10 +49,9 @@ final class SafeHtml
     /**
      * Tag tolti insieme a tutto il contenuto.
      *
-     * Niente `embed`: in HTML5 è vuoto e quello che lo segue non è suo. libxml
-     * prima della 2.14 lo apre invece come contenitore, e toglierlo con il
-     * contenuto si portava via il testo seguente, a volte il resto del
-     * documento. Tolto come gli altri tag, quel testo resta.
+     * Niente `embed`: in HTML5 è vuoto, quello che lo segue non è suo e ora si
+     * legge così con ogni libxml (vedi UNKNOWN_VOID_RENAMES). Di contenuto suo
+     * non ne ha; tolto come gli altri tag, il testo che lo segue resta.
      */
     private const DROPPED = [
         'script', 'style', 'iframe', 'object', 'template', 'noscript', 'svg', 'math',
@@ -114,6 +116,37 @@ final class SafeHtml
      */
     private const PARSE_RECOVER = 1;
 
+    /**
+     * Tag vuoti in HTML5 che libxml prima della 2.14 non conosce, con il nome
+     * che prendono per la lettura.
+     *
+     * Quella libxml li apre come contenitori: quello che segue ci finisce
+     * dentro e i tag attorno si chiudono in un altro punto. `param` è vuoto
+     * per ogni versione e, entrando, non chiude niente di aperto: rinominati,
+     * la struttura è quella di HTML5 con tutte e due. Un nome solo basta per
+     * tutti, perché nessuno di questi tag esce nel risultato e gli attributi
+     * si perdono comunque.
+     */
+    private const UNKNOWN_VOID_RENAMES = [
+        'bgsound' => 'param',
+        'embed' => 'param',
+        'keygen' => 'param',
+        'source' => 'param',
+        'track' => 'param',
+        'wbr' => 'param',
+    ];
+
+    /**
+     * Apertura di uno di quei tag: il nome finisce dove lo fa finire libxml.
+     *
+     * Solo l'apertura, e il gruppo vuoto tiene il posto della `/` che
+     * renameTags() si aspetta: una chiusura non si rinomina, perché la 2.9 non
+     * salta quello che segue il nome e il segnaposto resterebbe come testo.
+     * Senza più il contenitore aperto, `</wbr>` non chiude niente né lì né
+     * dalla 2.14.
+     */
+    private const UNKNOWN_VOID_PATTERN = '~<()(bgsound|embed|keygen|source|track|wbr)(?=[\t\n\f\r />])~i';
+
     public static function clean(string $html): string
     {
         if (trim($html) === '') {
@@ -126,19 +159,26 @@ final class SafeHtml
             return '';
         }
 
-        $output = trim(self::serializeChildren($body));
+        $output = trim(self::normalizeNewlines(self::serializeChildren($body)));
 
         return self::isBlank($output) ? '' : $output;
     }
 
     /**
-     * UTF-8 valido, niente caratteri di controllo (NUL compreso), i `<` sciolti
-     * come testo, via le chiusure di `body` e `html` e i caratteri non ASCII
-     * come entità numeriche, così il parser non deve indovinare la codifica.
+     * UTF-8 valido, a capo solo `\n`, niente caratteri di controllo (NUL
+     * compreso), i `<` sciolti come testo, via le chiusure di `body` e `html` e
+     * i caratteri non ASCII come entità numeriche, così il parser non deve
+     * indovinare la codifica.
      */
     private static function normalizeInput(string $html): string
     {
         $html = mb_scrub($html, 'UTF-8');
+
+        // libxml 2.15 normalizza gli a capo da sé, la 2.9 tiene i `\r`. Come
+        // nella preelaborazione di HTML5 si fa prima di togliere qualcosa: un
+        // `\r` e un `\n` separati da un carattere di controllo o da un
+        // `</body>` restano due a capo.
+        $html = self::normalizeNewlines($html);
         $html = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $html) ?? '';
 
         // Come in HTML5, un `<` che non apre un tag (`3 < 5`) è testo: libxml
@@ -165,23 +205,57 @@ final class SafeHtml
         return mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0x1FFFFF], 'UTF-8');
     }
 
+    /**
+     * `\r\n` e `\r` diventano `\n`, come nella preelaborazione dell'input di
+     * HTML5. Sull'input prima della lettura, e di nuovo sul risultato: un
+     * `&#13;` mette un `\r` nel documento, che scritto così com'è un browser
+     * leggerebbe come `\n` e una seconda pulizia cambierebbe.
+     */
+    private static function normalizeNewlines(string $html): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", $html);
+    }
+
     private static function parse(string $html): ?DOMElement
     {
         $document = new DOMDocument('1.0', 'UTF-8');
-        $marker = null;
-        $renames = self::DROPPED_RAW_TEXT_RENAMES;
 
-        // `xmp` e `plaintext` solo dalla 2.14: la 2.9 li legge già come gli
-        // altri tag, e in una loro chiusura non salta quello che segue il nome
-        // (`</listing/…>` lascerebbe `/…>` come testo). Conta la libxml
-        // caricata: LIBXML_VERSION è quella con cui è stato compilato PHP.
+        // `iframe`, `noembed` e `noframes` si rinominano con ogni libxml: il
+        // testo semplice che si portano via cambia con la versione. Il resto
+        // dipende dalla libxml caricata (LIBXML_VERSION è quella con cui è
+        // stato compilato PHP): dalla 2.14 si aggiungono `xmp` e `plaintext`,
+        // che lì sono testo semplice, prima i tag vuoti di HTML5, che lì si
+        // aprono come contenitori. `xmp` e `plaintext` con la 2.9 non si
+        // rinominano: li legge già come gli altri tag, e in una loro chiusura
+        // non salta quello che segue il nome (`</listing/…>` lascerebbe `/…>`
+        // come testo).
+        $renames = self::DROPPED_RAW_TEXT_RENAMES;
+        $passes = [];
+
         if ((int) LIBXML_LOADED_VERSION >= 21400) {
             $renames += self::RAW_TEXT_RENAMES;
         }
 
-        if (preg_match(self::rawTextPattern($renames), $html) === 1) {
-            $marker = bin2hex(random_bytes(8));
-            $html = self::renameRawTextTags($html, $marker, $renames);
+        $passes[] = [self::rawTextPattern($renames), $renames];
+
+        // I tag vuoti stanno in un passaggio a sé: di loro si rinomina solo
+        // l'apertura, e il segnaposto che finisce in un nome già riscritto non
+        // è più `<` più il nome vecchio, quindi nessun passaggio tocca quello
+        // che ha fatto l'altro.
+        if ((int) LIBXML_LOADED_VERSION < 21400) {
+            $passes[] = [self::UNKNOWN_VOID_PATTERN, self::UNKNOWN_VOID_RENAMES];
+            $renames += self::UNKNOWN_VOID_RENAMES;
+        }
+
+        $marker = null;
+
+        foreach ($passes as [$pattern, $group]) {
+            if (preg_match($pattern, $html) !== 1) {
+                continue;
+            }
+
+            $marker ??= bin2hex(random_bytes(8));
+            $html = self::renameTags($html, $pattern, $group, $marker);
         }
 
         // Niente `</body></html>` in fondo: a fine input libxml chiude da sé, e
@@ -204,7 +278,7 @@ final class SafeHtml
         }
 
         if ($marker !== null) {
-            self::restoreRawTextTags($document, $marker, $renames);
+            self::restoreRenamedTags($document, $renames, $marker);
         }
 
         $body = $document->getElementsByTagName('body')->item(0);
@@ -220,34 +294,38 @@ final class SafeHtml
 
     /**
      * Rinomina i tag che le due libxml non leggono nello stesso modo, perché si
-     * leggano come testo semplice (`iframe`, `noembed`, `noframes`) o come tag
-     * normali (`xmp`, `plaintext`) con tutte e due.
+     * leggano come testo semplice (`iframe`, `noembed`, `noframes`), come tag
+     * normali (`xmp`, `plaintext`) o come tag vuoti (`wbr`, `source`…) con
+     * tutte e due.
      *
      * Su `xmp` e `plaintext`, che libxml dalla 2.14 legge come testo semplice,
      * le entità scritte da normalizeInput() restavano come testo e si
      * escapavano di nuovo (`perch&amp;#233;`), e i tag dentro non si leggevano:
      * il nome nuovo li fa leggere come li legge la 2.9. Su `iframe`, `noembed`
      * e `noframes` vale il contrario: il nome di `style` li fa leggere come
-     * testo semplice anche con la 2.9, che li legge come tag normali.
+     * testo semplice anche con la 2.9, che li legge come tag normali. I tag
+     * vuoti di HTML5 prima della 2.14 si aprono invece come contenitori: il
+     * nome nuovo è vuoto anche lì.
      *
      * Il nome nuovo è seguito da `/`, dal segnaposto e dal nome vecchio: libxml
      * fa finire il nome al `/` e legge il resto come un attributo, che si perde
      * con il tag. Dove il tag era testo (dentro `textarea` o `title`, nel
-     * valore di un attributo) restoreRawTextTags() rimette il nome vecchio. Il
+     * valore di un attributo) restoreRenamedTags() rimette il nome vecchio. Il
      * pezzo aggiunto (lettere, cifre, `-` e `/`, senza `--`) non sposta la fine
      * di un attributo, di un commento o di un testo.
      */
-    private static function renameRawTextTags(string $html, string $marker, array $renames): string
+    private static function renameTags(string $html, string $pattern, array $renames, string $marker): string
     {
         return preg_replace_callback(
-            self::rawTextPattern($renames),
+            $pattern,
+            // Gruppo 1: la `/` di una chiusura, vuoto per un'apertura.
             static fn (array $match): string => '<'.$match[1].$renames[strtolower($match[2])].'/'.$marker.$match[2],
             $html
         ) ?? $html;
     }
 
-    /** Toglie quello che renameRawTextTags() ha aggiunto dove il tag era testo. */
-    private static function restoreRawTextTags(DOMDocument $document, string $marker, array $renames): void
+    /** Toglie quello che renameTags() ha aggiunto dove il tag era testo. */
+    private static function restoreRenamedTags(DOMDocument $document, array $renames, string $marker): void
     {
         $inserted = array_unique(array_map(static fn (string $name): string => $name.'/'.$marker, $renames));
         $nodes = (new DOMXPath($document))->query('//text()[contains(., "'.$marker.'")] | //@*[contains(., "'.$marker.'")]');

@@ -46,10 +46,10 @@ function noWrapper(string $html): bool
     return false;
 }
 
-/** I nomi e il segnaposto con cui SafeHtml fa leggere xmp e plaintext non devono finire nel risultato. */
+/** I nomi e il segnaposto con cui SafeHtml fa leggere xmp, plaintext e i tag vuoti di HTML5 non devono finire nel risultato. */
 function noRename(string $html): bool
 {
-    if (preg_match('/listing|wi-plaintext|[0-9a-f]{16}/i', $html) !== 1) {
+    if (preg_match('/listing|wi-plaintext|param|[0-9a-f]{16}/i', $html) !== 1) {
         return true;
     }
 
@@ -855,5 +855,197 @@ foreach ([
         return noRename($out) && str_contains($out, 'perché');
     });
 }
+
+# ---------------------------------------------------------------------------
+# Tag vuoti di HTML5 che libxml prima della 2.14 non conosce
+# ---------------------------------------------------------------------------
+
+# In HTML5 `wbr`, `source`, `track`, `embed`, `bgsound` e `keygen` sono vuoti:
+# quello che li segue non è loro. libxml dalla 2.14 li legge così, prima li
+# apriva come contenitori, e quello che seguiva ci finiva dentro mentre i tag
+# attorno si chiudevano in un altro punto. Il risultato deve essere quello del
+# browser con tutte e due.
+
+$html5Voids = ['wbr', 'source', 'track', 'embed', 'bgsound', 'keygen'];
+
+foreach ($html5Voids as $tag) {
+    foreach ([
+        'dentro un paragrafo' => ["<p>a<{$tag}>b<div>c</div>d</p>", '<p>ab</p>cd'],
+        'con attributi, anche con un > nel valore' => ["<p>a<{$tag} src=\"v.mp4\" type=\"a>b\">c<div>d</div>e</p>", '<p>ac</p>de'],
+        'con spazi prima del >' => ["<p>a<{$tag}   >b<div>c</div>d</p>", '<p>ab</p>cd'],
+        'maiuscolo e chiuso con la barra' => ['<p>a<' . strtoupper($tag) . '/>b<div>c</div>d</p>', '<p>ab</p>cd'],
+        'seguito da una chiusura di body' => ["<p>a<{$tag}>b</body>c<div>d</div>e</p>", '<p>abc</p>de'],
+        'con la sua chiusura, che non chiude niente' => ["<p>a<{$tag}>b</{$tag}>c</p>d", '<p>abc</p>d'],
+        'in una lista' => ["<ul><li>a<{$tag}>b<li>c</ul>d", 'abcd'],
+        'dentro il grassetto' => ["<b>a<{$tag}>b</b>c", '<b>ab</b>c'],
+        'dentro una tabella' => ["<table><{$tag}>a<tr><td>b</td></tr></table>c", 'abc'],
+        'dentro <xmp>, dove è testo' => ["<xmp>a<{$tag}>b</xmp>c", 'abc'],
+        'con un nome più lungo, che non è il suo' => ["<p>a<{$tag}x>b<div>c</div>d</p>", '<p>abcd</p>'],
+        'attaccato a un altro <, che gli entra nel nome' => ["<p>a<{$tag}<x>b<div>c</div>d</p>", '<p>abcd</p>'],
+        'tagliato a fine input' => ["<p>a<{$tag}", '<p>a</p>'],
+    ] as $label => [$input, $expected]) {
+        check("<{$tag}> {$label}", fn () => same(SafeHtml::clean($input), $expected));
+    }
+
+    foreach ([
+        'tra virgolette' => ["<a href=\"https://x.it/<{$tag}>\">l</a>", "<a href=\"https://x.it/&lt;{$tag}&gt;\">l</a>"],
+        'senza virgolette' => ["<a href=https://x.it/<{$tag}>l</a>", "<a href=\"https://x.it/&lt;{$tag}\">l</a>"],
+    ] as $label => [$input, $expected]) {
+        check("<{$tag}> nell'href {$label}: resta com'era", fn () => same(SafeHtml::clean($input), $expected));
+    }
+}
+
+check('i sei tag vuoti di fila in un paragrafo', fn () => same(
+    SafeHtml::clean('<p>a<wbr>b<source>c<track>d<embed>e<bgsound>f<keygen>g<div>h</div>i</p>'),
+    '<p>abcdefg</p>hi'
+));
+
+# Dentro textarea e title libxml dalla 2.14 legge anche i tag come testo e la
+# 2.9 come tag: il risultato cambia con la versione, ma non deve restare
+# traccia del nome con cui SafeHtml fa leggere i tag vuoti.
+
+foreach ($html5Voids as $tag) {
+    foreach ([
+        'textarea' => "<textarea>perché<{$tag}>x</textarea>",
+        'title' => "<title>perché<{$tag}>x</title><p>y</p>",
+    ] as $label => $input) {
+        check("<{$tag}> dentro {$label}: il testo resta, senza tracce della rinomina", function () use ($input) {
+            $out = SafeHtml::clean($input);
+
+            return noRename($out) && str_contains($out, 'perché');
+        });
+    }
+}
+
+# ---------------------------------------------------------------------------
+# A capo
+# ---------------------------------------------------------------------------
+
+# Come nella preelaborazione dell'input di HTML5, ogni \r\n e ogni \r isolato
+# diventano \n. libxml 2.15 lo fa da sé, la 2.9 tiene i \r: il risultato deve
+# essere lo stesso con ogni libxml.
+
+foreach ([
+    '\r\n in un paragrafo diventa \n' => ["<p>a\r\nb</p>", "<p>a\nb</p>"],
+    '\r isolato diventa \n' => ["a\rb", "a\nb"],
+    '\r a fine paragrafo diventa \n' => ["<p>a\r</p>", "<p>a\n</p>"],
+    '\r\n tra due paragrafi diventa \n' => ["<p>a</p>\r\n<p>b</p>", "<p>a</p>\n<p>b</p>"],
+    '\r\n\r\n sono due a capo' => ["a\r\n\r\nb", "a\n\nb"],
+    '\r\r\n sono due a capo' => ["a\r\r\nb", "a\n\nb"],
+    '\n\r sono due a capo' => ["a\n\rb", "a\n\nb"],
+] as $label => [$input, $expected]) {
+    check($label, fn () => same(SafeHtml::clean($input), $expected));
+}
+
+# Anche dove libxml legge il contenuto in modo speciale.
+
+foreach (['xmp', 'listing', 'textarea', 'title', 'pre'] as $tag) {
+    foreach (['\r\n' => "\r\n", '\r' => "\r"] as $label => $newline) {
+        check("{$label} dentro <{$tag}> diventa \\n", fn () => same(
+            SafeHtml::clean("a<{$tag}>b{$newline}c</{$tag}>d"),
+            "ab\ncd"
+        ));
+    }
+}
+
+check('\r\n dentro <plaintext> diventa \n', fn () => same(SafeHtml::clean("a<plaintext>b\r\nc"), "ab\nc"));
+
+# E nel valore degli attributi.
+
+foreach (['\r' => "\r", '\r\n' => "\r\n"] as $label => $newline) {
+    check("{$label} nell'href diventa \\n", fn () => same(
+        SafeHtml::clean("<a href=\"https://x.it/a{$newline}b\">l</a>"),
+        "<a href=\"https://x.it/a\nb\">l</a>"
+    ));
+}
+
+check('\r nell\'href senza virgolette chiude il valore, come \n', fn () => same(
+    SafeHtml::clean("<a href=https://x.it/a\rb>l</a>"),
+    '<a href="https://x.it/a">l</a>'
+));
+
+foreach ([
+    '\r nello schema' => "java\rscript:alert(1)",
+    '\r\n nello schema' => "java\r\nscript:alert(1)",
+    '\r\n prima dello schema' => "\r\njavascript:alert(1)",
+] as $label => $href) {
+    check("javascript: con {$label}: il link perde il tag", function () use ($href) {
+        $out = SafeHtml::clean('<a href="' . $href . '">x</a>');
+
+        return same($out, 'x') && inert($out);
+    });
+}
+
+# Come in HTML5, gli a capo si normalizzano prima di leggere il resto: un \r e
+# un \n separati da un carattere di controllo o da un </body>, che si tolgono,
+# restano due a capo come in un browser.
+
+check('\r e \n separati da un carattere di controllo: due a capo', fn () => same(
+    SafeHtml::clean("a\r\x01\nb"),
+    "a\n\nb"
+));
+
+check('\r e \n separati da </body>: due a capo', fn () => same(
+    SafeHtml::clean("a\r</body>\nb"),
+    "a\n\nb"
+));
+
+# Dentro un tag un a capo finisce il nome come uno spazio: le chiusure di body e
+# html si tolgono, xmp e plaintext si leggono come gli altri tag.
+
+foreach ([
+    '</body\r>' => ["<p>a</p></body\r><p>b</p>", '<p>a</p><p>b</p>'],
+    '</html\r\n>' => ["<p>a</p></html\r\n><p>b</p>", '<p>a</p><p>b</p>'],
+    '<xmp\r>' => ["<xmp\r>perché</xmp>", 'perché'],
+    '</xmp\r>' => ["<xmp>a</xmp\r>b", 'ab'],
+    '<plaintext\r\n>' => ["<plaintext\r\n>perché", 'perché'],
+] as $label => [$input, $expected]) {
+    check("{$label}: si legge come con uno spazio", function () use ($input, $expected) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, $expected) && noWrapper($out) && noRename($out);
+    });
+}
+
+# Un &#13; mette un \r nel documento. Scritto così com'è, un browser lo
+# leggerebbe come \n e una seconda pulizia lo cambierebbe: esce come \n, e con
+# un \n subito dopo fa un solo a capo, come \r\n.
+
+foreach ([
+    'nel testo' => ['<p>a&#13;b</p>', "<p>a\nb</p>"],
+    'in esadecimale' => ['<p>a&#x0D;b</p>', "<p>a\nb</p>"],
+    'seguito da &#10;' => ['<p>a&#13;&#10;b</p>', "<p>a\nb</p>"],
+    'seguito da \n' => ["<p>a&#13;\nb</p>", "<p>a\nb</p>"],
+    'dentro <textarea>' => ['<textarea>a&#13;b</textarea>', "a\nb"],
+    'dentro <xmp>' => ['<xmp>a&#13;b</xmp>', "a\nb"],
+    'nell\'href' => ['<a href="https://x.it/a&#13;b">l</a>', "<a href=\"https://x.it/a\nb\">l</a>"],
+] as $label => [$input, $expected]) {
+    check("&#13; {$label}: esce come \\n", fn () => same(SafeHtml::clean($input), $expected));
+}
+
+foreach ([
+    '\r\n' => "<p>\r\n</p>",
+    '&nbsp; e \r' => "<p>&nbsp;\r</p>",
+    '&#13;' => '<p>&#13;</p>',
+] as $label => $input) {
+    check("paragrafo con solo {$label}: vuoto per l'editor", fn () => same(SafeHtml::clean($input), ''));
+}
+
+check('pulire due volte un testo con a capo dà lo stesso risultato', function () {
+    foreach ([
+        "<p>a\r\nb</p>\r<p>c</p>",
+        '<p>a&#13;b&#13;&#10;c</p>',
+        '<a href="https://x.it/a&#13;b">l</a>',
+        "<textarea>a\rb&#13;c</textarea>",
+    ] as $input) {
+        $once = SafeHtml::clean($input);
+
+        if (!same(SafeHtml::clean($once), $once)) {
+            return false;
+        }
+    }
+
+    return true;
+});
 
 summary();

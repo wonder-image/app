@@ -136,8 +136,10 @@ whitelist:
   perde il tag e tiene il testo;
 - gli altri tag si tolgono tenendo il testo; `script`, `style`, `iframe`,
   `object`, `template`, `noscript`, `svg`, `math`, `noembed` e `noframes`
-  spariscono con tutto il contenuto; i commenti si tolgono. `embed` è vuoto
-  come in HTML5: il tag sparisce e il testo che lo segue resta;
+  spariscono con tutto il contenuto; i commenti si tolgono. I tag vuoti di
+  HTML5 (`wbr`, `source`, `track`, `embed`, `bgsound`, `keygen`) restano vuoti:
+  il tag sparisce, quello che lo segue non è suo e i tag attorno si chiudono
+  dove li chiude il browser (`<p>a<wbr>b<div>c</div>d</p>` dà `<p>ab</p>cd`);
 - di `script`, `style`, `iframe`, `noembed` e `noframes` è contenuto tutto
   quello che sta fino alla loro chiusura, come in HTML5: in
   `<p>a<iframe>b</p>c` il paragrafo si chiude ma `b</p>c` è dentro l'iframe, e
@@ -152,6 +154,9 @@ whitelist:
   dentro `textarea` e `xmp`, e il testo che li segue resta: un import con un
   documento intero o con frammenti che li contengono non perde il seguito;
 - l'UTF-8 resta com'è (`perché`, `€`, emoji), `&nbsp;` resta `&nbsp;`;
+- gli a capo escono come `\n` con ogni versione di libxml: `\r\n` e `\r`
+  diventano `\n`, come quando un browser legge l'HTML, e anche `&#13;` esce
+  come `\n`;
 - un editor vuoto (`<p><br></p>`, solo spazi o `&nbsp;`) diventa `''`.
 
 La pulizia gira su ogni strada di scrittura: `Model::create()`/`update()` (il
