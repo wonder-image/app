@@ -79,7 +79,7 @@ attività e non inserire il token `@system` nel comando CLI. Se esistono vecchi
 cron dedicati, sostituiscili dopo aver verificato le attività corrispondenti
 nel nuovo scheduler, evitando esecuzioni duplicate.
 
-Controlla **Backend → Attività pianificate → Riepilogo** per verificare
+Controlla **Backend → Dev → Riepilogo** per verificare
 l'ultimo contatto ricevuto. Per definire le attività del sito e dei moduli,
 vedi [Cron job da codice](../piattaforma/cron-job.md).
 
