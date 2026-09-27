@@ -91,3 +91,14 @@
   numerico (`?month=9&year=2026`), quindi i vecchi link con il nome inglese
   (`?month=September`) mostrano il periodo predefinito; i filtri personalizzati
   a più valori restano nei link invece di diventare "Array".
+- `filterDate()` globale di `app/function/backend/filter.php` (legacy): chiuse
+  la stessa SQL injection e la stessa XSS di `FilterDate`, riusandone
+  `buildCondition()` e i validatori `parseDate()` e `parseInteger()`, ora
+  pubblici. Nella query entrano solo date gg/mm/aaaa valide (con un solo
+  estremo valido la condizione diventa `>=` o `<=`), `wi-month` e `wi-year`
+  solo come interi, e link dei mesi, campi data e campi nascosti del form
+  (chiavi comprese) sono escapati. I link dei mesi usano il mese numerico
+  (`?wi-month=9&wi-year=2026`), quindi i vecchi link con il nome inglese
+  (`?wi-month=September&wi-year=2026`) mostrano l'anno intero; i parametri a
+  più valori restano nei link invece di diventare "Array". La funzione è
+  deprecata: per le pagine nuove si usa `Table::filterDate()`.

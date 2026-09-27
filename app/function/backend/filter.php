@@ -75,6 +75,9 @@
 
     }
 
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Table::filterDate(), che passa da Wonder\Backend\Filter\FilterDate.
+     */
     function filterDate() {
 
         global $FILTER_COLUMN;
@@ -93,41 +96,29 @@
         $DAYS = isset($HOW_MANY_DAYS) ? $HOW_MANY_DAYS : 30;
         $COLUMN = isset($FILTER_COLUMN) ? $FILTER_COLUMN : 'creation';
 
-        $from = isset($_GET['wi-from']) ? $_GET['wi-from'] : '';
-        $to = isset($_GET['wi-to']) ? $_GET['wi-to'] : '';
-        $YEAR = isset($_GET['wi-year']) ? $_GET['wi-year'] : '';
-        $MONTH = isset($_GET['wi-month']) ? $_GET['wi-month'] : '';
+        # Valori del GET validati come in FilterDate: quelli non validi valgono come assenti
+        $from = \Wonder\Backend\Filter\FilterDate::parseDate($_GET['wi-from'] ?? null)?->format('d/m/Y') ?? '';
+        $to = \Wonder\Backend\Filter\FilterDate::parseDate($_GET['wi-to'] ?? null)?->format('d/m/Y') ?? '';
+        $YEAR = \Wonder\Backend\Filter\FilterDate::parseInteger($_GET['wi-year'] ?? null, \Wonder\Backend\Filter\FilterDate::MIN_YEAR, \Wonder\Backend\Filter\FilterDate::MAX_YEAR);
+        $MONTH = \Wonder\Backend\Filter\FilterDate::parseInteger($_GET['wi-month'] ?? null, 1, 12);
 
         $QUERY_STRING = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : "";
 
+        # Gli altri parametri restano nei link dei mesi e nei campi nascosti del form
         $URL_QUERY = [];
         parse_str($QUERY_STRING, $URL_QUERY);
-        
+        unset($URL_QUERY['wi-from'], $URL_QUERY['wi-to'], $URL_QUERY['wi-year'], $URL_QUERY['wi-month'], $URL_QUERY['wi-limit']);
+
         $QUERY_INPUT = "";
-        $QUERY_URL = "";
 
-        $QUERY_DATE = [ 'wi-from', 'wi-to', 'wi-year', 'wi-month' ];
+        foreach (explode('&', http_build_query($URL_QUERY, '', '&')) as $PAIR) {
 
-        foreach ($URL_QUERY as $key => $value) {
-            if (!in_array($key, $QUERY_DATE) && $key != 'wi-limit') {
+            if ($PAIR === '') { continue; }
 
-                if (is_array($value)) {
+            [ $key, $value ] = explode('=', $PAIR, 2);
 
-                    $key .= '[]';
+            $QUERY_INPUT .= "<input type='hidden' name='".htmlspecialchars(urldecode($key), ENT_QUOTES, 'UTF-8')."' value='".htmlspecialchars(urldecode($value), ENT_QUOTES, 'UTF-8')."'>";
 
-                    foreach ($value as $v) { 
-                        $QUERY_INPUT .= "<input type='hidden' name='$key' value='$v'>"; 
-                        $QUERY_URL .= "&$key=$v";
-                    }
-
-                } else {
-
-                    $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
-                    $QUERY_URL .= "&$key=$value";
-    
-                }
-                
-            }
         }
 
         # Array bottoni
@@ -157,7 +148,11 @@
 
                 $mese = translateDate("01-$month-$year", 'month');
 
-                if (isset($_GET['wi-month']) && isset($_GET['wi-year']) && $month == $_GET['wi-month'] && $year == $_GET['wi-year']) {
+                # Nel link il mese e' numerico: il nome inglese non passerebbe la validazione
+                $monthNumber = (int) date("n", $lastDate);
+                $href = htmlspecialchars('?'.http_build_query([ 'wi-month' => $monthNumber, 'wi-year' => (int) $year ] + $URL_QUERY, '', '&'), ENT_QUOTES, 'UTF-8');
+
+                if ($monthNumber === $MONTH && (int) $year === $YEAR) {
                     $outline = "";
                     $active = "active";
                 }else{
@@ -166,9 +161,9 @@
                 }
 
                 if ($im < 5) {
-                    $BUTTONS_MONTH .= "<a href='?wi-month=$month&wi-year=$year$QUERY_URL' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
+                    $BUTTONS_MONTH .= "<a href='$href' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
                 } else {
-                    $OTHER_BUTTONS_MONTH .= "<a href='?wi-month=$month&wi-year=$year$QUERY_URL' class='dropdown-item $active'>$mese $year</a>";
+                    $OTHER_BUTTONS_MONTH .= "<a href='$href' class='dropdown-item $active'>$mese $year</a>";
                 }
                 
                 $im++;
@@ -185,7 +180,9 @@
                 $year = $last;
                 array_push($ARRAY_YEAR, $year);
 
-                if (isset($_GET['wi-year']) && $year == $_GET['wi-year'] && empty($_GET['wi-month'])) {
+                $href = htmlspecialchars('?'.http_build_query([ 'wi-year' => (int) $year ] + $URL_QUERY, '', '&'), ENT_QUOTES, 'UTF-8');
+
+                if ((int) $year === $YEAR && $MONTH === null) {
                     $outline = "";
                     $active = "active";
                 } else {
@@ -194,9 +191,9 @@
                 }
 
                 if ($iy < 5) {
-                    $BUTTONS_YEAR .= "<a href='?wi-year=$year$QUERY_URL' class='btn btn$outline-dark btn-sm col'' tabindex='-1' role='button'> $year </a>";
+                    $BUTTONS_YEAR .= "<a href='$href' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $year </a>";
                 } else {
-                    $OTHER_BUTTONS_YEAR .= "<a href='?wi-year=$year$QUERY_URL' class='dropdown-item $active'>$year</a>";
+                    $OTHER_BUTTONS_YEAR .= "<a href='$href' class='dropdown-item $active'>$year</a>";
                 }
 
                 $iy++;
@@ -236,7 +233,7 @@
 
         # Filtro
 
-            if (empty($MONTH) && !empty($YEAR)) {
+            if ($MONTH === null && $YEAR !== null) {
 
                 $from = '01/01/'.$YEAR;
                 $to = '31/12/'.$YEAR;
@@ -245,13 +242,13 @@
 
             }
 
-            if (!empty($MONTH) && !empty($YEAR)) {
+            if ($MONTH !== null && $YEAR !== null) {
 
-                $date = '1 '.$MONTH.' '.$YEAR;
-                $from = date('01/m/Y', strtotime($date));
-                $to = date('t/m/Y', strtotime($date));
+                $date = mktime(0, 0, 0, $MONTH, 1, $YEAR);
+                $from = date('01/m/Y', $date);
+                $to = date('t/m/Y', $date);
 
-                $mese = translateDate($MONTH, 'month');
+                $mese = translateDate(date('Y-m-d', $date), 'month');
                 $TITLE = ucwords($TEXT->titleP)." di $mese ".$YEAR;
 
             }
@@ -271,14 +268,22 @@
 
             }
 
-            $TITLE = empty($TITLE) ? ucwords($TEXT->titleP)." dal $from al $to" : $TITLE;
+            if (empty($TITLE)) {
+                if ($from !== '' && $to !== '') {
+                    $TITLE = ucwords($TEXT->titleP)." dal $from al $to";
+                } else if ($from !== '') {
+                    $TITLE = ucwords($TEXT->titleP)." dal $from";
+                } else {
+                    $TITLE = ucwords($TEXT->titleP)." fino al $to";
+                }
+            }
 
-            list($day,$month,$year) = explode("/", $from);
-            $SQL_from = "$year-$month-$day";
-            list($day,$month,$year) = explode("/", $to);
-            $SQL_to = "$year-$month-$day";
+            # Con un solo estremo valido la condizione diventa >= o <=
+            $CONDITION = \Wonder\Backend\Filter\FilterDate::buildCondition($COLUMN, $from, $to);
 
-            $QUERY_ALL .= "AND `$COLUMN` BETWEEN '$SQL_from 00:00:00' AND '$SQL_to 23:59:59' ";
+            if ($CONDITION !== '') {
+                $QUERY_ALL .= "AND ".$CONDITION;
+            }
 
             $filter = filterCustom();
 
@@ -313,15 +318,18 @@
         $RETURN->array->month = $ARRAY_MONTH;
         $RETURN->array->year = $ARRAY_YEAR;
 
+        $FROM_VALUE = htmlspecialchars($from, ENT_QUOTES, 'UTF-8');
+        $TO_VALUE = htmlspecialchars($to, ENT_QUOTES, 'UTF-8');
+
         $RETURN->html = "
         <div class='col-5'>
             <form method='get'>
                 $QUERY_INPUT
                 <div class='input-group input-group-sm input-daterange wi-daterange-filter'>
                     <span class='input-group-text'>Da</span>
-                    <input type='text' class='form-control bg-transparent' name='wi-from' value='$from' readonly>
+                    <input type='text' class='form-control bg-transparent' name='wi-from' value='$FROM_VALUE' readonly>
                     <span class='input-group-text'>A</span>
-                    <input type='text' class='form-control bg-transparent' name='wi-to' value='$to' readonly>
+                    <input type='text' class='form-control bg-transparent' name='wi-to' value='$TO_VALUE' readonly>
                     <button type='submit' class='btn btn-dark'><i class='bi bi-search'></i> Cerca</button>
                 </div>
             </form>

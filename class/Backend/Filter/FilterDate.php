@@ -11,8 +11,8 @@
     class FilterDate {
 
         # Anni ammessi: l'intervallo di DATETIME in MySQL
-            private const MIN_YEAR = 1000;
-            private const MAX_YEAR = 9999;
+            public const MIN_YEAR = 1000;
+            public const MAX_YEAR = 9999;
 
         # Connessione alla tabella
             public $table, $mysqli, $SQL;
@@ -217,7 +217,9 @@
 
         }
 
-        private static function parseDate(mixed $value): ?DateTimeImmutable {
+        # Validazione dei valori del GET, usata anche da filterDate() legacy
+        # (app/function/backend/filter.php): null se il valore va scartato
+        public static function parseDate(mixed $value): ?DateTimeImmutable {
 
             # Forma esatta prima del parsing: createFromFormat accetta 1/2/2026, salta
             # i caratteri non numerici in testa e lancia ValueError sui byte NUL
@@ -243,7 +245,7 @@
 
         }
 
-        private static function parseInteger(mixed $value, int $min, int $max): ?int {
+        public static function parseInteger(mixed $value, int $min, int $max): ?int {
 
             if (!is_string($value) || !preg_match('/\A\d{1,4}\z/', $value)) {
                 return null;

@@ -150,3 +150,25 @@ altrimenti la cella risulta vuota: il renderer (`Field::setValue()`) esegue
 solo funzioni presenti nella whitelist server-side, per evitare che il nome
 funzione arrivato dal POST di `list-table` inneschi una chiamata a funzione
 PHP arbitraria.
+
+## Filtro per data globale deprecato (filter.php)
+
+La funzione globale `filterDate()` di `app/function/backend/filter.php` è
+deprecata. Quando migri una pagina che la chiama, usa il filtro della `Table`,
+che passa da `Wonder\Backend\Filter\FilterDate` (come fa già
+`app/html/backend/list.php`):
+
+```php
+$table->filterDate(true, $HOW_MANY_DAYS ?? 30, $FILTER_COLUMN ?? 'creation');
+```
+
+I parametri GET cambiano nome: `wi-from`, `wi-to`, `wi-month` e `wi-year`
+diventano `date_from`, `date_to`, `month` e `year`.
+
+Finché un sito la chiama, la funzione valida l'input come la classe. Nella
+query entrano solo date gg/mm/aaaa valide, con la condizione di
+`FilterDate::buildCondition()`: con un solo estremo valido diventa `>=` o
+`<=`. `wi-month` e `wi-year` contano solo come interi, e link dei mesi, campi
+data e campi nascosti sono escapati. I link dei mesi usano il mese numerico
+(`?wi-month=9&wi-year=2026`): un vecchio link con il nome inglese
+(`?wi-month=September&wi-year=2026`) mostra l'anno intero.
