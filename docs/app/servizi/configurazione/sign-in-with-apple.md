@@ -1,7 +1,7 @@
 # Sign in with Apple
 
 Questa pagina descrive come ottenere le chiavi per Sign in with Apple da inserire in:
-- Backend > Config > Credentials
+- Backend > Dev > API e servizi > Credenziali
 - campi: `apple_oauth_client_id`, `apple_oauth_team_id`, `apple_oauth_key_id`, `apple_oauth_private_key`, `apple_oauth_redirect_uri`
 
 ## Prerequisiti

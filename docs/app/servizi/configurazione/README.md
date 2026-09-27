@@ -1,6 +1,6 @@
 # Configurazione Servizi
 
-Questa sezione contiene il recupero credenziali e i parametri da inserire nel backend (`Config > Credentials`).
+Questa sezione contiene il recupero credenziali e i parametri da inserire nel backend (`Dev > API e servizi > Credenziali`).
 
 Pagine disponibili:
 - [Google Cloud Platform](google-cloud-platform.md)
