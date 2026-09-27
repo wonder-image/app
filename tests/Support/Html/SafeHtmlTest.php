@@ -46,10 +46,10 @@ function noWrapper(string $html): bool
     return false;
 }
 
-/** I nomi e il segnaposto con cui SafeHtml fa leggere xmp e plaintext non devono finire nel risultato. */
+/** I nomi e il segnaposto con cui SafeHtml fa leggere xmp, plaintext e i tag vuoti di HTML5 non devono finire nel risultato. */
 function noRename(string $html): bool
 {
-    if (preg_match('/listing|wi-plaintext|[0-9a-f]{16}/i', $html) !== 1) {
+    if (preg_match('/listing|wi-plaintext|param|[0-9a-f]{16}/i', $html) !== 1) {
         return true;
     }
 
@@ -718,6 +718,67 @@ foreach ([
 
         return noRename($out) && str_contains($out, 'perché');
     });
+}
+
+# ---------------------------------------------------------------------------
+# Tag vuoti di HTML5 che libxml prima della 2.14 non conosce
+# ---------------------------------------------------------------------------
+
+# In HTML5 `wbr`, `source`, `track`, `embed`, `bgsound` e `keygen` sono vuoti:
+# quello che li segue non è loro. libxml dalla 2.14 li legge così, prima li
+# apriva come contenitori, e quello che seguiva ci finiva dentro mentre i tag
+# attorno si chiudevano in un altro punto. Il risultato deve essere quello del
+# browser con tutte e due.
+
+$html5Voids = ['wbr', 'source', 'track', 'embed', 'bgsound', 'keygen'];
+
+foreach ($html5Voids as $tag) {
+    foreach ([
+        'dentro un paragrafo' => ["<p>a<{$tag}>b<div>c</div>d</p>", '<p>ab</p>cd'],
+        'con attributi, anche con un > nel valore' => ["<p>a<{$tag} src=\"v.mp4\" type=\"a>b\">c<div>d</div>e</p>", '<p>ac</p>de'],
+        'con spazi prima del >' => ["<p>a<{$tag}   >b<div>c</div>d</p>", '<p>ab</p>cd'],
+        'maiuscolo e chiuso con la barra' => ['<p>a<' . strtoupper($tag) . '/>b<div>c</div>d</p>', '<p>ab</p>cd'],
+        'seguito da una chiusura di body' => ["<p>a<{$tag}>b</body>c<div>d</div>e</p>", '<p>abc</p>de'],
+        'con la sua chiusura, che non chiude niente' => ["<p>a<{$tag}>b</{$tag}>c</p>d", '<p>abc</p>d'],
+        'in una lista' => ["<ul><li>a<{$tag}>b<li>c</ul>d", 'abcd'],
+        'dentro il grassetto' => ["<b>a<{$tag}>b</b>c", '<b>ab</b>c'],
+        'dentro una tabella' => ["<table><{$tag}>a<tr><td>b</td></tr></table>c", 'abc'],
+        'dentro <xmp>, dove è testo' => ["<xmp>a<{$tag}>b</xmp>c", 'abc'],
+        'con un nome più lungo, che non è il suo' => ["<p>a<{$tag}x>b<div>c</div>d</p>", '<p>abcd</p>'],
+        'attaccato a un altro <, che gli entra nel nome' => ["<p>a<{$tag}<x>b<div>c</div>d</p>", '<p>abcd</p>'],
+        'tagliato a fine input' => ["<p>a<{$tag}", '<p>a</p>'],
+    ] as $label => [$input, $expected]) {
+        check("<{$tag}> {$label}", fn () => same(SafeHtml::clean($input), $expected));
+    }
+
+    foreach ([
+        'tra virgolette' => ["<a href=\"https://x.it/<{$tag}>\">l</a>", "<a href=\"https://x.it/&lt;{$tag}&gt;\">l</a>"],
+        'senza virgolette' => ["<a href=https://x.it/<{$tag}>l</a>", "<a href=\"https://x.it/&lt;{$tag}\">l</a>"],
+    ] as $label => [$input, $expected]) {
+        check("<{$tag}> nell'href {$label}: resta com'era", fn () => same(SafeHtml::clean($input), $expected));
+    }
+}
+
+check('i sei tag vuoti di fila in un paragrafo', fn () => same(
+    SafeHtml::clean('<p>a<wbr>b<source>c<track>d<embed>e<bgsound>f<keygen>g<div>h</div>i</p>'),
+    '<p>abcdefg</p>hi'
+));
+
+# Dentro textarea e title libxml dalla 2.14 legge anche i tag come testo e la
+# 2.9 come tag: il risultato cambia con la versione, ma non deve restare
+# traccia del nome con cui SafeHtml fa leggere i tag vuoti.
+
+foreach ($html5Voids as $tag) {
+    foreach ([
+        'textarea' => "<textarea>perché<{$tag}>x</textarea>",
+        'title' => "<title>perché<{$tag}>x</title><p>y</p>",
+    ] as $label => $input) {
+        check("<{$tag}> dentro {$label}: il testo resta, senza tracce della rinomina", function () use ($input) {
+            $out = SafeHtml::clean($input);
+
+            return noRename($out) && str_contains($out, 'perché');
+        });
+    }
 }
 
 # ---------------------------------------------------------------------------

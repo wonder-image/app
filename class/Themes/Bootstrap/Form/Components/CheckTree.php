@@ -7,6 +7,12 @@ use Wonder\Themes\Bootstrap\Form\Field;
 /**
  * Renderer Bootstrap di `CheckTree`: card con search bar opzionale e
  * lista `<ul><li>` annidata data-wi-tree per integrazione con jsTree.
+ *
+ * I nodi portano solo l'etichetta. Le caselle che il form posta stanno in
+ * `[data-wi-tree-values]`, fuori dall'albero: jstree ridisegna i nodi dal
+ * loro HTML di partenza e toglie dal DOM i figli dei nodi chiusi, quindi una
+ * casella dentro un nodo perderebbe la spunta o sparirebbe dal salvataggio.
+ * La lib le tiene allineate alle spunte di jstree.
  */
 class CheckTree extends Field
 {
@@ -37,8 +43,10 @@ class CheckTree extends Field
             : '';
 
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
-        $inputHidden = $type === 'checkbox' ? '<input type="hidden" name="'.$this->escape($fieldName).'">' : '';
-        $optionsHtml = $this->renderOptions($options, $fieldName, $value, $attributesStr);
+        $escapedFieldName = $this->escape($fieldName);
+        $inputHidden = $type === 'checkbox' ? '<input type="hidden" name="'.$escapedFieldName.'">' : '';
+        $optionsHtml = $this->renderOptions($options, $value);
+        $valuesHtml = $this->renderValues($options, $escapedFieldName, $value, $attributesStr);
 
         // Di quale risorsa questo albero elenca le righe: chi crea una riga
         // da un altro campo della stessa pagina lo legge per aggiungerla
@@ -60,6 +68,7 @@ class CheckTree extends Field
     <div class="card border mt-1">
         {$bar}
         {$inputHidden}
+        <div class="d-none" data-wi-tree-values="{$escapedFieldName}">{$valuesHtml}</div>
         <div class="card-body overflow-scroll p-2" style="max-height: 300px;" data-wi-tree="{$type}"{$primaryAttr}>
             {$optionsHtml}
         </div>
@@ -68,52 +77,83 @@ class CheckTree extends Field
 HTML;
     }
 
-    private function renderOptions(array $options, string $name, mixed $value, string $attributes): string
+    private function renderOptions(array $options, mixed $value): string
     {
         $html = '<ul>';
 
         foreach ($options as $optionValue => $optionName) {
-            $optionAttribute = trim($attributes);
-            $listAttribute = '';
+            $listAttribute = $this->isSelected($optionValue, $value)
+                ? ' data-jstree=\'{"selected": true }\''
+                : '';
             $childHtml = '';
 
-            if (is_array($value)) {
-                // Le chiavi numeriche delle opzioni PHP le rende intere, i
-                // valori salvati arrivano stringa: si confronta fra stringhe.
-                if (in_array((string) $optionValue, array_map('strval', $value), true)) {
-                    $optionAttribute .= ' checked';
-                    $listAttribute .= ' data-jstree=\'{"selected": true }\'';
-                }
-            } elseif ($value !== null && (string) $optionValue === (string) $value) {
-                $optionAttribute .= ' checked';
-                $listAttribute .= ' data-jstree=\'{"selected": true }\'';
-            }
-
             if (is_array($optionName)) {
-                $filters = is_array($optionName['filter'] ?? null) ? $optionName['filter'] : [];
                 $children = is_array($optionName['child'] ?? null) ? $optionName['child'] : [];
                 $optionName = (string) ($optionName['name'] ?? $optionValue);
 
-                foreach ($filters as $key => $filterValue) {
-                    $optionAttribute .= ' data-'.$this->escape((string) $key).'="'.$this->escape((string) $filterValue).'"';
-                }
-
                 if ($children !== []) {
-                    $childHtml = $this->renderOptions($children, $name, $value, $attributes);
+                    $childHtml = $this->renderOptions($children, $value);
                 }
             }
 
             $escapedValue = $this->escape((string) $optionValue);
-            $escapedName = $this->escape((string) $name);
             $escapedLabel = $this->escape((string) $optionName);
 
-            $html .= "<li id=\"{$escapedValue}\"{$listAttribute}>"
-                ."<input class=\"d-none\" type=\"checkbox\" name=\"{$escapedName}\" value=\"{$escapedValue}\" {$optionAttribute}>"
-                ."{$escapedLabel}{$childHtml}</li>";
+            $html .= "<li id=\"{$escapedValue}\"{$listAttribute}>{$escapedLabel}{$childHtml}</li>";
         }
 
         $html .= '</ul>';
 
         return $html;
+    }
+
+    /**
+     * Una casella per voce, nell'ordine dell'albero: spuntate quelle scelte.
+     */
+    private function renderValues(array $options, string $escapedName, mixed $value, string $attributes, array &$seen = []): string
+    {
+        $html = '';
+
+        foreach ($options as $optionValue => $optionName) {
+            $key = (string) $optionValue;
+            $optionAttribute = trim($attributes);
+            $children = [];
+
+            if ($this->isSelected($optionValue, $value)) {
+                $optionAttribute .= ' checked';
+            }
+
+            if (is_array($optionName)) {
+                $filters = is_array($optionName['filter'] ?? null) ? $optionName['filter'] : [];
+                $children = is_array($optionName['child'] ?? null) ? $optionName['child'] : [];
+
+                foreach ($filters as $filterKey => $filterValue) {
+                    $optionAttribute .= ' data-'.$this->escape((string) $filterKey).'="'.$this->escape((string) $filterValue).'"';
+                }
+            }
+
+            if (!isset($seen[$key])) {
+                $seen[$key] = true;
+                $escapedValue = $this->escape($key);
+                $html .= "<input class=\"d-none\" type=\"checkbox\" name=\"{$escapedName}\" value=\"{$escapedValue}\" {$optionAttribute}>";
+            }
+
+            if ($children !== []) {
+                $html .= $this->renderValues($children, $escapedName, $value, $attributes, $seen);
+            }
+        }
+
+        return $html;
+    }
+
+    private function isSelected(int|string $optionValue, mixed $value): bool
+    {
+        // Le chiavi numeriche delle opzioni PHP le rende intere, i valori
+        // salvati arrivano stringa: si confronta fra stringhe.
+        if (is_array($value)) {
+            return in_array((string) $optionValue, array_map('strval', $value), true);
+        }
+
+        return $value !== null && (string) $optionValue === (string) $value;
     }
 }

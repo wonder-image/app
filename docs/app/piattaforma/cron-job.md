@@ -8,13 +8,13 @@ nel periodo selezionato, senza duplicare gli eventi dei login federati.
 
 ## Pianificazioni dal backend
 
-In **Dev > Pianificazioni** si possono aggiungere attivita da codice, script
-PHP o URL HTTPS. Per PHP inserire un percorso relativo al sito e un argomento
-per riga: il runner non interpreta comandi shell. Per HTTPS scegliere GET
-(parametri nella query) o POST (corpo form) e fornire i parametri come oggetto
-JSON. La verifica TLS resta attiva, i redirect non vengono seguiti e soltanto
-le risposte 2xx sono considerate riuscite. Il token `@system` non viene
-inoltrato automaticamente alle destinazioni custom.
+In **Dev > Automazioni > Pianificazioni** si possono aggiungere attivita da
+codice, script PHP o URL HTTPS. Per PHP inserire un percorso relativo al sito
+e un argomento per riga: il runner non interpreta comandi shell. Per HTTPS
+scegliere GET (parametri nella query) o POST (corpo form) e fornire i
+parametri come oggetto JSON. La verifica TLS resta attiva, i redirect non
+vengono seguiti e soltanto le risposte 2xx sono considerate riuscite. Il token
+`@system` non viene inoltrato automaticamente alle destinazioni custom.
 
 Frequenza, fuso, stato e timeout si configurano nel modulo. Le pianificazioni
 create dal backend sono eliminabili mantenendo lo storico; quelle generate
@@ -116,7 +116,7 @@ anche le pianificazioni gia salvate.
 `schedule()`, `active()` e `withDefaults()` (oppure i corrispondenti metodi
 della classe) definiscono **solo i valori iniziali**. Cambiarli nel codice
 non modifica frequenza, stato o parametri delle pianificazioni esistenti:
-questi si aggiornano in **Backend > Attivita pianificate > Pianificazioni**.
+questi si aggiornano in **Backend > Dev > Automazioni > Pianificazioni**.
 Per esempio, passare da `*/10 * * * *` a `0 3 * * *` nel codice cambia il
 default per nuove installazioni; sul sito gia configurato modificare anche
 la pianificazione nel backend.
