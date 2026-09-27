@@ -111,10 +111,54 @@ final class SafeHtml
      * su 8.2).
      *
      * Senza, libxml 2.9 finisce il testo semplice di `script` e `style` al
-     * primo `</` seguito da una lettera invece che alla loro chiusura, e si
-     * porta via meno testo delle versioni dalla 2.14.
+     * primo `</` seguito da una lettera invece che alla loro chiusura. Se il
+     * tag che nomina è aperto si chiude, e lo script si porta via meno testo
+     * delle versioni dalla 2.14; se non lo è (`if (a </b) {`), la chiusura
+     * si legge fino al primo `>`, anche quello del `</script>` vero, e lo
+     * script si porta via tutto il resto. Con il flag restano due casi: un
+     * nome che comincia con il suo (PREFIXED_NAME_PATTERN) e un `</` all'inizio
+     * del contenuto (RAW_TEXT_START_PATTERN).
      */
     private const PARSE_RECOVER = 1;
+
+    /**
+     * Apertura di `script` o `style` come la legge libxml 2.9, anche quella
+     * scritta da renameTags() (`<style/…`).
+     */
+    private const RAW_TEXT_OPEN_PATTERN = '~<(?:script|style)(?![a-z0-9:_.-])~i';
+
+    /**
+     * Apertura o chiusura di un tag il cui nome comincia con `script` o
+     * `style` e continua (`</scriptx`, `<style-a>`).
+     *
+     * Anche con PARSE_RECOVER, libxml prima della 2.14 finisce il testo
+     * semplice di uno script a un `</` seguito da un nome che comincia con
+     * `script` (di uno style, con `style`). `</scriptx` non lo chiude, ma si
+     * legge fino al primo `>`, anche quello del `</script>` vero, e lo script
+     * si porta via tutto il resto. Con un pezzo davanti al nome resta testo
+     * dello script, come in HTML5. Aperture e chiusure prendono lo stesso
+     * pezzo, quindi fuori da script e style si accoppiano come prima.
+     */
+    private const PREFIXED_NAME_PATTERN = '~<(/?)(?=(?:script|style)[a-z0-9:_.-])~i';
+
+    /**
+     * Un `>` seguito da `</` e da una lettera, `_`, `:` o `.`: dove comincia il
+     * contenuto di uno script o di uno style, una chiusura.
+     *
+     * Anche con PARSE_RECOVER, libxml prima della 2.14 legge come chiusura un
+     * `</` seguito da un nome all'inizio del testo semplice di uno script o di
+     * uno style (`<script></b) …`). Se il tag che nomina è aperto si chiude
+     * con lo script; se non lo è, la chiusura si legge fino al primo `>`,
+     * anche quello del `</script>` vero, e lo script si porta via tutto il
+     * resto. Con un pezzo di testo davanti il contenuto non comincia più con
+     * `</` e arriva fino alla chiusura, come in HTML5. Il pezzo va dopo ogni
+     * `>` così seguito, senza cercare dove finisce l'apertura: altrove finisce
+     * in un testo o nel valore di un attributo, da cui lo toglie
+     * restoreRenamedTags(), o in un commento, che non esce. Un testo in più
+     * non sposta niente: la 2.9 gli apre davanti un paragrafo solo fuori dal
+     * body.
+     */
+    private const RAW_TEXT_START_PATTERN = '~>(?=</[a-z_:.])~i';
 
     /**
      * Tag vuoti in HTML5 che libxml prima della 2.14 non conosce, con il nome
@@ -258,6 +302,15 @@ final class SafeHtml
             $html = self::renameTags($html, $pattern, $group, $marker);
         }
 
+        // Prima della 2.14 il testo semplice di uno script o di uno style
+        // finisce anche dove in HTML5 continua. Dopo le rinomine, perché conta
+        // anche lo `style/…` scritto da renameTags().
+        if ((int) LIBXML_LOADED_VERSION < 21400 && preg_match(self::RAW_TEXT_OPEN_PATTERN, $html) === 1) {
+            $marker ??= bin2hex(random_bytes(8));
+            $html = preg_replace(self::PREFIXED_NAME_PATTERN, '<${1}'.self::prefix($marker), $html) ?? $html;
+            $html = preg_replace(self::RAW_TEXT_START_PATTERN, '>'.self::prefix($marker), $html) ?? $html;
+        }
+
         // Niente `</body></html>` in fondo: a fine input libxml chiude da sé, e
         // un attributo, un `textarea` o un `title` (da libxml 2.14) lasciati
         // aperti se lo mangerebbero come testo.
@@ -324,10 +377,22 @@ final class SafeHtml
         ) ?? $html;
     }
 
-    /** Toglie quello che renameTags() ha aggiunto dove il tag era testo. */
+    /**
+     * Il pezzo che PREFIXED_NAME_PATTERN mette davanti al nome e
+     * RAW_TEXT_START_PATTERN davanti al `</`. Comincia con una lettera, come
+     * un nome di tag per libxml; come quello di renameTags() non sposta la
+     * fine di un attributo, di un commento o di un testo.
+     */
+    private static function prefix(string $marker): string
+    {
+        return 'wi-'.$marker.'-';
+    }
+
+    /** Toglie quello che renameTags() e prefix() hanno aggiunto dove è rimasto: nel testo e negli attributi. */
     private static function restoreRenamedTags(DOMDocument $document, array $renames, string $marker): void
     {
         $inserted = array_unique(array_map(static fn (string $name): string => $name.'/'.$marker, $renames));
+        $inserted[] = self::prefix($marker);
         $nodes = (new DOMXPath($document))->query('//text()[contains(., "'.$marker.'")] | //@*[contains(., "'.$marker.'")]');
 
         foreach ($nodes ?: [] as $node) {

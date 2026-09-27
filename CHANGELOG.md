@@ -179,3 +179,14 @@
   nome: `</style>`, `</iframe>`, `</noembed>` e `</noframes>` finiscono il
   contenuto di qualunque di questi quattro tag, anche prima di quanto direbbe
   HTML5, e quello che segue resta come testo escapato.
+- SafeHtml: con libxml prima della 2.14, anche con `HTML_PARSE_RECOVER`, uno
+  `script` o uno `style` finiva prima della sua chiusura in due casi: un `</`
+  seguito da un nome all'inizio del contenuto (`<script></b)`) e la chiusura
+  di un tag il cui nome comincia con il suo (`</scriptx`, `</style-a`). Lo
+  stesso per `iframe`, `noembed` e `noframes`, che si leggono con il nome di
+  `style`. Se il tag di quella chiusura era aperto, il contenuto usciva come
+  testo (`<p>a<script></p>b</script>c</p><p>d</p>` dava `<p>a</p>bc<p>d</p>`);
+  se non lo era, la chiusura si leggeva fino al primo `>`, quello del
+  `</script>` vero compreso, e lo script si portava via tutto il testo che
+  seguiva (`<script></b)</script><p>d</p>` dava una stringa vuota). Ora il
+  contenuto arriva fino alla sua chiusura con ogni libxml, come in HTML5.
