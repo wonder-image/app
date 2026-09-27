@@ -79,6 +79,9 @@ Route::area('backend')
                     ->name('index')
                     ->permit([]);
 
+                Route::post('/', $ROOT_APP.'/http/backend/account/index.php')
+                    ->permit([]);
+
                 Route::get('/login/', $ROOT_APP.'/http/backend/account/login.php')
                     ->name('login')
                     ->guarded(false)
