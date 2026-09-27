@@ -20,10 +20,13 @@ use DOMXPath;
  *
  * Gli altri tag si tolgono tenendo il contenuto, tranne quelli che portano
  * codice o markup estraneo (`script`, `style`, `iframe`, `svg`, `math`…), che
- * spariscono insieme al contenuto. I commenti si tolgono sempre. `</body>` e
- * `</html>` non chiudono niente: quello che li segue resta. I tag vuoti di
- * HTML5 (`wbr`, `source`, `embed`…) restano vuoti: quello che li segue non è
- * loro e si chiude dove si chiude nel browser.
+ * spariscono insieme al contenuto. Di `script`, `style`, `iframe`, `noembed` e
+ * `noframes` è contenuto tutto quello che sta fino alla loro chiusura, come in
+ * HTML5: anche la chiusura di un tag che li contiene, e il testo che la segue.
+ * I commenti si tolgono sempre. `</body>` e `</html>` non chiudono niente:
+ * quello che li segue resta. I tag vuoti di HTML5 (`wbr`, `source`, `embed`…)
+ * restano vuoti: quello che li segue non è loro e si chiude dove si chiude nel
+ * browser.
  *
  * Il risultato è riscritto da zero a partire dall'albero del documento, non
  * ritoccato sulla stringa: quello che esce è solo quello che il serializzatore
@@ -83,8 +86,35 @@ final class SafeHtml
      */
     private const RAW_TEXT_RENAMES = ['xmp' => 'listing', 'plaintext' => 'wi-plaintext'];
 
-    /** Apertura o chiusura di `xmp` o `plaintext`: il nome finisce dove lo fa finire libxml. */
-    private const RAW_TEXT_PATTERN = '~<(/?)(xmp|plaintext)(?=[\t\n\f\r />])~i';
+    /**
+     * Tag di DROPPED che l'HTML5 legge come testo semplice, con il nome che
+     * prendono per la lettura.
+     *
+     * libxml legge come testo semplice solo `script` e `style`: `iframe`,
+     * `noembed` e `noframes` sono testo dalla 2.14 e tag normali prima, e la
+     * quantità di testo che si portano via cambia con la versione. Rinominati
+     * in `style`, li legge come testo semplice con tutte e due, e `style` è già
+     * in DROPPED: sparisce con il contenuto senza rimettere il nome vecchio.
+     *
+     * Il nome è condiviso, e le chiusure si accoppiano per nome: `</style>`,
+     * `</iframe>`, `</noembed>` e `</noframes>` finiscono il testo semplice di
+     * qualunque di questi quattro tag, anche prima della fine che direbbe
+     * HTML5. Il tag sparisce comunque con il contenuto e quello che resta è
+     * testo escapato. `script` tiene il suo nome: una loro chiusura scritta in
+     * uno script (`document.write('…</iframe>')`) non lo finisce prima.
+     */
+    private const DROPPED_RAW_TEXT_RENAMES = ['iframe' => 'style', 'noembed' => 'style', 'noframes' => 'style'];
+
+    /**
+     * `HTML_PARSE_RECOVER` per loadHTML(), scritto a mano perché
+     * `LIBXML_RECOVER` non c'è su tutte le versioni di PHP supportate (manca
+     * su 8.2).
+     *
+     * Senza, libxml 2.9 finisce il testo semplice di `script` e `style` al
+     * primo `</` seguito da una lettera invece che alla loro chiusura, e si
+     * porta via meno testo delle versioni dalla 2.14.
+     */
+    private const PARSE_RECOVER = 1;
 
     /**
      * Tag vuoti in HTML5 che libxml prima della 2.14 non conosce, con il nome
@@ -190,22 +220,42 @@ final class SafeHtml
     {
         $document = new DOMDocument('1.0', 'UTF-8');
 
-        // Ogni lettura ha il suo pezzo da riscrivere, e sono due: dalla 2.14
-        // `xmp` e `plaintext` sono testo semplice, prima mancano i tag vuoti di
-        // HTML5. Conta la libxml caricata: LIBXML_VERSION è quella con cui è
-        // stato compilato PHP. La 2.9 legge già `xmp` e `plaintext` come gli
-        // altri tag, e rinominarli lì non si potrebbe: in una chiusura non
-        // salta quello che segue il nome (`</listing/…>` lascerebbe `/…>` come
-        // testo).
-        [$pattern, $renames] = (int) LIBXML_LOADED_VERSION >= 21400
-            ? [self::RAW_TEXT_PATTERN, self::RAW_TEXT_RENAMES]
-            : [self::UNKNOWN_VOID_PATTERN, self::UNKNOWN_VOID_RENAMES];
+        // `iframe`, `noembed` e `noframes` si rinominano con ogni libxml: il
+        // testo semplice che si portano via cambia con la versione. Il resto
+        // dipende dalla libxml caricata (LIBXML_VERSION è quella con cui è
+        // stato compilato PHP): dalla 2.14 si aggiungono `xmp` e `plaintext`,
+        // che lì sono testo semplice, prima i tag vuoti di HTML5, che lì si
+        // aprono come contenitori. `xmp` e `plaintext` con la 2.9 non si
+        // rinominano: li legge già come gli altri tag, e in una loro chiusura
+        // non salta quello che segue il nome (`</listing/…>` lascerebbe `/…>`
+        // come testo).
+        $renames = self::DROPPED_RAW_TEXT_RENAMES;
+        $passes = [];
+
+        if ((int) LIBXML_LOADED_VERSION >= 21400) {
+            $renames += self::RAW_TEXT_RENAMES;
+        }
+
+        $passes[] = [self::rawTextPattern($renames), $renames];
+
+        // I tag vuoti stanno in un passaggio a sé: di loro si rinomina solo
+        // l'apertura, e il segnaposto che finisce in un nome già riscritto non
+        // è più `<` più il nome vecchio, quindi nessun passaggio tocca quello
+        // che ha fatto l'altro.
+        if ((int) LIBXML_LOADED_VERSION < 21400) {
+            $passes[] = [self::UNKNOWN_VOID_PATTERN, self::UNKNOWN_VOID_RENAMES];
+            $renames += self::UNKNOWN_VOID_RENAMES;
+        }
 
         $marker = null;
 
-        if (preg_match($pattern, $html) === 1) {
-            $marker = bin2hex(random_bytes(8));
-            $html = self::renameTags($html, $pattern, $renames, $marker);
+        foreach ($passes as [$pattern, $group]) {
+            if (preg_match($pattern, $html) !== 1) {
+                continue;
+            }
+
+            $marker ??= bin2hex(random_bytes(8));
+            $html = self::renameTags($html, $pattern, $group, $marker);
         }
 
         // Niente `</body></html>` in fondo: a fine input libxml chiude da sé, e
@@ -217,7 +267,7 @@ final class SafeHtml
         $previous = libxml_use_internal_errors(true);
 
         try {
-            $loaded = $document->loadHTML($wrapped, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+            $loaded = $document->loadHTML($wrapped, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING | self::PARSE_RECOVER);
         } finally {
             libxml_clear_errors();
             libxml_use_internal_errors($previous);
@@ -236,14 +286,26 @@ final class SafeHtml
         return $body instanceof DOMElement ? $body : null;
     }
 
+    /** Apertura o chiusura di uno dei tag da rinominare: il nome finisce dove lo fa finire libxml. */
+    private static function rawTextPattern(array $renames): string
+    {
+        return '~<(/?)('.implode('|', array_keys($renames)).')(?=[\t\n\f\r />])~i';
+    }
+
     /**
-     * Rinomina i tag che la libxml caricata legge a modo suo, così che si
-     * leggano come nell'altra.
+     * Rinomina i tag che le due libxml non leggono nello stesso modo, perché si
+     * leggano come testo semplice (`iframe`, `noembed`, `noframes`), come tag
+     * normali (`xmp`, `plaintext`) o come tag vuoti (`wbr`, `source`…) con
+     * tutte e due.
      *
-     * `xmp` e `plaintext` dalla 2.14 sono testo semplice: le entità scritte da
-     * normalizeInput() resterebbero testo e si escaperebbero di nuovo
-     * (`perch&amp;#233;`), e i tag dentro non si leggerebbero. I tag vuoti di
-     * HTML5 prima della 2.14 si aprono invece come contenitori.
+     * Su `xmp` e `plaintext`, che libxml dalla 2.14 legge come testo semplice,
+     * le entità scritte da normalizeInput() restavano come testo e si
+     * escapavano di nuovo (`perch&amp;#233;`), e i tag dentro non si leggevano:
+     * il nome nuovo li fa leggere come li legge la 2.9. Su `iframe`, `noembed`
+     * e `noframes` vale il contrario: il nome di `style` li fa leggere come
+     * testo semplice anche con la 2.9, che li legge come tag normali. I tag
+     * vuoti di HTML5 prima della 2.14 si aprono invece come contenitori: il
+     * nome nuovo è vuoto anche lì.
      *
      * Il nome nuovo è seguito da `/`, dal segnaposto e dal nome vecchio: libxml
      * fa finire il nome al `/` e legge il resto come un attributo, che si perde

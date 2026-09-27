@@ -596,6 +596,142 @@ check('chiusura con una coda enorme di attributi: niente errori, il testo attorn
 
     return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
 });
+# ---------------------------------------------------------------------------
+# Contenuto dei tag che spariscono con il contenuto
+# ---------------------------------------------------------------------------
+
+# HTML5 legge il contenuto di script, style, iframe, noembed e noframes come
+# testo semplice fino alla loro chiusura: quello che c'è in mezzo è loro, anche
+# la chiusura di un tag che li contiene. libxml lo fa solo per script e style,
+# e la 2.9 fino al primo </ seguito da una lettera invece che fino alla loro
+# chiusura. Spariscono con il contenuto, ma quanto testo si portino via cambia:
+# il risultato deve essere quello di HTML5 con ogni libxml.
+
+foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
+    check("<{$tag}> non chiuso in un paragrafo: si porta via il testo che segue", function () use ($tag) {
+        $out = SafeHtml::clean("<p>a<{$tag}>b</p>c");
+
+        return same($out, '<p>a</p>') && inert($out) && noRename($out);
+    });
+
+    check("chiusura del tag che contiene <{$tag}>: è contenuto suo", function () use ($tag) {
+        $out = SafeHtml::clean("<div>a<{$tag}>b</div>c</{$tag}>d");
+
+        return same($out, 'ad') && inert($out) && noRename($out);
+    });
+
+    check("chiusura di un li che contiene <{$tag}>: è contenuto suo", function () use ($tag) {
+        $out = SafeHtml::clean("<ul><li>a<{$tag}>b</li>c</{$tag}>d</ul>");
+
+        return same($out, 'ad') && inert($out) && noRename($out);
+    });
+}
+
+# La chiusura di un altro tag dello stesso gruppo non finisce il testo semplice:
+# conta solo la propria.
+
+check('</iframe> dentro uno script: lo script sparisce intero', fn () => same(
+    SafeHtml::clean('<script>a</iframe>b</script>c'),
+    'c'
+));
+
+check('</script> dentro un iframe: l\'iframe sparisce intero', fn () => same(
+    SafeHtml::clean('<iframe>a</script>b</iframe>c'),
+    'c'
+));
+
+check('<iframe> dentro <iframe>: chiude la prima chiusura', fn () => same(
+    SafeHtml::clean('<iframe>a<iframe>b</iframe>c</iframe>d'),
+    'cd'
+));
+
+# Eccezione dichiarata: per leggere iframe, noembed e noframes come testo
+# semplice anche con la 2.9 SafeHtml li fa leggere con il nome di style, l'unico
+# insieme a script che entra in quella lettura con tutte le libxml. Il nome è
+# quindi condiviso da style, iframe, noembed e noframes, e le chiusure si
+# accoppiano per nome: </style>, </iframe>, </noembed> e </noframes> finiscono
+# il testo semplice di qualunque dei quattro, anche prima di quanto direbbe
+# HTML5. Il tag sparisce comunque con il contenuto e quello che resta è testo
+# escapato.
+
+check('</style> dentro un iframe: l\'iframe sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<iframe>a</style>b</iframe>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+check('</iframe> dentro un noembed: il noembed sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<noembed>a</iframe>b</noembed>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+check('</iframe> dentro uno style: lo style sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<style>a</iframe>b</style>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+# noscript non è in questo gruppo: con lo scripting spento HTML5 lo legge come
+# gli altri tag, come fa libxml.
+
+check('<noscript> non chiuso in un paragrafo: il testo che segue resta', fn () => same(
+    SafeHtml::clean('<p>a<noscript>b</p>c'),
+    '<p>a</p>c'
+));
+
+check('chiusura del tag che contiene <noscript>: il testo dopo resta', fn () => same(
+    SafeHtml::clean('<div>a<noscript>b</div>c</noscript>d'),
+    'acd'
+));
+
+# Il nome con cui si fanno leggere non cambia dove il tag comincia e dove
+# finisce.
+
+foreach ([
+    'maiuscolo' => '<div>a<IFRAME>b</div>c</IFRAME>d',
+    'con un attributo' => '<div>a<iframe src="https://x.it/">b</div>c</iframe>d',
+    'con srcdoc' => '<div>a<iframe srcdoc="<b>x</b>">b</div>c</iframe>d',
+    'senza > nella chiusura' => '<div>a<noembed>b</div>c</noembed d="1">d',
+] as $label => $input) {
+    check("<iframe> o <noembed> {$label}: si porta via il testo fino alla sua chiusura", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, 'ad') && inert($out) && noRename($out);
+    });
+}
+
+check('<iframe/> chiuso con la barra: resta vuoto, il testo dopo resta', fn () => same(
+    SafeHtml::clean('<p>a<iframe/>b</p>c'),
+    '<p>ab</p>c'
+));
+
+# Dove il tag resta testo (attributi, textarea, title) non deve restare traccia
+# del nome con cui SafeHtml lo fa leggere.
+
+foreach ([
+    'tra virgolette' => ['<a href="https://x.it/<iframe>">l</a>', '<a href="https://x.it/&lt;iframe&gt;">l</a>'],
+    'maiuscolo' => ['<a href="https://x.it/<NOEMBED>">l</a>', '<a href="https://x.it/&lt;NOEMBED&gt;">l</a>'],
+    'senza virgolette' => ['<a href=https://x.it/<noframes>l</a>', '<a href="https://x.it/&lt;noframes">l</a>'],
+] as $label => [$input, $expected]) {
+    check("iframe, noembed o noframes nell'href {$label}: resta com'era", fn () => same(
+        SafeHtml::clean($input),
+        $expected
+    ));
+}
+
+foreach ([
+    'textarea' => '<textarea>a<iframe>b</iframe>c</textarea>',
+    'title' => '<title>a<noembed>b</noembed>c</title><p>d</p>',
+    'una textarea lunga' => '<textarea>' . str_repeat('perché ', 800) . '<noframes>x</noframes></textarea>',
+] as $label => $input) {
+    check("iframe, noembed o noframes dentro {$label}: senza tracce della rinomina", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return noRename($out) && noWrapper($out) && inert($out);
+    });
+}
+
 
 # ---------------------------------------------------------------------------
 # Contenuto di xmp e plaintext

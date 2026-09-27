@@ -165,3 +165,17 @@
   restano due a capo (con la 2.15 diventavano uno). Anche un `&#13;`, che
   mette un `\r` nel documento, esce come `\n`: prima usciva `\r` con ogni
   libxml, e con la 2.15 una seconda pulizia lo cambiava.
+- SafeHtml: quanto testo si portavano via `script`, `style`, `iframe`,
+  `noembed` e `noframes` cambiava con la libxml. In HTML5 il loro contenuto
+  arriva fino alla loro chiusura, anche oltre la chiusura di un tag che li
+  contiene, e `<p>a<iframe>b</p>c` dà `<p>a</p>`. libxml legge come testo
+  semplice solo `script` e `style`, e prima della 2.14 li finiva al primo `</`
+  seguito da una lettera (`<div>a<script>b</div>c</script>d` dava `acd` invece
+  di `ad`); `iframe`, `noembed` e `noframes` sono testo semplice dalla 2.14 e
+  tag normali prima (`<p>a<iframe>b</p>c` dava `<p>a</p>c`). Ora il risultato è
+  quello di HTML5 con ogni libxml: `script` e `style` si leggono passando
+  `HTML_PARSE_RECOVER` a libxml, gli altri tre facendoli leggere con il nome di
+  `style`. Il nome della lettura è condiviso e le chiusure si accoppiano per
+  nome: `</style>`, `</iframe>`, `</noembed>` e `</noframes>` finiscono il
+  contenuto di qualunque di questi quattro tag, anche prima di quanto direbbe
+  HTML5, e quello che segue resta come testo escapato.

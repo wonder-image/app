@@ -135,11 +135,18 @@ whitelist:
   controllo). Un link relativo, `javascript:`, `data:`, `vbscript:` o `//host`
   perde il tag e tiene il testo;
 - gli altri tag si tolgono tenendo il testo; `script`, `style`, `iframe`,
-  `object`, `template`, `noscript`, `svg` e `math` spariscono con tutto il
-  contenuto; i commenti si tolgono. I tag vuoti di HTML5 (`wbr`, `source`,
-  `track`, `embed`, `bgsound`, `keygen`) restano vuoti: il tag sparisce, quello
-  che lo segue non è suo e i tag attorno si chiudono dove li chiude il browser
-  (`<p>a<wbr>b<div>c</div>d</p>` dà `<p>ab</p>cd`);
+  `object`, `template`, `noscript`, `svg`, `math`, `noembed` e `noframes`
+  spariscono con tutto il contenuto; i commenti si tolgono. I tag vuoti di
+  HTML5 (`wbr`, `source`, `track`, `embed`, `bgsound`, `keygen`) restano vuoti:
+  il tag sparisce, quello che lo segue non è suo e i tag attorno si chiudono
+  dove li chiude il browser (`<p>a<wbr>b<div>c</div>d</p>` dà `<p>ab</p>cd`);
+- di `script`, `style`, `iframe`, `noembed` e `noframes` è contenuto tutto
+  quello che sta fino alla loro chiusura, come in HTML5: in
+  `<p>a<iframe>b</p>c` il paragrafo si chiude ma `b</p>c` è dentro l'iframe, e
+  il risultato è `<p>a</p>`. Vale con ogni versione di libxml. Unica eccezione:
+  `style`, `iframe`, `noembed` e `noframes` condividono la lettura, quindi una
+  chiusura fra `</style>`, `</iframe>`, `</noembed>` e `</noframes>` finisce il
+  contenuto di qualunque dei quattro, e quello che segue resta come testo;
 - `xmp` e `plaintext` si tolgono come gli altri tag, e il loro contenuto si
   legge come HTML anche se in HTML5 sarebbe testo semplice:
   `<xmp><b>x</b></xmp>` dà `<b>x</b>`;
