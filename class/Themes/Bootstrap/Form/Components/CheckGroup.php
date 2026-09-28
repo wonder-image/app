@@ -3,10 +3,12 @@
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\Themes\Bootstrap\Form\Field;
+use Wonder\Themes\Concerns\MergesClassAttribute;
 use Wonder\Themes\Concerns\RendersOptionVisual;
 
 class CheckGroup extends Field
 {
+    use MergesClassAttribute;
     use RendersOptionVisual;
 
     public function render($class): string
@@ -21,7 +23,10 @@ class CheckGroup extends Field
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = (string) ($this->schema['name'] ?? '');
         $type = (string) ($this->schema['type'] ?? 'checkbox');
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $fieldAttributes = (array) ($this->schema['attributes'] ?? []);
+        $classes = $fieldAttributes['class'] ?? null;
+        unset($fieldAttributes['class']);
+        $attributes = $this->renderAttributes($fieldAttributes);
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
         $value = $this->schema['value'] ?? null;
         $searchBar = !empty($this->schema['search_bar']);
@@ -33,7 +38,7 @@ class CheckGroup extends Field
 
         if (!empty($this->schema['pills'])) {
             // Il "+" della creazione rapida è l'ultima pillola della fila.
-            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes)
+            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes, $classes)
                 .$this->inlineQuickCreateButton();
             // Senza etichetta niente titolo: un `<h6>` vuoto lascerebbe il
             // suo margine sopra una pillola sola, come il «Preferito» di
@@ -54,7 +59,7 @@ class CheckGroup extends Field
 HTML;
         }
 
-        $optionsHtml = $this->renderOptions($options, $type, $fieldName, $value, $attributes);
+        $optionsHtml = $this->renderOptions($options, $type, $fieldName, $value, $attributes, $classes);
 
         return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-{$type} {$required}">
@@ -77,9 +82,10 @@ HTML;
      * elenchi corti, quelli che si leggono tutti in una riga; per un elenco
      * lungo resta il riquadro che scorre.
      */
-    private function renderPills(array $options, string $type, string $name, mixed $value, string $attributes): string
+    private function renderPills(array $options, string $type, string $name, mixed $value, string $attributes, mixed $classes): string
     {
         $html = '';
+        $inputClass = $this->escape($this->mergeClassAttribute('btn-check', $classes));
 
         foreach ($options as $optionValue => $optionName) {
             $visual = $this->optionVisual($optionName);
@@ -104,7 +110,7 @@ HTML;
             $optionAttributes = trim($attributes);
 
             $html .= <<<HTML
-<input class="btn-check" type="{$escapedType}" name="{$escapedName}" value="{$escapedValue}" id="{$escapedId}" autocomplete="off" data-wi-check="true" {$optionAttributes}{$checked}>
+<input class="{$inputClass}" type="{$escapedType}" name="{$escapedName}" value="{$escapedValue}" id="{$escapedId}" autocomplete="off" data-wi-check="true" {$optionAttributes}{$checked}>
 <label class="btn btn-sm btn-outline-secondary wi-check-label user-select-none" for="{$escapedId}">{$visual}{$escapedLabel}</label>
 HTML;
         }
@@ -112,9 +118,10 @@ HTML;
         return $html;
     }
 
-    private function renderOptions(array $options, string $type, string $name, mixed $value, string $attributes): string
+    private function renderOptions(array $options, string $type, string $name, mixed $value, string $attributes, mixed $classes): string
     {
         $html = '';
+        $inputClass = $this->escape($this->mergeClassAttribute('form-check-input', $classes));
 
         foreach ($options as $optionValue => $optionName) {
             $optionAttributes = trim($attributes);
@@ -132,7 +139,7 @@ HTML;
 
                 if ($children !== []) {
                     $childHtml .= "<div class='w-100 ps-3'>";
-                    $childHtml .= $this->renderOptions($children, $type, $name, $value, $attributes);
+                    $childHtml .= $this->renderOptions($children, $type, $name, $value, $attributes, $classes);
                     $childHtml .= '</div>';
                 }
             }
@@ -152,7 +159,7 @@ HTML;
             $html .= <<<HTML
 <div class="w-100">
     <div id="{$this->escape($name)}-{$escapedValue}" class="form-check">
-        <input class="form-check-input" type="{$this->escape($type)}" name="{$this->escape($name)}" value="{$escapedValue}" id="{$escapedId}" data-wi-check="true" {$optionAttributes}{$checked}>
+        <input class="{$inputClass}" type="{$this->escape($type)}" name="{$this->escape($name)}" value="{$escapedValue}" id="{$escapedId}" data-wi-check="true" {$optionAttributes}{$checked}>
         <label class="form-check-label wi-check-label user-select-none" for="{$escapedId}">{$visual}{$escapedLabel}</label>
     </div>
     {$childHtml}

@@ -518,23 +518,39 @@
         $filter = "";
         $script = "<script>";
 
+        # Prima le opzioni di tutti i filtri: le classi della cascata dipendono da come escono gli altri campi
+        $OPTIONS = [];
+
         foreach ($FILTER_CUSTOM as $table => $x) {
-                        
+
+            $OPTIONS[$table] = filterCustomOptions($table, $x);
+
+            # Un filtro senza opzioni note ha '': per i campi e' un elenco vuoto
+            if (!is_array($OPTIONS[$table])) {
+                $OPTIONS[$table] = [];
+            }
+
+        }
+
+        $CASCADE = filterCascadeClasses($FILTER_CUSTOM, $OPTIONS);
+
+        foreach ($FILTER_CUSTOM as $table => $x) {
+
             $name = isset($x['name']) ? $x['name'] : '';
             $value = isset($_GET[$table]) ? $_GET[$table] : '';
             $search = isset($x['search']) ? $x['search'] : '';
             $type = isset($x['type']) ? $x['type'] : '';
             $card = isset($x['card']) ? $x['card'] : '';
-            $checkbox = filterCustomOptions($table, $x);
+            $checkbox = $OPTIONS[$table];
 
-            # Un filtro senza opzioni note ha '': per i campi e' un elenco vuoto
-            if (!is_array($checkbox)) {
-                $checkbox = [];
-            }
+            # Le categorie seguono le sezioni; le sottocategorie pure, se manca il filtro categoria
+            $bySection = array_key_exists("section", $FILTER_CUSTOM)
+                && ($table == "category" || ($table == "subcategory" && !array_key_exists("category", $FILTER_CUSTOM)));
 
-            if ($table == "category" && array_key_exists("section", $FILTER_CUSTOM)) {
+            if ($bySection) {
                 
-                $subFilter = array_key_exists('subcategory', $FILTER_CUSTOM) ? "filterSubcategory();" : "";
+                $filterFunction = ($table == "category") ? "filterCategory" : "filterSubcategory";
+                $subFilter = ($table == "category" && array_key_exists('subcategory', $FILTER_CUSTOM)) ? "filterSubcategory();" : "";
 
                 $script .= "
                 function disabledCheckbox(element) {
@@ -545,8 +561,8 @@
                     element.parentElement.style.display= 'none';
                 }
 
-                function filterCategory() {
-                    document.querySelectorAll('.category').forEach(element => {
+                function {$filterFunction}() {
+                    document.querySelectorAll('.{$table}').forEach(element => {
                         
                         var section = JSON.parse(element.dataset.section);
                         var sectionFilter = []
@@ -588,12 +604,12 @@
                     });
                 }
                 
-                filterCategory();
+                {$filterFunction}();
                 $('.section').click(function(){
-                    filterCategory();
+                    {$filterFunction}();
                 });";
 
-            } elseif ($table == "subcategory" && array_key_exists("section", $FILTER_CUSTOM)) {
+            } elseif ($table == "subcategory" && array_key_exists("section", $FILTER_CUSTOM) && array_key_exists("category", $FILTER_CUSTOM)) {
 
                 $script .= "
                 function filterSubcategory() {
@@ -662,23 +678,20 @@
                 
             }
 
-            if (count($checkbox) < 5 && $type == 'radio' && $search != true) {
+            if (filterCustomRendersCheck($type, $search, $checkbox)) {
 
+                # Lo script dei filtri a cascata cerca i campi con la classe del filtro
+                $ATTRIBUTE = in_array($table, $CASCADE, true) ? "class=\"$table\"" : null;
+
+                $HTML = check($name, $table, $checkbox, $ATTRIBUTE, $type, $search, $value);
+
+            } else if ($type == 'radio' || $type == 'select') {
                 $HTML = select($name, $table, $checkbox, 'old', null, $value);
-
+            } else if ($type == 'tree') {
+                $HTML = checkTree($name, $table, $checkbox, null, 'checkbox', true, $value);
             } else {
-
-                if ($type == 'checkbox' || $type == 'radio') {
-                    $HTML = check($name, $table, $checkbox, null, $type, $search, $value);
-                } else if ($type == 'select') {
-                    $HTML = select($name, $table, $checkbox, 'old', null, $value);
-                } else if ($type == 'tree') {
-                    $HTML = checkTree($name, $table, $checkbox, null, 'checkbox', true, $value);
-                } else {
-                    # Senza type, o con un type sconosciuto, il filtro non ha un campo
-                    $HTML = "";
-                }
-
+                # Senza type, o con un type sconosciuto, il filtro non ha un campo
+                $HTML = "";
             }
 
             $filter .= "
@@ -914,6 +927,58 @@
             }
 
             return $isAllowed($filter) ? $filter : '';
+
+        }
+
+        function filterCustomRendersCheck($type, $search, array $options) {
+
+            # Un radio con meno di 5 opzioni e senza ricerca esce come select
+            if (count($options) < 5 && $type == 'radio' && $search != true) {
+                return false;
+            }
+
+            return $type == 'checkbox' || $type == 'radio';
+
+        }
+
+        function filterCascadeClasses(array $filters, array $options) {
+
+            # Quali filtri della cascata escono con check(), cioe' con campi da spuntare
+            $CHECK = [];
+
+            foreach ([ 'section', 'category', 'subcategory' ] as $table) {
+
+                if (!array_key_exists($table, $filters)) { continue; }
+
+                $x = $filters[$table];
+                $OPTIONS = (isset($options[$table]) && is_array($options[$table])) ? $options[$table] : [];
+
+                $CHECK[$table] = filterCustomRendersCheck(isset($x['type']) ? $x['type'] : '', isset($x['search']) ? $x['search'] : '', $OPTIONS);
+
+            }
+
+            # Lo script mostra un campo solo con una sua sezione spuntata e, se c'e' il filtro categoria,
+            # una sua categoria: se quei filtri sono select o tree, il campo con la classe resta nascosto
+            $CLASSES = [];
+
+            if (!empty($CHECK['section'])) {
+
+                if (!empty($CHECK['category'])) {
+                    $CLASSES[] = 'category';
+                }
+
+                if (!empty($CHECK['subcategory']) && (!array_key_exists('category', $CHECK) || $CHECK['category'])) {
+                    $CLASSES[] = 'subcategory';
+                }
+
+                # Le sezioni hanno la classe solo se un altro filtro le segue
+                if ($CLASSES !== []) {
+                    array_unshift($CLASSES, 'section');
+                }
+
+            }
+
+            return $CLASSES;
 
         }
 

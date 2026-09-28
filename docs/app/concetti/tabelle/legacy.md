@@ -221,6 +221,15 @@ Le configurazioni incomplete non danno warning né errori. Un filtro senza
 opzioni esce nel form senza opzioni. Un filtro senza `type` resta nella query
 come filtro a valore singolo ma nel form non ha un campo. Una sorgente
 `function` che non restituisce un array vale come una funzione senza opzioni.
+Con i filtri sezione e sottocategoria ma senza categoria, lo script dei filtri
+a cascata fa seguire alle sottocategorie solo le sezioni, come le categorie.
+Lo script cerca i campi con le classi `section`, `category` e `subcategory`.
+`createFilterCustom()` le dà quando la sezione e il filtro che la segue escono
+come campi da spuntare: `checkbox`, oppure `radio` con almeno 5 opzioni o con
+`search`. Una sottocategoria le riceve solo se anche la categoria, quando c'è,
+è da spuntare. I filtri `select` e `tree` e i `radio` brevi senza ricerca
+restano fuori dalla cascata. Categorie e sottocategorie restano nascoste finché
+non si spunta una sezione, e il radio «Tutti» vale come nessuna sezione.
 Con `?limit=all` e senza ricerca `filterLimit()` passa da `filter()`: query e
 righe selezionate tengono conto dei filtri personalizzati, con il titolo
 «Tutti gli …».
