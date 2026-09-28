@@ -532,9 +532,14 @@
                 $checkbox = [];
             }
 
-            if ($table == "category" && array_key_exists("section", $FILTER_CUSTOM)) {
+            # Le categorie seguono le sezioni; le sottocategorie pure, se manca il filtro categoria
+            $bySection = array_key_exists("section", $FILTER_CUSTOM)
+                && ($table == "category" || ($table == "subcategory" && !array_key_exists("category", $FILTER_CUSTOM)));
+
+            if ($bySection) {
                 
-                $subFilter = array_key_exists('subcategory', $FILTER_CUSTOM) ? "filterSubcategory();" : "";
+                $filterFunction = ($table == "category") ? "filterCategory" : "filterSubcategory";
+                $subFilter = ($table == "category" && array_key_exists('subcategory', $FILTER_CUSTOM)) ? "filterSubcategory();" : "";
 
                 $script .= "
                 function disabledCheckbox(element) {
@@ -545,8 +550,8 @@
                     element.parentElement.style.display= 'none';
                 }
 
-                function filterCategory() {
-                    document.querySelectorAll('.category').forEach(element => {
+                function {$filterFunction}() {
+                    document.querySelectorAll('.{$table}').forEach(element => {
                         
                         var section = JSON.parse(element.dataset.section);
                         var sectionFilter = []
@@ -588,12 +593,12 @@
                     });
                 }
                 
-                filterCategory();
+                {$filterFunction}();
                 $('.section').click(function(){
-                    filterCategory();
+                    {$filterFunction}();
                 });";
 
-            } elseif ($table == "subcategory" && array_key_exists("section", $FILTER_CUSTOM)) {
+            } elseif ($table == "subcategory" && array_key_exists("section", $FILTER_CUSTOM) && array_key_exists("category", $FILTER_CUSTOM)) {
 
                 $script .= "
                 function filterSubcategory() {

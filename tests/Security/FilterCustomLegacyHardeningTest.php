@@ -23,6 +23,12 @@
  * altre sorgenti: con gli id dei record come chiavi, campi, whitelist e query
  * usano gli id e non le posizioni.
  *
+ * Lo script dei filtri a cascata sezione -> categoria -> sottocategoria
+ * definisce ogni funzione che usa. Senza il filtro categoria le sottocategorie
+ * seguono solo le sezioni, come le categorie, e lo script non chiama
+ * filterCategory(); con tutti e tre i filtri resta quello di prima, byte per
+ * byte.
+ *
  * Le funzioni SQL del core e i campi del form sono stub: sqlSelect() registra
  * le query e restituisce le righe preparate dal test. La connessione $mysqli
  * globale e' finta ed escapa come una connessione con NO_BACKSLASH_ESCAPES:
@@ -210,6 +216,34 @@ function scriptCategoria(string $html): string
     $fine = $inizio === false ? false : strpos($html, '$(\'.section\').click', $inizio);
 
     return ($inizio === false || $fine === false) ? '' : substr($html, $inizio, $fine - $inizio);
+}
+
+/** Lo script dei filtri in fondo al form, da <script> a </script>. */
+function scriptFiltri(string $html): string
+{
+    $inizio = strrpos($html, '<script>');
+    $fine = $inizio === false ? false : strpos($html, '</script>', $inizio);
+
+    return ($inizio === false || $fine === false) ? '' : substr($html, $inizio, $fine + strlen('</script>') - $inizio);
+}
+
+/** createFilterCustom() con i filtri sezione, categoria e sottocategoria indicati, in quest'ordine. */
+function formSezioni(array $filtri): object
+{
+    $nomi = ['section' => 'Sezione', 'category' => 'Categoria', 'subcategory' => 'Sottocategoria'];
+    $config = [];
+
+    foreach ($filtri as $filtro) {
+        $config[$filtro] = ['name' => $nomi[$filtro], 'type' => 'select'] + ($filtro === 'section' ? ['database' => true] : []);
+    }
+
+    richiesta([], ['FILTER_CUSTOM' => $config], [
+        'section' => [['id' => 1, 'name' => 'Uomo'], ['id' => 2, 'name' => 'Donna']],
+        'category' => [['id' => 5, 'name' => 'Scarpe', 'section_id' => '1,2']],
+        'subcategory' => [['id' => 8, 'name' => 'Sneakers', 'section_id' => '1', 'category_id' => '5']],
+    ]);
+
+    return createFilterCustom();
 }
 
 echo "Filtri personalizzati: dati legittimi\n";
@@ -837,6 +871,175 @@ check("sorgente function con la chiave '': la sua etichetta al posto di \"Tutti\
         ['select', 'Colore', 'colore', ['' => 'Qualsiasi', 'rosso' => 'Rosso'], 'old', null, ''],
         ['select', 'Tinta', 'tinta', ['rosso' => 'Rosso', '' => 'Qualsiasi'], 'old', null, ''],
     ];
+});
+
+echo "\nScript dei filtri sezione, categoria e sottocategoria\n";
+
+check('sezione, categoria e sottocategoria: script identico a prima, byte per byte', function () {
+    return scriptFiltri(formSezioni(['section', 'category', 'subcategory'])->html) === "<script>\n"
+        . "                function disabledCheckbox(element) {\n"
+        . "                    element.disabled = true;\n"
+        . "                    element.classList.remove('bg-danger');\n"
+        . "                    element.classList.remove('border-danger');\n"
+        . "                    element.setAttribute('onclick', '');\n"
+        . "                    element.parentElement.style.display= 'none';\n"
+        . "                }\n"
+        . "\n"
+        . "                function filterCategory() {\n"
+        . "                    document.querySelectorAll('.category').forEach(element => {\n"
+        . "                        \n"
+        . "                        var section = JSON.parse(element.dataset.section);\n"
+        . "                        var sectionFilter = []\n"
+        . "                        var checkboxes = document.querySelectorAll('.section:checked');\n"
+        . "        \n"
+        . "                        for (var i = 0; i < checkboxes.length; i++) {\n"
+        . "                            sectionFilter.push(checkboxes[i].value)\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        if (section.some(r=> sectionFilter.includes(r))) {\n"
+        . "                            var showSection = true;\n"
+        . "                        }else{\n"
+        . "                            var showSection = false;\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        if (showSection) {\n"
+        . "                            if (element.checked) {\n"
+        . "                                element.classList.remove('bg-danger');\n"
+        . "                                element.classList.remove('border-danger');\n"
+        . "                                element.setAttribute('onclick', '');\n"
+        . "                            }\n"
+        . "                            element.parentElement.style.display = 'block';\n"
+        . "                            element.disabled = false;\n"
+        . "                        }else{\n"
+        . "                            if (element.checked) {\n"
+        . "                                element.disabled = false;\n"
+        . "                                element.classList.add('bg-danger');\n"
+        . "                                element.classList.add('border-danger');\n"
+        . "                                element.setAttribute('onclick', \"disabledCheckbox(this)\");\n"
+        . "                                element.parentElement.style.display = 'block';\n"
+        . "                            } else {\n"
+        . "                                element.disabled = true;\n"
+        . "                                element.parentElement.style.display = 'none';\n"
+        . "                            }\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        filterSubcategory();\n"
+        . "        \n"
+        . "                    });\n"
+        . "                }\n"
+        . "                \n"
+        . "                filterCategory();\n"
+        . "                \$('.section').click(function(){\n"
+        . "                    filterCategory();\n"
+        . "                });\n"
+        . "                function filterSubcategory() {\n"
+        . "                    document.querySelectorAll('.subcategory').forEach(element => {\n"
+        . "                        \n"
+        . "                        var section = JSON.parse(element.dataset.section);\n"
+        . "                        var category = JSON.parse(element.dataset.category);\n"
+        . "                        \n"
+        . "                        var sectionFilter = [];\n"
+        . "                        var sectionCategory = [];\n"
+        . "        \n"
+        . "                        var checkboxes = document.querySelectorAll('.section:checked');\n"
+        . "        \n"
+        . "                        for (var i = 0; i < checkboxes.length; i++) {\n"
+        . "                            sectionFilter.push(checkboxes[i].value)\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        if (section.some(r=> sectionFilter.includes(r))) {\n"
+        . "                            var showSection = true;\n"
+        . "                        }else{\n"
+        . "                            var showSection = false;\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        var checkboxes = document.querySelectorAll('.category:checked');\n"
+        . "        \n"
+        . "                        for (var i = 0; i < checkboxes.length; i++) {\n"
+        . "                            sectionCategory.push(checkboxes[i].value)\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        if (category.some(r=> sectionCategory.includes(r))) {\n"
+        . "                            var showCategory = true;\n"
+        . "                        }else{\n"
+        . "                            var showCategory = false;\n"
+        . "                        }\n"
+        . "        \n"
+        . "                        if (showSection && showCategory) {\n"
+        . "                            if (element.checked) {\n"
+        . "                                element.classList.remove('bg-danger');\n"
+        . "                                element.classList.remove('border-danger');\n"
+        . "                                element.setAttribute('onclick', '');\n"
+        . "                            }\n"
+        . "                            element.parentElement.style.display = 'block';\n"
+        . "                            element.disabled = false;\n"
+        . "                        }else{\n"
+        . "                            if (element.checked) {\n"
+        . "                                element.disabled = false;\n"
+        . "                                element.classList.add('bg-danger');\n"
+        . "                                element.classList.add('border-danger');\n"
+        . "                                element.setAttribute('onclick', \"disabledCheckbox(this)\");\n"
+        . "                                element.parentElement.style.display = 'block';\n"
+        . "                            } else {\n"
+        . "                                element.disabled = true;\n"
+        . "                                element.parentElement.style.display = 'none';\n"
+        . "                            }\n"
+        . "                        }\n"
+        . "        \n"
+        . "                    });\n"
+        . "                }\n"
+        . "\n"
+        . "                filterSubcategory();\n"
+        . "                \$('.category').click(function(){\n"
+        . "                    filterCategory();\n"
+        . "                });\n"
+        . "\n"
+        . "                </script>";
+});
+
+check('ogni funzione che lo script usa e\' definita una volta sola, in qualsiasi ordine dei filtri', function () {
+    $ordini = [
+        ['section', 'category'], ['category', 'section'],
+        ['section', 'subcategory'], ['subcategory', 'section'],
+        ['section', 'category', 'subcategory'], ['section', 'subcategory', 'category'],
+        ['category', 'section', 'subcategory'], ['category', 'subcategory', 'section'],
+        ['subcategory', 'section', 'category'], ['subcategory', 'category', 'section'],
+    ];
+
+    foreach ($ordini as $ordine) {
+        $script = scriptFiltri(formSezioni($ordine)->html);
+
+        foreach (['disabledCheckbox', 'filterCategory', 'filterSubcategory'] as $funzione) {
+            $definizioni = substr_count($script, "function {$funzione}(");
+
+            if (substr_count($script, "{$funzione}(") > $definizioni && $definizioni !== 1) {
+                throw new RuntimeException(implode(', ', $ordine).": {$funzione}() usata ma definita {$definizioni} volte");
+            }
+        }
+    }
+
+    return true;
+});
+
+check('sezione e sottocategoria senza categoria: nessuna chiamata a filterCategory()', function () {
+    $script = scriptFiltri(formSezioni(['section', 'subcategory'])->html);
+
+    return $script !== '' && !str_contains($script, 'filterCategory');
+});
+
+check('sezione e sottocategoria senza categoria: le sottocategorie seguono solo le sezioni, come le categorie', function () {
+    $categorie = scriptFiltri(formSezioni(['section', 'category'])->html);
+
+    return $categorie !== ''
+        && scriptFiltri(formSezioni(['section', 'subcategory'])->html)
+            === str_replace(['filterCategory', "'.category'"], ['filterSubcategory', "'.subcategory'"], $categorie);
+});
+
+check('sezione e sottocategoria senza categoria: un clic su una sezione ricalcola le sottocategorie', function () {
+    return str_contains(
+        scriptFiltri(formSezioni(['section', 'subcategory'])->html),
+        "\$('.section').click(function(){\n                    filterSubcategory();\n                });"
+    );
 });
 
 summary();

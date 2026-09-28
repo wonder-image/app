@@ -135,3 +135,13 @@
   e una chiave `''` della funzione prende ancora il posto di «Tutti» nei radio.
   I link salvati prima portano la posizione: ora è letta come id e, se non è
   fra le opzioni, vale come assente.
+- Filtri legacy delle liste: con i filtri sezione e sottocategoria ma senza
+  categoria, lo script di `createFilterCustom()` usava `disabledCheckbox()` e
+  `filterCategory()` senza definirle e legava le sottocategorie a una categoria
+  assente: le nascondeva o disattivava tutte, su una sottocategoria spuntata
+  dal GET il clic dava un ReferenceError e un clic su una sezione non le
+  ricalcolava. Ora, senza il filtro categoria, le sottocategorie seguono solo
+  le sezioni, come le categorie. Con sezione, categoria e sottocategoria lo
+  script resta identico. I campi dei filtri non hanno ancora le classi
+  `section`, `category` e `subcategory` con cui lo script li cerca: finché
+  mancano, nel browser la cascata non agisce.

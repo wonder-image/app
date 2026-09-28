@@ -213,6 +213,10 @@ Le configurazioni incomplete non danno warning né errori. Un filtro senza
 opzioni esce nel form senza opzioni. Un filtro senza `type` resta nella query
 come filtro a valore singolo ma nel form non ha un campo. Una sorgente
 `function` che non restituisce un array vale come una funzione senza opzioni.
+Con i filtri sezione e sottocategoria ma senza categoria, lo script dei filtri
+a cascata fa seguire alle sottocategorie solo le sezioni, come le categorie.
+Lo script cerca i campi con le classi `section`, `category` e `subcategory`,
+che i campi dei filtri non hanno ancora: finché mancano, la cascata non agisce.
 Con `?limit=all` e senza ricerca `filterLimit()` passa da `filter()`: query e
 righe selezionate tengono conto dei filtri personalizzati, con il titolo
 «Tutti gli …».
