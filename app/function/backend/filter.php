@@ -57,17 +57,12 @@
         } elseif (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
 
             $COLUMN = $FILTER_ORDER;
-
-            if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
-                $DIRECTION = $FILTER_DIRECTION;
-            } else {
-                $DIRECTION = "ASC";
-            }
+            $DIRECTION = filterOrderDirection($FILTER_DIRECTION ?? null);
 
         }
 
         $RETURN = (object) array();
-        $RETURN->query = "ORDER BY `$COLUMN` $DIRECTION ";
+        $RETURN->query = "ORDER BY ".\Wonder\Sql\Query::escapeIdentifier((string) $COLUMN)." $DIRECTION ";
         $RETURN->column = $COLUMN;
         $RETURN->direction = $DIRECTION;
 
@@ -75,6 +70,9 @@
 
     }
 
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Table::filterDate(), che passa da Wonder\Backend\Filter\FilterDate.
+     */
     function filterDate() {
 
         global $FILTER_COLUMN;
@@ -93,42 +91,20 @@
         $DAYS = isset($HOW_MANY_DAYS) ? $HOW_MANY_DAYS : 30;
         $COLUMN = isset($FILTER_COLUMN) ? $FILTER_COLUMN : 'creation';
 
-        $from = isset($_GET['wi-from']) ? $_GET['wi-from'] : '';
-        $to = isset($_GET['wi-to']) ? $_GET['wi-to'] : '';
-        $YEAR = isset($_GET['wi-year']) ? $_GET['wi-year'] : '';
-        $MONTH = isset($_GET['wi-month']) ? $_GET['wi-month'] : '';
+        # Valori del GET validati come in FilterDate: quelli non validi valgono come assenti
+        $from = \Wonder\Backend\Filter\FilterDate::parseDate($_GET['wi-from'] ?? null)?->format('d/m/Y') ?? '';
+        $to = \Wonder\Backend\Filter\FilterDate::parseDate($_GET['wi-to'] ?? null)?->format('d/m/Y') ?? '';
+        $YEAR = \Wonder\Backend\Filter\FilterDate::parseInteger($_GET['wi-year'] ?? null, \Wonder\Backend\Filter\FilterDate::MIN_YEAR, \Wonder\Backend\Filter\FilterDate::MAX_YEAR);
+        $MONTH = \Wonder\Backend\Filter\FilterDate::parseInteger($_GET['wi-month'] ?? null, 1, 12);
 
         $QUERY_STRING = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : "";
 
+        # Gli altri parametri restano nei link dei mesi e nei campi nascosti del form
         $URL_QUERY = [];
         parse_str($QUERY_STRING, $URL_QUERY);
-        
-        $QUERY_INPUT = "";
-        $QUERY_URL = "";
+        unset($URL_QUERY['wi-from'], $URL_QUERY['wi-to'], $URL_QUERY['wi-year'], $URL_QUERY['wi-month'], $URL_QUERY['wi-limit']);
 
-        $QUERY_DATE = [ 'wi-from', 'wi-to', 'wi-year', 'wi-month' ];
-
-        foreach ($URL_QUERY as $key => $value) {
-            if (!in_array($key, $QUERY_DATE) && $key != 'wi-limit') {
-
-                if (is_array($value)) {
-
-                    $key .= '[]';
-
-                    foreach ($value as $v) { 
-                        $QUERY_INPUT .= "<input type='hidden' name='$key' value='$v'>"; 
-                        $QUERY_URL .= "&$key=$v";
-                    }
-
-                } else {
-
-                    $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
-                    $QUERY_URL .= "&$key=$value";
-    
-                }
-                
-            }
-        }
+        $QUERY_INPUT = filterHiddenInputs($URL_QUERY);
 
         # Array bottoni
             $ARRAY_MONTH = [];
@@ -157,7 +133,11 @@
 
                 $mese = translateDate("01-$month-$year", 'month');
 
-                if (isset($_GET['wi-month']) && isset($_GET['wi-year']) && $month == $_GET['wi-month'] && $year == $_GET['wi-year']) {
+                # Nel link il mese e' numerico: il nome inglese non passerebbe la validazione
+                $monthNumber = (int) date("n", $lastDate);
+                $href = htmlspecialchars('?'.http_build_query([ 'wi-month' => $monthNumber, 'wi-year' => (int) $year ] + $URL_QUERY, '', '&'), ENT_QUOTES, 'UTF-8');
+
+                if ($monthNumber === $MONTH && (int) $year === $YEAR) {
                     $outline = "";
                     $active = "active";
                 }else{
@@ -166,9 +146,9 @@
                 }
 
                 if ($im < 5) {
-                    $BUTTONS_MONTH .= "<a href='?wi-month=$month&wi-year=$year$QUERY_URL' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
+                    $BUTTONS_MONTH .= "<a href='$href' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $mese $year </a>";
                 } else {
-                    $OTHER_BUTTONS_MONTH .= "<a href='?wi-month=$month&wi-year=$year$QUERY_URL' class='dropdown-item $active'>$mese $year</a>";
+                    $OTHER_BUTTONS_MONTH .= "<a href='$href' class='dropdown-item $active'>$mese $year</a>";
                 }
                 
                 $im++;
@@ -185,7 +165,9 @@
                 $year = $last;
                 array_push($ARRAY_YEAR, $year);
 
-                if (isset($_GET['wi-year']) && $year == $_GET['wi-year'] && empty($_GET['wi-month'])) {
+                $href = htmlspecialchars('?'.http_build_query([ 'wi-year' => (int) $year ] + $URL_QUERY, '', '&'), ENT_QUOTES, 'UTF-8');
+
+                if ((int) $year === $YEAR && $MONTH === null) {
                     $outline = "";
                     $active = "active";
                 } else {
@@ -194,9 +176,9 @@
                 }
 
                 if ($iy < 5) {
-                    $BUTTONS_YEAR .= "<a href='?wi-year=$year$QUERY_URL' class='btn btn$outline-dark btn-sm col'' tabindex='-1' role='button'> $year </a>";
+                    $BUTTONS_YEAR .= "<a href='$href' class='btn btn$outline-dark btn-sm col' tabindex='-1' role='button'> $year </a>";
                 } else {
-                    $OTHER_BUTTONS_YEAR .= "<a href='?wi-year=$year$QUERY_URL' class='dropdown-item $active'>$year</a>";
+                    $OTHER_BUTTONS_YEAR .= "<a href='$href' class='dropdown-item $active'>$year</a>";
                 }
 
                 $iy++;
@@ -236,7 +218,7 @@
 
         # Filtro
 
-            if (empty($MONTH) && !empty($YEAR)) {
+            if ($MONTH === null && $YEAR !== null) {
 
                 $from = '01/01/'.$YEAR;
                 $to = '31/12/'.$YEAR;
@@ -245,13 +227,13 @@
 
             }
 
-            if (!empty($MONTH) && !empty($YEAR)) {
+            if ($MONTH !== null && $YEAR !== null) {
 
-                $date = '1 '.$MONTH.' '.$YEAR;
-                $from = date('01/m/Y', strtotime($date));
-                $to = date('t/m/Y', strtotime($date));
+                $date = mktime(0, 0, 0, $MONTH, 1, $YEAR);
+                $from = date('01/m/Y', $date);
+                $to = date('t/m/Y', $date);
 
-                $mese = translateDate($MONTH, 'month');
+                $mese = translateDate(date('Y-m-d', $date), 'month');
                 $TITLE = ucwords($TEXT->titleP)." di $mese ".$YEAR;
 
             }
@@ -271,14 +253,22 @@
 
             }
 
-            $TITLE = empty($TITLE) ? ucwords($TEXT->titleP)." dal $from al $to" : $TITLE;
+            if (empty($TITLE)) {
+                if ($from !== '' && $to !== '') {
+                    $TITLE = ucwords($TEXT->titleP)." dal $from al $to";
+                } else if ($from !== '') {
+                    $TITLE = ucwords($TEXT->titleP)." dal $from";
+                } else {
+                    $TITLE = ucwords($TEXT->titleP)." fino al $to";
+                }
+            }
 
-            list($day,$month,$year) = explode("/", $from);
-            $SQL_from = "$year-$month-$day";
-            list($day,$month,$year) = explode("/", $to);
-            $SQL_to = "$year-$month-$day";
+            # Con un solo estremo valido la condizione diventa >= o <=
+            $CONDITION = \Wonder\Backend\Filter\FilterDate::buildCondition($COLUMN, $from, $to);
 
-            $QUERY_ALL .= "AND `$COLUMN` BETWEEN '$SQL_from 00:00:00' AND '$SQL_to 23:59:59' ";
+            if ($CONDITION !== '') {
+                $QUERY_ALL .= "AND ".$CONDITION;
+            }
 
             $filter = filterCustom();
 
@@ -313,15 +303,18 @@
         $RETURN->array->month = $ARRAY_MONTH;
         $RETURN->array->year = $ARRAY_YEAR;
 
+        $FROM_VALUE = htmlspecialchars($from, ENT_QUOTES, 'UTF-8');
+        $TO_VALUE = htmlspecialchars($to, ENT_QUOTES, 'UTF-8');
+
         $RETURN->html = "
         <div class='col-5'>
             <form method='get'>
                 $QUERY_INPUT
                 <div class='input-group input-group-sm input-daterange wi-daterange-filter'>
                     <span class='input-group-text'>Da</span>
-                    <input type='text' class='form-control bg-transparent' name='wi-from' value='$from' readonly>
+                    <input type='text' class='form-control bg-transparent' name='wi-from' value='$FROM_VALUE' readonly>
                     <span class='input-group-text'>A</span>
-                    <input type='text' class='form-control bg-transparent' name='wi-to' value='$to' readonly>
+                    <input type='text' class='form-control bg-transparent' name='wi-to' value='$TO_VALUE' readonly>
                     <button type='submit' class='btn btn-dark'><i class='bi bi-search'></i> Cerca</button>
                 </div>
             </form>
@@ -378,15 +371,20 @@
             foreach ($FILTER_CUSTOM as $table => $value) {
                 
                 $column = isset($value['column']) ? $value['column'] : $table;
+                $COLUMN_SQL = \Wonder\Sql\Query::escapeIdentifier((string) $column);
+                $type = isset($value['type']) ? $value['type'] : '';
                 $filter = isset($_GET[$table]) ? $_GET[$table] : '';
 
-                if ($value['type'] == "checkbox" && is_array($filter)) {
+                if ($type == "checkbox" && is_array($filter)) {
                     unset($filter[0]);
                 }
 
+                # Valori fuori dalle opzioni del filtro: valgono come assenti
+                $filter = filterCustomValue($table, $value, $filter);
+
                 if (!empty($filter)) {
 
-                    if ($value['type'] == "checkbox" || $value['type'] == "tree") {
+                    if ($type == "checkbox" || $type == "tree") {
                         
                         if (isset($value['column_type']) && $value['column_type'] == "multiple") {
                         
@@ -414,9 +412,9 @@
 
                         } else {
 
-                            $QUERY_FILTER .=  empty($QUERY_FILTER) ? "`$column` IN (" : "AND `$column` IN (";
+                            $QUERY_FILTER .=  empty($QUERY_FILTER) ? "$COLUMN_SQL IN (" : "AND $COLUMN_SQL IN (";
 
-                            foreach ($filter as $value) { $QUERY_FILTER .= "'$value', "; }
+                            foreach ($filter as $item) { $QUERY_FILTER .= "'".filterSqlEscape($item)."', "; }
                             
                             $QUERY_FILTER = substr($QUERY_FILTER, 0, -2);
                             $QUERY_FILTER .= ") ";
@@ -445,7 +443,9 @@
 
                         } else {
 
-                            $QUERY_FILTER .=  empty($QUERY_FILTER) ? "`$column` = '$filter' " : "AND `$column` = '$filter' ";
+                            $VALUE_SQL = filterSqlEscape($filter);
+
+                            $QUERY_FILTER .=  empty($QUERY_FILTER) ? "$COLUMN_SQL = '$VALUE_SQL' " : "AND $COLUMN_SQL = '$VALUE_SQL' ";
 
                         }
 
@@ -525,40 +525,16 @@
             $search = isset($x['search']) ? $x['search'] : '';
             $type = isset($x['type']) ? $x['type'] : '';
             $card = isset($x['card']) ? $x['card'] : '';
-            $db = isset($x['database']) ? $x['database'] : '';
-            $f = isset($x['function']) ? $x['function'] : '';
-            $checkbox = isset($x['array']) ? $x['array'] : '';
+            $checkbox = filterCustomOptions($table, $x);
+
+            # Un filtro senza opzioni note ha '': per i campi e' un elenco vuoto
+            if (!is_array($checkbox)) {
+                $checkbox = [];
+            }
 
             if ($table == "category" && array_key_exists("section", $FILTER_CUSTOM)) {
                 
-                $checkbox = [];
-
-                $SQL = sqlSelect('category', ['deleted' => 'false'], null, 'name', 'ASC');
-
-                foreach ($SQL->row as $key => $row) {
-                    
-                    $id = $row['id'];
-                    $v = $row['name'];
-                    $sectionF = $row['section_id'];
-
-                    if (!isset($sectionF)) {
-                        $sectionF = [];
-                    }else{
-                        $sectionF = explode(",", $sectionF);
-                    }
-
-                    $sectionF = json_encode($sectionF);
-                    
-                    $checkbox[$id] = [];
-                    $checkbox[$id]['name'] = $v;
-                    $checkbox[$id]['filter'] = [];
-                    $checkbox[$id]['filter']['section'] = $sectionF;
-
-                }
-
-                if (array_key_exists('subcategory', $FILTER_CUSTOM)) {
-                    $subFilter = "filterSubcategory();";
-                }
+                $subFilter = array_key_exists('subcategory', $FILTER_CUSTOM) ? "filterSubcategory();" : "";
 
                 $script .= "
                 function disabledCheckbox(element) {
@@ -618,40 +594,6 @@
                 });";
 
             } elseif ($table == "subcategory" && array_key_exists("section", $FILTER_CUSTOM)) {
-
-                $checkbox = [];
-
-                $SQL = sqlSelect('subcategory', ['deleted' => 'false'], null, 'name', 'ASC');
-
-                foreach ($SQL->row as $key => $row) {
-                    
-                    $id = $row['id'];
-                    $v = $row['name'];
-                    $sectionF = $row['section_id'];
-                    $categoryF = $row['category_id'];
-
-                    if (!isset($sectionF)) {
-                        $sectionF = [];
-                    }else{
-                        $sectionF = explode(",", $sectionF);
-                    }
-
-                    if (!isset($categoryF)) {
-                        $categoryF = [];
-                    }else{
-                        $categoryF = explode(",", $categoryF);
-                    }
-
-                    $sectionF = json_encode($sectionF);
-                    $categoryF = json_encode($categoryF);
-                    
-                    $checkbox[$id] = [];
-                    $checkbox[$id]['name'] = $v;
-                    $checkbox[$id]['filter'] = [];
-                    $checkbox[$id]['filter']['section'] = $sectionF;
-                    $checkbox[$id]['filter']['category'] = $categoryF;
-
-                }
 
                 $script .= "
                 function filterSubcategory() {
@@ -718,54 +660,6 @@
 
                 ";
                 
-            } elseif ($table == "visible") {
-                
-                $checkbox = [
-                    '' => "Tutti",
-                    'true' => "Visibile",
-                    'false' => "Nascosto",
-                ];
-                
-            } elseif ($table == "active") {
-                
-                $checkbox = [
-                    '' => "Tutti",
-                    'true' => "Abilitati",
-                    'false' => "Disabilitati",
-                ];
-                
-            } elseif ($table == "evidence") {
-                
-                $checkbox = [
-                    '' => "Tutti",
-                    'true' => "Si",
-                    'false' => "No",
-                ];
-                
-            } else {
-
-                if ($db) {
-
-                    $checkbox = ($type == 'radio') ? ['' => "Tutti"] : [];
-
-                    $SQL = sqlSelect($table, ['deleted' => 'false'], null, 'name', 'ASC');
-
-                    foreach ($SQL->row as $key => $row) {
-                        
-                        $f = $row['id'];
-                        $v = $row['name'];
-
-                        $checkbox[$f] = $v;
-
-                    }
-
-                } elseif (!empty($f)) {
-
-                    $checkbox = ($type == 'radio') ? [ '' => "Tutti" ] : [];
-                    $checkbox = array_merge($checkbox, call_user_func($f));
-
-                }
-                
             }
 
             if (count($checkbox) < 5 && $type == 'radio' && $search != true) {
@@ -780,6 +674,9 @@
                     $HTML = select($name, $table, $checkbox, 'old', null, $value);
                 } else if ($type == 'tree') {
                     $HTML = checkTree($name, $table, $checkbox, null, 'checkbox', true, $value);
+                } else {
+                    # Senza type, o con un type sconosciuto, il filtro non ha un campo
+                    $HTML = "";
                 }
 
             }
@@ -808,13 +705,8 @@
         $URL_QUERY = [];
         parse_str($QUERY_STRING, $URL_QUERY);
         
-        $QUERY_INPUT = "";
-
-        foreach ($URL_QUERY as $key => $value) {
-            if (!array_key_exists(str_replace('[]', '', $key), $FILTER_CUSTOM)) {
-                $QUERY_INPUT .= "<input type='hidden' name='$key' value='$value'>";
-            }
-        }
+        # I filtri li scrivono i loro campi: nei campi nascosti restano gli altri parametri
+        $QUERY_INPUT = filterHiddenInputs(array_diff_key($URL_QUERY, $FILTER_CUSTOM));
 
         $HTML = "
         <div class='col-12 collapse filter-container mt-3 border-top border-bottom'>
@@ -849,6 +741,184 @@
 
     }
 
+    # Supporto dei filtri legacy: campi nascosti, escape SQL, opzioni dei filtri personalizzati
+        function filterHiddenInputs(array $params) {
+
+            $HTML = "";
+
+            # Le coppie di http_build_query(): anche i parametri a piu' valori restano nel form
+            foreach (explode('&', http_build_query($params, '', '&')) as $PAIR) {
+
+                if ($PAIR === '') { continue; }
+
+                [ $key, $value ] = explode('=', $PAIR, 2);
+
+                $HTML .= "<input type='hidden' name='".htmlspecialchars(urldecode($key), ENT_QUOTES, 'UTF-8')."' value='".htmlspecialchars(urldecode($value), ENT_QUOTES, 'UTF-8')."'>";
+
+            }
+
+            return $HTML;
+
+        }
+
+        function filterSqlEscape($value) {
+
+            global $mysqli;
+
+            # La connessione di sqlSelect(): l'escape segue charset e modalita' SQL del server
+            $connection = ($mysqli instanceof \mysqli) ? $mysqli : \Wonder\Sql\Connection::Connect('main');
+
+            return $connection->real_escape_string((string) $value);
+
+        }
+
+        function filterOrderDirection($direction) {
+
+            # Solo ASC o DESC: il resto vale come assente
+            if (is_string($direction) && in_array(strtoupper(trim($direction)), [ 'ASC', 'DESC' ], true)) {
+                return trim($direction);
+            }
+
+            return "ASC";
+
+        }
+
+        function filterCustomOptions($table, $x) {
+
+            global $FILTER_CUSTOM;
+
+            $type = isset($x['type']) ? $x['type'] : '';
+            $db = isset($x['database']) ? $x['database'] : '';
+            $f = isset($x['function']) ? $x['function'] : '';
+            $checkbox = isset($x['array']) ? $x['array'] : '';
+
+            if ($table == "category" && array_key_exists("section", $FILTER_CUSTOM)) {
+
+                $checkbox = [];
+
+                $SQL = sqlSelect('category', ['deleted' => 'false'], null, 'name', 'ASC');
+
+                foreach ($SQL->row as $key => $row) {
+
+                    $checkbox[$row['id']] = [
+                        'name' => $row['name'],
+                        'filter' => [
+                            'section' => json_encode(isset($row['section_id']) ? explode(",", $row['section_id']) : []),
+                        ],
+                    ];
+
+                }
+
+            } elseif ($table == "subcategory" && array_key_exists("section", $FILTER_CUSTOM)) {
+
+                $checkbox = [];
+
+                $SQL = sqlSelect('subcategory', ['deleted' => 'false'], null, 'name', 'ASC');
+
+                foreach ($SQL->row as $key => $row) {
+
+                    $checkbox[$row['id']] = [
+                        'name' => $row['name'],
+                        'filter' => [
+                            'section' => json_encode(isset($row['section_id']) ? explode(",", $row['section_id']) : []),
+                            'category' => json_encode(isset($row['category_id']) ? explode(",", $row['category_id']) : []),
+                        ],
+                    ];
+
+                }
+
+            } elseif ($table == "visible") {
+
+                $checkbox = [
+                    '' => "Tutti",
+                    'true' => "Visibile",
+                    'false' => "Nascosto",
+                ];
+
+            } elseif ($table == "active") {
+
+                $checkbox = [
+                    '' => "Tutti",
+                    'true' => "Abilitati",
+                    'false' => "Disabilitati",
+                ];
+
+            } elseif ($table == "evidence") {
+
+                $checkbox = [
+                    '' => "Tutti",
+                    'true' => "Si",
+                    'false' => "No",
+                ];
+
+            } elseif ($db) {
+
+                $checkbox = ($type == 'radio') ? ['' => "Tutti"] : [];
+
+                $SQL = sqlSelect($table, ['deleted' => 'false'], null, 'name', 'ASC');
+
+                foreach ($SQL->row as $key => $row) {
+                    $checkbox[$row['id']] = $row['name'];
+                }
+
+            } elseif (!empty($f)) {
+
+                $checkbox = ($type == 'radio') ? [ '' => "Tutti" ] : [];
+                $options = call_user_func($f);
+
+                # Una funzione che non restituisce un array non da' opzioni.
+                # array_replace() e non array_merge(): le chiavi sono i valori, gli id interi non vanno rinumerati
+                $checkbox = array_replace($checkbox, is_array($options) ? $options : []);
+
+            }
+
+            return $checkbox;
+
+        }
+
+        function filterOptionValues(array $options) {
+
+            $VALUES = [];
+
+            foreach ($options as $key => $label) {
+
+                $VALUES[] = (string) $key;
+
+                # Nei filtri ad albero i figli stanno in 'child'
+                if (is_array($label) && isset($label['child']) && is_array($label['child'])) {
+                    $VALUES = array_merge($VALUES, filterOptionValues($label['child']));
+                }
+
+            }
+
+            return $VALUES;
+
+        }
+
+        function filterCustomValue($table, $x, $filter) {
+
+            if (empty($filter)) {
+                return $filter;
+            }
+
+            # Con opzioni note passano solo i loro valori ('' e' la scelta vuota); senza, resta l'escape
+            $OPTIONS = filterCustomOptions($table, $x);
+            $ALLOWED = is_array($OPTIONS) ? array_merge([ '' ], filterOptionValues($OPTIONS)) : null;
+
+            $isAllowed = function ($item) use ($ALLOWED) {
+                return (is_string($item) || is_int($item)) && ($ALLOWED === null || in_array((string) $item, $ALLOWED, true));
+            };
+
+            if (in_array($x['type'] ?? '', [ 'checkbox', 'tree' ], true)) {
+                return is_array($filter) ? array_filter($filter, $isAllowed) : '';
+            }
+
+            return $isAllowed($filter) ? $filter : '';
+
+        }
+
+    #
+
     # Funzioni obsolete
         function filterLimit() {
 
@@ -863,6 +933,11 @@
             $LIMIT = isset($_GET['limit']) ? $_GET['limit'] : '';
             $range = [25 => '25', 50 => '50', 100 => '100', 250 => '500', 500 => '500', 'all' => 'tutti'];
             $ARROW = true;
+
+            # Solo i valori dei bottoni: il resto vale come assente (gli ultimi 25)
+            if (!(is_string($LIMIT) || is_int($LIMIT)) || !in_array((string) $LIMIT, array_map('strval', array_keys($range)), true)) {
+                $LIMIT = '';
+            }
 
             if (empty($QUERY_CUSTOM)) {
                 $QUERY = "`deleted` = 'false' ";
@@ -906,11 +981,13 @@
 
                 if (!empty($_GET['q'])) {
                     $filter = filterSearch();
+                    $TITLE = $filter->title;
                 } else {
-                    $filter = filterCustom();
+                    # Query completa e righe selezionate le calcola filter(): filterCustom() da' solo i pezzi
+                    $filter = filter();
+                    $TITLE = ucwords($TEXT->all)." $TEXT->article $TEXT->titleP";
                 }
 
-                $TITLE = $filter->title;
                 $SELECTED_LINES = $filter->selected_lines;
                 $QUERY = $filter->query;
                 $ARROW = $filter->arrow;
@@ -959,7 +1036,7 @@
         
         function createSearchBar() {
 
-            $value = isset($_GET['q']) ? sanitize($_GET['q']) : '';
+            $value = (isset($_GET['q']) && is_string($_GET['q'])) ? htmlspecialchars(trim($_GET['q']), ENT_QUOTES, 'UTF-8') : '';
 
             $form = "
             <form action='' method='get' onsubmit='loadingSpinner()'>
@@ -1018,19 +1095,22 @@
                 $QUERY = $QUERY_CUSTOM." AND `deleted` = 'false' ";
             }
 
-            $searchValue = isset($_GET['q']) ? sanitize($_GET['q']) : '';
+            $searchValue = (isset($_GET['q']) && is_string($_GET['q'])) ? $_GET['q'] : '';
 
-            if (!empty($searchValue)) {
+            # sanitize() senza l'addslashes() finale: l'apice lo escapa la connessione
+            $searchSql = stripslashes(sanitize($searchValue));
+
+            if (!empty($searchSql)) {
 
                 $QUERY_COLUMN = "AND CONCAT_WS(' ',";
 
-                foreach ($FILTER_SEARCH as $key => $value) { $QUERY_COLUMN .= "`$value`, "; }
+                foreach ($FILTER_SEARCH as $key => $value) { $QUERY_COLUMN .= \Wonder\Sql\Query::escapeIdentifier((string) $value).", "; }
 
                 $QUERY_COLUMN = substr($QUERY_COLUMN, 0, -2).") LIKE";
 
-                $searchArray = explode(' ', $searchValue);
+                $searchArray = explode(' ', $searchSql);
 
-                foreach ($searchArray as $key => $search) { $QUERY .= $QUERY_COLUMN." '%$search%' "; }
+                foreach ($searchArray as $key => $search) { $QUERY .= $QUERY_COLUMN." '%".filterSqlEscape($search)."%' "; }
 
                 $QUERY = substr($QUERY, 0, -1);
 
@@ -1040,13 +1120,7 @@
 
             if (isset($FILTER_ORDER) && !empty($FILTER_ORDER)) {
 
-                $QUERY .= "ORDER BY `$FILTER_ORDER` ";
-
-                if (isset($FILTER_DIRECTION) && !empty($FILTER_DIRECTION)) {
-                    $QUERY .= "$FILTER_DIRECTION ";
-                } else {
-                    $QUERY .= "ASC ";
-                }
+                $QUERY .= "ORDER BY ".\Wonder\Sql\Query::escapeIdentifier((string) $FILTER_ORDER)." ".filterOrderDirection($FILTER_DIRECTION ?? null)." ";
 
             } else {
 
@@ -1060,7 +1134,7 @@
             $RETURN->query = $QUERY;
             $RETURN->selected_lines = $SQL->Nrow;
             $RETURN->arrow = $ARROW;
-            $RETURN->title = ucwords($TEXT->titleP)." inerenti alla tua ricerca: $searchValue";
+            $RETURN->title = ucwords($TEXT->titleP)." inerenti alla tua ricerca: ".htmlspecialchars(trim($searchValue), ENT_QUOTES, 'UTF-8');
 
             return $RETURN;
 

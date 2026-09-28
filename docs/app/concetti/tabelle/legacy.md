@@ -158,3 +158,69 @@ altrimenti la cella risulta vuota: il renderer (`Field::setValue()`) esegue
 solo funzioni presenti nella whitelist server-side, per evitare che il nome
 funzione arrivato dal POST di `list-table` inneschi una chiamata a funzione
 PHP arbitraria.
+
+## Filtro per data globale deprecato (filter.php)
+
+La funzione globale `filterDate()` di `app/function/backend/filter.php` è
+deprecata. Quando migri una pagina che la chiama, usa il filtro della `Table`,
+che passa da `Wonder\Backend\Filter\FilterDate` (come fa già
+`app/html/backend/list.php`):
+
+```php
+$table->filterDate(true, $HOW_MANY_DAYS ?? 30, $FILTER_COLUMN ?? 'creation');
+```
+
+I parametri GET cambiano nome: `wi-from`, `wi-to`, `wi-month` e `wi-year`
+diventano `date_from`, `date_to`, `month` e `year`.
+
+Finché un sito la chiama, la funzione valida l'input come la classe. Nella
+query entrano solo date gg/mm/aaaa valide, con la condizione di
+`FilterDate::buildCondition()`: con un solo estremo valido diventa `>=` o
+`<=`. `wi-month` e `wi-year` contano solo come interi, e link dei mesi, campi
+data e campi nascosti sono escapati. I link dei mesi usano il mese numerico
+(`?wi-month=9&wi-year=2026`): un vecchio link con il nome inglese
+(`?wi-month=September&wi-year=2026`) mostra l'anno intero.
+
+## Filtri legacy delle liste (filter.php)
+
+Anche le altre funzioni globali di `app/function/backend/filter.php`
+(`filter()`, `filterCustom()`, `createFilterCustom()`, `filterLimit()`,
+`filterSearch()` e `createSearchBar()`) validano i parametri GET prima di
+usarli:
+
+- **Filtri personalizzati (`$FILTER_CUSTOM`)**: un valore entra nella query
+  solo se è fra le opzioni che il form mostra (`array`, `database`,
+  `function`, i filtri `visible`, `active` ed `evidence`, sezioni, categorie e
+  sottocategorie; nei `tree` anche i figli in `child`), e sempre con l'escape
+  della connessione. Gli altri valori valgono come assenti, anche quando
+  arrivano da un link scritto a mano. Un filtro senza opzioni note ha solo
+  l'escape. Form e query leggono le opzioni dalla stessa funzione,
+  `filterCustomOptions()`: con un filtro attivo `filterCustom()` fa una query
+  in più per le opzioni da database e chiama la funzione dei filtri
+  `function`. Le chiavi delle opzioni sono i valori: quelle di una funzione
+  restano come le restituisce (gli id dei record non diventano 0, 1, …), e nei
+  radio «Tutti» resta in testa, con l'etichetta della chiave `''` della
+  funzione se c'è.
+- **Colonne**: la `column` dei filtri, le colonne di `$FILTER_SEARCH` e
+  `$FILTER_ORDER` passano da `Query::escapeIdentifier()`.
+- **Direzione**: `$FILTER_DIRECTION` vale solo `ASC` o `DESC`, altrimenti
+  `ASC`.
+- **Limite**: `limit` vale solo `25`, `50`, `100`, `250`, `500` o `all`, cioè
+  i bottoni; il resto mostra gli ultimi 25.
+- **Ricerca**: i termini entrano nel `LIKE` con l'escape della connessione.
+  Barra e titolo mostrano la ricerca codificata, senza la barra di
+  `addslashes()`.
+- **Campi nascosti** del form dei filtri: chiavi e valori codificati; i
+  parametri a più valori restano nel form invece di diventare "Array".
+
+`$QUERY_CUSTOM`, `$QUERY_ORDER` e `$QUERY_DIRECTION` restano frammenti SQL
+scritti dal sito e finiscono nella query così come sono: non vanno mai
+composti con valori della richiesta.
+
+Le configurazioni incomplete non danno warning né errori. Un filtro senza
+opzioni esce nel form senza opzioni. Un filtro senza `type` resta nella query
+come filtro a valore singolo ma nel form non ha un campo. Una sorgente
+`function` che non restituisce un array vale come una funzione senza opzioni.
+Con `?limit=all` e senza ricerca `filterLimit()` passa da `filter()`: query e
+righe selezionate tengono conto dei filtri personalizzati, con il titolo
+«Tutti gli …».

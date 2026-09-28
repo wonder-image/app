@@ -190,3 +190,57 @@
   `</script>` vero compreso, e lo script si portava via tutto il testo che
   seguiva (`<script></b)</script><p>d</p>` dava una stringa vuota). Ora il
   contenuto arriva fino alla sua chiusura con ogni libxml, come in HTML5.
+- Filtro per data del backend (`FilterDate`): chiuse una SQL injection e una
+  XSS dai parametri GET. Le date entrano nella query solo se sono gg/mm/aaaa
+  valide (con un solo estremo valido la condizione diventa `>=` o `<=`, senza
+  nessuno restano gli ultimi N giorni), mese e anno solo come interi, la
+  colonna passa da `Query::escapeIdentifier()` e campi data, titolo e link dei
+  mesi sono escapati. La firma `ConfigCodec` di `Table::buildConfig()` non
+  proteggeva: firmava l'SQL già iniettato. I link dei mesi usano il mese
+  numerico (`?month=9&year=2026`), quindi i vecchi link con il nome inglese
+  (`?month=September`) mostrano il periodo predefinito; i filtri personalizzati
+  a più valori restano nei link invece di diventare "Array".
+- `filterDate()` globale di `app/function/backend/filter.php` (legacy): chiuse
+  la stessa SQL injection e la stessa XSS di `FilterDate`, riusandone
+  `buildCondition()` e i validatori `parseDate()` e `parseInteger()`, ora
+  pubblici. Nella query entrano solo date gg/mm/aaaa valide (con un solo
+  estremo valido la condizione diventa `>=` o `<=`), `wi-month` e `wi-year`
+  solo come interi, e link dei mesi, campi data e campi nascosti del form
+  (chiavi comprese) sono escapati. I link dei mesi usano il mese numerico
+  (`?wi-month=9&wi-year=2026`), quindi i vecchi link con il nome inglese
+  (`?wi-month=September&wi-year=2026`) mostrano l'anno intero; i parametri a
+  più valori restano nei link invece di diventare "Array". La funzione è
+  deprecata: per le pagine nuove si usa `Table::filterDate()`.
+- Filtri legacy delle liste in `app/function/backend/filter.php`
+  (`filterCustom()`, `createFilterCustom()`, `filterLimit()`, `filterSearch()`
+  e `createSearchBar()`): chiuse le SQL injection e le XSS dai parametri GET.
+  Il valore di un filtro personalizzato entra nella query solo se è fra le
+  opzioni del form, sempre con l'escape della connessione; un filtro senza
+  opzioni note ha solo l'escape. Le colonne di filtri, ricerca e ordinamento
+  passano da `Query::escapeIdentifier()`, `$FILTER_DIRECTION` vale solo `ASC`
+  o `DESC` (altrimenti `ASC`) e `limit` solo i valori dei bottoni (altrimenti
+  gli ultimi 25). Campi nascosti del form (chiavi comprese), barra e titolo
+  della ricerca sono escapati, e un apice nella ricerca non mostra più la barra
+  di `addslashes()`. I valori fuori dalle opzioni, anche da un link scritto a
+  mano, valgono come assenti; i parametri a più valori restano nel form invece
+  di diventare "Array".
+- Filtri legacy delle liste: `filterLimit()` con `?limit=all` e senza ricerca
+  chiamava `filterCustom()`, che non restituisce query e righe selezionate, e
+  le lasciava vuote con due warning. Ora passa da `filter()`: la query tiene
+  conto dei filtri personalizzati e il titolo resta «Tutti gli …». Non danno
+  più TypeError né warning i filtri senza opzioni (per esempio un `select` con
+  la sola `column`, che nel form esce senza opzioni), i filtri senza `type`
+  (nella query restano filtri a valore singolo, nel form non hanno un campo e
+  non ripetono più quello del filtro precedente), le sorgenti `function` che
+  non restituiscono un array (valgono come una funzione senza opzioni) e la
+  categoria con la sezione ma senza sottocategoria.
+- Filtri legacy delle liste: `filterCustomOptions()` rinumerava con
+  `array_merge()` le chiavi intere delle sorgenti `function`. Con gli id dei
+  record come chiavi (`[12 => 'Acme', 40 => 'Beta']`) il form mostrava le
+  etichette giuste ma filtrava su `'0'`, `'1'`, …, cioè sulle righe sbagliate,
+  e un link con l'id vero (`?marca=12`) valeva come assente. Ora le chiavi
+  restano quelle della funzione, come per la sorgente `database`. Le chiavi
+  stringa e gli elenchi (`['Rosso', 'Blu']`) danno le stesse opzioni di prima,
+  e una chiave `''` della funzione prende ancora il posto di «Tutti» nei radio.
+  I link salvati prima portano la posizione: ora è letta come id e, se non è
+  fra le opzioni, vale come assente.
