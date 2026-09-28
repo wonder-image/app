@@ -732,6 +732,112 @@ foreach ([
     });
 }
 
+# Dentro uno script o uno style una chiusura che non è la sua è testo, come in
+# HTML5. La 2.9 la legge come chiusura: se il tag che nomina è aperto si chiude
+# con lo script e il contenuto esce come testo, se non lo è si legge fino al
+# primo >, quello del </script> vero compreso, e lo script si porta via tutto
+# il testo che segue. HTML_PARSE_RECOVER lo evita in mezzo al contenuto, non
+# all'inizio né per un nome che comincia con il suo (</scriptx).
+
+foreach ([
+    'script' => '<script>if (a </b) { alert(1) }</script><p>d</p>',
+    'style' => '<style>a </b { color: red }</style><p>d</p>',
+] as $tag => $input) {
+    check("</b in mezzo a uno {$tag}: lo {$tag} sparisce intero, il paragrafo che segue resta", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, '<p>d</p>') && inert($out) && noRename($out);
+    });
+}
+
+foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
+    check("</b) all'inizio di <{$tag}>: il tag sparisce intero, il paragrafo che segue resta", function () use ($tag) {
+        $out = SafeHtml::clean("<{$tag}></b)</{$tag}><p>d</p>");
+
+        return same($out, '<p>d</p>') && inert($out) && noRename($out);
+    });
+
+    check("</p> all'inizio di <{$tag}> in un paragrafo: è contenuto suo", function () use ($tag) {
+        $out = SafeHtml::clean("<p>a<{$tag}></p>b</{$tag}>c</p><p>d</p>");
+
+        return same($out, '<p>ac</p><p>d</p>') && inert($out) && noRename($out);
+    });
+}
+
+check('</p> e un link all\'inizio di uno script: non esce niente dello script', function () {
+    $out = SafeHtml::clean('<p>a<script></p><a href="javascript:alert(1)">x</a></script>c</p>');
+
+    return same($out, '<p>ac</p>') && inert($out) && noRename($out);
+});
+
+foreach ([
+    'un nome che comincia con _' => '<script></_x</script><p>d</p>',
+    'un nome che comincia con .' => '<script></.x</script><p>d</p>',
+    'un nome che comincia con :' => '<script></:x</script><p>d</p>',
+    'un > tra virgolette nell\'apertura' => '<script x=">"></b</script><p>d</p>',
+    'un > tra apici nell\'apertura' => "<script x='>'></b</script><p>d</p>",
+] as $label => $input) {
+    check("chiusura finta all'inizio di uno script, con {$label}: lo script sparisce intero", fn () => same(
+        SafeHtml::clean($input),
+        '<p>d</p>'
+    ));
+}
+
+check('</script_d all\'inizio di uno script: non lo chiude', fn () => same(
+    SafeHtml::clean('<p>a<script></script_d</script>b</p><p>d</p>'),
+    '<p>ab</p><p>d</p>'
+));
+
+foreach (['script', 'style'] as $tag) {
+    foreach (['x', '-a', '.b', ':c', '_d', '1'] as $tail) {
+        check("</{$tag}{$tail} dentro <{$tag}>: non lo chiude, il tag sparisce intero", function () use ($tag, $tail) {
+            $out = SafeHtml::clean("<{$tag}>a</{$tag}{$tail} b</{$tag}><p>c</p>");
+
+            return same($out, '<p>c</p>') && inert($out) && noRename($out);
+        });
+    }
+}
+
+foreach ([
+    'maiuscola' => '<SCRIPT>a</SCRIPTX b</SCRIPT><p>c</p>',
+    'di style dentro un iframe' => '<iframe>a</stylex b</iframe><p>c</p>',
+] as $label => $input) {
+    check("chiusura che comincia con il nome del tag, {$label}: il tag sparisce intero", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, '<p>c</p>') && inert($out) && noRename($out);
+    });
+}
+
+# Fuori da script e style, scriptx o style-a sono tag qualunque: si tolgono e
+# il contenuto resta. Dove un'apertura, una chiusura o un > seguito da una
+# chiusura sono testo non deve restare traccia di quello che SafeHtml ci
+# aggiunge per leggerli.
+
+foreach ([
+    'scriptx' => ['<p>a<scriptx>b</scriptx>c</p><script>s</script>', '<p>abc</p>'],
+    'style-a' => ['<style-a><b>a</style-a>c<style>s</style>', '<b>a</b>c'],
+] as $name => [$input, $expected]) {
+    check("<{$name}> con uno script o uno style nello stesso input: si toglie il tag, il contenuto resta", function () use ($input, $expected) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, $expected) && noRename($out);
+    });
+}
+
+foreach ([
+    'una chiusura di scriptx nell\'href' => ['<a href="https://x.it/</scriptx">l</a><script>s</script>', '<a href="https://x.it/&lt;/scriptx">l</a>'],
+    'un\'apertura di style-a nell\'href' => ['<a href="https://x.it/<style-a>">l</a><style>s</style>', '<a href="https://x.it/&lt;style-a&gt;">l</a>'],
+    'un > seguito da una chiusura nell\'href' => ['<a href="https://x.it/></b">l</a><script>s</script>', '<a href="https://x.it/&gt;&lt;/b">l</a>'],
+    'una chiusura subito dopo un\'altra' => ['<p><b>a</b></p><script>s</script>', '<p><b>a</b></p>'],
+] as $label => [$input, $expected]) {
+    check("{$label}, con uno script o uno style nello stesso input: resta com'era", function () use ($input, $expected) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, $expected) && noRename($out);
+    });
+}
+
 
 # ---------------------------------------------------------------------------
 # Contenuto di xmp e plaintext
