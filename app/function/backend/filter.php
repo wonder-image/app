@@ -866,8 +866,9 @@
                 $checkbox = ($type == 'radio') ? [ '' => "Tutti" ] : [];
                 $options = call_user_func($f);
 
-                # Una funzione che non restituisce un array non da' opzioni
-                $checkbox = array_merge($checkbox, is_array($options) ? $options : []);
+                # Una funzione che non restituisce un array non da' opzioni.
+                # array_replace() e non array_merge(): le chiavi sono i valori, gli id interi non vanno rinumerati
+                $checkbox = array_replace($checkbox, is_array($options) ? $options : []);
 
             }
 

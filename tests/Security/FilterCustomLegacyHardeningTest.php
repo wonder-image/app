@@ -19,6 +19,10 @@
  * sottocategoria. Con limit=all e senza ricerca filterLimit() restituisce la
  * query completa e le righe selezionate.
  *
+ * Le opzioni delle sorgenti function tengono le loro chiavi, come quelle delle
+ * altre sorgenti: con gli id dei record come chiavi, campi, whitelist e query
+ * usano gli id e non le posizioni.
+ *
  * Le funzioni SQL del core e i campi del form sono stub: sqlSelect() registra
  * le query e restituisce le righe preparate dal test. La connessione $mysqli
  * globale e' finta ed escapa come una connessione con NO_BACKSLASH_ESCAPES:
@@ -79,6 +83,30 @@ function opzioniColore(): array
 function opzioniNulle(): ?array
 {
     return null;
+}
+
+// Sorgente 'function' con gli id dei record come chiavi, come le opzioni dal database.
+function opzioniMarche(): array
+{
+    return [12 => 'Acme', 40 => 'Beta'];
+}
+
+// Sorgente 'function' di un filtro tree: chiavi intere, figli in 'child'.
+function opzioniReparti(): array
+{
+    return ALBERO;
+}
+
+// Sorgente 'function' che restituisce un elenco: le chiavi sono le posizioni da 0.
+function opzioniLista(): array
+{
+    return ['Rosso', 'Blu'];
+}
+
+// Sorgente 'function' con una sua scelta vuota (''), in fondo.
+function opzioniConVuota(): array
+{
+    return ['rosso' => 'Rosso', '' => 'Qualsiasi'];
 }
 
 // I valori non validi vanno ignorati in silenzio: un warning o un notice fa fallire il test.
@@ -736,6 +764,79 @@ check('filtro senza type dopo un altro: il campo precedente non si ripete', func
     $form = createFilterCustom();
 
     return substr_count($form->html, '<campo visible>') === 1;
+});
+
+echo "\nSorgenti function: chiavi delle opzioni\n";
+
+check("sorgente function con chiavi intere: filtra sull'id", function () {
+    $filtro = personalizzati(['marca' => ['type' => 'select', 'function' => 'opzioniMarche']], ['marca' => '12']);
+
+    return $filtro->query_filter === "`marca` = '12' ";
+});
+
+check('sorgente function con chiavi intere: checkbox sugli id', function () {
+    $filtro = personalizzati(['marca' => ['type' => 'checkbox', 'function' => 'opzioniMarche']], ['marca' => ['', '40']]);
+
+    return $filtro->query_filter === "`marca` IN ('40') ";
+});
+
+check('sorgente function con chiavi intere: tree sugli id, figli compresi', function () {
+    $filtro = personalizzati(['reparto' => ['type' => 'tree', 'function' => 'opzioniReparti']], ['reparto' => ['', '3', '7']]);
+
+    return $filtro->query_filter === "`reparto` IN ('', '3', '7') ";
+});
+
+check("sorgente function con chiavi intere: la posizione di un'opzione non e' un valore", function () {
+    $filtro = personalizzati(['marca' => ['type' => 'select', 'function' => 'opzioniMarche']], ['marca' => '1']);
+
+    return $filtro->query_filter === '';
+});
+
+check('sorgente function con chiavi intere: i campi ricevono gli id', function () {
+    richiesta(['marca' => '12'], ['FILTER_CUSTOM' => [
+        'marca' => ['name' => 'Marca', 'type' => 'select', 'function' => 'opzioniMarche'],
+        'produttore' => ['name' => 'Produttore', 'type' => 'radio', 'function' => 'opzioniMarche'],
+        'reparto' => ['name' => 'Reparto', 'type' => 'tree', 'function' => 'opzioniReparti'],
+    ]]);
+    createFilterCustom();
+
+    return $GLOBALS['__campi'] === [
+        ['select', 'Marca', 'marca', [12 => 'Acme', 40 => 'Beta'], 'old', null, '12'],
+        ['select', 'Produttore', 'produttore', ['' => 'Tutti', 12 => 'Acme', 40 => 'Beta'], 'old', null, ''],
+        ['checkTree', 'Reparto', 'reparto', ALBERO, null, 'checkbox', true, ''],
+    ];
+});
+
+check('sorgente function con un elenco: campi con le chiavi da 0 come prima', function () {
+    richiesta([], ['FILTER_CUSTOM' => [
+        'colore' => ['name' => 'Colore', 'type' => 'radio', 'function' => 'opzioniLista'],
+        'tinta' => ['name' => 'Tinta', 'type' => 'select', 'function' => 'opzioniLista'],
+    ]]);
+    createFilterCustom();
+
+    return $GLOBALS['__campi'] === [
+        ['select', 'Colore', 'colore', ['' => 'Tutti', 0 => 'Rosso', 1 => 'Blu'], 'old', null, ''],
+        ['select', 'Tinta', 'tinta', [0 => 'Rosso', 1 => 'Blu'], 'old', null, ''],
+    ];
+});
+
+check('sorgente function con un elenco: SQL come prima', function () {
+    $filtro = personalizzati(['colore' => ['type' => 'radio', 'function' => 'opzioniLista']], ['colore' => '1']);
+
+    return $filtro->query_filter === "`colore` = '1' ";
+});
+
+check("sorgente function con la chiave '': la sua etichetta al posto di \"Tutti\", in testa nei radio", function () {
+    richiesta([], ['FILTER_CUSTOM' => [
+        'colore' => ['name' => 'Colore', 'type' => 'radio', 'function' => 'opzioniConVuota'],
+        'tinta' => ['name' => 'Tinta', 'type' => 'select', 'function' => 'opzioniConVuota'],
+    ]]);
+    createFilterCustom();
+
+    return $GLOBALS['__campi'] === [
+        ['select', 'Colore', 'colore', ['' => 'Qualsiasi', 'rosso' => 'Rosso'], 'old', null, ''],
+        ['select', 'Tinta', 'tinta', ['rosso' => 'Rosso', '' => 'Qualsiasi'], 'old', null, ''],
+    ];
 });
 
 summary();

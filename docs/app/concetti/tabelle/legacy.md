@@ -189,7 +189,10 @@ usarli:
   l'escape. Form e query leggono le opzioni dalla stessa funzione,
   `filterCustomOptions()`: con un filtro attivo `filterCustom()` fa una query
   in più per le opzioni da database e chiama la funzione dei filtri
-  `function`.
+  `function`. Le chiavi delle opzioni sono i valori: quelle di una funzione
+  restano come le restituisce (gli id dei record non diventano 0, 1, …), e nei
+  radio «Tutti» resta in testa, con l'etichetta della chiave `''` della
+  funzione se c'è.
 - **Colonne**: la `column` dei filtri, le colonne di `$FILTER_SEARCH` e
   `$FILTER_ORDER` passano da `Query::escapeIdentifier()`.
 - **Direzione**: `$FILTER_DIRECTION` vale solo `ASC` o `DESC`, altrimenti

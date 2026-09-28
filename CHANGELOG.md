@@ -125,3 +125,13 @@
   non ripetono più quello del filtro precedente), le sorgenti `function` che
   non restituiscono un array (valgono come una funzione senza opzioni) e la
   categoria con la sezione ma senza sottocategoria.
+- Filtri legacy delle liste: `filterCustomOptions()` rinumerava con
+  `array_merge()` le chiavi intere delle sorgenti `function`. Con gli id dei
+  record come chiavi (`[12 => 'Acme', 40 => 'Beta']`) il form mostrava le
+  etichette giuste ma filtrava su `'0'`, `'1'`, …, cioè sulle righe sbagliate,
+  e un link con l'id vero (`?marca=12`) valeva come assente. Ora le chiavi
+  restano quelle della funzione, come per la sorgente `database`. Le chiavi
+  stringa e gli elenchi (`['Rosso', 'Blu']`) danno le stesse opzioni di prima,
+  e una chiave `''` della funzione prende ancora il posto di «Tutti» nei radio.
+  I link salvati prima portano la posizione: ora è letta come id e, se non è
+  fra le opzioni, vale come assente.
