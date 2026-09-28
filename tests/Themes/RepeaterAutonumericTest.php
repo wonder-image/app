@@ -170,4 +170,54 @@ JS);
     return $data['set'] == [1234.5, 12] && $data['cleared'] === 1;
 });
 
+check('in node: svuotare l\'ultima riga svuota anche AutoNumeric', function () use ($script, $extract, $run) {
+    // AutoNumeric tiene il numero per conto suo: con il solo `value = ''`
+    // al salvataggio riscrive il costo vecchio su una riga senza più niente.
+    $data = $run($extract($script(), 'wiRepeaterRemoveRow').<<<'JS'
+
+var cleared = 0;
+var removed = false;
+var price = { type: 'text', value: '4,00 €' };
+var label = { type: 'text', value: 'Filati' };
+var flag = { type: 'checkbox', checked: true, value: '1' };
+var numeric = { clear: function () { cleared++; price.value = ''; } };
+window.AutoNumeric = { getAutoNumericElement: function (el) { return el === price ? numeric : null; } };
+var container = { dataset: {}, querySelectorAll: function () { return [row]; } };
+var row = {
+  parentElement: container,
+  querySelector: function () { return null; },
+  querySelectorAll: function () { return [label, price, flag]; },
+  remove: function () { removed = true; },
+};
+var button = { closest: function () { return row; }, getAttribute: function () { return null; } };
+window.wiRepeaterConfirmDelete = function (onConfirm) { onConfirm(); };
+window.wiRepeaterRemoveRow(button);
+console.log(JSON.stringify({ cleared: cleared, price: price.value, label: label.value, flag: flag.checked, removed: removed }));
+JS);
+    if ($data === null) { echo "    (node non trovato: prova saltata)\n"; return true; }
+
+    return $data === ['cleared' => 1, 'price' => '', 'label' => '', 'flag' => false, 'removed' => false];
+});
+
+check('in node: senza AutoNumeric l\'ultima riga si svuota lo stesso', function () use ($script, $extract, $run) {
+    $data = $run($extract($script(), 'wiRepeaterRemoveRow').<<<'JS'
+
+var label = { type: 'text', value: 'Filati' };
+var container = { dataset: {}, querySelectorAll: function () { return [row]; } };
+var row = {
+  parentElement: container,
+  querySelector: function () { return null; },
+  querySelectorAll: function () { return [label]; },
+  remove: function () {},
+};
+var button = { closest: function () { return row; }, getAttribute: function () { return null; } };
+window.wiRepeaterConfirmDelete = function (onConfirm) { onConfirm(); };
+window.wiRepeaterRemoveRow(button);
+console.log(JSON.stringify({ label: label.value }));
+JS);
+    if ($data === null) { echo "    (node non trovato: prova saltata)\n"; return true; }
+
+    return $data === ['label' => ''];
+});
+
 summary();

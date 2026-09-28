@@ -328,6 +328,8 @@ FormField::key('products')
 - `repeaterAddButton(false)` toglie il bottone «Aggiungi». Con il bottone via,
   anche l'**ultima** riga si può eliminare: la guardia che la svuota invece di
   toglierla esiste perché se ne possa aggiungere un'altra.
+  Svuotare vuol dire anche dirlo ad AutoNumeric (`clear()`): con il solo
+  `value = ''` il numero vecchio torna all'invio.
 - `repeaterStartEmpty()` non stampa la riga vuota di cortesia. Senza, quella
   riga viene postata comunque e a valle diventa un record senza niente dentro.
 - `window.wiRepeaterAddRow(contenitoreId, templateId, chiave)` aggiunge una

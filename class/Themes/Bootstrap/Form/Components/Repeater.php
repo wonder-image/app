@@ -753,9 +753,22 @@ HTML;
                 row.querySelectorAll('input, textarea, select').forEach((input) => {
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         input.checked = false;
-                    } else {
-                        input.value = '';
+                        return;
                     }
+
+                    // AutoNumeric tiene il numero per conto suo: svuotato solo
+                    // a schermo, al salvataggio riscrive quello vecchio.
+                    const numeric = (typeof window.AutoNumeric !== 'undefined'
+                        && typeof window.AutoNumeric.getAutoNumericElement === 'function')
+                        ? window.AutoNumeric.getAutoNumericElement(input)
+                        : null;
+
+                    if (numeric) {
+                        numeric.clear();
+                        return;
+                    }
+
+                    input.value = '';
                 });
                 return;
             }

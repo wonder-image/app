@@ -104,6 +104,9 @@
   pagina anche con le lib che non lo fanno dentro `setInput()`.
 - Repeater: il comando di gruppo legge i numeri scritti all'italiana con un
   solo separatore ripetuto ("1.234.567" è 1234567, non 1,234).
+- Repeater: l'ultima riga, che il cestino svuota invece di togliere, svuota
+  anche i campi di AutoNumeric. Prima il numero vecchio tornava all'invio, su
+  una riga senza più niente intorno.
 - Menu azioni della riga: al primo disegno (pre-render) usciva vuoto, perché
   le azioni arrivano come `true` e `true != 'false'` in PHP 8 è falso.
 - Menu azioni della riga, voci ad array: `href` e `target` escono escapati;
