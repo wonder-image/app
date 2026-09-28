@@ -3,6 +3,7 @@
 namespace Wonder\Themes\Wonder\Form\Components;
 
 use Wonder\Support\Text\Random;
+use Wonder\Themes\Concerns\MergesClassAttribute;
 use Wonder\Themes\Wonder\Form\Field;
 
 /**
@@ -21,6 +22,8 @@ use Wonder\Themes\Wonder\Form\Field;
  */
 class CheckGroup extends Field
 {
+    use MergesClassAttribute;
+
     public function render($class): string
     {
         $this->schema = (array) ($class->schema ?? []);
@@ -36,7 +39,10 @@ class CheckGroup extends Field
         $value = $this->schema['value'] ?? null;
         $label = $this->resolvedLabel();
         $attributes = (array) ($this->schema['attributes'] ?? []);
+        $classes = $attributes['class'] ?? null;
+        unset($attributes['class']);
         $attributesStr = $this->renderAttributes($attributes);
+        $inputClass = $this->escape($this->mergeClassAttribute('wi-checkbox', $classes));
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
 
         $labelHtml = $label !== '' ? "<div class=\"wi-label\">{$this->escape($label)}</div>" : '';
@@ -82,7 +88,7 @@ class CheckGroup extends Field
 
             $optionsHtml .= <<<HTML
 <div class="wi-checkbox-container">
-    <input type="{$this->escape($type)}" id="{$optionId}" class="wi-checkbox" name="{$this->escape($fieldName)}" value="{$this->escape((string) $optionValue)}" data-wi-check="true"{$checked} {$attributesStr} {$optionAttribute}>
+    <input type="{$this->escape($type)}" id="{$optionId}" class="{$inputClass}" name="{$this->escape($fieldName)}" value="{$this->escape((string) $optionValue)}" data-wi-check="true"{$checked} {$attributesStr} {$optionAttribute}>
     <div class="wi-checkbox-icon"><i class="bi bi-check-lg"></i></div>
     <label for="{$optionId}" class="wi-checkbox-label unselectable">{$this->escape($checkboxLabel)}</label>
 </div>

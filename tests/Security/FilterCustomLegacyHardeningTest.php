@@ -27,7 +27,16 @@
  * definisce ogni funzione che usa. Senza il filtro categoria le sottocategorie
  * seguono solo le sezioni, come le categorie, e lo script non chiama
  * filterCategory(); con tutti e tre i filtri resta quello di prima, byte per
- * byte.
+ * byte. Lo script cerca i campi con le classi section, category e
+ * subcategory: un filtro reso con check() ha la sua classe quando la catena
+ * regge, cioe' quando anche la sezione, e la categoria se c'e', escono con
+ * check(). Una select non ha campi spuntati: se la sezione e' una select, le
+ * categorie con la classe resterebbero nascoste. Il CheckGroup mette la classe
+ * nell'attributo class di ogni input, dopo quella del tema, invece di
+ * aggiungere un secondo attributo class che il browser ignora.
+ *
+ * check() e' la funzione di harness.php, quindi qui non si puo' caricare
+ * input.php: il form con i campi veri gira in un processo a parte.
  *
  * Le funzioni SQL del core e i campi del form sono stub: sqlSelect() registra
  * le query e restituisce le righe preparate dal test. La connessione $mysqli
@@ -36,6 +45,9 @@
  * gruppo fissano l'SQL per i dati legittimi.
  */
 declare(strict_types=1);
+
+use Wonder\App\Support\AttributeString;
+use Wonder\Elements\Form\Components\CheckGroup;
 
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
@@ -129,6 +141,11 @@ const RIGHE_TAG = [
     ['id' => 4, 'tag' => '["c"]'],
     ['id' => 5, 'tag' => '["b"]'],
     ['id' => 6, 'tag' => ''],
+];
+const RIGHE_SEZIONI = [
+    'section' => [['id' => 1, 'name' => 'Uomo'], ['id' => 2, 'name' => 'Donna']],
+    'category' => [['id' => 5, 'name' => 'Scarpe', 'section_id' => '1,2']],
+    'subcategory' => [['id' => 8, 'name' => 'Sneakers', 'section_id' => '1', 'category_id' => '5']],
 ];
 
 /** Connessione con NO_BACKSLASH_ESCAPES: mysqli raddoppia l'apice e \' non lo protegge piu'. */
@@ -237,13 +254,125 @@ function formSezioni(array $filtri): object
         $config[$filtro] = ['name' => $nomi[$filtro], 'type' => 'select'] + ($filtro === 'section' ? ['database' => true] : []);
     }
 
-    richiesta([], ['FILTER_CUSTOM' => $config], [
-        'section' => [['id' => 1, 'name' => 'Uomo'], ['id' => 2, 'name' => 'Donna']],
-        'category' => [['id' => 5, 'name' => 'Scarpe', 'section_id' => '1,2']],
-        'subcategory' => [['id' => 8, 'name' => 'Sneakers', 'section_id' => '1', 'category_id' => '5']],
-    ]);
+    richiesta([], ['FILTER_CUSTOM' => $config], RIGHE_SEZIONI);
 
     return createFilterCustom();
+}
+
+/** Gli input delle opzioni (checkbox e radio), nell'ordine del markup. */
+function inputOpzioni(string $html): array
+{
+    preg_match_all('/<input\b[^>]*\btype="(?:checkbox|radio)"[^>]*>/', $html, $matches);
+
+    return $matches[0];
+}
+
+/** Il valore dell'attributo class di un input; un input senza class o con due fa fallire il test. */
+function classeInput(string $input): string
+{
+    if (preg_match_all('/\sclass="([^"]*)"/', $input, $matches) !== 1) {
+        throw new RuntimeException('attributi class: '.count($matches[1]).' in '.$input);
+    }
+
+    return $matches[1][0];
+}
+
+/** name=value => class di ogni input delle opzioni. */
+function classiOpzioni(string $html): array
+{
+    $classi = [];
+
+    foreach (inputOpzioni($html) as $input) {
+        preg_match('/\sname="([^"]*)"/', $input, $nome);
+        preg_match('/\svalue="([^"]*)"/', $input, $valore);
+        $classi[($nome[1] ?? '').'='.($valore[1] ?? '')] = classeInput($input);
+    }
+
+    return $classi;
+}
+
+/** Le categorie come CheckGroup: 5 sta nelle sezioni 1 e 2 e ha un figlio, 6 non ha filtri. */
+function gruppoCategorie(string $tipo = 'checkbox'): CheckGroup
+{
+    return (new CheckGroup('category'))
+        ->label('Categoria')
+        ->options([5 => ['name' => 'Scarpe', 'filter' => ['section' => '["1","2"]'], 'child' => [7 => 'Stivali']], 6 => 'Borse'])
+        ->inputType($tipo);
+}
+
+/** Il tema Wonder da' a ogni opzione un id casuale. */
+function senzaIdCasuali(array $input): array
+{
+    return preg_replace('/id="checkbox_[a-z]+"/', 'id="checkbox_ID"', $input);
+}
+
+/** filterCascadeClasses() con questi filtri (type o config intera); senza opzioni indicate, un filtro ne ha 2. */
+function classiCascata(array $filtri, array $opzioni = []): array
+{
+    $config = [];
+    $elenchi = [];
+
+    foreach ($filtri as $tabella => $filtro) {
+        $config[$tabella] = is_array($filtro) ? $filtro : ['type' => $filtro];
+        $elenchi[$tabella] = $opzioni[$tabella] ?? [1 => 'Uno', 2 => 'Due'];
+    }
+
+    return filterCascadeClasses($config, $elenchi);
+}
+
+/**
+ * Il form di createFilterCustom() con i campi veri di input.php, in un processo
+ * a parte: qui check() e' la funzione di harness.php. Le righe sono quelle di
+ * RIGHE_SEZIONI, i campi escono col tema bootstrap.
+ */
+function formVero(array $filtri, array $parametri = []): string
+{
+    static $form = [];
+
+    $dati = json_encode(['filtri' => $filtri, 'parametri' => $parametri, 'righe' => RIGHE_SEZIONI]);
+
+    if (isset($form[$dati])) {
+        return $form[$dati];
+    }
+
+    $codice = <<<'PHP'
+        require 'vendor/autoload.php';
+        require 'app/function/string/common.php';
+        require 'app/function/string/sanitize.php';
+        require 'app/function/backend/input.php';
+        require 'app/function/backend/filter.php';
+
+        function sqlSelect(...$args) {
+            $righe = $GLOBALS['__righe'][$args[0]] ?? [];
+
+            return (object) ['Nrow' => count($righe), 'row' => $righe, 'exists' => $righe !== []];
+        }
+
+        set_error_handler(static function (int $severity, string $message, string $file, int $line): bool {
+            throw new ErrorException($message, 0, $severity, $file, $line);
+        }, E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+        $dati = json_decode($argv[1], true);
+        $GLOBALS['__righe'] = $dati['righe'];
+        $FILTER_CUSTOM = $dati['filtri'];
+        $_SERVER['QUERY_STRING'] = http_build_query($dati['parametri'], '', '&');
+        parse_str($_SERVER['QUERY_STRING'], $_GET);
+        \Wonder\App\Theme::set('bootstrap');
+
+        echo json_encode(['html' => createFilterCustom()->html]);
+        PHP;
+
+    $uscita = (string) shell_exec(
+        'cd '.escapeshellarg(dirname(__DIR__, 2))
+        .' && '.escapeshellarg(PHP_BINARY).' -r '.escapeshellarg($codice).' -- '.escapeshellarg($dati).' 2>&1'
+    );
+    $risultato = json_decode($uscita, true);
+
+    if (!is_array($risultato) || !is_string($risultato['html'] ?? null)) {
+        throw new RuntimeException('processo del form: '.trim($uscita));
+    }
+
+    return $form[$dati] = $risultato['html'];
 }
 
 echo "Filtri personalizzati: dati legittimi\n";
@@ -1040,6 +1169,184 @@ check('sezione e sottocategoria senza categoria: un clic su una sezione ricalcol
         scriptFiltri(formSezioni(['section', 'subcategory'])->html),
         "\$('.section').click(function(){\n                    filterSubcategory();\n                });"
     );
+});
+
+echo "\nClasse dei campi CheckGroup\n";
+
+check('senza classe: input di bootstrap come prima, figli compresi', function () {
+    return inputOpzioni(gruppoCategorie()->value(['6'])->render('bootstrap')) === [
+        '<input class="form-check-input" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" data-wi-check="true" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
+        '<input class="form-check-input" type="checkbox" name="category[]" value="7" id="checkbox-category[]-7" data-wi-check="true" data-wi-check="true">',
+        '<input class="form-check-input" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" data-wi-check="true" data-wi-check="true" checked>',
+    ];
+});
+
+check('senza classe: pillole di bootstrap come prima', function () {
+    return inputOpzioni(gruppoCategorie()->value(['6'])->pills()->render('bootstrap')) === [
+        '<input class="btn-check" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" autocomplete="off" data-wi-check="true" data-wi-check="true">',
+        '<input class="btn-check" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" autocomplete="off" data-wi-check="true" data-wi-check="true" checked>',
+    ];
+});
+
+check('senza classe: input del tema wonder come prima', function () {
+    return senzaIdCasuali(inputOpzioni(gruppoCategorie()->render('wonder'))) === [
+        '<input type="checkbox" id="checkbox_ID" class="wi-checkbox" name="category[]" value="5" data-wi-check="true" data-wi-check="true"  data-section="[&quot;1&quot;,&quot;2&quot;]">',
+        '<input type="checkbox" id="checkbox_ID" class="wi-checkbox" name="category[]" value="6" data-wi-check="true" data-wi-check="true" >',
+    ];
+});
+
+check('con la classe (bootstrap): un solo attributo class, dopo la classe del tema, anche sui figli', function () {
+    return inputOpzioni(gruppoCategorie()->value(['6'])->attributes(AttributeString::parse('class="category"'))->render('bootstrap')) === [
+        '<input class="form-check-input category" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" data-wi-check="true" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
+        '<input class="form-check-input category" type="checkbox" name="category[]" value="7" id="checkbox-category[]-7" data-wi-check="true" data-wi-check="true">',
+        '<input class="form-check-input category" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" data-wi-check="true" data-wi-check="true" checked>',
+    ];
+});
+
+check('con la classe (bootstrap, radio): stessi input di prima, con la classe in coda a quella del tema', function () {
+    $prima = inputOpzioni(gruppoCategorie('radio')->value('6')->render('bootstrap'));
+    $con = inputOpzioni(gruppoCategorie('radio')->value('6')->attributes(AttributeString::parse('class="category"'))->render('bootstrap'));
+
+    return count($prima) === 3
+        && $con === str_replace('class="form-check-input"', 'class="form-check-input category"', $prima);
+});
+
+check('con la classe (pillole di bootstrap): un solo attributo class, dopo btn-check', function () {
+    $prima = inputOpzioni(gruppoCategorie()->value(['6'])->pills()->render('bootstrap'));
+    $con = inputOpzioni(gruppoCategorie()->value(['6'])->pills()->attributes(AttributeString::parse('class="category"'))->render('bootstrap'));
+
+    return count($prima) === 2
+        && $con === str_replace('class="btn-check"', 'class="btn-check category"', $prima);
+});
+
+check('con la classe (wonder): un solo attributo class, dopo wi-checkbox', function () {
+    $prima = senzaIdCasuali(inputOpzioni(gruppoCategorie()->render('wonder')));
+    $con = senzaIdCasuali(inputOpzioni(gruppoCategorie()->attributes(AttributeString::parse('class="category"'))->render('wonder')));
+
+    return count($prima) === 2
+        && $con === str_replace('class="wi-checkbox"', 'class="wi-checkbox category"', $prima);
+});
+
+check('class() e addClass(): classi divise sugli spazi, senza doppioni, quella del tema per prima', function () {
+    $input = inputOpzioni(gruppoCategorie()->class('category  extra')->addClass('category')->addClass('form-check-input')->render('bootstrap'));
+
+    return count($input) === 3
+        && array_map('classeInput', $input) === array_fill(0, 3, 'form-check-input category extra');
+});
+
+check('classe con le virgolette: resta escapata dentro l\'unico attributo class', function () {
+    $input = inputOpzioni(gruppoCategorie()->attributes(['class' => 'category" onclick="alert(1)'])->render('bootstrap'));
+
+    foreach ($input as $campo) {
+        if (classeInput($campo) !== 'form-check-input category&quot; onclick=&quot;alert(1)' || str_contains($campo, 'onclick="')) {
+            return false;
+        }
+    }
+
+    return count($input) === 3;
+});
+
+echo "\nClassi dei filtri a cascata\n";
+
+check('filterCustomRendersCheck(): checkbox e radio escono con check(), i radio corti senza ricerca con select()', function () {
+    $quattro = [1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd'];
+    $cinque = $quattro + [5 => 'e'];
+
+    return filterCustomRendersCheck('checkbox', '', []) === true
+        && filterCustomRendersCheck('checkbox', '', $quattro) === true
+        && filterCustomRendersCheck('radio', '', $quattro) === false
+        && filterCustomRendersCheck('radio', '', $cinque) === true
+        && filterCustomRendersCheck('radio', true, $quattro) === true
+        && filterCustomRendersCheck('select', '', $cinque) === false
+        && filterCustomRendersCheck('tree', '', $cinque) === false
+        && filterCustomRendersCheck('', '', $cinque) === false;
+});
+
+check('filterCascadeClasses(): sezione, categoria e sottocategoria checkbox hanno la classe, in qualsiasi ordine', function () {
+    return classiCascata(['section' => 'checkbox', 'category' => 'checkbox', 'subcategory' => 'checkbox']) === ['section', 'category', 'subcategory']
+        && classiCascata(['subcategory' => 'checkbox', 'category' => 'checkbox', 'section' => 'checkbox']) === ['section', 'category', 'subcategory'];
+});
+
+check('filterCascadeClasses(): senza una sezione con check() nessuna classe', function () {
+    $tutti = ['category' => 'checkbox', 'subcategory' => 'checkbox'];
+
+    return classiCascata($tutti) === []
+        && classiCascata(['section' => 'select'] + $tutti) === []
+        && classiCascata(['section' => 'tree'] + $tutti) === []
+        && classiCascata(['section' => 'radio'] + $tutti) === []
+        && classiCascata(['section' => ['name' => 'Sezione']] + $tutti) === [];
+});
+
+check('filterCascadeClasses(): sezione radio con 5 opzioni o con la ricerca, cioe\' con check(): classi', function () {
+    $cinque = [1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd', 5 => 'e'];
+
+    return classiCascata(['section' => 'radio', 'category' => 'checkbox'], ['section' => $cinque]) === ['section', 'category']
+        && classiCascata(['section' => ['type' => 'radio', 'search' => true], 'category' => 'checkbox']) === ['section', 'category'];
+});
+
+check('filterCascadeClasses(): categoria senza check(), le sottocategorie non hanno la classe', function () {
+    return classiCascata(['section' => 'checkbox', 'category' => 'select', 'subcategory' => 'checkbox']) === []
+        && classiCascata(['section' => 'checkbox', 'category' => 'tree', 'subcategory' => 'checkbox']) === []
+        && classiCascata(['section' => 'checkbox', 'category' => 'radio', 'subcategory' => 'checkbox']) === [];
+});
+
+check('filterCascadeClasses(): sottocategoria senza check(), la categoria tiene la classe', function () {
+    return classiCascata(['section' => 'checkbox', 'category' => 'checkbox', 'subcategory' => 'select']) === ['section', 'category'];
+});
+
+check('filterCascadeClasses(): senza categoria, le sottocategorie seguono le sezioni', function () {
+    return classiCascata(['section' => 'checkbox', 'subcategory' => 'checkbox']) === ['section', 'subcategory']
+        && classiCascata(['section' => 'checkbox', 'subcategory' => 'select']) === [];
+});
+
+check('filterCascadeClasses(): la sola sezione, o con altri filtri, non ha la classe', function () {
+    return classiCascata(['section' => 'checkbox']) === []
+        && classiCascata(['section' => 'checkbox', 'stato' => 'checkbox', 'visible' => 'radio']) === [];
+});
+
+echo "\nFiltri a cascata con i campi veri (processo a parte)\n";
+
+check('sezione, categoria e sottocategoria checkbox: ogni input ha la classe del suo filtro', function () {
+    return classiOpzioni(formVero([
+        'section' => ['name' => 'Sezione', 'type' => 'checkbox', 'database' => true],
+        'category' => ['name' => 'Categoria', 'type' => 'checkbox'],
+        'subcategory' => ['name' => 'Sottocategoria', 'type' => 'checkbox'],
+    ])) === [
+        'section[]=1' => 'form-check-input section',
+        'section[]=2' => 'form-check-input section',
+        'category[]=5' => 'form-check-input category',
+        'subcategory[]=8' => 'form-check-input subcategory',
+    ];
+});
+
+check('sezione e sottocategoria checkbox, senza categoria: la classe su sezioni e sottocategorie', function () {
+    return classiOpzioni(formVero([
+        'section' => ['name' => 'Sezione', 'type' => 'checkbox', 'database' => true],
+        'subcategory' => ['name' => 'Sottocategoria', 'type' => 'checkbox'],
+    ])) === [
+        'section[]=1' => 'form-check-input section',
+        'section[]=2' => 'form-check-input section',
+        'subcategory[]=8' => 'form-check-input subcategory',
+    ];
+});
+
+check('sezione radio con 3 opzioni (una select): categorie e sottocategorie senza classe', function () {
+    return classiOpzioni(formVero([
+        'section' => ['name' => 'Sezione', 'type' => 'radio', 'database' => true],
+        'category' => ['name' => 'Categoria', 'type' => 'checkbox'],
+        'subcategory' => ['name' => 'Sottocategoria', 'type' => 'checkbox'],
+    ])) === [
+        'category[]=5' => 'form-check-input',
+        'subcategory[]=8' => 'form-check-input',
+    ];
+});
+
+check('con i campi veri lo script resta quello fissato sopra', function () {
+    return scriptFiltri(formVero([
+        'section' => ['name' => 'Sezione', 'type' => 'checkbox', 'database' => true],
+        'category' => ['name' => 'Categoria', 'type' => 'checkbox'],
+        'subcategory' => ['name' => 'Sottocategoria', 'type' => 'checkbox'],
+    ])) === scriptFiltri(formSezioni(['section', 'category', 'subcategory'])->html);
 });
 
 summary();

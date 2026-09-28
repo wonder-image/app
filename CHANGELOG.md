@@ -142,6 +142,25 @@
   dal GET il clic dava un ReferenceError e un clic su una sezione non le
   ricalcolava. Ora, senza il filtro categoria, le sottocategorie seguono solo
   le sezioni, come le categorie. Con sezione, categoria e sottocategoria lo
-  script resta identico. I campi dei filtri non hanno ancora le classi
-  `section`, `category` e `subcategory` con cui lo script li cerca: finché
-  mancano, nel browser la cascata non agisce.
+  script resta identico.
+- Filtri legacy delle liste: la cascata sezione, categoria e sottocategoria di
+  `createFilterCustom()` non agiva. Quando `check()` è passato a `CheckGroup`,
+  i campi hanno perso le classi `section`, `category` e `subcategory` con cui
+  lo script li cerca, così categorie e sottocategorie restavano visibili e
+  attive qualunque sezione fosse spuntata. Ora `check()` riceve la classe del
+  filtro quando la catena può funzionare: la sezione e il filtro che la segue
+  escono come campi da spuntare (`checkbox`, oppure `radio` con almeno 5
+  opzioni o con `search`), e la sottocategoria partecipa solo se anche la
+  categoria, quando c'è, è da spuntare. Come nel 2023, categorie e
+  sottocategorie restano nascoste finché non si spunta una sezione, e «Tutti»
+  vale come nessuna sezione. Una voce spuntata fuori dalle sezioni scelte resta
+  visibile in rosso e un clic la toglie. I filtri `select` e `tree` e i `radio`
+  brevi senza ricerca non partecipano. Lo script non cambia.
+- `CheckGroup` (le opzioni di `radio()` e `checkbox()` e il `check()` legacy):
+  una classe data al campo usciva come secondo attributo `class`, dopo quello
+  del tema, e il browser la ignorava. Vale per il quarto argomento di
+  `check()`, per `->attribute('class="…"')` di `FormField` e per `class()` e
+  `addClass()`. Ora la classe arriva a ogni input, figli compresi, dopo la
+  classe del tema (`form-check-input`, `btn-check` o `wi-checkbox`), in un solo
+  attributo `class`. Vale per entrambi i temi, anche per `CheckTree` nel tema
+  Wonder, e passa da `Themes\Concerns\MergesClassAttribute`.

@@ -174,6 +174,11 @@ del form, e `rich_text` fa saltare il `sanitize` anche se il form lo chiedesse.
 `checkBoolean($values = ['', 'true', 'false'], $trueLabel = null, $falseLabel = null)`,
 `toggle($on = 'true', $off = 'false')`.
 
+Nei gruppi di scelta di `radio()` e `checkbox()` con opzioni (`CheckGroup`),
+una classe data al campo, per esempio con `->attribute('class="evidenza"')`,
+arriva a ogni input dopo la classe del tema (`form-check-input`, `btn-check` o
+`wi-checkbox`), nello stesso attributo `class`.
+
 `toggle()` è l'interruttore acceso/spento delle pagine di configurazione: ogni
 riga è una scelta con la sua etichetta e una descrizione breve sotto.
 

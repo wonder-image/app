@@ -142,6 +142,10 @@ validazione e wiring label/error. Estendi la pipeline.
 - **Input ok nel backend ma rotto nel frontend (o viceversa)** → manca il
   renderer in uno dei due temi.
 - **Markup incoerente** → si è bypassata la pipeline con HTML manuale.
+- **Classe del campo ignorata** → il renderer scrive la classe del tema e poi,
+  fra gli attributi del campo, un secondo `class`, che il browser ignora.
+  Unisci le classi con `Themes\Concerns\MergesClassAttribute`, come fa
+  `CheckGroup` in entrambi i temi.
 
 ## Checklist (nuovo tipo)
 
