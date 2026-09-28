@@ -372,9 +372,10 @@
                 
                 $column = isset($value['column']) ? $value['column'] : $table;
                 $COLUMN_SQL = \Wonder\Sql\Query::escapeIdentifier((string) $column);
+                $type = isset($value['type']) ? $value['type'] : '';
                 $filter = isset($_GET[$table]) ? $_GET[$table] : '';
 
-                if ($value['type'] == "checkbox" && is_array($filter)) {
+                if ($type == "checkbox" && is_array($filter)) {
                     unset($filter[0]);
                 }
 
@@ -383,7 +384,7 @@
 
                 if (!empty($filter)) {
 
-                    if ($value['type'] == "checkbox" || $value['type'] == "tree") {
+                    if ($type == "checkbox" || $type == "tree") {
                         
                         if (isset($value['column_type']) && $value['column_type'] == "multiple") {
                         
@@ -526,11 +527,14 @@
             $card = isset($x['card']) ? $x['card'] : '';
             $checkbox = filterCustomOptions($table, $x);
 
+            # Un filtro senza opzioni note ha '': per i campi e' un elenco vuoto
+            if (!is_array($checkbox)) {
+                $checkbox = [];
+            }
+
             if ($table == "category" && array_key_exists("section", $FILTER_CUSTOM)) {
                 
-                if (array_key_exists('subcategory', $FILTER_CUSTOM)) {
-                    $subFilter = "filterSubcategory();";
-                }
+                $subFilter = array_key_exists('subcategory', $FILTER_CUSTOM) ? "filterSubcategory();" : "";
 
                 $script .= "
                 function disabledCheckbox(element) {
@@ -670,6 +674,9 @@
                     $HTML = select($name, $table, $checkbox, 'old', null, $value);
                 } else if ($type == 'tree') {
                     $HTML = checkTree($name, $table, $checkbox, null, 'checkbox', true, $value);
+                } else {
+                    # Senza type, o con un type sconosciuto, il filtro non ha un campo
+                    $HTML = "";
                 }
 
             }
@@ -857,7 +864,10 @@
             } elseif (!empty($f)) {
 
                 $checkbox = ($type == 'radio') ? [ '' => "Tutti" ] : [];
-                $checkbox = array_merge($checkbox, call_user_func($f));
+                $options = call_user_func($f);
+
+                # Una funzione che non restituisce un array non da' opzioni
+                $checkbox = array_merge($checkbox, is_array($options) ? $options : []);
 
             }
 
@@ -970,11 +980,13 @@
 
                 if (!empty($_GET['q'])) {
                     $filter = filterSearch();
+                    $TITLE = $filter->title;
                 } else {
-                    $filter = filterCustom();
+                    # Query completa e righe selezionate le calcola filter(): filterCustom() da' solo i pezzi
+                    $filter = filter();
+                    $TITLE = ucwords($TEXT->all)." $TEXT->article $TEXT->titleP";
                 }
 
-                $TITLE = $filter->title;
                 $SELECTED_LINES = $filter->selected_lines;
                 $QUERY = $filter->query;
                 $ARROW = $filter->arrow;

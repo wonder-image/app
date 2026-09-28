@@ -13,6 +13,12 @@
  * le colonne passano da Query::escapeIdentifier() e il limite deve essere uno
  * di quelli dei bottoni.
  *
+ * Le stesse funzioni devono reggere senza warning ne' TypeError le
+ * configurazioni incomplete dei siti: filtri senza opzioni o senza type,
+ * sorgenti function che non restituiscono un array, sezione e categoria senza
+ * sottocategoria. Con limit=all e senza ricerca filterLimit() restituisce la
+ * query completa e le righe selezionate.
+ *
  * Le funzioni SQL del core e i campi del form sono stub: sqlSelect() registra
  * le query e restituisce le righe preparate dal test. La connessione $mysqli
  * globale e' finta ed escapa come una connessione con NO_BACKSLASH_ESCAPES:
@@ -67,6 +73,12 @@ function checkTree(...$args): string
 function opzioniColore(): array
 {
     return ['rosso' => 'Rosso', 'blu' => 'Blu'];
+}
+
+// Sorgente 'function' che non trova opzioni e non restituisce un array.
+function opzioniNulle(): ?array
+{
+    return null;
 }
 
 // I valori non validi vanno ignorati in silenzio: un warning o un notice fa fallire il test.
@@ -161,6 +173,15 @@ function campiNascosti(string $html): array
     parse_str(implode('&', $coppie), $params);
 
     return $params;
+}
+
+/** Lo script di filterCategory(), dalla funzione fino al click sulle sezioni. */
+function scriptCategoria(string $html): string
+{
+    $inizio = strpos($html, 'function filterCategory()');
+    $fine = $inizio === false ? false : strpos($html, '$(\'.section\').click', $inizio);
+
+    return ($inizio === false || $fine === false) ? '' : substr($html, $inizio, $fine - $inizio);
 }
 
 echo "Filtri personalizzati: dati legittimi\n";
@@ -616,6 +637,105 @@ check('ordinamento della ricerca: colonna escapata, direzione solo ASC o DESC', 
     $ricerca = ricerca([], ['FILTER_ORDER' => 'name` DESC, (SELECT 1) -- ', 'FILTER_DIRECTION' => 'DESC, (SELECT 1)']);
 
     return $ricerca->query === "`deleted` = 'false' ORDER BY `name`` DESC, (SELECT 1) -- ` ASC ";
+});
+
+echo "\nConfigurazioni incomplete e limit=all (senza warning ne' TypeError)\n";
+
+check('limit=all senza ricerca: query completa e righe dei filtri, titolo "Tutti"', function () {
+    $limite = limite(['limit' => 'all', 'stato' => ['', '2']], ['FILTER_CUSTOM' => ['stato' => STATO], 'QUERY_CUSTOM' => "`type` = 'news'"]);
+
+    return $limite->query === "`type` = 'news' AND `deleted` = 'false' AND `stato` IN ('2') ORDER BY `creation` DESC "
+        && $limite->selected_lines === 120
+        && $limite->lines === 120
+        && $limite->arrow === false
+        && $limite->title === 'Tutti gli articoli'
+        && str_contains($limite->html, "<a href='?limit=all' class='btn btn-dark btn-sm col'");
+});
+
+check('limit=all senza filtri, con la colonna position: ordine per position e frecce', function () {
+    $limite = limite(['limit' => 'all'], ['__posizione' => true]);
+
+    return $limite->query === "`deleted` = 'false' ORDER BY `position` ASC "
+        && $limite->arrow === true
+        && $limite->title === 'Tutti gli articoli';
+});
+
+check('filtri senza opzioni (select, radio, tree): campi vuoti invece del TypeError', function () {
+    richiesta(['codice' => 'AB-12'], ['FILTER_CUSTOM' => [
+        'codice' => ['name' => 'Codice', 'type' => 'select', 'column' => 'codice_articolo'],
+        'tipo' => ['name' => 'Tipo', 'type' => 'radio'],
+        'albero' => ['name' => 'Albero', 'type' => 'tree'],
+    ]]);
+    createFilterCustom();
+
+    return $GLOBALS['__campi'] === [
+        ['select', 'Codice', 'codice', [], 'old', null, 'AB-12'],
+        ['select', 'Tipo', 'tipo', [], 'old', null, ''],
+        ['checkTree', 'Albero', 'albero', [], null, 'checkbox', true, ''],
+    ];
+});
+
+check('sezione e categoria senza sottocategoria: script della categoria senza filterSubcategory()', function () {
+    $filtri = [
+        'section' => ['name' => 'Sezione', 'type' => 'select', 'database' => true],
+        'category' => ['name' => 'Categoria', 'type' => 'select'],
+    ];
+    $righe = [
+        'section' => [['id' => 1, 'name' => 'Uomo']],
+        'category' => [['id' => 5, 'name' => 'Scarpe', 'section_id' => '1']],
+    ];
+
+    richiesta([], ['FILTER_CUSTOM' => $filtri + ['subcategory' => ['name' => 'Sottocategoria', 'type' => 'select']]], $righe);
+    $conSottocategoria = scriptCategoria(createFilterCustom()->html);
+    richiesta([], ['FILTER_CUSTOM' => $filtri], $righe);
+    $html = createFilterCustom()->html;
+
+    return $conSottocategoria !== ''
+        && !str_contains($html, 'filterSubcategory')
+        && scriptCategoria($html) === str_replace('filterSubcategory();', '', $conSottocategoria);
+});
+
+check('sorgente function che non restituisce un array: nessuna opzione, valore scartato', function () {
+    $filtro = personalizzati(['colore' => ['type' => 'radio', 'function' => 'opzioniNulle']], ['colore' => 'blu']);
+
+    return $filtro->query_filter === '';
+});
+
+check('sorgente function che non restituisce un array: campi senza opzioni ("Tutti" per i radio)', function () {
+    richiesta([], ['FILTER_CUSTOM' => [
+        'colore' => ['name' => 'Colore', 'type' => 'radio', 'function' => 'opzioniNulle'],
+        'taglia' => ['name' => 'Taglia', 'type' => 'select', 'function' => 'opzioniNulle'],
+    ]]);
+    createFilterCustom();
+
+    return $GLOBALS['__campi'] === [
+        ['select', 'Colore', 'colore', ['' => 'Tutti'], 'old', null, ''],
+        ['select', 'Taglia', 'taglia', [], 'old', null, ''],
+    ];
+});
+
+check('filtro senza type: valore singolo come prima', function () {
+    $filtro = personalizzati(
+        ['stato' => ['array' => [1 => 'Bozza', 2 => 'Pubblicato']], 'codice' => ['column' => 'codice_articolo']],
+        ['stato' => '2', 'codice' => "AB'12"]
+    );
+
+    return $filtro->query_filter === "`stato` = '2' AND `codice_articolo` = 'AB''12' ";
+});
+
+check('filtro senza type nel form: nessun campo', function () {
+    richiesta([], ['FILTER_CUSTOM' => ['codice' => ['name' => 'Codice', 'column' => 'codice_articolo'], 'visible' => VISIBILE]]);
+    $form = createFilterCustom();
+
+    return $GLOBALS['__campi'] === [['select', 'Visibile', 'visible', ['' => 'Tutti', 'true' => 'Visibile', 'false' => 'Nascosto'], 'old', null, '']]
+        && substr_count($form->html, '<campo ') === 1;
+});
+
+check('filtro senza type dopo un altro: il campo precedente non si ripete', function () {
+    richiesta([], ['FILTER_CUSTOM' => ['visible' => VISIBILE, 'codice' => ['name' => 'Codice', 'column' => 'codice_articolo']]]);
+    $form = createFilterCustom();
+
+    return substr_count($form->html, '<campo visible>') === 1;
 });
 
 summary();

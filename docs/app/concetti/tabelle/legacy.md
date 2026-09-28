@@ -205,3 +205,11 @@ usarli:
 `$QUERY_CUSTOM`, `$QUERY_ORDER` e `$QUERY_DIRECTION` restano frammenti SQL
 scritti dal sito e finiscono nella query così come sono: non vanno mai
 composti con valori della richiesta.
+
+Le configurazioni incomplete non danno warning né errori. Un filtro senza
+opzioni esce nel form senza opzioni. Un filtro senza `type` resta nella query
+come filtro a valore singolo ma nel form non ha un campo. Una sorgente
+`function` che non restituisce un array vale come una funzione senza opzioni.
+Con `?limit=all` e senza ricerca `filterLimit()` passa da `filter()`: query e
+righe selezionate tengono conto dei filtri personalizzati, con il titolo
+«Tutti gli …».

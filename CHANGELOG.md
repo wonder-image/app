@@ -115,3 +115,13 @@
   di `addslashes()`. I valori fuori dalle opzioni, anche da un link scritto a
   mano, valgono come assenti; i parametri a più valori restano nel form invece
   di diventare "Array".
+- Filtri legacy delle liste: `filterLimit()` con `?limit=all` e senza ricerca
+  chiamava `filterCustom()`, che non restituisce query e righe selezionate, e
+  le lasciava vuote con due warning. Ora passa da `filter()`: la query tiene
+  conto dei filtri personalizzati e il titolo resta «Tutti gli …». Non danno
+  più TypeError né warning i filtri senza opzioni (per esempio un `select` con
+  la sola `column`, che nel form esce senza opzioni), i filtri senza `type`
+  (nella query restano filtri a valore singolo, nel form non hanno un campo e
+  non ripetono più quello del filtro precedente), le sorgenti `function` che
+  non restituiscono un array (valgono come una funzione senza opzioni) e la
+  categoria con la sezione ma senza sottocategoria.
