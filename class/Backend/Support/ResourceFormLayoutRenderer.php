@@ -6,6 +6,7 @@ use Wonder\Elements\Components\AbstractValueCard;
 use Wonder\Elements\Components\Accordion;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\Modal;
 use Wonder\Elements\Components\QuickCreateButton;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Form;
@@ -15,6 +16,7 @@ use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\Themes\Bootstrap\Components\AbstractValueCard as BootstrapValueCardRenderer;
 use Wonder\Themes\Bootstrap\Components\Accordion as BootstrapAccordionRenderer;
 use Wonder\Themes\Bootstrap\Components\Container as BootstrapContainerRenderer;
+use Wonder\Themes\Bootstrap\Components\Modal as BootstrapModalRenderer;
 use Wonder\Themes\Resolver;
 
 final class ResourceFormLayoutRenderer
@@ -108,6 +110,11 @@ final class ResourceFormLayoutRenderer
                 continue;
             }
 
+            if ($component instanceof Modal) {
+                $html .= self::renderModal($component);
+                continue;
+            }
+
             if ($component instanceof QuickCreateButton) {
                 $html .= self::renderQuickCreateButton($component, $parentColumns);
                 continue;
@@ -188,6 +195,22 @@ final class ResourceFormLayoutRenderer
                 $accordionColumns === [] ? [] : [self::rowClass($accordion)]
             )
             .'</div>';
+    }
+
+    /**
+     * Una finestra con dentro dei campi.
+     *
+     * Il corpo passa di qui come quello di un accordion, così i campi
+     * prendono le colonne della finestra. Attorno invece niente colonna:
+     * la finestra non occupa posto nella griglia, e lo script del tema la
+     * porta in fondo al body appena la pagina è pronta.
+     */
+    private static function renderModal(Modal $modal): string
+    {
+        return (new BootstrapModalRenderer())->renderInner(
+            $modal,
+            self::renderComponents((array) ($modal->components ?? []), self::columnsMap($modal))
+        );
     }
 
     /**

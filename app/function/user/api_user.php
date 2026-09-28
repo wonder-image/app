@@ -56,9 +56,16 @@
         //    stringa vuota, facendo fallire ogni chiamata API frontend con
         //    "Bearer mancante". Adesso l'INSERT è sempre eseguito, la mail
         //    è un side-effect non bloccante.
-        $VALUES = formToArray('api_users', $VALUES, \Wonder\App\Table::key('api_users')->schema());
+        $isUpdate = is_object($currentApiUser) && ($currentApiUser->exists ?? false);
 
-        if (is_object($currentApiUser) && ($currentApiUser->exists ?? false)) {
+        // In modifica la riga corrente fa da OLD_VALUES: il controllo di
+        // unicità del token esclude la riga stessa, come negli altri form.
+        $VALUES = formToArray('api_users', $VALUES, \Wonder\App\Table::key('api_users')->schema(), $isUpdate ? (array) $currentApiUser : null);
+
+        if ($isUpdate) {
+            // formToArray() aggiunge l'id della riga: l'UPDATE resta su
+            // user_id e il payload restituito non cambia.
+            unset($VALUES['id']);
             sqlModify('api_users', $VALUES, 'user_id', $USER_ID);
         } else {
             sqlInsert('api_users', $VALUES);

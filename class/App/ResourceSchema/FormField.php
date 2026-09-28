@@ -7,6 +7,7 @@ use Wonder\App\ResourceSchema\Inputs\Concerns\NormalizesExtensions;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesNumberConfig;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesPasswordRules;
 use Wonder\App\ResourceSchema\Inputs\InputAcceptDocument;
+use Wonder\App\ResourceSchema\Inputs\InputButton;
 use Wonder\App\ResourceSchema\Inputs\InputCheckBoolean;
 use Wonder\App\ResourceSchema\Inputs\InputToggle;
 use Wonder\App\ResourceSchema\Inputs\InputCheckTree;
@@ -100,6 +101,7 @@ class FormField extends Input
         'text' => InputText::class,
         'hidden' => InputHidden::class,
         'textGenerator' => InputTextGenerator::class,
+        'button' => InputButton::class,
         'email' => InputEmail::class,
         'tel' => InputPhone::class,
         'phone' => InputPhone::class,
@@ -438,6 +440,22 @@ class FormField extends Input
 
         if ($buttonLabel !== null) {
             $input->buttonLabel($buttonLabel);
+        }
+
+        return $input;
+    }
+
+    /**
+     * Un bottone fra i campi, senza `name`: non posta niente. Il value del
+     * campo è la didascalia accanto; `opensModal()` gli fa aprire una
+     * finestra. Funziona anche come colonna di un repeater.
+     */
+    public function button(?string $text = null): InputButton
+    {
+        $input = $this->morphInto(InputButton::class);
+
+        if ($text !== null) {
+            $input->text($text);
         }
 
         return $input;

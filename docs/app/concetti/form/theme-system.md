@@ -27,18 +27,19 @@ FormField::key('name')->text()          // 1. dichiarazione (DSL)
 | Passo | File |
 |---|---|
 | Base universale | `class/App/ResourceSchema/Input.php` |
-| Classi di tipo | `class/App/ResourceSchema/Inputs/*` (37 tipi) |
+| Classi di tipo | `class/App/ResourceSchema/Inputs/*` (40 tipi) |
 | Modificatori condivisi | `class/App/ResourceSchema/Inputs/Concerns/*` |
 | Facade / type-helper | `class/App/ResourceSchema/FormField.php` |
-| Componenti (Element) | `class/Elements/Form/Components/*` (36 componenti) |
+| Componenti (Element) | `class/Elements/Form/Components/*` (39 componenti) |
 | Resolver tema | `class/Themes/Resolver.php` |
-| Renderer frontend | `class/Themes/Wonder/Form/*` (32 renderer) |
-| Renderer backend | `class/Themes/Bootstrap/Form/*` (30 renderer) |
+| Renderer frontend | `class/Themes/Wonder/Form/*` (35 renderer) |
+| Renderer backend | `class/Themes/Bootstrap/Form/*` (35 renderer) |
 
 {% hint style="info" %}
-I due temi non hanno lo stesso numero di renderer: alcuni input esistono solo
-sul frontend Wonder (es. indirizzi Google, reCAPTCHA, alcune varianti di
-upload) e non hanno un equivalente backend. Conta i file con
+I due temi non hanno gli stessi renderer: alcuni input esistono solo sul
+frontend Wonder (es. indirizzi Google, reCAPTCHA, alcune varianti di upload) e
+altri solo sul backend Bootstrap (es. repeater, alberi di spunte), anche quando
+il conteggio coincide. Conta i file con
 `find class/Themes/Wonder/Form -name '*.php' | wc -l` per il valore aggiornato.
 {% endhint %}
 
@@ -81,6 +82,7 @@ una mappa centrale `helper → Element`: la classe del tipo *è* la mappa.
 | `InputRepeater` | `Repeater` |
 | `InputAcceptDocument` | `InputAcceptDocument` |
 | `InputReCaptcha` | `reCAPTCHA` |
+| `InputButton` | `Button` |
 
 Il contratto è in tre pezzi, tutti su `Input`:
 

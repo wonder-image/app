@@ -51,6 +51,23 @@
   e la riga salvata in `item`. Sul tema Wonder non si disegna.
 - Il detail di `wi:quick-create:created` porta anche `trigger`, l'elemento
   che ha aperto il modal.
+- Voci personalizzate nel menu azioni della riga delle Resource:
+  `TableColumn::actions()` e `action()` accettano un array (`label`, `href`
+  con i segnaposto `{colonna}`, `target`, `filter.row`) e lo passano intero a
+  `Field::actionButton()`, come le Table dirette. `label` può essere un array
+  indicizzato dal valore della colonna con il nome della voce.
+- `TableLayoutSchema::select(string $sql)`: colonne calcolate con alias nella
+  lista di una Resource (`tabella`.* resta davanti). Gli alias si mostrano e si
+  ordinano; restano fuori da ricerca, filtri e conteggi.
+- `TableLayoutSchema::filterQuery($label, $key, $options, Closure $where)`:
+  filtro con una condizione propria. La closure riceve solo i valori presenti
+  fra le opzioni (figli degli alberi compresi) e restituisce l'SQL, che
+  viaggia firmato come gli altri filtri. `Table::addFilter()` ha l'ottavo
+  argomento `?Closure $where`.
+- Ricerca annidata: un descrittore di relazione in `searchFields()` può
+  contenerne altri in `relations`, così la ricerca scende di più tabelle
+  (movimento → versione → articolo). Basta anche un descrittore con sole
+  `relations`.
 
 ### Changed
 - Numeri, prezzi e percentuali escono nel formato italiano senza
@@ -71,6 +88,12 @@
   `Wonder\Backend\Support\QuickCreateModal`, condivisi fra il "+" dei campi
   (`Themes\Bootstrap\Form\Field`) e `QuickCreateButton`; lo script si
   stampa una volta per pagina.
+- `FilterCustom`: il valore predefinito `0` filtra come la stringa `'0'`;
+  `true`, e un array su un filtro a scelta singola, non filtrano più (prima
+  `= '1'` e `= 'Array'` con un warning). I filtri `multiple` con un valore solo
+  escono fra parentesi come quelli con più valori.
+- La pagina "Errori" (`ErrorReportResource`) sta in Dev → Log e diagnostica,
+  sempre solo per `admin`: prima era in Set Up.
 
 ### Fixed
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
@@ -81,6 +104,92 @@
   pagina anche con le lib che non lo fanno dentro `setInput()`.
 - Repeater: il comando di gruppo legge i numeri scritti all'italiana con un
   solo separatore ripetuto ("1.234.567" è 1234567, non 1,234).
+- Menu azioni della riga: al primo disegno (pre-render) usciva vuoto, perché
+  le azioni arrivano come `true` e `true != 'false'` in PHP 8 è falso.
+- Menu azioni della riga, voci ad array: `href` e `target` escono escapati;
+  un'etichetta senza il valore della riga o un `filter.row` su una colonna
+  assente nascondono la voce senza warning; `delete` ad array rispetta il
+  permesso di eliminare la riga.
+- `FilterCustom`: valori escapati nell'SQL (prima un GET costruito apposta
+  entrava così com'era), `%` e `_` escapati nelle LIKE, `OR` dei filtri
+  `multiple` fra parentesi, nome della colonna fra backtick escapati. Una
+  checkbox o un albero senza spunte non producono più SQL rotto e non alzano
+  il contatore dei filtri. Gli input nascosti (`redirect`, `id`, date) escono
+  escapati: prima `?redirect=` iniettava HTML nella pagina.
+- Ricerca nelle tabelle collegate: il `local_key` si controlla sulla tabella
+  del padre, e un `foreign_key` mancante vale `id` anche nella query (prima la
+  validazione lo dava per `id` ma `SSP` scartava il descrittore).
+- SafeHtml: con libxml prima della 2.14 un `<embed>` si portava via il testo
+  che lo seguiva, a volte il resto del documento, perché libxml lo apre come
+  contenitore; dalla 2.14 è vuoto come in HTML5 e il testo restava. Ora
+  `embed` si toglie come gli altri tag non ammessi e il testo resta con ogni
+  libxml. Il tag e i suoi attributi non uscivano con nessuna versione.
+- SafeHtml: con libxml 2.14 e successive un `xmp`, `textarea`, `title` o
+  `plaintext` lasciato aperto si leggeva come testo fino a fine input,
+  compresa la chiusura del documento in cui SafeHtml avvolge l'input: il
+  risultato finiva con `&lt;/body&gt;&lt;/html&gt;`. Un href lasciato aperto
+  la metteva invece nel link (`<a href="https://x.it` con la 2.9, senza
+  virgolette con ogni versione). Ora quel documento resta aperto e lo chiude
+  libxml: la chiusura non finisce più nel risultato.
+- SafeHtml: un `</body>` o `</html>` senza la sua apertura chiudeva il body
+  del documento in cui SafeHtml avvolge l'input, e quello che seguiva spariva
+  con ogni libxml (`<p>a</p></body><p>b</p>` dava `<p>a</p>`). Ora queste
+  chiusure si tolgono prima della lettura, anche maiuscole, con spazi o con
+  attributi, e il testo che segue resta. Si tolgono anche dentro `textarea`,
+  `title` e `script`, dove libxml 2.9 le legge come chiusure e la 2.14 e
+  successive come testo: il risultato è lo stesso con tutte e due.
+- SafeHtml: con libxml 2.14 e successive il contenuto di `xmp` e `plaintext`
+  si leggeva come testo semplice: le lettere accentate e i `<` sciolti, che
+  SafeHtml passa a libxml come entità, uscivano escapati due volte
+  (`perch&amp;#233;`, `3 &amp;lt; 5`), le entità scritte nel testo pure
+  (`a &amp;amp; b`) e i tag dentro restavano testo. Ora questi due tag si
+  leggono come gli altri con ogni libxml, come già con la 2.9 (`perché`,
+  `3 &lt; 5`, `a &amp; b`): i tag ammessi restano e quelli da togliere
+  spariscono con il loro contenuto.
+- SafeHtml: con libxml prima della 2.14 i tag vuoti di HTML5 che quella
+  versione non conosce — `wbr`, `source`, `track`, `embed`, `bgsound` e
+  `keygen` — si aprivano come contenitori: quello che li seguiva ci finiva
+  dentro e i tag attorno si chiudevano in un altro punto
+  (`<p>a<wbr>b<div>c</div>d</p>` dava `<p>abcd</p>` invece di `<p>ab</p>cd`).
+  Ora si leggono vuoti con ogni libxml, come in HTML5 e nel browser: quello che
+  li segue non è loro. Per `embed` la correzione copre così anche la struttura,
+  non solo il testo che si perdeva. Il tag e i suoi attributi non escono con
+  nessuna versione, mentre dove è testo (dentro `xmp`, in un valore di
+  attributo) o dove il nome è un altro (`<wbrx>`) il risultato resta com'era.
+- SafeHtml: con libxml 2.9 i `\r` restavano nel testo, anche dentro `xmp`,
+  `listing` e `textarea`, e negli href (`<p>a\r\nb</p>` usciva così com'era),
+  mentre la 2.15 li normalizza come HTML5 (`<p>a\nb</p>`). Ora `\r\n` e `\r`
+  diventano `\n` prima della lettura, e il risultato è lo stesso con ogni
+  libxml. Come in HTML5 si fa prima di togliere i caratteri di controllo e le
+  chiusure di `body` e `html`: un `\r` e un `\n` separati da uno di questi
+  restano due a capo (con la 2.15 diventavano uno). Anche un `&#13;`, che
+  mette un `\r` nel documento, esce come `\n`: prima usciva `\r` con ogni
+  libxml, e con la 2.15 una seconda pulizia lo cambiava.
+- SafeHtml: quanto testo si portavano via `script`, `style`, `iframe`,
+  `noembed` e `noframes` cambiava con la libxml. In HTML5 il loro contenuto
+  arriva fino alla loro chiusura, anche oltre la chiusura di un tag che li
+  contiene, e `<p>a<iframe>b</p>c` dà `<p>a</p>`. libxml legge come testo
+  semplice solo `script` e `style`, e prima della 2.14 li finiva al primo `</`
+  seguito da una lettera (`<div>a<script>b</div>c</script>d` dava `acd` invece
+  di `ad`); `iframe`, `noembed` e `noframes` sono testo semplice dalla 2.14 e
+  tag normali prima (`<p>a<iframe>b</p>c` dava `<p>a</p>c`). Ora il risultato è
+  quello di HTML5 con ogni libxml: `script` e `style` si leggono passando
+  `HTML_PARSE_RECOVER` a libxml, gli altri tre facendoli leggere con il nome di
+  `style`. Il nome della lettura è condiviso e le chiusure si accoppiano per
+  nome: `</style>`, `</iframe>`, `</noembed>` e `</noframes>` finiscono il
+  contenuto di qualunque di questi quattro tag, anche prima di quanto direbbe
+  HTML5, e quello che segue resta come testo escapato.
+- SafeHtml: con libxml prima della 2.14, anche con `HTML_PARSE_RECOVER`, uno
+  `script` o uno `style` finiva prima della sua chiusura in due casi: un `</`
+  seguito da un nome all'inizio del contenuto (`<script></b)`) e la chiusura
+  di un tag il cui nome comincia con il suo (`</scriptx`, `</style-a`). Lo
+  stesso per `iframe`, `noembed` e `noframes`, che si leggono con il nome di
+  `style`. Se il tag di quella chiusura era aperto, il contenuto usciva come
+  testo (`<p>a<script></p>b</script>c</p><p>d</p>` dava `<p>a</p>bc<p>d</p>`);
+  se non lo era, la chiusura si leggeva fino al primo `>`, quello del
+  `</script>` vero compreso, e lo script si portava via tutto il testo che
+  seguiva (`<script></b)</script><p>d</p>` dava una stringa vuota). Ora il
+  contenuto arriva fino alla sua chiusura con ogni libxml, come in HTML5.
 - Filtro per data del backend (`FilterDate`): chiuse una SQL injection e una
   XSS dai parametri GET. Le date entrano nella query solo se sono gg/mm/aaaa
   valide (con un solo estremo valido la condizione diventa `>=` o `<=`, senza

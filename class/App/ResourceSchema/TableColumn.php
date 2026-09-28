@@ -162,7 +162,14 @@ final class TableColumn extends Column
         return parent::link($link);
     }
 
-    public function action(string $action, bool $enabled = true): self
+    /**
+     * An array describes a custom row-menu entry (`label`, `href`, `target`,
+     * `filter`, ...) and reaches `Field::actionButton()` as is; an empty
+     * array turns the entry off.
+     *
+     * @param bool|array<string, mixed> $enabled
+     */
+    public function action(string $action, bool|array $enabled = true): self
     {
         $action = trim($action);
 
@@ -172,8 +179,8 @@ final class TableColumn extends Column
 
         $actions = (array) ($this->schema['actions'] ?? []);
 
-        if ($enabled) {
-            $actions[$action] = true;
+        if (is_array($enabled) ? $enabled !== [] : $enabled) {
+            $actions[$action] = $enabled;
         } else {
             unset($actions[$action]);
         }
@@ -190,7 +197,7 @@ final class TableColumn extends Column
             }
 
             if (is_string($key)) {
-                $this->action($key, (bool) $value);
+                $this->action($key, is_array($value) ? $value : (bool) $value);
             }
         }
 

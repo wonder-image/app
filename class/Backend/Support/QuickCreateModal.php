@@ -262,7 +262,8 @@ final class QuickCreateModal
    * I widget potenziati dalla lib (select2, card dinamica, jstree) NON vengono
    * toccati qui: si emette sempre `wi:quick-create:created` e li gestisce
    * l'adapter della lib (src/build/backend/js/form/quickCreate.js), che sa
-   * ridisegnarli. jstree resta un limite noto (nodi non creabili a runtime).
+   * ridisegnarli. Nell'albero crea il nodo con l'API di jstree: la casella
+   * da postare la scrive la lib in `[data-wi-tree-values]`, fuori dai nodi.
    *
    * Il bottone staccato da un campo (`QuickCreateButton`) non ha un input:
    * l'evento parte lo stesso, con `input: null`, e la riga nuova la mette
@@ -286,17 +287,18 @@ final class QuickCreateModal
    * era del form che non c'è più. Non li svuota: un campo con un valore
    * proposto (un tipo, uno stato) deve riproporlo alla creazione dopo.
    *
-   * Gli alberi restano come sono: jstree non rilegge le caselle, e
-   * rimetterle a posto sotto un albero che mostra altro posterebbe un valore
-   * diverso da quello che si vede. Tenere la scelta serve anche: si creano
-   * di fila più figli dello stesso genitore.
+   * Gli alberi restano come sono, con le caselle che postano
+   * (`[data-wi-tree-values]`): jstree non rilegge le caselle, e rimetterle a
+   * posto sotto un albero che mostra altro posterebbe un valore diverso da
+   * quello che si vede. Tenere la scelta serve anche: si creano di fila più
+   * figli dello stesso genitore.
    */
   function resetFields(container) {
     var fields = container.querySelectorAll('input:not([type="hidden"]), select, textarea');
 
     for (var i = 0; i < fields.length; i++) {
       var field = fields[i];
-      if (field.closest('[data-wi-tree]')) continue;
+      if (field.closest('[data-wi-tree], [data-wi-tree-values]')) continue;
 
       if (field.type === 'checkbox' || field.type === 'radio') { field.checked = field.defaultChecked; }
       else if (field.tagName === 'SELECT') {
