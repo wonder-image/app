@@ -34,6 +34,30 @@ function same(string $got, string $expected): bool
     return false;
 }
 
+/** Il documento in cui SafeHtml avvolge l'input non deve finire nel risultato. */
+function noWrapper(string $html): bool
+{
+    if (preg_match('/body|html/i', $html) !== 1) {
+        return true;
+    }
+
+    echo "    pezzi del documento nel risultato: {$html}\n";
+
+    return false;
+}
+
+/** I nomi e il segnaposto con cui SafeHtml fa leggere xmp, plaintext e i tag vuoti di HTML5 non devono finire nel risultato. */
+function noRename(string $html): bool
+{
+    if (preg_match('/listing|wi-plaintext|param|[0-9a-f]{16}/i', $html) !== 1) {
+        return true;
+    }
+
+    echo "    tracce della rinomina nel risultato: {$html}\n";
+
+    return false;
+}
+
 # ---------------------------------------------------------------------------
 # Il testo ammesso passa com'è
 # ---------------------------------------------------------------------------
@@ -191,13 +215,34 @@ check('tag non ammessi scartati tenendo il contenuto', fn () => same(
     'uno due tre quattro'
 ));
 
-foreach (['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math'] as $tag) {
+foreach (['script', 'style', 'iframe', 'object', 'template', 'noscript', 'svg', 'math'] as $tag) {
     check("<{$tag}> tolto con il contenuto", function () use ($tag) {
         $out = SafeHtml::clean("<p>prima</p><{$tag}>SEGRETO alert(1)</{$tag}><p>dopo</p>");
 
         return same($out, '<p>prima</p><p>dopo</p>') && inert($out);
     });
 }
+
+# In HTML5 <embed> è vuoto: quello che lo segue non è suo e il browser lo mostra.
+# libxml dalla 2.14 lo legge così, la 2.9 gli metteva dentro il testo seguente:
+# il risultato deve essere lo stesso con tutte e due.
+
+check('<embed> tolto, il testo che segue resta come nel browser', function () {
+    $out = SafeHtml::clean('<p>prima</p><embed>SEGRETO alert(1)</embed><p>dopo</p>');
+
+    return same($out, '<p>prima</p>SEGRETO alert(1)<p>dopo</p>') && inert($out);
+});
+
+check('<embed> senza chiusura non si porta via il resto del documento', fn () => same(
+    SafeHtml::clean('<p>Guarda <embed src="video.swf"> e poi leggi.</p><embed src="x"><p>due</p><p>tre</p>'),
+    '<p>Guarda  e poi leggi.</p><p>due</p><p>tre</p>'
+));
+
+check('<embed> con src javascript o data: sparisce, quello che segue passa pulito', function () {
+    $out = SafeHtml::clean('<embed src="javascript:alert(1)"><embed type="image/svg+xml" src="data:image/svg+xml;base64,PHN2Zz4="><embed><script>alert(2)</script><a href="javascript:alert(3)">x</a></embed>ok');
+
+    return same($out, 'xok') && inert($out);
+});
 
 check('<img onerror> tolto', function () {
     $out = SafeHtml::clean('<p>a<img src="x" onerror="alert(1)">b</p>');
@@ -329,5 +374,784 @@ check('annidamento assurdo (oltre il limite di libxml): esce vuoto, senza errori
     SafeHtml::clean(str_repeat('<span>', 5000) . '<script>alert(1)</script>x' . str_repeat('</span>', 5000)),
     ''
 ));
+
+# ---------------------------------------------------------------------------
+# Tag e attributi lasciati aperti a fine testo
+# ---------------------------------------------------------------------------
+
+# Da libxml 2.14 il testo di xmp, textarea e title finisce solo alla loro
+# chiusura, quello di plaintext mai: lasciati aperti arrivano a fine input, e
+# la chiusura del documento in cui SafeHtml avvolge l'input non deve diventare
+# testo. Il risultato deve essere lo stesso con la 2.9.
+
+foreach (['xmp', 'textarea', 'title', 'plaintext'] as $tag) {
+    check("<{$tag}> non chiuso: resta il testo, niente pezzi del documento", fn () => same(
+        SafeHtml::clean("<p>a</p><{$tag}>b"),
+        '<p>a</p>b'
+    ));
+
+    check("<{$tag}> vuoto e non chiuso → ''", fn () => same(SafeHtml::clean("<{$tag}>"), ''));
+}
+
+check('xmp, textarea e title chiusi: resta il testo e quello che segue', fn () => same(
+    SafeHtml::clean('<p>a</p><xmp>b</xmp><textarea>c &amp; d</textarea><title>e</title><p>f</p>'),
+    '<p>a</p>bc &amp; de<p>f</p>'
+));
+
+# Un tag tagliato a metà ogni libxml lo chiude a modo suo (la 2.9 tiene il link
+# vuoto, la 2.15 lo toglie): conta che la chiusura del documento resti fuori.
+
+foreach ([
+    'tra virgolette' => '<p>a</p><a href="https://x.it',
+    'senza virgolette' => '<p>a</p><a href=https://x.it',
+] as $label => $input) {
+    check("href {$label} lasciato aperto: niente pezzi del documento", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return noWrapper($out) && str_starts_with($out, '<p>a</p>');
+    });
+}
+
+# ---------------------------------------------------------------------------
+# Chiusure di body e html scritte nel testo
+# ---------------------------------------------------------------------------
+
+# Un </body> o </html> senza apertura chiuderebbe il body del documento in cui
+# SafeHtml avvolge l'input, e quello che segue resterebbe fuori. Come in HTML5,
+# dove quel contenuto torna nel body, il testo continua. Il risultato deve
+# essere lo stesso con ogni libxml.
+
+check('html e body scritti e chiusi dall\'utente: quello che segue resta', fn () => same(
+    SafeHtml::clean('<html><body><p>ok</p></body></html><p>dopo</p>'),
+    '<p>ok</p><p>dopo</p>'
+));
+
+check('<html> dell\'utente abbinato: quello che segue resta', fn () => same(
+    SafeHtml::clean('<html><p>a</p></html><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('<body> dell\'utente abbinato e un </html> in più: quello che segue resta', fn () => same(
+    SafeHtml::clean('<body><p>a</p></body><p>b</p></html>c'),
+    '<p>a</p><p>b</p>c'
+));
+
+check('</body> senza apertura: il paragrafo che segue resta', fn () => same(
+    SafeHtml::clean('<p>a</p></body><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</html> senza apertura: il paragrafo che segue resta', fn () => same(
+    SafeHtml::clean('<p>a</p></html><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</body> in testa: il testo resta', fn () => same(SafeHtml::clean('</body>testo'), 'testo'));
+
+check('</body></html> a metà: resta tutto quello che segue', fn () => same(
+    SafeHtml::clean('<p>a</p></body></html>b<p>c</p>'),
+    '<p>a</p>b<p>c</p>'
+));
+
+check('chiusure ripetute: il testo continua ogni volta', fn () => same(
+    SafeHtml::clean('<p>a</p></body><p>b</p></html></body><p>c</p>'),
+    '<p>a</p><p>b</p><p>c</p>'
+));
+
+check('</body> dentro un paragrafo: il paragrafo continua', fn () => same(
+    SafeHtml::clean('<p>a</body>b</p>c'),
+    '<p>ab</p>c'
+));
+
+check('</body> e </html> in fondo, ognuno sulla sua riga', fn () => same(
+    SafeHtml::clean("<p>a</p>\n</body>\n</html>"),
+    '<p>a</p>'
+));
+
+check('documento intero con doctype e head: resta il testo, anche dopo </html>', fn () => same(
+    SafeHtml::clean("<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n<meta charset=\"utf-8\">\n</head>\n<body>\n<p>a</p>\n</body>\n</html>\n<p>b</p>"),
+    "<p>a</p>\n\n\n<p>b</p>"
+));
+
+# Le varianti della chiusura. Virgolette, simboli o lettere non ASCII attaccati
+# al nome chiudono il body con libxml 2.9, non dalla 2.14: si tolgono lo stesso,
+# così il risultato non cambia con la versione.
+
+foreach ([
+    'maiuscola' => '</BODY>',
+    'con uno spazio' => '</body >',
+    'con un a capo' => "</Html\n>",
+    'con un tab' => "</body\t>",
+    'con attributi' => '</body class="x" data-x=\'1\'>',
+    'con la barra' => '</body/>',
+    'senza >' => '</body',
+    'con un attributo e senza >' => '</body x',
+    'con le virgolette attaccate al nome' => '</body"x">',
+    'con un simbolo attaccato al nome' => '</body@>',
+    'con una lettera accentata attaccata al nome' => "</body\u{00E9}>",
+] as $label => $close) {
+    check("chiusura {$label}: il paragrafo che segue resta", fn () => same(
+        SafeHtml::clean("<p>a</p>{$close}<p>b</p>"),
+        '<p>a</p><p>b</p>'
+    ));
+}
+
+# Dentro xmp, textarea, title e plaintext libxml dalla 2.14 legge </body> come
+# testo, la 2.9 come chiusura: si toglie con tutte e due, e il testo attorno
+# resta.
+
+foreach (['xmp', 'textarea', 'title'] as $tag) {
+    check("</body> dentro <{$tag}>: si toglie, il testo resta", fn () => same(
+        SafeHtml::clean("<{$tag}>b</body>c</{$tag}><p>d</p>"),
+        'bc<p>d</p>'
+    ));
+}
+
+check('</body> dentro <plaintext>: si toglie, il testo resta', fn () => same(
+    SafeHtml::clean('<plaintext>b</body>c'),
+    'bc'
+));
+
+# Nei tag che spariscono con il contenuto, un </body> non deve portarsi via
+# quello che segue il tag.
+
+foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
+    check("</body> dentro <{$tag}>: il tag sparisce intero, quello che segue resta", function () use ($tag) {
+        $out = SafeHtml::clean("<p>a</p><{$tag}>x</body>alert(1)</{$tag}><p>b</p>");
+
+        return same($out, '<p>a</p><p>b</p>') && inert($out);
+    });
+}
+
+check('"</body" in una stringa di uno script: lo script sparisce intero', function () {
+    $out = SafeHtml::clean('<script>if (s.indexOf("</body") > 0) { alert(1); }</script><p>d</p>');
+
+    return same($out, '<p>d</p>') && inert($out);
+});
+
+# La chiusura tolta non arriva oltre la fine di un commento o di un attributo
+# che la contengono: commento e attributo spariscono interi, senza pezzi.
+
+check('</body dentro un commento: il commento sparisce intero', fn () => same(
+    SafeHtml::clean('<p>a</p><!-- prima di </body "x" -- dopo --><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</body dentro un commento chiuso con --!>: il commento sparisce intero', fn () => same(
+    SafeHtml::clean('<p>a</p><!-- prima di </body --!><p>b</p>'),
+    '<p>a</p><p>b</p>'
+));
+
+check('</body dentro un attributo: l\'attributo sparisce intero', fn () => same(
+    SafeHtml::clean('<a href="https://x.it/" title="</body x">l</a><p>b</p>'),
+    '<a href="https://x.it/">l</a><p>b</p>'
+));
+
+foreach ([
+    'istruzione di elaborazione' => '<p>a</p><?php echo "</body>"; ?><p>b</p>',
+    'CDATA' => '<p>a</p><![CDATA[</body>]]><p>b</p>',
+] as $label => $input) {
+    check("</body> dentro un {$label}: sparisce senza pezzi", fn () => same(
+        SafeHtml::clean($input),
+        '<p>a</p><p>b</p>'
+    ));
+}
+
+# Le chiusure si tolgono dopo i caratteri di controllo e i < sciolti.
+
+check('</body> spezzato da un carattere di controllo: si toglie lo stesso', fn () => same(
+    SafeHtml::clean("<p>a</p></bo\x01dy><p>b</p>"),
+    '<p>a</p><p>b</p>'
+));
+
+check('< sciolto davanti a </body>: resta testo, come in HTML5', fn () => same(
+    SafeHtml::clean('<</body>p>b'),
+    '&lt;p&gt;b'
+));
+
+# Togliendo una chiusura, il testo che aveva attorno può comporne un'altra:
+# quella resta come testo e non chiude il body.
+
+foreach ([
+    'nel mezzo del nome' => '</bo</body>dy>',
+    'subito dopo la barra' => '</</html>body>',
+] as $label => $close) {
+    check("chiusura tolta {$label} di un'altra: quella resta testo, il paragrafo che segue resta", fn () => same(
+        SafeHtml::clean("<p>a</p>{$close}<p>b</p>"),
+        '<p>a</p>&lt;/body&gt;<p>b</p>'
+    ));
+}
+
+check('chiusure tolte una dentro l\'altra: il paragrafo che segue resta', function () {
+    $out = SafeHtml::clean('<p>a</p></b</bo</body>dy>ody><p>b</p>');
+
+    return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
+});
+
+# Senza un tetto, una chiusura lunghissima esaurisce pcre.backtrack_limit e la
+# regex che la toglie non dà risultato.
+
+check('chiusura con una coda enorme di attributi: niente errori, il testo attorno resta', function () {
+    $out = SafeHtml::clean('<p>a</p></body ' . str_repeat('-a', 1500000) . '><p>b</p>');
+
+    return str_starts_with($out, '<p>a</p>') && str_ends_with($out, '<p>b</p>');
+});
+# ---------------------------------------------------------------------------
+# Contenuto dei tag che spariscono con il contenuto
+# ---------------------------------------------------------------------------
+
+# HTML5 legge il contenuto di script, style, iframe, noembed e noframes come
+# testo semplice fino alla loro chiusura: quello che c'è in mezzo è loro, anche
+# la chiusura di un tag che li contiene. libxml lo fa solo per script e style,
+# e la 2.9 fino al primo </ seguito da una lettera invece che fino alla loro
+# chiusura. Spariscono con il contenuto, ma quanto testo si portino via cambia:
+# il risultato deve essere quello di HTML5 con ogni libxml.
+
+foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
+    check("<{$tag}> non chiuso in un paragrafo: si porta via il testo che segue", function () use ($tag) {
+        $out = SafeHtml::clean("<p>a<{$tag}>b</p>c");
+
+        return same($out, '<p>a</p>') && inert($out) && noRename($out);
+    });
+
+    check("chiusura del tag che contiene <{$tag}>: è contenuto suo", function () use ($tag) {
+        $out = SafeHtml::clean("<div>a<{$tag}>b</div>c</{$tag}>d");
+
+        return same($out, 'ad') && inert($out) && noRename($out);
+    });
+
+    check("chiusura di un li che contiene <{$tag}>: è contenuto suo", function () use ($tag) {
+        $out = SafeHtml::clean("<ul><li>a<{$tag}>b</li>c</{$tag}>d</ul>");
+
+        return same($out, 'ad') && inert($out) && noRename($out);
+    });
+}
+
+# La chiusura di un altro tag dello stesso gruppo non finisce il testo semplice:
+# conta solo la propria.
+
+check('</iframe> dentro uno script: lo script sparisce intero', fn () => same(
+    SafeHtml::clean('<script>a</iframe>b</script>c'),
+    'c'
+));
+
+check('</script> dentro un iframe: l\'iframe sparisce intero', fn () => same(
+    SafeHtml::clean('<iframe>a</script>b</iframe>c'),
+    'c'
+));
+
+check('<iframe> dentro <iframe>: chiude la prima chiusura', fn () => same(
+    SafeHtml::clean('<iframe>a<iframe>b</iframe>c</iframe>d'),
+    'cd'
+));
+
+# Eccezione dichiarata: per leggere iframe, noembed e noframes come testo
+# semplice anche con la 2.9 SafeHtml li fa leggere con il nome di style, l'unico
+# insieme a script che entra in quella lettura con tutte le libxml. Il nome è
+# quindi condiviso da style, iframe, noembed e noframes, e le chiusure si
+# accoppiano per nome: </style>, </iframe>, </noembed> e </noframes> finiscono
+# il testo semplice di qualunque dei quattro, anche prima di quanto direbbe
+# HTML5. Il tag sparisce comunque con il contenuto e quello che resta è testo
+# escapato.
+
+check('</style> dentro un iframe: l\'iframe sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<iframe>a</style>b</iframe>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+check('</iframe> dentro un noembed: il noembed sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<noembed>a</iframe>b</noembed>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+check('</iframe> dentro uno style: lo style sparisce, il resto resta testo', function () {
+    $out = SafeHtml::clean('<style>a</iframe>b</style>c');
+
+    return same($out, 'bc') && inert($out) && noRename($out);
+});
+
+# noscript non è in questo gruppo: con lo scripting spento HTML5 lo legge come
+# gli altri tag, come fa libxml.
+
+check('<noscript> non chiuso in un paragrafo: il testo che segue resta', fn () => same(
+    SafeHtml::clean('<p>a<noscript>b</p>c'),
+    '<p>a</p>c'
+));
+
+check('chiusura del tag che contiene <noscript>: il testo dopo resta', fn () => same(
+    SafeHtml::clean('<div>a<noscript>b</div>c</noscript>d'),
+    'acd'
+));
+
+# Il nome con cui si fanno leggere non cambia dove il tag comincia e dove
+# finisce.
+
+foreach ([
+    'maiuscolo' => '<div>a<IFRAME>b</div>c</IFRAME>d',
+    'con un attributo' => '<div>a<iframe src="https://x.it/">b</div>c</iframe>d',
+    'con srcdoc' => '<div>a<iframe srcdoc="<b>x</b>">b</div>c</iframe>d',
+    'senza > nella chiusura' => '<div>a<noembed>b</div>c</noembed d="1">d',
+] as $label => $input) {
+    check("<iframe> o <noembed> {$label}: si porta via il testo fino alla sua chiusura", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, 'ad') && inert($out) && noRename($out);
+    });
+}
+
+check('<iframe/> chiuso con la barra: resta vuoto, il testo dopo resta', fn () => same(
+    SafeHtml::clean('<p>a<iframe/>b</p>c'),
+    '<p>ab</p>c'
+));
+
+# Dove il tag resta testo (attributi, textarea, title) non deve restare traccia
+# del nome con cui SafeHtml lo fa leggere.
+
+foreach ([
+    'tra virgolette' => ['<a href="https://x.it/<iframe>">l</a>', '<a href="https://x.it/&lt;iframe&gt;">l</a>'],
+    'maiuscolo' => ['<a href="https://x.it/<NOEMBED>">l</a>', '<a href="https://x.it/&lt;NOEMBED&gt;">l</a>'],
+    'senza virgolette' => ['<a href=https://x.it/<noframes>l</a>', '<a href="https://x.it/&lt;noframes">l</a>'],
+] as $label => [$input, $expected]) {
+    check("iframe, noembed o noframes nell'href {$label}: resta com'era", fn () => same(
+        SafeHtml::clean($input),
+        $expected
+    ));
+}
+
+foreach ([
+    'textarea' => '<textarea>a<iframe>b</iframe>c</textarea>',
+    'title' => '<title>a<noembed>b</noembed>c</title><p>d</p>',
+    'una textarea lunga' => '<textarea>' . str_repeat('perché ', 800) . '<noframes>x</noframes></textarea>',
+] as $label => $input) {
+    check("iframe, noembed o noframes dentro {$label}: senza tracce della rinomina", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return noRename($out) && noWrapper($out) && inert($out);
+    });
+}
+
+# Dentro uno script o uno style una chiusura che non è la sua è testo, come in
+# HTML5. La 2.9 la legge come chiusura: se il tag che nomina è aperto si chiude
+# con lo script e il contenuto esce come testo, se non lo è si legge fino al
+# primo >, quello del </script> vero compreso, e lo script si porta via tutto
+# il testo che segue. HTML_PARSE_RECOVER lo evita in mezzo al contenuto, non
+# all'inizio né per un nome che comincia con il suo (</scriptx).
+
+foreach ([
+    'script' => '<script>if (a </b) { alert(1) }</script><p>d</p>',
+    'style' => '<style>a </b { color: red }</style><p>d</p>',
+] as $tag => $input) {
+    check("</b in mezzo a uno {$tag}: lo {$tag} sparisce intero, il paragrafo che segue resta", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, '<p>d</p>') && inert($out) && noRename($out);
+    });
+}
+
+foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
+    check("</b) all'inizio di <{$tag}>: il tag sparisce intero, il paragrafo che segue resta", function () use ($tag) {
+        $out = SafeHtml::clean("<{$tag}></b)</{$tag}><p>d</p>");
+
+        return same($out, '<p>d</p>') && inert($out) && noRename($out);
+    });
+
+    check("</p> all'inizio di <{$tag}> in un paragrafo: è contenuto suo", function () use ($tag) {
+        $out = SafeHtml::clean("<p>a<{$tag}></p>b</{$tag}>c</p><p>d</p>");
+
+        return same($out, '<p>ac</p><p>d</p>') && inert($out) && noRename($out);
+    });
+}
+
+check('</p> e un link all\'inizio di uno script: non esce niente dello script', function () {
+    $out = SafeHtml::clean('<p>a<script></p><a href="javascript:alert(1)">x</a></script>c</p>');
+
+    return same($out, '<p>ac</p>') && inert($out) && noRename($out);
+});
+
+foreach ([
+    'un nome che comincia con _' => '<script></_x</script><p>d</p>',
+    'un nome che comincia con .' => '<script></.x</script><p>d</p>',
+    'un nome che comincia con :' => '<script></:x</script><p>d</p>',
+    'un > tra virgolette nell\'apertura' => '<script x=">"></b</script><p>d</p>',
+    'un > tra apici nell\'apertura' => "<script x='>'></b</script><p>d</p>",
+] as $label => $input) {
+    check("chiusura finta all'inizio di uno script, con {$label}: lo script sparisce intero", fn () => same(
+        SafeHtml::clean($input),
+        '<p>d</p>'
+    ));
+}
+
+check('</script_d all\'inizio di uno script: non lo chiude', fn () => same(
+    SafeHtml::clean('<p>a<script></script_d</script>b</p><p>d</p>'),
+    '<p>ab</p><p>d</p>'
+));
+
+foreach (['script', 'style'] as $tag) {
+    foreach (['x', '-a', '.b', ':c', '_d', '1'] as $tail) {
+        check("</{$tag}{$tail} dentro <{$tag}>: non lo chiude, il tag sparisce intero", function () use ($tag, $tail) {
+            $out = SafeHtml::clean("<{$tag}>a</{$tag}{$tail} b</{$tag}><p>c</p>");
+
+            return same($out, '<p>c</p>') && inert($out) && noRename($out);
+        });
+    }
+}
+
+foreach ([
+    'maiuscola' => '<SCRIPT>a</SCRIPTX b</SCRIPT><p>c</p>',
+    'di style dentro un iframe' => '<iframe>a</stylex b</iframe><p>c</p>',
+] as $label => $input) {
+    check("chiusura che comincia con il nome del tag, {$label}: il tag sparisce intero", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, '<p>c</p>') && inert($out) && noRename($out);
+    });
+}
+
+# Fuori da script e style, scriptx o style-a sono tag qualunque: si tolgono e
+# il contenuto resta. Dove un'apertura, una chiusura o un > seguito da una
+# chiusura sono testo non deve restare traccia di quello che SafeHtml ci
+# aggiunge per leggerli.
+
+foreach ([
+    'scriptx' => ['<p>a<scriptx>b</scriptx>c</p><script>s</script>', '<p>abc</p>'],
+    'style-a' => ['<style-a><b>a</style-a>c<style>s</style>', '<b>a</b>c'],
+] as $name => [$input, $expected]) {
+    check("<{$name}> con uno script o uno style nello stesso input: si toglie il tag, il contenuto resta", function () use ($input, $expected) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, $expected) && noRename($out);
+    });
+}
+
+foreach ([
+    'una chiusura di scriptx nell\'href' => ['<a href="https://x.it/</scriptx">l</a><script>s</script>', '<a href="https://x.it/&lt;/scriptx">l</a>'],
+    'un\'apertura di style-a nell\'href' => ['<a href="https://x.it/<style-a>">l</a><style>s</style>', '<a href="https://x.it/&lt;style-a&gt;">l</a>'],
+    'un > seguito da una chiusura nell\'href' => ['<a href="https://x.it/></b">l</a><script>s</script>', '<a href="https://x.it/&gt;&lt;/b">l</a>'],
+    'una chiusura subito dopo un\'altra' => ['<p><b>a</b></p><script>s</script>', '<p><b>a</b></p>'],
+] as $label => [$input, $expected]) {
+    check("{$label}, con uno script o uno style nello stesso input: resta com'era", function () use ($input, $expected) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, $expected) && noRename($out);
+    });
+}
+
+
+# ---------------------------------------------------------------------------
+# Contenuto di xmp e plaintext
+# ---------------------------------------------------------------------------
+
+# libxml dalla 2.14 legge xmp come raw text e plaintext fino a fine input: le
+# entità in cui normalizeInput() scrive le lettere accentate e i < sciolti
+# restavano testo e si escapavano di nuovo (perch&amp;#233;), e i tag dentro
+# uscivano come testo. La 2.9 li legge come gli altri tag: il risultato deve
+# essere il suo con ogni libxml.
+
+foreach ([
+    'xmp' => ['<xmp>', '</xmp>'],
+    'plaintext' => ['<plaintext>', ''],
+] as $tag => [$open, $close]) {
+    foreach ([
+        'lettere accentate' => ['perché', 'perché'],
+        'un < sciolto' => ['3 < 5', '3 &lt; 5'],
+        'un\'entità' => ['a &amp; b', 'a &amp; b'],
+        'le entità di un tag' => ['&lt;b&gt;', '&lt;b&gt;'],
+        'entità con nome e numeriche' => ['&hellip; &euro; &#8364; &#x20AC;', '… € € €'],
+        'un tag ammesso' => ['<b>x</b>', '<b>x</b>'],
+    ] as $label => [$text, $expected]) {
+        check("{$label} dentro <{$tag}>: come negli altri tag", fn () => same(
+            SafeHtml::clean($open . $text . $close),
+            $expected
+        ));
+    }
+
+    check("script dentro <{$tag}>: sparisce, quello che segue resta", function () use ($open, $close) {
+        $out = SafeHtml::clean($open . '<script>alert(1)</script>' . $close . '<p>ok</p>');
+
+        return same($out, '<p>ok</p>') && inert($out);
+    });
+}
+
+check('commento dentro <xmp>: si toglie, il testo resta', fn () => same(
+    SafeHtml::clean('<xmp><!-- c -->d</xmp>'),
+    'd'
+));
+
+# Come con la 2.9, xmp chiude il paragrafo aperto e plaintext no, e plaintext
+# finisce alla sua chiusura.
+
+check('<xmp> dentro un paragrafo lo chiude', fn () => same(
+    SafeHtml::clean('<p>a<xmp>b</xmp>c</p>'),
+    '<p>a</p>bc'
+));
+
+check('<plaintext> dentro un paragrafo: il paragrafo continua', fn () => same(
+    SafeHtml::clean('<p>a<plaintext>b</plaintext>c</p>'),
+    '<p>abc</p>'
+));
+
+check('</plaintext> chiude plaintext: il paragrafo che segue resta', fn () => same(
+    SafeHtml::clean('<plaintext>a</plaintext><p>b</p>'),
+    'a<p>b</p>'
+));
+
+check('<plaintext> dentro <math>: sparisce con math, quello che segue resta', fn () => same(
+    SafeHtml::clean('<math><plaintext>a</plaintext></math><p>b</p>'),
+    '<p>b</p>'
+));
+
+check('<xmp> dentro <xmp>: resta tutto il testo', fn () => same(
+    SafeHtml::clean('<xmp>a<xmp>b</xmp>c</xmp>d'),
+    'abcd'
+));
+
+check('</b> dentro <xmp> chiude il grassetto', fn () => same(
+    SafeHtml::clean('<b><xmp>x</b>y</xmp>z'),
+    '<b>x</b>yz'
+));
+
+foreach ([
+    'maiuscolo' => '<XMP>perché</XMP>',
+    'con un attributo' => '<xmp class="x">perché</xmp>',
+    'chiuso con la barra' => '<xmp/>perché',
+    'composto togliendo un </body>' => '<xm</body>p>perché</xmp>',
+] as $label => $input) {
+    check("<xmp> {$label}: il testo resta", fn () => same(SafeHtml::clean($input), 'perché'));
+}
+
+check('</xmp> senza >: il testo resta', fn () => same(SafeHtml::clean('<xmp>a</xmp'), 'a'));
+
+check('</xmp> con un attributo: il testo che segue resta', fn () => same(
+    SafeHtml::clean('<xmp>a</xmp x="1">b'),
+    'ab'
+));
+
+check('chiusura di body composta dentro <xmp>: resta testo', fn () => same(
+    SafeHtml::clean('<xmp>a</bo</body>dy>b</xmp>'),
+    'a&lt;/body&gt;b'
+));
+
+# Nel valore di un attributo xmp e plaintext restano com'erano.
+
+foreach ([
+    'tra virgolette' => ['<a href="https://x.it/<xmp>">l</a>', '<a href="https://x.it/&lt;xmp&gt;">l</a>'],
+    'maiuscolo' => ['<a href="https://x.it/<XMP>">l</a>', '<a href="https://x.it/&lt;XMP&gt;">l</a>'],
+    'plaintext' => ['<a href="https://x.it/<plaintext>">l</a>', '<a href="https://x.it/&lt;plaintext&gt;">l</a>'],
+    'dopo un &amp; letterale' => ['<a href="https://x.it/?a=1&amp;amp;b=<xmp>">l</a>', '<a href="https://x.it/?a=1&amp;amp;b=&lt;xmp&gt;">l</a>'],
+    'prima di un\'entità e di una lettera accentata' => ['<a href="https://x.it/<xmp>&amp;x=perché">l</a>', '<a href="https://x.it/&lt;xmp&gt;&amp;x=perché">l</a>'],
+    'senza virgolette' => ['<a href=https://x.it/<xmp>l</a>', '<a href="https://x.it/&lt;xmp">l</a>'],
+] as $label => [$input, $expected]) {
+    check("tag nell'href {$label}: resta com'era", fn () => same(SafeHtml::clean($input), $expected));
+}
+
+# Dentro textarea e title libxml dalla 2.14 legge anche i tag come testo, la
+# 2.9 come tag: il risultato cambia con la versione, ma non deve restare
+# traccia del nome con cui SafeHtml fa leggere xmp e plaintext.
+
+foreach ([
+    'textarea' => '<textarea><xmp>perché</xmp></textarea>',
+    'title' => '<title><plaintext>perché</title><p>y</p>',
+    'una textarea lunga' => '<textarea>' . str_repeat('perché ', 800) . '<xmp>x</xmp></textarea>',
+] as $label => $input) {
+    check("xmp o plaintext dentro {$label}: il testo resta, senza tracce della rinomina", function () use ($input) {
+        $out = SafeHtml::clean($input);
+
+        return noRename($out) && str_contains($out, 'perché');
+    });
+}
+
+# ---------------------------------------------------------------------------
+# Tag vuoti di HTML5 che libxml prima della 2.14 non conosce
+# ---------------------------------------------------------------------------
+
+# In HTML5 `wbr`, `source`, `track`, `embed`, `bgsound` e `keygen` sono vuoti:
+# quello che li segue non è loro. libxml dalla 2.14 li legge così, prima li
+# apriva come contenitori, e quello che seguiva ci finiva dentro mentre i tag
+# attorno si chiudevano in un altro punto. Il risultato deve essere quello del
+# browser con tutte e due.
+
+$html5Voids = ['wbr', 'source', 'track', 'embed', 'bgsound', 'keygen'];
+
+foreach ($html5Voids as $tag) {
+    foreach ([
+        'dentro un paragrafo' => ["<p>a<{$tag}>b<div>c</div>d</p>", '<p>ab</p>cd'],
+        'con attributi, anche con un > nel valore' => ["<p>a<{$tag} src=\"v.mp4\" type=\"a>b\">c<div>d</div>e</p>", '<p>ac</p>de'],
+        'con spazi prima del >' => ["<p>a<{$tag}   >b<div>c</div>d</p>", '<p>ab</p>cd'],
+        'maiuscolo e chiuso con la barra' => ['<p>a<' . strtoupper($tag) . '/>b<div>c</div>d</p>', '<p>ab</p>cd'],
+        'seguito da una chiusura di body' => ["<p>a<{$tag}>b</body>c<div>d</div>e</p>", '<p>abc</p>de'],
+        'con la sua chiusura, che non chiude niente' => ["<p>a<{$tag}>b</{$tag}>c</p>d", '<p>abc</p>d'],
+        'in una lista' => ["<ul><li>a<{$tag}>b<li>c</ul>d", 'abcd'],
+        'dentro il grassetto' => ["<b>a<{$tag}>b</b>c", '<b>ab</b>c'],
+        'dentro una tabella' => ["<table><{$tag}>a<tr><td>b</td></tr></table>c", 'abc'],
+        'dentro <xmp>, dove è testo' => ["<xmp>a<{$tag}>b</xmp>c", 'abc'],
+        'con un nome più lungo, che non è il suo' => ["<p>a<{$tag}x>b<div>c</div>d</p>", '<p>abcd</p>'],
+        'attaccato a un altro <, che gli entra nel nome' => ["<p>a<{$tag}<x>b<div>c</div>d</p>", '<p>abcd</p>'],
+        'tagliato a fine input' => ["<p>a<{$tag}", '<p>a</p>'],
+    ] as $label => [$input, $expected]) {
+        check("<{$tag}> {$label}", fn () => same(SafeHtml::clean($input), $expected));
+    }
+
+    foreach ([
+        'tra virgolette' => ["<a href=\"https://x.it/<{$tag}>\">l</a>", "<a href=\"https://x.it/&lt;{$tag}&gt;\">l</a>"],
+        'senza virgolette' => ["<a href=https://x.it/<{$tag}>l</a>", "<a href=\"https://x.it/&lt;{$tag}\">l</a>"],
+    ] as $label => [$input, $expected]) {
+        check("<{$tag}> nell'href {$label}: resta com'era", fn () => same(SafeHtml::clean($input), $expected));
+    }
+}
+
+check('i sei tag vuoti di fila in un paragrafo', fn () => same(
+    SafeHtml::clean('<p>a<wbr>b<source>c<track>d<embed>e<bgsound>f<keygen>g<div>h</div>i</p>'),
+    '<p>abcdefg</p>hi'
+));
+
+# Dentro textarea e title libxml dalla 2.14 legge anche i tag come testo e la
+# 2.9 come tag: il risultato cambia con la versione, ma non deve restare
+# traccia del nome con cui SafeHtml fa leggere i tag vuoti.
+
+foreach ($html5Voids as $tag) {
+    foreach ([
+        'textarea' => "<textarea>perché<{$tag}>x</textarea>",
+        'title' => "<title>perché<{$tag}>x</title><p>y</p>",
+    ] as $label => $input) {
+        check("<{$tag}> dentro {$label}: il testo resta, senza tracce della rinomina", function () use ($input) {
+            $out = SafeHtml::clean($input);
+
+            return noRename($out) && str_contains($out, 'perché');
+        });
+    }
+}
+
+# ---------------------------------------------------------------------------
+# A capo
+# ---------------------------------------------------------------------------
+
+# Come nella preelaborazione dell'input di HTML5, ogni \r\n e ogni \r isolato
+# diventano \n. libxml 2.15 lo fa da sé, la 2.9 tiene i \r: il risultato deve
+# essere lo stesso con ogni libxml.
+
+foreach ([
+    '\r\n in un paragrafo diventa \n' => ["<p>a\r\nb</p>", "<p>a\nb</p>"],
+    '\r isolato diventa \n' => ["a\rb", "a\nb"],
+    '\r a fine paragrafo diventa \n' => ["<p>a\r</p>", "<p>a\n</p>"],
+    '\r\n tra due paragrafi diventa \n' => ["<p>a</p>\r\n<p>b</p>", "<p>a</p>\n<p>b</p>"],
+    '\r\n\r\n sono due a capo' => ["a\r\n\r\nb", "a\n\nb"],
+    '\r\r\n sono due a capo' => ["a\r\r\nb", "a\n\nb"],
+    '\n\r sono due a capo' => ["a\n\rb", "a\n\nb"],
+] as $label => [$input, $expected]) {
+    check($label, fn () => same(SafeHtml::clean($input), $expected));
+}
+
+# Anche dove libxml legge il contenuto in modo speciale.
+
+foreach (['xmp', 'listing', 'textarea', 'title', 'pre'] as $tag) {
+    foreach (['\r\n' => "\r\n", '\r' => "\r"] as $label => $newline) {
+        check("{$label} dentro <{$tag}> diventa \\n", fn () => same(
+            SafeHtml::clean("a<{$tag}>b{$newline}c</{$tag}>d"),
+            "ab\ncd"
+        ));
+    }
+}
+
+check('\r\n dentro <plaintext> diventa \n', fn () => same(SafeHtml::clean("a<plaintext>b\r\nc"), "ab\nc"));
+
+# E nel valore degli attributi.
+
+foreach (['\r' => "\r", '\r\n' => "\r\n"] as $label => $newline) {
+    check("{$label} nell'href diventa \\n", fn () => same(
+        SafeHtml::clean("<a href=\"https://x.it/a{$newline}b\">l</a>"),
+        "<a href=\"https://x.it/a\nb\">l</a>"
+    ));
+}
+
+check('\r nell\'href senza virgolette chiude il valore, come \n', fn () => same(
+    SafeHtml::clean("<a href=https://x.it/a\rb>l</a>"),
+    '<a href="https://x.it/a">l</a>'
+));
+
+foreach ([
+    '\r nello schema' => "java\rscript:alert(1)",
+    '\r\n nello schema' => "java\r\nscript:alert(1)",
+    '\r\n prima dello schema' => "\r\njavascript:alert(1)",
+] as $label => $href) {
+    check("javascript: con {$label}: il link perde il tag", function () use ($href) {
+        $out = SafeHtml::clean('<a href="' . $href . '">x</a>');
+
+        return same($out, 'x') && inert($out);
+    });
+}
+
+# Come in HTML5, gli a capo si normalizzano prima di leggere il resto: un \r e
+# un \n separati da un carattere di controllo o da un </body>, che si tolgono,
+# restano due a capo come in un browser.
+
+check('\r e \n separati da un carattere di controllo: due a capo', fn () => same(
+    SafeHtml::clean("a\r\x01\nb"),
+    "a\n\nb"
+));
+
+check('\r e \n separati da </body>: due a capo', fn () => same(
+    SafeHtml::clean("a\r</body>\nb"),
+    "a\n\nb"
+));
+
+# Dentro un tag un a capo finisce il nome come uno spazio: le chiusure di body e
+# html si tolgono, xmp e plaintext si leggono come gli altri tag.
+
+foreach ([
+    '</body\r>' => ["<p>a</p></body\r><p>b</p>", '<p>a</p><p>b</p>'],
+    '</html\r\n>' => ["<p>a</p></html\r\n><p>b</p>", '<p>a</p><p>b</p>'],
+    '<xmp\r>' => ["<xmp\r>perché</xmp>", 'perché'],
+    '</xmp\r>' => ["<xmp>a</xmp\r>b", 'ab'],
+    '<plaintext\r\n>' => ["<plaintext\r\n>perché", 'perché'],
+] as $label => [$input, $expected]) {
+    check("{$label}: si legge come con uno spazio", function () use ($input, $expected) {
+        $out = SafeHtml::clean($input);
+
+        return same($out, $expected) && noWrapper($out) && noRename($out);
+    });
+}
+
+# Un &#13; mette un \r nel documento. Scritto così com'è, un browser lo
+# leggerebbe come \n e una seconda pulizia lo cambierebbe: esce come \n, e con
+# un \n subito dopo fa un solo a capo, come \r\n.
+
+foreach ([
+    'nel testo' => ['<p>a&#13;b</p>', "<p>a\nb</p>"],
+    'in esadecimale' => ['<p>a&#x0D;b</p>', "<p>a\nb</p>"],
+    'seguito da &#10;' => ['<p>a&#13;&#10;b</p>', "<p>a\nb</p>"],
+    'seguito da \n' => ["<p>a&#13;\nb</p>", "<p>a\nb</p>"],
+    'dentro <textarea>' => ['<textarea>a&#13;b</textarea>', "a\nb"],
+    'dentro <xmp>' => ['<xmp>a&#13;b</xmp>', "a\nb"],
+    'nell\'href' => ['<a href="https://x.it/a&#13;b">l</a>', "<a href=\"https://x.it/a\nb\">l</a>"],
+] as $label => [$input, $expected]) {
+    check("&#13; {$label}: esce come \\n", fn () => same(SafeHtml::clean($input), $expected));
+}
+
+foreach ([
+    '\r\n' => "<p>\r\n</p>",
+    '&nbsp; e \r' => "<p>&nbsp;\r</p>",
+    '&#13;' => '<p>&#13;</p>',
+] as $label => $input) {
+    check("paragrafo con solo {$label}: vuoto per l'editor", fn () => same(SafeHtml::clean($input), ''));
+}
+
+check('pulire due volte un testo con a capo dà lo stesso risultato', function () {
+    foreach ([
+        "<p>a\r\nb</p>\r<p>c</p>",
+        '<p>a&#13;b&#13;&#10;c</p>',
+        '<a href="https://x.it/a&#13;b">l</a>',
+        "<textarea>a\rb&#13;c</textarea>",
+    ] as $input) {
+        $once = SafeHtml::clean($input);
+
+        if (!same(SafeHtml::clean($once), $once)) {
+            return false;
+        }
+    }
+
+    return true;
+});
 
 summary();

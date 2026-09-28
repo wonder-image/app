@@ -53,7 +53,7 @@ abstract protected static function permissionsFunction(): string; // funzione ch
 
 ## Creare un utente backend (flusso)
 
-1. Backend → sezione Utenti (voce di menu da `BackendUserResource::navigationSchema()`).
+1. Backend → Set Up → Utenti (voce di menu da `BackendUserResource::navigationSchema()`).
 2. "Aggiungi": compili i dati e scegli l'**authority** tra quelle disponibili per
    il tuo ruolo.
 3. Salvataggio: l'utente viene creato nell'area `backend`; se previsto, parte la

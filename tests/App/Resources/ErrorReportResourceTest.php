@@ -8,7 +8,7 @@ require __DIR__ . '/../../harness.php';
 use Wonder\App\Models\System\ErrorReport;
 use Wonder\App\Resources\System\ErrorReportResource;
 
-check('la pagina degli errori sta in Set Up, solo admin', function () {
+check('la pagina degli errori sta in Dev → Log e diagnostica, solo admin', function () {
     $navigation = ErrorReportResource::navigationSchema()->toArray();
 
     foreach (ErrorReportResource::permissionSchema()->toArray()['backend'] ?? [] as $authorities) {
@@ -17,7 +17,8 @@ check('la pagina degli errori sta in Set Up, solo admin', function () {
         }
     }
 
-    return ($navigation['section_key'] ?? '') === 'set-up'
+    return ($navigation['section_key'] ?? '') === 'dev'
+        && ($navigation['group_key'] ?? '') === 'diagnostics'
         && ErrorReportResource::path() === 'app/config/errori'
         && ErrorReportResource::$model === ErrorReport::class;
 });

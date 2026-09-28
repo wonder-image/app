@@ -1,7 +1,7 @@
 # Google Sign-In OAuth
 
 Questa pagina descrive come ottenere le chiavi per il login federato Google da inserire in:
-- Backend > Config > Credentials
+- Backend > Dev > API e servizi > Credenziali
 - campi: `google_oauth_client_id`, `google_oauth_client_secret`, `google_oauth_redirect_uri`
 
 ## Prerequisiti

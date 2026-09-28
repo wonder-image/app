@@ -5,6 +5,7 @@ namespace Wonder\App\ResourceSchema\Inputs;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\BuildsCheckGroupElement;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasOptions;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasPills;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasQuickCreate;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasSearchBar;
 use Wonder\Elements\Form\Components\Checkbox;
@@ -21,25 +22,11 @@ class InputCheckbox extends Input
 {
     use BuildsCheckGroupElement;
     use HasOptions;
+    use HasPills;
     use HasSearchBar;
     use HasQuickCreate;
 
     protected string $helper = 'checkbox';
-
-    /**
-     * Le voci come pillole in linea, senza il riquadro che scorre.
-     *
-     * Una colonna di spunte alta centoventi pixel dice «qui c'è un elenco
-     * lungo»; cinque taglie non sono un elenco lungo, e incolonnarle in un
-     * riquadro con la barra di scorrimento occupa dieci volte lo spazio di
-     * quello che mostra.
-     */
-    public function pills(bool $pills = true): static
-    {
-        $this->schema['pills'] = $pills;
-
-        return $this;
-    }
 
     /**
      * Senza opzioni un singolo checkbox booleano; con opzioni un gruppo.

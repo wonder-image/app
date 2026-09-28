@@ -81,7 +81,8 @@ Tutti chainable su `FormField::key($name)`:
 
 `text()`, `hidden()`, `email()`, `tel()` / `phone()` (alias), `url()`,
 `number()`, `price()`, `percentige()`, `color()`, `icon()`, `password()`,
-`textGenerator($callback = null, $buttonLabel = null)` (input + bottone "GENERA").
+`textGenerator($callback = null, $buttonLabel = null)` (input + bottone "GENERA"),
+`button($text = null)` (un bottone fra i campi, con una didascalia accanto).
 
 `text()` accetta `maxLength($n)`: l'input esce con l'attributo `maxlength`
 in entrambi i temi, così il browser non lascia scrivere oltre. È solo un limite
@@ -90,6 +91,29 @@ di interfaccia: il controllo vero sulla lunghezza resta sul Model. Se passi già
 
 ```php
 FormField::key('sku')->text()->maxLength(32);
+```
+
+`button()` è un `<button type="button">` senza `name`: non posta niente. Il
+nome serve solo a trovarlo nello schema e a leggerne il value, che diventa la
+didascalia accanto al bottone, escapata; `emptyCaption()` è quella da mostrare
+quando il value è vuoto. La didascalia esce sempre, anche vuota, così uno
+script la può riempire: la si trova con `[data-wi-button-caption]`, l'unico
+segno uguale in tutti i temi. Le classi cambiano col tema (`small
+text-body-secondary` in Bootstrap, `text-small` in Wonder), e un selettore o
+un test scritto su quelle funziona in un tema solo. Di
+default il bottone è `outline-secondary`; `opensModal($id)` gli mette
+`data-bs-toggle="modal" data-bs-target="#$id"` per aprire una
+[finestra](../componenti/README.md#modal), e gli attributi dati con
+`attribute()` arrivano al bottone. Funziona in una `Card`, in un `Accordion` e
+come colonna di un repeater, anche fra le informazioni avanzate: ogni riga ha
+il suo bottone e la sua didascalia.
+
+```php
+FormField::key('cost_summary')->button('Costo')
+    ->icon('bi bi-truck')
+    ->emptyCaption('Nessun fornitore')
+    ->opensModal('wi-cost-modal')
+    ->columnSpan(4);
 ```
 
 `icon()` è un nome di Bootstrap Icons (`bi-star`): a sinistra l'anteprima, a
@@ -256,7 +280,7 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 | `password()` | `InputPassword` | `minLength`, `requireUppercase`, `requireLowercase`, `requireNumber`, `requireSpecial` |
 | `select()`, `selectSearch()` | `InputSelect`, `InputSelectSearch` | `options`, `multiple`, `version`, `old` |
 | `textarea()`, `textList()` | `InputTextarea`, `InputTextList` | `version`, `old` (+ `options` su textList) |
-| `radio()`, `checkbox()` | `InputRadio`, `InputCheckbox` | `options`, `searchBar` |
+| `radio()`, `checkbox()` | `InputRadio`, `InputCheckbox` | `options`, `searchBar`, `pills` |
 | `checkTree()` | `InputCheckTree` | `options`, `searchBar`, `inputType`, `primaryField` |
 | `dynamicCheck()` | `InputDynamicCheck` | `url`, `inputType` |
 | `searchText()`, `searchRadio()` | `InputSearchText`, `InputSearchRadio` | `url` |
@@ -269,6 +293,7 @@ Disponibili **solo dopo il type-helper**, sulla classe del tipo:
 | `repeater()` | `InputRepeater` | `columns`, `nested`, `relation`, `repeaterAddLabel`, `repeaterButtonClass`, `repeaterDelete*`, `repeaterSortable` |
 | `acceptDocument()` | `InputAcceptDocument` | `documentType` |
 | `textGenerator()` | `InputTextGenerator` | `callback`, `buttonLabel` |
+| `button()` | `InputButton` | `text`, `icon`, `variant`, `outline`, `size`, `emptyCaption`, `opensModal` |
 | `recaptcha()` | `InputReCaptcha` | `action`, `theme`, `size` |
 | `googleAddress()` | `InputGoogleAddress` | `restriction`, `alias` |
 
@@ -402,11 +427,65 @@ sull'`<option>`, dove lo legge Select2 della lib.
 
 ### Spunte a pillole
 
-`checkbox()->pills()` rende le voci come pillole in linea invece che
-incolonnate in un riquadro alto centoventi pixel che scorre. Serve agli
-elenchi corti — cinque taglie, tre gusti — dove il riquadro occupa dieci volte
-lo spazio di quello che mostra. Per un elenco lungo resta la forma normale,
-con la sua barra di ricerca.
+`checkbox()->pills()` e `radio()->pills()` rendono le voci come pillole in
+linea invece che incolonnate in un riquadro alto centoventi pixel che scorre.
+Serve agli elenchi corti — cinque taglie, tre gusti — dove il riquadro occupa
+dieci volte lo spazio di quello che mostra. Per un elenco lungo resta la forma
+normale, con la sua barra di ricerca.
+
+Sopra le pillole l'etichetta è un titolo piccolo; con `->label('')` il titolo
+non esce, ed è la forma di una pillola sola, come il «Preferito» di una riga:
+
+```php
+RepeaterColumn::key('preferred')->radio(['1' => 'Preferito'])->pills()->label('');
+```
+
+Dentro un repeater la radio vuole le righe annidate (`->nested()`): senza, ogni
+riga posta `preferred[]` e le radio di tutte le righe fanno un gruppo solo. Le
+righe aggiunte con «Aggiungi» hanno id e `for` propri, come i `name` (vedi
+[Repeater](repeater.md)). Un campo `required()` con `->label('')` resta senza
+titolo: l'asterisco da solo non ne fa uno.
+
+### I valori di un albero
+
+Un `checkTree()` non posta dai nodi. jstree tiene l'HTML di un nodo come
+testo: chiudendo un genitore toglie dal DOM i figli, e ridisegnando un nodo lo
+rimette com'era arrivato dal server. Una casella dentro il nodo sparirebbe dal
+salvataggio, o tornerebbe con la spunta di partenza.
+
+Per questo i nodi portano solo l'etichetta, e le caselle che il form posta
+stanno in un contenitore nascosto accanto all'albero, fuori dal DOM di jstree:
+
+```html
+<input type="hidden" name="categories[]">
+<div class="d-none" data-wi-tree-values="categories[]">
+    <input class="d-none" type="checkbox" name="categories[]" value="2" data-wi-check="true" checked>
+    <!-- una casella per voce; una voce ripetuta nei rami ne ha una sola -->
+</div>
+<div data-wi-tree="checkbox">
+    <ul><li id="2">Magliette</li></ul>
+</div>
+```
+
+La lib (`setJsTreeValues()` in `src/build/backend/js/form/set.js`) allinea le
+caselle a `get_checked()` di jstree a ogni spunta, da clic, tastiera o API, e
+quando un nodo nasce o sparisce. Aggiorna `checked` e `defaultChecked`, così un
+reset del form non torna alle spunte del server. Se qualcosa è cambiato lancia
+un `change` nativo sul contenitore (risale, quindi chi ascolta il form lo vede)
+e riarma la validazione dei `required`; all'avvio non ne lancia.
+
+- **A spunte**: resta il campo vuoto `name[]`, che posta la lista vuota quando
+  non c'è nessuna spunta.
+- **A scelta singola** (`inputType = 'radio'`): il nome non ha le parentesi,
+  niente campo vuoto, e resta una voce sola anche quando la spunta arriva
+  dall'API.
+- **Filtri**: gli attributi `filter` di una voce (`data-*`) stanno sulla sua
+  casella nel contenitore.
+
+Il markup di prima (caselle dentro i `<li>`) funziona ancora con la lib
+nuova, che le sposta nel contenitore prima di avviare jstree. Il markup nuovo
+con una lib vecchia non perde più le spunte chiudendo i rami, ma la creazione
+rapida dentro l'albero chiede la lib nuova.
 
 ### La voce principale di un albero
 
