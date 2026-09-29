@@ -238,6 +238,12 @@ php forge start
 
 ## Form / Element / Theme system
 
+- I date picker del tema Wonder (`DatePicker`, `DateRange`, `DateTimeRange`,
+  `SelectDate`) emettono solo markup con attributi `data-wi-*`. La loro
+  inizializzazione e validazione client-side appartengono a
+  `wonder-image/lib/src/build/frontend/js/form/input.js` e partono da
+  `setInput()`; non interpolare valori PHP in `<script>` inline nei renderer.
+
 - Backend FilePond fields opt into reference persistence with
   `data-wi-file-references="true"`. The lib sends only new file bytes plus a
   sibling `<field>__wi_files` JSON manifest (stored filenames / new upload

@@ -408,11 +408,13 @@ check('DynamicCheck (bootstrap): gli attributi per le caselle della lib stanno e
         && !str_contains($perLeCaselle, 'data-wi-check');
 });
 
-check('SelectDate (wonder) si rende con il datepicker del tema', function () {
+check('SelectDate (wonder) espone il contratto del datepicker alla lib', function () {
     $html = (new SelectDate('campo'))->label('Nascita')->render('wonder');
 
     return str_contains($html, 'placeholder="gg/mm/aaaa"')
-        && str_contains($html, '.datepicker(options)');
+        && str_contains($html, 'data-wi-date-picker="true"')
+        && str_contains($html, 'data-wi-select-date="true"')
+        && !str_contains($html, '<script');
 });
 
 check('check() legacy (bootstrap): un solo data-wi-check per casella', function () {

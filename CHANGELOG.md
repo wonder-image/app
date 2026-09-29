@@ -102,6 +102,10 @@
   si perdeva.
 
 ### Fixed
+- I date picker del tema Wonder non interpolano piu valori del form in script
+  inline: i renderer espongono attributi `data-wi-*` escapati e demandano
+  inizializzazione e validazione a `wonder-image/lib`; anche `TextList` escapa
+  il nome scritto in `data-wi-name`.
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
   off-site per cover, anteprime, slide, thumbnail e lightbox, senza generare
   percorsi responsive inesistenti sul server remoto.
