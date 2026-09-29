@@ -14,13 +14,14 @@ class TextareaEditor extends Field
         $version = $this->escape((string) ($this->schema['version'] ?? ''));
         $folder = $this->escape((string) ($this->schema['folder'] ?? ''));
         $encodedValue = $this->escape($value !== '' ? base64_encode($value) : '');
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes(['data-wi-check']);
+        $class = $this->fieldClass('d-none');
         $escapedValue = $this->escape($value);
 
         return <<<HTML
 <div class="{$this->containerClass('textarea')}">
     {$this->renderLabel()}
-    <textarea id="{$id}" class="d-none" name="{$name}" data-wi-value="{$encodedValue}" data-wi-check="true"{$this->labelMarker()} data-wi-textarea="{$version}" data-wi-folder="{$folder}" {$attributes}>{$escapedValue}</textarea>
+    <textarea id="{$id}" class="{$class}" name="{$name}" data-wi-value="{$encodedValue}" data-wi-check="true"{$this->labelMarker()} data-wi-textarea="{$version}" data-wi-folder="{$folder}"{$attributes}>{$escapedValue}</textarea>
     {$this->renderError()}
 </div>
 HTML;

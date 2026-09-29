@@ -36,7 +36,6 @@ class CheckTree extends Field
         $isRequired = !empty($attributes['required']);
         $required = $isRequired ? "wi-{$type}-required" : '';
         unset($attributes['required']);
-        $attributesStr = $this->renderAttributes($attributes);
 
         $bar = $searchBar
             ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >"
@@ -46,7 +45,7 @@ class CheckTree extends Field
         $escapedFieldName = $this->escape($fieldName);
         $inputHidden = $type === 'checkbox' ? '<input type="hidden" name="'.$escapedFieldName.'">' : '';
         $optionsHtml = $this->renderOptions($options, $value);
-        $valuesHtml = $this->renderValues($options, $escapedFieldName, $value, $attributesStr);
+        $valuesHtml = $this->renderValues($options, $escapedFieldName, $value, $attributes);
 
         // Di quale risorsa questo albero elenca le righe: chi crea una riga
         // da un altro campo della stessa pagina lo legge per aggiungerla
@@ -110,16 +109,18 @@ HTML;
     /**
      * Una casella per voce, nell'ordine dell'albero: spuntate quelle scelte.
      */
-    private function renderValues(array $options, string $escapedName, mixed $value, string $attributes, array &$seen = []): string
+    private function renderValues(array $options, string $escapedName, mixed $value, array $attributes, array &$seen = []): string
     {
         $html = '';
+        $inputClass = $this->fieldClass('d-none', $attributes);
 
         foreach ($options as $optionValue => $optionName) {
             $key = (string) $optionValue;
-            $optionAttribute = trim($attributes);
+            $selected = $this->isSelected($optionValue, $value);
+            $optionAttribute = $this->fieldAttributes($selected ? ['checked'] : [], $attributes);
             $children = [];
 
-            if ($this->isSelected($optionValue, $value)) {
+            if ($selected) {
                 $optionAttribute .= ' checked';
             }
 
@@ -135,7 +136,7 @@ HTML;
             if (!isset($seen[$key])) {
                 $seen[$key] = true;
                 $escapedValue = $this->escape($key);
-                $html .= "<input class=\"d-none\" type=\"checkbox\" name=\"{$escapedName}\" value=\"{$escapedValue}\" {$optionAttribute}>";
+                $html .= "<input class=\"{$inputClass}\" type=\"checkbox\" name=\"{$escapedName}\" value=\"{$escapedValue}\"{$optionAttribute}>";
             }
 
             if ($children !== []) {

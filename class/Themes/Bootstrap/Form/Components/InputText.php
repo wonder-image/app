@@ -15,9 +15,9 @@ class InputText extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $type = $this->escape((string) ($this->schema['type'] ?? 'text'));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $class = $this->inputClass('form-control');
+        $attributes = $this->fieldAttributes();
+        $class = $this->fieldClass($this->inputClass('form-control'));
 
-        return "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\"{$this->renderMaxLength()} {$attributes} />";
+        return "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\"{$this->renderMaxLength()}{$attributes} />";
     }
 }

@@ -7,10 +7,11 @@ use Wonder\Elements\Components\AbstractValueCard as ValueCardElement;
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
 use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Concerns\MergesClassAttribute;
 
 abstract class AbstractValueCard extends Component
 {
-    use CanSpanColumn, HasAttributes;
+    use CanSpanColumn, HasAttributes, MergesClassAttribute;
 
     final public function render($class): string
     {
@@ -91,24 +92,5 @@ abstract class AbstractValueCard extends Component
         return '<div'.($attributeString !== '' ? ' '.$attributeString : '').'>'
             .$this->renderBody($class, $schema)
             .'</div>';
-    }
-
-    /** @return string[] */
-    private function classTokens(mixed $classes): array
-    {
-        if (is_array($classes)) {
-            $classes = implode(' ', array_map(
-                static fn (mixed $class): string => is_scalar($class) ? (string) $class : '',
-                $classes
-            ));
-        }
-
-        if (!is_scalar($classes)) {
-            return [];
-        }
-
-        return array_values(array_filter(
-            preg_split('/\s+/', trim((string) $classes)) ?: []
-        ));
     }
 }

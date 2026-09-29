@@ -11,7 +11,8 @@ class Select extends Field
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->schema['value'] ?? '';
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes();
+        $class = $this->fieldClass('wi-input d-none');
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
         $optionHtml = '';
         $multiple = !empty($this->schema['attributes']['multiple']);
@@ -46,7 +47,7 @@ class Select extends Field
 <div class="{$containerClass}" data-wi-select="true">
     {$this->renderLabel()}
     {$inputHidden}
-    <select id="{$id}" name="{$inputName}" class="wi-input d-none" data-wi-label="true" {$attributes}>
+    <select id="{$id}" name="{$inputName}" class="{$class}" data-wi-label="true"{$attributes}>
         {$optionHtml}
     </select>
     {$this->renderError()}

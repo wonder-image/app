@@ -12,7 +12,8 @@ class SelectOld extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->schema['value'] ?? '';
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes(['data-wi-check']);
+        $class = $this->fieldClass('wi-input');
         $optionsHtml = '';
         $i = 1;
 
@@ -38,7 +39,7 @@ class SelectOld extends Field
         return <<<HTML
 <div class="{$this->containerClass('select')}">
     {$this->renderLabel()}
-    <select id="{$id}" name="{$name}" class="wi-input" data-wi-check="true" data-wi-label="true" {$attributes}>
+    <select id="{$id}" name="{$name}" class="{$class}" data-wi-check="true" data-wi-label="true"{$attributes}>
         {$optionsHtml}
     </select>
     {$this->renderError()}

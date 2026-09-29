@@ -25,11 +25,11 @@ class DateRange extends Field
         $toName = $this->escape($name.'_to');
         $fromValue = $this->escape((string) ($value[0] ?? ''));
         $toValue = $this->escape((string) ($value[1] ?? ''));
-        $class = $this->inputClass('form-control');
+        $class = $this->fieldClass($this->inputClass('form-control'), $attributes);
         $min = $this->renderSingleAttribute('data-wi-min-date', $attributes['data-wi-min-date'] ?? null);
         $max = $this->renderSingleAttribute('data-wi-max-date', $attributes['data-wi-max-date'] ?? null);
         unset($attributes['data-wi-min-date'], $attributes['data-wi-max-date']);
-        $fieldAttributes = $this->renderAttributes($attributes);
+        $fieldAttributes = $this->fieldAttributes(['data-wi-check', 'readonly'], $attributes);
         $labelHtml = $label !== '' ? '<label class="h6 form-label">'.$this->escape($label).'</label>' : '';
 
         return <<<HTML
@@ -37,9 +37,9 @@ class DateRange extends Field
     {$labelHtml}
     <div class="input-group input-daterange mt-1" data-wi-date-range="true" {$min} {$max}>
         <span class="input-group-text">Dal</span>
-        <input id="{$fromId}" type="text" class="{$class}" name="{$fromName}" value="{$fromValue}" data-wi-check="true" readonly {$fieldAttributes}>
+        <input id="{$fromId}" type="text" class="{$class}" name="{$fromName}" value="{$fromValue}" data-wi-check="true" readonly{$fieldAttributes}>
         <span class="input-group-text">Al</span>
-        <input id="{$toId}" type="text" class="{$class}" name="{$toName}" value="{$toValue}" data-wi-check="true" readonly {$fieldAttributes}>
+        <input id="{$toId}" type="text" class="{$class}" name="{$toName}" value="{$toValue}" data-wi-check="true" readonly{$fieldAttributes}>
     </div>
     {$this->renderError()}
 </div>

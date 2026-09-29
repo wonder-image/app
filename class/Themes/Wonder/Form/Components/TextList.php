@@ -14,7 +14,8 @@ class TextList extends Field
         $rawName = (string) ($this->schema['name'] ?? '');
         $value = $this->schema['value'] ?? null;
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes();
+        $class = $this->fieldClass('wi-input '.$rawName.'-value');
 
         $inputValue = '';
         $optionsHtml = '';
@@ -55,7 +56,7 @@ class TextList extends Field
         return <<<HTML
 <div class="{$this->containerClass('text-list')}">
     {$this->renderLabel()}
-    <input type="text" id="{$id}" class="wi-input {$rawName}-value" value="{$escapedInputValue}" data-wi-label="true" data-wi-name="{$rawName}-text" data-wi-list-input="true" data-wi-list-array="{$listArray}" {$attributes}>
+    <input type="text" id="{$id}" class="{$class}" value="{$escapedInputValue}" data-wi-label="true" data-wi-name="{$rawName}-text" data-wi-list-input="true" data-wi-list-array="{$listArray}"{$attributes}>
     {$this->renderError()}
     <div id="list_{$id}" class="wi-input-list no-scrollbar">
         {$optionsHtml}

@@ -14,8 +14,9 @@ class File extends Field
         $file = (string) ($this->schema['file'] ?? 'image');
         $maxFile = max(1, (int) ($this->schema['max_file'] ?? 1));
         $maxSize = max(1, (int) ($this->schema['max_size'] ?? 5)) * 1048576;
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $multiple = $maxFile > 1 ? 'multiple' : '';
+        $multiple = $maxFile > 1 ? ' multiple' : '';
+        $attributes = $this->fieldAttributes($multiple === '' ? ['data-wi-check'] : ['data-wi-check', 'multiple']);
+        $class = $this->fieldClass('wi-input');
         $nameArray = $name.'[]';
         $accept = $this->acceptByType($file);
         $script = $this->renderDataTransferScript($id);
@@ -23,7 +24,7 @@ class File extends Field
         return <<<HTML
 <div class="{$this->containerClass('file')} compiled">
     <label for="{$id}" class="wi-label">{$label}</label>
-    <input class="wi-input" id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-wi-max-file="{$maxFile}" data-wi-max-size="{$maxSize}" data-wi-check="true"{$this->labelMarker()} {$multiple} {$attributes}>
+    <input class="{$class}" id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-wi-max-file="{$maxFile}" data-wi-max-size="{$maxSize}" data-wi-check="true"{$this->labelMarker()}{$multiple}{$attributes}>
     {$this->renderError()}
     {$script}
 </div>

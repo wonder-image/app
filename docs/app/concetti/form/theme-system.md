@@ -121,7 +121,9 @@ call site:
    `new FormField($name, 'foo')`, aggiungilo pure a
    `FormField::HELPERS`;
 4. aggiungi il renderer sotto `class/Themes/Wonder/Form/` **e**
-   `class/Themes/Bootstrap/Form/` così entrambi i temi sono coperti;
+   `class/Themes/Bootstrap/Form/` così entrambi i temi sono coperti. Sul tag
+   del campo scrivi la classe con `fieldClass()` e gli attributi del campo con
+   `fieldAttributes()` (vedi [Attributi del campo](#attributi-del-campo));
 5. dichiara il campo con `FormField::key(...)->foo(...)`, oppure parti
    direttamente da `InputFoo::key(...)` quando serve l'API tipizzata.
 
@@ -129,6 +131,36 @@ call site:
 Non aggirare un tipo mancante con HTML scritto a mano: rompe theme switching,
 validazione e wiring label/error. Estendi la pipeline.
 {% endhint %}
+
+## Attributi del campo
+
+Il renderer scrive a mano sul tag gli attributi del tema (`class`,
+`data-wi-check`, `placeholder`, `readonly`, …) e poi quelli del campo, che
+arrivano da `attr()`, `class()`, `addClass()` e dai modificatori del tipo. Se
+una chiave compare due volte sullo stesso tag il browser tiene la prima: la
+classe del campo sparirebbe dietro quella del tema. Per questo il renderer
+passa dai due helper di `Themes\Form\AbstractFieldRenderer`:
+
+| Helper | Cosa ritorna |
+|---|---|
+| `fieldClass('classi del tema')` | il valore di `class`, già escapato: le classi del tema per prime, poi quelle del campo, senza doppioni (`Themes\Concerns\MergesClassAttribute`) |
+| `fieldAttributes(['chiavi già scritte'])` | gli attributi del campo con uno spazio davanti, o `''`; salta `class` e le chiavi elencate |
+
+```php
+$class = $this->fieldClass('form-control');
+$attributes = $this->fieldAttributes(['data-wi-check', 'placeholder']);
+
+return <<<HTML
+<input type="text" class="{$class}" placeholder="" data-wi-check="true"{$attributes}>
+HTML;
+```
+
+Nell'elenco vanno tutte e sole le chiavi che il renderer scrive sullo stesso
+tag, così il valore del tema resta l'unico. Se il renderer scrive una chiave
+solo in certi casi (per esempio `checked` in base al valore), la salta solo in
+quei casi: `$checked === '' ? [] : ['checked']`. Quando il renderer ritocca
+gli attributi prima di scriverli (toglie `required`, aggiunge un default),
+passa lo stesso array a tutti e due gli helper come secondo argomento.
 
 ## Collegamenti con il resto
 
@@ -144,10 +176,11 @@ validazione e wiring label/error. Estendi la pipeline.
 - **Input ok nel backend ma rotto nel frontend (o viceversa)** → manca il
   renderer in uno dei due temi.
 - **Markup incoerente** → si è bypassata la pipeline con HTML manuale.
-- **Classe del campo ignorata** → il renderer scrive la classe del tema e poi,
-  fra gli attributi del campo, un secondo `class`, che il browser ignora.
-  Unisci le classi con `Themes\Concerns\MergesClassAttribute`, come fa
-  `CheckGroup` in entrambi i temi.
+- **Classe del campo ignorata, o attributo ripetuto** → il renderer scrive gli
+  attributi del campo con `renderAttributes()` dopo quelli del tema, e il tag
+  ripete `class`, `data-wi-check` o un'altra chiave: il browser tiene la
+  prima. Scrivi il tag con `fieldClass()` e `fieldAttributes()`, come in
+  [Attributi del campo](#attributi-del-campo).
 
 ## Checklist (nuovo tipo)
 
@@ -155,4 +188,5 @@ validazione e wiring label/error. Estendi la pipeline.
 - [ ] `element()` (e `decorate()` se serve)
 - [ ] type-helper su `FormField` (+ `FormField::HELPERS` per l'escape hatch legacy)
 - [ ] renderer in `Themes/Wonder/Form/` e `Themes/Bootstrap/Form/`
+- [ ] tag del campo con `fieldClass()` e `fieldAttributes([chiavi già scritte])`
 - [ ] testato su entrambi i temi

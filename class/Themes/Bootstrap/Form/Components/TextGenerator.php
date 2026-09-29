@@ -16,12 +16,12 @@ class TextGenerator extends InputText
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $type = $this->escape((string) ($this->schema['type'] ?? 'text'));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $class = $this->inputClass('form-control');
+        $attributes = $this->fieldAttributes();
+        $class = $this->fieldClass($this->inputClass('form-control'));
         $buttonLabel = $this->escape((string) ($this->schema['button_label'] ?? 'GENERA'));
         $callback = $this->escape((string) ($this->schema['callback'] ?? 'generateCode'));
 
-        $input = "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\" {$attributes} />";
+        $input = "<input class=\"{$class}\" type=\"{$type}\" name=\"{$name}\" id=\"{$id}\" value=\"{$value}\"{$attributes} />";
         $button = "<div class=\"btn btn-sm btn-dark text-light position-absolute top-50 end-0 me-2 translate-middle-y\" onclick=\"{$callback}('#{$id}')\">{$buttonLabel}</div>";
 
         return $input.$button;

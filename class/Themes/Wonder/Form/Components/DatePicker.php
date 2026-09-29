@@ -12,8 +12,8 @@ class DatePicker extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
         $attributesArray = (array) ($this->schema['attributes'] ?? []);
-        $attributes = $this->renderAttributes($attributesArray);
-        $class = $this->inputClass();
+        $attributes = $this->fieldAttributes(['data-wi-check', 'placeholder'], $attributesArray);
+        $class = $this->fieldClass($this->inputClass(), $attributesArray);
         $min = $this->jsString($attributesArray['data-wi-min-date'] ?? '');
         $max = $this->jsString($attributesArray['data-wi-max-date'] ?? '');
         $valueJs = $this->jsString($this->schema['value'] ?? '');
@@ -21,7 +21,7 @@ class DatePicker extends Field
         return <<<HTML
 <div class="{$this->containerClass('date')}">
     {$this->renderLabel()}
-    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" value="{$value}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
+    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" value="{$value}" data-wi-check="true"{$this->labelMarker()}{$attributes}>
     {$this->renderError()}
 </div>
 <script>
@@ -67,7 +67,7 @@ class DatePicker extends Field
 HTML;
     }
 
-    private function jsString(mixed $value): string
+    protected function jsString(mixed $value): string
     {
         return json_encode(is_scalar($value) ? (string) $value : '', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }

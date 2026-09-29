@@ -20,13 +20,17 @@
         public function pushAttr(string $key, $value): static
         {
 
-            if (!isset($this->schema['attributes'][$key])) {
-                $this->schema['attributes'][$key] = [];
+            $values = $this->schema['attributes'][$key] ?? [];
+
+            // attr('class', 'a') salva una stringa: diventa il primo valore.
+            if (!is_array($values)) {
+                $values = in_array($values, [false, ''], true) ? [] : [$values];
             }
 
-            array_push($this->schema['attributes'][$key], $value);
-            
-            return $this; 
+            $values[] = $value;
+            $this->schema['attributes'][$key] = $values;
+
+            return $this;
 
         }
 
