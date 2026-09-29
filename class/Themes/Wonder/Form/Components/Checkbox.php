@@ -30,15 +30,16 @@ class Checkbox extends Field
         # `data-wi-check="true"` arriva già dagli attributes di default
         # di `Field::__construct` — non hard-codarlo nel markup o si
         # duplica nell'output.
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes(['checked']);
         $checked = !empty($this->schema['attributes']['checked']) ? ' checked' : '';
+        $class = $this->fieldClass('wi-checkbox');
 
         return <<<HTML
 <input type="hidden" name="{$name}">
 <div class="{$this->containerClass('checkbox')}">
     <div class="wi-checkbox-list">
         <div class="wi-checkbox-container">
-            <input type="checkbox" id="{$id}" class="wi-checkbox" name="{$name}" value="true"{$checked} {$attributes}>
+            <input type="checkbox" id="{$id}" class="{$class}" name="{$name}" value="true"{$checked}{$attributes}>
             <div class="wi-checkbox-icon"><i class="bi bi-check-lg"></i></div>
             <label for="{$id}" class="wi-checkbox-label unselectable">{$label}</label>
         </div>

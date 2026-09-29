@@ -15,14 +15,14 @@ class InputText extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $type = $this->escape((string) ($this->schema['type'] ?? 'text'));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $class = $this->inputClass();
+        $attributes = $this->fieldAttributes();
+        $class = $this->fieldClass($this->inputClass());
         $typeClass = strtolower((string) ($this->schema['type'] ?? 'text'));
 
         return <<<HTML
 <div class="{$this->containerClass($typeClass)}">
     {$this->renderLabel()}
-    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}"{$this->renderMaxLength()}{$this->labelMarker()} {$attributes}>
+    <input type="{$type}" id="{$id}" class="{$class}" name="{$name}" value="{$value}"{$this->renderMaxLength()}{$this->labelMarker()}{$attributes}>
     {$this->renderError()}
 </div>
 HTML;

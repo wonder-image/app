@@ -28,7 +28,6 @@ class CheckBoolean extends Field
         $attributes = (array) ($this->schema['attributes'] ?? []);
         $isRequired = !empty($attributes['required']);
         unset($attributes['required']);
-        $attributeString = $this->renderAttributes($attributes);
 
         $required = $isRequired ? ' wi-checkbox-required' : '';
         $idTrue = $this->escape($rawName.'-'.$valueTrue);
@@ -53,12 +52,16 @@ class CheckBoolean extends Field
         $valueNullEscaped = $this->escape((string) $valueNull);
         $valueTrueEscaped = $this->escape((string) $valueTrue);
         $valueFalseEscaped = $this->escape((string) $valueFalse);
+        $inputClassTrue = $this->fieldClass('btn-check wi-true', $attributes);
+        $inputClassFalse = $this->fieldClass('btn-check wi-false', $attributes);
+        $attributesTrue = $this->fieldAttributes($checkedTrue === '' ? ['data-wi-check'] : ['data-wi-check', 'checked'], $attributes);
+        $attributesFalse = $this->fieldAttributes($checkedFalse === '' ? ['data-wi-check'] : ['data-wi-check', 'checked'], $attributes);
 
         return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-checkbox{$required}" data-wi-check-boolean="true">
     <input type="hidden" class="wi-none" name="{$name}" value="{$valueNullEscaped}">
-    <input type="checkbox" class="btn-check wi-true" name="{$name}" value="{$valueTrueEscaped}" id="{$idTrue}" data-wi-check="true"{$checkedTrue} {$attributeString}>
-    <input type="checkbox" class="btn-check wi-false" name="{$name}" value="{$valueFalseEscaped}" id="{$idFalse}" data-wi-check="true"{$checkedFalse} {$attributeString}>
+    <input type="checkbox" class="{$inputClassTrue}" name="{$name}" value="{$valueTrueEscaped}" id="{$idTrue}" data-wi-check="true"{$checkedTrue}{$attributesTrue}>
+    <input type="checkbox" class="{$inputClassFalse}" name="{$name}" value="{$valueFalseEscaped}" id="{$idFalse}" data-wi-check="true"{$checkedFalse}{$attributesFalse}>
     <div class="input-group">
         <span class="form-control">{$label}</span>
         <label class="btn border{$classTrue}" for="{$idTrue}">{$trueLabel}</label>

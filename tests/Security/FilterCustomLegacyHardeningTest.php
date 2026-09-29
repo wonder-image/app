@@ -1173,33 +1173,33 @@ check('sezione e sottocategoria senza categoria: un clic su una sezione ricalcol
 
 echo "\nClasse dei campi CheckGroup\n";
 
-check('senza classe: input di bootstrap come prima, figli compresi', function () {
+check('senza classe: input di bootstrap come prima, figli compresi, con data-wi-check una volta', function () {
     return inputOpzioni(gruppoCategorie()->value(['6'])->render('bootstrap')) === [
-        '<input class="form-check-input" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" data-wi-check="true" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
-        '<input class="form-check-input" type="checkbox" name="category[]" value="7" id="checkbox-category[]-7" data-wi-check="true" data-wi-check="true">',
-        '<input class="form-check-input" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" data-wi-check="true" data-wi-check="true" checked>',
+        '<input class="form-check-input" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
+        '<input class="form-check-input" type="checkbox" name="category[]" value="7" id="checkbox-category[]-7" data-wi-check="true">',
+        '<input class="form-check-input" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" data-wi-check="true" checked>',
     ];
 });
 
-check('senza classe: pillole di bootstrap come prima', function () {
+check('senza classe: pillole di bootstrap come prima, con data-wi-check una volta', function () {
     return inputOpzioni(gruppoCategorie()->value(['6'])->pills()->render('bootstrap')) === [
-        '<input class="btn-check" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" autocomplete="off" data-wi-check="true" data-wi-check="true">',
-        '<input class="btn-check" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" autocomplete="off" data-wi-check="true" data-wi-check="true" checked>',
+        '<input class="btn-check" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" autocomplete="off" data-wi-check="true">',
+        '<input class="btn-check" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" autocomplete="off" data-wi-check="true" checked>',
     ];
 });
 
-check('senza classe: input del tema wonder come prima', function () {
+check('senza classe: input del tema wonder come prima, con data-wi-check una volta', function () {
     return senzaIdCasuali(inputOpzioni(gruppoCategorie()->render('wonder'))) === [
-        '<input type="checkbox" id="checkbox_ID" class="wi-checkbox" name="category[]" value="5" data-wi-check="true" data-wi-check="true"  data-section="[&quot;1&quot;,&quot;2&quot;]">',
-        '<input type="checkbox" id="checkbox_ID" class="wi-checkbox" name="category[]" value="6" data-wi-check="true" data-wi-check="true" >',
+        '<input type="checkbox" id="checkbox_ID" class="wi-checkbox" name="category[]" value="5" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
+        '<input type="checkbox" id="checkbox_ID" class="wi-checkbox" name="category[]" value="6" data-wi-check="true">',
     ];
 });
 
 check('con la classe (bootstrap): un solo attributo class, dopo la classe del tema, anche sui figli', function () {
     return inputOpzioni(gruppoCategorie()->value(['6'])->attributes(AttributeString::parse('class="category"'))->render('bootstrap')) === [
-        '<input class="form-check-input category" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" data-wi-check="true" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
-        '<input class="form-check-input category" type="checkbox" name="category[]" value="7" id="checkbox-category[]-7" data-wi-check="true" data-wi-check="true">',
-        '<input class="form-check-input category" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" data-wi-check="true" data-wi-check="true" checked>',
+        '<input class="form-check-input category" type="checkbox" name="category[]" value="5" id="checkbox-category[]-5" data-wi-check="true" data-section="[&quot;1&quot;,&quot;2&quot;]">',
+        '<input class="form-check-input category" type="checkbox" name="category[]" value="7" id="checkbox-category[]-7" data-wi-check="true">',
+        '<input class="form-check-input category" type="checkbox" name="category[]" value="6" id="checkbox-category[]-6" data-wi-check="true" checked>',
     ];
 });
 

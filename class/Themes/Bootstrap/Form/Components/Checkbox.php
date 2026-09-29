@@ -17,7 +17,8 @@ class Checkbox extends Field
     {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes(['checked']);
+        $class = $this->fieldClass('form-check-input mt-0');
         $checked = !empty($this->schema['attributes']['checked']) ? ' checked' : '';
         $requiredClass = !empty($this->schema['attributes']['required']) ? ' wi-checkbox-required' : '';
         $label = $this->escape($this->resolvedLabel());
@@ -26,7 +27,7 @@ class Checkbox extends Field
 <div id="container-{$id}" class="w-100 wi-container-checkbox{$requiredClass}">
     <input type="hidden" name="{$name}">
     <div class="input-group">
-        <span class="input-group-text"><input class="form-check-input mt-0" type="checkbox" name="{$name}" id="{$id}"{$checked} {$attributes}></span>
+        <span class="input-group-text"><input class="{$class}" type="checkbox" name="{$name}" id="{$id}"{$checked}{$attributes}></span>
         <label for="{$id}" class="form-control user-select-none">{$label}</label>
     </div>
 </div>

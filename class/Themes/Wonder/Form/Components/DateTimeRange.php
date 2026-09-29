@@ -12,7 +12,9 @@ class DateTimeRange extends Field
         $name = (string) ($this->schema['name'] ?? '');
         $value = is_array($this->schema['value'] ?? null) ? $this->schema['value'] : ['', ''];
         $attributesArray = (array) ($this->schema['attributes'] ?? []);
-        $attributes = $this->renderAttributes($attributesArray);
+        $attributes = $this->fieldAttributes(['data-wi-check', 'placeholder'], $attributesArray);
+        $fromClass = $this->fieldClass('wi-input wi-datetimerange-from', $attributesArray);
+        $toClass = $this->fieldClass('wi-input wi-datetimerange-to', $attributesArray);
         $fromName = $this->escape($name.'-from');
         $toName = $this->escape($name.'-to');
         $fromValue = $this->escape((string) ($value[0] ?? ''));
@@ -23,9 +25,9 @@ class DateTimeRange extends Field
         return <<<HTML
 <div class="{$this->containerClass('datetimerange')}">
     {$this->renderLabel()}
-    <input type="text" id="{$baseId}-from" class="wi-input wi-datetimerange-from" name="{$fromName}" placeholder="gg/mm/aaaa h:m" value="{$fromValue}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
+    <input type="text" id="{$baseId}-from" class="{$fromClass}" name="{$fromName}" placeholder="gg/mm/aaaa h:m" value="{$fromValue}" data-wi-check="true"{$this->labelMarker()}{$attributes}>
     <span class="wi-input-text">-</span>
-    <input type="text" id="{$baseId}-to" class="wi-input wi-datetimerange-to" name="{$toName}" placeholder="gg/mm/aaaa h:m" value="{$toValue}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
+    <input type="text" id="{$baseId}-to" class="{$toClass}" name="{$toName}" placeholder="gg/mm/aaaa h:m" value="{$toValue}" data-wi-check="true"{$this->labelMarker()}{$attributes}>
     {$this->renderError()}
 </div>
 <script>

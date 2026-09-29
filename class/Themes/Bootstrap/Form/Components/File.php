@@ -36,10 +36,13 @@ class File extends Field
         $value = $this->escape(is_array($rawValue) ? json_encode(array_values($rawValue), JSON_THROW_ON_ERROR) : (string) $rawValue);
         $imageSize = $this->escape((string) ($this->schema['min_size_image'] ?? ''));
         $sizeBefore = !empty($this->schema['size_before']) ? 'true' : 'false';
-        $attributes = $this->renderAttributes(array_merge(
+        $attributes = array_merge(
             ['data-wi-file-references' => 'true'],
             (array) ($this->schema['attributes'] ?? [])
-        ));
+        );
+        // Qui la classe resta del campo: il tag non ne scrive una sua.
+        unset($attributes['data-wi-check']);
+        $attributes = $this->renderAttributes($attributes);
         $accept = $this->acceptByType($file);
         $acceptLabel = $this->acceptLabelByType($file);
         $multiple = $maxFile > 1 ? 'multiple' : '';
@@ -78,15 +81,16 @@ HTML;
         $extensionsAccept = $this->escape((string) ($this->schema['extensions_accept'] ?? ''));
         $galleryHtml = (string) ($this->schema['gallery_html'] ?? '');
         $attributes = (array) ($this->schema['attributes'] ?? []);
-        $attributesString = $this->renderAttributes($attributes);
+        $class = $this->fieldClass('form-control', $attributes);
+        $attributesString = $this->fieldAttributes(['data-wi-check', 'style'], $attributes);
         $nameArray = $name.'[]';
-        $multiple = $maxFile > 1 ? 'multiple' : '';
+        $multiple = $maxFile > 1 ? ' multiple' : '';
 
         return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-files">
     <h6>{$label}</h6>
     <div class="w-100 mt-1">
-        <input class="form-control" style="width: 100%;" id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-wi-max-file="{$maxFile}" data-wi-max-size="{$maxSize}" data-wi-check="true" {$multiple} {$attributesString}>
+        <input class="{$class}" style="width: 100%;" id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-wi-max-file="{$maxFile}" data-wi-max-size="{$maxSize}" data-wi-check="true"{$multiple}{$attributesString}>
         <div class="invalid-feedback"> </div>
     </div>
     <div class="w-100 mt-1">

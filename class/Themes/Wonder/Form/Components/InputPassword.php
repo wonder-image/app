@@ -20,14 +20,14 @@ class InputPassword extends Field
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $inputClass = $this->inputClass();
+        $attributes = $this->fieldAttributes(['data-wi-check']);
+        $inputClass = $this->fieldClass($this->inputClass());
         $containerClass = $this->containerClass('password').' wi-input-icon-end';
 
         return <<<HTML
 <div class="{$containerClass}">
     <label for="{$id}" class="wi-label">{$this->escape($this->resolvedLabel())}</label>
-    <input type="password" id="{$id}" class="{$inputClass}" name="{$name}" value="{$value}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
+    <input type="password" id="{$id}" class="{$inputClass}" name="{$name}" value="{$value}" data-wi-check="true"{$this->labelMarker()}{$attributes}>
     <div class="wi-input-icon c-pointer">
         <i class="bi bi-eye" onclick="togglePassword(this, '{$id}')"></i>
     </div>

@@ -34,7 +34,8 @@ class Toggle extends Field
 
         $attributes = (array) ($this->schema['attributes'] ?? []);
         unset($attributes['required']);
-        $attributeString = $this->renderAttributes($attributes);
+        $class = $this->fieldClass('form-check-input', $attributes);
+        $attributeString = $this->fieldAttributes($checked === '' ? [] : ['checked'], $attributes);
 
         $label = $this->escape($this->resolvedLabel());
         $description = trim((string) ($this->schema['description'] ?? ''));
@@ -45,7 +46,7 @@ class Toggle extends Field
         return <<<HTML
 <input type="hidden" name="{$name}" value="{$offValue}">
 <div class="form-check form-switch">
-    <input class="form-check-input" type="checkbox" role="switch" id="{$id}" name="{$name}" value="{$onValue}"{$checked} {$attributeString}>
+    <input class="{$class}" type="checkbox" role="switch" id="{$id}" name="{$name}" value="{$onValue}"{$checked}{$attributeString}>
     <label class="form-check-label" for="{$id}">{$label}{$descriptionHtml}</label>
 </div>
 HTML;

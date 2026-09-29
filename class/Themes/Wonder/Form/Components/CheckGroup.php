@@ -3,7 +3,6 @@
 namespace Wonder\Themes\Wonder\Form\Components;
 
 use Wonder\Support\Text\Random;
-use Wonder\Themes\Concerns\MergesClassAttribute;
 use Wonder\Themes\Wonder\Form\Field;
 
 /**
@@ -22,8 +21,6 @@ use Wonder\Themes\Wonder\Form\Field;
  */
 class CheckGroup extends Field
 {
-    use MergesClassAttribute;
-
     public function render($class): string
     {
         $this->schema = (array) ($class->schema ?? []);
@@ -38,11 +35,7 @@ class CheckGroup extends Field
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
         $value = $this->schema['value'] ?? null;
         $label = $this->resolvedLabel();
-        $attributes = (array) ($this->schema['attributes'] ?? []);
-        $classes = $attributes['class'] ?? null;
-        unset($attributes['class']);
-        $attributesStr = $this->renderAttributes($attributes);
-        $inputClass = $this->escape($this->mergeClassAttribute('wi-checkbox', $classes));
+        $inputClass = $this->fieldClass('wi-checkbox');
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
 
         $labelHtml = $label !== '' ? "<div class=\"wi-label\">{$this->escape($label)}</div>" : '';
@@ -56,7 +49,8 @@ class CheckGroup extends Field
                 if (isset($optionLabel['label'])) {
                     # frontend shape: ['label' => …, 'attribute' => …]
                     $checkboxLabel = (string) $optionLabel['label'];
-                    $optionAttribute = (string) ($optionLabel['attribute'] ?? '');
+                    $optionAttribute = trim((string) ($optionLabel['attribute'] ?? ''));
+                    $optionAttribute = $optionAttribute === '' ? '' : ' '.$optionAttribute;
                 } else {
                     # backend shape: ['name' => …, 'filter' => …]
                     $checkboxLabel = (string) ($optionLabel['name'] ?? $optionValue);
@@ -80,6 +74,8 @@ class CheckGroup extends Field
                 $checked = ' checked';
             }
 
+            $attributesStr = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked']);
+
             if (str_contains($optionAttribute, 'required')) {
                 $checkboxLabel .= '*';
             }
@@ -88,7 +84,7 @@ class CheckGroup extends Field
 
             $optionsHtml .= <<<HTML
 <div class="wi-checkbox-container">
-    <input type="{$this->escape($type)}" id="{$optionId}" class="{$inputClass}" name="{$this->escape($fieldName)}" value="{$this->escape((string) $optionValue)}" data-wi-check="true"{$checked} {$attributesStr} {$optionAttribute}>
+    <input type="{$this->escape($type)}" id="{$optionId}" class="{$inputClass}" name="{$this->escape($fieldName)}" value="{$this->escape((string) $optionValue)}" data-wi-check="true"{$checked}{$attributesStr}{$optionAttribute}>
     <div class="wi-checkbox-icon"><i class="bi bi-check-lg"></i></div>
     <label for="{$optionId}" class="wi-checkbox-label unselectable">{$this->escape($checkboxLabel)}</label>
 </div>

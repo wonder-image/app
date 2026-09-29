@@ -16,8 +16,8 @@ class SelectDate extends DatePicker
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->escape((string) ($this->schema['value'] ?? ''));
         $attributesArray = (array) ($this->schema['attributes'] ?? []);
-        $attributes = $this->renderAttributes($attributesArray);
-        $class = $this->inputClass();
+        $attributes = $this->fieldAttributes(['data-wi-check', 'placeholder'], $attributesArray);
+        $class = $this->fieldClass($this->inputClass(), $attributesArray);
         $rawLabel = strtolower(str_replace('*', '', $this->resolvedLabel()));
         $labelJs = $this->jsString($rawLabel);
         $dateMin = (string) ($attributesArray['data-wi-min-date'] ?? '');
@@ -31,7 +31,7 @@ class SelectDate extends DatePicker
         return <<<HTML
 <div class="{$this->containerClass('date')}">
     {$this->renderLabel()}
-    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" data-wi-check="true"{$this->labelMarker()} {$attributes} value="{$value}">
+    <input type="text" id="{$id}" class="{$class}" name="{$name}" placeholder="gg/mm/aaaa" data-wi-check="true"{$this->labelMarker()}{$attributes} value="{$value}">
     {$this->renderError()}
 </div>
 <script>
