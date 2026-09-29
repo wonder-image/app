@@ -34,7 +34,6 @@ class Config extends Command
     // rende l'install deterministico ovunque e limita l'output a `.claude/skills`.
     protected const NPX_SKILL = [
         'wonder-image/skills' => "npx skills add wonder-image/skills --skill '*' --agent claude-code -y",
-        'pbakaus/impeccable' => "npx skills add pbakaus/impeccable --skill '*' --agent claude-code -y",
     ];
     protected const NPM_PACKAGE = [
         'wonder-image' => 'npm install wonder-image',
@@ -258,9 +257,9 @@ class Config extends Command
                 return Command::FAILURE;
             }
 
-            // Le AI skills sono tooling locale del developer: se il sync
-            // fallisce, il progetto deve restare configurabile e il fix
-            // può essere rilanciato manualmente con `php forge skills`.
+            // La raccolta di AI skill Wonder è tooling locale del developer:
+            // se il sync fallisce, il progetto deve restare configurabile e
+            // il fix può essere rilanciato con `php forge skills`.
             $this->installRecommendedSkills($output, false);
         } else {
             $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto '.self::NPM_PACKAGE['wonder-image'].' (il workflow esegue npm ci che innesca da solo il postinstall).</comment>');
@@ -1886,7 +1885,7 @@ class Config extends Command
 
     protected function installRecommendedSkills(OutputInterface $output, bool $failOnError = true): bool
     {
-        $output->writeln('<info>🤖 Sincronizzo le AI skills consigliate per Wonder.</info>');
+        $output->writeln('<info>🤖 Sincronizzo la raccolta di AI skill consigliata per Wonder.</info>');
 
         foreach (self::NPX_SKILL as $source => $command) {
             if ($this->runPassthruCommand(
@@ -1898,14 +1897,14 @@ class Config extends Command
             }
 
             if (!$failOnError) {
-                $output->writeln('<comment>⚠️ Skill sync incompleto. Puoi rilanciare `php forge skills` manualmente.</comment>');
+                $output->writeln('<comment>⚠️ Sincronizzazione della raccolta incompleta. Puoi rilanciare `php forge skills` manualmente.</comment>');
                 return false;
             }
 
             return false;
         }
 
-        $output->writeln('<info>✅ Skills Wonder sincronizzate.</info>');
+        $output->writeln('<info>✅ Raccolta di skill Wonder sincronizzata.</info>');
 
         return true;
     }

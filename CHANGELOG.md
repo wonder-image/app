@@ -70,6 +70,10 @@
   `relations`.
 
 ### Changed
+- `php forge config` e `php forge skills` sincronizzano soltanto la raccolta
+  `wonder-image/skills`: la skill esterna `pbakaus/impeccable` non viene più
+  reinstallata. Nei siti dove è già presente, rimuovila una volta dalla root
+  con `npx skills remove impeccable`; non viene disinstallata automaticamente.
 - Numeri, prezzi e percentuali escono nel formato italiano senza
   configurazione: virgola decimale e niente migliaia per numero e percentuale,
   «1.299,90 €» per il prezzo. I default stanno negli Element, quindi valgono
