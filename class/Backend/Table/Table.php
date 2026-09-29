@@ -300,6 +300,24 @@
             }
 
             /**
+             * Accende o spegne i filtri personalizzati aggiunti con addFilter().
+             *
+             * Spegnerli serve alle tabelle incorporate in una scheda: le loro
+             * caselle starebbero dentro la form della scheda, e un invio
+             * farebbe partire il salvataggio invece del filtro.
+             */
+            public function filterCustom( bool $visible = true ): self
+            {
+
+                if (!$visible) {
+                    $this->filterCustom = [];
+                }
+
+                return $this;
+
+            }
+
+            /**
              * Undocumented function
              *
              * @param [type] $column
