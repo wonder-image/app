@@ -25,7 +25,8 @@ class Toggle extends Field
         $offValue = $this->escape((string) $off);
         $checked = ((string) ($this->schema['value'] ?? '')) === (string) $on ? ' checked' : '';
 
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes($checked === '' ? [] : ['checked']);
+        $class = $this->fieldClass('wi-switch');
         $label = $this->escape($this->resolvedLabel());
         $description = trim((string) ($this->schema['description'] ?? ''));
         $descriptionHtml = $description === ''
@@ -36,7 +37,7 @@ class Toggle extends Field
 <input type="hidden" name="{$name}" value="{$offValue}">
 <div class="{$this->containerClass('switch')}">
     <div class="wi-switch-container">
-        <input type="checkbox" id="{$id}" class="wi-switch" name="{$name}" value="{$onValue}"{$checked} {$attributes}>
+        <input type="checkbox" id="{$id}" class="{$class}" name="{$name}" value="{$onValue}"{$checked}{$attributes}>
         <label for="{$id}" class="wi-switch-label unselectable">{$label}{$descriptionHtml}</label>
     </div>
 </div>

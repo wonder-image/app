@@ -19,11 +19,11 @@ class SearchRemote extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $url = $this->escape((string) ($this->schema['url'] ?? ''));
         $searchType = (string) ($this->schema['search_type'] ?? 'text');
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes(['placeholder']);
         $searchAttr = $searchType === 'radio' ? 'data-wi-search-radio="true"' : 'data-wi-search-text="true"';
-        $class = $this->inputClass('form-control');
+        $class = $this->fieldClass($this->inputClass('form-control'));
 
         return "<input type=\"text\" class=\"{$class}\" id=\"{$id}\" name=\"{$name}\" placeholder=\" \" "
-            ."data-wi-search-url=\"{$url}\" {$searchAttr} {$attributes}>";
+            ."data-wi-search-url=\"{$url}\" {$searchAttr}{$attributes}>";
     }
 }

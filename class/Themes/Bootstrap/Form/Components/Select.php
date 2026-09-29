@@ -48,15 +48,15 @@ HTML;
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->schema['value'] ?? '';
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes();
         $legacy = !empty($this->schema['legacy_container']);
-        $class = $this->inputClass($legacy ? 'form-select mt-1' : 'form-select');
+        $class = $this->fieldClass($this->inputClass($legacy ? 'form-select mt-1' : 'form-select'));
         $multiple = !empty($this->schema['attributes']['multiple']);
         $inputName = $multiple ? $name.'[]' : $name;
         $inputHidden = $multiple ? "<input type=\"hidden\" name=\"{$inputName}\">" : '';
 
         $html = $inputHidden;
-        $html .= "<select class=\"{$class}\" name=\"{$inputName}\" id=\"{$id}\" {$attributes}>";
+        $html .= "<select class=\"{$class}\" name=\"{$inputName}\" id=\"{$id}\"{$attributes}>";
 
         foreach ($options as $optionValue => $label) {
             // Un `<option>` non contiene HTML: icona, colore o immagine

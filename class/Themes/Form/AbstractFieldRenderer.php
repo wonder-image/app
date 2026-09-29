@@ -7,6 +7,7 @@ use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
 use Wonder\Themes\Concerns\EscapesHtml;
 use Wonder\Themes\Concerns\HasAttributes;
 use Wonder\Themes\Concerns\HasIdentifier;
+use Wonder\Themes\Concerns\MergesClassAttribute;
 use Wonder\Themes\Contracts\Renderer;
 
 /**
@@ -27,6 +28,8 @@ use Wonder\Themes\Contracts\Renderer;
  * - implementare i propri `renderLabel()`, `renderError()`,
  *   `inputClass()` con il markup del tema (classi `wi-*` per Wonder,
  *   `form-control`/`is-invalid` per Bootstrap)
+ * - scrivere sul tag del campo `class="{$this->fieldClass(…)}"` e
+ *   `{$this->fieldAttributes([…])}`, così ogni attributo esce una volta
  *
  * NON estende i `Themes\{Wonder,Bootstrap}\Component` perché quei
  * Component theme-specifici sono "container" (con `renderComponents()`),
@@ -43,6 +46,7 @@ abstract class AbstractFieldRenderer implements Renderer
     use CanSpanColumn;       // columnSpan() del trait Bootstrap (riusato qui
                              // perché è theme-agnostico anche se vive lì
                              // per ragioni storiche)
+    use MergesClassAttribute; // classi del tema + classi del campo
 
     /**
      * Entry point standard del rendering. Il Resolver chiama
@@ -71,6 +75,44 @@ abstract class AbstractFieldRenderer implements Renderer
     protected function renderField(string $input): string
     {
         return $input;
+    }
+
+    /**
+     * Il valore di `class` per il tag del campo, già escapato: le classi
+     * del tema per prime, poi quelle date con `class()`, `addClass()` o
+     * `attr('class', …)`. Il browser tiene solo il primo `class` di un
+     * tag, quindi il renderer non lo lascia fra gli altri attributi.
+     *
+     * @param array<string, mixed>|null $attributes attributi già ritoccati
+     *        dal renderer; di default quelli dello schema
+     */
+    protected function fieldClass(string $themeClasses, ?array $attributes = null): string
+    {
+        $attributes ??= (array) ($this->schema['attributes'] ?? []);
+
+        return $this->escape($this->mergeClassAttribute($themeClasses, $attributes['class'] ?? null));
+    }
+
+    /**
+     * Gli attributi del campo per il tag, con uno spazio davanti, o `''`.
+     * Salta `class`, che esce con `fieldClass()`, e le chiavi che il
+     * renderer scrive già a mano sullo stesso tag: il browser terrebbe
+     * comunque la prima, cioè quella del tema.
+     *
+     * @param string[] $written chiavi che il renderer scrive già sul tag
+     * @param array<string, mixed>|null $attributes come in `fieldClass()`
+     */
+    protected function fieldAttributes(array $written = [], ?array $attributes = null): string
+    {
+        $attributes ??= (array) ($this->schema['attributes'] ?? []);
+
+        foreach (['class', ...$written] as $key) {
+            unset($attributes[$key]);
+        }
+
+        $html = $this->renderAttributes($attributes);
+
+        return $html === '' ? '' : ' '.$html;
     }
 
     /**

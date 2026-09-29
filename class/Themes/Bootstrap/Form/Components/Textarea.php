@@ -12,8 +12,8 @@ class Textarea extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $rawValue = (string) ($this->schema['value'] ?? '');
         $value = $this->escape($rawValue);
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
-        $class = $this->inputClass('form-control');
+        $attributes = $this->fieldAttributes(['placeholder', 'style']);
+        $class = $this->fieldClass($this->inputClass('form-control'));
         $placeholder = $this->escape($this->resolvedLabel());
         $maxLength = (int) ($this->schema['max_length'] ?? 0);
         $counter = '';
@@ -27,6 +27,6 @@ class Textarea extends Field
         }
 
         return $counter
-            ."<textarea class=\"{$class}\" placeholder=\"{$placeholder}\" id=\"{$id}\" style=\"height: 100px\" name=\"{$name}\" {$attributes}>{$value}</textarea>";
+            ."<textarea class=\"{$class}\" placeholder=\"{$placeholder}\" id=\"{$id}\" style=\"height: 100px\" name=\"{$name}\"{$attributes}>{$value}</textarea>";
     }
 }

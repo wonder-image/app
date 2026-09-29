@@ -12,7 +12,8 @@ class SearchRemote extends Field
         $rawName = (string) ($this->schema['name'] ?? '');
         $url = $this->escape((string) ($this->schema['url'] ?? ''));
         $searchType = (string) ($this->schema['search_type'] ?? 'text');
-        $attributes = $this->renderAttributes((array) ($this->schema['attributes'] ?? []));
+        $attributes = $this->fieldAttributes();
+        $class = $this->fieldClass('wi-input '.$rawName.'-value');
         $isRadio = $searchType === 'radio';
 
         $nameAttr = $isRadio ? '' : ' name="'.$this->escape($rawName).'"';
@@ -21,7 +22,7 @@ class SearchRemote extends Field
         return <<<HTML
 <div class="{$this->containerClass('search-url')}">
     {$this->renderLabel()}
-    <input type="text" id="{$id}" class="wi-input {$this->escape($rawName)}-value" value="" data-wi-label="true" data-wi-name="{$this->escape($rawName)}-text"{$nameAttr} data-wi-search-url="{$url}" {$searchAttr} {$attributes}>
+    <input type="text" id="{$id}" class="{$class}" value="" data-wi-label="true" data-wi-name="{$this->escape($rawName)}-text"{$nameAttr} data-wi-search-url="{$url}" {$searchAttr}{$attributes}>
     <span class="alert-error"></span>
     <div id="list_{$id}" class="wi-input-list no-scrollbar">
         <div class="w-100 wi-input-list-body"></div>

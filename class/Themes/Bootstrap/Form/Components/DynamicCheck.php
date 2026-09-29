@@ -24,7 +24,8 @@ class DynamicCheck extends Field
         $attributes = (array) ($this->schema['attributes'] ?? []);
         $isRequired = !empty($attributes['required']);
         $required = $isRequired ? "wi-{$type}-required" : '';
-        unset($attributes['required']);
+        // La casella creata dalla lib scrive gia' il suo data-wi-check.
+        unset($attributes['required'], $attributes['data-wi-check']);
         $label = $this->escape($this->resolvedLabel());
 
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
@@ -32,7 +33,7 @@ class DynamicCheck extends Field
             ? '<input type="hidden" name="'.$this->escape($fieldName).'">'
             : '';
 
-        $attributeString = $this->renderAttributes($attributes);
+        $attributeString = $this->escape($this->renderAttributes($attributes));
         $escapedName = $this->escape($fieldName);
         $escapedValue = $this->escape((string) $value);
         $escapedUrl = $this->escape($url);

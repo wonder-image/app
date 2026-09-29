@@ -60,9 +60,13 @@ temporaneamente `Dependencies::deferFrontend(false)`.
 
 In modalita differita Moment non viene caricato implicitamente: SelectDate lo
 registra quando serve. Codice personalizzato che lo usa deve richiedere
-`Dependencies::moment()`. Swiper e Gallery del tema Wonder registrano le proprie
-dipendenze; Fancyapps e richiesta solo per Gallery, zoom o lightbox. Renderizzare
-i componenti prima dell'head, usando il buffering di View::layout.
+`Dependencies::moment()`. I renderer Wonder di `DatePicker`, `DateRange`,
+`DateTimeRange` e `SelectDate` emettono solo markup e attributi `data-wi-*`;
+l'inizializzazione jQuery UI vive in `wonder-image/lib` e parte da `setInput()`.
+Non reinserire valori del campo in script inline. Swiper e Gallery del tema
+Wonder registrano le proprie dipendenze; Fancyapps e richiesta solo per Gallery,
+zoom o lightbox. Renderizzare i componenti prima dell'head, usando il buffering
+di View::layout.
 
 Le immagini responsive emettono `?v=filemtime` per src e ogni variante srcset
 esistente localmente. Anche `Image::url()` applica la stessa verifica al file

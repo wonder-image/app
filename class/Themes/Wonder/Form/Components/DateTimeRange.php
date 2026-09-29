@@ -12,68 +12,22 @@ class DateTimeRange extends Field
         $name = (string) ($this->schema['name'] ?? '');
         $value = is_array($this->schema['value'] ?? null) ? $this->schema['value'] : ['', ''];
         $attributesArray = (array) ($this->schema['attributes'] ?? []);
-        $attributes = $this->renderAttributes($attributesArray);
+        $attributes = $this->fieldAttributes(['data-wi-check', 'placeholder'], $attributesArray);
+        $fromClass = $this->fieldClass('wi-input wi-datetimerange-from', $attributesArray);
+        $toClass = $this->fieldClass('wi-input wi-datetimerange-to', $attributesArray);
         $fromName = $this->escape($name.'-from');
         $toName = $this->escape($name.'-to');
         $fromValue = $this->escape((string) ($value[0] ?? ''));
         $toValue = $this->escape((string) ($value[1] ?? ''));
-        $min = $this->jsString($attributesArray['data-wi-min-date'] ?? '');
-        $max = $this->jsString($attributesArray['data-wi-max-date'] ?? '');
 
         return <<<HTML
-<div class="{$this->containerClass('datetimerange')}">
+<div class="{$this->containerClass('datetimerange')}" data-wi-date-time-range="true">
     {$this->renderLabel()}
-    <input type="text" id="{$baseId}-from" class="wi-input wi-datetimerange-from" name="{$fromName}" placeholder="gg/mm/aaaa h:m" value="{$fromValue}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
+    <input type="text" id="{$baseId}-from" class="{$fromClass}" name="{$fromName}" placeholder="gg/mm/aaaa h:m" value="{$fromValue}" data-wi-check="true"{$this->labelMarker()}{$attributes}>
     <span class="wi-input-text">-</span>
-    <input type="text" id="{$baseId}-to" class="wi-input wi-datetimerange-to" name="{$toName}" placeholder="gg/mm/aaaa h:m" value="{$toValue}" data-wi-check="true"{$this->labelMarker()} {$attributes}>
+    <input type="text" id="{$baseId}-to" class="{$toClass}" name="{$toName}" placeholder="gg/mm/aaaa h:m" value="{$toValue}" data-wi-check="true"{$this->labelMarker()}{$attributes}>
     {$this->renderError()}
 </div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var options = {
-            showAnim: 'slideDown',
-            yearRange: '1900:3000',
-            controlType: 'select',
-            oneLine: true,
-            showOn: 'focus',
-            dateFormat: 'dd/mm/yy',
-            timeFormat: 'HH:mm',
-            changeYear: true,
-            changeMonth: true,
-            showMonthAfterYear: true,
-            hideIfNoPrevNext: true,
-            stepMinute: 5,
-            firstDay: 1,
-            dayNames: [ 'Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato' ],
-            dayNamesShort: [ 'Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab' ],
-            dayNamesMin: [ 'Do', 'Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa' ],
-            monthNames: [ 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre' ],
-            monthNamesShort: [ 'Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic' ],
-            beforeShow: function () {
-                document.getElementById('{$baseId}-from').parentElement.classList.add('selector-show');
-                if (typeof customDateTimeRange === 'function') {
-                    customDateTimeRange(document.getElementById('{$baseId}-from').parentElement);
-                }
-            },
-            onClose: function () {
-                document.getElementById('{$baseId}-from').parentElement.classList.remove('selector-show');
-                if (typeof customDateTimeRange === 'function') {
-                    customDateTimeRange(document.getElementById('{$baseId}-from').parentElement);
-                }
-            }
-        };
-
-        if ({$min} !== '') { options.minDate = {$min}; }
-        if ({$max} !== '') { options.maxDate = {$max}; }
-
-        $('#{$baseId}-from, #{$baseId}-to').datetimepicker(options);
-    }, { once: true });
-</script>
 HTML;
-    }
-
-    private function jsString(mixed $value): string
-    {
-        return json_encode(is_scalar($value) ? (string) $value : '', JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }

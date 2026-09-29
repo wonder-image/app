@@ -94,8 +94,18 @@
   escono fra parentesi come quelli con più valori.
 - La pagina "Errori" (`ErrorReportResource`) sta in Dev → Log e diagnostica,
   sempre solo per `admin`: prima era in Set Up.
+- Le classi di `Accordion`, `Modal`, `Container` del tema Wonder, `InfoCard` e
+  `MetricCard` si leggono come quelle dei campi, con
+  `Themes\Concerns\MergesClassAttribute`. Un booleano non è una classe: prima
+  `true` poteva uscire come classe `1`. In `Accordion`, `Modal` e `Container`
+  un numero passato da solo esce come classe, come già dentro un array: prima
+  si perdeva.
 
 ### Fixed
+- I date picker del tema Wonder non interpolano piu valori del form in script
+  inline: i renderer espongono attributi `data-wi-*` escapati e demandano
+  inizializzazione e validazione a `wonder-image/lib`; anche `TextList` escapa
+  il nome scritto in `data-wi-name`.
 - Image (`__ri()`), Swiper e Gallery conservano gli URL immagine assoluti
   off-site per cover, anteprime, slide, thumbnail e lightbox, senza generare
   percorsi responsive inesistenti sul server remoto.
@@ -276,3 +286,27 @@
   classe del tema (`form-check-input`, `btn-check` o `wi-checkbox`), in un solo
   attributo `class`. Vale per entrambi i temi, anche per `CheckTree` nel tema
   Wonder, e passa da `Themes\Concerns\MergesClassAttribute`.
+- Renderer dei campi, in entrambi i temi: un attributo che il renderer scrive
+  già sul tag usciva una seconda volta fra quelli del campo, e il browser
+  teneva il primo. Capitava a `data-wi-check` in quasi tutti i campi, `check()`
+  legacy compreso, alla classe data con `class()`, `addClass()` o
+  `attr('class', …)`, che spariva dietro quella del tema, e secondo il campo a
+  `placeholder`, `readonly`, `checked`, `style`, `disabled` e `autocomplete`.
+  Ora ogni attributo esce una volta: la classe del campo segue quella del tema
+  nello stesso `class`, e per le altre chiavi resta il valore del tema, lo
+  stesso che il browser usava già. I renderer passano da
+  `AbstractFieldRenderer::fieldClass()` e `fieldAttributes()`; `Repeater` e
+  `SortableInput` (deprecato) restano com'erano.
+- `addClass()` dopo `attr('class', 'a')` dava un TypeError, perché
+  `pushAttr()` trovava una stringa dove si aspettava un array. Ora la stringa
+  diventa il primo valore (`class="a b"`); `false` e `''` valgono come
+  assenti.
+- `DynamicCheck` (backend): `data-wi-attribute`, gli attributi che la lib
+  copia sulle caselle che crea, non era escapato. Il `data-wi-check="true"`
+  che ogni campo ha ne chiudeva il valore alle prime virgolette: alla lib
+  arrivava `data-wi-check=` e il resto finiva sul campo di ricerca come
+  markup rotto. Ora il valore è escapato e senza `data-wi-check`, che la lib
+  scrive già: gli attributi del campo arrivano alle caselle.
+- `selectDate()` del frontend legacy (`SelectDate` nel tema Wonder) si
+  fermava con un Error dalla v2.2.2: chiamava `jsString()`, privato in
+  `DatePicker`. Ora è protetto e il campo si rende.

@@ -50,7 +50,7 @@ Key subareas:
 - `InfoCard` e `MetricCard` sono card semantiche backend per valori descrittivi e KPI; condividono `AbstractValueCard`, mantengono `Card` come container generico e, nel `ResourceFormLayoutRenderer`, usano un solo wrapper Bootstrap `col-*` esterno senza duplicare `col-span-*`; il renderer backend risolve sempre gli Element figli col tema Bootstrap esplicito
 - `Container::noGrid()` rende un `Elements/Components/Container` un wrapper puro nel backend Bootstrap; `ResourceFormLayoutRenderer` deve preservarne classi/id/style/attributi e delegare il nodo interno al renderer Bootstrap invece di ricostruirlo, anche quando il Container e la radice di `renderLayout()`
 - `class/Elements/Form`: low-level form Element objects (config layer, fluent API, no HTML). `Field`, `Form`, `Components/{InputText,Select,Repeater,...}`
-- `class/Themes/Form/AbstractFieldRenderer.php`: base condivisa per i Field renderer di tutti i temi (schema/error/value/label helpers, render+renderField hook)
+- `class/Themes/Form/AbstractFieldRenderer.php`: base condivisa per i Field renderer di tutti i temi (schema/error/value/label helpers, `fieldClass()`/`fieldAttributes()` per scrivere ogni attributo una volta, render+renderField hook)
 - `class/Themes/Wonder/Form`: HTML rendering for the public-facing site (frontend theme, classes `wi-*`)
 - `class/Themes/Bootstrap/Form`: HTML rendering for the admin backend (Bootstrap 5 with `form-control` / `form-floating`)
 - `class/Themes/{Registry,Resolver}.php`: theme registration + per-theme lookup (no cross-theme fallback; only parent-class chain within the requested theme)
@@ -238,6 +238,12 @@ php forge start
 
 ## Form / Element / Theme system
 
+- I date picker del tema Wonder (`DatePicker`, `DateRange`, `DateTimeRange`,
+  `SelectDate`) emettono solo markup con attributi `data-wi-*`. La loro
+  inizializzazione e validazione client-side appartengono a
+  `wonder-image/lib/src/build/frontend/js/form/input.js` e partono da
+  `setInput()`; non interpolare valori PHP in `<script>` inline nei renderer.
+
 - Backend FilePond fields opt into reference persistence with
   `data-wi-file-references="true"`. The lib sends only new file bytes plus a
   sibling `<field>__wi_files` JSON manifest (stored filenames / new upload
@@ -377,8 +383,8 @@ the universal state (label, value, attributes, error), and
 
 No registration step needed: the Resolver discovers the new component
 by namespace convention. Helpers (`hasError`, `resolvedLabel`,
-`hasValue`, schema access) come from `AbstractFieldRenderer` — no
-need to re-implement them per theme.
+`hasValue`, `fieldClass`, `fieldAttributes`, schema access) come from
+`AbstractFieldRenderer` — no need to re-implement them per theme.
 
 ### Adding a new Theme
 
@@ -435,8 +441,16 @@ the child has not set the flag explicitly (see
   another theme to fill the gap.
 - **`Field` is abstract**. Don't instantiate it directly; use a concrete
   Component (`InputText`, `Select`, ...).
+- **One attribute per tag**. The browser keeps the first of two equal
+  keys, so a field class written after the theme `class` is lost. On the
+  field tag write `class="{$this->fieldClass('theme classes')}"` and
+  `{$this->fieldAttributes(['keys', 'already', 'written'])}` (leading
+  space included), never raw `renderAttributes()` of the field attributes
+  after hardcoded ones. List only keys the renderer writes on that same
+  tag; skip a conditional key (`checked`) only when it is written.
+  `Repeater` and deprecated `SortableInput` still predate this.
 
-Full docs in `docs/app/elementi/form-system.md`.
+Full docs in `docs/app/concetti/form/theme-system.md`.
 
 ## AI skills (Claude Code / Cursor / Codex)
 
