@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- `precision($cifre)`, `decimal($decimali)` e `integer()` sui campi dati
+  numerici. `precision()` controlla le cifre totali SQL; `decimal()` e
+  `integer()` sono alias coerenti con i campi form.
 - `Field::richText()` sui campi dati: il testo scritto dall'editor si pulisce
   in scrittura con la whitelist di `Wonder\Support\Html\SafeHtml::clean()`
   (`p`, `br`, `strong`, `b`, `em`, `i`, `u`, `s`, `strike`, `del`, `a` senza
@@ -106,6 +109,12 @@
   si perdeva.
 
 ### Fixed
+- Le colonne derivate da `Field::key(...)->number()` rispettano ora
+  `decimals()`: il default resta `DECIMAL(10,2)`, `decimals(3)` genera
+  `DECIMAL(10,3)` e una scala zero genera `DECIMAL(10)` senza virgola vuota.
+- `sendMail()` non invia piu a Brevo un `replyTo` vuoto; anche il client Brevo
+  ignora direttamente indirizzi vuoti e il log salva `NULL` quando il
+  reply-to non esiste.
 - I date picker del tema Wonder non interpolano piu valori del form in script
   inline: i renderer espongono attributi `data-wi-*` escapati e demandano
   inizializzazione e validazione a `wonder-image/lib`; anche `TextList` escapa

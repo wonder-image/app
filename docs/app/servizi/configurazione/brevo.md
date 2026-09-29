@@ -148,6 +148,10 @@ Metodi piu usati:
 - `scheduled()`
 - `delete()`
 
+`replyTo()` ignora un indirizzo vuoto. Anche `sendMail()` omette completamente
+il reply-to quando il chiamante non lo fornisce, come accade nei task dello
+scheduler e in alcuni comandi Forge.
+
 ## Contact
 
 La classe `Contact` serve per creare, leggere, aggiornare ed eliminare contatti Brevo.

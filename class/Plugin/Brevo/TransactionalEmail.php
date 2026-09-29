@@ -137,6 +137,12 @@
         public function replyTo($email, $name = null): static
         {
 
+            $email = trim((string) $email);
+
+            if ($email === '') {
+                return $this;
+            }
+
             return $this->addParams('replyTo', new SendTransacEmailRequestReplyTo([
                 'email' => $email,
                 'name' => $name

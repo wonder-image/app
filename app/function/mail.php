@@ -96,6 +96,7 @@
         $MAIL_SENT = false;
         $MAIL_ERROR = '';
         $mailService = strtolower((string) ($CREDENTIALS->service ?? 'phpmailer'));
+        $replyTo = trim((string) $from);
 
         if (!in_array($mailService, [ 'phpmailer', 'brevo' ])) {
             $mailService = 'phpmailer';
@@ -154,9 +155,13 @@
                     $BREVO = Wonder\Plugin\Brevo\TransactionalEmail::connect($CREDENTIALS->brevo_api_key);
 
                     $BREVO->sender($CREDENTIALS->username, $SOCIETY_NAME)
-                        ->to($to)
-                        ->replyTo($from, $SOCIETY_NAME)
-                        ->subject($object)
+                        ->to($to);
+
+                    if ($replyTo !== '') {
+                        $BREVO->replyTo($replyTo, $SOCIETY_NAME);
+                    }
+
+                    $BREVO->subject($object)
                         ->html($BODY_RAW)
                         ->text($BODY_TEXT);
 
@@ -205,7 +210,7 @@
                     # Header
                         $MAIL->addAddress($to);
                         $MAIL->setFrom($CREDENTIALS->username, $SOCIETY_NAME);
-                        if (!empty($from)) { $MAIL->addReplyTo($from, $SOCIETY_NAME); }
+                        if ($replyTo !== '') { $MAIL->addReplyTo($replyTo, $SOCIETY_NAME); }
                 
                     # Allegati
                         foreach ($attachmentList as $attachment) {
@@ -250,7 +255,7 @@
                     ->prepare([
                         'user_id' => $_SESSION['user_id'] ?? null,
                         'from_email' => (string) ($CREDENTIALS->username ?? ''),
-                        'reply_to_email' => (string) $from,
+                        'reply_to_email' => $replyTo !== '' ? $replyTo : null,
                         'to_email' => (string) $to,
                         'subject' => (string) $object,
                         'template' => (string) $template,

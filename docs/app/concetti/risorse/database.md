@@ -116,6 +116,34 @@ Field::key('password')->password()->minLength(8);
 Il Model usa il data schema per tre scopi: **SQL** (`sqlColumnsFromDataSchema`),
 **validazione** (`validate()`), **persistenza** (`prepare()`).
 
+#### Numeri: precisione e decimali SQL
+
+I campi dati numerici trasferiscono precisione e scala alla colonna generata
+da `sqlColumnsFromDataSchema()`:
+
+```php
+Field::key('price')->number();                         // DECIMAL(10,2)
+Field::key('weight')->number()->decimals(3);          // DECIMAL(10,3)
+Field::key('quantity')->number()->precision(12)->decimals(3); // DECIMAL(12,3)
+Field::key('pieces')->number()->integer();             // DECIMAL(10)
+```
+
+`decimal($n)` e un alias di `decimals($n)`; `integer()` equivale a
+`decimal(0)`. La precisione totale predefinita resta `10`, quindi il
+comportamento senza configurazione resta `DECIMAL(10,2)`. La precisione SQL
+comprende sia la parte intera sia quella decimale: `DECIMAL(10,3)` lascia
+sette cifre intere. Quando quella capienza non basta, dichiarare esplicitamente
+`precision()`. Per conservare le otto cifre intere disponibili nel precedente
+`DECIMAL(10,2)` passando a tre decimali, usare almeno
+`precision(11)->decimals(3)`.
+
+Su una tabella gia esistente, `php forge update --local` confronta lo schema
+del Model ed emette un `ALTER TABLE ... MODIFY COLUMN`: non serve una migration
+manuale. Prima di eseguirlo fare comunque un backup, soprattutto se precisione
+o scala diminuiscono. Aumentare la scala insieme a una precisione sufficiente
+conserva i valori gia memorizzati, ma non puo ricostruire decimali che il
+precedente `DECIMAL(10,2)` aveva gia arrotondato.
+
 ### Testo formattato (`richText()`)
 
 Un testo scritto con l'editor (descrizioni, note formattate) si dichiara con

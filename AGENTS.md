@@ -8,6 +8,8 @@
 
 - Responsive media: use Image::displaySizes() for HTML sizes, Swiper::priority()/imageSizes()/thumbsImageSizes(), and Gallery::imageSizes() to override column-derived sizes. Keep these in shared renderers, not site wrappers; see docs/app/elementi/responsive-media.md.
 
+- Numeric data fields drive their SQL definition: `number()->decimals($scale)` generates `DECIMAL(10,$scale)` by default, `integer()` / `decimal(0)` generate `DECIMAL(10)`, and `precision($digits)` overrides the total precision. When increasing the scale of an existing column, raise precision as needed so the integer capacity is not reduced; see `docs/app/concetti/risorse/database.md`.
+
 `wonder-image/app` is the core package for the Wonder framework. It is a PHP library, not a standalone app. It provides:
 
 - bootstrap/runtime glue in [wonder-image.php](/Users/andreamarinoni/Desktop/PROGETTI/template/app/wonder-image.php)
