@@ -47,8 +47,31 @@ Le route non vengono dedotte dalla URL. L'`area` viene dichiarata nella route.
    - `ROOT_APP/config/routes`
    - `ROOT/custom/config/routes`
 5. il router trova la route
-6. il dispatcher bootstrappa `wonder-image.php`
-7. viene incluso l'handler della route
+6. il dispatcher pubblica `PRIVATE` e `PERMIT`, poi bootstrappa
+   `wonder-image.php`
+7. `app/service/auth.php` chiama `authorizeUser()` per le route protette
+8. solo dopo un'autorizzazione riuscita viene incluso l'handler della route
+
+## Autenticazione e autorizzazione delle route protette
+
+`Route::permit()` non esegue direttamente il controllo: salva le authority
+richieste nei metadati della route. `RouteDispatcher` le pubblica come
+`$PERMIT`; `wonder-image.php` carica `app/service/auth.php`, che delega ad
+`authorizeUser()`.
+
+Il gate distingue due famiglie di fallimento:
+
+- sessione assente o scaduta, utente inesistente, eliminato, disattivato o non
+  ammesso nell'area: redirect al Login. Il redirect di ritorno resta presente
+  per una sessione assente; un POST con sessione scaduta conserva l'alert 917;
+- utente esistente, attivo e ammesso nell'area, ma privo di tutte le authority
+  dichiarate da `permit()`: `ForbiddenHttpException`. Il dispatcher la traduce
+  in HTTP 403 usando `app/view/error/http.php` per HTML e un payload JSON con
+  status 403 per le API.
+
+L'eccezione di autorizzazione non viene trattata come errore 500 e il relativo
+handler non viene mai incluso. Non includere direttamente la view errore dentro
+`authorizeUser()`: le risposte HTTP restano responsabilità del dispatcher.
 
 ## Struttura di una route
 

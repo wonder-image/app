@@ -5,6 +5,7 @@ namespace Wonder\Http;
 use Throwable;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Logger;
+use Wonder\Http\Exceptions\HttpException;
 use Wonder\Localization\LanguageContext;
 use Wonder\Localization\UrlTranslator;
 
@@ -95,6 +96,8 @@ class RouteDispatcher
             extract($this->runtimeScope(), EXTR_SKIP);
             include (string) $route['handler'];
             exit();
+        } catch (HttpException $exception) {
+            $this->fail($exception->statusCode(), $exception->publicMessage());
         } catch (Throwable $throwable) {
             $this->serverError($throwable);
         }
@@ -279,11 +282,10 @@ class RouteDispatcher
         http_response_code($status);
 
         if ($this->area === 'api') {
-            echo json_encode([
-                'success' => false,
-                'status' => $status,
-                'response' => $message !== '' ? $message : 'Errore interno.',
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            echo json_encode(
+                HttpErrorResponse::jsonPayload($status, $message),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            );
             exit();
         }
 
@@ -302,6 +304,7 @@ class RouteDispatcher
         ]);
 
         require_once $this->appPackageRoot().'/wonder-image.php';
+        extract($this->runtimeScope(), EXTR_SKIP);
         include $this->runtimeRoot().'/view/error/http.php';
         exit();
     }

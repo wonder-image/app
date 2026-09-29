@@ -181,6 +181,15 @@ php forge start
 
 ## Architecture notes
 
+- Protected-route authorization is split from authentication/account failures.
+  `authorizeUser()` keeps Login redirects for missing/expired sessions and for
+  nonexistent, deleted, inactive, or wrong-area users. A valid user lacking all
+  authorities required by `Route::permit()` throws
+  `Wonder\Http\Exceptions\ForbiddenHttpException`; `RouteDispatcher` alone
+  translates it to the shared HTML 403 page or the API JSON 403 response and
+  must stop before including the route handler. Do not render HTTP views from
+  the auth helper or turn account failures into authorization 403 responses.
+
 - Backend navigation groups scheduler and logs under `dev` (Dev), preserving
   per-resource permissions. ConfiguredTask resolves backend PHP/HTTPS jobs
   through the existing worker. Code-origin schedules cannot be deleted or

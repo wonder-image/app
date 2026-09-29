@@ -115,6 +115,11 @@
 - `sendMail()` non invia piu a Brevo un `replyTo` vuoto; anche il client Brevo
   ignora direttamente indirizzi vuoti e il log salva `NULL` quando il
   reply-to non esiste.
+- Le route protette distinguono ora autenticazione e autorizzazione: sessioni
+  assenti/scadute e account non utilizzabili continuano a tornare al Login con
+  gli alert previsti, mentre un utente backend/API valido ma privo di una delle
+  authority richieste riceve HTTP 403 (view errore condivisa in HTML, payload
+  JSON nelle API). Il dispatcher interrompe il flusso prima dell'handler.
 - I date picker del tema Wonder non interpolano piu valori del form in script
   inline: i renderer espongono attributi `data-wi-*` escapati e demandano
   inizializzazione e validazione a `wonder-image/lib`; anche `TextList` escapa

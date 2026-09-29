@@ -55,8 +55,15 @@ Il sistema di accesso del framework ha due lati:
 ```
 Route generata con ->permit(['admin','administrator'])
   → utente con authority 'client' chiama la route
-  → gate fallisce → 403
+  → UserAuthorization conferma che account e area sono validi
+  → authorizeUser() solleva ForbiddenHttpException
+  → RouteDispatcher risponde 403 senza includere l'handler
 ```
+
+Nel backend la risposta usa la pagina condivisa `app/view/error/http.php`; per
+una route in area API il corpo resta JSON. Non è un 403 quando manca una
+sessione valida o l'account è inesistente, eliminato, disattivato o fuori area:
+questi casi continuano a tornare al Login con gli alert storici.
 
 Per concedere l'accesso: aggiungi l'authority dell'utente all'elenco in
 `permissionSchema()`, oppure assegna all'utente un'authority già ammessa.

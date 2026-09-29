@@ -56,8 +56,10 @@
 
         global $PAGE;
         global $PERMITS;
-        
-        $alert = "";
+
+        $PERMIT_REQUIRED = is_array($PERMIT_REQUIRED)
+            ? $PERMIT_REQUIRED
+            : ($PERMIT_REQUIRED === null ? [] : [ $PERMIT_REQUIRED ]);
 
         if (count($PERMIT_REQUIRED) >= 1) {
             $login = isset($PERMITS[$AREA][$PERMIT_REQUIRED[0]]['links']['login']) ? $PERMITS[$AREA][$PERMIT_REQUIRED[0]]['links']['login'] : $PERMITS[$AREA]['links']['login'];
@@ -74,7 +76,14 @@
 
         if ($USER_ID == null) {
 
-            if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            $authorization = Wonder\Auth\UserAuthorization::evaluate(
+                null,
+                (string) $AREA,
+                $PERMIT_REQUIRED,
+                ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
+            );
+
+            if ($authorization->alert() === 917) {
                 $separator = (strpos($login_redirect, '?') !== false) ? '&' : '?';
                 $login_redirect .= $separator."alert=917";
                 Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => $_SERVER['REQUEST_URI'] ?? '' ]);
@@ -86,32 +95,19 @@
         } else {
 
             $U = infoUser($USER_ID);
+            $authorization = Wonder\Auth\UserAuthorization::evaluate($U, (string) $AREA, $PERMIT_REQUIRED);
 
-            if ($U->exists) {
-                if (!$U->deleted) {
-                    if ($U->active){
-                        if (in_array($AREA, $U->area)) {
-                            if (count($PERMIT_REQUIRED) == 0 || count(array_intersect($PERMIT_REQUIRED, $U->authority)) >= 1) {
-                                return $U;
-                            } else {
-                                $alert = 915;
-                            }
-                        } else {
-                            $alert = 911;
-                        }
-                    } else {
-                        $alert = 909;
-                    }
-                } else {
-                    $alert = 912;
-                }
-            } else {
-                $alert = 901;
+            if ($authorization->isAllowed()) {
+                return $U;
             }
 
-            if (!empty($alert)) {
-                header("Location: $login?alert=$alert");
+            if ($authorization->isForbidden()) {
+                throw new Wonder\Http\Exceptions\ForbiddenHttpException();
             }
+
+            $alert = $authorization->alert();
+            header("Location: $login?alert=$alert");
+            exit;
 
         }
 
