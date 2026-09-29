@@ -598,9 +598,9 @@ abstract class Resource
      * @param array<int, string> $columns colonne da montare, nell'ordine chiesto;
      *                                    vuoto monta tutto lo schema
      */
-    public static function backendTable(array $columns = []): BackendTable
+    public static function backendTable(array $columns = [], ?ResourceTableLayoutSchema $layout = null): BackendTable
     {
-        return ResourceTableRenderer::make(static::class, $columns);
+        return ResourceTableRenderer::make(static::class, $columns, $layout);
     }
 
     public static function isSingleton(): bool

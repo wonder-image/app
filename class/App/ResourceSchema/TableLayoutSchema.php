@@ -30,6 +30,12 @@ final class TableLayoutSchema
                 'label' => null,
             ],
             'buttons_custom' => [],
+            // Bottone "Guida" nel header della tabella: nasce dalla pagina
+            // della guida della Resource. Si spegne quando la tabella è
+            // incorporata in un'altra pagina, che la guida ce l'ha già.
+            'docs' => [
+                'enabled' => true,
+            ],
             'filters' => [
                 'search' => [
                     'enabled' => true,
@@ -281,13 +287,27 @@ final class TableLayoutSchema
         return $this;
     }
 
+    /**
+     * Il bottone "Guida" sopra la tabella: acceso dove la Resource ha il suo
+     * elenco, spento dove la tabella è incorporata in un'altra pagina — lì la
+     * guida sta già in testata, e ripeterla spinge in basso il titolo del
+     * riquadro.
+     */
+    public function docs(bool $enabled = true): self
+    {
+        $this->schema['docs']['enabled'] = $enabled;
+
+        return $this;
+    }
+
     public function cleanHeader(): self
     {
         return $this
             ->hideTitle()
             ->results(false)
             ->hideButtonAdd()
-            ->clearButtonsCustom();
+            ->clearButtonsCustom()
+            ->docs(false);
     }
 
     /**
