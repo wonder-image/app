@@ -6,6 +6,7 @@ use Closure;
 use RuntimeException;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
+use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Backend\Table\Table;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Dropdown;
@@ -20,29 +21,72 @@ final class ResourceTableRenderer
     private string $modelClass;
     private string $slug;
 
+    /**
+     * @param TableLayoutSchema|null $layout header su misura: serve alle
+     *        tabelle incorporate in una scheda, che dell'intestazione della
+     *        Resource vogliono cambiare un pezzo senza toccare il suo elenco.
+     */
     private function __construct(
         private readonly string $resourceClass,
+        array $columns = [],
+        ?TableLayoutSchema $layout = null,
     ) {
         if (!is_subclass_of($this->resourceClass, Resource::class)) {
             throw new RuntimeException("{$this->resourceClass} deve estendere ".Resource::class);
         }
 
-        $this->tableSchema = $this->normalizeColumns($this->resourceClass::tableSchema());
-        $this->tableLayoutSchema = $this->resourceClass::tableLayoutSchema()->all();
+        $this->tableSchema = self::pickColumns(
+            $this->normalizeColumns($this->resourceClass::tableSchema()),
+            $columns,
+        );
+        $this->tableLayoutSchema = ($layout ?? $this->resourceClass::tableLayoutSchema())->all();
         $this->pageSchema = $this->resourceClass::pageSchema()->all();
         $this->querySchema = $this->resourceClass::querySchema();
         $this->modelClass = $this->resourceClass::modelClass();
         $this->slug = $this->resourceClass::slug();
     }
 
-    public static function make(string $resourceClass): Table
+    /**
+     * @param array<int, string> $columns colonne da montare, nell'ordine chiesto;
+     *                                    vuoto monta tutto lo schema
+     */
+    public static function make(string $resourceClass, array $columns = [], ?TableLayoutSchema $layout = null): Table
     {
-        return (new self($resourceClass))->toTable();
+        return (new self($resourceClass, $columns, $layout))->toTable();
     }
 
-    public static function render(string $resourceClass): string
+    public static function render(string $resourceClass, array $columns = [], ?TableLayoutSchema $layout = null): string
     {
-        return self::make($resourceClass)->generate();
+        return self::make($resourceClass, $columns, $layout)->generate();
+    }
+
+    /**
+     * Restringe lo schema alle colonne chieste, nell'ordine chiesto. Serve alle
+     * tabelle incorporate in una scheda, che dello schema vogliono solo un pezzo
+     * ma con le etichette e i formattatori della Resource che li possiede.
+     *
+     * @param array<string, array> $schema
+     * @param array<int, string>   $columns
+     *
+     * @return array<string, array>
+     */
+    public static function pickColumns(array $schema, array $columns): array
+    {
+        if ($columns === []) {
+            return $schema;
+        }
+
+        $picked = [];
+
+        foreach ($columns as $name) {
+            $name = (string) $name;
+
+            if (isset($schema[$name])) {
+                $picked[$name] = $schema[$name];
+            }
+        }
+
+        return $picked;
     }
 
     private function toTable(): Table
@@ -282,6 +326,10 @@ final class ResourceTableRenderer
 
     private function applyButtonDocs(Table $table): void
     {
+        if (($this->tableLayoutSchema['docs']['enabled'] ?? true) === false) {
+            return;
+        }
+
         $url = $this->resourceClass::pageSchema()->docsUrl('list');
 
         if ($url === '') {

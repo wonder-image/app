@@ -594,9 +594,13 @@ abstract class Resource
         return ResourcePermissionSchema::for(static::class);
     }
 
-    public static function backendTable(): BackendTable
+    /**
+     * @param array<int, string> $columns colonne da montare, nell'ordine chiesto;
+     *                                    vuoto monta tutto lo schema
+     */
+    public static function backendTable(array $columns = [], ?ResourceTableLayoutSchema $layout = null): BackendTable
     {
-        return ResourceTableRenderer::make(static::class);
+        return ResourceTableRenderer::make(static::class, $columns, $layout);
     }
 
     public static function isSingleton(): bool
