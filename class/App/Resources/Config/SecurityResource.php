@@ -61,6 +61,13 @@ final class SecurityResource extends SingletonResource
             'stripe_test' => 'Ambiente',
             'stripe_account_id' => 'Account ID',
             'stripe_test_account_id' => 'Account ID Test',
+            'paypal_live' => 'Ambiente',
+            'paypal_client_id' => 'Client ID',
+            'paypal_client_secret' => 'Client Secret',
+            'nexi_prod' => 'Ambiente',
+            'nexi_api_key' => 'API Key',
+            'nexi_alias' => 'Alias XPay classico',
+            'nexi_mac_key' => 'Chiave MAC XPay classico',
             'fatture_in_cloud_company_id' => 'Codice cliente',
             'fatture_in_cloud_token' => 'Token',
         ];
@@ -102,6 +109,19 @@ final class SecurityResource extends SingletonResource
                 ->required(),
             FormField::key('stripe_account_id')->text()->readonly(),
             FormField::key('stripe_test_account_id')->text()->readonly(),
+
+            FormField::key('paypal_live')
+                ->select(['false' => 'Sandbox', 'true' => 'Produzione'])
+                ->required(),
+            FormField::key('paypal_client_id')->text(),
+            FormField::key('paypal_client_secret')->password(),
+
+            FormField::key('nexi_prod')
+                ->select(['false' => 'Test', 'true' => 'Produzione'])
+                ->required(),
+            FormField::key('nexi_api_key')->password(),
+            FormField::key('nexi_alias')->text(),
+            FormField::key('nexi_mac_key')->password(),
 
             FormField::key('fatture_in_cloud_company_id')->text(),
             FormField::key('fatture_in_cloud_token')->text(),
@@ -201,6 +221,23 @@ final class SecurityResource extends SingletonResource
                         ->columnSpan(6),
                     static::getInput('stripe_test_account_id')->columnSpan(12),
                         
+                ])->columns(12)->columnSpan(1),
+
+                (new Card)->components([
+                    SectionTitle::make('PayPal')->columnSpan(12),
+                    static::getInput('paypal_live')->columnSpan(12),
+                    static::getInput('paypal_client_id')->columnSpan(12),
+                    static::getInput('paypal_client_secret')->columnSpan(12),
+                ])->columns(12)->columnSpan(1),
+
+                (new Card)->components([
+                    SectionTitle::make('Nexi')->columnSpan(12),
+                    HelpText::make('Compila l\'API Key per XPay Web/Global oppure alias e chiave MAC per XPay classico.')
+                        ->columnSpan(12),
+                    static::getInput('nexi_prod')->columnSpan(12),
+                    static::getInput('nexi_api_key')->columnSpan(12),
+                    static::getInput('nexi_alias')->columnSpan(12),
+                    static::getInput('nexi_mac_key')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
 
 

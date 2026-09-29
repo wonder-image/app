@@ -65,6 +65,11 @@
             }
 
             $code_string = "1111" . $code_string . "311";
+        } elseif ( in_array(strtolower($code_type), ["ean13", "ean-13", "ean8", "ean-8"], true) ) {
+            $eanLength = str_contains(strtolower($code_type), '13') ? 13 : 8;
+            $ean = \Wonder\Support\Barcode\Ean::encode((string) $text, $eanLength);
+            $text = $ean['code'];
+            $code_string = \Wonder\Support\Barcode\Ean::modulesToRuns($ean['modules']);
         } elseif ( strtolower($code_type) == "codabar" ) {
             $code_array1 = array("1","2","3","4","5","6","7","8","9","0","-","$",":","/",".","+","A","B","C","D");
             $code_array2 = array("1111221","1112112","2211111","1121121","2111121","1211112","1211211","1221111","2112111","1111122","1112211","1122111","2111212","2121112","2121211","1121212","1122121","1212112","1112122","1112221");
@@ -124,10 +129,8 @@
         if ( $filepath=="" ) {
             header ('Content-type: image/png');
             imagepng($image);
-            imagedestroy($image);
         } else {
             imagepng($image,$filepath);
-            imagedestroy($image);		
         }
         
     }

@@ -18,5 +18,6 @@ Questa sezione è divisa in due aree operative:
 - [Sign in with Apple](configurazione/sign-in-with-apple.md)
 - [Google Search Console](configurazione/google-search-console.md)
 - [Fatture in Cloud](configurazione/fatture-in-cloud.md)
+- [Credenziali dei pagamenti](configurazione/pagamenti.md)
 - [Brevo](configurazione/brevo.md)
 - [Klaviyo](configurazione/klaviyo.md)

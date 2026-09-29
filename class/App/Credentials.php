@@ -347,6 +347,15 @@
                 self::$API->stripe_id                    = self::$API->stripe_test ? self::$API->stripe_test_account_id : self::$API->stripe_account_id;
                 self::$API->stripe_api_key               = self::$API->stripe_test ? self::$API->stripe_test_key : self::$API->stripe_private_key;
 
+                self::$API->paypal_live                  = self::boolEnvOrRow('PAYPAL_LIVE',                  $row, 'paypal_live',                  self::$API->paypal_live);
+                self::$API->paypal_client_id             = self::envOrRow('PAYPAL_CLIENT_ID',                 $row, 'paypal_client_id',             self::$API->paypal_client_id);
+                self::$API->paypal_client_secret         = self::envOrRow('PAYPAL_CLIENT_SECRET',             $row, 'paypal_client_secret',         self::$API->paypal_client_secret);
+
+                self::$API->nexi_prod                    = self::boolEnvOrRow('NEXI_PROD',                    $row, 'nexi_prod',                    self::$API->nexi_prod);
+                self::$API->nexi_api_key                 = self::envOrRow('NEXI_API_KEY',                     $row, 'nexi_api_key',                 self::$API->nexi_api_key);
+                self::$API->nexi_alias                   = self::envOrRow('NEXI_ALIAS',                       $row, 'nexi_alias',                   self::$API->nexi_alias);
+                self::$API->nexi_mac_key                 = self::envOrRow('NEXI_MAC_KEY',                     $row, 'nexi_mac_key',                 self::$API->nexi_mac_key);
+
                 self::$API->fatture_in_cloud_app_id        = self::envOrRow('FATTURE_IN_CLOUD_APP_ID',         $row, 'fatture_in_cloud_app_id',         self::$API->fatture_in_cloud_app_id);
                 self::$API->fatture_in_cloud_client_id     = self::envOrRow('FATTURE_IN_CLOUD_CLIENT_ID',      $row, 'fatture_in_cloud_client_id',      self::$API->fatture_in_cloud_client_id);
                 self::$API->fatture_in_cloud_client_secret = self::envOrRow('FATTURE_IN_CLOUD_CLIENT_SECRET',  $row, 'fatture_in_cloud_client_secret',  self::$API->fatture_in_cloud_client_secret);
@@ -396,6 +405,13 @@
             return $default;
         }
 
+        protected static function boolEnvOrRow(string $envKey, array $row, string $rowKey, bool $default): bool
+        {
+            $value = self::envOrRow($envKey, $row, $rowKey, $default ? 'true' : 'false');
+
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
         public static function mailDefaults(): object
         {
 
@@ -442,6 +458,13 @@
                 'stripe_test_account_id' => '',
                 'stripe_id' => '',
                 'stripe_api_key' => '',
+                'paypal_live' => false,
+                'paypal_client_id' => '',
+                'paypal_client_secret' => '',
+                'nexi_prod' => false,
+                'nexi_api_key' => '',
+                'nexi_alias' => '',
+                'nexi_mac_key' => '',
                 'fatture_in_cloud_app_id' => '',
                 'fatture_in_cloud_client_id' => '',
                 'fatture_in_cloud_client_secret' => '',

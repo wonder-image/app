@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Added
+- Credenziali PayPal (`live`, client ID e secret) e Nexi (`prod`, API key,
+  alias e chiave MAC) nella cascata `Credentials::api()`, nella tabella
+  `security` e nella pagina backend Credenziali.
+- Supporto EAN-13 ed EAN-8 in `createBarcode()` (anche `ean-13` / `ean-8`),
+  con calcolo o validazione della cifra di controllo tramite
+  `Wonder\Support\Barcode\Ean`.
+- La classe `Wonder\Plugin\Nexi\Nexi` accetta anche alias e chiave MAC di
+  XPay classico e offre firma dell'avvio e verifica dell'esito, mantenendo
+  compatibile il costruttore API-key esistente.
 - `precision($cifre)`, `decimal($decimali)` e `integer()` sui campi dati
   numerici. `precision()` controlla le cifre totali SQL; `decimal()` e
   `integer()` sono alias coerenti con i campi form.

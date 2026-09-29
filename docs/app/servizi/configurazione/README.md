@@ -8,5 +8,6 @@ Pagine disponibili:
 - [Sign in with Apple](sign-in-with-apple.md)
 - [Google Search Console](google-search-console.md)
 - [Fatture in Cloud](fatture-in-cloud.md)
+- [Credenziali dei pagamenti](pagamenti.md)
 - [Brevo](brevo.md)
 - [Klaviyo](klaviyo.md)
