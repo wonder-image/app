@@ -12955,7 +12955,7 @@ for s in new-site immobili-site rsvp-site; do
   d="$SITES/$s"
   echo "== $s"
   refs "$d"
-  node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$d")" 2.1.2-alpha.17 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
+  node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$d")" 2.1.2-alpha.17 > /dev/null && echo "alpha.17 nel range" || echo "FUORI RANGE"
   printf 'wiSaveBar in head.js: %s\n' "$(grep -c wiSaveBar "$d/assets/lib/wonder-image/dist/backend/head.js")"
   diff -rq "$d/node_modules/wonder-image/dist" "$d/assets/lib/wonder-image/dist" > /dev/null && echo "dist uguale al pacchetto"
   git -C "$d" status --porcelain
@@ -12970,7 +12970,7 @@ done
 
 Expected per ogni sito:
 - `wonder-image/app dev-main <hash>`, con lo stesso `<hash>` della riga `app main`;
-- `npm:wonder-image 2.1.2-alpha.17 ^2.1.2-alpha.17` e `alpha.16 nel range`;
+- `npm:wonder-image 2.1.2-alpha.17 ^2.1.2-alpha.17` e `alpha.17 nel range`;
 - `wiSaveBar in head.js: N`, con N almeno 1, e `dist uguale al pacchetto`;
 - in `git status --porcelain` solo ` M composer.lock`, ` M package-lock.json` e ` M package.json`, più i file già modificati della tabella;
 - la stessa riga di `APP_URL` di prima: `forge config` non la cambia;
@@ -13157,7 +13157,7 @@ refs() { php -r '$l=json_decode(file_get_contents($argv[1]."/composer.lock"),tru
 printf 'app main %s\n' "$(git ls-remote https://github.com/wonder-image/app refs/heads/main | cut -c1-7)"
 printf 'immobili main %s\n' "$(git ls-remote https://github.com/wonder-image/immobili refs/heads/main | cut -c1-7)"
 refs "$A"
-node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$A")" 2.1.2-alpha.17 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
+node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$A")" 2.1.2-alpha.17 > /dev/null && echo "alpha.17 nel range" || echo "FUORI RANGE"
 printf 'wiSaveBar in head.js: %s\n' "$(grep -c wiSaveBar "$A/assets/lib/wonder-image/dist/backend/head.js")"
 grep -c data-wi-save-bar "$A/vendor/wonder-image/immobili/view/pages/backend/immobili/form.php"
 test ! -e "$A/custom/modules/immobili/view/pages/backend/immobili/form.php" && echo "override tolto"
@@ -13173,7 +13173,7 @@ rm -rf "$t"
 
 Expected:
 - `wonder-image/app` e `wonder-image/immobili` con gli stessi `<hash>` delle righe `app main` e `immobili main`;
-- `npm:wonder-image 2.1.2-alpha.17 ^2.1.2-alpha.17` e `alpha.16 nel range`;
+- `npm:wonder-image 2.1.2-alpha.17 ^2.1.2-alpha.17` e `alpha.17 nel range`;
 - `wiSaveBar in head.js: N`, con N almeno 1;
 - `2`, `override tolto` e `show.php resta`;
 - in `git status --porcelain` solo ` M composer.lock`, `D  custom/modules/immobili/view/pages/backend/immobili/form.php`, ` M package-lock.json` e ` M package.json`. Un altro file cambiato da `forge config` (per esempio `.gitignore`) si mostra all'utente, che decide se va nel commit;
@@ -13247,7 +13247,7 @@ for d in "$SITES/new-site" "$SITES/immobili-site" "$SITES/rsvp-site" "$A"; do
   r=$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$d")
   v=$(node -p 'require(process.argv[1]+"/package-lock.json").packages["node_modules/wonder-image"].version' "$d")
   printf '%s range %s lock %s ' "${d##*/}" "$r" "$v"
-  node "$SEMVER" -r "$r" 2.1.2-alpha.17 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
+  node "$SEMVER" -r "$r" 2.1.2-alpha.17 > /dev/null && echo "alpha.17 nel range" || echo "FUORI RANGE"
   printf 'wiSaveBar in head.js: %s\n' "$(grep -c wiSaveBar "$d/assets/lib/wonder-image/dist/backend/head.js")"
   git -C "$d" status --short --branch | head -1
 done
@@ -13260,7 +13260,7 @@ done
 ```
 
 Expected:
-- per ogni sito `range ^2.1.2-alpha.17 lock 2.1.2-alpha.17 alpha.16 nel range`, cioè range e lock rigenerato;
+- per ogni sito `range ^2.1.2-alpha.17 lock 2.1.2-alpha.17 alpha.17 nel range`, cioè range e lock rigenerato;
 - `wiSaveBar in head.js: N`, con N almeno 1: la dist del sito contiene la barra;
 - `## main...origin/main` dopo i push, oppure `[ahead N]` per i siti di cui l'utente non ha chiesto il push;
 - `immobili in immobili-site: 2`: la release di immobili è installata;
