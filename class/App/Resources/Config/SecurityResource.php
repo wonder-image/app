@@ -87,22 +87,22 @@ final class SecurityResource extends SingletonResource
             FormField::key('g_maps_map_id')->text(),
 
             FormField::key('google_oauth_client_id')->text(),
-            FormField::key('google_oauth_client_secret')->password(),
+            FormField::key('google_oauth_client_secret')->password()->autocomplete('new-password'),
             FormField::key('google_oauth_redirect_uri')->text(),
             FormField::key('apple_oauth_client_id')->text(),
             FormField::key('apple_oauth_team_id')->text(),
             FormField::key('apple_oauth_key_id')->text(),
             FormField::key('apple_oauth_redirect_uri')->text(),
-            FormField::key('apple_oauth_private_key')->password(),
+            FormField::key('apple_oauth_private_key')->password()->autocomplete('new-password'),
 
             FormField::key('mail_service')->select(static::mailServiceOptions())->required(),
-            FormField::key('brevo_api_key')->password(),
+            FormField::key('brevo_api_key')->password()->autocomplete('new-password'),
             FormField::key('mail_host')->text(),
             FormField::key('mail_port')->text(),
             FormField::key('mail_username')->text(),
-            FormField::key('mail_password')->password(),
+            FormField::key('mail_password')->password()->autocomplete('new-password'),
 
-            FormField::key('klaviyo_api_key')->password(),
+            FormField::key('klaviyo_api_key')->password()->autocomplete('new-password'),
 
             FormField::key('stripe_test')
                 ->select(['false' => 'Produzione', 'true' => 'Test'])
