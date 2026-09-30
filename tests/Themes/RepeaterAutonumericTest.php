@@ -159,10 +159,11 @@ check('in node: il comando di gruppo passa ad AutoNumeric il numero grezzo', fun
 var set = [];
 var cleared = 0;
 var numeric = { set: function (v) { set.push(v); }, clear: function () { cleared++; } };
+var field = { dispatchEvent: function () {} };
 window.AutoNumeric = { getAutoNumericElement: function () { return numeric; } };
-window.wiRepeaterSetFieldValue({}, '1.234,50 €');
-window.wiRepeaterSetFieldValue({}, '12 pz');
-window.wiRepeaterSetFieldValue({}, '');
+window.wiRepeaterSetFieldValue(field, '1.234,50 €');
+window.wiRepeaterSetFieldValue(field, '12 pz');
+window.wiRepeaterSetFieldValue(field, '');
 console.log(JSON.stringify({ set: set, cleared: cleared }));
 JS);
     if ($data === null) { echo "    (node non trovato: prova saltata)\n"; return true; }
@@ -173,13 +174,15 @@ JS);
 check('in node: svuotare l\'ultima riga svuota anche AutoNumeric', function () use ($script, $extract, $run) {
     // AutoNumeric tiene il numero per conto suo: con il solo `value = ''`
     // al salvataggio riscrive il costo vecchio su una riga senza più niente.
-    $data = $run($extract($script(), 'wiRepeaterRemoveRow').<<<'JS'
+    $js = $script();
+    $data = $run($extract($js, 'wiRepeaterNumberFromText').$extract($js, 'wiRepeaterSetFieldValue').$extract($js, 'wiRepeaterRemoveRow').<<<'JS'
 
 var cleared = 0;
 var removed = false;
-var price = { type: 'text', value: '4,00 €' };
-var label = { type: 'text', value: 'Filati' };
-var flag = { type: 'checkbox', checked: true, value: '1' };
+var noop = function () {};
+var price = { type: 'text', value: '4,00 €', dispatchEvent: noop };
+var label = { type: 'text', value: 'Filati', dispatchEvent: noop };
+var flag = { type: 'checkbox', checked: true, value: '1', dispatchEvent: noop };
 var numeric = { clear: function () { cleared++; price.value = ''; } };
 window.AutoNumeric = { getAutoNumericElement: function (el) { return el === price ? numeric : null; } };
 var container = { dataset: {}, querySelectorAll: function () { return [row]; } };
@@ -200,9 +203,10 @@ JS);
 });
 
 check('in node: senza AutoNumeric l\'ultima riga si svuota lo stesso', function () use ($script, $extract, $run) {
-    $data = $run($extract($script(), 'wiRepeaterRemoveRow').<<<'JS'
+    $js = $script();
+    $data = $run($extract($js, 'wiRepeaterNumberFromText').$extract($js, 'wiRepeaterSetFieldValue').$extract($js, 'wiRepeaterRemoveRow').<<<'JS'
 
-var label = { type: 'text', value: 'Filati' };
+var label = { type: 'text', value: 'Filati', dispatchEvent: function () {} };
 var container = { dataset: {}, querySelectorAll: function () { return [row]; } };
 var row = {
   parentElement: container,

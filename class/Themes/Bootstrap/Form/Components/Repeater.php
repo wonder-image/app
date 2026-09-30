@@ -753,22 +753,11 @@ HTML;
                 row.querySelectorAll('input, textarea, select').forEach((input) => {
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         input.checked = false;
-                        return;
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        // Passa dall'API di AutoNumeric, se il campo e' suo, ed emette change.
+                        window.wiRepeaterSetFieldValue(input, '');
                     }
-
-                    // AutoNumeric tiene il numero per conto suo: svuotato solo
-                    // a schermo, al salvataggio riscrive quello vecchio.
-                    const numeric = (typeof window.AutoNumeric !== 'undefined'
-                        && typeof window.AutoNumeric.getAutoNumericElement === 'function')
-                        ? window.AutoNumeric.getAutoNumericElement(input)
-                        : null;
-
-                    if (numeric) {
-                        numeric.clear();
-                        return;
-                    }
-
-                    input.value = '';
                 });
                 return;
             }
@@ -1127,10 +1116,11 @@ HTML;
 
         if (raw === null) {
             numeric.clear();
-            return;
+        } else {
+            numeric.set(raw);
         }
 
-        numeric.set(raw);
+        field.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
     /*
