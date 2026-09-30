@@ -158,8 +158,7 @@ La descrizione completa, con stati, fascia e token CSS, è in
   come i segreti di `SecurityResource`; altrimenti il browser ci inserisce la
   password salvata e il form risulta modificato. `data-wi-save-bar-ignore`
   serve solo alla conferma della propria password, nell'account.
-  `new-password` non è il default di `password()`: login e recupero usano
-  `current-password`.
+  `new-password` non è il default di `password()`: va dichiarato dove serve.
 - **Un Submit `upload` nel layout sostituisce il Salva di default.** Se
   `formLayoutSchema()` contiene già un `Submit` con name `upload`, il footer
   non aggiunge il suo. Lo decide
