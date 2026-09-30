@@ -1283,7 +1283,7 @@ Il lavoro è pronto per il rilascio quando:
 ## Rilascio e compatibilità
 
 **Ordine di rilascio**
-1. **Release della lib:** 2.1.2-alpha.16, sul canale alpha.
+1. **Release della lib:** 2.1.2-alpha.17, sul canale alpha.
 2. **Merge dell'app.** La route POST dell'account è già su main (commit 559d6d02) e non serve un commit a parte.
 3. **Siti boilerplate:** new-site, immobili-site e rsvp-site portano `wonder-image` al range `^2.1.2-alpha.*` e rigenerano il lock. Oggi hanno `^2.1.1-alpha.*`, che non include la nuova alpha. Al termine si fa I21.
 4. **Release di immobili**, con gli attributi letterali nella sua vista (5.9).
@@ -1291,7 +1291,7 @@ Il lavoro è pronto per il rilascio quando:
 
 **Siti esistenti: due casi, da scrivere nei docs**
 - **Range già `^2.1.2-alpha.*`:** basta `composer update`, perché `forge config` fa `npm install`.
-- **Fuori range** (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`): `npm install wonder-image@^2.1.2-alpha.16`, poi il commit di `package.json` e del lock, perché la CI usa `npm ci`.
+- **Fuori range** (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`): `npm install wonder-image@^2.1.2-alpha.17`, poi il commit di `package.json` e del lock, perché la CI usa `npm ci`.
 
 **Nessuna 2.1.2 stabile per questa funzione.** Porterebbe tutta la 2.1.x ai siti fermi alla 1.5.x. È una decisione separata.
 

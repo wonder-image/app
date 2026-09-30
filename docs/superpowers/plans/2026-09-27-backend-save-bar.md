@@ -3936,7 +3936,7 @@ Spec sez. "Documentazione" (lib). Va dopo la Parte C: descrive `saveBar.js`, `se
 
 **Interfaces:**
 - Consumes: Da I1-I4: Quill su `text-change` con `''` a vuoto, Editor.js che riscrive solo se cambia, `absorb()` nei riempimenti tardivi, `save-bar.css` con i token e `--wi-save-bar-reserve`. Dalla Parte C: `setUpSaveBar()` chiamata da `setUpPage()` prima di `loaded`, `window.wiSaveBar` (`changed`, `reset`, `isDirty`, `absorb`, `labels` con `group`, `unsaved`, `confirmOther`), l'evento `wi:save-bar:change`, gli attributi `data-wi-save-bar*`, `loadingSpinner(show)` in `backend/js/utility.js`, il test `test/backend-save-bar.test.cjs`. Dalla Parte B: il test `test/backend-save-bar.browser.test.cjs` e il `PLAYWRIGHT_MODULE`.
-- Produces: `docs/javascript/save-bar.md` (contratto, API, regole per chi integra, limiti, aggiornamento dei siti con `wonder-image@^2.1.2-alpha.16`, test) e i rimandi da `SUMMARY.md`, `data-attributes.md`, `js-reference.md`, `events.md`, `forms.md`, `css-variables.md` e `quill.md`, che I6 (MANIFEST `docs`) e I7 (`AGENTS.md`) citano.
+- Produces: `docs/javascript/save-bar.md` (contratto, API, regole per chi integra, limiti, aggiornamento dei siti con `wonder-image@^2.1.2-alpha.17`, test) e i rimandi da `SUMMARY.md`, `data-attributes.md`, `js-reference.md`, `events.md`, `forms.md`, `css-variables.md` e `quill.md`, che I6 (MANIFEST `docs`) e I7 (`AGENTS.md`) citano.
 
 - [ ] **Step 1: Scrivi il controllo dei documenti**
 
@@ -3955,7 +3955,7 @@ const has = (file, words) => {
 };
 const ascii = (file) => assert.ok(/^[\x00-\x7F]*$/.test(read(file)), file + ' non ASCII');
 
-has('docs/javascript/save-bar.md', ['data-wi-save-bar-dirty', 'data-wi-save-bar-ignore', 'data-wi-save-bar-hide-when-open', 'wi:save-bar:change', '--wi-save-bar-reserve', 'wiSaveBar?.reset(form)', 'absorb(el)', 'setUpSaveBar()', 'confirmOther', 'wonder-image@^2.1.2-alpha.16', 'backend-save-bar.browser.test.cjs']);
+has('docs/javascript/save-bar.md', ['data-wi-save-bar-dirty', 'data-wi-save-bar-ignore', 'data-wi-save-bar-hide-when-open', 'wi:save-bar:change', '--wi-save-bar-reserve', 'wiSaveBar?.reset(form)', 'absorb(el)', 'setUpSaveBar()', 'confirmOther', 'wonder-image@^2.1.2-alpha.17', 'backend-save-bar.browser.test.cjs']);
 has('docs/SUMMARY.md', ['* [Save bar](javascript/save-bar.md)']);
 has('docs/reference/data-attributes.md', ['## Save bar (backend)', '`data-wi-save-bar-hide-when-open`']);
 has('docs/reference/js-reference.md', ['`loadingSpinner(show)`', '`setUpSaveBar()`', '`window.wiSaveBar.absorb(el)`']);
@@ -3983,7 +3983,7 @@ const has = (file, words) => {
 };
 const ascii = (file) => assert.ok(/^[\x00-\x7F]*$/.test(read(file)), file + ' non ASCII');
 
-has('docs/javascript/save-bar.md', ['data-wi-save-bar-dirty', 'data-wi-save-bar-ignore', 'data-wi-save-bar-hide-when-open', 'wi:save-bar:change', '--wi-save-bar-reserve', 'wiSaveBar?.reset(form)', 'absorb(el)', 'setUpSaveBar()', 'confirmOther', 'wonder-image@^2.1.2-alpha.16', 'backend-save-bar.browser.test.cjs']);
+has('docs/javascript/save-bar.md', ['data-wi-save-bar-dirty', 'data-wi-save-bar-ignore', 'data-wi-save-bar-hide-when-open', 'wi:save-bar:change', '--wi-save-bar-reserve', 'wiSaveBar?.reset(form)', 'absorb(el)', 'setUpSaveBar()', 'confirmOther', 'wonder-image@^2.1.2-alpha.17', 'backend-save-bar.browser.test.cjs']);
 has('docs/SUMMARY.md', ['* [Save bar](javascript/save-bar.md)']);
 has('docs/reference/data-attributes.md', ['## Save bar (backend)', '`data-wi-save-bar-hide-when-open`']);
 has('docs/reference/js-reference.md', ['`loadingSpinner(show)`', '`setUpSaveBar()`', '`window.wiSaveBar.absorb(el)`']);
@@ -4108,7 +4108,7 @@ Change them after the head bundle and before `setUpPage()` runs.
 ## Updating a site
 
 - `wonder-image` range already `^2.1.2-alpha.*`: `composer update` is enough, because `forge config` runs `npm install`.
-- Other ranges (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`): run `npm install wonder-image@^2.1.2-alpha.16`, then commit `package.json` and `package-lock.json`, because CI uses `npm ci`.
+- Other ranges (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`): run `npm install wonder-image@^2.1.2-alpha.17`, then commit `package.json` and `package-lock.json`, because CI uses `npm ci`.
 
 ## Tests
 
@@ -4402,7 +4402,7 @@ const has = (file, words) => {
 };
 const ascii = (file) => assert.ok(/^[\x00-\x7F]*$/.test(read(file)), file + ' non ASCII');
 
-has('docs/javascript/save-bar.md', ['data-wi-save-bar-dirty', 'data-wi-save-bar-ignore', 'data-wi-save-bar-hide-when-open', 'wi:save-bar:change', '--wi-save-bar-reserve', 'wiSaveBar?.reset(form)', 'absorb(el)', 'setUpSaveBar()', 'confirmOther', 'wonder-image@^2.1.2-alpha.16', 'backend-save-bar.browser.test.cjs']);
+has('docs/javascript/save-bar.md', ['data-wi-save-bar-dirty', 'data-wi-save-bar-ignore', 'data-wi-save-bar-hide-when-open', 'wi:save-bar:change', '--wi-save-bar-reserve', 'wiSaveBar?.reset(form)', 'absorb(el)', 'setUpSaveBar()', 'confirmOther', 'wonder-image@^2.1.2-alpha.17', 'backend-save-bar.browser.test.cjs']);
 has('docs/SUMMARY.md', ['* [Save bar](javascript/save-bar.md)']);
 has('docs/reference/data-attributes.md', ['## Save bar (backend)', '`data-wi-save-bar-hide-when-open`']);
 has('docs/reference/js-reference.md', ['`loadingSpinner(show)`', '`setUpSaveBar()`', '`window.wiSaveBar.absorb(el)`']);
@@ -8233,11 +8233,11 @@ La descrizione completa, con stati, fascia e token CSS, è in
   Mai `--force` sull'albero intero: sovrascrive le viste personalizzate.
 - **`.offcanvas-{bp}`** non si esclude da solo: sui suoi bottoni serve
   `data-wi-save-bar-ignore`.
-- **Aggiornare un sito** alla lib 2.1.2-alpha.16:
+- **Aggiornare un sito** alla lib 2.1.2-alpha.17:
   - se `package.json` ha già `wonder-image` in `^2.1.2-alpha.*`, basta
     `composer update`, perché `forge config` esegue `npm install`;
   - se è fuori range (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`), si esegue
-    `npm install wonder-image@^2.1.2-alpha.16` e si fa il commit di
+    `npm install wonder-image@^2.1.2-alpha.17` e si fa il commit di
     `package.json` e `package-lock.json`, perché la CI usa `npm ci`.
 
 ## Dove si trova nel codice
@@ -8391,7 +8391,7 @@ con:
 - Barra di salvataggio nel backend: un `<form data-wi-save-bar>` copia i
   bottoni di salvataggio in un'isola fissa in basso quando escono dallo
   schermo e chiede conferma prima di uscire con modifiche non salvate. JS e
-  CSS stanno in `wonder-image/lib` dalla 2.1.2-alpha.16; l'app mette gli
+  CSS stanno in `wonder-image/lib` dalla 2.1.2-alpha.17; l'app mette gli
   attributi sui form delle Resource, dello scheduler, dell'account, della
   gestione utenti e del file di configurazione. Con una lib più vecchia gli
   attributi restano inerti.
@@ -8477,7 +8477,7 @@ Repo: **skills**.
 - Test: nessun test; controllo con `grep`
 
 **Interfaces:**
-- Consumes: i contratti dei Task P1-P8 e la pagina `docs/app/concetti/form/save-bar.md` (Task P9); la versione `2.1.2-alpha.16` della lib e i range dei siti dalla Parte R
+- Consumes: i contratti dei Task P1-P8 e la pagina `docs/app/concetti/form/save-bar.md` (Task P9); la versione `2.1.2-alpha.17` della lib e i range dei siti dalla Parte R
 - Produces: sottosezione `### Backend save bar` (ancora `#backend-save-bar`) nella skill `wi-app`, richiamata da `wi-site`; in `wi-site` l'aggiornamento della lib alla nuova alpha, l'opt-in dei form scritti a mano, gli override dei moduli con `publish:module` per singolo file e l'override integrale di `header.php`.
 
 Si lavora nel worktree delle skill `SKL_WT=/Users/andreamarinoni/Developer/packages/skills/.claude/worktrees/backend-save-bar`, sul branch `backend-save-bar` creato nel Task S1: ogni blocco parte da `cd /Users/andreamarinoni/Developer/packages/skills/.claude/worktrees/backend-save-bar`. Le skill documentano l'uso dell'app e della lib, non gli interni (regola "USE, do not MODIFY" dell'`AGENTS.md` delle skill). Gli installati in `.agents/` non si toccano: si risincronizzano con `npx skills` dopo il push (solo su richiesta esplicita dell'utente).
@@ -8564,7 +8564,7 @@ con:
 
 ```markdown
 - `php forge start` runs the local server and may fill missing `.env` values during local setup.
-- Updating the lib to a new alpha (the backend save bar needs `wonder-image` `2.1.2-alpha.16`): if `package.json` already allows it (`^2.1.2-alpha.*`), `composer update` is enough because `forge config` runs `npm install`; outside the range (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`) run `npm install wonder-image@^2.1.2-alpha.16` and commit `package.json` and `package-lock.json`, because CI uses `npm ci`.
+- Updating the lib to a new alpha (the backend save bar needs `wonder-image` `2.1.2-alpha.17`): if `package.json` already allows it (`^2.1.2-alpha.*`), `composer update` is enough because `forge config` runs `npm install`; outside the range (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`) run `npm install wonder-image@^2.1.2-alpha.17` and commit `package.json` and `package-lock.json`, because CI uses `npm ci`.
 ```
 
 In `skills/wi-site/references/workflows.md` sostituisci:
@@ -12588,14 +12588,14 @@ Il Task parte solo se il riepilogo del Task R8 ha tutti i criteri 1-7 soddisfatt
 
 Poi si fa la checklist "Dopo il rilascio".
 
-Il range dei siti è `^2.1.2-alpha.16`, non `^2.1.2-alpha.*` come scritto nella spec, per due motivi:
+Il range dei siti è `^2.1.2-alpha.17`, non `^2.1.2-alpha.*` come scritto nella spec, per due motivi:
 - `^2.1.2-alpha.*` non è un range valido per npm;
 - il tag `latest` di npm è ancora `2.1.2-alpha.4`, quindi un range più basso come `^2.1.2-alpha.2` farebbe installare quella.
 
 Il range si alza come negli aggiornamenti precedenti dei siti (`^2.1.2-alpha.13` -> `^2.1.2-alpha.15`).
 
 **Files:**
-- Modify (lib, `main`, con `npm run release`): `package.json`, `package-lock.json`, `dist/`; tag `v2.1.2-alpha.16`
+- Modify (lib, `main`, con `npm run release`): `package.json`, `package-lock.json`, `dist/`; tag `v2.1.2-alpha.17`
 - Modify (new-site, immobili-site, rsvp-site, agliati-com): `package.json`, `package-lock.json`, `composer.lock`
 - Delete (agliati-com): `custom/modules/immobili/view/pages/backend/immobili/form.php`
 - Create: `$W/rilascio-prima.txt` (versioni e riferimenti prima degli aggiornamenti), `$W/pr-lib.md`, `$W/pr-app.md` e `$W/pr-skills.md` (corpi delle PR)
@@ -12609,13 +12609,13 @@ Il range si alza come negli aggiornamenti precedenti dei siti (`^2.1.2-alpha.13`
   - dal Task R2 `stato.js` e `casi.js`, e le regole comuni dello Step 12;
   - `$W/integrazione-esiti.txt`.
 - Produces:
-  - `wonder-image@2.1.2-alpha.16` sul canale `alpha` di npm;
+  - `wonder-image@2.1.2-alpha.17` sul canale `alpha` di npm;
   - `main` di app, skills e immobili con la barra di salvataggio;
-  - i quattro siti con la lib 2.1.2-alpha.16 e l'app nuova;
+  - i quattro siti con la lib 2.1.2-alpha.17 e l'app nuova;
   - le righe I21 e I22 del registro;
   - la checklist "Dopo il rilascio" controllata.
 
-- [ ] **Step 1: Stato di partenza e release della lib 2.1.2-alpha.16**
+- [ ] **Step 1: Stato di partenza e release della lib 2.1.2-alpha.17**
 
 Prima le PR aperte e lo stato dei branch:
 
@@ -12665,7 +12665,7 @@ Barra di salvataggio del backend (`window.wiSaveBar`): i form con `data-wi-save-
 - Test: `npm test` (U1-U39) e test nel browser B1-B47 (`test/backend-save-bar.browser.test.cjs`).
 - Docs: `docs/javascript/save-bar.md`, `MANIFEST.json`, `AGENTS.md`, `CHANGELOG.md`.
 
-Dopo il merge si pubblica la 2.1.2-alpha.16 sul canale alpha.
+Dopo il merge si pubblica la 2.1.2-alpha.17 sul canale alpha.
 
 <riga di attribuzione delle PR indicata dalle istruzioni della sessione>
 MD
@@ -12698,8 +12698,8 @@ git status --short --branch
 git status --porcelain | wc -l
 git merge-base --is-ancestor backend-save-bar main && echo "branch in main"
 node -p 'require("./package.json").version'
-npm view wonder-image@2.1.2-alpha.16 version --prefer-online 2>&1 | head -1
-git ls-remote --tags origin refs/tags/v2.1.2-alpha.16 | wc -l
+npm view wonder-image@2.1.2-alpha.17 version --prefer-online 2>&1 | head -1
+git ls-remote --tags origin refs/tags/v2.1.2-alpha.17 | wc -l
 npm ci --no-audit --no-fund 2>&1 | tail -1
 npm test 2>&1 | tail -1
 ```
@@ -12720,19 +12720,19 @@ Release (solo su richiesta esplicita dell'utente):
 
 ```bash
 cd /Users/andreamarinoni/Developer/packages/lib
-npm run release -- 2.1.2-alpha.16
+npm run release -- 2.1.2-alpha.17
 ```
 
 Lo script:
 1. controlla il branch e il tag;
-2. porta la versione a `2.1.2-alpha.16` in `package.json` e `package-lock.json`;
+2. porta la versione a `2.1.2-alpha.17` in `package.json` e `package-lock.json`;
 3. ricostruisce `dist/`;
-4. fa il commit `Release 2.1.2-alpha.16` e il tag annotato `v2.1.2-alpha.16`;
+4. fa il commit `Release 2.1.2-alpha.17` e il tag annotato `v2.1.2-alpha.17`;
 5. fa il push di `main` e del tag.
 
 Il messaggio è fisso nello script, come per le release precedenti, e non ha la riga `Co-Authored-By`.
 
-Se lo script si ferma a metà, non rifarlo e non annullare niente di tua iniziativa. Mostra all'utente `git status --short --branch` e `git tag --list v2.1.2-alpha.16`, e chiedi.
+Se lo script si ferma a metà, non rifarlo e non annullare niente di tua iniziativa. Mostra all'utente `git status --short --branch` e `git tag --list v2.1.2-alpha.17`, e chiedi.
 
 ```bash
 cd /Users/andreamarinoni/Developer/packages/lib
@@ -12745,25 +12745,25 @@ gh run list -R wonder-image/lib --workflow publish.yml --limit 1 --json database
 ```
 
 Expected:
-- `<hash> Release 2.1.2-alpha.16`;
-- `v2.1.2-alpha.16`;
+- `<hash> Release 2.1.2-alpha.17`;
+- `v2.1.2-alpha.17`;
 - `## main...origin/main`;
 - la riga di riepilogo del commit, con `package.json`, `package-lock.json` e i file di `dist/`;
 - `wiSaveBar in dist/backend/head.js: N`, con N almeno 1;
-- `<id> v2.1.2-alpha.16 <stato>`.
+- `<id> v2.1.2-alpha.17 <stato>`.
 
 Poi, con l'id della riga sopra:
 
 ```bash
 gh run watch <id> -R wonder-image/lib --exit-status > /dev/null; echo "publish exit $?"
-npm view wonder-image@2.1.2-alpha.16 version --prefer-online
+npm view wonder-image@2.1.2-alpha.17 version --prefer-online
 npm view wonder-image dist-tags --prefer-online
 ```
 
 Expected:
 - `publish exit 0`;
-- `2.1.2-alpha.16`;
-- `{ latest: '2.1.2-alpha.4', alpha: '2.1.2-alpha.16' }`: la versione esce sul canale `alpha` e `latest` non cambia.
+- `2.1.2-alpha.17`;
+- `{ latest: '2.1.2-alpha.4', alpha: '2.1.2-alpha.17' }`: la versione esce sul canale `alpha` e `latest` non cambia.
 
 Con `publish exit` diverso da 0, non rifare il tag. Mostra all'utente `gh run view <id> -R wonder-image/lib --log-failed | tail -40` e chiedi. Se `npm view` dà ancora E404 subito dopo il workflow verde, il registro è in ritardo: riprova dopo un minuto con `--prefer-online`.
 
@@ -12812,7 +12812,7 @@ Push e PR dell'app (solo su richiesta esplicita dell'utente):
 ```bash
 W="$HOME/.cache/wonder-tooling/save-bar"
 cat > "$W/pr-app.md" <<'MD'
-Barra di salvataggio del backend: i form del backend dichiarano `data-wi-save-bar` e la lib (`wonder-image` 2.1.2-alpha.16) mostra in fondo alla pagina un'isola con lo stato delle modifiche e le copie dei pulsanti Salva.
+Barra di salvataggio del backend: i form del backend dichiarano `data-wi-save-bar` e la lib (`wonder-image` 2.1.2-alpha.17) mostra in fondo alla pagina un'isola con lo stato delle modifiche e le copie dei pulsanti Salva.
 
 - Form delle Resource, scheduler, utenti, account e file di configurazione dichiarano la barra; dopo un salvataggio fallito il form parte come non salvato (`data-wi-save-bar-dirty`).
 - Il footer non aggiunge il suo Salva quando il layout ha gia un Submit `upload`.
@@ -12855,7 +12855,7 @@ gh pr list -R wonder-image/skills --head backend-save-bar --state open --json nu
 git status --short --branch
 git log --format='%h %s' main..HEAD
 cat > "$W/pr-skills.md" <<'MD'
-Skill `wi-app` e `wi-site`: barra di salvataggio del backend (`data-wi-save-bar`, override dei form dei moduli, aggiornamento dei siti alla lib 2.1.2-alpha.16).
+Skill `wi-app` e `wi-site`: barra di salvataggio del backend (`data-wi-save-bar`, override dei form dei moduli, aggiornamento dei siti alla lib 2.1.2-alpha.17).
 
 <riga di attribuzione delle PR indicata dalle istruzioni della sessione>
 MD
@@ -12933,13 +12933,13 @@ Expected, con i valori di oggi:
 - immobili-site: `composer.lock | 68` (34 righe tolte e 34 aggiunte): `symfony/console`, `symfony/http-foundation`, `symfony/routing` e `symfony/var-exporter` a `v7.4.18`, e `symfony/service-contracts` da `v3.7.1` a `v3.7.3`;
 - rsvp-site: il riferimento di `wonder-image/app` da `32ce54f...` a `82af322...`.
 
-Aggiornamento: prima la lib col range nuovo, poi l'app. `composer update` esegue `php forge config`, che fa `npm install wonder-image` (resta sul `2.1.2-alpha.16` del range) e `npm install`, il cui `postinstall` copia la `dist` in `assets/lib/wonder-image/dist`.
+Aggiornamento: prima la lib col range nuovo, poi l'app. `composer update` esegue `php forge config`, che fa `npm install wonder-image` (resta sul `2.1.2-alpha.17` del range) e `npm install`, il cui `postinstall` copia la `dist` in `assets/lib/wonder-image/dist`.
 
 ```bash
 SITES=/Users/andreamarinoni/Developer/boilerplates
 for s in new-site immobili-site rsvp-site; do
   echo "== $s"
-  (cd "$SITES/$s" && npm install 'wonder-image@^2.1.2-alpha.16' --no-audit --no-fund && composer update wonder-image/app --no-interaction) || echo "FERMATI: $s"
+  (cd "$SITES/$s" && npm install 'wonder-image@^2.1.2-alpha.17' --no-audit --no-fund && composer update wonder-image/app --no-interaction) || echo "FERMATI: $s"
 done
 ```
 
@@ -12955,7 +12955,7 @@ for s in new-site immobili-site rsvp-site; do
   d="$SITES/$s"
   echo "== $s"
   refs "$d"
-  node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$d")" 2.1.2-alpha.16 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
+  node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$d")" 2.1.2-alpha.17 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
   printf 'wiSaveBar in head.js: %s\n' "$(grep -c wiSaveBar "$d/assets/lib/wonder-image/dist/backend/head.js")"
   diff -rq "$d/node_modules/wonder-image/dist" "$d/assets/lib/wonder-image/dist" > /dev/null && echo "dist uguale al pacchetto"
   git -C "$d" status --porcelain
@@ -12970,7 +12970,7 @@ done
 
 Expected per ogni sito:
 - `wonder-image/app dev-main <hash>`, con lo stesso `<hash>` della riga `app main`;
-- `npm:wonder-image 2.1.2-alpha.16 ^2.1.2-alpha.16` e `alpha.16 nel range`;
+- `npm:wonder-image 2.1.2-alpha.17 ^2.1.2-alpha.17` e `alpha.16 nel range`;
 - `wiSaveBar in head.js: N`, con N almeno 1, e `dist uguale al pacchetto`;
 - in `git status --porcelain` solo ` M composer.lock`, ` M package-lock.json` e ` M package.json`, più i file già modificati della tabella;
 - la stessa riga di `APP_URL` di prima: `forge config` non la cambia;
@@ -13017,15 +13017,15 @@ for s in new-site immobili-site rsvp-site; do
   lib=$(awk -v s="$s" '$1 == s && $2 == "npm:wonder-image" { print $3 }' "$W/rilascio-prima.txt")
   new=$(php -r '$l=json_decode(file_get_contents($argv[1]),true); foreach($l["packages"] as $p) if($p["name"]==="wonder-image/app") echo substr($p["source"]["reference"],0,7);' "$d/composer.lock")
   av=$(php -r 'echo json_decode(file_get_contents($argv[1]),true)["version"] ?? "dev-main";' "$d/vendor/wonder-image/app/composer.json")
-  git -C "$d" commit -q -m "Aggiorna wonder-image/app a $av e wonder-image/lib a 2.1.2-alpha.16" -m "app: dev-main $old -> $new (versione letta da composer.json).
-lib: $lib -> 2.1.2-alpha.16." -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- package.json package-lock.json composer.lock
+  git -C "$d" commit -q -m "Aggiorna wonder-image/app a $av e wonder-image/lib a 2.1.2-alpha.17" -m "app: dev-main $old -> $new (versione letta da composer.json).
+lib: $lib -> 2.1.2-alpha.17." -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- package.json package-lock.json composer.lock
   git -C "$d" show --stat --format='%h %s' HEAD | cat
   git -C "$d" status --short --branch | head -1
 done
 ```
 
 Expected per ogni sito:
-- `<hash> Aggiorna wonder-image/app a 2.4.0-beta.1 e wonder-image/lib a 2.1.2-alpha.16`, con la versione letta da `composer.json` dell'app;
+- `<hash> Aggiorna wonder-image/app a 2.4.0-beta.1 e wonder-image/lib a 2.1.2-alpha.17`, con la versione letta da `composer.json` dell'app;
 - i tre file;
 - `## main...origin/main [ahead 1]`.
 
@@ -13143,7 +13143,7 @@ Se l'override è diverso, è personalizzato: fermati e chiedi all'utente. Second
 A=/Users/andreamarinoni/Developer/clients/agliati/projects/agliati-com
 cd "$A"
 git rm -q custom/modules/immobili/view/pages/backend/immobili/form.php
-npm install 'wonder-image@^2.1.2-alpha.16' --no-audit --no-fund
+npm install 'wonder-image@^2.1.2-alpha.17' --no-audit --no-fund
 composer update wonder-image/app wonder-image/immobili --no-interaction
 ```
 
@@ -13157,7 +13157,7 @@ refs() { php -r '$l=json_decode(file_get_contents($argv[1]."/composer.lock"),tru
 printf 'app main %s\n' "$(git ls-remote https://github.com/wonder-image/app refs/heads/main | cut -c1-7)"
 printf 'immobili main %s\n' "$(git ls-remote https://github.com/wonder-image/immobili refs/heads/main | cut -c1-7)"
 refs "$A"
-node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$A")" 2.1.2-alpha.16 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
+node "$SEMVER" -r "$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$A")" 2.1.2-alpha.17 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
 printf 'wiSaveBar in head.js: %s\n' "$(grep -c wiSaveBar "$A/assets/lib/wonder-image/dist/backend/head.js")"
 grep -c data-wi-save-bar "$A/vendor/wonder-image/immobili/view/pages/backend/immobili/form.php"
 test ! -e "$A/custom/modules/immobili/view/pages/backend/immobili/form.php" && echo "override tolto"
@@ -13173,7 +13173,7 @@ rm -rf "$t"
 
 Expected:
 - `wonder-image/app` e `wonder-image/immobili` con gli stessi `<hash>` delle righe `app main` e `immobili main`;
-- `npm:wonder-image 2.1.2-alpha.16 ^2.1.2-alpha.16` e `alpha.16 nel range`;
+- `npm:wonder-image 2.1.2-alpha.17 ^2.1.2-alpha.17` e `alpha.16 nel range`;
 - `wiSaveBar in head.js: N`, con N almeno 1;
 - `2`, `override tolto` e `show.php resta`;
 - in `git status --porcelain` solo ` M composer.lock`, `D  custom/modules/immobili/view/pages/backend/immobili/form.php`, ` M package-lock.json` e ` M package.json`. Un altro file cambiato da `forge config` (per esempio `.gitignore`) si mostra all'utente, che decide se va nel commit;
@@ -13218,9 +13218,9 @@ lib=$(awk '$1 == "agliati-com" && $2 == "npm:wonder-image" { print $3 }' "$W/ril
 new=$(php -r '$l=json_decode(file_get_contents($argv[1]),true); foreach($l["packages"] as $p) if($p["name"]==="wonder-image/app") echo substr($p["source"]["reference"],0,7);' "$A/composer.lock")
 newi=$(php -r '$l=json_decode(file_get_contents($argv[1]),true); foreach($l["packages"] as $p) if($p["name"]==="wonder-image/immobili") echo substr($p["source"]["reference"],0,7);' "$A/composer.lock")
 av=$(php -r 'echo json_decode(file_get_contents($argv[1]),true)["version"] ?? "dev-main";' "$A/vendor/wonder-image/app/composer.json")
-git -C "$A" commit -q -m "Aggiorna wonder-image/app a $av, wonder-image/immobili e wonder-image/lib a 2.1.2-alpha.16" -m "app: dev-main $old -> $new (versione letta da composer.json).
+git -C "$A" commit -q -m "Aggiorna wonder-image/app a $av, wonder-image/immobili e wonder-image/lib a 2.1.2-alpha.17" -m "app: dev-main $old -> $new (versione letta da composer.json).
 immobili: dev-main $oldi -> $newi.
-lib: $lib -> 2.1.2-alpha.16.
+lib: $lib -> 2.1.2-alpha.17.
 Toglie l'override del form degli immobili, identico a quello del pacchetto: la vista del modulo dichiara la barra di salvataggio." -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- package.json package-lock.json composer.lock custom/modules/immobili/view/pages/backend/immobili/form.php
 git -C "$A" show --stat --format='%h %s' HEAD | cat
 git -C "$A" status --short --branch
@@ -13247,7 +13247,7 @@ for d in "$SITES/new-site" "$SITES/immobili-site" "$SITES/rsvp-site" "$A"; do
   r=$(node -p 'require(process.argv[1]+"/package.json").dependencies["wonder-image"]' "$d")
   v=$(node -p 'require(process.argv[1]+"/package-lock.json").packages["node_modules/wonder-image"].version' "$d")
   printf '%s range %s lock %s ' "${d##*/}" "$r" "$v"
-  node "$SEMVER" -r "$r" 2.1.2-alpha.16 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
+  node "$SEMVER" -r "$r" 2.1.2-alpha.17 > /dev/null && echo "alpha.16 nel range" || echo "FUORI RANGE"
   printf 'wiSaveBar in head.js: %s\n' "$(grep -c wiSaveBar "$d/assets/lib/wonder-image/dist/backend/head.js")"
   git -C "$d" status --short --branch | head -1
 done
@@ -13260,7 +13260,7 @@ done
 ```
 
 Expected:
-- per ogni sito `range ^2.1.2-alpha.16 lock 2.1.2-alpha.16 alpha.16 nel range`, cioè range e lock rigenerato;
+- per ogni sito `range ^2.1.2-alpha.17 lock 2.1.2-alpha.17 alpha.16 nel range`, cioè range e lock rigenerato;
 - `wiSaveBar in head.js: N`, con N almeno 1: la dist del sito contiene la barra;
 - `## main...origin/main` dopo i push, oppure `[ahead N]` per i siti di cui l'utente non ha chiesto il push;
 - `immobili in immobili-site: 2`: la release di immobili è installata;
@@ -13281,11 +13281,11 @@ Manda all'utente il riepilogo, con i valori degli Step 1-6 al posto di quelli fr
 
 ```text
 Rilascio della barra di salvataggio
-1. lib: wonder-image 2.1.2-alpha.16 pubblicata sul canale alpha (workflow publish verde); latest resta 2.1.2-alpha.4
+1. lib: wonder-image 2.1.2-alpha.17 pubblicata sul canale alpha (workflow publish verde); latest resta 2.1.2-alpha.4
 2. app: PR #<N> unita in main (<hash>); skill: main aggiornato <si o no>, forge skills <fatto o no>
-3. new-site, immobili-site, rsvp-site: range ^2.1.2-alpha.16, lock 2.1.2-alpha.16, app <hash>; commit <hash per sito>; push <siti>; I21 <esito>
+3. new-site, immobili-site, rsvp-site: range ^2.1.2-alpha.17, lock 2.1.2-alpha.17, app <hash>; commit <hash per sito>; push <siti>; I21 <esito>
 4. immobili: main <hash>, senza tag; immobili-site aggiornato, commit <hash>, push <si o no>
-5. agliati: override del form tolto, app <hash>, immobili <hash>, lib 2.1.2-alpha.16; commit <hash>, push <si o no>; I22 <esito>
+5. agliati: override del form tolto, app <hash>, immobili <hash>, lib 2.1.2-alpha.17; commit <hash>, push <si o no>; I22 <esito>
 6. Dopo il rilascio: range e lock <esito>, dist con wiSaveBar <esito>, npm ci in CI <esito per sito>, immobili installato <esito>
 Da decidere: tag v2.0.0 di immobili; deploy di immobili-site fermo a Load secrets; worktree e branch backend-save-bar
 ```
