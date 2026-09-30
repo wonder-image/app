@@ -2,6 +2,7 @@
 
 namespace Wonder\Backend\Support;
 
+use Wonder\App\Support\AttributeString;
 use Wonder\Elements\Components\AbstractValueCard;
 use Wonder\Elements\Components\Accordion;
 use Wonder\Elements\Components\Card;
@@ -9,6 +10,7 @@ use Wonder\Elements\Components\Container;
 use Wonder\Elements\Components\Modal;
 use Wonder\Elements\Components\QuickCreateButton;
 use Wonder\Elements\Component as ElementComponent;
+use Wonder\Elements\Form\Components\Submit;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
 use Wonder\App\ResourceSchema\Input;
@@ -29,6 +31,10 @@ final class ResourceFormLayoutRenderer
         $enctype = htmlspecialchars((string) ($options['enctype'] ?? 'multipart/form-data'), ENT_QUOTES, 'UTF-8');
         $onsubmit = htmlspecialchars((string) ($options['onsubmit'] ?? 'loadingSpinner()'), ENT_QUOTES, 'UTF-8');
         $footer = (string) ($options['footer'] ?? '');
+        $attributes = AttributeString::render(
+            (array) ($options['attributes'] ?? []),
+            ['id', 'method', 'enctype', 'action', 'onsubmit', 'class']
+        );
 
         $html = '<form';
         $html .= ' id="'.$id.'"';
@@ -37,6 +43,7 @@ final class ResourceFormLayoutRenderer
         $html .= ' action="'.$action.'"';
         $html .= ' onsubmit="'.$onsubmit.'"';
         $html .= ' class="'.self::rowClass($form).'"';
+        $html .= $attributes === '' ? '' : ' '.$attributes;
         $html .= '>';
         $html .= self::renderComponents(
             (array) ($form->components ?? []),
@@ -48,6 +55,35 @@ final class ResourceFormLayoutRenderer
         $html .= '</form>';
 
         return $html;
+    }
+
+    /**
+     * `true` se il layout ha gia un Submit `$name` raggiungibile: entra in
+     * Container, Card e Accordion aperti, non in Modal e QuickCreate, e salta
+     * i componenti con `visibleWhen()`/`hiddenWhen()`.
+     */
+    public static function hasSubmit(Form $form, string $name = 'upload'): bool
+    {
+        $components = array_values((array) ($form->components ?? []));
+
+        while ($components !== []) {
+            $component = array_shift($components);
+
+            if (!$component instanceof ElementComponent || self::splitVisibility($component)[0] !== '') {
+                continue;
+            }
+
+            if ($component instanceof Submit && $component->name === $name) {
+                return true;
+            }
+
+            if ($component instanceof Container || $component instanceof Card
+                || ($component instanceof Accordion && $component->getSchema('expanded') === true)) {
+                array_push($components, ...array_values((array) ($component->components ?? [])));
+            }
+        }
+
+        return false;
     }
 
     /**
