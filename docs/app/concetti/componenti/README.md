@@ -462,6 +462,16 @@ diretto di `.ratio`.
 equivalente. Usa `->confirm($message)` per la conferma e `->formAttributes()`
 solo per attributi aggiuntivi del form.
 
+Due cose da sapere con la [barra di salvataggio](../form/save-bar.md):
+
+- **Mai dentro il form di una Resource.** Il browser butta via il `<form>`
+  annidato e il bottone invia il form della Resource. Mettilo nelle azioni
+  della tabella o fuori dal form.
+- **Due domande se il form è sporco.** Fuori dal form della Resource,
+  `Button::post` chiede prima la sua `confirm()`; se il form della Resource ha
+  modifiche non salvate, poi arriva anche la conferma della barra
+  (`labels.confirmOther`). È voluto.
+
 ## Charts
 
 Per i grafici (LineChart, PieChart su Chart.js) vedi la pagina

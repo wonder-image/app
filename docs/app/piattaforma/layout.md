@@ -137,6 +137,12 @@ devono essere sostituiti con:
 - `custom/view/components/frontend/layout/*`
 - `custom/view/components/backend/layout/*`
 
+Il `header.php` del backend sottrae `var(--wi-save-bar-reserve, 0px)` dal
+`min-height` del contenitore della pagina: è lo spazio che la
+[barra di salvataggio](../concetti/form/save-bar.md) riserva in fondo. Un
+override integrale di `header.php` deve fare lo stesso, altrimenti la pagina ha
+al massimo 96px di scroll in più.
+
 ### Mapping utility -> target
 
 - `app/utility/frontend/head.php` -> `app/view/components/frontend/layout/head.php`

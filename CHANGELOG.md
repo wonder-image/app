@@ -80,6 +80,21 @@
   contenerne altri in `relations`, così la ricerca scende di più tabelle
   (movimento → versione → articolo). Basta anche un descrittore con sole
   `relations`.
+- Barra di salvataggio nel backend: un `<form data-wi-save-bar>` copia i
+  bottoni di salvataggio in un'isola fissa in basso quando escono dallo
+  schermo e chiede conferma prima di uscire con modifiche non salvate. JS e
+  CSS stanno in `wonder-image/lib` dalla 2.1.2-alpha.16; l'app mette gli
+  attributi sui form delle Resource, dello scheduler, dell'account, della
+  gestione utenti e del file di configurazione. Con una lib più vecchia gli
+  attributi restano inerti.
+- `AttributeString::render(array $attributes, array $reserved = [])`
+  serializza gli attributi HTML: `true` senza valore, `false` e `null`
+  omessi, valori escapati. `ResourceFormLayoutRenderer::render()` accetta
+  l'opzione `attributes` per il tag `<form>` e
+  `ResourceFormLayoutRenderer::hasSubmit($form, $name = 'upload')` dice se il
+  layout contiene già un Submit con quel name.
+- `user()` restituisce il campo `written`: `true` solo dopo l'insert o
+  l'update della riga `user`.
 
 ### Changed
 - `php forge config` e `php forge skills` sincronizzano soltanto la raccolta
@@ -116,6 +131,10 @@
   `true` poteva uscire come classe `1`. In `Accordion`, `Modal` e `Container`
   un numero passato da solo esce come classe, come già dentro un array: prima
   si perdeva.
+- `header.php` del backend sottrae `var(--wi-save-bar-reserve, 0px)` dal
+  `min-height` del contenitore della pagina, così le pagine corte non hanno
+  scroll vuoto sopra la barra di salvataggio. Con una lib senza barra la
+  variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
 - Le colonne derivate da `Field::key(...)->number()` rispettano ora
@@ -337,3 +356,15 @@
 - `selectDate()` del frontend legacy (`SelectDate` nel tema Wonder) si
   fermava con un Error dalla v2.2.2: chiamava `jsString()`, privato in
   `DatePicker`. Ora è protetto e il campo si rende.
+- Form con `formLayoutSchema()`: un `Submit` con name `upload` nel layout
+  prende il posto del Salva del footer, prima i Salva erano due. Un Submit
+  dentro Modal, QuickCreate, Accordion chiusi o componenti con `visibleWhen()`
+  o `hiddenWhen()` non conta, e il Salva del footer resta.
+- Repeater: svuotare l'ultima riga emette `change` con `bubbles` su ogni campo
+  e passa i campi non checkbox o radio da `wiRepeaterSetFieldValue()`, quindi
+  AutoNumeric si svuota dalla sua API e `check()` vede lo svuotamento. Prima
+  si assegnava solo `value`, senza eventi.
+- `SecurityResource`: i segreti (`klaviyo_api_key`, `brevo_api_key`,
+  `mail_password`, `google_oauth_client_secret`, `apple_oauth_private_key`)
+  hanno `autocomplete="new-password"`: prima il browser poteva inserirci la
+  password di login salvata.

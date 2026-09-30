@@ -274,6 +274,21 @@ php forge start
   `change` only on real differences. Keep the empty `name[]` hidden input for
   checkbox trees. See `docs/app/concetti/form/form-field.md`.
 
+- Backend save bar: a `<form data-wi-save-bar>` copies its submit buttons into
+  a fixed island when they scroll away and warns before leaving with unsaved
+  changes; JS and CSS live only in `wonder-image/lib`. `resource/form.php`
+  adds the attributes unless `$locked`, through the renderer `attributes`
+  option serialized by `AttributeString::render()`; hand-written forms use
+  literal attributes. `data-wi-save-bar-dirty` marks a re-rendered failed POST
+  and is never printed empty; for `user()` pages the signal is
+  `user()->written`, never the ALERT code. `header.php` subtracts
+  `--wi-save-bar-reserve`. A layout `Submit` named `upload` replaces the
+  footer Save (`ResourceFormLayoutRenderer::hasSubmit()`). Non-login
+  passwords in tracked forms use `->autocomplete('new-password')`;
+  `data-wi-save-bar-ignore` is only for the account confirmation password.
+  Call `wiSaveBar?.reset(form)` before `form.submit()` and after AJAX
+  success. See `docs/app/concetti/form/save-bar.md`.
+
 Two-layer architecture for building and rendering forms:
 
 - **`class/Elements/Form/`** — config layer. Fluent API objects
