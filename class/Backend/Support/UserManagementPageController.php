@@ -67,10 +67,10 @@ final class UserManagementPageController
             exit();
         }
 
-        $this->render($mode, $id, $values);
+        $this->render($mode, $id, $values, empty($upload->written));
     }
 
-    private function render(string $mode, ?int $id = null, ?array $values = null): void
+    private function render(string $mode, ?int $id = null, ?array $values = null, bool $dirty = false): void
     {
         $rootApp = (string) LegacyGlobals::get('ROOT_APP', '');
 
@@ -91,6 +91,7 @@ final class UserManagementPageController
                 ? __r('backend.resource.'.$this->slug.'.update', ['id' => $id])
                 : __r('backend.resource.'.$this->slug.'.store'),
             'VALUES' => $values,
+            'SAVE_BAR_DIRTY' => $dirty,
             'RESOURCE_CLASS' => $this->resourceClass,
             'RESOURCE_SLUG' => $this->slug,
             'RESOURCE_MODE' => $mode,

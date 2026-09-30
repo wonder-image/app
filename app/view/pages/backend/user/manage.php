@@ -16,7 +16,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
 };
 ?>
 
-<form class="col-12" action="<?=htmlspecialchars($FORM_ACTION, ENT_QUOTES, 'UTF-8')?>" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
+<form class="col-12" action="<?=htmlspecialchars($FORM_ACTION, ENT_QUOTES, 'UTF-8')?>" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()" data-wi-save-bar<?=!empty($SAVE_BAR_DIRTY) ? ' data-wi-save-bar-dirty' : ''?>>
     <input type="hidden" name="area" value="<?=htmlspecialchars($USER_AREA, ENT_QUOTES, 'UTF-8')?>">
     <input type="hidden" name="password" value="<?=code(2, 'letters').'-'.code(4, 'numbers');?>">
 

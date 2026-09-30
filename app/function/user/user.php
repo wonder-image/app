@@ -254,6 +254,7 @@
             'email_verification_already_verified' => false,
             'consents' => [],
             'already_registered' => false,
+            'written' => false,
         ];
 
         $UPLOAD = [];
@@ -396,6 +397,7 @@
 
                     // Inserisce il record utente.
                     $sql = sqlInsert('user', $UPLOAD);
+                    $RETURN->written = true;
 
                     // Prepara il ritorno base.
                     $RETURN->user = infoUser($sql->insert_id);
@@ -571,6 +573,7 @@
 
                 // Aggiorna il record utente.
                 sqlModify('user', $UPLOAD, 'id', $MODIFY_ID);
+                $RETURN->written = true;
 
                 // Prepara il ritorno base.
                 $RETURN->user = infoUser($M_USER->id);
