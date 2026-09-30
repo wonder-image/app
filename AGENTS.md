@@ -286,7 +286,7 @@ php forge start
   footer Save (`ResourceFormLayoutRenderer::hasSubmit()`). Non-login
   passwords in tracked forms use `->autocomplete('new-password')`;
   `data-wi-save-bar-ignore` is only for the account confirmation password.
-  Call `wiSaveBar?.reset(form)` before `form.submit()` and after AJAX
+  Call `window.wiSaveBar?.reset(form)` before `form.submit()` and after AJAX
   success. See `docs/app/concetti/form/save-bar.md`.
 
 Two-layer architecture for building and rendering forms:

@@ -94,11 +94,11 @@ dal DOM.
 
 ```js
 // Invio da script: form.submit() non genera l'evento submit.
-wiSaveBar?.reset(form);
+window.wiSaveBar?.reset(form);
 form.submit();
 
 // Salvataggio AJAX: nella callback di successo.
-wiSaveBar?.reset(form);
+window.wiSaveBar?.reset(form);
 ```
 
 Senza `reset()`, un invio da script fa partire l'avviso di uscita. Dopo un
