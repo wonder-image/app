@@ -12,7 +12,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
 };
 ?>
 
-<form action="<?=htmlspecialchars(__r('backend.config.configuration-file'), ENT_QUOTES, 'UTF-8')?>" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
+<form action="<?=htmlspecialchars(__r('backend.config.configuration-file'), ENT_QUOTES, 'UTF-8')?>" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()" data-wi-save-bar<?=!empty($ERRORS) ? ' data-wi-save-bar-dirty' : ''?>>
     <div class="row g-3">
         <div class="col-12">
             <div class="card border">

@@ -23,7 +23,7 @@ $renderPasswordInput = static function (string $key, mixed $value = null) use ($
         <h3>Impostazioni account</h3>
     </wi-card>
 
-    <form class="col-9" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
+    <form class="col-9" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()" data-wi-save-bar<?=!empty($PROFILE_DIRTY) ? ' data-wi-save-bar-dirty' : ''?>>
         <wi-card class="col-12">
             <div class="col-12">
                 <h6>Modifica dati</h6>

@@ -32,7 +32,7 @@ final class AccountPageSchema extends CustomPageSchema
             'phone' => FormField::key('phone')->phone(),
             'color' => FormField::key('color')->select($colorOptions),
             'email' => FormField::key('email')->email()->required(),
-            'password' => FormField::key('password')->password()->required(),
+            'password' => FormField::key('password')->password()->required()->attribute('data-wi-save-bar-ignore'),
         ]);
     }
 

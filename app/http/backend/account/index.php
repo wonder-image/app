@@ -62,6 +62,7 @@ if (isset($_POST['modify-password'])) {
     'TITLE' => $TITLE,
     'ALERT' => $ALERT ?? null,
     'VALUES' => $VALUES,
+    'PROFILE_DIRTY' => isset($_POST['modify']) && isset($UPLOAD) && empty($UPLOAD->written),
     'COLOR_OPTIONS' => $COLOR_OPTIONS,
     'PROFILE_FORM_SCHEMA' => AccountPageSchema::profileFormSchema($COLOR_OPTIONS),
     'PASSWORD_FORM_SCHEMA' => AccountPageSchema::passwordFormSchema(),
