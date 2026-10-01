@@ -48,6 +48,10 @@
     $seoDate = (string) ($SEO->date ?? '');
     $seoImage = (string) ($SEO->image ?? '');
     $seoCreator = (string) ($SEO->creator ?? '');
+    $seoRobots = strtoupper(trim((string) ($SEO->robots ?? 'INDEX,FOLLOW')));
+    if (!in_array($seoRobots, ['INDEX,FOLLOW', 'INDEX,NOFOLLOW', 'NOINDEX,FOLLOW', 'NOINDEX,NOFOLLOW'], true)) {
+        $seoRobots = 'INDEX,FOLLOW';
+    }
     $societyName = (string) ($SOCIETY->name ?? '');
     $faviconPath = (string) ($PATH->favicon ?? '');
 
@@ -104,7 +108,7 @@
 <meta http-equiv="Reply-to" content="<?=e($seoReply)?>">
 <meta http-equiv="content-language" content="IT">
 <meta http-equiv="Content-Type" content="text/html; iso-8859-7">
-<meta name="robots" content="INDEX,FOLLOW">
+<meta name="robots" content="<?=e($seoRobots)?>">
 <meta name="creation_Date" content="<?=e($seoDate)?>">
 <meta name="revisit-after" content="1 days">
 

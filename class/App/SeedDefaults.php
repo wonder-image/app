@@ -139,6 +139,17 @@ class SeedDefaults
         ];
     }
 
+    public static function cssAuthRow(): array
+    {
+        return [
+            'bg_color' => '#ffffff',
+            'tx_color' => '#000000',
+            'form_bg_color' => '#ffffff',
+            'form_tx_color' => '#000000',
+            'form_border_color' => '#DEDEDE',
+        ];
+    }
+
     public static function cssModalRow(): array
     {
         return [

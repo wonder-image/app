@@ -86,6 +86,15 @@ class PublishModule extends Command
         $sourceRoot = rtrim((string) realpath($sourceRoot), '/');
 
         $files = $this->publishableFiles($sourceRoot, $input);
+        $sealedFiles = [];
+
+        if (!$publishAssets) {
+            [$files, $sealedFiles] = $this->partitionSealedViews($files, $manifest->sealedViews());
+
+            foreach ($sealedFiles as $relativePath) {
+                $output->writeln('<comment>Skip '.$relativePath.' (view sigillata dal modulo)</comment>');
+            }
+        }
 
         if ($files === []) {
             $output->writeln('<comment>Nessuna view pubblicabile trovata per '.$manifest->slug().'.</comment>');
@@ -103,7 +112,7 @@ class PublishModule extends Command
         $force = (bool) $input->getOption('force');
         $dryRun = (bool) $input->getOption('dry-run');
         $published = 0;
-        $skipped = 0;
+        $skipped = count($sealedFiles);
 
         foreach ($files as $relativePath) {
             $source = $sourceRoot.'/'.$relativePath;
@@ -262,6 +271,44 @@ class PublishModule extends Command
         }
 
         return $prefixes;
+    }
+
+    /**
+     * @param list<string> $files
+     * @param list<string> $sealedViews
+     * @return array{0:list<string>,1:list<string>}
+     */
+    protected function partitionSealedViews(array $files, array $sealedViews): array
+    {
+        if ($sealedViews === []) {
+            return [$files, []];
+        }
+
+        $publishable = [];
+        $sealed = [];
+
+        foreach ($files as $relativePath) {
+            $relativePath = trim(str_replace('\\', '/', $relativePath), '/');
+            $isSealed = false;
+
+            foreach ($sealedViews as $sealedPath) {
+                $sealedPath = trim(str_replace('\\', '/', $sealedPath), '/');
+
+                if ($sealedPath !== ''
+                    && ($relativePath === $sealedPath || str_starts_with($relativePath, $sealedPath.'/'))) {
+                    $isSealed = true;
+                    break;
+                }
+            }
+
+            if ($isSealed) {
+                $sealed[] = $relativePath;
+            } else {
+                $publishable[] = $relativePath;
+            }
+        }
+
+        return [$publishable, $sealed];
     }
 
     /**

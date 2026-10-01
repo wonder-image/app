@@ -21,6 +21,10 @@ final class LegacySessionLoginAdapter implements FederatedLoginSessionInterface
             return false;
         }
 
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+
         $_SESSION['user_id'] = $userId;
 
         if ($this->rememberMe) {

@@ -73,12 +73,17 @@ insieme alle route di base del framework
 
 ## Publish view dei moduli
 
-`php forge publish:module <slug>` copia tutte le view dichiarate dal modulo in
+`php forge publish:module <slug>` copia le view overrideabili dichiarate dal modulo in
 `paths.views` verso il sito, sotto:
 
 ```text
 custom/modules/<slug>/view/
 ```
+
+Le view elencate in `views.sealed` nel `module.json` restano nel package: il
+comando le salta con un avviso anche quando viene richiesto direttamente il
+singolo file o si usa `--force`. Lo stesso elenco deve essere rispettato dal
+resolver runtime del modulo.
 
 Esempio:
 

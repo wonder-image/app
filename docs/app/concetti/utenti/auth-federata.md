@@ -4,15 +4,10 @@ icon: right-to-bracket
 
 # Auth federata Google / Apple
 
-{% hint style="warning" %}
-**Stato: implementato ma NON ancora collegato.** Le classi descritte qui
-(`Wonder\Auth\Federated\*`) esistono e sono pronte, ma **non sono agganciate ai
-controller/endpoint di produzione correnti**. Considera questa pagina come
-riferimento dei componenti disponibili, non come una feature attiva out-of-the-box.
-
-La tabella runtime `AUTH_FEDERATED` (`app/build/table/user.php` →
-`$TABLE->AUTH_FEDERATED`) e l'effettivo collegamento ai flussi di login sono
-**Da verificare** prima di farci affidamento in un progetto reale.
+{% hint style="info" %}
+Il core fornisce verifica server-side degli ID token, mapping e session adapter;
+un modulo o progetto deve ancora dichiarare endpoint, UI, consensi e onboarding.
+`wonder-image/ecommerce` è il primo consumer collegato a questi contratti.
 {% endhint %}
 
 ## Obiettivo
@@ -24,7 +19,7 @@ Implementare in modo standalone:
 - gestione `set password` per account nati social
 
 Vincoli rispettati:
-- nessuna integrazione attiva sui flussi di produzione correnti
+- nessuna UI o route imposta dal core
 - nessuna tabella cliente/fatturazione/spedizione
 - nessun token provider salvato in chiaro
 - mapping reale basato su `provider + provider_user_id`
@@ -48,6 +43,9 @@ Nota:
 - `Wonder\Auth\Federated\FederatedClaimMapper`
 - `Wonder\Auth\Federated\GoogleIdTokenVerifierStub`
 - `Wonder\Auth\Federated\AppleIdTokenVerifierStub`
+- `Wonder\Auth\Federated\OidcIdTokenVerifier`
+- `Wonder\Auth\Federated\GoogleIdTokenVerifier`
+- `Wonder\Auth\Federated\AppleIdTokenVerifier`
 - `Wonder\Auth\Federated\FederatedAuthResult`
 - `Wonder\Auth\Federated\FederatedExtensionPipeline`
 - `Wonder\Auth\Federated\FederatedOnboardingContext`
@@ -68,6 +66,10 @@ Nota:
 ### Note sicurezza
 - In tabella non sono previsti access token/refresh token in chiaro.
 - Se un progetto deve salvare token provider, usare storage separato cifrato o solo hash/opaque reference.
+- I verifier di produzione validano firma JWKS, scadenza, issuer, audience e,
+  quando fornito, nonce. Le chiavi pubbliche hanno cache locale limitata.
+- Un modulo deve verificare anche lo `state` del callback e non può collegare
+  per email un'identità il cui claim `email_verified` non sia vero.
 
 ## Chiavi richieste (Security/Credentials)
 Google:
@@ -83,7 +85,7 @@ Apple:
 - `apple_oauth_redirect_uri`
 
 Guide setup:
-- [Google Sign-In OAuth](../../servizi/configurazione/google-sign-in-oauth.md)
+- [Google Auth Platform](../../servizi/configurazione/google-sign-in-oauth.md)
 - [Sign in with Apple](../../servizi/configurazione/sign-in-with-apple.md)
 
 Guide tecniche classi:
@@ -180,10 +182,9 @@ Per indirizzi, fatturazione, business fields, consensi o metadata custom usare s
 - naming, vincoli e normalizzazione demandati al progetto
 - il modulo auth non conosce né richiede lo schema di tali tabelle
 
-## Integrazione (esplicitamente non attivata)
-I componenti sono pronti ma non sono collegati ai controller/endpoint correnti.
-Per attivare in un secondo momento:
-1. verificare ID token Google/Apple con implementazione progetto di `FederatedIdTokenVerifierInterface`
+## Integrazione
+Il core non registra controller/endpoint. Il consumer deve:
+1. verificare ID token Google/Apple con `GoogleIdTokenVerifier` o `AppleIdTokenVerifier`
 2. mappare claims in `FederatedIdentityPayload` (`FederatedClaimMapper`)
 3. instanziare `FederatedLoginService` con gateway/session adapter progetto
 4. intercettare il login email/password con `LocalPasswordPolicyService`

@@ -4,7 +4,7 @@ Questa sezione contiene il recupero credenziali e i parametri da inserire nel ba
 
 Pagine disponibili:
 - [Google Cloud Platform](google-cloud-platform.md)
-- [Google Sign-In OAuth](google-sign-in-oauth.md)
+- [Google Auth Platform](google-sign-in-oauth.md)
 - [Sign in with Apple](sign-in-with-apple.md)
 - [Google Search Console](google-search-console.md)
 - [Fatture in Cloud](fatture-in-cloud.md)

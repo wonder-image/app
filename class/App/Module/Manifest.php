@@ -191,6 +191,37 @@ final class Manifest
         return $this->resolvePath($this->path('views', 'views'));
     }
 
+    /**
+     * View che il modulo mantiene nel package e non consente di pubblicare
+     * negli override del sito. Ogni voce può indicare un file o una cartella.
+     *
+     * @return list<string>
+     */
+    public function sealedViews(): array
+    {
+        $sealed = $this->get('views.sealed', []);
+
+        if (!is_array($sealed)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($sealed as $path) {
+            if (!is_string($path)) {
+                continue;
+            }
+
+            $path = trim(str_replace('\\', '/', $path), '/');
+
+            if ($path !== '' && !in_array('..', explode('/', $path), true)) {
+                $normalized[] = $path;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
     public function assetsPath(): ?string
     {
         return $this->resolvePath($this->path('assets', 'resources/assets'));

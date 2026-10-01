@@ -61,6 +61,15 @@
 
     }
 
+    if (!sqlSelect('css_auth', ['id' => 1], 1)->exists) {
+
+        $values = \Wonder\App\SeedDefaults::cssAuthRow();
+        $values['id'] = 1;
+
+        sqlInsert('css_auth', $values);
+
+    }
+
     if (!sqlSelect('css_modal', ['id' => 1], 1)->exists) {
                     
         $values = \Wonder\App\SeedDefaults::cssModalRow();

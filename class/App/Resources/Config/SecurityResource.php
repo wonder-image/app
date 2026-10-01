@@ -154,6 +154,9 @@ final class SecurityResource extends SingletonResource
                     SectionTitle::make('Google Maps*')->columnSpan(12),
                     static::getInput('g_maps_place_id')->columnSpan(4),
                     static::getInput('g_maps_map_id')->columnSpan(4),
+                    SectionTitle::make('Google Auth Platform*')->columnSpan(12),
+                    static::getInput('google_oauth_client_id')->columnSpan(6),
+                    static::getInput('google_oauth_client_secret')->columnSpan(6),
                     HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.')
                     ->columnSpan(12),
                 ])->columns(12)->columnSpan(2),
@@ -176,22 +179,7 @@ final class SecurityResource extends SingletonResource
                     static::getInput('mail_port')->columnSpan(4),
                     static::getInput('mail_username')->columnSpan(12),
                     static::getInput('mail_password')->columnSpan(12),
-                ])->columns(12)->columnSpan(1)
-                
-                // (new Card)->components([
-                //     SectionTitle::make('Login Federato (Google / Apple)')
-                //         ->tooltip('Usato per l’autenticazione social tramite Google e Apple.'),
-                //     HelpText::make('Documentazione interna: <a href="https://wonder-image.gitbook.io/app/app/utente/auth-federata-google-apple" target="_blank" rel="noopener noreferrer">Auth Federata (GitBook)</a>.'),
-                //     HelpText::make('Guide ufficiali: <a href="https://developers.google.com/identity/openid-connect/openid-connect" target="_blank" rel="noopener noreferrer">Google OpenID Connect</a> - <a href="https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js" target="_blank" rel="noopener noreferrer">Sign in with Apple JS</a>.'),
-                //     static::getInput('google_oauth_client_id')->columnSpan(4),
-                //     static::getInput('google_oauth_client_secret')->columnSpan(4),
-                //     static::getInput('google_oauth_redirect_uri')->columnSpan(4),
-                //     static::getInput('apple_oauth_client_id')->columnSpan(3),
-                //     static::getInput('apple_oauth_team_id')->columnSpan(3),
-                //     static::getInput('apple_oauth_key_id')->columnSpan(3),
-                //     static::getInput('apple_oauth_redirect_uri')->columnSpan(3),
-                //     static::getInput('apple_oauth_private_key')->columnSpan(12),
-                // ])->columns(12)->columnSpan(9),
+                ])->columns(12)->columnSpan(1),
 
             ])->columns(2)->columnSpan(9),
 

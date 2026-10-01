@@ -112,7 +112,7 @@ final class FederatedIdentityRepository
             'provider' => $identity->provider,
             'provider_user_id' => $identity->providerUserId,
             'provider_email' => $identity->email,
-            'provider_email_verified' => $identity->emailVerified ? 'true' : 'false',
+            'provider_email_verified' => $identity->emailVerified ? 1 : 0,
             'last_login_at' => date('Y-m-d H:i:s'),
             'meta' => $metaJson,
         ]);
@@ -128,7 +128,7 @@ final class FederatedIdentityRepository
 
         \sqlModify($this->table, [
             'provider_email' => $identity->email,
-            'provider_email_verified' => $identity->emailVerified ? 'true' : 'false',
+            'provider_email_verified' => $identity->emailVerified ? 1 : 0,
             'last_login_at' => date('Y-m-d H:i:s'),
             'meta' => $this->encodeMeta([
                 'claims' => $identity->rawClaims,

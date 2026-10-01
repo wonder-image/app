@@ -5,3 +5,4 @@
 </noscript>
 <!-- End Google Tag Manager (noscript) -->
 <?php } ?>
+<?= \Wonder\View\View::component('frontend.overlay.impersonation') ?>

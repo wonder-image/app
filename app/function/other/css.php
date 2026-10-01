@@ -9,6 +9,7 @@
 
         $CSS_DEFAULT = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_default', 'id', '1'), \Wonder\App\SeedDefaults::cssDefaultRow());
         $CSS_INPUT = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_input', 'id', '1'), \Wonder\App\SeedDefaults::cssInputRow());
+        $CSS_AUTH = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_auth', 'id', '1'), \Wonder\App\SeedDefaults::cssAuthRow());
 
         $CSS_MODAL = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_modal', 'id', '1'), \Wonder\App\SeedDefaults::cssModalRow());
         $CSS_DROPDOWN = \Wonder\App\SeedDefaults::mergeRowDefaults(info('css_dropdown', 'id', '1'), \Wonder\App\SeedDefaults::cssDropdownRow());
@@ -121,6 +122,14 @@
         $RETURN .= "--input-label-focus-color: $CSS_INPUT->label_color_focus;\n";
         $RETURN .= "--input-label-weight: $CSS_INPUT->label_weight;\n";
         $RETURN .= "--input-label-focus-weight: $CSS_INPUT->label_weight_focus;\n";
+        $RETURN .= "\n";
+        $RETURN .= "\n";
+        $RETURN .= "/* Set-up autenticazione */\n";
+        $RETURN .= "--auth-bg-color: $CSS_AUTH->bg_color;\n";
+        $RETURN .= "--auth-tx-color: $CSS_AUTH->tx_color;\n";
+        $RETURN .= "--auth-form-bg-color: $CSS_AUTH->form_bg_color;\n";
+        $RETURN .= "--auth-form-tx-color: $CSS_AUTH->form_tx_color;\n";
+        $RETURN .= "--auth-form-border-color: $CSS_AUTH->form_border_color;\n";
         $RETURN .= "\n";
         $RETURN .= "\n";
         $RETURN .= "/* Set-up modal */\n";

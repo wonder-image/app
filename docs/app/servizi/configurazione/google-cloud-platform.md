@@ -37,3 +37,9 @@ Successivamente è possibile cambiare il livello di [clicca qui](https://console
 
 Per trovare il Place Id [clicca qui](https://developers.google.com/maps/documentation/geocoding/overview#how-the-geocoding-api-works), vai fino alla mappa e ricerca il luogo, cerca e poi copia il Place Id.
 
+### Google Auth Platform
+
+Google Auth Platform usa lo stesso progetto Google Cloud per creare il client
+OAuth 2.0 dell'accesso con Google. Segui la guida dedicata per configurare
+branding, audience, origini JavaScript e recuperare Client ID e Client Secret:
+[Google Auth Platform](google-sign-in-oauth.md).
