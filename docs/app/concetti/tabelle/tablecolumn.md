@@ -18,8 +18,7 @@ Impostano il tipo di resa (`setType`):
 | `text()` | testo semplice |
 | `date()` / `datetime()` | data / data+ora |
 | `phone()` | numero di telefono |
-| `price()` | prezzo |
-| `money()` | importo all'italiana (`1.234,50 €`), a destra, con cifre tabulari |
+| `price()` | importo all'italiana (`1.234,50 €`), a destra, con cifre tabulari |
 | `badge()` | badge colorato |
 | `status()` | indicatore di stato |
 | `user()` / `userAvatar()` / `userName()` | utente / avatar / nome |

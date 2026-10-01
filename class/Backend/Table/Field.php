@@ -728,10 +728,6 @@
 
                     } else if ($type == 'price') {
 
-                        $VALUE = empty($VALUE) ? "" : number_format($VALUE, 2, '.', '').'€';
-
-                    } else if ($type == 'money') {
-
                         // Importo all'italiana (1.234,50 €), allineato a destra
                         // con cifre tabulari. Un valore non numerico non si scrive.
                         $VALUE = is_numeric($VALUE)

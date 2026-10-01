@@ -3,8 +3,6 @@
 ## Unreleased
 
 ### Added
-- `TableColumn::money()`: importo all'italiana (`1.234,50 €`) allineato a destra con
-  cifre tabulari, al posto di `->text()->formatter(...)` con lo span scritto a mano.
 - Credenziali PayPal (`live`, client ID e secret) e Nexi (`prod`, API key,
   alias e chiave MAC) nella cascata `Credentials::api()`, nella tabella
   `security` e nella pagina backend Credenziali.
@@ -99,6 +97,9 @@
   l'update della riga `user`.
 
 ### Changed
+- `TableColumn::price()`: nelle tabelle l'importo si legge all'italiana (`1.234,50 €`),
+  allineato a destra con cifre tabulari, al posto di `1234.50€`. Lo zero resta `0,00 €`;
+  un valore non numerico lascia la cella vuota.
 - `php forge config` e `php forge skills` sincronizzano soltanto la raccolta
   `wonder-image/skills`: la skill esterna `pbakaus/impeccable` non viene più
   reinstallata. Nei siti dove è già presente, rimuovila una volta dalla root
