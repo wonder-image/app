@@ -237,6 +237,9 @@ php forge start
 - Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars.
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
+- Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
+- Reusable impersonation uses `Wonder\Auth\Impersonation`; consumers must provide explicit backend actor authorities, CSRF-protected issue/stop routes, a visible active-state banner, and must never impersonate a backend-capable subject.
+- Frontend form rendering must resolve the active page theme. Do not force `render('wonder')` in module/site views; call `render()` or rely on the element string renderer.
 - Runtime module validation must not require the package `composer.json`, because some production deploys strip it from installed packages.
 - Composer module discovery must remain compatible with both `vendor/composer/installed.php` and `vendor/composer/installed.json`, and must keep a filesystem fallback for `vendor/wonder-image/*/module.json`, because deploy environments may expose different metadata formats.
 - `build/src/backend` and `build/table` have been intentionally cleaned out. Do not reintroduce them for new modules.
@@ -287,7 +290,9 @@ php forge start
   passwords in tracked forms use `->autocomplete('new-password')`;
   `data-wi-save-bar-ignore` is only for the account confirmation password.
   Call `window.wiSaveBar?.reset(form)` before `form.submit()` and after AJAX
-  success. See `docs/app/concetti/form/save-bar.md`.
+  success. The back chevron in `layout/backend/form.php` carries
+  `data-wi-save-bar-cancel`: the lib turns it into the island's "Annulla"
+  button. See `docs/app/concetti/form/save-bar.md`.
 
 Two-layer architecture for building and rendering forms:
 
