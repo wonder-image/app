@@ -22,7 +22,17 @@ servono alla lib, restano i bottoni originali.
 | `data-wi-save-bar` | `<form>` | attiva l'isola per il form |
 | `data-wi-save-bar-dirty` | `<form>` | il form nasce "non salvato"; conta la presenza, non il valore |
 | `data-wi-save-bar-ignore` | bottone, campo o contenitore | il bottone non si copia; i campi dentro non contano |
+| `data-wi-save-bar-cancel` | `<a href>` | l'isola mostra "Annulla" prima dei bottoni copiati, con lo stesso `href`; senza attributo non c'è |
 | `data-wi-save-bar-hide-when-open` | qualsiasi elemento nel `body` | finché l'elemento esiste l'isola si nasconde (popup di widget terzi) |
+
+### Annulla
+
+Il chevron "indietro" di `layout/backend/form.php` (`$BACK_URL`) porta
+`data-wi-save-bar-cancel`: la lib ne riusa l'`href` per il bottone Annulla, che
+sta alla sinistra dei bottoni di salvataggio (i bottoni stanno sempre a
+destra). Senza `$BACK_URL` non c'è chevron e quindi nemmeno Annulla. Il link è
+una normale navigazione: con modifiche non salvate scatta l'avviso di uscita.
+Altre pagine possono marcare un loro link allo stesso modo.
 
 ### Resource
 

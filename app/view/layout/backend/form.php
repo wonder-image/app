@@ -6,7 +6,7 @@
             <div class="flex-grow-1 min-w-0">
                 <h3 class="mb-0">
                     <?php if (!empty($BACK_URL)) { ?>
-                    <a href="<?=htmlspecialchars((string) ($BACK_URL ?? ''), ENT_QUOTES, 'UTF-8')?>" class="text-dark text-decoration-none"><i class="bi bi-arrow-left-short"></i></a>
+                    <a href="<?=htmlspecialchars((string) ($BACK_URL ?? ''), ENT_QUOTES, 'UTF-8')?>" class="text-dark text-decoration-none" data-wi-save-bar-cancel><i class="bi bi-arrow-left-short"></i></a>
                     <?php } ?>
                     <?=htmlspecialchars((string) ($TITLE ?? ''), ENT_QUOTES, 'UTF-8')?>
                 </h3>
