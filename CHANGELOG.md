@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- `DataItem`: un dato di una scheda, con l'etichetta piccola sopra e il valore
+  sotto, senza riquadro. Il valore si escapa (`html()` per markup fidato), dove
+  manca compare un segnaposto e `action()` mette un'azione accanto all'etichetta.
 - Credenziali PayPal (`live`, client ID e secret) e Nexi (`prod`, API key,
   alias e chiave MAC) nella cascata `Credentials::api()`, nella tabella
   `security` e nella pagina backend Credenziali.
