@@ -83,7 +83,7 @@
 - Barra di salvataggio nel backend: un `<form data-wi-save-bar>` copia i
   bottoni di salvataggio in un'isola fissa in basso quando escono dallo
   schermo e chiede conferma prima di uscire con modifiche non salvate. JS e
-  CSS stanno in `wonder-image/lib` dalla 2.1.2-alpha.17; l'app mette gli
+  CSS stanno in `wonder-image/lib` dalla 2.1.2-alpha.19 (con il bottone Annulla); l'app mette gli
   attributi sui form delle Resource, dello scheduler, dell'account, della
   gestione utenti e del file di configurazione. Con una lib più vecchia gli
   attributi restano inerti.
