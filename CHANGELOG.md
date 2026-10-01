@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- `TableColumn::money()`: importo all'italiana (`1.234,50 €`) allineato a destra con
+  cifre tabulari, al posto di `->text()->formatter(...)` con lo span scritto a mano.
 - Credenziali PayPal (`live`, client ID e secret) e Nexi (`prod`, API key,
   alias e chiave MAC) nella cascata `Credentials::api()`, nella tabella
   `security` e nella pagina backend Credenziali.

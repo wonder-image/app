@@ -36,6 +36,11 @@ final class TableColumn extends Column
         return $this->setType('price');
     }
 
+    public function money(): self
+    {
+        return $this->setType('money');
+    }
+
     public function badge(): self
     {
         return $this->setType('badge');

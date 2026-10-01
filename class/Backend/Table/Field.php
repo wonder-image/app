@@ -730,6 +730,14 @@
 
                         $VALUE = empty($VALUE) ? "" : number_format($VALUE, 2, '.', '').'€';
 
+                    } else if ($type == 'money') {
+
+                        // Importo all'italiana (1.234,50 €), allineato a destra
+                        // con cifre tabulari. Un valore non numerico non si scrive.
+                        $VALUE = is_numeric($VALUE)
+                            ? '<span class="d-block text-end" style="font-variant-numeric: tabular-nums">'.number_format((float) $VALUE, 2, ',', '.').' €</span>'
+                            : '';
+
                     } else if ($type == 'color') {
 
                         if (!empty($VALUE)) {
