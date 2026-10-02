@@ -143,6 +143,9 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- L'icona «cartella» della colonna `empty` (`isEmpty()`) non stampa più gli
+  avvisi sul `$TEXT` nullo nella lista caricata via API: `Field` passa a
+  `isEmpty()` i testi della tabella.
 - Le colonne derivate da `Field::key(...)->number()` rispettano ora
   `decimals()`: il default resta `DECIMAL(10,2)`, `decimals(3)` genera
   `DECIMAL(10,3)` e una scala zero genera `DECIMAL(10)` senza virgola vuota.

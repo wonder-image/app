@@ -553,7 +553,8 @@
                             $format['function']['tables'], 
                             $format['function']['column'], 
                             $this->rowId, 
-                            isset($format['function']['multiple']) ? $format['function']['multiple'] : false
+                            isset($format['function']['multiple']) ? $format['function']['multiple'] : false,
+                            $this->text
                         );
 
                         $VALUE = $FUNCTION->icon;
