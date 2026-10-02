@@ -123,9 +123,13 @@
 
     }
 
-    function isEmpty($tables, $column, $id, $multiple = false) {
+    function isEmpty($tables, $column, $id, $multiple = false, $text = null) {
 
+        // La lista si carica da una chiamata API, dove $TEXT globale non c'è:
+        // i testi li passa la tabella.
         global $TEXT;
+
+        $text = $text ?? $TEXT;
 
         $ARRAY = [];
 
@@ -191,10 +195,10 @@
 
         if (in_array($id, $ARRAY)) {
             $return->return = false;
-            $return->icon = '<i class="bi bi-folder-fill text-muted"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="'.ucwords($TEXT->titleS).' '.$TEXT->full.'"></i>';
+            $return->icon = '<i class="bi bi-folder-fill text-muted"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="'.ucwords($text->titleS).' '.$text->full.'"></i>';
         }else{
             $return->return = true;
-            $return->icon = '<i class="bi bi-folder text-muted"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="'.ucwords($TEXT->titleS).' '.$TEXT->empty.'"></i>';
+            $return->icon = '<i class="bi bi-folder text-muted"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="'.ucwords($text->titleS).' '.$text->empty.'"></i>';
         }
 
         $return->array = $ARRAY;
