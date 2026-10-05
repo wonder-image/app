@@ -174,6 +174,9 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Campi data (`dateInput()`, `dateRange()`, `textDate()`, `textDatetime()`):
+  un value con le barre si legge `d/m/Y`, il formato che scrive il picker.
+  Prima `05/10/2026` usciva `10/05/2026`, con giorno e mese scambiati.
 - `Modal` resa da sola nel tema Bootstrap (`render()`, tipica con `form()`):
   `columns()` e `columnSpan()` ora danno le colonne ai campi, come nel layout
   di una Resource. Prima ogni campo usciva senza colonna, a tutta larghezza.
