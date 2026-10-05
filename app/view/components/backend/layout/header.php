@@ -123,6 +123,7 @@
             $sidebarItems[] = [
                 'active' => $activeNav,
                 'icon' => $iconNav.($activeNav ? '-fill' : ''),
+                'icon_fallback' => $iconNav,
                 'title' => $titleNav,
                 'target_id' => $targetId,
                 'url' => $url,
@@ -161,12 +162,12 @@
                         aria-label="Close"
                         class="text-body-emphasis"
                     >
-                        <i class="bi <?=e($item['icon'])?>"></i>
+                        <i class="bi <?=e($item['icon'])?>" data-icon-fallback="<?=e($item['icon_fallback'])?>"></i>
                         <span><?=e($item['title'])?></span>
                     </a>
                     <?php } else { ?>
                     <a href="<?=e($item['url'])?>" class="text-body-emphasis">
-                        <i class="bi <?=e($item['icon'])?>"></i>
+                        <i class="bi <?=e($item['icon'])?>" data-icon-fallback="<?=e($item['icon_fallback'])?>"></i>
                         <span><?=e($item['title'])?></span>
                     </a>
                     <?php } ?>
@@ -187,6 +188,18 @@
             </ul>
 
         </div>
+
+        <?php /* Non tutte le icone hanno la variante «-fill» (es. bi-receipt, bi-percent):
+                 se il glifo non esiste si torna a quella senza riempimento. */ ?>
+        <script>
+            document.querySelectorAll('#sidebar i[data-icon-fallback]').forEach(function (icon) {
+                var content = getComputedStyle(icon, '::before').content;
+
+                if (!content || content === 'none' || content === 'normal') {
+                    icon.className = 'bi ' + icon.getAttribute('data-icon-fallback');
+                }
+            });
+        </script>
 
         <?php /* Stile della navigazione backend (classi be-nav-*) in wonder-image/lib:
                  src/build/backend/css/header.css, bundle backend/head. */ ?>
