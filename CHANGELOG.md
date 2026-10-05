@@ -98,8 +98,15 @@
   layout contiene già un Submit con quel name.
 - `user()` restituisce il campo `written`: `true` solo dopo l'insert o
   l'update della riga `user`.
+- `Wonder\Http\Csrf`: token CSRF di sessione con `token()`, `field()` e
+  `verify()`. Il campo `_csrf` esce da solo nei form resi da `Form`, in
+  `Button::post()` e nella pagina form delle Resource; i layout backend e
+  frontend scrivono `<meta name="wi-csrf">`. Nessuna richiesta viene ancora
+  bloccata: la verifica resta a chi la chiama.
 
 ### Changed
+- `AuthSession::csrfToken()` e `verify()` delegano a `Wonder\Http\Csrf`: stesso
+  token e stessa chiave di sessione, nessun cambiamento per chi li usa.
 - `TableColumn::price()`: nelle tabelle l'importo si legge all'italiana (`1.234,50 €`),
   allineato a destra con cifre tabulari, al posto di `1234.50€`. Lo zero resta `0,00 €`;
   un valore non numerico lascia la cella vuota.

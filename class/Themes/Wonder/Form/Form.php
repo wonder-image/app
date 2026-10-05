@@ -2,6 +2,7 @@
 
 namespace Wonder\Themes\Wonder\Form;
 
+use Wonder\Http\Csrf;
 use Wonder\Themes\Bootstrap\Concerns\{ HasColumns, HasGap };
 use Wonder\Themes\Wonder\Component;
 
@@ -33,6 +34,7 @@ class Form extends Component
         $cls = trim('wi-form '.$columnsClass.' '.$gapClass);
 
         $html = '<form action="" method="post" enctype="multipart/form-data" class="'.$cls.'">';
+        $html .= Csrf::fieldFor('post');
         $html .= $this->renderComponents($class->components);
         $html .= '</form>';
 

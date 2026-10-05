@@ -2,10 +2,10 @@
 
 namespace Wonder\Auth\Frontend;
 
+use Wonder\Http\Csrf;
+
 final class AuthSession
 {
-    private const KEY = 'wonder_auth_csrf';
-
     public static function queueEvent(string $event, string $method): void
     {
         if (in_array($event, ['login', 'sign_up'], true)) {
@@ -22,18 +22,11 @@ final class AuthSession
 
     public static function csrfToken(): string
     {
-        if (empty($_SESSION[self::KEY])) {
-            $_SESSION[self::KEY] = bin2hex(random_bytes(32));
-        }
-
-        return (string) $_SESSION[self::KEY];
+        return Csrf::token();
     }
 
     public static function verify(mixed $token): bool
     {
-        $stored = (string) ($_SESSION[self::KEY] ?? '');
-        $token = (string) $token;
-
-        return $stored !== '' && $token !== '' && hash_equals($stored, $token);
+        return Csrf::verify((string) $token);
     }
 }

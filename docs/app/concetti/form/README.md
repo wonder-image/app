@@ -69,6 +69,8 @@ L'esito di un invio — e in particolare l'**errore** — si comunica con un
   risorsa collegata in un modal e aggiorna il campo.
 - [Barra di salvataggio](save-bar.md) — i bottoni di salvataggio in un'isola
   fissa in basso e l'avviso prima di uscire con modifiche non salvate.
+- [Token CSRF](csrf.md) — il token di sessione, dove esce da solo nei form e
+  nel `<head>`, e come verificarlo.
 
 ## Esempio minimo
 
