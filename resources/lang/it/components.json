@@ -79,7 +79,13 @@
         "back" : "Indietro",
         "next" : "Avanti",
         "retry" : "Riprova",
-        "close" : "Chiudi"
+        "close" : "Chiudi",
+        "confirm" : "Conferma",
+        "cancel" : "Annulla"
+    },
+    "confirm" : {
+        "title" : "Conferma",
+        "text" : "Vuoi procedere?"
     },
     "terms" : {
         "address" : "Indirizzo",
