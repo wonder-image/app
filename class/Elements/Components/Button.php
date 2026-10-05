@@ -159,6 +159,27 @@ class Button extends Link
         return $this->schema('form_attributes', $normalized);
     }
 
+    /**
+     * I campi nascosti che il form di `post()` manda insieme al bottone: un
+     * `<input type="hidden">` per ciascuno. Senza `post()` non escono.
+     *
+     * @param array<string, scalar|null> $fields
+     */
+    public function hidden(array $fields): self
+    {
+        foreach ($fields as $name => $value) {
+            if (!is_string($name) || trim($name) === '') {
+                throw new InvalidArgumentException('I campi nascosti del bottone vogliono un nome.');
+            }
+
+            if ($value !== null && !is_scalar($value)) {
+                throw new InvalidArgumentException("Il campo nascosto «{$name}» deve avere un valore scalare.");
+            }
+        }
+
+        return $this->schema('form_hidden', $fields);
+    }
+
     public function disabled(bool $disabled = true): self
     {
         return $this->schema('disabled', $disabled);

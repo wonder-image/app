@@ -165,6 +165,13 @@ eq('nested() prima di repeater()',
 # Comportamento invariato dal refactor — verificato contro il codice pre-morph.
 eq('options() prima di select() viene sovrascritto dal default del type-helper',
     FormField::key('s')->options(['1' => 'Uno'])->select()->get('options'), []);
+eq('dateInput() legge all\'italiana una data con le barre: giorno e mese non si scambiano',
+    FormField::key('d')->dateInput()->value('05/10/2026')->compile()->getValue(), '05/10/2026');
+eq('dateInput() porta una data ISO nel formato del picker',
+    FormField::key('d')->dateInput()->value('2026-10-05')->compile()->getValue(), '05/10/2026');
+eq('textDatetime() legge all\'italiana anche data e ora',
+    FormField::key('d')->textDatetime()->value('05/10/2026 14:30')->compile()->getValue(), '2026-10-05T14:30');
+
 eq('dateMin() prima di dateInput() viene sovrascritto dal default',
     FormField::key('d')->dateMin('2026-01-01')->dateInput()->get('date_min'), null);
 eq('...ma passandolo al type-helper funziona',

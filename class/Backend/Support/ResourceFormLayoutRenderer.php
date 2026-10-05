@@ -252,10 +252,19 @@ final class ResourceFormLayoutRenderer
             );
         }
 
-        return (new BootstrapModalRenderer())->renderInner(
-            $modal,
-            self::renderComponents((array) ($modal->components ?? []), self::columnsMap($modal))
-        );
+        return (new BootstrapModalRenderer())->renderInner($modal, self::renderModalBody($modal));
+    }
+
+    /**
+     * Il corpo di una finestra, con ogni campo nella sua colonna.
+     *
+     * Lo chiede anche il renderer Bootstrap quando la finestra è resa da
+     * sola, fuori da un layout: `columns()` e `columnSpan()` valgono lì come
+     * nel form di una Resource.
+     */
+    public static function renderModalBody(Modal $modal): string
+    {
+        return self::renderComponents((array) ($modal->components ?? []), self::columnsMap($modal));
     }
 
     /**
@@ -390,7 +399,7 @@ final class ResourceFormLayoutRenderer
 
     private static function renderComponent(object $component): string
     {
-        if ($component instanceof ElementComponent) {
+        if ($component instanceof ElementComponent || $component instanceof Input) {
             return $component->render('bootstrap');
         }
 

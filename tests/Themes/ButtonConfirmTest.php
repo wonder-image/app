@@ -46,6 +46,32 @@ foreach (['bootstrap', 'wonder'] as $theme) {
     });
 }
 
+foreach (['bootstrap', 'wonder'] as $theme) {
+    check("{$theme}: hidden() mette i campi nascosti nel form di post(), escapati", function () use ($theme) {
+        $html = Button::post('/del', 'Elimina')->hidden(['id' => 7, 'back' => '/a"b'])->render($theme);
+
+        return str_contains($html, '<input type="hidden" name="id" value="7">')
+            && str_contains($html, '<input type="hidden" name="back" value="/a&quot;b">')
+            && strpos($html, 'name="id"') > strpos($html, '<form') && strpos($html, 'name="id"') < strpos($html, '<button');
+    });
+
+    check("{$theme}: senza post() i campi nascosti non escono", fn () =>
+        !str_contains(Button::to('/x', 'X')->hidden(['id' => 7])->render($theme), 'type="hidden"'));
+}
+
+check('hidden() rifiuta un campo senza nome o con un valore non scalare', function () {
+    foreach ([[0 => 'x'], ['a' => ['b']]] as $fields) {
+        try {
+            Button::post('/x', 'X')->hidden($fields);
+
+            return false;
+        } catch (\InvalidArgumentException) {
+        }
+    }
+
+    return true;
+});
+
 check('una variante non valida si ferma subito', function () {
     try {
         Button::post('/x', 'X')->confirm('Ok?', variant: 'danger" onclick="x');

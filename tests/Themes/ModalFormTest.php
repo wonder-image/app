@@ -196,6 +196,16 @@ check('parti Wonder: dialog, header, title, body, footer', function () use ($pag
         && str_contains($html, '<div class="wi-modal-footer d-flex j-content-end gap-3 f-x">');
 });
 
+check('resa da sola in Bootstrap, columns() e columnSpan() danno le colonne ai campi', function () {
+    $html = Modal::make('Pagamento')->id('pay-13')->form('/backend/pay/')->columns(12)->components([
+        FormField::key('amount')->text()->label('Importo')->columnSpan(6),
+        FormField::key('note')->textarea()->label('Nota')->columnSpan(12),
+    ])->render('bootstrap');
+
+    return preg_match('/<div class="col-6"><div><div class="form-floating"><input[^>]*name="amount"/', $html) === 1
+        && preg_match('/<div class="col-12"><div><div class="form-floating"><textarea[^>]*name="note"/', $html) === 1;
+});
+
 check('senza frontend() Wonder resta vuoto anche con form()', function () use ($pagamento) {
     return $pagamento()->render('wonder') === '';
 });

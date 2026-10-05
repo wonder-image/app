@@ -342,6 +342,10 @@ Modal::make('Registra pagamento')
     ->submit('Registra', variant: 'success');
 ```
 
+Nel backend i campi prendono le colonne da `columns()` della finestra e dal
+loro `columnSpan()`, sia nel layout di una Resource sia quando la finestra è
+resa da sola con `render()`. Senza `columns()` la griglia ha una colonna sola.
+
 | | Bootstrap | Wonder (`frontend()`) |
 |---|---|---|
 | form | `<form method action>` fra `.modal-header` e la fine di `.modal-content`; con `scrollable()` anche `d-flex flex-column overflow-hidden`, così il corpo scorre | `<form class="wi-modal-form" method action>` attorno a `.wi-modal-body` e `.wi-modal-footer` |
@@ -554,7 +558,8 @@ diretto di `.ratio`.
 
 `Button::post($action, $label)` rende un `<form method="post">` con un vero
 `<button type="submit">`. `Button::to($action, $label)->type('post')` è
-equivalente. Il form porta il token CSRF. Usa
+equivalente. Il form porta il token CSRF e, con `->hidden(['id' => 7])`, un
+`<input type="hidden">` per ogni campo da mandare insieme al bottone. Usa
 `->confirm($message, title: ..., ok: ..., variant: ...)` per la conferma della
 lib (`data-wi-confirm*` sul form) e `->formAttributes()` solo per attributi
 aggiuntivi del form.

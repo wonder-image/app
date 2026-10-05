@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- `Button::hidden($fields)`: i campi nascosti che il form di `Button::post()`
+  manda insieme al bottone, escapati, in entrambi i temi.
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in
   un solo punto (`extra.wonder.lib` nel `composer.json` del framework). `php forge update` la confronta con la lib
   installata nel sito e, se è più vecchia, si ferma indicando il comando
@@ -174,6 +176,16 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Un contenitore (`Card`, `Container`, `Form`, `ButtonGroup`) reso con un tema
+  esplicito rende i figli con quel tema, non con quello attivo: una `Card`
+  resa con `render('bootstrap')` fuori dal backend cercava i renderer Wonder
+  dei figli.
+- Campi data (`dateInput()`, `dateRange()`, `textDate()`, `textDatetime()`):
+  un value con le barre si legge `d/m/Y`, il formato che scrive il picker.
+  Prima `05/10/2026` usciva `10/05/2026`, con giorno e mese scambiati.
+- `Modal` resa da sola nel tema Bootstrap (`render()`, tipica con `form()`):
+  `columns()` e `columnSpan()` ora danno le colonne ai campi, come nel layout
+  di una Resource. Prima ogni campo usciva senza colonna, a tutta larghezza.
 - Dropdown Wonder: il separatore esce come `wi-dropdown-divider` (prima
   `dropdown-divider`, la classe Bootstrap); `text()` e `header()` escono come
   `wi-dropdown-item wi-dropdown-text`, senza l'aspetto di una voce cliccabile.
