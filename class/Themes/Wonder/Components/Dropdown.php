@@ -65,17 +65,14 @@ class Dropdown extends Component
             $kind = (string) ($item['kind'] ?? 'link');
 
             if ($kind === 'divider') {
-                $html .= '<div class="dropdown-divider"></div>';
+                $html .= '<div class="wi-dropdown-divider" role="separator"></div>';
                 continue;
             }
 
-            if ($kind === 'header') {
-                $html .= '<div class="wi-dropdown-item fw-700">'.$this->escape((string) ($item['label'] ?? '')).'</div>';
-                continue;
-            }
-
-            if ($kind === 'text') {
-                $html .= '<div class="wi-dropdown-item">'.$this->escape((string) ($item['label'] ?? '')).'</div>';
+            // `wi-dropdown-text`: stesso spazio di una voce, senza hover né cursore.
+            if ($kind === 'header' || $kind === 'text') {
+                $html .= '<div class="wi-dropdown-item wi-dropdown-text'.($kind === 'header' ? ' fw-700' : '').'">'
+                    .$this->escape((string) ($item['label'] ?? '')).'</div>';
                 continue;
             }
 

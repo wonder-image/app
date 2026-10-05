@@ -447,7 +447,9 @@ Opzioni di una voce del `Dropdown` (`item()`, `button()`, `action()`):
 
 `action($label, $attributes = [], $options = [])` è una voce
 `<button type="button">` senza href, per le azioni JavaScript; `text()` è una
-voce di solo testo (`dropdown-item-text` in Bootstrap).
+voce di solo testo (`dropdown-item-text` in Bootstrap, `wi-dropdown-item
+wi-dropdown-text` in Wonder, senza hover). Il separatore Wonder è
+`wi-dropdown-divider`.
 
 API principali:
 

@@ -170,6 +170,11 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Dropdown Wonder: il separatore esce come `wi-dropdown-divider` (prima
+  `dropdown-divider`, la classe Bootstrap); `text()` e `header()` escono come
+  `wi-dropdown-item wi-dropdown-text`, senza l'aspetto di una voce cliccabile.
+- I renderer dei temi non lasciano più uno spazio in fondo agli attributi
+  scritti da un array (`class="btn btn-primary "` → `class="btn btn-primary"`).
 - L'icona «cartella» della colonna `empty` (`isEmpty()`) non stampa più gli
   avvisi sul `$TEXT` nullo nella lista caricata via API: `Field` passa a
   `isEmpty()` i testi della tabella.

@@ -95,6 +95,26 @@ check('text() resta la voce di solo testo', function () use ($menu) {
     return str_contains($menu()->render('bootstrap'), '<li><span class="dropdown-item-text">Ultima modifica ieri</span></li>');
 });
 
+check('Wonder: separatore wi-dropdown-divider, testo e intestazione non cliccabili', function () use ($menu) {
+    $html = $menu()->header('Gruppo')->render('wonder');
+
+    return str_contains($html, '<div class="wi-dropdown-divider" role="separator"></div>')
+        && !str_contains($html, '"dropdown-divider"')
+        && str_contains($html, '<div class="wi-dropdown-item wi-dropdown-text">Ultima modifica ieri</div>')
+        && str_contains($html, '<div class="wi-dropdown-item wi-dropdown-text fw-700">Gruppo</div>');
+});
+
+check('nessuna classe chiude con uno spazio', function () use ($menu) {
+    foreach (['bootstrap', 'wonder'] as $theme) {
+        $html = $menu()->render($theme).\Wonder\Elements\Components\Button::make('A', '/a')->render($theme);
+        if (preg_match('/class="[^"]* "/', $html) === 1) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
 check('method get lascia la voce un link', function () {
     $items = Dropdown::make('X')->item('Vai', '/go', ['method' => 'get'])->getItems();
 
