@@ -10,7 +10,9 @@ with the body form using its id and the native `form` attribute.
 `Modal::form($action, $method, $hidden)` wraps body and footer in a form with
 `Csrf::fieldFor()` and hidden inputs, and adds Cancel then Save automatically
 (`cancel()`, `submit()`; a manual `footer()` replaces them). Render it outside
-any other form: inside a Resource layout it throws `LogicException`. Part
+any other form: inside a Resource layout it throws `LogicException`. Rendered
+standalone in Bootstrap, `columns()` / `columnSpan()` lay out its fields as in
+a Resource layout (`ResourceFormLayoutRenderer::renderModalBody()`). Part
 classes (`dialogClass()`..`footerClass()`, Dropdown `toggleClass()`,
 `menuClass()`, `itemClass()`) append to theme classes through
 `HasPartAttributes` / `RendersPartAttributes`; add one public method per part,

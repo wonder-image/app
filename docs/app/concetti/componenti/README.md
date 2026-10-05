@@ -342,6 +342,10 @@ Modal::make('Registra pagamento')
     ->submit('Registra', variant: 'success');
 ```
 
+Nel backend i campi prendono le colonne da `columns()` della finestra e dal
+loro `columnSpan()`, sia nel layout di una Resource sia quando la finestra è
+resa da sola con `render()`. Senza `columns()` la griglia ha una colonna sola.
+
 | | Bootstrap | Wonder (`frontend()`) |
 |---|---|---|
 | form | `<form method action>` fra `.modal-header` e la fine di `.modal-content`; con `scrollable()` anche `d-flex flex-column overflow-hidden`, così il corpo scorre | `<form class="wi-modal-form" method action>` attorno a `.wi-modal-body` e `.wi-modal-footer` |

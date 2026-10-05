@@ -3,6 +3,7 @@
 namespace Wonder\Themes\Bootstrap\Components;
 
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Components\Button as ButtonElement;
 use Wonder\Elements\Components\Tooltip;
@@ -11,18 +12,17 @@ use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Bootstrap\Concerns\HasGap;
 use Wonder\Themes\Concerns\RendersComponentAttributes;
 use Wonder\Themes\Concerns\RendersPartAttributes;
-use Wonder\Themes\Concerns\RendersThemeComponents;
 
 class Modal extends Component
 {
-    use HasGap, RendersComponentAttributes, RendersPartAttributes, RendersThemeComponents;
+    use HasGap, RendersComponentAttributes, RendersPartAttributes;
 
     /** Lo script che stacca le finestre va stampato una volta per pagina. */
     private static bool $scriptEmitted = false;
 
     public function render($class): string
     {
-        return $this->renderInner($class, $this->renderThemeComponents((array) $class->components, 'bootstrap'));
+        return $this->renderInner($class, ResourceFormLayoutRenderer::renderModalBody($class));
     }
 
     /**

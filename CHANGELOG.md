@@ -174,6 +174,9 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- `Modal` resa da sola nel tema Bootstrap (`render()`, tipica con `form()`):
+  `columns()` e `columnSpan()` ora danno le colonne ai campi, come nel layout
+  di una Resource. Prima ogni campo usciva senza colonna, a tutta larghezza.
 - Dropdown Wonder: il separatore esce come `wi-dropdown-divider` (prima
   `dropdown-divider`, la classe Bootstrap); `text()` e `header()` escono come
   `wi-dropdown-item wi-dropdown-text`, senza l'aspetto di una voce cliccabile.
