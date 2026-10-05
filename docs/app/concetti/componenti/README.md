@@ -92,6 +92,11 @@ public static function formLayoutSchema(): ?Form
 
 Esempio reale completo: `class/App/Resources/Css/CssAlertResource.php`.
 
+`<wi-card>` è dismesso: non aggiungerne di nuovi né chiamare
+`wiCard()`/`wiCardLink()` in codice nuovo, usa `Card`, che rende
+`<div class="card">` e non ha opzioni per cambiare tag. Le occorrenze esistenti
+si sostituiscono quando si tocca la pagina.
+
 ## InfoCard e MetricCard
 
 `Card` resta il contenitore generico per componenti arbitrari. Per mostrare

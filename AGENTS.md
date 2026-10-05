@@ -172,6 +172,12 @@ php forge start
 - Prefer expressing reusable bundle-level constraints (default country, allowed countries, required fields, derived row decorators) inside the schema extension itself instead of reapplying them ad hoc in each consuming Model/Resource/Page.
 - If a schema extension also exposes helpers like `decorate(array $row): array`, keep them pure: they may enrich read rows with derived values, but must not run queries or perform persistence side effects.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
+- `<wi-card>` is retired: do not add new ones and do not call `wiCard()` /
+  `wiCardLink()` in new code. Use `Card` from `Wonder\Elements\Components`,
+  which renders a `<div class="card">`, and never add an option to `Card` to
+  change its tag. Replace existing occurrences when you touch the page. The
+  lib keeps `createCard()` and the `wi-card` CSS rule until the old pages are
+  migrated; do not remove them. See `docs/app/concetti/componenti/README.md`.
 - Declare Resource-list header actions through `TableLayoutSchema::buttonCustom()` / `buttonsCustom()` with `Wonder\Elements\Components\Button` or `Dropdown`; use `Button::post($action, $label)->confirm(...)` for POST actions and reserve `buttonCustomHtml()` for trusted markup that no Element can represent.
 - Resource-list extras live in TableColumn/TableLayoutSchema: custom row-menu entries are arrays in `actions()` (`label` per column value, `href` with `{column}` placeholders, escaped, `filter.row`); computed columns go through `TableLayoutSchema::select()` (aliases are display/sort only: never in WHERE, filters, counts or search); filters that are not `column = value` use `filterQuery()` with a closure that receives only whitelisted option values; cross-table search uses relation descriptors in `searchFields()`, nested through `relations`.
 - Backend navigation supports `section → optional group → Resource`. Declare a
