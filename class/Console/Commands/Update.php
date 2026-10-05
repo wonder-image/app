@@ -6,6 +6,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Wonder\App\LibVersion;
 use Wonder\App\UpdateRunner;
 
 class Update extends Command
@@ -27,6 +28,15 @@ class Update extends Command
 
         if (!file_exists($bootstrap)) {
             $output->writeln('<error>❌ Bootstrap wonder-image non trovato.</error>');
+            return Command::FAILURE;
+        }
+
+        $lib = LibVersion::check($root);
+
+        if ($lib !== null) {
+            $output->writeln("<error>❌ wonder-image (lib) {$lib['installed']} è più vecchia della versione minima richiesta: {$lib['minimum']}.</error>");
+            $output->writeln('<comment>   Aggiorna la lib e rilancia il comando:</comment>');
+            $output->writeln("<comment>   {$lib['command']}</comment>");
             return Command::FAILURE;
         }
 
