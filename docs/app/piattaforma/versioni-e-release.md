@@ -85,3 +85,38 @@ composer require wonder-image/app:^2.4
 
 Per una pre-release serve la versione esatta (`wonder-image/app:2.4.0-beta.1`)
 oppure una `minimum-stability` adeguata nel sito.
+
+## Versione minima della lib
+
+Il framework emette markup che funziona solo con il JavaScript di
+`wonder-image/lib` (`data-wi-confirm`, `data-wi-save-bar`, header CSRF...). La
+versione minima richiesta è dichiarata in un solo punto, `extra.wonder.lib` nel
+`composer.json` del framework:
+
+```json
+"extra": {
+    "wonder": {
+        "lib": "^2.1.2-alpha.23"
+    }
+}
+```
+
+Va alzata nello stesso lavoro in cui il framework inizia a dipendere da una
+novità della lib. Conta solo come minimo: l'operatore iniziale viene ignorato.
+
+`php forge update` (con o senza `--local`) confronta il minimo con
+`node_modules/wonder-image/package.json` del sito. Se la lib installata è più
+vecchia, il comando si ferma prima di applicare l'update e indica cosa lanciare:
+
+```bash
+npm install 'wonder-image@^2.1.2-alpha.23'
+```
+
+Il vincolo è esplicito perché `npm install wonder-image` risolve il dist-tag
+`latest`, che può essere più vecchio di una pre-release. Dopo l'installazione
+rilancia `php forge update`.
+
+Il controllo non blocca quando la versione installata o il minimo non sono
+determinabili: un server senza `node_modules`, oppure un deploy che rimuove il
+`composer.json` del pacchetto (`Wonder\App\LibVersion` lo legge da lì). Vale per il comando da terminale, non per
+l'update avviato via API (`/api/app/update/`).

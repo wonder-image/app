@@ -256,6 +256,14 @@ php forge start
 
 - The framework version lives only in `composer.json` `"version"`. `Wonder\App\Version::get()` feeds `$APP_VERSION` / `APP_VERSION` (package manifest first, then `InstalledVersions`, then `dev`); `Version::label()` adds `dev-main@<hash>` for branch installs. Never hardcode it in `wonder-image.php`. Release from the package root with `composer release -- X.Y.Z` (script `bin/release.php`, gitignored and local-only) (or `X.Y.Z-beta.N`, `patch|minor|major`, `--dry-run`): it bumps composer.json, commits, tags `vX.Y.Z`, pushes and creates the GitHub (pre-)release. Tags must be `vX.Y.Z`, never `v.X.Y.Z`. See `docs/app/piattaforma/versioni-e-release.md`.
 
+- The minimum `wonder-image/lib` (npm) version lives only in `extra.wonder.lib`
+  of the package `composer.json`, read by `Wonder\App\LibVersion` (no check
+  when a deploy strips that file: accepted risk). Raise it in the same change that makes a
+  renderer depend on new lib JS/CSS. `forge update` (CLI only, not the API
+  trigger) compares it with the site's `node_modules/wonder-image/package.json`
+  and stops with the `npm install 'wonder-image@^X'` command; an undeterminable
+  version never blocks. See `docs/app/piattaforma/versioni-e-release.md`.
+
 - The package still contains legacy runtime code under `app/`, but new work should follow the `class/App/*` architecture.
 - Architectural choices should favor extension, override, composition, and reuse over one-off implementations tied to a single project need.
 - `class/App/Schema/Extensions/*` is the place for reusable compound schema bundles (for example address/contact/fiscal blocks) that must generate coherent fragments for `dataSchema()`, `tableSchema()`, `labelSchema()`, and `formSchema()` without adding automatic registration to the core. When useful, the same extension may also expose pure row decorators for `Model::decorate()`.
