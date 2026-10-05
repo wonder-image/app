@@ -2,6 +2,8 @@
 
 namespace Wonder\Themes\Concerns;
 
+use Wonder\Http\Csrf;
+
 trait RendersButtonPostForm
 {
     protected function isPostButton(array $schema): bool
@@ -28,6 +30,6 @@ trait RendersButtonPostForm
 
         $attributeString = $this->renderAttributes($attributes);
 
-        return '<form'.($attributeString !== '' ? ' '.$attributeString : '').'>';
+        return '<form'.($attributeString !== '' ? ' '.$attributeString : '').'>'.Csrf::fieldFor('post');
     }
 }

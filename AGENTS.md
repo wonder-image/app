@@ -321,6 +321,19 @@ php forge start
   `change` only on real differences. Keep the empty `name[]` hidden input for
   checkbox trees. See `docs/app/concetti/form/form-field.md`.
 
+- CSRF token: `Wonder\Http\Csrf` owns the single per-session token (`token()`,
+  `field()`, `verify()`; field `_csrf`, header `X-WI-CSRF`). The hidden field
+  is emitted automatically by both `Form` theme renderers,
+  `RendersButtonPostForm` and `resource/form.php`, never for GET; the base
+  layouts print `<meta name="wi-csrf">`. All automatic emission goes through
+  `Csrf::fieldFor()` / `Csrf::active()`: no token without an active session or
+  with a `public` cache limiter, so renderer output stays unchanged in CLI.
+  Verification is not central yet: `RouteDispatcher` must not call
+  `Csrf::verify()`. `AuthSession` delegates to `Csrf` (same session key);
+  `Impersonation`, `scheduler_csrf` and `_contact_csrf` keep their own flow.
+  Hand-written forms add `Csrf::field()` themselves. See
+  `docs/app/concetti/form/csrf.md`.
+
 - Backend save bar: a `<form data-wi-save-bar>` copies its submit buttons into
   a fixed island when they scroll away and warns before leaving with unsaved
   changes; JS and CSS live only in `wonder-image/lib`. `resource/form.php`

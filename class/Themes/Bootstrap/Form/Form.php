@@ -2,6 +2,7 @@
 
     namespace Wonder\Themes\Bootstrap\Form;
 
+    use Wonder\Http\Csrf;
     use Wonder\Themes\Bootstrap\Component;
     use Wonder\Themes\Bootstrap\Concerns\{ HasColumns, HasGap };
 
@@ -19,6 +20,7 @@
 
             # Start - Form
             $html = "<form action=\"\" method=\"post\" enctype=\"multipart/form-data\" onsubmit=\"loadingSpinner()\" class=\"$classColumn $classGap\">";
+            $html .= Csrf::fieldFor('post');
 
             # Field
             $html .= $this->renderComponents($class->components);

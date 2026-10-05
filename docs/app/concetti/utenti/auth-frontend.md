@@ -204,6 +204,7 @@ il pannello usa `--primary-color`, `--primary-color-10`, `--tx-color-10`,
 `--input-border-color`, `--button-border-radius` e `--spacer`.
 
 Gli errori appaiono in un solo alert di pagina, fuori dal form. CSRF condiviso
+(`AuthSession` delega a [`Wonder\Http\Csrf`](../form/csrf.md), stesso token)
 e reCAPTCHA con action scoped proteggono i POST pubblici tradizionali. Google
 ha CSRF, nonce monouso scoped per profilo e verifica server-side; un provider
 disattivato non è accettato dal controller. I redirect restano same-origin.

@@ -7,6 +7,8 @@
     $editableWhenReadonly = (array) ($READONLY_EDITABLE ?? []);
     $partial = $readonly && $editableWhenReadonly !== [];
     $locked = $readonly && !$partial;
+    $formMethod = (string) ($FORM_METHOD ?? 'POST');
+    $csrfField = \Wonder\Http\Csrf::fieldFor($formMethod);
     $saveBarAttributes = ['data-wi-save-bar' => !$locked, 'data-wi-save-bar-dirty' => !$locked && !empty($FORM_ERRORS)];
     $readonlyNotice = htmlspecialchars((string) ($READONLY_NOTICE ?? ''), ENT_QUOTES, 'UTF-8');
     $noticeHtml = '
@@ -30,27 +32,28 @@
             $FORM_LAYOUT,
             [
                 'id' => 'resource-layout-form',
-                'method' => (string) ($FORM_METHOD ?? 'POST'),
+                'method' => $formMethod,
                 'enctype' => (string) ($FORM_ENCTYPE ?? 'multipart/form-data'),
                 'action' => $locked ? '' : (string) ($FORM_ACTION ?? ''),
                 'attributes' => $saveBarAttributes,
-                'footer' => $locked
+                'footer' => $csrfField.($locked
                     ? $noticeHtml
                     : ($partial ? $noticeHtml : '').(\Wonder\Backend\Support\ResourceFormLayoutRenderer::hasSubmit($FORM_LAYOUT) ? '' : '
                     <div class="col-12">
                         <wi-card class="col-12">
                             <div class="col-12">'.$submitHtml().'</div>
                         </wi-card>
-                    </div>'),
+                    </div>')),
             ]
         )
     ?>
 <?php } else { ?>
-<form method="<?=htmlspecialchars((string) ($FORM_METHOD ?? 'POST'), ENT_QUOTES, 'UTF-8')?>"
+<form method="<?=htmlspecialchars($formMethod, ENT_QUOTES, 'UTF-8')?>"
       enctype="<?=htmlspecialchars((string) ($FORM_ENCTYPE ?? 'multipart/form-data'), ENT_QUOTES, 'UTF-8')?>"
       action="<?=$locked ? '' : htmlspecialchars((string) ($FORM_ACTION ?? ''), ENT_QUOTES, 'UTF-8')?>"
       <?=$locked ? 'onsubmit="return false"' : 'onsubmit="loadingSpinner()"'?>
       <?=\Wonder\App\Support\AttributeString::render($saveBarAttributes)?>>
+    <?=$csrfField?>
     <div class="row g-3">
         <?php if ($readonly) { echo $noticeHtml; } ?>
         <div class="<?=!empty($SIDEBAR_FIELDS) ? 'col-9' : 'col-12'?>">
