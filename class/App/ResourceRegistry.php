@@ -119,13 +119,15 @@ final class ResourceRegistry
             return null;
         }
 
+        $fallback = null;
         foreach (self::all() as $resourceClass) {
             if ($resourceClass::modelTable() === $table) {
+                if ($resourceClass::isTableFallback()) { $fallback ??= $resourceClass; continue; }
                 return $resourceClass;
             }
         }
 
-        return null;
+        return $fallback;
     }
 
     private static function resourceCandidates(): array

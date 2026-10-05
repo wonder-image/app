@@ -1,5 +1,21 @@
 # AGENTS.md
 
+Shared modal triggers: use `Button::opensModal($id)` with an optional href
+fallback, never force a view render theme. It emits Wonder declarative triggers
+or Bootstrap attributes based on the page. Existing `Modal` supports frontend
+opt-in (`frontend()`); lib retains legacy `modal()` with focus/Esc/inert support.
+Account dialogs belong in the layout's `page_modals`, outside main/form columns.
+Place Cancel then Save in `Modal::footer()`; associate external submit buttons
+with the body form using its id and the native `form` attribute.
+Wonder Select renders a native visible fallback; lib enhancement binds its label
+to the visible button and honors searchable country/state fields without forcing
+a theme or introducing another input implementation.
+Shipping labels are optional. Generic Contact/ContactAddress Resources expose
+admin-only create/edit panels with CSRF, no API or delete. They are table
+fallbacks: module/site contact panels retain lookup precedence and navigation.
+Early routing preloads core translations before site lang.php can call __r().
+See `docs/app/concetti/utenti/contatti-backend.md`.
+
 ## Project overview
 
 - Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers.
@@ -238,6 +254,28 @@ php forge start
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
+- Reusable frontend auth lives in `class/Auth/Frontend`: opt into `AuthRoutes`
+  with an `AuthProfile`, and extend fields, server validation, explicit write
+  whitelists and idempotent business hooks rather than copying controllers.
+  Configure email-verification permissions separately. `AccountPanel` owns
+  shared presentation/navigation, not commercial contacts or payment storage.
+  Keep page alerts outside forms, active-page theme resolution and private
+  SEO defaults. `frontend.layout.body-start` emits the internal user id and
+  consumes success-only auth events without PII. See auth-frontend.md.
+- Shared contact storage lives in `App/Models/Contacts/{Contact,ContactAddress}`
+  and `App/Models/System/ExternalReference`, without requiring gestionale.
+  Shared SQL tables are `contacts`, `contact_addresses`, `external_references`.
+  `SharedContactTablesMigration` atomically renames legacy `gst_*` tables before
+  schema updates, preserving IDs/FKs; conflicts must stop, never drop or merge.
+  Gestionale subclasses add only commercial fields. Use `ContactAccount`
+  for account linking and `AccountAddressForm` for explicit translated labels,
+  country-aware defaults and responsive Container layouts; do not require
+  billing data during signup or reset submitted empty values to defaults.
+- Complete account address saves use `AccountAddressValidation`, not global
+  Contact required fields (signup must remain billing-free). Reuse
+  `AccountAddressModal` and `Modal::frontend()` for shipping dialogs, preserve
+  page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
+  fiscal data use `WhenFilledValidator`; required validators still apply.
 - Reusable impersonation uses `Wonder\Auth\Impersonation`; consumers must provide explicit backend actor authorities, CSRF-protected issue/stop routes, a visible active-state banner, and must never impersonate a backend-capable subject.
 - Frontend form rendering must resolve the active page theme. Do not force `render('wonder')` in module/site views; call `render()` or rely on the element string renderer.
 - Runtime module validation must not require the package `composer.json`, because some production deploys strip it from installed packages.

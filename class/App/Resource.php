@@ -51,6 +51,9 @@ abstract class Resource
         return static::modelClass()::$table;
     }
 
+    /** A generic panel must not shadow a module/site panel in table-based links. */
+    public static function isTableFallback(): bool { return false; }
+
     public static function path(): string
     {
         $path = trim(static::$path);

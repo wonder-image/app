@@ -8,6 +8,7 @@ use Wonder\Themes\Concerns\RendersButtonPostForm;
 class Button extends Component
 {
     use RendersButtonPostForm;
+    use \Wonder\Themes\Concerns\RendersButtonModal;
     use \Wonder\Themes\Concerns\RendersButtonLightbox;
 
     public function render($class): string
@@ -25,6 +26,7 @@ class Button extends Component
         $type = trim((string) ($schema['type'] ?? 'button'));
         $label = $this->escape((string) $class->getLabel());
         $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
+        $attributes = $this->modalAttributes($schema, $attributes, 'wonder');
         $isPostButton = $this->isPostButton($schema);
 
         $classes[] = 'btn-'.($variant !== '' ? $variant : 'primary').($outline ? '-o' : '');

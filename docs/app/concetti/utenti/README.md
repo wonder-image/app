@@ -49,6 +49,7 @@ Il sistema di accesso del framework ha due lati:
 - [Verifica email](verifica-email.md)
 - [Registrazione consensi](consensi.md)
 - [Auth federata Google / Apple](auth-federata.md)
+- [Auth frontend e pannello account](auth-frontend.md)
 
 ## Flusso "accesso negato" in breve
 

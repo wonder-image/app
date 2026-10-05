@@ -1,6 +1,7 @@
 {
     "media": { "load_content": "Carica contenuto" },
     "forms" : {
+        "clear_search": "Cancella ricerca",
         "fields" : {
             "name" : { "label" : "Nome" },
             "surname" : { "label" : "Cognome" },

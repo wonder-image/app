@@ -1,0 +1,64 @@
+{
+    "title": "Il mio account",
+    "seo": {
+        "description": "Gestisci dati personali, indirizzi e metodi di pagamento del tuo account."
+    },
+    "overview_title": "Riepilogo account",
+    "breadcrumb_home": "Home",
+    "saved": "Le modifiche sono state salvate.",
+    "notice_title": "Operazione completata",
+    "error_title": "Controlla i dati",
+    "validation": { "required": "{{field}}: campo obbligatorio.", "invalid": "{{field}}: valore non valido.", "hint": "I campi indicati con * sono obbligatori." },
+    "not_configured": "Non ancora configurato",
+    "errors": {
+        "save": "Non è stato possibile salvare le modifiche. Controlla i dati e riprova.",
+        "contact": "Non è stato possibile collegare l’account alla scheda cliente. Controlla l’email del profilo o contatta l’assistenza."
+    },
+    "actions": {
+        "edit": "Modifica",
+        "manage": "Gestisci",
+        "save": "Salva modifiche",
+        "cancel": "Annulla",
+        "back": "Torna all’account"
+    },
+    "personal": {
+        "label": "Dati personali",
+        "title": "Modifica i dati personali",
+        "section": "Informazioni personali"
+    },
+    "navigation": {
+        "label": "Navigazione account",
+        "welcome": "Bentornato",
+        "overview": "Riepilogo",
+        "profile": "Dati personali",
+        "billing": "Fatturazione",
+        "shipping": "Indirizzi",
+        "payment_methods": "Metodi di pagamento",
+        "logout": "Esci"
+    },
+    "payment_methods": {
+        "label": "Metodi di pagamento",
+        "title": "Metodi di pagamento",
+        "summary": "Gestiti in sicurezza tramite Stripe",
+        "pending": "Il collegamento al portale Stripe è predisposto, ma resterà disattivato finché il gestionale non esporrà l’identificativo cliente Stripe.",
+        "ready": "Verrai reindirizzato al portale sicuro di Stripe per gestire i metodi di pagamento."
+    },
+    "billing": {
+        "label": "Indirizzo di fatturazione",
+        "title": "Modifica l’indirizzo di fatturazione",
+        "intro": "Questi dati saranno utilizzati quando un acquisto richiede fatturazione."
+    },
+    "shipping": {
+        "label": "Indirizzi di spedizione",
+        "title": "Indirizzi di spedizione",
+        "intro": "Indica il destinatario e l’indirizzo da usare per le consegne.",
+        "one": "1 indirizzo salvato",
+        "many": "{{count}} indirizzi salvati",
+        "empty": "Non hai ancora salvato indirizzi di spedizione.",
+        "add": "Aggiungi indirizzo",
+        "address": "Indirizzo",
+        "address_label": "Etichetta dell’indirizzo",
+        "create_title": "Aggiungi un indirizzo di spedizione",
+        "edit_title": "Modifica l’indirizzo di spedizione"
+    }
+}

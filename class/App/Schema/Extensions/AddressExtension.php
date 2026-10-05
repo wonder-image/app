@@ -402,6 +402,12 @@ final class AddressExtension
 
     private function dataField(object $field, string ...$aliases): object
     {
+        if (array_intersect($aliases, ['cf', 'pi', 'pec']) !== []) {
+            $field->schema('validators', array_map(
+                static fn ($validator) => new \Wonder\Data\Validators\WhenFilledValidator($validator),
+                (array) $field->getSchema('validators')
+            ));
+        }
         if ($this->isRequiredField(...$aliases) && method_exists($field, 'required')) {
             $field->required();
         }

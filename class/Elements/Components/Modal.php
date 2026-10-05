@@ -27,8 +27,9 @@ use Wonder\Elements\Concerns\IsContainer;
  * Dentro non c'è un `<form>` e la finestra esce dal form della Resource
  * appena la pagina è pronta: i suoi campi li legge e li scrive uno script
  * della pagina, non partono con il record. La apre un bottone con
- * `opensModal()` (o `data-bs-toggle="modal"`). Vive solo nel backend
- * Bootstrap: sul tema Wonder non si disegna.
+ * `data-bs-toggle="modal"`. Il frontend è esplicito: `frontend()->id(...)`
+ * usa il componente `wi-modal` e la funzione `modal('#id')` della lib.
+ * Senza opt-in mantiene il comportamento backend-only precedente.
  */
 class Modal extends Component
 {
@@ -53,6 +54,12 @@ class Modal extends Component
     public function title(string $title): self
     {
         return $this->schema('title', $title);
+    }
+
+    /** Explicit opt-in: existing backend-only modals stay invisible in Wonder. */
+    public function frontend(bool $enabled = true): self
+    {
+        return $this->schema('frontend', $enabled);
     }
 
     public function getTitle(): string

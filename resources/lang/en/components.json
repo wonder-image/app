@@ -1,6 +1,7 @@
 {
     "media": { "load_content": "Load content" },
     "forms" : {
+        "clear_search": "Clear search",
         "fields" : {
             "name" : { "label" : "First Name" },
             "surname" : { "label" : "Last Name" },

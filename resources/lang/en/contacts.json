@@ -1,0 +1,9 @@
+{
+  "title": "Contacts", "contact": "Contact", "email": "Email", "note": "Notes",
+  "active": "Active contact", "enabled": "Active", "disabled": "Inactive",
+  "addresses": "Shipping addresses", "address": "Shipping address", "address_label": "Label (optional)",
+  "invalid": "Check the contact type and status.",
+  "invalid_address": "Check the address country and province.",
+  "invalid_contact": "Invalid contact: the address must belong to an existing contact and cannot be transferred.",
+  "csrf": "Invalid form session. Reload the page and try again."
+}

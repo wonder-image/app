@@ -175,6 +175,8 @@ class RouteDispatcher
         $GLOBALS['ROOT_APP'] = $runtimeRoot;
 
         require_once $runtimeRoot.'/function/helper.php';
+        // Resource metadata can be translated while __r() loads routes from lang.php.
+        \Wonder\App\TranslationBootstrap::preload($runtimeRoot, $this->root);
     }
 
     /**

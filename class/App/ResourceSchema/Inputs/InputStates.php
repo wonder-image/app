@@ -18,6 +18,16 @@ class InputStates extends Input
 
     protected string $helper = 'inputStates';
 
+    public function compile(): ?ElementField
+    {
+        $element = parent::compile();
+        $country = (string) ($this->schema['context']['country'] ?? '');
+        if ($element && !empty($this->schema['context']['required_when_states_available'])) {
+            $element->required($country !== '' && states($country) !== []);
+        }
+        return $element;
+    }
+
     public function country(string $country): static
     {
         $country = trim($country);
@@ -38,7 +48,8 @@ class InputStates extends Input
 
         $country = (string) ($this->schema['context']['country'] ?? '');
 
-        return $this->searchableSelectElement($country !== '' ? states($country) : [])
+        // Do not silently select the first province on an empty/new address.
+        return $this->searchableSelectElement(['' => '', ...($country !== '' ? states($country) : [])])
             ->attr('data-wi-input-state', 'true')
             ->attr('data-wi-list-states', $country)
             ->attr('data-wi-input-attribute', (string) ($this->schema['attribute'] ?? ''));

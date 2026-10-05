@@ -47,6 +47,8 @@
   * [Verifica email](concetti/utenti/verifica-email.md)
   * [Registrazione consensi](concetti/utenti/consensi.md)
   * [Auth federata Google / Apple](concetti/utenti/auth-federata.md)
+  * [Auth frontend e pannello account](concetti/utenti/auth-frontend.md)
+  * [Contatti backend](concetti/utenti/contatti-backend.md)
   * [Token monouso e impersonificazione](concetti/utenti/token-e-impersonificazione.md)
 * [Componenti UI](concetti/componenti/README.md)
   * [Charts](concetti/componenti/charts.md)

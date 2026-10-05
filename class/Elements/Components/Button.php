@@ -93,9 +93,25 @@ class Button extends Link
         return $this->schema('confirm', $message);
     }
 
+    /** Open a Modal using the current page theme; an href remains a no-JS fallback. */
+    public function opensModal(string $id): self
+    {
+        if (!empty($this->schema['lightbox'])) {
+            throw new InvalidArgumentException('A button cannot open both a modal and a lightbox.');
+        }
+        $id = ltrim(trim($id), '#');
+        if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/', $id)) {
+            throw new InvalidArgumentException('Modal id must be selector-safe.');
+        }
+        return $this->schema('modal_id', $id);
+    }
+
     /** Open one URL or a gallery. Extensionless image endpoints can use type: 'image'. */
     public function lightbox(string|array $urls, ?string $type = null): self
     {
+        if (!empty($this->schema['modal_id'])) {
+            throw new InvalidArgumentException('A button cannot open both a modal and a lightbox.');
+        }
         if ($type !== null && !in_array($type, ['image', 'iframe'], true)) {
             throw new InvalidArgumentException('Lightbox type must be image or iframe.');
         }

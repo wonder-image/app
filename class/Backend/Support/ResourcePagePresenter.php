@@ -192,6 +192,7 @@ HTML;
             }
 
             $clone = $this->applyModelFieldState(clone $field, $mode);
+            $this->hydrateAddressCountry($clone, $values);
             $name = property_exists($clone, 'name') ? (string) ($clone->name ?? '') : '';
 
             if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
@@ -245,6 +246,7 @@ HTML;
     private function hydrateField(object $field, array $values, array $errors, string $mode, array $placeholders = []): object
     {
         $clone = $this->applyModelFieldState(clone $field, $mode);
+        $this->hydrateAddressCountry($clone, $values);
         $name = property_exists($clone, 'name') ? (string) ($clone->name ?? '') : '';
 
         if ($name !== '' && array_key_exists($name, $values) && method_exists($clone, 'value')) {
@@ -267,6 +269,15 @@ HTML;
         }
 
         return $clone;
+    }
+
+    private function hydrateAddressCountry(object $field, array $values): void
+    {
+        if (!$field instanceof \Wonder\App\ResourceSchema\Inputs\InputStates) { return; }
+        $countryKey = preg_replace('/province$/', 'country', $field->name);
+        if ($countryKey !== $field->name && array_key_exists($countryKey, $values)) {
+            $field->context('country', is_string($values[$countryKey]) ? $values[$countryKey] : '');
+        }
     }
 
     private function applyModelFieldState(object $field, string $mode): object

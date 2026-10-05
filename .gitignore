@@ -16,6 +16,7 @@ example/
 !/tests/deferred-media.php
 !/tests/responsive-media.php
 !/tests/button-lightbox.php
+!/tests/auth-frontend.php
 !/tests/scheduler.php
 !/tests/scheduler-integration.php
 /bin/release.php

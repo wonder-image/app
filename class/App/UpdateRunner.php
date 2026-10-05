@@ -10,6 +10,7 @@ use Wonder\App\Module\ModuleDependencySorter;
 use Wonder\App\Module\Registry as ModuleRegistry;
 use Wonder\App\Support\DefaultRows;
 use Wonder\App\Support\SocietyLocationsMigration;
+use Wonder\App\Support\SharedContactTablesMigration;
 use Wonder\App\Support\TableSync;
 use Wonder\Sql\Connection;
 
@@ -110,6 +111,7 @@ class UpdateRunner
             $runId = $this->createRunRow($releaseId, $triggerType, $source, $startedAt);
             $result->run_id = $runId > 0 ? $runId : null;
 
+            $result->stats->contact_tables = SharedContactTablesMigration::run($this->connection);
             $result->stats->tables = $this->runTables();
             $result->stats->rows = $this->runFiles($this->rowDirectories());
             $result->stats->society_locations = SocietyLocationsMigration::runIfNeeded();

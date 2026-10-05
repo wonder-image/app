@@ -10,6 +10,7 @@ use Wonder\Themes\Concerns\RendersButtonPostForm;
 class Button extends Component
 {
     use CanSpanColumn, HasAttributes, RendersButtonPostForm;
+    use \Wonder\Themes\Concerns\RendersButtonModal;
     use \Wonder\Themes\Concerns\RendersButtonLightbox;
 
     public function render($class): string
@@ -27,6 +28,7 @@ class Button extends Component
         $href = trim((string) $class->getHref());
         $type = trim((string) ($schema['type'] ?? 'button'));
         $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
+        $attributes = $this->modalAttributes($schema, $attributes, 'bootstrap');
         $isPostButton = $this->isPostButton($schema);
 
         $classes[] = "text-decoration-none";

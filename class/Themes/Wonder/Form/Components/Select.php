@@ -12,7 +12,7 @@ class Select extends Field
         $name = $this->escape((string) ($this->schema['name'] ?? ''));
         $value = $this->schema['value'] ?? '';
         $attributes = $this->fieldAttributes();
-        $class = $this->fieldClass('wi-input d-none');
+        $class = $this->fieldClass('wi-input');
         $options = is_array($this->schema['options'] ?? null) ? $this->schema['options'] : [];
         $optionHtml = '';
         $multiple = !empty($this->schema['attributes']['multiple']);
