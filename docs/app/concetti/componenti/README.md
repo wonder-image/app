@@ -558,7 +558,8 @@ diretto di `.ratio`.
 
 `Button::post($action, $label)` rende un `<form method="post">` con un vero
 `<button type="submit">`. `Button::to($action, $label)->type('post')` è
-equivalente. Il form porta il token CSRF. Usa
+equivalente. Il form porta il token CSRF e, con `->hidden(['id' => 7])`, un
+`<input type="hidden">` per ogni campo da mandare insieme al bottone. Usa
 `->confirm($message, title: ..., ok: ..., variant: ...)` per la conferma della
 lib (`data-wi-confirm*` sul form) e `->formAttributes()` solo per attributi
 aggiuntivi del form.

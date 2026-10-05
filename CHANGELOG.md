@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- `Button::hidden($fields)`: i campi nascosti che il form di `Button::post()`
+  manda insieme al bottone, escapati, in entrambi i temi.
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in
   un solo punto (`extra.wonder.lib` nel `composer.json` del framework). `php forge update` la confronta con la lib
   installata nel sito e, se è più vecchia, si ferma indicando il comando

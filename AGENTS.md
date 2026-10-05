@@ -16,7 +16,8 @@ a Resource layout (`ResourceFormLayoutRenderer::renderModalBody()`). Part
 classes (`dialogClass()`..`footerClass()`, Dropdown `toggleClass()`,
 `menuClass()`, `itemClass()`) append to theme classes through
 `HasPartAttributes` / `RendersPartAttributes`; add one public method per part,
-never a generic part API. Confirmations use the lib `data-wi-confirm*`
+never a generic part API. `Button::post()->hidden([...])` carries hidden fields
+in the generated form. Confirmations use the lib `data-wi-confirm*`
 contract (`HasConfirmation`, `RendersPostForm`): `Button::confirm($message,
 title:, ok:, variant:)` and Dropdown items with `confirm*` options; POST
 Dropdown items (`'method' => 'post'`) render a CSRF form per item through the
