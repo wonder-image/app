@@ -79,7 +79,13 @@
         "back" : "Back",
         "next" : "Next",
         "retry" : "Retry",
-        "close" : "Close"
+        "close" : "Close",
+        "confirm" : "Confirm",
+        "cancel" : "Cancel"
+    },
+    "confirm" : {
+        "title" : "Confirm",
+        "text" : "Do you want to continue?"
     },
     "terms" : {
         "address" : "Address",

@@ -77,7 +77,13 @@
         "back" : "Retour",
         "next" : "Suivant",
         "retry" : "Réessayer",
-        "close" : "Fermer"
+        "close" : "Fermer",
+        "confirm" : "Confirmer",
+        "cancel" : "Annuler"
+    },
+    "confirm" : {
+        "title" : "Confirmer",
+        "text" : "Voulez-vous continuer ?"
     },
     "terms" : {
         "address" : "Adresse",
