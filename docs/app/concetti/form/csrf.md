@@ -34,6 +34,8 @@ Non serve scrivere il campo a mano in questi punti:
 
 - il renderer di `Wonder\Elements\Form\Form`, in entrambi i temi;
 - `Button::post()`, dentro il form che il bottone genera;
+- le voci `method => 'post'` del `Dropdown`, dentro il form di ogni voce;
+- `Modal::form()` con metodo `post`, dentro il form della finestra;
 - la pagina form delle Resource (`app/view/pages/backend/resource/form.php`),
   sia con layout sia senza;
 - i layout `backend.base` e `frontend.base`, che scrivono nel `<head>`:

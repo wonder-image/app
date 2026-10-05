@@ -5,15 +5,38 @@ namespace Wonder\Elements\Components;
 use InvalidArgumentException;
 use Wonder\Elements\Component;
 use Wonder\Elements\Concerns\CanSpanColumn;
+use Wonder\Elements\Concerns\HasConfirmation;
+use Wonder\Elements\Concerns\HasPartAttributes;
 use Wonder\Elements\Concerns\Renderer;
 
+/**
+ * Bottone con menu di voci.
+ *
+ * Opzioni di una voce (`item()`, `button()`, `action()`): `active`,
+ * `disabled`, `icon`, `title`, `target`, `rel`, `blank`, `attributes`,
+ * `variant` (colore della voce), `method` (`get` o `post`: `post` rende un
+ * form con token CSRF, un `<button type="submit">` e l'href come action) e
+ * `confirm` con `confirm_title`, `confirm_ok`, `confirm_variant` (la
+ * conferma della lib, sul form per le voci POST e sul tag per le altre).
+ *
+ *     Dropdown::make('Azioni')
+ *         ->item('Modifica', $editUrl)
+ *         ->action('Copia link', ['data-copy' => $url])
+ *         ->divider()
+ *         ->item('Elimina', $deleteUrl, [
+ *             'method' => 'post',
+ *             'variant' => 'danger',
+ *             'confirm' => 'Eliminare la voce?',
+ *         ]);
+ */
 class Dropdown extends Component
 {
-    use CanSpanColumn, Renderer;
+    use CanSpanColumn, HasConfirmation, HasPartAttributes, Renderer;
 
     private const ALLOWED_SIZES = ['', 'sm', 'lg'];
     private const ALLOWED_DIRECTIONS = ['down', 'up', 'start', 'end'];
     private const ALLOWED_ALIGNMENTS = ['start', 'end'];
+    private const ALLOWED_METHODS = ['get', 'post'];
 
     private string $label = '';
 
@@ -51,7 +74,10 @@ class Dropdown extends Component
      */
     public function items(array $items): self
     {
-        $this->items = $items;
+        $this->items = array_map(
+            fn (mixed $item): mixed => is_array($item) ? $this->normalizeItem($item) : $item,
+            $items
+        );
 
         return $this;
     }
@@ -75,9 +101,25 @@ class Dropdown extends Component
             'href' => $href,
         ]);
 
-        $this->items[] = $item;
+        $this->items[] = $this->normalizeItem($item);
 
         return $this;
+    }
+
+    /**
+     * Una voce `<button type="button">` senza href, per le azioni JavaScript.
+     *
+     * @param array<string, mixed> $attributes attributi del bottone
+     * @param array<string, mixed> $options opzioni della voce, come `item()`
+     */
+    public function action(string $label, array $attributes = [], array $options = []): self
+    {
+        $options['attributes'] = array_merge(
+            is_array($options['attributes'] ?? null) ? $options['attributes'] : [],
+            $attributes
+        );
+
+        return $this->button($label, $options);
     }
 
     /**
@@ -115,6 +157,24 @@ class Dropdown extends Component
         ];
 
         return $this;
+    }
+
+    /** Classi aggiunte al bottone che apre il menu. */
+    public function toggleClass(string $class): self
+    {
+        return $this->setPartClass('toggle', $class);
+    }
+
+    /** Classi aggiunte al contenitore delle voci. */
+    public function menuClass(string $class): self
+    {
+        return $this->setPartClass('menu', $class);
+    }
+
+    /** Classi aggiunte a ogni voce cliccabile (link, bottone, POST). */
+    public function itemClass(string $class): self
+    {
+        return $this->setPartClass('item', $class);
     }
 
     public function variant(string $variant): self
@@ -178,5 +238,55 @@ class Dropdown extends Component
     public function grouped(bool $grouped = true): self
     {
         return $this->schema('grouped', $grouped);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     * @return array<string, mixed>
+     */
+    private function normalizeItem(array $item): array
+    {
+        if (array_key_exists('method', $item)) {
+            $method = strtolower(trim((string) $item['method']));
+            unset($item['method']);
+
+            if (!in_array($method, self::ALLOWED_METHODS, true)) {
+                throw new InvalidArgumentException(
+                    'Metodo della voce non valido. Valori ammessi: '.implode(', ', self::ALLOWED_METHODS)
+                );
+            }
+
+            if ($method === 'post') {
+                if (trim((string) ($item['href'] ?? '')) === '') {
+                    throw new InvalidArgumentException('Una voce POST richiede un href, usato come action del form.');
+                }
+
+                $item['kind'] = 'post';
+            }
+        }
+
+        if (array_key_exists('variant', $item)) {
+            $variant = strtolower(trim((string) $item['variant']));
+
+            if ($variant !== '' && !preg_match('/^[a-z][a-z0-9-]*$/', $variant)) {
+                throw new InvalidArgumentException('Variante della voce non valida: lettere, numeri e trattini.');
+            }
+
+            $item['variant'] = $variant;
+        }
+
+        if (array_key_exists('confirm', $item)) {
+            $confirm = $this->confirmationSchema(
+                (string) $item['confirm'],
+                isset($item['confirm_title']) ? (string) $item['confirm_title'] : null,
+                isset($item['confirm_ok']) ? (string) $item['confirm_ok'] : null,
+                isset($item['confirm_variant']) ? (string) $item['confirm_variant'] : null
+            );
+
+            unset($item['confirm'], $item['confirm_title'], $item['confirm_ok'], $item['confirm_variant']);
+            $item = array_merge($item, $confirm);
+        }
+
+        return $item;
     }
 }

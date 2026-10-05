@@ -288,7 +288,12 @@ Modal::make('Costo del fornitore')
 | `scrollable()` | il corpo scorre, intestazione e bottoni restano fermi |
 | `columns()` / `gap()` | la griglia del corpo (`modal-body row g-3`), come su una `Card` |
 | `components(array)` | i campi e i componenti del corpo |
-| `footer(array)` | i bottoni in fondo, in fila (`Components\Button`, senza colonna) |
+| `footer(array)` | i bottoni in fondo, in fila (`Components\Button`, senza colonna); se c'è, prende il posto di `cancel()` / `submit()` |
+| `form(string $action, string $method = 'post', array $hidden = [])` | corpo e bottoni in un `<form>` con token CSRF e un `<input type="hidden">` per campo; metodi `get` e `post`, valori nascosti scalari o `null` |
+| `cancel(string $label = '')` | il bottone Annulla, che chiude la finestra (`components.buttons.cancel`) |
+| `submit(string $label = '', string $variant = 'primary')` | il bottone Salva, `type="submit"` (`components.buttons.save`) |
+| `help(string $text)` | un'icona con tooltip accanto al titolo |
+| `dialogClass()`, `headerClass()`, `titleClass()`, `bodyClass()`, `footerClass()` | classi aggiunte a quelle del tema su quella parte |
 
 Il markup è `.modal.fade[tabindex=-1][data-wi-modal-detach]` →
 `.modal-dialog.modal-dialog-centered` → `.modal-content` con
@@ -296,11 +301,12 @@ Il markup è `.modal.fade[tabindex=-1][data-wi-modal-detach]` →
 
 Tre cose da sapere:
 
-- **Niente `<form>` dentro.** La finestra nasce nel form della Resource e un
-  form annidato il browser lo butta via. I bottoni del fondo sono
-  `type="button"`: a leggere e scrivere i campi è uno script della pagina,
-  che trova la riga che ha aperto la finestra in `event.relatedTarget` di
-  `show.bs.modal`.
+- **Niente `<form>` dentro, se non lo chiedi.** La finestra nasce nel form
+  della Resource e un form annidato il browser lo butta via. I bottoni del
+  fondo sono `type="button"`: a leggere e scrivere i campi è uno script della
+  pagina, che trova la riga che ha aperto la finestra in
+  `event.relatedTarget` di `show.bs.modal`. Una finestra con `form()` va
+  invece resa fuori da ogni form (vedi sotto).
 - **Esce dal form.** Uno script, stampato una volta per pagina, sposta ogni
   `.modal[data-wi-modal-detach]` in fondo al `body` al `DOMContentLoaded`:
   i campi della finestra non partono con il record. È lo stesso passo della
@@ -311,9 +317,63 @@ Tre cose da sapere:
   `renderLayout()` la tratta così. I campi del corpo ricevono valori ed errori
   come gli altri, perché `ResourcePagePresenter` scende nei `components`.
 
-`Modal` vive solo nel backend Bootstrap: sul tema Wonder il renderer
-restituisce una stringa vuota, così una scheda condivisa fra i due temi resta
-in piedi.
+Sul tema Wonder la finestra esce solo con `frontend()` e un `id()` esplicito
+e usa la `wi-modal` della lib; senza `frontend()` il renderer restituisce una
+stringa vuota, così una scheda condivisa fra i due temi resta in piedi.
+
+### Modal con form
+
+Con `form()` la finestra invia da sé: corpo e bottoni stanno in un `<form>`
+con il token CSRF (`Csrf::fieldFor()`, solo per POST e con una sessione
+attiva) e i campi nascosti. In fondo arrivano Annulla e poi Salva, anche
+senza chiamare `cancel()` e `submit()`; `footer()` li sostituisce del tutto.
+
+```php
+use Wonder\App\ResourceSchema\FormField;
+use Wonder\Elements\Components\Modal;
+
+Modal::make('Registra pagamento')
+    ->id('pay-12')
+    ->help('Il pagamento resta modificabile fino alla chiusura.')
+    ->form(action: $url, hidden: ['order_id' => 12])
+    ->columns(12)
+    ->components([FormField::key('amount')->price()->label('Importo')->required()->columnSpan(6)])
+    ->cancel('Indietro')
+    ->submit('Registra', variant: 'success');
+```
+
+| | Bootstrap | Wonder (`frontend()`) |
+|---|---|---|
+| form | `<form method action>` fra `.modal-header` e la fine di `.modal-content`; con `scrollable()` anche `d-flex flex-column overflow-hidden`, così il corpo scorre | `<form class="wi-modal-form" method action>` attorno a `.wi-modal-body` e `.wi-modal-footer` |
+| Annulla | `btn-outline-secondary`, `type="button"`, `data-bs-dismiss="modal"` | `btn-dark-o` come i dialoghi della lib, `type="button"`, `wi-close-modal` |
+| Salva | `btn-<variant>`, `type="submit"` | `btn-<variant>`, `type="submit"` |
+| `help()` | componente `Tooltip` subito dopo l'`h5`, fuori dal titolo che gli script possono riscrivere | `span.wi-modal-help[data-wi-toggle="tooltip"]` nell'`h2`, con `tabindex="0"` e `aria-label`; `data-wi-title` è escapato due volte perché la lib lo scrive come HTML |
+
+Una `Modal` con `form()` dentro il layout di una Resource lancia
+`LogicException`: il suo `<form>` finirebbe annidato in quello della Resource.
+Rendila fuori, per esempio nei `page_modals` delle pagine account, e aprila
+con `Button::opensModal($id)`. Il token esce da solo, ma la verifica resta del
+handler: chiama `Csrf::verify()` (vedi [CSRF](../form/csrf.md)).
+
+### Classi delle parti
+
+`Modal`, `Dropdown` hanno un metodo per ogni parte interna che possiedono;
+le classi passate si aggiungono a quelle del tema, nello stesso attributo
+`class`:
+
+| Componente | Metodi | Parte |
+|---|---|---|
+| `Modal` | `dialogClass()` | `.modal-dialog` / `.wi-modal-content` |
+| | `headerClass()`, `titleClass()` | intestazione e titolo |
+| | `bodyClass()`, `footerClass()` | corpo e fondo |
+| `Dropdown` | `toggleClass()` | il bottone che apre il menu |
+| | `menuClass()` | `.dropdown-menu` / `.wi-dropdown-list` |
+| | `itemClass()` | ogni voce cliccabile (link, bottone, POST) |
+
+Le classi della radice restano su `addClass()`. Un nuovo componente con parti
+usa `Elements\Concerns\HasPartAttributes` (metodi `protected`, uno pubblico
+per parte) e, nei renderer, `Themes\Concerns\RendersPartAttributes`
+(`partAttributes()`, `partClass()`).
 
 ## Esempio: Alert
 
@@ -358,16 +418,41 @@ ButtonGroup::make([
         ->outline()
         ->item('Duplica', '/duplicate')
         ->item('Esporta CSV', '/export.csv', ['blank' => true])
+        ->action('Copia link', ['data-copy' => '/p/12'])
         ->divider()
-        ->button('Elimina', [
-            'attributes' => ['onclick' => "confirm('Eliminare?')"],
+        ->item('Elimina', '/backend/delete/12', [
+            'method' => 'post',
+            'variant' => 'danger',
+            'confirm' => 'Eliminare il record?',
+            'confirm_ok' => 'Elimina',
         ]),
 ])->label('Azioni record');
 ```
 
+Le conferme passano dalla lib (`wi.confirm`, attributi `data-wi-confirm*`):
+niente `window.confirm` né `onclick` scritti a mano.
+`Button::confirm($message, title: null, ok: null, variant: null)` mette la
+conferma sul form di `post()` e, per gli altri bottoni e link, sul tag
+stesso; la lib usa `danger` come variante di default per i POST e
+`primary` per il resto.
+
+Opzioni di una voce del `Dropdown` (`item()`, `button()`, `action()`):
+
+| Opzione | Effetto |
+|---|---|
+| `method` | `get` o `post`; `post` rende un form con token CSRF, `action` uguale all'href e un `<button type="submit">` come voce. Un href vuoto lancia `InvalidArgumentException` |
+| `confirm`, `confirm_title`, `confirm_ok`, `confirm_variant` | la conferma della lib, sul form per le voci POST e sul tag per le altre |
+| `variant` | colore della voce: `text-<variant>` in Bootstrap, `tx-<variant>` in Wonder |
+| `active`, `disabled`, `icon`, `title`, `target`, `rel`, `blank`, `attributes` | come prima; una `class` negli `attributes` entra nello stesso attributo della voce |
+
+`action($label, $attributes = [], $options = [])` è una voce
+`<button type="button">` senza href, per le azioni JavaScript; `text()` è una
+voce di solo testo (`dropdown-item-text` in Bootstrap).
+
 API principali:
 
-- `Button`: `post()`, `variant()`, `outline()`, `size()`, `type()`, `confirm()`,
+- `Button`: `post()`, `variant()`, `outline()`, `size()`, `type()`,
+  `confirm($message, title:, ok:, variant:)`,
   `formAttributes()`, `disabled()`,
   `active()`, `block()`, `nowrap()`, `icon()`, `arrow()`, `href()/blank()`,
   `target()`, `rel()`, `title()`, `onclick()`, `download()`
@@ -376,7 +461,10 @@ API principali:
 - `ButtonGroup`: `components()`, `add()`, `label()`, `toolbar()`,
   `vertical()`, `size()`
 - `Dropdown`: `variant()`, `outline()`, `size()`, `direction()`, `align()`,
-  `item()`, `button()`, `divider()`, `header()`, `text()`
+  `item()`, `button()`, `action()`, `divider()`, `header()`, `text()`,
+  `toggleClass()`, `menuClass()`, `itemClass()`
+- `Modal`: `form()`, `cancel()`, `submit()`, `help()`, `dialogClass()`,
+  `headerClass()`, `titleClass()`, `bodyClass()`, `footerClass()`
 - `Link`: `href()`, `blank()`, `target()`, `rel()`, `title()`, `onclick()`,
   `download()`, `icon()`, `muted()`
 - `Text::link(...)`: stesse opzioni del concern link condiviso, più `icon`,
@@ -464,8 +552,10 @@ diretto di `.ratio`.
 
 `Button::post($action, $label)` rende un `<form method="post">` con un vero
 `<button type="submit">`. `Button::to($action, $label)->type('post')` è
-equivalente. Usa `->confirm($message)` per la conferma e `->formAttributes()`
-solo per attributi aggiuntivi del form.
+equivalente. Il form porta il token CSRF. Usa
+`->confirm($message, title: ..., ok: ..., variant: ...)` per la conferma della
+lib (`data-wi-confirm*` sul form) e `->formAttributes()` solo per attributi
+aggiuntivi del form.
 
 Due cose da sapere con la [barra di salvataggio](../form/save-bar.md):
 

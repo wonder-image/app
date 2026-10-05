@@ -243,6 +243,15 @@ final class ResourceFormLayoutRenderer
      */
     private static function renderModal(Modal $modal): string
     {
+        // Il layout sta dentro il form della Resource: il browser butterebbe
+        // via il <form> annidato in fase di parsing, e i campi partirebbero
+        // con il record.
+        if (is_array($modal->getSchema('form'))) {
+            throw new \LogicException(
+                'Una Modal con form() va resa fuori dal form della Resource, non nel suo layout.'
+            );
+        }
+
         return (new BootstrapModalRenderer())->renderInner(
             $modal,
             self::renderComponents((array) ($modal->components ?? []), self::columnsMap($modal))

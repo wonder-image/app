@@ -2,10 +2,13 @@
 
 namespace Wonder\Themes\Wonder\Components;
 
+use Wonder\Themes\Concerns\RendersDropdownItems;
 use Wonder\Themes\Wonder\Component;
 
 class Dropdown extends Component
 {
+    use RendersDropdownItems;
+
     public function render($class): string
     {
         $schema = $class->getSchema();
@@ -40,11 +43,11 @@ class Dropdown extends Component
         $html = '<div class="'.$this->escape(implode(' ', array_values(array_unique(array_filter($wrapperClasses))))).'"'
             .($attributes !== '' ? ' '.$attributes : '')
             .'>';
-        $html .= '<button type="button" class="'.$this->escape(implode(' ', array_values(array_unique(array_filter($toggleClasses))))).'"'
+        $html .= '<button type="button" class="'.$this->escape($this->partClass($class, 'toggle', implode(' ', array_values(array_unique(array_filter($toggleClasses)))))).'"'
             .($disabled ? ' disabled' : '')
             .'>'.$label.' '.$caret.'</button>';
-        $html .= '<div class="wi-dropdown-list '.$this->escape($align === 'end' ? 'end' : 'start').'">';
-        $html .= $this->renderItems($class->getItems());
+        $html .= '<div class="'.$this->escape($this->partClass($class, 'menu', 'wi-dropdown-list '.($align === 'end' ? 'end' : 'start'))).'">';
+        $html .= $this->renderItems($class, $class->getItems());
         $html .= '</div>';
         $html .= '</div>';
 
@@ -54,7 +57,7 @@ class Dropdown extends Component
     /**
      * @param array<int, array<string, mixed>> $items
      */
-    private function renderItems(array $items): string
+    private function renderItems(object $dropdown, array $items): string
     {
         $html = '';
 
@@ -76,54 +79,13 @@ class Dropdown extends Component
                 continue;
             }
 
-            $classes = ['wi-dropdown-item'];
-            if (!empty($item['active'])) {
-                $classes[] = 'active';
-            }
-            if (!empty($item['disabled'])) {
-                $classes[] = 'disabled';
-            }
-
             $label = $this->escape((string) ($item['label'] ?? ''));
             $icon = trim((string) ($item['icon'] ?? ''));
             if ($icon !== '') {
                 $label = '<i class="'.$this->escape($icon).'"></i> '.$label;
             }
 
-            if (($item['kind'] ?? 'link') === 'button') {
-                $itemAttributes = $this->renderAttributes($item['attributes'] ?? null);
-                $html .= '<button type="button" class="'.$this->escape(implode(' ', $classes)).'"'
-                    .(!empty($item['disabled']) ? ' disabled' : '')
-                    .($itemAttributes !== '' ? ' '.$itemAttributes : '')
-                    .'>'.$label.'</button>';
-                continue;
-            }
-
-            $extra = '';
-            $href = trim((string) ($item['href'] ?? '#'));
-            $target = trim((string) ($item['target'] ?? ''));
-            $rel = trim((string) ($item['rel'] ?? ''));
-            $title = trim((string) ($item['title'] ?? ''));
-
-            if (!empty($item['blank'])) {
-                $target = '_blank';
-                $rel = trim($rel.' noopener noreferrer');
-            }
-            if ($target !== '') {
-                $extra .= ' target="'.$this->escape($target).'"';
-            }
-            if ($rel !== '') {
-                $extra .= ' rel="'.$this->escape($rel).'"';
-            }
-            if ($title !== '') {
-                $extra .= ' title="'.$this->escape($title).'"';
-            }
-
-            $itemAttributes = $this->renderAttributes($item['attributes'] ?? null);
-            $html .= '<a href="'.$this->escape($href).'" class="'.$this->escape(implode(' ', $classes)).'"'
-                .$extra
-                .($itemAttributes !== '' ? ' '.$itemAttributes : '')
-                .'>'.$label.'</a>';
+            $html .= $this->renderDropdownAction($dropdown, $item, 'wi-dropdown-item', 'tx-', $label);
         }
 
         return $html;

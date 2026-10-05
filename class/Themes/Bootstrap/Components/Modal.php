@@ -2,16 +2,20 @@
 
 namespace Wonder\Themes\Bootstrap\Components;
 
+use Wonder\App\ResourceSchema\FormField;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Components\Button as ButtonElement;
+use Wonder\Elements\Components\Tooltip;
+use Wonder\Http\Csrf;
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Bootstrap\Concerns\HasGap;
 use Wonder\Themes\Concerns\RendersComponentAttributes;
+use Wonder\Themes\Concerns\RendersPartAttributes;
 use Wonder\Themes\Concerns\RendersThemeComponents;
 
 class Modal extends Component
 {
-    use HasGap, RendersComponentAttributes, RendersThemeComponents;
+    use HasGap, RendersComponentAttributes, RendersPartAttributes, RendersThemeComponents;
 
     /** Lo script che stacca le finestre va stampato una volta per pagina. */
     private static bool $scriptEmitted = false;
@@ -53,21 +57,62 @@ class Modal extends Component
 
         $gap = is_array($modal->gap ?? null) ? $this->getGap($modal->gap) : '';
         $bodyClass = trim('modal-body row '.($gap !== '' ? $gap : 'g-3'));
-        $footer = $this->renderFooter((array) ($modal->footer ?? []));
+        $footer = $this->renderFooter(method_exists($modal, 'footerComponents')
+            ? $modal->footerComponents()
+            : (array) ($modal->footer ?? []));
+        $content = "<div {$this->partAttributes($modal, 'body', $bodyClass)}>{$bodyHtml}</div>"
+            .($footer !== '' ? "<div {$this->partAttributes($modal, 'footer', 'modal-footer')}>{$footer}</div>" : '');
 
-        // Non un `<form>`: la finestra nasce dentro il form della Resource, e
-        // un form annidato il browser lo butta via in fase di parsing. I
-        // campi li legge chi ha aperto la finestra.
+        // Senza form() non un `<form>`: la finestra nasce dentro il form
+        // della Resource, e un form annidato il browser lo butta via in fase
+        // di parsing. I campi li legge chi ha aperto la finestra.
         return "<div {$attributes} tabindex=\"-1\" aria-hidden=\"true\" data-wi-modal-detach>"
-            .'<div class="'.implode(' ', $dialog).'"><div class="modal-content">'
-            .'<div class="modal-header">'
-            .'<h5 class="modal-title" data-wi-modal-title>'.$this->escape($modal->getTitle()).'</h5>'
+            ."<div {$this->partAttributes($modal, 'dialog', implode(' ', $dialog))}><div class=\"modal-content\">"
+            ."<div {$this->partAttributes($modal, 'header', 'modal-header')}>"
+            ."<h5 {$this->partAttributes($modal, 'title', 'modal-title', ['data-wi-modal-title'])} data-wi-modal-title>"
+            .$this->escape($modal->getTitle()).'</h5>'
+            .$this->renderHelp($modal)
             .'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>'
             .'</div>'
-            ."<div class=\"{$bodyClass}\">{$bodyHtml}</div>"
-            .($footer !== '' ? "<div class=\"modal-footer\">{$footer}</div>" : '')
+            .$this->wrapForm($modal, $content, (bool) ($schema['scrollable'] ?? false))
             .'</div></div></div>'
             .$this->script();
+    }
+
+    /** L'icona di aiuto accanto al titolo, fuori dall'h5 che uno script può riscrivere. */
+    protected function renderHelp(object $modal): string
+    {
+        $help = trim((string) ($modal->getSchema('help') ?? ''));
+
+        return $help !== '' ? Tooltip::make($help)->render('bootstrap') : '';
+    }
+
+    /**
+     * Corpo e bottoni nel `<form>` di `form()`, con il token CSRF e i campi
+     * nascosti; senza `form()` il contenuto resta com'è. In una finestra che
+     * scorre il form fa da colonna flessibile, così il corpo scorre ancora.
+     */
+    protected function wrapForm(object $modal, string $content, bool $scrollable): string
+    {
+        $form = $modal->getSchema('form');
+
+        if (!is_array($form)) {
+            return $content;
+        }
+
+        $method = (string) ($form['method'] ?? 'post');
+        $attributes = ['method' => $method, 'action' => (string) ($form['action'] ?? '')];
+
+        if ($scrollable) {
+            $attributes['class'] = 'd-flex flex-column overflow-hidden';
+        }
+
+        $hidden = '';
+        foreach ((array) ($form['hidden'] ?? []) as $name => $value) {
+            $hidden .= FormField::key((string) $name)->hidden()->value($value)->render('bootstrap');
+        }
+
+        return '<form '.$this->renderAttributes($attributes).'>'.Csrf::fieldFor($method).$hidden.$content.'</form>';
     }
 
     /**
@@ -82,7 +127,13 @@ class Modal extends Component
 
         foreach ($components as $component) {
             if ($component instanceof ButtonElement) {
-                $html .= (clone $component)->schema('inline', true)->render('bootstrap');
+                $button = (clone $component)->schema('inline', true);
+
+                if ($button->getSchema('modal_cancel')) {
+                    $button->attr('data-bs-dismiss', 'modal');
+                }
+
+                $html .= $button->render('bootstrap');
                 continue;
             }
 

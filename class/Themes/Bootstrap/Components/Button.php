@@ -31,6 +31,10 @@ class Button extends Component
         $attributes = $this->modalAttributes($schema, $attributes, 'bootstrap');
         $isPostButton = $this->isPostButton($schema);
 
+        if (!$isPostButton) {
+            $attributes = array_merge($attributes, $this->confirmAttributes($schema));
+        }
+
         $classes[] = "text-decoration-none";
 
         $classes[] = ($schema['outline'] ?? false) ? "btn-outline-{$variant}" : "btn-{$variant}";

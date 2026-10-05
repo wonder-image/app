@@ -81,7 +81,8 @@
         "retry" : "Retry",
         "close" : "Close",
         "confirm" : "Confirm",
-        "cancel" : "Cancel"
+        "cancel" : "Cancel",
+        "save" : "Save"
     },
     "confirm" : {
         "title" : "Confirm",

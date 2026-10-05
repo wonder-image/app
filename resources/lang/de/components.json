@@ -79,7 +79,8 @@
         "retry" : "Wiederholen",
         "close" : "Schließen",
         "confirm" : "Bestätigen",
-        "cancel" : "Abbrechen"
+        "cancel" : "Abbrechen",
+        "save" : "Speichern"
     },
     "confirm" : {
         "title" : "Bestätigen",

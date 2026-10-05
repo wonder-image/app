@@ -81,7 +81,8 @@
         "retry" : "Riprova",
         "close" : "Chiudi",
         "confirm" : "Conferma",
-        "cancel" : "Annulla"
+        "cancel" : "Annulla",
+        "save" : "Salva"
     },
     "confirm" : {
         "title" : "Conferma",
