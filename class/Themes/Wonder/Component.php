@@ -17,7 +17,7 @@ abstract class Component implements Renderer
     {
         $html = "";
         foreach ($components as $key => $component) {
-            $html .= $component->render();
+            $html .= $component->render('wonder');
         }
 
         return $html;

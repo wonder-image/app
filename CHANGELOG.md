@@ -176,6 +176,10 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Un contenitore (`Card`, `Container`, `Form`, `ButtonGroup`) reso con un tema
+  esplicito rende i figli con quel tema, non con quello attivo: una `Card`
+  resa con `render('bootstrap')` fuori dal backend cercava i renderer Wonder
+  dei figli.
 - Campi data (`dateInput()`, `dateRange()`, `textDate()`, `textDatetime()`):
   un value con le barre si legge `d/m/Y`, il formato che scrive il picker.
   Prima `05/10/2026` usciva `10/05/2026`, con giorno e mese scambiati.
