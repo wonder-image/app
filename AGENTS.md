@@ -7,6 +7,18 @@ opt-in (`frontend()`); lib retains legacy `modal()` with focus/Esc/inert support
 Account dialogs belong in the layout's `page_modals`, outside main/form columns.
 Place Cancel then Save in `Modal::footer()`; associate external submit buttons
 with the body form using its id and the native `form` attribute.
+`Modal::form($action, $method, $hidden)` wraps body and footer in a form with
+`Csrf::fieldFor()` and hidden inputs, and adds Cancel then Save automatically
+(`cancel()`, `submit()`; a manual `footer()` replaces them). Render it outside
+any other form: inside a Resource layout it throws `LogicException`. Part
+classes (`dialogClass()`..`footerClass()`, Dropdown `toggleClass()`,
+`menuClass()`, `itemClass()`) append to theme classes through
+`HasPartAttributes` / `RendersPartAttributes`; add one public method per part,
+never a generic part API. Confirmations use the lib `data-wi-confirm*`
+contract (`HasConfirmation`, `RendersPostForm`): `Button::confirm($message,
+title:, ok:, variant:)` and Dropdown items with `confirm*` options; POST
+Dropdown items (`'method' => 'post'`) render a CSRF form per item through the
+shared `RendersDropdownItems`. Never emit `window.confirm`.
 Wonder Select renders a native visible fallback; lib enhancement binds its label
 to the visible button and honors searchable country/state fields without forcing
 a theme or introducing another input implementation.

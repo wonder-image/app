@@ -22,12 +22,8 @@ trait HasAttributes
                         $html[] = $key . '="' . $this->escape($style) . '"';
                     }
                 } elseif (is_array($value)) {
-                    $attr = $key . '="';
-                    foreach ($value as $k => $c) {
-                        $attr .= $this->escape((string) $c) . ' ';
-                    }
-                    $attr .= '"';
-                    $html[] = $attr;
+                    $tokens = array_filter(array_map(static fn ($c): string => trim((string) $c), $value), static fn (string $c): bool => $c !== '');
+                    $html[] = $key . '="' . $this->escape(implode(' ', $tokens)) . '"';
                 } else {
                     $html[] = $key . '="' . $this->escape((string) $value) . '"';
                 }

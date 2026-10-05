@@ -79,7 +79,8 @@
         "retry" : "Réessayer",
         "close" : "Fermer",
         "confirm" : "Confirmer",
-        "cancel" : "Annuler"
+        "cancel" : "Annuler",
+        "save" : "Enregistrer"
     },
     "confirm" : {
         "title" : "Confirmer",

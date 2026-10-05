@@ -103,8 +103,28 @@
   `Button::post()` e nella pagina form delle Resource; i layout backend e
   frontend scrivono `<meta name="wi-csrf">`. Nessuna richiesta viene ancora
   bloccata: la verifica resta a chi la chiama.
+- `Modal::form($action, $method, $hidden)`: corpo e bottoni in un `<form>` con
+  token CSRF e campi nascosti, in Bootstrap e nella `wi-modal` di
+  `frontend()`. In fondo Annulla e poi Salva (`cancel()`, `submit()`,
+  `components.buttons.save` nuova in tutte le lingue); `help()` mette un
+  tooltip accanto al titolo. Una `Modal` con `form()` nel layout di una
+  Resource lancia `LogicException`.
+- Classi delle parti interne, aggiunte a quelle del tema: `Modal::dialogClass()`,
+  `headerClass()`, `titleClass()`, `bodyClass()`, `footerClass()` e
+  `Dropdown::toggleClass()`, `menuClass()`, `itemClass()` (concern
+  `HasPartAttributes` / `RendersPartAttributes`).
+- `Dropdown`: voci POST (`'method' => 'post'`) con token CSRF e conferma
+  (`confirm`, `confirm_title`, `confirm_ok`, `confirm_variant`), `variant` per
+  il colore della voce e `action()` per una voce `<button type="button">`
+  senza href.
 
 ### Changed
+- `Button::confirm($message, title:, ok:, variant:)`: la conferma usa
+  `data-wi-confirm*` della lib al posto di `onsubmit="window.confirm(...)"`.
+  La firma con il solo messaggio resta valida; sui bottoni e link non POST la
+  conferma ora va sul tag invece di essere ignorata.
+- Una `class` negli `attributes` di una voce del `Dropdown` entra nello stesso
+  attributo `class` della voce invece di produrne un secondo.
 - `AuthSession::csrfToken()` e `verify()` delegano a `Wonder\Http\Csrf`: stesso
   token e stessa chiave di sessione, nessun cambiamento per chi li usa.
 - `TableColumn::price()`: nelle tabelle l'importo si legge all'italiana (`1.234,50 €`),
@@ -150,6 +170,11 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Dropdown Wonder: il separatore esce come `wi-dropdown-divider` (prima
+  `dropdown-divider`, la classe Bootstrap); `text()` e `header()` escono come
+  `wi-dropdown-item wi-dropdown-text`, senza l'aspetto di una voce cliccabile.
+- I renderer dei temi non lasciano più uno spazio in fondo agli attributi
+  scritti da un array (`class="btn btn-primary "` → `class="btn btn-primary"`).
 - L'icona «cartella» della colonna `empty` (`isEmpty()`) non stampa più gli
   avvisi sul `$TEXT` nullo nella lista caricata via API: `Field` passa a
   `isEmpty()` i testi della tabella.

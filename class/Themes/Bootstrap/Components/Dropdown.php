@@ -5,10 +5,11 @@ namespace Wonder\Themes\Bootstrap\Components;
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Bootstrap\Concerns\CanSpanColumn;
 use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Concerns\RendersDropdownItems;
 
 class Dropdown extends Component
 {
-    use CanSpanColumn, HasAttributes;
+    use CanSpanColumn, HasAttributes, RendersDropdownItems;
 
     public function render($class): string
     {
@@ -63,12 +64,12 @@ class Dropdown extends Component
             .($grouped ? ' role="group"' : '')
             .($attributes !== '' ? ' '.$attributes : '')
             .'>';
-        $html .= '<button type="button" class="'.$this->escape(implode(' ', array_values(array_unique(array_filter($toggleClasses))))).'"'
+        $html .= '<button type="button" class="'.$this->escape($this->partClass($class, 'toggle', implode(' ', array_values(array_unique(array_filter($toggleClasses)))))).'"'
             .' data-bs-toggle="dropdown" aria-expanded="false"'
             .($disabled ? ' disabled' : '')
             .'>'.$label.'</button>';
-        $html .= '<ul class="'.$this->escape(implode(' ', array_values(array_unique(array_filter($menuClasses))))).'">';
-        $html .= $this->renderItems($class->getItems());
+        $html .= '<ul class="'.$this->escape($this->partClass($class, 'menu', implode(' ', array_values(array_unique(array_filter($menuClasses)))))).'">';
+        $html .= $this->renderItems($class, $class->getItems());
         $html .= '</ul>';
         $html .= '</div>';
         if (!$inline) {
@@ -81,7 +82,7 @@ class Dropdown extends Component
     /**
      * @param array<int, array<string, mixed>> $items
      */
-    private function renderItems(array $items): string
+    private function renderItems(object $dropdown, array $items): string
     {
         $html = '';
 
@@ -103,54 +104,13 @@ class Dropdown extends Component
                 continue;
             }
 
-            $classes = ['dropdown-item'];
-            if (!empty($item['active'])) {
-                $classes[] = 'active';
-            }
-            if (!empty($item['disabled'])) {
-                $classes[] = 'disabled';
-            }
-
             $label = $this->escape((string) ($item['label'] ?? ''));
             $icon = trim((string) ($item['icon'] ?? ''));
             if ($icon !== '') {
                 $label = '<i class="'.$this->escape($icon).' me-2"></i>'.$label;
             }
 
-            if ($kind === 'button') {
-                $itemAttributes = $this->renderAttributes($item['attributes'] ?? null);
-                $html .= '<li><button type="button" class="'.$this->escape(implode(' ', $classes)).'"'
-                    .(!empty($item['disabled']) ? ' disabled' : '')
-                    .($itemAttributes !== '' ? ' '.$itemAttributes : '')
-                    .'>'.$label.'</button></li>';
-                continue;
-            }
-
-            $extra = '';
-            $href = trim((string) ($item['href'] ?? '#'));
-            $title = trim((string) ($item['title'] ?? ''));
-            $target = trim((string) ($item['target'] ?? ''));
-            $rel = trim((string) ($item['rel'] ?? ''));
-
-            if (!empty($item['blank'])) {
-                $target = '_blank';
-                $rel = trim($rel.' noopener noreferrer');
-            }
-            if ($target !== '') {
-                $extra .= ' target="'.$this->escape($target).'"';
-            }
-            if ($rel !== '') {
-                $extra .= ' rel="'.$this->escape($rel).'"';
-            }
-            if ($title !== '') {
-                $extra .= ' title="'.$this->escape($title).'"';
-            }
-
-            $itemAttributes = $this->renderAttributes($item['attributes'] ?? null);
-            $html .= '<li><a href="'.$this->escape($href).'" class="'.$this->escape(implode(' ', $classes)).'"'
-                .$extra
-                .($itemAttributes !== '' ? ' '.$itemAttributes : '')
-                .'>'.$label.'</a></li>';
+            $html .= '<li>'.$this->renderDropdownAction($dropdown, $item, 'dropdown-item', 'text-', $label).'</li>';
         }
 
         return $html;

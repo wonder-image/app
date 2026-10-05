@@ -4,11 +4,12 @@ namespace Wonder\Elements\Components;
 
 use InvalidArgumentException;
 use Wonder\Elements\Concerns\CanSpanColumn;
+use Wonder\Elements\Concerns\HasConfirmation;
 use Wonder\Elements\Concerns\Renderer;
 
 class Button extends Link
 {
-    use CanSpanColumn, Renderer;
+    use CanSpanColumn, HasConfirmation, Renderer;
 
     private const ALLOWED_SIZES = ['', 'sm', 'lg'];
     private const ALLOWED_TYPES = ['a', 'button', 'submit', 'reset', 'post'];
@@ -80,17 +81,29 @@ class Button extends Link
         return $this->schema('type', $normalized);
     }
 
-    public function confirm(string $message): self
-    {
-        $message = trim($message);
+    /**
+     * Chiede conferma con `wi.confirm()` della lib prima di procedere: sul
+     * form di `post()`, altrimenti sul bottone o sul link. Senza `variant` la
+     * lib usa `danger` per i POST. Un messaggio vuoto toglie la conferma.
+     */
+    public function confirm(
+        string $message,
+        ?string $title = null,
+        ?string $ok = null,
+        ?string $variant = null
+    ): self {
+        unset(
+            $this->schema['confirm'],
+            $this->schema['confirm_title'],
+            $this->schema['confirm_ok'],
+            $this->schema['confirm_variant']
+        );
 
-        if ($message === '') {
-            unset($this->schema['confirm']);
-
-            return $this;
+        foreach ($this->confirmationSchema($message, $title, $ok, $variant) as $key => $value) {
+            $this->schema($key, $value);
         }
 
-        return $this->schema('confirm', $message);
+        return $this;
     }
 
     /** Open a Modal using the current page theme; an href remains a no-JS fallback. */

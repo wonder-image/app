@@ -29,6 +29,10 @@ class Button extends Component
         $attributes = $this->modalAttributes($schema, $attributes, 'wonder');
         $isPostButton = $this->isPostButton($schema);
 
+        if (!$isPostButton) {
+            $attributes = array_merge($attributes, $this->confirmAttributes($schema));
+        }
+
         $classes[] = 'btn-'.($variant !== '' ? $variant : 'primary').($outline ? '-o' : '');
 
         if ($size !== '') {
