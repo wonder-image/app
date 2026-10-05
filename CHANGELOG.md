@@ -4,7 +4,7 @@
 
 ### Added
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in
-  un solo punto (`MINIMUM`). `php forge update` la confronta con la lib
+  un solo punto (`extra.wonder.lib` nel `composer.json` del framework). `php forge update` la confronta con la lib
   installata nel sito e, se è più vecchia, si ferma indicando il comando
   `npm install` da lanciare. Senza `node_modules` il controllo non blocca.
 - `DataItem`: un dato di una scheda, con l'etichetta piccola sopra e il valore

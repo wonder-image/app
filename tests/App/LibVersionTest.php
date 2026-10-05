@@ -29,10 +29,31 @@ function libRoot(?string $packageJson): string
 
 echo "LibVersion\n";
 
-check('il minimo dichiarato è una versione valida', fn () =>
-    preg_match('/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/', LibVersion::minimum()) === 1);
+function composerJson(?string $content): string
+{
+    $path = sys_get_temp_dir() . '/wi-lib-composer-' . bin2hex(random_bytes(6)) . '.json';
 
-check('il minimo soddisfa se stesso', fn () => LibVersion::satisfies(LibVersion::minimum()));
+    if ($content !== null) {
+        file_put_contents($path, $content);
+    }
+
+    return $path;
+}
+
+check('composer.json del pacchetto dichiara extra.wonder.lib', fn () =>
+    preg_match('/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/', (string) LibVersion::minimum()) === 1);
+
+check('il minimo soddisfa se stesso', fn () =>
+    LibVersion::satisfies(LibVersion::minimum(), LibVersion::minimum()));
+
+check('minimum() toglie l\'operatore del vincolo', fn () =>
+    LibVersion::minimum(composerJson('{"extra":{"wonder":{"lib":"^2.1.2-alpha.23"}}}')) === '2.1.2-alpha.23'
+    && LibVersion::minimum(composerJson('{"extra":{"wonder":{"lib":">=2.2.0"}}}')) === '2.2.0');
+
+check('minimum() è null senza composer.json, senza chiave o con valore non valido', fn () =>
+    LibVersion::minimum(composerJson(null)) === null
+    && LibVersion::minimum(composerJson('{"name":"wonder-image/app"}')) === null
+    && LibVersion::minimum(composerJson('{"extra":{"wonder":{"lib":"*"}}}')) === null);
 
 check('pre-release più vecchia non soddisfa', fn () =>
     !LibVersion::satisfies('2.1.2-alpha.15', '2.1.2-alpha.23'));
@@ -63,7 +84,7 @@ check('installed() è null con package.json illeggibile o senza versione', fn ()
     && LibVersion::installed(libRoot('{"version":"latest"}')) === null);
 
 check('check() è null quando la lib manca: il controllo non blocca', fn () =>
-    LibVersion::check(libRoot(null)) === null);
+    LibVersion::check(libRoot(null), '2.1.2-alpha.23') === null);
 
 check('check() è null quando la versione basta', fn () =>
     LibVersion::check(libRoot('{"version":"2.1.2"}'), '2.1.2-alpha.23') === null);

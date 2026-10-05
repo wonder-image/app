@@ -53,5 +53,10 @@
         "allow-plugins": {
             "php-http/discovery": true
         }
+    },
+    "extra": {
+        "wonder": {
+            "lib": "^2.1.2-alpha.23"
+        }
     }
 }

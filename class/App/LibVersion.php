@@ -7,19 +7,31 @@ namespace Wonder\App;
  *
  * I renderer emettono markup (`data-wi-confirm`, `data-wi-save-bar`, header
  * CSRF, ...) che funziona solo se il JS della lib lo gestisce: il minimo si
- * dichiara qui, in un solo punto, e `php forge update` lo confronta con la
- * versione installata nel sito.
+ * dichiara in un solo punto, `extra.wonder.lib` nel `composer.json` del
+ * pacchetto, e `php forge update` lo confronta con la versione installata nel
+ * sito.
  */
 final class LibVersion
 {
     public const PACKAGE = 'wonder-image';
 
-    /** Alza questo valore quando il framework inizia a dipendere da una novità della lib. */
-    public const MINIMUM = '2.1.2-alpha.23';
-
-    public static function minimum(): string
+    /**
+     * Minimo dichiarato in `extra.wonder.lib` (es. `^2.1.2-alpha.23`), oppure
+     * null quando il `composer.json` del pacchetto non è leggibile: alcuni
+     * deploy lo rimuovono, e in quel caso il controllo non si applica.
+     */
+    public static function minimum(?string $composerJson = null): ?string
     {
-        return self::MINIMUM;
+        $path = $composerJson ?? dirname(__DIR__, 2).'/composer.json';
+
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $composer = json_decode((string) file_get_contents($path), true);
+        $constraint = is_array($composer) ? ($composer['extra']['wonder']['lib'] ?? null) : null;
+
+        return is_string($constraint) ? self::version(ltrim(trim($constraint), '^~>= ')) : null;
     }
 
     /**
@@ -41,32 +53,27 @@ final class LibVersion
             return null;
         }
 
-        $version = ltrim(trim($version), 'vV');
-
-        return preg_match('/^\d+(\.\d+){0,2}/', $version) === 1 ? $version : null;
+        return self::version($version);
     }
 
-    public static function satisfies(string $installed, ?string $minimum = null): bool
+    public static function satisfies(string $installed, string $minimum): bool
     {
-        return version_compare(
-            self::comparable($installed),
-            self::comparable($minimum ?? self::MINIMUM),
-            '>='
-        );
+        return version_compare(self::comparable($installed), self::comparable($minimum), '>=');
     }
 
     /**
-     * Null quando la versione è sufficiente o non determinabile: il controllo
-     * blocca solo davanti a una lib installata e più vecchia del minimo.
+     * Null quando la versione è sufficiente oppure minimo o versione installata
+     * non sono determinabili: il controllo blocca solo davanti a una lib
+     * installata e più vecchia del minimo.
      *
      * @return array{installed: string, minimum: string, command: string}|null
      */
     public static function check(string $root, ?string $minimum = null): ?array
     {
-        $minimum ??= self::MINIMUM;
+        $minimum ??= self::minimum();
         $installed = self::installed($root);
 
-        if ($installed === null || self::satisfies($installed, $minimum)) {
+        if ($minimum === null || $installed === null || self::satisfies($installed, $minimum)) {
             return null;
         }
 
@@ -81,9 +88,16 @@ final class LibVersion
      * Il vincolo è esplicito perché `npm install wonder-image` risolve il
      * dist-tag `latest`, che può essere più vecchio di una pre-release.
      */
-    public static function installCommand(?string $minimum = null): string
+    public static function installCommand(string $minimum): string
     {
-        return "npm install '".self::PACKAGE.'@^'.($minimum ?? self::MINIMUM)."'";
+        return "npm install '".self::PACKAGE.'@^'.$minimum."'";
+    }
+
+    private static function version(string $version): ?string
+    {
+        $version = ltrim(trim($version), 'vV');
+
+        return preg_match('/^\d+(\.\d+){0,2}/', $version) === 1 ? $version : null;
     }
 
     /** I metadati di build semver (`+sha`) non contano nel confronto. */
