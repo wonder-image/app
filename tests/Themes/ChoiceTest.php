@@ -54,7 +54,7 @@ foreach (['wonder', 'bootstrap'] as $theme) {
 
     check("{$theme}: classi e attributi dati vanno sul label", function () use ($corriere, $theme) {
         $html = $corriere()->class('mt-2')->attr('data-x', 'a"b')->render($theme);
-        $base = $theme === 'wonder' ? 'wi-choice' : 'card';
+        $base = $theme === 'wonder' ? 'wi-choice' : 'card user-select-none';
 
         return str_starts_with($html, '<label class="'.$base.' mt-2')
             && str_contains($html, 'data-x="a&quot;b"');
@@ -103,6 +103,7 @@ check('bootstrap: form-check dentro una card', function () use ($corriere) {
     $html = $corriere()->render('bootstrap');
 
     return str_contains($html, '<span class="card-body d-flex align-items-start gap-3">')
+        && str_starts_with($html, '<label class="card user-select-none"')
         && str_contains($html, '<span class="form-check m-0">')
         && str_contains($html, 'class="form-check-input"');
 });

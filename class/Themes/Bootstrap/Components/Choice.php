@@ -23,7 +23,7 @@ class Choice extends Component
             'data-choice-input' => true,
         ]);
 
-        return '<label '.$this->renderComponentAttributes($class, ['card']).'>'
+        return '<label '.$this->renderComponentAttributes($class, ['card', 'user-select-none']).'>'
             .'<span class="card-body d-flex align-items-start gap-3">'
             .'<span class="form-check m-0"><input '.$input.'></span>'
             .'<span class="flex-grow-1">'
