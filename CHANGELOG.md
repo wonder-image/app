@@ -176,6 +176,12 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- `AuthProfile::userValues('signup-request', …)` ora conserva gli id dei
+  documenti legali (`{documento}_id`): prima li scartava, la registrazione dei
+  consensi falliva e la registrazione terminava con l'errore generico 900.
+- `user()`: quando la registrazione dei consensi fallisce (errore 900) l'eccezione
+  viene scritta in `storage/logs/error.log` (servizio `user`, azione
+  `register_consents`, con `user_id` e superficie) invece di restare nascosta.
 - Un contenitore (`Card`, `Container`, `Form`, `ButtonGroup`) reso con un tema
   esplicito rende i figli con quel tema, non con quello attivo: una `Card`
   resa con `render('bootstrap')` fuori dal backend cercava i renderer Wonder

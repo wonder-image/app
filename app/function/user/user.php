@@ -437,6 +437,15 @@
                         $RETURN->consents = registerUserConsents($USER_ID, $POST, userConsentContextFromPost($POST));
                     } catch (Throwable $exception) {
                         $ALERT = 900;
+                        \Wonder\App\Logger::log(
+                            $exception,
+                            'user',
+                            'register_consents',
+                            'ERROR',
+                            'error',
+                            [ 'user_id' => $USER_ID, 'surface' => (string) ($POST['consent_surface'] ?? '') ],
+                            false
+                        );
                         $RETURN->consents = [
                             'success' => false,
                             'message' => (string) $exception->getMessage(),

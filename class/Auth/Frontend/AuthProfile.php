@@ -108,7 +108,7 @@ class AuthProfile
     public function userValues(string $surface, array $input): array
     {
         $keys = $surface === 'signup-request'
-            ? ['name', 'surname', 'email', ...array_map(static fn ($document) => 'accept_'.$document, $this->documents())]
+            ? ['name', 'surname', 'email', ...array_map(static fn ($document) => 'accept_'.$document, $this->documents()), ...array_map(static fn ($document) => $document.'_id', $this->documents())]
             : ['password', 'password_confirmation'];
         $values = array_intersect_key($input, array_flip($keys));
         if ($surface === 'signup-completion' && $this->phoneRequired()) {
