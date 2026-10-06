@@ -74,4 +74,18 @@ check('bootstrap: il breadcrumb', function () use ($percorso) {
         && str_contains($html, '<li class="breadcrumb-item text-body-tertiary" aria-disabled="true">');
 });
 
+check('la guida dei componenti e il CHANGELOG raccontano Choice, ChoiceGroup e Steps', function () {
+    $root = dirname(__DIR__, 2);
+    $docs = (string) file_get_contents($root.'/docs/app/concetti/componenti/README.md');
+    $changelog = (string) file_get_contents($root.'/CHANGELOG.md');
+
+    return str_contains($docs, '| `Choice` | `Elements/Components/Choice.php`')
+        && str_contains($docs, '| `ChoiceGroup` | `Elements/Components/ChoiceGroup.php`')
+        && str_contains($docs, '| `Steps` | `Elements/Components/Steps.php`')
+        && str_contains($docs, '## Choice, ChoiceGroup e Steps')
+        && str_contains($docs, 'data-choice-list')
+        && str_contains($changelog, '`Choice`')
+        && str_contains($changelog, '`Steps`');
+});
+
 summary();

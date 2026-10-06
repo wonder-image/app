@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Added
+- `Choice` e `ChoiceGroup`: un radio o un checkbox in un riquadro cliccabile,
+  con titolo, testo e una colonna per il prezzo, e il `fieldset` che li
+  raccoglie. Testi escapati, parti vuote stampate con `hidden` e ganci
+  `data-choice-*` uguali nei temi Wonder (`.wi-choice` della lib) e Bootstrap
+  (`form-check` in una `card`).
+- `Steps`: percorso a passi con link solo sui passi fatti, `aria-current="step"`
+  sul passo in corso e passi da fare spenti; `.wi-steps` della lib nel tema
+  Wonder, `breadcrumb` in Bootstrap.
+- `Wonder\Themes\Concerns\MergesClasses`: unisce le classi base di un renderer a
+  quelle date con `class()`/`addClass()`.
 - `Button::hidden($fields)`: i campi nascosti che il form di `Button::post()`
   manda insieme al bottone, escapati, in entrambi i temi.
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in
