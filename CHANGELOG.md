@@ -179,6 +179,11 @@
 - `AuthProfile::userValues('signup-request', …)` ora conserva gli id dei
   documenti legali (`{documento}_id`): prima li scartava, la registrazione dei
   consensi falliva e la registrazione terminava con l'errore generico 900.
+- Verifica email di registrazione: se il token appartiene a un account che non
+  può accedere all'area (ad esempio un admin del backend che ha usato la stessa
+  email) il link non viene più consumato e compare un messaggio dedicato invece
+  di "non valido". `confirmUserVerificationToken()` accetta una guardia
+  opzionale `$guard(int $userId): bool` valutata prima di consumare il token.
 - `user()`: quando la registrazione dei consensi fallisce (errore 900) l'eccezione
   viene scritta in `storage/logs/error.log` (servizio `user`, azione
   `register_consents`, con `user_id` e superficie) invece di restare nascosta.

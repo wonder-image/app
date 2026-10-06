@@ -118,18 +118,19 @@ final class AuthController
 
     private function verifyEmail(): void
     {
-        $verified = \confirmUserVerificationToken((string) ($_GET['token'] ?? ''));
+        // L'area si controlla prima di consumare il token: un account di un'altra
+        // area (es. admin del backend) non deve restare con il link già bruciato.
+        $verified = \confirmUserVerificationToken(
+            (string) ($_GET['token'] ?? ''),
+            fn (int $userId): bool => $this->profile->gateway()->canAccessArea($userId, $this->profile->area(), $this->profile->authorities())
+        );
 
         if (!($verified->success ?? false) || (int) ($verified->user_id ?? 0) <= 0) {
-            $this->render('message', ['message_key' => 'auth.email.invalid']);
+            $this->render('message', ['message_key' => ($verified->rejected ?? false) ? 'auth.email.wrong_account' : 'auth.email.invalid']);
             return;
         }
 
         $userId = (int) $verified->user_id;
-        if (!$this->profile->gateway()->canAccessArea($userId, $this->profile->area(), $this->profile->authorities())) {
-            $this->render('message', ['message_key' => 'auth.email.invalid']);
-            return;
-        }
         if (!$this->afterUserSaved($userId, 'email.verify', [])) {
             $this->render('message', ['message_key' => 'auth.validation.review', 'alert' => $GLOBALS['ALERT'] ?? null]);
             return;

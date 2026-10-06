@@ -415,6 +415,14 @@ header('Location: /account/auth/email-verification/send/?alert='.(int) ($ALERT ?
 exit;
 ```
 
+`confirmUserVerificationToken()` accetta un secondo argomento opzionale, una
+guardia `fn (int $userId): bool` valutata dopo i controlli su scadenza e uso ma
+prima di consumare il token. Se ritorna `false` il token resta valido,
+l'email non viene verificata e il risultato ha `success = false` e
+`rejected = true`. Il flusso frontend la usa per verificare che l'account possa
+accedere all'area (`UserAccountGateway::canAccessArea()`), così il link di un
+account di un'altra area, ad esempio un admin del backend, non viene bruciato.
+
 ### Login con permesso `client`
 
 ```php

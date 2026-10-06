@@ -237,8 +237,12 @@
     /**
      * Conferma token verifica utente e marca utente come verificato.
      * In caso di errore valorizza sempre anche $ALERT.
+     *
+     * $guard riceve l'id utente del token (già controllato per scadenza e uso)
+     * prima di consumarlo: se ritorna false il token resta valido, l'email non
+     * viene verificata e il risultato ha `rejected = true`.
      */
-    function confirmUserVerificationToken(string $token): object
+    function confirmUserVerificationToken(string $token, ?callable $guard = null): object
     {
 
         global $mysqli;
@@ -299,6 +303,10 @@
 
         if ($userId <= 0 || $tokenId <= 0) {
             return $fail(918);
+        }
+
+        if ($guard !== null && !$guard($userId)) {
+            return $fail(918, [ 'rejected' => true, 'user_id' => $userId ]);
         }
 
         $now = date('Y-m-d H:i:s');
