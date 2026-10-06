@@ -182,6 +182,10 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Cambio password dall'account backend: dopo il salvataggio revoca i token
+  "ricordami" dell'utente su ogni dispositivo e rigenera l'id di sessione, come
+  il pannello frontend. Prima un dispositivo rimasto collegato con "ricordami"
+  continuava ad accedere anche con la nuova password.
 - `AuthProfile::userValues('signup-request', …)` ora conserva gli id dei
   documenti legali (`{documento}_id`): prima li scartava, la registrazione dei
   consensi falliva e la registrazione terminava con l'errore generico 900.

@@ -48,7 +48,15 @@ if (isset($_POST['modify-password'])) {
 
     if (checkPassword($oldPassword, $VALUES['password'])) {
         $newPassword = hashPassword($_POST['new-password']);
-        sqlModify('user', ['password' => $newPassword], 'id', $USER->id);
+        $saved = sqlModify('user', ['password' => $newPassword], 'id', $USER->id);
+
+        // Una sessione o un cookie "ricordami" rubati prima del cambio non restano validi.
+        if ($saved->success ?? false) {
+            Wonder\Auth\RememberMe::revokeUser((int) $USER->id);
+            if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
+                session_regenerate_id(true);
+            }
+        }
 
         if (empty($ALERT)) {
             $ALERT = 603;
