@@ -15,13 +15,12 @@ if (isset($_POST['recovery'])) {
 
     if ($VERIFY->response) {
         $USER = $VERIFY->user;
-        $restriction = base64_encode(json_encode([
-            'user_id' => $USER->id,
-            'validity' => strtotime('+30 minutes'),
-        ]));
+        // Token monouso valido 30 minuti; uno nuovo annulla quelli ancora aperti.
+        $issued = (new Wonder\Auth\PasswordReset(1800))->issueForUser((int) $USER->id);
+        $link = __r('backend.account.password.restore').'?token='.rawurlencode($issued->token);
 
         $content = "Ecco il link per modificare la tua password.<br>
-        <a href='".__r('backend.account.password.restore')."?r={$restriction}'>Clicca qui</a><br>
+        <a href='{$link}'>Clicca qui</a><br>
         <br>
         Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 

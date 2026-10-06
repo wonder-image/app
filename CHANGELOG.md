@@ -186,6 +186,13 @@
   "ricordami" dell'utente su ogni dispositivo e rigenera l'id di sessione, come
   il pannello frontend. Prima un dispositivo rimasto collegato con "ricordami"
   continuava ad accedere anche con la nuova password.
+- Recupero e impostazione password del backend usano token monouso
+  (`OneTimeToken`) al posto del parametro `?r=`: il link del recupero passa
+  per `PasswordReset` (30 minuti, valido una sola volta), quello di
+  `/backend/account/password-set/` vuole un token di scopo `password_set`. I
+  link `?r=` già inviati non sono più validi: va chiesto un nuovo recupero.
+- `PasswordReset::reset()` revoca i token "ricordami" dell'utente dopo il
+  cambio, sia nel frontend sia nel backend.
 - `AuthProfile::userValues('signup-request', …)` ora conserva gli id dei
   documenti legali (`{documento}_id`): prima li scartava, la registrazione dei
   consensi falliva e la registrazione terminava con l'errore generico 900.

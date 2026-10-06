@@ -42,6 +42,9 @@ final class PasswordReset
                     throw new RuntimeException('password_reset_update_failed');
                 }
 
+                // Una sessione "ricordami" aperta prima del ripristino non resta valida.
+                RememberMe::revokeUser($consumed->subject_user_id);
+
                 return (object) [
                     'success' => true,
                     'user_id' => $consumed->subject_user_id,
