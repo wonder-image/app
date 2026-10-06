@@ -44,6 +44,7 @@ $check(!class_exists('Wonder\\Plugin\\Ecommerce\\Ecommerce'), 'Core test unexpec
 $check(array_keys($profile->fields('signup-request')) === ['name', 'surname', 'email', 'accept_privacy_policy'], 'Generic signup fields mismatch.');
 $check($profile->validate('signup-completion', ['password' => 'password123', 'password_confirmation' => 'password123']) === [], 'Core forces a mobile number.');
 $check(!isset($profile->userValues('signup-request', ['name' => 'Ada', 'authority' => 'admin', 'business_name' => 'Injected'])['authority']), 'Untrusted authority reaches user writes.');
+$check(\Wonder\Auth\Frontend\AuthValidationAlert::messageKeys(['email' => 'exists']) === ['auth.validation.errors.email_exists'], 'Signup with an existing account email has no dedicated message.');
 $consentInput = ['name' => 'Ada', 'accept_privacy_policy' => 'true', 'privacy_policy_id' => '1', 'terms_conditions_id' => '2'];
 $check(($profile->userValues('signup-request', $consentInput)['privacy_policy_id'] ?? null) === '1', 'Signup drops the legal document id needed to register consents.');
 $check(!isset($profile->userValues('signup-request', $consentInput)['terms_conditions_id']), 'Signup keeps the id of a document the profile does not require.');

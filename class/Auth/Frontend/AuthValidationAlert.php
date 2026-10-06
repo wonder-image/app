@@ -19,6 +19,7 @@ final class AuthValidationAlert
                 'name.required' => 'auth.validation.errors.name_required',
                 'surname.required' => 'auth.validation.errors.surname_required',
                 'email.invalid' => 'auth.validation.errors.email_invalid',
+                'email.exists' => 'auth.validation.errors.email_exists',
                 'accept_privacy_policy.required' => 'auth.validation.errors.privacy_required',
                 'accept_terms_conditions.required' => 'auth.validation.errors.terms_required',
                 'phone.required' => 'auth.validation.errors.phone_required',

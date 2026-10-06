@@ -187,6 +187,12 @@
 - `user()`: quando la registrazione dei consensi fallisce (errore 900) l'eccezione
   viene scritta in `storage/logs/error.log` (servizio `user`, azione
   `register_consents`, con `user_id` e superficie) invece di restare nascosta.
+- Registrazione con l'email di un account già verificato: prima mostrava
+  "Controlla la tua email" senza inviare nulla e registrava di nuovo i consensi
+  sull'account esistente. Ora `user()` riusa l'account solo se l'email non è
+  ancora verificata (`userCanReuseForEmailVerification()`), altrimenti dà 906,
+  e il form di registrazione resta sulla pagina con l'errore
+  `auth.validation.errors.email_exists`.
 - Un contenitore (`Card`, `Container`, `Form`, `ButtonGroup`) reso con un tema
   esplicito rende i figli con quel tema, non con quello attivo: una `Card`
   resa con `render('bootstrap')` fuori dal backend cercava i renderer Wonder

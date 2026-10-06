@@ -238,6 +238,16 @@
 
     }
 
+    // Una nuova registrazione riusa l'account esistente solo per rimandare il link
+    // di verifica: un account già verificato va segnalato come email duplicata.
+    function userCanReuseForEmailVerification($existingUser): bool
+    {
+
+        return (bool) ($existingUser->exists ?? false)
+            && !isUserEmailVerified((int) ($existingUser->id ?? 0));
+
+    }
+
     function user($POST, $MODIFY_ID = null) {
 
         global $ALERT;
@@ -323,15 +333,16 @@
         $HAS_SUBMITTED_PASSWORD = trim($SUBMITTED_PASSWORD) !== '';
 
         // Email: sanitizzazione e controllo di unicita.
-        // Se è richiesta la verifica email, un account già esistente viene riutilizzato.
+        // Se è richiesta la verifica email, un account esistente ancora da verificare
+        // viene riutilizzato; uno già verificato produce l'errore 906.
         if (isset($POST['email'])) {
 
             $UPLOAD['email'] = sanitize(strtolower($POST['email']));
 
             if ($MODIFY_ID == null && ($EMAIL_VERIFICATION['required'] ?? false)) {
                 $EXISTING_EMAIL_USER = infoUser($UPLOAD['email'], 'email');
-                $REUSE_EXISTING_USER = (bool) ($EXISTING_EMAIL_USER->exists ?? false);
-                $RETURN->already_registered = $REUSE_EXISTING_USER;
+                $REUSE_EXISTING_USER = userCanReuseForEmailVerification($EXISTING_EMAIL_USER);
+                $RETURN->already_registered = (bool) ($EXISTING_EMAIL_USER->exists ?? false);
             }
 
             if (!$REUSE_EXISTING_USER && !unique($UPLOAD['email'], 'user', 'email', $MODIFY_ID)) {

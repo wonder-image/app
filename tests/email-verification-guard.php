@@ -70,6 +70,15 @@ $GLOBALS['FAKE_DB']['consent_confirmation_tokens'][1]['confirmed_at'] = '2026-01
 $result = confirmUserVerificationToken('tok', static function (int $userId) use (&$called): bool { $called = true; return false; });
 $check($result->success === false && ($result->rejected ?? false) === false && $called === false, 'Un token già usato non resta "non valido" prima della guardia.');
 
+// Registrazione con email esistente: si riusa l'account solo per rimandare il
+// link a chi non ha ancora verificato l'indirizzo.
+require dirname(__DIR__).'/app/function/user/user.php';
+fakeDbReset();
+$check(userCanReuseForEmailVerification((object) [ 'exists' => true, 'id' => 7 ]) === true, 'Un account non verificato non riceve di nuovo il link.');
+$GLOBALS['FAKE_DB']['user'][7]['email_verified'] = 1;
+$check(userCanReuseForEmailVerification((object) [ 'exists' => true, 'id' => 7 ]) === false, 'Un account già verificato viene riusato da una nuova registrazione.');
+$check(userCanReuseForEmailVerification((object) [ 'exists' => false ]) === false, 'Un account inesistente risulta riusabile.');
+
 if ($failures !== []) {
     fwrite(STDERR, implode("\n", $failures)."\n");
     exit(1);

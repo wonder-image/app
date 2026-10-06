@@ -105,7 +105,11 @@ final class AuthController
                 ]);
                 $created = \user($payload);
 
-                if (empty($ALERT) && (int) ($created->user->id ?? 0) > 0) {
+                // Email di un account già attivo: errore sul campo, senza il testo generico del 906.
+                if ((int) ($ALERT ?? 0) === 906) {
+                    $errors['email'] = 'exists';
+                    $ALERT = null;
+                } elseif (empty($ALERT) && (int) ($created->user->id ?? 0) > 0) {
                     if ($this->afterUserSaved((int) $created->user->id, 'signup-request', $_POST)) {
                         $this->redirect($this->route('email.sent'));
                     }
