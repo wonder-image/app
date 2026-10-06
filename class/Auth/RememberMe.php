@@ -126,6 +126,14 @@
             \Wonder\Http\Cookie::clear($name);
         }
 
+        // Revoca tutti i token remember-me dell'utente, su ogni dispositivo
+        public static function revokeUser(int $userId): void
+        {
+            if ($userId > 0) {
+                sqlModify('auth_remember', [ 'deleted' => 'true' ], 'user_id', $userId);
+            }
+        }
+
         // Nome cookie separato per area (backend/frontend)
         private static function cookieName(string $area): string
         {

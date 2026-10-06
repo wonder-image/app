@@ -18,6 +18,7 @@ example/
 !/tests/button-lightbox.php
 !/tests/auth-frontend.php
 !/tests/email-verification-guard.php
+!/tests/account-password.php
 !/tests/scheduler.php
 !/tests/scheduler-integration.php
 /bin/release.php

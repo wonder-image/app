@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- Cambio password del pannello account: `Wonder\Auth\Frontend\AccountPassword`
+  (campi, validazione e salvataggio; password attuale richiesta solo se
+  l'account ne ha una), componente `frontend.account.password-form`,
+  `RememberMe::revokeUser()` per revocare i token "ricordami" dopo il cambio,
+  nuove chiavi `account.password.*`, `account.navigation.password` e
+  `auth.validation.errors.{password_same,current_password_required,current_password_wrong}`.
 - `Button::hidden($fields)`: i campi nascosti che il form di `Button::post()`
   manda insieme al bottone, escapati, in entrambi i temi.
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in

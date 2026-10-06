@@ -34,7 +34,20 @@
         "billing": "Fatturazione",
         "shipping": "Indirizzi",
         "payment_methods": "Metodi di pagamento",
+        "password": "Password",
         "logout": "Esci"
+    },
+    "password": {
+        "label": "Password",
+        "title": "Cambia la password",
+        "intro": "Scegli una password di almeno 8 caratteri, diversa da quella attuale.",
+        "intro_missing": "Hai effettuato l’accesso con un account esterno: imposta una password per accedere anche con email e password.",
+        "current": "Password attuale",
+        "new": "Nuova password",
+        "confirmation": "Conferma la nuova password",
+        "saved": "La password è stata aggiornata.",
+        "summary_set": "Impostata",
+        "summary_missing": "Non impostata"
     },
     "payment_methods": {
         "label": "Metodi di pagamento",

@@ -109,6 +109,17 @@ Per personalizzare i dati personali usare `personalFields()`,
 il riepilogo. Il controller ecommerce conserva gli invarianti base su identità
 e cellulare; gli hook aggiungono richieste, non aggirano i controlli.
 
+Il cambio password vive in `Wonder\Auth\Frontend\AccountPassword`. `fields()`
+chiede la password attuale solo se l'account ne ha una: un account nato da un
+accesso federato la imposta senza. `change($userId, $input)` valida (password
+attuale, regole di `AuthValidator::completion()`, nuova diversa dall'attuale),
+salva l'hash, revoca tutti i token "ricordami" dell'utente con
+`RememberMe::revokeUser()` e rigenera l'id di sessione: la sessione corrente
+resta aperta, un cookie copiato prima del cambio non entra più. Gli errori si
+traducono con `AuthValidationAlert::messageKeys()`. Il componente
+`frontend.account.password-form` stampa il form; il modulo che possiede il
+pannello aggiunge rotta, voce di menu e verifica CSRF.
+
 La rappresentazione è distinta dall'archiviazione. Il core possiede i modelli
 `Wonder\App\Models\Contacts\Contact`, `ContactAddress` e
 `Wonder\App\Models\System\ExternalReference`. Sono disponibili anche senza
@@ -228,7 +239,8 @@ per le viste legacy, gestisce focus, Esc, Tab e dialoghi chiusi inert.
 L'href mantiene la pagina di modifica senza JavaScript. Gli alert restano
 nella pagina, non nel modal né nel form.
 
-- Dal core: `php tests/auth-frontend.php` e lint dei file modificati.
+- Dal core: `php tests/auth-frontend.php`, `php tests/account-password.php`
+  e lint dei file modificati.
 - Dal modulo: `php tests/AuthValidatorTest.php`,
   `php tests/integrazione/AuthCoreViewsTest.php`,
   `php tests/integrazione/AuthHttpTest.php`,

@@ -26,6 +26,9 @@ final class AuthValidationAlert
                 'phone.not_unique' => 'auth.validation.errors.phone_not_unique',
                 'password.too_short' => 'auth.validation.errors.password_too_short',
                 'password_confirmation.mismatch' => 'auth.validation.errors.password_mismatch',
+                'password.same' => 'auth.validation.errors.password_same',
+                'current_password.required' => 'auth.validation.errors.current_password_required',
+                'current_password.wrong' => 'auth.validation.errors.current_password_wrong',
                 'token.invalid' => 'auth.validation.errors.token_invalid',
                 default => 'auth.validation.review',
             };
