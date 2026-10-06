@@ -56,6 +56,10 @@ foreach (['wonder', 'bootstrap'] as $theme) {
 
         return str_contains($html, '<ol class="'.$base.' mb-4" data-x="1">');
     });
+
+    check("{$theme}: id() arriva sull'ol", fn () =>
+        str_contains(Steps::make()->step('Uno')->id('passi')->render($theme), 'id="passi"')
+    );
 }
 
 check('wonder: le classi della lib', function () use ($percorso) {

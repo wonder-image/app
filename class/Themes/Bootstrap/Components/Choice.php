@@ -3,18 +3,15 @@
 namespace Wonder\Themes\Bootstrap\Components;
 
 use Wonder\Themes\Bootstrap\Component;
-use Wonder\Themes\Concerns\HasAttributes;
-use Wonder\Themes\Concerns\MergesClasses;
+use Wonder\Themes\Concerns\RendersComponentAttributes;
 
 class Choice extends Component
 {
-    use HasAttributes, MergesClasses;
+    use RendersComponentAttributes;
 
     public function render($class): string
     {
         $schema = $class->getSchema();
-        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
-        $attributes['class'] = $this->mergeClasses(['card'], $attributes);
 
         $input = $this->renderAttributes([
             'class' => 'form-check-input',
@@ -26,7 +23,7 @@ class Choice extends Component
             'data-choice-input' => true,
         ]);
 
-        return '<label '.$this->renderAttributes($attributes).'>'
+        return '<label '.$this->renderComponentAttributes($class, ['card']).'>'
             .'<span class="card-body d-flex align-items-start gap-3">'
             .'<span class="form-check m-0"><input '.$input.'></span>'
             .'<span class="flex-grow-1">'

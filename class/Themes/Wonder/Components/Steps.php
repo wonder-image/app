@@ -2,18 +2,16 @@
 
 namespace Wonder\Themes\Wonder\Components;
 
-use Wonder\Themes\Concerns\MergesClasses;
+use Wonder\Themes\Concerns\RendersComponentAttributes;
 use Wonder\Themes\Wonder\Component;
 
 class Steps extends Component
 {
-    use MergesClasses;
+    use RendersComponentAttributes;
 
     public function render($class): string
     {
         $schema = $class->getSchema();
-        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
-        $attributes['class'] = $this->mergeClasses(['wi-steps'], $attributes);
         $label = (string) ($schema['label'] ?? '');
         $items = '';
 
@@ -30,6 +28,6 @@ class Steps extends Component
         }
 
         return '<nav'.($label !== '' ? ' aria-label="'.$this->escape($label).'"' : '').'>'
-            .'<ol '.$this->renderAttributes($attributes).'>'.$items.'</ol></nav>';
+            .'<ol '.$this->renderComponentAttributes($class, ['wi-steps']).'>'.$items.'</ol></nav>';
     }
 }

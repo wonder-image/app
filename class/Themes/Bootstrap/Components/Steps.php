@@ -3,18 +3,15 @@
 namespace Wonder\Themes\Bootstrap\Components;
 
 use Wonder\Themes\Bootstrap\Component;
-use Wonder\Themes\Concerns\HasAttributes;
-use Wonder\Themes\Concerns\MergesClasses;
+use Wonder\Themes\Concerns\RendersComponentAttributes;
 
 class Steps extends Component
 {
-    use HasAttributes, MergesClasses;
+    use RendersComponentAttributes;
 
     public function render($class): string
     {
         $schema = $class->getSchema();
-        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
-        $attributes['class'] = $this->mergeClasses(['breadcrumb', 'mb-0'], $attributes);
         $label = (string) ($schema['label'] ?? '');
         $items = '';
 
@@ -31,6 +28,6 @@ class Steps extends Component
         }
 
         return '<nav'.($label !== '' ? ' aria-label="'.$this->escape($label).'"' : '').'>'
-            .'<ol '.$this->renderAttributes($attributes).'>'.$items.'</ol></nav>';
+            .'<ol '.$this->renderComponentAttributes($class, ['breadcrumb', 'mb-0']).'>'.$items.'</ol></nav>';
     }
 }

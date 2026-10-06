@@ -7,22 +7,6 @@ require __DIR__ . '/../harness.php';
 
 use Wonder\Elements\Components\Choice;
 use Wonder\Elements\Components\ChoiceGroup;
-use Wonder\Themes\Concerns\MergesClasses;
-
-$merge = new class {
-    use MergesClasses;
-
-    public function run(array $base, array $attributes): array
-    {
-        return $this->mergeClasses($base, $attributes);
-    }
-};
-
-check('le classi date si aggiungono a quelle base, senza vuoti né doppioni', fn () =>
-    $merge->run(['wi-choice'], ['class' => ['mt-2', 'wi-choice', '']]) === ['wi-choice', 'mt-2']
-    && $merge->run(['card'], ['class' => ' a  b ']) === ['card', 'a', 'b']
-    && $merge->run(['wi-steps'], []) === ['wi-steps']
-);
 
 $corriere = static fn (): Choice => Choice::make('shipping_method_id', 3)
     ->title('Rossi & <Figli>')
@@ -93,6 +77,12 @@ foreach (['wonder', 'bootstrap'] as $theme) {
 
     check("{$theme}: senza legend non c'è una legend vuota", fn () =>
         !str_contains(ChoiceGroup::make()->choices(Choice::make('a', 1)->title('A'))->render($theme), '<legend')
+    );
+
+    check("{$theme}: id() arriva sul fieldset e sul label, per le ancore come #consegna", fn () =>
+        str_starts_with(ChoiceGroup::make('L')->id('consegna')->render($theme), '<fieldset ')
+        && str_contains(ChoiceGroup::make('L')->id('consegna')->render($theme), 'id="consegna"')
+        && str_contains(Choice::make('a', 1)->id('scelta-a')->render($theme), 'id="scelta-a"')
     );
 }
 

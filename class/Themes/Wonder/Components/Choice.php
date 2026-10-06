@@ -2,18 +2,16 @@
 
 namespace Wonder\Themes\Wonder\Components;
 
-use Wonder\Themes\Concerns\MergesClasses;
+use Wonder\Themes\Concerns\RendersComponentAttributes;
 use Wonder\Themes\Wonder\Component;
 
 class Choice extends Component
 {
-    use MergesClasses;
+    use RendersComponentAttributes;
 
     public function render($class): string
     {
         $schema = $class->getSchema();
-        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
-        $attributes['class'] = $this->mergeClasses(['wi-choice'], $attributes);
 
         $input = $this->renderAttributes([
             'type' => (string) $schema['type'],
@@ -24,7 +22,7 @@ class Choice extends Component
             'data-choice-input' => true,
         ]);
 
-        return '<label '.$this->renderAttributes($attributes).'>'
+        return '<label '.$this->renderComponentAttributes($class, ['wi-choice']).'>'
             .'<input '.$input.'>'
             .'<span class="wi-choice__body">'
             .$this->part('wi-choice__title', 'data-choice-title', (string) $schema['title'])

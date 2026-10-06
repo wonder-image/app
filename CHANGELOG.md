@@ -10,9 +10,8 @@
   (`form-check` in una `card`).
 - `Steps`: percorso a passi con link solo sui passi fatti, `aria-current="step"`
   sul passo in corso e passi da fare spenti; `.wi-steps` della lib nel tema
-  Wonder, `breadcrumb` in Bootstrap.
-- `Wonder\Themes\Concerns\MergesClasses`: unisce le classi base di un renderer a
-  quelle date con `class()`/`addClass()`.
+  Wonder, `breadcrumb` in Bootstrap. `class()`, `addClass()`, `attr()` e `id()`
+  di tutti e tre passano da `RendersComponentAttributes`, come `Container` e `Modal`.
 - `Button::hidden($fields)`: i campi nascosti che il form di `Button::post()`
   manda insieme al bottone, escapati, in entrambi i temi.
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in
