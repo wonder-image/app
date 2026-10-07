@@ -13,8 +13,14 @@ class ChoiceGroup extends Component
     {
         $schema = $class->getSchema();
         $legend = (string) ($schema['legend'] ?? '');
+        $variant = (string) ($schema['variant'] ?? '');
+        $classes = ['wi-choice-group'];
 
-        return '<fieldset '.$this->renderComponentAttributes($class, ['wi-choice-group']).'>'
+        if ($variant !== '') {
+            $classes[] = 'wi-choice-group--'.$variant;
+        }
+
+        return '<fieldset '.$this->renderComponentAttributes($class, $classes).'>'
             .($legend !== '' ? '<legend class="wi-choice-group__legend">'.$this->escape($legend).'</legend>' : '')
             .'<div class="wi-choice-group__list" data-choice-list>'
             .$this->renderComponents($schema['choices'] ?? [])
