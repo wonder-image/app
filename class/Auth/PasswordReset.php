@@ -15,9 +15,13 @@ final class PasswordReset
         $this->tokens = new OneTimeToken('password_reset', $ttlSeconds);
     }
 
-    public function issueForUser(int $userId, ?string $continueUrl = null, array $metadata = []): object
+    /**
+     * Con `$revokeOpenTokens` falso i link già mandati restano validi: per
+     * esempio quello nell'email di un ordine precedente.
+     */
+    public function issueForUser(int $userId, ?string $continueUrl = null, array $metadata = [], bool $revokeOpenTokens = true): object
     {
-        return $this->tokens->issue($userId, null, $continueUrl, $metadata);
+        return $this->tokens->issue($userId, null, $continueUrl, $metadata, $revokeOpenTokens);
     }
 
     public function reset(string $token, string $plainPassword): object
