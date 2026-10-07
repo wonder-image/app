@@ -42,6 +42,12 @@ final class PasswordReset
                     throw new RuntimeException('password_reset_update_failed');
                 }
 
+                // Il token è arrivato a quella casella: il possesso dell'email è provato.
+                $verified = \markUserEmailVerified($consumed->subject_user_id, date('Y-m-d H:i:s'));
+                if (!($verified->success ?? false)) {
+                    throw new RuntimeException('password_reset_update_failed');
+                }
+
                 // Una sessione "ricordami" aperta prima del ripristino non resta valida.
                 RememberMe::revokeUser($consumed->subject_user_id);
 
