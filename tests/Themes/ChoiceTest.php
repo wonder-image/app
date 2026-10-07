@@ -193,8 +193,8 @@ check('bootstrap: btn-group per i segmenti, list-group per la lista, card-footer
     return str_contains($group('segmented'), '<div class="btn-group w-100" data-choice-list>')
         && str_contains($group('list'), '<div class="list-group" data-choice-list>')
         && str_contains($group(''), '<div class="d-grid gap-2" data-choice-list>')
-        && str_contains($choice, '</span><span class="card-footer small" style="display:block" data-choice-panel>IBAN</span></label>')
-        && str_contains(Choice::make('p', 1)->render('bootstrap'), '<span class="card-footer small" style="display:block" data-choice-panel hidden></span>')
+        && str_contains($choice, '</span><span class="card-footer small" style="display:block;-webkit-user-select:text;user-select:text" data-choice-panel>IBAN</span></label>')
+        && str_contains(Choice::make('p', 1)->render('bootstrap'), '<span class="card-footer small" style="display:block;-webkit-user-select:text;user-select:text" data-choice-panel hidden></span>')
         && str_contains(Choice::make('p', 1)->render('bootstrap'), '<span class="align-items-center gap-1" style="display:flex" data-choice-icons hidden></span>');
 });
 

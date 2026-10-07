@@ -64,7 +64,7 @@ class Choice extends Component
     /** `style` e non `d-block`: le utility di Bootstrap sono `!important` e batterebbero `[hidden]`. */
     private function panel(string $text): string
     {
-        return '<span class="card-footer small" style="display:block" data-choice-panel'.($text === '' ? ' hidden' : '').'>'
+        return '<span class="card-footer small" style="display:block;-webkit-user-select:text;user-select:text" data-choice-panel'.($text === '' ? ' hidden' : '').'>'
             .$this->escape($text).'</span>';
     }
 
