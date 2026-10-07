@@ -14,6 +14,7 @@
 * [Notifiche](concetti/notifiche.md)
 * [Errori ripetuti](concetti/errori.md)
 * [Performance frontend e cache](concetti/frontend-performance.md)
+* [Font web](concetti/font-web.md)
 * [Sedi](concetti/sedi.md)
 * [Iframe e contenuti differiti](elementi/deferred-media.md)
 * [Immagini di Swiper e Gallery](elementi/responsive-media.md)

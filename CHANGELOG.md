@@ -11,6 +11,10 @@
 - `ChoiceGroup::variant('segmented'|'list')` e, su `Choice`, `icon()`, `icons()` con
   «+N» oltre il massimo e `panel()` visibile solo sulla scelta fatta: servono alla
   pagina unica del checkout. Ganci `data-choice-icons` e `data-choice-panel` nei due temi.
+- `Wonder\View\WebFonts`: catalogo di 9 font web (Inter, Roboto, Open Sans, Lato,
+  Montserrat, Poppins, DM Sans, Nunito, Work Sans) serviti da
+  `resources/assets/font/web/` con licenza OFL; `css($chiave)` dà i `@font-face` e
+  le variabili `--*-font-family` del sito, vuoto per una chiave sconosciuta.
 - `Steps`: percorso a passi con link solo sui passi fatti, `aria-current="step"`
   sul passo in corso e passi da fare spenti; `.wi-steps` della lib nel tema
   Wonder, `breadcrumb` in Bootstrap. `class()`, `addClass()`, `attr()` e `id()`
