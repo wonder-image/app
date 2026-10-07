@@ -9,6 +9,22 @@
   `RememberMe::revokeUser()` per revocare i token "ricordami" dopo il cambio,
   nuove chiavi `account.password.*`, `account.navigation.password` e
   `auth.validation.errors.{password_same,current_password_required,current_password_wrong}`.
+- `Choice` e `ChoiceGroup`: un radio o un checkbox in un riquadro cliccabile,
+  con titolo, testo e una colonna per il prezzo, e il `fieldset` che li
+  raccoglie. Testi escapati, parti vuote stampate con `hidden` e ganci
+  `data-choice-*` uguali nei temi Wonder (`.wi-choice` della lib) e Bootstrap
+  (`form-check` in una `card`).
+- `ChoiceGroup::variant('segmented'|'list')` e, su `Choice`, `icon()`, `icons()` con
+  «+N» oltre il massimo e `panel()` visibile solo sulla scelta fatta: servono alla
+  pagina unica del checkout. Ganci `data-choice-icons` e `data-choice-panel` nei due temi.
+- `Wonder\View\WebFonts`: catalogo di 9 font web (Inter, Roboto, Open Sans, Lato,
+  Montserrat, Poppins, DM Sans, Nunito, Work Sans) serviti da
+  `resources/assets/font/web/` con licenza OFL; `css($chiave)` dà i `@font-face` e
+  le variabili `--*-font-family` del sito, vuoto per una chiave sconosciuta.
+- `Steps`: percorso a passi con link solo sui passi fatti, `aria-current="step"`
+  sul passo in corso e passi da fare spenti; `.wi-steps` della lib nel tema
+  Wonder, `breadcrumb` in Bootstrap. `class()`, `addClass()`, `attr()` e `id()`
+  di tutti e tre passano da `RendersComponentAttributes`, come `Container` e `Modal`.
 - `Button::hidden($fields)`: i campi nascosti che il form di `Button::post()`
   manda insieme al bottone, escapati, in entrambi i temi.
 - `Wonder\App\LibVersion`: versione minima di `wonder-image/lib` dichiarata in

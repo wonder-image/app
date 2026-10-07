@@ -42,6 +42,9 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `Badge` | `Elements/Components/Badge.php` | badge / etichetta |
 | `ButtonGroup` | `Elements/Components/ButtonGroup.php` | gruppo di bottoni |
 | `Dropdown` | `Elements/Components/Dropdown.php` | bottone dropdown |
+| `Choice` | `Elements/Components/Choice.php` | radio o checkbox in un riquadro cliccabile, con titolo, testo e prezzo |
+| `ChoiceGroup` | `Elements/Components/ChoiceGroup.php` | `fieldset` con legend e una lista di `Choice` |
+| `Steps` | `Elements/Components/Steps.php` | percorso a passi (fatto, in corso, da fare) |
 | `Image` | `Elements/Media/Image.php` | immagine responsive |
 | `Video` | `Elements/Media/Video.php` | video HTML5 |
 | `Iframe` | `Elements/Media/Iframe.php` | contenuto iframe |
@@ -475,6 +478,74 @@ API principali:
   `download()`, `icon()`, `muted()`
 - `Text::link(...)`: stesse opzioni del concern link condiviso, più `icon`,
   `class`, `muted`, `attributes`
+
+## Choice, ChoiceGroup e Steps
+
+Nati per il checkout a passi del modulo ecommerce, servono a qualunque scelta fra
+poche opzioni da raccontare: metodi di spedizione, sedi, metodi di pagamento.
+
+```php
+use Wonder\Elements\Components\Choice;
+use Wonder\Elements\Components\ChoiceGroup;
+use Wonder\Elements\Components\Steps;
+
+ChoiceGroup::make('Metodo di spedizione')
+    ->attr('data-checkout-shipping-methods', true)
+    ->choices(
+        Choice::make('shipping_method_id', 1)->title('Corriere')->text('2-3 giorni')->aside('4,90 €')->checked(),
+        Choice::make('shipping_method_id', 2)->title('Posta')->aside('2,50 €'),
+    );
+
+Steps::make('Checkout')
+    ->step('Carrello', '/cart/', 'done')
+    ->step('Spedizione', '/checkout/', 'current')
+    ->step('Pagamento');
+```
+
+- `Choice::type('checkbox')` cambia il tipo dell'input; il default è `radio`.
+  `checked()` e `disabled()` vanno sull'input. `attr()`, `class()` e `addClass()`
+  vanno sul `<label>` esterno.
+- Titolo, testo e aside si escapano. Una parte vuota si stampa lo stesso con
+  `hidden`: un `<template>` reso da `Choice` ha sempre tutte le parti, e il JS lo
+  clona e lo riempie con `textContent` senza ricostruire il markup.
+- **Ganci uguali nei due temi**:
+  - `data-choice-input` sull'input;
+  - `data-choice-title`, `data-choice-text` e `data-choice-aside` sulle parti;
+  - `data-choice-list` sul contenitore dei `Choice` dentro `ChoiceGroup`.
+
+  Il JS sostituisce i figli di `data-choice-list`, non quelli del `fieldset`, così la `legend` resta.
+- **`Steps::step($label, $href, $state)`**:
+  - `$state` vale `done`, `current` o `todo`; ogni altro valore vale `todo`;
+  - solo un passo `done` con un `href` diventa un link;
+  - `current` ha `aria-current="step"`;
+  - `todo` ha `aria-disabled="true"` e non è cliccabile.
+
+  L'etichetta di `make()` diventa l'`aria-label` del `<nav>`.
+- **Tema `wonder`**: usa `.wi-choice`, `.wi-choice-group` e `.wi-steps` della lib, che bisogna aggiornare insieme.
+- **Tema `bootstrap`**: rende un `form-check` dentro una `card` e un `breadcrumb`.
+- **Pagina unica del checkout**:
+  - `ChoiceGroup::variant('segmented')` mette le scelte in riga, unite (Spedisci / Ritiro);
+    `variant('list')` le impila unite, con i bordi in comune (metodi di spedizione e di
+    pagamento). Altri valori valgono come nessuna variante. In Bootstrap diventano
+    `btn-group` e `list-group`.
+  - `Choice::icon('truck')` (o `'bi-truck'`) stampa un'icona di Bootstrap Icons prima del
+    titolo.
+  - `Choice::icons([['src' => …, 'alt' => …], …], 3)` stampa i loghi a destra; oltre il
+    massimo resta «+N». Gancio `data-choice-icons`, vuoto con `hidden`.
+  - `Choice::panel($testo)` aggiunge un riquadro sotto la scelta, visibile solo quando
+    l'input è scelto (nel tema Wonder, con `:has(input:checked)`); nel tema Bootstrap è
+    una `card-footer` sempre visibile. Gancio `data-choice-panel`, vuoto con `hidden`.
+
+```php
+ChoiceGroup::make('Pagamento')
+    ->variant('list')
+    ->choices(
+        Choice::make('payment_method_id', 1)->title('Carta')
+            ->icons([['src' => $visa, 'alt' => 'Visa'], ['src' => $master, 'alt' => 'Mastercard']])
+            ->panel('Dopo aver cliccato «Paga ora» verrai reindirizzato a Stripe.'),
+        Choice::make('payment_method_id', 2)->title('Bonifico')->panel($istruzioni),
+    );
+```
 
 ## Layout dei media
 

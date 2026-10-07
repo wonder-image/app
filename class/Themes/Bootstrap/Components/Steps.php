@@ -1,0 +1,33 @@
+<?php
+
+namespace Wonder\Themes\Bootstrap\Components;
+
+use Wonder\Themes\Bootstrap\Component;
+use Wonder\Themes\Concerns\RendersComponentAttributes;
+
+class Steps extends Component
+{
+    use RendersComponentAttributes;
+
+    public function render($class): string
+    {
+        $schema = $class->getSchema();
+        $label = (string) ($schema['label'] ?? '');
+        $items = '';
+
+        foreach ($schema['steps'] ?? [] as $step) {
+            $text = $this->escape((string) $step['label']);
+
+            $items .= match ($step['state']) {
+                'done' => '<li class="breadcrumb-item">'
+                    .($step['href'] !== null ? '<a href="'.$this->escape($step['href']).'">'.$text.'</a>' : $text)
+                    .'</li>',
+                'current' => '<li class="breadcrumb-item active" aria-current="step">'.$text.'</li>',
+                default => '<li class="breadcrumb-item text-body-tertiary" aria-disabled="true">'.$text.'</li>',
+            };
+        }
+
+        return '<nav'.($label !== '' ? ' aria-label="'.$this->escape($label).'"' : '').'>'
+            .'<ol '.$this->renderComponentAttributes($class, ['breadcrumb', 'mb-0']).'>'.$items.'</ol></nav>';
+    }
+}
