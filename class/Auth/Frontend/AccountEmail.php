@@ -12,16 +12,20 @@ final class AccountEmail
     public const PURPOSE = 'email_change';
     private const TTL = 86400;
 
-    /** `$mailer($to, $subject, $body)`; senza, spedisce con `\sendMail`. */
+    /**
+     * `$mailer($to, $subject, $body)`; senza, spedisce con `\sendMail`. Un mailer che restituisce `false`
+     * non ha spedito: il link appena emesso viene revocato e l'esito è `errors['mail'] = 'send'`.
+     * Gli errori sull'email si dicono solo con la password giusta, così non si scopre chi è registrato.
+     */
     public static function request(object $user, string $newEmail, string $password, string $confirmUrl, ?callable $mailer = null): object
     {
         $userId = (int) ($user->id ?? 0);
         $email = strtolower(trim($newEmail));
         $row = \sqlSelect('user', ['id' => $userId], 1)->row ?? [];
-        $errors = [];
         if (!\checkPassword($password, (string) ($row['password'] ?? ''))) {
-            $errors['current_password'] = 'wrong';
+            return (object) ['success' => false, 'errors' => ['current_password' => 'wrong']];
         }
+        $errors = [];
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'invalid';
         } elseif ($email === strtolower((string) ($user->email ?? ''))) {
@@ -33,10 +37,15 @@ final class AccountEmail
             return (object) ['success' => false, 'errors' => $errors];
         }
 
-        $issued = (new OneTimeToken(self::PURPOSE, self::TTL))->issue($userId, $userId, null, ['email' => $email]);
+        $tokens = new OneTimeToken(self::PURPOSE, self::TTL);
+        $issued = $tokens->issue($userId, $userId, null, ['email' => $email]);
         $url = $confirmUrl.'?token='.rawurlencode($issued->token);
         $mailer ??= static fn (string $to, string $subject, string $body) => \sendMail((string) ($GLOBALS['SOCIETY']->email ?? ''), $to, $subject, $body);
-        $mailer($email, (string) __t('account.email.mail_subject'), (string) __t('account.email.mail_body', ['url' => $url]));
+        $sent = $mailer($email, (string) __t('account.email.mail_subject'), (string) __t('account.email.mail_body', ['url' => $url]));
+        if ($sent === false) {
+            $tokens->revokeOpenForSubject($userId);
+            return (object) ['success' => false, 'errors' => ['mail' => 'send']];
+        }
 
         return (object) ['success' => true, 'errors' => []];
     }
@@ -59,7 +68,9 @@ final class AccountEmail
                 if (!empty($GLOBALS['ALERT']) || !($result->user->exists ?? false)) {
                     throw new AccountSaveFailed('user');
                 }
-                \markUserEmailVerified($userId, date('Y-m-d H:i:s'));
+                if (!(\markUserEmailVerified($userId, date('Y-m-d H:i:s'))->success ?? false)) {
+                    throw new AccountSaveFailed('user');
+                }
                 $contact = Contact::find(['user_id' => $userId], 1);
                 if (is_array($contact) && !empty($contact['id'])) {
                     if (!(Contact::update(['email' => $email], (int) $contact['id'])->success ?? false)) {

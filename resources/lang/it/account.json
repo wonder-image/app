@@ -42,6 +42,7 @@
         "invalid": "Il link non è valido o è scaduto. Richiedi di nuovo il cambio email dal tuo account.",
         "taken": "Questa email è già usata da un altro account.",
         "errors": {
+            "send": "Non siamo riusciti a mandare l’email. Riprova tra poco.",
             "same": "La nuova email è uguale a quella attuale."
         }
     },

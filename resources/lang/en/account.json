@@ -42,6 +42,7 @@
         "invalid": "The link is invalid or has expired. Request the email change again from your account.",
         "taken": "This email is already used by another account.",
         "errors": {
+            "send": "We couldn't send the email. Please try again shortly.",
             "same": "The new email matches the current one."
         }
     },
