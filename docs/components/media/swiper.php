@@ -21,9 +21,9 @@ return ComponentDoc::for(Swiper::class)
         Example::make('Base')
             ->code(<<<'PHP'
             Swiper::make([
-                Assets::url('paesaggio-1.svg'),
-                Assets::url('paesaggio-2.svg'),
-                Assets::url('paesaggio-3.svg'),
+                Assets::url('paesaggio-1.jpg'),
+                Assets::url('paesaggio-2.jpg'),
+                Assets::url('paesaggio-3.jpg'),
             ])
                 ->navigation()
                 ->pagination()
@@ -35,11 +35,11 @@ return ComponentDoc::for(Swiper::class)
         Example::make('Più slide, miniature e lightbox')
             ->code(<<<'PHP'
             Swiper::make([
-                Assets::url('paesaggio-1.svg'),
-                Assets::url('paesaggio-2.svg'),
-                Assets::url('paesaggio-3.svg'),
-                Assets::url('quadrato-1.svg'),
-                Assets::url('quadrato-2.svg'),
+                Assets::url('paesaggio-1.jpg'),
+                Assets::url('paesaggio-2.jpg'),
+                Assets::url('paesaggio-3.jpg'),
+                Assets::url('paesaggio-2.jpg'),
+                Assets::url('paesaggio-3.jpg'),
             ])
                 ->slidesPerView(2.2)
                 ->spaceBetween(16)

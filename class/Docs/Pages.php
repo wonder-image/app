@@ -3,8 +3,11 @@
 namespace Wonder\Docs;
 
 use Wonder\Elements\Components\Badge;
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\ButtonGroup;
 use Wonder\Elements\Components\Code;
 use Wonder\Elements\Components\Preview;
+use Wonder\Elements\Components\Text;
 
 /**
  * Gli aiuti che le viste del catalogo usano per non ripetersi: testo con
@@ -124,26 +127,43 @@ final class Pages
         return Code::make($code, 'php')->title($title);
     }
 
-    /** Il selettore globale: tema delle anteprime e schema chiaro/scuro, sincronizzati sul gruppo. */
+    /**
+     * Il selettore globale: tema delle anteprime e schema chiaro/scuro,
+     * sincronizzati sul gruppo. Due `ButtonGroup` di `Button` con gli
+     * attributi `data-wi-preview-switch` letti dallo script della `Preview`.
+     */
     public static function themeSwitch(array $themes): string
     {
-        $html = '<div class="wi-docs-switch d-flex flex-wrap align-items-center gap-2" data-wi-docs-switch>';
-        $html .= '<span class="small text-body-secondary me-1">Anteprime:</span>';
-        $html .= '<div class="btn-group btn-group-sm" role="group" aria-label="Tema delle anteprime">';
+        $buttons = [];
 
         foreach ($themes as $theme) {
-            $html .= '<button type="button" class="btn btn-outline-secondary" data-wi-preview-switch="'.self::GROUP.'" data-wi-preview-set-source="'.htmlspecialchars($theme, ENT_QUOTES).'" data-wi-docs-theme="'.htmlspecialchars($theme, ENT_QUOTES).'">'
-                .htmlspecialchars(ThemeSupport::label($theme), ENT_QUOTES).'</button>';
+            $buttons[] = Button::make(ThemeSupport::label($theme))
+                ->variant('secondary')
+                ->outline()
+                ->size('sm')
+                ->attr('data-wi-preview-switch', self::GROUP)
+                ->attr('data-wi-preview-set-source', $theme)
+                ->attr('data-wi-docs-theme', $theme);
         }
 
-        $html .= '</div>';
-        $html .= '<div class="btn-group btn-group-sm" role="group" aria-label="Schema chiaro o scuro (solo Bootstrap)">';
-        $html .= '<button type="button" class="btn btn-outline-secondary" data-wi-preview-switch="'.self::GROUP.'" data-wi-preview-set-scheme="light" data-wi-docs-scheme="light" title="Chiaro"><i class="bi bi-sun-fill" aria-hidden="true"></i><span class="visually-hidden">Chiaro</span></button>';
-        $html .= '<button type="button" class="btn btn-outline-secondary" data-wi-preview-switch="'.self::GROUP.'" data-wi-preview-set-scheme="dark" data-wi-docs-scheme="dark" title="Scuro"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i><span class="visually-hidden">Scuro</span></button>';
-        $html .= '</div>';
-        $html .= '</div>';
+        $schemes = [
+            Button::make('Chiaro')->variant('secondary')->outline()->size('sm')->icon('bi bi-sun-fill', 'start')
+                ->title('Chiaro')
+                ->attr('data-wi-preview-switch', self::GROUP)
+                ->attr('data-wi-preview-set-scheme', 'light')
+                ->attr('data-wi-docs-scheme', 'light'),
+            Button::make('Scuro')->variant('secondary')->outline()->size('sm')->icon('bi bi-moon-stars-fill', 'start')
+                ->title('Scuro')
+                ->attr('data-wi-preview-switch', self::GROUP)
+                ->attr('data-wi-preview-set-scheme', 'dark')
+                ->attr('data-wi-docs-scheme', 'dark'),
+        ];
 
-        return $html;
+        return '<div class="wi-docs-switch d-flex flex-wrap align-items-center gap-2" data-wi-docs-switch>'
+            .Text::make('Anteprime:')->tag('span')->small()->muted()->render('bootstrap')
+            .ButtonGroup::make($buttons)->label('Tema delle anteprime')->render('bootstrap')
+            .ButtonGroup::make($schemes)->label('Schema chiaro o scuro (solo Bootstrap)')->render('bootstrap')
+            .'</div>';
     }
 
     /** Lo script che evidenzia nel selettore la scelta corrente (letta da `localStorage`). */

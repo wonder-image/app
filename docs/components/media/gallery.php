@@ -18,12 +18,12 @@ return ComponentDoc::for(Gallery::class)
         Example::make('Base')
             ->code(<<<'PHP'
             Gallery::make([
-                Assets::url('paesaggio-1.svg'),
-                Assets::url('paesaggio-2.svg'),
-                Assets::url('paesaggio-3.svg'),
-                Assets::url('quadrato-1.svg'),
-                Assets::url('quadrato-2.svg'),
-                Assets::url('ritratto-1.svg'),
+                Assets::url('paesaggio-1.jpg'),
+                Assets::url('paesaggio-2.jpg'),
+                Assets::url('paesaggio-3.jpg'),
+                Assets::url('paesaggio-2.jpg'),
+                Assets::url('paesaggio-3.jpg'),
+                Assets::url('paesaggio-1.jpg'),
             ])
             PHP)
             ->description('Di default 4 colonne su desktop, 3 su tablet e 2 su telefono; ogni immagine apre il lightbox.')
@@ -33,9 +33,9 @@ return ComponentDoc::for(Gallery::class)
         Example::make('Colonne, spazio e download')
             ->code(<<<'PHP'
             Gallery::make([
-                Assets::url('paesaggio-1.svg'),
-                Assets::url('quadrato-1.svg'),
-                Assets::url('ritratto-1.svg'),
+                Assets::url('paesaggio-1.jpg'),
+                Assets::url('paesaggio-2.jpg'),
+                Assets::url('paesaggio-1.jpg'),
             ])
                 ->columns(3, 2, 1)
                 ->gap(3)

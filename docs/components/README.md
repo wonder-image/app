@@ -139,9 +139,13 @@ return ComponentDoc::for(Badge::class)
 - **`docs()`** rimanda alla guida GitBook (percorso relativo a `docs/app/` o
   URL), **`related()`** ad altre schede per slug, **`deprecated()`** segna il
   componente da non usare in codice nuovo.
-- Per immagini e video d'esempio usa `Wonder\Docs\Assets::url('paesaggio-1.svg')`
+- Per le immagini d'esempio usa `Wonder\Docs\Assets::url('paesaggio-1.jpg')`
   (file in `resources/assets/docs/`, raggiunti allo stesso URL in un sito e
-  nel server autonomo) e aggiungi `Assets::class` a `uses()`.
+  nel server autonomo) e aggiungi `Assets::class` a `uses()`. Le tre JPEG
+  `paesaggio-1..3` hanno accanto le varianti responsive (`-240` ... `-2400`,
+  `.jpg` e `.webp`) che `Image`, `Gallery` e `Swiper` si aspettano; gli SVG
+  (`quadrato-*`, `ritratto-1`) servono per loghi e icone e restano un
+  semplice `<img>`.
 
 ### Validare
 

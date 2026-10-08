@@ -56,7 +56,7 @@
             <small class="text-body-secondary fw-normal">wonder-image/app <?= e($VERSION ?? '') ?></small>
         </a>
         <div class="d-flex align-items-center gap-2">
-            <a class="btn btn-sm btn-outline-secondary" href="https://github.com/wonder-image/app/blob/main/docs/components/README.md" target="_blank" rel="noopener noreferrer"><i class="bi bi-book" aria-hidden="true"></i> Guida</a>
+            <?= \Wonder\Elements\Components\Button::to('https://github.com/wonder-image/app/blob/main/docs/components/README.md', 'Guida')->blank()->variant('secondary')->outline()->size('sm')->icon('bi bi-book', 'start')->render('bootstrap') ?>
             <button type="button" class="btn btn-sm btn-outline-secondary" data-wi-docs-page-scheme title="Chiaro / scuro" aria-label="Chiaro / scuro">
                 <i class="bi bi-sun-fill" aria-hidden="true"></i><i class="bi bi-moon-stars-fill d-none" aria-hidden="true"></i>
             </button>

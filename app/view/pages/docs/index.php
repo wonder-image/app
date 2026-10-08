@@ -4,6 +4,9 @@
  * L'indice del catalogo: panoramica dei componenti per categoria e gruppo,
  * con la disponibilità in ogni tema. Variabili da `Wonder\Docs\CatalogPage::index()`.
  *
+ * La pagina è fatta con gli stessi Element che documenta (tema Bootstrap
+ * esplicito); resta HTML solo la tabella, che non ha un Element.
+ *
  * @var \Wonder\Docs\Urls $urls
  * @var string[] $themes
  * @var array<string, \Wonder\Docs\Category> $categories
@@ -14,57 +17,47 @@
 
 use Wonder\Docs\Pages;
 use Wonder\Docs\ThemeSupport;
+use Wonder\Elements\Components\Alert;
+use Wonder\Elements\Components\Badge;
+use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\Link;
+use Wonder\Elements\Components\MetricCard;
+use Wonder\Elements\Components\SectionTitle;
+use Wonder\Elements\Components\Text;
+
+$tiles = [MetricCard::make('Componenti', $counts['total'])];
+
+foreach ($themes as $theme) {
+    $tiles[] = MetricCard::make('Tema '.ThemeSupport::label($theme), $counts[$theme] ?? 0);
+}
+
+$tiles[] = MetricCard::make('In tutti i temi', $counts['both']);
 
 ?>
 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
     <div>
-        <h1 class="h3 mb-1">Catalogo dei componenti</h1>
-        <p class="text-body-secondary mb-0">
-            Ogni Element di <code>wonder-image/app</code> con il codice da copiare e l'anteprima resa dal tema scelto.
-            Le anteprime Bootstrap si vedono anche in modalità scura.
-        </p>
+        <?= SectionTitle::make('Catalogo dei componenti')->level(3)->render('bootstrap') ?>
+        <?= Text::make('Ogni Element di <code>wonder-image/app</code> con il codice da copiare e l\'anteprima resa dal tema scelto. Le anteprime Bootstrap si vedono anche in modalità scura.')->html()->muted()->tag('p')->render('bootstrap') ?>
     </div>
     <?= Pages::themeSwitch($themes) ?>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card border h-100"><div class="card-body py-3">
-            <div class="small text-body-secondary">Componenti</div>
-            <div class="h4 mb-0"><?= e((string) $counts['total']) ?></div>
-        </div></div>
-    </div>
-    <?php foreach ($themes as $theme) : ?>
-        <div class="col-6 col-md-3">
-            <div class="card border h-100"><div class="card-body py-3">
-                <div class="small text-body-secondary">Tema <?= e(ThemeSupport::label($theme)) ?></div>
-                <div class="h4 mb-0"><?= e((string) ($counts[$theme] ?? 0)) ?></div>
-            </div></div>
-        </div>
-    <?php endforeach; ?>
-    <div class="col-6 col-md-3">
-        <div class="card border h-100"><div class="card-body py-3">
-            <div class="small text-body-secondary">In tutti i temi</div>
-            <div class="h4 mb-0"><?= e((string) $counts['both']) ?></div>
-        </div></div>
-    </div>
+<div class="mb-4">
+    <?= (new Container())->columns(4)->gap(3)->components($tiles)->render('bootstrap') ?>
 </div>
 
-<div class="alert alert-light border small mb-4">
-    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-    La disponibilità non è scritta a mano: per ogni componente il catalogo chiede al <code>Themes\Resolver</code>
-    se esiste il renderer del tema, lo stesso che usa <code>render($theme)</code>.
-    <span class="text-info"><i class="bi bi-check-lg" aria-hidden="true"></i> ereditato</span> indica un renderer preso da una classe madre.
+<div class="mb-4">
+    <?= Alert::make('La disponibilità non è scritta a mano: per ogni componente il catalogo chiede al Themes\Resolver se esiste il renderer del tema, lo stesso che usa render($theme). «Ereditato» indica un renderer preso da una classe madre.', 'info')
+        ->title('Disponibilità per tema')
+        ->dismissible(false)
+        ->render('bootstrap') ?>
 </div>
 
 <?php foreach ($grouped as $categoryKey => $groups) : $category = $categories[$categoryKey] ?? null; ?>
     <section class="mb-5" id="<?= e($categoryKey) ?>">
-        <h2 class="h4 d-flex align-items-center gap-2 mb-1">
-            <?php if ($category !== null && $category->icon !== '') : ?><i class="bi <?= e($category->icon) ?> text-body-secondary" aria-hidden="true"></i><?php endif; ?>
-            <?= e($category?->title ?? $categoryKey) ?>
-        </h2>
+        <?= SectionTitle::make($category?->title ?? $categoryKey)->level(4)->render('bootstrap') ?>
         <?php if ($category !== null && $category->description !== '') : ?>
-            <p class="text-body-secondary"><?= Pages::text($category->description) ?></p>
+            <?= Text::make(Pages::text($category->description))->html()->muted()->tag('p')->render('bootstrap') ?>
         <?php endif; ?>
 
         <div class="table-responsive">
@@ -88,9 +81,11 @@ use Wonder\Docs\ThemeSupport;
                         <?php foreach ($docs as $item) : $availability = $catalogAvailability[$item->getSlug()] ?? []; ?>
                             <tr>
                                 <th scope="row" class="fw-semibold">
-                                    <a href="<?= e($urls->component($item->getSlug())) ?>" class="text-decoration-none"><?= e($item->getTitle()) ?></a>
-                                    <?php if ($item->getDeprecated() !== null) : ?><span class="badge text-bg-warning ms-1">deprecato</span><?php endif; ?>
-                                    <div class="small text-body-tertiary fw-normal"><code><?= e($item->shortName()) ?></code></div>
+                                    <?= Link::to($urls->component($item->getSlug()), $item->getTitle())->render('bootstrap') ?>
+                                    <?php if ($item->getDeprecated() !== null) : ?>
+                                        <?= Badge::make('deprecato')->variant('warning')->title($item->getDeprecated())->render('bootstrap') ?>
+                                    <?php endif; ?>
+                                    <?= Text::make('<code>'.e($item->shortName()).'</code>')->html()->small()->muted()->tag('div')->render('bootstrap') ?>
                                 </th>
                                 <td class="text-body-secondary"><?= Pages::text($item->getDescription()) ?></td>
                                 <?php foreach ($themes as $theme) : ?>
@@ -108,7 +103,5 @@ use Wonder\Docs\ThemeSupport;
 <?php endforeach; ?>
 
 <?php if ($grouped === []) : ?>
-    <div class="alert alert-warning">
-        Nessuna scheda trovata. Le schede stanno in <code>docs/components/&lt;categoria&gt;/*.php</code> del pacchetto.
-    </div>
+    <?= Alert::make('Nessuna scheda trovata. Le schede stanno in docs/components/<categoria>/*.php del pacchetto.', 'warning')->dismissible(false)->render('bootstrap') ?>
 <?php endif; ?>

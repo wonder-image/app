@@ -10,6 +10,8 @@
  * @var ?\Wonder\Docs\ComponentDoc $doc
  */
 
+use Wonder\Elements\Components\Badge;
+
 $currentSlug = $doc?->getSlug() ?? '';
 
 ?>
@@ -33,7 +35,7 @@ $currentSlug = $doc?->getSlug() ?? '';
                         <li data-wi-docs-item="<?= e($item->getTitle().' '.$item->shortName().' '.implode(' ', $item->getTags())) ?>">
                             <a href="<?= e($urls->component($item->getSlug())) ?>" class="d-block rounded px-2 py-1 text-decoration-none <?= $active ? 'bg-primary-subtle text-primary-emphasis fw-semibold' : 'text-reset' ?>"<?= $active ? ' aria-current="page"' : '' ?>>
                                 <?= e($item->getTitle()) ?>
-                                <?php if ($item->getDeprecated() !== null) : ?><span class="badge text-bg-warning ms-1" title="<?= e($item->getDeprecated()) ?>">deprecato</span><?php endif; ?>
+                                <?php if ($item->getDeprecated() !== null) : ?><?= Badge::make('deprecato')->variant('warning')->title($item->getDeprecated())->addClass('ms-1')->render('bootstrap') ?><?php endif; ?>
                             </a>
                         </li>
                     <?php endforeach; ?>
