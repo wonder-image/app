@@ -11,6 +11,8 @@
 
     <?= \Wonder\View\View::component('frontend.layout.body-start') ?>
 
+    <?= \Wonder\View\View::component('frontend.layout.flash-message') ?>
+
     <?=$PAGE_CONTENT?>
     
     <?= \Wonder\View\View::component('frontend.layout.body-end') ?>
