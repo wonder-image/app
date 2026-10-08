@@ -24,7 +24,15 @@
     "personal": {
         "label": "Personal details",
         "title": "Edit personal details",
-        "section": "Personal information"
+        "section": "Personal information",
+        "errors": {
+            "birth_date": "Date of birth: invalid value."
+        }
+    },
+    "email": {
+        "errors": {
+            "same": "The new email matches the current one."
+        }
     },
     "navigation": {
         "label": "Account navigation",

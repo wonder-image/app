@@ -24,7 +24,15 @@
     "personal": {
         "label": "Dati personali",
         "title": "Modifica i dati personali",
-        "section": "Informazioni personali"
+        "section": "Informazioni personali",
+        "errors": {
+            "birth_date": "Data di nascita: valore non valido."
+        }
+    },
+    "email": {
+        "errors": {
+            "same": "La nuova email è uguale a quella attuale."
+        }
     },
     "navigation": {
         "label": "Navigazione account",
