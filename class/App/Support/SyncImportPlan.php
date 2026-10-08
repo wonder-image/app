@@ -25,6 +25,23 @@ final class SyncImportPlan
     }
 
     /**
+     * Il file è stato scritto prima di `keepIds()`: ha righe, ma nessuna con
+     * un `id` valido. Va importato come prima, svuotando e reinserendo.
+     *
+     * @param array<int, mixed> $fileRows
+     */
+    public static function withoutIds(array $fileRows): bool
+    {
+        foreach ($fileRows as $row) {
+            if (is_array($row) && (int) ($row['id'] ?? 0) > 0) {
+                return false;
+            }
+        }
+
+        return $fileRows !== [];
+    }
+
+    /**
      * @param array<int, mixed> $fileRows righe del file già ripulite
      * @param array<int, int|string> $existingIds `id` presenti nel database
      */

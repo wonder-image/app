@@ -11,6 +11,21 @@ class View
     private static array $layoutStack = [];
     private static array $dataStack = [];
     private static array $globalStack = [];
+    private static array $headEntries = [];
+
+    /** Register trusted markup before the outer layout renders its head. */
+    public static function head(string $html): void
+    {
+        if ($html !== '') self::$headEntries[hash('sha256', $html)] = $html;
+    }
+
+    public static function renderHead(): string
+    {
+        $html = implode("\n", self::$headEntries);
+        self::$headEntries = [];
+
+        return $html;
+    }
 
     public function __construct(
         private readonly string $view,

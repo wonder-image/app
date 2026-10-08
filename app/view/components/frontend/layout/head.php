@@ -1,4 +1,4 @@
-<?php 
+<?php
 
     $SEO ??= (object) [];
     $SOCIETY ??= (object) [];
@@ -77,9 +77,16 @@
         && (($SQL_ANALYTICS['active_pixel_facebook'] ?? '') === "" || ($SQL_ANALYTICS['active_pixel_facebook'] ?? '') === "true")
     ) ? true : false;
 
-    if ($ANALYTICS->tag_manager->active) :
-
 ?>
+<?php $dataLayerFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR; ?>
+<script>
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push(<?=json_encode(['user' => ['id' => (int) ($_SESSION['user_id'] ?? 0) > 0 ? (int) $_SESSION['user_id'] : null]], $dataLayerFlags)?>);
+<?php foreach (\Wonder\Auth\Frontend\AuthSession::consumeEvents() as $authEvent): ?>
+window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
+<?php endforeach; ?>
+</script>
+<?php if ($ANALYTICS->tag_manager->active) : ?>
 <!-- Inizio Google Tag Manager -->
 <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -130,12 +137,24 @@
 
 <?php
 
+    $schemaOrg = is_array($SEO->schemaOrg ?? null) ? $SEO->schemaOrg : [];
+    $schemaGraph = [];
+    if ($schemaOrg !== []) {
+        $schemaGraph = isset($schemaOrg['@graph']) ? (array) $schemaOrg['@graph']
+            : (array_is_list($schemaOrg) ? $schemaOrg : [$schemaOrg]);
+        foreach ($schemaGraph as &$entity) {
+            if (is_array($entity)) unset($entity['@context']);
+        }
+        unset($entity);
+    }
     if (!empty($SEO->breadcrumb)) {
-
-        echo "<!-- Inizio BreadcrumbList => schema.org -->";
-        echo breadcrumb($SEO->breadcrumb);
-        echo "<!-- Fine BreadcrumbList => schema.org -->";
-
+        $schemaGraph = array_values(array_filter($schemaGraph, static fn ($entity): bool => is_array($entity) && ($entity['@type'] ?? '') !== 'BreadcrumbList'));
+        $schemaGraph[] = json_decode(breadcrumb($SEO->breadcrumb, false), true);
+    }
+    if ($schemaGraph !== []) {
+        echo '<script type="application/ld+json">'.json_encode([
+            '@context' => 'https://schema.org', '@graph' => $schemaGraph,
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE).'</script>';
     }
 
 ?>
@@ -206,14 +225,8 @@
     if (sqlTableExists('css_font')) {
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-        foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) {
-            $fontLink = (string) ($row['link'] ?? '');
-            if ($fontLink === '') { continue; }
-            // display=swap sui Google Fonts: testo subito visibile con fallback, evita il
-            // FOIT (testo invisibile) che ritarda FCP/LCP. Solo se non già presente.
-            if (str_contains($fontLink, 'fonts.googleapis.com') && !str_contains($fontLink, 'display=')) {
-                $fontLink .= (str_contains($fontLink, '?') ? '&' : '?') . 'display=swap';
-            }
+        // Link relativi fatti assoluti, display=swap su Google, ogni foglio una volta.
+        foreach (Wonder\App\Support\CssFontLinks::hrefs(sqlSelect('css_font', ['visible' => 'true', 'deleted' => 'false'])->row, (string) ($PATH->site ?? '')) as $fontLink) {
             if (str_contains($fontLink, 'fonts.googleapis.com')) {
                 $escapedFontLink = e($fontLink);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
@@ -227,6 +240,7 @@
 ?>
 
 <?=Wonder\App\Dependencies::Head()?>
+<?=\Wonder\View\View::renderHead()?>
 
 <script>
 

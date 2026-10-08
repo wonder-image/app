@@ -44,6 +44,10 @@ check('missingRows: chiavi esistenti confrontate come stringhe', function () {
     return DefaultRows::missingRows([['code' => '10'], ['code' => '22']], 'code', [10]) === [['code' => '22']];
 });
 
+check('missingRows: chiavi confrontate senza badare alle maiuscole, come MySQL', function () {
+    return DefaultRows::missingRows([['name' => 'DM Sans'], ['name' => 'Lato']], 'name', ['Dm Sans']) === [['name' => 'Lato']];
+});
+
 check('missingRows: duplicati nello stesso elenco inseriti una volta', function () {
     return DefaultRows::missingRows([['code' => 'a'], ['code' => 'a']], 'code', []) === [['code' => 'a']];
 });
@@ -59,6 +63,15 @@ check('missingRows: riga senza chiave rifiutata', function () {
 
 check('total() parte da zero', function () {
     return (new DefaultRows())->total() === 0;
+});
+
+check('count(): le righe sistemate fuori da ensure contano per l\'export', function () {
+    $rows = new DefaultRows();
+    $rows->count(3);
+    $rows->count(0);
+    $rows->count(-2);
+
+    return $rows->total() === 3;
 });
 
 check('Manifest::defaultsClass()', function () {

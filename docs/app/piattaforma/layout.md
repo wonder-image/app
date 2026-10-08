@@ -46,6 +46,7 @@ Il flusso corretto è questo:
 - `app/view/components/frontend/layout/head.php`
 - `app/view/components/frontend/layout/body-start.php`
 - `app/view/components/frontend/layout/body-end.php`
+- `app/view/components/frontend/layout/flash-message.php`
 - `app/view/components/frontend/layout/header.php`
 - `app/view/components/frontend/layout/footer.php`
 
@@ -73,6 +74,7 @@ Il naming target evita il suffisso `_layout` quando non serve.
 - `app/view/components/frontend/layout/head.php`
 - `app/view/components/frontend/layout/body-start.php`
 - `app/view/components/frontend/layout/body-end.php`
+- `app/view/components/frontend/layout/flash-message.php`
 - `app/view/components/frontend/layout/header.php`
 - `app/view/components/frontend/layout/footer.php`
 - `app/view/components/backend/layout/head.php`

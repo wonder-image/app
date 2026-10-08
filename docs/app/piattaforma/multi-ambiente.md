@@ -111,7 +111,7 @@ I Model vengono scoperti via `ModelRegistry` -- framework, moduli e sito contrib
 
 | Tabella | Tipo | Contenuto |
 |---|---|---|
-| `css_font` | Multi-row | Font families (Google Fonts, custom) |
+| `css_font` | Multi-row con `keepIds()` | Font families (Google Fonts, custom); `slug` tecnico, nato dal nome alla creazione e fuori dal form |
 | `css_color` | Multi-row | Palette colori con variabili CSS |
 | `css_default` | Singleton | Tipografia, spacing, border-radius, button/badge |
 | `css_input` | Singleton | Stili input e form |
@@ -212,7 +212,8 @@ public static function syncSchema(): ?SyncSchema
 - l'export include `id` e `deleted`, ordinato per `id`;
 - l'import inserisce o aggiorna per `id`, senza `TRUNCATE`;
 - le righe assenti dal file vengono segnate `deleted = 'true'`, mai eliminate;
-- la cancellazione dal backend e dalle API di queste tabelle è sempre logica.
+- la cancellazione dal backend e dalle API di queste tabelle è sempre logica;
+- un file scritto prima di `keepIds()` (righe senza `id`) si importa ancora svuotando e reinserendo: il primo export locale aggiunge gli `id`.
 
 Le tabelle senza `keepIds()` mantengono il comportamento storico (svuotate e reinserite). L'export di tutte le tabelle è ordinato per `id`.
 
@@ -226,7 +227,7 @@ Fuori da `APP_ENV=local` le Resource di questi Model sono in sola lettura: nessu
 
 #### Righe precaricate dei moduli
 
-Con `APP_ENV=local`, `forge update` esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe, riscrive `shared/sync-data.json` da committare. In produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
+Con `APP_ENV=local`, `forge update` dà lo slug ai font che non lo hanno e aggiunge per slug i font predefiniti mancanti in `css_font` (`Wonder\App\AppDefaults`), poi esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe o danno slug, riscrive `shared/sync-data.json` da committare. In produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
 
 #### Export dopo il salvataggio
 

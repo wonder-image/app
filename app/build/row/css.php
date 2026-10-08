@@ -1,22 +1,11 @@
 <?php
 
-    foreach ($DEFAULT->font as $key => $value) {
+    # Font: solo in una tabella vuota. Sui siti che li hanno già, quelli
+    # nuovi del pacchetto li aggiunge AppDefaults in locale, per slug.
+    if (!sqlSelect('css_font', null, 1)->exists) {
 
-        $name = sanitize($value['name']);
-        $link = sanitize($value['link']);
-        $fontFamily = \Wonder\App\Support\CssFontFamily::normalize($value['font-family']);
-
-        if (!sqlSelect('css_font', ['name' => $name], 1)->exists) {
-            
-            $values = [
-                "name" => $name,
-                "link" => $link,
-                "font_family" => $fontFamily,
-                "visible" => "true"
-            ];
-
+        foreach (\Wonder\App\AppDefaults::fontRows() as $values) {
             sqlInsert('css_font', $values);
-
         }
 
     }

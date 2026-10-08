@@ -69,13 +69,36 @@ Gli errori di **singolo campo** restano nel wiring di `FormField`: qui si
 parla del messaggio d'**esito** dell'invio, non dei suggerimenti campo per
 campo.
 
-### Frontend: consigliato
+## Messaggi frontend dopo un redirect
 
-Nel frontend la stessa scelta è **consigliata**, non obbligatoria: preferisci
-il componente `Alert` (o un codice notifica via `$ALERT` / `?alert=`) al testo
-d'errore stampato dentro la pagina. Il JavaScript della lib accetta solo il
-codice, quindi un messaggio scritto a mano non diventa toast: modella l'errore
-come codice di `notifications.json` oppure rendi un `Alert` in pagina.
+Nel frontend usa `FlashMessage` per comunicare l'esito di una richiesta che
+termina con un redirect:
+
+```php
+use Wonder\Frontend\Support\FlashMessage;
+
+FlashMessage::success('Quantità aggiornata.', 'Carrello aggiornato');
+FlashMessage::error("Indirizzo incompleto.\nMetodo di pagamento mancante.", 'Controlla i dati');
+FlashMessage::warning('La sessione sta per scadere.', 'Attenzione');
+FlashMessage::info('La richiesta è in elaborazione.', 'Informazione');
+
+header('Location: /destinazione/');
+exit;
+```
+
+Il messaggio aspetta in sessione ed è consumato una sola volta dal componente
+`frontend.layout.flash-message`, incluso in `frontend.base`. La resa usa
+`Wonder\Elements\Components\Alert`: testo e titolo vengono escapati dal
+renderer, mentre livello e contenuto restano dati e non markup preparato dal
+controller.
+
+`FlashMessage` contiene un solo esito per redirect: una seconda chiamata prima
+del rendering sostituisce la precedente. Gli errori correlati vanno quindi
+uniti in un unico testo separato da `\n`. Gli errori di singolo campo restano
+nel wiring di `FormField` e non diventano messaggi flash.
+
+Per aggiornamenti AJAX non usare la sessione: restituisci l'esito nella risposta
+JSON e mostra l'avviso soltanto dopo la risposta positiva o negativa.
 
 ## Cosa fa già il core
 

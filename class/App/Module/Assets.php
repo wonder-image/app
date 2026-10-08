@@ -17,8 +17,8 @@ use Wonder\App\LegacyGlobals;
  *  3. fallback sul symlink `vendor/<package>` quando il root del modulo
  *     risolve fuori da ROOT (repository Composer di tipo path).
  *
- * Ogni URL include `?v=` per il cache busting: la versione del modulo per i
- * file del modulo, il filemtime per le copie pubblicate.
+ * Ogni URL include `?v=` per il cache busting: versione del modulo e
+ * filemtime per i file del modulo, il filemtime per le copie pubblicate.
  */
 final class Assets
 {
@@ -104,7 +104,10 @@ final class Assets
             return '';
         }
 
-        $version = $manifest->version() !== '' ? $manifest->version() : (string) filemtime($sourceFile);
+        // Versione e filemtime: un file cambiato senza alzare la versione del
+        // modulo (in sviluppo, o una patch) non resta nella cache del browser.
+        $mtime = (string) filemtime($sourceFile);
+        $version = $manifest->version() !== '' ? $manifest->version().'.'.$mtime : $mtime;
 
         // 2. File del modulo raggiungibile sotto ROOT (vendor/, modules/, bundled).
         if (str_starts_with($sourceFile, $root.'/')) {

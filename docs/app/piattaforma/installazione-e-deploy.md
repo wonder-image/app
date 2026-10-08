@@ -158,7 +158,7 @@ Fa questo:
 - se `society_locations` è vuota, crea la sede predefinita dai vecchi dati aziendali (`stats.society_locations`)
 - importa `shared/sync-data.json` se presente (`stats.sync_import`)
 - esegue i file in `build/update` (include: rigenerazione CSS, aggiornamento `.htaccess` router block, creazione `robots.txt` se mancante)
-- solo con `APP_ENV=local`: righe precaricate dei moduli (`database.defaults`, `stats.defaults`) e, se ne ha inserite, scrittura di `shared/sync-data.json` (`stats.sync_export`)
+- solo con `APP_ENV=local`: righe precaricate del pacchetto app (`Wonder\App\AppDefaults`: i font predefiniti di `css_font`) e dei moduli (`database.defaults`), contate in `stats.defaults`, e, se ne ha inserite, scrittura di `shared/sync-data.json` (`stats.sync_export`). Le righe che `build/row` aggiunge a una tabella sincronizzata spariscono con l'import: per questo i font nuovi passano da qui
 
 Con `--local` esegue anche:
 

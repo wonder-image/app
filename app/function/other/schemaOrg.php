@@ -2,35 +2,17 @@
 
     function breadcrumb($list, $script = true) {
 
-        $RETURN = $script ? '<script type="application/ld+json">'."\n" : '';
-
-        $RETURN .= '{'."\n";
-        $RETURN .= $script ? '    "@context": "https://schema.org/",'."\n" : '';
-        $RETURN .= '    "@type": "BreadcrumbList",'."\n";
-        $RETURN .= '    "itemListElement": [';
-
-        $i = 1;
-
+        $data = ['@type' => 'BreadcrumbList', 'itemListElement' => []];
+        if ($script) $data = ['@context' => 'https://schema.org/'] + $data;
         foreach ($list as $url => $name) {
-
-            $RETURN .= '{'."\n";
-            $RETURN .= '        "@type": "ListItem",'."\n";
-            $RETURN .= '        "position": '.$i.','."\n";
-            $RETURN .= '        "item": {'."\n";
-            $RETURN .= '            "@id": "'.$url.'",'."\n";
-            $RETURN .= '            "name": "'.$name.'"'."\n";
-            $RETURN .= '        }'."\n";
-            $RETURN .= '},';
-
-            $i++;
-
+            $data['itemListElement'][] = [
+                '@type' => 'ListItem',
+                'position' => count($data['itemListElement']) + 1,
+                'item' => ['@id' => (string) $url, 'name' => (string) $name],
+            ];
         }
+        $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_INVALID_UTF8_SUBSTITUTE);
 
-        $RETURN = substr($RETURN, 0, -1)."]\n";
-
-        $RETURN .= '}'."\n";
-        $RETURN .= $script ? '</script>' : '';
-
-        return $RETURN;
+        return $script ? '<script type="application/ld+json">'.$json.'</script>' : $json;
 
     }

@@ -49,6 +49,31 @@ class UserAccountGateway implements UserAccountGatewayInterface
         return $userId;
     }
 
+    /**
+     * Il cliente che ordina come ospite: account attivo, senza password e con
+     * l'email da verificare. La password la sceglie dal link nell'email
+     * dell'ordine, e quel link verifica anche l'email.
+     */
+    public function createUserWithoutPassword(string $name, string $surname, string $email, string $area): int
+    {
+        $email = strtolower(trim($email));
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return 0;
+        }
+
+        $created = User::create([
+            'name' => trim($name),
+            'surname' => trim($surname),
+            'email' => $email,
+            'username' => \create_link(explode('@', $email)[0], 'user', 'username'),
+            'authority' => json_encode($this->authorities, JSON_THROW_ON_ERROR),
+            'area' => json_encode([$area], JSON_THROW_ON_ERROR),
+            'active' => 'true',
+        ]);
+
+        return (int) ($created->insert_id ?? 0);
+    }
+
     public function hasLocalPassword(int $userId): bool
     {
         return trim((string) (($this->findUserById($userId)['password'] ?? ''))) !== '';

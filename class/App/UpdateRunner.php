@@ -400,12 +400,13 @@ class UpdateRunner
     }
 
     /**
-     * Righe precaricate dei moduli abilitati, in ordine di dipendenza.
-     * Chiamato solo con APP_ENV=local.
+     * Righe precaricate del pacchetto app, poi dei moduli abilitati in
+     * ordine di dipendenza. Chiamato solo con APP_ENV=local.
      */
     private function runModuleDefaults(): int
     {
         $rows = new DefaultRows();
+        AppDefaults::seed($rows);
 
         foreach (ModuleDependencySorter::sortManifests(ModuleRegistry::enabled()) as $manifest) {
             $defaultsClass = $manifest->defaultsClass();
