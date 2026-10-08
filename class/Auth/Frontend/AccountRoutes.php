@@ -18,7 +18,11 @@ final class AccountRoutes
             if (get_class(self::$panel) !== get_class($panel)) {
                 throw new \LogicException('Conflicting account panel');
             }
-            return;
+            // Ripetuto nello stesso caricamento: le route ci sono già. Se invece Route::load ha
+            // ricaricato le route (stessa richiesta, secondo caricamento), si registrano di nuovo.
+            if (Route::resolvePath('account.index') !== '') {
+                return;
+            }
         }
         self::$panel = $panel;
         self::$auth = $auth;

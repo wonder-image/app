@@ -92,6 +92,20 @@ try {
 } catch (\LogicException) {
 }
 
+// Route ricaricate (Route::load azzera il registro, il pannello resta): register le rimette, con le estensioni.
+$fresh();
+AccountRoutes::extend(new ProvaExtension());
+AccountRoutes::register(new AccountPanel());
+Route::reset();
+AccountRoutes::register(new AccountPanel());
+AccountRoutes::extend(new ProvaExtension());
+$again = $byName();
+$check(isset($again['account.index'], $again['account.personal'], $again['account.prova']), 'dopo Route::reset, register deve rimettere le route e quelle delle estensioni');
+$check(count(array_filter(Route::all(), static fn ($r) => $r['path'] === '/account/prova/')) === 1, 'dopo Route::reset, /account/prova/ una volta sola');
+$count = count(Route::all());
+AccountRoutes::register(new AccountPanel());
+$check(count(Route::all()) === $count, 'dopo il ricaricamento, un register ripetuto non duplica');
+
 // Estensione prima e dopo register, una sola volta.
 foreach (['prima', 'dopo'] as $when) {
     $fresh();
