@@ -114,7 +114,7 @@ class AccountController
     }
 
     /** @return list<string> Errori da mostrare nel modal; con il salvataggio riuscito esce con un redirect. */
-    private function savePersonal(int $userId): array
+    protected function savePersonal(int $userId): array
     {
         $result = AccountPersonal::save($userId, $_POST, $this->panel, $this->auth->phoneRequired());
         if ($result->success) {
@@ -125,7 +125,7 @@ class AccountController
     }
 
     /** @return list<string> */
-    private function requestEmail(object $user): array
+    protected function requestEmail(object $user): array
     {
         $newEmail = strtolower(trim((string) ($_POST['email'] ?? '')));
         $result = AccountEmail::request($user, $newEmail, (string) ($_POST['current_password'] ?? ''), Route::url('account.email.confirm'), $this->mailer());
@@ -140,7 +140,7 @@ class AccountController
     }
 
     /** @return list<string> */
-    private function changePassword(int $userId): array
+    protected function changePassword(int $userId): array
     {
         $result = AccountPassword::change($userId, array_intersect_key($_POST, array_flip(['current_password', 'password'])));
         if ($result->success) {
@@ -155,7 +155,7 @@ class AccountController
      * @param list<string> $messages Già tradotti.
      * @return list<string>
      */
-    private function translate(array $errors, array $messages = []): array
+    protected function translate(array $errors, array $messages = []): array
     {
         return array_values(array_unique([
             ...array_map(static fn (string $key): string => (string) __t($key), AuthValidationAlert::messageKeys($errors)),
@@ -164,7 +164,7 @@ class AccountController
     }
 
     /** @return array<string, \Wonder\App\ResourceSchema\Input> */
-    private function personalFields(object $user, array $contact, array $values): array
+    protected function personalFields(object $user, array $contact, array $values): array
     {
         $phone = (string) ($values['phone'] ?? $contact['phone'] ?? $user->phone ?? '');
         $prefix = (string) ($values['phone_prefix'] ?? $contact['phone_prefix'] ?? '+39');
@@ -188,7 +188,7 @@ class AccountController
     }
 
     /** La scheda cliente collegata a un altro utente non si può usare: lo si dice nella pagina. */
-    private function contactErrors(array $contact): array
+    protected function contactErrors(array $contact): array
     {
         return $contact === [] ? [(string) __t('account.errors.contact')] : [];
     }
