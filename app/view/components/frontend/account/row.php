@@ -7,7 +7,7 @@ $modal = trim((string) ($action['modal'] ?? ''));
 $href = trim((string) ($action['href'] ?? ''));
 $hint = trim((string) ($action['hint'] ?? ''));
 $button = null;
-if ($actionLabel !== '' && ($modal !== '' || $href !== '')) {
+if ($actionLabel !== '' && ($modal !== '' || $href !== '' || !empty($action['disabled']))) {
     $button = Button::to($modal !== '' ? '#' : $href, $actionLabel)->outline()->variant('black')->size('sm');
     if (trim((string) ($action['icon'] ?? '')) !== '') {
         $button->icon((string) $action['icon']);
