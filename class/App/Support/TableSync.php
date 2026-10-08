@@ -200,59 +200,73 @@ final class TableSync
      */
     public static function importConfig(array $config, ?array $onlyTables = null): bool
     {
-        $discovered = self::discoverTables();
-        $tables = $onlyTables !== null
-            ? array_intersect($onlyTables, array_keys($discovered))
-            : self::syncTables();
-        $tables = SyncTableSorter::sort($tables, ModelRegistry::all());
+        $done = [];
 
-        $imported = 0;
-
-        foreach ($tables as $table) {
-            $schema = $discovered[$table] ?? null;
-
-            if ($schema === null) {
-                continue;
+        // Due giri: una riga importata (per esempio un interruttore delle
+        // impostazioni) può accendere tabelle che prima non si scoprivano.
+        for ($round = 0; $round < 2; $round++) {
+            if ($round > 0) {
+                self::resetCache();
             }
 
-            if (!isset($config[$table]) || !is_array($config[$table])) {
-                continue;
-            }
+            $discovered = self::discoverTables();
+            $tables = $onlyTables !== null
+                ? array_intersect($onlyTables, array_keys($discovered))
+                : self::syncTables();
+            $tables = SyncTableSorter::sort(array_diff($tables, array_keys($done)), ModelRegistry::all());
 
-            if ($schema->singleton) {
-                if (count($config[$table]) === 0) {
-                    continue;
-                }
-
-                $values = self::cleanRow($config[$table][0], $schema->excludeColumns);
-
-                if ($values === []) {
-                    continue;
-                }
-
-                if (sqlSelect($table, ['id' => 1], 1)->exists) {
-                    sqlModify($table, $values, 'id', '1');
-                } else {
-                    sqlInsert($table, $values);
-                }
-            } elseif ($schema->keepIds) {
-                self::importKeepingIds($table, $config[$table], $schema);
-            } else {
-                sqlTruncate($table);
-
-                foreach ($config[$table] as $row) {
-                    $values = self::cleanRow($row, $schema->excludeColumns);
-
-                    if ($values !== []) {
-                        sqlInsert($table, $values);
-                    }
+            foreach ($tables as $table) {
+                if (self::importTable($table, $discovered[$table] ?? null, $config)) {
+                    $done[$table] = true;
                 }
             }
-
-            $imported++;
         }
 
-        return $imported > 0;
+        return $done !== [];
+    }
+
+    /** Importa una tabella dal config; false se non c'era niente da fare. */
+    private static function importTable(string $table, ?SyncSchema $schema, array $config): bool
+    {
+        if ($schema === null) {
+            return false;
+        }
+
+        if (!isset($config[$table]) || !is_array($config[$table])) {
+            return false;
+        }
+
+        if ($schema->singleton) {
+            if (count($config[$table]) === 0) {
+                return false;
+            }
+
+            $values = self::cleanRow($config[$table][0], $schema->excludeColumns);
+
+            if ($values === []) {
+                return false;
+            }
+
+            if (sqlSelect($table, ['id' => 1], 1)->exists) {
+                sqlModify($table, $values, 'id', '1');
+            } else {
+                sqlInsert($table, $values);
+            }
+        } elseif ($schema->keepIds && !SyncImportPlan::withoutIds($config[$table])) {
+            self::importKeepingIds($table, $config[$table], $schema);
+        } else {
+            sqlTruncate($table);
+
+            foreach ($config[$table] as $row) {
+                $values = self::cleanRow($row, $schema->excludeColumns);
+
+                if ($values !== []) {
+                    sqlInsert($table, $values);
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

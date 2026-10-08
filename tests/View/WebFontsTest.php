@@ -109,4 +109,19 @@ check('senza URL base usa $PATH->appAssets; senza $PATH non stampa nulla', funct
         && str_contains($css, 'url("https://sito.test/vendor/wonder-image/app/resources/assets/font/web/Inter/inter-latin-wght-normal.woff2")');
 });
 
+check('variables() mette una famiglia di css_font nelle variabili del sito', function () {
+    $css = WebFonts::variables('\\\'Montserrat\\\', sans-serif');
+
+    return str_starts_with($css, 'html:root{')
+        && str_contains($css, '--font-family:"Montserrat", sans-serif;')
+        && str_contains($css, '--text-small-font-family:"Montserrat", sans-serif;')
+        && substr_count($css, '"Montserrat", sans-serif') === 6;
+});
+
+check('variables() di una famiglia vuota non stampa nulla; una famiglia non esce dal blocco', fn () =>
+    WebFonts::variables('  ') === ''
+    && !preg_match('/[<>]|\}.*\{/', WebFonts::variables('"A"}</style><script>{x;'))
+    && substr_count(WebFonts::variables('"A"}</style><script>{x;'), '}') === 1
+);
+
 summary();

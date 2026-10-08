@@ -25,12 +25,8 @@
 - `Dependencies::reset()` e `Dependencies::active()`; i renderer dei grafici
   accendono da soli Chart.js (`Dependencies::chartjs()`), come Swiper.
 - Chiavi `components.code.*` e `components.preview.*` nelle traduzioni.
-
-### Changed
-- `Themes\{Bootstrap,Wonder}\Media\Media` prendono `columnSpanClasses()`
-  dai nuovi concern `Themes\{Bootstrap,Wonder}\Concerns\ColumnSpanClasses`,
-  condivisi con `Code` e `Preview`.
-
+- `UserAccountGateway::createUserWithoutPassword()`: crea il cliente che ordina come
+  ospite, attivo, senza password e con l'email da verificare.
 - Cambio password del pannello account: `Wonder\Auth\Frontend\AccountPassword`
   (campi, validazione e salvataggio; password attuale richiesta solo se
   l'account ne ha una), componente `frontend.account.password-form`,
@@ -175,6 +171,11 @@
   senza href.
 
 ### Changed
+- `Themes\{Bootstrap,Wonder}\Media\Media` prendono `columnSpanClasses()`
+  dai nuovi concern `Themes\{Bootstrap,Wonder}\Concerns\ColumnSpanClasses`,
+  condivisi con `Code` e `Preview`.
+- `PasswordReset::reset()` segna l'email come verificata: il token è arrivato a quella casella.
+- `PasswordReset::issueForUser(..., revokeOpenTokens: false)` lascia validi i link già mandati.
 - `Button::confirm($message, title:, ok:, variant:)`: la conferma usa
   `data-wi-confirm*` della lib al posto di `onsubmit="window.confirm(...)"`.
   La firma con il solo messaggio resta valida; sui bottoni e link non POST la

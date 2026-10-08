@@ -14,7 +14,8 @@ final class CssFont extends Model
 
     public static function syncSchema(): ?SyncSchema
     {
-        return SyncSchema::multiRow();
+        // Gli id restano gli stessi in ogni ambiente: le impostazioni puntano ai font per id.
+        return SyncSchema::multiRow()->keepIds();
     }
 
     public static function tableSchema(): array
@@ -22,6 +23,7 @@ final class CssFont extends Model
         return [
             ...static::sqlColumnsFromDataSchema([
                 'name',
+                'slug',
                 'link',
                 'font_family',
                 'visible',
@@ -32,7 +34,9 @@ final class CssFont extends Model
     public static function dataSchema(): array
     {
         return [
-            Field::key('name')->text()->required()->sanitizeFirst(),
+            Field::key('name')->text()->required(),
+            // Chiave tecnica: nasce dal nome alla creazione, non è nel form e non cambia.
+            Field::key('slug')->text()->slug()->immutableOnUpdate(),
             Field::key('link')->text()->required(),
             Field::key('font_family')->text()->required(),
             Field::key('visible')->text()->required(),

@@ -44,4 +44,16 @@ check('righe senza id valido o duplicate saltate', function () {
     return $plan->skipped === 4 && $plan->inserts === [['id' => 4, 'name' => 'prima']];
 });
 
+check('file scritto prima di keepIds(): nessuna riga ha l\'id', fn () =>
+    SyncImportPlan::withoutIds([['name' => 'Roboto'], ['name' => 'Lato', 'id' => 0]])
+    && !SyncImportPlan::withoutIds([['name' => 'Roboto'], ['id' => 2, 'name' => 'Lato']])
+    && !SyncImportPlan::withoutIds([])
+);
+
+check('TableSync importa il file senza id come prima, svuotando e reinserendo', function () {
+    $sync = (string) file_get_contents(dirname(__DIR__, 3).'/class/App/Support/TableSync.php');
+
+    return str_contains($sync, '$schema->keepIds && !SyncImportPlan::withoutIds($config[$table])');
+});
+
 summary();

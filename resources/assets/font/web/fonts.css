@@ -1,0 +1,12 @@
+/* Font serviti dal pacchetto: le righe di css_font li caricano da qui. Vedi README.md. */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url("Inter/inter-latin-wght-normal.woff2") format("woff2");}
+@font-face{font-family:"Open Sans";font-style:normal;font-display:swap;font-weight:300 800;src:url("OpenSans/open-sans-latin-wght-normal.woff2") format("woff2");}
+@font-face{font-family:"Lato";font-style:normal;font-display:swap;font-weight:400;src:url("Lato/lato-latin-400-normal.woff2") format("woff2");}
+@font-face{font-family:"Lato";font-style:normal;font-display:swap;font-weight:700;src:url("Lato/lato-latin-700-normal.woff2") format("woff2");}
+@font-face{font-family:"Poppins";font-style:normal;font-display:swap;font-weight:400;src:url("Poppins/poppins-latin-400-normal.woff2") format("woff2");}
+@font-face{font-family:"Poppins";font-style:normal;font-display:swap;font-weight:500;src:url("Poppins/poppins-latin-500-normal.woff2") format("woff2");}
+@font-face{font-family:"Poppins";font-style:normal;font-display:swap;font-weight:600;src:url("Poppins/poppins-latin-600-normal.woff2") format("woff2");}
+@font-face{font-family:"Poppins";font-style:normal;font-display:swap;font-weight:700;src:url("Poppins/poppins-latin-700-normal.woff2") format("woff2");}
+@font-face{font-family:"DM Sans";font-style:normal;font-display:swap;font-weight:100 1000;src:url("DMSans/dm-sans-latin-wght-normal.woff2") format("woff2");}
+@font-face{font-family:"Nunito";font-style:normal;font-display:swap;font-weight:200 1000;src:url("Nunito/nunito-latin-wght-normal.woff2") format("woff2");}
+@font-face{font-family:"Work Sans";font-style:normal;font-display:swap;font-weight:100 900;src:url("WorkSans/work-sans-latin-wght-normal.woff2") format("woff2");}
