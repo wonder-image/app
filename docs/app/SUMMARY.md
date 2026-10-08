@@ -53,6 +53,7 @@
   * [Contatti backend](concetti/utenti/contatti-backend.md)
   * [Token monouso e impersonificazione](concetti/utenti/token-e-impersonificazione.md)
 * [Componenti UI](concetti/componenti/README.md)
+  * [Catalogo dei componenti](concetti/componenti/catalogo.md)
   * [Charts](concetti/componenti/charts.md)
   * [Swiper e Gallery](concetti/componenti/swiper-e-gallery.md)
   * [Video e Iframe](concetti/componenti/video-e-iframe.md)

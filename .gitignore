@@ -22,3 +22,4 @@ example/
 !/tests/scheduler.php
 !/tests/scheduler-integration.php
 /bin/release.php
+node_modules/

@@ -604,6 +604,14 @@ come unico wrapper radice, senza una `row` esterna. Non impostare
 `columnSpan()` sull'iframe in questo caso: senza span il tag resta figlio
 diretto di `.ratio`.
 
+## Catalogo vivo
+
+Ogni componente di questa pagina (e ogni campo dei form, i media e i grafici)
+ha una scheda nel [catalogo dei componenti](catalogo.md): codice da copiare e
+anteprima resa nel tema scelto, con la disponibilità per tema calcolata dal
+`Resolver`. Nel backend sta in **Dev → Componenti**; dal pacchetto si avvia
+con `composer docs`.
+
 ## Collegamenti con il resto
 
 - I campi dentro le Card sono sempre dichiarati con `FormField`: vedi

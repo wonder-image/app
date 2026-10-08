@@ -1,4 +1,6 @@
 {
+    "code": { "copy": "Copia", "copied": "Copiato" },
+    "preview": { "open": "Apri in una nuova scheda", "scheme": "Passa da chiaro a scuro", "unavailable": "Non disponibile" },
     "media": { "load_content": "Carica contenuto" },
     "forms" : {
         "clear_search": "Cancella ricerca",

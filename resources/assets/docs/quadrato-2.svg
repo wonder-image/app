@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="Immagine di esempio quadrato-2">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#64748b"/><stop offset="1" stop-color="#0f172a"/></linearGradient></defs>
+<rect width="1200" height="1200" fill="url(#g)"/>
+<path d="M0 900.0 Q 300.0 660.0 600.0 840.0 T 1200 720.0 V 1200 H 0 Z" fill="#000000" fill-opacity="0.3"/><path d="M0 1020.0 Q 420.0 840.0 780.0 983.9999999999999 T 1200 936.0 V 1200 H 0 Z" fill="#000000" fill-opacity="0.35"/>
+<text x="48.0" y="1128.0" font-family="system-ui, sans-serif" font-size="60" fill="#ffffff" fill-opacity="0.9">quadrato-2 · 1200×1200</text>
+</svg>

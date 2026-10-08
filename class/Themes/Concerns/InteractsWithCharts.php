@@ -9,6 +9,14 @@ trait InteractsWithCharts
 {
     protected function chartContext(mixed $class, array $wrapperClasses = []): array
     {
+        // Come Swiper e Gallery: il renderer accende da sé la libreria che
+        // il suo markup richiede, così una pagina che stampa un grafico non
+        // deve ricordarsi di Chart.js. Senza APP_URL (CLI, test) non c'è
+        // una pagina da servire e il caricamento si salta.
+        if (defined('APP_URL')) {
+            \Wonder\App\Dependencies::chartjs();
+        }
+
         $schema = $class->getSchema();
         $canvasId = $this->resolveId($schema['id'] ?? null);
         $wrapperId = $canvasId . '-wrapper';

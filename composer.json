@@ -38,12 +38,14 @@
         }
     },
     "scripts": {
+        "docs": "@php bin/docs.php",
         "release": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/release.php"
         ]
     },
     "scripts-descriptions": {
+        "docs": "Avvia il catalogo dei componenti su http://127.0.0.1:8090/ (prima: npm install)",
         "release": "Pubblica una release o pre-release: composer release -- X.Y.Z[-beta.N] | patch | minor | major"
     },
     "config": {

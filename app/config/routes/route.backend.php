@@ -26,6 +26,17 @@ Route::area('backend')
         Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
             ->permit(['admin']);
 
+        // Catalogo dei componenti (sezione Dev): indice, scheda e anteprima.
+        // L'anteprima sta prima della scheda perché le route sono first-match.
+        $docsSlug = \Wonder\App\Resources\Docs\ComponentCatalogResource::slug();
+        Route::get('/app/docs/components/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $docsSlug])
+            ->name('docs.components')->permit(['admin']);
+        Route::get('/app/docs/components/preview/', $ROOT_APP.'/http/backend/docs/preview.php')
+            ->name('docs.components.preview')->permit(['admin']);
+        Route::get('/app/docs/components/{component}/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $docsSlug])
+            ->name('docs.components.show')->permit(['admin'])
+            ->where('component', '[a-z0-9]+(?:-[a-z0-9]+)*');
+
         // Creazione rapida dal modal FK: proxy che crea la risorsa collegata via
         // store API come @system. Ogni utente backend autenticato può chiamarlo;
         // l'autorizzazione fine per-target è nel QuickCreateController.
