@@ -1,0 +1,11 @@
+{
+    "name": "wonder-image-app",
+    "private": true,
+    "description": "Asset di wonder-image/lib per il catalogo dei componenti del framework (php bin/docs.php). La versione minima della lib resta dichiarata in composer.json (extra.wonder.lib).",
+    "scripts": {
+        "docs": "php bin/docs.php"
+    },
+    "dependencies": {
+        "wonder-image": "^2.1.2-alpha.23"
+    }
+}

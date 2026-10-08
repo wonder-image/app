@@ -1,4 +1,6 @@
 {
+    "code": { "copy": "Kopieren", "copied": "Kopiert" },
+    "preview": { "open": "In neuem Tab öffnen", "scheme": "Hell / dunkel wechseln", "unavailable": "Nicht verfügbar" },
     "forms" : {
         "fields" : {
             "name" : { "label" : "Vorname" },

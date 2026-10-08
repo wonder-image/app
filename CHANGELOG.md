@@ -3,6 +3,28 @@
 ## Unreleased
 
 ### Added
+- Catalogo dei componenti: schede PHP in `docs/components/<categoria>/*.php`
+  (`Wonder\Docs\ComponentDoc`, esempi eseguiti e mostrati dallo stesso
+  codice), rese come pagina con anteprima viva per tema e riferimento API nel
+  backend (Dev → Componenti, `/backend/app/docs/components/`) e dal pacchetto
+  con `composer docs` / `php bin/docs.php` (server autonomo, asset della lib
+  da `node_modules/wonder-image` tramite il nuovo `package.json`). La
+  disponibilità nei temi è calcolata dal `Resolver`; le anteprime Bootstrap
+  si vedono anche in modalità scura. Guida in `docs/components/README.md`.
+- `Code`: blocco di codice con evidenziazione server-side
+  (`Wonder\Support\Code\Highlighter`: PHP dal tokenizer nativo, HTML, CSS,
+  JS, JSON, bash) e bottone "copia", nei temi Wonder e Bootstrap.
+- `Preview`: finestra di anteprima (`<iframe>`) con sorgenti selezionabili,
+  passaggio chiaro/scuro, altezza che segue il contenuto e gruppo sincronizzato
+  via `localStorage`, nei due temi.
+- `Wonder\Themes\Support\PageAssets::once()`: frammenti CSS/JS stampati una
+  volta per pagina, condivisi fra renderer di temi diversi.
+- `Wonder\View\CssTokens`: il template di `set-up/root.css` e `color.css`
+  come classe (`cssRoot()` e `cssColor()` delegano qui); `defaultRoot()` dà i
+  token di un sito nuovo senza database.
+- `Dependencies::reset()` e `Dependencies::active()`; i renderer dei grafici
+  accendono da soli Chart.js (`Dependencies::chartjs()`), come Swiper.
+- Chiavi `components.code.*` e `components.preview.*` nelle traduzioni.
 - `UserAccountGateway::createUserWithoutPassword()`: crea il cliente che ordina come
   ospite, attivo, senza password e con l'email da verificare.
 - Cambio password del pannello account: `Wonder\Auth\Frontend\AccountPassword`
@@ -149,6 +171,9 @@
   senza href.
 
 ### Changed
+- `Themes\{Bootstrap,Wonder}\Media\Media` prendono `columnSpanClasses()`
+  dai nuovi concern `Themes\{Bootstrap,Wonder}\Concerns\ColumnSpanClasses`,
+  condivisi con `Code` e `Preview`.
 - `PasswordReset::reset()` segna l'email come verificata: il token è arrivato a quella casella.
 - `PasswordReset::issueForUser(..., revokeOpenTokens: false)` lascia validi i link già mandati.
 - `Button::confirm($message, title:, ok:, variant:)`: la conferma usa

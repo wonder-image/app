@@ -31,6 +31,31 @@ fallbacks: module/site contact panels retain lookup precedence and navigation.
 Early routing preloads core translations before site lang.php can call __r().
 See `docs/app/concetti/utenti/contatti-backend.md`.
 
+## Catalogo dei componenti (docs/components)
+
+La documentazione dei componenti vive in `docs/components/<categoria>/*.php`:
+ogni file ritorna un `Wonder\Docs\ComponentDoc` (descrizione, esempi come
+nowdoc PHP, note per tema). `class/Docs/*` la rende come catalogo: nel backend
+di un sito in Dev → Componenti (`/backend/app/docs/components/`, Resource
+`ComponentCatalogResource`, handler anteprima `app/http/backend/docs/preview.php`)
+e dal pacchetto con `composer docs` / `php bin/docs.php` (`Wonder\Docs\Server`,
+asset della lib da `node_modules/wonder-image`, installata con `npm install`
+dal `package.json` del pacchetto). Le viste condivise stanno in
+`app/view/pages/docs/`. Regole: la disponibilità per tema la calcola
+`ThemeSupport` dal `Resolver`, mai scritta a mano; il codice di un esempio è
+quello eseguito (`Snippet` + `ExampleRunner`, `eval` solo su file del repo);
+ogni anteprima è un iframe con i soli asset del suo tema; i token Wonder
+vengono da `Wonder\View\CssTokens` (lo stesso template di `cssRoot()`).
+Un componente nuovo o un'API nuova non sono completi senza la scheda (o
+l'esempio) nel catalogo; `php tests/Docs/CatalogRenderTest.php` deve passare.
+Il vincolo npm di `package.json` deve coincidere con `extra.wonder.lib`.
+`Code` (blocco di codice con `Support\Code\Highlighter` e copia) e `Preview`
+(iframe con sorgenti e chiaro/scuro) sono Element condivisi dai due temi;
+i loro CSS/JS escono una volta per pagina da `Themes\Support\PageAssets`
+con contratti `data-wi-code`/`data-wi-copy` e `data-wi-preview*` che la lib
+può prendere in carico. Guida: `docs/components/README.md` e
+`docs/app/concetti/componenti/catalogo.md`.
+
 ## Project overview
 
 - Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers.
@@ -73,7 +98,8 @@ Key subareas:
 - `class/App/Support/FormFieldElementFactory.php`: deprecated compatibility pass-through to `Input::compile()` / `Input::render()` for external callers
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
-- `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, ...)
+- `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, `Code`, `Preview`, ...)
+- `class/Docs`: il catalogo dei componenti (schede in `docs/components`, server autonomo `bin/docs.php`)
 - `Accordion` is a shared non-form Element: `make($text)`, `description()`,
   and `components()` define its content; the Wonder renderer must reuse the
   lib `wi-dropdown-box` / `wi-switcher` / `wi-dropdown-content` contract.
@@ -143,6 +169,9 @@ Package root:
 composer dumpautoload
 php -l path/to/file.php
 phpDocumentor run -d ./class -t docs/class
+npm install            # wonder-image/lib per il catalogo dei componenti
+composer docs          # catalogo su http://127.0.0.1:8090/
+php tests/Docs/CatalogRenderTest.php
 ```
 
 Consumer project commands for integration validation:

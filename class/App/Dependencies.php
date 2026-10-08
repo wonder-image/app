@@ -358,6 +358,27 @@
         
         }
         
+        /**
+         * Dimentica le dipendenze attivate finora. Serve a una pagina che carica
+         * un set diverso da quello dell'area in cui gira: per esempio l'anteprima
+         * del tema Wonder dentro il backend, che vuole gli asset frontend e non
+         * quelli di Bootstrap.
+         */
+        public static function reset(): void
+        {
+
+            self::$toLoad = [];
+
+        }
+
+        /** Le chiavi attivate, nell'ordine in cui verranno stampate. */
+        public static function active(): array
+        {
+
+            return array_keys(self::$toLoad);
+
+        }
+
         public static function __callStatic(string $method, array $arguments): self
         {
             

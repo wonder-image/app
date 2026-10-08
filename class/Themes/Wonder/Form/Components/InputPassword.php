@@ -114,7 +114,8 @@ HTML;
             }
         }
 
-        $fallback = (string) (end(($segments = explode('.', $key))) ?: $key);
+        $segments = explode('.', $key);
+        $fallback = (string) (end($segments) ?: $key);
         $fallback = ucfirst(str_replace('_', ' ', $fallback));
 
         foreach ($replacements as $name => $value) {

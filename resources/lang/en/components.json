@@ -1,4 +1,6 @@
 {
+    "code": { "copy": "Copy", "copied": "Copied" },
+    "preview": { "open": "Open in a new tab", "scheme": "Switch light / dark", "unavailable": "Not available" },
     "media": { "load_content": "Load content" },
     "forms" : {
         "clear_search": "Clear search",
