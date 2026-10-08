@@ -226,7 +226,7 @@ Fuori da `APP_ENV=local` le Resource di questi Model sono in sola lettura: nessu
 
 #### Righe precaricate dei moduli
 
-Con `APP_ENV=local`, `forge update` esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe, riscrive `shared/sync-data.json` da committare. In produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
+Con `APP_ENV=local`, `forge update` aggiunge i font predefiniti mancanti in `css_font` (`Wonder\App\AppDefaults`), poi esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe, riscrive `shared/sync-data.json` da committare. In produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
 
 #### Export dopo il salvataggio
 

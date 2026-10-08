@@ -72,7 +72,9 @@ final class DefaultRows
     }
 
     /**
-     * Righe il cui valore chiave non è tra quelli esistenti (classe pura).
+     * Righe il cui valore chiave non è tra quelli esistenti (classe pura),
+     * senza badare alle maiuscole come il confronto di MySQL: il Model può
+     * riscrivere la chiave (es. `ucwords`) prima di salvarla.
      *
      * @param array<int, mixed> $rows
      * @param array<int, mixed> $existingKeys
@@ -84,7 +86,7 @@ final class DefaultRows
 
         foreach ($existingKeys as $key) {
             if (is_scalar($key) && (string) $key !== '') {
-                $known[(string) $key] = true;
+                $known[strtolower((string) $key)] = true;
             }
         }
 
@@ -101,11 +103,11 @@ final class DefaultRows
                 throw new RuntimeException("Riga precaricata senza {$keyColumn}.");
             }
 
-            if (isset($known[(string) $key])) {
+            if (isset($known[strtolower((string) $key)])) {
                 continue;
             }
 
-            $known[(string) $key] = true;
+            $known[strtolower((string) $key)] = true;
             $missing[] = $row;
         }
 
