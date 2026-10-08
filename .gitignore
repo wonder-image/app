@@ -20,6 +20,7 @@ example/
 !/tests/email-verification-guard.php
 !/tests/account-password.php
 !/tests/account-routes.php
+!/tests/account-pagination.php
 !/tests/scheduler.php
 !/tests/scheduler-integration.php
 /bin/release.php

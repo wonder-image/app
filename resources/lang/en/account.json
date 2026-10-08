@@ -102,5 +102,11 @@
         "delete_title": "Delete this address?",
         "deleted": "The address has been deleted.",
         "back": "Back to addresses"
+    },
+    "pagination": {
+        "summary": "Showing {{from}} to {{to}} of {{total}}",
+        "label": "Pages",
+        "previous": "Previous page",
+        "next": "Next page"
     }
 }
