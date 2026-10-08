@@ -13,6 +13,8 @@ if (!defined('ROOT')) { define('ROOT', dirname(__DIR__, 2)); }
 if (!defined('APP_URL')) { define('APP_URL', 'http://127.0.0.1:8090'); }
 if (!defined('ASSETS_VERSION')) { define('ASSETS_VERSION', 'dev'); }
 if (!defined('APP_VERSION')) { define('APP_VERSION', 'dev'); }
+if (!defined('RESPONSIVE_IMAGE_SIZES')) { define('RESPONSIVE_IMAGE_SIZES', [240, 480, 620, 960, 1200, 1440, 1920, 2400]); }
+if (!defined('RESPONSIVE_IMAGE_WEBP')) { define('RESPONSIVE_IMAGE_WEBP', true); }
 
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
@@ -21,6 +23,9 @@ $ROOT = ROOT;
 $ROOT_APP = ROOT.'/app';
 require_once $ROOT_APP.'/function/function.php';
 \Wonder\App\TranslationBootstrap::preload($ROOT_APP, $ROOT);
+// Un utente amministratore finto: i componenti che chiedono un permesso
+// (QuickCreateButton) si rendono come nel backend.
+\Wonder\App\LegacyGlobals::share(['USER' => (object) ['authority' => ['admin']]]);
 
 use Wonder\Docs\Catalog;
 use Wonder\Docs\ExampleRunner;

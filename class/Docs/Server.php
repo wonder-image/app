@@ -203,9 +203,24 @@ final class Server
             define('ASSETS_VERSION', 'dev');
         }
 
+        // Le stesse costanti di app/config/app/default.php per le immagini responsive.
+        if (!defined('RESPONSIVE_IMAGE_SIZES')) {
+            define('RESPONSIVE_IMAGE_SIZES', [240, 480, 620, 960, 1200, 1440, 1920, 2400]);
+        }
+
+        if (!defined('RESPONSIVE_IMAGE_WEBP')) {
+            define('RESPONSIVE_IMAGE_WEBP', true);
+        }
+
         $GLOBALS['ROOT'] = $root;
         $GLOBALS['ROOT_APP'] = $rootApp;
-        LegacyGlobals::share(['ROOT' => $root, 'ROOT_APP' => $rootApp]);
+        // Un utente amministratore finto: senza sessione, i componenti che
+        // chiedono un permesso (QuickCreateButton) si rendono come nel backend.
+        LegacyGlobals::share([
+            'ROOT' => $root,
+            'ROOT_APP' => $rootApp,
+            'USER' => (object) ['authority' => ['admin']],
+        ]);
 
         // Le funzioni globali che i renderer usano (e(), __t(), sanitize(), ...).
         $ROOT = $root;
