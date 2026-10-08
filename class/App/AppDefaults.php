@@ -20,7 +20,7 @@ final class AppDefaults implements ModuleDefaults
 {
     public static function seed(DefaultRows $rows): void
     {
-        self::fillSlugs();
+        $rows->count(self::fillSlugs());
         $rows->ensure(CssFont::class, 'slug', self::fontRows());
     }
 
@@ -88,12 +88,16 @@ final class AppDefaults implements ModuleDefaults
         return $missing;
     }
 
-    private static function fillSlugs(): void
+    /** @return int i font a cui ha dato lo slug */
+    private static function fillSlugs(): int
     {
         $rows = CssFont::query()->Select(CssFont::$table, null, null, null, null, ['id', 'name', 'slug'])->row;
+        $missing = self::missingSlugs(is_array($rows) ? $rows : []);
 
-        foreach (self::missingSlugs(is_array($rows) ? $rows : []) as $id => $slug) {
+        foreach ($missing as $id => $slug) {
             CssFont::query()->Update(CssFont::$table, ['slug' => $slug], 'id', $id);
         }
+
+        return count($missing);
     }
 }

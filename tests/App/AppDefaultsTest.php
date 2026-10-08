@@ -65,11 +65,11 @@ check('si precaricano come quelle dei moduli: dopo l\'import, prima dell\'export
         && strpos($metodo, 'AppDefaults::seed($rows)') < strpos($metodo, 'ModuleRegistry::enabled()');
 });
 
-check('prima gli slug mancanti, poi i font per slug', function () {
+check('prima gli slug mancanti, contati perché l\'export li scriva, poi i font per slug', function () {
     $seed = (string) file_get_contents(dirname(__DIR__, 2).'/class/App/AppDefaults.php');
     $seed = substr($seed, (int) strpos($seed, 'function seed'));
 
-    return strpos($seed, 'self::fillSlugs()') !== false
+    return strpos($seed, '$rows->count(self::fillSlugs())') !== false
         && strpos($seed, "ensure(CssFont::class, 'slug'") !== false
         && strpos($seed, 'self::fillSlugs()') < strpos($seed, 'ensure(');
 });

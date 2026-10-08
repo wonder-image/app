@@ -65,6 +65,15 @@ check('total() parte da zero', function () {
     return (new DefaultRows())->total() === 0;
 });
 
+check('count(): le righe sistemate fuori da ensure contano per l\'export', function () {
+    $rows = new DefaultRows();
+    $rows->count(3);
+    $rows->count(0);
+    $rows->count(-2);
+
+    return $rows->total() === 3;
+});
+
 check('Manifest::defaultsClass()', function () {
     return defaultsManifest(TestModuleDefaults::class)->defaultsClass() === TestModuleDefaults::class
         && defaultsManifest(null)->defaultsClass() === null

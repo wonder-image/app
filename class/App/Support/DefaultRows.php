@@ -66,6 +66,15 @@ final class DefaultRows
         return $inserted;
     }
 
+    /**
+     * Conta righe sistemate fuori da `ensure` (per esempio uno slug che
+     * mancava), perché l'export di `shared/sync-data.json` le scriva.
+     */
+    public function count(int $rows): void
+    {
+        $this->total += max(0, $rows);
+    }
+
     public function total(): int
     {
         return $this->total;
