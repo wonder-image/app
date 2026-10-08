@@ -1,7 +1,10 @@
 # Font web
 
-Font per le pagine del sito (accesso, account, checkout, carrello), scelti nel gestionale
-e serviti da qui: niente Google Fonts. Il catalogo è `Wonder\View\WebFonts`.
+Font serviti dal pacchetto invece che da Google Fonts. Inter, Open Sans, Lato, Poppins,
+DM Sans, Nunito e Work Sans sono righe di `css_font` (i predefiniti di
+`Wonder\App\RuntimeDefaults::defaultFonts()`, inseriti da `forge update`) col link a
+`fonts.css`: la testata lo carica una volta sola. Roboto e Montserrat restano su Google;
+le loro cartelle servono a `Wonder\View\WebFonts`.
 
 Presi da [Fontsource](https://fontsource.org) il 2026-10-07, solo il sottoinsieme latino.
 Licenza SIL Open Font License 1.1: il file `LICENSE` è in ogni cartella.

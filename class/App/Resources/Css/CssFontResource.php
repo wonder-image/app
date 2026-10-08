@@ -47,8 +47,9 @@ final class CssFontResource extends Resource
             FormField::key('font_family')
                 ->text()
                 ->required(),
+            // Anche relativo al sito, come i font serviti dal pacchetto.
             FormField::key('link')
-                ->url()
+                ->text()
                 ->required(),
             FormField::key('name')
                 ->text()

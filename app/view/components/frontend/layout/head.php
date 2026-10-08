@@ -206,14 +206,8 @@
     if (sqlTableExists('css_font')) {
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-        foreach (sqlSelect('css_font', ['visible' => 'true'])->row as $key => $row) {
-            $fontLink = (string) ($row['link'] ?? '');
-            if ($fontLink === '') { continue; }
-            // display=swap sui Google Fonts: testo subito visibile con fallback, evita il
-            // FOIT (testo invisibile) che ritarda FCP/LCP. Solo se non già presente.
-            if (str_contains($fontLink, 'fonts.googleapis.com') && !str_contains($fontLink, 'display=')) {
-                $fontLink .= (str_contains($fontLink, '?') ? '&' : '?') . 'display=swap';
-            }
+        // Link relativi fatti assoluti, display=swap su Google, ogni foglio una volta.
+        foreach (Wonder\App\Support\CssFontLinks::hrefs(sqlSelect('css_font', ['visible' => 'true'])->row, (string) ($PATH->site ?? '')) as $fontLink) {
             if (str_contains($fontLink, 'fonts.googleapis.com')) {
                 $escapedFontLink = e($fontLink);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";

@@ -4,6 +4,12 @@ namespace Wonder\App;
 
 class RuntimeDefaults
 {
+    /**
+     * Il foglio dei font serviti dal pacchetto (`resources/assets/font/web/`),
+     * relativo al sito: la testata lo fa assoluto e lo carica una volta sola.
+     */
+    private const LOCAL_FONTS = '/vendor/wonder-image/app/resources/assets/font/web/fonts.css';
+
     public static function defaultFonts(): array
     {
         return [
@@ -16,6 +22,41 @@ class RuntimeDefaults
                 'name' => 'Montserrat',
                 'link' => 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
                 'font-family' => '"Montserrat", sans-serif',
+            ],
+            [
+                'name' => 'Inter',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"Inter", sans-serif',
+            ],
+            [
+                'name' => 'Open Sans',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"Open Sans", sans-serif',
+            ],
+            [
+                'name' => 'Lato',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"Lato", sans-serif',
+            ],
+            [
+                'name' => 'Poppins',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"Poppins", sans-serif',
+            ],
+            [
+                'name' => 'DM Sans',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"DM Sans", sans-serif',
+            ],
+            [
+                'name' => 'Nunito',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"Nunito", sans-serif',
+            ],
+            [
+                'name' => 'Work Sans',
+                'link' => self::LOCAL_FONTS,
+                'font-family' => '"Work Sans", sans-serif',
             ],
         ];
     }

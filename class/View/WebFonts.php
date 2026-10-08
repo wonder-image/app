@@ -2,6 +2,8 @@
 
 namespace Wonder\View;
 
+use Wonder\App\Support\CssFontFamily;
+
 /**
  * Catalogo chiuso dei font web serviti da `resources/assets/font/web/`.
  * Il gestionale salva la chiave (`inter`, `open-sans`, …); una chiave vuota
@@ -87,9 +89,22 @@ final class WebFonts
                 .'src:url("'.$baseUrl.'/'.$dir.'/'.$file.'") format("woff2");}';
         }
 
-        $stack = '"'.$name.'", sans-serif';
+        return $css.self::variables('"'.$name.'", sans-serif');
+    }
 
-        return $css.'html:root{'.implode('', array_map(
+    /**
+     * Le variabili del sito con la famiglia di una riga di `css_font`, senza
+     * `<style>`: il font lo carica già la testata. Vuota per una famiglia vuota.
+     */
+    public static function variables(string $fontFamily): string
+    {
+        $stack = str_replace(['<', '>', '{', '}', ';'], '', CssFontFamily::normalize($fontFamily));
+
+        if (trim($stack) === '') {
+            return '';
+        }
+
+        return 'html:root{'.implode('', array_map(
             static fn (string $variable): string => $variable.':'.$stack.';',
             self::VARIABLES,
         )).'}';
