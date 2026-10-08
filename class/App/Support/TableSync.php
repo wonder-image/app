@@ -235,7 +235,7 @@ final class TableSync
                 } else {
                     sqlInsert($table, $values);
                 }
-            } elseif ($schema->keepIds) {
+            } elseif ($schema->keepIds && !SyncImportPlan::withoutIds($config[$table])) {
                 self::importKeepingIds($table, $config[$table], $schema);
             } else {
                 sqlTruncate($table);

@@ -142,6 +142,22 @@ final class CssFontResource extends Resource
             ->order(30);
     }
 
+    /** Lo slug nasce dal nome solo alla creazione (non è nel form). */
+    public static function mutateRequestValues(
+        array $values,
+        string $action,
+        string $context = 'backend',
+        ?array $oldValues = null
+    ): array {
+        if ($action === 'store') {
+            $values['slug'] = (string) ($values['name'] ?? '');
+        } else {
+            unset($values['slug']);
+        }
+
+        return $values;
+    }
+
     public static function afterStore(object $result, array $values = []): void
     {
         static::refreshCss();

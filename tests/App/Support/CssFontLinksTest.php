@@ -31,4 +31,12 @@ check('lo stesso foglio si carica una volta sola; link vuoti e righe storte si s
         === ['https://sito.test'.$locale, $google.'&display=swap']
 );
 
+check('la testa e le scelte del tema leggono solo i font visibili e non cancellati', function () {
+    $root = dirname(__DIR__, 3);
+    $lettura = "sqlSelect('css_font', ['visible' => 'true', 'deleted' => 'false'])";
+
+    return str_contains((string) file_get_contents($root.'/app/view/components/frontend/layout/head.php'), $lettura)
+        && str_contains((string) file_get_contents($root.'/class/App/Resources/Css/CssDefaultResource.php'), $lettura);
+});
+
 summary();

@@ -246,7 +246,7 @@ final class CssDefaultResource extends CssSingleton
         $options = [];
 
         try {
-            foreach ((array) (sqlSelect('css_font', ['visible' => 'true'])->row ?? []) as $row) {
+            foreach ((array) (sqlSelect('css_font', ['visible' => 'true', 'deleted' => 'false'])->row ?? []) as $row) {
                 if (!is_array($row) || !isset($row['id'])) {
                     continue;
                 }

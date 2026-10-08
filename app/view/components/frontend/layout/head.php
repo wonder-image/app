@@ -207,7 +207,7 @@
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
         // Link relativi fatti assoluti, display=swap su Google, ogni foglio una volta.
-        foreach (Wonder\App\Support\CssFontLinks::hrefs(sqlSelect('css_font', ['visible' => 'true'])->row, (string) ($PATH->site ?? '')) as $fontLink) {
+        foreach (Wonder\App\Support\CssFontLinks::hrefs(sqlSelect('css_font', ['visible' => 'true', 'deleted' => 'false'])->row, (string) ($PATH->site ?? '')) as $fontLink) {
             if (str_contains($fontLink, 'fonts.googleapis.com')) {
                 $escapedFontLink = e($fontLink);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
