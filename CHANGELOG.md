@@ -227,6 +227,18 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- `Form` del tema Wonder: `columns()` e `gap()` escono come utility della lib
+  (`d-grid col-N gap-N`, con `col-t-*`/`gap-t-*` e `col-p-*`/`gap-p-*` per
+  tablet e telefono, dal nuovo concern `Themes\Wonder\Concerns\ResponsiveGridClasses`
+  condiviso col Container) invece delle classi Bootstrap `row-col-*` e `g-*`
+  che la lib non definisce: prima nel frontend i campi si impilavano senza spazio.
+- `noFloating()` nel tema Bootstrap stampa la label `form-label` sopra l'input;
+  prima il campo restava senza nome visibile.
+- `ResourceRouteRegistrar` non registra la route di export per le Resource senza
+  `list` o senza tabella, e `NavigationOnlyResource` disabilita `list`: le pagine
+  non-CRUD (Riepilogo dello scheduler, Upload di massa, Download SQL, catalogo dei
+  componenti) non hanno più un `/{resource}/` aperto a tutti accanto alla route
+  esplicita `admin` né un export che finiva in un'eccezione.
 - Cambio password dall'account backend: dopo il salvataggio revoca i token
   "ricordami" dell'utente su ogni dispositivo e rigenera l'id di sessione, come
   il pannello frontend. Prima un dispositivo rimasto collegato con "ricordami"

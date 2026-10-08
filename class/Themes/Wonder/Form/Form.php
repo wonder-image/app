@@ -3,17 +3,16 @@
 namespace Wonder\Themes\Wonder\Form;
 
 use Wonder\Http\Csrf;
-use Wonder\Themes\Bootstrap\Concerns\{ HasColumns, HasGap };
 use Wonder\Themes\Wonder\Component;
+use Wonder\Themes\Wonder\Concerns\ResponsiveGridClasses;
 
 /**
  * Renderer del container `<form>` per il tema `Wonder` (frontend pubblico).
  *
  * Speculare a `Themes\Bootstrap\Form\Form`, ma con classe base
- * `wi-form` invece di un container Bootstrap. Riusa i trait
- * `HasColumns`/`HasGap` (anche se vivono nel namespace Bootstrap per
- * ragioni storiche, la logica è theme-agnostic: producono classi
- * grid che il CSS del frontend può mappare).
+ * `wi-form` invece di un container Bootstrap. Colonne e spazio escono
+ * come utility della lib (`d-grid col-N gap-N`, con le varianti `-t-`
+ * e `-p-` per tablet e telefono), le stesse del Container Wonder.
  *
  * Aggiunto in coppia con i renderer Wonder dei singoli campi:
  * permette di rendere un intero form (`Wonder\Elements\Form\Form`)
@@ -21,17 +20,17 @@ use Wonder\Themes\Wonder\Component;
  */
 class Form extends Component
 {
-    use HasColumns;
-    use HasGap;
+    use ResponsiveGridClasses;
 
     public function render($class): string
     {
         $this->propagateNoFloating($class);
 
-        $columnsClass = $this->getColumns($class->columns ?? []);
-        $gapClass = $this->getGap($class->gap ?? []);
-
-        $cls = trim('wi-form '.$columnsClass.' '.$gapClass);
+        $cls = implode(' ', array_merge(
+            ['wi-form', 'd-grid'],
+            $this->responsiveClasses('col', $class->columns ?? []),
+            $this->responsiveClasses('gap', $class->gap ?? [])
+        ));
 
         $html = '<form action="" method="post" enctype="multipart/form-data" class="'.$cls.'">';
         $html .= Csrf::fieldFor('post');

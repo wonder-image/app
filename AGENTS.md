@@ -579,6 +579,11 @@ the child has not set the flag explicitly (see
 - **No cross-theme fallback**. If you need a Component in a theme that
   doesn't have it, implement it. The Resolver will NOT borrow from
   another theme to fill the gap.
+- **Grid classes belong to the theme.** The Wonder `Form` writes the lib
+  utilities `d-grid col-N gap-N` (`col-t-*`/`col-p-*` variants) through
+  `Themes\Wonder\Concerns\ResponsiveGridClasses`, shared with `Container`; it
+  must never reuse Bootstrap `row-col-*`/`g-*`. Bootstrap `noFloating()` prints
+  a `form-label` above the input.
 - **`Field` is abstract**. Don't instantiate it directly; use a concrete
   Component (`InputText`, `Select`, ...).
 - **One attribute per tag**. The browser keeps the first of two equal

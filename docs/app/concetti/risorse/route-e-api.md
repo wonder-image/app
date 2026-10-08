@@ -34,7 +34,10 @@ Nome route: `resource.<slug>.*`. Ogni azione viene emessa **solo se attiva** in
 {% hint style="info" %}
 La route **`export`** è generata in automatico (handler
 `http/backend/resource/export.php`) ed è gated sullo stesso permesso di `list`:
-chi può vedere la lista può esportarla.
+chi può vedere la lista può esportarla. Non viene registrata quando `list` è
+disabilitata o la Resource non ha una tabella: `NavigationOnlyResource` disabilita
+`list` da sé, quindi le pagine non-CRUD dichiarano le proprie route (ad esempio in
+`route.backend.php`) senza un secondo `/{resource}/` né un export.
 {% endhint %}
 
 ## Default di `pageSchema()`

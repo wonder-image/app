@@ -103,17 +103,20 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            // Export tabella: route attivata sempre, il
-                            // ResourceDownloadController fa il check
-                            // ulteriore sul `tableLayoutSchema()->download`.
-                            // Reusa i permessi di `list` (chi vede la
-                            // tabella può anche esportarla).
-                            Route::get('/export/{format}/', $rootApp.'/http/backend/resource/export.php', [
-                                'resource' => $slug,
-                                'resource_action' => 'export',
-                            ])->name('export')
-                                ->permit($permissions['list'] ?? [])
-                                ->where('format', '[a-z]+');
+                            // Export tabella: segue la lista. Una Resource senza
+                            // `list` o senza tabella (NavigationOnlyResource) non
+                            // ha nulla da esportare e `modelClass()` lancerebbe.
+                            // Il ResourceDownloadController fa il check ulteriore
+                            // sul `tableLayoutSchema()->download`. Reusa i permessi
+                            // di `list` (chi vede la tabella può anche esportarla).
+                            if (!empty($pages['list']) && $resourceClass::modelTable() !== '') {
+                                Route::get('/export/{format}/', $rootApp.'/http/backend/resource/export.php', [
+                                    'resource' => $slug,
+                                    'resource_action' => 'export',
+                                ])->name('export')
+                                    ->permit($permissions['list'] ?? [])
+                                    ->where('format', '[a-z]+');
+                            }
 
                             $resourceClass::registerBackendRoutes($rootApp, $slug);
                         });
