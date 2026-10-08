@@ -5,7 +5,6 @@ namespace Wonder\Auth\Frontend;
 use Wonder\Elements\Components\Alert;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Modal;
-use Wonder\Elements\Components\Text;
 
 /** Modal del pannello: form POST con CSRF, Salva nero a tutta larghezza spento finché mancano i campi obbligatori. */
 final class AccountModal
@@ -28,8 +27,21 @@ final class AccountModal
     {
         return Modal::make($title)->id($id)->frontend()
             ->form($action, 'post')
-            ->components([Text::make($text)])
+            ->components([self::paragraph($text)])
             ->footer([self::submit($label)]);
+    }
+
+    /** Il tema Wonder non ha un renderer per `Text`: il corpo della conferma è un paragrafo escapato. */
+    private static function paragraph(string $text): object
+    {
+        return new class($text) {
+            public function __construct(private readonly string $text) {}
+
+            public function render(): string
+            {
+                return '<p>'.htmlspecialchars($this->text, ENT_QUOTES, 'UTF-8').'</p>';
+            }
+        };
     }
 
     private static function submit(string $label): Button

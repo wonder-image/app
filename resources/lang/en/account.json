@@ -87,19 +87,20 @@
     "billing": {
         "label": "Billing address",
         "title": "Edit billing address",
-        "intro": "These details will be used when a purchase requires billing."
+        "intro": "These details will be used when a purchase requires billing.",
+        "holder": "Holder",
+        "tax": "Tax code / VAT number",
+        "address": "Address"
     },
-    "shipping": {
-        "label": "Shipping addresses",
-        "title": "Shipping addresses",
-        "intro": "Enter the recipient and address to use for deliveries.",
-        "one": "1 saved address",
-        "many": "{{count}} saved addresses",
-        "empty": "You have not saved any shipping addresses yet.",
+    "addresses": {
         "add": "Add address",
-        "address": "Address",
-        "address_label": "Address label",
-        "create_title": "Add a shipping address",
-        "edit_title": "Edit shipping address"
+        "add_first": "Add an address",
+        "empty": "You have no saved addresses",
+        "create_title": "New address",
+        "edit_title": "Edit address",
+        "delete": "Delete",
+        "delete_title": "Delete this address?",
+        "deleted": "The address has been deleted.",
+        "back": "Back to addresses"
     }
 }

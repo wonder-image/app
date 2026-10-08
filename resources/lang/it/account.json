@@ -87,19 +87,20 @@
     "billing": {
         "label": "Indirizzo di fatturazione",
         "title": "Modifica l’indirizzo di fatturazione",
-        "intro": "Questi dati saranno utilizzati quando un acquisto richiede fatturazione."
+        "intro": "Questi dati saranno utilizzati quando un acquisto richiede fatturazione.",
+        "holder": "Intestatario",
+        "tax": "Codice fiscale / P. IVA",
+        "address": "Indirizzo"
     },
-    "shipping": {
-        "label": "Indirizzi di spedizione",
-        "title": "Indirizzi di spedizione",
-        "intro": "Indica il destinatario e l’indirizzo da usare per le consegne.",
-        "one": "1 indirizzo salvato",
-        "many": "{{count}} indirizzi salvati",
-        "empty": "Non hai ancora salvato indirizzi di spedizione.",
+    "addresses": {
         "add": "Aggiungi indirizzo",
-        "address": "Indirizzo",
-        "address_label": "Etichetta dell’indirizzo",
-        "create_title": "Aggiungi un indirizzo di spedizione",
-        "edit_title": "Modifica l’indirizzo di spedizione"
+        "add_first": "Aggiungi un indirizzo",
+        "empty": "Non hai indirizzi salvati",
+        "create_title": "Nuovo indirizzo",
+        "edit_title": "Modifica indirizzo",
+        "delete": "Elimina",
+        "delete_title": "Eliminare questo indirizzo?",
+        "deleted": "L’indirizzo è stato eliminato.",
+        "back": "Torna agli indirizzi"
     }
 }
