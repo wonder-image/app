@@ -30,6 +30,17 @@
         }
     },
     "email": {
+        "label": "Email",
+        "title": "Modifica email",
+        "current": "Email corrente",
+        "new": "Nuova email",
+        "password": "Password",
+        "sent": "Ti abbiamo mandato un link a {{email}}: aprilo per confermare la nuova email.",
+        "mail_subject": "Conferma la tua nuova email",
+        "mail_body": "Per confermare la nuova email apri questo link entro 24 ore: {{url}}",
+        "confirmed": "La tua email è stata aggiornata.",
+        "invalid": "Il link non è valido o è scaduto. Richiedi di nuovo il cambio email dal tuo account.",
+        "taken": "Questa email è già usata da un altro account.",
         "errors": {
             "same": "La nuova email è uguale a quella attuale."
         }

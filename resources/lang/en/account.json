@@ -30,6 +30,17 @@
         }
     },
     "email": {
+        "label": "Email",
+        "title": "Change email",
+        "current": "Current email",
+        "new": "New email",
+        "password": "Password",
+        "sent": "We sent a link to {{email}}: open it to confirm your new email.",
+        "mail_subject": "Confirm your new email",
+        "mail_body": "To confirm your new email open this link within 24 hours: {{url}}",
+        "confirmed": "Your email has been updated.",
+        "invalid": "The link is invalid or has expired. Request the email change again from your account.",
+        "taken": "This email is already used by another account.",
         "errors": {
             "same": "The new email matches the current one."
         }
