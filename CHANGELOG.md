@@ -227,6 +227,10 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Anteprime Wonder del catalogo dei componenti: il body non esce più dalla
+  larghezza dell'iframe (`head.css` gli dà `width: 100%` e il padding
+  dell'anteprima lo allargava di 2rem) e le label dei campi stanno nel loro
+  contenitore invece di sovrapporsi nell'angolo della pagina.
 - `Form` del tema Wonder: `columns()` e `gap()` escono come utility della lib
   (`d-grid col-N gap-N`, con `col-t-*`/`gap-t-*` e `col-p-*`/`gap-p-*` per
   tablet e telefono, dal nuovo concern `Themes\Wonder\Concerns\ResponsiveGridClasses`
