@@ -42,7 +42,7 @@
         "title": "Change password",
         "intro": "Choose a password of at least 8 characters, different from the current one.",
         "intro_missing": "You signed in with an external account: set a password to also sign in with email and password.",
-        "current": "Current password",
+        "current": "Your password",
         "new": "New password",
         "confirmation": "Confirm new password",
         "saved": "Your password has been updated.",

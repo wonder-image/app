@@ -53,8 +53,8 @@ $remembered = static fn (int $userId): bool => in_array('false', array_column(ar
 $stored = static fn (): string => (string) $GLOBALS['FAKE_DB']['user'][7]['password'];
 
 // Campi: la password attuale si chiede solo se l'account ne ha una.
-$check(array_keys(AccountPassword::fields(true)) === ['current_password', 'password', 'password_confirmation'], 'Il form non chiede la password attuale.');
-$check(array_keys(AccountPassword::fields(false)) === ['password', 'password_confirmation'], 'Un account senza password locale deve indicare una password attuale.');
+$check(array_keys(AccountPassword::fields(true)) === ['current_password', 'password'], 'Il form non chiede la password attuale, o chiede ancora la conferma.');
+$check(array_keys(AccountPassword::fields(false)) === ['password'], 'Un account senza password locale deve indicare una password attuale, o chiede ancora la conferma.');
 
 // Cambio riuscito.
 $reset('vecchia-password');
@@ -74,11 +74,14 @@ $check($remembered(7), 'Un tentativo fallito revoca i token "ricordami".');
 $result = AccountPassword::change(7, ['password' => 'nuova-password', 'password_confirmation' => 'nuova-password']);
 $check(($result->errors['current_password'] ?? '') === 'required' && $stored() === $before, 'Senza password attuale la password cambia comunque.');
 
-// Nuova password: lunghezza, conferma e differenza dall'attuale.
+// Nuova password: lunghezza e differenza dall'attuale.
 $result = AccountPassword::change(7, ['current_password' => 'vecchia-password', 'password' => 'corta', 'password_confirmation' => 'corta']);
 $check(($result->errors['password'] ?? '') === 'too_short' && $stored() === $before, 'Una nuova password corta viene accettata.');
+// La conferma non c'è più nel form: un valore diverso non blocca il cambio.
 $result = AccountPassword::change(7, ['current_password' => 'vecchia-password', 'password' => 'nuova-password', 'password_confirmation' => 'altra-password']);
-$check(($result->errors['password_confirmation'] ?? '') === 'mismatch' && $stored() === $before, 'Una conferma diversa viene accettata.');
+$check($result->success === true && !isset($result->errors['password_confirmation']) && checkPassword('nuova-password', $stored()), 'La conferma password viene ancora controllata.');
+$reset('vecchia-password');
+$before = $stored();
 $result = AccountPassword::change(7, ['current_password' => 'vecchia-password', 'password' => 'vecchia-password', 'password_confirmation' => 'vecchia-password']);
 $check(($result->errors['password'] ?? '') === 'same' && $stored() === $before, 'La nuova password può essere uguale all\'attuale.');
 

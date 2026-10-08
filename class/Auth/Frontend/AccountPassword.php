@@ -29,10 +29,6 @@ class AccountPassword
             ->label((string) \__t('account.password.new'))
             ->autocomplete('new-password')
             ->required();
-        $fields['password_confirmation'] = FormField::key('password_confirmation')->password()
-            ->label((string) \__t('account.password.confirmation'))
-            ->autocomplete('new-password')
-            ->required();
 
         return $fields;
     }
@@ -51,7 +47,7 @@ class AccountPassword
             }
         }
 
-        $errors += AuthValidator::completion($input, true, false);
+        $errors += AuthValidator::completion($input, true, false, false);
 
         if (!isset($errors['password']) && trim($currentHash) !== '' && \checkPassword((string) ($input['password'] ?? ''), $currentHash)) {
             $errors['password'] = 'same';
