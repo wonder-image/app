@@ -25,7 +25,11 @@ class Modal extends Component
         if ($id === '' || !preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/', $id)) {
             throw new \InvalidArgumentException('Frontend modals require a selector-safe explicit id.');
         }
-        $attributes = $this->renderComponentAttributes($class, ['wi-modal', 'no-interaction']);
+        // Una modal che il server manda già aperta (`wi-show`) deve poter essere
+        // cliccata: `no-interaction` lo toglie lo script solo all'apertura.
+        $attributes = $class->getSchema('attributes');
+        $open = is_array($attributes) && in_array('wi-show', $this->classTokens($attributes['class'] ?? null), true);
+        $attributes = $this->renderComponentAttributes($class, $open ? ['wi-modal'] : ['wi-modal', 'no-interaction']);
         $body = $this->renderThemeComponents($class->components, 'wonder');
         $footer = $this->renderFooter($class->footerComponents());
         $content = '<div '.$this->partAttributes($class, 'body', 'wi-modal-body no-scrollbar').'>'.$body.'</div>'

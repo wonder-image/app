@@ -210,4 +210,13 @@ check('senza frontend() Wonder resta vuoto anche con form()', function () use ($
     return $pagamento()->render('wonder') === '';
 });
 
+check('una modal aperta dal server (wi-show) non porta no-interaction, quella chiusa sì', function () use ($pagamento) {
+    $chiusa = $pagamento()->frontend()->render('wonder');
+    $aperta = $pagamento()->frontend()->addClass('wi-show')->render('wonder');
+
+    return preg_match('/<section[^>]*class="wi-modal no-interaction"/', $chiusa) === 1
+        && preg_match('/<section[^>]*class="wi-modal wi-show"/', $aperta) === 1
+        && !str_contains($aperta, 'no-interaction');
+});
+
 summary();

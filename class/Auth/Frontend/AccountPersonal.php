@@ -71,7 +71,10 @@ final class AccountPersonal
                 ['label' => (string) __t('account.personal.birth_date'), 'value' => $birth !== '' ? date('d/m/Y', strtotime($birth)) : '—'],
                 ['label' => (string) __t('account.personal.phone'), 'value' => trim((string) ($user->phone ?? '')) ?: '—'],
             ], 'action' => $edit('account-personal')],
-            ['key' => 'email', 'columns' => [['label' => (string) __t('account.email.label'), 'value' => (string) ($user->email ?? '')]], 'action' => $edit('account-email')],
+            // Il cambio email chiede la password attuale: senza, niente «Modifica», solo la nota.
+            ['key' => 'email', 'columns' => [['label' => (string) __t('account.email.label'), 'value' => (string) ($user->email ?? '')]], 'action' => $hasPassword
+                ? $edit('account-email')
+                : ['label' => '', 'href' => '', 'modal' => '', 'icon' => '', 'disabled' => false, 'hint' => (string) __t('account.email.needs_password')]],
             ['key' => 'password', 'columns' => [['label' => (string) __t('account.password.label'), 'value' => $hasPassword ? '**********' : (string) __t('account.password.summary_missing')]], 'action' => $edit('account-password')],
         ];
     }

@@ -49,7 +49,7 @@ class AccountAddressForm
     {
         $components = [];
         $keys = array_unique([
-            'label', 'type', 'business_name', 'name', 'surname', 'cf', 'pi', 'sdi', 'pec',
+            'label', 'type', 'business_name', 'name', 'surname', 'birth_date', 'current_email', 'email', 'current_password', 'password', 'cf', 'pi', 'sdi', 'pec',
             'country', 'province', 'city', 'cap', 'street', 'number', 'more', 'phone_prefix', 'phone',
             ...array_keys($fields),
         ]);
@@ -60,7 +60,7 @@ class AccountAddressForm
                 throw new \InvalidArgumentException('Address fields must use FormField inputs');
             }
             $desktop = match ($key) {
-                'label', 'type', 'business_name', 'cf', 'pec', 'more' => 12,
+                'label', 'type', 'business_name', 'cf', 'pec', 'more', 'email', 'current_email', 'current_password', 'password' => 12,
                 'city', 'street' => 9,
                 'cap', 'number', 'phone_prefix' => 3,
                 'phone' => 9,

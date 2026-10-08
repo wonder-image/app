@@ -3,7 +3,11 @@
     "seo": {
         "description": "Manage your personal details, addresses and payment methods."
     },
-    "overview_title": "Account overview",
+    "overview": {
+        "title": "Your account",
+        "greeting": "Hi {{name}}, this is your account: here you edit your details and see your orders.",
+        "code": "Customer code:"
+    },
     "breadcrumb_home": "Home",
     "saved": "Your changes have been saved.",
     "notice_title": "Done",
@@ -17,7 +21,7 @@
     "actions": {
         "edit": "Edit",
         "manage": "Manage",
-        "save": "Save changes",
+        "save": "Save",
         "cancel": "Cancel",
         "back": "Back to account"
     },
@@ -25,6 +29,10 @@
         "label": "Personal details",
         "title": "Edit personal details",
         "section": "Personal information",
+        "name": "Name",
+        "birth_date": "Date of birth",
+        "phone": "Mobile",
+        "modal_title": "Edit details",
         "errors": {
             "birth_date": "Date of birth: invalid value."
         }
@@ -41,6 +49,7 @@
         "confirmed": "Your email has been updated.",
         "invalid": "The link is invalid or has expired. Request the email change again from your account.",
         "taken": "This email is already used by another account.",
+        "needs_password": "Set a password first to change your email.",
         "errors": {
             "send": "We couldn't send the email. Please try again shortly.",
             "same": "The new email matches the current one."
@@ -48,11 +57,10 @@
     },
     "navigation": {
         "label": "Account navigation",
-        "welcome": "Welcome back",
         "overview": "Overview",
-        "profile": "Personal details",
+        "personal": "Personal details",
+        "addresses": "Addresses",
         "billing": "Billing",
-        "shipping": "Addresses",
         "payment_methods": "Payment methods",
         "password": "Password",
         "logout": "Sign out"
@@ -64,7 +72,7 @@
         "intro_missing": "You signed in with an external account: set a password to also sign in with email and password.",
         "current": "Your password",
         "new": "New password",
-        "confirmation": "Confirm new password",
+        "modal_title": "Change password",
         "saved": "Your password has been updated.",
         "summary_set": "Set",
         "summary_missing": "Not set"
