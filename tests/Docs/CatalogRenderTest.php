@@ -131,4 +131,22 @@ check('la pagina d\'anteprima Wonder sta nella larghezza dell\'iframe e ancora l
         && str_contains($html, 'class="wi-input-container');
 });
 
+check('la pagina d\'anteprima avvia gli script della lib come i layout veri', function () {
+    $out = [];
+
+    foreach (['wonder', 'bootstrap'] as $theme) {
+        $page = \Wonder\Docs\PreviewPage::build(['component' => 'input-price', 'example' => 0, 'theme' => $theme], ROOT.'/app', true);
+
+        ob_start();
+        \Wonder\View\View::make(ROOT.'/app/view/pages/docs/preview.php', $page + ['paths' => [], 'token' => '', 'lang' => 'it'])->render();
+        $html = (string) ob_get_clean();
+
+        // Il frontend chiama setAos() e setUpPage() al load, il backend solo setUpPage():
+        // senza, i campi (AutoNumeric, date, tendine) restano markup statico.
+        $out[$theme] = str_contains($html, "['setAos', 'setUpPage']");
+    }
+
+    return $out['wonder'] && $out['bootstrap'];
+});
+
 summary();

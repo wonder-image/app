@@ -584,6 +584,13 @@ the child has not set the flag explicitly (see
   `Themes\Wonder\Concerns\ResponsiveGridClasses`, shared with `Container`; it
   must never reuse Bootstrap `row-col-*`/`g-*`. Bootstrap `noFloating()` prints
   a `form-label` above the input.
+- **Wonder renderers switch on their own libraries.** The frontend loads only
+  the base set, so a Wonder renderer that needs an optional library calls
+  `Dependencies::<name>()` itself, skipping it without `APP_URL`: numeric
+  inputs use `Themes\Concerns\RendersAutonumeric`, like Swiper and charts. Lib
+  CSS gaps a renderer depends on (pills, `.wi-checkbox-container` positioning)
+  go in one `PageAssets::once()` style written with `--input-*` tokens, as in
+  the Wonder `CheckGroup`; keep it small and report the gap to the lib.
 - **`Field` is abstract**. Don't instantiate it directly; use a concrete
   Component (`InputText`, `Select`, ...).
 - **One attribute per tag**. The browser keeps the first of two equal

@@ -19,12 +19,12 @@ return ComponentDoc::for(Image::class)
     ->example('Base', <<<'PHP'
     Image::src(Assets::url('paesaggio-1.jpg'))
         ->alt('Un paesaggio di esempio')
-        ->addClass('img-fluid rounded')
+        ->addClass('w-100')
     PHP)
     ->example('Caricamento e priorità', <<<'PHP'
     (new Container())->columns(2)->gap(3)->components([
-        Image::src(Assets::url('paesaggio-2.jpg'))->alt('In alto nella pagina')->priority()->addClass('img-fluid'),
-        Image::src(Assets::url('paesaggio-3.jpg'))->alt('Sotto la piega')->loading('lazy')->skeleton()->notDraggable()->addClass('img-fluid'),
+        Image::src(Assets::url('paesaggio-2.jpg'))->alt('In alto nella pagina')->priority()->addClass('w-100'),
+        Image::src(Assets::url('paesaggio-3.jpg'))->alt('Sotto la piega')->loading('lazy')->skeleton()->notDraggable()->addClass('w-100'),
     ])
     PHP, '`priority()` toglie il lazy loading e alza la priorità di fetch per l\'immagine LCP; `skeleton()` aggiunge il segnaposto animato della lib.')
     ->example('Varianti e sizes', <<<'PHP'
@@ -32,5 +32,5 @@ return ComponentDoc::for(Image::class)
         ->alt('Paesaggio')
         ->size(480)
         ->displaySizes('(min-width: 992px) 33vw, 100vw')
-        ->addClass('img-fluid')
+        ->addClass('w-100')
     PHP, '`size()` sceglie la variante di partenza, `sizes()` elenca quelle del `srcset`, `displaySizes()` dice al browser quanto spazio occupa l\'immagine.');

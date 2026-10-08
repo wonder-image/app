@@ -97,9 +97,13 @@ $json = static fn (mixed $value): string => json_encode($value, JSON_UNESCAPED_S
             };
             var schedule = function () { window.requestAnimationFrame(send); };
             window.addEventListener('load', function () {
-                if (<?= $theme === 'bootstrap' ? 'true' : 'false' ?> && typeof window.setUpPage === 'function') {
-                    try { window.setUpPage(); } catch (error) { if (window.console) { console.warn(error); } }
-                }
+                // Come i layout veri: il frontend chiama setAos() e setUpPage()
+                // al caricamento, il backend solo setUpPage(). Senza, i campi
+                // (AutoNumeric, date, tendine) restano markup statico.
+                ['setAos', 'setUpPage'].forEach(function (name) {
+                    if (typeof window[name] !== 'function' || (name === 'setAos' && <?= $theme === 'bootstrap' ? 'true' : 'false' ?>)) { return; }
+                    try { window[name](); } catch (error) { if (window.console) { console.warn(error); } }
+                });
                 send();
                 window.setTimeout(send, 300);
             });
