@@ -40,7 +40,7 @@ La cartella è la categoria. Dentro ogni categoria le schede si dividono in
 | Categoria | Gruppi |
 |---|---|
 | `form` | `structure` (Form, Hidden), `text` (testo e numeri), `choice` (select, check, toggle), `date`, `file`, `action` (Button, Submit), `advanced` (Repeater, ricerca remota, reCAPTCHA, ...) |
-| `components` | `action` (Button, ButtonGroup, Dropdown, Link, QuickCreateButton), `feedback` (Alert, Badge, Tooltip, HelpText), `layout` (Card, Container, Accordion, Modal, SectionTitle), `content` (Text, RichText, DataItem, InfoCard, MetricCard), `choice` (Choice, ChoiceGroup, Steps), `docs` (Code, Preview) |
+| `components` | `action` (Button, ButtonGroup, Dropdown, Link, Breadcrumb, QuickCreateButton), `feedback` (Alert, Badge, Tooltip, HelpText), `layout` (Card, Container, Accordion, Modal, SectionTitle), `content` (Text, RichText, DataItem, InfoCard, MetricCard), `choice` (Choice, ChoiceGroup, Steps), `docs` (Code, Preview) |
 | `media` | nessun gruppo |
 | `charts` | nessun gruppo |
 
