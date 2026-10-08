@@ -43,4 +43,4 @@ return ComponentDoc::for(InputPassword::class)
         ->minLength(8)
         ->requireNumber()
         ->requireSpecial()
-    PHP, '`password()` ritorna `Inputs\InputPassword`: la policy va in `prepare[\'password_rules\']`, letta sia dal render sia dalla validazione in `formToArray()`.');
+    PHP, 'Il type-helper ritorna `Inputs\InputPassword`: le regole della policy stanno nello schema `prepare` sotto la chiave `password_rules`, che il render e la validazione di `formToArray()` leggono entrambi.');
