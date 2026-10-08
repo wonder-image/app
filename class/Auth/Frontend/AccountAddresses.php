@@ -39,7 +39,8 @@ final class AccountAddresses
             return (object) ['success' => false, 'messages' => $messages, 'id' => $addressId ?? 0];
         }
         if ($addressId === null) {
-            $result = ContactAddress::create($values + ['contact_id' => $contactId, 'position' => count(self::all($contactId)) + 1]);
+            $positions = array_map(static fn (array $row): int => (int) ($row['position'] ?? 0), self::all($contactId));
+            $result = ContactAddress::create($values + ['contact_id' => $contactId, 'position' => ($positions === [] ? 0 : max($positions)) + 1]);
             $id = (int) ($result->insert_id ?? 0);
         } else {
             $result = ContactAddress::update($values, $addressId);
@@ -58,7 +59,8 @@ final class AccountAddresses
     /** Righe della scheda: «via numero, cap» e «città (provincia)». */
     public static function card(array $address): array
     {
-        $phone = trim((string) ($address['phone_prefix'] ?? '').' '.(string) ($address['phone'] ?? ''));
+        $number = trim((string) ($address['phone'] ?? ''));
+        $phone = $number !== '' ? trim((string) ($address['phone_prefix'] ?? '').' '.$number) : '';
         $province = trim((string) ($address['province'] ?? ''));
         return [
             'name' => trim((string) ($address['name'] ?? '').' '.(string) ($address['surname'] ?? '')),

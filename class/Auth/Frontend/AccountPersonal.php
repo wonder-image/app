@@ -49,7 +49,9 @@ final class AccountPersonal
                 if (!($link->success ?? false)) {
                     throw new AccountSaveFailed('contact');
                 }
-                Contact::update(['birth_date' => $birth !== '' ? $birth : null], (int) $link->contact_id);
+                if (!(Contact::update(['birth_date' => $birth !== '' ? $birth : null], (int) $link->contact_id)->success ?? false)) {
+                    throw new AccountSaveFailed('contact');
+                }
                 $panel->afterPersonalSaved($input, $result->user);
             });
         } catch (AccountSaveFailed $e) {
