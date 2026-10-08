@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Added
+- `CheckGroup` nel tema Wonder: `pills()` rende le voci come pillole in linea
+  (`wi-check-pill`, CSS una volta per pagina da `PageAssets` con i token
+  `--input-*`) e il segno dell'opzione (`color`, `icon`, `image`) esce davanti
+  al nome, in pillole e in lista come nel backend. Le voci della lista stanno
+  in un contesto posizionato che contiene i float, così non si sovrappongono.
+- I renderer Wonder di `InputNumber`, `InputPrice` e `InputPercentige` accendono
+  da soli AutoNumeric (`Themes\Concerns\RendersAutonumeric`): il frontend non
+  lo caricava e `setInput()` falliva su `AutoNumeric` indefinito.
 - Catalogo dei componenti: schede PHP in `docs/components/<categoria>/*.php`
   (`Wonder\Docs\ComponentDoc`, esempi eseguiti e mostrati dallo stesso
   codice), rese come pagina con anteprima viva per tema e riferimento API nel
@@ -227,6 +235,15 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Fixed
+- Anteprime Wonder del catalogo: l'anteprima chiama `setAos()` e `setUpPage()`
+  al caricamento come il layout frontend (prima solo il Bootstrap chiamava
+  `setUpPage()`, quindi AutoNumeric, date e tendine restavano markup statico).
+  Gli esempi dell'immagine usano `w-100`, che esiste in entrambi i temi, al
+  posto di `img-fluid` e `rounded`, classi Bootstrap che la lib Wonder non ha.
+- Anteprime Wonder del catalogo dei componenti: il body non esce più dalla
+  larghezza dell'iframe (`head.css` gli dà `width: 100%` e il padding
+  dell'anteprima lo allargava di 2rem) e le label dei campi stanno nel loro
+  contenitore invece di sovrapporsi nell'angolo della pagina.
 - `Form` del tema Wonder: `columns()` e `gap()` escono come utility della lib
   (`d-grid col-N gap-N`, con `col-t-*`/`gap-t-*` e `col-p-*`/`gap-p-*` per
   tablet e telefono, dal nuovo concern `Themes\Wonder\Concerns\ResponsiveGridClasses`

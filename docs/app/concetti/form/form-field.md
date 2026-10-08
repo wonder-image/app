@@ -161,6 +161,13 @@ numero puro (`1299.9`) e il PHP non deve interpretare «1.299,90 €». Vale per
 submit nativo dei form del backend; un invio che costruisce `FormData` a mano
 senza passare dall'evento `submit` manderebbe il valore formattato.
 
+Il backend carica AutoNumeric da sé; il frontend no. Nel tema Wonder i renderer
+di `InputNumber`, `InputPrice` e `InputPercentige` lo accendono da soli
+(`Dependencies::autonumeric()`, dal concern `RendersAutonumeric`), come Swiper e
+i grafici: una pagina che stampa un campo numerico non deve ricordarsene. Senza
+la libreria `setInput()` della lib fallirebbe su `AutoNumeric` indefinito e
+fermerebbe anche le inizializzazioni successive (mappe, reCAPTCHA).
+
 ```php
 FormField::key('prezzo')->price();                   // «1.299,90 €»
 FormField::key('peso')->number()->suffix(' kg');     // «2,50 kg»
@@ -437,6 +444,14 @@ linea invece che incolonnate in un riquadro alto centoventi pixel che scorre.
 Serve agli elenchi corti — cinque taglie, tre gusti — dove il riquadro occupa
 dieci volte lo spazio di quello che mostra. Per un elenco lungo resta la forma
 normale, con la sua barra di ricerca.
+
+Le pillole esistono in entrambi i temi, anche con il segno dell'opzione
+(`color`, `icon`, `image`) davanti al nome. Nel tema Wonder sono `wi-check-pill`:
+la lib non ha uno stile per le pillole, quindi il renderer stampa una volta per
+pagina un piccolo `<style data-wi-check-group-style>` scritto con i token
+`--input-*` del sito. Lo stesso blocco dà a ogni voce della lista un contesto
+posizionato che contiene i float, senza il quale le voci della
+`wi-checkbox-list` si sovrappongono.
 
 Sopra le pillole l'etichetta è un titolo piccolo; con `->label('')` il titolo
 non esce, ed è la forma di una pillola sola, come il «Preferito» di una riga:

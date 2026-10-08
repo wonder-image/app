@@ -188,6 +188,11 @@ passa lo stesso array a tutti e due gli helper come secondo argomento.
   ripete `class`, `data-wi-check` o un'altra chiave: il browser tiene la
   prima. Scrivi il tag con `fieldClass()` e `fieldAttributes()`, come in
   [Attributi del campo](#attributi-del-campo).
+- **Campo che nel frontend resta markup statico** → il renderer Wonder non
+  ricorda alla pagina la libreria che lo avvia. Il frontend carica soltanto
+  l'insieme base: un renderer che dipende da una libreria opzionale la accende
+  da sé con `Dependencies::<nome>()` (come `RendersAutonumeric` per i campi
+  numerici), saltando il caricamento senza `APP_URL` (CLI, test).
 
 ## Checklist (nuovo tipo)
 
