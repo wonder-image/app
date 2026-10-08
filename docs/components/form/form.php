@@ -18,7 +18,7 @@ return ComponentDoc::for(Form::class)
     ->docs('concetti/form/csrf.md', 'Token CSRF')
     ->related('input-text', 'submit', 'card')
     ->note('bootstrap', 'Il form è `row d-grid row-col-N g-N` e porta `onsubmit="loadingSpinner()"`.')
-    ->note('wonder', 'Il form è `wi-form`; le classi di griglia che riceve sono quelle di Bootstrap (`row-col-*`, `g-*`) e la lib non le definisce: in una pagina vera i campi stanno nella griglia del sito.')
+    ->note('wonder', 'Il form è `wi-form d-grid col-N gap-N`: colonne e spazio escono come utility della lib, con le varianti `col-t-*`/`gap-t-*` per il tablet e `col-p-*`/`gap-p-*` per il telefono, le stesse del Container.')
     ->example('Base', <<<'PHP'
     (new Form())->components([
         (new InputText('name'))->label('Nome')->required(),

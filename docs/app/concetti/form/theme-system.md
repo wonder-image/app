@@ -10,6 +10,13 @@ La pipeline che trasforma un `FormField` (dichiarazione) nell'HTML finale,
 scegliendo il tema giusto: **Wonder** per il frontend (markup `.wi-*`),
 **Bootstrap** per il backend (markup `form-floating`).
 
+`Form::columns()` e `gap()` si traducono per tema: Bootstrap scrive
+`row d-grid row-col-N g-N`, Wonder le utility della lib `d-grid col-N gap-N`
+(più `col-t-*`/`gap-t-*` per il tablet e `col-p-*`/`gap-p-*` per il telefono,
+dal concern `ResponsiveGridClasses`, lo stesso del Container). Con
+`noFloating()` Bootstrap salta il `form-floating` e stampa la label
+`form-label` sopra l'input; Wonder aggiunge `wi-nf` al contenitore.
+
 ## Il percorso di un input
 
 ```

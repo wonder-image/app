@@ -57,11 +57,12 @@ abstract class NavigationOnlyResource extends Resource
 
     public static function pageSchema(): PageSchema
     {
-        # Disabilita tutte le azioni CRUD del page schema. La pagina
-        # vera è gestita altrove (di solito da una PageSchema
-        # specifica con form/processor custom).
+        # Disabilita tutte le azioni CRUD del page schema, la lista
+        # compresa: la pagina vera è gestita altrove (di solito da una
+        # route esplicita o da una PageSchema con form/processor custom)
+        # e il registrar non deve aggiungere un secondo `/{resource}/`.
         return PageSchema::for(static::class)
-            ->disable(['create', 'store', 'edit', 'update', 'view', 'delete']);
+            ->disable(['list', 'create', 'store', 'edit', 'update', 'view', 'delete']);
     }
 
     public static function apiSchema(): ApiSchema

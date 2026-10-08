@@ -34,13 +34,16 @@ abstract class Field extends AbstractFieldRenderer
      * `form-floating`. Questo permette ai consumer di usare
      * `Field::noFloating()` (o `Form::noFloating()` propagato ai
      * children) per disattivare il floating in modo dichiarativo,
-     * coerentemente con la classe `wi-nf` lato Wonder.
+     * coerentemente con la classe `wi-nf` lato Wonder. Senza floating
+     * la label sta sopra l'input (`form-label`).
      */
     public function render($class): string
     {
         $this->schema = (array) ($class->schema ?? []);
 
-        return $this->renderField($this->renderInput(), !$this->isNoFloating());
+        $noFloating = $this->isNoFloating();
+
+        return $this->renderField($this->renderInput(), !$noFloating, $noFloating);
     }
 
     /**
@@ -49,12 +52,15 @@ abstract class Field extends AbstractFieldRenderer
      * il tutto in un div container. Sotto, l'errore.
      *
      * I componenti che NON funzionano col floating (es. Checkbox,
-     * File) passano `$floating = false` per ottenere un wrap minimale.
+     * File) passano `$floating = false` per ottenere un wrap minimale:
+     * la label la stampano loro. Il campo `noFloating()` passa invece
+     * anche `$labelAbove = true` e riceve la label `form-label` sopra
+     * l'input.
      *
      * Tutti i componenti FK passano di qui (direttamente o via `render()`),
      * quindi è il punto unico dove appendere la "creazione rapida".
      */
-    protected function renderField(string $input, bool $floating = true): string
+    protected function renderField(string $input, bool $floating = true, bool $labelAbove = false): string
     {
         $quick = $this->quickCreateParts();
 
@@ -71,7 +77,7 @@ abstract class Field extends AbstractFieldRenderer
                     .$button
                     .'</div>';
             } else {
-                $control = $this->renderLabel()
+                $control = $this->renderStackedLabel()
                     .'<div class="input-group">'.$input.$button.'</div>';
             }
 
@@ -86,7 +92,11 @@ abstract class Field extends AbstractFieldRenderer
                 .$this->renderError()
                 .'</div>';
         } else {
-            $html = '<div>'.$input.$this->renderError().'</div>';
+            $html = '<div>'
+                .($labelAbove ? $this->renderStackedLabel() : '')
+                .$input
+                .$this->renderError()
+                .'</div>';
         }
 
         // Le pillole hanno già il loro "+" in fila, stampato dal componente
@@ -137,6 +147,19 @@ abstract class Field extends AbstractFieldRenderer
      */
     protected function renderLabel(): string
     {
+        return $this->labelMarkup('');
+    }
+
+    /**
+     * La label senza floating: sta sopra l'input con `form-label`.
+     */
+    protected function renderStackedLabel(): string
+    {
+        return $this->labelMarkup(' class="form-label"');
+    }
+
+    private function labelMarkup(string $classAttribute): string
+    {
         $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $label = $this->resolvedLabel();
 
@@ -144,7 +167,7 @@ abstract class Field extends AbstractFieldRenderer
             return '';
         }
 
-        return '<label for="'.$id.'">'.$this->escape($label).'</label>';
+        return '<label'.$classAttribute.' for="'.$id.'">'.$this->escape($label).'</label>';
     }
 
     /**
