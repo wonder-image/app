@@ -169,12 +169,19 @@ non è `final` e i suoi helper (`page()`, `user()`, `contact()`, `flash()`,
 risponde alle sue azioni e passa le altre a `parent::handle()`:
 
 ```php
+use Wonder\Auth\Frontend\AccountController;
+use Wonder\Auth\Frontend\AccountRoutes;
+use Wonder\Auth\Frontend\BaseAccountExtension;
+use Wonder\Http\Route;
+
 final class ShopAccountExtension extends BaseAccountExtension
 {
     public function routes(): void
     {
         AccountRoutes::group(static function (): void {
-            Route::get('/ordini/', Shop::handlerPath('account.php'), ['account_action' => 'orders'])->name('orders');
+            // Il file del modulo che costruisce il controller (vedi sotto).
+            $handler = dirname(__DIR__, 2).'/http/frontend/account.php';
+            Route::get('/ordini/', $handler, ['account_action' => 'orders'])->name('orders');
         });
     }
 
@@ -197,9 +204,22 @@ class ShopAccountController extends AccountController
 
     protected function orders(): void
     {
-        $this->page(Shop::viewPath('pages/account/orders.php'), 'orders', ['title' => (string) __t('shop.orders'), 'seo_url' => Route::url('account.orders')]);
+        // La vista del modulo: il percorso dipende da dove sta il controller.
+        $view = dirname(__DIR__, 2).'/view/pages/account/orders.php';
+        $this->page($view, 'orders', ['title' => (string) __t('shop.orders'), 'seo_url' => Route::url('account.orders')]);
     }
 }
+```
+
+Il modulo registra l'estensione dove registra le sue route, con
+`AccountRoutes::extend(new ShopAccountExtension())`: senza questa chiamata
+`routes()` e `navigation()` non partono mai. L'ecommerce lo fa in
+`config/routes/route.frontend.php`, subito dopo `AccountRoutes::register()`
+(l'ordine non conta):
+
+```php
+AccountRoutes::register(new AccountPanel(), new AuthProfile());
+AccountRoutes::extend(new ShopAccountExtension());
 ```
 
 Il file `account.php` del modulo costruisce `ShopAccountController` con
@@ -210,16 +230,93 @@ core. La vista del modulo apre con `$account_panel->layout(compact('title',
 'logout_token', 'head', 'user'))` e chiude con `View::end()`, come le viste
 del core. Il secondo argomento di `page()` è la voce di menu attiva.
 
-I componenti condivisi sono `frontend.account.navigation` e
-`frontend.account.row`. La navigazione usa voci `key`, `href`, `label`, `icon`:
+I componenti condivisi sono `frontend.account.navigation`,
+`frontend.account.row` e `frontend.account.pagination` (vedi «Paginazione» qui
+sotto). La navigazione usa voci `key`, `href`, `label`, `icon`:
 lo stato attivo è semantico (`aria-current`). Il menu laterale diventa
 orizzontale e scorrevole su telefono. Righe con separatore, dati a sinistra e
 azioni a destra sostituiscono i box annidati.
 
+### Paginazione
+
+Una sezione con molte righe (ordini, coupon) si divide in pagine con
+`Wonder\Auth\Frontend\AccountPagination` e il componente
+`frontend.account.pagination`. La pagina si chiede con `?pagina=N`; la prima
+pagina è l'URL base, senza parametro.
+
+`AccountPagination::make(int $total, mixed $page, int $perPage = 10)` restituisce
+`page`, `pages`, `per_page`, `offset`, `from`, `to`, `total` e `limit`, la
+stringa `offset, per_page` da mettere nel `LIMIT` della query. La pagina chiesta
+si riporta sempre tra 1 e l'ultima: `0`, un numero negativo, un testo o un array
+danno la prima, `2.7` dà la 2 e una pagina oltre la fine dà l'ultima, quindi non
+escono errori né tabelle vuote e «Risultati da X a Y di Z» resta coerente.
+`requested()` legge `?pagina=` così com'è e lo lascia ripulire a `make()`;
+`url($base, $page)` costruisce il link a una pagina (aggiunge `&` se la base ha già
+un `?`); `window($pagination)` dà le pagine da mostrare, la corrente con due per
+lato.
+
+Il componente riceve `pagination` (il risultato di `make()`) e `base_url` (l'URL
+della sezione, senza `?pagina`) e stampa il piede della tabella: «Risultati da X
+a Y di Z» e i quadrati delle pagine, con la corrente segnata da
+`aria-current="page"` e le frecce spente agli estremi (`aria-disabled`). Va
+messo come ultimo figlio dentro `.wi-row-table`. Con zero righe non stampa nulla:
+in quel caso la vista mostra lo stato vuoto (`.wi-empty-state`) al posto della
+tabella. I testi sono del core, sotto `account.pagination.*` (`summary`, `label`,
+`previous`, `next`).
+
+```php
+protected function orders(): void
+{
+    // $total: quante righe ci sono in tutto (una COUNT(*) con le stesse condizioni).
+    $pagination = AccountPagination::make($total, AccountPagination::requested());
+    // $rows: le sole righe della pagina, con LIMIT $pagination['limit'] e un ordine
+    // stabile (la data, poi l'id), altrimenti le pagine possono ripetere o saltare righe.
+    $this->page($view, 'orders', [
+        'title' => (string) __t('shop.orders'),
+        'seo_url' => Route::url('account.orders'),
+        'rows' => $rows,
+        'pagination' => $pagination,
+        'base_url' => Route::url('account.orders'),
+    ]);
+}
+```
+
+La vista stampa la tabella a righe e il componente in fondo. Con le tre righe
+dell'esempio (`$pagination['total']` vale 3) il piede dice «Risultati da 1 a 3 di
+3» e ha un solo quadrato, il 1, tra le due frecce spente:
+
+```php
+<?php
+use Wonder\Elements\Components\Button;
+use Wonder\View\View;
+?>
+<div class="wi-row-table" style="--wi-row-table-columns: minmax(0, 2fr) minmax(0, 1fr) auto">
+    <div class="wi-row-table__head">
+        <span class="wi-row-table__cell">Ordine</span>
+        <span class="wi-row-table__cell">Totale</span>
+        <span class="wi-row-table__cell"></span>
+    </div>
+    <?php foreach ($rows as $row): // tre righe ?>
+        <div class="wi-row-table__row">
+            <div class="wi-row-table__cell">
+                <div class="wi-row-table__title"><?=e($row['title'])?></div>
+                <div class="wi-row-table__subtitle"><?=e($row['date'])?></div>
+            </div>
+            <div class="wi-row-table__cell"><strong><?=e($row['total'])?></strong></div>
+            <div class="wi-row-table__cell">
+                <?=Button::to($row['href'], 'Visualizza')->outline()->variant('black')->size('sm')->arrow()->render()?>
+            </div>
+        </div>
+    <?php endforeach; ?>
+    <?=View::component('frontend.account.pagination', ['pagination' => $pagination, 'base_url' => $base_url])?>
+</div>
+```
+
 ### Dati personali, email e password
 
-«Dati personali» mostra nome, data di nascita (`birth_date` della scheda
-`Contact`), cellulare, email e password; ognuno si modifica in un modal.
+«Dati personali» ha tre righe e ognuna apre il suo modal: la prima per nome, data
+di nascita (`birth_date` della scheda `Contact`) e cellulare, la seconda per
+l'email, la terza per la password.
 `AccountPersonal` salva nome, data e cellulare, passando dai ganci
 dell'estensione (`validatePersonal()` prima, `personalUserValues()` e
 `afterPersonalSaved()` dopo), in una sola transazione con la scheda: o tutto o

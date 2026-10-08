@@ -55,6 +55,13 @@
   `personalRows()`, `personalFields()`, `validatePersonal()`, `personalUserValues()`,
   `afterPersonalSaved()` e `head()`; `AccountRoutes::group()` apre il gruppo delle
   route private (prefisso `/account`, nomi `account.*`, login e authority del pannello).
+- Paginazione del pannello account: `Wonder\Auth\Frontend\AccountPagination`
+  (`make()`, `requested()`, `url()`, `window()`) e il componente
+  `frontend.account.pagination`, che stampa il piede della tabella a righe
+  («Risultati da X a Y di Z» e i quadrati delle pagine) per le sezioni con molte
+  righe. La pagina è `?pagina=N` e si riporta sempre tra 1 e l'ultima (`0`, `abc`
+  o un array danno la prima). Testi in `account.pagination.*` (it, en). Serve il
+  CSS `wi-row-table__foot` / `wi-pagination` della lib, nel prossimo `dist`.
 - Data di nascita (`birth_date`) sulla scheda `Contact`, modificabile in «Dati personali».
   Colonna nuova: chi aggiorna lancia `php forge update`; senza, il salvataggio dei dati
   personali del pannello fallisce.
@@ -206,7 +213,12 @@
   moduli, diventa `navigation(object $user, string $active = '')`: dà le voci del core per
   chiave (`overview`, `personal`, `addresses`, `billing`) con `label`, `href`, `icon` e
   `active`, poi le fa ritoccare dai ganci `AccountExtension::navigation()`; le voci senza
-  `href` o etichetta non escono.
+  `href` o etichetta non escono. Una sottoclasse di `AccountPanel` che sovrascrive il
+  vecchio `navigation(object $user): array` deve adottare la firma nuova e il ritorno
+  per chiave (partendo da `parent::navigation($user, $active)`): con la firma vecchia PHP
+  dà un errore fatale di dichiarazione incompatibile. Una sottoclasse della
+  `EcommerceAccountPanel` dell'ecommerce, rimossa, dà un errore fatale per classe non
+  trovata prima che il controllo `is_a` possa lanciare la sua `LogicException`.
 - Gli URL del pannello account sono in italiano: `/account/dati-personali/`,
   `/account/fatturazione/`, `/account/indirizzi/…` al posto di `/account/personal-data/`,
   `/account/billing-address/` e `/account/shipping-addresses/…`. Le URL di login e
