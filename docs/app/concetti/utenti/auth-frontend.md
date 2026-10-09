@@ -114,7 +114,7 @@ pannello logout, cellulare obbligatorio e la vista dei messaggi; senza, usa
 |---|---|---|
 | `account.index` | `/account/` | Panoramica |
 | `account.personal` | `/account/dati-personali/` | GET e POST |
-| `account.email.confirm` | `/account/email/conferma/?token=…` | pubblica, senza pannello |
+| `account.email.confirm` | `/account/email/conferma/?token=…` | pubblica, senza pannello; GET mostra il bottone, POST cambia |
 | `account.addresses` | `/account/indirizzi/` | elenco a schede |
 | `account.addresses.create` | `/account/indirizzi/nuovo/` | GET e POST |
 | `account.addresses.edit` | `/account/indirizzi/{id}/` | GET e POST |
@@ -327,9 +327,14 @@ niente. Il core conserva gli invarianti base su identità e cellulare.
 
 Il cambio email (`AccountEmail`) chiede la password attuale e manda alla nuova
 casella un link monouso (token `email_change`, 24 ore) a
-`GET /account/email/conferma/?token=…`; fino al clic resta valida la vecchia.
-L'esito è una pagina di solo messaggio, senza pannello e senza toccare la
-sessione, quindi funziona anche da un altro browser. Un account senza password
+`/account/email/conferma/?token=…`; fino al clic resta valida la vecchia.
+La GET non cambia niente (i filtri antispam aprono i link appena arrivano):
+mostra la nuova email e il bottone «Conferma la nuova email», che fa il POST
+con token e CSRF; con un link scaduto o già usato mostra subito l'esito. Il token
+si consuma nella stessa transazione del cambio, quindi un salvataggio non riuscito
+lascia il link usabile; una nuova password (dal pannello o dal ripristino) revoca i
+link di cambio email ancora aperti. La pagina è di solo messaggio, senza pannello e
+senza toccare la sessione, quindi funziona anche da un altro browser. Un account senza password
 (creato con Google) non può cambiare email dal pannello: la riga mostra solo la nota.
 
 Il cambio password vive in `Wonder\Auth\Frontend\AccountPassword`. `fields()`

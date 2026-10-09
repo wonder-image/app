@@ -31,6 +31,7 @@ final class AccountRoutes
         Route::area('frontend')->response('html')->name('account.')->prefix('/account')
             ->group(static function () use ($handler): void {
                 Route::get('/email/conferma/', $handler, ['account_action' => 'email.confirm'])->name('email.confirm');
+                Route::post('/email/conferma/', $handler, ['account_action' => 'email.confirm']);
             });
 
         self::group(static function () use ($panel, $handler): void {

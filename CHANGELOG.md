@@ -67,8 +67,10 @@
   personali del pannello fallisce.
 - Cambio email dal pannello: chiede la password attuale e manda un link di conferma
   monouso (token `email_change`, 24 ore) alla nuova casella; fino al clic resta valida
-  la vecchia. L'esito sta su `GET /account/email/conferma/?token=…`, che funziona anche
-  da un altro browser. Chiavi `account.email.*`.
+  la vecchia. Il link apre una pagina con il bottone «Conferma la nuova email» (la GET non
+  cambia niente, per i filtri antispam che aprono i link in arrivo) e il POST del bottone cambia
+  l'email; funziona anche da un altro browser. Il token si consuma nella stessa transazione del
+  cambio e una nuova password revoca i link di cambio email aperti. Chiavi `account.email.*`.
 - `AuthValidator::completion()` accetta `$confirmation = false` per saltare il campo di
   conferma della password; il pannello lo usa per il cambio password.
 - `Choice` e `ChoiceGroup`: un radio o un checkbox in un riquadro cliccabile,

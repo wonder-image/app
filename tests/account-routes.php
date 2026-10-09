@@ -78,6 +78,10 @@ foreach ($expected as $name => $path) {
         $check(($routes[$name]['permit'] ?? null) === ['client'], "{$name} deve permettere solo client");
     }
 }
+// La conferma dell'email: la GET mostra il bottone, il POST cambia (i filtri antispam aprono i link in arrivo).
+$confirmPost = array_values(array_filter(Route::all(), static fn ($r) => strtoupper((string) $r['method']) === 'POST' && $r['path'] === '/account/email/conferma/'));
+$check(count($confirmPost) === 1, 'manca il POST di /account/email/conferma/');
+$check(!($confirmPost[0]['private'] ?? false), 'il POST di /account/email/conferma/ deve essere pubblico (funziona da un altro browser)');
 foreach (['/account/dati-personali/', '/account/indirizzi/nuovo/', '/account/indirizzi/{id}/', '/account/indirizzi/{id}/elimina/', '/account/fatturazione/'] as $path) {
     $check(in_array($path, $posts(), true), "manca il POST di {$path}");
 }

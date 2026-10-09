@@ -5,8 +5,9 @@ $account_panel ??= new \Wonder\Auth\Frontend\AccountPanel();
 $errors = array_values(array_filter(array_map('strval', (array) ($errors ?? []))));
 $notice = trim((string) ($notice ?? ''));
 View::layout($account_panel->parentLayout());
+// Font e stili della pagina vanno nel <head>, non nel corpo: il layout padre li stampa lì.
+View::head((string) ($head ?? ''));
 ?>
-<?=$head ?? ''?>
 <main id="account-page">
     <section class="intro">
         <div class="content">

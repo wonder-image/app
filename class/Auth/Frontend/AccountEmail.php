@@ -50,19 +50,25 @@ final class AccountEmail
         return (object) ['success' => true, 'errors' => []];
     }
 
+    /**
+     * Esiti: `confirmed`, `invalid` (link scaduto, usato, inventato o salvataggio non riuscito) e `taken`.
+     * Il link si consuma nella stessa transazione del cambio: se il salvataggio non riesce torna indietro anche
+     * il consumo e il link resta usabile. Con `taken` il consumo resta: il link si brucia.
+     */
     public static function confirm(string $token): string
     {
-        $record = (new OneTimeToken(self::PURPOSE, self::TTL))->consume($token);
-        $userId = (int) ($record->subject_user_id ?? 0);
-        $email = strtolower(trim((string) ($record->metadata['email'] ?? '')));
-        if ($record === null || $userId <= 0 || $email === '') {
-            return 'invalid';
-        }
-        if (!self::isFree($email, $userId)) {
-            return 'taken';
-        }
+        $tokens = new OneTimeToken(self::PURPOSE, self::TTL);
         try {
-            Transaction::run(static function () use ($userId, $email): void {
+            return Transaction::run(static function () use ($tokens, $token): string {
+                $record = $tokens->consume($token);
+                $userId = (int) ($record->subject_user_id ?? 0);
+                $email = strtolower(trim((string) ($record->metadata['email'] ?? '')));
+                if ($record === null || $userId <= 0 || $email === '') {
+                    return 'invalid';
+                }
+                if (!self::isFree($email, $userId)) {
+                    return 'taken';
+                }
                 $GLOBALS['ALERT'] = null;
                 $result = \user(['email' => $email, 'area' => 'frontend', 'authority' => 'client'], $userId);
                 if (!empty($GLOBALS['ALERT']) || !($result->user->exists ?? false)) {
@@ -77,11 +83,27 @@ final class AccountEmail
                         throw new AccountSaveFailed('contact');
                     }
                 }
+
+                return 'confirmed';
             });
         } catch (AccountSaveFailed) {
             return 'invalid';
         }
-        return 'confirmed';
+    }
+
+    /** La nuova email che porta il link, senza consumarlo (per la GET); `null` se il link non vale più. */
+    public static function pendingEmail(string $token): ?string
+    {
+        $record = (new OneTimeToken(self::PURPOSE, self::TTL))->inspect($token);
+        $email = strtolower(trim((string) ($record->metadata['email'] ?? '')));
+
+        return $record !== null && $record->subject_user_id > 0 && $email !== '' ? $email : null;
+    }
+
+    /** Con una password nuova i link di cambio email già mandati non valgono più. */
+    public static function revokeOpen(int $userId): void
+    {
+        (new OneTimeToken(self::PURPOSE, self::TTL))->revokeOpenForSubject($userId);
     }
 
     /** `\unique` compone l'SQL a mano e un'email valida può avere apostrofi: passa prima da `sanitize`, come in `user()`. */

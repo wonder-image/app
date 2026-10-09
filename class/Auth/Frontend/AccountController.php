@@ -59,7 +59,7 @@ class AccountController
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $this->requireCsrf();
-            $form = (string) ($_POST['form'] ?? '');
+            $form = $this->text($_POST['form'] ?? '');
             // Senza password l'email non si cambia (la richiede AccountEmail): quel modal non esiste.
             $errors = match ($form) {
                 'personal' => $this->savePersonal($userId),
@@ -68,7 +68,7 @@ class AccountController
                 default => $this->notFound(),
             };
             $open = $form;
-            $values = array_diff_key($_POST, array_flip([Csrf::FIELD, 'form', 'current_password', 'password']));
+            $values = array_diff_key($this->post(), array_flip([Csrf::FIELD, 'form', 'current_password', 'password']));
         }
 
         $modals = [AccountModal::make(
@@ -178,12 +178,13 @@ class AccountController
                 $this->renderAddresses('', [], []);
                 return;
             }
-            $result = AccountAddresses::save($contactId, $_POST, $id);
+            $post = $this->post();
+            $result = AccountAddresses::save($contactId, $post, $id);
             if ($result->success) {
                 $this->flash((string) __t('account.saved'));
                 $this->redirect(Route::url('account.addresses'));
             }
-            $this->renderAddresses($id === null ? 'new' : (string) $id, $result->messages, $_POST);
+            $this->renderAddresses($id === null ? 'new' : (string) $id, $result->messages, $post);
             return;
         }
         if ($contactId <= 0) {
@@ -225,7 +226,7 @@ class AccountController
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $this->requireCsrf();
             if ($contactId > 0) {
-                $result = AccountBilling::save($contactId, $_POST);
+                $result = AccountBilling::save($contactId, $this->post());
                 if ($result->success) {
                     $this->flash((string) __t('account.saved'));
                     $this->redirect(Route::url('account.billing'));
@@ -241,7 +242,7 @@ class AccountController
             'rows' => $contactId > 0 ? AccountBilling::rows($contact) : [],
             'modals' => $contactId > 0 ? [AccountModal::make(
                 'account-billing', (string) __t('account.billing.title'),
-                AccountAddressForm::fields(Contact::billing(), $open ? $_POST : $contact, $open),
+                AccountAddressForm::fields(Contact::billing(), $open ? $this->post() : $contact, $open),
                 Route::url('account.billing'), [], $errors, $open,
             )] : [],
             'errors' => $this->contactErrors($contact),
@@ -256,13 +257,38 @@ class AccountController
     }
 
     /**
-     * Esito del link nella email: il solo messaggio, senza pannello, senza login e senza toccare la sessione.
-     * Funziona anche da un altro browser, quindi non passa dalla route privata.
+     * Link della email di conferma. La GET non cambia niente (i filtri antispam aprono i link appena arrivano):
+     * mostra il bottone, o subito l'esito se il link non vale più. Il cambio avviene con il POST del bottone.
+     * Solo il messaggio, senza pannello, senza login e senza toccare la sessione: funziona anche da un altro browser,
+     * quindi non passa dalla route privata.
      */
     protected function confirmEmail(): void
     {
-        $outcome = AccountEmail::confirm((string) ($_GET['token'] ?? ''));
         AccountPage::seo((string) __t('account.email.title'), Route::url('account.email.confirm'));
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $this->requireCsrf();
+            $this->emailOutcome(AccountEmail::confirm($this->text($_POST['token'] ?? '')));
+            return;
+        }
+
+        $token = $this->text($_GET['token'] ?? '');
+        $email = AccountEmail::pendingEmail($token);
+        if ($email === null) {
+            $this->emailOutcome('invalid');
+            return;
+        }
+        View::make($this->auth->viewPath('email-confirm'), [
+            'auth_profile' => $this->auth,
+            'token' => $token,
+            'email' => $email,
+            'action' => Route::url('account.email.confirm'),
+        ])->render();
+    }
+
+    /** @param string $outcome `confirmed`, `invalid` o `taken`. */
+    protected function emailOutcome(string $outcome): void
+    {
         View::make($this->auth->viewPath('message'), [
             'auth_profile' => $this->auth,
             'message_key' => 'account.email.'.$outcome,
@@ -272,7 +298,7 @@ class AccountController
     /** @return list<string> Errori da mostrare nel modal; con il salvataggio riuscito esce con un redirect. */
     protected function savePersonal(int $userId): array
     {
-        $result = AccountPersonal::save($userId, $_POST, $this->panel, $this->auth->phoneRequired());
+        $result = AccountPersonal::save($userId, $this->post(), $this->panel, $this->auth->phoneRequired());
         if ($result->success) {
             $this->flash((string) __t('account.saved'));
             $this->redirect(Route::url('account.personal'));
@@ -283,8 +309,9 @@ class AccountController
     /** @return list<string> */
     protected function requestEmail(object $user): array
     {
-        $newEmail = strtolower(trim((string) ($_POST['email'] ?? '')));
-        $result = AccountEmail::request($user, $newEmail, (string) ($_POST['current_password'] ?? ''), Route::url('account.email.confirm'), $this->mailer());
+        $post = $this->post();
+        $newEmail = strtolower(trim((string) ($post['email'] ?? '')));
+        $result = AccountEmail::request($user, $newEmail, (string) ($post['current_password'] ?? ''), Route::url('account.email.confirm'), $this->mailer());
         if ($result->success) {
             // L'Alert fa l'escape del testo: l'indirizzo, che l'utente ha scritto, non si protegge due volte.
             $this->flash((string) __t('account.email.sent', ['email' => $newEmail]));
@@ -298,7 +325,7 @@ class AccountController
     /** @return list<string> */
     protected function changePassword(int $userId): array
     {
-        $result = AccountPassword::change($userId, array_intersect_key($_POST, array_flip(['current_password', 'password'])));
+        $result = AccountPassword::change($userId, array_intersect_key($this->post(), array_flip(['current_password', 'password'])));
         if ($result->success) {
             $this->flash((string) __t('account.password.saved'));
             $this->redirect(Route::url('account.personal'));
@@ -370,6 +397,18 @@ class AccountController
 
     /** Chi spedisce la posta del cambio email; `null` è `sendMail`. I test lo sostituiscono. */
     protected function mailer(): ?callable { return null; }
+
+    /** Un valore della richiesta come testo: un array (`name[]=x`) non è un valore e vale vuoto. */
+    protected function text(mixed $value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+    /** `$_POST` con i campi mandati come array svuotati: nessun campo diventa «Array» né fa scattare avvisi. */
+    protected function post(): array
+    {
+        return array_map(static fn (mixed $value): mixed => is_array($value) ? '' : $value, $_POST);
+    }
 
     protected function requireCsrf(): void
     {

@@ -4,6 +4,7 @@ namespace Wonder\Auth;
 
 use InvalidArgumentException;
 use RuntimeException;
+use Wonder\Auth\Frontend\AccountEmail;
 use Wonder\Sql\Transaction;
 
 final class PasswordReset
@@ -54,6 +55,8 @@ final class PasswordReset
 
                 // Una sessione "ricordami" aperta prima del ripristino non resta valida.
                 RememberMe::revokeUser($consumed->subject_user_id);
+                // Con la vecchia password si può aver chiesto un cambio email: quel link non vale più.
+                AccountEmail::revokeOpen($consumed->subject_user_id);
 
                 return (object) [
                     'success' => true,

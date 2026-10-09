@@ -4,7 +4,8 @@ Shared modal triggers: use `Button::opensModal($id)` with an optional href
 fallback, never force a view render theme. It emits Wonder declarative triggers
 or Bootstrap attributes based on the page. Existing `Modal` supports frontend
 opt-in (`frontend()`); lib retains legacy `modal()` with focus/Esc/inert support.
-Account dialogs belong in the layout's `page_modals`, outside main/form columns.
+Account dialogs are `AccountModal`s passed in the `modals` slot of the panel layout
+(`frontend.account.panel`), which renders them outside main/form columns.
 Place Cancel then Save in `Modal::footer()`; associate external submit buttons
 with the body form using its id and the native `form` attribute.
 `Modal::form($action, $method, $hidden)` wraps body and footer in a form with
@@ -331,7 +332,7 @@ php forge start
   billing data during signup or reset submitted empty values to defaults.
 - Complete account address saves use `AccountAddressValidation`, not global
   Contact required fields (signup must remain billing-free). Reuse
-  `AccountAddressModal` and `Modal::frontend()` for shipping dialogs, preserve
+  `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
   page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
   fiscal data use `WhenFilledValidator`; required validators still apply.
 - Reusable impersonation uses `Wonder\Auth\Impersonation`; consumers must provide explicit backend actor authorities, CSRF-protected issue/stop routes, a visible active-state banner, and must never impersonate a backend-capable subject.

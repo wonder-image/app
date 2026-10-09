@@ -136,7 +136,7 @@ Override: `dialogClass()`, `headerClass()`, `titleClass()`, `bodyClass()`, `foot
 
 Lib (decisione 4): nessuna delle due `modal()` attuali tiene il nome. L'API nuova è `wi.modal.open(id, { title })` / `wi.modal.close(id)` per aprire una finestra e `wi.confirm()` per le conferme (§3.2); `modal()` del backend e `modal()` del frontend restano come alias con la firma di oggi.
 
-**6. Esistente.** `Modal` (`make`, `size`, `scrollable`, `components`, `footer`, `frontend`), `Button::opensModal()` (`class/Elements/Components/Button.php:97`) con `Themes\Concerns\RendersButtonModal`, `Auth\Frontend\AccountAddressModal`. Tutto già nella direzione giusta: manca solo il caso «modal = form».
+**6. Esistente.** `Modal` (`make`, `size`, `scrollable`, `components`, `footer`, `frontend`), `Button::opensModal()` (`class/Elements/Components/Button.php:97`) con `Themes\Concerns\RendersButtonModal`, `Auth\Frontend\AccountModal`. Tutto già nella direzione giusta: manca solo il caso «modal = form».
 
 **7. Impatto.** Gestionale: 5 file, circa 200 righe di stringhe sostituite. Rischio medio: i campi oggi hanno `data-wi-check` e id calcolati a mano, da riprodurre tramite `FormField`. `QuickCreateModal` può adottare `Modal` come involucro in un secondo momento; la `#modal` globale resta finché esiste l'alias `modal()` JS (vedi §3.2). Le due `modal()` della lib non vengono rinominate né rimosse ora: diventano alias.
 

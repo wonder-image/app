@@ -76,6 +76,8 @@ class AccountPassword
 
         // Una sessione o un cookie "ricordami" rubati prima del cambio non restano validi.
         RememberMe::revokeUser($userId);
+        // Con la password rubata si può aver chiesto un cambio email: quel link non vale più.
+        AccountEmail::revokeOpen($userId);
         if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
             session_regenerate_id(true);
         }
