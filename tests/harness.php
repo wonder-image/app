@@ -1,6 +1,11 @@
 <?php // tests/harness.php
 declare(strict_types=1);
 
+// I test non spediscono email vere: `sendMail()` del core risponde sì e basta.
+if (!defined('WONDER_NO_MAIL')) {
+    define('WONDER_NO_MAIL', true);
+}
+
 $GLOBALS['__tests'] = 0;
 $GLOBALS['__failures'] = 0;
 
