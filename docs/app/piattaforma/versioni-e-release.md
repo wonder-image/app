@@ -96,7 +96,7 @@ versione minima richiesta è dichiarata in un solo punto, `extra.wonder.lib` nel
 ```json
 "extra": {
     "wonder": {
-        "lib": "^2.1.2-alpha.23"
+        "lib": "^2.1.2-alpha.24"
     }
 }
 ```
@@ -109,7 +109,7 @@ novità della lib. Conta solo come minimo: l'operatore iniziale viene ignorato.
 vecchia, il comando si ferma prima di applicare l'update e indica cosa lanciare:
 
 ```bash
-npm install 'wonder-image@^2.1.2-alpha.23'
+npm install 'wonder-image@^2.1.2-alpha.24'
 ```
 
 Il vincolo è esplicito perché `npm install wonder-image` risolve il dist-tag

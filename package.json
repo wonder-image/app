@@ -6,6 +6,6 @@
         "docs": "php bin/docs.php"
     },
     "dependencies": {
-        "wonder-image": "^2.1.2-alpha.23"
+        "wonder-image": "^2.1.2-alpha.24"
     }
 }
