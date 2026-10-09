@@ -120,6 +120,9 @@ Route::area('api')
                         Route::get('/onboarding/check/', $ROOT_APP.'/http/api/service/stripe/onboarding-check.php')
                             ->name('onboarding.check');
 
+                        Route::get('/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
+                            ->name('connect');
+
                     });
 
                 Route::name('fatture-in-cloud.')

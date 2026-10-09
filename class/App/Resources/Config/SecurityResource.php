@@ -202,21 +202,29 @@ final class SecurityResource extends SingletonResource
                     static::getInput('stripe_test')->columnSpan(12),
 
                     SectionTitle::make('Produzione')
-                        ->columnSpan(6),
+                        ->columnSpan(4),
                     Badge::to((new Path)->appApi.'/service/stripe/onboarding/?account=production', 'Collega')
                         ->variant('dark')
                         ->addClass('float-end')
-                        ->columnSpan(6),
+                        ->columnSpan(4),
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production', 'Collega webhook')
+                        ->variant('dark')
+                        ->addClass('float-end')
+                        ->columnSpan(4),
                     static::getInput('stripe_account_id')->columnSpan(12),
                     static::getInput('stripe_public_key')->columnSpan(6),
                     static::getInput('stripe_webhook_secret')->columnSpan(6),
 
                     SectionTitle::make('Test')
-                        ->columnSpan(6),
+                        ->columnSpan(4),
                     Badge::to((new Path)->appApi.'/service/stripe/onboarding/?account=test', 'Collega')
                         ->variant('dark')
                         ->addClass('float-end')
-                        ->columnSpan(6),
+                        ->columnSpan(4),
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test', 'Collega webhook')
+                        ->variant('dark')
+                        ->addClass('float-end')
+                        ->columnSpan(4),
                     static::getInput('stripe_test_account_id')->columnSpan(12),
                     static::getInput('stripe_test_public_key')->columnSpan(6),
                     static::getInput('stripe_test_webhook_secret')->columnSpan(6),
