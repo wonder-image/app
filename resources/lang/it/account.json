@@ -3,7 +3,11 @@
     "seo": {
         "description": "Gestisci dati personali, indirizzi e metodi di pagamento del tuo account."
     },
-    "overview_title": "Riepilogo account",
+    "overview": {
+        "title": "Il tuo account",
+        "greeting": "Ciao {{name}}, questo è il tuo account: qui modifichi i tuoi dati e guardi i tuoi ordini.",
+        "code": "Codice cliente:"
+    },
     "breadcrumb_home": "Home",
     "saved": "Le modifiche sono state salvate.",
     "notice_title": "Operazione completata",
@@ -17,22 +21,49 @@
     "actions": {
         "edit": "Modifica",
         "manage": "Gestisci",
-        "save": "Salva modifiche",
+        "save": "Salva",
         "cancel": "Annulla",
         "back": "Torna all’account"
     },
     "personal": {
         "label": "Dati personali",
         "title": "Modifica i dati personali",
-        "section": "Informazioni personali"
+        "section": "Informazioni personali",
+        "name": "Nome",
+        "birth_date": "Data di nascita",
+        "phone": "Cellulare",
+        "modal_title": "Modifica dati",
+        "errors": {
+            "birth_date": "Data di nascita: valore non valido."
+        }
+    },
+    "email": {
+        "label": "Email",
+        "title": "Modifica email",
+        "current": "Email corrente",
+        "new": "Nuova email",
+        "password": "Password",
+        "sent": "Ti abbiamo mandato un link a {{email}}: aprilo per confermare la nuova email.",
+        "mail_subject": "Conferma la tua nuova email",
+        "mail_body": "Per confermare la nuova email apri questo link entro 24 ore: {{url}}",
+        "confirm_title": "Conferma la nuova email",
+        "confirm_intro": "Stai per usare {{email}} come email del tuo account. Conferma con il bottone qui sotto.",
+        "confirm_button": "Conferma la nuova email",
+        "confirmed": "La tua email è stata aggiornata.",
+        "invalid": "Il link non è valido o è scaduto. Richiedi di nuovo il cambio email dal tuo account.",
+        "taken": "Questa email è già usata da un altro account.",
+        "needs_password": "Imposta prima una password per cambiare l’email.",
+        "errors": {
+            "send": "Non siamo riusciti a mandare l’email. Riprova tra poco.",
+            "same": "La nuova email è uguale a quella attuale."
+        }
     },
     "navigation": {
         "label": "Navigazione account",
-        "welcome": "Bentornato",
-        "overview": "Riepilogo",
-        "profile": "Dati personali",
+        "overview": "Panoramica",
+        "personal": "Dati personali",
+        "addresses": "Indirizzi",
         "billing": "Fatturazione",
-        "shipping": "Indirizzi",
         "payment_methods": "Metodi di pagamento",
         "password": "Password",
         "logout": "Esci"
@@ -42,9 +73,9 @@
         "title": "Cambia la password",
         "intro": "Scegli una password di almeno 8 caratteri, diversa da quella attuale.",
         "intro_missing": "Hai effettuato l’accesso con un account esterno: imposta una password per accedere anche con email e password.",
-        "current": "Password attuale",
+        "current": "La tua password",
         "new": "Nuova password",
-        "confirmation": "Conferma la nuova password",
+        "modal_title": "Modifica password",
         "saved": "La password è stata aggiornata.",
         "summary_set": "Impostata",
         "summary_missing": "Non impostata"
@@ -59,19 +90,26 @@
     "billing": {
         "label": "Indirizzo di fatturazione",
         "title": "Modifica l’indirizzo di fatturazione",
-        "intro": "Questi dati saranno utilizzati quando un acquisto richiede fatturazione."
+        "intro": "Questi dati saranno utilizzati quando un acquisto richiede fatturazione.",
+        "holder": "Intestatario",
+        "tax": "Codice fiscale / P. IVA",
+        "address": "Indirizzo"
     },
-    "shipping": {
-        "label": "Indirizzi di spedizione",
-        "title": "Indirizzi di spedizione",
-        "intro": "Indica il destinatario e l’indirizzo da usare per le consegne.",
-        "one": "1 indirizzo salvato",
-        "many": "{{count}} indirizzi salvati",
-        "empty": "Non hai ancora salvato indirizzi di spedizione.",
+    "addresses": {
         "add": "Aggiungi indirizzo",
-        "address": "Indirizzo",
-        "address_label": "Etichetta dell’indirizzo",
-        "create_title": "Aggiungi un indirizzo di spedizione",
-        "edit_title": "Modifica l’indirizzo di spedizione"
+        "add_first": "Aggiungi un indirizzo",
+        "empty": "Non hai indirizzi salvati",
+        "create_title": "Nuovo indirizzo",
+        "edit_title": "Modifica indirizzo",
+        "delete": "Elimina",
+        "delete_title": "Eliminare questo indirizzo?",
+        "deleted": "L’indirizzo è stato eliminato.",
+        "back": "Torna agli indirizzi"
+    },
+    "pagination": {
+        "summary": "Risultati da {{from}} a {{to}} di {{total}}",
+        "label": "Pagine",
+        "previous": "Pagina precedente",
+        "next": "Pagina successiva"
     }
 }

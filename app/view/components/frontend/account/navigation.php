@@ -1,22 +1,23 @@
-<?php
-use Wonder\App\ResourceSchema\FormField;
-use Wonder\Elements\Components\Button;
-$active ??= '';
-?>
-<nav class="d-flex d-column d-p-row gap-2 o-auto" aria-label="<?=e(__t('account.navigation.label'))?>">
-    <?php foreach ((array) ($items ?? []) as $item): ?>
-        <?php $isActive = $active === ($item['key'] ?? ''); ?>
-        <a class="d-flex gap-2 p-3 <?=$isActive ? 'bg-primary-10' : ''?>" href="<?=e($item['href'])?>"
-            style="flex-shrink:0;white-space:nowrap;text-decoration:none;border-radius:var(--button-border-radius);border-left:3px solid <?=$isActive ? 'var(--primary-color)' : 'transparent'?>;"
-            <?=$isActive ? 'aria-current="page"' : ''?>>
-            <?php if (!empty($item['icon'])): ?><i class="<?=e($item['icon'])?> tx-primary" aria-hidden="true"></i><?php endif; ?>
-            <span><?=e($item['label'])?></span>
-        </a>
-    <?php endforeach; ?>
-    <?php if (!empty($logout_url)): ?>
-        <form id="logout" method="post" action="<?=e($logout_url)?>" style="flex-shrink:0;">
-            <?=FormField::key('csrf_token')->hidden()->value($csrf_token)?>
-            <?=Button::make((string) __t('account.navigation.logout'))->type('submit')->icon('bi bi-box-arrow-right')->outline()->addClass('w-100')->render()?>
-        </form>
-    <?php endif; ?>
+<nav aria-label="<?=e((string) __t('account.navigation.label'))?>">
+    <ul class="wi-side-nav__list">
+        <?php foreach ((array) ($items ?? []) as $item): ?>
+            <li>
+                <a class="wi-side-nav__link" href="<?=e((string) ($item['href'] ?? ''))?>"<?=!empty($item['active']) ? ' aria-current="page"' : ''?>>
+                    <i class="wi-side-nav__icon <?=e((string) ($item['icon'] ?? ''))?>" aria-hidden="true"></i>
+                    <span><?=e((string) ($item['label'] ?? ''))?></span>
+                </a>
+            </li>
+        <?php endforeach; ?>
+        <?php if (!empty($logout_url)): ?>
+            <li>
+                <form id="logout" class="wi-side-nav__form" method="post" action="<?=e((string) $logout_url)?>">
+                    <input type="hidden" name="csrf_token" value="<?=e((string) ($logout_token ?? ''))?>">
+                    <button type="submit" class="wi-side-nav__link wi-input-submit">
+                        <i class="wi-side-nav__icon bi bi-box-arrow-right" aria-hidden="true"></i>
+                        <span><?=e((string) __t('account.navigation.logout'))?></span>
+                    </button>
+                </form>
+            </li>
+        <?php endif; ?>
+    </ul>
 </nav>

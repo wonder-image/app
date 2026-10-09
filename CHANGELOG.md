@@ -37,10 +37,42 @@
   ospite, attivo, senza password e con l'email da verificare.
 - Cambio password del pannello account: `Wonder\Auth\Frontend\AccountPassword`
   (campi, validazione e salvataggio; password attuale richiesta solo se
-  l'account ne ha una), componente `frontend.account.password-form`,
-  `RememberMe::revokeUser()` per revocare i token "ricordami" dopo il cambio,
-  nuove chiavi `account.password.*`, `account.navigation.password` e
+  l'account ne ha una, nessun campo di conferma), `RememberMe::revokeUser()`
+  per revocare i token "ricordami" dopo il cambio, nuove chiavi `account.password.*` e
   `auth.validation.errors.{password_same,current_password_required,current_password_wrong}`.
+  Si apre da un modal di «Dati personali» (`AccountController`).
+- Pannello account del core, a richiesta con `AccountRoutes::register(AccountPanel, ?AuthProfile)`
+  (`Wonder\Auth\Frontend`): route `account.*` con URL italiani (`/account/`,
+  `/account/dati-personali/`, `/account/indirizzi/…`, `/account/fatturazione/`),
+  sezioni `overview`, `personal`, `addresses` e `billing`, `AccountController`
+  (non `final`, helper `protected`: i moduli lo estendono per le loro pagine),
+  `AccountPage`, `AccountModal::make()`/`confirm()` e i servizi `AccountPersonal`,
+  `AccountEmail`, `AccountAddresses` e `AccountBilling`. Chi la registra non
+  scrive controller né viste: bastano `register()` e, se serve, una sottoclasse
+  di `AccountPanel`. Le viste sono sigillate (nessuna sostituzione da `custom/`).
+- `AccountExtension` e `BaseAccountExtension`: come un modulo si aggancia al pannello
+  (`AccountRoutes::extend()`). Ganci `routes()`, `navigation()`, `overviewRows()`,
+  `personalRows()`, `personalFields()`, `validatePersonal()`, `personalUserValues()`,
+  `afterPersonalSaved()` e `head()`; `AccountRoutes::group()` apre il gruppo delle
+  route private (prefisso `/account`, nomi `account.*`, login e authority del pannello).
+- Paginazione del pannello account: `Wonder\Auth\Frontend\AccountPagination`
+  (`make()`, `requested()`, `url()`, `window()`) e il componente
+  `frontend.account.pagination`, che stampa il piede della tabella a righe
+  («Risultati da X a Y di Z» e i quadrati delle pagine) per le sezioni con molte
+  righe. La pagina è `?pagina=N` e si riporta sempre tra 1 e l'ultima (`0`, `abc`
+  o un array danno la prima). Testi in `account.pagination.*` (it, en). Serve il
+  CSS `wi-row-table__foot` / `wi-pagination` della lib, nel prossimo `dist`.
+- Data di nascita (`birth_date`) sulla scheda `Contact`, modificabile in «Dati personali».
+  Colonna nuova: chi aggiorna lancia `php forge update`; senza, il salvataggio dei dati
+  personali del pannello fallisce.
+- Cambio email dal pannello: chiede la password attuale e manda un link di conferma
+  monouso (token `email_change`, 24 ore) alla nuova casella; fino al clic resta valida
+  la vecchia. Il link apre una pagina con il bottone «Conferma la nuova email» (la GET non
+  cambia niente, per i filtri antispam che aprono i link in arrivo) e il POST del bottone cambia
+  l'email; funziona anche da un altro browser. Il token si consuma nella stessa transazione del
+  cambio e una nuova password revoca i link di cambio email aperti. Chiavi `account.email.*`.
+- `AuthValidator::completion()` accetta `$confirmation = false` per saltare il campo di
+  conferma della password; il pannello lo usa per il cambio password.
 - `Choice` e `ChoiceGroup`: un radio o un checkbox in un riquadro cliccabile,
   con titolo, testo e una colonna per il prezzo, e il `fieldset` che li
   raccoglie. Testi escapati, parti vuote stampate con `hidden` e ganci
@@ -179,6 +211,23 @@
   senza href.
 
 ### Changed
+- `AccountPanel::navigation(object $user)`, che restituiva `[]` e lasciava le voci ai
+  moduli, diventa `navigation(object $user, string $active = '')`: dà le voci del core per
+  chiave (`overview`, `personal`, `addresses`, `billing`) con `label`, `href`, `icon` e
+  `active`, poi le fa ritoccare dai ganci `AccountExtension::navigation()`; le voci senza
+  `href` o etichetta non escono. Una sottoclasse di `AccountPanel` che sovrascrive il
+  vecchio `navigation(object $user): array` deve adottare la firma nuova e il ritorno
+  per chiave (partendo da `parent::navigation($user, $active)`): con la firma vecchia PHP
+  dà un errore fatale di dichiarazione incompatibile. Una sottoclasse della
+  `EcommerceAccountPanel` dell'ecommerce, rimossa, dà un errore fatale per classe non
+  trovata prima che il controllo `is_a` possa lanciare la sua `LogicException`.
+- Gli URL del pannello account sono in italiano: `/account/dati-personali/`,
+  `/account/fatturazione/`, `/account/indirizzi/…` al posto di `/account/personal-data/`,
+  `/account/billing-address/` e `/account/shipping-addresses/…`. Le URL di login e
+  registrazione (`/account/auth/…`) non cambiano. Non ci sono alias dei vecchi indirizzi.
+- Il `Modal` del tema Wonder mandato già aperto dal server (classe `wi-show`) esce
+  visibile e cliccabile: senza `no-interaction`, `aria-hidden` e `inert`. Serve al pannello
+  per riaprire il modal con gli errori dopo un salvataggio non riuscito.
 - `Themes\{Bootstrap,Wonder}\Media\Media` prendono `columnSpanClasses()`
   dai nuovi concern `Themes\{Bootstrap,Wonder}\Concerns\ColumnSpanClasses`,
   condivisi con `Code` e `Preview`.
@@ -233,6 +282,11 @@
   `min-height` del contenitore della pagina, così le pagine corte non hanno
   scroll vuoto sopra la barra di salvataggio. Con una lib senza barra la
   variabile vale 0 e l'altezza resta com'era.
+
+### Removed
+- `AccountAddressModal` e i componenti `frontend.account.address-form` e
+  `frontend.account.password-form`: il pannello compone modal e form con
+  `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
 - Anteprime Wonder del catalogo: l'anteprima chiama `setAos()` e `setUpPage()`

@@ -35,8 +35,8 @@ use Wonder\Elements\Concerns\IsContainer;
  * Con `form()` la finestra è un form: corpo e bottoni stanno in un
  * `<form>` con il token CSRF e i campi nascosti, e in fondo ci sono
  * Annulla e poi Salva (`cancel()`, `submit()`). Va resa fuori da altri form
- * (un form annidato il browser lo butta via): nelle pagine account sta in
- * `page_modals`.
+ * (un form annidato il browser lo butta via): nelle pagine account sta nello
+ * slot `modals` del layout del pannello (`AccountModal`).
  *
  * ```php
  * Modal::make('Registra pagamento')

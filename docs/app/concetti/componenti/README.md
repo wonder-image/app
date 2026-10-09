@@ -358,7 +358,7 @@ resa da sola con `render()`. Senza `columns()` la griglia ha una colonna sola.
 
 Una `Modal` con `form()` dentro il layout di una Resource lancia
 `LogicException`: il suo `<form>` finirebbe annidato in quello della Resource.
-Rendila fuori, per esempio nei `page_modals` delle pagine account, e aprila
+Rendila fuori, per esempio nello slot `modals` del layout del pannello account (`AccountModal`), e aprila
 con `Button::opensModal($id)`. Il token esce da solo, ma la verifica resta del
 handler: chiama `Csrf::verify()` (vedi [CSRF](../form/csrf.md)).
 

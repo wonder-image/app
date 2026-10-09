@@ -34,6 +34,7 @@ class Contact extends Model
     {
         return [
             ...static::sqlColumnsFromDataSchema(['code', 'email', 'color']),
+            Column::key('birth_date')->date(),
             ...static::billing()->tableSchema(),
             Column::key('is_customer')->enum(['true', 'false'])->default('true'),
             Column::key('is_supplier')->enum(['true', 'false'])->default('false'),
@@ -59,6 +60,7 @@ class Contact extends Model
             Field::key('code')->text()->uniqueCode('con_'),
             ...static::billing()->dataSchema(),
             Field::key('email')->email(),
+            Field::key('birth_date')->date(),
             Field::key('is_customer')->text()->sanitize(false),
             Field::key('is_supplier')->text()->sanitize(false),
             Field::key('user_id')->number()->decimals(0),
