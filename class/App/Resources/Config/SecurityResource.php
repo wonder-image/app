@@ -61,6 +61,10 @@ final class SecurityResource extends SingletonResource
             'stripe_test' => 'Ambiente',
             'stripe_account_id' => 'Account ID',
             'stripe_test_account_id' => 'Account ID Test',
+            'stripe_public_key' => 'Chiave pubblica',
+            'stripe_test_public_key' => 'Chiave pubblica Test',
+            'stripe_webhook_secret' => 'Segreto webhook',
+            'stripe_test_webhook_secret' => 'Segreto webhook Test',
             'paypal_live' => 'Ambiente',
             'paypal_client_id' => 'Client ID',
             'paypal_client_secret' => 'Client Secret',
@@ -109,6 +113,10 @@ final class SecurityResource extends SingletonResource
                 ->required(),
             FormField::key('stripe_account_id')->text()->readonly(),
             FormField::key('stripe_test_account_id')->text()->readonly(),
+            FormField::key('stripe_public_key')->text(),
+            FormField::key('stripe_test_public_key')->text(),
+            FormField::key('stripe_webhook_secret')->text()->readonly(),
+            FormField::key('stripe_test_webhook_secret')->text()->readonly(),
 
             FormField::key('paypal_live')
                 ->select(['false' => 'Sandbox', 'true' => 'Produzione'])
@@ -200,6 +208,8 @@ final class SecurityResource extends SingletonResource
                         ->addClass('float-end')
                         ->columnSpan(6),
                     static::getInput('stripe_account_id')->columnSpan(12),
+                    static::getInput('stripe_public_key')->columnSpan(6),
+                    static::getInput('stripe_webhook_secret')->columnSpan(6),
 
                     SectionTitle::make('Test')
                         ->columnSpan(6),
@@ -208,6 +218,8 @@ final class SecurityResource extends SingletonResource
                         ->addClass('float-end')
                         ->columnSpan(6),
                     static::getInput('stripe_test_account_id')->columnSpan(12),
+                    static::getInput('stripe_test_public_key')->columnSpan(6),
+                    static::getInput('stripe_test_webhook_secret')->columnSpan(6),
                         
                 ])->columns(12)->columnSpan(1),
 
