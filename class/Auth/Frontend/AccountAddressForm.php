@@ -85,6 +85,6 @@ class AccountAddressForm
             $components[] = $container;
         }
 
-        return (new Container())->columns(['default' => 4, 'md' => 12])->gap(4)->components($components);
+        return (new Container())->columns(['default' => 4, 'md' => 12])->gap(4)->class('w-100')->components($components);
     }
 }
