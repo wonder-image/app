@@ -36,7 +36,7 @@ final class Connect
     /** Rifà l'endpoint per questo url: quello vecchio si cancella. Dà il segreto nuovo. */
     public function webhook(string $url): string
     {
-        foreach ($this->client->webhookEndpoints->all(['limit' => 100], $this->options)->data as $endpoint) {
+        foreach ($this->client->webhookEndpoints->all(['limit' => 100], $this->options)->autoPagingIterator() as $endpoint) {
             if ((string) $endpoint->url === $url) {
                 $this->client->webhookEndpoints->delete((string) $endpoint->id, [], $this->options);
             }

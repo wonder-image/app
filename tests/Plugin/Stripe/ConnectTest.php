@@ -122,4 +122,33 @@ check('environment: un dominio rifiutato non perde il segreto', function () use 
 check('secretColumn per ambiente', fn () => Connect::secretColumn('test') === 'stripe_test_webhook_secret'
     && Connect::secretColumn('live') === 'stripe_webhook_secret');
 
+check('webhook: scorre tutte le pagine degli endpoint', function () use ($http) {
+    $http->requests = [];
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => true, 'data' => [
+        ['id' => 'we_primo', 'object' => 'webhook_endpoint', 'url' => 'https://altro.example/hook'],
+    ]]);
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => false, 'data' => [
+        ['id' => 'we_vecchio', 'object' => 'webhook_endpoint', 'url' => URL],
+    ]]);
+    $http->queue(200, ['id' => 'we_vecchio', 'object' => 'webhook_endpoint', 'deleted' => true]);
+    $http->queue(200, ['id' => 'we_nuovo', 'object' => 'webhook_endpoint', 'url' => URL, 'secret' => 'whsec_nuovo']);
+
+    $segreto = (new Connect('sk_test_prova', 'acct_test'))->webhook(URL);
+
+    return $segreto === 'whsec_nuovo'
+        && count($http->requests) === 4
+        && ($http->requests[1]['params']['starting_after'] ?? '') === 'we_primo'
+        && [$http->requests[2]['method'], $http->path(2)] === ['DELETE', '/v1/webhook_endpoints/we_vecchio'];
+});
+
+check('la rotta connect vuole il token CSRF e non scrive il messaggio di Stripe senza escape', function () {
+    $rotta = (string) file_get_contents(__DIR__.'/../../../app/http/api/service/stripe/connect.php');
+    $risorsa = (string) file_get_contents(__DIR__.'/../../../class/App/Resources/Config/SecurityResource.php');
+
+    return str_contains($rotta, 'Csrf::verify(')
+        && !str_contains($rotta, "'Errore Stripe: '.\$e->getMessage()")
+        && substr_count($risorsa, "/service/stripe/connect/?account=") === 2
+        && substr_count($risorsa, 'Csrf::token()') >= 2;
+});
+
 summary();

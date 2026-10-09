@@ -5,6 +5,7 @@ namespace Wonder\App\Resources\Config;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\Path;
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\Http\Csrf;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\Elements\Components\Badge;
@@ -115,8 +116,8 @@ final class SecurityResource extends SingletonResource
             FormField::key('stripe_test_account_id')->text()->readonly(),
             FormField::key('stripe_public_key')->text(),
             FormField::key('stripe_test_public_key')->text(),
-            FormField::key('stripe_webhook_secret')->text()->readonly(),
-            FormField::key('stripe_test_webhook_secret')->text()->readonly(),
+            FormField::key('stripe_webhook_secret')->password()->readonly(),
+            FormField::key('stripe_test_webhook_secret')->password()->readonly(),
 
             FormField::key('paypal_live')
                 ->select(['false' => 'Sandbox', 'true' => 'Produzione'])
@@ -207,7 +208,7 @@ final class SecurityResource extends SingletonResource
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production', 'Collega webhook')
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production&_csrf='.Csrf::token(), 'Collega webhook')
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
@@ -221,7 +222,7 @@ final class SecurityResource extends SingletonResource
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test', 'Collega webhook')
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test&_csrf='.Csrf::token(), 'Collega webhook')
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
