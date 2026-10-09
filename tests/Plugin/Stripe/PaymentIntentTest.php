@@ -25,6 +25,14 @@ check('create: sul conto collegato, con la chiave d\'idempotenza', function () u
         && (int) $http->requests[0]['params']['amount'] === 1999;
 });
 
+check('le richieste restano sulla versione API basil, anche con l\'SDK più nuovo', function () use ($http, $intenti) {
+    $http->requests = [];
+    $http->queue(200, ['id' => 'pi_1', 'object' => 'payment_intent', 'status' => 'requires_payment_method']);
+    $intenti->get('pi_1');
+
+    return $http->header(0, 'Stripe-Version') === '2025-08-27.basil';
+});
+
 check('get, update e cancel passano dal conto collegato', function () use ($http, $intenti) {
     $http->requests = [];
     $http->queue(200, ['id' => 'pi_1', 'object' => 'payment_intent', 'status' => 'requires_payment_method']);

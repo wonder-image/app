@@ -21,7 +21,7 @@ final class PaymentIntent
 
     public function __construct(string $secretKey, string $accountId)
     {
-        $this->client = new StripeClient($secretKey);
+        $this->client = new StripeClient([ 'api_key' => $secretKey, 'stripe_version' => Stripe::API_VERSION ]);
         $this->options = ['stripe_account' => $accountId];
     }
 

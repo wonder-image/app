@@ -7,6 +7,9 @@
 
     abstract class Stripe extends StripeClient {
 
+        # Versione dell'API fissata: l'SDK 19 porterebbe a clover, che toglie per esempio `coupon` dai codici promozionali
+        public const API_VERSION = '2025-08-27.basil';
+
         private static $apiKey;
 
         public $accountId;
@@ -21,7 +24,7 @@
                 $this->accountId(Credentials::api()->stripe_id);
             }
 
-            parent::__construct(self::$apiKey);
+            parent::__construct([ 'api_key' => self::$apiKey, 'stripe_version' => self::API_VERSION ]);
 
         }
 
