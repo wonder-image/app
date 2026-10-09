@@ -10,6 +10,7 @@
     use Wonder\Consent\Repository\LegalDocumentRepository;
     use Wonder\Consent\Repository\UserConsentStateRepository;
     use Wonder\Sql\Query;
+    use Wonder\Sql\Transaction;
 
     /**
      * Servizio applicativo per gestione consensi GDPR.
@@ -17,6 +18,8 @@
     class ConsentService
     {
         private mysqli $mysqli;
+        /** Dentro una `Transaction` già aperta si lavora su un savepoint. */
+        private bool $nested = false;
         private LegalDocumentRepository $legalDocumentRepository;
         private ConsentEventRepository $consentEventRepository;
         private UserConsentStateRepository $userConsentStateRepository;
@@ -587,8 +590,19 @@
 
         }
 
+        /**
+         * Con una `Transaction` già aperta usa un savepoint: `begin_transaction()`
+         * confermerebbe in anticipo quella esterna (per esempio l'ordine).
+         */
         private function beginTransaction(): void
         {
+
+            $this->nested = Transaction::activeForMysqli($this->mysqli);
+
+            if ($this->nested) {
+                $this->mysqli->query('SAVEPOINT wi_consent');
+                return;
+            }
 
             $this->mysqli->begin_transaction();
 
@@ -597,12 +611,22 @@
         private function commit(): void
         {
 
+            if ($this->nested) {
+                $this->mysqli->query('RELEASE SAVEPOINT wi_consent');
+                return;
+            }
+
             $this->mysqli->commit();
 
         }
 
         private function rollback(): void
         {
+
+            if ($this->nested) {
+                $this->mysqli->query('ROLLBACK TO SAVEPOINT wi_consent');
+                return;
+            }
 
             $this->mysqli->rollback();
 

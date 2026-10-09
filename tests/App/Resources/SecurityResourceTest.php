@@ -44,4 +44,16 @@ check('P16 google_oauth_client_secret e apple_oauth_private_key dichiarano new-p
     return true;
 });
 
+check('i segreti del webhook Stripe si rendono come password in sola lettura', function () {
+    foreach (['stripe_webhook_secret', 'stripe_test_webhook_secret'] as $key) {
+        $html = SecurityResource::getInput($key)->render('bootstrap');
+
+        if (!str_contains($html, 'type="password"') || !str_contains($html, 'readonly')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
 summary();

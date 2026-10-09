@@ -84,6 +84,12 @@
 
     function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic'){
 
+        // I test girano sul database di un sito vero, con indirizzi veri:
+        // lì non parte niente.
+        if (defined('WONDER_NO_MAIL') && WONDER_NO_MAIL === true) {
+            return true;
+        }
+
         global $SOCIETY;
 
         $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);

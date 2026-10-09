@@ -332,20 +332,7 @@
                 self::$API->klaviyo_api_key              = self::envOrRow('KLAVIYO_API_KEY',                  $row, 'klaviyo_api_key',                  self::$API->klaviyo_api_key);
                 self::$API->ipinfo_api_key               = self::envOrRow('IPINFO_API_KEY',                   $row, 'ipinfo_api_key',                   self::$API->ipinfo_api_key);
 
-                // stripe_test è un booleano: env "true"/"1"/"on" → true.
-                $stripeTestEnv = trim((string) ($_ENV['STRIPE_TEST'] ?? ''));
-                if ($stripeTestEnv !== '') {
-                    self::$API->stripe_test = filter_var($stripeTestEnv, FILTER_VALIDATE_BOOLEAN);
-                } elseif (isset($row['stripe_test'])) {
-                    self::$API->stripe_test = filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN);
-                }
-
-                self::$API->stripe_test_key              = self::envOrRow('STRIPE_TEST_KEY',                  $row, 'stripe_test_key',                  self::$API->stripe_test_key);
-                self::$API->stripe_private_key           = self::envOrRow('STRIPE_PRIVATE_KEY',               $row, 'stripe_private_key',               self::$API->stripe_private_key);
-                self::$API->stripe_account_id            = self::envOrRow('STRIPE_ACCOUNT_ID',                $row, 'stripe_account_id',                self::$API->stripe_account_id);
-                self::$API->stripe_test_account_id       = self::envOrRow('STRIPE_TEST_ACCOUNT_ID',           $row, 'stripe_test_account_id',           self::$API->stripe_test_account_id);
-                self::$API->stripe_id                    = self::$API->stripe_test ? self::$API->stripe_test_account_id : self::$API->stripe_account_id;
-                self::$API->stripe_api_key               = self::$API->stripe_test ? self::$API->stripe_test_key : self::$API->stripe_private_key;
+                self::stripe(self::$API, $row);
 
                 self::$API->paypal_live                  = self::boolEnvOrRow('PAYPAL_LIVE',                  $row, 'paypal_live',                  self::$API->paypal_live);
                 self::$API->paypal_client_id             = self::envOrRow('PAYPAL_CLIENT_ID',                 $row, 'paypal_client_id',             self::$API->paypal_client_id);
@@ -366,6 +353,36 @@
 
             return self::$API;
 
+        }
+
+        /**
+         * Le chiavi Stripe. Le calcolate seguono `stripe_test`: chi incassa
+         * usa sempre `stripe_api_key`, `stripe_id`, `stripe_publishable_key`
+         * e `stripe_webhook_key`, e così test e produzione non si mescolano.
+         */
+        protected static function stripe(object $api, array $row): void
+        {
+            // stripe_test è un booleano: env "true"/"1"/"on" → true.
+            $stripeTestEnv = trim((string) ($_ENV['STRIPE_TEST'] ?? ''));
+            if ($stripeTestEnv !== '') {
+                $api->stripe_test = filter_var($stripeTestEnv, FILTER_VALIDATE_BOOLEAN);
+            } elseif (isset($row['stripe_test'])) {
+                $api->stripe_test = filter_var($row['stripe_test'], FILTER_VALIDATE_BOOLEAN);
+            }
+
+            $api->stripe_test_key            = self::envOrRow('STRIPE_TEST_KEY',            $row, 'stripe_test_key',            $api->stripe_test_key);
+            $api->stripe_private_key         = self::envOrRow('STRIPE_PRIVATE_KEY',         $row, 'stripe_private_key',         $api->stripe_private_key);
+            $api->stripe_account_id          = self::envOrRow('STRIPE_ACCOUNT_ID',          $row, 'stripe_account_id',          $api->stripe_account_id);
+            $api->stripe_test_account_id     = self::envOrRow('STRIPE_TEST_ACCOUNT_ID',     $row, 'stripe_test_account_id',     $api->stripe_test_account_id);
+            $api->stripe_public_key          = self::envOrRow('STRIPE_PUBLIC_KEY',          $row, 'stripe_public_key',          $api->stripe_public_key);
+            $api->stripe_test_public_key     = self::envOrRow('STRIPE_TEST_PUBLIC_KEY',     $row, 'stripe_test_public_key',     $api->stripe_test_public_key);
+            $api->stripe_webhook_secret      = self::envOrRow('STRIPE_WEBHOOK_SECRET',      $row, 'stripe_webhook_secret',      $api->stripe_webhook_secret);
+            $api->stripe_test_webhook_secret = self::envOrRow('STRIPE_TEST_WEBHOOK_SECRET', $row, 'stripe_test_webhook_secret', $api->stripe_test_webhook_secret);
+
+            $api->stripe_id              = $api->stripe_test ? $api->stripe_test_account_id : $api->stripe_account_id;
+            $api->stripe_api_key         = $api->stripe_test ? $api->stripe_test_key : $api->stripe_private_key;
+            $api->stripe_publishable_key = $api->stripe_test ? $api->stripe_test_public_key : $api->stripe_public_key;
+            $api->stripe_webhook_key     = $api->stripe_test ? $api->stripe_test_webhook_secret : $api->stripe_webhook_secret;
         }
 
         /**
@@ -458,6 +475,12 @@
                 'stripe_test_account_id' => '',
                 'stripe_id' => '',
                 'stripe_api_key' => '',
+                'stripe_public_key' => '',
+                'stripe_test_public_key' => '',
+                'stripe_webhook_secret' => '',
+                'stripe_test_webhook_secret' => '',
+                'stripe_publishable_key' => '',
+                'stripe_webhook_key' => '',
                 'paypal_live' => false,
                 'paypal_client_id' => '',
                 'paypal_client_secret' => '',
