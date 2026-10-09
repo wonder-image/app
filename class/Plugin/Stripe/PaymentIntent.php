@@ -61,4 +61,17 @@ final class PaymentIntent
 
         return $refunds;
     }
+
+    /**
+     * Le configurazioni dei metodi di pagamento del conto collegato: dicono
+     * quali metodi il commerciante ha acceso nella sua dashboard.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function paymentMethodConfigurations(): array
+    {
+        $list = $this->client->paymentMethodConfigurations->all(['limit' => 100], $this->options);
+
+        return array_map(static fn ($configuration): array => $configuration->toArray(), $list->data);
+    }
 }

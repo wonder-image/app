@@ -78,4 +78,19 @@ check('refundsOf: i rimborsi della carica, con importo e stato', function () use
         && $http->header(0, 'Stripe-Account') === 'acct_prova';
 });
 
+check('le configurazioni dei metodi si leggono sul conto collegato, come array', function () use ($http, $intenti) {
+    $http->requests = [];
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/payment_method_configurations', 'has_more' => false, 'data' => [
+        ['id' => 'pmc_1', 'object' => 'payment_method_configuration', 'active' => true, 'is_default' => true,
+         'card' => ['available' => true], 'klarna' => ['available' => false]],
+    ]]);
+    $lista = $intenti->paymentMethodConfigurations();
+
+    return $http->path(0) === '/v1/payment_method_configurations'
+        && $http->header(0, 'Stripe-Account') === 'acct_prova'
+        && is_array($lista[0] ?? null)
+        && ($lista[0]['card']['available'] ?? null) === true
+        && ($lista[0]['is_default'] ?? null) === true;
+});
+
 summary();
