@@ -97,6 +97,15 @@ check('environment senza conto collegato si ferma prima di chiamare Stripe', fun
     }
 });
 
+check('environment: un dominio rifiutato non perde il segreto', function () use ($http) {
+    $http->requests = [];
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => false, 'data' => []]);
+    $http->queue(200, ['id' => 'we_2', 'object' => 'webhook_endpoint', 'url' => URL, 'secret' => 'whsec_prova']);
+    $http->queue(400, ['error' => ['type' => 'invalid_request_error', 'message' => 'Invalid domain.']]);
+
+    return Connect::environment('live', URL, 'negozio.test', api(true)) === 'whsec_prova';
+});
+
 check('secretColumn per ambiente', fn () => Connect::secretColumn('test') === 'stripe_test_webhook_secret'
     && Connect::secretColumn('live') === 'stripe_webhook_secret');
 

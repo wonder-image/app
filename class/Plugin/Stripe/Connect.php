@@ -3,6 +3,7 @@
 namespace Wonder\Plugin\Stripe;
 
 use RuntimeException;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\InvalidRequestException;
 use Stripe\StripeClient;
 use Wonder\App\Credentials;
@@ -74,7 +75,11 @@ final class Connect
         $secret = $connect->webhook($webhookUrl);
 
         if ($domain !== '') {
-            $connect->domain($domain);
+            try {
+                $connect->domain($domain);
+            } catch (ApiErrorException) {
+                // Il dominio serve solo ai wallet: il segreto va salvato comunque.
+            }
         }
 
         return $secret;
