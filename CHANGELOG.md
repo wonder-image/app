@@ -61,7 +61,7 @@
   («Risultati da X a Y di Z» e i quadrati delle pagine) per le sezioni con molte
   righe. La pagina è `?pagina=N` e si riporta sempre tra 1 e l'ultima (`0`, `abc`
   o un array danno la prima). Testi in `account.pagination.*` (it, en). Serve il
-  CSS `wi-row-table__foot` / `wi-pagination` della lib, nel prossimo `dist`.
+  CSS `wi-row-table__foot` / `wi-pagination` della lib, dalla 2.1.2-alpha.24.
 - Data di nascita (`birth_date`) sulla scheda `Contact`, modificabile in «Dati personali».
   Colonna nuova: chi aggiorna lancia `php forge update`; senza, il salvataggio dei dati
   personali del pannello fallisce.
@@ -211,6 +211,9 @@
   senza href.
 
 ### Changed
+- Versione minima di `wonder-image/lib` alzata a `2.1.2-alpha.24` (`extra.wonder.lib` e
+  `package.json`): ha il CSS e il JS del pannello account. Con una lib più vecchia
+  `php forge update` si ferma e chiede `npm install 'wonder-image@^2.1.2-alpha.24'`.
 - `AccountPanel::navigation(object $user)`, che restituiva `[]` e lasciava le voci ai
   moduli, diventa `navigation(object $user, string $active = '')`: dà le voci del core per
   chiave (`overview`, `personal`, `addresses`, `billing`) con `label`, `href`, `icon` e
