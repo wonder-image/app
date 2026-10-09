@@ -316,7 +316,10 @@ use Wonder\View\View;
 
 «Dati personali» ha tre righe e ognuna apre il suo modal: la prima per nome, data
 di nascita (`birth_date` della scheda `Contact`) e cellulare, la seconda per
-l'email, la terza per la password.
+l'email, la terza per la password. Il modal dell'email c'è solo se l'account ha già
+una password (il cambio email la chiede): senza, la riga non ha «Modifica» ma la
+nota «Imposta prima una password per cambiare l'email», e la password si imposta dal
+terzo modal.
 `AccountPersonal` salva nome, data e cellulare, passando dai ganci
 dell'estensione (`validatePersonal()` prima, `personalUserValues()` e
 `afterPersonalSaved()` dopo), in una sola transazione con la scheda: o tutto o
