@@ -43,6 +43,8 @@ $check($addressFields['country']->get('value') === 'IT', 'Address country defaul
 $check(!class_exists('Wonder\\Plugin\\Ecommerce\\Ecommerce'), 'Core test unexpectedly depends on ecommerce.');
 $check(array_keys($profile->fields('signup-request')) === ['name', 'surname', 'email', 'accept_privacy_policy'], 'Generic signup fields mismatch.');
 $check($profile->validate('signup-completion', ['password' => 'password123', 'password_confirmation' => 'password123']) === [], 'Core forces a mobile number.');
+$check($profile->validate('signup-completion', ['password' => 'password123', 'password_confirmation' => 'other']) === ['password_confirmation' => 'mismatch'], 'Signup no longer checks the password confirmation.');
+$check($profile->validate('password-restore', ['password' => 'password123', 'password_confirmation' => 'other']) === ['password_confirmation' => 'mismatch'], 'Password restore no longer checks the password confirmation.');
 $check(!isset($profile->userValues('signup-request', ['name' => 'Ada', 'authority' => 'admin', 'business_name' => 'Injected'])['authority']), 'Untrusted authority reaches user writes.');
 $check(\Wonder\Auth\Frontend\AuthValidationAlert::messageKeys(['email' => 'exists']) === ['auth.validation.errors.email_exists'], 'Signup with an existing account email has no dedicated message.');
 $consentInput = ['name' => 'Ada', 'accept_privacy_policy' => 'true', 'privacy_policy_id' => '1', 'terms_conditions_id' => '2'];

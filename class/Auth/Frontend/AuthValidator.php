@@ -27,7 +27,7 @@ final class AuthValidator
         return $errors;
     }
 
-    public static function completion(array $input, bool $passwordRequired = true, bool $phoneRequired = true): array
+    public static function completion(array $input, bool $passwordRequired = true, bool $phoneRequired = true, bool $confirmation = true): array
     {
         $errors = [];
         $prefix = preg_replace('/[^0-9+]/', '', (string) ($input['phone_prefix'] ?? '')) ?? '';
@@ -42,7 +42,7 @@ final class AuthValidator
             $errors['password'] = 'too_short';
         } elseif ($password !== '' && strlen($password) < 8) {
             $errors['password'] = 'too_short';
-        } elseif ($password !== '' && !hash_equals($password, (string) ($input['password_confirmation'] ?? ''))) {
+        } elseif ($confirmation && $password !== '' && !hash_equals($password, (string) ($input['password_confirmation'] ?? ''))) {
             $errors['password_confirmation'] = 'mismatch';
         }
 

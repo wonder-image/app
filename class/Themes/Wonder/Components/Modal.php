@@ -25,12 +25,19 @@ class Modal extends Component
         if ($id === '' || !preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/', $id)) {
             throw new \InvalidArgumentException('Frontend modals require a selector-safe explicit id.');
         }
-        $attributes = $this->renderComponentAttributes($class, ['wi-modal', 'no-interaction']);
+        // Una modal che il server manda già aperta (`wi-show`) esce cliccabile e
+        // visibile: senza `no-interaction`, `aria-hidden` e `inert`, che lo script
+        // toglierebbe solo all'apertura. Lo script poi la collega come se l'avesse
+        // aperta lui, così si può chiudere.
+        $customAttributes = $class->getSchema('attributes');
+        $open = is_array($customAttributes) && in_array('wi-show', $this->classTokens($customAttributes['class'] ?? null), true);
+        $attributes = $this->renderComponentAttributes($class, $open ? ['wi-modal'] : ['wi-modal', 'no-interaction']);
+        $closed = $open ? '' : ' aria-hidden="true" inert';
         $body = $this->renderThemeComponents($class->components, 'wonder');
         $footer = $this->renderFooter($class->footerComponents());
         $content = '<div '.$this->partAttributes($class, 'body', 'wi-modal-body no-scrollbar').'>'.$body.'</div>'
             .($footer !== '' ? '<div '.$this->partAttributes($class, 'footer', 'wi-modal-footer d-flex j-content-end gap-3').'>'.$footer.'</div>' : '');
-        return '<section '.$attributes.' role="dialog" aria-modal="true" aria-hidden="true" inert aria-labelledby="'.$id.'-title">'
+        return '<section '.$attributes.' role="dialog" aria-modal="true"'.$closed.' aria-labelledby="'.$id.'-title">'
             .'<div class="bg wi-close-modal"></div><div '.$this->partAttributes($class, 'dialog', 'content wi-modal-content c-w', ['style']).' style="max-width:760px;">'
             .'<div '.$this->partAttributes($class, 'header', 'wi-modal-header').'><h2 id="'.$id.'-title" '.$this->partAttributes($class, 'title', 'wi-modal-title', ['id']).'>'
             .$this->escape($class->getTitle()).$this->renderHelp($class).'</h2>'

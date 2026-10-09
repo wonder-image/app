@@ -210,4 +210,26 @@ check('senza frontend() Wonder resta vuoto anche con form()', function () use ($
     return $pagamento()->render('wonder') === '';
 });
 
+check('una modal aperta dal server (wi-show) non porta no-interaction, quella chiusa sì', function () use ($pagamento) {
+    $chiusa = $pagamento()->frontend()->render('wonder');
+    $aperta = $pagamento()->frontend()->addClass('wi-show')->render('wonder');
+
+    return preg_match('/<section[^>]*class="wi-modal no-interaction"/', $chiusa) === 1
+        && preg_match('/<section[^>]*class="wi-modal wi-show"/', $aperta) === 1
+        && !str_contains($aperta, 'no-interaction');
+});
+
+check('una modal aperta dal server non nasce aria-hidden né inert, quella chiusa sì', function () use ($pagamento) {
+    $chiusa = $pagamento()->frontend()->render('wonder');
+    $aperta = $pagamento()->frontend()->addClass('wi-show')->render('wonder');
+    $apertaTag = preg_match('/<section[^>]*>/', $aperta, $tag) === 1 ? $tag[0] : '';
+
+    return preg_match('/<section[^>]*aria-hidden="true"[^>]*\binert\b/', $chiusa) === 1
+        && str_contains($apertaTag, 'role="dialog"')
+        && str_contains($apertaTag, 'aria-modal="true"')
+        && str_contains($apertaTag, 'aria-labelledby=')
+        && !str_contains($apertaTag, 'aria-hidden')
+        && !preg_match('/\binert\b/', $apertaTag);
+});
+
 summary();
