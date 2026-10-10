@@ -55,4 +55,26 @@ check('orari propri e righe cancellate ignorate', function () use ($rows, $hours
 
 check('nessuna sede', fn () => SocietyLocations::assemble([], [], []) === ['default_id' => 0, 'locations' => []]);
 
+// Al boot delle rotte backend le funzioni sql non sono ancora caricate: quel vuoto non deve restare.
+check('prima delle funzioni sql il vuoto non resta in cache', function () {
+    if (function_exists('sqlTableExists')) {
+        return false;
+    }
+
+    SocietyLocations::reset();
+    $prima = SocietyLocations::all(false);
+    $GLOBALS['tabelleChieste'] = [];
+
+    function sqlTableExists($table)
+    {
+        $GLOBALS['tabelleChieste'][] = $table;
+
+        return false;
+    }
+
+    SocietyLocations::all(false);
+
+    return $prima === [] && $GLOBALS['tabelleChieste'] !== [];
+});
+
 summary();
