@@ -5,6 +5,9 @@ namespace Wonder\App\Schema\Extensions;
 use InvalidArgumentException;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\Data\Formatters\Geo\LatitudeFormatter;
+use Wonder\Data\Formatters\Geo\LongitudeFormatter;
+use Wonder\Data\Formatters\Geo\PlaceIdFormatter;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 use Wonder\Support\Prettify\Address as PrettifyAddress;
@@ -26,6 +29,8 @@ final class AddressExtension
     private bool $withContactName = false;
     private bool $withType = false;
     private bool $withCompanyData = false;
+    private bool $withGeo = false;
+    private ?string $placeIdKey = null;
 
     private function __construct(
         ?string $prefix = null,
@@ -113,6 +118,25 @@ final class AddressExtension
     {
         $clone = clone $this;
         $clone->withType = $enabled;
+
+        return $clone;
+    }
+
+    /**
+     * Place ID e coordinate dell'indirizzo, scritti dall'autocompletamento in
+     * campi nascosti (`<prefisso>place_id`, `<prefisso>lat`, `<prefisso>lng`).
+     * Con $placeIdKey il place ID va in quella colonna, già del modello, e
+     * non viene ricreato.
+     */
+    public function withGeo(?string $placeIdKey = null): self
+    {
+        $clone = clone $this;
+        $clone->withGeo = true;
+        $clone->placeIdKey = $placeIdKey !== null ? $this->normalizeFieldName($placeIdKey) : null;
+
+        if ($clone->placeIdKey === '') {
+            $clone->placeIdKey = null;
+        }
 
         return $clone;
     }
@@ -231,6 +255,15 @@ final class AddressExtension
             $fields[] = $this->dataField(Field::key($this->key('pec'))->email(), 'pec');
         }
 
+        if ($this->withGeo) {
+            if ($this->placeIdKey === null) {
+                $fields[] = Field::key($this->key('place_id'))->text()->sanitize(false)->addFormatter(new PlaceIdFormatter());
+            }
+
+            $fields[] = Field::key($this->key('lat'))->text()->sanitize(false)->addFormatter(new LatitudeFormatter());
+            $fields[] = Field::key($this->key('lng'))->text()->sanitize(false)->addFormatter(new LongitudeFormatter());
+        }
+
         return $fields;
     }
 
@@ -273,6 +306,15 @@ final class AddressExtension
             $columns[] = Column::key($this->key('pi'));
             $columns[] = Column::key($this->key('sdi'));
             $columns[] = Column::key($this->key('pec'));
+        }
+
+        if ($this->withGeo) {
+            if ($this->placeIdKey === null) {
+                $columns[] = Column::key($this->key('place_id'));
+            }
+
+            $columns[] = Column::key($this->key('lat'))->type('DECIMAL')->schema('length', '10,7');
+            $columns[] = Column::key($this->key('lng'))->type('DECIMAL')->schema('length', '10,7');
         }
 
         return $columns;
@@ -326,7 +368,10 @@ final class AddressExtension
         );
         $schema[$this->key('city')] = $this->formField(FormField::key($this->key('city'))->text(), 'city');
         $schema[$this->key('cap')] = $this->formField(FormField::key($this->key('cap'))->text(), 'cap');
-        $schema[$this->key('street')] = $this->formField(FormField::key($this->key('street'))->text(), 'street');
+        $schema[$this->key('street')] = $this->formField(
+            FormField::key($this->key('street'))->text()->attribute($this->placeAttributes()),
+            'street'
+        );
         $schema[$this->key('number')] = $this->formField(FormField::key($this->key('number'))->text(), 'number');
 
         if ($this->withMore) {
@@ -344,6 +389,14 @@ final class AddressExtension
                 'link',
                 $this->linkKey
             );
+        }
+
+        if ($this->withGeo) {
+            $geoKeys = $this->placeIdKey === null ? ['place_id', 'lat', 'lng'] : ['lat', 'lng'];
+
+            foreach ($geoKeys as $name) {
+                $schema[$this->key($name)] = FormField::key($this->key($name))->hidden();
+            }
         }
 
         return $schema;
@@ -393,6 +446,27 @@ final class AddressExtension
         $name = $this->normalizeFieldName($name);
 
         return $this->prefix !== '' ? $this->prefix.'_'.$name : $name;
+    }
+
+    /**
+     * Attributi letti da `places.js` della lib: il prefisso dei campi
+     * dell'indirizzo, il campo del place ID se non è `<prefisso>place_id` e
+     * il campo del link di Maps.
+     */
+    private function placeAttributes(): string
+    {
+        $prefix = $this->prefix !== '' ? $this->prefix.'_' : '';
+        $attributes = 'data-wi-place="'.$prefix.'"';
+
+        if ($this->withGeo && $this->placeIdKey !== null) {
+            $attributes .= ' data-wi-place-id="'.$this->placeIdKey.'"';
+        }
+
+        if ($this->withLink) {
+            $attributes .= ' data-wi-place-link="'.$this->key($this->linkKey).'"';
+        }
+
+        return $attributes;
     }
 
     private function computedKey(string $name): string

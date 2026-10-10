@@ -3,6 +3,7 @@
 namespace Wonder\Auth\Frontend;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\Elements\Components\Container;
 
@@ -58,6 +59,10 @@ class AccountAddressForm
             $field = $fields[$key];
             if (!$field instanceof Input) {
                 throw new \InvalidArgumentException('Address fields must use FormField inputs');
+            }
+            if ($field instanceof InputHidden) {
+                $components[] = $field;
+                continue;
             }
             $desktop = match ($key) {
                 'label', 'type', 'business_name', 'cf', 'pec', 'more', 'email', 'current_email', 'current_password', 'password' => 12,

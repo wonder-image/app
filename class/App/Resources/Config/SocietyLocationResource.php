@@ -126,7 +126,7 @@ class SocietyLocationResource extends Resource
                 'future_opening' => 'Apertura futura',
             ])->value('operational')->required(),
             FormField::key('opening_date')->dateInput(),
-            ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->formSchema()),
+            ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->withGeo('google_place_id')->formSchema()),
             FormField::key('google_place_id')->text(),
             FormField::key('email')->email(),
             FormField::key('pec')->email(),
@@ -138,7 +138,7 @@ class SocietyLocationResource extends Resource
             FormField::key('rea')->text(),
             FormField::key('pi')->text(),
             FormField::key('cf')->text(),
-            ...array_values(AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps', countryDefault: 'IT')->formSchema()),
+            ...array_values(AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps', countryDefault: 'IT')->withGeo()->formSchema()),
             FormField::key('site')->url(),
             FormField::key('instagram')->url(),
             FormField::key('facebook')->url(),
@@ -240,6 +240,9 @@ class SocietyLocationResource extends Resource
                     static::getInput('legal_number')->columnSpan(2),
                     static::getInput('legal_more')->columnSpan(12),
                     static::getInput('legal_gmaps')->columnSpan(12),
+                    static::getInput('legal_place_id'),
+                    static::getInput('legal_lat'),
+                    static::getInput('legal_lng'),
                 ])->columns(12)->columnSpan(1),
 
                 (new Card)->components([
@@ -255,6 +258,8 @@ class SocietyLocationResource extends Resource
                     static::getInput('more')->columnSpan(12),
                     static::getInput('gmaps')->columnSpan(12),
                     static::getInput('google_place_id')->columnSpan(12),
+                    static::getInput('lat'),
+                    static::getInput('lng'),
                     HelpText::make('<a href="'.self::PLACE_ID_FINDER_URL.'" target="_blank" rel="noopener noreferrer">Trova il Place ID</a>')->columnSpan(12),
                 ])->columns(12)->columnSpan(1),
 
