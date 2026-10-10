@@ -128,6 +128,7 @@ Supporta:
 - default paese coerente anche sul select `country`
 - filtro paesi ammessi con `allowedCountries([...])`
 - campi obbligatori con `requiredFields([...])`
+- autocompletamento Google sulla via, place ID e coordinate con `withGeo()`
 
 I profili disponibili sono:
 
@@ -149,6 +150,31 @@ AddressExtension::simple(countryDefault: 'IT')
 ```
 
 Il campo `country` mostrerà solo Italia e Germania.
+
+## Autocompletamento Google e geo
+
+Il campo della via ha sempre `data-wi-place="<prefisso>"`: se il sito ha la chiave
+Google, `places.js` della lib propone gli indirizzi e scrive via, civico, CAP, città,
+paese e provincia nei campi con quel prefisso. Senza chiave il form resta uguale.
+
+Per salvare anche il place ID di Google e le coordinate:
+
+```php
+AddressExtension::simple()->withGeo();                    // place_id, lat, lng
+AddressExtension::simple(prefix: 'legal')->withGeo();     // legal_place_id, legal_lat, legal_lng
+AddressExtension::simple(linkKey: 'gmaps')->withGeo('google_place_id');
+```
+
+- `withGeo()` aggiunge le colonne (`lat` e `lng` sono `DECIMAL(10,7)`), i campi con
+  i formatter che puliscono i valori e i campi nascosti nel form.
+- Con un nome (`'google_place_id'`) il place ID va in una colonna che il modello
+  dichiara già da sé: la extension non la crea e la via porta `data-wi-place-id`.
+- Con `linkKey` il link a Google Maps si costruisce dalle coordinate e dal place ID.
+- `labels()` e `keys()` non contengono i campi geo: per i valori inviati da un form
+  usa `GoogleMaps::cleanGeo($input, 'shipping_')`, che rende null i valori non
+  validi e tiene le coordinate solo in coppia.
+- Se il form ha un layout scritto a mano, i campi nascosti vanno aggiunti al layout
+  (`getInput('lat')`, `getInput('lng')`, …).
 
 ## Campi obbligatori
 
