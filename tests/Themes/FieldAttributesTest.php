@@ -225,6 +225,13 @@ check('nessun tag ripete un attributo, in nessun campo dei due temi', function (
     return nessunErrore($errori);
 });
 
+check('GoogleAddress: l\'indirizzo si scrive anche senza Google (mai disabled da solo)', function () {
+    $html = (string) campo('GoogleAddress', 'wonder', static fn ($campo) => $campo);
+
+    return str_contains($html, 'data-wi-search-place="true"')
+        && !preg_match('/<input[^>]*type="text"[^>]*\\bdisabled\\b/', $html);
+});
+
 check('i valori che il browser vede restano quelli del tema, scritti una volta', function () {
     $casi = [
         ['InputColor', 'bootstrap', 'input', 'placeholder', 'Etichetta', static fn ($campo) => $campo->attr('placeholder', 'p')],

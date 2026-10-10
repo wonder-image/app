@@ -22,7 +22,7 @@ class GoogleAddress extends Field
             unset($attributesArray['required']);
         }
 
-        $attributes = $this->fieldAttributes(['data-wi-check', 'disabled', 'placeholder', 'data-wi-label'], $attributesArray);
+        $attributes = $this->fieldAttributes(['data-wi-check', 'placeholder', 'data-wi-label'], $attributesArray);
         $class = $this->fieldClass('wi-input', $attributesArray);
         $restrictionJson = $this->escape((string) json_encode($restriction));
 
@@ -62,7 +62,7 @@ class GoogleAddress extends Field
 <div class="w-100">
     <div class="{$this->containerClass('text')}">
         {$this->renderLabel()}
-        <input type="text" id="{$id}" class="{$class}" placeholder="" name="{$name}" value="{$escapedAddress}" data-wi-search-place="true" data-wi-restriction="{$restrictionJson}" data-wi-check="true" data-wi-label="true"{$attributes} disabled>
+        <input type="text" id="{$id}" class="{$class}" placeholder="" name="{$name}" value="{$escapedAddress}" data-wi-search-place="true" data-wi-restriction="{$restrictionJson}" data-wi-check="true" data-wi-label="true"{$attributes}>
         {$this->renderError()}
         <div class="w-100">{$hiddensHtml}</div>
     </div>
