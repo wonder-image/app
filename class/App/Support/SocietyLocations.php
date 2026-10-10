@@ -134,15 +134,16 @@ final class SocietyLocations
 
     private static function data(): array
     {
+        // Senza le funzioni sql (es. al boot delle rotte backend) il vuoto vale solo per ora.
+        if (self::$cache === null && !function_exists('sqlTableExists')) {
+            return self::assemble([], [], []);
+        }
+
         return self::$cache ??= self::load();
     }
 
     private static function load(): array
     {
-        if (!function_exists('sqlTableExists')) {
-            return self::assemble([], [], []);
-        }
-
         if (sqlTableExists(SocietyLocation::$table)) {
             return self::assemble(
                 self::rows(SocietyLocation::class),
