@@ -175,6 +175,9 @@ AddressExtension::simple(linkKey: 'gmaps')->withGeo('google_place_id');
   validi e tiene le coordinate solo in coppia.
 - Se il form ha un layout scritto a mano, i campi nascosti vanno aggiunti al layout
   (`getInput('lat')`, `getInput('lng')`, …).
+- `withNameSearch()` fa cercare anche le attività per nome (es. un negozio): place ID
+  e link puntano alla scheda Google dell'attività. La via porta `data-wi-place-names`
+  (lib dalla 2.1.2-alpha.26). È accesa solo sull'indirizzo delle sedi (`SocietyLocation`).
 
 ## Campi obbligatori
 
