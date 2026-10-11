@@ -51,7 +51,7 @@ class AccountAddressForm
         $components = [];
         $keys = array_unique([
             'label', 'type', 'business_name', 'name', 'surname', 'birth_date', 'current_email', 'email', 'current_password', 'password', 'cf', 'pi', 'sdi', 'pec',
-            'country', 'street', 'number', 'more', 'province', 'city', 'cap', 'phone_prefix', 'phone',
+            'country', 'street', 'number', 'province', 'city', 'cap', 'more', 'phone_prefix', 'phone',
             ...array_keys($fields),
         ]);
         foreach ($keys as $key) {

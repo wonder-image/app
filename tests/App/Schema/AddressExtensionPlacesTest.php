@@ -115,7 +115,7 @@ check('withGeo è immutabile', function () {
     return !array_key_exists('lat', columnsByName($base));
 });
 
-check('ordine del form: paese, indirizzo e civico, altro, poi provincia, città e CAP', function () {
+check('ordine del form: paese, indirizzo e civico, provincia, città e CAP, poi altro', function () {
     $keys = array_keys(AddressExtension::billing(prefix: 'shipping')->withMore()->formSchema('IT'));
     $address = array_values(array_intersect($keys, [
         'shipping_country', 'shipping_province', 'shipping_city', 'shipping_cap',
@@ -123,8 +123,8 @@ check('ordine del form: paese, indirizzo e civico, altro, poi provincia, città 
     ]));
 
     return $address === [
-        'shipping_country', 'shipping_street', 'shipping_number', 'shipping_more',
-        'shipping_province', 'shipping_city', 'shipping_cap',
+        'shipping_country', 'shipping_street', 'shipping_number',
+        'shipping_province', 'shipping_city', 'shipping_cap', 'shipping_more',
     ];
 });
 
