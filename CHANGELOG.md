@@ -215,6 +215,9 @@
   senza href.
 
 ### Changed
+- Versione minima di `wonder-image/lib` alzata a `2.1.2-alpha.26` (`extra.wonder.lib` e
+  `package.json`): ha `data-wi-place-names`, la ricerca per nome usata da
+  `AddressExtension::withNameSearch()`.
 - Versione minima di `wonder-image/lib` alzata a `2.1.2-alpha.25` (`extra.wonder.lib` e
   `package.json`): ha l'autocompletamento degli indirizzi con Google Places (`data-wi-place`,
   place ID e coordinate). Con una lib più vecchia `php forge update` chiede
