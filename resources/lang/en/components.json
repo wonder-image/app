@@ -20,7 +20,7 @@
             "province" : { "label" : "Province" },
             "city" : { "label" : "City" },
             "cap" : { "label" : "Postal Code" },
-            "street" : { "label" : "Street" },
+            "street" : { "label" : "Address" },
             "number" : { "label" : "Street Number" },
             "more" : { "label" : "Additional Info" },
             "link" : { "label" : "Link" },

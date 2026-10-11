@@ -5,6 +5,7 @@ namespace Wonder\App\Resources\Contacts;
 use InvalidArgumentException;
 use Wonder\App\Models\Contacts\{Contact, ContactAddress};
 use Wonder\App\ResourceSchema\{FormField, NavigationSchema, PageSchema, TableColumn, TableLayoutSchema};
+use Wonder\App\Support\GoogleMaps;
 use Wonder\Auth\Frontend\{AccountAddressForm, AccountAddressValidation, AuthSession};
 
 /** Shipping addresses are managed independently, always bound to an existing contact. */
@@ -58,7 +59,7 @@ class ContactAddressResource extends ContactResource
     public static function mutateRequestValues(array $values, string $action, string $context = 'backend', ?array $oldValues = null): array
     {
         static::verifyFormToken($values);
-        $values = array_intersect_key($values, static::labelSchema());
+        $values = array_intersect_key($values, static::labelSchema()) + GoogleMaps::cleanGeo($values);
         $contactId = filter_var($values['contact_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if (!$contactId || !Contact::findById($contactId) || ($oldValues !== null && $contactId !== (int) $oldValues['contact_id'])) {
             throw new InvalidArgumentException((string) __t('contacts.invalid_contact'));

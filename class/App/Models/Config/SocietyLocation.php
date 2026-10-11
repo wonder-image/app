@@ -30,12 +30,12 @@ final class SocietyLocation extends Model
 
     public static function address(): AddressExtension
     {
-        return AddressExtension::simple(linkKey: 'gmaps');
+        return AddressExtension::simple(linkKey: 'gmaps')->withGeo('google_place_id');
     }
 
     public static function legalAddress(): AddressExtension
     {
-        return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps');
+        return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->withGeo();
     }
 
     public static function tableSchema(): array

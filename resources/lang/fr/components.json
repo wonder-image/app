@@ -18,7 +18,7 @@
             "province" : { "label" : "Province" },
             "city" : { "label" : "Ville" },
             "cap" : { "label" : "Code postal" },
-            "street" : { "label" : "Rue" },
+            "street" : { "label" : "Adresse" },
             "number" : { "label" : "Numéro" },
             "more" : { "label" : "Informations complémentaires" },
             "link" : { "label" : "Lien" },

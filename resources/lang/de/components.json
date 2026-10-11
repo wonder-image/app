@@ -18,7 +18,7 @@
             "province" : { "label" : "Bundesland" },
             "city" : { "label" : "Stadt" },
             "cap" : { "label" : "Postleitzahl" },
-            "street" : { "label" : "Straße" },
+            "street" : { "label" : "Adresse" },
             "number" : { "label" : "Hausnummer" },
             "more" : { "label" : "Zusätzliche Angaben" },
             "link" : { "label" : "Link" },

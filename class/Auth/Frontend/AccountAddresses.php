@@ -4,6 +4,7 @@ namespace Wonder\Auth\Frontend;
 
 use Throwable;
 use Wonder\App\Models\Contacts\ContactAddress;
+use Wonder\App\Support\GoogleMaps;
 
 /** Indirizzi della scheda del cliente: ognuno si legge, si cambia e si elimina solo dalla sua scheda. */
 final class AccountAddresses
@@ -33,7 +34,7 @@ final class AccountAddresses
             return (object) ['success' => false, 'messages' => [(string) __t('account.errors.save')], 'id' => 0];
         }
         $address = ContactAddress::address();
-        $values = array_intersect_key($input, $address->labels());
+        $values = self::values($input);
         $messages = AccountAddressValidation::validate($address, $values);
         if ($messages !== []) {
             return (object) ['success' => false, 'messages' => $messages, 'id' => $addressId ?? 0];
@@ -49,6 +50,12 @@ final class AccountAddresses
         return ($result->success ?? false)
             ? (object) ['success' => true, 'messages' => [], 'id' => $id]
             : (object) ['success' => false, 'messages' => [(string) __t('account.errors.save')], 'id' => $id];
+    }
+
+    /** Campi dell'indirizzo inviati, più place ID e coordinate puliti. */
+    public static function values(array $input): array
+    {
+        return array_intersect_key($input, ContactAddress::address()->labels()) + GoogleMaps::cleanGeo($input);
     }
 
     public static function delete(int $contactId, int $addressId): bool

@@ -32,7 +32,8 @@ class ContactAddress extends Model
         return AddressExtension::simple(countryDefault: 'IT')
             ->withLink(false)
             ->withContactName()
-            ->withPhone();
+            ->withPhone()
+            ->withGeo();
     }
 
     public static function syncSchema(): ?SyncSchema

@@ -3,6 +3,7 @@
 namespace Wonder\Auth\Frontend;
 
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\Elements\Components\Container;
 
@@ -50,7 +51,7 @@ class AccountAddressForm
         $components = [];
         $keys = array_unique([
             'label', 'type', 'business_name', 'name', 'surname', 'birth_date', 'current_email', 'email', 'current_password', 'password', 'cf', 'pi', 'sdi', 'pec',
-            'country', 'province', 'city', 'cap', 'street', 'number', 'more', 'phone_prefix', 'phone',
+            'country', 'street', 'number', 'province', 'city', 'cap', 'more', 'phone_prefix', 'phone',
             ...array_keys($fields),
         ]);
         foreach ($keys as $key) {
@@ -59,14 +60,20 @@ class AccountAddressForm
             if (!$field instanceof Input) {
                 throw new \InvalidArgumentException('Address fields must use FormField inputs');
             }
+            if ($field instanceof InputHidden) {
+                $components[] = $field;
+                continue;
+            }
             $desktop = match ($key) {
-                'label', 'type', 'business_name', 'cf', 'pec', 'more', 'email', 'current_email', 'current_password', 'password' => 12,
-                'city', 'street' => 9,
-                'cap', 'number', 'phone_prefix' => 3,
-                'phone' => 9,
+                'label', 'type', 'business_name', 'cf', 'pec', 'country', 'more', 'email', 'current_email', 'current_password', 'password' => 12,
+                'street', 'phone' => 9,
+                'number', 'cap', 'phone_prefix' => 3,
+                'province' => 4,
+                'city' => 5,
                 default => 6,
             };
-            $phone = match ($key) { 'phone_prefix' => 1, 'phone' => 3, default => 4 };
+            // Indirizzo e civico, poi provincia, città e CAP sulla stessa riga anche da telefono.
+            $phone = match ($key) { 'number', 'province', 'cap', 'phone_prefix' => 1, 'city' => 2, 'street', 'phone' => 3, default => 4 };
             // One grid item only: nested floated wrappers shrink the input and
             // leave empty grid cells when a conditional field is hidden.
             $container = (new Container())->noGrid()

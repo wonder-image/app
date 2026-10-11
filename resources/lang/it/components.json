@@ -20,7 +20,7 @@
             "province" : { "label" : "Provincia" },
             "city" : { "label" : "Città" },
             "cap" : { "label" : "Cap" },
-            "street" : { "label" : "Via" },
+            "street" : { "label" : "Indirizzo" },
             "number" : { "label" : "Civico" },
             "more" : { "label" : "Altro" },
             "link" : { "label" : "Link" },
