@@ -24,6 +24,8 @@ icon: building
 | Backend | `class/App/Resources/Config/SocietyLocationResource.php` |
 | Validazione degli orari | `class/App/Support/OpeningHoursInput.php` |
 | Migrazione | `class/App/Support/SocietyLocationsMigration.php` |
+| Allineamento con Google | `class/App/Support/GooglePlaces/*`, task `class/App/Scheduler/Tasks/GooglePlacesTask.php` |
+| Recensioni nel sito | `class/Elements/Components/GoogleReviews.php` |
 
 ## Tabelle
 
@@ -31,7 +33,9 @@ icon: building
 |---|---|---|
 | `society_locations` | sedi | `multiRow()->keepIds()`: gli `id` restano uguali tra locale e produzione |
 | `society_location_hours` | orari regolari e secondari | no, dati di produzione |
-| `society_location_special_hours` | orari speciali e chiusure | no, dati di produzione |
+| `society_location_special_hours` | orari speciali e chiusure (`source`: `manual` o `google`) | no, dati di produzione |
+| `society_location_google` | ultima lettura di Google per sede: stato, voto medio, numero di recensioni, link Maps, orari, differenze, errore | no, dati di produzione |
+| `society_location_reviews` | recensioni di Google per sede (al massimo 5) | no, dati di produzione |
 
 I loghi restano unici per la società (`logos`).
 
@@ -49,7 +53,7 @@ I loghi restano unici per la società (`logos`).
 
 Nel form l'orario di chiusura a mezzanotte si mostra come 00:00 (il campo orario del browser non accetta 24:00) e si salva come `24:00`.
 
-Orari e chiusure si modificano nella scheda della sede, riservata ad `admin`, anche in produzione (la tabella delle sedi non è `localOnly()`). Si salvano insieme alla sede: se una riga non è valida la sede non viene salvata e il messaggio indica riga e problema. Il modello è quello di Google, così un futuro cron potrà confrontarlo con la scheda Google Business.
+Orari e chiusure si modificano nella scheda della sede, riservata ad `admin`, anche in produzione (la tabella delle sedi non è `localOnly()`). Si salvano insieme alla sede: se una riga non è valida la sede non viene salvata e il messaggio indica riga e problema. Il modello è quello di Google: il task `wonder.google-places` lo confronta con la scheda Google (vedi [Recensioni Google](#recensioni-google)).
 
 **Orari regolari e secondari** (`regularHours`):
 
@@ -82,6 +86,8 @@ infoSocietyLocations();         // tutte le sedi visibili, stesso formato
 | `hours` | righe degli orari effettivi |
 | `specialHours` | orari speciali da oggi in avanti (`closed` booleano) |
 | `businessStatus` | `operational`, `closed_temporarily`, `closed_permanently`, `future_opening` |
+| `google` | ultima lettura di Google (`GooglePlaceData::snapshot()`) o `null` |
+| `reviews` | recensioni di Google, dalla più recente (`GooglePlaceData::reviews()`) |
 
 Se `gmaps` è vuoto e c'è un Place ID, `gmaps` diventa un link a Google Maps costruito senza chiave API.
 
@@ -96,6 +102,48 @@ SocietyLocations::hoursFor($sede, new DateTimeImmutable()); // [['open' => '09:0
 SocietyLocations::all();                                    // sedi visibili
 ```
 
+## Recensioni Google
+
+Il task `wonder.google-places` (Dev → Scheduler, "Allineamento sedi con Google") legge ogni notte alle 03:30 da Places API (New), Place Details, ogni sede con un Place ID proprio. È **spento** finché non lo si attiva dal backend e richiede la chiave server `GCP_API_KEY` nel `.env`, con Places API (New) abilitata. La chiave va nell'header `X-Goog-Api-Key`, mai nell'URL. Una chiamata per sede, con un field mask limitato ai campi usati.
+
+| Parametro | Default | Effetto |
+|---|---|---|
+| `apply_hours` | `false` | `false`: salva solo le differenze. `true`: sostituisce i tipi di orario diversi da Google e gli orari speciali di Google da oggi in avanti |
+| `language` | `''` | lingua delle recensioni; vuoto = lingua predefinita del sito |
+
+Per ogni sede salva:
+
+- in `society_location_google` stato dell'attività, voto medio, numero totale di recensioni, link a Google Maps, orari letti e differenze con gli orari locali; se la lettura non riesce salva l'errore e lascia i dati precedenti;
+- in `society_location_reviews` le recensioni restituite da Google (al massimo 5, le "più pertinenti" per Google, non l'archivio completo). Quelle che Google non restituisce più vengono eliminate.
+
+Regole:
+
+- Lo **stato dell'attività** non si applica mai: resta una differenza.
+- Una riga degli orari speciali scritta a mano (`source = manual`) sulla stessa data ha la precedenza su quella di Google.
+- Una sede che eredita gli orari dalla predefinita, con `apply_hours`, riceve orari propri.
+- Una riga di Google modificata a mano nel form resta `source = google` (la colonna è nascosta): il prossimo allineamento con `apply_hours` la sovrascrive se la data è da oggi in avanti. Per tenerla, eliminala e ricreala.
+- Se si toglie o si cambia il Place ID, la copia di Google e le recensioni della sede vengono eliminate al passaggio successivo; nel frattempo `SocietyLocations` non le restituisce.
+- Il task fallisce solo se nessuna sede è stata letta; gli errori delle singole sedi stanno nel log dell'esecuzione e nella scheda della sede.
+
+Nella scheda della sede, sopra il form, compaiono le differenze con Google e l'ultimo errore (`SocietyLocationResource::formNotices()`). La colonna `google_synced_at` di `society_locations` non è usata dal task.
+
+Nel sito:
+
+```php
+use Wonder\App\Support\SocietyLocations;
+use Wonder\Elements\Components\GoogleReviews;
+
+$sede = SocietyLocations::default();
+echo GoogleReviews::fromLocation($sede)->limit(3);
+```
+
+`GoogleReviews` stampa le attribuzioni richieste da Google: avatar, nome e profilo dell'autore, link alla recensione su Google Maps, avviso sull'ordine delle recensioni e la scritta «Google Maps» non tradotta. Una recensione tradotta mostra l'originale. Vedi la scheda nel catalogo dei componenti (Dev → Componenti).
+
+**Norme di Google.** Le [norme di Places API](https://developers.google.com/maps/documentation/places/web-service/policies) permettono di conservare solo il Place ID: salvare recensioni, voto e orari è una scelta del sito, non una conformità. Il task limita il rischio aggiornando ogni giorno, eliminando le recensioni non più restituite e tutto quando si toglie il Place ID. Altri limiti noti:
+
+- l'attribuzione è testuale («Google Maps»), non il logo;
+- `visitDate`, obbligatoria per le recensioni di luoghi in Francia, non è salvata.
+
 ## Siti esistenti
 
 Al primo `forge update` dopo l'aggiornamento, se `society_locations` è vuota, la sede predefinita (`id = 1`, "Sede principale") viene creata da `society`, `society_address`, `society_legal_address` e `society_social`, con gli orari di `society_timetable` (o del JSON `society_address.timetable`). Le vecchie tabelle restano per una versione ma non sono più scritte né sincronizzate. Prima della migrazione `infoSociety()` legge ancora le vecchie tabelle.
@@ -106,6 +154,5 @@ Gli altri moduli puntano all'`id` delle sedi. Un modulo che vuole le sedi modifi
 
 ## In futuro
 
-- Cron che confronta gli orari con la scheda Google tramite il Place ID.
 - Place ID dall'autocomplete dell'indirizzo.
 - Embed della mappa generato in automatico.

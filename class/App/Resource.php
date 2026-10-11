@@ -213,6 +213,18 @@ abstract class Resource
     }
 
     /**
+     * Avvisi sopra il form backend, fuori dal form: es. differenze con una
+     * sorgente esterna. `level` è `info`, `warning` o `danger`; il testo
+     * si stampa escapato, con gli a capo.
+     *
+     * @return list<array{level: string, message: string}>
+     */
+    public static function formNotices(array $values, string $mode): array
+    {
+        return [];
+    }
+
+    /**
      * Verifica reCAPTCHA server-side in una sola riga, da chiamare nel hook
      * API (tipicamente {@see mutateRequestValues()} per l'action `store`):
      *

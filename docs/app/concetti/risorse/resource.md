@@ -274,6 +274,8 @@ public static function pageSchema(): PageSchema
 
 `formPlaceholders(array $values, string $mode): array` restituisce i suggerimenti dei campi vuoti (nome campo => testo), per esempio i valori ereditati da un altro record. Sugli input singoli: `FormField::key('email')->email()->placeholder('info@esempio.it')`.
 
+`formNotices(array $values, string $mode): array` restituisce avvisi da mostrare sopra il form, fuori dal `<form>`: una lista di `['level' => 'info'|'warning'|'danger', 'message' => '...']`, con il testo escapato e gli a capo conservati. Il presenter li espone come `FORM_NOTICES`; servono per stati esterni al record, per esempio le differenze con Google in `SocietyLocationResource`. Non sostituiscono `$ALERT` né la validazione.
+
 Se `mutateRequestValues()` imposta `$ALERT` con un testo (non un codice numerico), il record non viene salvato e il form mostra quel testo. `prepareRepeaterRows(string $inputName, array $rows, string $action, string $context): array` normalizza o scarta le righe di un repeater con relazione prima del salvataggio.
 
 ## Estendere oltre il CRUD

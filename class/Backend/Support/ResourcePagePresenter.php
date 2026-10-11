@@ -53,6 +53,7 @@ final class ResourcePagePresenter
             'BACK_URL' => $this->backUrl(),
             'FORM_ERRORS' => $errors,
             'FORM_ERROR_MESSAGE' => self::errorMessage($errors),
+            'FORM_NOTICES' => self::notices($this->resourceClass::formNotices($values, $mode)),
             'USER' => $this->viewUser(),
             'VALUES' => $values,
             'NAME' => $this->legacyName(),
@@ -93,12 +94,39 @@ final class ResourcePagePresenter
             'BACK_URL' => '',
             'FORM_ERRORS' => [],
             'FORM_ERROR_MESSAGE' => '',
+            'FORM_NOTICES' => self::notices($this->resourceClass::formNotices($values, 'form')),
             'USER' => $this->viewUser(),
             'VALUES' => $values,
             'READONLY' => $this->resourceClass::isReadonly(),
             'READONLY_NOTICE' => $this->resourceClass::readonlyNotice(),
             'READONLY_EDITABLE' => ReadonlyFields::normalize($this->resourceClass::editableWhenReadonly()),
         ];
+    }
+
+    /**
+     * Avvisi del form normalizzati: livello ammesso e testo non vuoto.
+     *
+     * @return list<array{level: string, message: string}>
+     */
+    public static function notices(array $notices): array
+    {
+        $normalized = [];
+
+        foreach ($notices as $notice) {
+            $message = trim((string) (is_array($notice) ? ($notice['message'] ?? '') : ''));
+
+            if ($message === '') {
+                continue;
+            }
+
+            $level = (string) ($notice['level'] ?? 'info');
+            $normalized[] = [
+                'level' => in_array($level, ['info', 'warning', 'danger'], true) ? $level : 'info',
+                'message' => $message,
+            ];
+        }
+
+        return $normalized;
     }
 
     /**

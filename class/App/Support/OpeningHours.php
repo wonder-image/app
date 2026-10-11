@@ -39,6 +39,32 @@ final class OpeningHours
         'online_service_hours',
     ];
 
+    /** @return array<string, string> etichette dei tipi di orario, in italiano */
+    public static function typeLabels(): array
+    {
+        return [
+            self::REGULAR => 'Orari regolari',
+            'delivery' => 'Consegna a domicilio',
+            'takeout' => 'Asporto',
+            'pickup' => 'Ritiro',
+            'drive_through' => 'Drive-through',
+            'kitchen' => 'Cucina',
+            'breakfast' => 'Colazione',
+            'brunch' => 'Brunch',
+            'lunch' => 'Pranzo',
+            'dinner' => 'Cena',
+            'happy_hour' => 'Happy hour',
+            'access' => 'Accesso',
+            'senior_hours' => 'Fascia anziani',
+            'online_service_hours' => 'Servizio online',
+        ];
+    }
+
+    public static function typeLabel(string $type): string
+    {
+        return self::typeLabels()[$type] ?? $type;
+    }
+
     /**
      * Fasce effettive di una data; lista vuota = chiuso.
      *

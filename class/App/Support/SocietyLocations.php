@@ -6,8 +6,11 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use Wonder\App\Models\Config\SocietyLocation;
+use Wonder\App\Models\Config\SocietyLocationGoogle;
 use Wonder\App\Models\Config\SocietyLocationHour;
+use Wonder\App\Models\Config\SocietyLocationReview;
 use Wonder\App\Models\Config\SocietyLocationSpecialHour;
+use Wonder\App\Support\GooglePlaces\GooglePlaceData;
 
 /**
  * Sedi della società già completate dall'eredità, lette una volta per
@@ -84,8 +87,13 @@ final class SocietyLocations
     /**
      * @return array{default_id: int, locations: array<int, object>}
      */
-    public static function assemble(array $locationRows, array $hourRows, array $specialRows): array
-    {
+    public static function assemble(
+        array $locationRows,
+        array $hourRows,
+        array $specialRows,
+        array $googleRows = [],
+        array $reviewRows = []
+    ): array {
         $rows = array_values(array_filter(
             $locationRows,
             static fn (mixed $row): bool => is_array($row) && ($row['deleted'] ?? 'false') !== 'true'
@@ -107,7 +115,15 @@ final class SocietyLocations
         $defaultId = (int) ($defaultRow['id'] ?? 0);
         $hoursByLocation = self::groupByLocation($hourRows);
         $specialByLocation = self::groupByLocation($specialRows);
+        $reviewsByLocation = self::groupByLocation($reviewRows);
+        $googleByLocation = [];
         $locations = [];
+
+        foreach ($googleRows as $googleRow) {
+            if (is_array($googleRow)) {
+                $googleByLocation[(int) ($googleRow['society_location_id'] ?? 0)] = $googleRow;
+            }
+        }
 
         foreach ($rows as $row) {
             $id = (int) ($row['id'] ?? 0);
@@ -126,6 +142,9 @@ final class SocietyLocations
             $location->hours = $hours['hours'];
             $location->specialHours = $hours['special_hours'];
             $location->hoursInherited = $hours['inherited'];
+            // Dati di Google solo per il place_id della sede, mai ereditati.
+            $location->google = GooglePlaceData::snapshot($googleByLocation[$id] ?? null, (string) ($row['google_place_id'] ?? ''));
+            $location->reviews = $location->google !== null ? GooglePlaceData::reviews($reviewsByLocation[$id] ?? []) : [];
             $locations[$id] = $location;
         }
 
@@ -148,7 +167,9 @@ final class SocietyLocations
             return self::assemble(
                 self::rows(SocietyLocation::class),
                 sqlTableExists(SocietyLocationHour::$table) ? self::rows(SocietyLocationHour::class) : [],
-                sqlTableExists(SocietyLocationSpecialHour::$table) ? self::rows(SocietyLocationSpecialHour::class) : []
+                sqlTableExists(SocietyLocationSpecialHour::$table) ? self::rows(SocietyLocationSpecialHour::class) : [],
+                sqlTableExists(SocietyLocationGoogle::$table) ? self::rows(SocietyLocationGoogle::class) : [],
+                sqlTableExists(SocietyLocationReview::$table) ? self::rows(SocietyLocationReview::class) : []
             );
         }
 
@@ -212,6 +233,8 @@ final class SocietyLocations
             'hours' => [],
             'specialHours' => [],
             'hoursInherited' => false,
+            'google' => null,
+            'reviews' => [],
         ];
     }
 }

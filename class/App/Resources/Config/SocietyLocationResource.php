@@ -3,7 +3,9 @@
 namespace Wonder\App\Resources\Config;
 
 use RuntimeException;
+use Throwable;
 use Wonder\App\Models\Config\SocietyLocation;
+use Wonder\App\Models\Config\SocietyLocationGoogle;
 use Wonder\App\Models\Config\SocietyLocationHour;
 use Wonder\App\Models\Config\SocietyLocationSpecialHour;
 use Wonder\App\Resource;
@@ -17,6 +19,7 @@ use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\App\Schema\Extensions\AddressExtension;
+use Wonder\App\Support\GooglePlaces\GooglePlaceData;
 use Wonder\App\Support\OpeningHours;
 use Wonder\App\Support\OpeningHoursInput;
 use Wonder\App\Support\Repeater;
@@ -119,12 +122,7 @@ class SocietyLocationResource extends Resource
             FormField::key('name')->text()->visibleWhen('is_default', 'true'),
             FormField::key('is_default')->select(['true' => 'Sì', 'false' => 'No'])->value('false')->required(),
             FormField::key('visible')->select(['true' => 'Visibile', 'false' => 'Nascosta'])->value('true')->required(),
-            FormField::key('business_status')->select([
-                'operational' => 'Operativa',
-                'closed_temporarily' => 'Chiusa temporaneamente',
-                'closed_permanently' => 'Chiusa definitivamente',
-                'future_opening' => 'Apertura futura',
-            ])->value('operational')->required(),
+            FormField::key('business_status')->select(SocietyLocation::businessStatusLabels())->value('operational')->required(),
             FormField::key('opening_date')->dateInput(),
             ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->withGeo('google_place_id')->withNameSearch()->formSchema()),
             FormField::key('google_place_id')->text(),
@@ -149,7 +147,7 @@ class SocietyLocationResource extends Resource
             FormField::key('hours')
                 ->repeater([
                     RepeaterColumn::key('id')->hidden(),
-                    RepeaterColumn::key('hours_type')->select(self::hoursTypes())->value(OpeningHours::REGULAR)->label('Tipo')->columnSpan(3),
+                    RepeaterColumn::key('hours_type')->select(OpeningHours::typeLabels())->value(OpeningHours::REGULAR)->label('Tipo')->columnSpan(3),
                     RepeaterColumn::key('open_day')->select(self::days())->label('Apre il')->columnSpan(2),
                     RepeaterColumn::key('open_time')->timeInput(900)->label('Alle')->columnSpan(2),
                     RepeaterColumn::key('close_day')->select(['' => 'Stesso giorno'] + self::days())->label('Chiude il')->columnSpan(2),
@@ -178,6 +176,8 @@ class SocietyLocationResource extends Resource
                     RepeaterColumn::key('open_time')->timeInput(900)->label('Apre')->columnSpan(2),
                     RepeaterColumn::key('close_time')->timeInput(900)->label('Chiude')->columnSpan(2),
                     RepeaterColumn::key('note')->text()->label('Nota')->columnSpan(11),
+                    // Conserva l'origine: le righe di Google le riscrive il task `wonder.google-places`.
+                    RepeaterColumn::key('source')->hidden(),
                 ])
                 ->relation(
                     RepeaterRelation::make(SocietyLocationSpecialHour::$table, 'society_location_id')
@@ -436,6 +436,52 @@ class SocietyLocationResource extends Resource
         );
     }
 
+    /** Esito dell'ultima lettura di Google (task `wonder.google-places`). */
+    public static function formNotices(array $values, string $mode): array
+    {
+        $id = (int) ($values['id'] ?? 0);
+        $placeId = trim((string) ($values['google_place_id'] ?? ''));
+
+        if ($mode !== 'edit' || $id <= 0 || $placeId === '') {
+            return [];
+        }
+
+        try {
+            $row = SocietyLocationGoogle::find(['society_location_id' => $id], 1);
+        } catch (Throwable) {
+            // Tabella non ancora creata da `forge update`.
+            return [];
+        }
+
+        $google = GooglePlaceData::snapshot(is_array($row) && $row !== [] ? $row : null, $placeId);
+
+        if ($google === null) {
+            return [];
+        }
+
+        $notices = [];
+
+        if ($google['error'] !== '') {
+            $notices[] = [
+                'level' => 'danger',
+                'message' => 'Lettura da Google non riuscita'.self::noticeDate($google['error_at']).': '.$google['error'],
+            ];
+        }
+
+        if ($google['differences'] !== []) {
+            $notices[] = [
+                'level' => 'warning',
+                'message' => 'Differenze con Google'.self::noticeDate($google['synced_at']).":\n"
+                    .implode("\n", array_map(
+                        static fn (array $difference): string => '- '.$difference['message'],
+                        $google['differences']
+                    )),
+            ];
+        }
+
+        return $notices;
+    }
+
     public static function afterStore(object $result, array $values = []): void
     {
         self::keepSingleDefault((int) ($result->insert_id ?? 0), $values);
@@ -487,6 +533,13 @@ class SocietyLocationResource extends Resource
         SocietyLocations::reset();
     }
 
+    private static function noticeDate(string $datetime): string
+    {
+        $time = strtotime($datetime);
+
+        return $datetime !== '' && $time !== false ? ' ('.date('d/m/Y H:i', $time).')' : '';
+    }
+
     private static function otherDefaultExists(int $id): bool
     {
         foreach (self::defaultRows() as $row) {
@@ -524,26 +577,5 @@ class SocietyLocationResource extends Resource
         }
 
         return $days;
-    }
-
-    /** @return array<string, string> */
-    private static function hoursTypes(): array
-    {
-        return [
-            OpeningHours::REGULAR => 'Orari regolari',
-            'delivery' => 'Consegna a domicilio',
-            'takeout' => 'Asporto',
-            'pickup' => 'Ritiro',
-            'drive_through' => 'Drive-through',
-            'kitchen' => 'Cucina',
-            'breakfast' => 'Colazione',
-            'brunch' => 'Brunch',
-            'lunch' => 'Pranzo',
-            'dinner' => 'Cena',
-            'happy_hour' => 'Happy hour',
-            'access' => 'Accesso',
-            'senior_hours' => 'Fascia anziani',
-            'online_service_hours' => 'Servizio online',
-        ];
     }
 }

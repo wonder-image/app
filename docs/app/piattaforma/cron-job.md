@@ -240,18 +240,17 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   iniziale sospesa, ore 12:00 dal lunedi al venerdi. Riusa il servizio gia
   condiviso dall'endpoint e dal comando CLI, senza richieste durante
   l'installazione. Il modello e sostituibile in una sottoclasse.
-- **Recensioni Google di tutte le sedi**: futura integrazione, senza riusare
-  lo script con Place ID fisso. Partire da `society_locations.google_place_id`,
-  elaborare una sede per lotto e usare identificativi recensione stabili con
-  upsert. Places restituisce al massimo cinque recensioni per luogo, non
-  l'archivio completo. Per i profili gestiti valutare Business Profile con
-  autorizzazione OAuth e paginazione. Fonti: [Places](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places),
-  [Business Profile](https://developers.google.com/my-business/reference/rest/v4/accounts.locations.reviews/list).
-- **Orari Google di tutte le sedi**: futura integrazione sullo stesso elenco.
-  Separare orari regolari, eccezioni e secondari; confrontare i dati ricevuti
-  con quelli locali prima di definire la politica di aggiornamento. Non
-  sovrascrivere le modifiche manuali senza una scelta esplicita del sito.
-  Le credenziali Google sono distinte dal token Wonder `@system`.
+- **Sedi e Google**: `Tasks\GooglePlacesTask` (`wonder.google-places`), spenta
+  di default, ore 03:30. Per ogni sede con `google_place_id` legge da Places
+  API (New) orari regolari, secondari e speciali, stato, voto medio e al
+  massimo cinque recensioni, con la chiave server `GCP_API_KEY`. Parametri
+  `apply_hours` (`false`: solo differenze; `true`: sostituisce gli orari
+  diversi) e `language`. Una sede per volta, con `checkDeadline()` tra una e
+  l'altra; fallisce solo se nessuna sede e stata letta. Dettagli, tabelle e
+  norme di Google in [Sedi](../concetti/sedi.md#recensioni-google). Per
+  l'archivio completo delle recensioni dei profili gestiti serve Business
+  Profile con OAuth, non incluso. Le credenziali Google sono distinte dal
+  token Wonder `@system`.
 
 ## Verifica
 
