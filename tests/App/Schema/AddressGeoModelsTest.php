@@ -80,6 +80,22 @@ check('form dell\'account: i campi nascosti non prendono una cella della griglia
     return count($direct) === 3;
 });
 
+check('form dell\'account: indirizzo e civico, poi provincia, città e CAP sulla stessa riga', function () {
+    $fields = AccountAddressForm::fields(ContactAddress::address());
+    $cells = [];
+    foreach (AccountAddressForm::layout($fields)->components as $item) {
+        if ($item instanceof InputHidden) { continue; }
+        $key = array_search($item->components[0], $fields, true);
+        $cells[$key] = implode(' ', (array) $item->getAttr('class'));
+    }
+    $order = array_values(array_intersect(array_keys($cells), ['country', 'street', 'number', 'province', 'city', 'cap']));
+
+    return $order === ['country', 'street', 'number', 'province', 'city', 'cap']
+        && str_contains($cells['street'], 'col-9 col-p-3') && str_contains($cells['number'], 'col-3 col-p-1')
+        && str_contains($cells['province'], 'col-4 col-p-1') && str_contains($cells['city'], 'col-5 col-p-2')
+        && str_contains($cells['cap'], 'col-3 col-p-1');
+});
+
 check('salvataggio dal frontend: campi dell\'indirizzo più geo pulito', function () {
     $values = AccountAddresses::values([
         'street' => 'Via Roma',

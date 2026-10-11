@@ -46,8 +46,7 @@ class ContactResource extends Resource
     }
     public static function formLayoutSchema(): ?Form
     {
-        $widths = ['type' => 12, 'country' => 6, 'province' => 6, 'city' => 9, 'cap' => 3, 'street' => 9,
-            'number' => 3, 'phone_prefix' => 3, 'phone' => 9, 'name' => 6, 'surname' => 6,
+        $widths = ['type' => 12, 'country' => 12, 'street' => 9, 'number' => 3, 'province' => 4, 'city' => 5, 'cap' => 3, 'phone_prefix' => 3, 'phone' => 9, 'name' => 6, 'surname' => 6,
             'pi' => 6, 'sdi' => 6];
         $fields = array_map(static fn ($field) => $field->columnSpan($widths[$field->name] ?? 12), static::formSchema());
         return (new Form)->columns(12)->components([(new Card)->columns(12)->columnSpan(12)->components($fields)]);

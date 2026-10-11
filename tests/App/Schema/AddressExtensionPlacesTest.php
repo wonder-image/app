@@ -115,4 +115,23 @@ check('withGeo è immutabile', function () {
     return !array_key_exists('lat', columnsByName($base));
 });
 
+check('ordine del form: paese, indirizzo e civico, altro, poi provincia, città e CAP', function () {
+    $keys = array_keys(AddressExtension::billing(prefix: 'shipping')->withMore()->formSchema('IT'));
+    $address = array_values(array_intersect($keys, [
+        'shipping_country', 'shipping_province', 'shipping_city', 'shipping_cap',
+        'shipping_street', 'shipping_number', 'shipping_more',
+    ]));
+
+    return $address === [
+        'shipping_country', 'shipping_street', 'shipping_number', 'shipping_more',
+        'shipping_province', 'shipping_city', 'shipping_cap',
+    ];
+});
+
+check('la via si chiama «Indirizzo» in italiano', function () {
+    $it = json_decode((string) file_get_contents(__DIR__.'/../../../resources/lang/it/components.json'), true);
+
+    return ($it['forms']['fields']['street']['label'] ?? null) === 'Indirizzo';
+});
+
 summary();

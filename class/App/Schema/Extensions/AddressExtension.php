@@ -361,13 +361,9 @@ final class AddressExtension
             $countryField->options($this->countryOptions());
         }
 
+        // Prima l'indirizzo, che con Google riempie il resto; poi provincia,
+        // città e CAP sulla stessa riga.
         $schema[$this->key('country')] = $this->formField($countryField, 'country');
-        $schema[$this->key('province')] = $this->formField(
-            FormField::key($this->key('province'))->states($country),
-            'province'
-        );
-        $schema[$this->key('city')] = $this->formField(FormField::key($this->key('city'))->text(), 'city');
-        $schema[$this->key('cap')] = $this->formField(FormField::key($this->key('cap'))->text(), 'cap');
         $schema[$this->key('street')] = $this->formField(
             FormField::key($this->key('street'))->text()->attribute($this->placeAttributes()),
             'street'
@@ -377,6 +373,13 @@ final class AddressExtension
         if ($this->withMore) {
             $schema[$this->key('more')] = $this->formField(FormField::key($this->key('more'))->text(), 'more');
         }
+
+        $schema[$this->key('province')] = $this->formField(
+            FormField::key($this->key('province'))->states($country),
+            'province'
+        );
+        $schema[$this->key('city')] = $this->formField(FormField::key($this->key('city'))->text(), 'city');
+        $schema[$this->key('cap')] = $this->formField(FormField::key($this->key('cap'))->text(), 'cap');
 
         if ($this->withPhone) {
             $schema[$this->key('phone_prefix')] = $this->formField(FormField::key($this->key('phone_prefix'))->phonePrefix(), 'phone_prefix');
