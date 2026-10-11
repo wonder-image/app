@@ -5,12 +5,14 @@ declare(strict_types=1);
 require __DIR__ . '/../../../vendor/autoload.php';
 require __DIR__ . '/../../harness.php';
 require_once __DIR__ . '/../../../app/function/string/date.php';
+require_once __DIR__ . '/../../../app/function/other/geo.php';
 
 use Wonder\App\Models\Config\SocietyLocation;
 use Wonder\App\Models\Contacts\ContactAddress;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\Resources\Config\SocietyLocationResource;
 use Wonder\Auth\Frontend\AccountAddresses;
+use Wonder\Auth\Frontend\AccountAddressValidation;
 use Wonder\Auth\Frontend\AccountAddressForm;
 
 if (!function_exists('__t')) {
@@ -109,6 +111,29 @@ check('salvataggio dal frontend: campi dell\'indirizzo più geo pulito', functio
         && $values['place_id'] === 'ChIJabc_def-123'
         && $values['lat'] === null && $values['lng'] === null
         && !array_key_exists('user_id', $values);
+});
+
+check('indirizzo di spedizione con coordinate: nessun errore su lat e lng', function () {
+    $values = AccountAddresses::values([
+        'name' => 'Mario', 'surname' => 'Rossi', 'country' => 'IT', 'province' => 'MI',
+        'city' => 'Milano', 'cap' => '20121', 'street' => 'Via Roma', 'number' => '12',
+        'place_id' => 'ChIJabc_def-123', 'lat' => '45.4642035', 'lng' => '9.189982',
+    ]);
+
+    return AccountAddressValidation::validate(ContactAddress::address(), $values) === [];
+});
+
+check('modello con coordinate decimali: valide', function () {
+    return ContactAddress::validate(['place_id' => 'ChIJabc_def-123', 'lat' => 45.4642035, 'lng' => 9.189982])->valid === true;
+});
+
+check('coordinate al salvataggio: precisione intatta, vuoti a null', function () {
+    $full = ContactAddress::prepare(['lat' => 45.4642035, 'lng' => '9.189982']);
+    $empty = ContactAddress::prepare(['lat' => null, 'lng' => '']);
+
+    return $full['lat'] === 45.4642035 && $full['lng'] === 9.189982
+        && $empty['lat'] === null && $empty['lng'] === null
+        && ContactAddress::validate(['lat' => null, 'lng' => null])->valid === true;
 });
 
 summary();

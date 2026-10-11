@@ -260,8 +260,8 @@ final class AddressExtension
                 $fields[] = Field::key($this->key('place_id'))->text()->sanitize(false)->addFormatter(new PlaceIdFormatter());
             }
 
-            $fields[] = Field::key($this->key('lat'))->text()->sanitize(false)->addFormatter(new LatitudeFormatter());
-            $fields[] = Field::key($this->key('lng'))->text()->sanitize(false)->addFormatter(new LongitudeFormatter());
+            $fields[] = Field::key($this->key('lat'))->number()->precision(10)->decimals(7)->addFormatter(new LatitudeFormatter());
+            $fields[] = Field::key($this->key('lng'))->number()->precision(10)->decimals(7)->addFormatter(new LongitudeFormatter());
         }
 
         return $fields;
