@@ -126,7 +126,7 @@ class SocietyLocationResource extends Resource
                 'future_opening' => 'Apertura futura',
             ])->value('operational')->required(),
             FormField::key('opening_date')->dateInput(),
-            ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->withGeo('google_place_id')->formSchema()),
+            ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->withGeo('google_place_id')->withNameSearch()->formSchema()),
             FormField::key('google_place_id')->text(),
             FormField::key('email')->email(),
             FormField::key('pec')->email(),

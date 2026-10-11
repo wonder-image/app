@@ -134,4 +134,15 @@ check('la via si chiama «Indirizzo» in italiano', function () {
     return ($it['forms']['fields']['street']['label'] ?? null) === 'Indirizzo';
 });
 
+check('ricerca per nome: spenta di base, data-wi-place-names quando accesa', function () {
+    return !str_contains(streetAttribute(AddressExtension::simple()), 'data-wi-place-names')
+        && str_contains(streetAttribute(AddressExtension::simple()->withNameSearch()), 'data-wi-place-names')
+        && !str_contains(streetAttribute(AddressExtension::simple()->withNameSearch()->withNameSearch(false)), 'data-wi-place-names');
+});
+
+check('sedi: ricerca per nome sull\'indirizzo, non sulla sede legale', function () {
+    return str_contains(streetAttribute(Wonder\App\Models\Config\SocietyLocation::address()), 'data-wi-place-names')
+        && !str_contains(streetAttribute(Wonder\App\Models\Config\SocietyLocation::legalAddress(), 'legal_street'), 'data-wi-place-names');
+});
+
 summary();

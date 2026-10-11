@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- `AddressExtension::withNameSearch()`: l'autocompletamento cerca anche le attività
+  per nome (`data-wi-place-names`, lib 2.1.2-alpha.26), così place ID e link puntano
+  alla scheda Google. Acceso sull'indirizzo delle sedi (`SocietyLocation`), non sulla
+  sede legale.
 - `CheckGroup` nel tema Wonder: `pills()` rende le voci come pillole in linea
   (`wi-check-pill`, CSS una volta per pagina da `PageAssets` con i token
   `--input-*`) e il segno dell'opzione (`color`, `icon`, `image`) esce davanti

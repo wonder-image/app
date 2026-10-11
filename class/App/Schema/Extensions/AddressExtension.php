@@ -31,6 +31,7 @@ final class AddressExtension
     private bool $withCompanyData = false;
     private bool $withGeo = false;
     private ?string $placeIdKey = null;
+    private bool $withNameSearch = false;
 
     private function __construct(
         ?string $prefix = null,
@@ -137,6 +138,18 @@ final class AddressExtension
         if ($clone->placeIdKey === '') {
             $clone->placeIdKey = null;
         }
+
+        return $clone;
+    }
+
+    /**
+     * L'autocompletamento cerca anche le attività per nome (es. un negozio),
+     * così place ID e link puntano alla scheda Google dell'attività.
+     */
+    public function withNameSearch(bool $enabled = true): self
+    {
+        $clone = clone $this;
+        $clone->withNameSearch = $enabled;
 
         return $clone;
     }
@@ -466,6 +479,10 @@ final class AddressExtension
 
         if ($this->withLink) {
             $attributes .= ' data-wi-place-link="'.$this->key($this->linkKey).'"';
+        }
+
+        if ($this->withNameSearch) {
+            $attributes .= ' data-wi-place-names';
         }
 
         return $attributes;
