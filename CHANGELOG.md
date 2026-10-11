@@ -211,6 +211,10 @@
   senza href.
 
 ### Changed
+- Versione minima di `wonder-image/lib` alzata a `2.1.2-alpha.25` (`extra.wonder.lib` e
+  `package.json`): ha l'autocompletamento degli indirizzi con Google Places (`data-wi-place`,
+  place ID e coordinate). Con una lib più vecchia `php forge update` chiede
+  `npm install 'wonder-image@^2.1.2-alpha.25'`.
 - Versione minima di `wonder-image/lib` alzata a `2.1.2-alpha.24` (`extra.wonder.lib` e
   `package.json`): ha il CSS e il JS del pannello account. Con una lib più vecchia
   `php forge update` si ferma e chiede `npm install 'wonder-image@^2.1.2-alpha.24'`.
