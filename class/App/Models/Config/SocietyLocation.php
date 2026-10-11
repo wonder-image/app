@@ -19,6 +19,17 @@ final class SocietyLocation extends Model
 {
     public const BUSINESS_STATUSES = ['operational', 'closed_temporarily', 'closed_permanently', 'future_opening'];
 
+    /** @return array<string, string> */
+    public static function businessStatusLabels(): array
+    {
+        return [
+            'operational' => 'Operativa',
+            'closed_temporarily' => 'Chiusa temporaneamente',
+            'closed_permanently' => 'Chiusa definitivamente',
+            'future_opening' => 'Apertura futura',
+        ];
+    }
+
     public static string $table = 'society_locations';
     public static string $folder = 'app/config/locations';
     public static string $icon = 'bi bi-buildings';

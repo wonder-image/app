@@ -77,4 +77,23 @@ check('prima delle funzioni sql il vuoto non resta in cache', function () {
     return $prima === [] && $GLOBALS['tabelleChieste'] !== [];
 });
 
+check('copia di Google e recensioni solo col place_id della sede', function () use ($rows, $hours, $special) {
+    $rows[0]['google_place_id'] = 'ChIJ2';
+    $rows[1]['google_place_id'] = 'ChIJ1';
+    $google = [
+        ['society_location_id' => 1, 'place_id' => 'ChIJ1', 'rating' => '4.5', 'rating_count' => '8'],
+        ['society_location_id' => 2, 'place_id' => 'ChIJvecchio', 'rating' => '3'],
+    ];
+    $reviews = [
+        ['society_location_id' => 1, 'name' => 'r1', 'rating' => '5', 'text' => 'Ok &#128512;', 'publish_time' => '2026-10-01 10:00:00'],
+        ['society_location_id' => 2, 'name' => 'r2', 'rating' => '1'],
+    ];
+    $locations = SocietyLocations::assemble($rows, $hours, $special, $google, $reviews)['locations'];
+
+    return $locations[1]->google['rating'] === 4.5
+        && $locations[1]->reviews[0]['text'] === 'Ok 😀'
+        && $locations[2]->google === null && $locations[2]->reviews === []
+        && $locations[3]->google === null;
+});
+
 summary();

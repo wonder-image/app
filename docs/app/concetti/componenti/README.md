@@ -43,6 +43,7 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `ButtonGroup` | `Elements/Components/ButtonGroup.php` | gruppo di bottoni |
 | `Dropdown` | `Elements/Components/Dropdown.php` | bottone dropdown |
 | `Choice` | `Elements/Components/Choice.php` | radio o checkbox in un riquadro cliccabile, con titolo, testo e prezzo |
+| `GoogleReviews` | `Elements/Components/GoogleReviews.php` | recensioni Google di una sede con le attribuzioni richieste ([Sedi](../sedi.md#recensioni-google)) |
 | `ChoiceGroup` | `Elements/Components/ChoiceGroup.php` | `fieldset` con legend e una lista di `Choice` |
 | `Steps` | `Elements/Components/Steps.php` | percorso a passi (fatto, in corso, da fare) |
 | `Image` | `Elements/Media/Image.php` | immagine responsive |

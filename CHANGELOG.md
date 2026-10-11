@@ -3,6 +3,18 @@
 ## Unreleased
 
 ### Added
+- Sedi e Google (#71): task `wonder.google-places` (spento, ogni notte alle
+  03:30) che legge da Places API (New) orari regolari, secondari e speciali,
+  stato, voto medio e al massimo cinque recensioni di ogni sede con Place ID
+  (`GCP_API_KEY`). Di default segnala solo le differenze, con `apply_hours`
+  sostituisce gli orari diversi; lo stato non si applica mai. Nuove tabelle
+  `society_location_google` e `society_location_reviews`; `SocietyLocations`
+  aggiunge `google` e `reviews` a ogni sede. Differenze ed errori compaiono
+  sopra la scheda della sede.
+- `Resource::formNotices()`: avvisi sopra il form backend, fuori dal `<form>`
+  (`FORM_NOTICES`).
+- `GoogleReviews`: recensioni Google di una sede nei temi Wonder e Bootstrap,
+  con le attribuzioni richieste da Google; scheda nel catalogo dei componenti.
 - `AddressExtension::withNameSearch()`: l'autocompletamento cerca anche le attività
   per nome (`data-wi-place-names`, lib 2.1.2-alpha.26), così place ID e link puntano
   alla scheda Google. Acceso sull'indirizzo delle sedi (`SocietyLocation`), non sulla

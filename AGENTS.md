@@ -272,8 +272,12 @@ php forge start
   (the generated site file alone is gitignored; framework `bin/` is source)
   and enqueue only. Reuse `NamedLock`, preserve saved schedules on sync, and
   retain execution logs uniformly for 180 days. Sitemap wraps the existing
-  crawler; Euribor adapts the site's existing service. Google reviews/hours
-  are future integrations, not active placeholder jobs. See
+  crawler; Euribor adapts the site's existing service. `GooglePlacesTask`
+  (`wonder.google-places`, off by default) syncs each location with a
+  `google_place_id` through `Support/GooglePlaces` (pure mapper/diff/plan,
+  injectable `PlaceDetailsClient` and `GooglePlacesStore`: tests never call
+  Google). It only flags differences unless `apply_hours`, never applies the
+  business status, and keeps manual special hours over Google ones. See
   `docs/app/piattaforma/cron-job.md` for contracts, metrics and migration.
   Keep code-side add/edit/remove instructions on that page; put the single
   cPanel command and every-minute frequency in the quick-start guide directly
@@ -335,6 +339,17 @@ php forge start
   `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
   page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
   fiscal data use `WhenFilledValidator`; required validators still apply.
+- `Resource::formNotices($values, $mode)` returns `{level, message}` alerts
+  printed above the backend form, outside the `<form>` (`FORM_NOTICES` in
+  `ResourcePagePresenter`), for external state such as Google differences.
+  They never replace `$ALERT` or validation.
+- `GoogleReviews` (`fromLocation($location)`, `summary()`, `limit()`,
+  `notice()`) renders stored Google reviews in both themes through
+  `Themes\Concerns\RendersGoogleReviews`. Google's attributions (author
+  avatar/name/profile, per-review Maps link, ordering notice, untranslated
+  "Google Maps") are not optional. Only `https://` URLs survive. Storing
+  reviews is a site choice against Places caching terms: document it, never
+  call it compliant. See `docs/app/concetti/sedi.md#recensioni-google`.
 - Reusable impersonation uses `Wonder\Auth\Impersonation`; consumers must provide explicit backend actor authorities, CSRF-protected issue/stop routes, a visible active-state banner, and must never impersonate a backend-capable subject.
 - Frontend form rendering must resolve the active page theme. Do not force `render('wonder')` in module/site views; call `render()` or rely on the element string renderer.
 - Runtime module validation must not require the package `composer.json`, because some production deploys strip it from installed packages.
