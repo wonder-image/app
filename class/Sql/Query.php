@@ -24,6 +24,10 @@
         public static function Conditions( string | array $conditions, bool $where = true ): string
         {
 
+            if (is_string($conditions)) {
+                return self::stringConditions($conditions, $where);
+            }
+
             $query = new self();
             return $query->buildConditions($conditions, $where);
 
@@ -35,8 +39,8 @@
                 return '';
             }
 
-            if (is_string($conditions) && trim($conditions) === '') {
-                return '';
+            if (is_string($conditions)) {
+                return self::stringConditions($conditions, $where);
             }
 
             $filter = $where ? "WHERE " : "";
@@ -90,17 +94,26 @@
 
                 $filter = substr($filter, 0, -4);
 
-            } else {
-
-                if (str_contains($conditions, "WHERE") || str_contains($conditions, "where")) {
-                    $filter = $where ? $conditions : str_replace( [ "WHERE", "where" ], "", $conditions);
-                } else {
-                    $filter .= $conditions;
-                }
-
             }
 
             return " $filter";
+
+        }
+
+        /**
+         * A string condition may start with its own WHERE: only that leading
+         * keyword is dropped, never the ones of a subquery or inside a word.
+         */
+        private static function stringConditions( string $conditions, bool $where ): string
+        {
+
+            if (trim($conditions) === '') {
+                return '';
+            }
+
+            $body = preg_replace('/^\s*WHERE\b\s*/i', '', $conditions, 1);
+
+            return ' '.($where ? 'WHERE ' : '').$body;
 
         }
 

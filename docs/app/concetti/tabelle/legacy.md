@@ -33,7 +33,7 @@ Costruzione e configurazione tipiche della vecchia `Table`:
 ```php
 $table = new \Wonder\Backend\Table\Table($table, $connection);
 $table->endpoint($endpoint);
-$table->query($query);                      // string o array; default deleted='false'
+$table->query($query);                      // string o array; default deleted='false'; sottoquery ammesse
 $table->queryOrder($col, $dir, $colFilter, $dirFilter);
 $table->addColumn($label, $column, $orderable, $class, $hiddenDevice, $width, $format);
 ```
