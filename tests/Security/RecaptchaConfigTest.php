@@ -41,7 +41,7 @@ foreach (CHIAVI_RECAPTCHA as $chiave) {
     unset($_ENV[$chiave]);
 }
 
-// Permette di azzerare e impostare la cache statica di Credentials::api().
+// Permette di azzerare e impostare la cache statica di Credentials::api(), e di leggere le chiavi reCAPTCHA da una riga.
 $credenziali = new class extends Credentials {
     public static function azzera(): void
     {
@@ -52,6 +52,14 @@ $credenziali = new class extends Credentials {
     {
         static::$API = $api;
     }
+
+    public static function leggi(array $riga): object
+    {
+        $api = static::apiDefaults();
+        static::recaptcha($api, $riga);
+
+        return $api;
+    }
 };
 
 check('Credentials dell\'app: chiave v3 vuota e badge \'true\' di default, poi dall\'ambiente nei loro campi', function () use ($credenziali) {
@@ -61,7 +69,8 @@ check('Credentials dell\'app: chiave v3 vuota e badge \'true\' di default, poi d
         return false;
     }
 
-    // envOrRow() fa vincere l'ambiente sulla riga del DB, quindi la prova non dipende dal DB.
+    // api() legge comunque la riga di security dal DB, ma l'ambiente vince su di essa: il risultato non dipende dal DB.
+    // Il ramo «riga senza ambiente» è coperto dal check su recaptcha(), qui sotto.
     $_ENV['G_RECAPTCHA_SITE_KEY'] = 'chiave-v2-env';
     $_ENV['G_RECAPTCHA_SCORE_SITE_KEY'] = 'chiave-v3-env';
     $_ENV['G_RECAPTCHA_BADGE'] = 'false';
@@ -76,6 +85,45 @@ check('Credentials dell\'app: chiave v3 vuota e badge \'true\' di default, poi d
     } finally {
         $credenziali::azzera();
 
+        foreach (CHIAVI_RECAPTCHA as $chiave) {
+            unset($_ENV[$chiave]);
+        }
+    }
+});
+
+check('Credentials::recaptcha(): la riga di security batte il default, l\'ambiente batte la riga, riga vuota o assente lascia il default', function () use ($credenziali) {
+    $riga = [
+        'g_recaptcha_site_key' => 'chiave-v2-riga',
+        'g_recaptcha_secret_key' => 'segreto-riga',
+        'g_recaptcha_score_site_key' => 'chiave-v3-riga',
+        'g_recaptcha_badge' => 'false',
+    ];
+    $rigaVuota = ['g_recaptcha_score_site_key' => '', 'g_recaptcha_badge' => ''];
+
+    foreach (CHIAVI_RECAPTCHA as $chiave) {
+        unset($_ENV[$chiave]);
+    }
+
+    try {
+        $daRiga = $credenziali::leggi($riga);
+        $daRigaVuota = $credenziali::leggi($rigaVuota);
+        $senzaChiavi = $credenziali::leggi([]);
+
+        $_ENV['G_RECAPTCHA_SCORE_SITE_KEY'] = 'chiave-v3-env';
+        $_ENV['G_RECAPTCHA_BADGE'] = 'true';
+        $daEnv = $credenziali::leggi($riga);
+
+        return $daRiga->g_recaptcha_site_key === 'chiave-v2-riga'
+            && $daRiga->g_recaptcha_secret_key === 'segreto-riga'
+            && $daRiga->g_recaptcha_score_site_key === 'chiave-v3-riga'
+            && $daRiga->g_recaptcha_badge === 'false'
+            && $daRigaVuota->g_recaptcha_score_site_key === ''
+            && $daRigaVuota->g_recaptcha_badge === 'true'
+            && $senzaChiavi->g_recaptcha_score_site_key === ''
+            && $senzaChiavi->g_recaptcha_badge === 'true'
+            && $daEnv->g_recaptcha_score_site_key === 'chiave-v3-env'
+            && $daEnv->g_recaptcha_badge === 'true';
+    } finally {
         foreach (CHIAVI_RECAPTCHA as $chiave) {
             unset($_ENV[$chiave]);
         }
