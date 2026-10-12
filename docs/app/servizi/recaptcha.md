@@ -105,7 +105,7 @@ progetto e la chiave API di Google Cloud Platform. La colonna
 In modalità v3 la cella del form che contiene il riquadro resta vuota. Il
 componente stampa una volta per pagina una regola che toglie dal flusso la cella
 marcata con `wi-recaptcha-cell` finché è vuota (`position:absolute`, larga e alta
-zero), così la griglia non le dà il gap sopra e sotto. La cella torna al suo
+zero, con `!important` contro le utility della lib come `w-100`), così la griglia non le dà il gap sopra e sotto. La cella torna al suo
 posto da sola quando compare la casella o la riga di attribuzione. Niente
 `display:none`: la lib carica Google quando il riquadro entra nel viewport, e un
 elemento senza box non ci entra mai.
