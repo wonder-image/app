@@ -2,8 +2,8 @@
 
 La verifica reCAPTCHA lato server è first-class nel framework tramite
 `Wonder\App\Security\RecaptchaGuard`. Non serve più leggere `$_POST`, gestire
-try/catch, controllare `valid`, loggare o lanciare la `RuntimeException(617)` a
-mano: tutto è centralizzato nel guard.
+try/catch, controllare `valid`, loggare o lanciare la `RuntimeException(617)` (o
+`618`) a mano: tutto è centralizzato nel guard.
 
 ## Flow completo
 
@@ -43,8 +43,9 @@ public static function mutateRequestValues(
 `static::verifyRecaptcha()` **senza argomenti** deriva l'action dal campo
 `recaptcha` del `formSchema()`: la `FormField::recaptcha('contact')` è la singola
 sorgente di verità, niente stringhe duplicate da tenere allineate. In caso di
-fallimento lancia `RuntimeException(__t('notifications.617.text'), 617)` che il
-middleware API restituisce al frontend.
+fallimento lancia `RuntimeException(__t('notifications.617.text'), 617)` (o il
+`618` se serve la casella) che il middleware API restituisce al frontend: il 618
+arriva come HTTP 422 con `status: 618`.
 
 Per passare l'action esplicita (form senza campo recaptcha, o con più d'uno):
 
@@ -59,7 +60,7 @@ static::verifyRecaptcha('contact');
 ```php
 use Wonder\App\Security\RecaptchaGuard;
 
-// Throw 617 su fallimento (logga prima di lanciare)
+// Throw 617 (o 618 se serve la casella) su fallimento (logga prima di lanciare)
 RecaptchaGuard::for('contact')->verify();
 
 // Variante non-throwing: ritorna bool
@@ -76,7 +77,7 @@ API fluente:
 | `->withRequest($array)` | sorgente dei campi `g-recaptcha-*` (default `$_POST`) |
 | `->withEngine($engine)` | engine alternativo `verify($token, $action, $siteKey): object` (default `reCAPTCHA` Enterprise); usato per i test |
 | `->withService($s)` / `->withLogAction($a)` / `->withLogFile($f)` | etichette/destinazione del log |
-| `->verify(): void` | esegue; logga e lancia `617` su fallimento |
+| `->verify(): void` | esegue; logga e lancia `617` su fallimento (o `618` se serve la casella) |
 | `->passes(): bool` | come sopra ma ritorna `false` invece di lanciare il `617` o il `618` |
 | `->withSiteKeys($checkbox, $score)` | chiavi del sito (default dalle credenziali); usato per i test |
 | `->minScore($score)` | punteggio v3 minimo (default `0.5`) |
@@ -86,7 +87,7 @@ API fluente:
 
 ## v3 (punteggio) e casella di riserva
 
-Due chiavi in Configurazione → Sicurezza: **Chiave Sito v2 (casella)**
+Due chiavi in Dev → API e servizi → Credenziali (solo admin): **Chiave Sito v2 (casella)**
 (`g_recaptcha_site_key`, env `G_RECAPTCHA_SITE_KEY`) e **Chiave Sito v3
 (punteggio)** (`g_recaptcha_score_site_key`, env `G_RECAPTCHA_SCORE_SITE_KEY`).
 **Badge v3** (`g_recaptcha_badge`, env `G_RECAPTCHA_BADGE`, `true` di base)
@@ -130,7 +131,7 @@ le verifiche saltate scrivono `skipped: true`:
 | `invalid` | tipo senza chiave configurata (engine non chiamato), oppure Google risponde `valid = false` | `617` | `WARNING` |
 | `action_mismatch` | action ricevuta ≠ action attesa (engine non chiamato), oppure action di Google ≠ attesa (`source: google`) | `617` | `WARNING` |
 | `low_score` | tipo `score`, punteggio sotto il minimo o assente | `618` con la chiave a casella, altrimenti `617` | `WARNING` |
-| `engine_unavailable` | Google non risponde davvero (`http_code` nel log) | salta | `WARNING` (0, 200, 429, 5xx), `ERROR` (altri 4xx: configurazione) |
+| `engine_unavailable` | Google non risponde davvero (`http_code` nel log) | salta | `WARNING` (0, 200 senza risposta, 429, 5xx), `ERROR` (ogni altro codice sotto 500: 401, 403, 404…; il 400 non arriva qui: va a `invalid`) |
 | `engine_error` | l'engine lancia un'eccezione (loggata l'originale) | salta | `ERROR` |
 
 Il context del log include action attesa, `request_uri`, `remote_addr` e flag di
