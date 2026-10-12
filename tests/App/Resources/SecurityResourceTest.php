@@ -56,4 +56,15 @@ check('i segreti del webhook Stripe si rendono come password in sola lettura', f
     return true;
 });
 
+check('reCAPTCHA: niente chiave segreta nel form, la verifica è Enterprise', function () {
+    try {
+        SecurityResource::getInput('g_recaptcha_secret_key');
+
+        return false;
+    } catch (\RuntimeException) {
+    }
+
+    return SecurityResource::getLabel('g_recaptcha_secret_key') === '';
+});
+
 summary();

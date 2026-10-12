@@ -40,10 +40,9 @@ final class SecurityResource extends SingletonResource
             'gcp_project_id' => 'ID Progetto',
             'gcp_api_key' => 'Chiave Privata',
             'gcp_client_api_key' => 'Chiave Pubblica',
-            'g_recaptcha_site_key' => 'Chiave Sito v2 (casella)',
-            'g_recaptcha_score_site_key' => 'Chiave Sito v3 (punteggio)',
-            'g_recaptcha_secret_key' => 'Chiave Segreta',
-            'g_recaptcha_badge' => 'Badge v3',
+            'g_recaptcha_site_key' => 'Chiave Sito',
+            'g_recaptcha_score_site_key' => 'Chiave Sito',
+            'g_recaptcha_badge' => 'Badge',
             'g_maps_place_id' => 'Place ID',
             'g_maps_map_id' => 'Map ID',
             'google_oauth_client_id' => 'Google Client ID',
@@ -89,7 +88,6 @@ final class SecurityResource extends SingletonResource
             FormField::key('gcp_api_key')->text(),
             FormField::key('gcp_client_api_key')->text(),
             FormField::key('g_recaptcha_site_key')->text(),
-            FormField::key('g_recaptcha_secret_key')->text(),
             FormField::key('g_recaptcha_score_site_key')->text(),
             FormField::key('g_recaptcha_badge')->select(['true' => 'Visibile', 'false' => 'Nascosto'])->value('true')->required(),
             FormField::key('g_maps_place_id')->text(),
@@ -161,12 +159,14 @@ final class SecurityResource extends SingletonResource
                     static::getInput('gcp_project_id')->columnSpan(2),
                     static::getInput('gcp_api_key')->columnSpan(5),
                     static::getInput('gcp_client_api_key')->columnSpan(5),
-                    SectionTitle::make('Google reCAPTCHA*')
-                        ->tooltip('v2: casella «Non sono un robot». v3: punteggio in background; con le due chiavi un punteggio basso mostra la casella. Badge v3 nascosto: sotto il form compare la riga di attribuzione di Google.')
+                    SectionTitle::make('Google reCAPTCHA v2*')
+                        ->tooltip('Casella «Non sono un robot». Da sola compare sempre; con la v3 compare solo quando il punteggio è basso.')
                         ->columnSpan(12),
-                    static::getInput('g_recaptcha_site_key')->columnSpan(3),
-                    static::getInput('g_recaptcha_score_site_key')->columnSpan(3),
-                    static::getInput('g_recaptcha_secret_key')->columnSpan(3),
+                    static::getInput('g_recaptcha_site_key')->columnSpan(6),
+                    SectionTitle::make('Google reCAPTCHA v3*')
+                        ->tooltip('Punteggio in background, senza casella. Badge nascosto: sotto il form compare la riga di attribuzione di Google.')
+                        ->columnSpan(12),
+                    static::getInput('g_recaptcha_score_site_key')->columnSpan(6),
                     static::getInput('g_recaptcha_badge')->columnSpan(3),
                     SectionTitle::make('Google Maps*')->columnSpan(12),
                     static::getInput('g_maps_place_id')->columnSpan(4),
