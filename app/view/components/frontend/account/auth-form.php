@@ -16,6 +16,6 @@ $columns = max(1, min(12, $auth_profile->columns($surface)));
             <?php endif; ?>
         </div>
     <?php endforeach; ?>
-    <div class="col-<?=$columns?> col-p-1"><?=FormField::key('recaptcha')->recaptcha($auth_profile->captchaAction($surface))?></div>
+    <div class="wi-recaptcha-cell col-<?=$columns?> col-p-1"><?=FormField::key('recaptcha')->recaptcha($auth_profile->captchaAction($surface))?></div>
     <?=Button::make((string) __t($submit_key))->type('submit')->addClass('w-100 wi-input-submit wi-submit col-'.$columns.' col-p-1')->render()?>
 </form>

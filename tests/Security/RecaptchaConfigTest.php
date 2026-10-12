@@ -163,12 +163,11 @@ check('modello Security: colonna del badge con default \'true\', chiave v3 come 
         && in_array('g_recaptcha_badge', $campi, true);
 });
 
-check('backend: etichette, select del badge e i quattro campi nel riquadro reCAPTCHA', function () {
+check('backend: etichette, select del badge e le due righe reCAPTCHA v2 e v3', function () {
     $etichette = [
-        'g_recaptcha_site_key' => 'Chiave Sito v2 (casella)',
-        'g_recaptcha_score_site_key' => 'Chiave Sito v3 (punteggio)',
-        'g_recaptcha_secret_key' => 'Chiave Segreta',
-        'g_recaptcha_badge' => 'Badge v3',
+        'g_recaptcha_site_key' => 'Chiave Sito',
+        'g_recaptcha_score_site_key' => 'Chiave Sito',
+        'g_recaptcha_badge' => 'Badge',
     ];
 
     foreach ($etichette as $chiave => $etichetta) {
@@ -185,20 +184,18 @@ check('backend: etichette, select del badge e i quattro campi nel riquadro reCAP
     }
 
     $layout = SecurityResource::formLayoutSchema()->render('bootstrap');
-    $inizio = strpos($layout, 'Google reCAPTCHA*');
-    $fine = strpos($layout, 'Google Maps*');
 
-    if ($inizio === false || $fine === false || $inizio > $fine) {
+    if (str_contains($layout, 'name="g_recaptcha_secret_key"')) {
         return false;
     }
 
-    // I quattro campi devono stare tra il titolo reCAPTCHA e la sezione Maps, nell'ordine del layout.
+    // Riga v2 con la chiave a casella, riga v3 con chiave e badge, poi la sezione Maps.
     $posizioni = [];
 
-    foreach (array_keys($etichette) as $chiave) {
-        $pos = strpos($layout, 'name="'.$chiave.'"');
+    foreach (['Google reCAPTCHA v2*', 'name="g_recaptcha_site_key"', 'Google reCAPTCHA v3*', 'name="g_recaptcha_score_site_key"', 'name="g_recaptcha_badge"', 'Google Maps*'] as $pezzo) {
+        $pos = strpos($layout, $pezzo);
 
-        if ($pos === false || $pos < $inizio || $pos > $fine) {
+        if ($pos === false) {
             return false;
         }
 
