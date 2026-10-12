@@ -164,6 +164,14 @@
             
         }
 
+        /** Codice HTTP dell'ultima chiamata; 0 prima di call() o se il server non ha risposto. */
+        public function httpCode(): int
+        {
+
+            return $this->cURL instanceof CurlHandle ? (int) curl_getinfo($this->cURL, CURLINFO_HTTP_CODE) : 0;
+
+        }
+
         public function result() 
         {
 

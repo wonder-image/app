@@ -2,43 +2,73 @@
 
     namespace Wonder\Plugin\Google\Security;
 
+    use Closure;
     use Wonder\Api\Call;
     use Wonder\Plugin\Google\Credentials;
 
+    /**
+     * Chiamata a reCAPTCHA Enterprise (assessments). Oltre a `valid` dice se
+     * Google ha risposto davvero (`available`): la guardia salta la verifica
+     * quando non ha risposto (rete, 429, 5xx, 4xx diversi da 400).
+     */
     class reCAPTCHA {
 
         protected static $projectId;
         protected static $apiKey;
         public static $siteKey;
         protected static $action;
-        
-        public function __construct() {
 
-            self::$projectId = Credentials::get()->gcp_project_id;;
-            self::$apiKey = Credentials::get()->gcp_api_key;
-            self::$siteKey = Credentials::get()->recaptcha_site_key;
+        private Closure $callFactory;
+
+        public function __construct(?Closure $callFactory = null, ?object $credentials = null) {
+
+            $credentials ??= Credentials::get();
+
+            self::$projectId = $credentials->gcp_project_id;
+            self::$apiKey = $credentials->gcp_api_key;
+            self::$siteKey = $credentials->recaptcha_site_key;
+
+            $this->callFactory = $callFactory ?? fn (string $url, array $event) => new Call($url, $event);
 
         }
 
-        public function verify($token, $action):object {
-            
+        /** `$siteKey` null = chiave a casella (v2). */
+        public function verify(string $token, string $action, ?string $siteKey = null): object {
+
             $event = [
                 'event' => [
                     'token' => $token,
                     'expectedAction' => $action,
-                    'siteKey' => self::$siteKey
+                    'siteKey' => $siteKey ?? self::$siteKey
                 ]
             ];
 
-            $CALL = new Call('https://recaptchaenterprise.googleapis.com/v1/projects/'.self::$projectId.'/assessments?key='.self::$apiKey, $event);
-            $CALL->contentType('application/json');
+            $call = ($this->callFactory)('https://recaptchaenterprise.googleapis.com/v1/projects/'.self::$projectId.'/assessments?key='.self::$apiKey, $event);
+            $call->contentType('application/json')->connectTimeout(3)->timeout(5);
 
-            $RETURN = (object) [];
-            $RETURN->result = json_decode($CALL->result(), true);
-            $RETURN->valid = isset($RETURN->result['tokenProperties']['valid'] ) && $RETURN->result['tokenProperties']['valid'] == 'true' ? true : false;
+            $response = $call->call();
+            $decoded = ($response['success'] ?? false) ? json_decode((string) $response['result'], true) : null;
 
-            return $RETURN;
-        
+            return self::classify(is_array($decoded) ? $decoded : [], $call->httpCode());
+
         }
-        
+
+        /** Risposta di Google → `valid`, `score`, `action`, `available`, `httpCode`, `result`. */
+        public static function classify(array $response, int $httpCode): object {
+
+            $properties = (array) ($response['tokenProperties'] ?? []);
+            $score = $response['riskAnalysis']['score'] ?? null;
+            $action = trim((string) ($properties['action'] ?? ''));
+
+            return (object) [
+                'valid' => in_array($properties['valid'] ?? false, [true, 'true'], true),
+                'score' => is_numeric($score) ? (float) $score : null,
+                'action' => $action !== '' ? $action : null,
+                'available' => ($httpCode === 200 && $response !== []) || $httpCode === 400,
+                'httpCode' => $httpCode,
+                'result' => $response,
+            ];
+
+        }
+
     }

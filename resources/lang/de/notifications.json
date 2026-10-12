@@ -84,6 +84,11 @@
         "title": "Vorgang blockiert",
         "text": "reCAPTCHA hat den Vorgang blockiert, bitte erneut versuchen."
     },
+    "618": {
+        "type": "warning",
+        "title": "Bestätigung erforderlich",
+        "text": "Bestätige, dass du kein Roboter bist"
+    },
     "649": {
         "type": "success",
         "title": "Anfrage gesendet",

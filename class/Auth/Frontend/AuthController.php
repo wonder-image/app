@@ -425,11 +425,11 @@ final class AuthController
 
             return true;
         } catch (\RuntimeException $exception) {
-            if ($exception->getCode() !== RecaptchaGuard::ERROR_CODE) {
+            if (!RecaptchaGuard::isFailure($exception)) {
                 throw $exception;
             }
 
-            $ALERT = RecaptchaGuard::ERROR_CODE;
+            $ALERT = $exception->getCode();
 
             return false;
         }

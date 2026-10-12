@@ -65,6 +65,11 @@
             "lowercase" : "Das Passwort muss mindestens einen Kleinbuchstaben enthalten.",
             "number" : "Das Passwort muss mindestens eine Zahl enthalten.",
             "special" : "Das Passwort muss mindestens ein Sonderzeichen enthalten."
+        },
+        "recaptcha" : {
+            "notice" : "Diese Website ist durch reCAPTCHA geschützt; es gelten die {{privacy}} und die {{terms}} von Google.",
+            "privacy" : "Datenschutzerklärung",
+            "terms" : "Nutzungsbedingungen"
         }
     },
     "buttons" : {
