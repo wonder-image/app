@@ -24,14 +24,14 @@ try {
 
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (EndpointException $exception) {
-    http_response_code($exception->getCode() ?: 400);
+    http_response_code(\Wonder\Api\ErrorStatus::http($exception->getCode() ?: 400));
     echo json_encode([
         'success' => false,
         'status' => $exception->getCode() ?: 400,
         'response' => $exception->getMessage(),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (Throwable $throwable) {
-    http_response_code((int) ($throwable->getCode() ?: 500));
+    http_response_code(\Wonder\Api\ErrorStatus::http((int) ($throwable->getCode() ?: 500)));
     echo json_encode([
         'success' => false,
         'status' => (int) ($throwable->getCode() ?: 500),

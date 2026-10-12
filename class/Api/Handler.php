@@ -60,7 +60,7 @@ class Handler
 
     private static function sendError(int $status, string $message): never
     {
-        http_response_code($status);
+        http_response_code(ErrorStatus::http($status));
 
         echo json_encode([
             'success' => false,
