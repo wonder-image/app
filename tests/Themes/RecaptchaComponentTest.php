@@ -143,7 +143,7 @@ check('renderInput: sfida in sessione aperta una sola volta', function () use ($
 });
 
 // In modalità v3 la cella resta vuota: la griglia del form le darebbe comunque il gap sopra e sotto.
-$regola = '.wi-recaptcha-cell:has(.g-recaptcha:empty):not(:has(.wi-recaptcha-terms)){position:absolute;width:0;height:0;margin:0;padding:0}';
+$regola = '.wi-recaptcha-cell:has(.g-recaptcha:empty):not(:has(.wi-recaptcha-terms)){position:absolute!important;width:0!important;height:0!important;margin:0!important;padding:0!important}';
 
 check('renderInput: lo stile della cella vuota esce una volta sola per pagina', function () use ($credenziali, $api, $regola) {
     $credenziali::imposta($api('true'));

@@ -24,7 +24,7 @@
   In Dev → API e servizi → Credenziali due righe, «Google reCAPTCHA v2» (Chiave Sito)
   e «Google reCAPTCHA v3» (Chiave Sito e Badge); la verifica è Enterprise, quindi il campo
   della chiave segreta non c'è più (la colonna resta). La cella `wi-recaptcha-cell` intorno
-  al campo si nasconde quando è vuota (sola v3): niente spazio doppio nella griglia.
+  al campo esce dal flusso quando è vuota (sola v3): niente spazio doppio nella griglia.
 - Sedi e Google (#71): task `wonder.google-places` (spento, ogni notte alle
   03:30) che legge da Places API (New) orari regolari, secondari e speciali,
   stato, voto medio e al massimo cinque recensioni di ogni sede con Place ID
