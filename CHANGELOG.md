@@ -3,6 +3,22 @@
 ## Unreleased
 
 ### Added
+- reCAPTCHA v3 (punteggio) in background con la casella v2 come riserva:
+  `G_RECAPTCHA_SCORE_SITE_KEY` (chiave v3) e `G_RECAPTCHA_BADGE` (`false` nasconde il
+  badge e mette la riga d'attribuzione di Google) si leggono con lo stesso cascade delle
+  altre chiavi (`Credentials::recaptcha()`, ambiente, riga di security, default).
+  `RecaptchaGuard` sceglie la chiave dal campo `g-recaptcha-type` (`score` o `checkbox`);
+  sotto `minScore()` con la chiave a casella configurata lancia il `618` e il form mostra
+  la casella (`RecaptchaChallenge`, in sessione), senza chiave a casella il `617`; se
+  Google non risponde la verifica si salta (fail-open) con una riga di log. `617` e `618`
+  escono HTTP 422 con il codice nel corpo e il login gestisce la sfida. Vedi
+  `docs/app/servizi/recaptcha.md`.
+  **Aggiornamento.** Richiede la lib `>= 2.1.2-alpha.27` (`extra.wonder.lib` si alza al
+  rilascio). Ordine di rilascio: lib, poi app, poi ecommerce. Non impostare
+  `G_RECAPTCHA_SCORE_SITE_KEY` su un sito prima che abbia la lib `>= 2.1.2-alpha.27` e il
+  modulo ecommerce aggiornato: con la lib vecchia login, registrazione e check-out
+  rispondono `617`; con l'ecommerce vecchio il `618` non apre la casella fino al
+  ricaricamento della pagina.
 - Sedi e Google (#71): task `wonder.google-places` (spento, ogni notte alle
   03:30) che legge da Places API (New) orari regolari, secondari e speciali,
   stato, voto medio e al massimo cinque recensioni di ogni sede con Place ID
