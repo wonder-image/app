@@ -5,7 +5,8 @@ namespace Wonder\Elements\Form\Components;
 use Wonder\Elements\Form\Field;
 
 /**
- * Google reCAPTCHA v2 — "Casella di controllo: Non sono un robot".
+ * Google reCAPTCHA — il riquadro: casella v2 e/o v3 a punteggio, con la
+ * casella di riserva.
  *
  * Element standalone (non ha nulla a che vedere con `Submit`): rende
  * il widget `g-recaptcha` più gli input hidden richiesti dalla
@@ -16,9 +17,10 @@ use Wonder\Elements\Form\Field;
  *  - `size()`   → compact | normal (default normal)
  *  - `action()` → action logica   (default submit)
  *
- * `siteKey` non è esposta: viene letta dal renderer da
- * `\Wonder\App\Credentials::api()->g_recaptcha_site_key` perché è una
- * credenziale globale del sito, non un parametro per chiamata.
+ * Le chiavi (`g_recaptcha_site_key`, `g_recaptcha_score_site_key`) e il
+ * badge (`g_recaptcha_badge`) le legge il renderer da
+ * `\Wonder\App\Credentials::api()`: sono credenziali globali del sito,
+ * non parametri per chiamata.
  */
 class reCAPTCHA extends Field
 {
