@@ -375,6 +375,22 @@ check('30. 618 nelle notifiche delle cinque lingue', function () {
     assertTrue($it['618']['text'] === 'Conferma di non essere un robot', 'testo italiano della spec R4');
 });
 
+check('31. token malformato (100 KB o UTF-8 non valido) → 617, engine non chiamato', function () use ($valid, $score) {
+    foreach (['100 KB' => str_repeat('a', 100 * 1024), 'UTF-8 non valido' => "tok\xC3\x28", 'spazio interno' => 'tok en'] as $label => $token) {
+        foreach (['checkbox' => $valid, 'score' => $score] as $type => $request) {
+            $engine = new FakeEngine(valid: true, score: 0.9, action: 'contact');
+            assert617(fn () => RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest(['g-recaptcha-token' => $token] + $request)->withEngine($engine)->verify());
+            assertTrue($engine->calls === 0, "{$label}/{$type}: engine non chiamato");
+        }
+    }
+});
+
+check('32. token di 8192 caratteri stampabili → arriva all\'engine', function () use ($valid) {
+    $engine = new FakeEngine(valid: true);
+    guard()->withRequest(['g-recaptcha-token' => str_repeat('A-_9', 2048)] + $valid)->withEngine($engine)->verify();
+    assertTrue($engine->calls === 1, 'engine chiamato');
+});
+
 echo "\n{$tests} test, {$failures} fallimenti\n";
 ob_end_flush();
 exit($failures === 0 ? 0 : 1);

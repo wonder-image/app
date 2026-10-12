@@ -47,6 +47,9 @@ final class RecaptchaGuard
     private const ACTION_KEY = 'g-recaptcha-action';
     private const TYPE_KEY = 'g-recaptcha-type';
 
+    /** Token più lunghi o con caratteri fuori da ASCII stampabile non vanno a Google: 617. */
+    private const TOKEN_MAX_LENGTH = 8192;
+
     /** Sessione: azioni per cui il form deve mostrare la casella. */
     private const CHALLENGE_SESSION = 'wi_recaptcha_challenge';
 
@@ -205,6 +208,10 @@ final class RecaptchaGuard
                 'has_action' => $action !== '',
                 'type' => $type,
             ]);
+        }
+
+        if (strlen($token) > self::TOKEN_MAX_LENGTH || preg_match('/^[\x21-\x7E]+$/', $token) !== 1) {
+            $this->fail('invalid', ['malformed' => true, 'length' => strlen($token), 'type' => $type]);
         }
 
         $keys = $this->siteKeys();

@@ -19,6 +19,8 @@
   modulo ecommerce aggiornato: con la lib vecchia login, registrazione e check-out
   rispondono `617`; con l'ecommerce vecchio il `618` non apre la casella fino al
   ricaricamento della pagina.
+  Un token oltre 8192 byte o con caratteri fuori da ASCII stampabile dà `617` senza
+  chiamare Google: il client non può forzare il fail-open con un corpo che Google rifiuta.
 - Sedi e Google (#71): task `wonder.google-places` (spento, ogni notte alle
   03:30) che legge da Places API (New) orari regolari, secondari e speciali,
   stato, voto medio e al massimo cinque recensioni di ogni sede con Place ID

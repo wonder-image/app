@@ -128,7 +128,7 @@ le verifiche saltate scrivono `skipped: true`:
 | `reason` | Quando | Esito | Livello |
 |----------|--------|-------|---------|
 | `missing` | `g-recaptcha-token` o `g-recaptcha-action` mancanti | `617` | `WARNING` |
-| `invalid` | tipo senza chiave configurata (engine non chiamato), oppure Google risponde `valid = false` | `617` | `WARNING` |
+| `invalid` | token oltre 8192 byte o con caratteri fuori da ASCII stampabile (`malformed`), oppure tipo senza chiave configurata (engine non chiamato in tutti e due i casi), oppure Google risponde `valid = false` | `617` | `WARNING` |
 | `action_mismatch` | action ricevuta ≠ action attesa (engine non chiamato), oppure action di Google ≠ attesa (`source: google`) | `617` | `WARNING` |
 | `low_score` | tipo `score`, punteggio sotto il minimo o assente | `618` con la chiave a casella, altrimenti `617` | `WARNING` |
 | `engine_unavailable` | Google non risponde davvero (`http_code` nel log) | salta | `WARNING` (0, 200 senza risposta, 429, 5xx), `ERROR` (ogni altro codice sotto 500: 401, 403, 404…; il 400 non arriva qui: va a `invalid`) |
