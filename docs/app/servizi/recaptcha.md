@@ -87,12 +87,26 @@ API fluente:
 
 ## v3 (punteggio) e casella di riserva
 
-Due chiavi in Dev → API e servizi → Credenziali (solo admin): **Chiave Sito v2 (casella)**
-(`g_recaptcha_site_key`, env `G_RECAPTCHA_SITE_KEY`) e **Chiave Sito v3
-(punteggio)** (`g_recaptcha_score_site_key`, env `G_RECAPTCHA_SCORE_SITE_KEY`).
-**Badge v3** (`g_recaptcha_badge`, env `G_RECAPTCHA_BADGE`, `true` di base)
-mostra o nasconde il badge di Google; nascosto, sotto il riquadro compare la
-riga di attribuzione con i link a privacy e termini di Google (obbligatoria).
+Due righe in Dev → API e servizi → Credenziali (solo admin), nella scheda
+Google Cloud Platform:
+
+- **Google reCAPTCHA v2**: la **Chiave Sito** della casella
+  (`g_recaptcha_site_key`, env `G_RECAPTCHA_SITE_KEY`);
+- **Google reCAPTCHA v3**: la **Chiave Sito** del punteggio
+  (`g_recaptcha_score_site_key`, env `G_RECAPTCHA_SCORE_SITE_KEY`) e il
+  **Badge** (`g_recaptcha_badge`, env `G_RECAPTCHA_BADGE`, `true` di base), che
+  mostra o nasconde il badge di Google; nascosto, sotto il riquadro compare la
+  riga di attribuzione con i link a privacy e termini di Google (obbligatoria).
+
+Non c'è una chiave segreta: la verifica passa da reCAPTCHA Enterprise con l'ID
+progetto e la chiave API di Google Cloud Platform. La colonna
+`g_recaptcha_secret_key` resta nella tabella ma il backend non la mostra.
+
+In modalità v3 la cella del form che contiene il riquadro resta vuota. Il
+componente stampa una volta per pagina una regola che nasconde la cella marcata
+con `wi-recaptcha-cell` finché è vuota, così la griglia non le dà il gap sopra e
+sotto. La cella torna visibile da sola quando compare la casella o la riga di
+attribuzione.
 
 | Chiavi | Riquadro | Punteggio basso |
 |--------|----------|-----------------|

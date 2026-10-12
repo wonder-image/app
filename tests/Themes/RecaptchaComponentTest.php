@@ -6,6 +6,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
 
 use Wonder\App\Credentials;
+use Wonder\Themes\Support\PageAssets;
 use Wonder\Themes\Wonder\Form\Components\reCAPTCHA;
 
 // In CLI session_start() dopo un output fallisce: tutto l'output va nel buffer (come in RecaptchaGuardTest).
@@ -139,6 +140,32 @@ check('renderInput: sfida in sessione aperta una sola volta', function () use ($
     }
 
     return str_contains($primo, 'data-wi-challenge="1"') && !str_contains($secondo, 'data-wi-challenge');
+});
+
+// In modalità v3 la cella resta vuota: la griglia del form le darebbe comunque il gap sopra e sotto.
+$regola = '.wi-recaptcha-cell:has(.g-recaptcha:empty):not(:has(.wi-recaptcha-terms)){display:none}';
+
+check('renderInput: lo stile della cella vuota esce una volta sola per pagina', function () use ($credenziali, $api, $regola) {
+    $credenziali::imposta($api('true'));
+    PageAssets::reset();
+    try {
+        $primo = (new reCAPTCHA())->render((object) ['schema' => ['recaptcha_action' => 'contact']]);
+        $secondo = (new reCAPTCHA())->render((object) ['schema' => ['recaptcha_action' => 'contact']]);
+    } finally {
+        $credenziali::azzera();
+        PageAssets::reset();
+    }
+
+    return substr_count($primo, 'data-wi-recaptcha-style') === 1 && str_contains($primo, $regola)
+        && !str_contains($secondo, 'data-wi-recaptcha-style') && str_contains($secondo, 'class="g-recaptcha"');
+});
+
+check('markup() resta senza stile: lo aggiunge solo la resa della pagina', function () use ($schema) {
+    return !str_contains(reCAPTCHA::markup($schema, 'site-key', 'score-key', true, false), '<style');
+});
+
+check('il form di accesso marca la cella del reCAPTCHA', function () {
+    return str_contains((string) file_get_contents(__DIR__ . '/../../app/view/components/frontend/account/auth-form.php'), 'class="wi-recaptcha-cell ');
 });
 
 // Ultimo: dichiara __t che lancia, come un provider non inizializzato o una chiave mancante.

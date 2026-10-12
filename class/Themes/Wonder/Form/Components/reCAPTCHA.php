@@ -4,6 +4,7 @@ namespace Wonder\Themes\Wonder\Form\Components;
 
 use Wonder\App\Credentials;
 use Wonder\App\Security\RecaptchaGuard;
+use Wonder\Themes\Support\PageAssets;
 use Wonder\Themes\Wonder\Form\Field;
 
 /**
@@ -41,7 +42,18 @@ class reCAPTCHA extends Field
         $action = (string) ($this->schema['recaptcha_action'] ?? 'submit');
         $challenge = $scoreKey !== '' && $siteKey !== '' && RecaptchaGuard::challenged($action);
 
-        return self::markup($this->schema, $siteKey, $scoreKey, $badge, $challenge);
+        return self::cellStyle() . self::markup($this->schema, $siteKey, $scoreKey, $badge, $challenge);
+    }
+
+    /**
+     * Con la sola v3 il riquadro resta vuoto, ma la cella della griglia che lo
+     * contiene prende comunque il gap del form. La cella marcata con
+     * `wi-recaptcha-cell` si nasconde finché il riquadro è vuoto e torna da sola
+     * quando compare la casella o la riga di attribuzione.
+     */
+    private static function cellStyle(): string
+    {
+        return PageAssets::once('wi-recaptcha-cell', '<style data-wi-recaptcha-style>.wi-recaptcha-cell:has(.g-recaptcha:empty):not(:has(.wi-recaptcha-terms)){display:none}</style>');
     }
 
     /** Markup del riquadro, senza credenziali né sessione (testabile). */
