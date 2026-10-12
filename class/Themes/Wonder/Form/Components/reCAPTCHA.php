@@ -82,7 +82,15 @@ class reCAPTCHA extends Field
 
     private static function text(string $key, string $fallback): string
     {
-        $value = function_exists('__t') ? trim((string) __t($key)) : '';
+        $value = '';
+
+        if (function_exists('__t')) {
+            try {
+                $value = trim((string) __t($key));
+            } catch (\Throwable) {
+                // chiave mancante (components.json vecchio) o provider non inizializzato: ricade sul fallback
+            }
+        }
 
         return $value !== '' && $value !== $key ? $value : $fallback;
     }

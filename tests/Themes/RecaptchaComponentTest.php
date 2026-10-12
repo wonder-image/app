@@ -5,7 +5,17 @@ declare(strict_types=1);
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
 
+use Wonder\App\Credentials;
 use Wonder\Themes\Wonder\Form\Components\reCAPTCHA;
+
+// In CLI session_start() dopo un output fallisce: tutto l'output va nel buffer (come in RecaptchaGuardTest).
+$sessioni = sys_get_temp_dir() . '/wi-recaptcha-component-' . getmypid();
+@mkdir($sessioni, 0777, true);
+ob_start();
+ini_set('session.use_cookies', '0');
+ini_set('session.cache_limiter', '');
+session_save_path($sessioni);
+session_start();
 
 echo "reCAPTCHA component\n";
 
@@ -86,6 +96,63 @@ check('testi dell\'attribuzione nelle cinque lingue', function () {
     }
 
     return true;
+});
+
+// Credenziali: stub di Credentials::api() (cache statica), azzerato dopo ogni check.
+$credenziali = new class extends Credentials {
+    public static function imposta(object $api): void
+    {
+        static::$API = $api;
+    }
+
+    public static function azzera(): void
+    {
+        static::$API = null;
+    }
+};
+
+$api = static fn (string $badge): object => (object) [
+    'g_recaptcha_site_key' => 'site-key',
+    'g_recaptcha_score_site_key' => 'score-key',
+    'g_recaptcha_badge' => $badge,
+];
+
+check('renderInput: badge " FALSE " spegne il badge e aggiunge l\'attribuzione', function () use ($credenziali, $api) {
+    $credenziali::imposta($api(' FALSE '));
+    try {
+        $html = (new reCAPTCHA())->render((object) ['schema' => ['recaptcha_action' => 'contact']]);
+    } finally {
+        $credenziali::azzera();
+    }
+
+    return str_contains($html, 'data-wi-badge="false"') && str_contains($html, 'wi-recaptcha-terms');
+});
+
+check('renderInput: sfida in sessione aperta una sola volta', function () use ($credenziali, $api) {
+    $credenziali::imposta($api('true'));
+    try {
+        $_SESSION['wi_recaptcha_challenge']['contact'] = true;
+        $primo = (new reCAPTCHA())->render((object) ['schema' => ['recaptcha_action' => 'contact']]);
+        $secondo = (new reCAPTCHA())->render((object) ['schema' => ['recaptcha_action' => 'contact']]);
+    } finally {
+        $credenziali::azzera();
+    }
+
+    return str_contains($primo, 'data-wi-challenge="1"') && !str_contains($secondo, 'data-wi-challenge');
+});
+
+// Ultimo: dichiara __t che lancia, come un provider non inizializzato o una chiave mancante.
+if (!function_exists('__t')) {
+    function __t(string $key, array $replacements = []): string
+    {
+        throw new \RuntimeException('chiave mancante');
+    }
+}
+
+check('testi di ripiego se __t lancia: attribuzione in italiano', function () {
+    $html = reCAPTCHA::markup(['recaptcha_action' => 'contact'], '', 'score-key', false, false);
+
+    return str_contains($html, 'Norme sulla privacy') && str_contains($html, 'Termini di servizio');
 });
 
 summary();
