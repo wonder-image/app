@@ -35,6 +35,7 @@ var che il framework legge:
 | Servizio | Env key in Bitwarden `dev-shared` |
 |---|---|
 | reCAPTCHA | `G_RECAPTCHA_SITE_KEY` |
+| reCAPTCHA v3 | `G_RECAPTCHA_SCORE_SITE_KEY` |
 | Google Maps Place | `G_MAPS_PLACE_ID` |
 | Google Maps Map ID | `G_MAPS_MAP_ID` |
 | Google Cloud client API key | `GCP_CLIENT_API_KEY` |

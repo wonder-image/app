@@ -327,6 +327,8 @@
                 self::$API->apple_oauth_redirect_uri     = self::envOrRow('APPLE_OAUTH_REDIRECT_URI',         $row, 'apple_oauth_redirect_uri',         self::$API->apple_oauth_redirect_uri);
                 self::$API->g_recaptcha_site_key         = self::envOrRow('G_RECAPTCHA_SITE_KEY',             $row, 'g_recaptcha_site_key',             self::$API->g_recaptcha_site_key);
                 self::$API->g_recaptcha_secret_key       = self::envOrRow('G_RECAPTCHA_SECRET_KEY',           $row, 'g_recaptcha_secret_key',           self::$API->g_recaptcha_secret_key);
+                self::$API->g_recaptcha_score_site_key   = self::envOrRow('G_RECAPTCHA_SCORE_SITE_KEY',       $row, 'g_recaptcha_score_site_key',       self::$API->g_recaptcha_score_site_key);
+                self::$API->g_recaptcha_badge            = self::envOrRow('G_RECAPTCHA_BADGE',                $row, 'g_recaptcha_badge',                self::$API->g_recaptcha_badge);
                 self::$API->g_maps_place_id              = self::envOrRow('G_MAPS_PLACE_ID',                  $row, 'g_maps_place_id',                  self::$API->g_maps_place_id);
                 self::$API->g_maps_map_id                = self::envOrRow('G_MAPS_MAP_ID',                    $row, 'g_maps_map_id',                    self::$API->g_maps_map_id);
                 self::$API->klaviyo_api_key              = self::envOrRow('KLAVIYO_API_KEY',                  $row, 'klaviyo_api_key',                  self::$API->klaviyo_api_key);
@@ -464,6 +466,8 @@
                 'apple_oauth_redirect_uri' => '',
                 'g_recaptcha_site_key' => '',
                 'g_recaptcha_secret_key' => '',
+                'g_recaptcha_score_site_key' => '',
+                'g_recaptcha_badge' => 'true',
                 'g_maps_place_id' => '',
                 'g_maps_map_id' => '',
                 'klaviyo_api_key' => '',

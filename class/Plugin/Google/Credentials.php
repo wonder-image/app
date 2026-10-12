@@ -13,6 +13,8 @@
             $RETURN = (object) [];
 
             $RETURN->recaptcha_site_key = $default->g_recaptcha_site_key;
+            $RETURN->recaptcha_score_site_key = $default->g_recaptcha_score_site_key;
+            $RETURN->recaptcha_badge = $default->g_recaptcha_badge;
             $RETURN->maps_place_id = $default->g_maps_place_id;
             $RETURN->maps_map_id = $default->g_maps_map_id;
             $RETURN->gcp_project_id = $default->gcp_project_id;
