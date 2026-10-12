@@ -315,6 +315,12 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- `Query::Conditions()` con una condizione stringa toglie solo il `WHERE`
+  iniziale (maiuscolo o minuscolo, anche con spazi davanti), non più ogni
+  `WHERE`/`where` della stringa: una condizione con sottoquery passata a
+  `Table::query()` restava SQL non valido (errore 1064). Con `$where = true` il
+  `WHERE` si aggiunge anche se la sottoquery ne contiene uno, e una condizione
+  stringa non apre più una connessione al database.
 - Anteprime Wonder del catalogo: l'anteprima chiama `setAos()` e `setUpPage()`
   al caricamento come il layout frontend (prima solo il Bootstrap chiamava
   `setUpPage()`, quindi AutoNumeric, date e tendine restavano markup statico).
