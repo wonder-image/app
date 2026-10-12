@@ -14,6 +14,7 @@
 declare(strict_types=1);
 
 use Wonder\App\Security\RecaptchaGuard;
+use Wonder\App\Security\RecaptchaChallenge;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -22,29 +23,49 @@ $tmp = sys_get_temp_dir() . '/wi-recaptcha-test-' . getmypid();
 @mkdir($tmp, 0777, true);
 chdir($tmp);
 
-/** Engine fake: ritorna un risultato configurabile o lancia. */
+// In CLI session_start() dopo un output fallisce: tutto l'output va nel buffer.
+ob_start();
+ini_set('session.use_cookies', '0');
+ini_set('session.cache_limiter', '');
+session_save_path($tmp);
+session_start();
+
+/** Engine fake: risultato configurabile (valid, punteggio, azione, disponibilità) o eccezione. */
 final class FakeEngine
 {
     public int $calls = 0;
     public ?string $lastToken = null;
     public ?string $lastAction = null;
+    public ?string $lastSiteKey = null;
 
     public function __construct(
         private bool $valid = true,
         private bool $throws = false,
+        private ?float $score = null,
+        private ?string $action = null,
+        private bool $available = true,
+        private int $httpCode = 200,
     ) {}
 
-    public function verify($token, $action): object
+    public function verify(string $token, string $action, ?string $siteKey = null): object
     {
         $this->calls++;
         $this->lastToken = $token;
         $this->lastAction = $action;
+        $this->lastSiteKey = $siteKey;
 
         if ($this->throws) {
             throw new RuntimeException('engine boom');
         }
 
-        return (object) ['valid' => $this->valid, 'result' => ['tokenProperties' => ['valid' => $this->valid ? 'true' : 'false']]];
+        return (object) [
+            'valid' => $this->valid,
+            'score' => $this->score,
+            'action' => $this->action,
+            'available' => $this->available,
+            'httpCode' => $this->httpCode,
+            'result' => ['tokenProperties' => ['valid' => $this->valid], 'event' => ['token' => $token]],
+        ];
     }
 }
 
@@ -85,18 +106,41 @@ function assert617(callable $fn): void
     throw new RuntimeException('attesa RuntimeException(617), nessuna lanciata');
 }
 
+/** Asserisce che $fn lanci RecaptchaChallenge (618). */
+function assert618(callable $fn): void
+{
+    try {
+        $fn();
+    } catch (RecaptchaChallenge $e) {
+        assertTrue($e->getCode() === RecaptchaChallenge::CHALLENGE_CODE, "codice atteso 618, ottenuto {$e->getCode()}");
+        return;
+    }
+
+    throw new RuntimeException('attesa RecaptchaChallenge(618), nessuna lanciata');
+}
+
+/** Guardia con la sola chiave a casella (il comportamento di prima). */
+function guard(string $action = 'contact'): RecaptchaGuard
+{
+    return RecaptchaGuard::for($action)->withSiteKeys('site-checkbox', '');
+}
+
+$score = ['g-recaptcha-token' => 'tok', 'g-recaptcha-action' => 'contact', 'g-recaptcha-type' => 'score'];
+$logFile = $tmp . '/storage/logs/error/recaptcha.log';
+
 $valid = ['g-recaptcha-token' => 'tok', 'g-recaptcha-action' => 'contact'];
 
 check('1. token valido + action corretta → verify() non lancia', function () use ($valid) {
     $engine = new FakeEngine(valid: true);
-    RecaptchaGuard::for('contact')->withRequest($valid)->withEngine($engine)->verify();
+    guard()->withRequest($valid)->withEngine($engine)->verify();
     assertTrue($engine->calls === 1, 'engine deve essere chiamato una volta');
     assertTrue($engine->lastAction === 'contact', 'action attesa propagata all\'engine');
+    assertTrue($engine->lastSiteKey === 'site-checkbox', 'senza tipo si usa la chiave a casella');
 });
 
 check('2. token mancante → 617', function () {
     assert617(function () {
-        RecaptchaGuard::for('contact')
+        guard()
             ->withRequest(['g-recaptcha-action' => 'contact'])
             ->withEngine(new FakeEngine(valid: true))
             ->verify();
@@ -105,7 +149,7 @@ check('2. token mancante → 617', function () {
 
 check('3. action mancante → 617', function () {
     assert617(function () {
-        RecaptchaGuard::for('contact')
+        guard()
             ->withRequest(['g-recaptcha-token' => 'tok'])
             ->withEngine(new FakeEngine(valid: true))
             ->verify();
@@ -115,7 +159,7 @@ check('3. action mancante → 617', function () {
 check('4. action mismatch → 617 (engine non chiamato)', function () {
     $engine = new FakeEngine(valid: true);
     assert617(function () use ($engine) {
-        RecaptchaGuard::for('contact')
+        guard()
             ->withRequest(['g-recaptcha-token' => 'tok', 'g-recaptcha-action' => 'submit'])
             ->withEngine($engine)
             ->verify();
@@ -123,18 +167,15 @@ check('4. action mismatch → 617 (engine non chiamato)', function () {
     assertTrue($engine->calls === 0, 'su mismatch l\'engine non deve essere chiamato');
 });
 
-check('5. engine lancia eccezione → 617', function () use ($valid) {
-    assert617(function () use ($valid) {
-        RecaptchaGuard::for('contact')
-            ->withRequest($valid)
-            ->withEngine(new FakeEngine(throws: true))
-            ->verify();
-    });
+check('5. engine lancia eccezione → la verifica si salta', function () use ($valid) {
+    $engine = new FakeEngine(throws: true);
+    guard()->withRequest($valid)->withEngine($engine)->verify();
+    assertTrue($engine->calls === 1, 'engine chiamato');
 });
 
 check('6. engine ritorna valid=false → 617', function () use ($valid) {
     assert617(function () use ($valid) {
-        RecaptchaGuard::for('contact')
+        guard()
             ->withRequest($valid)
             ->withEngine(new FakeEngine(valid: false))
             ->verify();
@@ -142,16 +183,16 @@ check('6. engine ritorna valid=false → 617', function () use ($valid) {
 });
 
 check('7. passes() ritorna bool senza propagare il 617', function () use ($valid) {
-    $ok = RecaptchaGuard::for('contact')->withRequest($valid)->withEngine(new FakeEngine(valid: true))->passes();
+    $ok = guard()->withRequest($valid)->withEngine(new FakeEngine(valid: true))->passes();
     assertTrue($ok === true, 'passes() deve essere true su token valido');
 
-    $ko = RecaptchaGuard::for('contact')->withRequest($valid)->withEngine(new FakeEngine(valid: false))->passes();
+    $ko = guard()->withRequest($valid)->withEngine(new FakeEngine(valid: false))->passes();
     assertTrue($ko === false, 'passes() deve essere false su token invalido');
 });
 
 check('8. action vuota in for() accetta qualunque action ricevuta (BC legacy)', function () use ($valid) {
     $engine = new FakeEngine(valid: true);
-    RecaptchaGuard::for('')->withRequest($valid)->withEngine($engine)->verify();
+    guard('')->withRequest($valid)->withEngine($engine)->verify();
     assertTrue($engine->lastAction === 'contact', 'usa l\'action ricevuta quando attesa è vuota');
 });
 
@@ -214,5 +255,126 @@ check('11. nessun campo recaptcha → eccezione di configurazione (non 617)', fu
     throw new RuntimeException('attesa RuntimeException di configurazione');
 });
 
+// --- v3, sfida 618, fail-open ---
+
+check('12. tipo score → chiave v3; punteggio alto passa', function () use ($score) {
+    $engine = new FakeEngine(score: 0.9, action: 'contact');
+    RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($score)->withEngine($engine)->verify();
+    assertTrue($engine->lastSiteKey === 'site-score', 'attesa la chiave v3');
+});
+
+check('13. punteggio basso con le due chiavi → 618 e segno in sessione (letto una volta)', function () use ($score) {
+    assert618(fn () => RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($score)->withEngine(new FakeEngine(score: 0.1))->verify());
+    assertTrue(RecaptchaGuard::challenged('contact') === true, 'segno atteso');
+    assertTrue(RecaptchaGuard::challenged('contact') === false, 'il segno si consuma alla lettura');
+});
+
+check('14. punteggio basso con la sola chiave v3 → 617, nessun segno', function () use ($score) {
+    assert617(fn () => RecaptchaGuard::for('contact')->withSiteKeys('', 'site-score')->withRequest($score)->withEngine(new FakeEngine(score: 0.1))->verify());
+    assertTrue(RecaptchaGuard::challenged('contact') === false, 'nessun segno senza chiave a casella');
+});
+
+check('15. punteggio assente con tipo score → come basso (618)', function () use ($score) {
+    assert618(fn () => RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($score)->withEngine(new FakeEngine(score: null))->verify());
+    RecaptchaGuard::challenged('contact');
+});
+
+check('16. tipo checkbox con la sola chiave v3 → 617, engine non chiamato', function () use ($valid) {
+    $engine = new FakeEngine();
+    assert617(fn () => RecaptchaGuard::for('contact')->withSiteKeys('', 'site-score')->withRequest($valid + ['g-recaptcha-type' => 'checkbox'])->withEngine($engine)->verify());
+    assertTrue($engine->calls === 0, 'engine non chiamato');
+});
+
+check('17. tipo sconosciuto → 617, engine non chiamato', function () use ($valid) {
+    $engine = new FakeEngine();
+    assert617(fn () => RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($valid + ['g-recaptcha-type' => 'foo'])->withEngine($engine)->verify());
+    assertTrue($engine->calls === 0, 'engine non chiamato');
+});
+
+check('18. Google non disponibile (429, 500, 0, 401) → la verifica si salta', function () use ($valid) {
+    foreach ([429, 500, 0, 401] as $code) {
+        guard()->withRequest($valid)->withEngine(new FakeEngine(valid: false, available: false, httpCode: $code))->verify();
+    }
+});
+
+check('19. azione di Google diversa → 617; vuota → passa', function () use ($valid) {
+    assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(action: 'login'))->verify());
+    guard()->withRequest($valid)->withEngine(new FakeEngine(action: null))->verify();
+});
+
+check('20. HTTP 400 (Google ha risposto, non valido) → 617', function () use ($valid) {
+    assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(valid: false, available: true, httpCode: 400))->verify());
+});
+
+check('21. token assente → 617 anche se l\'engine lancerebbe (il fail-open viene dopo)', function () {
+    assert617(fn () => guard()->withRequest(['g-recaptcha-action' => 'contact'])->withEngine(new FakeEngine(throws: true))->verify());
+});
+
+check('22. minScore(0.9) con 0.7 → 618', function () use ($score) {
+    assert618(fn () => RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->minScore(0.9)->withRequest($score)->withEngine(new FakeEngine(score: 0.7))->verify());
+    RecaptchaGuard::challenged('contact');
+});
+
+check('23. challenged() senza sessione → false', function () {
+    session_write_close();
+    $result = RecaptchaGuard::challenged('contact');
+    session_start();
+    assertTrue($result === false, 'atteso false');
+});
+
+check('24. il successo cancella il segno della sfida', function () use ($score, $valid) {
+    assert618(fn () => RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($score)->withEngine(new FakeEngine(score: 0.1))->verify());
+    RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($valid + ['g-recaptcha-type' => 'checkbox'])->withEngine(new FakeEngine())->verify();
+    assertTrue(RecaptchaGuard::challenged('contact') === false, 'segno cancellato dal successo');
+});
+
+check('25. isFailure: 617 e 618 sì, altri no', function () {
+    assertTrue(RecaptchaGuard::isFailure(new RuntimeException('x', 617)), '617');
+    assertTrue(RecaptchaGuard::isFailure(new RecaptchaChallenge()), '618');
+    assertTrue(!RecaptchaGuard::isFailure(new RuntimeException('x', 500)), '500');
+    assertTrue(!RecaptchaGuard::isFailure(new LogicException('x', 617)), 'non RuntimeException');
+});
+
+check('26. passes() → false anche sul 618', function () use ($score) {
+    $ok = RecaptchaGuard::for('contact')->withSiteKeys('site-checkbox', 'site-score')->withRequest($score)->withEngine(new FakeEngine(score: 0.1))->passes();
+    RecaptchaGuard::challenged('contact');
+    assertTrue($ok === false, 'atteso false');
+});
+
+check('27. il log non contiene il token', function () use ($logFile) {
+    @unlink($logFile);
+    $request = ['g-recaptcha-token' => 'tok-segreto-123', 'g-recaptcha-action' => 'contact'];
+    assert617(fn () => guard()->withRequest($request)->withEngine(new FakeEngine(valid: false))->verify());
+    $log = (string) @file_get_contents($logFile);
+    assertTrue($log !== '' && str_contains($log, 'invalid'), 'riga di log attesa');
+    assertTrue(!str_contains($log, 'tok-segreto-123'), 'il token non deve finire nel log');
+});
+
+check('28. salto loggato: engine_unavailable, ERROR per 401, WARNING per 429', function () use ($valid, $logFile) {
+    @unlink($logFile);
+    guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 401))->verify();
+    $log = (string) @file_get_contents($logFile);
+    assertTrue(str_contains($log, 'engine_unavailable') && str_contains($log, 'ERROR'), '401 → ERROR');
+
+    @unlink($logFile);
+    guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 429))->verify();
+    $log = (string) @file_get_contents($logFile);
+    assertTrue(str_contains($log, 'engine_unavailable') && str_contains($log, 'WARNING') && !str_contains($log, 'ERROR'), '429 → WARNING');
+});
+
+check('29. configured() non lancia senza credenziali', function () {
+    assertTrue(is_bool(RecaptchaGuard::configured()), 'atteso un bool');
+});
+
+check('30. 618 nelle notifiche delle cinque lingue', function () {
+    foreach (['it', 'en', 'de', 'es', 'fr'] as $lang) {
+        $data = json_decode((string) file_get_contents(__DIR__ . "/../../resources/lang/{$lang}/notifications.json"), true);
+        assertTrue(trim((string) ($data['618']['text'] ?? '')) !== '', "618 mancante in {$lang}");
+    }
+    $it = json_decode((string) file_get_contents(__DIR__ . '/../../resources/lang/it/notifications.json'), true);
+    assertTrue($it['618']['text'] === 'Conferma di non essere un robot', 'testo italiano della spec R4');
+});
+
 echo "\n{$tests} test, {$failures} fallimenti\n";
+ob_end_flush();
 exit($failures === 0 ? 0 : 1);

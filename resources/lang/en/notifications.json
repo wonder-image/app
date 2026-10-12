@@ -84,6 +84,11 @@
         "title": "Operation blocked",
         "text": "reCAPTCHA has blocked the operation, please try again."
     },
+    "618": {
+        "type": "warning",
+        "title": "Verification required",
+        "text": "Confirm you are not a robot"
+    },
     "649": {
         "type": "success",
         "title": "Request sent",

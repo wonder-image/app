@@ -28,8 +28,15 @@ use Wonder\Plugin\Google\Security\reCAPTCHA;
  *   if (RecaptchaGuard::for('contact')->passes()) {…}  // variante non-throwing
  *
  * L'engine è iniettabile via {@see withEngine()} per i test (qualunque
- * oggetto con `verify(string $token, string $action): object`), così la
+ * oggetto con `verify(string $token, string $action, ?string $siteKey): object`), così la
  * verifica è testabile senza HTTP reale.
+ *
+ * v3 (punteggio): il campo `g-recaptcha-type` sceglie la chiave (`score` o
+ * `checkbox`, assente = `checkbox`). Punteggio sotto {@see minScore()} con la
+ * chiave a casella configurata → segno in sessione e {@see RecaptchaChallenge}
+ * (618: il form mostra la casella); senza chiave a casella → 617. Se l'engine
+ * lancia o Google non risponde (rete, 429, 5xx, 4xx diversi da 400) la verifica
+ * si salta (fail-open) con una riga di log.
  */
 final class RecaptchaGuard
 {
@@ -38,6 +45,10 @@ final class RecaptchaGuard
 
     private const TOKEN_KEY = 'g-recaptcha-token';
     private const ACTION_KEY = 'g-recaptcha-action';
+    private const TYPE_KEY = 'g-recaptcha-type';
+
+    /** Sessione: azioni per cui il form deve mostrare la casella. */
+    private const CHALLENGE_SESSION = 'wi_recaptcha_challenge';
 
     /** Action attesa; stringa vuota = accetta qualunque action ricevuta. */
     private string $expectedAction;
@@ -56,6 +67,12 @@ final class RecaptchaGuard
 
     /** File di log relativo a `storage/logs/`. */
     private string $logFile = 'error/recaptcha';
+
+    /** Punteggio v3 minimo. */
+    private float $minScore = 0.5;
+
+    /** Chiavi `checkbox`/`score`; null = lazy dalle credenziali. */
+    private ?array $siteKeys = null;
 
     private function __construct(string $expectedAction)
     {
@@ -79,7 +96,7 @@ final class RecaptchaGuard
         return $this;
     }
 
-    /** Engine low-level alternativo (`verify($token,$action): object`). Default `new reCAPTCHA()`. */
+    /** Engine low-level alternativo (`verify($token, $action, $siteKey): object`). Default `new reCAPTCHA()`. */
     public function withEngine(object $engine): self
     {
         $this->engine = $engine;
@@ -123,9 +140,55 @@ final class RecaptchaGuard
         return $this;
     }
 
+    /** Punteggio v3 minimo (default 0.5). */
+    public function minScore(float $score): self
+    {
+        $this->minScore = $score;
+
+        return $this;
+    }
+
+    /** Chiavi del sito (default dalle credenziali). Iniettabili per i test. */
+    public function withSiteKeys(string $checkbox, string $score): self
+    {
+        $this->siteKeys = ['checkbox' => trim($checkbox), 'score' => trim($score)];
+
+        return $this;
+    }
+
+    /** Almeno una chiave reCAPTCHA configurata. */
+    public static function configured(): bool
+    {
+        $keys = self::credentialKeys();
+
+        return $keys['checkbox'] !== '' || $keys['score'] !== '';
+    }
+
+    /** L'errore è un fallimento della verifica (617) o la richiesta della casella (618). */
+    public static function isFailure(Throwable $error): bool
+    {
+        return $error instanceof RuntimeException
+            && in_array($error->getCode(), [self::ERROR_CODE, RecaptchaChallenge::CHALLENGE_CODE], true);
+    }
+
+    /** Il form di `$action` deve mostrare la casella? Legge e cancella il segno; false senza sessione. */
+    public static function challenged(string $action): bool
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return false;
+        }
+
+        $action = trim($action);
+        $open = ($_SESSION[self::CHALLENGE_SESSION][$action] ?? false) === true;
+        unset($_SESSION[self::CHALLENGE_SESSION][$action]);
+
+        return $open;
+    }
+
     /**
-     * Esegue la verifica. Non ritorna nulla in caso di successo; su qualunque
-     * fallimento logga e lancia `RuntimeException(__t('notifications.617.text'), 617)`.
+     * Esegue la verifica. Non ritorna nulla in caso di successo (o di salto per
+     * Google non disponibile); lancia `RuntimeException(617)` o
+     * `RecaptchaChallenge(618)`.
      */
     public function verify(): void
     {
@@ -133,18 +196,28 @@ final class RecaptchaGuard
 
         $token = trim((string) ($request[self::TOKEN_KEY] ?? ''));
         $action = trim((string) ($request[self::ACTION_KEY] ?? ''));
+        $type = trim((string) ($request[self::TYPE_KEY] ?? ''));
+        $type = $type === '' ? 'checkbox' : $type;
 
         if ($token === '' || $action === '') {
             $this->fail('missing', [
                 'has_token' => $token !== '',
                 'has_action' => $action !== '',
+                'type' => $type,
             ]);
+        }
+
+        $keys = $this->siteKeys();
+
+        if (!isset($keys[$type]) || $keys[$type] === '') {
+            $this->fail('invalid', ['type' => $type, 'type_configured' => false]);
         }
 
         if ($this->expectedAction !== '' && $action !== $this->expectedAction) {
             $this->fail('action_mismatch', [
                 'expected' => $this->expectedAction,
                 'received' => $action,
+                'type' => $type,
             ]);
         }
 
@@ -152,21 +225,55 @@ final class RecaptchaGuard
 
         try {
             $engine = $this->engine ?? new reCAPTCHA();
-            $result = $engine->verify($token, $expected);
+            $result = $engine->verify($token, $expected, $keys[$type]);
         } catch (Throwable $exception) {
-            $this->fail('engine_error', ['expected' => $expected], $exception);
+            $this->skip('engine_error', 'ERROR', ['expected' => $expected, 'type' => $type], $exception);
+
+            return;
+        }
+
+        $httpCode = (int) ($result->httpCode ?? 200);
+        $context = ['expected' => $expected, 'type' => $type, 'http_code' => $httpCode];
+
+        if (($result->available ?? true) === false) {
+            $level = in_array($httpCode, [0, 200, 429], true) || $httpCode >= 500 ? 'WARNING' : 'ERROR';
+            $this->skip('engine_unavailable', $level, $context);
+
+            return;
         }
 
         if (empty($result->valid)) {
-            $this->fail('invalid', [
-                'expected' => $expected,
-                'google_result' => (array) ($result->result ?? []),
-            ]);
+            $google = (array) ($result->result ?? []);
+            unset($google['event']);
+            $this->fail('invalid', $context + ['google_result' => $google]);
         }
+
+        $googleAction = trim((string) ($result->action ?? ''));
+
+        if ($googleAction !== '' && $googleAction !== $expected) {
+            $this->fail('action_mismatch', $context + ['received' => $googleAction, 'source' => 'google']);
+        }
+
+        if ($type === 'score') {
+            $score = isset($result->score) && is_numeric($result->score) ? (float) $result->score : null;
+
+            if ($score === null || $score < $this->minScore) {
+                $context['score'] = $score;
+
+                if ($keys['checkbox'] !== '') {
+                    $this->markChallenge($expected);
+                    $this->fail('low_score', $context + ['challenge' => true], null, new RecaptchaChallenge());
+                }
+
+                $this->fail('low_score', $context);
+            }
+        }
+
+        $this->clearChallenge($expected);
     }
 
     /**
-     * Variante non-throwing: ritorna `false` invece di lanciare il 617.
+     * Variante non-throwing: `false` invece del 617 o del 618.
      * Qualsiasi altra eccezione (configurazione, ecc.) viene propagata.
      */
     public function passes(): bool
@@ -176,36 +283,86 @@ final class RecaptchaGuard
 
             return true;
         } catch (RuntimeException $exception) {
-            if ($exception->getCode() === self::ERROR_CODE) {
-                return false;
+            if (!self::isFailure($exception)) {
+                throw $exception;
             }
 
-            throw $exception;
+            return false;
         }
     }
 
     /**
-     * Punto unico di logging + throw. Logga l'eccezione causa (se presente,
-     * tipicamente un errore dell'engine) altrimenti la 617 stessa, poi lancia.
+     * Punto unico di logging + throw. Logga l'eccezione causa (se presente)
+     * altrimenti quella che sta per lanciare (617 o 618), poi lancia.
      *
      * @param array<string,mixed> $context
+     * @param RuntimeException|null $error eccezione da lanciare al posto del 617
      * @return never
      */
-    private function fail(string $reason, array $context = [], ?Throwable $cause = null): void
+    private function fail(string $reason, array $context = [], ?Throwable $cause = null, ?RuntimeException $error = null): void
     {
-        $exception = new RuntimeException($this->userMessage(), self::ERROR_CODE, $cause);
+        $exception = $error ?? new RuntimeException($this->userMessage(), self::ERROR_CODE, $cause);
 
         Logger::log(
             $cause ?? $exception,
             $this->service,
             $this->logAction,
-            $reason === 'engine_error' ? 'ERROR' : 'WARNING',
+            'WARNING',
             $this->logFile,
             array_merge($this->baseContext(), ['reason' => $reason], $context),
             false
         );
 
         throw $exception;
+    }
+
+    /** Verifica saltata (fail-open): solo log, nessuna eccezione. */
+    private function skip(string $reason, string $level, array $context, ?Throwable $cause = null): void
+    {
+        Logger::log(
+            $cause ?? new RuntimeException('reCAPTCHA verification skipped'),
+            $this->service,
+            $this->logAction,
+            $level,
+            $this->logFile,
+            array_merge($this->baseContext(), ['reason' => $reason, 'skipped' => true], $context),
+            false
+        );
+    }
+
+    private function markChallenge(string $action): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION[self::CHALLENGE_SESSION][$action] = true;
+        }
+    }
+
+    private function clearChallenge(string $action): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            unset($_SESSION[self::CHALLENGE_SESSION][$action]);
+        }
+    }
+
+    /** @return array{checkbox: string, score: string} */
+    private function siteKeys(): array
+    {
+        return $this->siteKeys ??= self::credentialKeys();
+    }
+
+    /** @return array{checkbox: string, score: string} */
+    private static function credentialKeys(): array
+    {
+        try {
+            $credentials = GoogleCredentials::get();
+
+            return [
+                'checkbox' => trim((string) ($credentials->recaptcha_site_key ?? '')),
+                'score' => trim((string) ($credentials->recaptcha_score_site_key ?? '')),
+            ];
+        } catch (Throwable) {
+            return ['checkbox' => '', 'score' => ''];
+        }
     }
 
     /** Messaggio utente i18n; tollera l'assenza di `__t()` (es. in test). */
@@ -238,6 +395,7 @@ final class RecaptchaGuard
             $context['has_gcp_project_id'] = trim((string) ($credentials->gcp_project_id ?? '')) !== '';
             $context['has_gcp_api_key'] = trim((string) ($credentials->gcp_api_key ?? '')) !== '';
             $context['has_site_key'] = trim((string) ($credentials->recaptcha_site_key ?? '')) !== '';
+            $context['has_score_site_key'] = trim((string) ($credentials->recaptcha_score_site_key ?? '')) !== '';
         } catch (Throwable) {
             // credenziali non disponibili nel contesto corrente: si ignora.
         }
