@@ -65,6 +65,11 @@
             "lowercase" : "La contraseña debe contener al menos una letra minúscula.",
             "number" : "La contraseña debe contener al menos un número.",
             "special" : "La contraseña debe contener al menos un carácter especial."
+        },
+        "recaptcha" : {
+            "notice" : "Este sitio está protegido por reCAPTCHA y se aplican la {{privacy}} y los {{terms}} de Google.",
+            "privacy" : "Política de privacidad",
+            "terms" : "Condiciones del servicio"
         }
     },
     "buttons" : {

@@ -68,6 +68,11 @@
             "lowercase" : "The password must contain at least one lowercase letter.",
             "number" : "The password must contain at least one number.",
             "special" : "The password must contain at least one special character."
+        },
+        "recaptcha" : {
+            "notice" : "This site is protected by reCAPTCHA and the Google {{privacy}} and {{terms}} apply.",
+            "privacy" : "Privacy Policy",
+            "terms" : "Terms of Service"
         }
     },
     "buttons" : {
