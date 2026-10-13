@@ -374,7 +374,7 @@ le classi passate si aggiungono a quelle del tema, nello stesso attributo
 | `Modal` | `dialogClass()` | `.modal-dialog` / `.wi-modal-content` |
 | | `headerClass()`, `titleClass()` | intestazione e titolo |
 | | `bodyClass()`, `footerClass()` | corpo e fondo |
-| `Dropdown` | `toggleClass()` | il bottone che apre il menu |
+| `Dropdown` | `toggleClass()`, `toggleAttributes()` | il bottone che apre il menu |
 | | `menuClass()` | `.dropdown-menu` / `.wi-dropdown-list` |
 | | `itemClass()` | ogni voce cliccabile (link, bottone, POST) |
 
@@ -454,10 +454,33 @@ Opzioni di una voce del `Dropdown` (`item()`, `button()`, `action()`):
 | `active`, `disabled`, `icon`, `title`, `target`, `rel`, `blank`, `attributes` | come prima; una `class` negli `attributes` entra nello stesso attributo della voce |
 
 `action($label, $attributes = [], $options = [])` è una voce
-`<button type="button">` senza href, per le azioni JavaScript; `text()` è una
-voce di solo testo (`dropdown-item-text` in Bootstrap, `wi-dropdown-item
-wi-dropdown-text` in Wonder, senza hover). Il separatore Wonder è
-`wi-dropdown-divider`.
+`<button type="button">` senza href, per le azioni JavaScript; `text($text,
+$options = [])` è una voce di solo testo (`dropdown-item-text` in Bootstrap,
+`wi-dropdown-item wi-dropdown-text` in Wonder, senza hover), con le opzioni
+`class` (classi aggiunte) e `html` (markup fidato non escapato, per un link
+dentro la frase: mai con testo che arriva da chi usa il sito). Il separatore
+Wonder è `wi-dropdown-divider`.
+
+Il bottone che apre il menu prende `icon('bi bi-plus-lg')` (prima
+dell'etichetta), `caret(false)` (senza freccia, per un bottone che dice già
+cosa fa) e `toggleAttributes([...])` (per esempio `style` o `data-*`; una
+`class` si aggiunge come con `toggleClass()`, mentre `type`, `data-bs-toggle`,
+`aria-expanded` e `disabled` restano del tema):
+
+```php
+Dropdown::make('Aggiungi un attributo')
+    ->icon('bi bi-plus-lg')
+    ->caret(false)
+    ->outline()
+    ->toggleClass('w-100')
+    ->toggleAttributes(['style' => 'border-style:dashed'])
+    ->menuClass('w-100')
+    ->action('Colore', ['data-add' => '3'])
+    ->text('Si preparano in <a href="/backend/attributi/">Attributi</a>.', [
+        'html' => true,
+        'class' => 'small text-body-secondary',
+    ]);
+```
 
 API principali:
 
@@ -472,7 +495,8 @@ API principali:
   `vertical()`, `size()`
 - `Dropdown`: `variant()`, `outline()`, `size()`, `direction()`, `align()`,
   `item()`, `button()`, `action()`, `divider()`, `header()`, `text()`,
-  `toggleClass()`, `menuClass()`, `itemClass()`
+  `icon()`, `caret()`, `toggleClass()`, `toggleAttributes()`, `menuClass()`,
+  `itemClass()`
 - `Modal`: `form()`, `cancel()`, `submit()`, `help()`, `dialogClass()`,
   `headerClass()`, `titleClass()`, `bodyClass()`, `footerClass()`
 - `Link`: `href()`, `blank()`, `target()`, `rel()`, `title()`, `onclick()`,

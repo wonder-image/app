@@ -11,6 +11,9 @@ class Dropdown extends Component
 {
     use CanSpanColumn, HasAttributes, RendersDropdownItems;
 
+    /** Attributi del bottone che scrive il tema: `toggleAttributes()` non li tocca. */
+    private const TOGGLE_WRITTEN = ['type', 'data-bs-toggle', 'aria-expanded', 'disabled'];
+
     public function render($class): string
     {
         $schema = $class->getSchema();
@@ -18,11 +21,22 @@ class Dropdown extends Component
         $classes = [];
         $direction = (string) ($schema['direction'] ?? 'down');
         $grouped = (bool) ($schema['grouped'] ?? false);
-        $toggleClasses = ['btn', 'dropdown-toggle'];
+        $toggleClasses = ['btn'];
+
+        if (($schema['caret'] ?? true) !== false) {
+            $toggleClasses[] = 'dropdown-toggle';
+        }
+
         $variant = $this->normalizeVariant((string) ($schema['variant'] ?? 'secondary'));
         $size = trim((string) ($schema['size'] ?? ''));
         $disabled = (bool) ($schema['disabled'] ?? false);
         $label = $this->escape($class->getLabel());
+        $icon = trim((string) ($schema['icon'] ?? ''));
+
+        if ($icon !== '') {
+            $label = '<i class="'.$this->escape($icon).'"></i>'.($label !== '' ? ' '.$label : '');
+        }
+
         $menuClasses = ['dropdown-menu'];
 
         $classes[] = $grouped ? 'btn-group' : 'dropdown';
@@ -64,7 +78,7 @@ class Dropdown extends Component
             .($grouped ? ' role="group"' : '')
             .($attributes !== '' ? ' '.$attributes : '')
             .'>';
-        $html .= '<button type="button" class="'.$this->escape($this->partClass($class, 'toggle', implode(' ', array_values(array_unique(array_filter($toggleClasses)))))).'"'
+        $html .= '<button type="button" '.$this->partAttributes($class, 'toggle', implode(' ', array_values(array_unique(array_filter($toggleClasses)))), self::TOGGLE_WRITTEN)
             .' data-bs-toggle="dropdown" aria-expanded="false"'
             .($disabled ? ' disabled' : '')
             .'>'.$label.'</button>';
@@ -100,7 +114,10 @@ class Dropdown extends Component
             }
 
             if ($kind === 'text') {
-                $html .= '<li><span class="dropdown-item-text">'.$this->escape((string) ($item['label'] ?? '')).'</span></li>';
+                $text = (string) ($item['label'] ?? '');
+                $html .= '<li><span class="'.$this->escape(trim('dropdown-item-text '.($item['class'] ?? ''))).'">'
+                    .(($item['html'] ?? false) === true ? $text : $this->escape($text))
+                    .'</span></li>';
                 continue;
             }
 

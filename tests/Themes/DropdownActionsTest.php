@@ -145,4 +145,52 @@ check('metodo, href e varianti non validi si fermano subito', function () {
     return $fails === 4;
 });
 
+echo "\nbottone e testo\n";
+
+$aggiungi = static fn (): Dropdown => Dropdown::make('Aggiungi')
+    ->icon('bi bi-plus-lg')
+    ->caret(false)
+    ->outline()
+    ->toggleClass('w-100')
+    ->toggleAttributes(['style' => 'border-style:dashed', 'data-bs-toggle' => 'no', 'type' => 'submit', 'class' => 'scelta'])
+    ->action('Colore', ['data-add' => '3'])
+    ->text('Si preparano in <a href="/attributi">Attributi</a>.', ['html' => true, 'class' => 'small text-body-secondary'])
+    ->text('<b>non</b> fidato', ['class' => 'x" onclick="y']);
+
+check('bootstrap: icona prima dell\'etichetta, niente freccia, attributi del bottone', function () use ($aggiungi, $singleClass) {
+    $html = $aggiungi()->render('bootstrap');
+
+    return str_contains($html, '<button type="button" class="btn btn-outline-secondary w-100 scelta" style="border-style:dashed" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-plus-lg"></i> Aggiungi</button>')
+        && !str_contains($html, 'dropdown-toggle')
+        && !str_contains($html, 'type="submit"')
+        && $singleClass($html);
+});
+
+check('bootstrap: la freccia resta di serie', function () {
+    return str_contains(Dropdown::make('Altro')->render('bootstrap'), 'class="btn dropdown-toggle btn-secondary"');
+});
+
+check('bootstrap: testo con html e classi, il resto escapato', function () use ($aggiungi) {
+    $html = $aggiungi()->render('bootstrap');
+
+    return str_contains($html, '<li><span class="dropdown-item-text small text-body-secondary">Si preparano in <a href="/attributi">Attributi</a>.</span></li>')
+        && str_contains($html, '<span class="dropdown-item-text x&quot; onclick=&quot;y">&lt;b&gt;non&lt;/b&gt; fidato</span>')
+        && str_contains(Dropdown::make('X')->text('<i>')->render('bootstrap'), '<span class="dropdown-item-text">&lt;i&gt;</span>');
+});
+
+check('wonder: icona, niente chevron, attributi del bottone, testo con html', function () use ($aggiungi, $singleClass) {
+    $html = $aggiungi()->render('wonder');
+
+    return str_contains($html, '<button type="button" class="btn btn-secondary-o wi-switcher w-100 scelta" style="border-style:dashed" data-bs-toggle="no"><i class="bi bi-plus-lg"></i> Aggiungi</button>')
+        && !str_contains($html, 'bi-chevron-down')
+        && !str_contains($html, 'btn-icon-right')
+        && str_contains($html, '<div class="wi-dropdown-item wi-dropdown-text small text-body-secondary">Si preparano in <a href="/attributi">Attributi</a>.</div>')
+        && str_contains($html, '&lt;b&gt;non&lt;/b&gt; fidato')
+        && $singleClass($html);
+});
+
+check('wonder: chevron di serie', function () {
+    return str_contains(Dropdown::make('Altro')->render('wonder'), 'Altro <i class="bi bi-chevron-down"></i></button>');
+});
+
 summary();

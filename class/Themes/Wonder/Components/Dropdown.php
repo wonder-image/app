@@ -24,7 +24,12 @@ class Dropdown extends Component
             $wrapperClasses[] = 'f-end';
         }
 
-        $toggleClasses[] = 'btn-icon-right';
+        $caretShown = ($schema['caret'] ?? true) !== false;
+
+        if ($caretShown) {
+            $toggleClasses[] = 'btn-icon-right';
+        }
+
         $toggleClasses[] = 'btn-'.($variant !== '' ? $variant : 'secondary').($outline ? '-o' : '');
         $toggleClasses[] = 'wi-switcher';
 
@@ -38,14 +43,20 @@ class Dropdown extends Component
 
         $attributes = $this->renderAttributes($this->attributesWithoutClass($schema['attributes'] ?? null));
         $label = $this->escape($class->getLabel());
-        $caret = '<i class="bi bi-chevron-down"></i>';
+        $icon = trim((string) ($schema['icon'] ?? ''));
+
+        if ($icon !== '') {
+            $label = '<i class="'.$this->escape($icon).'"></i>'.($label !== '' ? ' '.$label : '');
+        }
+
+        $caret = $caretShown ? ' <i class="bi bi-chevron-down"></i>' : '';
 
         $html = '<div class="'.$this->escape(implode(' ', array_values(array_unique(array_filter($wrapperClasses))))).'"'
             .($attributes !== '' ? ' '.$attributes : '')
             .'>';
-        $html .= '<button type="button" class="'.$this->escape($this->partClass($class, 'toggle', implode(' ', array_values(array_unique(array_filter($toggleClasses)))))).'"'
+        $html .= '<button type="button" '.$this->partAttributes($class, 'toggle', implode(' ', array_values(array_unique(array_filter($toggleClasses)))), ['type', 'disabled'])
             .($disabled ? ' disabled' : '')
-            .'>'.$label.' '.$caret.'</button>';
+            .'>'.$label.$caret.'</button>';
         $html .= '<div class="'.$this->escape($this->partClass($class, 'menu', 'wi-dropdown-list '.($align === 'end' ? 'end' : 'start'))).'">';
         $html .= $this->renderItems($class, $class->getItems());
         $html .= '</div>';
@@ -71,8 +82,10 @@ class Dropdown extends Component
 
             // `wi-dropdown-text`: stesso spazio di una voce, senza hover né cursore.
             if ($kind === 'header' || $kind === 'text') {
-                $html .= '<div class="wi-dropdown-item wi-dropdown-text'.($kind === 'header' ? ' fw-700' : '').'">'
-                    .$this->escape((string) ($item['label'] ?? '')).'</div>';
+                $text = (string) ($item['label'] ?? '');
+                $extra = trim(($kind === 'header' ? 'fw-700 ' : '').(string) ($item['class'] ?? ''));
+                $html .= '<div class="'.$this->escape(trim('wi-dropdown-item wi-dropdown-text '.$extra)).'">'
+                    .($kind === 'text' && ($item['html'] ?? false) === true ? $text : $this->escape($text)).'</div>';
                 continue;
             }
 
