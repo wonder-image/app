@@ -18,7 +18,7 @@ Impostano il tipo di resa (`setType`):
 | `text()` | testo semplice |
 | `date()` / `datetime()` | data / data+ora |
 | `phone()` | numero di telefono |
-| `price()` | importo all'italiana (`1.234,50 €`), a destra, con cifre tabulari |
+| `price()` | importo nella lingua del sito (`1.234,50 €` in italiano, `€1,234.50` in inglese) con `Wonder\Support\Money`, a destra, con cifre tabulari |
 | `badge()` | badge colorato |
 | `status()` | indicatore di stato |
 | `user()` / `userAvatar()` / `userName()` | utente / avatar / nome |
