@@ -249,6 +249,12 @@
   senza href.
 
 ### Changed
+- `TableColumn::price()` scrive l'importo nella lingua del sito invece che
+  sempre all'italiana: `1.234,50 €` in italiano, `€1,234.50` in inglese. Lo fa il
+  nuovo `Wonder\Support\Money::format($importo, ?$lingua, $valuta = 'EUR')`,
+  che legge la lingua da `LanguageContext` e usa `NumberFormatter` (con un
+  ripiego senza `intl`: l'inglese all'inglese, il resto all'italiana). Per un
+  sito italiano non cambia niente.
 - Versione minima di `wonder-image/lib` alzata a `2.1.2-alpha.26` (`extra.wonder.lib` e
   `package.json`): ha `data-wi-place-names`, la ricerca per nome usata da
   `AddressExtension::withNameSearch()`.

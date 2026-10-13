@@ -3,6 +3,7 @@
     namespace Wonder\Backend\Table;
 
     use Wonder\Support\Prettify\Phone;
+    use Wonder\Support\Money;
     use DateTime;
     use Wonder\App\Support\CssFontFamily;
     
@@ -729,10 +730,11 @@
 
                     } else if ($type == 'price') {
 
-                        // Importo all'italiana (1.234,50 €), allineato a destra
-                        // con cifre tabulari. Un valore non numerico non si scrive.
+                        // Importo nella lingua del sito (1.234,50 € in italiano,
+                        // €1,234.50 in inglese), allineato a destra con cifre
+                        // tabulari. Un valore non numerico non si scrive.
                         $VALUE = is_numeric($VALUE)
-                            ? '<span class="d-block text-end" style="font-variant-numeric: tabular-nums">'.number_format((float) $VALUE, 2, ',', '.').' €</span>'
+                            ? '<span class="d-block text-end" style="font-variant-numeric: tabular-nums">'.htmlspecialchars(Money::format((float) $VALUE), ENT_QUOTES, 'UTF-8').'</span>'
                             : '';
 
                     } else if ($type == 'color') {

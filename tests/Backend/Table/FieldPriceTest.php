@@ -6,6 +6,8 @@ require __DIR__ . '/../../../vendor/autoload.php';
 
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\Backend\Table\Field;
+use Wonder\Localization\LanguageContext;
+use Wonder\Support\Money;
 
 $fail = 0;
 function eq(string $label, $got, $expected) {
@@ -57,5 +59,21 @@ eq('il valore mancante lascia la cella vuota',
 eq('un valore non numerico non si scrive: cella vuota',
     makeField()->newField(['id' => 1, 'total' => '<b>x</b>'], 'total', $format),
     '');
+
+// La lingua del sito decide il formato: la cella la legge da LanguageContext.
+LanguageContext::defaultLang('en');
+eq('in inglese la valuta va davanti e il punto separa i decimali',
+    makeField()->newField(['id' => 1, 'total' => '1234.5'], 'total', $format),
+    $span('€1,234.50'));
+LanguageContext::defaultLang('it');
+eq('tornando all\'italiano torna il formato italiano',
+    makeField()->newField(['id' => 1, 'total' => '1234.5'], 'total', $format),
+    $span('1.234,50 €'));
+
+eq('Money: la lingua passata vince su quella del sito', Money::format(9.9, 'en'), '€9.90');
+eq('Money: niente spazi speciali di intl, solo spazi normali', Money::format(1234.5, 'fr'), '1 234,50 €');
+eq('Money senza intl: inglese', Money::fallback(-1234.5, 'en'), '-€1,234.50');
+eq('Money senza intl: le altre lingue all\'italiana', Money::fallback(-1234.5, 'de'), '-1.234,50 €');
+eq('Money: una valuta che non è l\'euro si scrive col suo codice senza intl', Money::fallback(10, 'it', 'CHF'), '10,00 CHF');
 
 exit($fail > 0 ? 1 : 0);
