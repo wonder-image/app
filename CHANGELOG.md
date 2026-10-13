@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- `Dropdown`: `icon()` mette un'icona prima dell'etichetta del bottone che apre
+  il menu, `caret(false)` toglie la freccia (`dropdown-toggle` in Bootstrap, lo
+  chevron in Wonder) e `toggleAttributes()` dà attributi al bottone (`style`,
+  `data-*`; `type`, `data-bs-toggle`, `aria-expanded` e `disabled` restano del
+  tema). `text()` prende le opzioni `class` e `html` (markup fidato, per un link
+  dentro la frase). Senza queste chiamate l'HTML non cambia.
 - reCAPTCHA v3 (punteggio) in background con la casella v2 come riserva:
   `G_RECAPTCHA_SCORE_SITE_KEY` (chiave v3) e `G_RECAPTCHA_BADGE` (`false` nasconde il
   badge e mette la riga d'attribuzione di Google) si leggono con lo stesso cascade delle

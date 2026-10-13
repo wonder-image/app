@@ -149,14 +149,53 @@ class Dropdown extends Component
         return $this;
     }
 
-    public function text(string $text): self
+    /**
+     * Una voce di solo testo, senza hover.
+     *
+     * Opzioni: `class` (classi aggiunte, per esempio `small
+     * text-body-secondary`) e `html` (il testo è markup fidato e non si
+     * escapa: serve per un link dentro la frase; come `Text::html()`, mai con
+     * testo che viene da chi usa il sito).
+     *
+     * @param array{class?: string, html?: bool} $options
+     */
+    public function text(string $text, array $options = []): self
     {
         $this->items[] = [
             'kind' => 'text',
             'label' => $text,
+            'class' => trim((string) ($options['class'] ?? '')),
+            'html' => ($options['html'] ?? false) === true,
         ];
 
         return $this;
+    }
+
+    /** Icona prima dell'etichetta del bottone che apre il menu (`bi bi-plus-lg`). */
+    public function icon(string $icon): self
+    {
+        return $this->schema('icon', trim($icon));
+    }
+
+    /**
+     * Con `false` il bottone che apre il menu non ha la freccia: per i bottoni
+     * che dicono già cosa fanno, come «Aggiungi …».
+     */
+    public function caret(bool $caret = true): self
+    {
+        return $this->schema('caret', $caret);
+    }
+
+    /**
+     * Attributi del bottone che apre il menu (`style`, `data-*`, `title`).
+     * Una `class` si aggiunge come con `toggleClass()`; `type`,
+     * `data-bs-toggle`, `aria-expanded` e `disabled` li scrive il tema.
+     *
+     * @param array<string, mixed> $attributes
+     */
+    public function toggleAttributes(array $attributes): self
+    {
+        return $this->setPartAttributes('toggle', $attributes);
     }
 
     /** Classi aggiunte al bottone che apre il menu. */
