@@ -8,7 +8,7 @@ if ($add !== []):
 ?>
 <a class="wi-address-card wi-address-card--add b-2 p-4" href="<?=e((string) ($add['href'] ?? ''))?>"<?php if ($modal !== ''): ?> data-wi-modal-target="#<?=e($modal)?>" aria-haspopup="dialog" aria-controls="<?=e($modal)?>"<?php endif; ?>>
     <i class="title bi bi-plus-lg a-c" aria-hidden="true"></i>
-    <span class="text"><?=e((string) ($add['label'] ?? ''))?></span>
+    <span class="text a-c"><?=e((string) ($add['label'] ?? ''))?></span>
 </a>
 <?php
     return;

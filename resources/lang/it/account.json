@@ -5,8 +5,6 @@
     },
     "overview": {
         "title": "Il tuo account",
-        "greeting": "Ciao {{name}}, questo è il tuo account: qui modifichi i tuoi dati e guardi i tuoi ordini.",
-        "code": "Codice cliente:",
         "addresses_count": "{{count}} salvati",
         "addresses_none": "Nessun indirizzo salvato",
         "address_first": "Primo indirizzo"
