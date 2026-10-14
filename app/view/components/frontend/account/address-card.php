@@ -27,9 +27,9 @@ $edit = Button::to(Route::url('account.addresses.edit', ['id' => $id]), (string)
     <div class="wi-address-card__body">
         <div class="subtitle"><?=e((string) ($card['name'] ?? ''))?></div>
         <div class="text w-100 mt-1">
-            <?php if ($phone !== ''): ?><div><?=e($phone)?></div><?php endif; ?>
+            <?php if ($phone !== ''): ?><div class="w-100"><?=e($phone)?></div><?php endif; ?>
             <?php foreach ((array) ($card['lines'] ?? []) as $line): ?>
-                <div><?=e((string) $line)?></div>
+                <div class="w-100"><?=e((string) $line)?></div>
             <?php endforeach; ?>
         </div>
     </div>

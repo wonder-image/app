@@ -12,10 +12,10 @@ View::head((string) ($head ?? ''));
     <section class="intro">
         <div class="content">
             <div class="w-100 d-grid col-5 col-t-4 col-p-1 gap-6">
-                <aside class="col-1">
+                <aside class="col-1 min-w-0">
                     <?=View::component('frontend.account.navigation', ['items' => $navigation ?? [], 'logout_url' => $logout_url ?? '', 'logout_token' => $logout_token ?? ''])?>
                 </aside>
-                <div class="col-4 col-t-2 col-p-1 p-5 b-10">
+                <div class="col-4 col-t-2 col-p-1 min-w-0 p-5 b-10">
                     <h2 class="p-r f-start w-100 subtitle"><?=e((string) ($title ?? ''))?></h2>
                     <div class="w-100 tx-gray bb-1 mh-4"></div>
                     <?php if ($notice !== ''): ?><?=Alert::make($notice, 'success')->title((string) __t('account.notice_title'))->render()?><?php endif; ?>
