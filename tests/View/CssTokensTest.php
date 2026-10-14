@@ -114,11 +114,11 @@ check('designMd() apre con il commento di generazione e il titolo', function () 
 });
 
 check('designMd() ha una riga di palette per ogni colore, con il contrasto anche quando non è esadecimale', function () use ($md) {
-    return str_contains($md, "| Ruolo | Colore | Contrasto (`-o`) | Variabili |\n|---|---|---|---|\n| primary | #000000 | #ffffff | `--primary-color`, `--primary-o-color`, `--primary-color-{0..100}`, `--primary-o-color-{0..100}` |\n")
-        && str_contains($md, '| dark | #343a40 | var(--light-color) | `--dark-color`, `--dark-o-color`, `--dark-color-{0..100}`, `--dark-o-color-{0..100}` |')
+    return str_contains($md, "| Ruolo | Colore | Contrasto (`-o`) | Variabili |\n|---|---|---|---|\n| primary | #000000 | #ffffff | `--primary-color`, `--primary-o-color`, `--primary-color-{0..100 passo 10}`, `--primary-o-color-{0..100 passo 10}` |\n")
+        && str_contains($md, '| dark | #343a40 | var(--light-color) | `--dark-color`, `--dark-o-color`, `--dark-color-{0..100 passo 10}`, `--dark-o-color-{0..100 passo 10}` |')
         && str_contains($md, '| white | #ffffff | #000000 |')
-        && substr_count($md, '-o-color-{0..100}` |') === 10
-        && str_contains($md, 'Testo di default: `--tx-color` #000000 (`--tx-color-{0..100}`) · Sfondo di default: `--bg-color` #ffffff (`--bg-color-{0..100}`)');
+        && substr_count($md, '-o-color-{0..100 passo 10}` |') === 10
+        && str_contains($md, 'Testo di default: `--tx-color` #000000 (`--tx-color-{0..100 passo 10}`) · Sfondo di default: `--bg-color` #ffffff (`--bg-color-{0..100 passo 10}`)');
 });
 
 check('designMd() scrive le sei righe tipografiche con la famiglia di ciascun gruppo', function () use ($md) {
@@ -185,9 +185,9 @@ check('una riga colore senza contrasto ha la cella vuota e una senza var si salt
         restore_error_handler();
     }
 
-    return str_contains($md, '| brand | #123456 |  | `--brand-color`, `--brand-o-color`, `--brand-color-{0..100}`, `--brand-o-color-{0..100}` |')
+    return str_contains($md, '| brand | #123456 |  | `--brand-color`, `--brand-o-color`, `--brand-color-{0..100 passo 10}`, `--brand-o-color-{0..100 passo 10}` |')
         && str_contains($md, '| accent | #abcdef | #000000 |')
-        && substr_count($md, '-o-color-{0..100}` |') === 2
+        && substr_count($md, '-o-color-{0..100 passo 10}` |') === 2
         && str_contains($md, 'della palette (brand, accent):');
 });
 

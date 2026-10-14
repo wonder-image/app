@@ -57,7 +57,10 @@
 
             // Solo in sviluppo: docs/ai/DESIGN.md è la proiezione dei token per
             // gli agenti AI. Deriva dal DB come root.css ed è gitignorato nel
-            // sito; in produzione (APP_DEBUG=false) non viene mai scritto.
+            // sito. Il gate è Debug::enabled(): APP_DEBUG=true, oppure richiesta
+            // HTTP da host locale quando APP_DEBUG non è attivo (da CLI conta
+            // solo APP_DEBUG). In produzione, con APP_DEBUG=false e richieste
+            // non da loopback, il file non viene scritto.
             if (\Wonder\App\Debug::enabled()) {
                 cssDesignMd($ROOT, $CSS_DEFAULT, $colors, $fontFamilies);
             }

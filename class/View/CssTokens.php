@@ -327,11 +327,11 @@ final class CssTokens
             $colorHEX = (string) ($row['color'] ?? '');
             $contrastHEX = (string) ($row['contrast'] ?? '');
 
-            $RETURN .= "| $var | $colorHEX | $contrastHEX | `--$var-color`, `--$var-o-color`, `--$var-color-{0..100}`, `--$var-o-color-{0..100}` |\n";
+            $RETURN .= "| $var | $colorHEX | $contrastHEX | `--$var-color`, `--$var-o-color`, `--$var-color-{0..100 passo 10}`, `--$var-o-color-{0..100 passo 10}` |\n";
         }
 
         $RETURN .= "\n";
-        $RETURN .= "Testo di default: `--tx-color` {$value('tx_color')} (`--tx-color-{0..100}`) · Sfondo di default: `--bg-color` {$value('bg_color')} (`--bg-color-{0..100}`)\n";
+        $RETURN .= "Testo di default: `--tx-color` {$value('tx_color')} (`--tx-color-{0..100 passo 10}`) · Sfondo di default: `--bg-color` {$value('bg_color')} (`--bg-color-{0..100 passo 10}`)\n";
         $RETURN .= "\n";
 
         $RETURN .= "## Tipografia\n";
