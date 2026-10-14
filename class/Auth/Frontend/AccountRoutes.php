@@ -50,8 +50,9 @@ final class AccountRoutes
                 Route::post('/indirizzi/{id}/', $handler, ['account_action' => 'addresses.edit'])->where('id', '[0-9]+');
                 Route::post('/indirizzi/{id}/elimina/', $handler, ['account_action' => 'addresses.delete'])->name('addresses.delete')->where('id', '[0-9]+');
             }
+            // La fatturazione è in «Dati personali»: resta il vecchio indirizzo, che porta lì.
             if ($panel->enabled('billing')) {
-                $page('/fatturazione/', 'billing');
+                Route::get('/fatturazione/', $handler, ['account_action' => 'billing'])->name('billing');
             }
         });
 

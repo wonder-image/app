@@ -11,15 +11,18 @@ View::head((string) ($head ?? ''));
 <main id="account-page">
     <section class="intro">
         <div class="content">
-            <div class="wi-side-layout">
-                <aside class="wi-side-layout__aside">
+            <div class="w-100 d-grid col-5 col-t-4 col-p-1 gap-6">
+                <aside class="col-1">
                     <?=View::component('frontend.account.navigation', ['items' => $navigation ?? [], 'logout_url' => $logout_url ?? '', 'logout_token' => $logout_token ?? ''])?>
                 </aside>
-                <div class="wi-side-layout__main">
-                    <h2 class="subtitle wi-side-layout__title"><?=e((string) ($title ?? ''))?></h2>
+                <div class="col-4 col-t-2 col-p-1 p-5 b-10">
+                    <h2 class="p-r f-start w-100 subtitle"><?=e((string) ($title ?? ''))?></h2>
+                    <div class="w-100 tx-gray bb-1 mh-4"></div>
                     <?php if ($notice !== ''): ?><?=Alert::make($notice, 'success')->title((string) __t('account.notice_title'))->render()?><?php endif; ?>
                     <?php if ($errors !== []): ?><?=Alert::make(implode("\n", $errors), 'error')->title((string) __t('account.error_title'))->render()?><?php endif; ?>
-                    <?=$PAGE_CONTENT?>
+                    <div class="w-100">
+                        <?=$PAGE_CONTENT?>
+                    </div>
                 </div>
             </div>
         </div>

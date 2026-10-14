@@ -5,8 +5,9 @@
     },
     "overview": {
         "title": "Your account",
-        "greeting": "Hi {{name}}, this is your account: here you edit your details and see your orders.",
-        "code": "Customer code:"
+        "addresses_count": "{{count}} saved",
+        "addresses_none": "No saved addresses",
+        "address_first": "First address"
     },
     "breadcrumb_home": "Home",
     "saved": "Your changes have been saved.",

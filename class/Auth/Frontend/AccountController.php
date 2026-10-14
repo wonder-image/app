@@ -41,17 +41,22 @@ class AccountController
             'title' => (string) __t('account.overview.title'),
             'seo_url' => Route::url('account.index'),
             'contact' => $contact,
-            'rows' => $this->panel->overviewRows([], $user),
+            'rows' => $this->panel->overviewRows(AccountOverview::rows($this->panel, $user, $contact), $user),
             'errors' => $this->contactErrors($contact),
         ]);
     }
 
-    /** Dati personali: tre righe con un modal ciascuna; ogni modal posta qui con il campo nascosto `form`. */
+    /**
+     * Dati personali: dati, email, password e, con la sezione `billing` e la scheda cliente, la fatturazione.
+     * Una riga con un modal ciascuna; ogni modal posta qui con il campo nascosto `form`.
+     */
     protected function personal(): void
     {
         $user = $this->user();
         $userId = (int) $user->id;
         $contact = $this->contact($userId);
+        $contactId = (int) ($contact['id'] ?? 0);
+        $billing = $this->panel->enabled('billing') && $contactId > 0;
         $hasPassword = trim((string) (\sqlSelect('user', ['id' => $userId], 1)->row['password'] ?? '')) !== '';
         $open = '';
         $errors = [];
@@ -65,6 +70,7 @@ class AccountController
                 'personal' => $this->savePersonal($userId),
                 'email' => $hasPassword ? $this->requestEmail($user) : $this->notFound(),
                 'password' => $this->changePassword($userId),
+                'billing' => $billing ? $this->saveBilling($contactId) : $this->notFound(),
                 default => $this->notFound(),
             };
             $open = $form;
@@ -73,7 +79,8 @@ class AccountController
 
         $modals = [AccountModal::make(
             'account-personal', (string) __t('account.personal.modal_title'),
-            $this->panel->personalFields($this->personalFields($user, $contact, $values), $user),
+            // Solo i valori del proprio form: anche la fatturazione posta `name` e `surname`.
+            $this->panel->personalFields($this->personalFields($user, $contact, $open === 'personal' ? $values : []), $user),
             Route::url('account.personal'), ['form' => 'personal'],
             $open === 'personal' ? $errors : [], $open === 'personal',
         )];
@@ -95,11 +102,21 @@ class AccountController
             Route::url('account.personal'), ['form' => 'password'],
             $open === 'password' ? $errors : [], $open === 'password',
         );
+        if ($billing) {
+            $modals[] = AccountModal::make(
+                'account-billing', (string) __t('account.billing.title'),
+                AccountAddressForm::fields(Contact::billing(), $open === 'billing' ? $values : $contact, $open === 'billing'),
+                Route::url('account.personal'), ['form' => 'billing'],
+                $open === 'billing' ? $errors : [], $open === 'billing',
+            );
+        }
 
+        // La fatturazione prima della cascata: le righe dei moduli restano in fondo.
+        $rows = [...AccountPersonal::rows($user, $contact, $hasPassword), ...($billing ? AccountBilling::rows($contact) : [])];
         $this->page(AccountPage::view('personal'), 'personal', [
             'title' => (string) __t('account.personal.label'),
             'seo_url' => Route::url('account.personal'),
-            'rows' => $this->panel->personalRows(AccountPersonal::rows($user, $contact, $hasPassword), $user),
+            'rows' => $this->panel->personalRows($rows, $user),
             'modals' => $modals,
             'errors' => $this->contactErrors($contact),
         ]);
@@ -214,39 +231,11 @@ class AccountController
         $this->redirect(Route::url('account.addresses'));
     }
 
-    /** Fatturazione: una riga con il suo modal; il POST con errori riapre il modal con i valori inseriti. */
-    protected function billing(): void
+    /** La fatturazione sta in «Dati personali»: il suo vecchio indirizzo porta lì. */
+    protected function billing(): never
     {
         $this->requireSection('billing');
-        $contact = $this->contact((int) $this->user()->id);
-        $contactId = (int) ($contact['id'] ?? 0);
-        $open = false;
-        $errors = [];
-
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-            $this->requireCsrf();
-            if ($contactId > 0) {
-                $result = AccountBilling::save($contactId, $this->post());
-                if ($result->success) {
-                    $this->flash((string) __t('account.saved'));
-                    $this->redirect(Route::url('account.billing'));
-                }
-                $open = true;
-                $errors = $result->messages;
-            }
-        }
-
-        $this->page(AccountPage::view('billing'), 'billing', [
-            'title' => (string) __t('account.navigation.billing'),
-            'seo_url' => Route::url('account.billing'),
-            'rows' => $contactId > 0 ? AccountBilling::rows($contact) : [],
-            'modals' => $contactId > 0 ? [AccountModal::make(
-                'account-billing', (string) __t('account.billing.title'),
-                AccountAddressForm::fields(Contact::billing(), $open ? $this->post() : $contact, $open),
-                Route::url('account.billing'), [], $errors, $open,
-            )] : [],
-            'errors' => $this->contactErrors($contact),
-        ]);
+        $this->redirect(Route::url('account.personal'));
     }
 
     protected function requireSection(string $section): void
@@ -304,6 +293,17 @@ class AccountController
             $this->redirect(Route::url('account.personal'));
         }
         return $this->translate($result->errors, $result->messages);
+    }
+
+    /** @return list<string> Messaggi già tradotti; con il salvataggio riuscito esce con un redirect. */
+    protected function saveBilling(int $contactId): array
+    {
+        $result = AccountBilling::save($contactId, $this->post());
+        if ($result->success) {
+            $this->flash((string) __t('account.saved'));
+            $this->redirect(Route::url('account.personal'));
+        }
+        return $result->messages;
     }
 
     /** @return list<string> */

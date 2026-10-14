@@ -82,9 +82,12 @@ foreach ($expected as $name => $path) {
 $confirmPost = array_values(array_filter(Route::all(), static fn ($r) => strtoupper((string) $r['method']) === 'POST' && $r['path'] === '/account/email/conferma/'));
 $check(count($confirmPost) === 1, 'manca il POST di /account/email/conferma/');
 $check(!($confirmPost[0]['private'] ?? false), 'il POST di /account/email/conferma/ deve essere pubblico (funziona da un altro browser)');
-foreach (['/account/dati-personali/', '/account/indirizzi/nuovo/', '/account/indirizzi/{id}/', '/account/indirizzi/{id}/elimina/', '/account/fatturazione/'] as $path) {
+foreach (['/account/dati-personali/', '/account/indirizzi/nuovo/', '/account/indirizzi/{id}/', '/account/indirizzi/{id}/elimina/'] as $path) {
     $check(in_array($path, $posts(), true), "manca il POST di {$path}");
 }
+// La fatturazione si salva da «Dati personali»: il vecchio indirizzo resta solo in GET, per il redirect.
+$check(!in_array('/account/fatturazione/', $posts(), true), '/account/fatturazione/ non deve avere il POST');
+$check(!array_key_exists('billing', (new AccountPanel())->navigation($user)), 'la fatturazione non deve avere una voce di menu');
 
 // Chiamate ripetute: innocue con la stessa classe, errore con un'altra.
 $count = count(Route::all());

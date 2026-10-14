@@ -119,12 +119,16 @@ pannello logout, cellulare obbligatorio e la vista dei messaggi; senza, usa
 | `account.addresses.create` | `/account/indirizzi/nuovo/` | GET e POST |
 | `account.addresses.edit` | `/account/indirizzi/{id}/` | GET e POST |
 | `account.addresses.delete` | `/account/indirizzi/{id}/elimina/` | solo POST |
-| `account.billing` | `/account/fatturazione/` | GET e POST |
+| `account.billing` | `/account/fatturazione/` | solo GET: porta a «Dati personali», dove sta la fatturazione |
 
 Gli URL del login e della registrazione (`/account/auth/…`) non cambiano. Le
 sezioni sono `overview`, `personal`, `addresses` e `billing`: una sottoclasse di
 `AccountPanel` toglie da `sections()` `personal`, `addresses` o `billing` e le
-loro route non si registrano.
+loro route non si registrano. `billing` non ha una voce di menu: è la riga della
+fatturazione in «Dati personali», e toglierla dalle sezioni toglie la riga.
+La scheda `.wi-address-card--add` per aggiungere un indirizzo esce dallo stesso
+componente delle schede, `frontend.account.address-card`, con `add` (`href`,
+`modal`, `label`) al posto di `card`.
 La stessa sottoclasse cambia `title()`, `authorities()` e `parentLayout()`; se
 sovrascrive un hook chiama `parent::`, altrimenti perde le estensioni dei moduli.
 Le viste del pannello sono sigillate: non si sostituiscono da `custom/`, si
@@ -141,8 +145,8 @@ servono) e la registra con `AccountRoutes::extend()`. L'ordine rispetto a
 | Gancio | Cosa fa |
 |---|---|
 | `routes()` | Registra le route del modulo; per quelle private usare `AccountRoutes::group(callable)`, che mette prefisso `/account`, nomi `account.*`, login e permessi del pannello. |
-| `navigation(array $items, object $user)` | Riceve le voci per chiave (`overview`, `personal`, `addresses`, `billing`), ciascuna con `label`, `href`, `icon`: si aggiunge, si ritocca o si toglie con `unset`. Una voce senza `href` o etichetta non esce. |
-| `overviewRows(array $rows, object $user)` | Righe della Panoramica. |
+| `navigation(array $items, object $user)` | Riceve le voci per chiave (`overview`, `personal`, `addresses`), ciascuna con `label`, `href`, `icon`: si aggiunge, si ritocca o si toglie con `unset`. Una voce senza `href` o etichetta non esce. |
+| `overviewRows(array $rows, object $user)` | Righe della Panoramica: riceve l'anteprima del core (`AccountOverview::rows()`: dati personali, fatturazione, indirizzi), ogni riga con il link alla sua pagina e nessun modal. `AccountOverview::link($label, $href, $icon)` costruisce l'azione. |
 | `personalRows(array $rows, object $user)` | Righe di «Dati personali». |
 | `personalFields`, `validatePersonal`, `personalUserValues`, `afterPersonalSaved` | Campi del modal dei dati personali, messaggi di validazione già tradotti, valori da scrivere sull'utente oltre a quelli del core, ed effetti dopo il salvataggio. Aggiungono richieste, non aggirano le verifiche su identità e cellulare. |
 | `head()` | Markup da aggiungere nell'head delle pagine del pannello (font, stile). |
@@ -259,7 +263,7 @@ Il componente riceve `pagination` (il risultato di `make()`) e `base_url` (l'URL
 della sezione, senza `?pagina`) e stampa il piede della tabella: «Risultati da X
 a Y di Z» e i quadrati delle pagine, con la corrente segnata da
 `aria-current="page"` e le frecce spente agli estremi (`aria-disabled`). Va
-messo come ultimo figlio dentro `.wi-row-table`. Con zero righe non stampa nulla:
+messo dopo l'ultima riga. Con zero righe non stampa nulla:
 in quel caso la vista mostra lo stato vuoto (`.wi-empty-state`) al posto della
 tabella. I testi sono del core, sotto `account.pagination.*` (`summary`, `label`,
 `previous`, `next`).
@@ -281,35 +285,19 @@ protected function orders(): void
 }
 ```
 
-La vista stampa la tabella a righe e il componente in fondo. Con le tre righe
-dell'esempio (`$pagination['total']` vale 3) il piede dice «Risultati da 1 a 3 di
-3» e ha un solo quadrato, il 1, tra le due frecce spente:
+La vista stampa le righe con `frontend.account.row`, come «Dati personali», e il
+componente in fondo. Con le tre righe dell'esempio (`$pagination['total']` vale 3)
+il piede dice «Risultati da 1 a 3 di 3» e ha un solo quadrato, il 1, tra le due
+frecce spente:
 
 ```php
 <?php
-use Wonder\Elements\Components\Button;
 use Wonder\View\View;
 ?>
-<div class="wi-row-table" style="--wi-row-table-columns: minmax(0, 2fr) minmax(0, 1fr) auto">
-    <div class="wi-row-table__head">
-        <span class="wi-row-table__cell">Ordine</span>
-        <span class="wi-row-table__cell">Totale</span>
-        <span class="wi-row-table__cell"></span>
-    </div>
-    <?php foreach ($rows as $row): // tre righe ?>
-        <div class="wi-row-table__row">
-            <div class="wi-row-table__cell">
-                <div class="wi-row-table__title"><?=e($row['title'])?></div>
-                <div class="wi-row-table__subtitle"><?=e($row['date'])?></div>
-            </div>
-            <div class="wi-row-table__cell"><strong><?=e($row['total'])?></strong></div>
-            <div class="wi-row-table__cell">
-                <?=Button::to($row['href'], 'Visualizza')->outline()->variant('black')->size('sm')->arrow()->render()?>
-            </div>
-        </div>
-    <?php endforeach; ?>
-    <?=View::component('frontend.account.pagination', ['pagination' => $pagination, 'base_url' => $base_url])?>
-</div>
+<?php foreach ($rows as $row): // tre righe nella forma di `frontend.account.row` ?>
+    <?=View::component('frontend.account.row', $row)?>
+<?php endforeach; ?>
+<?=View::component('frontend.account.pagination', ['pagination' => $pagination, 'base_url' => $base_url])?>
 ```
 
 ### Dati personali, email e password
@@ -319,7 +307,10 @@ di nascita (`birth_date` della scheda `Contact`) e cellulare, la seconda per
 l'email, la terza per la password. Il modal dell'email c'è solo se l'account ha già
 una password (il cambio email la chiede): senza, la riga non ha «Modifica» ma la
 nota «Imposta prima una password per cambiare l'email», e la password si imposta dal
-terzo modal.
+terzo modal. Con la sezione `billing` e la scheda cliente seguono le righe della
+fatturazione (`AccountBilling::rows()`), che aprono il modal `account-billing`: posta
+a `account.personal` con `form=billing`, salva con `AccountBilling::save()` e torna a
+«Dati personali». Ogni modal riceve solo i valori del proprio form.
 `AccountPersonal` salva nome, data e cellulare, passando dai ganci
 dell'estensione (`validatePersonal()` prima, `personalUserValues()` e
 `afterPersonalSaved()` dopo), in una sola transazione con la scheda: o tutto o
@@ -347,8 +338,9 @@ salva l'hash, revoca tutti i token "ricordami" dell'utente con
 resta aperta, un cookie copiato prima del cambio non entra più. Gli errori si
 traducono con `AuthValidationAlert::messageKeys()`.
 
-Ogni submit del pannello ha la classe `wi-input-submit`: la lib lo tiene spento
-finché mancano i campi obbligatori. Chi aggiunge un form a mano nel pannello
+Ogni submit dei form del pannello ha la classe `wi-input-submit`: la lib lo tiene spento
+finché mancano i campi obbligatori. Fa eccezione «Esci» nel menu, che non ha campi
+e prende lo stile della voce di menu. Chi aggiunge un form a mano nel pannello
 fa lo stesso (vedi `AccountModal` più sotto).
 
 ## Storage dei contatti
