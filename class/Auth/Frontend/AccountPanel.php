@@ -15,12 +15,12 @@ class AccountPanel
         'overview' => ['account.index', 'bi bi-house'],
         'personal' => ['account.personal', 'bi bi-person'],
         'addresses' => ['account.addresses', 'bi bi-geo-alt'],
-        'billing' => ['account.billing', 'bi bi-receipt'],
     ];
 
     public function parentLayout(): string { return 'frontend.main'; }
     public function title(): string { return (string) __t('account.title'); }
     public function authorities(): array { return ['client']; }
+    /** `billing` non ha una voce di menu: è la riga della fatturazione in «Dati personali». */
     public function sections(): array { return ['overview', 'personal', 'addresses', 'billing']; }
     public function enabled(string $section): bool { return in_array($section, $this->sections(), true); }
 

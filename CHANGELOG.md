@@ -255,6 +255,19 @@
   senza href.
 
 ### Changed
+- Pannello account: la fatturazione sta in «Dati personali», come riga con il
+  suo modal (`account-billing`, posta a `account.personal` con `form=billing`);
+  non ha più la voce di menu né la pagina, e `/account/fatturazione/` resta solo
+  in GET come redirect a «Dati personali». La sezione `billing` di `sections()`
+  accende o spegne la riga. La Panoramica mostra l'anteprima di dati personali,
+  fatturazione e indirizzi (`AccountOverview`), con il link a ogni pagina.
+  `frontend.account.address-card` con `add` (`href`, `modal`, `label`) stampa la
+  scheda per aggiungere un indirizzo. Nuovo stile di layout, menu, righe e schede
+  (utility della lib al posto di `wi-side-layout`, `wi-data-row__action`,
+  `wi-address-card__name`); il telefono della scheda è testo, senza link `tel:`.
+  «Esci» nel menu non ha più `wi-input-submit`.
+  **Aggiornamento.** Un sito che linkava `account.billing` funziona (redirect);
+  un form che postava lì va spostato su `account.personal` con `form=billing`.
 - `TableColumn::price()` scrive l'importo nella lingua del sito invece che
   sempre all'italiana: `1.234,50 €` in italiano, `€1,234.50` in inglese. Lo fa il
   nuovo `Wonder\Support\Money::format($importo, ?$lingua, $valuta = 'EUR')`,

@@ -10,15 +10,12 @@ $createUrl = Route::url('account.addresses.create');
 $account_panel->layout(compact('title', 'active', 'navigation', 'errors', 'notice', 'modals', 'logout_url', 'logout_token', 'head', 'user'));
 ?>
 <?php if ($cards !== []): ?>
-    <div class="wi-address-grid">
+    <div class="wi-address-grid d-grid col-3 col-t-2 col-p-1 w-100 gap-6 gap-t-4">
         <?php foreach ($cards as $card): ?>
             <?=View::component('frontend.account.address-card', ['card' => $card])?>
         <?php endforeach; ?>
         <?php if ($can_add): ?>
-            <a class="wi-address-card wi-address-card--add" href="<?=e($createUrl)?>" data-wi-modal-target="#account-address-new" aria-haspopup="dialog" aria-controls="account-address-new">
-                <i class="wi-address-card__icon bi bi-plus-lg" aria-hidden="true"></i>
-                <span><?=e((string) __t('account.addresses.add'))?></span>
-            </a>
+            <?=View::component('frontend.account.address-card', ['add' => ['href' => $createUrl, 'modal' => 'account-address-new', 'label' => (string) __t('account.addresses.add')]])?>
         <?php endif; ?>
     </div>
 <?php else: ?>
