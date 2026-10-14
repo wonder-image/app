@@ -181,7 +181,7 @@ Output:
 
 #### `forge import [file]`
 
-Importa un file JSON nelle tabelle del DB. Se contiene tabelle CSS, rigenera anche `root.css` e `color.css`:
+Importa un file JSON nelle tabelle del DB. Se contiene tabelle CSS, rigenera anche `root.css` e `color.css` (e, in sviluppo, `docs/ai/DESIGN.md`):
 
 ```bash
 php forge import                      # <- shared/sync-data.json (default)
@@ -444,6 +444,7 @@ Variabili introdotte per il supporto multi-ambiente:
 |---|---|---|---|
 | `shared/sync-data.json` | **Si** | `forge export` | Git (committato dal designer/dev) |
 | `root.css`, `color.css` | No | `forge update` (da DB <- `sync-data.json`) | DB `css_*` |
+| `docs/ai/DESIGN.md` | No | `forge update` / salvataggio CSS dal backend, solo con `APP_DEBUG=true` o host locale | DB `css_*` (proiezione di `root.css`/`color.css`) |
 | `.htaccess` | No | `forge build` / `forge update` | Template `Build::htaccessTemplate()` + `.env` |
 | `robots.txt` | No | `forge update` (se manca) | Template parametrico + `.env` |
 | `handler/index.php` | No | `forge build` / `forge update --local` | Template framework |

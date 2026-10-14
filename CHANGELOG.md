@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Added
+- `docs/ai/DESIGN.md`: ogni rigenerazione di `root.css` (salvataggio di colori, font e
+  impostazioni CSS dal backend, `forge import`, `forge update`) scrive anche
+  `docs/ai/DESIGN.md`, la proiezione in Markdown di palette, tipografia, spaziatura,
+  bottoni e classi utility pensata per gli agenti AI (`CssTokens::designMd()`). Solo
+  con `Debug::enabled()` (`APP_DEBUG=true` o host locale): in produzione il file non
+  viene mai scritto. È generato, va gitignorato nel sito e non si modifica a mano; un
+  errore di scrittura finisce in `storage/logs/error.log` senza bloccare il CSS.
 - `Dropdown`: `icon()` mette un'icona prima dell'etichetta del bottone che apre
   il menu, `caret(false)` toglie la freccia (`dropdown-toggle` in Bootstrap, lo
   chevron in Wonder) e `toggleAttributes()` dà attributi al bottone (`style`,
