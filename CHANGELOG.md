@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Added
+- Migrazioni dei moduli: un modulo dichiara in `module.json`
+  `"database": {"migrations": [...]}` classi `Module\Contracts\ModuleMigration`
+  che `forge update` esegue prima di creare o allineare le tabelle. Per le
+  rinomine `Support\LegacyTableRenames` fa il piano e le applica in una sola
+  `RENAME TABLE`; un conflitto ferma l'update senza toccare dati.
+- Pannello account: `AccountPageExtension`, interfaccia opzionale delle
+  estensioni (`BaseAccountExtension` la implementa vuota), con
+  `personalFormFields()`, `personalModals()`, `savePersonalForm()`,
+  `pageErrors()` e `afterEmailConfirmed()`: un modulo aggiunge campi, modal,
+  form e controlli alle pagine del core senza sostituirne il controller.
 - `docs/ai/DESIGN.md`: ogni rigenerazione di `root.css` (salvataggio di colori, font e
   impostazioni CSS dal backend, `forge import`, `forge update`) scrive anche
   `docs/ai/DESIGN.md`, la proiezione in Markdown di palette, tipografia, spaziatura,
@@ -278,6 +288,15 @@
   senza href.
 
 ### Changed
+- Contatti e account cliente persistente sono usciti dal core nel modulo
+  `wonder-image/customer-account`: `Contact`, `ContactAddress`, le loro
+  Resource, `ContactAccount`, `AccountAddresses`, `AccountBilling`, le pagine
+  degli indirizzi e la migrazione delle tabelle `gst_*`. Un sito con il solo
+  app non ha più tabelle, Resource né voci di menu dei contatti; il pannello
+  account resta (panoramica, dati personali, email, password). Per tenerli si
+  installa e abilita il modulo: tabelle (`contacts`, `contact_addresses`) e
+  URL restano gli stessi. `ExternalReference`, `AccountAddressForm` e
+  `AccountAddressValidation` restano nel core.
 - Pannello account: la fatturazione sta in «Dati personali», come riga con il
   suo modal (`account-billing`, posta a `account.personal` con `form=billing`);
   non ha più la voce di menu né la pagina, e `/account/fatturazione/` resta solo
@@ -380,6 +399,11 @@
   variabile vale 0 e l'altezza resta com'era.
 
 ### Removed
+- `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
+  `Wonder\App\Resources\Contacts\*`, `Wonder\Auth\Frontend\{ContactAccount,
+  AccountAddresses,AccountBilling}`, le view degli indirizzi e le traduzioni
+  `contacts.json`: ora sono in `wonder-image/customer-account`
+  (`Wonder\Plugin\CustomerAccount\`).
 - `AccountAddressModal` e i componenti `frontend.account.address-form` e
   `frontend.account.password-form`: il pannello compone modal e form con
   `AccountModal` e `AccountAddressForm::layout()`.
