@@ -20,10 +20,10 @@ $trash = Button::make('')->type('button')->variant('black')->addClass('btn-icon'
     ->attr('aria-label', (string) __t('account.addresses.delete'))
     ->opensModal('account-address-delete-'.$id);
 $edit = Button::to(Route::url('account.addresses.edit', ['id' => $id]), (string) __t('account.actions.edit'))
-    ->outline()->variant('black')->icon('bi bi-pencil')
+    ->variant('black')->outline()->icon('bi bi-pencil')
     ->opensModal('account-address-'.$id);
 ?>
-<div class="wi-address-card b-2 p-4">
+<div class="wi-address-card p-4 bg-gray">
     <div class="wi-address-card__body">
         <div class="subtitle"><?=e((string) ($card['name'] ?? ''))?></div>
         <div class="text w-100 mt-1">
