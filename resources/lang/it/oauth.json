@@ -29,6 +29,7 @@
     "title": "Connessioni MCP",
     "servers_title": "Server MCP disponibili",
     "servers_help": "Aggiungi un server MCP remoto (HTTP streamable) con questo URL. Il client aprirà il browser per l'accesso e la conferma.",
+    "issuer_error": "Impossibile calcolare l'URL del server MCP: APP_URL deve essere un indirizzo https. Contatta l'amministratore del sito.",
     "copy": "Copia",
     "copied": "Copiato",
     "claude_code_example": "Esempio per Claude Code",

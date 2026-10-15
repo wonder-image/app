@@ -29,6 +29,7 @@
     "title": "MCP connections",
     "servers_title": "Available MCP servers",
     "servers_help": "Add a remote MCP server (streamable HTTP) with this URL. The client will open the browser for sign-in and confirmation.",
+    "issuer_error": "Cannot compute the MCP server URL: APP_URL must be an https address. Contact the site administrator.",
     "copy": "Copy",
     "copied": "Copied",
     "claude_code_example": "Claude Code example",
