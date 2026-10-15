@@ -81,6 +81,7 @@ Il codice nuovo sta in `class/OAuth/` (namespace `Wonder\OAuth`). I Model stanno
 | `Cleanup` | Task dello Scheduler che pulisce token e client scaduti. |
 | `Config` | Legge dal `.env` i valori configurabili (rate limit e durate), con default e limiti. Vedi "Configurazione". |
 | `OAuthException` | Errore con `error`, `error_description`, status HTTP. |
+| `Store\OAuthStore` | Interfaccia di persistenza: `SqlStore` (mysqli + `OneTimeToken`) in produzione, `MemoryStore` nei test. Le altre unità la ricevono nel costruttore o da `OAuth::store()`. |
 
 Pagine e handler HTTP stanno in `app/http/oauth/` e `app/http/backend/oauth/`; le viste in `app/view/pages/oauth/` e `app/view/pages/backend/oauth/`. Le rotte vanno in un file `app/config/routes/route.oauth.php`, caricato dal `RouteDispatcher` solo se `OAuth::enabled()`.
 
@@ -321,7 +322,7 @@ Le stringhe stanno nei lang del framework, `it` ed `en`.
 - **`.htaccess`:** le regole che aggiungono lo slash finale con un 301 colpirebbero `/.well-known/…` e `/oauth/token`. Prima di quelle regole va aggiunta un'eccezione che manda `^/?\.well-known/` e `^/?oauth/` direttamente a `handler/index.php`. Va fatto nei tre punti che generano la configurazione:
   - `Build.php` (righe 179-239 circa);
   - `app/build/update/configuration_file.php` (righe 9-27 circa);
-  - lo stub di `WonderValetDriver.php` per Herd e Valet.
+  - lo stub di `WonderValetDriver.php` per Herd e Valet **non richiede modifiche**: non aggiunge lo slash finale e manda già a `handler/index.php` ogni path che non è un file.
 - **CORS** dell'area api:
   - si aggiungono `Mcp-Protocol-Version` e `Mcp-Session-Id` agli allow-headers;
   - si aggiunge `Access-Control-Expose-Headers: WWW-Authenticate, Mcp-Session-Id`.
