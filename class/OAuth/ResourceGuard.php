@@ -12,7 +12,7 @@ final class ResourceGuard
         $bearer = self::bearer($server);
 
         if ($bearer === '') {
-            throw new OAuthException('invalid_request', 'Missing bearer token.', 401, ['WWW-Authenticate' => Metadata::wwwAuthenticate($path)]);
+            throw new OAuthException('', 'Missing bearer token.', 401, ['WWW-Authenticate' => Metadata::wwwAuthenticate($path)]);
         }
 
         $invalid = static fn (string $why) => new OAuthException('invalid_token', $why, 401, ['WWW-Authenticate' => Metadata::wwwAuthenticate($path, 'invalid_token', $why)]);

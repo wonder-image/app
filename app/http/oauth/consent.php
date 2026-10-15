@@ -8,12 +8,23 @@ use Wonder\OAuth\AuthorizationRequest;
 use Wonder\OAuth\Config;
 use Wonder\OAuth\Http;
 use Wonder\OAuth\OAuth;
+use Wonder\OAuth\OAuthException;
 use Wonder\OAuth\RedirectUri;
 use Wonder\OAuth\TokenIssuer;
 
 Http::htmlPageHeaders();
 
-$issuer = Config::issuer();
+try {
+    $issuer = Config::issuer();
+} catch (OAuthException $e) {
+    $serverError = $e->status === 500;
+    http_response_code($serverError ? 500 : 400);
+    \Wonder\View\View::make($ROOT_APP.'/view/pages/oauth/error.php', [
+        'titleKey' => $serverError ? 'oauth.error.server_title' : 'oauth.error.invalid_request_title',
+        'messageKey' => $serverError ? 'oauth.error.server_message' : 'oauth.error.invalid_request_message',
+    ])->render();
+    exit;
+}
 $reqId = (string) ($_GET['req'] ?? $_POST['req'] ?? '');
 $request = AuthorizationRequest::find($_SESSION, $reqId);
 $view = static fn (string $page, array $data) => \Wonder\View\View::make($ROOT_APP.'/view/pages/oauth/'.$page.'.php', $data)->render();

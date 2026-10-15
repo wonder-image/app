@@ -12,4 +12,7 @@ try {
     Http::json([]);
 } catch (OAuthException $e) {
     $e->send();
+} catch (\Throwable $e) {
+    error_log('[oauth] '.basename(__FILE__, '.php').': '.get_class($e).': '.$e->getMessage());
+    Http::json(['error' => 'server_error'], 500);
 }

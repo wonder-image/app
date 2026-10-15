@@ -37,6 +37,11 @@ check('fallback REDIRECT_HTTP_AUTHORIZATION', fn () =>
     ResourceGuard::authenticate('/api/gestionale/mcp', ['REDIRECT_HTTP_AUTHORIZATION' => 'Bearer '.$mint()])->userId === 7);
 
 // Review Focus 5
+check('senza token: corpo senza codice error', function () {
+    try { ResourceGuard::authenticate('/api/gestionale/mcp', []); return false; }
+    catch (OAuthException $e) { return $e->status === 401 && !array_key_exists('error', $e->toArray()); }
+});
+
 check('senza token: 401 con solo resource_metadata', function () use ($reject) {
     $h = $reject([]);
     return $h !== null && $h !== 'BAD' && !str_contains($h, 'error=');

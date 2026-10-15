@@ -53,6 +53,11 @@ final class Config
         }
 
         $value = (int) $raw;
+
+        // Un valore negativo non è un'intenzione valida: solo 0 esplicito disattiva (dove il minimo è 0).
+        if ($value < 0 && $min === 0) {
+            return $default;
+        }
         $clamped = max($min, min($max, $value));
 
         if ($clamped !== $value && !isset(self::$warned[$key])) {

@@ -5,8 +5,21 @@ use Wonder\Http\Csrf;
 use Wonder\OAuth\AuthorizationRequest;
 use Wonder\OAuth\Config;
 use Wonder\OAuth\Http;
+use Wonder\OAuth\OAuthException;
 
 Http::htmlPageHeaders();
+
+try {
+    $issuer = Config::issuer();
+} catch (OAuthException $e) {
+    $serverError = $e->status === 500;
+    http_response_code($serverError ? 500 : 400);
+    \Wonder\View\View::make($ROOT_APP.'/view/pages/oauth/error.php', [
+        'titleKey' => $serverError ? 'oauth.error.server_title' : 'oauth.error.invalid_request_title',
+        'messageKey' => $serverError ? 'oauth.error.server_message' : 'oauth.error.invalid_request_message',
+    ])->render();
+    exit;
+}
 
 $reqId = (string) ($_GET['req'] ?? $_POST['req'] ?? '');
 $request = AuthorizationRequest::find($_SESSION, $reqId);
@@ -34,7 +47,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         if (authenticateUserLogin($identifier, (string) ($_POST['password'] ?? ''), $area, null, false)) {
             // Quinto/sesto argomento: nessun remember-me per il login OAuth (e il cookie esistente resta intatto).
             AuthLog::write('oauth_login', (int) $_SESSION['user_id'], 'oauth', true, ['client_id' => $request['client_id']]);
-            header('Location: '.Config::issuer().'/oauth/consent?req='.$reqId, true, 303);
+            header('Location: '.$issuer.'/oauth/consent?req='.$reqId, true, 303);
             exit;
         }
         $alert = (int) ($GLOBALS['ALERT'] ?? 905);

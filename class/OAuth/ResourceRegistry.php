@@ -37,7 +37,7 @@ final class ResourceRegistry
                 'path' => $path,
                 'name' => $name,
                 'url' => $issuer.$path,
-                'metadata_url' => $issuer.'/.well-known/oauth-protected-resource'.$path,
+                'metadata_url' => OAuth::resourceMetadataUrl($path),
             ];
         }
         return $out;

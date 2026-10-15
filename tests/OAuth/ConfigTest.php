@@ -65,6 +65,15 @@ check('rate limit 0 disattiva', function () use ($set) {
     return $ok;
 });
 
+check('rate limit negativo o non numerico → default (solo 0 disattiva)', function () use ($set) {
+    $set('OAUTH_REGISTER_RATE_LIMIT', '-1');
+    $a = Config::registerRateLimit();
+    $set('OAUTH_REGISTER_RATE_LIMIT', 'abc');
+    $b = Config::registerRateLimit();
+    $set('OAUTH_REGISTER_RATE_LIMIT', null);
+    return $a === 20 && $b === 20;
+});
+
 check('issuer da APP_URL senza slash finale', function () use ($set) {
     $set('APP_URL', 'https://sito.it/');
     return Config::issuer() === 'https://sito.it';
