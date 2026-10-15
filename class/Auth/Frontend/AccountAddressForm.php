@@ -72,8 +72,8 @@ class AccountAddressForm
                 'city' => 5,
                 default => 6,
             };
-            // Indirizzo e civico, poi provincia, città e CAP sulla stessa riga anche da telefono.
-            $phone = match ($key) { 'number', 'province', 'cap', 'phone_prefix' => 1, 'city' => 2, 'street', 'phone' => 3, default => 4 };
+            // Da telefono, su 5 colonne: l'indirizzo da solo, poi civico e provincia, città e CAP, prefisso e telefono.
+            $phone = match ($key) { 'number', 'cap', 'phone_prefix' => 2, 'province', 'city', 'phone' => 3, default => 5 };
             // One grid item only: nested floated wrappers shrink the input and
             // leave empty grid cells when a conditional field is hidden.
             $container = (new Container())->noGrid()
@@ -92,6 +92,6 @@ class AccountAddressForm
             $components[] = $container;
         }
 
-        return (new Container())->columns(['default' => 4, 'md' => 12])->gap(4)->class('w-100')->components($components);
+        return (new Container())->columns(['default' => 5, 'md' => 12])->gap(4)->class('w-100 gap-p-3')->components($components);
     }
 }
