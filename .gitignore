@@ -25,3 +25,5 @@ example/
 !/tests/scheduler-integration.php
 /bin/release.php
 node_modules/
+
+.superpowers/
