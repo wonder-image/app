@@ -293,6 +293,22 @@ eq('il date nativo usa l\'attributo HTML',
 eq('lo step temporale arriva all\'Element',
     Inputs\InputTime::key('a')->timeStep(900)->compile()->getAttr('step'), 900);
 
+# ricerca remota del backend: id nascosto, etichetta nella casella, tendina assoluta
+$remote = FormField::key('customer_id')->label('Cliente')->searchText('/api/c/')
+    ->valueLabel('Mario <Rossi>')->emptyText('Nessun cliente')->value('7')->render('bootstrap');
+eq('searchRemote bootstrap: id nel campo nascosto',
+    str_contains($remote, '<input type="hidden" name="customer_id" value="7" data-wi-remote-search-value>'), true);
+eq('searchRemote bootstrap: etichetta escapata nella casella',
+    str_contains($remote, 'value="Mario &lt;Rossi&gt;"'), true);
+eq('searchRemote bootstrap: tendina assoluta come i prodotti',
+    str_contains($remote, 'list-group position-absolute w-100 shadow d-none'), true);
+eq('searchRemote bootstrap: url e frase vuota sulla radice',
+    str_contains($remote, 'data-url="/api/c/" data-empty="Nessun cliente"'), true);
+eq('searchRemote bootstrap: senza value niente etichetta',
+    str_contains(FormField::key('c')->searchText('/x')->valueLabel('X')->render('bootstrap'), 'value="X"'), false);
+eq('searchRemote bootstrap: noFloating in un contenitore relativo',
+    str_contains(FormField::key('c')->searchText('/x')->compile()->noFloating()->render('bootstrap'), '<div class="position-relative" data-wi-remote-search'), true);
+
 # helper sconosciuto: la facade lo dice esplicitamente
 $thrown = null;
 try { (new FormField('a', 'inesistente'))->compile(); } catch (Throwable $e) { $thrown = $e::class; }

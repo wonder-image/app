@@ -29,6 +29,21 @@ class SearchRemote extends Field
         return $this->schema('search_type', $type === 'radio' ? 'radio' : 'text');
     }
 
+    /**
+     * Il testo mostrato nella casella per il value già scelto (il value è
+     * un id, il testo la sua etichetta): senza, la casella parte vuota.
+     */
+    public function valueLabel(string $label): self
+    {
+        return $this->schema('value_label', $label);
+    }
+
+    /** La frase sotto la casella quando la ricerca non trova nulla. */
+    public function emptyText(string $text): self
+    {
+        return $this->schema('empty_text', $text);
+    }
+
     protected function renderInput(): string
     {
         return '';
