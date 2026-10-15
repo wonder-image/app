@@ -47,18 +47,21 @@ final class MemoryStore implements OAuthStore
 
     public function findActiveGrant(int $userId, string $clientId, string $resource): ?array
     {
+        $best = null;
         foreach ($this->tables['grants'] as $g) {
-            if ((int) $g['user_id'] === $userId && $g['client_id'] === $clientId && $g['resource'] === $resource && $g['revoked_at'] === null) {
-                return $g;
+            if ((int) $g['user_id'] === $userId && $g['client_id'] === $clientId && $g['resource'] === $resource && $g['revoked_at'] === null
+                && ($best === null || $g['id'] > $best['id'])) {
+                $best = $g;
             }
         }
-        return null;
+        return $best;
     }
 
     public function updateGrant(int $id, array $values): void
     {
         if (isset($this->tables['grants'][$id])) {
-            $this->tables['grants'][$id] = $values + $this->tables['grants'][$id];
+            $allowed = array_intersect_key($values, array_flip(['consented_at', 'last_used_at']));
+            $this->tables['grants'][$id] = $allowed + $this->tables['grants'][$id];
         }
     }
 

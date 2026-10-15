@@ -55,4 +55,17 @@ check('codice scaduto', function () use ($s) {
     return $s->consumeCode($code) === null;
 });
 
+check('findActiveGrant restituisce il più recente', function () use ($s, $now) {
+    $a = $s->createGrant(['user_id' => 8, 'client_id' => 'cx', 'resource' => 'r', 'scope' => '', 'consented_at' => $now]);
+    $b = $s->createGrant(['user_id' => 8, 'client_id' => 'cx', 'resource' => 'r', 'scope' => '', 'consented_at' => $now]);
+    return $b > $a && $s->findActiveGrant(8, 'cx', 'r')['id'] === $b;
+});
+
+check('updateGrant applica solo la whitelist', function () use ($s, $now) {
+    $g = $s->createGrant(['user_id' => 9, 'client_id' => 'cy', 'resource' => 'r', 'scope' => '', 'consented_at' => $now]);
+    $s->updateGrant($g, ['last_used_at' => '2030-01-01 00:00:00', 'user_id' => 1, 'revoked_at' => $now]);
+    $row = $s->findGrant($g);
+    return $row['last_used_at'] === '2030-01-01 00:00:00' && $row['user_id'] === 9 && $row['revoked_at'] === null;
+});
+
 summary();

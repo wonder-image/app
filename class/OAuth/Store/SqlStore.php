@@ -21,7 +21,11 @@ final class SqlStore implements OAuthStore
         $stmt = $this->db()->prepare($sql);
         if ($stmt === false) { throw new RuntimeException('oauth_sql_prepare_failed'); }
         if ($types !== '') { $stmt->bind_param($types, ...$params); }
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            error_log('oauth_sql: '.$stmt->error);
+            $stmt->close();
+            throw new RuntimeException('oauth_sql_execute_failed');
+        }
         $result = $stmt->get_result();
         $rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
         $stmt->close();
@@ -33,7 +37,11 @@ final class SqlStore implements OAuthStore
         $stmt = $this->db()->prepare($sql);
         if ($stmt === false) { throw new RuntimeException('oauth_sql_prepare_failed'); }
         if ($types !== '') { $stmt->bind_param($types, ...$params); }
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            error_log('oauth_sql: '.$stmt->error);
+            $stmt->close();
+            throw new RuntimeException('oauth_sql_execute_failed');
+        }
         $affected = $stmt->affected_rows;
         $insertId = $stmt->insert_id;
         $stmt->close();
