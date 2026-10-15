@@ -79,6 +79,7 @@ Il codice nuovo sta in `class/OAuth/` (namespace `Wonder\OAuth`). I Model stanno
 | `ResourceGuard` | `ResourceGuard::authenticate(string $resource): OAuthCaller` per i moduli. |
 | `OAuthCaller` | Oggetto immutabile: `user` (da `infoUser`), `userId`, `grantId`, `clientId`, `resource`. |
 | `Cleanup` | Task dello Scheduler che pulisce token e client scaduti. |
+| `Config` | Legge dal `.env` i valori configurabili (rate limit e durate), con default e limiti. Vedi "Configurazione". |
 | `OAuthException` | Errore con `error`, `error_description`, status HTTP. |
 
 Pagine e handler HTTP stanno in `app/http/oauth/` e `app/http/backend/oauth/`; le viste in `app/view/pages/oauth/` e `app/view/pages/backend/oauth/`. Le rotte vanno in un file `app/config/routes/route.oauth.php`, caricato dal `RouteDispatcher` solo se `OAuth::enabled()`.
@@ -130,7 +131,7 @@ Riceve JSON. Regole:
 - `token_endpoint_auth_method`: solo `none`. Altri valori ricevono `400 invalid_client_metadata`.
 - `grant_types` ⊆ {`authorization_code`, `refresh_token`}; `response_types` ⊆ {`code`}.
 - `client_name`: facoltativo, al massimo 100 caratteri, ripulito da tag e caratteri di controllo. Se manca si usa l'host del primo redirect URI.
-- Rate limit per IP: 20 registrazioni l'ora. Il framework non ha un rate limiter, quindi il limite si calcola contando le righe di `oauth_clients` con lo stesso `registration_ip` create nell'ultima ora. Oltre la soglia: `429`.
+- Rate limit per IP: `Config::registerRateLimit()` registrazioni l'ora, 20 di default, `0` per disattivarlo. Il framework non ha un rate limiter, quindi il limite si calcola contando le righe di `oauth_clients` con lo stesso `registration_ip` create nell'ultima ora. Oltre la soglia: `429`.
 - Risposta `201` con `client_id` (`wio_client_` + 32 hex casuali), `client_id_issued_at`, i metadati normalizzati e nessun `client_secret`.
 
 ### `GET /oauth/authorize`
@@ -212,7 +213,7 @@ Parametri: `token`, `client_id`, `token_type_hint` facoltativo. Revoca il **gran
 - `selector` sono 16 hex, `validator` 64 hex, generati con `random_bytes`.
 - Nel DB si salvano solo `selector` e `sha256(validator)`; la verifica usa `hash_equals`.
 - **Non sono mai JWT** e non dipendono da `APP_KEY`: ruotare `APP_KEY` non li invalida, revocarli sì.
-- Durata: access 1 ora, refresh 30 giorni, con una scadenza assoluta del grant di 90 giorni dall'ultimo consenso.
+- Durata, configurabile (vedi "Configurazione"): access 1 ora, refresh 30 giorni, scadenza assoluta del grant 90 giorni dall'ultimo consenso.
 
 Il codice di autorizzazione è un `OneTimeToken` con purpose `oauth_code`, TTL 5 minuti, subject `user_id`. In `metadata_json` ci sono `client_id`, `redirect_uri`, `code_challenge`, `resource` e `grant_id`.
 
@@ -267,6 +268,27 @@ Cosa fa `ResourceGuard::authenticate`:
 - **non** controlla `allowed_ips` e `allowed_domains`, che riguardano i token `api_users`, né le autorizzazioni: queste restano compito della risorsa.
 
 Senza token, `ResourceGuard` risponde `401` con il solo `resource_metadata`, senza `error`. Con un token non valido aggiunge `error="invalid_token"`.
+
+## Configurazione
+
+I valori operativi sono modificabili da `.env` del progetto, senza toccare il codice. Li legge `Wonder\OAuth\Config` dopo `Credentials::loadEnv()`.
+
+| Chiave `.env` | Default | Limiti | Significato |
+|---|---|---|---|
+| `OAUTH_REGISTER_RATE_LIMIT` | `20` | `0`–`1000` | Registrazioni DCR per IP all'ora. `0` disattiva il limite. |
+| `OAUTH_ACCESS_TOKEN_TTL` | `3600` | `300`–`86400` | Durata dell'access token, in secondi. |
+| `OAUTH_REFRESH_TOKEN_TTL` | `2592000` (30 giorni) | `3600`–`7776000` | Durata del refresh token, in secondi. |
+| `OAUTH_GRANT_MAX_AGE` | `7776000` (90 giorni) | `86400`–`31536000` | Scadenza assoluta del grant dall'ultimo consenso, in secondi. |
+
+Regole:
+- Un valore assente, vuoto o non intero usa il default.
+- Un valore fuori dai limiti viene riportato al limite più vicino e scrive un avviso in `error_log` una volta per richiesta.
+- `expires_in` nella risposta di `/oauth/token` riflette sempre il valore effettivo.
+- Una modifica vale per i token emessi da quel momento; quelli già emessi mantengono la scadenza salvata.
+
+Restano fissi, perché sono parametri di sicurezza del protocollo: TTL del codice (5 minuti), TTL della richiesta in sessione (10 minuti), soglie di pulizia.
+
+Le chiavi sono documentate in `docs/app/piattaforma/oauth.md`.
 
 ## Pagina backend "Connessioni MCP"
 
@@ -326,6 +348,7 @@ Script `php tests/OAuth/*.php` con `tests/harness.php`:
 - `RedirectUriTest`: https esatto; loopback con porta diversa accettato; host diverso, path diverso, fragment, userinfo e `http` non loopback rifiutati.
 - `ClientRegistrationTest`: metadati validi e non validi, `token_endpoint_auth_method` diverso da `none`, `client_name` sanificato.
 - `AuthorizationCodeTest`: codice monouso; mismatch di client, redirect o resource; codice scaduto.
+- `ConfigTest`: default; valori validi; valori non interi; valori fuori dai limiti riportati al limite; `0` sul rate limit.
 - `TokenIssuerTest`: rotazione del refresh; riuso → grant revocato; utente disattivato → `invalid_grant`; client cancellato → `invalid_client`.
 - `ResourceGuardTest`: token valido; scaduto; revocato; audience diversa → rifiuto; formato JWT → rifiuto.
 - `MetadataTest`: JSON di PRM e AS; issuer da `APP_URL` anche con header `Host` diverso; header `WWW-Authenticate`.
@@ -343,6 +366,7 @@ Il test end-to-end reale con claude.ai richiede un host pubblico (staging o tunn
   - come funziona `ResourceGuard`;
   - come un utente collega un client;
   - durate e revoca dei token;
+  - le chiavi `.env` di configurazione;
   - requisiti di deploy.
 - Aggiornare `gestionale/docs/dev/concetti/mcp.md`.
 
