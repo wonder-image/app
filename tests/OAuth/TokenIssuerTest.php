@@ -91,26 +91,36 @@ check('grant oltre la scadenza assoluta → invalid_grant', function () use ($pa
     $t = $pair();
     [$sel] = TokenIssuer::parse($t['refresh_token'], 'wio_rt_');
     $gid = $store->findToken('refresh', $sel)['grant_id'];
-    $store->tables['grants'][$gid]['consented_at'] = date('Y-m-d H:i:s', time() - 7776001);
-    $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
-    $store->tables['grants'][$gid]['consented_at'] = date('Y-m-d H:i:s');
+    $orig = $store->tables['grants'][$gid]['consented_at'];
+    try {
+        $store->tables['grants'][$gid]['consented_at'] = date('Y-m-d H:i:s', time() - 7776001);
+        $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
+    } finally {
+        $store->tables['grants'][$gid]['consented_at'] = $orig;
+    }
     return $e?->error === 'invalid_grant';
 });
 
 check('utente disattivato → invalid_grant', function () use ($pair, $endpoint, $client, $store, $err) {
     $t = $pair();
     $store->users[7]->active = false;
-    $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
-    $store->users[7]->active = true;
+    try {
+        $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
+    } finally {
+        $store->users[7]->active = true;
+    }
     return $e?->error === 'invalid_grant';
 });
 
 check('client cancellato → 401 invalid_client', function () use ($pair, $endpoint, $client, $store, $err) {
     $t = $pair();
     $saved = $store->tables['clients'][$client];
-    $store->deleteClient($client);
-    $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
-    $store->tables['clients'][$client] = $saved;
+    try {
+        $store->deleteClient($client);
+        $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
+    } finally {
+        $store->tables['clients'][$client] = $saved;
+    }
     return $e?->error === 'invalid_client' && $e->status === 401;
 });
 
@@ -145,6 +155,39 @@ check('grant revocato → refresh invalid_grant (usableGrant)', function () use 
     $store->tables['grants'][$gid]['revoked_at'] = date('Y-m-d H:i:s');
     return $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]))?->error === 'invalid_grant'
         && (new TokenIssuer($store))->usableGrant((int) $gid) === null;
+});
+
+check('grantFor non resuscita un grant oltre il max age', function () use ($pair, $endpoint, $client, $store, $res, $err) {
+    $t = $pair();
+    [$sel] = TokenIssuer::parse($t['refresh_token'], 'wio_rt_');
+    $gid = $store->findToken('refresh', $sel)['grant_id'];
+    $store->tables['grants'][$gid]['consented_at'] = date('Y-m-d H:i:s', time() - 7776001);
+    $new = (new TokenIssuer($store))->grantFor(7, $client, $res);
+    $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]));
+    return $new !== $gid && $e?->error === 'invalid_grant' && $store->findGrant($gid)['revoked_at'] !== null;
+});
+
+check('refresh consumato presentato da un altro client non revoca il grant', function () use ($pair, $endpoint, $client, $store, $err) {
+    $t = $pair();
+    $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $client]);
+    $other = (new ClientRegistry($store))->register(['redirect_uris' => ['https://y.it/cb']], '1.1.1.8')['client_id'];
+    $e = $err(fn () => $endpoint->token(['grant_type' => 'refresh_token', 'refresh_token' => $t['refresh_token'], 'client_id' => $other]));
+    [$sel] = TokenIssuer::parse($t['refresh_token'], 'wio_rt_');
+    return $e?->error === 'invalid_grant' && $store->findGrant($store->findToken('refresh', $sel)['grant_id'])['revoked_at'] === null;
+});
+
+check('client con revoked_at → refresh e usableGrant falliscono', function () use ($pair, $endpoint, $client, $store, $err) {
+    $t = $pair();
+    [$sel] = TokenIssuer::parse($t['refresh_token'], 'wio_rt_');
+    $gid = (int) $store->findToken('refresh', $sel)['grant_id'];
+    try {
+        $store->tables['clients'][$client]['revoked_at'] = date('Y-m-d H:i:s');
+        $e = $err(fn () => (new TokenIssuer($store))->refresh($t['refresh_token'], $client, null));
+        $u = (new TokenIssuer($store))->usableGrant($gid);
+    } finally {
+        $store->tables['clients'][$client]['revoked_at'] = null;
+    }
+    return $e !== null && $u === null;
 });
 
 summary();

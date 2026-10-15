@@ -20,9 +20,13 @@ final class TokenIssuer
         $now = $this->date();
         $grant = $this->store->findActiveGrant($userId, $clientId, $resource);
         if ($grant !== null) {
-            // Il consenso è stato richiesto di nuovo: la scadenza assoluta riparte da qui.
-            $this->store->updateGrant((int) $grant['id'], ['consented_at' => $now]);
-            return (int) $grant['id'];
+            if ($this->usableGrant((int) $grant['id']) !== null) {
+                // Il consenso è stato richiesto di nuovo: la scadenza assoluta riparte da qui.
+                $this->store->updateGrant((int) $grant['id'], ['consented_at' => $now]);
+                return (int) $grant['id'];
+            }
+            // Grant scaduto (o non più utilizzabile) ma non ancora ripulito: non va resuscitato.
+            $this->store->revokeGrant((int) $grant['id'], $now);
         }
         return $this->store->createGrant(['user_id' => $userId, 'client_id' => $clientId, 'resource' => $resource, 'scope' => '', 'consented_at' => $now]);
     }
