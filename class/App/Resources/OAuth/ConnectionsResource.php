@@ -23,9 +23,8 @@ class ConnectionsResource extends NavigationOnlyResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('dev')
             ->title(__t('oauth.connections.title'))
-            ->order(20)
+            ->sectionOrder(990)
             ->authority([])
             ->enabled(OAuth::enabled());
     }
