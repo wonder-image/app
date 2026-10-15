@@ -273,6 +273,123 @@ final class CssTokens
     }
 
     /**
+     * `docs/ai/DESIGN.md`: la proiezione leggibile dei token per gli agenti AI
+     * (palette, tipografia, spaziatura, bottoni, classi utility). Stessi input
+     * di `root()` per la parte che riguarda il brand; le righe `css_input`,
+     * `css_auth`, `css_modal`, `css_dropdown` e `css_alert` descrivono il
+     * backend e restano fuori. La scrittura su disco sta in `cssDesignMd()`.
+     *
+     * @param array<int, array<string, mixed>|object> $colors righe `css_color` (`var`, `color`, `contrast`)
+     * @param array<string, string> $fontFamilies chiavi `default`, `title_big`, `title`, `subtitle`, `text`, `text_small`
+     */
+    public static function designMd(object $default, array $colors, array $fontFamilies): string
+    {
+        $fontFamilyDefault = (string) ($fontFamilies['default'] ?? '');
+        $families = [
+            'default' => $fontFamilyDefault,
+            'title_big' => (string) ($fontFamilies['title_big'] ?? $fontFamilyDefault),
+            'title' => (string) ($fontFamilies['title'] ?? $fontFamilyDefault),
+            'subtitle' => (string) ($fontFamilies['subtitle'] ?? $fontFamilyDefault),
+            'text' => (string) ($fontFamilies['text'] ?? $fontFamilyDefault),
+            'text_small' => (string) ($fontFamilies['text_small'] ?? $fontFamilyDefault),
+        ];
+
+        $value = static function (string $property) use ($default): string {
+            return (string) ($default->{$property} ?? '');
+        };
+
+        $RETURN = "<!-- Generato da wonder-image/app (CssTokens::designMd) dalle tabelle css_default, css_font, css_color.\n";
+        $RETURN .= "     Non modificare a mano: cambia i valori nel backend (CSS → Colori / Font / Impostazioni) o nel seed,\n";
+        $RETURN .= "     poi `php forge update --local`. Il file si rigenera a ogni salvataggio. -->\n";
+        $RETURN .= "\n";
+        $RETURN .= "# Design tokens\n";
+        $RETURN .= "\n";
+        $RETURN .= "Proiezione leggibile di `assets/{ASSETS_VERSION}/css/set-up/root.css` e `color.css`.\n";
+        $RETURN .= "Le variabili e le classi elencate sono le uniche fonti di colore e tipografia ammesse nel sito.\n";
+        $RETURN .= "\n";
+
+        $RETURN .= "## Palette\n";
+        $RETURN .= "\n";
+        $RETURN .= "| Ruolo | Colore | Contrasto (`-o`) | Variabili |\n";
+        $RETURN .= "|---|---|---|---|\n";
+
+        $roles = [];
+
+        foreach ($colors as $row) {
+            $row = (array) $row;
+            $var = (string) ($row['var'] ?? '');
+
+            if ($var === '') {
+                continue;
+            }
+
+            $roles[] = $var;
+            $colorHEX = (string) ($row['color'] ?? '');
+            $contrastHEX = (string) ($row['contrast'] ?? '');
+
+            $RETURN .= "| $var | $colorHEX | $contrastHEX | `--$var-color`, `--$var-o-color`, `--$var-color-{0..100 passo 10}`, `--$var-o-color-{0..100 passo 10}` |\n";
+        }
+
+        $RETURN .= "\n";
+        $RETURN .= "Testo di default: `--tx-color` {$value('tx_color')} (`--tx-color-{0..100 passo 10}`) · Sfondo di default: `--bg-color` {$value('bg_color')} (`--bg-color-{0..100 passo 10}`)\n";
+        $RETURN .= "\n";
+
+        $RETURN .= "## Tipografia\n";
+        $RETURN .= "\n";
+        $RETURN .= "| Gruppo | Famiglia | Peso | Dimensione | Interlinea | Variabili |\n";
+        $RETURN .= "|---|---|---|---|---|---|\n";
+
+        // [etichetta, chiave famiglia, prefisso variabile CSS, prefisso colonna css_default]
+        $groups = [
+            ['default', 'default', '', ''],
+            ['title-big', 'title_big', 'title-big-', 'title_big_'],
+            ['title', 'title', 'title-', 'title_'],
+            ['subtitle', 'subtitle', 'subtitle-', 'subtitle_'],
+            ['text', 'text', 'text-', 'text_'],
+            ['text-small', 'text_small', 'text-small-', 'text_small_'],
+        ];
+
+        foreach ($groups as [$label, $familyKey, $cssPrefix, $rowPrefix]) {
+            $weight = $value($rowPrefix.'font_weight');
+            $size = $value($rowPrefix.'font_size');
+            $lineHeight = $value($rowPrefix.'line_height');
+
+            $RETURN .= "| $label | {$families[$familyKey]} | $weight | {$size}px | {$lineHeight}px | `--{$cssPrefix}font-family`, `--{$cssPrefix}font-weight`, `--{$cssPrefix}font-size`, `--{$cssPrefix}line-height` |\n";
+        }
+
+        $RETURN .= "\n";
+        $RETURN .= "## Spaziatura e layout\n";
+        $RETURN .= "\n";
+        $RETURN .= "- `--spacer`: {$value('spacer')}px\n";
+        $RETURN .= "- `--header-height`: {$value('header_height')}px\n";
+        $RETURN .= "\n";
+
+        $RETURN .= "## Bottoni e badge\n";
+        $RETURN .= "\n";
+        $RETURN .= "| Componente | Font size | Line height | Peso | Radius | Bordo |\n";
+        $RETURN .= "|---|---|---|---|---|---|\n";
+        $RETURN .= "| button | {$value('button_font_size')}px | {$value('button_line_height')}px | {$value('button_font_weight')} | {$value('button_border_radius')}px | {$value('button_border_width')}px |\n";
+        $RETURN .= "| badge | {$value('badge_font_size')}px | {$value('badge_line_height')}px | {$value('badge_font_weight')} | {$value('badge_border_radius')}px | {$value('badge_border_width')}px |\n";
+        $RETURN .= "\n";
+
+        $roleList = $roles === [] ? 'nessun ruolo in css_color' : implode(', ', $roles);
+
+        $RETURN .= "## Classi utility (da color.css)\n";
+        $RETURN .= "\n";
+        $RETURN .= "Per ogni ruolo `{r}` della palette ($roleList):\n";
+        $RETURN .= '`.tx-{r}` `.tx-{r}-o` `.bg-{r}` `.bg-{r}-o` `.bg-{r}-{0..100 passo 10}` `.bg-{r}-o-{N}` `.tx-stroke-{r}`'."\n";
+        $RETURN .= '`.btn-{r}` `.btn-{r}-o` `.badge-{r}` `.badge-{r}-o` e le varianti `hover\:` di `tx-`/`bg-`.'."\n";
+        $RETURN .= "\n";
+
+        $RETURN .= "## Come usarlo\n";
+        $RETURN .= "\n";
+        $RETURN .= "- Un colore o un font proposto da una skill esterna si mappa su un ruolo o un gruppo qui sopra, oppure si scarta.\n";
+        $RETURN .= "- Voce, tono e personalità del brand non stanno qui: vedi `docs/ai/PRODUCT.md`.\n";
+
+        return $RETURN;
+    }
+
+    /**
      * I token di un sito appena installato: le righe seed di `SeedDefaults`,
      * la palette di `RuntimeDefaults` e il font di fallback. Servono al
      * catalogo dei componenti per rendere il tema Wonder senza database.

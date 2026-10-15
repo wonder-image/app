@@ -101,3 +101,10 @@ Il flusso che mantiene allineati i CSS generati dal DB:
    `root.css`/`color.css` sul server. Essendo inlinati in `<head>` via
    `__inline_css()`, la richiesta successiva serve già il CSS aggiornato (nessun
    `?v=` da invalidare per questi due file).
+
+In sviluppo (`APP_DEBUG=true`, oppure richiesta HTTP da host locale quando
+`APP_DEBUG` non è attivo; da CLI conta solo `APP_DEBUG`) la rigenerazione locale
+scrive anche `docs/ai/DESIGN.md`, la proiezione in Markdown dei token per gli agenti
+AI (`CssTokens::designMd()`): è gitignorato nel sito come `root.css`/`color.css` e non
+si modifica a mano, perché il salvataggio successivo lo sovrascrive. In produzione,
+con `APP_DEBUG=false` e richieste non da loopback, il file non viene scritto.
