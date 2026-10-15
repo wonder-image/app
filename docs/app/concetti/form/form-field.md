@@ -231,8 +231,15 @@ value; tema Bootstrap: degrada a `select` ricercabile (`data-wi-select-search`).
 
 `searchText($url)`, `searchRadio($url)` — ricerca *remota*: la dropdown è
 popolata via AJAX dall'endpoint `$url` (`SearchRemote`). `searchText` è a testo
-libero, `searchRadio` a selezione singola. La ricerca remota è resa dal JS del
-tema Wonder (frontend); in Bootstrap degrada a un input testuale.
+libero, `searchRadio` a selezione singola. Nel frontend la rende il JS del
+tema Wonder. Nel backend (Bootstrap) è una scelta singola: il campo posta un
+id nascosto, la casella cerca su `$url?q=` dopo due lettere e apre una tendina
+`list-group` assoluta che non sposta la pagina. L'endpoint risponde
+`{items: [{id, label, detail}]}`. `valueLabel($label)` mette nella casella il
+nome della voce già scelta, `emptyText($text)` cambia «Nessun risultato».
+La scelta manda `change` sul campo nascosto e `wi:search-select` (con la voce
+in `detail`) dalla radice `[data-wi-remote-search]`; la creazione rapida
+sceglie la voce nuova.
 
 ### Geo
 

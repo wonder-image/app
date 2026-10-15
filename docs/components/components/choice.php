@@ -2,6 +2,7 @@
 
 use Wonder\Docs\Assets;
 use Wonder\Docs\ComponentDoc;
+use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Choice;
 use Wonder\Elements\Components\Container;
 
@@ -11,7 +12,7 @@ return ComponentDoc::for(Choice::class)
     ->order(10)
     ->tags('radio', 'checkbox', 'scelta', 'riquadro', 'checkout')
     ->description('Un radio o un checkbox in un riquadro cliccabile, con titolo, testo e una colonna a lato per il prezzo. Titolo, testo e aside sono escapati; le parti vuote restano nel markup con `hidden`, così un `<template>` reso da un `Choice` ha sempre tutte le parti e il JS le riempie.')
-    ->uses(Container::class, Assets::class)
+    ->uses(Container::class, Assets::class, Button::class)
     ->docs('concetti/componenti/README.md#choice-choicegroup-e-steps', 'Componenti UI')
     ->related('choice-group', 'steps', 'checkbox')
     ->note('wonder', 'Usa `.wi-choice` della lib; `panel()` è visibile solo quando l\'input è scelto (`:has(input:checked)`).')
@@ -41,4 +42,14 @@ return ComponentDoc::for(Choice::class)
         ], 3)
         ->panel('Dopo aver cliccato «Paga ora» verrai reindirizzato al circuito.')
         ->checked()
-    PHP, '`icons()` mostra i loghi a destra e oltre il massimo scrive «+N»; `panel()` aggiunge un riquadro sotto la scelta.');
+    PHP, '`icons()` mostra i loghi a destra e oltre il massimo scrive «+N»; `panel()` aggiunge un riquadro sotto la scelta.')
+    ->example('Pulsanti nel riquadro', <<<'PHP'
+    Choice::make('address_id', 4)
+        ->type('checkbox')
+        ->title('Casa')
+        ->text('Via Roma 1, 20100 Milano (MI)')
+        ->actions(
+            Button::make('Modifica')->size('sm')->variant('outline-secondary'),
+            Button::make('Elimina')->size('sm')->variant('outline-danger')->confirm('Eliminare l\'indirizzo?'),
+        )
+    PHP, '`actions()` mette i pulsanti a destra, dopo l\'aside; un clic su un pulsante non sceglie l\'input.');

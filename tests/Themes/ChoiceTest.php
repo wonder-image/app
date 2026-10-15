@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
 
+use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Choice;
 use Wonder\Elements\Components\ChoiceGroup;
 
@@ -197,5 +198,20 @@ check('bootstrap: btn-group per i segmenti, list-group per la lista, card-footer
         && str_contains(Choice::make('p', 1)->render('bootstrap'), '<span class="card-footer small" style="display:block;-webkit-user-select:text;user-select:text" data-choice-panel hidden></span>')
         && str_contains(Choice::make('p', 1)->render('bootstrap'), '<span class="align-items-center gap-1" style="display:flex" data-choice-icons hidden></span>');
 });
+
+foreach (['wonder', 'bootstrap'] as $theme) {
+    check("{$theme}: actions() mette i pulsanti nel riquadro, dopo l'aside", function () use ($theme) {
+        $html = Choice::make('address', 4)->type('checkbox')->title('Casa')->aside('X')
+            ->actions(Button::make('Modifica')->attr('data-edit', 4), '<button type="button" data-raw>Elimina</button>')
+            ->render($theme);
+        $at = strpos($html, 'data-choice-actions');
+
+        return $at !== false
+            && $at > strpos($html, 'data-choice-aside')
+            && strpos($html, 'Modifica', $at) !== false
+            && str_contains($html, '<button type="button" data-raw>Elimina</button>')
+            && !str_contains(Choice::make('a', 1)->render($theme), 'data-choice-actions');
+    });
+}
 
 summary();

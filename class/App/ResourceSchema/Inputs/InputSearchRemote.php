@@ -26,13 +26,39 @@ abstract class InputSearchRemote extends Input
         return $this;
     }
 
+    /** Il testo della voce già scelta: il value è il suo id. */
+    public function valueLabel(string $label): static
+    {
+        $this->schema['value_label'] = $label;
+
+        return $this;
+    }
+
+    /** La frase sotto la casella quando la ricerca non trova nulla. */
+    public function emptyText(string $text): static
+    {
+        $this->schema['empty_text'] = $text;
+
+        return $this;
+    }
+
     /** `text` o `radio`: lo decide la sottoclasse. */
     abstract protected function searchType(): string;
 
     protected function element(): ElementField
     {
-        return (new SearchRemote($this->name))
+        $element = (new SearchRemote($this->name))
             ->url((string) ($this->schema['url'] ?? ''))
             ->searchType($this->searchType());
+
+        if (isset($this->schema['value_label'])) {
+            $element->valueLabel((string) $this->schema['value_label']);
+        }
+
+        if (isset($this->schema['empty_text'])) {
+            $element->emptyText((string) $this->schema['empty_text']);
+        }
+
+        return $element;
     }
 }

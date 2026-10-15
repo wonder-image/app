@@ -533,6 +533,10 @@ Steps::make('Checkout')
 - Titolo, testo e aside si escapano. Una parte vuota si stampa lo stesso con
   `hidden`: un `<template>` reso da `Choice` ha sempre tutte le parti, e il JS lo
   clona e lo riempie con `textContent` senza ricostruire il markup.
+- `actions(Button|string ...)` mette dei pulsanti a destra nel riquadro, dopo
+  l'aside, dentro `data-choice-actions` (Modifica ed Elimina di un indirizzo
+  da scegliere). Un clic su un pulsante non sceglie l'input; le stringhe sono
+  HTML già pronto.
 - **Ganci uguali nei due temi**:
   - `data-choice-input` sull'input;
   - `data-choice-title`, `data-choice-text` e `data-choice-aside` sulle parti;
@@ -696,6 +700,17 @@ responsive (`__gallery()`, che sostituisce la vecchia `responsiveGallery()`), ve
 Per video HTML5 con poster, source WebM opzionale e avvio configurabile, oppure
 iframe con object fit coerente tra Wonder e Bootstrap, vedi
 [Video e Iframe](video-e-iframe.md).
+
+## Righe da trascinare
+
+Le tabelle che il JS disegna riga per riga (le righe di un documento, per
+esempio) si riordinano con `Wonder\Backend\Support\RowDrag`: si stampa una
+volta `RowDrag::script()`, ogni riga riceve la maniglia (`RowDrag::handle()`
+in PHP, `window.wiRowDrag.handle()` in JS) e il `tbody` si arma con
+`window.wiRowDrag(tbody, onMove)`. Si trascina dalla maniglia; con le frecce
+su e giù la maniglia sposta la riga da tastiera. Dopo ogni spostamento
+arrivano `onMove(tr)` e l'evento `wi:row-move`. Le righe marcate
+`data-wi-row-drag-follow` seguono quella che le precede.
 
 ## Checklist
 
