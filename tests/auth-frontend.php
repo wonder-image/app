@@ -25,21 +25,15 @@ $check(str_contains($modalHtml, 'inert') && str_contains($modalHtml, 'aria-hidde
 try { $trigger->type('submit')->render('wonder'); $check(false, 'Modal submit trigger accepted.'); } catch (\InvalidArgumentException $e) {}
 $migration = \Wonder\App\Support\SharedContactTablesMigration::class;
 $check($migration::plan([]) === [], 'Fresh database migration is not a no-op.');
-$check($migration::plan(['contacts', 'contact_addresses', 'external_references']) === [], 'Migration is not idempotent.');
-$check($migration::plan(['gst_contacts', 'gst_contact_addresses']) === ['gst_contacts' => 'contacts', 'gst_contact_addresses' => 'contact_addresses'], 'Legacy migration plan incomplete.');
+$check($migration::plan(['external_references']) === [], 'Migration is not idempotent.');
+$check($migration::plan(['gst_external_references']) === ['gst_external_references' => 'external_references'], 'Legacy migration plan incomplete.');
+$check($migration::plan(['gst_contacts', 'gst_contact_addresses']) === [], 'Core migrates the customer-account tables.');
 try {
-    $migration::plan(['gst_contacts', 'contacts']);
+    $migration::plan(['gst_external_references', 'external_references']);
     $check(false, 'Migration accepted conflicting tables.');
 } catch (RuntimeException) {}
-foreach ([\Wonder\App\Models\Contacts\Contact::class, \Wonder\App\Models\Contacts\ContactAddress::class, \Wonder\App\Models\System\ExternalReference::class] as $model) {
-    $check($model::rawTableSchema() !== [] && $model::syncSchema() === null, 'Shared model requires gestionale or syncs operational data.');
-}
-$coreContacts = \Wonder\App\Models\Contacts\Contact::rawTableSchema();
-$check(!isset($coreContacts['price_list_id'], $coreContacts['payment_term_id']), 'Core owns commercial settings.');
-$check(isset($coreContacts['user_id'], $coreContacts['business_name']), 'Core contact identity incomplete.');
-$addressFields = \Wonder\Auth\Frontend\AccountAddressForm::fields(\Wonder\App\Models\Contacts\ContactAddress::address());
-$check($addressFields['name']->get('label') === 'components.forms.fields.name.label', 'Address labels fall back to SQL names.');
-$check($addressFields['country']->get('value') === 'IT', 'Address country default missing.');
+$check(\Wonder\App\Models\System\ExternalReference::rawTableSchema() !== [] && \Wonder\App\Models\System\ExternalReference::syncSchema() === null, 'Shared model requires gestionale or syncs operational data.');
+$check(!class_exists('Wonder\\App\\Models\\Contacts\\Contact') && !class_exists('Wonder\\Plugin\\CustomerAccount\\CustomerAccount'), 'Core still owns contacts or depends on customer-account.');
 $check(!class_exists('Wonder\\Plugin\\Ecommerce\\Ecommerce'), 'Core test unexpectedly depends on ecommerce.');
 $check(array_keys($profile->fields('signup-request')) === ['name', 'surname', 'email', 'accept_privacy_policy'], 'Generic signup fields mismatch.');
 $check($profile->validate('signup-completion', ['password' => 'password123', 'password_confirmation' => 'password123']) === [], 'Core forces a mobile number.');

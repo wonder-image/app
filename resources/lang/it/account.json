@@ -4,10 +4,7 @@
         "description": "Gestisci dati personali, indirizzi e metodi di pagamento del tuo account."
     },
     "overview": {
-        "title": "Il tuo account",
-        "addresses_count": "{{count}} salvati",
-        "addresses_none": "Nessun indirizzo salvato",
-        "address_first": "Primo indirizzo"
+        "title": "Il tuo account"
     },
     "breadcrumb_home": "Home",
     "saved": "Le modifiche sono state salvate.",
@@ -31,12 +28,8 @@
         "title": "Modifica i dati personali",
         "section": "Informazioni personali",
         "name": "Nome",
-        "birth_date": "Data di nascita",
         "phone": "Cellulare",
-        "modal_title": "Modifica dati",
-        "errors": {
-            "birth_date": "Data di nascita: valore non valido."
-        }
+        "modal_title": "Modifica dati"
     },
     "email": {
         "label": "Email",
@@ -63,7 +56,6 @@
         "label": "Navigazione account",
         "overview": "Panoramica",
         "personal": "Dati personali",
-        "addresses": "Indirizzi",
         "billing": "Fatturazione",
         "payment_methods": "Metodi di pagamento",
         "password": "Password",
@@ -87,25 +79,6 @@
         "summary": "Gestiti in sicurezza tramite Stripe",
         "pending": "Il collegamento al portale Stripe è predisposto, ma resterà disattivato finché il gestionale non esporrà l’identificativo cliente Stripe.",
         "ready": "Verrai reindirizzato al portale sicuro di Stripe per gestire i metodi di pagamento."
-    },
-    "billing": {
-        "label": "Indirizzo di fatturazione",
-        "title": "Modifica l’indirizzo di fatturazione",
-        "intro": "Questi dati saranno utilizzati quando un acquisto richiede fatturazione.",
-        "holder": "Intestatario",
-        "tax": "Codice fiscale / P. IVA",
-        "address": "Indirizzo"
-    },
-    "addresses": {
-        "add": "Aggiungi indirizzo",
-        "add_first": "Aggiungi un indirizzo",
-        "empty": "Non hai indirizzi salvati",
-        "create_title": "Nuovo indirizzo",
-        "edit_title": "Modifica indirizzo",
-        "delete": "Elimina",
-        "delete_title": "Eliminare questo indirizzo?",
-        "deleted": "L’indirizzo è stato eliminato.",
-        "back": "Torna agli indirizzi"
     },
     "pagination": {
         "summary": "Risultati da {{from}} a {{to}} di {{total}}",

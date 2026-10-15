@@ -31,7 +31,6 @@ final class AuthValidationAlert
                 'current_password.wrong' => 'auth.validation.errors.current_password_wrong',
                 'token.invalid' => 'auth.validation.errors.token_invalid',
                 'email.same' => 'account.email.errors.same',
-                'birth_date.invalid' => 'account.personal.errors.birth_date',
                 'contact.conflict' => 'account.errors.contact',
                 'user.save' => 'account.errors.save',
                 default => 'auth.validation.review',

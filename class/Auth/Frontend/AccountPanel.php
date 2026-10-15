@@ -14,13 +14,15 @@ class AccountPanel
     private const ITEMS = [
         'overview' => ['account.index', 'bi bi-house'],
         'personal' => ['account.personal', 'bi bi-person'],
-        'addresses' => ['account.addresses', 'bi bi-geo-alt'],
     ];
 
     public function parentLayout(): string { return 'frontend.main'; }
     public function title(): string { return (string) __t('account.title'); }
     public function authorities(): array { return ['client']; }
-    /** `billing` non ha una voce di menu: è la riga della fatturazione in «Dati personali». */
+    /**
+     * Sezioni accese. `addresses` e `billing` le realizza il modulo customer-account: senza, non hanno effetto.
+     * `billing` non ha una voce di menu: è la riga della fatturazione in «Dati personali».
+     */
     public function sections(): array { return ['overview', 'personal', 'addresses', 'billing']; }
     public function enabled(string $section): bool { return in_array($section, $this->sections(), true); }
 
@@ -76,6 +78,49 @@ class AccountPanel
         }
     }
 
+    public function personalFormFields(array $fields, object $user, array $values): array
+    {
+        foreach ($this->pageExtensions() as $extension) {
+            $fields = $extension->personalFormFields($fields, $user, $values);
+        }
+        return $fields;
+    }
+
+    public function personalModals(array $modals, object $user, string $open, array $errors, array $values): array
+    {
+        foreach ($this->pageExtensions() as $extension) {
+            $modals = $extension->personalModals($modals, $user, $open, $errors, $values);
+        }
+        return $modals;
+    }
+
+    /** @return list<string>|null `null` se nessuna estensione gestisce `$form`. */
+    public function savePersonalForm(string $form, object $user, array $input): ?array
+    {
+        foreach ($this->pageExtensions() as $extension) {
+            $result = $extension->savePersonalForm($form, $user, $input);
+            if ($result !== null) {
+                return $result;
+            }
+        }
+        return null;
+    }
+
+    public function pageErrors(array $errors, object $user, string $page): array
+    {
+        foreach ($this->pageExtensions() as $extension) {
+            $errors = $extension->pageErrors($errors, $user, $page);
+        }
+        return $errors;
+    }
+
+    public function afterEmailConfirmed(int $userId, string $email): void
+    {
+        foreach ($this->pageExtensions() as $extension) {
+            $extension->afterEmailConfirmed($userId, $email);
+        }
+    }
+
     public function head(): string
     {
         return implode("\n", array_map(static fn (AccountExtension $e): string => $e->head(), AccountRoutes::extensions()));
@@ -84,6 +129,12 @@ class AccountPanel
     public function layout(array $data = []): void
     {
         View::layout('frontend.account.panel', $data + ['account_panel' => $this]);
+    }
+
+    /** @return list<AccountPageExtension> */
+    private function pageExtensions(): array
+    {
+        return array_values(array_filter(AccountRoutes::extensions(), static fn (AccountExtension $e): bool => $e instanceof AccountPageExtension));
     }
 
     private function cascade(string $hook, array $value, object $user): array

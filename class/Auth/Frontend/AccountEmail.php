@@ -2,7 +2,6 @@
 
 namespace Wonder\Auth\Frontend;
 
-use Wonder\App\Models\Contacts\Contact;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Sql\Transaction;
 
@@ -77,12 +76,7 @@ final class AccountEmail
                 if (!(\markUserEmailVerified($userId, date('Y-m-d H:i:s'))->success ?? false)) {
                     throw new AccountSaveFailed('user');
                 }
-                $contact = Contact::find(['user_id' => $userId], 1);
-                if (is_array($contact) && !empty($contact['id'])) {
-                    if (!(Contact::update(['email' => $email], (int) $contact['id'])->success ?? false)) {
-                        throw new AccountSaveFailed('contact');
-                    }
-                }
+                AccountRoutes::panel()->afterEmailConfirmed($userId, $email);
 
                 return 'confirmed';
             });
