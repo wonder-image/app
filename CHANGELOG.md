@@ -13,6 +13,19 @@
   generato e non si modifica a mano; va gitignorato nel sito (`/docs/ai/DESIGN.md`,
   da aggiungere a mano nei siti creati prima di questa voce). Un errore di
   scrittura finisce in `storage/logs/error.log` senza bloccare il CSS.
+- `Frontend\Support\SiteSchema`: JSON-LD `Organization` (da `$SOCIETY`) e
+  `WebSite` in `<head>` su ogni pagina, con `@id` stabili
+  (`/#organization`, `/#website`) che le entità delle pagine possono
+  riferire.
+- `Frontend\Support\RobotsTxt`: `php forge update` genera robots.txt con
+  `Disallow` di base, sitemap del sito e quelle che i moduli dichiarano in
+  `module.json` (`"seo": {"robotsDisallow": [...], "sitemaps": [...]}`). Il
+  marcatore in testa al file lo lascia rigenerare; chi lo toglie lo
+  personalizza a mano.
+- `TableLayoutSchema::downloadUsing(callable $handler)`: l'«Esporta» della
+  tabella (stesso bottone, stessi formati, rotta `export`) affida il file a un
+  gestore proprio, che riceve il formato già validato e lo invia. Serve quando
+  le righe non sono una per record. Senza la chiamata non cambia niente.
 - `Dropdown`: `icon()` mette un'icona prima dell'etichetta del bottone che apre
   il menu, `caret(false)` toglie la freccia (`dropdown-toggle` in Bootstrap, lo
   chevron in Wonder) e `toggleAttributes()` dà attributi al bottone (`style`,

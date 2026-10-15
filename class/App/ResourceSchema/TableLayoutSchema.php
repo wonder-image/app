@@ -52,13 +52,15 @@ final class TableLayoutSchema
             // 'Excel']). `columns` può contenere stringhe (nome colonna
             // del record) o array `['label' => '...', 'value' => string|callable]`
             // per controllare label e valore di output (callable riceve
-            // l'intera riga e ritorna la cella).
+            // l'intera riga e ritorna la cella). `handler`, se presente,
+            // costruisce e invia lui il file al posto delle colonne.
             'download' => [
                 'enabled' => false,
                 'formats' => ['csv' => 'CSV', 'xlsx' => 'Excel'],
                 'columns' => [],
                 'filename' => null,
                 'label' => null,
+                'handler' => null,
             ],
         ];
     }
@@ -424,6 +426,24 @@ final class TableLayoutSchema
     public function downloadFileName(string $filename): self
     {
         $this->schema['download']['filename'] = trim($filename);
+
+        return $this;
+    }
+
+    /**
+     * Affida l'export a un gestore proprio, per i file che non sono una
+     * riga per record (es. una riga per variante). Bottone, formati e route
+     * `export` restano quelli della cornice; il gestore riceve il formato
+     * richiesto, già validato su `download()`, e invia lui il file.
+     *
+     * ```php
+     * ->download(['xlsx' => 'Excel', 'csv' => 'CSV'])
+     * ->downloadUsing(fn (string $format) => MyExport::send($format))
+     * ```
+     */
+    public function downloadUsing(callable $handler): self
+    {
+        $this->schema['download']['handler'] = $handler;
 
         return $this;
     }

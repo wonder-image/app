@@ -95,22 +95,27 @@
     }
 
     // --- robots.txt ---
-    // Creato solo se manca. Il dominio viene letto da $PAGE->domain
-    // (disponibile in tutti gli ambienti). Il prefisso www. viene
-    // determinato da APP_FORCE_WWW.
+    // Scritto se manca o se è ancora quello generato (marcatore): chi lo
+    // personalizza toglie il marcatore. Il dominio viene da $PAGE->domain,
+    // vuoto da CLI: in quel caso vale APP_DOMAIN. I moduli aggiungono
+    // esclusioni e sitemap da module.json (`seo`).
 
-    if (!file_exists($ROBOTS_PATH)) {
+    $robotsCurrent = file_exists($ROBOTS_PATH) ? (string) file_get_contents($ROBOTS_PATH) : null;
 
-        $domain = $PAGE->domain ?? ($_ENV['APP_DOMAIN'] ?? 'localhost');
+    if (\Wonder\Frontend\Support\RobotsTxt::shouldWrite($robotsCurrent)) {
+
+        $domain = trim((string) ($PAGE->domain ?? ''));
+        if ($domain === '') {
+            $domain = trim((string) ($_ENV['APP_DOMAIN'] ?? '')) ?: 'localhost';
+        }
         $forceWww = filter_var($_ENV['APP_FORCE_WWW'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
-        $wwwPrefix = $forceWww ? 'www.' : '';
+        try {
+            $robotsModules = \Wonder\App\Module\Registry::enabled();
+        } catch (\Throwable) {
+            $robotsModules = [];
+        }
 
-        $FILE_CONTENT = "User-agent: *\n";
-        $FILE_CONTENT .= "Disallow: /backend/\n";
-        $FILE_CONTENT .= "\n";
-        $FILE_CONTENT .= "Sitemap: https://{$wwwPrefix}{$domain}/shared/sitemap/sitemap.xml\n";
-
-        file_put_contents($ROBOTS_PATH, $FILE_CONTENT);
+        file_put_contents($ROBOTS_PATH, \Wonder\Frontend\Support\RobotsTxt::build($domain, $forceWww, $robotsModules));
 
     }
 

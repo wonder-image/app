@@ -58,6 +58,12 @@ final class ResourceDownloadController
             throw new RuntimeException("Formato export non supportato: {$format}");
         }
 
+        if (is_callable($download['handler'] ?? null)) {
+            ($download['handler'])($format);
+
+            return;
+        }
+
         $columns = $this->resolveColumns((array) ($download['columns'] ?? []));
         $rows = $this->loadRows();
 

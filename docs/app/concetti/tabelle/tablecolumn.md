@@ -166,6 +166,7 @@ la cornice attorno alla tabella. Si costruisce con
 | `download($formats = true, $label = null)` | export (CSV/…) |
 | `downloadColumns(array $columns)` | colonne incluse nell'export |
 | `downloadFileName(string $filename)` | nome file export |
+| `downloadUsing(callable $handler)` | export con un gestore proprio: riceve il formato e invia il file |
 
 ### Default
 

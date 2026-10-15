@@ -53,6 +53,9 @@
         $seoRobots = 'INDEX,FOLLOW';
     }
     $societyName = (string) ($SOCIETY->name ?? '');
+    $seoLang = \Wonder\Localization\LanguageContext::getLang();
+    $seoOgType = trim((string) ($SEO->ogType ?? '')) ?: 'website';
+    $seoOgMeta = is_array($SEO->ogMeta ?? null) ? $SEO->ogMeta : [];
     $faviconPath = (string) ($PATH->favicon ?? '');
 
     $SQL_ANALYTICS = [];
@@ -113,8 +116,6 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 <meta name="author" content="<?=e($seoAuthor)?>">
 <meta name="copyright" content="<?=e($seoCopyright)?>">
 <meta http-equiv="Reply-to" content="<?=e($seoReply)?>">
-<meta http-equiv="content-language" content="IT">
-<meta http-equiv="Content-Type" content="text/html; iso-8859-7">
 <meta name="robots" content="<?=e($seoRobots)?>">
 <meta name="creation_Date" content="<?=e($seoDate)?>">
 <meta name="revisit-after" content="1 days">
@@ -122,9 +123,14 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 <meta property="og:title" content="<?=e($seoTitle)?>">
 <meta property="og:description" content="<?=e($seoDescription)?>">
 <meta property="og:image" content="<?=e($seoImage)?>">
-<meta property="og:type" content="website">
+<meta property="og:type" content="<?=e($seoOgType)?>">
 <meta property="og:url" content="<?=e($seoUrl)?>">
 <meta property="og:site_name" content="<?=e($societyName)?>">
+<?php foreach ($seoOgMeta as $ogProperty => $ogContent) : ?>
+<?php if (is_string($ogProperty) && $ogProperty !== '' && is_scalar($ogContent) && (string) $ogContent !== '') : ?>
+<meta property="<?=e($ogProperty)?>" content="<?=e((string) $ogContent)?>">
+<?php endif; ?>
+<?php endforeach; ?>
 
 <meta property="twitter:title" content="<?=e($seoTitle)?>" />
 <meta property="twitter:description" content="<?=e($seoDescription)?>" />
@@ -147,6 +153,13 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
         }
         unset($entity);
     }
+    // Organizzazione e sito su ogni pagina: le entità della pagina le
+    // riferiscono via @id (es. il venditore di un'offerta).
+    $siteUrl = (string) ($PATH->site ?? '');
+    $schemaGraph = \Wonder\Frontend\Support\SiteSchema::merge($schemaGraph, [
+        \Wonder\Frontend\Support\SiteSchema::organization($SOCIETY, $siteUrl, (string) ($PATH->logo ?? '')),
+        \Wonder\Frontend\Support\SiteSchema::webSite($siteUrl, $societyName, $seoLang, (string) ($SEO->searchUrl ?? '')),
+    ]);
     if (!empty($SEO->breadcrumb)) {
         $schemaGraph = array_values(array_filter($schemaGraph, static fn ($entity): bool => is_array($entity) && ($entity['@type'] ?? '') !== 'BreadcrumbList'));
         $schemaGraph[] = json_decode(breadcrumb($SEO->breadcrumb, false), true);
