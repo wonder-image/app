@@ -697,6 +697,17 @@ Per video HTML5 con poster, source WebM opzionale e avvio configurabile, oppure
 iframe con object fit coerente tra Wonder e Bootstrap, vedi
 [Video e Iframe](video-e-iframe.md).
 
+## Righe da trascinare
+
+Le tabelle che il JS disegna riga per riga (le righe di un documento, per
+esempio) si riordinano con `Wonder\Backend\Support\RowDrag`: si stampa una
+volta `RowDrag::script()`, ogni riga riceve la maniglia (`RowDrag::handle()`
+in PHP, `window.wiRowDrag.handle()` in JS) e il `tbody` si arma con
+`window.wiRowDrag(tbody, onMove)`. Si trascina dalla maniglia; con le frecce
+su e giù la maniglia sposta la riga da tastiera. Dopo ogni spostamento
+arrivano `onMove(tr)` e l'evento `wi:row-move`. Le righe marcate
+`data-wi-row-drag-follow` seguono quella che le precede.
+
 ## Checklist
 
 - [ ] layout in `formLayoutSchema()` con `Card`/`Container`
