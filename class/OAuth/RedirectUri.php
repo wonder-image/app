@@ -40,6 +40,11 @@ final class RedirectUri
             return hash_equals($registered, $presented);
         }
 
+        // Solo la porta e' flessibile: fragment, userinfo e maiuscole devono coincidere.
+        if (!self::isAllowed($presented)) {
+            return false;
+        }
+
         return hash_equals(self::withoutPort($registered), self::withoutPort($presented));
     }
 
@@ -63,7 +68,7 @@ final class RedirectUri
     {
         $p = parse_url($uri);
 
-        return strtolower((string) $p['scheme']).'://'.strtolower((string) $p['host'])
+        return (string) $p['scheme'].'://'.(string) $p['host']
             .($p['path'] ?? '').(isset($p['query']) ? '?'.$p['query'] : '');
     }
 }

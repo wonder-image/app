@@ -7,12 +7,15 @@ final class AuthorizationRequest
 {
     public static function validate(array $q, ClientRegistry $clients): array
     {
-        $str = static fn (string $k): string => is_string($q[$k] ?? null) ? trim($q[$k]) : '';
+        // state e redirect_uri restano identici (RFC 6749): niente trim.
+        $str = static fn (string $k): string => is_string($q[$k] ?? null)
+            ? (in_array($k, ['state', 'redirect_uri'], true) ? $q[$k] : trim($q[$k]))
+            : '';
 
         // 1. Prima del client e del redirect valido: pagina d'errore, mai redirect.
         $client = $clients->find($str('client_id'));
         $redirect = $str('redirect_uri');
-        if ($client === null || $redirect === '' || !RedirectUri::matchesAny($client['redirect_uris'], $redirect)) {
+        if ($client === null || $redirect === '' || !RedirectUri::isAllowed($redirect) || !RedirectUri::matchesAny($client['redirect_uris'], $redirect)) {
             throw new OAuthException('invalid_request', 'Unknown client or unregistered redirect_uri.');
         }
 

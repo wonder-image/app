@@ -39,14 +39,30 @@ check('redirect non registrato → pagina, niente redirect', function () use ($q
     $e = $err(fn () => AuthorizationRequest::validate($q(['redirect_uri' => 'https://evil.example/cb']), $clients));
     return $e !== null && $e->redirectUri === null;
 });
+check('loopback con fragment → pagina, niente redirect', function () use ($q, $clients, $err) {
+    $e = $err(fn () => AuthorizationRequest::validate($q(['redirect_uri' => 'http://localhost:5/callback#frag']), $clients));
+    return $e !== null && $e->redirectUri === null;
+});
+check('loopback con userinfo → pagina, niente redirect', function () use ($q, $clients, $err) {
+    $e = $err(fn () => AuthorizationRequest::validate($q(['redirect_uri' => 'http://u:p@localhost:5/callback']), $clients));
+    return $e !== null && $e->redirectUri === null;
+});
+check('redirect_uri mancante → pagina, niente redirect', function () use ($q, $clients, $err) {
+    $e = $err(fn () => AuthorizationRequest::validate($q(['redirect_uri' => '']), $clients));
+    return $e !== null && $e->redirectUri === null;
+});
+check('state con spazi restituito invariato', fn () =>
+    AuthorizationRequest::validate($q(['state' => ' a b ']), $clients)['state'] === ' a b ');
+check('redirectUrl senza state non lo include', fn () =>
+    AuthorizationRequest::redirectUrl('https://a.it/cb', ['code' => 'c', 'state' => null, 'iss' => 'https://sito.it']) === 'https://a.it/cb?code=c&iss=https%3A%2F%2Fsito.it');
 check('response_type errato → redirect unsupported_response_type', function () use ($q, $clients, $err) {
     $e = $err(fn () => AuthorizationRequest::validate($q(['response_type' => 'token']), $clients));
-    return $e->error === 'unsupported_response_type' && $e->redirectUri === 'https://claude.ai/api/mcp/auth_callback' && $e->state === 'xyz';
+    return $e?->error === 'unsupported_response_type' && $e->redirectUri === 'https://claude.ai/api/mcp/auth_callback' && $e->state === 'xyz';
 });
-check('PKCE plain → invalid_request', fn () => $err(fn () => AuthorizationRequest::validate($q(['code_challenge_method' => 'plain']), $clients))->error === 'invalid_request');
-check('PKCE mancante → invalid_request', fn () => $err(fn () => AuthorizationRequest::validate($q(['code_challenge' => '']), $clients))->error === 'invalid_request');
-check('resource sconosciuta → invalid_target', fn () => $err(fn () => AuthorizationRequest::validate($q(['resource' => 'https://sito.it/api/altro']), $clients))->error === 'invalid_target');
-check('resource mancante → invalid_target', fn () => $err(fn () => AuthorizationRequest::validate($q(['resource' => '']), $clients))->error === 'invalid_target');
+check('PKCE plain → invalid_request', fn () => $err(fn () => AuthorizationRequest::validate($q(['code_challenge_method' => 'plain']), $clients))?->error === 'invalid_request');
+check('PKCE mancante → invalid_request', fn () => $err(fn () => AuthorizationRequest::validate($q(['code_challenge' => '']), $clients))?->error === 'invalid_request');
+check('resource sconosciuta → invalid_target', fn () => $err(fn () => AuthorizationRequest::validate($q(['resource' => 'https://sito.it/api/altro']), $clients))?->error === 'invalid_target');
+check('resource mancante → invalid_target', fn () => $err(fn () => AuthorizationRequest::validate($q(['resource' => '']), $clients))?->error === 'invalid_target');
 
 check('redirectUrl aggiunge iss e conserva la query', fn () =>
     AuthorizationRequest::redirectUrl('https://a.it/cb?x=1', ['code' => 'c', 'state' => 's', 'iss' => 'https://sito.it'])
