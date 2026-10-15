@@ -6,6 +6,7 @@ use mysqli;
 use Throwable;
 use RuntimeException;
 use Wonder\App\Module\Contracts\ModuleDefaults;
+use Wonder\App\Module\Contracts\ModuleMigration;
 use Wonder\App\Module\ModuleDependencySorter;
 use Wonder\App\Module\Registry as ModuleRegistry;
 use Wonder\App\Support\DefaultRows;
@@ -111,7 +112,9 @@ class UpdateRunner
             $runId = $this->createRunRow($releaseId, $triggerType, $source, $startedAt);
             $result->run_id = $runId > 0 ? $runId : null;
 
+            // Le rinomine legacy precedono runTables(): creata vuota la tabella nuova, la vecchia non si migrerebbe più.
             $result->stats->contact_tables = SharedContactTablesMigration::run($this->connection);
+            $result->stats->module_migrations = $this->runModuleMigrations();
             $result->stats->tables = $this->runTables();
             $result->stats->rows = $this->runFiles($this->rowDirectories());
             $result->stats->society_locations = SocietyLocationsMigration::runIfNeeded();
@@ -403,6 +406,33 @@ class UpdateRunner
      * Righe precaricate del pacchetto app, poi dei moduli abilitati in
      * ordine di dipendenza. Chiamato solo con APP_ENV=local.
      */
+    /**
+     * Le migrazioni dichiarate dai moduli abilitati (`database.migrations`),
+     * in ordine di dipendenza.
+     *
+     * @return array<string, array>
+     */
+    private function runModuleMigrations(): array
+    {
+        $summary = [];
+
+        foreach (ModuleDependencySorter::sortManifests(ModuleRegistry::enabled()) as $manifest) {
+            foreach ($manifest->migrationClasses() as $migrationClass) {
+                if (!is_subclass_of($migrationClass, ModuleMigration::class)) {
+                    throw new RuntimeException($migrationClass.' deve implementare '.ModuleMigration::class);
+                }
+
+                $done = $migrationClass::run($this->connection);
+
+                if ($done !== []) {
+                    $summary[$migrationClass] = $done;
+                }
+            }
+        }
+
+        return $summary;
+    }
+
     private function runModuleDefaults(): int
     {
         $rows = new DefaultRows();

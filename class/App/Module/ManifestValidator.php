@@ -5,6 +5,7 @@ namespace Wonder\App\Module;
 use RuntimeException;
 use Wonder\App\Module\Contracts\ModuleDefaults;
 use Wonder\App\Module\Contracts\ModuleInterface;
+use Wonder\App\Module\Contracts\ModuleMigration;
 
 final class ManifestValidator
 {
@@ -71,6 +72,22 @@ final class ManifestValidator
                 $errors[] = 'Classe database.defaults non autoloadabile: '.$defaultsClass;
             } elseif (!is_subclass_of($defaultsClass, ModuleDefaults::class)) {
                 $errors[] = $defaultsClass.' deve implementare '.ModuleDefaults::class;
+            }
+        }
+
+        $migrations = $manifest->get('database.migrations', []);
+
+        if (!is_array($migrations)) {
+            $errors[] = 'database.migrations deve essere una lista di classi';
+        } else {
+            foreach ($migrations as $class) {
+                if (!is_string($class) || trim($class) === '') {
+                    $errors[] = 'database.migrations: nome della classe non valido';
+                } elseif (!class_exists(trim($class))) {
+                    $errors[] = 'Classe database.migrations non autoloadabile: '.trim($class);
+                } elseif (!is_subclass_of(trim($class), ModuleMigration::class)) {
+                    $errors[] = trim($class).' deve implementare '.ModuleMigration::class;
+                }
             }
         }
 
