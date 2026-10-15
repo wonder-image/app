@@ -18,12 +18,12 @@ View::layout('backend.auth');
         <?php endif; ?>
         <?= Csrf::field()->render() ?>
         <input type="hidden" name="req" value="<?= $e($reqId) ?>">
+        <button type="submit" name="action" value="approve" class="btn btn-success"><?= $e(__t('oauth.consent.approve')) ?></button>
+        <button type="submit" name="action" value="deny" class="btn btn-secondary"><?= $e(__t('oauth.consent.deny')) ?></button>
         <p>
             <?= $e(__t('oauth.consent.signed_in_as', $vars)) ?> ·
             <button type="submit" name="action" value="switch" class="btn-link"><?= $e(__t('oauth.consent.switch_account')) ?></button>
         </p>
-        <button type="submit" name="action" value="approve" class="btn btn-success"><?= $e(__t('oauth.consent.approve')) ?></button>
-        <button type="submit" name="action" value="deny" class="btn btn-secondary"><?= $e(__t('oauth.consent.deny')) ?></button>
     </wi-card>
 </form>
 <?php View::end(); ?>
