@@ -135,7 +135,8 @@ class RouteDispatcher
 
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, Mcp-Protocol-Version, Mcp-Session-Id');
+        header('Access-Control-Expose-Headers: WWW-Authenticate, Mcp-Session-Id');
         header('Content-Type: application/json; charset=utf-8');
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
