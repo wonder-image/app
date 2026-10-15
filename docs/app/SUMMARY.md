@@ -69,6 +69,7 @@
 * [Multi-ambiente](piattaforma/multi-ambiente.md)
 * [Cron job da codice](piattaforma/cron-job.md)
 * [API](piattaforma/api.md)
+* [OAuth per le risorse MCP](piattaforma/oauth.md)
 * [Installazione e Deploy](piattaforma/installazione-e-deploy.md)
 * [Versioni e release](piattaforma/versioni-e-release.md)
 * [Avvio locale (PHP 8.4)](piattaforma/avvio-locale.md)
