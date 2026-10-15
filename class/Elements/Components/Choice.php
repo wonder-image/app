@@ -26,7 +26,8 @@ class Choice extends Component
             ->schema('icon', '')
             ->schema('icons', [])
             ->schema('icons_max', 3)
-            ->schema('panel', '');
+            ->schema('panel', '')
+            ->schema('actions', []);
     }
 
     public static function make(string $name, string|int $value): self
@@ -104,5 +105,15 @@ class Choice extends Component
     public function panel(string $text): self
     {
         return $this->schema('panel', $text);
+    }
+
+    /**
+     * Pulsanti a destra nel riquadro (Modifica, Elimina): un clic su un
+     * pulsante non sceglie l'input, il `label` lascia passare i controlli
+     * interattivi. Le stringhe sono HTML già pronto, non escapato.
+     */
+    public function actions(Button|string ...$actions): self
+    {
+        return $this->schema('actions', $actions);
     }
 }

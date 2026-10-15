@@ -32,6 +32,7 @@ class Choice extends Component
             .'</span>'
             .$this->icons((array) ($schema['icons'] ?? []), (int) ($schema['icons_max'] ?? 3))
             .$this->part('wi-choice__aside', 'data-choice-aside', (string) $schema['aside'])
+            .$this->actions((array) ($schema['actions'] ?? []))
             .$this->part('wi-choice__panel', 'data-choice-panel', (string) ($schema['panel'] ?? ''))
             .'</label>';
     }
@@ -56,6 +57,18 @@ class Choice extends Component
         }
 
         return '<span class="wi-choice__icons" data-choice-icons'.($html === '' ? ' hidden' : '').'>'.$html.'</span>';
+    }
+
+    /** @param array<int, \\Wonder\\Elements\\Components\\Button|string> $actions */
+    private function actions(array $actions): string
+    {
+        $html = '';
+
+        foreach ($actions as $action) {
+            $html .= is_string($action) ? $action : $action->render('wonder');
+        }
+
+        return $html === '' ? '' : '<span style="display:flex;align-items:center;gap:.25rem" data-choice-actions>'.$html.'</span>';
     }
 
     private function part(string $class, string $hook, string $value): string

@@ -533,6 +533,10 @@ Steps::make('Checkout')
 - Titolo, testo e aside si escapano. Una parte vuota si stampa lo stesso con
   `hidden`: un `<template>` reso da `Choice` ha sempre tutte le parti, e il JS lo
   clona e lo riempie con `textContent` senza ricostruire il markup.
+- `actions(Button|string ...)` mette dei pulsanti a destra nel riquadro, dopo
+  l'aside, dentro `data-choice-actions` (Modifica ed Elimina di un indirizzo
+  da scegliere). Un clic su un pulsante non sceglie l'input; le stringhe sono
+  HTML già pronto.
 - **Ganci uguali nei due temi**:
   - `data-choice-input` sull'input;
   - `data-choice-title`, `data-choice-text` e `data-choice-aside` sulle parti;

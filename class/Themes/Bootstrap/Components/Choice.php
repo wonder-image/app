@@ -34,6 +34,7 @@ class Choice extends Component
             .'</span>'
             .$this->icons((array) ($schema['icons'] ?? []), (int) ($schema['icons_max'] ?? 3))
             .$this->part('text-nowrap fw-semibold', 'data-choice-aside', (string) $schema['aside'])
+            .$this->actions((array) ($schema['actions'] ?? []))
             .'</span>'
             .$this->panel((string) ($schema['panel'] ?? ''))
             .'</label>';
@@ -66,6 +67,18 @@ class Choice extends Component
     {
         return '<span class="card-footer small" style="display:block;-webkit-user-select:text;user-select:text" data-choice-panel'.($text === '' ? ' hidden' : '').'>'
             .$this->escape($text).'</span>';
+    }
+
+    /** @param array<int, \\Wonder\\Elements\\Components\\Button|string> $actions */
+    private function actions(array $actions): string
+    {
+        $html = '';
+
+        foreach ($actions as $action) {
+            $html .= is_string($action) ? $action : $action->render('bootstrap');
+        }
+
+        return $html === '' ? '' : '<span class="d-flex align-items-center gap-1" data-choice-actions>'.$html.'</span>';
     }
 
     private function part(string $class, string $hook, string $value): string
