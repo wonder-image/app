@@ -19,6 +19,12 @@ final class ResourceRegistry
         self::$resources[$path] = trim($name) !== '' ? trim($name) : $path;
     }
 
+    /** Solo i path registrati: non tocca l'issuer, sicuro al caricamento delle rotte. */
+    public static function paths(): array
+    {
+        return array_keys(self::$resources);
+    }
+
     public static function all(): array
     {
         if (self::$resources === []) {

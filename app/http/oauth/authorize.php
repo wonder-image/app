@@ -20,9 +20,11 @@ try {
         ]), true, 302);
         exit;
     }
-    http_response_code($e->status === 500 ? 500 : 400);
+    $serverError = $e->status === 500;
+    http_response_code($serverError ? 500 : 400);
     \Wonder\View\View::make($ROOT_APP.'/view/pages/oauth/error.php', [
-        'titleKey' => 'oauth.error.invalid_request_title', 'messageKey' => 'oauth.error.invalid_request_message',
+        'titleKey' => $serverError ? 'oauth.error.server_title' : 'oauth.error.invalid_request_title',
+        'messageKey' => $serverError ? 'oauth.error.server_message' : 'oauth.error.invalid_request_message',
     ])->render();
     exit;
 }

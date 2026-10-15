@@ -20,6 +20,11 @@ final class OAuth
         return !ResourceRegistry::isEmpty();
     }
 
+    public static function paths(): array
+    {
+        return ResourceRegistry::paths();
+    }
+
     public static function resources(): array
     {
         return ResourceRegistry::all();

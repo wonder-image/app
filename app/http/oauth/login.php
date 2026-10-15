@@ -1,7 +1,6 @@
 <?php
 
 use Wonder\Auth\AuthLog;
-use Wonder\Auth\RememberMe;
 use Wonder\Http\Csrf;
 use Wonder\OAuth\AuthorizationRequest;
 use Wonder\OAuth\Config;
@@ -32,10 +31,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $area = in_array('backend', $areas, true) ? 'backend' : (string) ($areas[0] ?? 'frontend');
 
         // Se serve la verifica email, authenticateUser reindirizza al link inviato ed esce dal flusso OAuth.
-        if (authenticateUserLogin($identifier, (string) ($_POST['password'] ?? ''), $area)) {
-            // Il login OAuth non lascia un cookie remember-me sul sito.
-            RememberMe::clear($area);
-            AuthLog::write('oauth_login', (int) $_SESSION['user_id'], $area, true, ['client_id' => $request['client_id']]);
+        if (authenticateUserLogin($identifier, (string) ($_POST['password'] ?? ''), $area, null, false)) {
+            // Quinto/sesto argomento: nessun remember-me per il login OAuth (e il cookie esistente resta intatto).
+            AuthLog::write('oauth_login', (int) $_SESSION['user_id'], 'oauth', true, ['client_id' => $request['client_id']]);
             header('Location: '.Config::issuer().'/oauth/consent?req='.$reqId, true, 303);
             exit;
         }

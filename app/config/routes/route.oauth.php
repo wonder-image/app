@@ -20,12 +20,13 @@ Route::area('api')
         Route::get('/.well-known/oauth-authorization-server/', $oauthHttp.'/authorization-server.php')
             ->name('metadata');
 
-        $resources = OAuth::resources();
-        Route::get('/.well-known/oauth-protected-resource/', $oauthHttp.'/protected-resource.php', ['oauth_resource' => $resources[0]['path']])
+        // Solo path: l'issuer si valida negli handler, mai al caricamento delle rotte.
+        $paths = OAuth::paths();
+        Route::get('/.well-known/oauth-protected-resource/', $oauthHttp.'/protected-resource.php', ['oauth_resource' => $paths[0]])
             ->name('resource.root');
 
-        foreach ($resources as $resource) {
-            Route::get('/.well-known/oauth-protected-resource'.$resource['path'].'/', $oauthHttp.'/protected-resource.php', ['oauth_resource' => $resource['path']]);
+        foreach ($paths as $path) {
+            Route::get('/.well-known/oauth-protected-resource'.$path.'/', $oauthHttp.'/protected-resource.php', ['oauth_resource' => $path]);
         }
 
         Route::post('/oauth/register/', $oauthHttp.'/register.php')->name('register');
