@@ -41,6 +41,7 @@ trait RendersDropdownItems
 
         if ($kind === 'post') {
             return $this->openPostForm((string) ($item['href'] ?? ''), [], $item)
+                .$this->postHiddenInputs((array) ($item['hidden'] ?? []))
                 .'<button type="submit" class="'.$this->escape($class).'"'
                 .($disabled ? ' disabled' : '')
                 .$this->dropdownItemAttributes($attributes, $disabled ? ['type', 'disabled'] : ['type'])

@@ -15,7 +15,8 @@ use Wonder\Elements\Concerns\Renderer;
  * Opzioni di una voce (`item()`, `button()`, `action()`): `active`,
  * `disabled`, `icon`, `title`, `target`, `rel`, `blank`, `attributes`,
  * `variant` (colore della voce), `method` (`get` o `post`: `post` rende un
- * form con token CSRF, un `<button type="submit">` e l'href come action) e
+ * form con token CSRF, un `<button type="submit">` e l'href come action;
+ * `hidden` ne aggiunge i campi nascosti, `['nome' => valore]`) e
  * `confirm` con `confirm_title`, `confirm_ok`, `confirm_variant` (la
  * conferma della lib, sul form per le voci POST e sul tag per le altre).
  *
@@ -301,6 +302,18 @@ class Dropdown extends Component
                 }
 
                 $item['kind'] = 'post';
+            }
+        }
+
+        if (array_key_exists('hidden', $item)) {
+            if (($item['kind'] ?? '') !== 'post' || !is_array($item['hidden'])) {
+                throw new InvalidArgumentException('I campi nascosti (`hidden`) vanno su una voce POST, come array nome => valore.');
+            }
+
+            foreach ($item['hidden'] as $name => $value) {
+                if (!is_string($name) || trim($name) === '' || ($value !== null && !is_scalar($value))) {
+                    throw new InvalidArgumentException('Ogni campo nascosto della voce vuole un nome e un valore scalare.');
+                }
             }
         }
 

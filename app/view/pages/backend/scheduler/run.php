@@ -19,7 +19,7 @@ echo Layout::renderLayout((new Container())->columns(12)->components([
     (new Card())->columnSpan(['default' => 12, 'lg' => 6])->gap(2)->components([
         Text::make('Attivita')->tag('div')->bold(), $detail('Codice', $run['task_key'] ?? null),
         Text::make('Esito: '.Presentation::status($run['status'] ?? ''))->tag('div')->html(),
-        $schedule ? Link::to('/backend/app/scheduler/schedules/'.$schedule['id'].'/edit/', $schedule['name']) : Text::make('Pianificazione non piu disponibile')->muted(),
+        $schedule ? Link::to(\Wonder\App\Resources\Scheduler\ScheduleResource::url($schedule), $schedule['name']) : Text::make('Pianificazione non piu disponibile')->muted(),
     ]),
     (new Card())->columnSpan(['default' => 12, 'lg' => 6])->gap(2)->components([
         Text::make('Tempi di esecuzione')->tag('div')->bold(),

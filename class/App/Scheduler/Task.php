@@ -8,6 +8,7 @@ class Task extends AbstractTask
     private string $title;
     private string $cron = '0 0 * * *';
     private bool $active = false;
+    private bool $locked = false;
     private int $seconds = 300;
     private ?\Closure $validator = null;
     private array $defaults = [];
@@ -30,6 +31,8 @@ class Task extends AbstractTask
         return $this;
     }
     public function active(bool $enabled = true): static { $this->active = $enabled; return $this; }
+    /** Sempre attiva: il backend non la può sospendere. */
+    public function alwaysOn(bool $locked = true): static { $this->locked = $locked; $this->active = $this->active || $locked; return $this; }
     public function maxSeconds(int $seconds): static
     {
         if ($seconds < 1 || $seconds > 3600) {
@@ -49,6 +52,7 @@ class Task extends AbstractTask
     public function label(): string { return $this->title; }
     public function expression(): string { return $this->cron; }
     public function enabled(): bool { return $this->active; }
+    public function alwaysEnabled(): bool { return $this->locked; }
     public function timeout(): int { return $this->seconds; }
     public function validate(array $parameters): array
     {

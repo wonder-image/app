@@ -144,6 +144,25 @@ abstract class Resource
         return static::navigation();
     }
 
+    /**
+     * Vero se chi ha queste autorità può eseguire l'azione backend (`list`,
+     * `view`, `create`, `edit`, ...) secondo `permissionSchema()`, la stessa
+     * regola delle route: nessuna autorità richiesta vale per ogni utente
+     * backend, un'azione sconosciuta non è mai permessa.
+     */
+    public static function allows(array $authorities, string $action = 'list'): bool
+    {
+        $backend = (array) static::permissionSchema()->get('backend');
+
+        if (!array_key_exists($action, $backend)) {
+            return false;
+        }
+
+        $required = (array) $backend[$action];
+
+        return $required === [] || array_intersect($required, $authorities) !== [];
+    }
+
     public static function querySchema(): array
     {
         return [

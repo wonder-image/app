@@ -232,7 +232,16 @@ php forge start
   attach peers with `inGroup($key)` inside the same section. Keep ungrouped
   entries direct for frequent access; groups are headings without URLs. Both
   the sidebar and backend home must render `subnavs` recursively and apply
-  authority filters at every level.
+  authority filters at every level. The home reads them through
+  `Backend\Support\HomeNavigation` and renders it with the shared
+  `LinkCard` / `LinkListCard` Elements (grouping lives in `LinkListCard`).
+  The status strip is `HomeStatus`: keyed `HomeStatusItem` classes returning
+  a `StatusCard` or null (core `scheduler`, `errors`), extended, replaced or
+  removed (`false`) by modules through `backend.home_status` and by the site
+  through `HomeStatus::set()`. Each item gates itself with
+  `Resource::allows($authorities, $action)` of the Resource it links to,
+  before reading data; never hardcode roles. A failing item is logged and
+  skipped. Bootstrap classes only, with no custom CSS.
 - The canonical module format is a Composer package, not a folder embedded in the core package.
 - Standard module package naming is `wonder-image/<slug>`.
 - Standard module namespace base is `Wonder\\Plugin\\<StudlySlug>\\`.
@@ -275,7 +284,7 @@ php forge start
   and enqueue only. Reuse `NamedLock`, preserve saved schedules on sync, and
   retain execution logs uniformly for 180 days. Sitemap wraps the existing
   crawler; Euribor adapts the site's existing service. `GooglePlacesTask`
-  (`wonder.google-places`, off by default) syncs each location with a
+  (`wonder.google-places`, always on: skipped without `GCP_API_KEY`) syncs each location with a
   `google_place_id` through `Support/GooglePlaces` (pure mapper/diff/plan,
   injectable `PlaceDetailsClient` and `GooglePlacesStore`: tests never call
   Google). It only flags differences unless `apply_hours`, never applies the
@@ -283,7 +292,23 @@ php forge start
   `docs/app/piattaforma/cron-job.md` for contracts, metrics and migration.
   Keep code-side add/edit/remove instructions on that page; put the single
   cPanel command and every-minute frequency in the quick-start guide directly
-  after GitHub Desktop setup. Definition defaults never overwrite saved schedules.
+  after GitHub Desktop setup. Definition defaults never overwrite saved schedules,
+  except always-on tasks (`Task::alwaysOn()` / `AlwaysEnabledTask`): sync
+  re-enables their code rows and the backend never suspends them.
+  Schedule list actions sit in the row three-dots `Dropdown` (activate/suspend
+  is a POST item, `hidden` for always-on tasks); the view page puts "Esegui
+  ora" and warning "Modifica" in the header through
+  `pageSchema()->actions('view', ...)`, which accepts `Button` / `Dropdown`
+  Elements, and lists "Esecuzioni" with `RunResource::backendTable()`.
+  "Esegui ora" (`data-wi-confirm`, polling `run-status`, result modal) and
+  toggle live in `app/http/backend/scheduler/*` and
+  `Presentation::toggleAction()` / `runAssets()`; they verify `Csrf::verify()`
+  and only set `requested`, never run a task in the web request.
+
+- Google Maps iframes for locations use `Iframe::fromLocation()` /
+  `googlePlace()` backed by `Support\GoogleMapsEmbed` (Embed API, browser
+  key `GCP_CLIENT_API_KEY`, views `roadmap`/`satellite`, place id then
+  coordinates). `GoogleMapsEmbed` returns `''` when unusable; `Iframe` throws.
 
 - Deferred media uses `Iframe::deferred()` / `deferredButton(Button)` and the generic `Elements/Media/Deferred` wrapper. Keep rendering in the shared concern with Wonder/Bootstrap adapters; JavaScript and structural `wi-deferred` CSS belong to wonder-image/lib. Reserve geometry through aspect ratio or a sized parent, not cross-origin iframe measurements. See `docs/app/elementi/deferred-media.md`.
 
@@ -412,7 +437,7 @@ php forge start
   with a `public` cache limiter, so renderer output stays unchanged in CLI.
   Verification is not central yet: `RouteDispatcher` must not call
   `Csrf::verify()`. `AuthSession` delegates to `Csrf` (same session key);
-  `Impersonation`, `scheduler_csrf` and `_contact_csrf` keep their own flow.
+  `Impersonation` and `_contact_csrf` keep their own flow.
   Hand-written forms add `Csrf::field()` themselves. See
   `docs/app/concetti/form/csrf.md`.
 

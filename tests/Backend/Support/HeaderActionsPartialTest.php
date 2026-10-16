@@ -27,6 +27,19 @@ check('pulsanti con link, classe, icona e nuova scheda', function () use ($rende
         && str_contains($html, 'target="_blank" rel="noopener noreferrer"');
 });
 
+check('un Button Element tiene i suoi attributi e la conferma', function () use ($render) {
+    $html = $render(PageActionNormalizer::normalize([
+        \Wonder\Elements\Components\Button::make('Esegui ora')->attr('data-wi-scheduler-run', '/run/')
+            ->confirm('Sicuro?', title: 'Esegui', ok: 'Esegui', variant: 'primary'),
+        \Wonder\Elements\Components\Button::make('Modifica')->href('/edit/')->variant('warning'),
+    ]));
+
+    return str_contains($html, 'data-wi-scheduler-run="/run/"')
+        && str_contains($html, 'data-wi-confirm="Sicuro?"')
+        && str_contains($html, 'btn-warning')
+        && str_contains($html, 'href="/edit/"');
+});
+
 check('nessuna azione, nessun markup', fn () => trim($render([])) === '');
 
 summary();

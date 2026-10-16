@@ -2,19 +2,16 @@
 
 namespace Wonder\App\Resources\Scheduler;
 
-use Throwable;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resources\Support\NavigationOnlyResource;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\Scheduler\{Presentation, Repository, TaskRegistry};
-use Wonder\Backend\Support\FlashAlert;
 use Wonder\Backend\Table\Table as Datatable;
 
 /**
  * Pagina "Riepilogo" dello scheduler (non-CRUD). Il Resource espone i dati di
- * dominio (statistiche, opzioni di avvio, heartbeat) e l'azione di avvio
- * manuale; la presentazione vive nella view di `pageView()`, che usa i
+ * dominio (statistiche, conteggi dei log, heartbeat); la presentazione vive nella view di `pageView()`, che usa i
  * Componenti wonder-image/app e legge i dati da questi metodi. Nessun render
  * qui: la view la stampa l'entry condivisa `app/http/backend/resource/page.php`.
  */
@@ -152,62 +149,10 @@ class DashboardResource extends NavigationOnlyResource
         return static::repository()->state('heartbeat');
     }
 
-    /** Attività eseguibili a mano: abilitate e (se `task`) con task registrato. */
-    public static function runOptions(): array
-    {
-        $options = [];
-
-        foreach (static::schedules() as $schedule) {
-            if ($schedule['enabled'] === 'true' && (($schedule['kind'] ?? 'task') !== 'task' || isset(TaskRegistry::all()[$schedule['task_key']]))) {
-                $options[$schedule['id']] = $schedule['name'];
-            }
-        }
-
-        return $options;
-    }
-
     /** Nomi leggibili per codice attività: task registrati più nomi salvati. */
     public static function taskNames(): array
     {
         return array_replace(TaskRegistry::options(), array_column(static::schedules(), 'name', 'task_key'));
-    }
-
-    /** Token CSRF della pagina, generato una volta per sessione. */
-    public static function csrfToken(): string
-    {
-        return $_SESSION['scheduler_csrf'] ??= bin2hex(random_bytes(32));
-    }
-
-    // --- Azione della pagina (POST) --------------------------------------
-
-    /**
-     * Avvio manuale. L'esito si comunica con un alert (obbligatorio nel
-     * backend): messo in coda e mostrato come toast dopo il redirect (PRG),
-     * mai come testo inline. Vedi docs/app/concetti/notifiche.md.
-     */
-    public static function handleSubmit(): never
-    {
-        $token = $_POST['scheduler_csrf'] ?? null;
-
-        if (!is_string($token) || !hash_equals(static::csrfToken(), $token)) {
-            FlashAlert::custom('Richiesta non valida', 'Sessione scaduta o richiesta non valida. Ricarica la pagina e riprova.', 'error');
-        } else {
-            try {
-                static::repository()->request((int) ($_POST['schedule_id'] ?? 0));
-                FlashAlert::custom('Esecuzione richiesta', 'Partira al prossimo passaggio dello scheduler.', 'success');
-            } catch (Throwable $error) {
-                FlashAlert::custom('Avvio non riuscito', $error->getMessage(), 'error');
-            }
-        }
-
-        // PRG: il refresh non ripete l'invio e l'alert in coda diventa il toast
-        // della pagina di arrivo. Riporta il periodo se non è il default.
-        $redirect = __r('backend.scheduler');
-        $days = (int) ($_GET['days'] ?? 0);
-        if (in_array($days, [7, 90, 180], true)) { $redirect .= '?days='.$days; }
-
-        header('Location: '.$redirect, true, 303);
-        exit();
     }
 
     // --- Interni ---------------------------------------------------------

@@ -114,9 +114,86 @@ Il publish è solo una copia nel sito. Perché l'override venga usato a runtime,
 il modulo deve risolvere le proprie view passando prima dal path
 `custom/modules/<slug>/view/...` e poi dal fallback del package.
 
-## Riquadri della home del backend
+## Home del backend
 
-Un modulo può aggiungere riquadri in cima alla home del backend dichiarandoli
+La home del backend (`app/view/pages/backend/home.php`) usa solo classi
+Bootstrap, senza CSS proprio. Dall'alto:
+
+- saluto e data, con il pulsante **Vai al sito**;
+- la fascia di stato (`Wonder\Backend\Support\HomeStatus`): scheduler ed
+  errori aperti nel core, più le voci dei moduli, descritte sotto;
+- i riquadri dei moduli, descritti sotto;
+- **Accesso rapido**: le sezioni della navigazione senza sottomenu;
+- **Sezioni**: una card per sezione con i suoi link. Se la sezione ha gruppi,
+  la card occupa tutta la riga con una colonna per gruppo.
+
+Le sezioni arrivano da `Wonder\Backend\Support\HomeNavigation`, che applica
+le autorità a ogni livello come la sidebar. Una nuova sezione o un nuovo gruppo
+compaiono quindi da soli: non va toccata la home. Basta che il modulo dichiari
+le sue Resource con `navigationSchema()`.
+
+La home disegna tutto con tre Element del core, riusabili anche altrove:
+`StatusCard` (stato), `LinkCard` (accesso rapido) e `LinkListCard` (sezioni).
+Vedi [Componenti UI](../componenti/README.md#statuscard-linkcard-e-linklistcard).
+
+### Voci di stato
+
+Ogni voce della fascia di stato è una classe che implementa
+`Wonder\Backend\Contracts\HomeStatusItem`:
+
+| Metodo | Cosa restituisce |
+|---|---|
+| `status($authorities, $backendUrl)` | una `StatusCard`, o `null` per nasconderla |
+| `order()` | ordine crescente tra le voci |
+
+Le voci hanno una chiave. Il core registra `scheduler`
+(`Wonder\Backend\Home\SchedulerStatus`) ed `errors`
+(`Wonder\Backend\Home\ErrorStatus`). Un modulo aggiunge, sostituisce o toglie
+voci nella propria configurazione:
+
+```php
+// config/module.php del modulo
+'backend' => [
+    'home_status' => [
+        'orders' => \Wonder\Plugin\Shop\Backend\OrdersStatus::class, // nuova voce
+        'errors' => false,                                              // toglie quella del core
+    ],
+],
+```
+
+Il sito può cambiare la configurazione del modulo in
+`custom/config/modules/<slug>.php`. Per le voci del core, invece, usa
+`HomeStatus::set('scheduler', MiaClasse::class)` o
+`HomeStatus::set('scheduler', false)` nel proprio bootstrap. L'ordine di
+precedenza è core, poi moduli, poi sito.
+
+**Chi vede una voce lo decide la voce**, con i permessi della Resource a cui
+porta il suo link, prima di leggere qualsiasi dato:
+
+```php
+public function status(array $authorities, string $backendUrl): ?StatusCard
+{
+    if (!OrderResource::allows($authorities, 'list')) {
+        return null;
+    }
+
+    return StatusCard::make('Ordini', $this->pending())
+        ->icon('bi-bag')
+        ->href($backendUrl.'/'.OrderResource::path().'/');
+}
+```
+
+`Resource::allows($authorities, $action)` applica la stessa regola delle route:
+un'azione con autorità vuote è aperta a tutti, un'azione non dichiarata non è
+mai permessa. Non scrivere i ruoli a mano. Le voci del core usano
+`ScheduleResource` ed `ErrorReportResource` sull'azione `list`.
+
+Una voce che solleva un'eccezione sparisce e finisce nel log: la home resta in
+piedi.
+
+### Riquadri dei moduli
+
+Un modulo può aggiungere riquadri sotto lo stato dichiarandoli
 nella propria configurazione:
 
 ```php
@@ -126,7 +203,9 @@ nella propria configurazione:
 ],
 ```
 
-Ogni classe implementa `Wonder\Backend\Contracts\HomeWidget`:
+Ogni classe implementa `Wonder\Backend\Contracts\HomeWidget`. `render()` può
+restituire un Element già pronto, per esempio
+`LinkCard::make(...)->render('bootstrap')` dentro una colonna `col-*`:
 
 | Metodo | Cosa restituisce |
 |---|---|

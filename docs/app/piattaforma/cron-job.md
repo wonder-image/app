@@ -22,6 +22,46 @@ da codice si possono sospendere ma non eliminare o convertire in altri tipi.
 Script esterni e richieste HTTPS registrano durata ed esito; memoria e CPU
 non rilevabili rimangono nulle, senza usare il consumo del worker come stima.
 
+Nella lista ogni riga ha il menu azioni (tre puntini): **Visualizza**,
+**Modifica**, **Esegui ora**, **Attiva** / **Sospendi** (POST `/{id}/toggle/`
+con token CSRF, nascosta per le attivita sempre attive), **Registro esecuzioni**
+ed **Elimina** per le sole pianificazioni da backend. In alto a destra, **Cron sul server** apre una
+finestra con il comando da impostare in cPanel. Il nome apre **Visualizza
+pianificazione**: stato, prossima scadenza, ultimo avvio, tempo massimo,
+attivita o destinazione, espressione cron, fuso, parametri e la tabella
+**Esecuzioni**, una DataTable di `RunResource::backendTable()` filtrata sulla
+pianificazione. Le azioni della pagina, **Esegui ora** e **Modifica**
+(warning), stanno nella testata come nelle altre pagine `backend.show`,
+dichiarate con `pageSchema()->actions('view', ...)` (vedi
+[Azioni della testata](#azioni-della-testata)).
+
+**Esegui ora** chiede conferma con `data-wi-confirm`, poi invia POST
+`/{id}/run/`: la richiesta mette `requested = 'true'` e il cron la esegue al
+passaggio successivo, quindi nel giro di un minuto. Lo spinner resta visibile
+mentre la pagina interroga `/{id}/run-status/?after=<ultima esecuzione>`; una
+finestra mostra poi esito, output o errore e il link all'esecuzione. Se dopo
+circa due minuti e mezzo lo scheduler non ha preso in carico la richiesta (o il
+suo heartbeat e fermo da tre minuti), la finestra avvisa di controllare il
+cron: la richiesta resta in coda. Gli handler stanno in
+`app/http/backend/scheduler/`, la finestra e lo script in
+`Presentation::runAssets()`, una volta per pagina. Il **Riepilogo** mostra
+solo metriche e collegamenti: l'avvio manuale sta nelle pianificazioni.
+
+### Azioni della testata
+
+`pageSchema()->actions('view' | 'edit' | ..., callable)` accetta, oltre agli
+array `{label, href, ...}`, gli Element `Button` e `Dropdown`:
+`PageActionNormalizer` li passa intatti e
+`layout/backend/partials/header-actions.php` li rende col tema Bootstrap,
+conservando attributi e conferma `data-wi-confirm*`.
+
+Un'attivita da codice puo essere **sempre attiva**: `Task::make(...)->alwaysOn()`
+oppure `alwaysEnabled(): bool` restituendo `true` in una sottoclasse di
+`AbstractTask` (contratto `Contracts\AlwaysEnabledTask`). Il backend mostra
+l'interruttore acceso e bloccato, il modulo ignora `enabled = false` e
+`forge update` riattiva la pianificazione da codice se era stata sospesa
+prima. Orari e parametri restano modificabili.
+
 ## Prima di iniziare
 
 Configurare una sola volta il richiamo del server seguendo
@@ -135,12 +175,14 @@ modulo se non serve piu.
 Lo scheduler non esegue le attivita che non sono piu presenti nel registro.
 Le pianificazioni e lo storico rimangono nel database; lo storico continua
 a rispettare i 180 giorni. Una rimozione non interrompe un processo gia
-avviato. Per una pausa temporanea, sospendere la pianificazione nel backend.
+avviato. Per una pausa temporanea, sospendere la pianificazione nel backend (non
+vale per le attivita sempre attive).
 
 Rimuovere un override del sito rende nuovamente disponibile l'eventuale
 definizione omonima del framework o di un modulo: per fermare anche quella,
-sospendere le sue pianificazioni. In particolare, per disattivare la sitemap
-predefinita usare il backend, senza modificare i file sotto `vendor/`.
+sospendere le sue pianificazioni. La sitemap e Sedi e Google sono sempre
+attive: per fermarle serve un override del sito con la stessa chiave, mai una
+modifica sotto `vendor/`.
 
 Se una definizione viene aggiunta di nuovo con la stessa chiave, tornano a
 essere utilizzabili le pianificazioni conservate e il loro stato precedente.
@@ -230,7 +272,7 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
 
 ## Preconfigurati e integrazioni future
 
-- **Sitemap**: `Tasks\SitemapTask`, attiva ogni notte alle 00:00. Riusa il
+- **Sitemap**: `Tasks\SitemapTask`, sempre attiva, ogni notte alle 00:00. Riusa il
   crawler XML-Sitemaps esistente in un processo isolato e la configurazione
   gestita da Forge. La classe e estendibile. Il runner controlla configurazione,
   codice di uscita e aggiornamento di un file XML valido: il crawler puo
@@ -240,8 +282,9 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   iniziale sospesa, ore 12:00 dal lunedi al venerdi. Riusa il servizio gia
   condiviso dall'endpoint e dal comando CLI, senza richieste durante
   l'installazione. Il modello e sostituibile in una sottoclasse.
-- **Sedi e Google**: `Tasks\GooglePlacesTask` (`wonder.google-places`), spenta
-  di default, ore 03:30. Per ogni sede con `google_place_id` legge da Places
+- **Sedi e Google**: `Tasks\GooglePlacesTask` (`wonder.google-places`), sempre
+  attiva, ore 03:30; senza `GCP_API_KEY` ogni esecuzione e registrata come
+  saltata (`skipped: missing_api_key`). Per ogni sede con `google_place_id` legge da Places
   API (New) orari regolari, secondari e speciali, stato, voto medio e al
   massimo cinque recensioni, con la chiave server `GCP_API_KEY`. Parametri
   `apply_hours` (`false`: solo differenze; `true`: sostituisce gli orari

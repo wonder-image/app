@@ -1,16 +1,18 @@
 <?php
 
+use Wonder\App\Support\GoogleMapsEmbed;
 use Wonder\Docs\ComponentDoc;
 use Wonder\Docs\Example;
 use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\Alert;
 use Wonder\Elements\Media\Iframe;
 
 return ComponentDoc::for(Iframe::class)
     ->title('Iframe')
     ->order(30)
-    ->tags('iframe', 'embed', 'mappa', 'youtube', 'differito')
-    ->description('Un contenuto incorporato (mappa, video esterno, pagina). `fitCover()`/`fitContain()` governano l\'object fit in modo coerente fra i temi; `deferred()` rinvia il caricamento finché il visitatore non lo chiede, con un bottone personalizzabile da `deferredButton()`. L\'URL degli esempi è pubblico: senza rete l\'anteprima resta vuota.')
-    ->uses(Container::class)
+    ->tags('iframe', 'embed', 'mappa', 'google', 'satellite', 'youtube', 'differito')
+    ->description('Un contenuto incorporato (mappa, video esterno, pagina). `fitCover()`/`fitContain()` governano l\'object fit in modo coerente fra i temi; `deferred()` rinvia il caricamento finché il visitatore non lo chiede, con un bottone personalizzabile da `deferredButton()`. `googlePlace($placeId, $mapType)` e `fromLocation($sede, $mapType)` costruiscono la mappa Google (Maps Embed API) da un Place ID, in vista `roadmap` o `satellite`. L\'URL degli esempi è pubblico: senza rete l\'anteprima resta vuota.')
+    ->uses(Container::class, Alert::class, GoogleMapsEmbed::class)
     ->docs('concetti/componenti/video-e-iframe.md', 'Video e Iframe')
     ->docs('elementi/deferred-media.md', 'Iframe e contenuti differiti')
     ->related('deferred', 'video', 'google-map')
@@ -51,4 +53,16 @@ return ComponentDoc::for(Iframe::class)
             PHP)
             ->description('L\'iframe non parte finché il visitatore non preme «Carica contenuto»: niente richieste di terze parti prima del consenso.')
             ->height(300)
+    )
+    ->example(
+        Example::make('Mappa Google da Place ID')
+            ->code(<<<'PHP'
+            GoogleMapsEmbed::forPlace('ChIJ53USP0nBhkcRjQ50xhPN_zw') !== ''
+                ? Iframe::googlePlace('ChIJ53USP0nBhkcRjQ50xhPN_zw', 'satellite', 16)
+                    ->deferred()
+                    ->attr('style', 'width: 100%; height: 320px; border: 0;')
+                : Alert::make('Configura GCP_CLIENT_API_KEY (con la Maps Embed API abilitata) per vedere la mappa.')
+            PHP)
+            ->description('Per una sede: `Iframe::fromLocation(SocietyLocations::default(), \'satellite\')` usa il suo Place ID, altrimenti le coordinate, e mette il nome nel `title`. La Embed API offre solo le viste `roadmap` e `satellite`. Senza chiave browser i due costruttori lanciano: controlla prima `GoogleMapsEmbed::forPlace()` / `forLocation()`, che restituiscono una stringa vuota.')
+            ->height(340)
     );

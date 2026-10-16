@@ -9,6 +9,7 @@ class SitemapTask extends AbstractTask
     public function key(): string { return 'wonder.sitemap'; }
     public function label(): string { return 'Generazione sitemap'; }
     public function enabled(): bool { return true; }
+    public function alwaysEnabled(): bool { return true; }
     public function run(Context $context): array
     {
         $context->externalProcess = true;

@@ -2,12 +2,15 @@
 
 namespace Wonder\App\Scheduler\Tasks;
 
+use Wonder\App\Credentials;
 use Wonder\App\Scheduler\{AbstractTask, Context};
 use Wonder\App\Support\GooglePlaces\{DatabaseGooglePlacesStore, GooglePlacesStore, GooglePlacesSync, HttpPlaceDetailsClient, PlaceDetailsClient};
 
 /**
  * Allinea le sedi con un `place_id` a Google Places (orari, stato,
- * valutazione e recensioni). Spento finché non lo si attiva dal backend.
+ * valutazione e recensioni). È sempre attiva: non si può sospendere dal
+ * backend, e senza la chiave `GCP_API_KEY` ogni esecuzione si limita a
+ * registrare che è stata saltata.
  *
  * Parametri: `apply_hours` (bool) sostituisce gli orari della sede con
  * quelli di Google invece di segnalare solo le differenze; `language`
@@ -24,6 +27,8 @@ class GooglePlacesTask extends AbstractTask
     public function key(): string { return 'wonder.google-places'; }
     public function label(): string { return 'Allineamento sedi con Google'; }
     public function expression(): string { return '30 3 * * *'; }
+    public function enabled(): bool { return true; }
+    public function alwaysEnabled(): bool { return true; }
     public function defaultParameters(): array { return ['apply_hours' => false, 'language' => '']; }
 
     public function validate(array $parameters): array
@@ -51,6 +56,13 @@ class GooglePlacesTask extends AbstractTask
     public function run(Context $context): array
     {
         $parameters = $this->validate($context->parameters + $this->defaultParameters());
+
+        if ($this->client === null && trim((string) (Credentials::api()->gcp_api_key ?? '')) === '') {
+            $context->log('Chiave GCP_API_KEY assente: allineamento saltato.');
+
+            return ['locations' => 0, 'synced' => 0, 'failed' => 0, 'applied' => 0, 'differences' => 0, 'cleared' => 0, 'skipped' => 'missing_api_key'];
+        }
+
         $language = $parameters['language'] !== '' ? $parameters['language'] : (function_exists('__dl') ? (string) __dl() : 'it');
         $sync = new GooglePlacesSync(
             $this->client ?? static fn () => new HttpPlaceDetailsClient(),

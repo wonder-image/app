@@ -102,9 +102,26 @@ SocietyLocations::hoursFor($sede, new DateTimeImmutable()); // [['open' => '09:0
 SocietyLocations::all();                                    // sedi visibili
 ```
 
+## Mappa Google
+
+`Iframe::fromLocation($sede, $vista, $zoom, $lingua)` crea l'iframe della Maps Embed API dal Place ID della sede, o dalle coordinate `lat`/`lng` se manca. `$vista` è `roadmap` (default) o `satellite`, le sole viste che la Embed API accetta. Con un Place ID qualsiasi: `Iframe::googlePlace($placeId, 'satellite')`.
+
+```php
+use Wonder\App\Support\{GoogleMapsEmbed, SocietyLocations};
+use Wonder\Elements\Media\Iframe;
+
+$sede = SocietyLocations::default();
+
+if (GoogleMapsEmbed::forLocation($sede) !== '') {
+    echo Iframe::fromLocation($sede, 'satellite', 16)->ratio('16:9')->deferred();
+}
+```
+
+Usa la chiave browser `GCP_CLIENT_API_KEY` (la stessa di `GoogleMaps`), che deve avere la Maps Embed API abilitata. Senza chiave o senza luogo `GoogleMapsEmbed` restituisce una stringa vuota e `Iframe` lancia `InvalidArgumentException`: controllare prima come nell'esempio. Per una mappa con marker o percorsi usare il componente `GoogleMap`.
+
 ## Recensioni Google
 
-Il task `wonder.google-places` (Dev → Scheduler, "Allineamento sedi con Google") legge ogni notte alle 03:30 da Places API (New), Place Details, ogni sede con un Place ID proprio. È **spento** finché non lo si attiva dal backend e richiede la chiave server `GCP_API_KEY` nel `.env`, con Places API (New) abilitata. La chiave va nell'header `X-Goog-Api-Key`, mai nell'URL. Una chiamata per sede, con un field mask limitato ai campi usati.
+Il task `wonder.google-places` (Dev → Scheduler, "Allineamento sedi con Google") legge ogni notte alle 03:30 da Places API (New), Place Details, ogni sede con un Place ID proprio. È **sempre attivo**: dal backend si cambiano orario e parametri, non si sospende. Richiede la chiave server `GCP_API_KEY` nel `.env`, con Places API (New) abilitata; senza chiave l'esecuzione viene registrata come saltata. La chiave va nell'header `X-Goog-Api-Key`, mai nell'URL. Una chiamata per sede, con un field mask limitato ai campi usati.
 
 | Parametro | Default | Effetto |
 |---|---|---|

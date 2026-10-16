@@ -67,7 +67,7 @@ try {
     $check(!isset($values['last_started']) && isset($values['next_due']), 'Server-owned values protected');
     $check(ScheduleResource::formLayoutSchema() !== null && RunResource::pageSchema() !== null, 'Backend schemas');
     $html = \Wonder\Backend\Support\ResourceFormLayoutRenderer::render(ScheduleResource::formLayoutSchema());
-    $check(str_contains($html, 'scheduler_csrf') && str_contains($html, 'expression'), 'Backend form rendering');
+    $check(str_contains($html, 'expression'), 'Backend form rendering');
     file_put_contents($ROOT.'/custom/scheduler-check.php', '<?php echo json_encode(array_slice($argv, 1));');
     $repository->execute("INSERT INTO scheduler_schedules (name, task_key, kind, origin, target, parameters, enabled, timeout) VALUES ('Custom PHP', 'test.scheduler.custom', 'php', 'backend', 'custom/scheduler-check.php', ?, 'true', 3)", [json_encode(['sync', '--feed=1', 'two words'])]);
     $custom = $repository->rows("SELECT * FROM scheduler_schedules WHERE task_key = 'test.scheduler.custom'")[0];

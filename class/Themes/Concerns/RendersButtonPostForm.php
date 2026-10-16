@@ -17,13 +17,7 @@ trait RendersButtonPostForm
             ? $schema['form_attributes']
             : [];
 
-        $hidden = '';
-
-        foreach ((array) ($schema['form_hidden'] ?? []) as $name => $value) {
-            $hidden .= '<input type="hidden" name="'.htmlspecialchars((string) $name, ENT_QUOTES, 'UTF-8')
-                .'" value="'.htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8').'">';
-        }
-
-        return $this->openPostForm((string) $class->getHref(), $attributes, $schema).$hidden;
+        return $this->openPostForm((string) $class->getHref(), $attributes, $schema)
+            .$this->postHiddenInputs((array) ($schema['form_hidden'] ?? []));
     }
 }

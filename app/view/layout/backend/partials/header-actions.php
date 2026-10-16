@@ -1,6 +1,11 @@
 <?php if (!empty($ACTIONS) && is_array($ACTIONS)) : ?>
     <div class="d-flex flex-wrap gap-2 align-items-center">
         <?php foreach ($ACTIONS as $action) :
+            if (isset($action['element'])) {
+                echo $action['element']->render('bootstrap');
+                continue;
+            }
+
             $label    = (string) ($action['label'] ?? '');
             $class    = (string) ($action['class'] ?? 'btn-primary');
             $icon     = (string) ($action['icon'] ?? '');

@@ -53,4 +53,17 @@ trait RendersPostForm
 
         return '<form'.($attributeString !== '' ? ' '.$attributeString : '').'>'.Csrf::fieldFor('post');
     }
+
+    /** Un `<input type="hidden">` per campo, da mettere subito dopo `openPostForm()`. */
+    protected function postHiddenInputs(array $fields): string
+    {
+        $html = '';
+
+        foreach ($fields as $name => $value) {
+            $html .= '<input type="hidden" name="'.htmlspecialchars((string) $name, ENT_QUOTES, 'UTF-8')
+                .'" value="'.htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8').'">';
+        }
+
+        return $html;
+    }
 }

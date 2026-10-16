@@ -2,6 +2,9 @@
 
 namespace Wonder\Backend\Support;
 
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Dropdown;
+
 /**
  * Normalizza i descriptor dei bottoni header (`$ACTIONS`) usati da
  * `app/view/layout/backend/show.php`.
@@ -22,6 +25,12 @@ namespace Wonder\Backend\Support;
  *                     `onclick`, `class` (extra su `.dropdown-item`),
  *                     `disabled`, `active`.
  *
+ *  - **Element** — un `Wonder\Elements\Components\Button` o `Dropdown`,
+ *    come in `TableLayoutSchema::buttonCustom()`: diventa `['element' => $el]`
+ *    e il layout lo rende col tema Bootstrap. Serve quando il bottone porta
+ *    attributi (`confirm()`, `data-*`, `Button::post()`) che i descriptor
+ *    array non esprimono.
+ *
  * I descriptor mal formati (non-array, senza `label`, dropdown senza voci
  * valide) vengono scartati silenziosamente: un bottone "vuoto" non deve
  * abbattere la pagina.
@@ -37,6 +46,11 @@ final class PageActionNormalizer
         $normalized = [];
 
         foreach ($descriptors as $descriptor) {
+            if ($descriptor instanceof Button || $descriptor instanceof Dropdown) {
+                $normalized[] = ['element' => $descriptor];
+                continue;
+            }
+
             if (!is_array($descriptor)) {
                 continue;
             }

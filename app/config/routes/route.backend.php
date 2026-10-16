@@ -23,8 +23,6 @@ Route::area('backend')
         $schedulerSlug = \Wonder\App\Resources\Scheduler\DashboardResource::slug();
         Route::get('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
             ->name('scheduler')->permit(\Wonder\App\Permission\Access::roles('diagnostica'));
-        Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
-            ->permit(\Wonder\App\Permission\Access::roles('diagnostica'));
 
         // Connessioni MCP (OAuth): visibile a ogni utente backend collegato; la
         // revoca passa da /api/backend/oauth/revoke/ (ConnectionsResource::revoke()).

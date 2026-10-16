@@ -113,7 +113,7 @@ meta vanno escluse da quella regola.
 | --- | --- |
 | `AuthSession::csrfToken()` / `verify()` | Delega a `Csrf`: stesso token, stessa chiave di sessione, campo `csrf_token` invariato. |
 | `_contact_csrf` (pannelli Contatti) | Invariato; usa già lo stesso token tramite `AuthSession`. |
-| `scheduler_csrf` (Scheduler) | Invariato, con un token proprio. |
+| Scheduler (azioni backend) | Usa `Csrf`: `toggle`, `run` e il form verificano `Csrf::verify()`. |
 | `Impersonation` | Invariato: token per scopo, cancellato alla fine dell'impersonazione. |
 
 ## Riferimenti

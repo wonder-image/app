@@ -4,7 +4,7 @@ namespace Wonder\App\Scheduler;
 
 use Wonder\App\Module\Contracts\ModuleTasks;
 use Wonder\App\Module\Registry;
-use Wonder\App\Scheduler\Contracts\TaskInterface;
+use Wonder\App\Scheduler\Contracts\{AlwaysEnabledTask, TaskInterface};
 
 final class TaskRegistry
 {
@@ -58,6 +58,14 @@ final class TaskRegistry
     public static function get(string $key): TaskInterface
     {
         return self::all()[$key] ?? throw new \InvalidArgumentException('Attivita non disponibile: '.$key);
+    }
+
+    /** Vero per un'attività registrata che non si può sospendere. */
+    public static function alwaysEnabled(string $key): bool
+    {
+        $task = self::all()[$key] ?? null;
+
+        return $task instanceof AlwaysEnabledTask && $task->alwaysEnabled();
     }
 
     public static function options(): array

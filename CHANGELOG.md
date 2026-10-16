@@ -3,6 +3,26 @@
 ## Unreleased
 
 ### Added
+- Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
+  stato con icona e link, scorciatoia verso una pagina, elenco di link
+  raggruppati. Li usa la home del backend; schede nel catalogo.
+- `Resource::allows($authorities, $action)`: dice se le autorità date possono
+  eseguire un'azione della Resource, con la stessa regola delle route.
+- Voci di stato della home estendibili: contratto
+  `Backend\Contracts\HomeStatusItem`, chiave `backend.home_status` nella
+  configurazione dei moduli (aggiunge, sostituisce o toglie con `false`) e
+  `HomeStatus::set()` per il sito.
+- `Iframe::googlePlace($placeId, $mapType)` e `Iframe::fromLocation($sede)`:
+  mappa Google (Embed API, chiave `GCP_CLIENT_API_KEY`) di un Place ID o, in
+  mancanza, delle coordinate, in vista `roadmap` o `satellite`
+  (`Support\GoogleMapsEmbed`, che restituisce `''` quando non è utilizzabile).
+- Attività sempre attive: `Task::make(...)->alwaysOn()` o
+  `Contracts\AlwaysEnabledTask`; la sincronizzazione le riattiva e il backend
+  non le sospende.
+- Voci POST di `Dropdown`: l'opzione `hidden` (`['nome' => valore]`) aggiunge
+  campi nascosti al form della voce.
+- `pageSchema()->actions()` accetta anche gli Element `Button` e `Dropdown`,
+  resi nella testata con attributi e conferma `data-wi-confirm*`.
 - `TableLayoutSchema::downloadAsText()`: l'export della lista scrive ogni
   cella come testo (Excel non trasforma telefoni, CAP e codici in numeri) e
   il CSV mette un apice davanti alle celle che iniziano con `=`, `+`, `-`,
@@ -300,6 +320,19 @@
   senza href.
 
 ### Changed
+- Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel
+  menu a tre puntini di ogni riga; il nome apre la pagina della pianificazione
+  con i dati di esecuzione, la DataTable **Esecuzioni** e in testata **Esegui
+  ora** e **Modifica**. Esegui ora chiede conferma, attende l'esito e lo mostra
+  in una finestra. Il comando cron è nella finestra **Cron sul server** della
+  lista; il Riepilogo non ha più l'avvio manuale.
+- Sitemap e Sedi e Google (`wonder.google-places`) sono sempre attive; senza
+  `GCP_API_KEY` la sincronizzazione delle sedi viene saltata.
+- Home del backend ridisegnata con sole classi Bootstrap. In alto ci sono il
+  saluto e lo stato di scheduler ed errori aperti, ciascuno visibile solo a
+  chi può aprire l'elenco della sua Resource. Seguono le sezioni senza sottomenu come accesso rapido e una
+  card per sezione con i suoi link, divisi per gruppo. Tolte le schede
+  "Update applicativo" e "Contatti".
 - `Input::required(false)` toglie l'attributo `required` messo prima, invece
   di non fare niente. Il cellulare facoltativo del completamento non dà più
   errore se è compilato solo il prefisso.

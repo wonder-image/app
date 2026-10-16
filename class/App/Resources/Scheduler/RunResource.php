@@ -18,7 +18,7 @@ class RunResource extends Resource
     public static function tableSchema(): array
     {
         return [TableColumn::key('task_key')->text()->link('view'), TableColumn::key('status')->text()->formatter(static fn ($row) => Presentation::status($row['status'])),
-            TableColumn::key('started_at')->text(),
+            TableColumn::key('started_at')->text()->link('view'),
             TableColumn::key('duration_ms')->text()->formatter(static fn ($row) => e(Presentation::number($row['duration_ms'], 1000, 's'))),
             TableColumn::key('memory_bytes')->text()->formatter(static fn ($row) => e(Presentation::number($row['memory_bytes'], 1048576, 'MiB'))),
             TableColumn::key('cpu_ms')->text()->formatter(static fn ($row) => e(Presentation::number($row['cpu_ms'], 1, 'ms')))];

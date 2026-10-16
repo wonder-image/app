@@ -14,6 +14,11 @@ $task = Task::make('test.example', static fn (Context $context) => ['value' => $
     ->parameters(static fn (array $parameters): array => ['value' => (int) ($parameters['value'] ?? 0)]);
 $check($task->run(new Context($task->validate(['value' => '42']), microtime(true) + 10)) === ['value' => 42], 'Callback parameters');
 $check($task->enabled() === false, 'Custom tasks default to disabled');
+$check($task->alwaysEnabled() === false && (clone $task)->alwaysOn()->alwaysEnabled() && (clone $task)->alwaysOn()->enabled(), 'alwaysOn locks and enables');
+$check(Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.google-places'])
+    && !Repository::isAlwaysEnabled(['origin' => 'backend', 'task_key' => 'wonder.google-places'])
+    && Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.sitemap'])
+    && !Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.euribor']), 'Google Places and sitemap are always enabled');
 try { $task->schedule('not a cron'); $check(false, 'Invalid cron accepted'); } catch (InvalidArgumentException) { $checks++; }
 try { Repository::next('* * * * *', 'invalid/timezone'); $check(false, 'Invalid timezone accepted'); } catch (Exception) { $checks++; }
 $date = Repository::next('0 12 * * 1-5', 'Europe/Rome');
@@ -64,5 +69,8 @@ try {
     $check($resource::mutateFormValues($saved, 'edit')['arguments'] === "sync\n--feed=1", 'PHP args edit round trip');
     try { $resource::mutateRequestValues($input, 'update', 'backend', ['origin' => 'code', 'task_key' => 'wonder.sitemap']); $check(false, 'Code task replaced'); }
     catch (InvalidArgumentException) { $checks++; }
+    $google = ['origin' => 'code', 'task_key' => 'wonder.google-places', 'kind' => 'task'];
+    $kept = $resource::mutateRequestValues(['name' => 'Google', 'kind' => 'task', 'task_key' => 'wonder.google-places', 'expression' => '30 3 * * *', 'timezone' => 'Europe/Rome', 'enabled' => 'false', 'parameters' => '{}'], 'update', 'backend', $google);
+    $check($kept['enabled'] === 'true', 'Always-on schedule cannot be suspended from the form');
 } finally { unlink($root.'/job.php'); rmdir($root); }
 echo "$checks scheduler checks passed.\n";

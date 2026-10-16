@@ -377,7 +377,7 @@ check('sync: chiave mancante ferma tutto prima delle sedi', function () {
 
 // --- GooglePlacesTask -----------------------------------------------------
 
-check('task: spento, parametri di default e validazione', function () {
+check('task: sempre attiva, parametri di default e validazione', function () {
     $task = new GooglePlacesTask();
     $defaults = $task->validate([]);
     $valid = $task->validate(['apply_hours' => true, 'language' => 'en-GB']);
@@ -392,7 +392,8 @@ check('task: spento, parametri di default e validazione', function () {
     }
 
     return $task->key() === 'wonder.google-places'
-        && $task->enabled() === false
+        && $task->enabled() === true
+        && $task->alwaysEnabled() === true
         && $defaults === ['apply_hours' => false, 'language' => '']
         && $valid === ['apply_hours' => true, 'language' => 'en-GB']
         && $errors === 4;

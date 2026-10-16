@@ -5,6 +5,7 @@ namespace Wonder\Elements\Media;
 use InvalidArgumentException;
 use Wonder\Elements\Concerns\HasMediaFit;
 use Wonder\Elements\Concerns\HasRatio;
+use Wonder\App\Support\GoogleMapsEmbed;
 use Wonder\Elements\Components\Button;
 
 class Iframe extends Media
@@ -21,6 +22,40 @@ class Iframe extends Media
     public static function url(string $url): self
     {
         return new self($url);
+    }
+
+    /**
+     * Mappa Google (Maps Embed API) di un Place ID; `$mapType` è `roadmap`
+     * o `satellite`. Lancia se manca la chiave browser o il Place ID non è
+     * valido: per mostrare altro al suo posto controlla prima
+     * `GoogleMapsEmbed::forPlace()`.
+     */
+    public static function googlePlace(string $placeId, string $mapType = 'roadmap', ?int $zoom = null, string $language = ''): self
+    {
+        return self::googleMap(GoogleMapsEmbed::forPlace($placeId, $mapType, $zoom, $language), '');
+    }
+
+    /** Mappa Google di una sede di `SocietyLocations`: Place ID, altrimenti coordinate. */
+    public static function fromLocation(object|array $location, string $mapType = 'roadmap', ?int $zoom = null, string $language = ''): self
+    {
+        $location = (array) $location;
+
+        return self::googleMap(
+            GoogleMapsEmbed::forLocation($location, $mapType, $zoom, $language),
+            trim((string) ($location['label'] ?? $location['name'] ?? ''))
+        );
+    }
+
+    private static function googleMap(string $url, string $title): self
+    {
+        if ($url === '') {
+            throw new InvalidArgumentException('Mappa Google non disponibile: servono la chiave GCP_CLIENT_API_KEY e un Place ID (o coordinate) valido.');
+        }
+
+        return (new self($url))
+            ->attr('title', $title !== '' ? 'Mappa di '.$title : 'Mappa Google')
+            ->attr('allowfullscreen', true)
+            ->attr('referrerpolicy', 'no-referrer-when-downgrade');
     }
 
     public function deferred(bool|string $mode = true, ?Button $button = null): self

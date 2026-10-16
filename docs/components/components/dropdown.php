@@ -47,6 +47,7 @@ return ComponentDoc::for(Dropdown::class)
             ->code(<<<'PHP'
             Dropdown::make('Altro')
                 ->item('Pubblica', '/backend/publish/12', ['method' => 'post', 'variant' => 'success'])
+                ->item('Sospendi', '/backend/toggle/12', ['method' => 'post', 'hidden' => ['return' => 'list']])
                 ->item('Elimina', '/backend/delete/12', [
                     'method' => 'post',
                     'variant' => 'danger',
@@ -54,7 +55,7 @@ return ComponentDoc::for(Dropdown::class)
                     'confirm_ok' => 'Elimina',
                 ])
             PHP)
-            ->description('Ogni voce POST è un `<form method="post">` con il token CSRF; la conferma usa gli attributi `data-wi-confirm*`.')
+            ->description('Ogni voce POST è un `<form method="post">` con il token CSRF; la conferma usa gli attributi `data-wi-confirm*`. `hidden` aggiunge campi nascosti al form della voce.')
             ->height(200)
     )
     ->example(

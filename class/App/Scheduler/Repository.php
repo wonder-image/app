@@ -58,6 +58,11 @@ final class Repository
                     $this->execute("UPDATE scheduler_schedules SET origin = 'code' WHERE task_key = ? ORDER BY id LIMIT 1", [$task->key()]);
                     $this->setState('default-origin:'.$task->key(), 'migrated');
                 }
+                if (TaskRegistry::alwaysEnabled($task->key())) {
+                    foreach ($this->rows("SELECT id, expression, timezone FROM scheduler_schedules WHERE task_key = ? AND origin = 'code' AND deleted = 'false' AND enabled <> 'true'", [$task->key()]) as $row) {
+                        $this->execute("UPDATE scheduler_schedules SET enabled = 'true', next_due = ? WHERE id = ?", [self::next($row['expression'], $row['timezone']), $row['id']]);
+                    }
+                }
                 $this->connection->commit();
             } catch (\Throwable $error) {
                 $this->connection->rollback();
@@ -66,12 +71,57 @@ final class Repository
         }
     }
 
-    public function request(int $id): void
+    public function find(int $id): ?array
     {
-        $row = $this->rows("SELECT * FROM scheduler_schedules WHERE id = ? AND deleted = 'false'", [$id])[0] ?? null;
+        return $this->rows("SELECT * FROM scheduler_schedules WHERE id = ? AND deleted = 'false'", [$id])[0] ?? null;
+    }
+
+    /** Pianificazione predefinita di un'attività che non si può sospendere. */
+    public static function isAlwaysEnabled(array $row): bool
+    {
+        return ($row['origin'] ?? '') === 'code' && TaskRegistry::alwaysEnabled((string) ($row['task_key'] ?? ''));
+    }
+
+    public function toggle(int $id, bool $enabled): array
+    {
+        $row = $this->find($id) ?? throw new \InvalidArgumentException('Pianificazione non trovata.');
+        if (!$enabled && self::isAlwaysEnabled($row)) {
+            throw new \InvalidArgumentException('Questa pianificazione è sempre attiva e non si può sospendere.');
+        }
+        if ($enabled) {
+            $this->execute("UPDATE scheduler_schedules SET enabled = 'true', requested = 'false', next_due = ? WHERE id = ?",
+                [self::next($row['expression'], $row['timezone']), $id]);
+        } else {
+            $this->execute("UPDATE scheduler_schedules SET enabled = 'false', requested = 'false' WHERE id = ?", [$id]);
+        }
+        return $this->find($id);
+    }
+
+    /**
+     * Chiede l'esecuzione al prossimo tick e restituisce l'ultima registrazione
+     * già esistente: le esecuzioni con id maggiore sono quelle richieste ora.
+     */
+    public function request(int $id): int
+    {
+        $row = $this->find($id);
         if (!$row || $row['enabled'] !== 'true') { throw new \InvalidArgumentException('Pianificazione assente o sospesa.'); }
         ConfiguredTask::resolve($row);
+        $after = (int) ($this->rows('SELECT COALESCE(MAX(id), 0) AS id FROM scheduler_runs WHERE schedule_id = ?', [$id])[0]['id'] ?? 0);
         $this->execute("UPDATE scheduler_schedules SET requested = 'true' WHERE id = ?", [$id]);
+        return $after;
+    }
+
+    /** Prima esecuzione successiva a `$after`, per seguire una richiesta manuale. */
+    public function runStatus(int $id, int $after): array
+    {
+        $row = $this->find($id) ?? throw new \InvalidArgumentException('Pianificazione non trovata.');
+        $run = $this->rows('SELECT id, status, started_at, finished_at, duration_ms, output FROM scheduler_runs WHERE schedule_id = ? AND id > ? ORDER BY id LIMIT 1', [$id, $after])[0] ?? null;
+        return [
+            'requested' => $row['requested'] === 'true',
+            'timeout' => ConfiguredTask::resolve($row)->timeout(),
+            'heartbeat' => $this->state('heartbeat'),
+            'run' => $run,
+        ];
     }
 
     public function cleanup(): void

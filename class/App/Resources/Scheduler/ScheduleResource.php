@@ -4,9 +4,10 @@ namespace Wonder\App\Resources\Scheduler;
 
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\{ApiSchema, FormField, NavigationSchema, PageSchema, PermissionSchema, TableColumn, TableLayoutSchema};
-use Wonder\App\Scheduler\{ConfiguredTask, Repository, TaskRegistry};
-use Wonder\Elements\Components\{Button, Card, Container, Text};
+use Wonder\App\Scheduler\{ConfiguredTask, Presentation, Repository, TaskRegistry};
+use Wonder\Elements\Components\{Button, Card, Container, Dropdown, Text};
 use Wonder\Elements\Form\Form;
+use Wonder\Http\{Csrf, Route};
 
 class ScheduleResource extends Resource
 {
@@ -25,9 +26,7 @@ class ScheduleResource extends Resource
     }
     public static function formSchema(): array
     {
-        $_SESSION['scheduler_csrf'] ??= bin2hex(random_bytes(32));
-        return [FormField::key('scheduler_csrf')->hidden()->value($_SESSION['scheduler_csrf']),
-            FormField::key('name')->text()->required(),
+        return [FormField::key('name')->text()->required(),
             FormField::key('kind')->select(['task' => 'Attivita da codice', 'php' => 'Script PHP', 'https' => 'URL HTTPS'], 'old')->value('task')->required(),
             FormField::key('task_key')->select(TaskRegistry::options(), 'old')->visibleWhen('kind', 'task'),
             FormField::key('target')->text()->visibleWhen('kind', ['php', 'https'])->placeholder('custom/tasks/import.php oppure https://example.com/api/task'),
@@ -38,7 +37,8 @@ class ScheduleResource extends Resource
             FormField::key('expression')->text()->value('0 0 * * *')->required()->attribute('oninput="this.form.elements.frequency.value = \'custom\'"'),
             FormField::key('timezone')->select(array_combine(\DateTimeZone::listIdentifiers(), \DateTimeZone::listIdentifiers()), 'old')->value('Europe/Rome')->required(),
             FormField::key('parameters')->textarea()->value('{}')->hiddenWhen('kind', 'php')->placeholder('{"feed": "1"}'),
-            FormField::key('enabled')->select(['false' => 'Sospesa', 'true' => 'Attiva'], 'old')->value('false')->required()];
+            FormField::key('enabled')->select(['false' => 'Sospesa', 'true' => 'Attiva'], 'old')->value('false')->required()
+                ->disabled(static::isAlwaysEnabled())];
     }
     public static function formLayoutSchema(): ?Form
     {
@@ -46,7 +46,7 @@ class ScheduleResource extends Resource
         return (new Form())->columns(12)->components([
             (new Container())->columnSpan(['default' => 12, 'lg' => 9])->components([
                 (new Card())->components([Text::make('Attivita')->tag('div')->bold(),
-                    ...$fields(['scheduler_csrf', 'name', 'kind', 'task_key', 'target', 'http_method', 'arguments', 'parameters']),
+                    ...$fields(['name', 'kind', 'task_key', 'target', 'http_method', 'arguments', 'parameters']),
                     Text::make('PHP: percorso relativo al sito, senza /usr/local/bin/php. Ogni riga e un argomento separato, senza virgolette. HTTPS: parametri JSON, ad esempio {"feed":"1"}; POST usa il formato form.')->small()->muted(),
                 ]),
                 (new Card())->components([Text::make('Quando eseguire')->tag('div')->bold(), ...$fields(['frequency', 'expression', 'timezone']),
@@ -60,56 +60,152 @@ class ScheduleResource extends Resource
                 ]),
                 (new Card())->components([Text::make('Come funziona')->tag('div')->bold(),
                     Text::make('Il cron del server controlla le scadenze ogni minuto. Output ed esito restano nel registro per 180 giorni.')->muted(),
-                    Text::make('Le attivita predefinite si possono sospendere. Quelle aggiunte dal pannello si possono anche eliminare.')->small()->muted(),
+                    Text::make(static::isAlwaysEnabled()
+                        ? 'Questa attivita e sempre attiva: si possono cambiare orari e parametri, non sospenderla.'
+                        : 'Le attivita predefinite si possono sospendere. Quelle aggiunte dal pannello si possono anche eliminare.')->small()->muted(),
                 ]),
             ]),
         ]);
     }
     public static function tableSchema(): array
     {
-        return [TableColumn::key('name')->text()->link('edit'), TableColumn::key('kind')->text()->formatter(static fn ($row) => e(['task' => 'Da codice', 'php' => 'Script PHP', 'https' => 'URL HTTPS'][$row['kind'] ?? 'task'] ?? '')),
+        return [TableColumn::key('name')->text()->link('view'), TableColumn::key('kind')->text()->formatter(static fn ($row) => e(['task' => 'Da codice', 'php' => 'Script PHP', 'https' => 'URL HTTPS'][$row['kind'] ?? 'task'] ?? '')),
             TableColumn::key('origin')->text()->formatter(static fn ($row) => e(($row['origin'] ?? '') === 'code' ? 'Predefinita' : 'Backend')),
-            TableColumn::key('expression')->text(), TableColumn::key('enabled')->activeBadge(),
+            TableColumn::key('expression')->text(),
+            TableColumn::key('enabled')->text()->formatter(static fn (array $row): string => Presentation::state($row)),
             TableColumn::key('next_due')->text(), TableColumn::key('last_started')->text(),
-            TableColumn::key('actions')->text()->formatter(static fn (array $row): string => static::actionsCell($row))];
+            TableColumn::key('actions')->text()->formatter(static fn (array $row): string => static::actionsMenu($row)->render('bootstrap'))];
+    }
+
+    /** URL di una pagina o azione di questa pianificazione (`view`, `edit`, `toggle`, `run`, `run-status`). */
+    public static function url(array $row, string $action = 'view'): string
+    {
+        $base = '/backend/app/scheduler/schedules/'.(int) $row['id'].'/';
+
+        return $action === 'view' ? $base : $base.$action.'/';
+    }
+
+    /** Registro esecuzioni filtrato sull'attivita della pianificazione. */
+    public static function runsUrl(array $row): string
+    {
+        return __r('backend.resource.'.RunResource::slug().'.list')
+            .'?'.RunResource::modelTable().'__search='.rawurlencode((string) ($row['task_key'] ?? ''));
     }
 
     /**
-     * Menu azioni della riga: lo stesso dropdown a tre puntini delle altre
-     * liste del backend. "Visualizza" apre il Registro esecuzioni gia filtrato
-     * sull'attivita di questa pianificazione; "Elimina" resta riservata alle
-     * pianificazioni create dal backend e passa dalla rotta protetta della
-     * resource (CSRF + soft-delete), mai dall'endpoint di delete generico.
+     * Menu azioni della riga. "Esegui" chiede conferma con `data-wi-confirm`
+     * e poi lo segue lo script di `Presentation::runAssets()`; "Attiva" /
+     * "Sospendi" manca per le pianificazioni sempre attive; "Elimina" resta
+     * riservata alle pianificazioni create dal backend.
      */
-    private static function actionsCell(array $row): string
+    public static function actionsMenu(array $row): Dropdown
     {
-        $base = '/backend/app/scheduler/schedules/'.(int) $row['id'];
-        $runs = __r('backend.resource.'.RunResource::slug().'.list')
-            .'?'.RunResource::modelTable().'__search='.rawurlencode((string) ($row['task_key'] ?? ''));
+        $menu = Dropdown::make()->icon('bi bi-three-dots')->caret(false)->variant('link')->size('sm')->align('end')
+            ->toggleClass('text-dark')
+            ->item('Visualizza', static::url($row))
+            ->item('Modifica', static::url($row, 'edit'));
 
-        $items = '<a class="dropdown-item" href="'.e($base.'/edit/').'" role="button">Modifica</a>'
-            .'<a class="dropdown-item" href="'.e($runs).'" role="button">Visualizza</a>';
-
-        if (($row['origin'] ?? 'code') !== 'code') {
-            $_SESSION['scheduler_csrf'] ??= bin2hex(random_bytes(32));
-            $items .= '<form method="post" action="'.e($base.'/delete/').'" onsubmit="return window.confirm(\'Eliminare questa pianificazione? Lo storico verra conservato.\')">'
-                .FormField::key('scheduler_csrf')->hidden()->value($_SESSION['scheduler_csrf'])->render('bootstrap')
-                .'<button type="submit" class="dropdown-item text-danger">Elimina</button></form>';
+        if (($row['enabled'] ?? '') === 'true' && static::canEdit()) {
+            $menu->action('Esegui ora', ['data-wi-scheduler-run' => static::url($row, 'run')], static::runConfirm($row));
         }
 
-        return '<div class="dropdown">'
-            .'<span class="badge text-dark" role="button" data-bs-toggle="dropdown" aria-bs-haspopup="true" aria-bs-expanded="false"><i class="bi bi-three-dots"></i></span>'
-            .'<div class="dropdown-menu dropdown-menu-right">'.$items.'</div>'
-            .'</div>';
+        $toggle = static::canEdit() ? Presentation::toggleAction($row) : null;
+        if ($toggle !== null) {
+            $menu->item($toggle['label'], static::url($row, 'toggle'), ['method' => 'post', 'hidden' => $toggle['hidden']]);
+        }
+
+        $menu->item('Registro esecuzioni', static::runsUrl($row));
+
+        if (($row['origin'] ?? 'code') !== 'code') {
+            $menu->divider()->item('Elimina', static::url($row, 'delete'), [
+                'method' => 'post',
+                'class' => 'text-danger',
+                'confirm' => 'Eliminare questa pianificazione? Lo storico verra conservato.',
+                'confirm_title' => 'Elimina pianificazione',
+                'confirm_ok' => 'Elimina',
+                'confirm_variant' => 'danger',
+            ]);
+        }
+
+        return $menu;
+    }
+
+    /** Opzioni di conferma condivise dal menu e dal bottone della pagina di dettaglio. */
+    public static function runConfirm(array $row): array
+    {
+        return [
+            'confirm' => 'Eseguire subito "'.($row['name'] ?? '').'"? Partira al prossimo passaggio dello scheduler (entro un minuto).',
+            'confirm_title' => 'Esegui pianificazione',
+            'confirm_ok' => 'Esegui',
+            'confirm_variant' => 'primary',
+        ];
+    }
+
+    /** Bottoni dell'header del dettaglio: "Esegui ora" (se attiva) e "Modifica". */
+    public static function viewActions(array $row): array
+    {
+        if (!static::canEdit()) {
+            return [];
+        }
+
+        $actions = [];
+        if (($row['enabled'] ?? '') === 'true') {
+            $confirm = static::runConfirm($row);
+            $actions[] = Button::make('Esegui ora')->icon('bi bi-play-fill')
+                ->attr('data-wi-scheduler-run', static::url($row, 'run'))
+                ->confirm($confirm['confirm'], title: $confirm['confirm_title'], ok: $confirm['confirm_ok'], variant: $confirm['confirm_variant']);
+        }
+        $actions[] = Button::make('Modifica')->icon('bi bi-pencil')->href(static::url($row, 'edit'))->variant('warning');
+
+        return $actions;
+    }
+
+    public static function canEdit(): bool
+    {
+        return !static::isReadonly()
+            && static::allows((array) ($GLOBALS['USER']->authority ?? []), 'update');
+    }
+
+    /** Vero nel form di una pianificazione predefinita che non si può sospendere. */
+    private static function isAlwaysEnabled(): bool
+    {
+        $id = (int) ($GLOBALS['ROUTE_PARAMETERS']['id'] ?? 0);
+        $row = $id > 0 ? (new Repository())->find($id) : null;
+
+        return $row !== null && Repository::isAlwaysEnabled($row);
+    }
+
+    public static function registerBackendRoutes(string $rootApp, string $slug): void
+    {
+        $permissions = (array) static::permissionSchema()->get('backend');
+        $routes = [
+            ['post', 'toggle', 'toggle.php', $permissions['update'] ?? []],
+            ['post', 'run', 'run.php', $permissions['update'] ?? []],
+            ['get', 'run-status', 'run-status.php', $permissions['view'] ?? $permissions['list'] ?? []],
+        ];
+
+        foreach ($routes as [$method, $action, $file, $authorities]) {
+            Route::$method('/{id}/'.$action.'/', $rootApp.'/http/backend/scheduler/'.$file, [
+                'resource' => $slug,
+                'resource_action' => $action,
+            ])->name($action)->permit($authorities)->where('id', '[0-9]+');
+        }
     }
     public static function tableLayoutSchema(): TableLayoutSchema
     {
-        return TableLayoutSchema::for(static::class)->title('Pianificazioni')->results()->buttonAdd('Aggiungi pianificazione');
+        return TableLayoutSchema::for(static::class)->title('Pianificazioni')->results()
+            ->buttonCustom(Presentation::cronButton())->buttonAdd('Aggiungi pianificazione');
     }
     public static function apiSchema(): ApiSchema { return ApiSchema::for(static::class)->enabled(false); }
     public static function pageSchema(): PageSchema
     {
-        return PageSchema::for(static::class)->view('form', dirname(__DIR__, 4).'/app/view/pages/backend/scheduler/form.php');
+        $views = dirname(__DIR__, 4).'/app/view/pages/backend/scheduler';
+
+        return PageSchema::for(static::class)->enable('view')
+            ->actions('view', static fn (array $item): array => static::viewActions($item))
+            ->view('list', $views.'/schedules.php')
+            ->view('show', $views.'/schedule.php')
+            ->view('form', $views.'/form.php');
     }
     public static function permissionSchema(): PermissionSchema { return PermissionSchema::for(static::class)->access('diagnostica'); }
     public static function navigationSchema(): NavigationSchema
@@ -127,6 +223,9 @@ class ScheduleResource extends Resource
         $arguments = (string) ($_POST['arguments'] ?? $values['arguments'] ?? '');
         $values = array_intersect_key($values, array_flip(['name', 'task_key', 'kind', 'target', 'http_method', 'timeout', 'expression', 'timezone', 'parameters', 'enabled']));
         $merged = array_replace($oldValues ?? [], $values);
+        if ($oldValues !== null && Repository::isAlwaysEnabled($oldValues)) {
+            $values['enabled'] = $merged['enabled'] = 'true';
+        }
         if (trim((string) ($merged['name'] ?? '')) === '') { throw new \InvalidArgumentException('Inserire un nome per la pianificazione.'); }
         $kind = $merged['kind'] ?? 'task';
         if (($oldValues['origin'] ?? '') === 'code' && ($kind !== 'task' || ($merged['task_key'] ?? '') !== $oldValues['task_key'])) {
@@ -157,9 +256,7 @@ class ScheduleResource extends Resource
 
     private static function assertCsrf(): void
     {
-        if (PHP_SAPI !== 'cli' && (!is_string($_POST['scheduler_csrf'] ?? null)
-            || !is_string($_SESSION['scheduler_csrf'] ?? null)
-            || !hash_equals($_SESSION['scheduler_csrf'], $_POST['scheduler_csrf']))) {
+        if (PHP_SAPI !== 'cli' && !Csrf::verify()) {
             throw new \RuntimeException('Richiesta non valida. Ricaricare il modulo.');
         }
     }

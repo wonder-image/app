@@ -7,6 +7,7 @@ echo \Wonder\Backend\Support\ResourceFormLayoutRenderer::render($FORM_LAYOUT, [
     'method' => $FORM_METHOD ?? 'POST',
     'action' => $FORM_ACTION ?? '',
     'onsubmit' => $saveBar ? 'loadingSpinner()' : 'return false',
+    'footer' => \Wonder\Http\Csrf::fieldFor('post'),
     'attributes' => ['data-wi-save-bar' => $saveBar, 'data-wi-save-bar-dirty' => $saveBar && !empty($FORM_ERRORS)],
 ]);
 \Wonder\View\View::end();

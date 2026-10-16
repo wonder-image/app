@@ -156,6 +156,40 @@ alla card stessa, senza un ulteriore contenitore. Essendo un renderer backend,
 `ResourceFormLayoutRenderer` risolve esplicitamente tutti gli Element figli con
 il tema Bootstrap, indipendentemente dal tema globale attivo.
 
+## StatusCard, LinkCard e LinkListCard
+
+Tre card di navigazione del backend (solo tema Bootstrap), usate dalla home e
+riusabili in qualsiasi pagina. Ognuna ha un'icona Bootstrap Icons in un
+riquadro colorato con `variant()` (`primary` di default):
+
+```php
+use Wonder\Elements\Components\{LinkCard, LinkListCard, StatusCard};
+
+StatusCard::make('Scheduler', 'Attivo')
+    ->icon('bi-clock-history')
+    ->variant('success')
+    ->detail('Nessun errore nelle ultime 24 ore')
+    ->href($url);                       // tutta la card diventa un link
+
+LinkCard::make('Richieste', $url)
+    ->icon('bi-envelope')
+    ->description('Messaggi dal sito'); // facoltativa
+
+LinkListCard::make('Dev')
+    ->icon('bi-terminal')
+    ->link('Riepilogo', $url)
+    ->link('Pianificazioni', $url, 'Automazioni');
+```
+
+`LinkListCard` raggruppa i link per gruppo nell'ordine di arrivo. I link senza
+gruppo vanno sotto `ungroupedTitle()` ("Generale"). `count(false)` nasconde il
+badge col numero di link. `isGrouped()` dice se la card ha gruppi: in quel caso
+merita una colonna larga. Le voci dell'elenco seguono gli angoli arrotondati
+della card (`overflow-hidden`).
+
+Le card hanno `h-100`: mettile in una colonna Bootstrap (`col-*`) o in un
+`Container` con `columns()`.
+
 ## Accordion
 
 `Accordion` usa lo stesso Element per il backend Bootstrap e per il frontend
