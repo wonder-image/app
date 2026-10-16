@@ -765,6 +765,15 @@
   `mail_password`, `google_oauth_client_secret`, `apple_oauth_private_key`)
   hanno `autocomplete="new-password"`: prima il browser poteva inserirci la
   password di login salvata.
+- PDF dei documenti legali (`generateLegalDocumentPdf()`): tipo documento,
+  «Versione», «Pubblicato» e «Pagina» seguono il `language_code` del
+  documento (chiavi `components.legal.pdf.version`, `.published`, `.page`,
+  tradotte in it, en, de, fr, es) anche quando il PDF nasce da una richiesta
+  o da un task in un'altra lingua: prima un documento tedesco usciva con le
+  etichette italiane. La lingua passa per il nuovo
+  `LanguageContext::withLang()`, che ripristina lingua e traduzioni correnti
+  in un `finally`; una lingua assente o non registrata ricade sulla lingua di
+  default (#77).
 - Open redirect nel login backend (#87): `infoPage()` validava il
   `?redirect=` base64 solo decodificandolo, e dopo il login
   `header("Location: $PAGE->redirect")` poteva portare su un host esterno. Ora
