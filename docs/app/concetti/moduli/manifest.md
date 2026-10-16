@@ -73,6 +73,7 @@ Inoltre, i **percorsi** dichiarati devono stare **dentro** la radice del modulo
 | `modelsPath()` | default `src/Models` |
 | `resourcesPath()` | default `src/Resources` |
 | `defaultsClass()` | da `database.defaults`, `null` se assente |
+| `migrationClasses()` | da `database.migrations`, lista vuota se assente |
 | `consoleCommands()` | da `console.commands`, lista vuota se assente |
 | `handlersPath()`, `viewsPath()`, `assetsPath()`, `langPath()`, `testsPath()` | da `paths.*` |
 | `routeFile($area)` | da `paths.routes.<area>` |
@@ -92,6 +93,26 @@ Classe delle righe precaricate del modulo:
 ```
 
 La classe implementa `Wonder\App\Module\Contracts\ModuleDefaults` (vedi [Contratto](contratto.md)). Il validator segnala classi inesistenti o che non implementano il contratto. Eseguita solo da `forge update` con `APP_ENV=local`.
+
+### `database.migrations`
+
+Migrazioni strutturali del modulo, eseguite da `forge update` prima
+dell'allineamento delle tabelle ai Model:
+
+```json
+"database": {
+    "migrations": ["Wonder\\Plugin\\CustomerAccount\\Migrations\\LegacyContactTablesMigration"]
+}
+```
+
+Ogni classe implementa `Wonder\App\Module\Contracts\ModuleMigration`
+(`static run(mysqli $connection): array`, che ritorna cosa ha fatto, vuoto se
+niente) e deve essere idempotente: gira a ogni update. I moduli abilitati sono
+eseguiti in ordine di dipendenza. Per rinominare tabelle legacy c'è
+`Wonder\App\Support\LegacyTableRenames::run($connection, ['vecchia' => 'nuova'])`:
+un solo `RENAME TABLE` atomico che conserva ID, righe e chiavi esterne, salta le
+tabelle già migrate e si ferma senza toccare nulla se esistono entrambi i nomi.
+Niente drop né merge: una migrazione distruttiva non va in questo gancio.
 
 ### `console.commands`
 
@@ -118,8 +139,12 @@ da `Registry::mergePermissions(...)` (ordine: core → moduli → custom). Vedi
 ## Dipendenze
 
 `dependencies.modules` elenca gli slug dei moduli richiesti; `dependencySlugs()`
-li restituisce. Il framework usa questa informazione per risolvere l'ordine dei
-moduli.
+li restituisce. `Registry::enabled()` rifiuta un modulo le cui dipendenze non
+sono abilitate; `forge update` esegue migrazioni e righe predefinite in ordine di
+dipendenza (`ModuleDependencySorter`). I file di route invece si caricano in
+ordine alfabetico di percorso (`Registry::routeFiles()`): un modulo che deve
+registrarsi dopo un altro (per esempio un'estensione del pannello account dopo
+quella di `customer-account`) non può contare sulla dipendenza dichiarata.
 
 {% hint style="warning" %}
 **Da verificare / non validato.** Alcuni campi che potresti vedere in esempi

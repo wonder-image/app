@@ -28,7 +28,7 @@ email, reset, Google e, se abilitata, impersonificazione. Riutilizza i servizi
 di sicurezza esistenti; `UserAccountGateway` opera solo sugli utenti del core.
 Il gestionale non serve per autenticarsi. `EcommerceAuthProfile` è un
 adattatore del modulo: impone cellulare, privacy/condizioni ecommerce e collega
-il contatto con `afterUserSaved()`. Nessuna fatturazione o regola di gioco
+la scheda cliente di `customer-account` con `afterUserSaved()`. Nessuna fatturazione o regola di gioco
 entra nel suo payload di registrazione.
 
 ## Aggiungere campi senza duplicare il flusso
@@ -115,6 +115,11 @@ pannello logout, cellulare obbligatorio e la vista dei messaggi; senza, usa
 | `account.index` | `/account/` | Panoramica |
 | `account.personal` | `/account/dati-personali/` | GET e POST |
 | `account.email.confirm` | `/account/email/conferma/?token=…` | pubblica, senza pannello; GET mostra il bottone, POST cambia |
+
+Con il modulo `wonder-image/customer-account` abilitato si aggiungono:
+
+| Nome | URL | Note |
+|---|---|---|
 | `account.addresses` | `/account/indirizzi/` | elenco a schede |
 | `account.addresses.create` | `/account/indirizzi/nuovo/` | GET e POST |
 | `account.addresses.edit` | `/account/indirizzi/{id}/` | GET e POST |
@@ -124,11 +129,15 @@ pannello logout, cellulare obbligatorio e la vista dei messaggi; senza, usa
 Gli URL del login e della registrazione (`/account/auth/…`) non cambiano. Le
 sezioni sono `overview`, `personal`, `addresses` e `billing`: una sottoclasse di
 `AccountPanel` toglie da `sections()` `personal`, `addresses` o `billing` e le
-loro route non si registrano. `billing` non ha una voce di menu: è la riga della
-fatturazione in «Dati personali», e toglierla dalle sezioni toglie la riga.
+loro route non si registrano. Il core usa solo `overview` e `personal`;
+`addresses` e `billing` sono riservate alla scheda cliente: le legge
+`customer-account` con `AccountRoutes::panel()->enabled()`, e senza il modulo
+non producono route, voci o righe. `billing` non ha una voce di menu: è la riga
+della fatturazione in «Dati personali», e toglierla dalle sezioni toglie la riga.
 La scheda `.wi-address-card--add` per aggiungere un indirizzo esce dallo stesso
 componente delle schede, `frontend.account.address-card`, con `add` (`href`,
-`modal`, `label`) al posto di `card`.
+`modal`, `label`) al posto di `card`; il componente è del core, le pagine degli
+indirizzi del modulo.
 La stessa sottoclasse cambia `title()`, `authorities()` e `parentLayout()`; se
 sovrascrive un hook chiama `parent::`, altrimenti perde le estensioni dei moduli.
 Le viste del pannello sono sigillate: non si sostituiscono da `custom/`, si
@@ -141,15 +150,29 @@ Un modulo non copia il controller: implementa `AccountExtension` (o estende
 `BaseAccountExtension`, che non fa nulla, e sovrascrive solo i ganci che gli
 servono) e la registra con `AccountRoutes::extend()`. L'ordine rispetto a
 `register()` non conta: le route dell'estensione nascono appena c'è il pannello.
+Conta invece l'ordine tra estensioni: ognuna riceve voci e righe già passate
+dalle precedenti, e i file di route dei moduli si caricano in ordine alfabetico
+di percorso (vedi [Manifest](../moduli/manifest.md#dipendenze)).
 
 | Gancio | Cosa fa |
 |---|---|
 | `routes()` | Registra le route del modulo; per quelle private usare `AccountRoutes::group(callable)`, che mette prefisso `/account`, nomi `account.*`, login e permessi del pannello. |
-| `navigation(array $items, object $user)` | Riceve le voci per chiave (`overview`, `personal`, `addresses`), ciascuna con `label`, `href`, `icon`: si aggiunge, si ritocca o si toglie con `unset`. Una voce senza `href` o etichetta non esce. |
-| `overviewRows(array $rows, object $user)` | Righe della Panoramica: riceve l'anteprima del core (`AccountOverview::rows()`: dati personali, fatturazione, indirizzi), ogni riga con il link alla sua pagina e nessun modal. `AccountOverview::link($label, $href, $icon)` costruisce l'azione. |
+| `navigation(array $items, object $user)` | Riceve le voci per chiave (dal core `overview` e `personal`; `customer-account` aggiunge `addresses`), ciascuna con `label`, `href`, `icon`: si aggiunge, si ritocca o si toglie con `unset`. Una voce senza `href` o etichetta non esce. |
+| `overviewRows(array $rows, object $user)` | Righe della Panoramica: riceve l'anteprima del core (`AccountOverview::rows()`: la riga `personal`) più quelle delle estensioni precedenti (`customer-account`: fatturazione e indirizzi), ogni riga con il link alla sua pagina e nessun modal. `AccountOverview::link($label, $href, $icon)` costruisce l'azione. |
 | `personalRows(array $rows, object $user)` | Righe di «Dati personali». |
 | `personalFields`, `validatePersonal`, `personalUserValues`, `afterPersonalSaved` | Campi del modal dei dati personali, messaggi di validazione già tradotti, valori da scrivere sull'utente oltre a quelli del core, ed effetti dopo il salvataggio. Aggiungono richieste, non aggirano le verifiche su identità e cellulare. |
 | `head()` | Markup da aggiungere nell'head delle pagine del pannello (font, stile). |
+
+Un'estensione che implementa anche `AccountPageExtension` (`BaseAccountExtension`
+le implementa entrambe, senza effetti) riceve in più:
+
+| Gancio | Cosa fa |
+|---|---|
+| `personalFormFields(array $fields, object $user, array $values)` | Campi del modal dei dati personali, per chiave, già idratati: si inseriscono campi (la data di nascita) o si cambiano i valori iniziali. `$values` sono i valori postati quando il modal si riapre. |
+| `personalModals(array $modals, object $user, string $open, array $errors, array $values)` | Modal in più di «Dati personali». `$open` è il `form` da riaprire con `$errors` e `$values`. |
+| `savePersonalForm(string $form, object $user, array $input): ?array` | POST di «Dati personali» con un `form` che il core non conosce: `null` se il form non è dell'estensione (il core risponde 404), altrimenti la lista di errori tradotti, vuota se il salvataggio è riuscito. |
+| `pageErrors(array $errors, object $user, string $page)` | Avvisi di pagina, stampati fuori dai form. |
+| `afterEmailConfirmed(int $userId, string $email)` | Dopo il cambio email, nella stessa transazione: un'eccezione `AccountSaveFailed` annulla il cambio. |
 
 Una riga ha questa forma, ed è quella che stampa `frontend.account.row`:
 
@@ -168,8 +191,11 @@ Una riga ha questa forma, ed è quella che stampa `frontend.account.row`:
 ```
 
 Le pagine nuove sono di un controller che estende `AccountController`: la classe
-non è `final` e i suoi helper (`page()`, `user()`, `contact()`, `flash()`,
-`redirect()`, `requireCsrf()`, `translate()`) sono `protected`. Il modulo
+non è `final` e i suoi helper (`page()`, `user()`, `flash()`, `redirect()`,
+`requireCsrf()`, `translate()`, `post()`, `notFound()`, `requireSection()`) sono
+`protected`. Un controller che lavora sulla scheda cliente usa il trait
+`Wonder\Plugin\CustomerAccount\Account\Concerns\ManagesContact` del modulo
+(`contact($userId)`, `contactErrors($contact)`). Il modulo
 risponde alle sue azioni e passa le altre a `parent::handle()`:
 
 ```php
@@ -302,19 +328,20 @@ use Wonder\View\View;
 
 ### Dati personali, email e password
 
-«Dati personali» ha tre righe e ognuna apre il suo modal: la prima per nome, data
-di nascita (`birth_date` della scheda `Contact`) e cellulare, la seconda per
-l'email, la terza per la password. Il modal dell'email c'è solo se l'account ha già
+«Dati personali» ha tre righe e ognuna apre il suo modal: la prima per nome,
+cognome e cellulare (con `customer-account` anche la data di nascita, `birth_date`
+della scheda `Contact`), la seconda per l'email, la terza per la password. Il modal dell'email c'è solo se l'account ha già
 una password (il cambio email la chiede): senza, la riga non ha «Modifica» ma la
 nota «Imposta prima una password per cambiare l'email», e la password si imposta dal
-terzo modal. Con la sezione `billing` e la scheda cliente seguono le righe della
-fatturazione (`AccountBilling::rows()`), che aprono il modal `account-billing`: posta
-a `account.personal` con `form=billing`, salva con `AccountBilling::save()` e torna a
-«Dati personali». Ogni modal riceve solo i valori del proprio form.
-`AccountPersonal` salva nome, data e cellulare, passando dai ganci
-dell'estensione (`validatePersonal()` prima, `personalUserValues()` e
-`afterPersonalSaved()` dopo), in una sola transazione con la scheda: o tutto o
-niente. Il core conserva gli invarianti base su identità e cellulare.
+terzo modal. Con `customer-account`, la sezione `billing` e la scheda cliente
+seguono le righe della fatturazione (`AccountBilling::rows()` del modulo), che
+aprono il modal `account-billing`: posta a `account.personal` con `form=billing`,
+il core lo passa a `savePersonalForm()` e il modulo salva con
+`AccountBilling::save()`, poi si torna a «Dati personali». Ogni modal riceve solo
+i valori del proprio form. `AccountPersonal` salva nome e cellulare, passando dai
+ganci delle estensioni (`validatePersonal()` prima, `personalUserValues()` e
+`afterPersonalSaved()` dopo), in una sola transazione con quanto scrivono: o
+tutto o niente. Il core conserva gli invarianti base su identità e cellulare.
 
 Il cambio email (`AccountEmail`) chiede la password attuale e manda alla nuova
 casella un link monouso (token `email_change`, 24 ore) a
@@ -345,30 +372,43 @@ fa lo stesso (vedi `AccountModal` più sotto).
 
 ## Storage dei contatti
 
-La rappresentazione è distinta dall'archiviazione. Il core possiede i modelli
-`Wonder\App\Models\Contacts\Contact`, `ContactAddress` e
-`Wonder\App\Models\System\ExternalReference`. Sono disponibili anche senza
-gestionale: una scheda contiene una fatturazione e il collegamento all'utente,
-più indirizzi di consegna vivono nella relazione. Tutti escludono la sync dei
-dati operativi. I nomi SQL sono `contacts`, `contact_addresses` e
-`external_references`. Forge update esegue `SharedContactTablesMigration`
-prima dell'allineamento degli schemi: rinomina in un'unica operazione le
-corrispondenti tabelle legacy `gst_*`, conservando ID, righe e FK. Se esistono
-entrambi i nomi si interrompe senza cancellare o fondere dati. Aggiornare app
-e gestionale insieme ed eseguire Forge update prima di riaprire il sito.
+La rappresentazione è distinta dall'archiviazione. Il core possiede solo
+`Wonder\App\Models\System\ExternalReference` (tabella `external_references`) e
+gli strumenti di presentazione: `AccountAddressForm`, `AccountAddressValidation`,
+`AccountModal`. Un sito con il solo `wonder-image/app` non ha tabelle di contatti.
+`SharedContactTablesMigration` del core rinomina soltanto la legacy
+`gst_external_references`.
 
-Il gestionale mantiene subclass compatibili nei vecchi namespace; Contact
-aggiunge listino, metodo e termine di pagamento. Le sue resource e i vincoli
-commerciali restano nel modulo, non compaiono nei siti app-only. Non disabilitare
-il gestionale su un database operativo senza un backup e una verifica dello
-schema: Forge allinea le colonne al modello del modulo abilitato.
+La rubrica clienti è del modulo `wonder-image/customer-account`:
 
-`Wonder\Auth\Frontend\ContactAccount::link($userId, $input)` offre il
-collegamento riutilizzabile senza dati di fatturazione: riusa la scheda già
-collegata o una email non assegnata, rifiuta una scheda di un altro account.
-Invocarlo da `afterUserSaved()` quando un progetto richiede questa rubrica;
-l'auth generica non crea contatti automaticamente. Per un cellulare passato
-esplicitamente usare `phone_prefix` e numero nazionale `phone`.
+- `Wonder\Plugin\CustomerAccount\Models\Contact` e `ContactAddress`, tabelle
+  `contacts` e `contact_addresses`, escluse dalla sync dei dati operativi. Una
+  scheda contiene una fatturazione e il collegamento all'utente; gli indirizzi
+  di consegna vivono nella relazione.
+- `LegacyContactTablesMigration`, dichiarata in `database.migrations` del suo
+  `module.json`: prima dell'allineamento degli schemi rinomina in un'unica
+  operazione `gst_contacts` e `gst_contact_addresses`, conservando ID, righe e
+  FK; se esistono entrambi i nomi si interrompe senza cancellare o fondere dati.
+  Aggiornare app, customer-account e gestionale insieme ed eseguire
+  `forge update` prima di riaprire il sito.
+- `Wonder\Plugin\CustomerAccount\Account\ContactAccount::link($userId, $input)`:
+  il collegamento utente↔scheda, senza dati di fatturazione. Riusa la scheda già
+  collegata o una email non assegnata, rifiuta una scheda di un altro account.
+  Invocarlo da `afterUserSaved()` quando un progetto richiede la rubrica (lo fa
+  `EcommerceAuthProfile`); l'auth generica non crea contatti. Per un cellulare
+  passato esplicitamente usare `phone_prefix` e numero nazionale `phone`.
+- `CustomerContact::forUser($userId)` / `forget($userId)`: la scheda dell'utente,
+  letta una volta per richiesta, per le estensioni e i controller che si
+  appoggiano al modulo.
+
+Il modulo non registra alias dei vecchi namespace (`Wonder\App\Models\Contacts\*`,
+`Wonder\Auth\Frontend\ContactAccount`, `AccountBilling`, `AccountAddresses`):
+chi li importava passa a `Wonder\Plugin\CustomerAccount\…`. Il gestionale estende
+i modelli del modulo nei suoi namespace; Contact aggiunge listino, metodo e
+termine di pagamento. Le sue resource e i vincoli commerciali restano nel
+gestionale. Non disabilitare il gestionale su un database operativo senza un
+backup e una verifica dello schema: Forge allinea le colonne al modello del
+modulo abilitato.
 
 `AccountAddressForm::layout()` usa un singolo contenitore per cella e applica
 la visibilità condizionale dell'azienda alla cella intera, senza buchi nella
@@ -395,9 +435,9 @@ una conferma, come l'eliminazione di un indirizzo. Il tema Wonder riusa
 `wi-modal` e `modal('#id')`; il renderer Bootstrap rimane compatibile. L'opt-in
 mantiene invisibili sul frontend i vecchi modal backend. Il controller mantiene
 ownership, CSRF e route non-JS; passa i dialoghi alla pagina nell'array `modals`:
-sono resi dopo `main`, fuori dalla colonna dei contenuti/form. Il core offre ora
-Resource generiche per la rubrica; il gestionale mantiene il proprio pannello
-più completo. Vedi [Contatti backend](contatti-backend.md).
+sono resi dopo `main`, fuori dalla colonna dei contenuti/form. Le Resource
+backend della rubrica sono di `customer-account`; il gestionale mantiene il
+proprio pannello più completo. Vedi [Contatti backend](contatti-backend.md).
 
 Paese e provincia sono FormField `country('province')` / `states($country)`,
 alimentati da `countries()` / `states()` come i vecchi helper. La provincia

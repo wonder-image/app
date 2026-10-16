@@ -26,9 +26,11 @@ shared `RendersDropdownItems`. Never emit `window.confirm`.
 Wonder Select renders a native visible fallback; lib enhancement binds its label
 to the visible button and honors searchable country/state fields without forcing
 a theme or introducing another input implementation.
-Shipping labels are optional. Generic Contact/ContactAddress Resources expose
-admin-only create/edit panels with CSRF, no API or delete. They are table
-fallbacks: module/site contact panels retain lookup precedence and navigation.
+Shipping labels are optional. Contact/ContactAddress and their Resources live in
+the `wonder-image/customer-account` module, not in the core: an app-only site has
+no contact tables, Resources or menu. Those Resources expose admin-only
+create/edit panels with CSRF, no API or delete, and are table fallbacks:
+gestionale/site contact panels retain lookup precedence and navigation.
 Early routing preloads core translations before site lang.php can call __r().
 See `docs/app/concetti/utenti/contatti-backend.md`.
 
@@ -313,7 +315,8 @@ php forge start
 - `Wonder\\App\\Path::$appApi` and `::$apiDT` must point to canonical routed `/api/...` URLs. Do not introduce internal callers that build package-local `app/api/*.php` URLs.
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
-- Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars.
+- Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars. `Registry::routeFiles()` loads them in alphabetical path order, not dependency order.
+- Structural module migrations go in `module.json` `database.migrations`: classes implementing `ModuleMigration` (`static run(mysqli): array`, idempotent), run by `forge update` in dependency order before table alignment. Rename legacy tables with `Support\LegacyTableRenames` (one atomic `RENAME TABLE`, stops when both names exist); never drop or merge. See `docs/app/concetti/moduli/manifest.md`.
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
@@ -325,15 +328,19 @@ php forge start
   Keep page alerts outside forms, active-page theme resolution and private
   SEO defaults. `frontend.layout.body-start` emits the internal user id and
   consumes success-only auth events without PII. See auth-frontend.md.
-- Shared contact storage lives in `App/Models/Contacts/{Contact,ContactAddress}`
-  and `App/Models/System/ExternalReference`, without requiring gestionale.
-  Shared SQL tables are `contacts`, `contact_addresses`, `external_references`.
-  `SharedContactTablesMigration` atomically renames legacy `gst_*` tables before
-  schema updates, preserving IDs/FKs; conflicts must stop, never drop or merge.
-  Gestionale subclasses add only commercial fields. Use `ContactAccount`
-  for account linking and `AccountAddressForm` for explicit translated labels,
-  country-aware defaults and responsive Container layouts; do not require
-  billing data during signup or reset submitted empty values to defaults.
+- The core keeps only `App/Models/System/ExternalReference` (`external_references`)
+  plus account presentation (`AccountAddressForm`, `AccountAddressValidation`,
+  `AccountModal`); `SharedContactTablesMigration` renames only
+  `gst_external_references`. Contacts, addresses, the user↔contact link
+  (`ContactAccount`), billing, the address pages and the `gst_contacts` /
+  `gst_contact_addresses` rename belong to `wonder-image/customer-account`
+  (`Wonder\Plugin\CustomerAccount\`), which plugs into the panel through
+  `AccountExtension` + `AccountPageExtension` and loads no aliases for the old
+  core namespaces. Never add core proxies to its optional classes. Gestionale
+  subclasses add only commercial fields. Use `AccountAddressForm` for explicit
+  translated labels, country-aware defaults and responsive Container layouts;
+  do not require billing data during signup or reset submitted empty values to
+  defaults.
 - Complete account address saves use `AccountAddressValidation`, not global
   Contact required fields (signup must remain billing-free). Reuse
   `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
