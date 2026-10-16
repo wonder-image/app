@@ -103,7 +103,40 @@
 
         }
 
-        public function url() : string 
+        /**
+         * Nome del file sul box quando l'immagine non si carica (`data-wi-image-name`,
+         * letto da wonder-image/lib). Attivo di default; `false` lo toglie da questa immagine.
+         */
+        public function missingLabel( bool $enabled = true ): self
+        {
+
+            return $this->schema('missing-label', $enabled);
+
+        }
+
+        /** `IMAGE_MISSING_LABEL=false` nel .env spegne l'etichetta su tutto il sito. */
+        public static function missingLabelEnabled(): bool
+        {
+
+            return filter_var($_ENV['IMAGE_MISSING_LABEL'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+
+        }
+
+        /** Nome del file passato a src(): senza cartella, query, frammento e varianti generate. */
+        public static function originalName( string $src ): string
+        {
+
+            $path = (string) preg_replace('/[?#].*$/s', '', trim($src));
+
+            if ($path === '' || str_ends_with($path, '/')) {
+                return '';
+            }
+
+            return rawurldecode(basename($path));
+
+        }
+
+        public function url() : string
         {
 
             $image = $this->getSchema('src');

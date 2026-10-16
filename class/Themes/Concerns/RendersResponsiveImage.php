@@ -130,7 +130,33 @@
                     $attributes['height'] = $dimensions[1];
                 }
             }
+            $attributes += $this->missingLabelAttributes($src);
             $this->attributes = $this->renderAttributes($attributes);
+
+        }
+
+        /**
+         * Nome originale per l'etichetta della lib sulle immagini che non si caricano:
+         * nessun controllo sul file, il browser segnala l'errore. Nome vuoto: etichetta tradotta.
+         */
+        protected function missingLabelAttributes(string $src): array
+        {
+
+            if ($this->getSchema('missing-label') === false || !Image::missingLabelEnabled()) {
+                return [];
+            }
+
+            $name = Image::originalName($src);
+            $attributes = ['data-wi-image-name' => $name];
+
+            if ($name === '') {
+                $label = function_exists('__t') ? __t('components.media.image_missing') : null;
+                $attributes['data-wi-image-missing-label'] = is_string($label) && $label !== '' && $label !== 'components.media.image_missing'
+                    ? $label
+                    : 'Immagine non impostata';
+            }
+
+            return $attributes;
 
         }
 

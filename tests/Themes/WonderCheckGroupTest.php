@@ -101,14 +101,16 @@ check('senza pills() resta la lista della lib, con il segno davanti al nome', fu
         && str_contains($html, '</i> Rosso</label>');
 });
 
-check('il CSS esce una volta per pagina, in lista e in pillole', function () use ($colors) {
+check('il CSS delle pillole esce una volta per pagina; la lista usa solo la lib', function () use ($colors) {
     PageAssets::reset();
+    $list = $colors()->pills(false)->render('wonder');
     $first = $colors()->render('wonder');
-    $second = $colors()->pills(false)->render('wonder');
+    $second = $colors()->render('wonder');
 
-    return substr_count($first, '<style data-wi-check-group-style>') === 1
+    return !str_contains($list, 'data-wi-check-group-style')
+        && substr_count($first, '<style data-wi-check-group-style>') === 1
         && str_contains($first, '.wi-check-pill-label')
-        && str_contains($first, '.wi-checkbox-container { position: relative; display: flow-root; }')
+        && !str_contains($first, '.wi-checkbox-container')
         && !str_contains($second, 'data-wi-check-group-style');
 });
 

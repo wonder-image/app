@@ -318,6 +318,11 @@
   (`confirm`, `confirm_title`, `confirm_ok`, `confirm_variant`), `variant` per
   il colore della voce e `action()` per una voce `<button type="button">`
   senza href.
+- `Image` (e `__i()`, `__ri()`, Swiper, Gallery): `data-wi-image-name` con il
+  nome originale del file, che la lib scrive nel box quando l'immagine non si
+  carica (#92). Nome vuoto: «Immagine non impostata» tradotta
+  (`components.media.image_missing`). Si spegne con `missingLabel(false)` o
+  `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
 - Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel
@@ -445,6 +450,11 @@
   `min-height` del contenitore della pagina, così le pagine corte non hanno
   scroll vuoto sopra la barra di salvataggio. Con una lib senza barra la
   variabile vale 0 e l'altezza resta com'era.
+- Vincolo della lib a `^2.1.2-alpha.30` (`extra.wonder.lib` e `package.json`).
+  Tolti i rimedi a wonder-image/lib#6, ora nella lib: la regola
+  `.wi-checkbox-container` del CSS di `CheckGroup` Wonder (che esce solo con
+  le pillole) e `.wi-input-container { position: relative; }` dell'anteprima
+  del catalogo.
 
 ### Removed
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,

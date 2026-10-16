@@ -19,6 +19,28 @@ Gallery ricava sizes dalle colonne: breakpoint Wonder 768/992px, Bootstrap md/xl
 
 Entrambi i temi usano il renderer Image del tema esplicito. Gli URL remoti non ricevono varianti inventate; per le immagini locali le varianti devono già esistere. Il rendering non converte né scarica immagini.
 
+## Immagine mancante
+
+Ogni `<img>` di `Image` (e quindi di `__i()`, `__ri()`, Swiper e Gallery)
+porta `data-wi-image-name` con il nome del file passato a `src()`: senza
+cartella, query e frammento, e senza il suffisso della variante (`-960`) o il
+`.webp` del `<picture>`. Se il browser non riesce a caricare l'immagine, la lib
+(dalla 2.1.2-alpha.30) scrive quel nome dentro il box, così si vede subito
+quale file manca. Il renderer non controlla il disco: lo segnala il browser
+con l'evento `error`. Un'immagine lenta non viene mai marcata.
+
+Con `src('')` o una cartella il nome è vuoto: l'`<img>` riceve anche
+`data-wi-image-missing-label` con il testo tradotto
+`components.media.image_missing` («Immagine non impostata»).
+
+```php
+Image::src($url)->missingLabel(false); // solo questa immagine
+```
+
+`IMAGE_MISSING_LABEL=false` nel `.env` la spegne su tutto il sito; di default è
+attiva anche in produzione. Un `data-wi-image-name` passato con `attr()` vince
+su quello calcolato.
+
 Verifica: `php tests/responsive-media.php`.
 
 Le immagini Gallery con formato naturale usano width 100% e height auto: gli attributi HTML width/height riservano il rapporto intrinseco senza bloccare l'altezza alla risoluzione del file. I formati cover/contain mantengono il riempimento del contenitore.

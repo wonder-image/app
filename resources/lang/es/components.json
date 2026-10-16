@@ -1,6 +1,7 @@
 {
     "code": { "copy": "Copiar", "copied": "Copiado" },
     "preview": { "open": "Abrir en una pestaña nueva", "scheme": "Cambiar claro / oscuro", "unavailable": "No disponible" },
+    "media": { "image_missing": "Imagen no configurada" },
     "forms" : {
         "fields" : {
             "name" : { "label" : "Nombre" },
