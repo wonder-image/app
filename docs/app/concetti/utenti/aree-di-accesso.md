@@ -26,9 +26,9 @@ Non va confusa con `Area` del [builder permessi](permessi.md)
 | Elemento | File |
 |---|---|
 | Registro | `class/App/Permission/Access.php` |
-| Aree del core | `app/config/app/permission.php` (`Access::defineMany`) |
+| Aree del core | `Access::CORE` |
 | Aree di un modulo | chiave `permissions` di `config/module.php` del modulo |
-| Override del sito (core) | `custom/config/permissions.php` (`Access::set`) |
+| Aree e override del sito | `custom/config/access.php` (restituisce `area => regola`) |
 | Override del sito (modulo) | chiave `permissions` di `custom/config/modules/<slug>.php` |
 | Uso nelle Resource | `PermissionSchema::access()`, `NavigationSchema::access()` |
 
@@ -93,13 +93,13 @@ Per una route scritta a mano: `->permit(Access::roles('diagnostica'))`.
 
 ## Come autorizzare il commerciante
 
-Aree del core, in `custom/config/permissions.php`:
+Aree del core, in `custom/config/access.php`:
 
 ```php
-use Wonder\App\Permission\Access;
-
-Access::set('log', ['view' => ['administrator']]);
-Access::set('avvisi', ['administrator']);
+return [
+    'log' => ['view' => ['administrator']],
+    'avvisi' => ['administrator'],
+];
 ```
 
 Aree di un modulo, in `custom/config/modules/gestionale.php`:
@@ -112,8 +112,13 @@ return [
 ];
 ```
 
-Un sito può anche definire aree sue con `Access::define('richieste', [])` e
-usarle nelle proprie Resource.
+Nello stesso file un sito definisce le sue aree (`'richieste' => []`) e può
+cambiare quelle dei moduli con il nome completo (`'gestionale:magazzino' => ...`).
+
+Le regole si leggono alla prima richiesta di un'area, non al bootstrap: le
+route delle Resource vengono registrate prima di `custom/config/permissions.php`,
+quindi un'area definita lì con `Access::define()` arriva troppo tardi. Usare
+`custom/config/access.php`.
 
 ## Errori comuni
 

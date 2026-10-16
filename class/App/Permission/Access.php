@@ -3,6 +3,7 @@
 namespace Wonder\App\Permission;
 
 use RuntimeException;
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Module\ConfigRepository;
 use Wonder\App\Module\Registry;
 
@@ -23,16 +24,31 @@ use Wonder\App\Module\Registry;
  * `admin` (Wonder Image) è sempre incluso e non si può togliere.
  *
  * Ordine di precedenza (vince l'ultimo, e sostituisce la regola intera):
- * 1. default del core (`app/config/app/permission.php`)
+ * 1. default del core (`CORE`)
  * 2. default dei moduli: chiave `permissions` di `config/module.php`, area `slug:chiave`
  * 3. override del sito per i moduli: `permissions` in `custom/config/modules/<slug>.php`
- * 4. override del sito con `Access::set()` in `custom/config/permissions.php`
+ * 4. aree e override del sito: `custom/config/access.php`, che restituisce
+ *    `['area' => regola]` (anche `slug:chiave` per i moduli)
+ * 5. `Access::set()` da codice
+ *
+ * Le regole si leggono alla prima richiesta, non al bootstrap: le route delle
+ * Resource vengono registrate prima che i file di config del sito siano caricati.
  */
 final class Access
 {
     public const ACTIONS = ['view', 'create', 'edit', 'delete'];
 
     public const SUPER = 'admin';
+
+    /** Aree del core. Lista vuota = solo admin. */
+    public const CORE = [
+        'log' => [],            // email inviate, accessi, consensi
+        'diagnostica' => [],    // scheduler, errori, errori SQL
+        'avvisi' => [],         // annunci e popup
+    ];
+
+    /** File del sito con aree e override, relativo a ROOT. */
+    public const SITE_FILE = 'custom/config/access.php';
 
     /** Azione dell'area → azioni backend di `PermissionSchema`. */
     public const BACKEND_ACTIONS = [
@@ -155,13 +171,20 @@ final class Access
             return self::$resolved;
         }
 
-        $rules = self::$defaults;
+        $rules = array_map(self::normalize(...), self::CORE);
+        $rules = array_replace($rules, self::$defaults);
 
         if (self::$loadModules) {
             foreach (array_keys(Registry::enabled()) as $slug) {
                 foreach ((array) (ConfigRepository::for($slug)['permissions'] ?? []) as $key => $rule) {
                     $rules[self::prefixed((string) $key, $slug)] = self::normalize((array) $rule);
                 }
+            }
+        }
+
+        if (self::$loadModules) {
+            foreach (self::siteRules() as $key => $rule) {
+                $rules[self::key((string) $key)] = self::normalize((array) $rule);
             }
         }
 
@@ -193,6 +216,30 @@ final class Access
         }
 
         return $normalized;
+    }
+
+    /** @return array<string, mixed> */
+    private static function siteRules(): array
+    {
+        $root = LegacyGlobals::get('ROOT', defined('ROOT') ? ROOT : '');
+
+        if (!is_string($root) || trim($root) === '') {
+            return [];
+        }
+
+        $file = rtrim($root, '/').'/'.self::SITE_FILE;
+
+        if (!is_file($file)) {
+            return [];
+        }
+
+        $rules = require $file;
+
+        if (!is_array($rules)) {
+            throw new RuntimeException(self::SITE_FILE.' deve restituire un array area => regola.');
+        }
+
+        return $rules;
     }
 
     private static function prefixed(string $key, string $prefix): string

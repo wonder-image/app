@@ -1,6 +1,6 @@
 <?php
 
-    use Wonder\App\Permission\{Access, Permissions, Permission, Area};
+    use Wonder\App\Permission\{Permissions, Permission, Area};
 
     Permissions::reset()
         ->addArea(Area::make('backend'))
@@ -68,16 +68,6 @@
         ->function('creation', 'apiUser')
         ->function('modify', 'apiUser')
         ->function('info', 'infoApiUser');
-
-    // Aree del backend del core (vedi Access). Lista vuota = solo admin.
-    // Il sito le cambia con Access::set() in custom/config/permissions.php;
-    // le aree dei moduli stanno nella chiave `permissions` del loro config.
-    Access::reset();
-    Access::defineMany([
-        'log' => [],            // email inviate, accessi, consensi
-        'diagnostica' => [],    // scheduler, errori, errori SQL
-        'avvisi' => [],         // annunci e popup
-    ]);
 
     Permissions::replace(\Wonder\App\Module\Registry::mergePermissions(Permissions::instance()));
 
