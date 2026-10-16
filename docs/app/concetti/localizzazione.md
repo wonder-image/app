@@ -35,6 +35,25 @@ richiami ripetuti durante il bootstrap sono quindi innocui.
 - **subdomain / domain / query / header** — vedi i rispettivi
   `setLangFromX()` su `LanguageContext`.
 
+## Contenuti in un'altra lingua
+
+Un contenuto che ha una lingua propria (per esempio il PDF di un documento
+legale `de` generato da una richiesta italiana) usa
+`LanguageContext::withLang($codice, $callback)`: imposta la lingua, ricarica
+le traduzioni, esegue il callback (che riceve la lingua effettiva) e
+ripristina lingua e traduzioni correnti in un `finally`, anche se il callback
+lancia. Un codice vuoto o non registrato con `addLanguage()` ricade sulla
+lingua di default; se la lingua coincide con quella corrente non ricarica
+nulla. Risolvi dentro il callback solo stringhe: ciò che legge `__t()` più
+tardi (per esempio `Footer()` di FPDF dentro `Output()`) vede di nuovo la
+lingua corrente.
+
+```php
+$labels = LanguageContext::withLang($document->language_code, static fn (): array => [
+    'page' => __t('components.legal.pdf.page'),
+]);
+```
+
 ## Redirect della home senza lingua
 
 Per i siti in modalità path la home `/` non esprime una lingua. La

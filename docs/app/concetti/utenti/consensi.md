@@ -272,6 +272,36 @@ I due URL sono calcolati da:
 Sono accessibili anche standalone, senza passare da `decorate()`, se
 hai una riga grezza in mano (es. da `ConsentEventRepository`).
 
+## PDF dei documenti legali
+
+`generateLegalDocumentPdf($id, $config)` (`app/function/consent/documents.php`)
+genera il PDF di un documento legale: su file (`output_mode` `F`, default) o
+come stringa (`S`, per esempio per allegarlo a un'email). Il download del
+backend (`app/http/backend/config/legal-documents/download.php`) e gli
+allegati dei siti usano la stessa funzione.
+
+Le etichette del PDF seguono il `language_code` del documento, non la lingua
+della richiesta o del task che lo genera: un regolamento `de` scaricato da una
+pagina italiana mostra `Version 1.0.1 · DE · Veröffentlicht 14/10/2026 09:30`
+e `Seite 1/2`. `legalDocumentPdfLabels($languageCode, $docType)` le risolve
+dentro `LanguageContext::withLang()`:
+
+| Etichetta | Chiave |
+|---|---|
+| Tipo documento (titoletto) | `components.legal.<doc_type>` |
+| Versione | `components.legal.pdf.version` |
+| Data di pubblicazione | `components.legal.pdf.published` |
+| Numero di pagina | `components.legal.pdf.page` |
+
+Il core le traduce in it, en, de, fr ed es; un sito o un modulo può
+ridichiararle nel proprio `lang/<codice>/components.json`. Una lingua assente
+o non registrata con `addLanguage()` ricade sulla lingua di default; una
+chiave mancante ricade sull'italiano. Le etichette vengono risolte prima di
+comporre il PDF: il piè di pagina dell'ultima pagina viene scritto dentro
+`Output()`, quando la lingua corrente è già stata ripristinata.
+
+Test: `php tests/Consent/LegalDocumentPdfLabelsTest.php`.
+
 ## Regole importanti
 
 - `privacy_ack` non è consenso generale al trattamento.

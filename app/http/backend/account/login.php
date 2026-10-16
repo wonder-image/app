@@ -1,6 +1,7 @@
 <?php
 
 use Wonder\App\PageSchema\AccountPageSchema;
+use Wonder\Http\SafeRedirect;
 
     // authenticateUser() / verifyUser() popolano `$ALERT` come variabile
     // globale; senza `global` qui, il `$ALERT ?? null` qui sotto leggerebbe
@@ -12,11 +13,7 @@ use Wonder\App\PageSchema\AccountPageSchema;
 
         if (authenticateUserLogin($_POST['username'] ?? '', $_POST['password'] ?? '', 'backend')) {
 
-            if (!empty($PAGE->redirect)) {
-                header("Location: $PAGE->redirect");
-            } else {
-                header("Location: ".__r('backend.home'));
-            }
+            header('Location: '.SafeRedirect::fromRequest($PAGE->redirect ?? '', __r('backend.home')));
 
             exit();
 

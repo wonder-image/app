@@ -113,14 +113,17 @@
         $RETURN->filename = $config['filename'];
         $RETURN->output_mode = $config['output_mode'];
 
-        $documentTypeLabel = legalDocumentTypes()[$docType] ?? ucwords(str_replace(['_', '-'], ' ', $docType));
-        $documentTypeLabelUpper = legalDocumentPdfUppercase((string) $documentTypeLabel);
+        // Etichette risolte subito nella lingua del documento: Footer() gira
+        // anche dentro Output(), dopo il ripristino della lingua corrente.
+        $labels = legalDocumentPdfLabels($languageCode, $docType);
+        $documentTypeLabelUpper = legalDocumentPdfUppercase($labels['type']);
         $documentPayload = $document->resolvedContentSnapshot;
         $publishedLabel = legalDocumentPdfPublishedLabel($publishedAt);
 
         $pdf = new class extends Wonder\Pdf {
             public string $headerTitle = '';
             public string $footerLabel = '';
+            public string $pageLabel = 'Pagina';
             public string $fontRegular = 'NunitoSans-Regular';
             public string $fontBold = 'NunitoSans-Bold';
 
@@ -162,7 +165,7 @@
                 $this->Ln(2);
                 $this->useUiFont(8);
                 $this->SetTextColor(110, 118, 128);
-                $this->Cell(0, 4, $this->footerLabel.'   Pagina '.$this->PageNo().'/{nb}', 0, 0, 'L');
+                $this->Cell(0, 4, $this->footerLabel.'   '.$this->pageLabel.' '.$this->PageNo().'/{nb}', 0, 0, 'L');
             }
         };
 
@@ -171,6 +174,7 @@
         $pdf->SetAutoPageBreak(true, $config['margin_bottom']);
         $pdf->headerTitle = printPDF($docName);
         $pdf->footerLabel = printPDF(trim($docName.($docVersion !== '' ? ' · v'.$docVersion : '')));
+        $pdf->pageLabel = printPDF($labels['page']);
         $pdf->AddPage();
 
         $pdf->SetTitle(printPDF($docName));
@@ -203,9 +207,9 @@
         $pdf->MultiCell($contentWidth, 9.0, printPDF($docName), 0, 'L');
 
         $meta = array_filter([
-            $docVersion !== '' ? 'Versione '.$docVersion : '',
+            $docVersion !== '' ? $labels['version'].' '.$docVersion : '',
             $languageCode !== '' ? strtoupper($languageCode) : '',
-            $publishedLabel !== '' ? 'Pubblicato '.$publishedLabel : '',
+            $publishedLabel !== '' ? $labels['published'].' '.$publishedLabel : '',
         ]);
 
         if ($meta !== []) {
@@ -263,6 +267,44 @@
         }
 
         return $RETURN;
+
+    }
+
+    /**
+     * Etichette del PDF di un documento legale nella lingua del documento
+     * (`language_code`), non in quella della richiesta o del task. Una lingua
+     * assente o non registrata ricade sulla lingua di default; una chiave
+     * mancante ricade sull'italiano.
+     *
+     * @return array{type: string, version: string, published: string, page: string}
+     */
+    function legalDocumentPdfLabels(string $languageCode, string $docType = ''): array
+    {
+
+        $resolve = static function () use ($docType): array {
+
+            $label = static function (string $key, string $fallback): string {
+                try {
+                    $value = __t('components.legal.pdf.'.$key);
+                } catch (Throwable $exception) {
+                    $value = null;
+                }
+
+                return is_string($value) && trim($value) !== '' ? trim($value) : $fallback;
+            };
+
+            return [
+                'type' => $docType === ''
+                    ? ''
+                    : (string) (legalDocumentTypes()[$docType] ?? ucwords(str_replace(['_', '-'], ' ', $docType))),
+                'version' => $label('version', 'Versione'),
+                'published' => $label('published', 'Pubblicato'),
+                'page' => $label('page', 'Pagina'),
+            ];
+
+        };
+
+        return \Wonder\Localization\LanguageContext::withLang($languageCode, $resolve);
 
     }
 

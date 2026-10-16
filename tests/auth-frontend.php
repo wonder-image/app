@@ -4,7 +4,7 @@ require dirname(__DIR__).'/vendor/autoload.php';
 
 use Wonder\Auth\Frontend\AuthProfile;
 use Wonder\Auth\Frontend\AuthSession;
-use Wonder\Auth\Frontend\SafeRedirect;
+use Wonder\Http\SafeRedirect;
 use Wonder\App\ResourceSchema\FormField;
 
 function __t(string $key): string { return $key; }

@@ -114,6 +114,11 @@
         "privacy_policy" : "Informativa sulla privacy",
         "terms_conditions" : "Termini e condizioni",
         "cookie_policy" : "Cookie Policy",
-        "marketing" : "Consenso Marketing"
+        "marketing" : "Consenso Marketing",
+        "pdf" : {
+            "version" : "Versione",
+            "published" : "Pubblicato",
+            "page" : "Pagina"
+        }
     }
 }

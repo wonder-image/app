@@ -346,6 +346,12 @@ php forge start
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
+- Request-supplied redirect targets (`continue`, backend `?redirect=` base64)
+  go through `Wonder\Http\SafeRedirect` (`fromRequest()` / `fromBase64()`):
+  single-slash paths or the `APP_URL` host (`www.` optional, same port, no
+  userinfo); anything else returns the fallback. `infoPage()` already empties
+  an unsafe `$PAGE->redirect` / `redirectBase64`. `Wonder\Auth\Frontend\SafeRedirect`
+  is a deprecated alias.
 - Reusable frontend auth lives in `class/Auth/Frontend`: opt into `AuthRoutes`
   with an `AuthProfile`, and extend fields, server validation, explicit write
   whitelists and idempotent business hooks rather than copying controllers.
