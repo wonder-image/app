@@ -32,9 +32,12 @@
         $PAGE->base64 = base64_encode($PAGE->url);
         $PAGE->uriBase64 = base64_encode($PAGE->uri);
 
-        if (isset($_GET['redirect'])) { 
-            $PAGE->redirectBase64 = $_GET['redirect']; 
-            $PAGE->redirect = base64_decode($PAGE->redirectBase64); 
+        // `?redirect=` arriva dall'esterno: una destinazione fuori dal sito
+        // (o non base64) si scarta qui, così ogni consumatore di
+        // `$PAGE->redirect` / `redirectBase64` usa il proprio default.
+        if (isset($_GET['redirect'])) {
+            $PAGE->redirect = \Wonder\Http\SafeRedirect::fromBase64($_GET['redirect'], '');
+            $PAGE->redirectBase64 = $PAGE->redirect === '' ? '' : base64_encode($PAGE->redirect);
         }
 
         $PAGE->dir = mb_substr(substr(str_replace($PAGE->fileName, '',$PAGE->path), 0, -1), 1);

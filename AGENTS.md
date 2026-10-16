@@ -357,6 +357,12 @@ php forge start
   `allowPageToken: false` to `Handler::run()`. `api_activity.token` stores only
   `ApiTokens::fingerprint()`; `ApiActivityTokenMigration` clears old bearers
   during `forge update`. See `docs/app/piattaforma/api.md#token`.
+- Request-supplied redirect targets (`continue`, backend `?redirect=` base64)
+  go through `Wonder\Http\SafeRedirect` (`fromRequest()` / `fromBase64()`):
+  single-slash paths or the `APP_URL` host (`www.` optional, same port, no
+  userinfo); anything else returns the fallback. `infoPage()` already empties
+  an unsafe `$PAGE->redirect` / `redirectBase64`. `Wonder\Auth\Frontend\SafeRedirect`
+  is a deprecated alias.
 - Reusable frontend auth lives in `class/Auth/Frontend`: opt into `AuthRoutes`
   with an `AuthProfile`, and extend fields, server validation, explicit write
   whitelists and idempotent business hooks rather than copying controllers.
