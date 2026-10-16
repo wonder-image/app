@@ -7,10 +7,11 @@ use Wonder\App\Logger;
 
 class Handler
 {
-    public static function run(string $endpoint, string $method, array|string|null $auth, callable $callback): never
+    /** @param bool $allowPageToken false per gli endpoint solo server: rifiutano il token di pagina */
+    public static function run(string $endpoint, string $method, array|string|null $auth, callable $callback, bool $allowPageToken = true): never
     {
         try {
-            $call = new Endpoint($endpoint, $method, $auth);
+            $call = new Endpoint($endpoint, $method, $auth, $allowPageToken);
             $response = $callback($call);
 
             self::send($response);
