@@ -67,6 +67,13 @@ $check(isset($custom->fields('login')['country']), 'Custom field missing.');
 $check($custom->validate('login', []) === ['country' => 'invalid'], 'Custom field not validated server-side.');
 $check($custom->validate('login', ['country' => 'IT']) === [], 'Valid custom field rejected.');
 $check(!isset($custom->userValues('signup-request', ['country' => 'IT'])['country']), 'Custom field is persisted implicitly.');
+$optionalPhone = new class extends AuthProfile { public function phoneEnabled(): bool { return true; } };
+$check(isset($optionalPhone->fields('signup-completion')['phone']) && !isset($profile->fields('signup-completion')['phone']), 'Optional phone not shown only when enabled.');
+$check($optionalPhone->validate('signup-completion', ['phone_prefix' => '+39', 'phone' => '', 'password' => 'password123', 'password_confirmation' => 'password123']) === [], 'Empty optional phone (default prefix) rejected.');
+$check($optionalPhone->validate('signup-completion', ['phone_prefix' => '+39', 'phone' => '12', 'password' => 'password123', 'password_confirmation' => 'password123']) === ['phone' => 'required'], 'Invalid optional phone accepted.');
+$check(!isset($optionalPhone->userValues('signup-completion', ['phone_prefix' => '+39', 'phone' => ''])['phone'])
+    && ($optionalPhone->userValues('signup-completion', ['phone_prefix' => '+39', 'phone' => '333 1234567'])['phone'] ?? '') === '+393331234567', 'Optional phone write mismatch.');
+$check($profile->validationTexts(['email' => 'exists']) === ['auth.validation.errors.email_exists'], 'Validation texts not translated from message keys.');
 $check($profile->captchaAction('signup-completion') === 'account_signup_completion', 'Captcha action scope mismatch.');
 $_ENV['APP_URL'] = 'https://example.com';
 foreach (['//evil.test', '/\\evil.test', 'javascript:alert(1)', 'https://example.com:444/'] as $url) {

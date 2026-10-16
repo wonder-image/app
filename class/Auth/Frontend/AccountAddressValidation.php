@@ -9,17 +9,22 @@ class AccountAddressValidation
 {
     public static function schema(AddressExtension $address, array $values = []): AddressExtension
     {
+        $key = $address->fieldKey(...);
+        $prefix = $address->prefix() !== '' ? $address->prefix().'_' : '';
         $required = ['country', 'city', 'cap', 'street', 'number'];
-        $country = is_scalar($values['country'] ?? null) ? (string) $values['country']
-            : (string) (($address->formSchema()['country'] ?? null)?->get('value') ?? '');
+        $country = is_scalar($values[$key('country')] ?? null) ? (string) $values[$key('country')]
+            : (string) (($address->formSchema()[$key('country')] ?? null)?->get('value') ?? '');
         if (function_exists('states') && states($country) !== []) { $required[] = 'province'; }
-        if (($values['type'] ?? 'private') === 'business') {
+        if (($values[$key('type')] ?? 'private') === 'business') {
             $required[] = 'business_name';
         } else {
             $required = [...$required, 'name', 'surname'];
         }
+        // requiredFields() vuole i nomi senza prefisso.
         foreach ($address->dataSchema() as $field) {
-            if ($field->isRequired()) { $required[] = $field->key; }
+            if ($field->isRequired()) {
+                $required[] = $prefix !== '' && str_starts_with($field->key, $prefix) ? substr($field->key, strlen($prefix)) : $field->key;
+            }
         }
         return $address->requiredFields(array_values(array_unique($required)));
     }
@@ -45,15 +50,16 @@ class AccountAddressValidation
                 $errors[$key] = 'required';
             }
         }
-        $country = is_string($values['country'] ?? null) ? $values['country'] : '';
-        if ($country !== '' && !array_key_exists($country, countries())) { $errors['country'] = 'invalid'; }
-        $province = $values['province'] ?? '';
-        $states = $country !== '' && !isset($errors['country']) ? states($country) : [];
+        $key = $address->fieldKey(...);
+        $country = is_string($values[$key('country')] ?? null) ? $values[$key('country')] : '';
+        if ($country !== '' && !array_key_exists($country, countries())) { $errors[$key('country')] = 'invalid'; }
+        $province = $values[$key('province')] ?? '';
+        $states = $country !== '' && !isset($errors[$key('country')]) ? states($country) : [];
         if ($states !== [] && is_scalar($province) && $province !== '' && !array_key_exists((string) $province, $states)) {
-            $errors['province'] = 'invalid';
+            $errors[$key('province')] = 'invalid';
         }
-        if (array_key_exists('type', $labels) && !in_array($values['type'] ?? '', ['private', 'business'], true)) {
-            $errors['type'] = 'invalid';
+        if (array_key_exists($key('type'), $labels) && !in_array($values[$key('type')] ?? '', ['private', 'business'], true)) {
+            $errors[$key('type')] = 'invalid';
         }
         return array_map(static fn (string $key): string => (string) \__t(
             'account.validation.'.$errors[$key], ['field' => (string) ($labels[$key] ?? $key)]

@@ -178,7 +178,7 @@ final class AuthController
             $errors = $this->profile->validate('signup-completion', $_POST, !$isFederated);
             $phone = AuthValidator::canonicalPhone($_POST);
 
-            if ($errors === [] && $this->profile->phoneRequired() && !\unique($phone, 'user', 'phone', $record->subject_user_id)) {
+            if ($errors === [] && $this->profile->phoneEnabled() && $phone !== '' && !\unique($phone, 'user', 'phone', $record->subject_user_id)) {
                 $errors['phone'] = 'not_unique';
             }
 
@@ -404,7 +404,7 @@ final class AuthController
             'fields' => $this->profile->fields($page, array_merge($_POST, isset($data['email']) ? ['email' => $data['email']] : []), $data['password_required'] ?? true),
             'alert' => null,
             'errors' => [],
-            'validation_messages' => array_map(static fn ($key) => (string) __t($key), $this->profile->validationMessages((array) ($data['errors'] ?? []))),
+            'validation_messages' => $this->profile->validationTexts((array) ($data['errors'] ?? [])),
             'federated_error' => null,
             'csrf_token' => AuthSession::csrfToken(),
             'oidc_nonce' => $nonce,

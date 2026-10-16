@@ -3,6 +3,18 @@
 ## Unreleased
 
 ### Added
+- `TableLayoutSchema::downloadAsText()`: l'export della lista scrive ogni
+  cella come testo (Excel non trasforma telefoni, CAP e codici in numeri) e
+  il CSV mette un apice davanti alle celle che iniziano con `=`, `+`, `-`,
+  `@` (`Backend\Support\SpreadsheetText`). `arrayToXlsx()` accetta il terzo
+  argomento `$asText`.
+- Auth frontend: `AuthProfile::phoneEnabled()` mostra il cellulare nel
+  completamento anche facoltativo (obbligatorio resta `phoneRequired()`);
+  `validationTexts()` restituisce le righe già tradotte dell'alert di pagina.
+- `AddressExtension::prefix()` e `fieldKey()`; `AccountAddressForm` e
+  `AccountAddressValidation` lavorano anche con i campi prefissati
+  (`shipping_street`), `layout($fields, $address)` li ordina come quelli
+  senza prefisso.
 - Migrazioni dei moduli: un modulo dichiara in `module.json`
   `"database": {"migrations": [...]}` classi `Module\Contracts\ModuleMigration`
   che `forge update` esegue prima di creare o allineare le tabelle. Per le
@@ -288,6 +300,9 @@
   senza href.
 
 ### Changed
+- `Input::required(false)` toglie l'attributo `required` messo prima, invece
+  di non fare niente. Il cellulare facoltativo del completamento non dà più
+  errore se è compilato solo il prefisso.
 - Contatti e account cliente persistente sono usciti dal core nel modulo
   `wonder-image/customer-account`: `Contact`, `ContactAddress`, le loro
   Resource, `ContactAccount`, `AccountAddresses`, `AccountBilling`, le pagine

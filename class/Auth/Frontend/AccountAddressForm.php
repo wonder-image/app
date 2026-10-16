@@ -12,51 +12,61 @@ class AccountAddressForm
 {
     public static function fields(AddressExtension $address, array $values = [], bool $submitted = false): array
     {
-        $country = isset($values['country']) && is_scalar($values['country']) ? (string) $values['country'] : null;
+        $key = $address->fieldKey(...);
+        $country = isset($values[$key('country')]) && is_scalar($values[$key('country')]) ? (string) $values[$key('country')] : null;
         $fields = AccountAddressValidation::schema($address, $values)->formSchema($country !== '' ? $country : null);
         $labels = $address->labels();
-        if (isset($fields['province'])) {
-            $fields['province']->context('required_when_states_available', true);
+        if (isset($fields[$key('province')])) {
+            $fields[$key('province')]->context('required_when_states_available', true);
         }
+        $named = array_map($key, ['business_name', 'name', 'surname']);
 
-        foreach ($fields as $key => $field) {
-            if (isset($fields['type']) && in_array($key, ['business_name', 'name', 'surname'], true)) {
+        foreach ($fields as $name => $field) {
+            if (isset($fields[$key('type')]) && in_array($name, $named, true)) {
                 $field->required();
             }
-            $field->label((string) ($labels[$key] ?? ''));
-            if (array_key_exists($key, $values) && (is_scalar($values[$key]) || $values[$key] === null)) {
-                $value = (string) ($values[$key] ?? '');
+            $field->label((string) ($labels[$name] ?? ''));
+            if (array_key_exists($name, $values) && (is_scalar($values[$name]) || $values[$name] === null)) {
+                $value = (string) ($values[$name] ?? '');
                 if ($submitted || $value !== '') {
                     $field->value($value);
                 }
             }
         }
 
-        if (isset($fields['phone_prefix'])) {
-            $prefix = trim((string) ($fields['phone_prefix']->get('value') ?? ''));
+        if (isset($fields[$key('phone_prefix')])) {
+            $prefix = trim((string) ($fields[$key('phone_prefix')]->get('value') ?? ''));
             if (!$submitted && $prefix === '' && function_exists('countryPhonePrefix')) {
-                $prefix = (string) countryPhonePrefix($fields['country']->get('value') ?? '');
+                $prefix = (string) countryPhonePrefix($fields[$key('country')]->get('value') ?? '');
             }
             if ($prefix !== '' && !str_starts_with($prefix, '+')) {
                 $prefix = '+'.ltrim($prefix, '0');
             }
-            $fields['phone_prefix']->value($prefix);
+            $fields[$key('phone_prefix')]->value($prefix);
         }
 
         return $fields;
     }
 
-    public static function layout(array $fields): Container
+    /** `$address` serve solo se i campi hanno un prefisso (`shipping_street`): ordine e larghezze seguono il nome senza. */
+    public static function layout(array $fields, ?AddressExtension $address = null): Container
     {
         $components = [];
+        $prefix = $address !== null && $address->prefix() !== '' ? $address->prefix().'_' : '';
+        $base = static fn (string $name): string => $prefix !== '' && str_starts_with($name, $prefix) ? substr($name, strlen($prefix)) : $name;
+        $named = [];
+        foreach (array_keys($fields) as $name) {
+            $named[$base((string) $name)] ??= (string) $name;
+        }
+        $type = $named['type'] ?? null;
         $keys = array_unique([
             'label', 'type', 'business_name', 'name', 'surname', 'birth_date', 'current_email', 'email', 'current_password', 'password', 'cf', 'pi', 'sdi', 'pec',
             'country', 'street', 'number', 'province', 'city', 'cap', 'more', 'phone_prefix', 'phone',
-            ...array_keys($fields),
+            ...array_keys($named),
         ]);
         foreach ($keys as $key) {
-            if (!array_key_exists($key, $fields)) { continue; }
-            $field = $fields[$key];
+            if (!isset($named[$key])) { continue; }
+            $field = $fields[$named[$key]];
             if (!$field instanceof Input) {
                 throw new \InvalidArgumentException('Address fields must use FormField inputs');
             }
@@ -81,13 +91,13 @@ class AccountAddressForm
                 ->style('display', 'flex')
                 ->style('min-width', '0')
                 ->components([$field]);
-            if (isset($fields['type']) && in_array($key, ['business_name', 'pi', 'sdi', 'pec'], true)) {
-                $container->visibleWhen('type', 'business');
-                $field->visibleWhen('type', 'business');
+            if ($type !== null && in_array($key, ['business_name', 'pi', 'sdi', 'pec'], true)) {
+                $container->visibleWhen($type, 'business');
+                $field->visibleWhen($type, 'business');
             }
-            if (isset($fields['type']) && in_array($key, ['name', 'surname'], true)) {
-                $container->visibleWhen('type', 'private');
-                $field->visibleWhen('type', 'private');
+            if ($type !== null && in_array($key, ['name', 'surname'], true)) {
+                $container->visibleWhen($type, 'private');
+                $field->visibleWhen($type, 'private');
             }
             $components[] = $container;
         }

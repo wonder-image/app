@@ -18,7 +18,7 @@
         arrayToXlsx($array, $fileName);
     }
 
-    function arrayToXlsx($array, $fileName = 'export') {
+    function arrayToXlsx($array, $fileName = 'export', bool $asText = false) {
 
         $array = is_array($array) ? $array : [$array];
 
@@ -54,7 +54,7 @@
                     $value = $cell;
                 } elseif (is_string($cell)) {
                     $trimmed = trim($cell);
-                    if ($trimmed !== '' && is_numeric($trimmed) && !preg_match('/^0\d+$/', $trimmed)) {
+                    if (!$asText && $trimmed !== '' && is_numeric($trimmed) && !preg_match('/^0\d+$/', $trimmed)) {
                         $dataType = PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC;
                         $value = $trimmed;
                     } else {

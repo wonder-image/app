@@ -66,6 +66,23 @@ public function validationMessages(array $errors): array
 }
 ```
 
+`validationMessages()` restituisce chiavi di traduzione. Per righe già
+tradotte, per esempio con il nome della sezione davanti
+(«Indirizzo di spedizione: Città: campo obbligatorio»), estendere
+`validationTexts(array $errors)`: riceve gli stessi errori e restituisce le
+righe dell'alert di pagina; la versione base traduce `validationMessages()`.
+
+Il cellulare nel completamento segue due hook: `phoneEnabled()` lo mostra,
+`phoneRequired()` lo rende obbligatorio. Per default `phoneEnabled()` vale
+quanto `phoneRequired()`. Acceso ma facoltativo, il numero vuoto non dà errore
+e non viene salvato; uno compilato va con il prefisso e almeno 6 cifre, ed è
+unico tra gli utenti.
+
+Per rendere facoltativo un campo che uno schema condiviso marca obbligatorio,
+`->required(false)` toglie l'attributo `required` (gli altri attributi
+restano); serve anche `->context('required_when_states_available', false)`
+sulla provincia degli indirizzi.
+
 Importare `Wonder\App\ResourceSchema\FormField` e definire i testi in `lang/`.
 `columns()` e `fieldSpan()` configurano la griglia: il cellulare conserva un
 prefisso breve e il numero esteso. Le nuove traduzioni condivise sono `auth.*`
@@ -91,6 +108,11 @@ ecommerce conserva il comportamento preesistente: non interpreta le policy
 mostrate da Google come accettazioni dei checkbox locali. `requiresCompletion()`
 determina se un federato deve completare il profilo; estenderlo quando si
 richiedono campi ulteriori al cellulare.
+
+Con `wonder-image/customer-account` i campi aggiuntivi della registrazione
+(data di nascita, fatturazione, indirizzo di spedizione) si scelgono dalla
+config del modulo, senza scrivere un profilo: vedi `CustomerAuthProfile` e
+`signup.fields` nel README del modulo.
 
 ## Pannello account
 

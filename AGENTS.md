@@ -226,7 +226,7 @@ php forge start
   lib keeps `createCard()` and the `wi-card` CSS rule until the old pages are
   migrated; do not remove them. See `docs/app/concetti/componenti/README.md`.
 - Declare Resource-list header actions through `TableLayoutSchema::buttonCustom()` / `buttonsCustom()` with `Wonder\Elements\Components\Button` or `Dropdown`; use `Button::post($action, $label)->confirm(...)` for POST actions and reserve `buttonCustomHtml()` for trusted markup that no Element can represent.
-- Resource-list extras live in TableColumn/TableLayoutSchema: custom row-menu entries are arrays in `actions()` (`label` per column value, `href` with `{column}` placeholders, escaped, `filter.row`); computed columns go through `TableLayoutSchema::select()` (aliases are display/sort only: never in WHERE, filters, counts or search); filters that are not `column = value` use `filterQuery()` with a closure that receives only whitelisted option values; cross-table search uses relation descriptors in `searchFields()`, nested through `relations`.
+- Resource-list extras live in TableColumn/TableLayoutSchema: custom row-menu entries are arrays in `actions()` (`label` per column value, `href` with `{column}` placeholders, escaped, `filter.row`); computed columns go through `TableLayoutSchema::select()` (aliases are display/sort only: never in WHERE, filters, counts or search); filters that are not `column = value` use `filterQuery()` with a closure that receives only whitelisted option values; cross-table search uses relation descriptors in `searchFields()`, nested through `relations`. Exports of visitor-written data (contacts, public forms) use `downloadAsText()`: cells stay text in Excel and CSV formula prefixes are neutralized by `Backend\Support\SpreadsheetText`.
 - Backend navigation supports `section → optional group → Resource`. Declare a
   group with `NavigationSchema::group($key, $title, $order, $authority)` and
   attach peers with `inGroup($key)` inside the same section. Keep ungrouped
@@ -340,7 +340,14 @@ php forge start
   subclasses add only commercial fields. Use `AccountAddressForm` for explicit
   translated labels, country-aware defaults and responsive Container layouts;
   do not require billing data during signup or reset submitted empty values to
-  defaults.
+  defaults. Address helpers honor `AddressExtension` prefixes (`prefix()`,
+  `fieldKey()`; `AccountAddressForm::layout($fields, $address)`), so a
+  `shipping_*` block can sit beside billing in one form. Signup-completion
+  fields: `phoneEnabled()` shows the phone, `phoneRequired()` enforces it;
+  `validationTexts()` returns already translated page-alert lines;
+  `Input::required(false)` removes a shared `required`. Configurable signup
+  sections (birth date, billing, shipping) belong to customer-account
+  (`CustomerAuthProfile` / `HasSignupFields`, config `signup.fields`).
 - Complete account address saves use `AccountAddressValidation`, not global
   Contact required fields (signup must remain billing-free). Reuse
   `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
