@@ -64,7 +64,7 @@ funzionali: il token ha i permessi dell'utente che ha dato il consenso.
 
 ## Collegare un client
 
-Nel backend la pagina **Impostazioni → Connessioni** mostra l'URL MCP da incollare, valido
+Nel backend la pagina **Impostazioni → Connessioni** (in fondo alla sidebar, accanto a Profilo ed Esci) mostra l'URL MCP da incollare, valido
 per qualsiasi client MCP compatibile con OAuth (Claude, ChatGPT, Cursor, ecc.),
 e l'elenco delle connessioni attive, che si possono revocare.
 

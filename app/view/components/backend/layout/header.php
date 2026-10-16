@@ -132,18 +132,33 @@
         }
 
         $settingsTargetId = code(10, 'numbers', 'sidebar-');
-        $settingsOffcanvas = sidebarOffcanvas($settingsTargetId, 'Impostazioni', [
+        $settingsItems = [
             [
                 'title' => 'Profilo',
                 'link' => $PATH->backend.'/account',
                 'active' => $currentDir === 'account',
             ],
-            [
-                'title' => 'Esci',
-                'link' => $PATH->backend.'/account/logout/',
-                'active' => false,
-            ],
-        ]);
+        ];
+
+        # Connessioni MCP: ogni utente backend collega i propri client OAuth.
+        $connectionsActive = false;
+        if (\Wonder\OAuth\OAuth::enabled()) {
+            $connectionsPath = \Wonder\App\Resources\OAuth\ConnectionsResource::path();
+            $connectionsActive = $matchesNavPath($connectionsPath);
+            $settingsItems[] = [
+                'title' => __t('oauth.connections.menu'),
+                'link' => $PATH->backend.'/'.$connectionsPath.'/',
+                'active' => $connectionsActive,
+            ];
+        }
+
+        $settingsItems[] = [
+            'title' => 'Esci',
+            'link' => $PATH->backend.'/account/logout/',
+            'active' => false,
+        ];
+
+        $settingsOffcanvas = sidebarOffcanvas($settingsTargetId, 'Impostazioni', $settingsItems);
     ?>
 
     <!-- Sidebar Holder -->
@@ -177,7 +192,7 @@
 
             <ul class="list-unstyled components border-top mb-0">
                     
-                <li class="<?=e(($currentDir == 'account') ? 'active' : '')?>">
+                <li class="<?=e(($currentDir == 'account' || $connectionsActive) ? 'active' : '')?>">
                     <div class="line bg-body"></div>
                     <a class="text-body-emphasis" type="button" data-bs-toggle="offcanvas" data-bs-target="#<?=e($settingsTargetId)?>">       
                         <i class="bi bi-gear-wide-connected"></i>

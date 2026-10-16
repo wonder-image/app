@@ -22,11 +22,12 @@ class ConnectionsResource extends NavigationOnlyResource
 
     public static function navigationSchema(): NavigationSchema
     {
+        # Fuori dal menu delle sezioni: la voce sta in Impostazioni, in fondo
+        # alla sidebar, accanto a Profilo ed Esci (backend/layout/header.php).
         return NavigationSchema::for(static::class)
-            ->section('impostazioni', __t('oauth.connections.section'), 'bi-sliders', 1010)
             ->title(__t('oauth.connections.menu'))
             ->authority([])
-            ->enabled(OAuth::enabled());
+            ->enabled(false);
     }
 
     public static function pageView(): string

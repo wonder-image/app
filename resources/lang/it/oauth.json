@@ -26,7 +26,6 @@
     "server_message": "Il server non è configurato correttamente. Contatta l'amministratore del sito."
   },
   "connections": {
-    "section": "Impostazioni",
     "menu": "Connessioni",
     "title": "Connessioni MCP",
     "servers_title": "Server MCP disponibili",
