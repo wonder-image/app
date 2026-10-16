@@ -26,6 +26,14 @@ Route::area('backend')
         Route::post('/app/scheduler/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $schedulerSlug])
             ->permit(['admin']);
 
+        // Connessioni MCP (OAuth): visibile a ogni utente backend collegato; la
+        // revoca passa da /api/backend/oauth/revoke/ (ConnectionsResource::revoke()).
+        if (\Wonder\OAuth\OAuth::enabled()) {
+            $oauthSlug = \Wonder\App\Resources\OAuth\ConnectionsResource::slug();
+            Route::get('/app/oauth/connections/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $oauthSlug])
+                ->name('oauth.connections');
+        }
+
         // Catalogo dei componenti (sezione Dev): indice, scheda e anteprima.
         // L'anteprima sta prima della scheda perché le route sono first-match.
         $docsSlug = \Wonder\App\Resources\Docs\ComponentCatalogResource::slug();

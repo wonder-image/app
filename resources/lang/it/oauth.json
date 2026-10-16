@@ -1,0 +1,56 @@
+{
+  "login": {
+    "title": "Accedi per collegare {{client}}",
+    "subtitle": "{{client}} vuole accedere a {{resource}} su {{site}}.",
+    "username": "Email o username",
+    "password": "Password",
+    "submit": "Accedi"
+  },
+  "consent": {
+    "title": "Autorizzi {{client}}?",
+    "intro": "{{client}} potrà usare {{resource}} su {{site}} con i tuoi permessi.",
+    "redirect_to": "Dopo la conferma tornerai a {{host}}.",
+    "loopback_warning": "La richiesta arriva da un'applicazione sul tuo computer. Approva solo se l'hai avviata tu.",
+    "signed_in_as": "Collegato come {{name}}",
+    "switch_account": "Cambia account",
+    "approve": "Autorizza",
+    "deny": "Annulla"
+  },
+  "error": {
+    "invalid_request_title": "Richiesta non valida",
+    "invalid_request_message": "Il client che ti ha mandato qui non è registrato o ha usato un indirizzo di ritorno non valido.",
+    "expired_title": "Richiesta scaduta",
+    "expired_message": "Richiesta scaduta, riprova dal tuo client.",
+    "csrf_message": "La sessione è scaduta. Riprova dal tuo client.",
+    "server_title": "Errore di configurazione",
+    "server_message": "Il server non è configurato correttamente. Contatta l'amministratore del sito."
+  },
+  "connections": {
+    "menu": "Connessioni",
+    "title": "Connessioni MCP",
+    "servers_title": "Server MCP disponibili",
+    "servers_help": "Aggiungi un server MCP remoto (HTTP streamable) con questo URL. Il client aprirà il browser per l'accesso e la conferma.",
+    "issuer_error": "Impossibile calcolare l'URL del server MCP: APP_URL deve essere un indirizzo https. Contatta l'amministratore del sito.",
+    "copy": "Copia",
+    "copied": "Copiato",
+    "transport_badge": "HTTP streamable",
+    "claude_code_example": "Esempio per Claude Code",
+    "active_title": "Connessioni attive",
+    "empty": "Nessuna connessione attiva.",
+    "col_user": "Utente",
+    "col_client": "Client",
+    "col_redirect": "Dominio",
+    "col_resource": "Risorsa",
+    "col_consented": "Autorizzata il",
+    "col_last_used": "Ultimo uso",
+    "never": "Mai",
+    "revoke": "Revoca",
+    "revoke_confirm": "Revocare l'accesso di {{client}}? Il client dovrà chiedere di nuovo l'autorizzazione.",
+    "revoked_title": "Connessione revocata",
+    "revoked_message": "Il client dovrà chiedere di nuovo l'autorizzazione.",
+    "revoke_title": "Revoca connessione",
+    "label": "connessione",
+    "plural_label": "connessioni",
+    "revoke_error": "Connessione non trovata o non revocabile."
+  }
+}

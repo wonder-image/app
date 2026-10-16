@@ -122,4 +122,29 @@ check('delete ad array nascosto quando la riga non si può eliminare', function 
     return $field->newField(['id' => 7], 'action_button', ['delete' => ['label' => 'Elimina']]) === '';
 });
 
+check('confirm: attributi data-wi-confirm con segnaposto ed escape', function () {
+    $html = menu(['id' => 7, 'client_name' => 'Claude "Pro"'], ['revoke' => [
+        'label' => 'Revoca', 'request' => 'backend/oauth/revoke/',
+        'confirm' => 'Revocare {client_name}?', 'confirm_title' => 'Attenzione',
+        'confirm_ok' => 'Revoca', 'confirm_variant' => 'danger',
+    ]]);
+
+    return str_contains($html, 'data-wi-confirm="Revocare Claude &quot;Pro&quot;?"')
+        && str_contains($html, 'data-wi-confirm-title="Attenzione"')
+        && str_contains($html, 'data-wi-confirm-ok="Revoca"')
+        && str_contains($html, 'data-wi-confirm-variant="danger"')
+        && str_contains($html, "ajaxRequest(\n                '/api/backend/oauth/revoke/?database=main&table=immobili&id=7'");
+});
+
+check('senza confirm nessun attributo data-wi-confirm', function () {
+    return !str_contains(menu(['id' => 7], ['m' => ['label' => 'M', 'href' => '/m/']]), 'data-wi-confirm');
+});
+
+check('color e divider come la voce Elimina', function () {
+    $html = menu(['id' => 7], ['r' => ['label' => 'R', 'href' => '/r/', 'color' => 'danger" x', 'divider' => true]]);
+
+    return str_contains($html, "<div class='dropdown-divider'></div><a class='dropdown-item text-dangerx'")
+        && !str_contains(menu(['id' => 7], ['r' => ['label' => 'R', 'href' => '/r/']]), 'dropdown-divider');
+});
+
 summary();

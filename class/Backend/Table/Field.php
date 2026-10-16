@@ -167,6 +167,40 @@
 
         }
 
+        /**
+         * Attributi `data-wi-confirm*` della lib per una voce ad array: la
+         * conferma blocca il click e solo dopo lascia partire href / onclick.
+         * In `confirm`, `{colonna}` prende il valore della riga.
+         */
+        private function confirmAttributes(array $link): string {
+
+            $text = trim((string) ($link['confirm'] ?? ''));
+
+            if ($text === '') {
+                return '';
+            }
+
+            $text = preg_replace_callback('/{(.*?)}/', fn ($m) => (string) ($this->row[$m[1]] ?? ''), $text);
+            $attributes = ['data-wi-confirm' => $text];
+
+            foreach (['title', 'ok', 'variant'] as $key) {
+                $value = trim((string) ($link['confirm_'.$key] ?? ''));
+
+                if ($value !== '') {
+                    $attributes['data-wi-confirm-'.$key] = $value;
+                }
+            }
+
+            $html = '';
+
+            foreach ($attributes as $name => $value) {
+                $html .= ' '.$name.'="'.htmlspecialchars($value, ENT_QUOTES, 'UTF-8').'"';
+            }
+
+            return $html;
+
+        }
+
         private function actionButtonItem($text, $action, $bootstrapColor = "", $line = false) {
 
             return returnButton($text, $action, $bootstrapColor, $line);
@@ -364,7 +398,13 @@
                                 $label = $labelKey !== null && isset($label[$labelKey]) ? $label[$labelKey] : '';
                             }
     
-                            $BUTTON = empty($label) || empty($action) ? "" : "<a class='dropdown-item' $action role='button' $target>$label</a>";
+                            $confirm = empty($action) ? '' : $this->confirmAttributes($link);
+
+                            $color = preg_replace('/[^a-z0-9-]/', '', strtolower((string) ($link['color'] ?? '')));
+                            $class = 'dropdown-item'.($color !== '' ? ' text-'.$color : '');
+                            $divider = empty($link['divider']) ? '' : "<div class='dropdown-divider'></div>";
+
+                            $BUTTON = empty($label) || empty($action) ? "" : "$divider<a class='$class' $action role='button' $target$confirm>$label</a>";
     
                         }
 

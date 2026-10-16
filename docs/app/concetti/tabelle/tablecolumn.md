@@ -70,6 +70,13 @@ TableColumn::key('actions')->button()->actions([
   contenere un indirizzo intero: i valori che finiscono in una query string
   vanno preparati prima.
 - `target` (per esempio `_blank`) esce escapato.
+- `request` al posto di `href` manda un POST AJAX a `{api}/{request}` con
+  `database`, `table` e `id` della riga, poi ricarica la tabella.
+- `confirm` chiede conferma con il modal della lib (`data-wi-confirm`) prima
+  di aprire `href` o mandare `request`; `{colonna}` prende il valore della
+  riga. `confirm_title`, `confirm_ok`, `confirm_variant` come per `Button::confirm()`.
+- `color` (per esempio `danger`) colora la voce, `divider` la separa con una
+  linea, come la voce Elimina.
 - `filter.row` accetta un valore o una lista
   (`['status' => ['draft', 'confirmed']]`); se la riga non ha la colonna, la
   voce resta nascosta.

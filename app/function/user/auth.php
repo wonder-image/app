@@ -124,13 +124,13 @@
         return 'username';
     }
 
-    function authenticateUserLogin($VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null)
+    function authenticateUserLogin($VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null, bool $REMEMBER = true)
     {
 
         global $ALERT;
 
         $key = resolveUserLoginIdentifierKey((string) $VALUE);
-        $authenticated = authenticateUser($key, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED);
+        $authenticated = authenticateUser($key, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED, $REMEMBER);
 
         if (!$authenticated && in_array((int) ($ALERT ?? 0), [901, 904, 905], true)) {
             $ALERT = 925;
@@ -141,7 +141,7 @@
     }
 
     // Login utente (remember-me automatico)
-    function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null)
+    function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null, bool $REMEMBER = true)
     {
 
         global $ALERT;
@@ -247,7 +247,9 @@
 
         $_SESSION['user_id'] = $U->id;
 
-        Wonder\Auth\RememberMe::set($U->id, $AREA);
+        if ($REMEMBER) {
+            Wonder\Auth\RememberMe::set($U->id, $AREA);
+        }
         Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
             'key' => $KEY,
             'value' => $VALUE,

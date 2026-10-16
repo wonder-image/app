@@ -87,6 +87,15 @@ Route::area('api')
                     ->guarded()
                     ->permit([]);
 
+                // Revoca di una connessione OAuth: la proprietà del grant si
+                // controlla nell'handler, ogni utente backend revoca le sue.
+                if (\Wonder\OAuth\OAuth::enabled()) {
+                    Route::post('/oauth/revoke/', $ROOT_APP.'/http/api/backend/oauth-revoke.php')
+                        ->name('oauth.revoke')
+                        ->guarded()
+                        ->permit([]);
+                }
+
                 Route::post('/editorjs/file/', $ROOT_APP.'/http/api/backend/editorjs-file.php')
                     ->name('editorjs.file');
 

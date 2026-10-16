@@ -1,0 +1,56 @@
+{
+  "login": {
+    "title": "Sign in to connect {{client}}",
+    "subtitle": "{{client}} wants to access {{resource}} on {{site}}.",
+    "username": "Email or username",
+    "password": "Password",
+    "submit": "Sign in"
+  },
+  "consent": {
+    "title": "Authorize {{client}}?",
+    "intro": "{{client}} will be able to use {{resource}} on {{site}} with your permissions.",
+    "redirect_to": "After confirming you will return to {{host}}.",
+    "loopback_warning": "This request comes from an application on your computer. Approve only if you started it.",
+    "signed_in_as": "Signed in as {{name}}",
+    "switch_account": "Switch account",
+    "approve": "Authorize",
+    "deny": "Cancel"
+  },
+  "error": {
+    "invalid_request_title": "Invalid request",
+    "invalid_request_message": "The client that sent you here is not registered or used an invalid return address.",
+    "expired_title": "Request expired",
+    "expired_message": "Request expired, try again from your client.",
+    "csrf_message": "Your session expired. Try again from your client.",
+    "server_title": "Configuration error",
+    "server_message": "The server is not configured correctly. Contact the site administrator."
+  },
+  "connections": {
+    "menu": "Connections",
+    "title": "MCP connections",
+    "servers_title": "Available MCP servers",
+    "servers_help": "Add a remote MCP server (streamable HTTP) with this URL. The client will open the browser for sign-in and confirmation.",
+    "issuer_error": "Cannot compute the MCP server URL: APP_URL must be an https address. Contact the site administrator.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "transport_badge": "HTTP streamable",
+    "claude_code_example": "Claude Code example",
+    "active_title": "Active connections",
+    "empty": "No active connections.",
+    "col_user": "User",
+    "col_client": "Client",
+    "col_redirect": "Domain",
+    "col_resource": "Resource",
+    "col_consented": "Authorized on",
+    "col_last_used": "Last used",
+    "never": "Never",
+    "revoke": "Revoke",
+    "revoke_confirm": "Revoke access for {{client}}? The client will have to ask for authorization again.",
+    "revoked_title": "Connection revoked",
+    "revoked_message": "The client will have to ask for authorization again.",
+    "revoke_title": "Revoke connection",
+    "label": "connection",
+    "plural_label": "connections",
+    "revoke_error": "Connection not found or not revocable."
+  }
+}

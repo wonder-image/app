@@ -215,7 +215,7 @@ $forceWwwBlock
 
   # Le cartelle runtime /backend e /api esistono fisicamente, ma devono
   # comunque passare sempre dal router.
-  RewriteCond %{REQUEST_URI} ^/(backend|api)(?:/.*)?\$ [NC]
+  RewriteCond %{REQUEST_URI} ^/(backend|api|oauth|\.well-known/oauth-[a-z-]+)(?:/.*)?\$ [NC]
   RewriteRule ^ handler/index.php [L,QSA]
 
   # La homepage deve sempre entrare nel router anche se la document root
