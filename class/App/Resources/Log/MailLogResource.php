@@ -93,7 +93,7 @@ final class MailLogResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backend(['list', 'view'], ['admin', 'administrator']);
+            ->access('log', ['list', 'view']);
     }
 
     public static function navigationSchema(): NavigationSchema
@@ -103,7 +103,7 @@ final class MailLogResource extends Resource
             ->inGroup('diagnostics')
             ->title('Email')
             ->order(30)
-            ->authority(['admin', 'administrator']);
+            ->access('log');
     }
 
     private static function customShowViewPath(): ?string

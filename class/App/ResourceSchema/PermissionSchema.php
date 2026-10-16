@@ -3,6 +3,7 @@
 namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
+use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
 
 final class PermissionSchema
@@ -59,6 +60,27 @@ final class PermissionSchema
     public function backend(string|array $actions, array $authorities = []): self
     {
         return $this->allow('backend', $actions, $authorities);
+    }
+
+    /**
+     * Permessi backend presi da un'area di `Access` (es. `log`,
+     * `gestionale:catalogo`): view → list/view, create → create/store,
+     * edit → edit/update, delete → delete. Le azioni API restano esplicite.
+     *
+     * `$actions` limita le azioni backend abilitate (es. `['list', 'view']` per
+     * una Resource in sola lettura); vuoto: tutte quelle dell'area.
+     */
+    public function access(string $key, string|array $actions = []): self
+    {
+        $only = array_values(array_filter(array_map('trim', (array) $actions)));
+
+        foreach (Access::backendActions($key) as $action => $authorities) {
+            if ($only === [] || in_array($action, $only, true)) {
+                $this->schema['backend'][$action] = $authorities;
+            }
+        }
+
+        return $this;
     }
 
     public function api(string|array $actions, array $authorities = []): self

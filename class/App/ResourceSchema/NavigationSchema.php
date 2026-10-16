@@ -3,6 +3,7 @@
 namespace Wonder\App\ResourceSchema;
 
 use RuntimeException;
+use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
 use Wonder\Backend\Support\BackendNavigationSections;
 
@@ -226,6 +227,12 @@ final class NavigationSchema
         $this->schema['authority'] = $authority;
 
         return $this;
+    }
+
+    /** Voce di menu visibile ai ruoli che possono vedere l'area di `Access`. */
+    public function access(string ...$keys): self
+    {
+        return $this->authority(Access::viewers(...$keys));
     }
 
     /**

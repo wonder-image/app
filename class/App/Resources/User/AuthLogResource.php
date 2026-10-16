@@ -90,7 +90,7 @@ final class AuthLogResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backend(['list', 'view'], ['admin', 'administrator']);
+            ->access('log', ['list', 'view']);
     }
 
     public static function navigationSchema(): NavigationSchema
@@ -100,7 +100,7 @@ final class AuthLogResource extends Resource
             ->inGroup('diagnostics')
             ->title('Accessi utente')
             ->order(40)
-            ->authority(['admin', 'administrator']);
+            ->access('log');
     }
 
     private static function customShowViewPath(): ?string

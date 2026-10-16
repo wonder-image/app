@@ -98,7 +98,7 @@ final class ConsentEventResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backend(['list', 'view'], ['admin', 'administrator']);
+            ->access('log', ['list', 'view']);
     }
 
     public static function navigationSchema(): NavigationSchema
@@ -108,7 +108,7 @@ final class ConsentEventResource extends Resource
             ->inGroup('diagnostics')
             ->title('Consensi')
             ->order(50)
-            ->authority(['admin', 'administrator']);
+            ->access('log');
     }
 
     private static function customShowViewPath(): ?string

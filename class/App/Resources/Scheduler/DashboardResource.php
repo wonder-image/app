@@ -34,10 +34,10 @@ class DashboardResource extends NavigationOnlyResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('dev', 'Dev', 'bi-terminal', 1025, ['admin', 'administrator'])
+            ->section('dev', 'Dev', 'bi-terminal', 1025)
             ->title('Riepilogo')
             ->order(10)
-            ->authority(['admin']);
+            ->access('diagnostica');
     }
 
     /** View della pagina: la presentazione, con i Componenti, sta lì. */

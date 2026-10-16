@@ -141,7 +141,7 @@ final class ErrorReportResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backend(['list', 'edit', 'update'], ['admin']);
+            ->access('diagnostica', ['list', 'edit', 'update']);
     }
 
     public static function navigationSchema(): NavigationSchema
@@ -151,7 +151,7 @@ final class ErrorReportResource extends Resource
             ->group('diagnostics', 'Log e diagnostica', 40)
             ->title('Errori')
             ->order(10)
-            ->authority(['admin']);
+            ->access('diagnostica');
     }
 
     /** L'interruttore della scheda diventa data e autore. */

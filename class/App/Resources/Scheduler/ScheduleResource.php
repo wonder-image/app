@@ -111,7 +111,7 @@ class ScheduleResource extends Resource
     {
         return PageSchema::for(static::class)->view('form', dirname(__DIR__, 4).'/app/view/pages/backend/scheduler/form.php');
     }
-    public static function permissionSchema(): PermissionSchema { return PermissionSchema::for(static::class)->backendCrud(['admin']); }
+    public static function permissionSchema(): PermissionSchema { return PermissionSchema::for(static::class)->access('diagnostica'); }
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
@@ -119,7 +119,7 @@ class ScheduleResource extends Resource
             ->group('automations', 'Automazioni', 20)
             ->title('Pianificazioni')
             ->order(10)
-            ->authority(['admin']);
+            ->access('diagnostica');
     }
     public static function mutateRequestValues(array $values, string $action, string $context = 'backend', ?array $oldValues = null): array
     {

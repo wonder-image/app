@@ -48,17 +48,43 @@ final class ConfigRepository
                         throw new RuntimeException("L'override config del modulo {$slug} deve restituire un array.");
                     }
 
-                    $config = array_replace_recursive($config, $loaded);
+                    $config = self::merge($config, $loaded);
                 }
             }
 
-            $config = array_replace_recursive($config, StateRepository::config($slug));
+            # I permessi si decidono nei file, non dallo stato salvato in DB.
+            $state = StateRepository::config($slug);
+            unset($state['permissions']);
+
+            $config = self::merge($config, $state);
             $configs[$slug] = $config;
         }
 
         self::$configs = $configs;
 
         return self::$configs;
+    }
+
+    /**
+     * Unisce un override al config. Sotto `permissions` ogni area è sostituita
+     * per intero: con l'unione ricorsiva un override `['admin']` sopra
+     * `['admin', 'administrator']` lascerebbe `administrator`.
+     */
+    public static function merge(array $config, array $override): array
+    {
+        $permissions = null;
+
+        if (array_key_exists('permissions', $override)) {
+            $permissions = array_replace((array) ($config['permissions'] ?? []), (array) $override['permissions']);
+        }
+
+        $config = array_replace_recursive($config, $override);
+
+        if ($permissions !== null) {
+            $config['permissions'] = $permissions;
+        }
+
+        return $config;
     }
 
     public static function for(string $slug): array
