@@ -89,6 +89,41 @@
 
         }
 
+        /**
+         * Esegue `$callback` con la lingua `$code` e poi ripristina quella
+         * corrente, anche se il callback lancia un'eccezione.
+         *
+         * Serve per contenuti legati a una lingua propria (es. un documento
+         * legale tedesco generato da una richiesta italiana). Un codice vuoto
+         * o non registrato ricade sulla lingua di default, come `setLang()`.
+         * Se la lingua risolta coincide con quella corrente le traduzioni non
+         * vengono ricaricate.
+         *
+         * @template T
+         * @param callable(string): T $callback riceve la lingua effettiva
+         * @return T
+         */
+        public static function withLang(?string $code, callable $callback): mixed
+        {
+
+            $code = strtolower(trim((string) $code));
+            $target = isset(self::$langs[$code]) ? $code : self::$defaultLang;
+            $previous = self::getLang();
+
+            if ($target === $previous) {
+                return $callback($target);
+            }
+
+            self::setLang($target);
+
+            try {
+                return $callback(self::getLang());
+            } finally {
+                self::setLang($previous);
+            }
+
+        }
+
         public static function setLangFromPath(): self
         {
 

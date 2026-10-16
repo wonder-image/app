@@ -111,6 +111,11 @@
         "privacy_policy" : "Politique de confidentialité",
         "terms_conditions" : "Termes et conditions",
         "cookie_policy" : "Politique des cookies",
-        "marketing" : "Consentement marketing"
+        "marketing" : "Consentement marketing",
+        "pdf" : {
+            "version" : "Version",
+            "published" : "Publié le",
+            "page" : "Page"
+        }
     }
 }
