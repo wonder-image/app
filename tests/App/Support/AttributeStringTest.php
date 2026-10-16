@@ -94,4 +94,9 @@ check('P8 stesso risultato di View\\Component::renderAttributes() su scalari e S
     return true;
 });
 
+check('P9 parse legge i valori tra apici singoli (es. JSON) e i vuoti tra doppi apici', fn () =>
+    AttributeString::parse('a="x" b=\'{"c":"it"}\' d=e f g=""')
+        === ['a' => 'x', 'b' => '{"c":"it"}', 'd' => 'e', 'f' => true, 'g' => '']
+);
+
 summary();

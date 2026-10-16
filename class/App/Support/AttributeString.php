@@ -34,7 +34,7 @@ final class AttributeString
         $attributes = [];
         $pattern = '/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\']+)))?/';
 
-        if (!preg_match_all($pattern, $attribute, $matches, PREG_SET_ORDER)) {
+        if (!preg_match_all($pattern, $attribute, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL)) {
             return [];
         }
 
