@@ -71,8 +71,10 @@ Handler::run('/api/app/update/', 'POST', [ 'api_internal_user', 'api_public_acce
         $RUNNER->jsonPayload($RESULT),
         $RESULT->success ? 200 : 500
     );
-});
+}, allowPageToken: false);
 ```
+
+`allowPageToken: false` è per gli endpoint chiamati solo da server (deploy, cron, trigger esterni): rifiutano il token di pagina (vedi sotto).
 
 ## Classi da conoscere
 
@@ -80,6 +82,76 @@ Handler::run('/api/app/update/', 'POST', [ 'api_internal_user', 'api_public_acce
 - `class/Api/EndpointException.php`
 - `class/Api/Handler.php`
 - `class/Api/Response.php`
+- `class/Api/Token/BearerVerifier.php`: verifica del bearer, riusabile fuori da `Endpoint`
+- `class/Api/Token/ApiTokens.php`: emissione dei token (`issue()`, `pageToken()`, `fingerprint()`)
+- `class/Api/Token/TokenConfig.php`: durate lette dal `.env`
+- `class/Api/Contracts/ApiUserProvider.php`: da dove arriva l'utente (default `infoUser()`)
+
+## Token
+
+### Modello
+
+Un token API è un JWT HS256 firmato con `APP_KEY`, salvato in chiaro in `api_users.token` (serve a `Credentials::appToken()` e ai trigger server). La firma da sola non basta: `BearerVerifier` controlla nell'ordine
+
+1. firma e scadenza (`exp`): scaduto → `401 Token scaduto`, firma o formato errati → `401 Token non valido` (prima erano un `500`);
+2. utente del `sub` esistente e attivo, con una delle authority dell'endpoint (`403` altrimenti);
+3. bearer **uguale** a `api_users.token` dell'utente, confrontato con `hash_equals()`;
+4. riga del token attiva, IP e domini ammessi.
+
+Ogni token ha un `jti` casuale (`bin2hex(random_bytes(16))`, prima era `uniqid()`).
+
+Il punto 3 non c'era: prima bastava un JWT firmato con il `sub` giusto, quindi rigenerare o revocare un token non aveva effetto.
+
+### Rotazione e revoca
+
+```php
+$token = regenerateApiToken($userId);        // nuovo token, il vecchio dà subito 401
+$token = regenerateApiToken($userId, 86400); // con scadenza a 24 ore
+```
+
+Revocare significa svuotare `api_users.token` o mettere la riga `active = false`. Rigenerare il token di `@system` (id 1 di `api_users`) invalida anche tutti i token di pagina già emessi; i trigger esterni (cron, deploy) vanno aggiornati col nuovo `Credentials::appToken()`.
+
+### Scadenza
+
+| Chiave `.env` | Default | Significato |
+| --- | --- | --- |
+| `API_TOKEN_TTL` | `0` | secondi di vita dei token emessi da `apiUser()` / `regenerateApiToken()`; `0` = senza `exp` |
+| `API_PAGE_TOKEN_TTL` | `43200` (12 ore) | vita del token di pagina, da 300 a 604800 |
+| `API_TOKEN_REQUIRE_EXP` | spento | `true` rifiuta i token senza `exp` |
+
+Il default resta `0` perché gli utenti API dei moduli (per esempio `@immobili`, il cui token è salvato nell'URL di push di Gestim) non sanno rinnovarsi. Il token di `@system` resta sempre senza scadenza (`_api_token_ttl => 0` in `build/row/user.php`). `apiUser()` accetta `_api_token_ttl` per scegliere la durata di un singolo utente.
+
+Percorso di migrazione verso token con scadenza:
+
+1. imposta `API_TOKEN_TTL` (per esempio `31536000`, un anno);
+2. rigenera i token degli utenti API con `regenerateApiToken()` e consegna i nuovi;
+3. quando non restano token senza `exp` (tranne `@system`, che va escluso o rigenerato con TTL e aggiornato nei trigger), attiva `API_TOKEN_REQUIRE_EXP=true`.
+
+### Token di pagina (`API_TOKEN`)
+
+Le pagine frontend e backend stampano `const API_TOKEN`, che la lib manda come `Authorization: Bearer` da `API_CLIENT` / `API_CLIENT_APP`. Prima era il token di `@system`, cioè un bearer riutilizzabile senza scadenza consegnato a ogni visitatore. Ora è `ApiTokens::pageToken()`: un JWT di `@system` con `typ: page`, `exp` obbligatoria (`API_PAGE_TOKEN_TTL`) e legato al token di sistema corrente (`tid` + `tkh`, un'impronta parziale), senza contenerlo.
+
+- Gli endpoint con `api_internal_user` lo accettano come prima: le chiamate della lib non cambiano.
+- Gli endpoint con `allowPageToken: false` lo rifiutano con `401` (`/api/app/update/`, `/api/task/scheduler/`, `/api/task/sitemap/`).
+- Una scheda rimasta aperta oltre la durata riceve `401 Token scaduto` alla chiamata successiva e va ricaricata: la lib non rinnova il token.
+- `$CALL->isPageToken()` dice all'endpoint se la chiamata arriva da una pagina.
+
+Il token di pagina dà comunque accesso, per la sua durata, agli endpoint `api_internal_user`: la chiusura completa richiede che la lib chiami quelli con la sessione e il token CSRF invece del bearer.
+
+### `api_activity`
+
+`api_activity.token` salva solo l'impronta del bearer (`sha256:` + 16 caratteri esadecimali), utile per correlare le chiamate dello stesso token. Prima salvava il bearer in chiaro: `forge update` svuota le righe storiche con `ApiActivityTokenMigration` (idempotente, conteggio in `api_activity_tokens`).
+
+### Riuso fuori da `Endpoint`
+
+```php
+use Wonder\Api\Token\BearerVerifier;
+
+$verified = BearerVerifier::make()->verify($bearer, ['api_internal_user'], $ip, $domain, allowPageToken: false);
+// $verified->userId, $verified->authority, $verified->tokenId, $verified->expiresAt
+```
+
+Lancia `EndpointException` con codice `401` / `403`. Un modulo con utenti propri passa un `ApiUserProvider` al costruttore.
 
 ## Risposte
 

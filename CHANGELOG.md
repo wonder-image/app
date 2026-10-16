@@ -455,6 +455,20 @@
   `.wi-checkbox-container` del CSS di `CheckGroup` Wonder (che esce solo con
   le pillole) e `.wi-input-container { position: relative; }` dell'anteprima
   del catalogo.
+- `const API_TOKEN` nei `head.php` frontend e backend (e nell'anteprima del
+  catalogo) è un token di pagina di `@system` (`ApiTokens::pageToken()`):
+  `typ: page`, scadenza `API_PAGE_TOKEN_TTL` (12 ore) e legato al token di
+  sistema corrente. Prima era il token di `@system`, riutilizzabile e senza
+  scadenza. Le chiamate della lib non cambiano; `/api/app/update/`,
+  `/api/task/scheduler/` e `/api/task/sitemap/` rifiutano il token di pagina
+  (`Handler::run(..., allowPageToken: false)`).
+- Token API: `jti` casuale (`bin2hex(random_bytes(16))`), prima era
+  `uniqid()`. `exp` configurabile con `API_TOKEN_TTL` (default `0`, nessuna
+  scadenza) e `API_TOKEN_REQUIRE_EXP` per rifiutare i token senza scadenza;
+  `apiUser()` accetta `_api_token_ttl`, `regenerateApiToken()` ruota il token.
+- `api_activity.token` salva l'impronta `sha256:…` del bearer: prima era il
+  bearer in chiaro. `forge update` svuota le righe storiche
+  (`ApiActivityTokenMigration`, statistica `api_activity_tokens`).
 
 ### Removed
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
@@ -775,6 +789,11 @@
   `mail_password`, `google_oauth_client_secret`, `apple_oauth_private_key`)
   hanno `autocomplete="new-password"`: prima il browser poteva inserirci la
   password di login salvata.
+- API: `Endpoint` confronta il bearer con `api_users.token` (`hash_equals`,
+  in `Api\Token\BearerVerifier`): prima bastava un JWT firmato con il `sub`
+  giusto, quindi rigenerare o revocare un token non aveva effetto.
+- API: un token scaduto, con firma errata o non JWT risponde `401`, prima era
+  un `500` con il messaggio della libreria JWT.
 - PDF dei documenti legali (`generateLegalDocumentPdf()`): tipo documento,
   «Versione», «Pubblicato» e «Pagina» seguono il `language_code` del
   documento (chiavi `components.legal.pdf.version`, `.published`, `.page`,

@@ -46,6 +46,9 @@
             // token: lo si recupera comunque via `Credentials::appToken()`
             // dal record api_users, che viene comunque generato.
             "_skip_api_token_mail" => true,
+            // Il token di `@system` resta senza scadenza: lo usano cron e
+            // trigger esterni e non arriva piu al browser (token di pagina).
+            "_api_token_ttl" => 0,
         ];
 
         user($values);
@@ -93,6 +96,7 @@
                 'active' => 'true',
                 'allowed_domains' => $systemAllowedDomains,
                 '_skip_api_token_mail' => true,
+                '_api_token_ttl' => 0,
             ], [], $systemUser, $systemUser->id);
         }
 
