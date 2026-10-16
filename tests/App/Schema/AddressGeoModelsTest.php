@@ -8,15 +8,20 @@ require_once __DIR__ . '/../../../app/function/string/date.php';
 require_once __DIR__ . '/../../../app/function/other/geo.php';
 
 use Wonder\App\Models\Config\SocietyLocation;
-use Wonder\App\Models\Contacts\ContactAddress;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
+use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\App\Resources\Config\SocietyLocationResource;
-use Wonder\Auth\Frontend\AccountAddresses;
 use Wonder\Auth\Frontend\AccountAddressValidation;
 use Wonder\Auth\Frontend\AccountAddressForm;
 
 if (!function_exists('__t')) {
     function __t(string $key): string { return $key; }
+}
+
+/** Lo stesso indirizzo delle schede cliente di customer-account, senza il modulo. */
+function accountAddress(): AddressExtension
+{
+    return AddressExtension::simple(countryDefault: 'IT')->withLink(false)->withContactName()->withPhone()->withGeo();
 }
 
 /** Nomi degli input messi nel layout, a qualunque profondità. */
@@ -60,14 +65,8 @@ check('sedi: i campi nascosti sono nel layout', function () {
     return array_diff(['lat', 'lng', 'legal_place_id', 'legal_lat', 'legal_lng'], $names) === [];
 });
 
-check('indirizzi dei contatti: place ID e coordinate', function () {
-    $columns = array_keys(ContactAddress::getColumns());
-
-    return array_diff(['place_id', 'lat', 'lng'], $columns) === [];
-});
-
 check('form dell\'account: campi nascosti con i valori salvati', function () {
-    $fields = AccountAddressForm::fields(ContactAddress::address(), ['place_id' => 'ChIJabc_def-123', 'lat' => '45.1', 'lng' => '9.2']);
+    $fields = AccountAddressForm::fields(accountAddress(), ['place_id' => 'ChIJabc_def-123', 'lat' => '45.1', 'lng' => '9.2']);
 
     return ($fields['place_id'] ?? null) instanceof InputHidden
         && $fields['place_id']->get('value') === 'ChIJabc_def-123'
@@ -76,14 +75,14 @@ check('form dell\'account: campi nascosti con i valori salvati', function () {
 });
 
 check('form dell\'account: i campi nascosti non prendono una cella della griglia', function () {
-    $layout = AccountAddressForm::layout(AccountAddressForm::fields(ContactAddress::address()));
+    $layout = AccountAddressForm::layout(AccountAddressForm::fields(accountAddress()));
     $direct = array_filter($layout->components, static fn ($item) => $item instanceof InputHidden);
 
     return count($direct) === 3;
 });
 
 check('form dell\'account: da telefono l\'indirizzo da solo, poi civico e provincia, città e CAP, poi altro', function () {
-    $fields = AccountAddressForm::fields(ContactAddress::address());
+    $fields = AccountAddressForm::fields(accountAddress());
     $cells = [];
     foreach (AccountAddressForm::layout($fields)->components as $item) {
         if ($item instanceof InputHidden) { continue; }
@@ -97,44 +96,6 @@ check('form dell\'account: da telefono l\'indirizzo da solo, poi civico e provin
         && str_contains($cells['province'], 'col-4 col-p-3') && str_contains($cells['city'], 'col-5 col-p-3')
         && str_contains($cells['cap'], 'col-3 col-p-2')
         && str_contains(implode(' ', (array) AccountAddressForm::layout($fields)->getAttr('class')), 'gap-p-3');
-});
-
-check('salvataggio dal frontend: campi dell\'indirizzo più geo pulito', function () {
-    $values = AccountAddresses::values([
-        'street' => 'Via Roma',
-        'place_id' => 'ChIJabc_def-123',
-        'lat' => '45.1',
-        'lng' => '999',
-        'user_id' => '7',
-    ]);
-
-    return ($values['street'] ?? null) === 'Via Roma'
-        && $values['place_id'] === 'ChIJabc_def-123'
-        && $values['lat'] === null && $values['lng'] === null
-        && !array_key_exists('user_id', $values);
-});
-
-check('indirizzo di spedizione con coordinate: nessun errore su lat e lng', function () {
-    $values = AccountAddresses::values([
-        'name' => 'Mario', 'surname' => 'Rossi', 'country' => 'IT', 'province' => 'MI',
-        'city' => 'Milano', 'cap' => '20121', 'street' => 'Via Roma', 'number' => '12',
-        'place_id' => 'ChIJabc_def-123', 'lat' => '45.4642035', 'lng' => '9.189982',
-    ]);
-
-    return AccountAddressValidation::validate(ContactAddress::address(), $values) === [];
-});
-
-check('modello con coordinate decimali: valide', function () {
-    return ContactAddress::validate(['place_id' => 'ChIJabc_def-123', 'lat' => 45.4642035, 'lng' => 9.189982])->valid === true;
-});
-
-check('coordinate al salvataggio: precisione intatta, vuoti a null', function () {
-    $full = ContactAddress::prepare(['lat' => 45.4642035, 'lng' => '9.189982']);
-    $empty = ContactAddress::prepare(['lat' => null, 'lng' => '']);
-
-    return $full['lat'] === 45.4642035 && $full['lng'] === 9.189982
-        && $empty['lat'] === null && $empty['lng'] === null
-        && ContactAddress::validate(['lat' => null, 'lng' => null])->valid === true;
 });
 
 summary();

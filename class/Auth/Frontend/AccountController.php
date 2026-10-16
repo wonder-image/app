@@ -2,8 +2,6 @@
 
 namespace Wonder\Auth\Frontend;
 
-use Wonder\App\Models\Contacts\Contact;
-use Wonder\App\Models\Contacts\ContactAddress;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Http\Csrf;
 use Wonder\Http\Route;
@@ -20,11 +18,6 @@ class AccountController
             'index' => $this->overview(),
             'personal' => $this->personal(),
             'email.confirm' => $this->confirmEmail(),
-            'addresses' => $this->addresses(),
-            'addresses.create' => $this->addressEditor(null),
-            'addresses.edit' => $this->addressEditor((int) ($parameters['id'] ?? 0)),
-            'addresses.delete' => $this->deleteAddress((int) ($parameters['id'] ?? 0)),
-            'billing' => $this->billing(),
             default => $this->notFound(),
         };
     }
@@ -36,27 +29,22 @@ class AccountController
             $first !== '' ? $this->redirect($first) : $this->notFound();
         }
         $user = $this->user();
-        $contact = $this->contact((int) $user->id);
         $this->page(AccountPage::view('index'), 'overview', [
             'title' => (string) __t('account.overview.title'),
             'seo_url' => Route::url('account.index'),
-            'contact' => $contact,
-            'rows' => $this->panel->overviewRows(AccountOverview::rows($this->panel, $user, $contact), $user),
-            'errors' => $this->contactErrors($contact),
+            'rows' => $this->panel->overviewRows(AccountOverview::rows($this->panel, $user), $user),
+            'errors' => $this->panel->pageErrors([], $user, 'overview'),
         ]);
     }
 
     /**
-     * Dati personali: dati, email, password e, con la sezione `billing` e la scheda cliente, la fatturazione.
+     * Dati personali: dati, email, password e i modal delle estensioni (la fatturazione di customer-account).
      * Una riga con un modal ciascuna; ogni modal posta qui con il campo nascosto `form`.
      */
     protected function personal(): void
     {
         $user = $this->user();
         $userId = (int) $user->id;
-        $contact = $this->contact($userId);
-        $contactId = (int) ($contact['id'] ?? 0);
-        $billing = $this->panel->enabled('billing') && $contactId > 0;
         $hasPassword = trim((string) (\sqlSelect('user', ['id' => $userId], 1)->row['password'] ?? '')) !== '';
         $open = '';
         $errors = [];
@@ -70,8 +58,7 @@ class AccountController
                 'personal' => $this->savePersonal($userId),
                 'email' => $hasPassword ? $this->requestEmail($user) : $this->notFound(),
                 'password' => $this->changePassword($userId),
-                'billing' => $billing ? $this->saveBilling($contactId) : $this->notFound(),
-                default => $this->notFound(),
+                default => $this->saveExtensionForm($form, $user),
             };
             $open = $form;
             $values = array_diff_key($this->post(), array_flip([Csrf::FIELD, 'form', 'current_password', 'password']));
@@ -80,7 +67,10 @@ class AccountController
         $modals = [AccountModal::make(
             'account-personal', (string) __t('account.personal.modal_title'),
             // Solo i valori del proprio form: anche la fatturazione posta `name` e `surname`.
-            $this->panel->personalFields($this->personalFields($user, $contact, $open === 'personal' ? $values : []), $user),
+            $this->panel->personalFormFields(
+                $this->panel->personalFields($this->personalFields($user, $open === 'personal' ? $values : []), $user),
+                $user, $open === 'personal' ? $values : [],
+            ),
             Route::url('account.personal'), ['form' => 'personal'],
             $open === 'personal' ? $errors : [], $open === 'personal',
         )];
@@ -102,140 +92,15 @@ class AccountController
             Route::url('account.personal'), ['form' => 'password'],
             $open === 'password' ? $errors : [], $open === 'password',
         );
-        if ($billing) {
-            $modals[] = AccountModal::make(
-                'account-billing', (string) __t('account.billing.title'),
-                AccountAddressForm::fields(Contact::billing(), $open === 'billing' ? $values : $contact, $open === 'billing'),
-                Route::url('account.personal'), ['form' => 'billing'],
-                $open === 'billing' ? $errors : [], $open === 'billing',
-            );
-        }
+        $modals = $this->panel->personalModals($modals, $user, $open, $errors, $values);
 
-        // La fatturazione prima della cascata: le righe dei moduli restano in fondo.
-        $rows = [...AccountPersonal::rows($user, $contact, $hasPassword), ...($billing ? AccountBilling::rows($contact) : [])];
         $this->page(AccountPage::view('personal'), 'personal', [
             'title' => (string) __t('account.personal.label'),
             'seo_url' => Route::url('account.personal'),
-            'rows' => $this->panel->personalRows($rows, $user),
+            'rows' => $this->panel->personalRows(AccountPersonal::rows($user, $hasPassword), $user),
             'modals' => $modals,
-            'errors' => $this->contactErrors($contact),
+            'errors' => $this->panel->pageErrors([], $user, 'personal'),
         ]);
-    }
-
-    protected function addresses(): void
-    {
-        $this->requireSection('addresses');
-        $this->renderAddresses('', [], []);
-    }
-
-    /**
-     * Elenco a schede con i suoi modal: uno di modifica e uno di conferma per indirizzo, più quello nuovo.
-     * `$open` è `new` o l'id dell'indirizzo il cui modal si riapre con `$errors` e `$values`.
-     *
-     * @param list<string> $errors Già tradotti.
-     */
-    protected function renderAddresses(string $open, array $errors, array $values): void
-    {
-        $contact = $this->contact((int) $this->user()->id);
-        $contactId = (int) ($contact['id'] ?? 0);
-        $cards = [];
-        $modals = [];
-
-        foreach (AccountAddresses::all($contactId) as $row) {
-            $id = (int) $row['id'];
-            $card = AccountAddresses::card($row) + ['id' => $id];
-            $isOpen = $open === (string) $id;
-            $cards[] = $card;
-            $modals[] = AccountModal::make(
-                'account-address-'.$id, (string) __t('account.addresses.edit_title'),
-                AccountAddressForm::fields(ContactAddress::address(), $isOpen ? $values : $row, $isOpen),
-                Route::url('account.addresses.edit', ['id' => $id]), [],
-                $isOpen ? $errors : [], $isOpen,
-            );
-            $modals[] = AccountModal::confirm(
-                'account-address-delete-'.$id, (string) __t('account.addresses.delete_title'),
-                implode(', ', $card['lines']),
-                Route::url('account.addresses.delete', ['id' => $id]), (string) __t('account.addresses.delete'),
-            );
-        }
-        // Senza scheda cliente non si scrive: niente modal per aggiungere, solo l'errore.
-        if ($contactId > 0) {
-            $isNew = $open === 'new';
-            $modals[] = AccountModal::make(
-                'account-address-new', (string) __t('account.addresses.create_title'),
-                AccountAddressForm::fields(ContactAddress::address(), $isNew ? $values : [], $isNew),
-                Route::url('account.addresses.create'), [],
-                $isNew ? $errors : [], $isNew,
-            );
-        }
-
-        $this->page(AccountPage::view('addresses'), 'addresses', [
-            'title' => (string) __t('account.navigation.addresses'),
-            'seo_url' => Route::url('account.addresses'),
-            'cards' => $cards,
-            'can_add' => $contactId > 0,
-            'modals' => $modals,
-            'errors' => $this->contactErrors($contact),
-        ]);
-    }
-
-    /** Nuovo indirizzo (`$id` nullo) o modifica. Il POST con errori riapre l'elenco con il modal aperto; il GET è il ripiego senza JS. */
-    protected function addressEditor(?int $id): void
-    {
-        $this->requireSection('addresses');
-        $contactId = (int) ($this->contact((int) $this->user()->id)['id'] ?? 0);
-        $row = [];
-        if ($id !== null) {
-            $row = AccountAddresses::find($contactId, $id) ?? $this->notFound();
-        }
-
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-            $this->requireCsrf();
-            if ($contactId <= 0) {
-                $this->renderAddresses('', [], []);
-                return;
-            }
-            $post = $this->post();
-            $result = AccountAddresses::save($contactId, $post, $id);
-            if ($result->success) {
-                $this->flash((string) __t('account.saved'));
-                $this->redirect(Route::url('account.addresses'));
-            }
-            $this->renderAddresses($id === null ? 'new' : (string) $id, $result->messages, $post);
-            return;
-        }
-        if ($contactId <= 0) {
-            $this->renderAddresses('', [], []);
-            return;
-        }
-
-        $url = $id === null ? Route::url('account.addresses.create') : Route::url('account.addresses.edit', ['id' => $id]);
-        $this->page(AccountPage::view('address-form'), 'addresses', [
-            'title' => (string) __t($id === null ? 'account.addresses.create_title' : 'account.addresses.edit_title'),
-            'seo_url' => $url,
-            'fields' => AccountAddressForm::fields(ContactAddress::address(), $row),
-            'action' => $url,
-            'back_url' => Route::url('account.addresses'),
-        ]);
-    }
-
-    /** Elimina un indirizzo della scheda del cliente: prima il CSRF, poi la proprietà (404 se non è suo). */
-    protected function deleteAddress(int $id): void
-    {
-        $this->requireSection('addresses');
-        $this->requireCsrf();
-        if (!AccountAddresses::delete((int) ($this->contact((int) $this->user()->id)['id'] ?? 0), $id)) {
-            $this->notFound();
-        }
-        $this->flash((string) __t('account.addresses.deleted'));
-        $this->redirect(Route::url('account.addresses'));
-    }
-
-    /** La fatturazione sta in «Dati personali»: il suo vecchio indirizzo porta lì. */
-    protected function billing(): never
-    {
-        $this->requireSection('billing');
-        $this->redirect(Route::url('account.personal'));
     }
 
     protected function requireSection(string $section): void
@@ -295,15 +160,15 @@ class AccountController
         return $this->translate($result->errors, $result->messages);
     }
 
-    /** @return list<string> Messaggi già tradotti; con il salvataggio riuscito esce con un redirect. */
-    protected function saveBilling(int $contactId): array
+    /** @return list<string> Il form di un'estensione: errori già tradotti; salvato, esce con un redirect; di nessuno, 404. */
+    protected function saveExtensionForm(string $form, object $user): array
     {
-        $result = AccountBilling::save($contactId, $this->post());
-        if ($result->success) {
+        $errors = $this->panel->savePersonalForm($form, $user, $this->post()) ?? $this->notFound();
+        if ($errors === []) {
             $this->flash((string) __t('account.saved'));
             $this->redirect(Route::url('account.personal'));
         }
-        return $result->messages;
+        return $errors;
     }
 
     /** @return list<string> */
@@ -347,10 +212,10 @@ class AccountController
     }
 
     /** @return array<string, \Wonder\App\ResourceSchema\Input> */
-    protected function personalFields(object $user, array $contact, array $values): array
+    protected function personalFields(object $user, array $values): array
     {
-        $phone = (string) ($values['phone'] ?? $contact['phone'] ?? $user->phone ?? '');
-        $prefix = (string) ($values['phone_prefix'] ?? $contact['phone_prefix'] ?? '+39');
+        $phone = (string) ($values['phone'] ?? $user->phone ?? '');
+        $prefix = (string) ($values['phone_prefix'] ?? '+39');
         // Il telefono dell'utente è canonico (`+39333…`): nel campo va solo il numero, dopo il prefisso.
         if (str_starts_with(trim($phone), '+')) {
             $digits = preg_replace('/\D+/', '', $phone);
@@ -364,29 +229,12 @@ class AccountController
         return [
             'name' => FormField::key('name')->text()->label((string) __t('auth.fields.name'))->required()->value((string) ($values['name'] ?? $user->name ?? '')),
             'surname' => FormField::key('surname')->text()->label((string) __t('auth.fields.surname'))->required()->value((string) ($values['surname'] ?? $user->surname ?? '')),
-            'birth_date' => FormField::key('birth_date')->textDate()->label((string) __t('account.personal.birth_date'))->value((string) ($values['birth_date'] ?? $contact['birth_date'] ?? '')),
             'phone_prefix' => FormField::key('phone_prefix')->phonePrefix()->label((string) __t('auth.fields.prefix'))->value($prefix),
             'phone' => ($required ? FormField::key('phone')->phone()->required() : FormField::key('phone')->phone())->label((string) __t('auth.fields.mobile'))->value($phone),
         ];
     }
 
-    /** La scheda cliente collegata a un altro utente non si può usare: lo si dice nella pagina. */
-    protected function contactErrors(array $contact): array
-    {
-        return $contact === [] ? [(string) __t('account.errors.contact')] : [];
-    }
-
     protected function user(): object { return \infoUser((int) ($_SESSION['user_id'] ?? 0), 'id'); }
-
-    protected function contact(int $userId): array
-    {
-        $contact = Contact::find(['user_id' => $userId], 1);
-        if (!is_array($contact) || empty($contact['id'])) {
-            ContactAccount::link($userId);
-            $contact = Contact::find(['user_id' => $userId], 1);
-        }
-        return is_array($contact) && !empty($contact['id']) ? $contact : [];
-    }
 
     protected function page(string $view, string $active, array $data = []): void
     {

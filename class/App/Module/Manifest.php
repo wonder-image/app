@@ -274,6 +274,18 @@ final class Manifest
     }
 
     /**
+     * Migrazioni strutturali dichiarate dal modulo (`database.migrations`).
+     *
+     * @return list<string>
+     */
+    public function migrationClasses(): array
+    {
+        $classes = $this->get('database.migrations', []);
+
+        return is_array($classes) ? array_values(array_map('trim', array_filter($classes, 'is_string'))) : [];
+    }
+
+    /**
      * Comandi `forge` dichiarati dal modulo (`console.commands`).
      *
      * @return list<string>

@@ -40,6 +40,14 @@ final class ProvaExtension extends BaseAccountExtension
     public function head(): string { return '<link rel="stylesheet" href="/prova.css">'; }
 }
 
+final class ProvaPagina extends BaseAccountExtension
+{
+    public function savePersonalForm(string $form, object $user, array $input): ?array { return $form === 'prova' ? ['errore form'] : null; }
+    public function pageErrors(array $errors, object $user, string $page): array { return [...$errors, "errore {$page}"]; }
+    public function personalModals(array $modals, object $user, string $open, array $errors, array $values): array { $modals[] = 'modal'; return $modals; }
+    public function personalFormFields(array $fields, object $user, array $values): array { return $fields + ['prova' => $values['prova'] ?? '']; }
+}
+
 final class SenzaIndirizzi extends AccountPanel
 {
     public function sections(): array { return ['overview', 'personal', 'billing']; }
@@ -49,7 +57,8 @@ $fresh = static function (): void { Route::reset(); AccountRoutes::reset(); };
 $byName = static function (): array {
     $out = [];
     foreach (Route::all() as $route) {
-        if (($route['name'] ?? '') !== '') { $out[$route['name']] = $route; }
+        // I POST senza nome prendono solo il prefisso del gruppo (`account.`…): non contano.
+        if (($route['name'] ?? '') !== '' && !str_ends_with($route['name'], '.')) { $out[$route['name']] = $route; }
     }
     return $out;
 };
@@ -64,11 +73,6 @@ $expected = [
     'account.index' => '/account/',
     'account.personal' => '/account/dati-personali/',
     'account.email.confirm' => '/account/email/conferma/',
-    'account.addresses' => '/account/indirizzi/',
-    'account.addresses.create' => '/account/indirizzi/nuovo/',
-    'account.addresses.edit' => '/account/indirizzi/{id}/',
-    'account.addresses.delete' => '/account/indirizzi/{id}/elimina/',
-    'account.billing' => '/account/fatturazione/',
 ];
 foreach ($expected as $name => $path) {
     $check(($routes[$name]['path'] ?? null) === $path, "{$name} deve stare su {$path}");
@@ -82,12 +86,10 @@ foreach ($expected as $name => $path) {
 $confirmPost = array_values(array_filter(Route::all(), static fn ($r) => strtoupper((string) $r['method']) === 'POST' && $r['path'] === '/account/email/conferma/'));
 $check(count($confirmPost) === 1, 'manca il POST di /account/email/conferma/');
 $check(!($confirmPost[0]['private'] ?? false), 'il POST di /account/email/conferma/ deve essere pubblico (funziona da un altro browser)');
-foreach (['/account/dati-personali/', '/account/indirizzi/nuovo/', '/account/indirizzi/{id}/', '/account/indirizzi/{id}/elimina/'] as $path) {
-    $check(in_array($path, $posts(), true), "manca il POST di {$path}");
-}
-// La fatturazione si salva da «Dati personali»: il vecchio indirizzo resta solo in GET, per il redirect.
-$check(!in_array('/account/fatturazione/', $posts(), true), '/account/fatturazione/ non deve avere il POST');
-$check(!array_key_exists('billing', (new AccountPanel())->navigation($user)), 'la fatturazione non deve avere una voce di menu');
+$check(in_array('/account/dati-personali/', $posts(), true), 'manca il POST di /account/dati-personali/');
+// Indirizzi e fatturazione sono di customer-account: senza il modulo, né route né voci, anche con le sezioni accese.
+$check(array_diff_key($routes, $expected) === [], 'route in più senza customer-account: '.implode(',', array_keys(array_diff_key($routes, $expected))));
+$check(array_keys((new AccountPanel())->navigation($user)) === ['overview', 'personal'], 'menu senza customer-account sbagliato');
 
 // Chiamate ripetute: innocue con la stessa classe, errore con un'altra.
 $count = count(Route::all());
@@ -126,7 +128,7 @@ foreach (['prima', 'dopo'] as $when) {
 
 // Menu: ordine, voce attiva, aggiunte e tolte dell'estensione, niente voci vuote.
 $items = AccountRoutes::panel()->navigation($user, 'personal');
-$check(array_keys($items) === ['overview', 'personal', 'addresses', 'prova'], 'ordine del menu sbagliato: '.implode(',', array_keys($items)));
+$check(array_keys($items) === ['overview', 'personal', 'prova'], 'ordine del menu sbagliato: '.implode(',', array_keys($items)));
 $check(($items['personal']['active'] ?? false) === true && ($items['overview']['active'] ?? true) === false, 'voce attiva sbagliata');
 $check(($items['overview']['icon'] ?? '') === 'bi bi-house' && ($items['prova']['href'] ?? '') !== '', 'icone o href mancanti');
 
@@ -136,6 +138,14 @@ $check(count($panel->personalRows([], $user)) === 1, 'personalRows non passa dal
 $check($panel->validatePersonal([], $user) === ['errore prova'], 'validatePersonal non raccoglie i messaggi');
 $check($panel->personalUserValues([], $user) === ['prova' => 1], 'personalUserValues non unisce i valori');
 $check(str_contains($panel->head(), '/prova.css'), 'head non concatena');
+// Hook delle pagine (AccountPageExtension): le estensioni che non li ridefiniscono non cambiano niente.
+$check($panel->savePersonalForm('prova', $user, []) === null && $panel->pageErrors([], $user, 'overview') === [], 'i no-op di BaseAccountExtension cambiano le pagine');
+AccountRoutes::extend(new ProvaPagina());
+$check($panel->savePersonalForm('prova', $user, []) === ['errore form'], 'savePersonalForm non arriva all\'estensione');
+$check($panel->savePersonalForm('altro', $user, []) === null, 'un form di nessuno deve restare null (404)');
+$check($panel->pageErrors(['a'], $user, 'personal') === ['a', 'errore personal'], 'pageErrors non passa dalle estensioni');
+$check($panel->personalModals([], $user, '', [], []) === ['modal'], 'personalModals non passa dalle estensioni');
+$check($panel->personalFormFields([], $user, ['prova' => 'x']) === ['prova' => 'x'], 'personalFormFields non riceve i valori');
 
 // Sezione spenta: né route né voce.
 $fresh();

@@ -1,9 +1,14 @@
 # Contatti backend
 
-Il core espone `App/Resources/Contacts/ContactResource` e
-`ContactAddressResource` senza richiedere ecommerce o gestionale. Le URL sono
-`/backend/contacts/` e `/backend/contact-addresses/`; i nomi delle route sono
-`backend.resource.contacts.*` e `backend.resource.contact-addresses.*`.
+La rubrica clienti non è nel core: la porta il modulo
+`wonder-image/customer-account` (vedi il suo README).
+Un sito con il solo `wonder-image/app` non ha le tabelle `contacts` e
+`contact_addresses`, né le loro Resource o voci di menu. Con il modulo abilitato
+in `custom/config/modules.php` arrivano
+`Wonder\Plugin\CustomerAccount\Resources\ContactResource` e
+`ContactAddressResource`. Le URL sono `/backend/contacts/` e
+`/backend/contact-addresses/`, le route `backend.resource.contacts.*` e
+`backend.resource.contact-addresses.*`.
 
 ## Responsabilità
 
@@ -26,9 +31,9 @@ includono `_contact_csrf` e i mutatori lo verificano prima della scrittura.
 Gli indirizzi devono appartenere a un contatto esistente: non possono essere
 trasferiti modificando `contact_id`. API ed eliminazione sono disabilitate.
 
-Il menu Contatti generico è visibile nei progetti app-only; una Resource più
-completa di modulo/sito sulla stessa tabella nasconde il menu generico, senza
-togliere le sue URL. `Resource::isTableFallback()` marca questi pannelli come
+Il menu Contatti del modulo è visibile quando nessun altro modulo gestisce la
+tabella; una Resource più completa di modulo/sito sulla stessa tabella (il
+«Clienti» del gestionale) nasconde il menu generico, senza togliere le sue URL. `Resource::isTableFallback()` marca questi pannelli come
 fallback: `ResourceRegistry::resolveByTable()` preferisce le Resource non
 fallback e conserva la precedenza precedente tra queste. Il gestionale
 continua quindi a ricevere i link dai consensi e dagli altri lookup per tabella.
@@ -50,11 +55,12 @@ esplicito o un valore vuoto inviato con POST non viene sostituito.
 ## Verifica
 
 Dal sito: `php forge update --local` e `php forge start --driver=herd`.
-Dal modulo ecommerce: `php tests/integrazione/ContactResourcesTest.php` e
-`node tests/integrazione/ContactResourcesBrowserTest.cjs`. I test PHP usano
-transazioni annullate; i test browser renderizzano fixture CLI e l'API locale,
-senza bypassare il login web. Verificare anche il percorso autenticato reale
-con un amministratore di test quando disponibile.
+Dal modulo customer-account: `WI_APP=<percorso di app> php tests/run.php`.
+Dai moduli gestionale ed ecommerce, che si appoggiano alle stesse tabelle:
+`php tests/ContactResourcesTest.php` (gestionale) e
+`php tests/integrazione/ContactResourcesTest.php` (ecommerce). I test PHP usano
+transazioni annullate. Verificare anche il percorso autenticato
+reale con un amministratore di test quando disponibile.
 
 Dalla lib: `node test/backend-country-state.test.cjs`, `npm test` e
 `npm run build`. Distribuire il bundle backend aggiornato insieme al core.

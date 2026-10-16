@@ -33,7 +33,7 @@ final class AuthValidator
         $prefix = preg_replace('/[^0-9+]/', '', (string) ($input['phone_prefix'] ?? '')) ?? '';
         $phone = preg_replace('/\D+/', '', (string) ($input['phone'] ?? '')) ?? '';
 
-        if (($phoneRequired || $phone !== '' || $prefix !== '') && ($prefix === '' || $phone === '' || strlen($phone) < 6)) {
+        if (($phoneRequired || $phone !== '') && ($prefix === '' || $phone === '' || strlen($phone) < 6)) {
             $errors['phone'] = 'required';
         }
 

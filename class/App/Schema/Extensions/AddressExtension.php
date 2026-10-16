@@ -417,6 +417,18 @@ final class AddressExtension
         return $schema;
     }
 
+    /** Il prefisso dei campi, senza `_` finale; vuoto se non c'è. */
+    public function prefix(): string
+    {
+        return $this->prefix;
+    }
+
+    /** Il nome del campo `$name` con il prefisso: `street` diventa `shipping_street`. */
+    public function fieldKey(string $name): string
+    {
+        return $this->key($name);
+    }
+
     public function keys(): array
     {
         return array_keys($this->labels());

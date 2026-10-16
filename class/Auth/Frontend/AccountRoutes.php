@@ -34,25 +34,12 @@ final class AccountRoutes
                 Route::post('/email/conferma/', $handler, ['account_action' => 'email.confirm']);
             });
 
+        // Indirizzi e fatturazione sono di customer-account (`AccountRoutes::extend()`).
         self::group(static function () use ($panel, $handler): void {
             Route::get('/', $handler, ['account_action' => 'index'])->name('index');
-            $page = static function (string $path, string $action) use ($handler): void {
-                Route::get($path, $handler, ['account_action' => $action])->name($action);
-                Route::post($path, $handler, ['account_action' => $action]);
-            };
             if ($panel->enabled('personal')) {
-                $page('/dati-personali/', 'personal');
-            }
-            if ($panel->enabled('addresses')) {
-                Route::get('/indirizzi/', $handler, ['account_action' => 'addresses'])->name('addresses');
-                $page('/indirizzi/nuovo/', 'addresses.create');
-                Route::get('/indirizzi/{id}/', $handler, ['account_action' => 'addresses.edit'])->name('addresses.edit')->where('id', '[0-9]+');
-                Route::post('/indirizzi/{id}/', $handler, ['account_action' => 'addresses.edit'])->where('id', '[0-9]+');
-                Route::post('/indirizzi/{id}/elimina/', $handler, ['account_action' => 'addresses.delete'])->name('addresses.delete')->where('id', '[0-9]+');
-            }
-            // La fatturazione è in «Dati personali»: resta il vecchio indirizzo, che porta lì.
-            if ($panel->enabled('billing')) {
-                Route::get('/fatturazione/', $handler, ['account_action' => 'billing'])->name('billing');
+                Route::get('/dati-personali/', $handler, ['account_action' => 'personal'])->name('personal');
+                Route::post('/dati-personali/', $handler, ['account_action' => 'personal']);
             }
         });
 

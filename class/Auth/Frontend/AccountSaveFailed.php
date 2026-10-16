@@ -2,5 +2,5 @@
 
 namespace Wonder\Auth\Frontend;
 
-/** Interna ai servizi del pannello: annulla la transazione con la parte che non si è salvata ('user' o 'contact'). */
+/** Annulla una transazione del pannello con la parte che non si è salvata: 'user', o 'contact' da un hook di estensione. */
 final class AccountSaveFailed extends \RuntimeException {}

@@ -167,6 +167,7 @@ la cornice attorno alla tabella. Si costruisce con
 | `downloadColumns(array $columns)` | colonne incluse nell'export |
 | `downloadFileName(string $filename)` | nome file export |
 | `downloadUsing(callable $handler)` | export con un gestore proprio: riceve il formato e invia il file |
+| `downloadAsText($enabled = true)` | ogni cella come testo: Excel non converte telefoni, CAP e codici in numeri, il CSV mette un apice davanti alle celle che iniziano con `=`, `+`, `-`, `@` |
 
 ### Default
 
@@ -189,6 +190,10 @@ public static function tableLayoutSchema(): TableLayoutSchema
 
 L'export della cornice si appoggia alla route `export` generata dalla Resource
 (gated sul permesso `list`): vedi [Route e API](../risorse/route-e-api.md).
+
+Per dati scritti da chi visita il sito (contatti, moduli pubblici) usare
+`downloadAsText()`: una cella `=HYPERLINK(...)` resta una scritta anche
+aperta in un foglio di calcolo (`Wonder\Backend\Support\SpreadsheetText`).
 
 ### Azioni custom nell'header
 

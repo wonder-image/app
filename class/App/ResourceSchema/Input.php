@@ -421,9 +421,15 @@ abstract class Input
         return $this;
     }
 
+    /** `required(false)` toglie l'attributo messo prima (per esempio da uno schema condiviso). */
     public function required(bool $required = true): static
     {
-        return $required ? $this->attribute('required') : $this;
+        if ($required) {
+            return $this->attribute('required');
+        }
+        $this->schema['attribute'] = trim((string) preg_replace('/(?<=^|\s)required(?=\s|$)/', '', (string) ($this->schema['attribute'] ?? '')));
+
+        return $this;
     }
 
     public function disabled(bool $disabled = true): static

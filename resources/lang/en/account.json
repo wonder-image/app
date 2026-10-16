@@ -4,10 +4,7 @@
         "description": "Manage your personal details, addresses and payment methods."
     },
     "overview": {
-        "title": "Your account",
-        "addresses_count": "{{count}} saved",
-        "addresses_none": "No saved addresses",
-        "address_first": "First address"
+        "title": "Your account"
     },
     "breadcrumb_home": "Home",
     "saved": "Your changes have been saved.",
@@ -31,12 +28,8 @@
         "title": "Edit personal details",
         "section": "Personal information",
         "name": "Name",
-        "birth_date": "Date of birth",
         "phone": "Mobile",
-        "modal_title": "Edit details",
-        "errors": {
-            "birth_date": "Date of birth: invalid value."
-        }
+        "modal_title": "Edit details"
     },
     "email": {
         "label": "Email",
@@ -63,7 +56,6 @@
         "label": "Account navigation",
         "overview": "Overview",
         "personal": "Personal details",
-        "addresses": "Addresses",
         "billing": "Billing",
         "payment_methods": "Payment methods",
         "password": "Password",
@@ -87,25 +79,6 @@
         "summary": "Managed securely through Stripe",
         "pending": "The Stripe portal entry point is ready, but it remains disabled until the management module exposes the Stripe customer identifier.",
         "ready": "You will be redirected to Stripe's secure portal to manage payment methods."
-    },
-    "billing": {
-        "label": "Billing address",
-        "title": "Edit billing address",
-        "intro": "These details will be used when a purchase requires billing.",
-        "holder": "Holder",
-        "tax": "Tax code / VAT number",
-        "address": "Address"
-    },
-    "addresses": {
-        "add": "Add address",
-        "add_first": "Add an address",
-        "empty": "You have no saved addresses",
-        "create_title": "New address",
-        "edit_title": "Edit address",
-        "delete": "Delete",
-        "delete_title": "Delete this address?",
-        "deleted": "The address has been deleted.",
-        "back": "Back to addresses"
     },
     "pagination": {
         "summary": "Showing {{from}} to {{to}} of {{total}}",

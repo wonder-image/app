@@ -18,6 +18,8 @@ class AuthProfile
     public function home(): string { return '/account/'; }
     public function documents(): array { return ['privacy_policy']; }
     public function phoneRequired(): bool { return false; }
+    /** The completion form shows the phone (optional unless phoneRequired()). */
+    public function phoneEnabled(): bool { return $this->phoneRequired(); }
     public function completionTtl(): int { return 86400; }
     public function resetTtl(): int { return 1800; }
     public function googleEnabled(): bool { return true; }
@@ -83,9 +85,9 @@ class AuthProfile
             }
         }
         if ($surface === 'signup-completion') {
-            if ($this->phoneRequired()) {
-                $fields['phone_prefix'] = FormField::key('phone_prefix')->phonePrefix()->label((string) __t('auth.fields.prefix'))->required()->value($values['phone_prefix'] ?? '+39');
-                $fields['phone'] = FormField::key('phone')->phone()->label((string) __t('auth.fields.mobile'))->required()->value($values['phone'] ?? '');
+            if ($this->phoneEnabled()) {
+                $fields['phone_prefix'] = FormField::key('phone_prefix')->phonePrefix()->label((string) __t('auth.fields.prefix'))->required($this->phoneRequired())->value($values['phone_prefix'] ?? '+39');
+                $fields['phone'] = FormField::key('phone')->phone()->label((string) __t('auth.fields.mobile'))->required($this->phoneRequired())->value($values['phone'] ?? '');
             }
             $fields += ['password' => $password, 'password_confirmation' => $confirmation];
         }
@@ -111,8 +113,8 @@ class AuthProfile
             ? ['name', 'surname', 'email', ...array_map(static fn ($document) => 'accept_'.$document, $this->documents()), ...array_map(static fn ($document) => $document.'_id', $this->documents())]
             : ['password', 'password_confirmation'];
         $values = array_intersect_key($input, array_flip($keys));
-        if ($surface === 'signup-completion' && $this->phoneRequired()) {
-            $values['phone'] = AuthValidator::canonicalPhone($input);
+        if ($surface === 'signup-completion' && $this->phoneEnabled() && ($phone = AuthValidator::canonicalPhone($input)) !== '') {
+            $values['phone'] = $phone;
         }
         return $values;
     }
@@ -120,6 +122,12 @@ class AuthProfile
     public function afterUserSaved(int $userId, string $surface, array $input): void {}
     public function validateFederated(\Wonder\Auth\Federated\FederatedIdentityPayload $identity, array $input, bool $newAccount): array { return []; }
     public function validationMessages(array $errors): array { return AuthValidationAlert::messageKeys($errors); }
+
+    /** The translated page alert lines; override to add messages that are already translated. */
+    public function validationTexts(array $errors): array
+    {
+        return array_map(static fn ($key) => (string) __t($key), $this->validationMessages($errors));
+    }
 
     public function layout(array $data = []): void
     {
