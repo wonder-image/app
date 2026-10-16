@@ -271,13 +271,23 @@
         {
 
             if (empty(self::$appToken)) {
-                $row = self::safeRow('api_users', [ 'id' => 1 ]);
-                self::$appToken = $row['token'] ?? '';
+                self::$appToken = (string) (self::systemApiUser()['token'] ?? '');
 
             }
 
 
             return self::$appToken;
+
+        }
+
+        /**
+         * Riga `api_users` di `@system` (id 1). Solo lato server: non va mai
+         * stampata in pagina, dove si usa `Wonder\Api\Token\ApiTokens::pageToken()`.
+         */
+        public static function systemApiUser(): array
+        {
+
+            return self::safeRow('api_users', [ 'id' => 1 ]);
 
         }
 

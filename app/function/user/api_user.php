@@ -19,6 +19,9 @@
         }
         $providedToken = trim((string) ($POST['token'] ?? ''));
         $skipTokenMail = !empty($POST['_skip_api_token_mail']);
+        // Durata del token nuovo in secondi: assente = API_TOKEN_TTL, 0 = senza scadenza.
+        $tokenTtl = isset($POST['_api_token_ttl']) && is_numeric($POST['_api_token_ttl']) ? max(0, (int) $POST['_api_token_ttl']) : null;
+        unset($VALUES['_api_token_ttl']);
 
         // 1. Risolvi il token: provided > nuovo JWT > riuso esistente.
         $tokenIsNew = false;
@@ -29,15 +32,7 @@
 
         } else if (!is_object($currentApiUser) || !($currentApiUser->exists ?? false) || empty($currentApiUser->token)) {
 
-            $VALUES['token'] = Firebase\JWT\JWT::encode(
-                [
-                    'sub' => $USER_ID, # user_id
-                    'iat' => time(),
-                    'jti' => uniqid()
-                ],
-                \Wonder\App\Credentials::appKey(),
-                'HS256'
-            );
+            $VALUES['token'] = \Wonder\Api\Token\ApiTokens::issue($USER_ID, $tokenTtl);
 
             $tokenIsNew = true;
 
@@ -102,6 +97,31 @@
         $RETURN->user = infoUser($USER_ID);
 
         return $RETURN;
+
+    }
+
+    /**
+     * Rigenera il token API di un utente: il vecchio smette subito di valere
+     * (`Endpoint` confronta il bearer con `api_users.token`). Restituisce il
+     * nuovo token, o stringa vuota se l'utente non ha una riga `api_users`.
+     * Per `@system` rigenera anche i token di pagina (`tkh` cambia).
+     *
+     * @param int|null $ttl secondi; `null` = API_TOKEN_TTL, `0` = senza scadenza
+     */
+    function regenerateApiToken($USER_ID, ?int $ttl = null): string
+    {
+
+        $current = infoApiUser($USER_ID);
+
+        if (!($current->exists ?? false)) {
+            return '';
+        }
+
+        $token = \Wonder\Api\Token\ApiTokens::issue($USER_ID, $ttl);
+
+        sqlModify('api_users', [ 'token' => $token ], 'user_id', $USER_ID);
+
+        return $token;
 
     }
 

@@ -3,6 +3,7 @@
     namespace Wonder\Api;
 
     use Wonder\App\Table;
+    use Wonder\Api\Token\{ ApiTokens, BearerVerifier, VerifiedBearer };
     use Wonder\Api\EndpointException;
     use Wonder\Localization\LanguageContext;
     use Wonder\Http\UrlParser;
@@ -16,6 +17,8 @@
 
         // Token
         private $token, $tokenId;
+        private string $tokenKind = '';
+        private bool $allowPageToken = true;
 
         // Request
         private $ip, $domain, $lang, $requestMethod, $contentType;
@@ -24,7 +27,11 @@
         // User
         private $user, $userId, $userAuth;
 
-        public function __construct($endpoint, $method = "POST", $auth = null) {
+        /**
+         * @param bool $allowPageToken false per gli endpoint solo server
+         *                             (deploy, task): rifiutano il token di pagina.
+         */
+        public function __construct($endpoint, $method = "POST", $auth = null, bool $allowPageToken = true) {
 
             $LANG = LanguageContext::setLangFromHeader();
 
@@ -33,6 +40,7 @@
             $this->endpoint = rtrim($endpoint, '/');
             $this->requestMethod = $method;
             $this->auth = $this->resolveAuth($auth);
+            $this->allowPageToken = $allowPageToken;
 
             $this->ip = UrlParser::requestIp($_SERVER);
             $this->domain = UrlParser::normalizeDomain(UrlParser::requestHost($_SERVER));
@@ -41,7 +49,6 @@
             $this->checkEndpoint();
             $this->checkToken();
             $this->verifyToken();
-            $this->authUser();
             $this->checkRequestMethod();
             $this->checkContentType();
             $this->getParameters();
@@ -165,110 +172,29 @@
 
         }
 
-        private function verifyToken() {
+        private function verifyToken(): void
+        {
 
-            $decoded = \Firebase\JWT\JWT::decode(
-                $this->token, 
-                new \Firebase\JWT\Key(\Wonder\App\Credentials::appKey(), 'HS256')
+            $verified = BearerVerifier::make()->verify(
+                (string) $this->token,
+                $this->auth,
+                $this->ip,
+                $this->domain,
+                $this->allowPageToken
             );
 
-            $USER = infoUser($decoded->sub);
-
-            if (!$USER->exists) {
-
-                throw new EndpointException('Utente non valido', 401); 
-
-            } else if ($USER->active != 'true') {
-
-                throw new EndpointException('Utente non attivo', 401); 
-
-            }
-
-            $this->user = $USER;
-            $this->userId = $decoded->sub;
-            
-        }
-
-        private function authUser() 
-        {
-
-            $userAuthority = (array) $this->user->authority;
-            $matchedAuth = null;
-
-            foreach ($this->auth as $auth) {
-                if (in_array($auth, $userAuthority, true)) {
-                    $matchedAuth = $auth;
-                    break;
-                }
-            }
-
-            if ($matchedAuth === null) {
-                throw new EndpointException("Utente non autorizzato per questo endpoint!", 403); 
-            }
-            
-            $this->userAuth = $matchedAuth;
-            $token = $this->user->{$this->userAuth} ?? null;
-
-            if (!is_object($token) || !isset($token->exists) || !$token->exists) {
-
-                throw new EndpointException('Token non valido', 401); 
-
-            } 
-            
-            if ($token->active != 'true') {
-
-                throw new EndpointException('Token non attivo', 401); 
-
-            }
-            
-            $allowedIps = $this->normalizeArray($token->allowed_ips ?? []);
-
-            if (!empty($allowedIps) && !in_array($this->ip, $allowedIps, true)) {
-
-                throw new EndpointException('Token non valido per questo IP', 401); 
-
-            }
-            
-            $allowedDomains = $this->normalizeArray($token->allowed_domains ?? []);
-
-            if (!empty($allowedDomains) && !UrlParser::matchesAnyDomain($this->domain, $allowedDomains)) {
-
-                throw new EndpointException('Token non valido per questo dominio', 401); 
-
-            }
-
-            $this->tokenId = $token->id ?? null;
+            $this->user = $verified->user;
+            $this->userId = $verified->userId;
+            $this->userAuth = $verified->authority;
+            $this->tokenId = $verified->tokenId;
+            $this->tokenKind = $verified->kind;
 
         }
 
-        private function normalizeArray($values): array
+        /** true se la richiesta usa il token di pagina stampato in `API_TOKEN`. */
+        public function isPageToken(): bool
         {
-
-            if (is_string($values)) {
-                $decoded = json_decode($values, true);
-                $values = (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : [ $values ];
-            }
-
-            if (!is_array($values)) {
-                return [];
-            }
-
-            $return = [];
-
-            foreach ($values as $value) {
-                if (!is_string($value) && !is_numeric($value)) {
-                    continue;
-                }
-
-                $value = trim((string) $value);
-
-                if ($value !== '') {
-                    $return[] = $value;
-                }
-            }
-
-            return array_values(array_unique($return));
-
+            return $this->tokenKind === VerifiedBearer::KIND_PAGE;
         }
 
         private function getParameters()
@@ -371,24 +297,7 @@
 
             $success = $status >= 200 && $status < 300;
 
-            $VALUES = Table::key('api_activity')
-                            ->prepare([
-                                "user_id" => $this->userId,
-                                "token_id" => $this->tokenId,
-                                "token" => $this->token,
-                                "ip" => $this->ip,
-                                "domain" => $this->domain,
-                                "version" => $this->version,
-                                "endpoint" => $this->endpoint,
-                                "request_method" => $this->requestMethod,
-                                "content_type" => $this->contentType,
-                                "parameters" => json_encode(array_merge($this->data, $this->logFiles()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                                "data" => json_encode($this->data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                                "files" => json_encode($this->logFiles(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                                "success" => $success,
-                                "status" => $status,
-                                "response" => json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                            ]);
+            $VALUES = Table::key('api_activity')->prepare($this->activityValues($response, $status));
 
             sqlInsert('api_activity', $VALUES);
             
@@ -398,6 +307,36 @@
                 "success" => $success,
                 "status" => $status,
                 "response" => $response
+            ];
+
+        }
+
+        /**
+         * Riga di `api_activity` prima di `prepare()`. Il bearer non viene mai
+         * salvato: `token` contiene solo l'impronta `sha256:<16 hex>`.
+         */
+        protected function activityValues(array|string $response, int $status): array
+        {
+
+            $data = is_array($this->data) ? $this->data : [];
+            $files = $this->logFiles();
+
+            return [
+                "user_id" => $this->userId,
+                "token_id" => $this->tokenId,
+                "token" => ApiTokens::fingerprint($this->token),
+                "ip" => $this->ip,
+                "domain" => $this->domain,
+                "version" => $this->version,
+                "endpoint" => $this->endpoint,
+                "request_method" => $this->requestMethod,
+                "content_type" => $this->contentType,
+                "parameters" => json_encode(array_merge($data, $files), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                "data" => json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                "files" => json_encode($files, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                "success" => $status >= 200 && $status < 300,
+                "status" => $status,
+                "response" => json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ];
 
         }

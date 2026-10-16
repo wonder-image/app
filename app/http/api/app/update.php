@@ -127,4 +127,4 @@ Handler::run('/api/app/update/', 'POST', [ 'api_internal_user', 'api_public_acce
         $RESULT->success ? 200 : 500
     );
 
-});
+}, allowPageToken: false);
