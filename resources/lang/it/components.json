@@ -1,7 +1,7 @@
 {
     "code": { "copy": "Copia", "copied": "Copiato" },
     "preview": { "open": "Apri in una nuova scheda", "scheme": "Passa da chiaro a scuro", "unavailable": "Non disponibile" },
-    "media": { "load_content": "Carica contenuto" },
+    "media": { "load_content": "Carica contenuto", "image_missing": "Immagine non impostata" },
     "reviews": { "label": "Recensioni Google", "notice": "Le recensioni più recenti da Google.", "count": "{{count}} recensioni", "stars": "{{rating}} su 5", "decimal": ",", "translated": "Tradotta da Google: mostra l'originale", "open": "Vedi su Google Maps" },
     "forms" : {
         "clear_search": "Cancella ricerca",

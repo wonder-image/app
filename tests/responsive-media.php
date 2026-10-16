@@ -46,5 +46,24 @@ foreach (['wonder', 'bootstrap'] as $theme) {
     check(str_contains($html, '50vw&quot; onload=&quot;bad'), 'Sizes attribute escaped');
     check(!str_contains($html, ' onload="bad'), 'No attribute injection');
     check(!str_contains(Swiper::make()->slides(['<p>Content</p>'])->priority()->render($theme), 'fetchpriority'), 'Content slides unaffected');
+
+    // Etichetta delle immagini mancanti (app#92): nome originale, mai la variante.
+    $html = Image::src('https://example.test/uploads/hero%20home.jpg')->sizes([240, 480])->size(480)->hasWebP()->render($theme);
+    check(substr_count($html, 'data-wi-image-name="hero home.jpg"') === 1, 'Original name on the img only');
+    check(str_contains($html, 'hero%20home-480.jpg') && !str_contains($html, 'data-wi-image-name="hero%20home-480'), 'Variant in src, not in the name');
+    check(!str_contains($html, 'data-wi-image-missing-label'), 'No generic label with a name');
+    $html = Swiper::make($photos)->render($theme);
+    check(str_contains($html, 'data-wi-image-name="house.jpg"') && str_contains($html, 'data-wi-image-name="remote.jpg"'), 'Swiper images named, query stripped');
+    check(str_contains(Gallery::make($photos)->render($theme), 'data-wi-image-name="house.jpg"'), 'Gallery images named');
+    $html = Image::src('')->render($theme);
+    check(str_contains($html, 'data-wi-image-name=""') && str_contains($html, 'data-wi-image-missing-label="Immagine non impostata"'), 'Empty name gets the generic label');
+    check(str_contains(Image::src('https://example.test/uploads/')->render($theme), 'data-wi-image-missing-label='), 'Directory src has no name');
+    check(str_contains(Image::src('https://example.test/a"b.jpg')->render($theme), 'data-wi-image-name="a&quot;b.jpg"'), 'Name escaped');
+    check(!str_contains(Image::src('https://example.test/a.jpg')->missingLabel(false)->render($theme), 'data-wi-image'), 'Per-image opt-out');
+    check(str_contains(Image::src('https://example.test/a.jpg')->attr('data-wi-image-name', 'custom')->render($theme), 'data-wi-image-name="custom"'), 'Explicit attribute wins');
+    $_ENV['IMAGE_MISSING_LABEL'] = 'false';
+    check(!str_contains(Image::src('https://example.test/a.jpg')->render($theme), 'data-wi-image'), 'IMAGE_MISSING_LABEL=false disables it');
+    unset($_ENV['IMAGE_MISSING_LABEL']);
 }
+check(Image::originalName('/media/team-960.webp?v=3#x') === 'team-960.webp', 'originalName strips only path, query and fragment');
 echo "Responsive media checks passed\n";

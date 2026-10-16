@@ -58,7 +58,7 @@
     },
     "extra": {
         "wonder": {
-            "lib": "^2.1.2-alpha.27"
+            "lib": "^2.1.2-alpha.30"
         }
     }
 }

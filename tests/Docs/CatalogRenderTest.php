@@ -118,7 +118,7 @@ foreach ($docs as $slug => $doc) {
     });
 }
 
-check('la pagina d\'anteprima Wonder sta nella larghezza dell\'iframe e ancora le label ai campi', function () {
+check('la pagina d\'anteprima Wonder sta nella larghezza dell\'iframe e lascia alla lib il posizionamento dei campi', function () {
     $page = \Wonder\Docs\PreviewPage::build(['component' => 'form', 'example' => 0, 'theme' => 'wonder'], ROOT.'/app', true);
 
     ob_start();
@@ -126,8 +126,9 @@ check('la pagina d\'anteprima Wonder sta nella larghezza dell\'iframe e ancora l
     $html = (string) ob_get_clean();
 
     // head.css dà al body width:100%: senza border-box il padding lo allarga oltre lo schermo.
+    // Le label restano ancorate dalla lib (wonder-image/lib#6), senza una regola qui.
     return str_contains($html, 'box-sizing: border-box !important')
-        && str_contains($html, '.wi-input-container { position: relative; }')
+        && !str_contains($html, '.wi-input-container { position: relative; }')
         && str_contains($html, 'class="wi-input-container');
 });
 

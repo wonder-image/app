@@ -19,11 +19,9 @@ use Wonder\Themes\Wonder\Form\Field;
  *
  * Con `pills()` le voci diventano pillole in linea (`wi-check-pill`): la
  * lib non ha uno stile per le pillole, quindi il piccolo CSS esce una volta
- * per pagina da `PageAssets`, scritto con i token della lib. Lo stesso CSS
- * dà a ogni voce della lista un contesto posizionato che contiene i float:
- * le regole della lib danno a input e label `float: left` e alla spunta
- * `position: absolute` senza offset, e senza quel contesto le voci si
- * sovrappongono. In entrambe le modalità l'opzione può portare un segno
+ * per pagina da `PageAssets`, scritto con i token della lib. La lista usa
+ * solo la lib: dalla 2.1.2-alpha.30 `.wi-checkbox-container` è posizionato
+ * e contiene i propri float (wonder-image/lib#6). In entrambe le modalità l'opzione può portare un segno
  * davanti al nome (`color`, `icon`, `image`), come nel backend.
  *
  * Per le option che arrivano come array, supporta sia lo shape del
@@ -70,7 +68,7 @@ class CheckGroup extends Field
 HTML;
         }
 
-        return PageAssets::once('wi-check-group', $this->style()).<<<HTML
+        return <<<HTML
 <div class="wi-input-container checkbox compiled">
     {$labelHtml}
     <div class="wi-checkbox-list">
@@ -191,7 +189,6 @@ HTML;
     {
         return <<<'HTML'
 <style data-wi-check-group-style>
-.wi-checkbox-container { position: relative; display: flow-root; }
 .wi-check-pills { display: flex; flex-wrap: wrap; gap: .5rem; clear: both; padding: 0 calc(16px + var(--input-border-right, 1px)) 0 calc(16px + var(--input-border-left, 1px)); }
 .wi-input-container.checkbox .wi-label + .wi-check-pills { padding-top: .25rem; }
 .wi-check-pill { position: relative; display: inline-flex; }

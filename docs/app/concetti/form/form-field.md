@@ -456,9 +456,9 @@ Le pillole esistono in entrambi i temi, anche con il segno dell'opzione
 (`color`, `icon`, `image`) davanti al nome. Nel tema Wonder sono `wi-check-pill`:
 la lib non ha uno stile per le pillole, quindi il renderer stampa una volta per
 pagina un piccolo `<style data-wi-check-group-style>` scritto con i token
-`--input-*` del sito. Lo stesso blocco dà a ogni voce della lista un contesto
-posizionato che contiene i float, senza il quale le voci della
-`wi-checkbox-list` si sovrappongono.
+`--input-*` del sito. La lista normale non stampa CSS: dalla lib
+2.1.2-alpha.30 ogni `.wi-checkbox-container` è posizionato e contiene i propri
+float (wonder-image/lib#6).
 
 Sopra le pillole l'etichetta è un titolo piccolo; con `->label('')` il titolo
 non esce, ed è la forma di una pillola sola, come il «Preferito» di una riga:

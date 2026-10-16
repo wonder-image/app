@@ -33,4 +33,10 @@ return ComponentDoc::for(Image::class)
         ->size(480)
         ->displaySizes('(min-width: 992px) 33vw, 100vw')
         ->addClass('w-100')
-    PHP, '`size()` sceglie la variante di partenza, `sizes()` elenca quelle del `srcset`, `displaySizes()` dice al browser quanto spazio occupa l\'immagine.');
+    PHP, '`size()` sceglie la variante di partenza, `sizes()` elenca quelle del `srcset`, `displaySizes()` dice al browser quanto spazio occupa l\'immagine.')
+    ->example('Immagine mancante', <<<'PHP'
+    (new Container())->columns(2)->gap(3)->components([
+        Image::src(Assets::url('chi-siamo.jpg'))->alt('File assente')->addClass('w-100')->attr('style', 'aspect-ratio: 16 / 9'),
+        Image::src('')->alt('Nessun file')->addClass('w-100')->attr('style', 'aspect-ratio: 16 / 9'),
+    ])
+    PHP, 'Ogni `<img>` porta `data-wi-image-name` con il nome passato a `src()` (mai la variante `-960` o il `.webp`): se il file non si carica la lib lo scrive nel box. Senza nome esce «Immagine non impostata». `missingLabel(false)` la toglie dall\'immagine, `IMAGE_MISSING_LABEL=false` dal sito.');

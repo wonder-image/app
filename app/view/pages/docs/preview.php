@@ -60,8 +60,6 @@ $json = static fn (mixed $value): string => json_encode($value, JSON_UNESCAPED_S
         html { overflow-y: auto; overflow-x: hidden; }
         body { margin: 0 !important; padding: 1rem !important; }
         [data-wi-docs-preview] { position: relative; min-height: 1px; }
-        /* Le label Wonder sono assolute: senza un antenato posizionato finiscono tutte nell'angolo della pagina. */
-        .wi-input-container { position: relative; }
         .wi-docs-preview-error { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8125rem; white-space: pre-wrap; word-break: break-word; border: 1px solid #dc3545; border-radius: .5rem; background: rgba(220, 53, 69, .08); color: #b02a37; padding: .75rem 1rem; margin: 0; }
         .wi-docs-preview-error strong { display: block; margin-bottom: .25rem; font-family: system-ui, sans-serif; }
     </style>

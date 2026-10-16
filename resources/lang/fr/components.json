@@ -1,6 +1,7 @@
 {
     "code": { "copy": "Copier", "copied": "Copié" },
     "preview": { "open": "Ouvrir dans un nouvel onglet", "scheme": "Basculer clair / sombre", "unavailable": "Non disponible" },
+    "media": { "image_missing": "Image non définie" },
     "forms" : {
         "fields" : {
             "name" : { "label" : "Prénom" },

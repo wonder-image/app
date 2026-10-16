@@ -66,6 +66,7 @@ può prendere in carico. Guida: `docs/components/README.md` e
 - Button::lightbox(string|array, ?string) opens image/iframe URL groups in both themes through RendersButtonLightbox. Preserve disabled behavior and native URL fallback; disallow form actions. See docs/app/elementi/button-lightbox.md.
 
 - Responsive media: use Image::displaySizes() for HTML sizes, Swiper::priority()/imageSizes()/thumbsImageSizes(), and Gallery::imageSizes() to override column-derived sizes. Keep these in shared renderers, not site wrappers; see docs/app/elementi/responsive-media.md.
+  `RendersResponsiveImage` emits `data-wi-image-name` (original `src()` name, never the variant) for the lib missing-image label; no `file_exists()`. Opt out with `Image::missingLabel(false)` or `IMAGE_MISSING_LABEL=false`.
 
 - Numeric data fields drive their SQL definition: `number()->decimals($scale)` generates `DECIMAL(10,$scale)` by default, `integer()` / `decimal(0)` generate `DECIMAL(10)`, and `precision($digits)` overrides the total precision. When increasing the scale of an existing column, raise precision as needed so the integer capacity is not reduced; see `docs/app/concetti/risorse/database.md`.
 
