@@ -44,6 +44,7 @@
     "col_last_used": "Last used",
     "never": "Never",
     "revoke": "Revoke",
+    "revoke_confirm": "Revoke access for {{client}}? The client will have to ask for authorization again.",
     "revoked_title": "Connection revoked",
     "revoked_message": "The client will have to ask for authorization again.",
     "revoke_error": "Connection not found or not revocable."

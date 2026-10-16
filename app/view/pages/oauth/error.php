@@ -1,11 +1,13 @@
 <?php
+use Wonder\Backend\Support\ResourceFormLayoutRenderer as Layout;
+use Wonder\Elements\Components\{Card, SectionTitle, Text};
 use Wonder\View\View;
 
-$e = static fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 View::layout('backend.auth');
-?>
-<wi-card>
-    <h1 class="tx-center"><?= $e(__t($titleKey)) ?></h1>
-    <p class="tx-center"><?= $e(__t($messageKey)) ?></p>
-</wi-card>
-<?php View::end(); ?>
+
+echo Layout::renderLayout((new Card())->gap(3)->components([
+    SectionTitle::make(__t($titleKey))->level(1)->align('center'),
+    Text::make(__t($messageKey))->align('center'),
+]));
+
+View::end();
