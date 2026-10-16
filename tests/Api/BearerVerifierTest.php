@@ -25,7 +25,7 @@ use Wonder\App\Support\ApiActivityTokenMigration;
 # Verifica dei bearer senza database: gli utenti arrivano da un provider in
 # memoria con la stessa forma di infoUser() (riga api_users sotto l'authority).
 
-const KEY = 'test-app-key-0123456789abcdef0123456789abcdef';
+const KEY = 'wonder-test-signing-secret-not-real-xxxxxxxxxxxxxxxx';
 const NOW = 1_800_000_000;
 
 final class MemoryUsers implements ApiUserProvider
