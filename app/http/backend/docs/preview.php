@@ -4,7 +4,6 @@
 // (va in un iframe), con i soli asset del tema chiesto e, per il tema Wonder,
 // i token CSS del sito. Parametri: component, example, theme, scheme.
 
-use Wonder\App\Credentials;
 use Wonder\Docs\PreviewPage;
 use Wonder\View\View;
 
@@ -23,7 +22,7 @@ $PREVIEW['paths'] = [
     'app' => (string) ($PATH->app ?? ''),
     'api' => (string) ($PATH->api ?? ''),
 ];
-$PREVIEW['token'] = (string) Credentials::appToken();
+$PREVIEW['token'] = Wonder\Api\Token\ApiTokens::pageToken();
 $PREVIEW['lang'] = function_exists('__l') ? (string) __l() : 'it';
 
 View::make($ROOT_APP.'/view/pages/docs/preview.php', $PREVIEW)->render();

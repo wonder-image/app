@@ -10,4 +10,4 @@ Handler::run('/api/task/sitemap/', 'POST', 'api_internal_user', function (Endpoi
     if (!$rows) { throw new \Wonder\Api\EndpointException('Sitemap non configurata o sospesa.', 409); }
     $repository->request((int) $rows[0]['id']);
     return Response::json(['success' => true, 'queued' => true], 202);
-});
+}, allowPageToken: false);

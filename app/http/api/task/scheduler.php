@@ -9,4 +9,4 @@ Handler::run('/api/task/scheduler/', 'POST', 'api_internal_user', function (Endp
     if ($id === false) { throw new \Wonder\Api\EndpointException('schedule_id non valido.', 422); }
     (new Repository())->request($id);
     return Response::json(['success' => true, 'queued' => true], 202);
-});
+}, allowPageToken: false);
