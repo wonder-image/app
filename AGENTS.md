@@ -345,6 +345,18 @@ php forge start
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
+- API bearers are verified only by `Wonder\Api\Token\BearerVerifier` (users
+  from an `Api\Contracts\ApiUserProvider`, default `infoUser()`): signature and
+  `exp`, active user, authority, `hash_equals` against `api_users.token` (so
+  rotation/revocation work), active row, IPs/domains; decode failures are 401,
+  never 500. Mint tokens with `ApiTokens::issue()` (random `jti`, `exp` from
+  `API_TOKEN_TTL`, default 0 = none; `@system` always none) and rotate with
+  `regenerateApiToken()`. Pages print `API_TOKEN = ApiTokens::pageToken()`,
+  a short-lived `typ: page` JWT bound to the `@system` token: never print
+  `Credentials::appToken()` in HTML. Server-only endpoints pass
+  `allowPageToken: false` to `Handler::run()`. `api_activity.token` stores only
+  `ApiTokens::fingerprint()`; `ApiActivityTokenMigration` clears old bearers
+  during `forge update`. See `docs/app/piattaforma/api.md#token`.
 - Reusable frontend auth lives in `class/Auth/Frontend`: opt into `AuthRoutes`
   with an `AuthProfile`, and extend fields, server validation, explicit write
   whitelists and idempotent business hooks rather than copying controllers.
