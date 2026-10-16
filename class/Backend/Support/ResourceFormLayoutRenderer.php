@@ -413,7 +413,10 @@ final class ResourceFormLayoutRenderer
         }
 
         $spanClass = self::columnSpanClass($component, $parentColumns, false);
-        $attributes = self::attributes($component);
+        // Il tema stampa già gli attributi sull'elemento: alla colonna vanno
+        // solo le regole di visibilità. Copiati tutti, un Button o un Link
+        // lasciavano `href` anche sul div, e il markup non era più valido.
+        $attributes = self::attributes($component, true);
 
         // Un campo nascosto non occupa spazio, ma la sua colonna sì: dentro
         // una `row g-3` una colonna vuota lascia comunque il margine della
@@ -446,8 +449,12 @@ final class ResourceFormLayoutRenderer
      * Questo renderer scrive il markup dei riquadri da sé — le colonne del
      * form le sa solo lui — e senza questo un `visibleWhen()` su una Card
      * verrebbe ignorato in silenzio: il tema lo stamperebbe, il backend no.
+     *
+     * Con `$visibilityOnly` passano solo le regole di `visibleWhen()` e
+     * `hiddenWhen()`: serve quando l'elemento interno lo rende il tema, che
+     * gli attributi li stampa già lui.
      */
-    private static function attributes(object $component): string
+    private static function attributes(object $component, bool $visibilityOnly = false): string
     {
         $attributes = method_exists($component, 'getSchema')
             ? $component->getSchema('attributes')
@@ -465,6 +472,10 @@ final class ResourceFormLayoutRenderer
             // La classe la compone questo renderer: sovrascriverla qui
             // cancellerebbe le colonne.
             if ($key === '' || $key === 'class') {
+                continue;
+            }
+
+            if ($visibilityOnly && !self::isVisibilityAttribute($key)) {
                 continue;
             }
 
