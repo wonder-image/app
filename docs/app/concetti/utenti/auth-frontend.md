@@ -507,6 +507,17 @@ e reCAPTCHA con action scoped proteggono i POST pubblici tradizionali. Google
 ha CSRF, nonce monouso scoped per profilo e verifica server-side; un provider
 disattivato non è accettato dal controller. I redirect restano same-origin.
 
+Ogni destinazione letta dalla richiesta (`continue`, l'URL salvato nel token di
+verifica, il `?redirect=` base64 del backend) passa da `Wonder\Http\SafeRedirect`
+(`fromRequest($value, $fallback)`, `fromBase64($value, $fallback)`): passano i
+path che iniziano con una sola `/` e gli URL `http`/`https` con lo stesso host
+di `APP_URL` (con o senza `www.`), stessa porta e senza credenziali; `//host`,
+`/\host`, schemi come `javascript:` e caratteri di controllo (CR/LF) tornano al
+fallback. `infoPage()` scarta già un `?redirect=` non valido (`$PAGE->redirect`
+e `redirectBase64` vuoti), quindi il login backend ripiega su `backend.home` e
+il salvataggio legacy sulla lista. `Wonder\Auth\Frontend\SafeRedirect` resta come
+alias deprecato.
+
 Auth è `NOINDEX,FOLLOW`, account `NOINDEX,NOFOLLOW`, canonical senza query,
 un solo h1, breadcrumb SEO vuoto e nessun JSON-LD pubblico per queste pagine.
 `frontend.layout.body-start` inizializza il dataLayer con il solo id utente

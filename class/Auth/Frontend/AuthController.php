@@ -11,6 +11,7 @@ use Wonder\Auth\Federated\GoogleIdTokenVerifier;
 use Wonder\Auth\Impersonation;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Auth\PasswordReset;
+use Wonder\Http\SafeRedirect;
 use Wonder\View\View;
 
 final class AuthController

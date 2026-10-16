@@ -774,3 +774,12 @@
   `LanguageContext::withLang()`, che ripristina lingua e traduzioni correnti
   in un `finally`; una lingua assente o non registrata ricade sulla lingua di
   default (#77).
+- Open redirect nel login backend (#87): `infoPage()` validava il
+  `?redirect=` base64 solo decodificandolo, e dopo il login
+  `header("Location: $PAGE->redirect")` poteva portare su un host esterno. Ora
+  `Wonder\Http\SafeRedirect::fromBase64()` scarta host esterni, `//host`,
+  `/\host`, `javascript:` e CR/LF (`$PAGE->redirect` e `redirectBase64` restano
+  vuoti, quindi il login ripiega su `backend.home`), mentre path interni e URL
+  dello stesso host di `APP_URL`, anche con `www.`, restano quelli di oggi.
+  `SafeRedirect` passa da `Wonder\Auth\Frontend` a `Wonder\Http`; il vecchio
+  nome resta come alias deprecato.
