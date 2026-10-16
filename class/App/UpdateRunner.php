@@ -9,6 +9,7 @@ use Wonder\App\Module\Contracts\ModuleDefaults;
 use Wonder\App\Module\Contracts\ModuleMigration;
 use Wonder\App\Module\ModuleDependencySorter;
 use Wonder\App\Module\Registry as ModuleRegistry;
+use Wonder\App\Support\ApiActivityTokenMigration;
 use Wonder\App\Support\DefaultRows;
 use Wonder\App\Support\SocietyLocationsMigration;
 use Wonder\App\Support\SharedContactTablesMigration;
@@ -75,6 +76,7 @@ class UpdateRunner
             'stats' => (object) [
                 'tables' => 0,
                 'rows' => 0,
+                'api_activity_tokens' => 0,
                 'society_locations' => false,
                 'sync_import' => false,
                 'update' => 0,
@@ -116,6 +118,7 @@ class UpdateRunner
             $result->stats->contact_tables = SharedContactTablesMigration::run($this->connection);
             $result->stats->module_migrations = $this->runModuleMigrations();
             $result->stats->tables = $this->runTables();
+            $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
             $result->stats->rows = $this->runFiles($this->rowDirectories());
             $result->stats->society_locations = SocietyLocationsMigration::runIfNeeded();
             $result->stats->sync_import = $this->runSyncImport();
