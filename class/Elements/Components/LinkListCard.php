@@ -39,20 +39,30 @@ class LinkListCard extends Component
         return $this->schema('variant', $variant);
     }
 
-    /** Aggiunge un link; `$group` è l'intestazione sotto cui compare. */
-    public function link(string $title, string $href, string $group = ''): static
+    /**
+     * Aggiunge un link; `$group` è l'intestazione sotto cui compare, `$badge`
+     * un dato breve accanto al titolo (un conteggio) e `$detail` una riga
+     * secondaria sotto.
+     */
+    public function link(string $title, string $href, string $group = '', string $badge = '', string $detail = ''): static
     {
         $links = (array) $this->getSchema('links');
-        $links[] = ['title' => $title, 'href' => $href, 'group' => $group];
+        $links[] = ['title' => $title, 'href' => $href, 'group' => $group, 'badge' => $badge, 'detail' => $detail];
 
         return $this->schema('links', $links);
     }
 
-    /** @param iterable<array{title: string, href: string, group?: string}> $links */
+    /** @param iterable<array{title: string, href: string, group?: string, badge?: string, detail?: string}> $links */
     public function links(iterable $links): static
     {
         foreach ($links as $link) {
-            $this->link((string) ($link['title'] ?? ''), (string) ($link['href'] ?? ''), (string) ($link['group'] ?? ''));
+            $this->link(
+                (string) ($link['title'] ?? ''),
+                (string) ($link['href'] ?? ''),
+                (string) ($link['group'] ?? ''),
+                (string) ($link['badge'] ?? ''),
+                (string) ($link['detail'] ?? ''),
+            );
         }
 
         return $this;
@@ -74,7 +84,7 @@ class LinkListCard extends Component
      * Link raggruppati per intestazione nell'ordine di arrivo; quelli senza
      * gruppo stanno nel gruppo dal titolo vuoto.
      *
-     * @return list<array{title: string, links: list<array{title: string, href: string, group: string}>}>
+     * @return list<array{title: string, links: list<array{title: string, href: string, group: string, badge: string, detail: string}>}>
      */
     public function groups(): array
     {

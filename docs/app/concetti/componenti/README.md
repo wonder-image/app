@@ -178,14 +178,19 @@ LinkCard::make('Richieste', $url)
 LinkListCard::make('Dev')
     ->icon('bi-terminal')
     ->link('Riepilogo', $url)
-    ->link('Pianificazioni', $url, 'Automazioni');
+    ->link('Pianificazioni', $url, 'Automazioni')
+    ->link('Immobili', $url, '', '42', '30 in vendita · 12 in affitto');
 ```
 
 `LinkListCard` raggruppa i link per gruppo nell'ordine di arrivo. I link senza
 gruppo vanno sotto `ungroupedTitle()` ("Generale"). `count(false)` nasconde il
 badge col numero di link. `isGrouped()` dice se la card ha gruppi: in quel caso
 merita una colonna larga. Le voci dell'elenco seguono gli angoli arrotondati
-della card (`overflow-hidden`).
+della card (`overflow-hidden`). `link($title, $href, $group, $badge, $detail)`
+accetta un badge accanto alla freccia (un conteggio) e una riga secondaria sotto
+il titolo; `links()` legge le stesse chiavi `badge` e `detail`. Senza, il link
+resta una riga semplice. In home i valori arrivano da
+`NavigationSchema::homeSummary()` (vedi [Resource](../risorse/resource.md#dato-sintetico-sul-link-della-home)).
 
 Le card hanno `h-100`: mettile in una colonna Bootstrap (`col-*`) o in un
 `Container` con `columns()`.

@@ -2,6 +2,9 @@
 
 namespace Wonder\Backend\Support;
 
+use Throwable;
+use Wonder\App\Logger;
+use Wonder\Backend\Contracts\HomeLinkSummary;
 use Wonder\Http\UrlParser;
 
 /**
@@ -9,14 +12,17 @@ use Wonder\Http\UrlParser;
  * all'utente, ciascuna con i propri link già risolti. Applica le autorità a
  * ogni livello come la sidebar, salta "Home" e le sezioni i cui sottomenu
  * dichiarati sono tutti nascosti. Solo dati: la view li passa a `LinkCard`
- * e `LinkListCard`, che raggruppa i link per intestazione.
+ * e `LinkListCard`, che raggruppa i link per intestazione. Un link con
+ * `home_summary` (vedi `NavigationSchema::homeSummary()`) riceve badge e
+ * riga secondaria calcolati qui; se la classe solleva un'eccezione il link
+ * resta senza, la home non si rompe.
  */
 final class HomeNavigation
 {
     /**
      * @param array<int, array<string, mixed>> $navigation sezioni di `BackendNavigation::all()`
      * @param array<int, string> $authorities autorità dell'utente
-     * @return list<array{title: string, icon: string, href: ?string, links: list<array{title: string, href: string, group: string}>}>
+     * @return list<array{title: string, icon: string, href: ?string, links: list<array{title: string, href: string, group: string, badge: string, detail: string}>}>
      */
     public static function sections(array $navigation, array $authorities, string $backendUrl): array
     {
@@ -51,7 +57,7 @@ final class HomeNavigation
         return $sections;
     }
 
-    /** @return list<array{title: string, href: string, group: string}> */
+    /** @return list<array{title: string, href: string, group: string, badge: string, detail: string}> */
     private static function links(array $items, array $authorities, string $backendUrl, string $group = ''): array
     {
         $links = [];
@@ -69,10 +75,34 @@ final class HomeNavigation
                 continue;
             }
 
-            $links[] = ['title' => $title, 'href' => self::url($item, $backendUrl), 'group' => $group];
+            $links[] = ['title' => $title, 'href' => self::url($item, $backendUrl), 'group' => $group]
+                + self::summary($item['home_summary'] ?? null, $authorities);
         }
 
         return $links;
+    }
+
+    /** @return array{badge: string, detail: string} */
+    private static function summary(mixed $class, array $authorities): array
+    {
+        $empty = ['badge' => '', 'detail' => ''];
+
+        if (!is_string($class) || !is_subclass_of($class, HomeLinkSummary::class)) {
+            return $empty;
+        }
+
+        try {
+            $summary = (new $class())->summary($authorities) ?? [];
+        } catch (Throwable $exception) {
+            Logger::log($exception, 'backend', 'home_link_summary', 'ERROR', 'error', ['summary' => $class], false);
+
+            return $empty;
+        }
+
+        return [
+            'badge' => trim((string) ($summary['badge'] ?? '')),
+            'detail' => trim((string) ($summary['detail'] ?? '')),
+        ];
     }
 
     private static function allowed(array $item, array $authorities): bool

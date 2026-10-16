@@ -219,6 +219,13 @@ abilitati, filtra per ruolo dell'utente e li ordina. Una classe che non esiste o
 un riquadro che solleva un'eccezione viene saltato e finisce nel log: la home
 resta in piedi.
 
+Per un numero legato a una sola voce di menu (quanti immobili, quanti ordini
+aperti) non serve un riquadro: la Resource del modulo dichiara
+`->homeSummary(MiaClasse::class)` nel proprio `navigationSchema()` e il link
+nella card della sezione mostra badge e riga secondaria. La classe implementa
+`Wonder\Backend\Contracts\HomeLinkSummary` e gira solo sulla home; vedi
+[Resource](../risorse/resource.md#dato-sintetico-sul-link-della-home).
+
 ## Asset dei moduli (css/js/img)
 
 Un modulo può spedire i propri asset dentro `paths.assets` (default

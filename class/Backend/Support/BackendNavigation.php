@@ -119,6 +119,7 @@ final class BackendNavigation
                 'folder' => $resourceClass::path(),
                 'file' => self::normalizeFile((string) ($schema['file'] ?? '')),
                 'authority' => self::normalizeAuthority((array) ($schema['authority'] ?? [])),
+                'home_summary' => is_string($schema['home_summary'] ?? null) ? $schema['home_summary'] : null,
                 '__resource_order' => (int) ($schema['order'] ?? 100),
             ];
 

@@ -5,6 +5,7 @@ namespace Wonder\App\ResourceSchema;
 use RuntimeException;
 use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
+use Wonder\Backend\Contracts\HomeLinkSummary;
 use Wonder\Backend\Support\BackendNavigationSections;
 
 /**
@@ -65,6 +66,10 @@ final class NavigationSchema
             'order' => 100,
             'file' => 'list',
             'authority' => [],
+
+            # Classe `HomeLinkSummary` con badge e riga secondaria del
+            # link in home. Solo la class-string: la calcola la home.
+            'home_summary' => null,
         ];
     }
 
@@ -225,6 +230,24 @@ final class NavigationSchema
     public function authority(array $authority): self
     {
         $this->schema['authority'] = $authority;
+
+        return $this;
+    }
+
+    /**
+     * Dato sintetico (badge, riga secondaria) del link della Resource nelle
+     * card di sezione della home. Qui si salva solo la classe: la istanzia
+     * `HomeNavigation`, quindi la sidebar non paga il calcolo.
+     *
+     * @param class-string<HomeLinkSummary> $class
+     */
+    public function homeSummary(string $class): self
+    {
+        if (!is_subclass_of($class, HomeLinkSummary::class)) {
+            throw new RuntimeException("{$class} deve implementare ".HomeLinkSummary::class);
+        }
+
+        $this->schema['home_summary'] = $class;
 
         return $this;
     }

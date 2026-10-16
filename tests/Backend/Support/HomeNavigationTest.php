@@ -5,7 +5,9 @@ declare(strict_types=1);
 require __DIR__ . '/../../../vendor/autoload.php';
 require __DIR__ . '/../../harness.php';
 
-use Wonder\Backend\Contracts\HomeStatusItem;
+use Wonder\App\{Model, Resource};
+use Wonder\App\ResourceSchema\NavigationSchema;
+use Wonder\Backend\Contracts\{HomeLinkSummary, HomeStatusItem};
 use Wonder\Backend\Support\{HomeNavigation, HomeStatus};
 use Wonder\Elements\Components\{LinkListCard, StatusCard};
 
@@ -39,8 +41,8 @@ check('risolve URL relativi e assoluti, filtra ogni livello e tiene il gruppo', 
         && $sections[1]['icon'] === 'bi-bug'
         && $sections[2]['href'] === null
         && $sections[2]['links'] === [
-            ['title' => 'Riepilogo', 'href' => 'https://s.test/backend/app/scheduler', 'group' => ''],
-            ['title' => 'Pianificazioni', 'href' => 'https://s.test/backend/app/scheduler/schedules', 'group' => 'Automazioni'],
+            ['title' => 'Riepilogo', 'href' => 'https://s.test/backend/app/scheduler', 'group' => '', 'badge' => '', 'detail' => ''],
+            ['title' => 'Pianificazioni', 'href' => 'https://s.test/backend/app/scheduler/schedules', 'group' => 'Automazioni', 'badge' => '', 'detail' => ''],
         ];
 });
 
@@ -57,6 +59,88 @@ check('LinkListCard raggruppa i link per intestazione nell\'ordine di arrivo', f
         && array_column($groups[0]['links'], 'title') === ['A', 'C']
         && $card->isGrouped() && !$flat->isGrouped()
         && str_contains($card->render('bootstrap'), 'overflow-hidden');
+});
+
+final class HomeLinkTestSummary implements HomeLinkSummary
+{
+    public function summary(array $authorities): ?array
+    {
+        return ['badge' => '12', 'detail' => '8 in vendita · <b>4</b> in affitto'];
+    }
+}
+
+final class HomeLinkEmptySummary implements HomeLinkSummary
+{
+    public function summary(array $authorities): ?array
+    {
+        return null;
+    }
+}
+
+final class HomeLinkFailingSummary implements HomeLinkSummary
+{
+    public function summary(array $authorities): ?array
+    {
+        throw new RuntimeException('conteggio giù');
+    }
+}
+
+check('home_summary dà badge e riga ai link; null, eccezioni e classi estranee non li toccano', function () {
+    $navigation = [
+        ['title' => 'Catalogo', 'icon' => 'bi-house', 'subnavs' => [
+            ['title' => 'Immobili', 'folder' => 'immobili', 'file' => '', 'home_summary' => HomeLinkTestSummary::class],
+            ['title' => 'Vuoto', 'folder' => 'vuoto', 'file' => '', 'home_summary' => HomeLinkEmptySummary::class],
+            ['title' => 'Rotto', 'folder' => 'rotto', 'file' => '', 'home_summary' => HomeLinkFailingSummary::class],
+            ['title' => 'Estraneo', 'folder' => 'x', 'file' => '', 'home_summary' => stdClass::class],
+        ]],
+    ];
+    $links = HomeNavigation::sections($navigation, ['admin'], '/backend')[0]['links'];
+
+    return array_column($links, 'title') === ['Immobili', 'Vuoto', 'Rotto', 'Estraneo']
+        && $links[0]['badge'] === '12' && $links[0]['detail'] === '8 in vendita · <b>4</b> in affitto'
+        && array_column(array_slice($links, 1), 'badge') === ['', '', '']
+        && array_column(array_slice($links, 1), 'detail') === ['', '', ''];
+});
+
+final class HomeLinkTestModel extends Model
+{
+    public static string $table = 'home_link_test';
+
+    public static function tableSchema(): array { return []; }
+    public static function dataSchema(): array { return []; }
+}
+
+final class HomeLinkTestResource extends Resource
+{
+    public static string $model = HomeLinkTestModel::class;
+}
+
+check('NavigationSchema::homeSummary salva solo la classe e rifiuta quelle estranee', function () {
+    $schema = NavigationSchema::for(HomeLinkTestResource::class);
+    $default = $schema->get('home_summary');
+    $stored = $schema->homeSummary(HomeLinkTestSummary::class)->get('home_summary');
+
+    try {
+        NavigationSchema::for(HomeLinkTestResource::class)->homeSummary(stdClass::class);
+        $rejected = false;
+    } catch (RuntimeException) {
+        $rejected = true;
+    }
+
+    return $default === null && $stored === HomeLinkTestSummary::class && $rejected;
+});
+
+check('LinkListCard mostra badge e riga secondaria escapati solo dove ci sono', function () {
+    $html = LinkListCard::make('Catalogo')
+        ->link('Immobili', '/i', '', '12', '8 in vendita · <b>4</b> in affitto')
+        ->link('Agenzie', '/a')
+        ->render('bootstrap');
+
+    return str_contains($html, '>12</span>')
+        && str_contains($html, '<small class="text-body-secondary">8 in vendita · &lt;b&gt;4&lt;/b&gt; in affitto</small>')
+        && !str_contains($html, '<b>4</b>')
+        && substr_count($html, 'rounded-pill') === 2
+        && str_contains($html, 'gap-2">Agenzie<i class="bi bi-chevron-right');
 });
 
 check('lo scheduler è attivo, fermo o mai avviato in base all\'heartbeat', function () {

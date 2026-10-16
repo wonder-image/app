@@ -47,8 +47,8 @@ class LinkListCard extends Component
 
             foreach ($group['links'] as $link) {
                 $html .= '<a href="'.$this->escape($link['href']).'" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between gap-2">'
-                    .$this->escape($link['title'])
-                    .'<i class="bi bi-chevron-right small text-body-tertiary" aria-hidden="true"></i>'
+                    .$this->linkLabel($link)
+                    .$this->linkEnd($link)
                     .'</a>';
             }
 
@@ -59,5 +59,37 @@ class LinkListCard extends Component
         $html .= $grouped ? '</div>' : '';
 
         return $html.'</div>';
+    }
+
+    /** Titolo, con la riga secondaria sotto quando c'è. */
+    private function linkLabel(array $link): string
+    {
+        $title = $this->escape((string) ($link['title'] ?? ''));
+        $detail = (string) ($link['detail'] ?? '');
+
+        if ($detail === '') {
+            return $title;
+        }
+
+        return '<span class="d-flex flex-column">'
+            .'<span>'.$title.'</span>'
+            .'<small class="text-body-secondary">'.$this->escape($detail).'</small>'
+            .'</span>';
+    }
+
+    /** Freccia, preceduta dal badge quando c'è. */
+    private function linkEnd(array $link): string
+    {
+        $chevron = '<i class="bi bi-chevron-right small text-body-tertiary" aria-hidden="true"></i>';
+        $badge = (string) ($link['badge'] ?? '');
+
+        if ($badge === '') {
+            return $chevron;
+        }
+
+        return '<span class="d-flex align-items-center gap-2 flex-shrink-0">'
+            .'<span class="badge rounded-pill bg-body-tertiary text-body-secondary border">'.$this->escape($badge).'</span>'
+            .$chevron
+            .'</span>';
     }
 }

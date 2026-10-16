@@ -6,6 +6,11 @@
 - Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
   stato con icona e link, scorciatoia verso una pagina, elenco di link
   raggruppati. Li usa la home del backend; schede nel catalogo.
+- Dato sintetico sui link della home del backend: `LinkListCard::link()` accetta
+  badge e riga secondaria (`$badge`, `$detail`), una Resource li fornisce con
+  `NavigationSchema::homeSummary($class)` e il contratto
+  `Backend\Contracts\HomeLinkSummary`, calcolato solo da `HomeNavigation` e mai
+  dalla sidebar.
 - `Resource::allows($authorities, $action)`: dice se le autorità date possono
   eseguire un'azione della Resource, con la stessa regola delle route.
 - Voci di stato della home estendibili: contratto

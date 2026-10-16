@@ -191,7 +191,37 @@ Metodi: `.enabled(bool)`,
 `.section($key, $title, $icon, $order = 500, $authority = [])`,
 `.inSection($key)`, `.group($key, $title, $order = 100, $authority = [])`,
 `.inGroup($key)`, `.sectionOrder()`, `.title()`, `.order()` (default 100),
-`.file()` (pagina linkata, default `list`), `.authority([])`.
+`.file()` (pagina linkata, default `list`), `.authority([])`,
+`.homeSummary($class)`.
+
+#### Dato sintetico sul link della home
+
+Nelle card di sezione della home backend ogni voce è un link. Con
+`homeSummary()` la Resource gli aggiunge un badge (di norma un conteggio) e una
+riga secondaria:
+
+```php
+NavigationSchema::for(static::class)
+    ->inSection('catalogo')
+    ->homeSummary(ImmobiliLinkSummary::class);
+
+final class ImmobiliLinkSummary implements \Wonder\Backend\Contracts\HomeLinkSummary
+{
+    public function summary(array $authorities): ?array
+    {
+        return ['badge' => '42', 'detail' => '30 in vendita · 12 in affitto'];
+    }
+}
+```
+
+Lo schema salva solo il nome della classe, che deve implementare
+`HomeLinkSummary`. La istanzia `HomeNavigation` quando costruisce la home, mai
+la sidebar: le query del conteggio non girano sulle altre pagine. Il titolo
+della voce resta quello del menu. `summary()` riceve le autorità dell'utente (il
+link è già filtrato) e restituisce `badge` e `detail`, entrambi facoltativi,
+oppure `null`. Se solleva un'eccezione finisce nel log e il link compare senza
+dato. Vale per le voci dentro una sezione: una Resource standalone diventa una
+`LinkCard` di "Accesso rapido", che non lo mostra.
 
 ### `querySchema()`
 
