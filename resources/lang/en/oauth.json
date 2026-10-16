@@ -33,6 +33,7 @@
     "issuer_error": "Cannot compute the MCP server URL: APP_URL must be an https address. Contact the site administrator.",
     "copy": "Copy",
     "copied": "Copied",
+    "transport_badge": "HTTP streamable",
     "claude_code_example": "Claude Code example",
     "active_title": "Active connections",
     "empty": "No active connections.",
@@ -47,6 +48,9 @@
     "revoke_confirm": "Revoke access for {{client}}? The client will have to ask for authorization again.",
     "revoked_title": "Connection revoked",
     "revoked_message": "The client will have to ask for authorization again.",
+    "revoke_title": "Revoke connection",
+    "label": "connection",
+    "plural_label": "connections",
     "revoke_error": "Connection not found or not revocable."
   }
 }

@@ -33,6 +33,7 @@
     "issuer_error": "Impossibile calcolare l'URL del server MCP: APP_URL deve essere un indirizzo https. Contatta l'amministratore del sito.",
     "copy": "Copia",
     "copied": "Copiato",
+    "transport_badge": "HTTP streamable",
     "claude_code_example": "Esempio per Claude Code",
     "active_title": "Connessioni attive",
     "empty": "Nessuna connessione attiva.",
@@ -47,6 +48,9 @@
     "revoke_confirm": "Revocare l'accesso di {{client}}? Il client dovrà chiedere di nuovo l'autorizzazione.",
     "revoked_title": "Connessione revocata",
     "revoked_message": "Il client dovrà chiedere di nuovo l'autorizzazione.",
+    "revoke_title": "Revoca connessione",
+    "label": "connessione",
+    "plural_label": "connessioni",
     "revoke_error": "Connessione non trovata o non revocabile."
   }
 }

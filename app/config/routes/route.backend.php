@@ -27,12 +27,11 @@ Route::area('backend')
             ->permit(['admin']);
 
         // Connessioni MCP (OAuth): visibile a ogni utente backend collegato; la
-        // revoca è autorizzata per-grant in ConnectionsResource::handleSubmit().
+        // revoca passa da /api/backend/oauth/revoke/ (ConnectionsResource::revoke()).
         if (\Wonder\OAuth\OAuth::enabled()) {
             $oauthSlug = \Wonder\App\Resources\OAuth\ConnectionsResource::slug();
             Route::get('/app/oauth/connections/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $oauthSlug])
                 ->name('oauth.connections');
-            Route::post('/app/oauth/connections/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $oauthSlug]);
         }
 
         // Catalogo dei componenti (sezione Dev): indice, scheda e anteprima.
