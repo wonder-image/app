@@ -3,6 +3,7 @@
 namespace Wonder\App\Resources\Communications;
 
 use Throwable;
+use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
 use Wonder\App\RuntimeDefaults;
 use Wonder\App\Models\Css\CssColor;
@@ -172,8 +173,8 @@ final class PopupResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backendCrud(['admin', 'administrator'])
-            ->apiCrud(['admin', 'administrator']);
+            ->access('avvisi')
+            ->apiCrud(Access::roles('avvisi'));
     }
 
     public static function navigationSchema(): NavigationSchema
@@ -182,7 +183,7 @@ final class PopupResource extends Resource
             ->inSection('notices')
             ->title('Popup')
             ->order(30)
-            ->authority(['admin', 'administrator']);
+            ->access('avvisi');
     }
 
     public static function mutateRequestValues(

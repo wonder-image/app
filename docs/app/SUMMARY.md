@@ -44,6 +44,7 @@
   * [Appendice: Table legacy](concetti/tabelle/legacy.md)
 * [Utenti e Permessi](concetti/utenti/README.md)
   * [Builder permessi (Area / Permission)](concetti/utenti/permessi.md)
+  * [Aree di accesso (Access)](concetti/utenti/aree-di-accesso.md)
   * [Gestione utenti (backend / API)](concetti/utenti/gestione-utenti.md)
   * [Permessi client e verifica email](concetti/utenti/permessi-client.md)
   * [Verifica email](concetti/utenti/verifica-email.md)

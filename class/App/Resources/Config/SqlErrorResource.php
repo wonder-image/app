@@ -78,7 +78,7 @@ final class SqlErrorResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backend(['list', 'view'], ['admin']);
+            ->access('diagnostica', ['list', 'view']);
     }
 
     public static function navigationSchema(): NavigationSchema
@@ -88,7 +88,7 @@ final class SqlErrorResource extends Resource
             ->inGroup('diagnostics')
             ->title('Errori SQL')
             ->order(20)
-            ->authority(['admin', 'administrator']);
+            ->access('diagnostica');
     }
 
     private static function customShowViewPath(): ?string

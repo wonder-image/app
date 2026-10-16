@@ -2,6 +2,7 @@
 
 namespace Wonder\App\Resources\Communications;
 
+use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormField;
@@ -124,17 +125,17 @@ final class AnnouncementResource extends Resource
     public static function permissionSchema(): PermissionSchema
     {
         return PermissionSchema::for(static::class)
-            ->backendCrud(['admin', 'administrator'])
-            ->apiCrud(['admin', 'administrator']);
+            ->access('avvisi')
+            ->apiCrud(Access::roles('avvisi'));
     }
 
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->section('notices', 'Avvisi', 'bi-megaphone', 500, ['admin', 'administrator'])
+            ->section('notices', 'Avvisi', 'bi-megaphone', 500)
             ->title('Annunci')
             ->order(20)
-            ->authority(['admin', 'administrator']);
+            ->access('avvisi');
     }
 
     public static function mutateRequestValues(

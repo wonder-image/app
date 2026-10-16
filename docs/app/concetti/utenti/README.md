@@ -26,6 +26,7 @@ Il sistema di accesso del framework ha due lati:
 | Builder permessi | `class/App/Permission/{Permissions,Area,Permission}.php` |
 | Registro base | `app/config/app/permission.php` |
 | Estensione del sito | `custom/config/permissions.php` |
+| Aree di accesso | `class/App/Permission/Access.php` |
 | Gestione utenti (base) | `class/App/Resources/Support/UserManagementResource.php` |
 | Utenti backend | `class/App/Resources/User/BackendUserResource.php` |
 | Utenti API | `class/App/Resources/User/ApiUserResource.php` |
@@ -42,6 +43,8 @@ Il sistema di accesso del framework ha due lati:
 
 - [Builder permessi (Area / Permission)](permessi.md) — definire aree e
   authority.
+- [Aree di accesso (`Access`)](aree-di-accesso.md) — quali ruoli vedono e
+  modificano ogni parte del backend, con override da config.
 - [Gestione utenti (backend / API)](gestione-utenti.md) — creare utenti e
   assegnare ruoli.
 - [Permessi client e verifica email](permessi-client.md) — permessi lato client
