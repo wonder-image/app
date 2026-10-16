@@ -424,6 +424,10 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- `AttributeString::parse()` legge i valori tra apici singoli: prima uscivano
+  vuoti, perché il gruppo dei doppi apici valeva `''` invece di `null`
+  (`data-wi-restriction='{"country":"it"}'` passato a `->attribute()` non
+  arrivava all'input).
 - `Query::Conditions()` con una condizione stringa toglie solo il `WHERE`
   iniziale (maiuscolo o minuscolo, anche con spazi davanti), non più ogni
   `WHERE`/`where` della stringa: una condizione con sottoquery passata a
