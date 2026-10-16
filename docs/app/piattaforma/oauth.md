@@ -64,7 +64,7 @@ funzionali: il token ha i permessi dell'utente che ha dato il consenso.
 
 ## Collegare un client
 
-Nel backend la pagina **Connessioni MCP** mostra l'URL MCP da incollare, valido
+Nel backend la pagina **Impostazioni → Connessioni** mostra l'URL MCP da incollare, valido
 per qualsiasi client MCP compatibile con OAuth (Claude, ChatGPT, Cursor, ecc.),
 e l'elenco delle connessioni attive, che si possono revocare.
 
@@ -87,7 +87,7 @@ Login e consenso vengono richiesti a ogni nuovo collegamento.
   refresh token.
 - Riuso: un refresh già consumato revoca l'intero grant (access e refresh) e
   risponde `400 invalid_grant`.
-- Revoca: dalla pagina Connessioni MCP o con `POST /oauth/revoke`.
+- Revoca: da Impostazioni → Connessioni o con `POST /oauth/revoke`.
 - Pulizia: il task notturno `wonder.oauth_cleanup` (03:30) revoca i grant
   scaduti e cancella i token vecchi di 7 giorni e i client inattivi da 30.
 

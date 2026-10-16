@@ -26,6 +26,8 @@
     "server_message": "The server is not configured correctly. Contact the site administrator."
   },
   "connections": {
+    "section": "Settings",
+    "menu": "Connections",
     "title": "MCP connections",
     "servers_title": "Available MCP servers",
     "servers_help": "Add a remote MCP server (streamable HTTP) with this URL. The client will open the browser for sign-in and confirmation.",

@@ -23,8 +23,8 @@ class ConnectionsResource extends NavigationOnlyResource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->title(__t('oauth.connections.title'))
-            ->sectionOrder(990)
+            ->section('impostazioni', __t('oauth.connections.section'), 'bi-sliders', 1010)
+            ->title(__t('oauth.connections.menu'))
             ->authority([])
             ->enabled(OAuth::enabled());
     }

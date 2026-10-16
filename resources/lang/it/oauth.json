@@ -26,6 +26,8 @@
     "server_message": "Il server non è configurato correttamente. Contatta l'amministratore del sito."
   },
   "connections": {
+    "section": "Impostazioni",
+    "menu": "Connessioni",
     "title": "Connessioni MCP",
     "servers_title": "Server MCP disponibili",
     "servers_help": "Aggiungi un server MCP remoto (HTTP streamable) con questo URL. Il client aprirà il browser per l'accesso e la conferma.",
