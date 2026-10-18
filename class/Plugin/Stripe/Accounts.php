@@ -7,24 +7,26 @@
 
     class Accounts extends Stripe {
         
-        public static function object()
+        # Senza chiave usano quella dell'ambiente attivo: per collegare l'altro ambiente va passata.
+        public static function object(?string $apiKey = null)
         {
-            return parent::connect()->accounts;
+            return parent::connect($apiKey)->accounts;
 
         }
 
-        public static function get($accountId) {
+        public static function get($accountId, ?string $apiKey = null) {
 
-            return self::object()->retrieve($accountId);
+            return self::object($apiKey)->retrieve($accountId);
 
         }
 
         // [ https://docs.stripe.com/api/account_links/create ]
-        public static function onboarding($accountId) {
+        public static function onboarding($accountId, ?string $apiKey = null, string $account = 'production') {
 
-            return parent::connect()->accountLinks->create([
+            return parent::connect($apiKey)->accountLinks->create([
                 'account' => $accountId,
-                'refresh_url' => (new Path)->appApi.'/service/stripe/onboarding/',
+                // Il link scaduto riparte dallo stesso ambiente, non dalla produzione.
+                'refresh_url' => (new Path)->appApi.'/service/stripe/onboarding/?account='.($account === 'test' ? 'test' : 'production'),
                 'return_url' => (new Path)->appApi.'/service/stripe/onboarding/check/',
                 'type' => 'account_onboarding',
             ]);
@@ -43,9 +45,9 @@
         }
 
         // [ https://docs.stripe.com/api/accounts/create ]
-        public static function create(array $params = []) {
+        public static function create(array $params = [], ?string $apiKey = null) {
 
-            return self::object()->create($params);
+            return self::object($apiKey)->create($params);
 
         }
 
