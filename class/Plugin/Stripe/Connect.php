@@ -33,16 +33,21 @@ final class Connect
         $this->options = ['stripe_account' => $accountId];
     }
 
-    /** Rifà l'endpoint per questo url: quello vecchio si cancella. Dà il segreto nuovo. */
+    /**
+     * Rifà l'endpoint per questo url sul conto della piattaforma, come
+     * webhook Connect: Stripe non lascia creare endpoint sui conti collegati.
+     * Arrivano gli eventi di tutti i conti collegati, ognuno con `account`:
+     * chi li riceve scarta quelli degli altri. Dà il segreto nuovo.
+     */
     public function webhook(string $url): string
     {
-        foreach ($this->client->webhookEndpoints->all(['limit' => 100], $this->options)->autoPagingIterator() as $endpoint) {
+        foreach ($this->client->webhookEndpoints->all(['limit' => 100])->autoPagingIterator() as $endpoint) {
             if ((string) $endpoint->url === $url) {
-                $this->client->webhookEndpoints->delete((string) $endpoint->id, [], $this->options);
+                $this->client->webhookEndpoints->delete((string) $endpoint->id);
             }
         }
 
-        $endpoint = $this->client->webhookEndpoints->create(['url' => $url, 'enabled_events' => self::EVENTS], $this->options);
+        $endpoint = $this->client->webhookEndpoints->create(['url' => $url, 'enabled_events' => self::EVENTS, 'connect' => true]);
 
         return (string) $endpoint->secret;
     }

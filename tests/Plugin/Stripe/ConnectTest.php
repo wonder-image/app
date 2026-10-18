@@ -38,7 +38,7 @@ check('Connect e i client del plugin restano sulla versione API basil', function
         && $http->header(1, 'Stripe-Version') === '2025-08-27.basil';
 });
 
-check('webhook: cancella l\'endpoint con lo stesso url, ne crea uno e dà il segreto', function () use ($http) {
+check('webhook: sul conto della piattaforma, come Connect; cancella l\'endpoint con lo stesso url e dà il segreto', function () use ($http) {
     $http->requests = [];
     $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => false, 'data' => [
         ['id' => 'we_vecchio', 'object' => 'webhook_endpoint', 'url' => URL],
@@ -56,8 +56,10 @@ check('webhook: cancella l\'endpoint con lo stesso url, ne crea uno e dà il seg
         && [$http->requests[2]['method'], $http->path(2)] === ['POST', '/v1/webhook_endpoints']
         && $creato['url'] === URL
         && array_values($creato['enabled_events']) === Connect::EVENTS
-        && $http->header(0, 'Stripe-Account') === 'acct_test'
-        && $http->header(2, 'Stripe-Account') === 'acct_test';
+        && in_array($creato['connect'] ?? null, [true, 'true'], true)
+        && $http->header(0, 'Stripe-Account') === null
+        && $http->header(1, 'Stripe-Account') === null
+        && $http->header(2, 'Stripe-Account') === null;
 });
 
 check('domain: un dominio già registrato non è un errore', function () use ($http) {
@@ -92,7 +94,8 @@ check('environment usa le chiavi dell\'ambiente scelto, non di quello attivo', f
 
     return $segreto === 'whsec_live'
         && $http->header(0, 'Authorization') === 'Bearer sk_live_prova'
-        && $http->header(0, 'Stripe-Account') === 'acct_live'
+        && $http->header(0, 'Stripe-Account') === null
+        && $http->header(1, 'Stripe-Account') === null
         && $http->header(2, 'Stripe-Account') === 'acct_live';
 });
 
