@@ -45,6 +45,8 @@ La chiave privata non deve mai finire nel browser: compila sempre anche la
 chiave pubblica, perché se `gcp_client_api_key` è vuota `Credentials::api()`
 usa `gcp_api_key` al suo posto e la stampa in `GOOGLE_API_KEY` nella pagina.
 
+La chiave pubblica è l'unica che arriva nella pagina (`GOOGLE_API_KEY`): se è vuota mappe e completamento degli indirizzi restano spenti, la chiave privata non la sostituisce. Per sapere cosa manca usa `Credentials::storedApi()`, i valori salvati (`.env`, poi riga di security) senza ripieghi.
+
 ### reCAPTCHA
 
 Per creare la chiave del sito [clicca qui](https://www.google.com/recaptcha/admin/create), successivamente compila i campi come segue:
