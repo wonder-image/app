@@ -47,15 +47,30 @@
                 $VALUES["mail_service"] = "phpmailer";
             }
             
-            # Aggiungo le chiavi di stripe se non ci sono
-            if (sqlSelect('security', ['id' => 1], 1)->row['stripe_private_key'] == "") {
-                
+            # Aggiungo le chiavi di stripe che mancano: quelle già salvate restano
+            $STRIPE_ROW = sqlSelect('security', ['id' => 1], 1)->row;
+            $STRIPE_KEYS = [
+                'stripe_private_key' => 'private_key',
+                'stripe_test_key' => 'test_key',
+                'stripe_public_key' => 'public_key',
+                'stripe_test_public_key' => 'test_public_key',
+            ];
+            $STRIPE_MISSING = array_filter($STRIPE_KEYS, fn ($column) => trim((string) ($STRIPE_ROW[$column] ?? '')) === '', ARRAY_FILTER_USE_KEY);
+
+            if (!empty($STRIPE_MISSING)) {
+
                 $STRIPE = wiApiJson('/service/stripe/credentials/');
 
                 if (is_array($STRIPE) && ($STRIPE['success'] ?? false)) {
 
-                    $VALUES["stripe_private_key"] = $STRIPE['response']['private_key'];
-                    $VALUES["stripe_test_key"] = $STRIPE['response']['test_key'];
+                    foreach ($STRIPE_MISSING as $column => $key) {
+                        // Le chiavi pubbliche arrivano solo se il servizio centrale le dà.
+                        $value = trim((string) ($STRIPE['response'][$key] ?? ''));
+
+                        if ($value !== '') {
+                            $VALUES[$column] = $value;
+                        }
+                    }
 
                 }
 

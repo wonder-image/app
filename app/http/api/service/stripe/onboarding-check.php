@@ -23,9 +23,14 @@ foreach ($apis as $api) {
         continue;
     }
 
-    Accounts::apiKey($api['api_key']);
+    try {
+        $submitted = (bool) Accounts::get($accountId, $api['api_key'])->details_submitted;
+    } catch (\Stripe\Exception\ApiErrorException) {
+        // Non si legge con la chiave di questo ambiente: lo sistema il prossimo «Collega».
+        continue;
+    }
 
-    if (Accounts::get($accountId)->details_submitted == false) {
+    if (!$submitted) {
         sqlModify('security', [$api['column'] => ''], 'id', 1);
     }
 }
