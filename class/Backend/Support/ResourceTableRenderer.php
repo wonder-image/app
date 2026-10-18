@@ -372,7 +372,7 @@ final class ResourceTableRenderer
                 $actions = $this->resolvedActions($config);
 
                 if ($actions !== []) {
-                    $table->addColumn('', 'menu', false, '', '', $size, $actions);
+                    $table->addColumn('', 'menu', false, '', $config['hidden-device'] ?? '', $size, $actions);
                 }
 
                 continue;

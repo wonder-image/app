@@ -489,6 +489,8 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- La colonna azioni delle tabelle backend rispetta `hiddenDevice()` come le
+  altre colonne.
 - `AttributeString::parse()` legge i valori tra apici singoli: prima uscivano
   vuoti, perché il gruppo dei doppi apici valeva `''` invece di `null`
   (`data-wi-restriction='{"country":"it"}'` passato a `->attribute()` non
