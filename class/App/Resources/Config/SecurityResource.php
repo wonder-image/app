@@ -226,8 +226,8 @@ final class SecurityResource extends SingletonResource
                         ->addClass('float-end')
                         ->columnSpan(4),
                     static::getInput('stripe_account_id')->columnSpan(12),
-                    static::getInput('stripe_public_key')->columnSpan(6),
-                    static::getInput('stripe_webhook_secret')->columnSpan(6),
+                    static::getInput('stripe_public_key')->columnSpan(12),
+                    static::getInput('stripe_webhook_secret')->columnSpan(12),
 
                     SectionTitle::make('Test')
                         ->columnSpan(4),
@@ -240,8 +240,8 @@ final class SecurityResource extends SingletonResource
                         ->addClass('float-end')
                         ->columnSpan(4),
                     static::getInput('stripe_test_account_id')->columnSpan(12),
-                    static::getInput('stripe_test_public_key')->columnSpan(6),
-                    static::getInput('stripe_test_webhook_secret')->columnSpan(6),
+                    static::getInput('stripe_test_public_key')->columnSpan(12),
+                    static::getInput('stripe_test_webhook_secret')->columnSpan(12),
                         
                 ])->columns(12)->columnSpan(1),
 
