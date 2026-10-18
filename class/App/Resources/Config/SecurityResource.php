@@ -2,17 +2,21 @@
 
 namespace Wonder\App\Resources\Config;
 
+use Wonder\App\Credentials;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\Path;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Http\Csrf;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
+use Wonder\App\Support\GoogleCloud\GoogleApis;
+use Wonder\Elements\Components\Accordion;
 use Wonder\Elements\Components\Badge;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Components\HelpText;
 use Wonder\Elements\Components\SectionTitle;
+use Wonder\Elements\Components\Text;
 use Wonder\Elements\Form\Form;
 
 final class SecurityResource extends SingletonResource
@@ -159,6 +163,7 @@ final class SecurityResource extends SingletonResource
                     static::getInput('gcp_project_id')->columnSpan(2),
                     static::getInput('gcp_api_key')->columnSpan(5),
                     static::getInput('gcp_client_api_key')->columnSpan(5),
+                    static::googleApisPanel()->columnSpan(12),
                     SectionTitle::make('Google reCAPTCHA v2*')
                         ->tooltip('Casella «Non sono un robot». Da sola compare sempre; con la v3 compare solo quando il punteggio è basso.')
                         ->columnSpan(12),
@@ -312,4 +317,26 @@ final class SecurityResource extends SingletonResource
         return $options;
     }
 
+
+    /** Elenco delle API Google da abilitare, da `GoogleApis` (core, moduli, sito). */
+    private static function googleApisPanel(): Accordion
+    {
+        $projectId = (string) (Credentials::api()->gcp_project_id ?? '');
+        $rows = [Text::make(__t('google.credentials.intro'))->muted()->columnSpan(12)];
+
+        foreach (GoogleApis::all() as $api) {
+            $rows[] = Text::make()
+                ->link($api->consoleUrl($projectId), $api->getName(), ['blank' => true])
+                ->append(' · '.__t('google.credentials.key_types.'.$api->getKeyType()))
+                ->append(' · '.__t($api->isRequired() ? 'google.credentials.required' : 'google.credentials.optional'))
+                ->append(' — '.__t($api->getPurpose()))
+                ->small()
+                ->columnSpan(12);
+        }
+
+        return Accordion::make(__t('google.credentials.title'))
+            ->link()
+            ->columns(12)
+            ->components($rows);
+    }
 }
