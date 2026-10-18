@@ -148,6 +148,22 @@ final class Defaults implements ModuleDefaults
 - i moduli vengono eseguiti in ordine di dipendenza (`dependencies.modules`, `ModuleDependencySorter`);
 - dichiarazione nel manifest: [`database.defaults`](manifest.md).
 
+## API Google (`ModuleGoogleApis`)
+
+L'entrypoint può implementare `Wonder\App\Module\Contracts\ModuleGoogleApis`
+per dichiarare le API Google che il modulo usa. Compaiono nella pagina
+Credenziali del backend e in `GoogleApis::missing()`:
+
+```php
+public static function googleApis(): iterable
+{
+    yield GoogleApi::make('places')->required()->usedBy('gestionale');
+}
+```
+
+Ridichiarare una chiave del core la unisce (obbligatoria se lo è per una
+sorgente). Dettagli: [Google Cloud Platform](../../servizi/configurazione/google-cloud-platform.md#registro-delle-api).
+
 ## Errori comuni
 
 - **`Entrypoint non autoloadabile`** → namespace/PSR-4 non allineato; manca

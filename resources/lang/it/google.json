@@ -1,0 +1,36 @@
+{
+  "credentials": {
+    "title": "API da abilitare in Google Cloud",
+    "intro": "Abilita queste API nel progetto Google Cloud del sito. Ogni nome apre la pagina della console.",
+    "required": "obbligatoria",
+    "optional": "facoltativa",
+    "key_types": {
+      "browser": "chiave client (browser)",
+      "server": "chiave server",
+      "oauth": "client OAuth"
+    }
+  },
+  "apis": {
+    "recaptcha_enterprise": {
+      "purpose": "Verifica reCAPTCHA v2 e v3 dei form (contatti, registrazione, checkout)."
+    },
+    "maps_javascript": {
+      "purpose": "Mappe interattive e caricamento della libreria Google Maps nel browser."
+    },
+    "places": {
+      "purpose": "Autocompletamento degli indirizzi nei form (checkout, account, backend)."
+    },
+    "places_sync": {
+      "purpose": "Sincronizzazione notturna di orari e recensioni della sede dal Place ID."
+    },
+    "maps_embed": {
+      "purpose": "Mappe incorporate come iframe."
+    },
+    "directions": {
+      "purpose": "Percorsi disegnati sulle mappe, solo se configurati."
+    },
+    "google_oauth": {
+      "purpose": "Accedi con Google: crea un client OAuth di tipo Applicazione web e copia il Client ID."
+    }
+  }
+}

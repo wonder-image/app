@@ -34,6 +34,11 @@ foreach (['ROOT' => $root, 'APP_URL' => 'https://app.example.test', 'ASSETS_VERS
 // Il layout risolve i Tooltip nel tema attivo, e la CLI non ne imposta uno.
 Theme::set('bootstrap');
 
+// Il pannello delle API Google della pagina legge i testi con __t().
+require_once $root.'/app/function/helper.php';
+\Wonder\Localization\LanguageContext::addLangPath($root.'/resources/lang');
+\Wonder\Localization\TranslationProvider::init();
+
 const CHIAVI_RECAPTCHA = ['G_RECAPTCHA_SITE_KEY', 'G_RECAPTCHA_SECRET_KEY', 'G_RECAPTCHA_SCORE_SITE_KEY', 'G_RECAPTCHA_BADGE'];
 
 // Le variabili d'ambiente della macchina non devono falsare le prove.
@@ -186,6 +191,11 @@ check('backend: etichette, select del badge e le due righe reCAPTCHA v2 e v3', f
     $layout = SecurityResource::formLayoutSchema()->render('bootstrap');
 
     if (str_contains($layout, 'name="g_recaptcha_secret_key"')) {
+        return false;
+    }
+
+    // Il pannello delle API Google elenca reCAPTCHA Enterprise con il link alla console.
+    if (!str_contains($layout, 'href="https://console.cloud.google.com/apis/library/recaptchaenterprise.googleapis.com')) {
         return false;
     }
 
