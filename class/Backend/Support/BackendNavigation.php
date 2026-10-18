@@ -99,6 +99,23 @@ final class BackendNavigation
     }
 
     /**
+     * Icona della scorciatoia in home (`NavigationSchema::homeShortcut()`),
+     * `null` se la voce non è una scorciatoia. Tiene solo la classe `bi-*`:
+     * l'icona della Resource arriva come `bi bi-house-door`.
+     */
+    private static function homeShortcut(mixed $shortcut, string $resourceClass): ?string
+    {
+        if (!is_array($shortcut)) {
+            return null;
+        }
+
+        $icon = (string) ($shortcut['icon'] ?? '') ?: (string) $resourceClass::icon();
+        preg_match('/(?:^|\s)(bi-[a-z0-9-]+)/', $icon, $match);
+
+        return $match[1] ?? 'bi-link-45deg';
+    }
+
+    /**
      * Pass 2: costruisce l'array di sezioni a partire dalle schema
      * cached + registry (ora completo).
      */
@@ -120,6 +137,7 @@ final class BackendNavigation
                 'file' => self::normalizeFile((string) ($schema['file'] ?? '')),
                 'authority' => self::normalizeAuthority((array) ($schema['authority'] ?? [])),
                 'home_summary' => is_string($schema['home_summary'] ?? null) ? $schema['home_summary'] : null,
+                'home_shortcut' => self::homeShortcut($schema['home_shortcut'] ?? null, $resourceClass),
                 '__resource_order' => (int) ($schema['order'] ?? 100),
             ];
 

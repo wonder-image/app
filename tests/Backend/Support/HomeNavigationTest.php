@@ -8,7 +8,7 @@ require __DIR__ . '/../../harness.php';
 use Wonder\App\{Model, Resource};
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\Backend\Contracts\{HomeLinkSummary, HomeStatusItem};
-use Wonder\Backend\Support\{HomeNavigation, HomeStatus};
+use Wonder\Backend\Support\{BackendNavigation, HomeNavigation, HomeStatus};
 use Wonder\Elements\Components\{LinkListCard, StatusCard};
 
 $navigation = [
@@ -41,8 +41,8 @@ check('risolve URL relativi e assoluti, filtra ogni livello e tiene il gruppo', 
         && $sections[1]['icon'] === 'bi-bug'
         && $sections[2]['href'] === null
         && $sections[2]['links'] === [
-            ['title' => 'Riepilogo', 'href' => 'https://s.test/backend/app/scheduler', 'group' => '', 'badge' => '', 'detail' => ''],
-            ['title' => 'Pianificazioni', 'href' => 'https://s.test/backend/app/scheduler/schedules', 'group' => 'Automazioni', 'badge' => '', 'detail' => ''],
+            ['title' => 'Riepilogo', 'href' => 'https://s.test/backend/app/scheduler', 'group' => '', 'badge' => '', 'detail' => '', 'shortcut' => ''],
+            ['title' => 'Pianificazioni', 'href' => 'https://s.test/backend/app/scheduler/schedules', 'group' => 'Automazioni', 'badge' => '', 'detail' => '', 'shortcut' => ''],
         ];
 });
 
@@ -128,6 +128,30 @@ check('NavigationSchema::homeSummary salva solo la classe e rifiuta quelle estra
     }
 
     return $default === null && $stored === HomeLinkTestSummary::class && $rejected;
+});
+
+check('Accesso rapido: sezioni senza sottomenu e link con home_shortcut, in ordine di navigazione', function () use ($navigation) {
+    $navigation[3]['subnavs'][0]['home_shortcut'] = 'bi-clock';
+    $navigation[3]['subnavs'][1]['subnavs'][1]['home_shortcut'] = 'bi-lock';
+    $shortcuts = HomeNavigation::shortcuts(HomeNavigation::sections($navigation, ['admin'], '/backend'));
+
+    return $shortcuts === [
+        ['title' => 'Richieste', 'href' => '/backend/requests', 'icon' => 'bi-envelope'],
+        ['title' => 'Guida', 'href' => 'https://guida.example.it', 'icon' => 'bi-bug'],
+        ['title' => 'Riepilogo', 'href' => '/backend/app/scheduler', 'icon' => 'bi-clock'],
+    ];
+});
+
+check('homeShortcut usa l\'icona data o quella della Resource ridotta a bi-*', function () {
+    $resolve = (new ReflectionMethod(BackendNavigation::class, 'homeShortcut'))->getClosure();
+    $schema = NavigationSchema::for(HomeLinkTestResource::class);
+    $default = $schema->get('home_shortcut');
+    HomeLinkTestModel::$icon = 'bi bi-buildings';
+
+    return $default === null
+        && $resolve(null, HomeLinkTestResource::class) === null
+        && $resolve($schema->homeShortcut()->get('home_shortcut'), HomeLinkTestResource::class) === 'bi-buildings'
+        && $resolve($schema->homeShortcut('bi-star')->get('home_shortcut'), HomeLinkTestResource::class) === 'bi-star';
 });
 
 check('LinkListCard mostra badge e riga secondaria escapati solo dove ci sono', function () {

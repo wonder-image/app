@@ -11,6 +11,9 @@
   `NavigationSchema::homeSummary($class)` e il contratto
   `Backend\Contracts\HomeLinkSummary`, calcolato solo da `HomeNavigation` e mai
   dalla sidebar.
+- `NavigationSchema::homeShortcut($icon = null)`: la voce di una Resource dentro
+  una sezione compare anche in "Accesso rapido" della home backend
+  (`HomeNavigation::shortcuts()`), con l'icona data o quella della Resource.
 - `Resource::allows($authorities, $action)`: dice se le autorità date possono
   eseguire un'azione della Resource, con la stessa regola delle route.
 - Voci di stato della home estendibili: contratto

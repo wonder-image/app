@@ -192,7 +192,7 @@ Metodi: `.enabled(bool)`,
 `.inSection($key)`, `.group($key, $title, $order = 100, $authority = [])`,
 `.inGroup($key)`, `.sectionOrder()`, `.title()`, `.order()` (default 100),
 `.file()` (pagina linkata, default `list`), `.authority([])`,
-`.homeSummary($class)`.
+`.homeSummary($class)`, `.homeShortcut($icon = null)`.
 
 #### Dato sintetico sul link della home
 
@@ -222,6 +222,23 @@ link è già filtrato) e restituisce `badge` e `detail`, entrambi facoltativi,
 oppure `null`. Se solleva un'eccezione finisce nel log e il link compare senza
 dato. Vale per le voci dentro una sezione: una Resource standalone diventa una
 `LinkCard` di "Accesso rapido", che non lo mostra.
+
+#### Scorciatoia in "Accesso rapido"
+
+"Accesso rapido" della home backend contiene le Resource standalone. Con
+`homeShortcut()` ci finisce anche una voce dentro una sezione, che resta pure
+nella card della sezione:
+
+```php
+NavigationSchema::for(static::class)
+    ->inSection('catalogo')
+    ->homeShortcut();          // icona della Resource
+    // ->homeShortcut('bi-star')
+```
+
+Senza argomento usa l'icona della Resource (`$icon` del Model), ridotta alla
+classe `bi-*`. Valgono le stesse autorità del link. Per numeri e stato accanto
+a Scheduler ed Errori si usa invece una voce `backend.home_status`.
 
 ### `querySchema()`
 

@@ -9,7 +9,7 @@ use Wonder\Elements\Components\{Button, LinkCard, LinkListCard};
 $authorities = (array) ($USER->authority ?? []);
 $backendUrl = (string) ($PATH->backend ?? '/backend');
 $sections = HomeNavigation::sections(BackendNavigation::all(), $authorities, $backendUrl);
-$shortcuts = array_values(array_filter($sections, static fn (array $section): bool => $section['href'] !== null));
+$shortcuts = HomeNavigation::shortcuts($sections);
 $areas = array_values(array_filter($sections, static fn (array $section): bool => $section['href'] === null));
 $status = HomeStatus::items($authorities, $backendUrl);
 $widgets = HomeWidgets::renderAll($authorities);
@@ -49,9 +49,9 @@ $site = trim((string) ($PATH->site ?? ''));
 <?php if ($shortcuts !== []) { ?>
     <h2 class="h6 text-body-secondary text-uppercase fw-semibold mb-3">Accesso rapido</h2>
     <div class="row g-3 mb-4">
-        <?php foreach ($shortcuts as $section) { ?>
+        <?php foreach ($shortcuts as $shortcut) { ?>
             <div class="col-12 col-sm-6 col-lg-4 col-xxl-3">
-                <?=LinkCard::make($section['title'], (string) $section['href'])->icon($section['icon'])->render('bootstrap')?>
+                <?=LinkCard::make($shortcut['title'], $shortcut['href'])->icon($shortcut['icon'])->render('bootstrap')?>
             </div>
         <?php } ?>
     </div>

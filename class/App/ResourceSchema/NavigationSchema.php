@@ -70,6 +70,7 @@ final class NavigationSchema
             # Classe `HomeLinkSummary` con badge e riga secondaria del
             # link in home. Solo la class-string: la calcola la home.
             'home_summary' => null,
+            'home_shortcut' => null,
         ];
     }
 
@@ -248,6 +249,18 @@ final class NavigationSchema
         }
 
         $this->schema['home_summary'] = $class;
+
+        return $this;
+    }
+
+    /**
+     * Mette la voce della Resource anche in "Accesso rapido" della home
+     * backend, come `LinkCard`, oltre che nella card della sua sezione.
+     * Senza icona usa quella della Resource.
+     */
+    public function homeShortcut(?string $icon = null): self
+    {
+        $this->schema['home_shortcut'] = ['icon' => $icon];
 
         return $this;
     }
