@@ -364,33 +364,30 @@
 
         /**
          * Le credenziali come sono salvate (`.env`, poi riga di security),
-         * senza il ripiego di api(): una `gcp_client_api_key` vuota resta
-         * vuota invece di prendere `gcp_api_key`. Serve a chi controlla cosa
-         * manca, come `GoogleApi::isConfigured()`; per usare le chiavi resta
-         * api(). Solo lato server, come api().
+         * senza ripieghi da una chiave all'altra. È il contratto per chi
+         * controlla cosa manca, come `GoogleApi::isConfigured()`: oggi
+         * coincide con api(), che non fa più ricadere la chiave pubblica
+         * Google sulla privata. Solo lato server, come api().
          *
          * @return array<string, mixed>
          */
         public static function storedApi(): array
         {
 
-            $api = clone self::api();
-            self::googleCloud($api, self::safeSecurityRow(), false);
-
-            return (array) $api;
+            return (array) self::api();
 
         }
 
         /**
-         * Progetto e chiavi Google Cloud. Con `$clientKeyFallback` una chiave
-         * pubblica vuota ricade sulla chiave privata, come ha sempre fatto
-         * api(); storedApi() lo spegne.
+         * Progetto e chiavi Google Cloud. La chiave pubblica non ricade sulla
+         * privata: finirebbe nella pagina (`GOOGLE_API_KEY`). Vuota, mappe e
+         * completamento indirizzi restano spenti.
          */
-        protected static function googleCloud(object $api, array $row, bool $clientKeyFallback = true): void
+        protected static function googleCloud(object $api, array $row): void
         {
             $api->gcp_project_id     = self::envOrRow('GCP_PROJECT_ID',     $row, 'gcp_project_id',     $api->gcp_project_id);
             $api->gcp_api_key        = self::envOrRow('GCP_API_KEY',        $row, 'gcp_api_key',        $api->gcp_api_key);
-            $api->gcp_client_api_key = self::envOrRow('GCP_CLIENT_API_KEY', $row, 'gcp_client_api_key', $clientKeyFallback ? $api->gcp_api_key : '');
+            $api->gcp_client_api_key = self::envOrRow('GCP_CLIENT_API_KEY', $row, 'gcp_client_api_key', $api->gcp_client_api_key);
         }
 
         /**

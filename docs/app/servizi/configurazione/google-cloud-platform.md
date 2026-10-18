@@ -22,7 +22,7 @@ Per crearle accedi a [Google Cloud](https://console.cloud.google.com/apis/creden
 * Limitazioni degli indirizzi IP: **Indirizzo IP del server**
 * Restrizioni delle API: **Non limitare la chiave**
 
-Se la chiave pubblica è vuota, `Credentials::api()->gcp_client_api_key` ricade sulla chiave privata, che così finisce nella pagina (`GOOGLE_API_KEY`): compila sempre entrambe. Per sapere cosa manca davvero usa `Credentials::storedApi()`, che restituisce i valori salvati (`.env`, poi riga di security) senza questo ripiego.
+La chiave pubblica è l'unica che arriva nella pagina (`GOOGLE_API_KEY`): se è vuota mappe e completamento degli indirizzi restano spenti, la chiave privata non la sostituisce. Per sapere cosa manca usa `Credentials::storedApi()`, i valori salvati (`.env`, poi riga di security) senza ripieghi.
 
 ### reCAPTCHA
 
