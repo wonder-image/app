@@ -22,6 +22,8 @@ Per crearle accedi a [Google Cloud](https://console.cloud.google.com/apis/creden
 * Limitazioni degli indirizzi IP: **Indirizzo IP del server**
 * Restrizioni delle API: **Non limitare la chiave**
 
+Se la chiave pubblica è vuota, `Credentials::api()->gcp_client_api_key` ricade sulla chiave privata, che così finisce nella pagina (`GOOGLE_API_KEY`): compila sempre entrambe. Per sapere cosa manca davvero usa `Credentials::storedApi()`, che restituisce i valori salvati (`.env`, poi riga di security) senza questo ripiego.
+
 ### reCAPTCHA
 
 Per creare la chiave del sito [clicca qui](https://www.google.com/recaptcha/admin/create), successivamente compila i campi come segue:

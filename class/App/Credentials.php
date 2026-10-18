@@ -324,9 +324,7 @@
                 // .env di prod NON le include — vince il DB popolato via
                 // backend admin.
                 self::$API->key                          = self::envOrRow('API_KEY',                          $row, 'api_key',                          self::$API->key);
-                self::$API->gcp_project_id               = self::envOrRow('GCP_PROJECT_ID',                   $row, 'gcp_project_id',                   self::$API->gcp_project_id);
-                self::$API->gcp_api_key                  = self::envOrRow('GCP_API_KEY',                      $row, 'gcp_api_key',                      self::$API->gcp_api_key);
-                self::$API->gcp_client_api_key           = self::envOrRow('GCP_CLIENT_API_KEY',               $row, 'gcp_client_api_key',               self::$API->gcp_api_key);
+                self::googleCloud(self::$API, $row);
                 self::$API->google_oauth_client_id       = self::envOrRow('GOOGLE_OAUTH_CLIENT_ID',           $row, 'google_oauth_client_id',           self::$API->google_oauth_client_id);
                 self::$API->google_oauth_client_secret   = self::envOrRow('GOOGLE_OAUTH_CLIENT_SECRET',       $row, 'google_oauth_client_secret',       self::$API->google_oauth_client_secret);
                 self::$API->google_oauth_redirect_uri    = self::envOrRow('GOOGLE_OAUTH_REDIRECT_URI',        $row, 'google_oauth_redirect_uri',        self::$API->google_oauth_redirect_uri);
@@ -362,6 +360,37 @@
 
             return self::$API;
 
+        }
+
+        /**
+         * Le credenziali come sono salvate (`.env`, poi riga di security),
+         * senza il ripiego di api(): una `gcp_client_api_key` vuota resta
+         * vuota invece di prendere `gcp_api_key`. Serve a chi controlla cosa
+         * manca, come `GoogleApi::isConfigured()`; per usare le chiavi resta
+         * api(). Solo lato server, come api().
+         *
+         * @return array<string, mixed>
+         */
+        public static function storedApi(): array
+        {
+
+            $api = clone self::api();
+            self::googleCloud($api, self::safeSecurityRow(), false);
+
+            return (array) $api;
+
+        }
+
+        /**
+         * Progetto e chiavi Google Cloud. Con `$clientKeyFallback` una chiave
+         * pubblica vuota ricade sulla chiave privata, come ha sempre fatto
+         * api(); storedApi() lo spegne.
+         */
+        protected static function googleCloud(object $api, array $row, bool $clientKeyFallback = true): void
+        {
+            $api->gcp_project_id     = self::envOrRow('GCP_PROJECT_ID',     $row, 'gcp_project_id',     $api->gcp_project_id);
+            $api->gcp_api_key        = self::envOrRow('GCP_API_KEY',        $row, 'gcp_api_key',        $api->gcp_api_key);
+            $api->gcp_client_api_key = self::envOrRow('GCP_CLIENT_API_KEY', $row, 'gcp_client_api_key', $clientKeyFallback ? $api->gcp_api_key : '');
         }
 
         /**
