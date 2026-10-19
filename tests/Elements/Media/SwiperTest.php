@@ -65,6 +65,12 @@ has('navigation el',             $zoom, "swiper-button-next");
 has('pagination el',             $zoom, "swiper-pagination");
 hasnt('zoom non apre lightbox',  $zoom, "Fancybox.bind");
 
+// --- fitContain: anche le miniature non si tagliano
+$contain = Swiper::make([ '/assets/upload/a.jpg' => 'Alpha', '/assets/upload/b.jpg' => 'Beta' ])
+    ->id('swiper-contain')->thumbnails()->fitContain()->render();
+has('slide e miniature contain',  $contain, "bg-contain");
+hasnt('nessuna miniatura cover',  $contain, "bg-cover");
+
 // --- Modalità LIGHTBOX (esclusiva con zoom)
 $light = Swiper::make([ '/assets/upload/a.jpg' => 'Alpha' ])
     ->id('swiper-light')->thumbnails()->lightbox('galleria')->loop()->download()->fullSize(2400)
