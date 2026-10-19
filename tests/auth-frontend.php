@@ -85,5 +85,9 @@ $csrf = AuthSession::csrfToken();
 $check(AuthSession::verify($csrf) && !AuthSession::verify('wrong'), 'CSRF verification failed.');
 AuthSession::queueEvent('login', 'google');
 $check(AuthSession::consumeEvents() === [['event' => 'login', 'method' => 'google']] && AuthSession::consumeEvents() === [], 'Auth event replayed.');
+$check($profile->phoneColumns('signup-completion') === 5 && $profile->phoneFieldSpan('signup-completion', 'phone_prefix') + $profile->phoneFieldSpan('signup-completion', 'phone') === 5, 'Signup phone prefix and number not on one phone row.');
+$check($profile->phoneColumns('login') === 1 && $profile->phoneFieldSpan('signup-request', 'name') === 1, 'Other auth forms lost the single phone column.');
+$authForm = (string) file_get_contents(dirname(__DIR__).'/app/view/components/frontend/account/auth-form.php');
+$check(str_contains($authForm, 'col-p-<?=$phone_columns?>') && str_contains($authForm, '$auth_profile->phoneFieldSpan($surface'), 'Auth form ignores the phone grid.');
 if ($failures !== []) { fwrite(STDERR, implode("\n", $failures)."\n"); exit(1); }
 echo "Auth frontend: OK\n";
