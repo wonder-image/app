@@ -17,7 +17,7 @@ La priorità è opt-in: solo la prima foto principale diventa eager con fetchpri
 
 Gallery ricava sizes dalle colonne: breakpoint Wonder 768/992px, Bootstrap md/xl (768/1200px). Il valore automatico presume un contenitore largo quanto il viewport e non sottrae i gap: usare imageSizes per contenitori più stretti. Swiper conserva il comportamento precedente se non vengono specificati imageSizes e thumbsImageSizes.
 
-Entrambi i temi usano il renderer Image del tema esplicito. Gli URL remoti non ricevono varianti inventate; per le immagini locali le varianti devono già esistere. Il rendering non converte né scarica immagini.
+Entrambi i temi usano il renderer Image del tema esplicito. Gli URL remoti non ricevono varianti inventate; per le immagini locali entrano nel `srcset` (e nella `<source>` webp) solo le varianti presenti su disco. Se manca la misura di default si usa la più piccola esistente non inferiore, altrimenti la più grande; se non esiste nessuna variante (resize ancora in coda) resta il file originale. `Image::url()` segue la stessa regola. Il rendering non converte né scarica immagini.
 
 ## Immagine mancante
 

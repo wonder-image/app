@@ -81,7 +81,7 @@
                 if ($thumbs) {
                     $this->imageDisplaySizes = $class->getSchema('thumbs-image-sizes');
                     $this->imagePriority = false;
-                    $thumbImg = $this->renderImage($item['src'], $item['alt'], $thumbSize, 'cover');
+                    $thumbImg = $this->renderImage($item['src'], $item['alt'], $thumbSize, $fit);
                     $thumbClasses = $this->escape($this->mediaClasses(['swiper-slide', 'overflow-hidden'], $thumbSlideClasses));
                     $thumbSlides .= "<div class='$thumbClasses'$thumbsRatioSuffix>$thumbImg</div>";
                 }

@@ -112,6 +112,8 @@
                 $this->defaultSize = null;
                 $this->sizes = [];
                 $this->webp = false;
+            } else {
+                $this->keepExistingVariants();
             }
 
             if ($this->defaultSize != null) {
@@ -132,6 +134,54 @@
             }
             $attributes += $this->missingLabelAttributes($src);
             $this->attributes = $this->renderAttributes($attributes);
+
+        }
+
+        /**
+         * Tiene nel srcset solo le varianti presenti su disco. Le misure possono mancare
+         * (resize differito in coda, coda fallita) e una <source> webp in 404 non ricade
+         * sulla successiva: meglio l'originale che un'immagine rotta.
+         * Misura di default mancante: la più piccola esistente non inferiore a quella chiesta,
+         * altrimenti la più grande; nessuna variante: resta l'originale.
+         * Il controllo scatta solo se l'originale è un file locale.
+         */
+        protected function keepExistingVariants(): void
+        {
+
+            if ($this->sizes === [] && $this->defaultSize === null) {
+                return;
+            }
+
+            if (Asset::path($this->src) === null) {
+                return;
+            }
+
+            $exists = fn (int $size, string $extension): bool
+                => Asset::path(sprintf('%s%s-%d.%s', $this->directoryUrl, $this->imageName, $size, $extension)) !== null;
+
+            $sizes = array_values(array_filter(
+                array_map('intval', $this->sizes),
+                fn (int $size): bool => $size > 0 && $exists($size, $this->extension)
+            ));
+
+            if ($this->webp && $this->extension !== 'webp') {
+                $webp = array_values(array_filter($sizes, fn (int $size): bool => $exists($size, 'webp')));
+                if ($webp === []) {
+                    $this->webp = false;
+                } else {
+                    $sizes = $webp;
+                }
+            }
+
+            $this->sizes = $sizes;
+
+            if ($this->defaultSize === null || in_array((int) $this->defaultSize, $sizes, true) || $exists((int) $this->defaultSize, $this->extension)) {
+                return;
+            }
+
+            $requested = (int) $this->defaultSize;
+            $larger = array_filter($sizes, static fn (int $size): bool => $size >= $requested);
+            $this->defaultSize = $larger !== [] ? min($larger) : ($sizes !== [] ? max($sizes) : null);
 
         }
 
