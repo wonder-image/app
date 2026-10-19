@@ -153,13 +153,16 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
         }
         unset($entity);
     }
-    // Organizzazione e sito su ogni pagina: le entità della pagina le
-    // riferiscono via @id (es. il venditore di un'offerta).
-    $siteUrl = (string) ($PATH->site ?? '');
-    $schemaGraph = \Wonder\Frontend\Support\SiteSchema::merge($schemaGraph, [
-        \Wonder\Frontend\Support\SiteSchema::organization($SOCIETY, $siteUrl, (string) ($PATH->logo ?? '')),
-        \Wonder\Frontend\Support\SiteSchema::webSite($siteUrl, $societyName, $seoLang, (string) ($SEO->searchUrl ?? '')),
-    ]);
+    // Organizzazione e sito su ogni pagina indicizzabile: le entità della
+    // pagina le riferiscono via @id (es. il venditore di un'offerta).
+    // Le pagine private (NOINDEX: login, account) non hanno JSON-LD pubblico.
+    if (!str_contains($seoRobots, 'NOINDEX')) {
+        $siteUrl = (string) ($PATH->site ?? '');
+        $schemaGraph = \Wonder\Frontend\Support\SiteSchema::merge($schemaGraph, [
+            \Wonder\Frontend\Support\SiteSchema::organization($SOCIETY, $siteUrl, (string) ($PATH->logo ?? '')),
+            \Wonder\Frontend\Support\SiteSchema::webSite($siteUrl, $societyName, $seoLang, (string) ($SEO->searchUrl ?? '')),
+        ]);
+    }
     if (!empty($SEO->breadcrumb)) {
         $schemaGraph = array_values(array_filter($schemaGraph, static fn ($entity): bool => is_array($entity) && ($entity['@type'] ?? '') !== 'BreadcrumbList'));
         $schemaGraph[] = json_decode(breadcrumb($SEO->breadcrumb, false), true);
