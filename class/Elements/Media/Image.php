@@ -160,7 +160,14 @@
                 $directory = str_replace((new Path())->site, '', $pathInfo['dirname']);
                 $directoryUrl = (new Path())->site.$directory.DIRECTORY_SEPARATOR;
 
-                return Asset::version(sprintf('%s%s-%d.%s', $directoryUrl, $name, $size, $extension));
+                $variant = sprintf('%s%s-%d.%s', $directoryUrl, $name, $size, $extension);
+
+                // Variante non ancora generata (resize in coda): resta l'originale locale.
+                if (Asset::path($variant) === null && Asset::path($image) !== null) {
+                    return Asset::version($image);
+                }
+
+                return Asset::version($variant);
 
             }
 
