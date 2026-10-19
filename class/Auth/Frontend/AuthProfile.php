@@ -57,6 +57,19 @@ class AuthProfile
             default => $this->columns($surface),
         };
     }
+    /** Da telefono la griglia è a una colonna; la registrazione a 5 tiene prefisso e cellulare sulla stessa riga, come gli indirizzi. */
+    public function phoneColumns(string $surface): int
+    {
+        return $surface === 'signup-completion' ? 5 : 1;
+    }
+    public function phoneFieldSpan(string $surface, string $key): int
+    {
+        return match (true) {
+            $surface === 'signup-completion' && $key === 'phone_prefix' => 2,
+            $surface === 'signup-completion' && $key === 'phone' => 3,
+            default => $this->phoneColumns($surface),
+        };
+    }
     public function requiresCompletion(array $user): bool
     {
         return $this->phoneRequired() && empty($user['phone']);
