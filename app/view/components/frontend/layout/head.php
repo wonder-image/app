@@ -255,18 +255,13 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 <?=Wonder\App\Dependencies::Head()?>
 <?=\Wonder\View\View::renderHead()?>
 
-<script>
+<?php // Con script deferred, un module inline gira dopo head.js e prima di body-end.js (select.js usa __t subito) ?>
+<script<?=Wonder\App\Dependencies::isFrontendDeferred() ? ' type="module"' : ''?>>
 
-    <?php if (Wonder\App\Dependencies::isFrontendDeferred()) : ?>
-    document.addEventListener('DOMContentLoaded', function () {
-    <?php endif; ?>
-      TranslationProvider.init(
-        <?=json_encode(Wonder\Localization\TranslationProvider::$translations)?>,
-        <?=json_encode(Wonder\Localization\TranslationProvider::$defaultTranslations)?>
-      );
-    <?php if (Wonder\App\Dependencies::isFrontendDeferred()) : ?>
-    }, { once: true });
-    <?php endif; ?>
+    TranslationProvider.init(
+      <?=json_encode(Wonder\Localization\TranslationProvider::$translations)?>,
+      <?=json_encode(Wonder\Localization\TranslationProvider::$defaultTranslations)?>
+    );
 
 </script>
 
