@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Added
+- `Query::bind($sql, $params)` e l'helper `sqlBind()`: legano valori a SQL
+  scritto a mano con segnaposto `?` o `:nome`, escapati sulla connessione;
+  segnaposto senza valore o valori in più lanciano `RuntimeException`. Le firme
+  degli helper `sql*` non cambiano.
+- `Support\UploadValidator` e `Support\UploadDir`: controllo di un upload
+  (whitelist estensioni, 10 MB, MIME reale) e sottocartella sicura dentro
+  `upload/`. Nuovo alert 927 (tipo di file non coerente) in tutte le lingue.
 - Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
   stato con icona e link, scorciatoia verso una pagina, elenco di link
   raggruppati. Li usa la home del backend; schede nel catalogo.
@@ -333,6 +340,20 @@
   `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
+- **list/table, editorjs e SSP: cambia il comportamento per chi chiama senza
+  sessione backend.** `api.backend.list.table`, `api.backend.editorjs.file` e
+  `.image` sono `guarded()`: senza login rimandano al Login e l'handler non
+  parte. list/table accetta solo tabelle di `Table::$list` (altrimenti 422),
+  lavora sempre sul database principale e non legge più area, autorità e
+  database dal POST. `SSP::complex` usa la connessione `mysqli` del chiamante
+  invece di aprire un PDO, escapa tabella e chiave primaria, lega i termini di
+  ricerca (`%` e `_` letterali) e in caso di errore risponde solo
+  `{"error":"Errore nel caricamento della tabella."}`, con il dettaglio nel
+  log e, solo con `APP_DEBUG`, nella chiave `detail`. Gli upload di editorjs
+  accettano un file alla volta in whitelist, con nome casuale; l'header `Dir`
+  vale solo come sottocartella relativa.
+- `resizeImage()` usa Intervention Image (GD) al posto di Gumlet, che non era
+  installato: stesse uscite small/medium/large, restituisce `bool`.
 - Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel
   menu a tre puntini di ogni riga; il nome apre la pagina della pianificazione
   con i dati di esecuzione, la DataTable **Esecuzioni** e in testata **Esegui
@@ -489,6 +510,10 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- `SSP::complex`: i binding di `whereAll` valgono anche per le query dei dati
+  e del conteggio filtrato, non solo per il totale.
+- Upload di editorjs con `Dir` vuoto: i file vanno in `upload/` e non più in
+  una cartella sorella `uploadXXXX`.
 - La colonna azioni delle tabelle backend rispetta `hiddenDevice()` come le
   altre colonne.
 - `AttributeString::parse()` legge i valori tra apici singoli: prima uscivano

@@ -100,6 +100,17 @@ Regole:
 `SSP::complex`. Il client non può alterarli senza rompere la firma. Chiave
 assente ⇒ nessun group by (tabelle non aggregate invariate).
 
+La rotta `api.backend.list.table` è `guarded()`: senza sessione backend non
+risponde. La tabella arriva dal client ma vale solo se è una chiave di
+`Table::$list` (cioè una tabella dichiarata), e la connessione è quella
+principale del sito. `SSP::complex` usa la connessione `mysqli` del chiamante
+(niente più PDO né DSN da POST), mette tabella e chiave primaria tra backtick
+con `Query::escapeIdentifier()` e lega i termini di ricerca con
+`Query::bind()`. Un errore SQL risponde solo
+`{"error":"Errore nel caricamento della tabella."}` e finisce nel log
+`storage/logs/error.log` (servizio `backend`, azione `list.table`); con
+`APP_DEBUG` la risposta aggiunge la chiave `detail`.
+
 Nelle Resource le colonne calcolate si dichiarano con `tableLayoutSchema()->select()`
 ([TableColumn e tableLayoutSchema](tablecolumn.md)): il renderer passa a
 `Table::select()` `` `tabella`.* `` più quelle colonne, senza `groupBy()`.
@@ -208,6 +219,9 @@ usarli:
 - **Limite**: `limit` vale solo `25`, `50`, `100`, `250`, `500` o `all`, cioè
   i bottoni; il resto mostra gli ultimi 25.
 - **Ricerca**: i termini entrano nel `LIKE` con l'escape della connessione.
+  La ricerca della DataTable (`SSP::complex`) invece lega ogni termine con un
+  segnaposto `Query::bind()` ed escapa `%` e `_`, quindi `100%` cerca il testo
+  letterale.
   Barra e titolo mostrano la ricerca codificata, senza la barra di
   `addslashes()`.
 - **Campi nascosti** del form dei filtri: chiavi e valori codificati; i

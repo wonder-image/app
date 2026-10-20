@@ -196,6 +196,14 @@ esce dal `sanitize` in scrittura e in lettura e l'HTML passa dalla whitelist di
 `->prepare('sanitize', false)`: la Resource unisce il formato del Model a quello
 del form, e `rich_text` fa saltare il `sanitize` anche se il form lo chiedesse.
 
+Gli upload dell'editor (`api.backend.editorjs.image` e `.file`) sono
+`guarded()`: servono una sessione backend. Accettano un solo file fino a 10 MB,
+con estensione in whitelist (immagini `png`, `jpg`, `jpeg`, `webp`; allegati
+documenti comuni, niente HTML, SVG o eseguibili) e MIME reale coerente
+(alert 921, 922, 927). L'header `Dir` vale solo come sottocartella relativa di
+`upload/`, e il file prende un nome casuale. Codici in
+`Support\UploadValidator`, cartella in `Support\UploadDir`.
+
 ### Scelta
 
 `select($options, $version = null)`, `radio($options, $searchBar = false)`,
