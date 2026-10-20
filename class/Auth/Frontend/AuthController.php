@@ -439,6 +439,7 @@ final class AuthController
             RecaptchaGuard::for($this->profile->captchaAction($action))
                 ->withService('auth-'.$this->profile->key())
                 ->withLogAction($action)
+                ->failClosed()
                 ->verify();
 
             return true;

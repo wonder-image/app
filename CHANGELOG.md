@@ -15,6 +15,20 @@
   apostrofi o spazi). **Ripiego transitorio, rimosso nella beta successiva.**
   `Wonder\Password::CheckPassword()` confronta con `hash_equals`. In account
   backend una password nuova vuota o di soli spazi è rifiutata con alert `977`.
+- **reCAPTCHA: fail-closed in produzione sull'auth, 401/403 errore di
+  configurazione, salto in locale (`C-PWD-I3`).** Nuovo
+  `RecaptchaGuard::failClosed(?bool $value = null)` (senza argomento: solo in
+  produzione): con Google irraggiungibile (eccezione, rete, 429, 5xx) la
+  verifica dà `617` con log `ERROR` invece del salto. Lo usano login,
+  registrazione e recupero password del frontend (`AuthController`); form
+  contatti, checkout e gli altri `Resource::verifyRecaptcha()` restano
+  fail-open. Un 401/403 di Google è ora `617` con `reason: config` (prima:
+  salto); l'engine li classifica `available: true` con il nuovo campo
+  `config`. Con `APP_ENV=local` la guardia salta sempre, prima di leggere il
+  token, con una riga `INFO` `reason: local_env`.
+  **Deprecata `G_RECAPTCHA_SECRET_KEY`:** nessuna verifica la usa (il server
+  usa `GCP_PROJECT_ID` + `GCP_API_KEY` di reCAPTCHA Enterprise); resta letta
+  dalle credenziali per compatibilità e verrà rimossa.
 - **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
   `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
   `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,

@@ -81,6 +81,7 @@ API fluente:
 | `->passes(): bool` | come sopra ma ritorna `false` invece di lanciare il `617` o il `618` |
 | `->withSiteKeys($checkbox, $score)` | chiavi del sito (default dalle credenziali); usato per i test |
 | `->minScore($score)` | punteggio v3 minimo (default `0.5`) |
+| `->failClosed(?bool $value = null)` | Google non raggiungibile → `617` invece del salto; senza argomento vale solo in produzione (default della guardia: salto) |
 | `RecaptchaGuard::configured()` | c'è almeno una chiave (casella o v3) |
 | `RecaptchaGuard::isFailure($e)` | `$e` è un 617 o un 618 della guardia |
 | `RecaptchaGuard::challenged($action)` | il form di `$action` deve mostrare la casella (legge e cancella il segno in sessione) |
@@ -126,10 +127,30 @@ rispondono 422 con `status: 618`, la lib accende la casella nello stesso
 riquadro; i form ridisegnati dal server la mostrano grazie al segno. Il
 successo cancella il segno.
 
-**Fail-open.** Se l'engine lancia o Google non risponde davvero (rete, 200
-senza JSON, 429, 5xx, 4xx diversi da 400) la verifica si **salta** con una
-riga di log (`skipped: true`). Non passano mai: token o azione assenti, tipo
-senza chiave, token non valido per Google, HTTP 400.
+**Fail-open e fail-closed.** Se l'engine lancia o Google non risponde davvero
+(rete, 200 senza JSON, 429, 5xx, 4xx diversi da 400, 401 e 403) la verifica si
+**salta** con una riga di log (`skipped: true`). Con `->failClosed()` in
+produzione dà invece `617` con log `ERROR`: lo usano login, registrazione e
+recupero password del frontend (`AuthController`). Form contatti, checkout e
+gli altri `Resource::verifyRecaptcha()` restano fail-open. Non passano mai:
+token o azione assenti, tipo senza chiave, token non valido per Google,
+HTTP 400.
+
+**401/403 = configurazione.** Google che risponde 401 o 403 vuol dire chiave
+API o progetto GCP sbagliati (o API Enterprise non abilitata): `617` con
+`reason: config` e log `ERROR`, mai salto, con o senza `failClosed()`.
+
+**In locale si salta.** Con `APP_ENV=local` la verifica si salta sempre, prima
+di leggere il token, con una riga `INFO` `reason: local_env`: i login su
+`*.test` funzionano anche con le chiavi GCP valorizzate e senza widget.
+
+**Credenziali server.** La verifica usa reCAPTCHA Enterprise: `GCP_PROJECT_ID`
+e `GCP_API_KEY` (chiave API Google Cloud con reCAPTCHA Enterprise API
+abilitata), più le chiavi del sito `G_RECAPTCHA_SITE_KEY` /
+`G_RECAPTCHA_SCORE_SITE_KEY`. `G_RECAPTCHA_SECRET_KEY` (chiave segreta della
+verifica classica `siteverify`) non è usata da nessuna verifica: è
+**deprecata**, ancora letta dalle credenziali per compatibilità, e verrà
+rimossa.
 
 **Limite noto.** Il ripiego `form.submit()` di `confirm.js` (browser senza
 `requestSubmit`) salta l'ascolto del submit della lib: con la v3 il form parte
@@ -147,8 +168,10 @@ le verifiche saltate scrivono `skipped: true`:
 | `invalid` | token oltre 8192 byte o con caratteri fuori da ASCII stampabile (`malformed`), oppure tipo senza chiave configurata (engine non chiamato in tutti e due i casi), oppure Google risponde `valid = false` | `617` | `WARNING` |
 | `action_mismatch` | action ricevuta ≠ action attesa (engine non chiamato), oppure action di Google ≠ attesa (`source: google`) | `617` | `WARNING` |
 | `low_score` | tipo `score`, punteggio sotto il minimo o assente | `618` con la chiave a casella, altrimenti `617` | `WARNING` |
-| `engine_unavailable` | Google non risponde davvero (`http_code` nel log) | salta | `WARNING` (0, 200 senza risposta, 429, 5xx), `ERROR` (ogni altro codice sotto 500: 401, 403, 404…; il 400 non arriva qui: va a `invalid`) |
-| `engine_error` | l'engine lancia un'eccezione (loggata l'originale) | salta | `ERROR` |
+| `config` | Google risponde 401 o 403 (chiave API o progetto) | `617` | `ERROR` |
+| `engine_unavailable` | Google non risponde davvero (`http_code` nel log) | salta; `617` con `failClosed` in produzione (`fail_closed: true`) | `WARNING` (0, 200 senza risposta, 429, 5xx), `ERROR` (ogni altro codice sotto 500: 404…; il 400 va a `invalid`, 401/403 a `config`); `ERROR` con `failClosed` |
+| `engine_error` | l'engine lancia un'eccezione (loggata l'originale) | salta; `617` con `failClosed` in produzione | `ERROR` |
+| `local_env` | `APP_ENV=local` | salta | `INFO` |
 
 Il context del log include action attesa, `request_uri`, `remote_addr` e flag di
 presenza credenziali (`has_gcp_project_id`, `has_gcp_api_key`, `has_site_key`,
@@ -182,7 +205,9 @@ php tests/Http/CallHttpCodeTest.php
 ```
 
 La guardia copre token valido, token/action mancanti, action mismatch (client
-e Google), fail-open (eccezione, 429, 5xx, rete, 4xx), `valid=false`, HTTP 400,
+e Google), fail-open (eccezione, 429, 5xx, rete, 4xx), fail-closed in
+produzione (eccezione e Google non disponibile → `617`), 401/403 come errore
+di configurazione, salto con `APP_ENV=local`, `valid=false`, HTTP 400,
 v3 col punteggio alto e basso, la sfida `618` e il suo segno in sessione,
 `passes()`, action vuota (BC) e la derivazione dell'action da `formSchema()`.
 L'engine è iniettato (fake) → nessuna HTTP reale; la classificazione della
