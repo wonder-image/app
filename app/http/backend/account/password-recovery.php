@@ -10,7 +10,13 @@ global $ALERT;
 $TITLE = 'Recupero password';
 $VALUES = $_POST;
 
-if (isset($_POST['recovery'])) {
+$RECOVERY_IDENTIFIER = Wonder\Auth\LoginThrottle::identifier((string) ($_POST['username'] ?? ''));
+
+if (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $RECOVERY_IDENTIFIER, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+    $ALERT = Wonder\Auth\LoginThrottle::ALERT;
+    Wonder\Auth\LoginThrottle::sendRetryAfter();
+    Wonder\Auth\AuthLog::write('recovery_throttled', null, 'backend', false, ['identifier' => $RECOVERY_IDENTIFIER]);
+} elseif (isset($_POST['recovery'])) {
     $VERIFY = verifyUser('username', $_POST['username'], 'backend');
 
     if ($VERIFY->response) {
@@ -25,18 +31,20 @@ if (isset($_POST['recovery'])) {
         Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 
         if (sendMail('noreply@wonderimage.it', $USER->email, 'Recupero password', $content)) {
-            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true);
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true, ['identifier' => $RECOVERY_IDENTIFIER]);
             header('Location: '.__r('backend.account.login').'?alert=601');
             exit;
         }
 
         Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
             'reason' => 'mail_failed',
+            'identifier' => $RECOVERY_IDENTIFIER,
         ]);
     } else {
         Wonder\Auth\AuthLog::write('password_recovery', null, 'backend', false, [
             'username' => $_POST['username'] ?? '',
             'alert' => $ALERT ?? null,
+            'identifier' => $RECOVERY_IDENTIFIER,
         ]);
     }
 }

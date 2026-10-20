@@ -364,6 +364,11 @@
         "title": "Requête non valide",
         "text": "La page a expiré ou la requête n'est pas valide. Rechargez la page et réessayez."
     },
+    "930": {
+        "type": "warning",
+        "title": "Trop de tentatives",
+        "text": "Vous avez effectué trop de tentatives en peu de temps. Patientez quelques minutes et réessayez."
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

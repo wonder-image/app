@@ -150,6 +150,18 @@
         // La password non passa da sanitize(): si verifica il valore grezzo.
         $PASSWORD = (string) $PASSWORD;
 
+        // Throttle prima di cercare l'utente: nessuna verifica password se bloccato.
+        $throttleIdentifier = Wonder\Auth\LoginThrottle::identifier((string) $VALUE);
+        if (!Wonder\Auth\LoginThrottle::check('login', $throttleIdentifier, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+            $ALERT = Wonder\Auth\LoginThrottle::ALERT;
+            Wonder\Auth\LoginThrottle::sendRetryAfter();
+            Wonder\Auth\AuthLog::write('login_throttled', null, $AREA, false, [
+                'key' => $KEY,
+                'identifier' => $throttleIdentifier,
+            ]);
+            return false;
+        }
+
         $U = infoUser($VALUE, $KEY);
         $reason = '';
 
@@ -286,6 +298,7 @@
             'key' => $KEY,
             'value' => $VALUE,
             'reason' => $reason,
+            'identifier' => Wonder\Auth\LoginThrottle::identifier((string) $VALUE),
         ];
 
         if (!empty($extraMeta)) {

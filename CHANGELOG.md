@@ -105,6 +105,16 @@
   successiva.
 
 ### Added
+- **Throttle di login e recupero password (`C-PWD-I2`).** Nuovo
+  `Wonder\Auth\LoginThrottle`: conteggio su `auth_log` in finestra scorrevole.
+  Login 5/15 min per email o username e 20/15 min per IP; recupero 3/15 min
+  per identificatore e 10/60 min per IP; x10 con `Environment::isLocal()`.
+  Bloccato: alert `930` («Troppi tentativi», nuovo in `notifications.json`;
+  il piano indicava `926`, già usato), `Retry-After`, `429` su `/oauth/login`,
+  evento `login_throttled`/`recovery_throttled`. Il recupero frontend oltre il
+  limite risponde «inviata» senza mail e ora scrive `recovery_request`.
+  `login_failed` e i log del recupero salvano `meta.identifier`. Indici
+  `auth_log(ip, creation)` e `(event, creation)` (non distruttivi).
 - `POST /api/token/page/` (rotta `token.page`, area `api`): rinnovo del token di pagina
   per la sessione corrente, `{ token, expires_in }`. Senza guard, solo
   same-origin e con sessione attiva (`403` altrimenti, `405` se non POST),

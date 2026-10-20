@@ -364,6 +364,11 @@
         "title": "Solicitud no válida",
         "text": "La página ha caducado o la solicitud no es válida. Recarga la página e inténtalo de nuevo."
     },
+    "930": {
+        "type": "warning",
+        "title": "Demasiados intentos",
+        "text": "Has realizado demasiados intentos en poco tiempo. Espera unos minutos e inténtalo de nuevo."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

@@ -8,7 +8,9 @@ use Wonder\Auth\Federated\Bridge\LegacySessionLoginAdapter;
 use Wonder\Auth\Federated\FederatedIdentityRepository;
 use Wonder\Auth\Federated\FederatedLoginService;
 use Wonder\Auth\Federated\GoogleIdTokenVerifier;
+use Wonder\Auth\AuthLog;
 use Wonder\Auth\Impersonation;
+use Wonder\Auth\LoginThrottle;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Auth\PasswordReset;
 use Wonder\Http\SafeRedirect;
@@ -234,15 +236,30 @@ final class AuthController
                 $this->render('password-recovery', ['sent' => false, 'errors' => $errors]);
                 return;
             }
-            $user = \infoUser($email, 'email');
+            $area = $this->profile->area();
 
-            if (($user->exists ?? false) && $this->profile->gateway()->canAccessArea((int) $user->id, $this->profile->area(), $this->profile->authorities())) {
+            // Oltre il limite la pagina risponde come un invio riuscito, senza mail.
+            if (!LoginThrottle::check('recovery', $email, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+                LoginThrottle::sendRetryAfter();
+                AuthLog::write('recovery_throttled', null, $area, false, ['identifier' => $email]);
+                $this->render('password-recovery', ['sent' => true, 'alert' => $ALERT ?? null]);
+                return;
+            }
+
+            $user = \infoUser($email, 'email');
+            $userId = null;
+            $mailSent = false;
+
+            if (($user->exists ?? false) && $this->profile->gateway()->canAccessArea((int) $user->id, $area, $this->profile->authorities())) {
+                $userId = (int) $user->id;
                 $issued = (new PasswordReset((int) $this->profile->resetTtl()))
-                    ->issueForUser((int) $user->id, $this->route('login'));
+                    ->issueForUser($userId, $this->route('login'));
                 $url = $this->absolute($this->route('password.restore').'?token='.rawurlencode($issued->token));
                 $from = (string) ($GLOBALS['SOCIETY']->email ?? '');
-                \sendMail($from, $email, (string) __t('auth.email.reset_subject'), (string) __t('auth.email.reset_body', ['url' => $url]));
+                $mailSent = (bool) \sendMail($from, $email, (string) __t('auth.email.reset_subject'), (string) __t('auth.email.reset_body', ['url' => $url]));
             }
+
+            AuthLog::write('recovery_request', $userId, $area, $mailSent, ['identifier' => $email]);
 
             $sent = true;
         }

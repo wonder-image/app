@@ -364,6 +364,11 @@
         "title": "Invalid request",
         "text": "The page has expired or the request is not valid. Reload the page and try again."
     },
+    "930": {
+        "type": "warning",
+        "title": "Too many attempts",
+        "text": "You have made too many attempts in a short time. Wait a few minutes and try again."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

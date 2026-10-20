@@ -535,6 +535,29 @@ beta successiva. Al login riuscito un hash phpass o con parametri superati
 viene sostituito (`passwordNeedsRehash()`), con evento `password_rehash` in
 `auth_log`. Nessun reset forzato degli utenti esistenti.
 
+### Throttle
+
+`Wonder\Auth\LoginThrottle::check($bucket, $identificatore, $ip)` conta le
+righe di `auth_log` in una finestra scorrevole sull'orologio del DB
+(`creation`), senza tabelle dedicate. Il core lo applica a login (frontend,
+backend, `/oauth/login`) e recupero password (frontend e backend); i moduli non
+lo duplicano.
+
+| bucket | eventi contati | per identificatore | per IP |
+|---|---|---|---|
+| `login` | `login_failed` | 5 in 15 min | 20 in 15 min |
+| `recovery` | `recovery_request`, `password_recovery`, `recovery_unknown` | 3 in 15 min | 10 in 60 min |
+
+L'identificatore è email o username in minuscolo senza spazi, salvato in
+`meta.identifier`. Con `Environment::isLocal()` i tentativi sono x10. Oltre il
+limite il login risponde con l'alert `930` e `Retry-After` (`/oauth/login`
+anche con `429`) e scrive `login_throttled` senza cercare l'utente né
+verificare la password; il recupero frontend mostra la pagina «inviata» senza
+spedire mail, quello backend mostra `930`; entrambi scrivono
+`recovery_throttled`. Gli eventi `*_throttled` non sono contati. Google e gli
+altri accessi federati non passano dal throttle password. Indici
+`auth_log(ip, creation)` e `(event, creation)` nello schema del core.
+
 ## Verifiche
 
 ### Apertura dei modal

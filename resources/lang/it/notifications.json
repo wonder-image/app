@@ -364,6 +364,11 @@
         "title": "Richiesta non valida",
         "text": "La pagina è scaduta o la richiesta non è valida. Ricarica la pagina e riprova."
     },
+    "930": {
+        "type": "warning",
+        "title": "Troppi tentativi",
+        "text": "Hai fatto troppi tentativi in poco tempo. Attendi qualche minuto e riprova."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",
