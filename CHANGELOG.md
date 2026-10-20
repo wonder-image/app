@@ -29,6 +29,16 @@
   **Deprecata `G_RECAPTCHA_SECRET_KEY`:** nessuna verifica la usa (il server
   usa `GCP_PROJECT_ID` + `GCP_API_KEY` di reCAPTCHA Enterprise); resta letta
   dalle credenziali per compatibilità e verrà rimossa.
+- **Auth: nessuna enumerazione degli account in pagina (`C-PWD-I5`).**
+  `authenticateUserLogin()` mappa anche `924` (registrazione senza password,
+  email da verificare senza `sent_link`) su `925`. Il login frontend di un
+  account solo federato non mostra più «accedi con Google»
+  (`use_federated_login_*`): risponde `925`, conta il tentativo e spedisce la
+  mail `auth.email.federated_*`. La registrazione con un'email già registrata
+  (`906`) non mostra più `email_exists`: reindirizza a `email.sent` come il
+  caso nuovo e spedisce `auth.email.existing_*`, nel bucket `recovery` con
+  l'evento `signup_existing`. I siti che leggono `906`/`924` dal login o
+  l'errore `email.exists` della registrazione vanno aggiornati.
 - **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
   `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
   `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,

@@ -132,7 +132,8 @@
         $key = resolveUserLoginIdentifierKey((string) $VALUE);
         $authenticated = authenticateUser($key, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED, $REMEMBER);
 
-        if (!$authenticated && in_array((int) ($ALERT ?? 0), [901, 904, 905], true)) {
+        // Stesso 925 per utente inesistente, password errata e registrazione senza password.
+        if (!$authenticated && in_array((int) ($ALERT ?? 0), [901, 904, 905, 924], true)) {
             $ALERT = 925;
         }
 

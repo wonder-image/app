@@ -20,7 +20,7 @@
                 'ip' => [20, 900],
             ],
             'recovery' => [
-                'events' => ['recovery_request', 'password_recovery', 'recovery_unknown'],
+                'events' => ['recovery_request', 'password_recovery', 'recovery_unknown', 'signup_existing'],
                 'identifier' => [3, 900],
                 'ip' => [10, 3600],
             ],
