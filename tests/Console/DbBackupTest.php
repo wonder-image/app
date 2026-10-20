@@ -15,6 +15,9 @@ use Wonder\App\Support\DatabaseBackup;
 require __DIR__ . '/../harness.php';
 require __DIR__ . '/../../vendor/autoload.php';
 
+// I nomi dei backup sono in UTC: le date dei test senza fuso vanno lette in UTC.
+date_default_timezone_set('UTC');
+
 $base = sys_get_temp_dir().'/wi-dbbackup-test-'.bin2hex(random_bytes(4));
 mkdir($base, 0777, true);
 
