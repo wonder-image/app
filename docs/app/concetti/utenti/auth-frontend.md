@@ -524,6 +524,17 @@ un solo h1, breadcrumb SEO vuoto e nessun JSON-LD pubblico per queste pagine.
 interno (null per ospiti) e consuma una volta gli eventi `login`/`sign_up`
 accodati solo dopo il successo. Niente email, telefoni, token o indirizzi.
 
+### Password
+
+La password non passa da `sanitize()`: si confronta e si salva il valore
+inviato (solo `trim()` in `hashPassword()`). I nuovi hash usano argon2id, o
+bcrypt se PHP non lo offre. `checkUserPassword($password, $hash)` accetta
+anche gli hash phpass (`$P$`/`$H$`) e, solo per questi, riprova il valore
+sanificato delle password storiche; il ripiego è transitorio e sparisce nella
+beta successiva. Al login riuscito un hash phpass o con parametri superati
+viene sostituito (`passwordNeedsRehash()`), con evento `password_rehash` in
+`auth_log`. Nessun reset forzato degli utenti esistenti.
+
 ## Verifiche
 
 ### Apertura dei modal

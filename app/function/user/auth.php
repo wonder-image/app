@@ -147,7 +147,8 @@
         global $ALERT;
 
         $VALUE = sanitize($VALUE);
-        $PASSWORD = sanitize($PASSWORD);
+        // La password non passa da sanitize(): si verifica il valore grezzo.
+        $PASSWORD = (string) $PASSWORD;
 
         $U = infoUser($VALUE, $KEY);
         $reason = '';
@@ -165,7 +166,7 @@
             return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
         }
 
-        if (!checkPassword($PASSWORD, $U->password)) {
+        if (!checkUserPassword($PASSWORD, $U->password)) {
             $ALERT = 905;
             $reason = 'invalid_password';
             return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
@@ -239,6 +240,13 @@
 
                 return false;
             }
+        }
+
+        if (passwordNeedsRehash($U->password)) {
+            $rehash = sqlModify('user', ['password' => hashPassword($PASSWORD)], 'id', $U->id);
+            Wonder\Auth\AuthLog::write('password_rehash', (int) $U->id, $AREA, (bool) ($rehash->success ?? false), [
+                'from' => isLegacyPasswordHash($U->password) ? 'phpass' : 'password_hash',
+            ]);
         }
 
         if (session_status() === PHP_SESSION_ACTIVE) {

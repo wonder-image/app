@@ -35,9 +35,9 @@ if (!$CSRF_VALID && (isset($_POST['modify']) || isset($_POST['modify-password'])
 }
 
 if ($CSRF_VALID && isset($_POST['modify'])) {
-    $password = sanitize($_POST['password']);
+    $password = (string) ($_POST['password'] ?? '');
 
-    if (checkPassword($password, $VALUES['password'])) {
+    if (checkUserPassword($password, $VALUES['password'])) {
         $POST = array_merge($_POST, $_FILES);
         $UPLOAD = user($POST, $USER->id);
         $VALUES = $UPLOAD->values;
@@ -51,9 +51,9 @@ if ($CSRF_VALID && isset($_POST['modify'])) {
 }
 
 if ($CSRF_VALID && isset($_POST['modify-password'])) {
-    $oldPassword = sanitize($_POST['old-password']);
+    $oldPassword = (string) ($_POST['old-password'] ?? '');
 
-    if (checkPassword($oldPassword, $VALUES['password'])) {
+    if (checkUserPassword($oldPassword, $VALUES['password'])) {
         $newPassword = hashPassword($_POST['new-password']);
         $saved = sqlModify('user', ['password' => $newPassword], 'id', $USER->id);
 

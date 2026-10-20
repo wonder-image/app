@@ -3,6 +3,17 @@
 ## Unreleased
 
 ### Breaking
+- **Password: argon2id/bcrypt, niente `sanitize()` (`C-PWD-I1`).**
+  `hashPassword()` usa `password_hash()` con `PASSWORD_ARGON2ID` (bcrypt se
+  argon2id non è disponibile). `checkPassword()` verifica sia i nuovi hash sia
+  i phpass `$P$`/`$H$` (confronto con `hash_equals`); al login riuscito
+  `authenticateUser()` reidrata la password con `hashPassword()` quando
+  `passwordNeedsRehash()` è vero e scrive `password_rehash` in `auth_log`.
+  Nessun reset forzato. La password non passa più da `sanitize()`, né al login
+  né in account backend: `checkUserPassword()` prova il valore grezzo e, solo
+  per un hash phpass, ripiega sul valore sanificato (password storiche con
+  apostrofi o spazi). **Ripiego transitorio, rimosso nella beta successiva.**
+  `Wonder\Password::CheckPassword()` confronta con `hash_equals`.
 - **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
   `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
   `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,

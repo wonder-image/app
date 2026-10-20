@@ -361,6 +361,7 @@ function csrfPagesStubs(): void
         function user($post, $id = null) { $GLOBALS['W'][] = 'user()'; $GLOBALS['ALERT'] = 900; return (object) ['values' => $post, 'written' => false]; }
         function sanitize($v) { return $v; }
         function checkPassword($a, $b) { return true; }
+        function checkUserPassword($a, $b) { return true; }
         function hashPassword($v) { return 'h'; }
         function formToArray($table, $post, $fields, $old = null) { return ['name' => $post['name'] ?? '']; }
     STUBS);
