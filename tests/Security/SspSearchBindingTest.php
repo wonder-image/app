@@ -69,11 +69,21 @@ check('carattere di $CHARACTERS bindato nella forma salvata in tabella', static 
     return $values($bindings) === [':binding_0' => '%caff&egrave;%'];
 });
 
-check('barra inversa e virgolette: tolte solo le barre di addslashes', static function () use ($search, $values): bool {
+check('barra inversa e virgolette: tolte le barre di addslashes, la barra del termine escapata per LIKE', static function () use ($search, $values): bool {
     $bindings = [];
     SSP::filter($search('a\\b"c'), ['name'], $bindings);
 
-    return $values($bindings) === [':binding_0' => '%a\\b"c%'];
+    return $values($bindings) === [':binding_0' => '%a\\\\b"c%'];
+});
+
+check('termine a\\b: la barra resta letterale per LIKE anche dopo il binding', static function () use ($binder, $search, $values): bool {
+    $bindings = [];
+    SSP::filter($search('a\\b'), ['name'], $bindings);
+    $sql = SSP::complexQueries($binder, $search('a\\b'), 'users', 'id', [], ['name']);
+
+    // Valore LIKE `%a\\b%`; nel letterale SQL ogni barra è raddoppiata di nuovo.
+    return $values($bindings) === [':binding_0' => '%a\\\\b%']
+        && str_contains($sql['data'], "LIKE '%a\\\\\\\\b%'");
 });
 
 check('due relazioni: tre binding distinti per parola', static function () use ($values): bool {
@@ -147,5 +157,25 @@ check('senza ricerca nessun binding', static function () use ($search): bool {
 
 check('bindParams: nomi senza due punti, interi in ordine', static fn () =>
     SSP::bindParams([['key' => ':a', 'val' => 1], ['key' => 0, 'val' => 'x'], ['key' => 1, 'val' => 'y']]) === ['a' => 1, 0 => 'x', 1 => 'y']);
+
+check('ricerca senza binding non più possibile', static function () use ($search): bool {
+    $calls = [
+        static fn () => SSP::buildSearchWhere('mario', ['name']),
+        static fn () => SSP::filter($search('mario'), ['name']),
+        static fn () => SSP::relationCondition(['table' => 't', 'local_key' => 'k', 'foreign_key' => 'id', 'columns' => ['n']], '%x%'),
+    ];
+
+    foreach ($calls as $call) {
+        try {
+            $call();
+            return false;
+        } catch (ArgumentCountError) {
+        }
+    }
+
+    $source = (string) file_get_contents(__DIR__.'/../../class/Backend/Table/SSP.php');
+
+    return !str_contains($source, '"\'%".$word."%\'"') && !str_contains($source, '$bindings === null');
+});
 
 summary();

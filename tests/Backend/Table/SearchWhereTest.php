@@ -8,6 +8,16 @@ declare(strict_types=1);
 require __DIR__ . '/../../../vendor/autoload.php';
 
 use Wonder\Backend\Table\SSP;
+use Wonder\Sql\Query;
+
+// Il termine arriva solo come binding: per confrontare il SQL lo si lega con un escaper finto.
+function searchWhere(string $value, array $fields): string
+{
+    $bindings = [];
+    $where = SSP::buildSearchWhere($value, $fields, $bindings);
+
+    return Query::withEscaper('addslashes')->bind($where, SSP::bindParams($bindings));
+}
 
 $fail = 0;
 function check(string $label, $got, $expected) {
@@ -23,14 +33,14 @@ function check(string $label, $got, $expected) {
 // 1) plain columns, single word
 check(
     'single word, main columns',
-    SSP::buildSearchWhere('mario', ['name', 'surname']),
+    searchWhere('mario', ['name', 'surname']),
     "(CONCAT_WS(' ', `name`, `surname`) LIKE '%mario%')"
 );
 
 // 2) plain columns, two words -> AND between words
 check(
     'two words, main columns',
-    SSP::buildSearchWhere('mario rossi', ['name', 'surname']),
+    searchWhere('mario rossi', ['name', 'surname']),
     "(CONCAT_WS(' ', `name`, `surname`) LIKE '%mario%') AND (CONCAT_WS(' ', `name`, `surname`) LIKE '%rossi%')"
 );
 
@@ -38,22 +48,22 @@ check(
 $relation = ['table' => 'user', 'local_key' => 'user_id', 'foreign_key' => 'id', 'columns' => ['email', 'username']];
 check(
     'relation + main, single word',
-    SSP::buildSearchWhere('mario', ['name', $relation]),
+    searchWhere('mario', ['name', $relation]),
     "((CONCAT_WS(' ', `name`) LIKE '%mario%') OR (`user_id` IN (SELECT `id` FROM `user` WHERE CONCAT_WS(' ', `email`, `username`) LIKE '%mario%')))"
 );
 
 // 4) only a relation, no main columns
 check(
     'relation only',
-    SSP::buildSearchWhere('mario', [$relation]),
+    searchWhere('mario', [$relation]),
     "(`user_id` IN (SELECT `id` FROM `user` WHERE CONCAT_WS(' ', `email`, `username`) LIKE '%mario%'))"
 );
 
 // 5) empty search value -> empty string
-check('empty value', SSP::buildSearchWhere('', ['name']), '');
+check('empty value', searchWhere('', ['name']), '');
 
 // 6) no usable fields -> empty string
-check('no fields', SSP::buildSearchWhere('mario', []), '');
+check('no fields', searchWhere('mario', []), '');
 
 echo $fail === 0 ? "\nALL PASS\n" : "\n$fail FAILURES\n";
 exit($fail === 0 ? 0 : 1);

@@ -15,7 +15,8 @@ use Wonder\App\Table as AppTable;
 final class ListTableRequest
 {
     /**
-     * Tabella richiesta se registrata, altrimenti null (l'handler risponde 422).
+     * Chiave canonica (minuscola, come in `Table::$list`) della tabella
+     * richiesta se registrata, altrimenti null (l'handler risponde 422).
      *
      * @param array<string,mixed>|null $registry default `Table::$list`
      */
@@ -25,7 +26,7 @@ final class ListTableRequest
             return null;
         }
 
-        return self::registered($table, $registry) ? $table : null;
+        return self::registered($table, $registry) ? strtolower($table) : null;
     }
 
     /**

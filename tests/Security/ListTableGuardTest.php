@@ -53,9 +53,10 @@ PHP;
     return implode("\n", $output);
 };
 
-check('tabella registrata: accettata anche con maiuscole', function () use ($registry) {
+check('tabella registrata: accettata anche con maiuscole, restituita con la chiave canonica', function () use ($registry) {
     return ListTableRequest::table('users', $registry) === 'users'
-        && ListTableRequest::table('USERS', $registry) === 'USERS'
+        && ListTableRequest::table('USERS', $registry) === 'users'
+        && ListTableRequest::table('Users', $registry) === 'users'
         && ListTableRequest::table('gst_product_models', $registry) === 'gst_product_models';
 });
 

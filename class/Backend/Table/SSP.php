@@ -199,12 +199,11 @@
          *
          *  @param  array $request Data sent to server by DataTables
          *  @param  array $columns Column information array
-         *  @param  array|null $bindings Con un array il termine va nei binding
-         *    (segnaposto `:binding_N`, vedi bind()); con null resta il vecchio
-         *    percorso a stringa con il termine di sanitize() nel LIKE.
+         *  @param  array $bindings Riceve i binding del termine (segnaposto
+         *    `:binding_N`, vedi bind()): il termine non entra mai nel SQL.
          *  @return string SQL where clause
          */
-        static function filter ( $request, $columns, ?array &$bindings = null )
+        static function filter ( $request, $columns, array &$bindings )
         {
 
             if ( !isset($request['search']) || $request['search']['value'] === '' ) {
@@ -213,12 +212,8 @@
 
             $fields = is_array($columns) ? $columns : [];
 
-            if ( $bindings === null ) {
-                $where = self::buildSearchWhere( sanitize($request['search']['value']), $fields );
-            } else {
-                // Codifica di sanitize() conservata, barre di addslashes tolte: l'escape lo fa il binding.
-                $where = self::buildSearchWhere( stripslashes(sanitize($request['search']['value'])), $fields, $bindings );
-            }
+            // Codifica di sanitize() conservata, barre di addslashes tolte: l'escape lo fa il binding.
+            $where = self::buildSearchWhere( stripslashes(sanitize($request['search']['value'])), $fields, $bindings );
 
             return $where === '' ? '' : 'WHERE '.$where;
 
@@ -232,12 +227,11 @@
          * @param array  $fields      Mixed list: string = main-table column;
          *   array = relation descriptor with keys table, local_key, foreign_key,
          *   columns[] and/or relations[] (nested descriptors, same shape)
-         * @param array|null $bindings Con un array ogni LIKE diventa un
-         *   segnaposto distinto con valore `%termine%` (`%` e `_` del termine
-         *   escapati); con null il termine resta nel letterale come prima.
+         * @param array $bindings Ogni LIKE diventa un segnaposto distinto con
+         *   valore `%termine%` (`%`, `_` e `\` del termine escapati).
          * @return string WHERE body, or '' when nothing is searchable
          */
-        static function buildSearchWhere ( string $searchValue, array $fields, ?array &$bindings = null )
+        static function buildSearchWhere ( string $searchValue, array $fields, array &$bindings )
         {
             $searchValue = trim($searchValue);
             if ( $searchValue === '' ) {
@@ -269,27 +263,15 @@
 
             foreach ( $words as $word ) {
                 $ors = [];
+                // `\` è il carattere di escape di LIKE: va raddoppiato come `%` e `_`.
+                $value = '%'.addcslashes($word, '%_\\').'%';
 
-                if ( $bindings === null ) {
-                    $like = "'%".$word."%'";
+                if ( $mainConcat !== '' ) {
+                    $ors[] = "(".$mainConcat." LIKE ".self::bind($bindings, $value).")";
+                }
 
-                    if ( $mainConcat !== '' ) {
-                        $ors[] = "(".$mainConcat." LIKE ".$like.")";
-                    }
-
-                    foreach ( $relations as $rel ) {
-                        $ors[] = self::relationCondition($rel, $like);
-                    }
-                } else {
-                    $value = '%'.addcslashes($word, '%_').'%';
-
-                    if ( $mainConcat !== '' ) {
-                        $ors[] = "(".$mainConcat." LIKE ".self::bind($bindings, $value).")";
-                    }
-
-                    foreach ( $relations as $rel ) {
-                        $ors[] = self::relationCondition($rel, '', $bindings, $value);
-                    }
+                foreach ( $relations as $rel ) {
+                    $ors[] = self::relationCondition($rel, $value, $bindings);
                 }
 
                 $perWord[] = count($ors) === 1 ? $ors[0] : '('.implode(' OR ', $ors).')';
@@ -330,21 +312,20 @@
          * `local_key IN (SELECT foreign_key FROM table WHERE ...)` for one
          * relation: its own columns and its nested relations, OR-ed, so the
          * search can walk movement -> version -> product. Every identifier is
-         * escaped at every level. Con `$bindings` ogni LIKE riceve un proprio
-         * segnaposto per `$value` e `$like` viene ignorato.
+         * escaped at every level. Ogni LIKE riceve un proprio segnaposto per
+         * `$value`.
          */
-        static function relationCondition ( array $relation, string $like, ?array &$bindings = null, ?string $value = null )
+        static function relationCondition ( array $relation, string $value, array &$bindings )
         {
             $conditions = [];
 
             if ( !empty($relation['columns']) && is_array($relation['columns']) ) {
-                $operand = $bindings === null ? $like : self::bind($bindings, (string) $value);
-                $conditions[] = self::concatIdentifiers($relation['columns'])." LIKE ".$operand;
+                $conditions[] = self::concatIdentifiers($relation['columns'])." LIKE ".self::bind($bindings, $value);
             }
 
             foreach ( (array) ($relation['relations'] ?? []) as $child ) {
                 if ( self::isRelation($child) ) {
-                    $conditions[] = self::relationCondition($child, $like, $bindings, $value);
+                    $conditions[] = self::relationCondition($child, $value, $bindings);
                 }
             }
 
