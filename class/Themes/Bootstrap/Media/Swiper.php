@@ -43,6 +43,8 @@
             // Swiper.js sempre; Fancybox/Panzoom solo se zoom o lightbox: caricati on-demand.
             Dependencies::swiper();
             if ($zoom || $lightbox) { Dependencies::fancyapps(); }
+            // Lo zoom impagina con le classi f-panzoom: il loro CSS serve subito.
+            if ($zoom) { Dependencies::blockingStyle('fancyapps'); }
 
             $slides = "";
             $thumbSlides = "";
