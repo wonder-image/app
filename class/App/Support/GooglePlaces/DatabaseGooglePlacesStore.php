@@ -44,6 +44,7 @@ class DatabaseGooglePlacesStore implements GooglePlacesStore
                 'id' => $id,
                 'label' => trim((string) ($row['label'] ?? '')) ?: 'Sede '.$id,
                 'place_id' => trim((string) ($row['google_place_id'] ?? '')),
+                'sync_hours' => ($row['google_sync_hours'] ?? 'false') === 'true',
                 'business_status' => trim((string) ($row['business_status'] ?? '')) ?: null,
                 'hours' => (array) $location->hours,
                 'special_hours' => (array) $location->specialHours,

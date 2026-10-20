@@ -144,6 +144,9 @@
             new DateTimeImmutable('today')
         );
         $RETURN->businessStatus = (string) ($LOCATION->business_status ?? 'operational');
+        // Copia di Google e recensioni salvate dal task `wonder.google-places`.
+        $RETURN->google = $LOCATION->google ?? null;
+        $RETURN->reviews = (array) ($LOCATION->reviews ?? []);
 
         $LOGOS = sqlSelect('logos', [ 'id' => '1'], 1)->row;
 

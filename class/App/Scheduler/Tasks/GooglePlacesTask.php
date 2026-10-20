@@ -12,9 +12,9 @@ use Wonder\App\Support\GooglePlaces\{DatabaseGooglePlacesStore, GooglePlacesStor
  * backend, e senza la chiave `GCP_API_KEY` ogni esecuzione si limita a
  * registrare che è stata saltata.
  *
- * Parametri: `apply_hours` (bool) sostituisce gli orari della sede con
- * quelli di Google invece di segnalare solo le differenze; `language`
- * (codice lingua, vuoto = lingua predefinita del sito) per le recensioni.
+ * Gli orari si sostituiscono solo nelle sedi con «Sincronizzazione orari da
+ * Google» attiva. Parametro: `language` (codice lingua, vuoto = lingua
+ * predefinita del sito) per le recensioni.
  */
 class GooglePlacesTask extends AbstractTask
 {
@@ -29,28 +29,25 @@ class GooglePlacesTask extends AbstractTask
     public function expression(): string { return '30 3 * * *'; }
     public function enabled(): bool { return true; }
     public function alwaysEnabled(): bool { return true; }
-    public function defaultParameters(): array { return ['apply_hours' => false, 'language' => '']; }
+    public function defaultParameters(): array { return ['language' => '']; }
 
     public function validate(array $parameters): array
     {
-        $unknown = array_diff(array_keys($parameters), ['apply_hours', 'language']);
+        // `apply_hours` è delle versioni precedenti: ora decide ogni sede.
+        unset($parameters['apply_hours']);
+        $unknown = array_diff(array_keys($parameters), ['language']);
 
         if ($unknown !== []) {
             throw new \InvalidArgumentException('Parametri non ammessi: '.implode(', ', $unknown).'.');
         }
 
-        $apply = $parameters['apply_hours'] ?? false;
         $language = $parameters['language'] ?? '';
-
-        if (!is_bool($apply)) {
-            throw new \InvalidArgumentException('apply_hours deve essere true o false.');
-        }
 
         if (!is_string($language) || ($language !== '' && preg_match('/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/', $language) !== 1)) {
             throw new \InvalidArgumentException('language deve essere un codice lingua (es. it, en-GB) o vuoto.');
         }
 
-        return ['apply_hours' => $apply, 'language' => $language];
+        return ['language' => $language];
     }
 
     public function run(Context $context): array
@@ -69,6 +66,6 @@ class GooglePlacesTask extends AbstractTask
             $this->store ?? new DatabaseGooglePlacesStore()
         );
 
-        return $sync->run($parameters['apply_hours'], $language, $context->log(...), $context->checkDeadline(...));
+        return $sync->run($language, $context->log(...), $context->checkDeadline(...));
     }
 }

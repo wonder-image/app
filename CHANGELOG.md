@@ -11,6 +11,10 @@
   (whitelist estensioni, 10 MB, MIME reale) e sottocartella sicura dentro
   `upload/`. Nuovi alert 927 (tipo di file non coerente) e 928 (elaborazione
   dell'immagine non riuscita, PNG, JPG o WEBP) in tutte le lingue.
+- Campo «Sincronizzazione orari da Google» nelle sedi (`google_sync_hours`,
+  default No): con Sì il task `wonder.google-places` sostituisce gli orari
+  della sede con quelli di Google, con No restano gli orari manuali e la
+  scheda non mostra differenze. Serve `php forge update` per la colonna.
 - Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
   stato con icona e link, scorciatoia verso una pagina, elenco di link
   raggruppati. Li usa la home del backend; schede nel catalogo.
@@ -115,8 +119,8 @@
 - Sedi e Google (#71): task `wonder.google-places` (spento, ogni notte alle
   03:30) che legge da Places API (New) orari regolari, secondari e speciali,
   stato, voto medio e al massimo cinque recensioni di ogni sede con Place ID
-  (`GCP_API_KEY`). Di default segnala solo le differenze, con `apply_hours`
-  sostituisce gli orari diversi; lo stato non si applica mai. Nuove tabelle
+  (`GCP_API_KEY`). Sostituisce gli orari solo nelle sedi con la
+  sincronizzazione attiva (vedi sopra); lo stato non si applica mai. Nuove tabelle
   `society_location_google` e `society_location_reviews`; `SocietyLocations`
   aggiunge `google` e `reviews` a ogni sede. Differenze ed errori compaiono
   sopra la scheda della sede.
@@ -369,6 +373,9 @@
   solo il server; una pagina aperta prima dell'aggiornamento va ricaricata.
 - `resizeImage()` usa Intervention Image (GD) al posto di Gumlet, che non era
   installato: stesse uscite small/medium/large, restituisce `bool`.
+- `wonder.google-places`: tolto il parametro `apply_hours` (le pianificazioni
+  che lo hanno ancora non danno errore, si ignora); decide il campo della sede.
+  `GooglePlacesSync::run()` non riceve più `$applyHours`.
 - Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel
   menu a tre puntini di ogni riga; il nome apre la pagina della pianificazione
   con i dati di esecuzione, la DataTable **Esecuzioni** e in testata **Esegui
@@ -529,6 +536,9 @@
   e del conteggio filtrato, non solo per il totale.
 - Upload di editorjs con `Dir` vuoto: i file vanno in `upload/` e non più in
   una cartella sorella `uploadXXXX`.
+- `$SOCIETY` / `infoSociety()` espongono `google` e `reviews` della sede, come
+  da documentazione: prima si perdevano perché si copiavano solo i valori
+  scalari (wonder-image/app#108).
 - La colonna azioni delle tabelle backend rispetta `hiddenDevice()` come le
   altre colonne.
 - `AttributeString::parse()` legge i valori tra apici singoli: prima uscivano
