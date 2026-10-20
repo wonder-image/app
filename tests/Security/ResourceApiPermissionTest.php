@@ -185,6 +185,25 @@ check('Registrar: rotta abilitata ma senza permessi non registrata e loggata', f
         && !str_contains($written, '.store non registrata');
 });
 
+check('Registrar: il log "non registrata" e scritto una sola volta per slug.azione', function () {
+    $log = tempnam(sys_get_temp_dir(), 'wi-log');
+    $previous = ini_set('error_log', $log);
+    $method = new ReflectionMethod(ResourceRouteRegistrar::class, 'apiActionAllowed');
+    $routes = (array) ApiPermStoreResource::apiSchema()->get('routes');
+
+    $first = $method->invoke(null, ApiPermStoreResource::class, 'api-perm-dedup', 'index', $routes);
+    $second = $method->invoke(null, ApiPermStoreResource::class, 'api-perm-dedup', 'index', $routes);
+    $other = $method->invoke(null, ApiPermStoreResource::class, 'api-perm-dedup', 'destroy', $routes);
+
+    ini_set('error_log', (string) $previous);
+    $written = (string) file_get_contents($log);
+    @unlink($log);
+
+    return $first === false && $second === false && $other === false
+        && substr_count($written, 'api.resource.api-perm-dedup.index non registrata') === 1
+        && substr_count($written, 'api.resource.api-perm-dedup.destroy non registrata') === 1;
+});
+
 # Guard
 
 check('guard() senza argomento dichiara api_internal_user', function () {

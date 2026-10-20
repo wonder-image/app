@@ -8,6 +8,9 @@ use Wonder\Http\Route;
 
 final class ResourceRouteRegistrar
 {
+    /** @var array<string, true> `slug.azione` gia segnalate in questo processo. */
+    private static array $unregisteredWarned = [];
+
     public static function registerBackend(string $rootApp): void
     {
         Route::name('resource.')
@@ -201,7 +204,8 @@ final class ResourceRouteRegistrar
 
     /**
      * Rotta abilitata ma senza permessi `api` per l'azione: non registrata
-     * (il controller risponderebbe comunque 403) e segnalata nel log.
+     * (il controller risponderebbe comunque 403) e segnalata nel log una
+     * sola volta per processo.
      */
     private static function apiActionAllowed(string $resourceClass, string $slug, string $action, array $routes): bool
     {
@@ -213,7 +217,10 @@ final class ResourceRouteRegistrar
             return true;
         }
 
-        error_log("[wonder-image] api.resource.{$slug}.{$action} non registrata: permissionSchema()->api('{$action}') vuoto.");
+        if (!isset(self::$unregisteredWarned["{$slug}.{$action}"])) {
+            self::$unregisteredWarned["{$slug}.{$action}"] = true;
+            error_log("[wonder-image] api.resource.{$slug}.{$action} non registrata: permissionSchema()->api('{$action}') vuoto.");
+        }
 
         return false;
     }
