@@ -353,9 +353,27 @@ php forge start
   never 500. Mint tokens with `ApiTokens::issue()` (random `jti`, `exp` from
   `API_TOKEN_TTL`, default 0 = none; `@system` always none) and rotate with
   `regenerateApiToken()`. Pages print `API_TOKEN = ApiTokens::pageToken()`,
-  a short-lived `typ: page` JWT bound to the `@system` token: never print
-  `Credentials::appToken()` in HTML. Server-only endpoints pass
-  `allowPageToken: false` to `Handler::run()`. `api_activity.token` stores only
+  a `typ: page` JWT (`API_PAGE_TOKEN_TTL`, default 3600) bound to the
+  `@system` token and, with an active session, to it through the `sid` claim
+  (HMAC of the session id; `BearerVerifier::verify(..., $sessionId)` rejects a
+  mismatch, sid-less legacy tokens live until `exp`): never print
+  `Credentials::appToken()` in HTML. Renewal is `POST /api/token/page/`
+  (`api.token.page`), no guard but `Wonder\Http\SameOrigin` and an active
+  session. Server-only endpoints pass `allowPageToken: false` to
+  `Handler::run()`.
+- Resource API routes: an action with no authorities in
+  `permissionSchema()->api(...)` is denied (403) and not registered; a declared
+  `apiSchema()->guard()` is an extra required authority; page tokens are
+  rejected unless `apiSchema()->allowPageToken()`. Checks live in
+  `Wonder\Api\Support\ResourceApiAccess`; never change
+  `Endpoint::resolveAuth([])`, which non-Resource handlers rely on.
+- Backend list mutations (`change/boolean`, `active`, `visible`, `delete`,
+  `move`, `file/delete`, `file/move`, `authority`) authorize through
+  `Wonder\Backend\Table\TableAuthorization` before any SQL: Resource tables
+  use `permissionSchema()->backend()` `update`/`delete`, legacy tables admin
+  only; file endpoints validate table/column (`format.file`) and folder
+  (`UploadDir::normalize`) with a generic 422; `authority` only on `user`,
+  never the caller's own row. `api_activity.token` stores only
   `ApiTokens::fingerprint()`; `ApiActivityTokenMigration` clears old bearers
   during `forge update`. See `docs/app/piattaforma/api.md#token`.
 - Request-supplied redirect targets (`continue`, backend `?redirect=` base64)

@@ -116,7 +116,7 @@ Revocare significa svuotare `api_users.token` o mettere la riga `active = false`
 | Chiave `.env` | Default | Significato |
 | --- | --- | --- |
 | `API_TOKEN_TTL` | `0` | secondi di vita dei token emessi da `apiUser()` / `regenerateApiToken()`; `0` = senza `exp` |
-| `API_PAGE_TOKEN_TTL` | `43200` (12 ore) | vita del token di pagina, da 300 a 604800 |
+| `API_PAGE_TOKEN_TTL` | `3600` (1 ora) | vita del token di pagina, da 300 a 604800 |
 | `API_TOKEN_REQUIRE_EXP` | spento | `true` rifiuta i token senza `exp` |
 
 Il default resta `0` perché gli utenti API dei moduli (per esempio `@immobili`, il cui token è salvato nell'URL di push di Gestim) non sanno rinnovarsi. Il token di `@system` resta sempre senza scadenza (`_api_token_ttl => 0` in `build/row/user.php`). `apiUser()` accetta `_api_token_ttl` per scegliere la durata di un singolo utente.
@@ -129,11 +129,14 @@ Percorso di migrazione verso token con scadenza:
 
 ### Token di pagina (`API_TOKEN`)
 
-Le pagine frontend e backend stampano `const API_TOKEN`, che la lib manda come `Authorization: Bearer` da `API_CLIENT` / `API_CLIENT_APP`. Prima era il token di `@system`, cioè un bearer riutilizzabile senza scadenza consegnato a ogni visitatore. Ora è `ApiTokens::pageToken()`: un JWT di `@system` con `typ: page`, `exp` obbligatoria (`API_PAGE_TOKEN_TTL`) e legato al token di sistema corrente (`tid` + `tkh`, un'impronta parziale), senza contenerlo.
+Le pagine frontend e backend stampano `const API_TOKEN`, che la lib manda come `Authorization: Bearer` da `API_CLIENT` / `API_CLIENT_APP`. Prima era il token di `@system`, cioè un bearer riutilizzabile senza scadenza consegnato a ogni visitatore. Ora è `ApiTokens::pageToken()`: un JWT di `@system` con `typ: page`, `exp` obbligatoria (`API_PAGE_TOKEN_TTL`, 1 ora), legato al token di sistema corrente (`tid` + `tkh`, un'impronta parziale), senza contenerlo, e alla sessione (`sid`).
 
 - Gli endpoint con `api_internal_user` lo accettano come prima: le chiamate della lib non cambiano.
 - Gli endpoint con `allowPageToken: false` lo rifiutano con `401` (`/api/app/update/`, `/api/task/scheduler/`, `/api/task/sitemap/`).
-- Una scheda rimasta aperta oltre la durata riceve `401 Token scaduto` alla chiamata successiva e va ricaricata: la lib non rinnova il token.
+- Le route Resource (`api.resource.*`) lo rifiutano con `401` salvo `apiSchema()->allowPageToken()`: vedi [Route e API](../concetti/risorse/route-e-api.md#chi-puo-chiamare-le-route-api).
+- **Legato alla sessione.** Con una sessione PHP attiva (sempre nelle pagine, anche anonime) il token porta `sid`, un HMAC dell'id di sessione con `APP_KEY`: vale solo insieme al cookie di quella sessione, altrimenti `401 Token di pagina non valido per questa sessione`. Copiato fuori dal browser, o dopo `session_regenerate_id()` (login, logout), non vale più.
+- **Rinnovo**: `POST /api/token/page/` (rotta `api.token.page`) restituisce `{ "success": true, "token": "…", "expires_in": 3600 }`, un token nuovo per la stessa sessione. Non ha guard ma risponde solo a richieste same-origin (`Wonder\Http\SameOrigin`: `Sec-Fetch-Site: same-origin`, oppure `Origin` con lo stesso host e porta) e con una sessione attiva; altrimenti `403`, `405` se non è POST. La risposta ha `Cache-Control: no-store`. La lib non lo usa ancora: una scheda rimasta aperta oltre la durata riceve `401 Token scaduto` e va ricaricata.
+- I token senza `sid`, emessi prima di questa versione, valgono fino alla loro `exp` (al massimo il vecchio `API_PAGE_TOKEN_TTL`), poi `401`. Il ramo di compatibilità sarà tolto in una versione successiva.
 - `$CALL->isPageToken()` dice all'endpoint se la chiamata arriva da una pagina.
 
 Il token di pagina dà comunque accesso, per la sua durata, agli endpoint `api_internal_user`: la chiusura completa richiede che la lib chiami quelli con la sessione e il token CSRF invece del bearer.

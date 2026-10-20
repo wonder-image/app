@@ -2,7 +2,59 @@
 
 ## Unreleased
 
+### Breaking
+- **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
+  `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
+  non consentita per questa risorsa.») prima di `Endpoint`, e
+  `ResourceRouteRegistrar` non registra la route (`api.resource.<slug>.<azione>
+  non registrata` nel log). Prima `[]` significava «qualsiasi authority». Il
+  default di `PermissionSchema` è vuoto: le Resource (anche dei moduli) che non
+  dichiarano permessi API perdono le route API finché non li dichiarano.
+  `Endpoint::resolveAuth([])` non cambia: MCP, task, update e alert restano
+  come sono.
+- **API delle Resource: `apiSchema()->guard()` ora è applicato.** Se la Resource
+  lo dichiara (default `api_internal_user`), l'utente del bearer deve avere
+  anche quell'authority (`403` altrimenti). Prima il campo non era mai letto;
+  senza `guard()` non si richiede nulla in più.
+- **API delle Resource: token di pagina solo su opt-in.** `API_TOKEN` (`typ:
+  page`) è rifiutato con `401` sulle route `api.resource.*` salvo
+  `apiSchema()->allowPageToken()`. Le Resource chiamate dalla lib nel browser
+  (per esempio un form pubblico con `store`) devono dichiararlo.
+- **Mutazioni dall'elenco backend autorizzate per tabella.** `change/boolean`,
+  `active`, `visible`, `move`, `file/delete`, `file/move` (permesso `update`) e
+  `delete` (permesso `delete`) passano da `TableAuthorization`: tabella con
+  Resource → `permissionSchema()->backend(...)`; tabella legacy senza Resource
+  → solo `admin`. Prima bastava essere un utente backend attivo. Rifiuto `403`
+  «Operazione non consentita.».
+- **`api.backend.authority`**: `permit(['admin'])`, solo tabella `user`, mai la
+  propria riga.
+- **`file/delete` e `file/move` validano i parametri.** Tabella risolta su
+  `Table::$list`, colonna con input di tipo file (`format.file`), `folder`
+  normalizzato con `UploadDir::normalize` sotto `upload/`; altrimenti `422`
+  «Parametri non validi.» senza SQL. Indice del file inesistente → `404`.
+- **Token di pagina: 1 ora e legato alla sessione.** `API_PAGE_TOKEN_TTL`
+  passa da `43200` a `3600`. Con una sessione PHP attiva (anche anonima) il
+  token porta `sid`, HMAC dell'id di sessione, e `BearerVerifier` lo rifiuta
+  (`401`) se la richiesta non ha quella sessione: non vale più copiato fuori dal
+  browser, né dopo `session_regenerate_id()` (login/logout) finché la pagina non
+  viene ricaricata o il token rinnovato. `BearerVerifier::verify()` ha un
+  parametro finale `?string $sessionId`. Compatibilità: i token senza `sid`
+  emessi prima del rilascio valgono fino alla loro `exp` naturale, poi `401`.
+
 ### Added
+- `POST /api/token/page/` (rotta `api.token.page`): rinnovo del token di pagina
+  per la sessione corrente, `{ token, expires_in }`. Senza guard, solo
+  same-origin e con sessione attiva (`403` altrimenti, `405` se non POST),
+  `Cache-Control: no-store`. La lib non lo usa ancora.
+- `Wonder\Http\SameOrigin::check()`: `Sec-Fetch-Site: same-origin` oppure
+  `Origin` con lo stesso host e porta della richiesta.
+- `ApiTokens::sessionBinding()` / `currentSessionId()`; `ApiTokens::page()`
+  accetta `$sessionId`.
+- `ApiSchema::allowPageToken()` / `allowsPageToken()` e `declaredGuard()`;
+  `Wonder\Api\Support\ResourceApiAccess` (permessi, guard e token di pagina
+  delle route Resource); `Endpoint::userAuthorities()`.
+- `Wonder\Backend\Table\TableAuthorization`: autorizzazione delle mutazioni
+  su tabella, colonna file e cartella di upload.
 - `Query::bind($sql, $params)` e l'helper `sqlBind()`: legano valori a SQL
   scritto a mano con segnaposto `?` o `:nome`, escapati sulla connessione;
   segnaposto senza valore o valori in più lanciano `RuntimeException`. Le firme
@@ -501,7 +553,7 @@
   del catalogo.
 - `const API_TOKEN` nei `head.php` frontend e backend (e nell'anteprima del
   catalogo) è un token di pagina di `@system` (`ApiTokens::pageToken()`):
-  `typ: page`, scadenza `API_PAGE_TOKEN_TTL` (12 ore) e legato al token di
+  `typ: page`, scadenza `API_PAGE_TOKEN_TTL` (1 ora, vedi Breaking) e legato al token di
   sistema corrente. Prima era il token di `@system`, riutilizzabile e senza
   scadenza. Le chiamate della lib non cambiano; `/api/app/update/`,
   `/api/task/scheduler/` e `/api/task/sitemap/` rifiutano il token di pagina
@@ -525,6 +577,8 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- `ConfigCodec::context()` codifica con `JSON_THROW_ON_ERROR`: un contesto non
+  codificabile lancia invece di diventare `''`.
 - `SSP::complex`: i binding di `whereAll` valgono anche per le query dei dati
   e del conteggio filtrato, non solo per il totale.
 - Upload di editorjs con `Dir` vuoto: i file vanno in `upload/` e non più in
