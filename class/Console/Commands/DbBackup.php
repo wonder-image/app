@@ -12,8 +12,9 @@ use Wonder\App\Support\DatabaseBackup;
 /**
  * `forge db:backup [--keep=N] [--path=DIR]`
  *
- * Dump gzip del database in `storage/backup/<Ymd-His>.sql.gz`,
- * mantenendo gli ultimi N backup (default 5).
+ * Dump gzip del database in `storage/backup/<Ymd-His>-<8 hex>.sql.gz` (UTC),
+ * mantenendo gli ultimi N backup (default 5). Il dump PHP di ripiego non gestisce
+ * colonne generate, binari con charset multibyte e fuso dei TIMESTAMP.
  */
 class DbBackup extends Command
 {

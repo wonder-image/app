@@ -4,7 +4,8 @@
 
 ### Added
 - Comando `php forge db:backup` (`Support\DatabaseBackup`): dump gzip del
-  database in `storage/backup/<Ymd-His>.sql.gz`, con `mysqldump` (credenziali in
+  database in `storage/backup/<Ymd-His>-<8 hex>.sql.gz` (data e ora UTC, suffisso
+  casuale), con `mysqldump` (credenziali in
   un file di opzioni temporaneo `0600`, mai sulla riga di comando) o, se manca,
   con un dump PHP via mysqli. Se `mysqldump` fallisce (exit ≠ 0, stderr, output
   vuoto o, con i commenti attivi, senza il marcatore finale `-- Dump completed`;
@@ -13,8 +14,12 @@
   `backup_warning`); fallisce solo se falliscono entrambi, senza lasciare file
   parziali.
   Con MariaDB (client `mysqldump --version` o server `SELECT VERSION()`) omette
-  `--set-gtid-purged=OFF`. `--keep=N` (default 5) ruota i vecchi backup,
-  `--path=` cambia cartella.
+  `--set-gtid-purged=OFF`. `--keep=N` (default 5) ruota i vecchi backup in
+  ordine di data del nome, `--path=` cambia cartella. Nella cartella scrive, se
+  mancano, `.htaccess` con `Require all denied` e un `index.html` vuoto; senza,
+  il backup non parte. Su nginx serve una regola del server per `storage/`.
+  Il dump PHP non gestisce colonne generate, binari con charset multibyte e
+  fuso dei `TIMESTAMP`: è un ripiego.
 - `php forge update` crea un backup prima di rinomine e migrazioni quando il
   database ha già tabelle; se il backup fallisce l'update si ferma. L'opzione
   `--no-backup` (o `'backup' => false` in `UpdateRunner::execute()`) lo salta;

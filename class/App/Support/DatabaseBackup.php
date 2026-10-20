@@ -4,6 +4,7 @@ namespace Wonder\App\Support;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use DateTimeZone;
 use InvalidArgumentException;
 use mysqli;
 use RuntimeException;
@@ -13,7 +14,9 @@ use Wonder\App\LegacyGlobals;
 use Wonder\Sql\Connection;
 
 /**
- * Dump gzip del database `main` in `storage/backup/<Ymd-His>.sql.gz`.
+ * Dump gzip del database `main` in `storage/backup/<Ymd-His>-<8 hex>.sql.gz`.
+ * Data e ora del nome sono in UTC; il suffisso casuale rende il nome non indovinabile.
+ * La cartella riceve un `.htaccess` con `Require all denied` e un `index.html` vuoto.
  *
  * Usa `mysqldump` se presente nel PATH e `proc_open` è disponibile (credenziali in un
  * `--defaults-extra-file` temporaneo 0600, mai negli argomenti),
@@ -42,7 +45,10 @@ final class DatabaseBackup
     /** Opzione che il mysqldump di MariaDB non conosce (e che i server MariaDB non usano). */
     private const GTID_OPTION = '--set-gtid-purged=OFF';
 
-    private const FILE_PATTERN = '/^\d{8}-\d{6}\.sql\.gz$/';
+    /** Riconosce anche il vecchio nome senza suffisso, così la rotazione lo smaltisce. */
+    private const FILE_PATTERN = '/^(\d{8}-\d{6})(?:-[0-9a-f]{8})?\.sql\.gz$/';
+
+    private const HTACCESS = "Require all denied\n";
 
     private const INSERT_BATCH_ROWS = 100;
 
@@ -68,9 +74,18 @@ final class DatabaseBackup
         return rtrim($root, '/').'/storage/backup';
     }
 
-    public static function fileName(?DateTimeInterface $at = null): string
+    /** `Ymd-His` in UTC più 8 hex casuali; `$suffix` serve ai test. */
+    public static function fileName(?DateTimeInterface $at = null, ?string $suffix = null): string
     {
-        return ($at ?? new DateTimeImmutable())->format('Ymd-His').'.sql.gz';
+        $suffix ??= bin2hex(random_bytes(4));
+
+        if (preg_match('/^[0-9a-f]{8}$/', $suffix) !== 1) {
+            throw new InvalidArgumentException('Il suffisso del backup deve essere di 8 caratteri esadecimali.');
+        }
+
+        $at = DateTimeImmutable::createFromInterface($at ?? new DateTimeImmutable())->setTimezone(new DateTimeZone('UTC'));
+
+        return $at->format('Ymd-His').'-'.$suffix.'.sql.gz';
     }
 
     public static function findMysqldump(?string $path = null): ?string
@@ -177,7 +192,8 @@ final class DatabaseBackup
     }
 
     /**
-     * Mantiene gli ultimi `$keep` backup (`Ymd-His.sql.gz`); gli altri file non vengono toccati.
+     * Mantiene gli ultimi `$keep` backup (`Ymd-His-<hex>.sql.gz`), in ordine di data del nome
+     * (non di mtime); gli altri file non vengono toccati.
      *
      * @return list<string> file rimossi
      */
@@ -190,16 +206,16 @@ final class DatabaseBackup
         $files = [];
 
         foreach (scandir($directory) ?: [] as $entry) {
-            if (preg_match(self::FILE_PATTERN, $entry) === 1 && is_file($directory.'/'.$entry)) {
-                $files[] = $entry;
+            if (preg_match(self::FILE_PATTERN, $entry, $match) === 1 && is_file($directory.'/'.$entry)) {
+                $files[$entry] = $match[1];
             }
         }
 
-        sort($files, SORT_STRING);
+        uksort($files, static fn (string $a, string $b): int => [$files[$a], $a] <=> [$files[$b], $b]);
 
         $removed = [];
 
-        foreach (array_slice($files, 0, max(0, count($files) - $keep)) as $entry) {
+        foreach (array_slice(array_keys($files), 0, max(0, count($files) - $keep)) as $entry) {
             if (@unlink($directory.'/'.$entry)) {
                 $removed[] = $directory.'/'.$entry;
             }
@@ -278,15 +294,20 @@ final class DatabaseBackup
 
     private function ensureDirectory(string $directory): void
     {
-        if (is_dir($directory)) {
-            return;
+        if (!is_dir($directory)) {
+            if (!@mkdir($directory, 0750, true) && !is_dir($directory)) {
+                throw new RuntimeException('Impossibile creare la cartella dei backup: '.$directory);
+            }
+
+            @chmod($directory, 0750);
         }
 
-        if (!@mkdir($directory, 0750, true) && !is_dir($directory)) {
-            throw new RuntimeException('Impossibile creare la cartella dei backup: '.$directory);
+        // La cartella sta sotto la document root: Apache non deve servire i dump.
+        foreach (['.htaccess' => self::HTACCESS, 'index.html' => ''] as $name => $content) {
+            if (!file_exists($directory.'/'.$name) && @file_put_contents($directory.'/'.$name, $content) === false) {
+                throw new RuntimeException('Impossibile proteggere la cartella dei backup: '.$directory.'/'.$name);
+            }
         }
-
-        @chmod($directory, 0750);
     }
 
     private function dumpWithMysqldump(string $binary, string $temporary): void
@@ -461,7 +482,7 @@ final class DatabaseBackup
         try {
             $charset = $this->connectionCharset($connection);
 
-            $this->write($gz, "-- Wonder Image db:backup (dump PHP) ".date('Y-m-d H:i:s')."\n");
+            $this->write($gz, "-- Wonder Image db:backup (dump PHP) ".gmdate('Y-m-d H:i:s')." UTC\n");
             $this->write($gz, ($charset !== '' ? "SET NAMES {$charset};\n" : '')."SET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n");
 
             foreach ($this->baseTables($connection) as $table) {

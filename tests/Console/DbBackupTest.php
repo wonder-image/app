@@ -53,10 +53,29 @@ $script = static function (string $name, string $body, string $version = MYSQL_V
     return $path;
 };
 
-$entries = static fn (string $dir): array => array_values(array_diff(scandir($dir) ?: [], ['.', '..']));
+// Elenco della cartella senza i file di protezione; il suffisso casuale diventa XXXXXXXX.
+$entries = static fn (string $dir): array => array_values(array_map(
+    static fn (string $name): string => (string) preg_replace('/-[0-9a-f]{8}\.sql\.gz$/', '-XXXXXXXX.sql.gz', $name),
+    array_diff(scandir($dir) ?: [], ['.', '..', '.htaccess', 'index.html'])
+));
 
-check('nome file Ymd-His.sql.gz', fn () =>
-    DatabaseBackup::fileName(new DateTimeImmutable('2026-10-20 09:05:03')) === '20261020-090503.sql.gz');
+check('nome file Ymd-His-<8 hex>.sql.gz, orario in UTC', function () {
+    $name = DatabaseBackup::fileName(new DateTimeImmutable('2026-10-20 09:05:03', new DateTimeZone('UTC')));
+    $rome = DatabaseBackup::fileName(new DateTimeImmutable('2026-10-20 11:05:03', new DateTimeZone('Europe/Rome')), 'abcdef01');
+
+    return preg_match('/^20261020-090503-[0-9a-f]{8}\.sql\.gz$/', $name) === 1
+        && $name !== DatabaseBackup::fileName(new DateTimeImmutable('2026-10-20 09:05:03', new DateTimeZone('UTC')))
+        && $rome === '20261020-090503-abcdef01.sql.gz';
+});
+
+check('nome file: suffisso non esadecimale rifiutato', function () {
+    try {
+        DatabaseBackup::fileName(null, '../../x');
+    } catch (InvalidArgumentException) {
+        return true;
+    }
+    return false;
+});
 
 check('cartella di default ROOT/storage/backup', fn () =>
     DatabaseBackup::defaultDirectory('/srv/sito/') === '/srv/sito/storage/backup');
@@ -64,19 +83,21 @@ check('cartella di default ROOT/storage/backup', fn () =>
 check('rotazione: restano gli ultimi N, gli altri file non si toccano', function () use ($base, $entries) {
     $dir = $base.'/rotate';
     mkdir($dir);
-    $names = ['20260101-000000', '20260102-000000', '20260103-120000', '20260103-120001', '20260201-000000', '20250101-000000', '20261231-235959'];
-    foreach ($names as $name) {
-        touch($dir.'/'.$name.'.sql.gz');
+    // mtime opposte alla data del nome: conta solo il nome. Il vecchio formato senza suffisso rientra.
+    $names = ['20260101-000000-ffffffff', '20260102-000000-00000000', '20260103-120000-12345678', '20260103-120001-00000000', '20260201-000000-aaaaaaaa', '20250101-000000', '20261231-235959-0badc0de'];
+    foreach ($names as $i => $name) {
+        touch($dir.'/'.$name.'.sql.gz', 2000000000 - $i * 86400);
     }
     touch($dir.'/note.txt');
-    touch($dir.'/.20260101-000000.sql.gz.abcd.tmp');
+    touch($dir.'/.20260101-000000-ffffffff.sql.gz.abcd.tmp');
+    touch($dir.'/20260101-000000-ZZZZZZZZ.sql.gz');
 
     $removed = DatabaseBackup::rotate($dir, 3);
-    $left = $entries($dir);
+    $left = array_values(array_diff(scandir($dir) ?: [], ['.', '..']));
     sort($left);
 
-    return count($removed) === 4
-        && $left === ['.20260101-000000.sql.gz.abcd.tmp', '20260103-120001.sql.gz', '20260201-000000.sql.gz', '20261231-235959.sql.gz', 'note.txt'];
+    return array_map('basename', $removed) === ['20250101-000000.sql.gz', '20260101-000000-ffffffff.sql.gz', '20260102-000000-00000000.sql.gz', '20260103-120000-12345678.sql.gz']
+        && $left === ['.20260101-000000-ffffffff.sql.gz.abcd.tmp', '20260101-000000-ZZZZZZZZ.sql.gz', '20260103-120001-00000000.sql.gz', '20260201-000000-aaaaaaaa.sql.gz', '20261231-235959-0badc0de.sql.gz', 'note.txt'];
 });
 
 check('rotazione con keep < 1 rifiutata', function () use ($base) {
@@ -146,7 +167,7 @@ check('mysqldump ok: gzip completo, password solo nel file 0600 poi rimosso', fu
     $dump = gzdecode((string) file_get_contents($backup->path));
     $args = (string) file_get_contents($log.'/args');
 
-    return $backup->path === $dir.'/20261020-100000.sql.gz'
+    return preg_match('#^'.preg_quote($dir, '#').'/20261020-100000-[0-9a-f]{8}\.sql\.gz$#', $backup->path) === 1
         && $backup->method === 'mysqldump'
         && $backup->fallback === null
         && $dump === "CREATE TABLE t (id int);\nINSERT INTO t VALUES (1);\n".MARKER."\n"
@@ -156,20 +177,50 @@ check('mysqldump ok: gzip completo, password solo nel file 0600 poi rimosso', fu
         && trim((string) file_get_contents($log.'/mode')) === '-rw-------'
         && !file_exists(trim((string) file_get_contents($log.'/path')))
         && (fileperms($dir) & 0777) === 0750
-        && $entries($dir) === ['20261020-100000.sql.gz'];
+        && $entries($dir) === ['20261020-100000-XXXXXXXX.sql.gz']
+        && (string) file_get_contents($dir.'/.htaccess') === "Require all denied\n"
+        && (string) file_get_contents($dir.'/index.html') === '';
 });
 
 check('run applica la rotazione (--keep)', function () use ($base, $credentials, $script, $entries) {
     $dir = $base.'/keep';
     mkdir($dir);
     foreach (['20260101-000000', '20260102-000000', '20260103-000000'] as $name) {
-        touch($dir.'/'.$name.'.sql.gz');
+        touch($dir.'/'.$name.'-00000000.sql.gz');
     }
     $binary = $script('keep', "echo 'SELECT 1;'\necho ".escapeshellarg(MARKER));
     $backup = (new DatabaseBackup($binary, null, $credentials))->run($dir, 2, new DateTimeImmutable('2026-10-20 11:00:00'));
 
     return count($backup->removed) === 2
-        && $entries($dir) === ['20260103-000000.sql.gz', '20261020-110000.sql.gz'];
+        && $entries($dir) === ['20260103-000000-XXXXXXXX.sql.gz', '20261020-110000-XXXXXXXX.sql.gz'];
+});
+
+check('cartella esistente: .htaccess e index.html aggiunti se mancano, mai sovrascritti', function () use ($base, $credentials, $script) {
+    $dir = $base.'/protect';
+    mkdir($dir);
+    file_put_contents($dir.'/.htaccess', "# del sito\nRequire all denied\n");
+    $binary = $script('protect', "echo 'SELECT 1;'\necho ".escapeshellarg(MARKER));
+    (new DatabaseBackup($binary, null, $credentials))->run($dir);
+
+    return (string) file_get_contents($dir.'/.htaccess') === "# del sito\nRequire all denied\n"
+        && is_file($dir.'/index.html');
+});
+
+check('cartella non protetta (scrittura negata): nessun backup', function () use ($base, $credentials, $script) {
+    $dir = $base.'/readonly';
+    mkdir($dir);
+    chmod($dir, 0500);
+    $binary = $script('readonly', "echo 'SELECT 1;'\necho ".escapeshellarg(MARKER));
+
+    try {
+        (new DatabaseBackup($binary, null, $credentials))->run($dir);
+    } catch (RuntimeException $e) {
+        $ok = str_contains($e->getMessage(), 'proteggere') && array_diff(scandir($dir) ?: [], ['.', '..']) === [];
+    } finally {
+        chmod($dir, 0700);
+    }
+
+    return $ok ?? false;
 });
 
 /** mysqli finto: tabelle, viste e righe in memoria. */
@@ -238,7 +289,7 @@ check('mysqldump KO, dump PHP OK: file presente, metodo php, errore di mysqldump
         && str_contains((string) $backup->fallback, 'Access denied')
         && str_contains($dump, 'CREATE TABLE `products`')
         && !str_contains($dump, 'parziale')
-        && $entries($dir) === ['20261020-130000.sql.gz']
+        && $entries($dir) === ['20261020-130000-XXXXXXXX.sql.gz']
         && !file_exists(trim((string) file_get_contents($base.'/fallback-path')));
 });
 
@@ -295,7 +346,7 @@ check('mysqldump exit 0 senza «-- Dump completed» (troncato): si ripiega sul d
     return $backup->method === 'php'
         && str_contains((string) $backup->fallback, 'troncato')
         && !str_contains($dump, 'INSERT INTO t VALUES (1')
-        && $entries($dir) === ['20261020-140000.sql.gz'];
+        && $entries($dir) === ['20261020-140000-XXXXXXXX.sql.gz'];
 });
 
 check('mysqldump OK con skip-comments nei file di opzioni: niente marcatore, nessun ripiego, file presente', function () use ($base, $credentials, $script, $fakeMysqli, $tables, $entries) {
@@ -308,7 +359,7 @@ check('mysqldump OK con skip-comments nei file di opzioni: niente marcatore, nes
     return $backup->method === 'mysqldump'
         && $backup->fallback === null
         && $dump === "CREATE TABLE t (id int);\nINSERT INTO t VALUES (1);\n"
-        && $entries($dir) === ['20261020-150000.sql.gz']
+        && $entries($dir) === ['20261020-150000-XXXXXXXX.sql.gz']
         && !in_array(['SHOW FULL TABLES', MYSQLI_STORE_RESULT], $connection->queries, true);
 });
 
@@ -382,7 +433,7 @@ check('forge db:backup: mysqldump KO → dump PHP OK → exit 0, file presente, 
     $files = $entries($dir);
 
     return $code === 0
-        && count($files) === 1 && preg_match('/^\d{8}-\d{6}\.sql\.gz$/', $files[0]) === 1
+        && count($files) === 1 && preg_match('/^\d{8}-\d{6}-XXXXXXXX\.sql\.gz$/', $files[0]) === 1
         && str_contains($display, 'mysqldump non riuscito, usato il dump PHP')
         && str_contains($display, 'Backup creato');
 });
