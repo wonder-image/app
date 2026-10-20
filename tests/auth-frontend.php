@@ -33,7 +33,21 @@ try {
     $check(false, 'Migration accepted conflicting tables.');
 } catch (RuntimeException) {}
 $check(\Wonder\App\Models\System\ExternalReference::rawTableSchema() !== [] && \Wonder\App\Models\System\ExternalReference::syncSchema() === null, 'Shared model requires gestionale or syncs operational data.');
-$check(!class_exists('Wonder\\App\\Models\\Contacts\\Contact') && !class_exists('Wonder\\Plugin\\CustomerAccount\\CustomerAccount'), 'Core still owns contacts or depends on customer-account.');
+// Sul sorgente e non su class_exists(): il vendor del core può contenere il modulo.
+$coreSources = static function (): \Generator {
+    foreach (['class', 'app'] as $dir) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__).'/'.$dir, FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->getExtension() === 'php') { yield $file->getPathname() => str_replace('\\\\', '\\', (string) file_get_contents($file->getPathname())); }
+        }
+    }
+};
+$coreRefs = [];
+foreach ($coreSources() as $path => $source) {
+    foreach (['Wonder\\Plugin\\CustomerAccount', 'Wonder\\App\\Models\\Contacts'] as $namespace) {
+        if (str_contains($source, $namespace)) { $coreRefs[] = basename($path).': '.$namespace; }
+    }
+}
+$check($coreRefs === [], 'Core still owns contacts or depends on customer-account: '.implode(', ', $coreRefs));
 $check(!class_exists('Wonder\\Plugin\\Ecommerce\\Ecommerce'), 'Core test unexpectedly depends on ecommerce.');
 $check(array_keys($profile->fields('signup-request')) === ['name', 'surname', 'email', 'accept_privacy_policy'], 'Generic signup fields mismatch.');
 $check($profile->validate('signup-completion', ['password' => 'password123', 'password_confirmation' => 'password123']) === [], 'Core forces a mobile number.');
