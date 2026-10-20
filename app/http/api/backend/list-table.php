@@ -1,19 +1,29 @@
 <?php
 
+use Wonder\App\Credentials;
 use Wonder\App\Support\ApiRequest;
 use Wonder\Backend\Table\ListProvider;
+use Wonder\Backend\Table\ListTableRequest;
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
 }
 
+// Solo tabelle registrate in Table::$list, prima di qualsiasi query.
+$table = ListTableRequest::table($_POST['config']['table'] ?? null);
+
+if ($table === null) {
+    ApiRequest::error('Tabella non consentita.', 422);
+}
+
 $name = (object) [];
 $name->id = $_POST['id'] ?? '';
-$name->table = $_POST['config']['table'] ?? '';
-$name->database = $_POST['config']['database'] ?? 'main';
-$name->connection = $MYSQLI_CONNECTION[$name->database];
+$name->table = $table;
+// Database e connessione fissi: `config.database` del client è ignorato.
+$name->database = (string) (Credentials::database()->database['main'] ?? '');
+$name->connection = $MYSQLI_CONNECTION['main'];
 $name->link = $_POST['default']['link'] ?? [];
-$name->schema = $_POST['custom']['schema'] ?? '';
+$name->schema = ListTableRequest::schema($_POST['custom']['schema'] ?? null);
 
 $name->field = ListProvider::fields((string) $name->table, (string) $name->schema);
 
@@ -27,9 +37,10 @@ $text->full = $_POST['text']['full'] ?? '';
 $text->empty = $_POST['text']['empty'] ?? '';
 $text->this = $_POST['text']['this'] ?? '';
 
+// Filtro utenti non più dal POST: vuoto come nel prerender di Table.
 $user = (object) [];
-$user->area = $_POST['custom']['user_area'] ?? '';
-$user->authority = $_POST['custom']['user_authority'] ?? '';
+$user->area = '';
+$user->authority = '';
 
 $mysqli = $name->connection;
 

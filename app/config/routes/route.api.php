@@ -38,7 +38,9 @@ Route::area('api')
                     ->name('alert');
 
                 Route::post('/list/table/', $ROOT_APP.'/http/api/backend/list-table.php')
-                    ->name('list.table');
+                    ->name('list.table')
+                    ->guarded()
+                    ->permit([]);
 
                 Route::post('/change/boolean/', $ROOT_APP.'/http/api/backend/change-boolean.php')
                     ->name('change.boolean')
