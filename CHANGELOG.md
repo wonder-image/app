@@ -496,6 +496,11 @@
   Ordine di rilascio: prima `wonder-image/ecommerce` con A-I2, che passa a
   `Wonder\Http\SafeRedirect` (le versioni precedenti usano ancora l'alias in
   `src/Support/SafeRedirect.php`), poi questa versione del core.
+- Traduzioni orfane di `account.json` (it/en): `account.navigation.billing`,
+  `account.navigation.payment_methods` e il blocco `account.payment_methods.*`.
+  Il core non le legge (il menu usa solo `overview` e `personal`), l'ecommerce
+  usa le sue `ecommerce.account.payment_methods.*`. `account.seo.description`
+  non cita più i metodi di pagamento.
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
   `Wonder\App\Resources\Contacts\*`, `Wonder\Auth\Frontend\{ContactAccount,
   AccountAddresses,AccountBilling}`, le view degli indirizzi e le traduzioni
