@@ -150,11 +150,19 @@ Login e recupero password del backend non sono in questo elenco.
 Nel form legacy (scritto dal sito, con la pagina che include
 `app/html/backend/index.php`) il token lo emette il core: il template chiama
 `Csrf::enableLegacyFormField()` e `submit()`/`submitAdd()` aggiungono `_csrf`
-con `Csrf::legacyFormField()`. Esce una volta per form: `submitAdd()` lo mette
-una sola volta per i due pulsanti, e se il `<form>` aperto nel buffer di output
-contiene già `_csrf` non lo ripete. Quando il form non è visibile nel buffer
-(pagina stampata senza `View`), esce una volta per richiesta. Fuori da quel
-template `submit()` non emette nulla.
+con `Csrf::legacyFormField()`. Fuori da quel template `submit()` non emette
+nulla.
+
+- **Senza buffer di output** (il caso delle pagine legacy reali) il token esce
+  una volta per richiesta: la garanzia vale per un solo form legacy per pagina.
+  Se il form contiene già `Csrf::field()` può uscire un secondo `_csrf` con lo
+  stesso valore; è innocuo, `verify()` passa.
+- **Con il buffer di output** esce una volta per form: `submitAdd()` lo mette
+  una sola volta per i due pulsanti, e se il `<form>` aperto nel buffer
+  contiene già `_csrf` non lo ripete.
+
+Con più form legacy nella stessa pagina, o con form costruiti come stringa, il
+sito stampa `Csrf::field()` in ogni form.
 
 ## Sessione e cache
 

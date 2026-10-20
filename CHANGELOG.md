@@ -26,9 +26,14 @@
   La creazione rapida risponde `403` JSON e il modal manda ora l'header
   `X-WI-CSRF`. Aggiunto `_csrf` ai form che non lo avevano (account, utenti,
   file di configurazione, uploader massivo). Nei form legacy il token lo emette
-  il core: `submit()` e `submitAdd()` aggiungono `_csrf` una volta per form
-  quando la pagina include `app/html/backend/index.php`, senza doppioni se il
-  form lo ha già. I siti non cambiano nulla.
+  il core: `submit()` e `submitAdd()` aggiungono `_csrf` quando la pagina
+  include `app/html/backend/index.php`. Con il buffer di output esce una volta
+  per form; senza buffer (il caso delle pagine legacy reali) esce una volta per
+  richiesta, quindi copre un solo form legacy per pagina. Se il form ha già
+  `Csrf::field()` può uscire un secondo `_csrf` con lo stesso valore: è
+  innocuo. Le pagine con un solo form legacy non cambiano nulla; con più form
+  legacy nella stessa pagina, o con form costruiti come stringa, il sito stampa
+  `Csrf::field()` in ogni form.
 - **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e
