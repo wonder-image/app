@@ -10,6 +10,7 @@ use Wonder\App\Module\Contracts\ModuleMigration;
 use Wonder\App\Module\ModuleDependencySorter;
 use Wonder\App\Module\Registry as ModuleRegistry;
 use Wonder\App\Support\ApiActivityTokenMigration;
+use Wonder\App\Support\DatabaseBackup;
 use Wonder\App\Support\DefaultRows;
 use Wonder\App\Support\SocietyLocationsMigration;
 use Wonder\App\Support\SharedContactTablesMigration;
@@ -114,6 +115,10 @@ class UpdateRunner
             $runId = $this->createRunRow($releaseId, $triggerType, $source, $startedAt);
             $result->run_id = $runId > 0 ? $runId : null;
 
+            if (($options['backup'] ?? true) !== false && $this->hasApplicationTables()) {
+                $result->backup = $this->runBackup();
+            }
+
             // Le rinomine legacy precedono runTables(): creata vuota la tabella nuova, la vecchia non si migrerebbe più.
             $result->stats->contact_tables = SharedContactTablesMigration::run($this->connection);
             $result->stats->module_migrations = $this->runModuleMigrations();
@@ -163,6 +168,36 @@ class UpdateRunner
             if ($lock instanceof UpdateLock) {
                 $lock->release();
             }
+        }
+    }
+
+    /** Database non vuoto (esclusa la tabella del runner): c'è qualcosa che le migrazioni possono toccare. */
+    private function hasApplicationTables(): bool
+    {
+        $result = $this->connection->query('SHOW TABLES');
+
+        if (!is_object($result)) {
+            throw new RuntimeException('Impossibile leggere le tabelle del database prima del backup.');
+        }
+
+        while (is_array($row = $result->fetch_row())) {
+            if ((string) ($row[0] ?? '') !== 'app_update_runs') {
+                $result->free();
+                return true;
+            }
+        }
+
+        $result->free();
+
+        return false;
+    }
+
+    private function runBackup(): string
+    {
+        try {
+            return (new DatabaseBackup(null, $this->connection))->run()->path;
+        } catch (Throwable $throwable) {
+            throw new RuntimeException('Backup del database non riuscito, update interrotto: '.$throwable->getMessage().' (per saltarlo: php forge update --no-backup)', 0, $throwable);
         }
     }
 
