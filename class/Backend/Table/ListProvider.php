@@ -181,17 +181,22 @@ final class ListProvider
         $renderer = new Field($name, $path, $text, $user, $page);
         $columns  = self::buildColumns((array) $request['fields'], $custom->arrow, $lineCount, $renderer);
 
-        $credentials = Credentials::database();
-        $sqlDetails  = [
-            'user' => $credentials->username,
-            'pass' => $credentials->password,
-            'db'   => $name->database,
-            'host' => $credentials->hostname,
-        ];
+        // Connessione già aperta dal chiamante (list-table, prerender di Table);
+        // in mancanza, parametri dalle credenziali, mai dalla richiesta.
+        $connection = $name->connection ?? null;
+        if (!$connection instanceof \mysqli) {
+            $credentials = Credentials::database();
+            $connection  = [
+                'user' => $credentials->username,
+                'pass' => $credentials->password,
+                'db'   => $name->database,
+                'host' => $credentials->hostname,
+            ];
+        }
 
         return SSP::complex(
             $request,
-            $sqlDetails,
+            $connection,
             $name->table,
             'id',
             $columns,
