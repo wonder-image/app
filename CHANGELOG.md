@@ -105,6 +105,17 @@
   successiva.
 
 ### Added
+- **Nuovo utente backend senza password in chiaro (`C-PWD-I8`).** Il form
+  utenti non contiene più l'input nascosto con la password generata e la
+  welcome mail non riporta credenziali: l'utente è creato senza password e la
+  mail porta un link `password_set` valido 72 ore
+  (`UserManagementPageController::WELCOME_TOKEN_TTL`). Mittente
+  `$SOCIETY->email` (ripiego `noreply@wonderimage.it`, prima
+  `info@wonderimage.it`). Esito in `auth_log` (`welcome_mail`, `mail_failed`,
+  `token_failed`); senza mail l'utente usa il recupero password.
+  `Random::generate()` (e quindi `code()`) usa `random_int()`. La cache JWKS di
+  `OidcIdTokenVerifier` passa da `sys_get_temp_dir()` a
+  `ROOT/storage/cache/` (nuovo parametro opzionale `cacheDir`).
 - **Impersonificazione legata alla sessione e con scadenza (`C-PWD-I6`).**
   `Impersonation::issue()` salva lo sha256 dell'ID sessione dell'attore nel
   token; `start()` da un'altra sessione fallisce con audit `start_denied`.

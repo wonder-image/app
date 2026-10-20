@@ -25,7 +25,8 @@ Il backend usa gli stessi token:
   `/backend/account/password-restore/?token=…`, emesso da
   `PasswordReset(1800)`;
 - `/backend/account/password-set/?token=…` accetta soltanto token di purpose
-  `password_set`, emessi dal consumer con
+  `password_set`, emessi dalla welcome mail dei nuovi utenti backend (vedi
+  [Gestione utenti](gestione-utenti.md#password-iniziale)) o dal consumer con
   `(new OneTimeToken('password_set', $ttl))->issue($userId)`, e imposta la
   password solo se l'utente non ne ha già una.
 

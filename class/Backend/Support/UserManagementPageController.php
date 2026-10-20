@@ -6,11 +6,16 @@ use RuntimeException;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Resources\Support\UserManagementResource;
+use Wonder\Auth\AuthLog;
+use Wonder\Auth\OneTimeToken;
 use Wonder\Http\Csrf;
 use Wonder\View\View;
 
 final class UserManagementPageController
 {
+    // Validità del link «imposta password» della mail di benvenuto.
+    public const WELCOME_TOKEN_TTL = 259200;
+
     private function __construct(
         private readonly string $resourceClass,
         private readonly string $slug,
@@ -65,7 +70,7 @@ final class UserManagementPageController
         $values = isset($upload->values) && is_array($upload->values) ? $upload->values : $post;
 
         if (empty($ALERT) && $mode === 'create' && $this->resourceClass::sendsWelcomeMail()) {
-            $this->sendWelcomeMail($post);
+            $this->sendWelcomeMail($post, $upload->user ?? null);
         }
 
         if (empty($ALERT)) {
@@ -140,33 +145,50 @@ final class UserManagementPageController
         return (array) $field->get('options');
     }
 
-    private function sendWelcomeMail(array $post): void
+    // Niente credenziali in mail: il nuovo utente sceglie la password dal link
+    // `password_set`; se l'invio fallisce resta il recupero password.
+    private function sendWelcomeMail(array $post, mixed $user): void
     {
-        $username = trim((string) ($post['username'] ?? ''));
-        $email = trim((string) ($post['email'] ?? ''));
+        $userId = is_object($user) ? (int) ($user->id ?? 0) : 0;
+        $username = trim((string) ($post['username'] ?? ($user->username ?? '')));
+        $email = trim((string) ($post['email'] ?? ($user->email ?? '')));
         $name = trim((string) ($post['name'] ?? ''));
-        $password = trim((string) ($post['password'] ?? ''));
         $authorityKey = trim((string) ($post['authority'] ?? ''));
 
-        if ($username === '' || $email === '' || $password === '' || $authorityKey === '') {
+        if ($userId <= 0 || $email === '' || $authorityKey === '') {
             return;
         }
 
         $authority = permissions($authorityKey);
         $authorityName = is_object($authority) ? (string) ($authority->name ?? $authorityKey) : $authorityKey;
         $backendPath = (string) LegacyGlobals::get('PATH')->backend;
+        $access = "Link accesso: <a href='{$backendPath}'>Clicca qui</a> <br>";
+
+        // Un utente esistente con password continua a usare la sua.
+        if (empty($user->password)) {
+            try {
+                $token = (new OneTimeToken('password_set', self::WELCOME_TOKEN_TTL))->issue($userId);
+            } catch (RuntimeException) {
+                AuthLog::write('welcome_mail', $userId, 'backend', false, ['reason' => 'token_failed']);
+
+                return;
+            }
+
+            $link = __r('backend.account.password.set').'?token='.rawurlencode($token->token);
+            $access = "Imposta la tua password: <a href='{$link}'>Clicca qui</a> (il link scade tra ".intdiv(self::WELCOME_TOKEN_TTL, 3600)." ore) <br>";
+        }
 
         $content = "
         Ciao {$name}, benvenuto/a nello staff. <br>
         <br>
-        Queste sono le tue credenziali: <br>
-        Link accesso: <a href='{$backendPath}'>Clicca qui</a> <br>
+        {$access}
         Username: <b>{$username}</b> <br>
-        Password: <b>{$password}</b> <br>
         <br>
         Autorizzazione: <b>{$authorityName}</b>
         ";
 
-        sendMail('info@wonderimage.it', $email, 'Benvenuto nello staff', $content);
+        $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
+        $mailSent = sendMail($from, $email, 'Benvenuto nello staff', $content);
+        AuthLog::write('welcome_mail', $userId, 'backend', (bool) $mailSent, $mailSent ? [] : ['reason' => 'mail_failed']);
     }
 }
