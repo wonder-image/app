@@ -22,6 +22,7 @@
                 \Wonder\Console\Commands\Build::class,
                 \Wonder\Console\Commands\ScheduleRun::class,
                 \Wonder\Console\Commands\DbInit::class,
+                \Wonder\Console\Commands\DbBackup::class,
                 \Wonder\Console\Commands\LocalStart::class,
                 \Wonder\Console\Commands\MakeModel::class,
                 \Wonder\Console\Commands\MakeResource::class,
