@@ -1,5 +1,9 @@
 <?php
 // Router per `php -S` usato da tests/Http/CookieTest.php: emette i cookie del core.
+if (PHP_SAPI !== 'cli-server') {
+    return;
+}
+
 require __DIR__.'/../../../vendor/autoload.php';
 
 if (isset($_GET['trust'])) {
