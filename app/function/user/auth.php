@@ -124,6 +124,7 @@
         return 'username';
     }
 
+    // Default di `$REMEMBER` deprecato: passare la scelta esplicita.
     function authenticateUserLogin($VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null, bool $REMEMBER = true)
     {
 
@@ -141,7 +142,7 @@
 
     }
 
-    // Login utente (remember-me automatico)
+    // Login utente. Default di `$REMEMBER` deprecato: passare la scelta esplicita.
     function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null, bool $REMEMBER = true)
     {
 

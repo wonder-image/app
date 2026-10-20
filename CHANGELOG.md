@@ -546,6 +546,12 @@
   `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
+- **Deprecato il default `$REMEMBER = true` di `authenticateUserLogin()` e
+  `authenticateUser()`.** Il default resta per retrocompatibilità, ma i
+  chiamanti devono passare la scelta esplicita (ad esempio
+  `RememberMe::requested($_POST)` o `false`). Tutti i chiamanti del core la
+  passano già: login frontend (`AuthController`), login backend,
+  `/oauth/login` e `authenticateUserLogin()` verso `authenticateUser()`.
 - **list/table, editorjs e SSP: cambia il comportamento per chi chiama senza
   sessione backend.** `api.backend.list.table`, `api.backend.editorjs.file` e
   `.image` sono `guarded()`: senza login rimandano al Login e l'handler non
