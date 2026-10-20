@@ -139,8 +139,9 @@ sette cifre intere. Quando quella capienza non basta, dichiarare esplicitamente
 
 Su una tabella gia esistente, `php forge update --local` confronta lo schema
 del Model ed emette un `ALTER TABLE ... MODIFY COLUMN`: non serve una migration
-manuale. Prima di eseguirlo fare comunque un backup, soprattutto se precisione
-o scala diminuiscono. Aumentare la scala insieme a una precisione sufficiente
+manuale. Prima di eseguirlo fare comunque un backup (`php forge db:backup`;
+`php forge update` ne crea uno da solo prima delle migrazioni, salvo
+`--no-backup`), soprattutto se precisione o scala diminuiscono. Aumentare la scala insieme a una precisione sufficiente
 conserva i valori gia memorizzati, ma non puo ricostruire decimali che il
 precedente `DECIMAL(10,2)` aveva gia arrotondato.
 

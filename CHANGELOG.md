@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Added
+- Comando `php forge db:backup` (`Support\DatabaseBackup`): dump gzip del
+  database in `storage/backup/<Ymd-His>.sql.gz`, con `mysqldump` (credenziali in
+  un file di opzioni temporaneo `0600`, mai sulla riga di comando) o, se manca,
+  con un dump PHP via mysqli. Fallisce se `mysqldump` esce con errore o scrive su
+  stderr e non lascia file parziali. `--keep=N` (default 5) ruota i vecchi
+  backup, `--path=` cambia cartella.
+- `php forge update` crea un backup prima di rinomine e migrazioni quando il
+  database ha già tabelle; se il backup fallisce l'update si ferma. L'opzione
+  `--no-backup` (o `'backup' => false` in `UpdateRunner::execute()`) lo salta.
 - Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
   stato con icona e link, scorciatoia verso una pagina, elenco di link
   raggruppati. Li usa la home del backend; schede nel catalogo.

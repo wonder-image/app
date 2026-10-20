@@ -14,6 +14,7 @@ I comandi importanti sono questi:
 - `php forge update`
 - `php forge build`
 - `php forge db:init`
+- `php forge db:backup`
 - `php forge start`
 - `php forge export`
 - `php forge import`
@@ -150,6 +151,7 @@ Serve per l’update applicativo.
 
 Fa questo:
 
+- se il database ha già tabelle, prima di rinomine e migrazioni crea un backup come `php forge db:backup` (in `storage/backup`, ultimi 5, percorso nel campo `backup` del risultato); se il backup fallisce l'update si ferma. `--no-backup` lo salta
 - applica tabelle
 - esegue i file in `build/row`
   - `build/row` e' il lifecycle di seed/bootstrap idempotente
@@ -190,6 +192,24 @@ php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root
 ```
 
 Con `APP_DOMAIN=wonderimage.it` il valore scritto è `DB_DATABASE=main:wonderimage_it`.
+
+### `php forge db:backup`
+
+Crea un dump gzip del database in `storage/backup/<Ymd-His>.sql.gz` (cartella creata con permessi `0750`).
+
+- usa `mysqldump` se è nel `PATH`, con `--single-transaction --skip-lock-tables --no-tablespaces --set-gtid-purged=OFF --routines --triggers`; le credenziali (lette come fa il core, da `.env`) passano da un file di opzioni temporaneo `0600`, mai dalla riga di comando
+- senza `mysqldump` (o senza `proc_open`, tipico degli hosting condivisi) usa un dump PHP via mysqli: solo tabelle e dati, niente viste, routine e trigger
+- se `mysqldump` esce con errore o scrive su stderr il comando fallisce; il file compare solo a dump riuscito
+- `--keep=N` mantiene gli ultimi N backup (default 5); `--path=DIR` scrive in un'altra cartella
+
+```bash
+php forge db:backup
+php forge db:backup --keep=10
+php forge db:backup --path=/percorso/backup
+```
+
+`storage/` non deve essere raggiungibile via HTTP: il dump contiene tutti i dati del sito.
+
 
 ### `php forge start`
 
