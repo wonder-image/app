@@ -10,8 +10,10 @@ use Throwable;
 
 /**
  * Allinea le sedi con Google Places: per ogni sede con un `place_id` legge
- * Place Details, salva copia e recensioni e, se richiesto, applica gli orari
- * (`PlaceSyncPlan`). Un errore su una sede non ferma le altre.
+ * Place Details, salva copia e recensioni e, se la sede ha la sincronizzazione
+ * degli orari attiva, applica gli orari (`PlaceSyncPlan`). Senza, gli orari
+ * restano quelli manuali e non si salvano differenze. Un errore su una sede
+ * non ferma le altre.
  */
 final class GooglePlacesSync
 {
@@ -34,7 +36,6 @@ final class GooglePlacesSync
      * @return array{locations: int, synced: int, failed: int, applied: int, differences: int, cleared: int}
      */
     public function run(
-        bool $applyHours,
         string $language,
         ?Closure $log = null,
         ?Closure $beforeEach = null,
@@ -76,7 +77,7 @@ final class GooglePlacesSync
             }
 
             try {
-                $result = $this->syncLocation($location, $applyHours, $language, $today);
+                $result = $this->syncLocation($location, $language, $today);
             } catch (Throwable $exception) {
                 $summary['failed']++;
                 $log("{$location['label']}: errore, {$exception->getMessage()}\n");
@@ -116,10 +117,16 @@ final class GooglePlacesSync
     }
 
     /** @return array{differences: list<array{kind: string, message: string}>, applied: bool, reviews: int, skipped: list<string>} */
-    private function syncLocation(array $location, bool $applyHours, string $language, DateTimeImmutable $today): array
+    private function syncLocation(array $location, string $language, DateTimeImmutable $today): array
     {
+        $syncHours = (bool) ($location['sync_hours'] ?? false);
         $google = PlaceMapper::map($this->resolvedClient->details($location['place_id'], $language));
-        $plan = PlaceSyncPlan::make($location, $google, $today, $applyHours);
+        $plan = PlaceSyncPlan::make($location, $google, $today, $syncHours);
+
+        if (!$syncHours) {
+            $plan['differences'] = [];
+        }
+
         $applied = $plan['hours'] !== null || $plan['special_hours'] !== null;
 
         if ($applied) {

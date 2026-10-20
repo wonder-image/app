@@ -286,9 +286,9 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   attiva, ore 03:30; senza `GCP_API_KEY` ogni esecuzione e registrata come
   saltata (`skipped: missing_api_key`). Per ogni sede con `google_place_id` legge da Places
   API (New) orari regolari, secondari e speciali, stato, voto medio e al
-  massimo cinque recensioni, con la chiave server `GCP_API_KEY`. Parametri
-  `apply_hours` (`false`: solo differenze; `true`: sostituisce gli orari
-  diversi) e `language`. Una sede per volta, con `checkDeadline()` tra una e
+  massimo cinque recensioni, con la chiave server `GCP_API_KEY`. Sostituisce
+  gli orari solo nelle sedi con «Sincronizzazione orari da Google» attiva
+  (`google_sync_hours`); parametro `language`. Una sede per volta, con `checkDeadline()` tra una e
   l'altra; fallisce solo se nessuna sede e stata letta. Dettagli, tabelle e
   norme di Google in [Sedi](../concetti/sedi.md#recensioni-google). Per
   l'archivio completo delle recensioni dei profili gestiti serve Business
