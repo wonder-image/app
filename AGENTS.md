@@ -362,8 +362,7 @@ php forge start
   go through `Wonder\Http\SafeRedirect` (`fromRequest()` / `fromBase64()`):
   single-slash paths or the `APP_URL` host (`www.` optional, same port, no
   userinfo); anything else returns the fallback. `infoPage()` already empties
-  an unsafe `$PAGE->redirect` / `redirectBase64`. `Wonder\Auth\Frontend\SafeRedirect`
-  is a deprecated alias.
+  an unsafe `$PAGE->redirect` / `redirectBase64`.
 - Reusable frontend auth lives in `class/Auth/Frontend`: opt into `AuthRoutes`
   with an `AuthProfile`, and extend fields, server validation, explicit write
   whitelists and idempotent business hooks rather than copying controllers.

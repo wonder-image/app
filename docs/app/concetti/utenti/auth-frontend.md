@@ -522,8 +522,7 @@ di `APP_URL` (con o senza `www.`), stessa porta e senza credenziali; `//host`,
 `/\host`, schemi come `javascript:` e caratteri di controllo (CR/LF) tornano al
 fallback. `infoPage()` scarta già un `?redirect=` non valido (`$PAGE->redirect`
 e `redirectBase64` vuoti), quindi il login backend ripiega su `backend.home` e
-il salvataggio legacy sulla lista. `Wonder\Auth\Frontend\SafeRedirect` resta come
-alias deprecato.
+il salvataggio legacy sulla lista.
 
 Auth è `NOINDEX,FOLLOW`, account `NOINDEX,NOFOLLOW`, canonical senza query,
 un solo h1, breadcrumb SEO vuoto e nessun JSON-LD pubblico per queste pagine.

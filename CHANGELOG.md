@@ -491,6 +491,11 @@
   (`ApiActivityTokenMigration`, statistica `api_activity_tokens`).
 
 ### Removed
+- BREAKING: l'alias deprecato `Wonder\Auth\Frontend\SafeRedirect`. Si usa
+  `Wonder\Http\SafeRedirect`, stessa API (`fromRequest()`, `fromBase64()`).
+  Ordine di rilascio: prima `wonder-image/ecommerce` con A-I2, che passa a
+  `Wonder\Http\SafeRedirect` (le versioni precedenti usano ancora l'alias in
+  `src/Support/SafeRedirect.php`), poi questa versione del core.
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
   `Wonder\App\Resources\Contacts\*`, `Wonder\Auth\Frontend\{ContactAccount,
   AccountAddresses,AccountBilling}`, le view degli indirizzi e le traduzioni
