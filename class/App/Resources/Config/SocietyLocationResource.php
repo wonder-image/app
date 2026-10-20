@@ -90,6 +90,7 @@ class SocietyLocationResource extends Resource
             'business_status' => 'Attività della sede',
             'opening_date' => 'Data di apertura',
             'google_place_id' => 'Google Place ID',
+            'google_sync_hours' => 'Sincronizzazione orari da Google',
             'email' => 'Email',
             'pec' => 'Pec',
             'tel' => 'Telefono',
@@ -126,6 +127,7 @@ class SocietyLocationResource extends Resource
             FormField::key('opening_date')->dateInput(),
             ...array_values(AddressExtension::simple(linkKey: 'gmaps', countryDefault: 'IT')->withGeo('google_place_id')->withNameSearch()->formSchema()),
             FormField::key('google_place_id')->text(),
+            FormField::key('google_sync_hours')->select(['true' => 'Sì', 'false' => 'No'])->value('false')->required(),
             FormField::key('email')->email(),
             FormField::key('pec')->email(),
             FormField::key('tel')->phone(),
@@ -258,6 +260,7 @@ class SocietyLocationResource extends Resource
                     static::getInput('more')->columnSpan(12),
                     static::getInput('gmaps')->columnSpan(12),
                     static::getInput('google_place_id')->columnSpan(12),
+                    static::getInput('google_sync_hours')->columnSpan(12),
                     static::getInput('lat'),
                     static::getInput('lng'),
                     HelpText::make('<a href="'.self::PLACE_ID_FINDER_URL.'" target="_blank" rel="noopener noreferrer">Trova il Place ID</a>')->columnSpan(12),
@@ -468,7 +471,8 @@ class SocietyLocationResource extends Resource
             ];
         }
 
-        if ($google['differences'] !== []) {
+        // Senza sincronizzazione gli orari sono manuali: nessun confronto.
+        if ($google['differences'] !== [] && ($values['google_sync_hours'] ?? 'false') === 'true') {
             $notices[] = [
                 'level' => 'warning',
                 'message' => 'Differenze con Google'.self::noticeDate($google['synced_at']).":\n"

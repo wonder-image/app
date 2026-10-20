@@ -123,26 +123,36 @@ Usa la chiave browser `GCP_CLIENT_API_KEY` (la stessa di `GoogleMaps`), che deve
 
 Il task `wonder.google-places` (Dev → Scheduler, "Allineamento sedi con Google") legge ogni notte alle 03:30 da Places API (New), Place Details, ogni sede con un Place ID proprio. È **sempre attivo**: dal backend si cambiano orario e parametri, non si sospende. Richiede la chiave server `GCP_API_KEY` nel `.env`, con Places API (New) abilitata; senza chiave l'esecuzione viene registrata come saltata. La chiave va nell'header `X-Goog-Api-Key`, mai nell'URL. Una chiamata per sede, con un field mask limitato ai campi usati.
 
+Gli orari dipendono dal campo **Sincronizzazione orari da Google** della sede (colonna `google_sync_hours`, default `false`):
+
+| Valore | Effetto |
+|---|---|
+| No (`false`) | gli orari restano quelli inseriti a mano; il task non salva differenze e la scheda non le mostra |
+| Sì (`true`) | sostituisce i tipi di orario diversi da Google e gli orari speciali di Google da oggi in avanti; le differenze rimaste (es. lo stato) compaiono nella scheda |
+
+Copia di Google e recensioni si salvano in entrambi i casi.
+
 | Parametro | Default | Effetto |
 |---|---|---|
-| `apply_hours` | `false` | `false`: salva solo le differenze. `true`: sostituisce i tipi di orario diversi da Google e gli orari speciali di Google da oggi in avanti |
 | `language` | `''` | lingua delle recensioni; vuoto = lingua predefinita del sito |
+
+Il vecchio parametro `apply_hours` si ignora: ora decide ogni sede.
 
 Per ogni sede salva:
 
-- in `society_location_google` stato dell'attività, voto medio, numero totale di recensioni, link a Google Maps, orari letti e differenze con gli orari locali; se la lettura non riesce salva l'errore e lascia i dati precedenti;
+- in `society_location_google` stato dell'attività, voto medio, numero totale di recensioni, link a Google Maps, orari letti e, con la sincronizzazione attiva, differenze con gli orari locali; se la lettura non riesce salva l'errore e lascia i dati precedenti;
 - in `society_location_reviews` le recensioni restituite da Google (al massimo 5, le "più pertinenti" per Google, non l'archivio completo). Quelle che Google non restituisce più vengono eliminate.
 
 Regole:
 
 - Lo **stato dell'attività** non si applica mai: resta una differenza.
 - Una riga degli orari speciali scritta a mano (`source = manual`) sulla stessa data ha la precedenza su quella di Google.
-- Una sede che eredita gli orari dalla predefinita, con `apply_hours`, riceve orari propri.
-- Una riga di Google modificata a mano nel form resta `source = google` (la colonna è nascosta): il prossimo allineamento con `apply_hours` la sovrascrive se la data è da oggi in avanti. Per tenerla, eliminala e ricreala.
+- Una sede che eredita gli orari dalla predefinita, con la sincronizzazione attiva, riceve orari propri.
+- Una riga di Google modificata a mano nel form resta `source = google` (la colonna è nascosta): il prossimo allineamento con la sincronizzazione attiva la sovrascrive se la data è da oggi in avanti. Per tenerla, eliminala e ricreala.
 - Se si toglie o si cambia il Place ID, la copia di Google e le recensioni della sede vengono eliminate al passaggio successivo; nel frattempo `SocietyLocations` non le restituisce.
 - Il task fallisce solo se nessuna sede è stata letta; gli errori delle singole sedi stanno nel log dell'esecuzione e nella scheda della sede.
 
-Nella scheda della sede, sopra il form, compaiono le differenze con Google e l'ultimo errore (`SocietyLocationResource::formNotices()`). La colonna `google_synced_at` di `society_locations` non è usata dal task.
+Nella scheda della sede, sopra il form, compaiono le differenze con Google (solo con la sincronizzazione attiva) e l'ultimo errore (`SocietyLocationResource::formNotices()`). La colonna `google_synced_at` di `society_locations` non è usata dal task.
 
 Nel sito:
 
