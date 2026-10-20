@@ -749,6 +749,10 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- **Log reCAPTCHA: IP del client dietro proxy (review `N4`).** `RecaptchaGuard`
+  registra `remote_addr` via `Wonder\Http\ClientIp::resolve()`, come throttle e
+  `auth_log`. L'`ip_address` del consenso (`app/function/user/user.php:209`) resta
+  su `REMOTE_ADDR`: è fuori dal perimetro auth.
 - **Login: tempo di risposta uniforme (review `R1`).** Con utente inesistente
   o registrato senza password, `authenticateUser()` esegue comunque una
   verifica su `dummyPasswordHash()`, con lo stesso algoritmo e lo stesso costo

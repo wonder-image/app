@@ -434,7 +434,7 @@ final class RecaptchaGuard
         $context = [
             'expected_action' => $this->expectedAction,
             'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
-            'remote_addr' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'remote_addr' => \Wonder\Http\ClientIp::resolve(),
         ];
 
         // Presenza credenziali: utile per diagnosticare misconfigurazioni

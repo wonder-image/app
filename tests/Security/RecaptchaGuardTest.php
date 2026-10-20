@@ -443,6 +443,24 @@ check('37. APP_ENV=local → salto con log, engine non chiamato, anche senza tok
     assertTrue(str_contains($log, 'local_env') && str_contains($log, 'skipped'), 'salto loggato');
 });
 
+check('38. dietro proxy fidato il log registra l\'IP del client (ClientIp)', function () use ($valid, $logFile) {
+    $saved = [$_SERVER['REMOTE_ADDR'] ?? null, $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null, $_ENV['APP_TRUST_PROXY'] ?? null];
+    $_SERVER['REMOTE_ADDR'] = '10.0.0.1';
+    $_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1, 203.0.113.7';
+    $_ENV['APP_TRUST_PROXY'] = 'true';
+    @unlink($logFile);
+    try {
+        assert617(fn () => guard()->withRequest(['g-recaptcha-action' => 'contact'])->verify());
+    } finally {
+        foreach (['REMOTE_ADDR' => 0, 'HTTP_X_FORWARDED_FOR' => 1] as $k => $i) {
+            if ($saved[$i] === null) { unset($_SERVER[$k]); } else { $_SERVER[$k] = $saved[$i]; }
+        }
+        if ($saved[2] === null) { unset($_ENV['APP_TRUST_PROXY']); } else { $_ENV['APP_TRUST_PROXY'] = $saved[2]; }
+    }
+    $log = (string) @file_get_contents($logFile);
+    assertTrue(str_contains($log, '"remote_addr":"203.0.113.7"'), 'remote_addr = ultima voce di X-Forwarded-For');
+});
+
 // Il fail-closed del login frontend è verificato sul comportamento in tests/Auth/AuthControllerTest.php.
 
 echo "\n{$tests} test, {$failures} fallimenti\n";
