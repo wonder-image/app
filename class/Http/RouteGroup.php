@@ -89,6 +89,16 @@ class RouteGroup
         return $this;
     }
 
+    /**
+     * Opt-in alla verifica CSRF per le route del gruppo: i metodi diversi da
+     * GET/HEAD/OPTIONS senza token valido ricevono 403 (vedi `CsrfGuard`).
+     */
+    public function csrf(bool $enabled = true): self
+    {
+        $this->attributes['csrf'] = $enabled;
+        return $this;
+    }
+
     public function group(callable $callback): void
     {
         Route::group($this->attributes, $callback);

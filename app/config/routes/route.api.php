@@ -33,13 +33,18 @@ Route::area('api')
 
             });
 
+        // API backend di sessione: ogni POST richiede il token CSRF
+        // (`_csrf` o header `X-WI-CSRF`, mandato dalla lib).
         Route::name('backend.')
             ->prefix('/backend')
             ->backend()
+            ->csrf()
             ->group(function () use ($ROOT_APP) {
 
+                // Solo Bearer (`Handler::run`): niente cookie di sessione, niente CSRF.
                 Route::post('/alert/', $ROOT_APP.'/http/api/backend/alert.php')
-                    ->name('alert');
+                    ->name('alert')
+                    ->csrf(false);
 
                 Route::post('/list/table/', $ROOT_APP.'/http/api/backend/list-table.php')
                     ->name('list.table')

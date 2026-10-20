@@ -81,6 +81,9 @@ class RouteDispatcher
 
             $this->bootApplication($route);
 
+            // Dopo la sessione e l'autorizzazione, prima di qualsiasi handler.
+            CsrfGuard::enforce($route);
+
             // Override lingua post-bootApplication se la route matched è una
             // variante tradotta: l'URL vince sulla preferenza utente.
             if (!empty($route['_locale']) && is_string($route['_locale'])) {
@@ -135,7 +138,7 @@ class RouteDispatcher
 
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization, Mcp-Protocol-Version, Mcp-Session-Id');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-WI-CSRF, Mcp-Protocol-Version, Mcp-Session-Id');
         header('Access-Control-Expose-Headers: WWW-Authenticate, Mcp-Session-Id');
         header('Content-Type: application/json; charset=utf-8');
 

@@ -8,8 +8,9 @@ use Wonder\App\ResourceSchema\Inputs\InputHidden;
 /**
  * Token CSRF di sessione: generazione, emissione e confronto.
  *
- * La verifica non è ancora centrale: `verify()` va chiamato da chi protegge
- * la propria richiesta, `RouteDispatcher` non lo usa.
+ * La verifica non è centrale: `verify()` va chiamato da chi protegge la
+ * propria richiesta, oppure la route la dichiara con `->csrf()` e
+ * `RouteDispatcher` la applica tramite `CsrfGuard` (opt-in per gruppo).
  */
 final class Csrf
 {
