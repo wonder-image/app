@@ -157,9 +157,10 @@ loro route non si registrano. Il core usa solo `overview` e `personal`;
 non producono route, voci o righe. `billing` non ha una voce di menu: è la riga
 della fatturazione in «Dati personali», e toglierla dalle sezioni toglie la riga.
 La scheda `.wi-address-card--add` per aggiungere un indirizzo esce dallo stesso
-componente delle schede, `frontend.account.address-card`, con `add` (`href`,
-`modal`, `label`) al posto di `card`; il componente è del core, le pagine degli
-indirizzi del modulo.
+componente delle schede, `components/account/address-card.php` di
+`customer-account`, con `add` (`href`, `modal`, `label`) al posto di `card`:
+componente e pagine degli indirizzi sono del modulo, il core tiene solo
+`AccountAddressForm`, `AccountAddressValidation` e `AccountModal`.
 La stessa sottoclasse cambia `title()`, `authorities()` e `parentLayout()`; se
 sovrascrive un hook chiama `parent::`, altrimenti perde le estensioni dei moduli.
 Le viste del pannello sono sigillate: non si sostituiscono da `custom/`, si
