@@ -105,6 +105,16 @@
   successiva.
 
 ### Added
+- **Token di verifica email salvati come hash (`C-PWD-I9`).**
+  `consent_confirmation_tokens` ha la nuova colonna `token_hash` (64, nullable,
+  unica); `token` diventa nullable, nessuna colonna rimossa.
+  `generateUserVerificationToken()` salva solo lo sha256 e restituisce il token
+  in chiaro al chiamante; `confirmUserVerificationToken()` cerca per hash e
+  ripiega su `token` in chiaro per le righe già emesse (**ripiego rimosso nella
+  beta successiva**). La conferma senza `mysqli` rilegge la riga prima di
+  scrivere; `ConsentConfirmationTokenRepository` salva l'hash e
+  `markConfirmed()` torna `bool` (conferma solo se non già usato né revocato).
+  Richiede `php forge update` per la colonna.
 - **Nuovo utente backend senza password in chiaro (`C-PWD-I8`).** Il form
   utenti non contiene più l'input nascosto con la password generata e la
   welcome mail non riporta credenziali: l'utente è creato senza password e la

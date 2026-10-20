@@ -572,7 +572,9 @@ L'href mantiene la pagina di modifica senza JavaScript. Gli alert restano
 nella pagina, non nel modal né nel form.
 
 - Dal core: `php tests/auth-frontend.php`, `php tests/account-password.php`,
-  `php tests/account-routes.php` e lint dei file modificati.
+  `php tests/account-routes.php`, `php tests/email-verification-guard.php`
+  (token di verifica salvato solo come hash, conferma una volta sola) e lint
+  dei file modificati.
 - Dal modulo: `php tests/AuthValidatorTest.php`,
   `php tests/integrazione/AuthCoreViewsTest.php`,
   `php tests/integrazione/AuthHttpTest.php`,
