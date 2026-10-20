@@ -138,12 +138,16 @@ scrivere:
 | Account (`/backend/account/`: profilo e password) | alert `929`, nessuno dei due form scrive |
 | Uploader massivo, file di configurazione | alert `929`, nessun file salvato |
 | `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
+| Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
 | Creazione rapida (`backend.resource.quick-create`) | `403` JSON, il controller non viene chiamato |
 
 Il codice `929` («Richiesta non valida») è in `notifications.json` e si
 mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
 di queste pagine portano già `_csrf` (`Csrf::field()` o `Csrf::fieldFor()`).
 Login e recupero password del backend non sono in questo elenco.
+
+Il form legacy lo scrive il sito, non il core: deve portare
+`<?=\Wonder\Http\Csrf::field()->render()?>` dentro `<form>`.
 
 ## Sessione e cache
 

@@ -19,7 +19,8 @@
 - **Pagine backend: token CSRF obbligatorio sui POST che scrivono
   (`C-CSRF-I3`).** Store, update, eliminazione da pagina e pagina-form delle
   Resource, utenti (`UserManagementPageController`), account (profilo e
-  password), uploader massivo, file di configurazione e `POST /backend/`
+  password), uploader massivo, file di configurazione, `POST /backend/` e i
+  form legacy che includono `app/html/backend/index.php` (`upload`/`upload-add`)
   verificano `_csrf`/`X-WI-CSRF`: senza token valido non scrivono e mostrano
   l'alert `929` («Richiesta non valida», nuovo codice in `notifications.json`).
   La creazione rapida risponde `403` JSON e il modal manda ora l'header

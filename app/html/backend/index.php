@@ -37,7 +37,15 @@
 
     $REDIRECT = !empty($PAGE->redirect) ? $PAGE->redirect : "$PATH->backend/$NAME->folder/list.php";
 
-    if (isset($_POST['upload']) || isset($_POST['upload-add'])) {
+    $UPLOAD_POST = isset($_POST['upload']) || isset($_POST['upload-add']);
+
+    if ($UPLOAD_POST && !\Wonder\Http\Csrf::verify()) {
+
+        // Senza token CSRF valido non scrive: alert nel layout.
+        global $ALERT;
+        $ALERT = \Wonder\Backend\Support\ResourcePageController::CSRF_ALERT;
+
+    } elseif ($UPLOAD_POST) {
 
         $POST = array_merge($_POST, $_FILES);
         if (isset($_GET['duplicate'])) { $VALUES = null; }

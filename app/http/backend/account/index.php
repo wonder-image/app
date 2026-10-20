@@ -31,7 +31,7 @@ foreach ($DEFAULT->colorUser as $key => $color) {
 $CSRF_VALID = \Wonder\Http\Csrf::verify();
 
 if (!$CSRF_VALID && (isset($_POST['modify']) || isset($_POST['modify-password']))) {
-    $ALERT = 929;
+    $ALERT = \Wonder\Backend\Support\ResourcePageController::CSRF_ALERT;
 }
 
 if ($CSRF_VALID && isset($_POST['modify'])) {

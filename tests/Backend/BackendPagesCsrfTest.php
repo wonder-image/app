@@ -9,8 +9,8 @@ require __DIR__.'/../../vendor/autoload.php';
 if (($argv[1] ?? '') !== '--scenario') {
 require __DIR__.'/../harness.php';
 
-$run = static function (string $scenario, string $token): array {
-    $cmd = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' --scenario '.escapeshellarg($scenario).' '.escapeshellarg($token).' 2>&1';
+$run = static function (string $scenario, string $token, string $extra = ''): array {
+    $cmd = escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' --scenario '.escapeshellarg($scenario).' '.escapeshellarg($token).' '.escapeshellarg($extra).' 2>&1';
     $out = (string) shell_exec($cmd);
     $pos = strrpos($out, "\n@@");
     $json = $pos === false ? null : json_decode(substr($out, $pos + 3), true);
@@ -50,6 +50,25 @@ foreach ($pageScenarios as $scenario => $label) {
         return ($r['alert'] ?? null) != $csrfAlert && $reached;
     });
 }
+
+// Form legacy (`app/html/backend/index.php`): non rende pagina, scrive e redirige.
+foreach (['none', 'wrong'] as $token) {
+    check("form legacy: token {$token} → alert {$csrfAlert}, nessuna scrittura e nessun redirect", function () use ($run, $token, $csrfAlert) {
+        $r = $run('legacy-index', $token);
+
+        return ($r['alert'] ?? null) == $csrfAlert && ($r['writes'] ?? null) === [] && ($r['exited'] ?? null) === false;
+    });
+}
+
+foreach (['upload' => 'Salva', 'upload-add' => 'Salva e aggiungi'] as $button => $label) {
+    check("form legacy ({$label}): token valido → scrive e redirige", function () use ($run, $button, $csrfAlert) {
+        $r = $run('legacy-index', 'valid', $button);
+
+        return ($r['alert'] ?? null) != $csrfAlert && ($r['writes'] ?? []) === ['insert csrf_legacy'] && ($r['exited'] ?? null) === true;
+    });
+}
+
+check('form legacy: modifica con token valido → sqlModify', fn () => ($run('legacy-index', 'valid', 'modify')['writes'] ?? []) === ['modify csrf_legacy']);
 
 // Il token arriva anche dall'header (stesso comportamento di `Csrf::verify()`).
 check('store della Resource: token nell\'header X-WI-CSRF → arriva alla scrittura', function () use ($run) {
@@ -243,6 +262,19 @@ function csrfPagesScenario(string $scenario, string $tokenMode): void
             }
             break;
 
+        case 'legacy-index':
+            // $argv[4]: 'upload', 'upload-add' o 'modify' (upload con $_POST['modify']).
+            $button = ($GLOBALS['argv'][4] ?? '') ?: 'upload';
+            $_POST = $csrf + ['name' => 'nuovo', ($button === 'modify' ? 'upload' : $button) => '1'] + ($button === 'modify' ? ['modify' => '5'] : []);
+            csrfPagesInclude('/../../app/html/backend/index.php', [
+                'NAME' => (object) ['table' => 'csrf_legacy', 'database' => '', 'folder' => 'legacy'],
+                'TEXT' => (object) ['titleS' => 'voce'],
+                'PATH' => (object) ['backend' => '/backend'],
+                'PAGE' => (object) ['redirect' => '/backend/legacy/list.php', 'redirectBase64' => ''],
+                'PAGE_TABLE' => ['name' => []],
+            ]);
+            break;
+
         case 'quick-create':
             $_POST = $csrf + ['resource' => 'inesistente'];
             ob_start();
@@ -276,6 +308,7 @@ function csrfPagesStubs(): void
         function sanitize($v) { return $v; }
         function checkPassword($a, $b) { return true; }
         function hashPassword($v) { return 'h'; }
+        function formToArray($table, $post, $fields, $old = null) { return ['name' => $post['name'] ?? '']; }
     STUBS);
 }
 
