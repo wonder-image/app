@@ -257,4 +257,46 @@ check('stop senza CSRF valido → rifiutato, impersonificazione attiva', functio
     return ($service->stop('x')->success ?? true) === false && $service->current() !== null;
 });
 
+// R2: scadenza applicata dal bootstrap di sessione, senza overlay né current().
+$bootstrapSession = static function (): void {
+    $_SESSION['system_cache'] = $_SESSION['system_cache'] ?? ['country' => 'IT', 'geo' => []];
+    require __DIR__.'/../../app/config/app/session.php';
+};
+
+check('bootstrap di sessione (API, layout custom): impersonificazione scaduta → attore ripristinato e audit expired', function () use ($reset, $service, $events, $bootstrapSession) {
+    $reset();
+    $service->start($service->issue(1, 2)->token);
+    $_SESSION['auth_impersonation']['expires_at'] = time() - 1;
+    $bootstrapSession();
+
+    return ($_SESSION['user_id'] ?? 0) === 1 && !isset($_SESSION['auth_impersonation'])
+        && in_array('expired', $events(), true);
+});
+
+check('bootstrap di sessione: impersonificazione valida resta attiva, nessun audit', function () use ($reset, $service, $events, $bootstrapSession) {
+    $reset();
+    $service->start($service->issue(1, 2)->token);
+    $bootstrapSession();
+
+    return ($_SESSION['user_id'] ?? 0) === 2 && isset($_SESSION['auth_impersonation'])
+        && !in_array('expired', $events(), true);
+});
+
+check('bootstrap di sessione: scaduta con attore disattivato → sessione anonima', function () use ($reset, $service, $bootstrapSession) {
+    $reset();
+    $service->start($service->issue(1, 2)->token);
+    $GLOBALS['tUsers'][1]->active = false;
+    $_SESSION['auth_impersonation']['expires_at'] = time() - 1;
+    $bootstrapSession();
+
+    return array_key_exists('user_id', $_SESSION) && $_SESSION['user_id'] === null && !isset($_SESSION['auth_impersonation']);
+});
+
+check('bootstrap di sessione senza impersonificazione: utente invariato', function () use ($reset, $events, $bootstrapSession) {
+    $reset();
+    $bootstrapSession();
+
+    return ($_SESSION['user_id'] ?? 0) === 1 && $events() === [];
+});
+
 summary();

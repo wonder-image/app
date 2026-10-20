@@ -61,7 +61,10 @@ lista esplicita delle authority backend autorizzate. Il servizio:
   default 1800): `start()` salva `expires_at` e, dopo la scadenza, `current()`
   torna `null`, rimette in sessione l'attore (o chiude la sessione se l'attore
   non è più attivo) e registra `expired`. Una sessione avviata senza
-  `expires_at` scade da `started_at`;
+  `expires_at` scade da `started_at`. La scadenza è applicata a ogni
+  richiesta dal bootstrap di sessione (`config/app/session.php`, tramite
+  `Impersonation::enforceExpiry()`) prima che l'utente venga risolto, quindi
+  vale anche per API, endpoint e layout senza overlay;
 - rigenera l'ID sessione all'ingresso e all'uscita;
 - conserva attore, soggetto, inizio e URL di ritorno nella sessione;
 - registra emissione, avvio, rifiuto, scadenza e arresto in

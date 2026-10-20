@@ -131,7 +131,9 @@
   token; `start()` da un'altra sessione fallisce con audit `start_denied`.
   Nuovo parametro opzionale del costruttore `maxDurationSeconds` (default
   1800): dopo `expires_at` `current()` torna `null`, ripristina l'attore e
-  registra `expired`. Firma pubblica invariata.
+  registra `expired`. La scadenza è applicata a ogni richiesta dal bootstrap
+  di sessione (`Impersonation::enforceExpiry()`), non solo dall'overlay
+  frontend. Firma pubblica invariata.
 - **Login e password del backend: CSRF, risposta uniforme, mittente
   (`C-PWD-I4`).** I form di login, recupero, restore e imposta password del
   backend emettono `_csrf` e gli handler lo verificano prima di tutto il resto:

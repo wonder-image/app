@@ -174,6 +174,20 @@ final class Impersonation
         return $current;
     }
 
+    /**
+     * Applica la scadenza a ogni richiesta, prima che l'utente venga risolto
+     * (bootstrap `config/app/session.php`): vale anche per API e layout custom.
+     */
+    public static function enforceExpiry(): void
+    {
+        if (!isset($_SESSION[self::SESSION_KEY])) {
+            return;
+        }
+
+        // `current()` usa `expires_at` salvato in sessione e, se scaduto, ripristina l'attore.
+        (new self([]))->current();
+    }
+
     public function csrfToken(string $purpose = 'stop'): string
     {
         $purpose = preg_replace('/[^a-z0-9_-]/', '', strtolower($purpose)) ?: 'default';
