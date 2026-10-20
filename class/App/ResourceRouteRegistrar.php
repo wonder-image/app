@@ -152,7 +152,7 @@ final class ResourceRouteRegistrar
                                 ])->name('index')->permit($permissions['index'] ?? []);
                             }
 
-                            if (!empty($routes['store']) && $allowed('store') && !$readonly) {
+                            if (!empty($routes['store']) && !$readonly && $allowed('store')) {
                                 Route::post('/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'store',
@@ -168,7 +168,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($routes['update']) && $allowed('update') && !$readonly) {
+                            if (!empty($routes['update']) && !$readonly && $allowed('update')) {
                                 Route::put('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'update',
@@ -184,7 +184,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($routes['destroy']) && $allowed('destroy') && !$readonly) {
+                            if (!empty($routes['destroy']) && !$readonly && $allowed('destroy')) {
                                 Route::delete('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'destroy',

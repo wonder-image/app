@@ -72,6 +72,7 @@ final class SeoResource extends SingletonResource
     public static function apiSchema(): ApiSchema
     {
         return ApiSchema::for(static::class)
+            ->only(['show', 'update'])
             ->fields('show', ['id', 'title', 'description', 'author', 'copyright', 'creator', 'reply'])
             ->fields('update', ['title', 'description', 'author', 'copyright', 'creator', 'reply']);
     }

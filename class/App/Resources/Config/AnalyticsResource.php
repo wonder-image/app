@@ -74,6 +74,7 @@ final class AnalyticsResource extends SingletonResource
     public static function apiSchema(): ApiSchema
     {
         return ApiSchema::for(static::class)
+            ->only(['show', 'update'])
             ->fields('show', ['id', 'tag_manager', 'active_tag_manager', 'pixel_facebook', 'active_pixel_facebook'])
             ->fields('update', ['tag_manager', 'active_tag_manager', 'pixel_facebook', 'active_pixel_facebook']);
     }
