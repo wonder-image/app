@@ -133,23 +133,29 @@ final class ListProvider
      */
     public static function fetch(array $request, object $name, object $text, object $user, object $page, $path): array
     {
-        // query / query_filter / query_custom / search_columns are raw SQL
-        // fragments and identifier blobs generated server-side (see
-        // Table::buildConfig) and round-tripped through the untrusted client.
-        // Verify their HMAC signature before use; a tampered or missing value
-        // aborts the request so it can never inject SQL.
-        $query       = ConfigCodec::decode((string) ($request['config']['query'] ?? ''));
-        $queryFilter = ConfigCodec::decode((string) ($request['config']['query_filter'] ?? ''));
-        $queryCustom = ConfigCodec::decode((string) ($request['config']['query_custom'] ?? ''));
-        $searchBlob  = ConfigCodec::decode((string) ($request['config']['search_columns'] ?? ''));
+        // query / query_filter / query_custom / search_columns / select /
+        // group_by sono frammenti SQL generati da Table::buildConfig e
+        // rimandati dal client: la firma li lega a tabella, schema e campo
+        // (ConfigCodec::context) e va verificata prima di qualsiasi query.
+        $schema = ListTableRequest::schema((string) ($name->schema ?? ''));
+        $config = is_array($request['config'] ?? null) ? $request['config'] : [];
+        $decode = static function (string $field) use ($config, $name, $schema): ?string {
+            return ConfigCodec::decode(
+                (string) ($config[$field] ?? ''),
+                null,
+                ConfigCodec::context((string) $name->table, $schema, $field)
+            );
+        };
 
-        // select / group_by: firmati come i query*. Chiave assente (tutte le
-        // tabelle non raggruppate) => stringa vuota, nessun GROUP BY; presente
-        // ma manomessa => decode null => signatureError come gli altri frammenti.
-        $selectEnc   = (string) ($request['config']['select'] ?? '');
-        $groupEnc    = (string) ($request['config']['group_by'] ?? '');
-        $select      = $selectEnc === '' ? '' : ConfigCodec::decode($selectEnc);
-        $groupBy     = $groupEnc  === '' ? '' : ConfigCodec::decode($groupEnc);
+        $query       = $decode('query');
+        $queryFilter = $decode('query_filter');
+        $queryCustom = $decode('query_custom');
+        $searchBlob  = $decode('search_columns');
+
+        // select / group_by: chiave assente (tabelle non raggruppate) => stringa
+        // vuota, nessun GROUP BY; presente ma non valida => signatureError.
+        $select  = (string) ($config['select'] ?? '') === '' ? '' : $decode('select');
+        $groupBy = (string) ($config['group_by'] ?? '') === '' ? '' : $decode('group_by');
 
         if ($query === null || $queryFilter === null || $queryCustom === null || $searchBlob === null
             || $select === null || $groupBy === null) {

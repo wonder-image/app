@@ -734,22 +734,23 @@
                 'link' => $this->link
             ];
 
-            // query / query_filter / query_custom / search_columns are raw SQL
-            // fragments and identifier blobs round-tripped through the untrusted
-            // client. Sign each one (HMAC embedded in the base64, see
-            // ConfigCodec) so a tampered value is rejected server-side in
-            // ListProvider::fetch() and can never inject SQL. No client change
-            // is required: the signature travels inside the same base64 string
-            // the browser already forwards.
+            // Frammenti SQL rimandati dal client: firmati (ConfigCodec) e legati
+            // a tabella, schema e campo, così ListProvider::fetch() rifiuta sia
+            // un valore manomesso sia un frammento riusato su un'altra tabella.
+            $schema = ListTableRequest::schema((string) ($this->endpointValues['schema'] ?? ''));
+            $sign = function (string $field, string $payload) use ($schema): string {
+                return ConfigCodec::encode($payload, null, ConfigCodec::context((string) $this->table, $schema, $field));
+            };
+
             $JSON['config'] = [
                 'table' => $this->table,
                 'database' =>$this->database,
-                'query' => ConfigCodec::encode((string) $this->query),
-                'query_filter' => ConfigCodec::encode((string) $this->queryFilter),
-                'query_custom' => ConfigCodec::encode((string) $this->queryCustom),
-                'search_columns' => ConfigCodec::encode((string) json_encode($this->filterSearch['fields'])),
-                'select' => ConfigCodec::encode((string) $this->select),
-                'group_by' => ConfigCodec::encode((string) $this->groupBy)
+                'query' => $sign('query', (string) $this->query),
+                'query_filter' => $sign('query_filter', (string) $this->queryFilter),
+                'query_custom' => $sign('query_custom', (string) $this->queryCustom),
+                'search_columns' => $sign('search_columns', (string) json_encode($this->filterSearch['fields'])),
+                'select' => $sign('select', (string) $this->select),
+                'group_by' => $sign('group_by', (string) $this->groupBy)
             ];
 
             $JSON['text'] = $this->text;
