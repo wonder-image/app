@@ -51,6 +51,16 @@ foreach ($pageScenarios as $scenario => $label) {
     });
 }
 
+// Cambio password dell'account: la password nuova vuota o di soli spazi è rifiutata (C-PWD-I1).
+foreach (['empty' => 'vuota', 'spaces' => 'di soli spazi'] as $extra => $label) {
+    check("account: password nuova {$label} → alert 977 e nessuna scrittura", function () use ($run, $extra) {
+        $r = $run('account-password', 'valid', $extra);
+
+        return ($r['alert'] ?? null) == 977 && ($r['writes'] ?? null) === [] && !empty($r['rendered']);
+    });
+}
+check('account: password nuova valida → salva la password', fn () => ($run('account-password', 'valid')['writes'] ?? []) === ['modify user']);
+
 // Form legacy (`app/html/backend/index.php`): non rende pagina, scrive e redirige.
 foreach (['none', 'wrong'] as $token) {
     check("form legacy: token {$token} → alert {$csrfAlert}, nessuna scrittura e nessun redirect", function () use ($run, $token, $csrfAlert) {
@@ -245,7 +255,12 @@ function csrfPagesScenario(string $scenario, string $tokenMode): void
         case 'account-password':
             $_POST = $csrf + ($scenario === 'account-modify'
                 ? ['modify' => '1', 'password' => 'x']
-                : ['modify-password' => '1', 'old-password' => 'x', 'new-password' => 'y']);
+                : ['modify-password' => '1', 'old-password' => 'x', 'new-password' => match ($GLOBALS['argv'][4] ?? '') {
+                    // $argv[4]: 'empty' o 'spaces' per la password nuova (C-PWD-I1).
+                    'empty' => '',
+                    'spaces' => "   \t",
+                    default => 'y',
+                }]);
             csrfPagesInclude('/../../app/http/backend/account/index.php', [
                 'USER' => (object) ['id' => 7, 'authority' => []],
                 'DEFAULT' => (object) ['colorUser' => []],

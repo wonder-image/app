@@ -13,7 +13,8 @@
   né in account backend: `checkUserPassword()` prova il valore grezzo e, solo
   per un hash phpass, ripiega sul valore sanificato (password storiche con
   apostrofi o spazi). **Ripiego transitorio, rimosso nella beta successiva.**
-  `Wonder\Password::CheckPassword()` confronta con `hash_equals`.
+  `Wonder\Password::CheckPassword()` confronta con `hash_equals`. In account
+  backend una password nuova vuota o di soli spazi è rifiutata con alert `977`.
 - **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
   `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
   `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,

@@ -52,9 +52,13 @@ if ($CSRF_VALID && isset($_POST['modify'])) {
 
 if ($CSRF_VALID && isset($_POST['modify-password'])) {
     $oldPassword = (string) ($_POST['old-password'] ?? '');
+    $rawNewPassword = (string) ($_POST['new-password'] ?? '');
 
-    if (checkUserPassword($oldPassword, $VALUES['password'])) {
-        $newPassword = hashPassword($_POST['new-password']);
+    // Password nuova vuota o di soli spazi: rifiutata lato server.
+    if (trim($rawNewPassword) === '') {
+        $ALERT = 977;
+    } elseif (checkUserPassword($oldPassword, $VALUES['password'])) {
+        $newPassword = hashPassword($rawNewPassword);
         $saved = sqlModify('user', ['password' => $newPassword], 'id', $USER->id);
 
         // Una sessione o un cookie "ricordami" rubati prima del cambio non restano validi.
