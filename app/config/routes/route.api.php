@@ -67,7 +67,7 @@ Route::area('api')
                 Route::post('/authority/', $ROOT_APP.'/http/api/backend/authority.php')
                     ->name('authority')
                     ->guarded()
-                    ->permit([]);
+                    ->permit(['admin']);
 
                 Route::post('/move/', $ROOT_APP.'/http/api/backend/move.php')
                     ->name('move')
