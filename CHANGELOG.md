@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- `AuthValidator::localPhone($phone, $prefix)`: il numero da mostrare dopo il
+  prefisso, tolto da un cellulare canonico (`+39333…` → `333…`) solo se inizia
+  con quel prefisso. `AuthValidator::defaultPrefix()` dà il prefisso proposto
+  (`Prettify\Phone::$defaultCountryCode`, `+39`). Li usano «Dati personali»
+  (`AccountController`) e il completamento della registrazione (`AuthProfile`),
+  senza cambiare il comportamento.
 - Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
   stato con icona e link, scorciatoia verso una pagina, elenco di link
   raggruppati. Li usa la home del backend; schede nel catalogo.

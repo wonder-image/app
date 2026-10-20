@@ -2,6 +2,8 @@
 
 namespace Wonder\Auth\Frontend;
 
+use Wonder\Support\Prettify\Phone;
+
 final class AuthValidator
 {
     public static function signupRequest(array $input, array $documents = ['privacy_policy', 'terms_conditions']): array
@@ -55,5 +57,26 @@ final class AuthValidator
         $phone = preg_replace('/\D+/', '', (string) ($input['phone'] ?? '')) ?? '';
 
         return $prefix !== '' && $phone !== '' ? '+'.$prefix.$phone : '';
+    }
+
+    /** Numero da mostrare dopo il prefisso: toglie `$prefix` solo da un canonico (`+39333…`) che inizia con quel prefisso. */
+    public static function localPhone(string $phone, string $prefix): string
+    {
+        if (!str_starts_with(trim($phone), '+')) {
+            return $phone;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        $prefixDigits = preg_replace('/\D+/', '', $prefix) ?? '';
+
+        return $prefixDigits !== '' && str_starts_with($digits, $prefixDigits)
+            ? substr($digits, strlen($prefixDigits))
+            : $phone;
+    }
+
+    /** Prefisso proposto quando l'utente non ne ha scelto uno. */
+    public static function defaultPrefix(): string
+    {
+        return Phone::$defaultCountryCode;
     }
 }

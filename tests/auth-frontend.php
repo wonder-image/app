@@ -89,5 +89,10 @@ $check($profile->phoneColumns('signup-completion') === 5 && $profile->phoneField
 $check($profile->phoneColumns('login') === 1 && $profile->phoneFieldSpan('signup-request', 'name') === 1, 'Other auth forms lost the single phone column.');
 $authForm = (string) file_get_contents(dirname(__DIR__).'/app/view/components/frontend/account/auth-form.php');
 $check(str_contains($authForm, 'col-p-<?=$phone_columns?>') && str_contains($authForm, '$auth_profile->phoneFieldSpan($surface'), 'Auth form ignores the phone grid.');
+$validator = \Wonder\Auth\Frontend\AuthValidator::class;
+$check($validator::localPhone('+39333', '+39') === '333', 'localPhone does not strip the matching prefix.');
+$check($validator::localPhone('333', '+39') === '333' && $validator::localPhone('333 123', '+39') === '333 123', 'localPhone altered a local number.');
+$check($validator::localPhone('+44333', '+39') === '+44333', 'localPhone stripped a different prefix.');
+$check($validator::defaultPrefix() === '+39', 'Default phone prefix changed.');
 if ($failures !== []) { fwrite(STDERR, implode("\n", $failures)."\n"); exit(1); }
 echo "Auth frontend: OK\n";

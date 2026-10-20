@@ -364,6 +364,13 @@ i valori del proprio form. `AccountPersonal` salva nome e cellulare, passando da
 ganci delle estensioni (`validatePersonal()` prima, `personalUserValues()` e
 `afterPersonalSaved()` dopo), in una sola transazione con quanto scrivono: o
 tutto o niente. Il core conserva gli invarianti base su identità e cellulare.
+Il cellulare si salva canonico con `AuthValidator::canonicalPhone()`
+(`+39` + `333…` → `+39333…`); il modal lo rimostra diviso con
+`AuthValidator::localPhone($phone, $prefix)`, che toglie il prefisso solo da un
+numero che inizia con `+` e con quel prefisso (`+39333` → `333`, `333` resta
+`333`, `+44333` resta `+44333` se il prefisso è `+39`). Senza prefisso scelto si
+propone `AuthValidator::defaultPrefix()` (`Prettify\Phone::$defaultCountryCode`,
+`+39`).
 
 Il cambio email (`AccountEmail`) chiede la password attuale e manda alla nuova
 casella un link monouso (token `email_change`, 24 ore) a

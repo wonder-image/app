@@ -215,15 +215,9 @@ class AccountController
     protected function personalFields(object $user, array $values): array
     {
         $phone = (string) ($values['phone'] ?? $user->phone ?? '');
-        $prefix = (string) ($values['phone_prefix'] ?? '+39');
+        $prefix = (string) ($values['phone_prefix'] ?? AuthValidator::defaultPrefix());
         // Il telefono dell'utente è canonico (`+39333…`): nel campo va solo il numero, dopo il prefisso.
-        if (str_starts_with(trim($phone), '+')) {
-            $digits = preg_replace('/\D+/', '', $phone);
-            $prefixDigits = preg_replace('/\D+/', '', $prefix);
-            if ($prefixDigits !== '' && str_starts_with($digits, $prefixDigits)) {
-                $phone = substr($digits, strlen($prefixDigits));
-            }
-        }
+        $phone = AuthValidator::localPhone($phone, $prefix);
         $required = $this->auth->phoneRequired();
 
         return [
