@@ -130,11 +130,13 @@ successo cancella il segno.
 **Fail-open e fail-closed.** Se l'engine lancia o Google non risponde davvero
 (rete, 200 senza JSON, 429, 5xx, 4xx diversi da 400, 401 e 403) la verifica si
 **salta** con una riga di log (`skipped: true`). Con `->failClosed()` in
-produzione dà invece `617` con log `ERROR`: lo usano login, registrazione e
-recupero password del frontend (`AuthController`). Form contatti, checkout e
-gli altri `Resource::verifyRecaptcha()` restano fail-open. Non passano mai:
-token o azione assenti, tipo senza chiave, token non valido per Google,
-HTTP 400.
+produzione dà invece `617` con log `ERROR`: lo usano le cinque azioni
+dell'auth frontend (`AuthController`): login (`login`), registrazione
+(`signup-request`), completamento della registrazione (`signup-completion`),
+recupero password (`password-recovery`) e reimpostazione della password
+(`password-restore`). Form contatti, checkout e gli altri
+`Resource::verifyRecaptcha()` restano fail-open. Non passano mai: token o
+azione assenti, tipo senza chiave, token non valido per Google, HTTP 400.
 
 **401/403 = configurazione.** Google che risponde 401 o 403 vuol dire chiave
 API o progetto GCP sbagliati (o API Enterprise non abilitata): `617` con

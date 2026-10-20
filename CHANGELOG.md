@@ -20,7 +20,9 @@
   `RecaptchaGuard::failClosed(?bool $value = null)` (senza argomento: solo in
   produzione): con Google irraggiungibile (eccezione, rete, 429, 5xx) la
   verifica dà `617` con log `ERROR` invece del salto. Lo usano login,
-  registrazione e recupero password del frontend (`AuthController`); form
+  registrazione, completamento della registrazione, recupero e reimpostazione
+  della password del frontend (`AuthController`: `login`, `signup-request`,
+  `signup-completion`, `password-recovery`, `password-restore`); form
   contatti, checkout e gli altri `Resource::verifyRecaptcha()` restano
   fail-open. Un 401/403 di Google è ora `617` con `reason: config` (prima:
   salto); l'engine li classifica `available: true` con il nuovo campo
