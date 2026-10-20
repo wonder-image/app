@@ -17,6 +17,17 @@ final class ModelRegistry
         self::$models = null;
     }
 
+    /**
+     * Mappa tabella => classe Model.
+     *
+     * Se più Model dichiarano la stessa `$table` vince il FQCN ultimo in
+     * ordine alfabetico (vedi `ksort` in `discoveredModels()`), qualunque sia
+     * la cartella di provenienza (pacchetto, moduli, `ROOT/app/Models`,
+     * `ROOT/custom/class/Models`): il sito NON ha precedenza sul pacchetto.
+     * Il conflitto non genera errori.
+     *
+     * @return array<string, class-string<Model>>
+     */
     public static function all(): array
     {
         if (self::$models !== null) {
@@ -44,6 +55,7 @@ final class ModelRegistry
                 throw new RuntimeException("Tabella non valida per il model {$modelClass}");
             }
 
+            // Stessa tabella: sovrascrive, quindi resta il FQCN alfabeticamente ultimo.
             $models[$table] = $modelClass;
         }
 
@@ -78,6 +90,7 @@ final class ModelRegistry
             }
         }
 
+        // Ordine per FQCN, non per cartella: decide la precedenza in all().
         ksort($models);
 
         return array_values($models);

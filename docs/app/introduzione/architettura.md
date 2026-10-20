@@ -84,6 +84,18 @@ ben definita (chi sta più in alto sovrascrive chi sta più in basso):
 4. sito (`custom/class/Models`, `custom/class/Resources`)
 5. liste di risorse dai file di configurazione, quando presenti
 
+Questo ordine vale per gli slug delle Resource. Per la stessa **tabella** le
+regole sono altre:
+
+- `ResourceRegistry::resolveByTable()` restituisce la prima Resource non
+  fallback (`isTableFallback() === false`) nell'ordine sopra; se ci sono solo
+  fallback, la prima fallback. Due non-fallback non sono un errore: vince la
+  prima.
+- `ModelRegistry::all()` tiene un solo Model per tabella: quello con il FQCN
+  ultimo in ordine alfabetico, **qualunque sia la cartella** (un
+  `App\Models\…` del sito perde contro un `Wonder\…` del pacchetto). Nessun
+  errore sul conflitto.
+
 {% hint style="warning" %}
 Dopo aver aggiunto/spostato un Model o Resource, esegui sempre
 `composer dump-autoload` dal progetto che possiede la classe: i registry

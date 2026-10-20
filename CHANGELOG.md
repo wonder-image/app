@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- Test `tests/App/RegistryPrecedenceTest.php` sulla precedenza per tabella:
+  `ResourceRegistry::resolveByTable()` (non-fallback prima della fallback in
+  entrambi gli ordini, solo fallback, due non-fallback) e `ModelRegistry::all()`
+  (vince il FQCN alfabeticamente ultimo, qualunque sia la cartella). Docblock
+  con la regola reale nei due registry e nota in `introduzione/architettura.md`.
+  Nessun cambio di comportamento.
 - `AuthValidator::localPhone($phone, $prefix)`: il numero da mostrare dopo il
   prefisso, tolto da un cellulare canonico (`+39333…` → `333…`) solo se inizia
   con quel prefisso. `AuthValidator::defaultPrefix()` dà il prefisso proposto
