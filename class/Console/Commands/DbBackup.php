@@ -31,6 +31,11 @@ class DbBackup extends Command
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Cartella di destinazione alternativa');
     }
 
+    protected function makeBackup(): DatabaseBackup
+    {
+        return new DatabaseBackup($this->mysqldumpBinary);
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $root = getcwd() ?: '.';
@@ -58,10 +63,14 @@ class DbBackup extends Command
         require_once $bootstrap;
 
         try {
-            $backup = (new DatabaseBackup($this->mysqldumpBinary))->run($path !== '' ? $path : DatabaseBackup::defaultDirectory($root), $keep);
+            $backup = $this->makeBackup()->run($path !== '' ? $path : DatabaseBackup::defaultDirectory($root), $keep);
         } catch (Throwable $throwable) {
             $output->writeln('<error>❌ Backup non riuscito: '.$throwable->getMessage().'</error>');
             return Command::FAILURE;
+        }
+
+        if ($backup->fallback !== null) {
+            $output->writeln('<comment>⚠️  mysqldump non riuscito, usato il dump PHP: '.$backup->fallback.'</comment>');
         }
 
         $output->writeln('<info>✅ Backup creato: '.$backup->path.' ('.$backup->method.', '.number_format($backup->bytes / 1024, 1).' KB)</info>');

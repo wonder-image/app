@@ -53,6 +53,42 @@ class UpdateRunner
         return $result->row;
     }
 
+    /**
+     * Opzioni di `execute()` dai parametri di `/api/app/update/` (corpo JSON o form):
+     * `release_id`, `source` (`github`|`backend`), `backup` (default true, come senza `--no-backup`).
+     *
+     * @return array{release_id: string, trigger_type: string, source: string, backup: bool}
+     */
+    public static function apiOptions(array $parameters): array
+    {
+        $source = trim((string) ($parameters['source'] ?? 'github'));
+
+        return [
+            'release_id' => trim((string) ($parameters['release_id'] ?? '')),
+            'trigger_type' => 'api',
+            'source' => in_array($source, ['github', 'backend'], true) ? $source : 'github',
+            'backup' => self::backupRequested($parameters['backup'] ?? null),
+        ];
+    }
+
+    /** `false`, `0`, `"false"`, `"no"`, `"off"` disattivano il backup; assente o vuoto = attivo. */
+    public static function backupRequested(mixed $value): bool
+    {
+        if ($value === null || $value === '') {
+            return true;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (!is_scalar($value)) {
+            return true;
+        }
+
+        return !in_array(strtolower(trim((string) $value)), ['0', 'false', 'no', 'off'], true);
+    }
+
     public function execute(array $options = []): object
     {
         $releaseId = trim((string) ($options['release_id'] ?? ''));
@@ -115,7 +151,7 @@ class UpdateRunner
             $runId = $this->createRunRow($releaseId, $triggerType, $source, $startedAt);
             $result->run_id = $runId > 0 ? $runId : null;
 
-            if (($options['backup'] ?? true) !== false && $this->hasApplicationTables()) {
+            if ($this->shouldBackup($options)) {
                 $result->backup = $this->runBackup();
             }
 
@@ -171,6 +207,12 @@ class UpdateRunner
         }
     }
 
+    /** Con `backup` a false non si interroga nemmeno il database. */
+    private function shouldBackup(array $options): bool
+    {
+        return ($options['backup'] ?? true) !== false && $this->hasApplicationTables();
+    }
+
     /** Database non vuoto (esclusa la tabella del runner): c'è qualcosa che le migrazioni possono toccare. */
     private function hasApplicationTables(): bool
     {
@@ -197,7 +239,7 @@ class UpdateRunner
         try {
             return (new DatabaseBackup(null, $this->connection))->run()->path;
         } catch (Throwable $throwable) {
-            throw new RuntimeException('Backup del database non riuscito, update interrotto: '.$throwable->getMessage().' (per saltarlo: php forge update --no-backup)', 0, $throwable);
+            throw new RuntimeException('Backup del database non riuscito, update interrotto: '.$throwable->getMessage().' (per saltarlo: php forge update --no-backup, o "backup": false nella chiamata API)', 0, $throwable);
         }
     }
 

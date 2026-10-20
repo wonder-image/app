@@ -18,8 +18,10 @@ use Wonder\Sql\Connection;
  * Usa `mysqldump` se presente nel PATH e `proc_open` è disponibile (credenziali in un
  * `--defaults-extra-file` temporaneo 0600, mai negli argomenti),
  * altrimenti un dump PHP via mysqli (solo tabelle e dati).
- * Il file finale compare solo a dump riuscito: si scrive su un
- * temporaneo nella stessa cartella e si rinomina alla fine.
+ * Se mysqldump fallisce (exit ≠ 0, stderr, output vuoto o senza il marcatore
+ * finale `-- Dump completed`) si riprova con il dump PHP; l'errore arriva solo se
+ * falliscono entrambi. Il file finale compare solo a dump riuscito: si scrive su
+ * un temporaneo nella stessa cartella e si rinomina alla fine.
  */
 final class DatabaseBackup
 {
@@ -33,6 +35,12 @@ final class DatabaseBackup
         '--routines',
         '--triggers',
     ];
+
+    /** Ultima riga scritta da mysqldump (con i commenti attivi, default): senza, il dump è troncato. */
+    public const DUMP_COMPLETED_MARKER = '-- Dump completed';
+
+    /** Opzione che il mysqldump di MariaDB non conosce (e che i server MariaDB non usano). */
+    private const GTID_OPTION = '--set-gtid-purged=OFF';
 
     private const FILE_PATTERN = '/^\d{8}-\d{6}\.sql\.gz$/';
 
@@ -89,17 +97,28 @@ final class DatabaseBackup
 
     /**
      * Argomenti di mysqldump: niente password, `--defaults-extra-file` deve essere il primo.
+     * Con MariaDB (client o server) `--set-gtid-purged=OFF` viene omesso.
      *
      * @return list<string>
      */
-    public static function mysqldumpArguments(string $binary, string $defaultsFile, string $database): array
+    public static function mysqldumpArguments(string $binary, string $defaultsFile, string $database, bool $mariaDb = false): array
     {
+        $options = $mariaDb
+            ? array_values(array_filter(self::MYSQLDUMP_OPTIONS, static fn (string $option): bool => $option !== self::GTID_OPTION))
+            : self::MYSQLDUMP_OPTIONS;
+
         return [
             $binary,
             '--defaults-extra-file='.$defaultsFile,
-            ...self::MYSQLDUMP_OPTIONS,
+            ...$options,
             $database,
         ];
+    }
+
+    /** Versione di `mysqldump --version` o di `SELECT VERSION()` che indica MariaDB. */
+    public static function isMariaDb(string $version): bool
+    {
+        return stripos($version, 'mariadb') !== false;
     }
 
     public static function defaultsFileContent(object $credentials): string
@@ -157,7 +176,9 @@ final class DatabaseBackup
     }
 
     /**
-     * @return object{path: string, method: string, bytes: int, removed: list<string>}
+     * `fallback` è l'errore di mysqldump quando il backup è stato fatto con il dump PHP al suo posto.
+     *
+     * @return object{path: string, method: string, bytes: int, removed: list<string>, fallback: ?string}
      */
     public function run(?string $directory = null, int $keep = self::DEFAULT_KEEP, ?DateTimeInterface $at = null): object
     {
@@ -178,12 +199,29 @@ final class DatabaseBackup
         $binary = $this->binary === null ? self::findMysqldump() : $this->binary;
         // proc_open può essere disabilitata sugli hosting condivisi: si ripiega sul dump PHP.
         $method = is_string($binary) && $binary !== '' && function_exists('proc_open') ? 'mysqldump' : 'php';
+        $fallback = null;
 
         try {
             if ($method === 'mysqldump') {
-                $this->dumpWithMysqldump($binary, $temporary);
-            } else {
-                $this->dumpWithPhp($temporary);
+                try {
+                    $this->dumpWithMysqldump($binary, $temporary);
+                } catch (Throwable $throwable) {
+                    @unlink($temporary);
+                    $fallback = $throwable->getMessage();
+                    $method = 'php';
+                }
+            }
+
+            if ($method === 'php') {
+                try {
+                    $this->dumpWithPhp($temporary);
+                } catch (Throwable $throwable) {
+                    if ($fallback === null) {
+                        throw $throwable;
+                    }
+
+                    throw new RuntimeException('Backup non riuscito né con mysqldump né con il dump PHP. mysqldump: '.$fallback.' — dump PHP: '.$throwable->getMessage(), 0, $throwable);
+                }
             }
 
             @chmod($temporary, 0640);
@@ -201,6 +239,7 @@ final class DatabaseBackup
             'method' => $method,
             'bytes' => (int) filesize($path),
             'removed' => self::rotate($directory, $keep),
+            'fallback' => $fallback,
         ];
     }
 
@@ -238,9 +277,10 @@ final class DatabaseBackup
             }
 
             $stderrFile = $this->privateTempFile('wi-mysqldump-err-');
+            $mariaDb = self::isMariaDb($this->binaryVersion($binary)) || self::isMariaDb($this->serverVersion());
 
             $process = proc_open(
-                self::mysqldumpArguments($binary, $defaultsFile, $database),
+                self::mysqldumpArguments($binary, $defaultsFile, $database, $mariaDb),
                 [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['file', $stderrFile, 'w']],
                 $pipes
             );
@@ -254,6 +294,7 @@ final class DatabaseBackup
             $gz = gzopen($temporary, 'wb6');
             $writeError = false;
             $bytes = 0;
+            $tail = '';
 
             while (!feof($pipes[1])) {
                 $chunk = fread($pipes[1], 65536);
@@ -273,6 +314,7 @@ final class DatabaseBackup
                 }
 
                 $bytes += strlen($chunk);
+                $tail = substr($tail.$chunk, -512);
             }
 
             fclose($pipes[1]);
@@ -293,6 +335,10 @@ final class DatabaseBackup
             if ($bytes === 0) {
                 throw new RuntimeException('mysqldump non ha prodotto alcun output.');
             }
+
+            if (!str_contains($tail, self::DUMP_COMPLETED_MARKER)) {
+                throw new RuntimeException('Output di mysqldump troncato (manca «'.self::DUMP_COMPLETED_MARKER.'»).');
+            }
         } finally {
             if ($gz !== false) {
                 @gzclose($gz);
@@ -303,6 +349,52 @@ final class DatabaseBackup
                     @unlink($file);
                 }
             }
+        }
+    }
+
+    private function binaryVersion(string $binary): string
+    {
+        $process = @proc_open([$binary, '--version'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+        if (!is_resource($process)) {
+            return '';
+        }
+
+        fclose($pipes[0]);
+        $version = (string) stream_get_contents($pipes[1]);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        return $version;
+    }
+
+    /**
+     * `SELECT VERSION()` sulla connessione iniettata; senza connessione e con le credenziali
+     * del sito ne apre una. Con credenziali esplicite (test, chiamanti esterni) non si connette.
+     */
+    private function serverVersion(): string
+    {
+        try {
+            $connection = $this->connection ?? ($this->credentials === null ? Connection::Connect() : null);
+
+            if (!$connection instanceof mysqli) {
+                return '';
+            }
+
+            $result = $connection->query('SELECT VERSION()');
+
+            if (!is_object($result)) {
+                return '';
+            }
+
+            $row = $result->fetch_row();
+            $result->free();
+
+            return is_array($row) ? (string) ($row[0] ?? '') : '';
+        } catch (Throwable) {
+            return '';
         }
     }
 
