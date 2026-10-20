@@ -2,6 +2,7 @@
 
 namespace Wonder\App;
 
+use Wonder\Api\Support\ResourceApiAccess;
 use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\Http\Route;
 
@@ -139,25 +140,26 @@ final class ResourceRouteRegistrar
                     $routes = (array) $apiSchema->get('routes');
                     $permissions = (array) $resourceClass::permissionSchema()->get('api');
                     $readonly = $resourceClass::isReadonly();
+                    $allowed = static fn (string $action): bool => self::apiActionAllowed($resourceClass, $slug, $action, $routes);
 
                     Route::name($slug.'.')
                         ->prefix('/'.$slug)
-                        ->group(function () use ($rootApp, $slug, $routes, $permissions, $resourceClass, $readonly) {
-                            if (!empty($routes['index'])) {
+                        ->group(function () use ($rootApp, $slug, $routes, $permissions, $resourceClass, $readonly, $allowed) {
+                            if (!empty($routes['index']) && $allowed('index')) {
                                 Route::get('/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'index',
                                 ])->name('index')->permit($permissions['index'] ?? []);
                             }
 
-                            if (!empty($routes['store']) && !$readonly) {
+                            if (!empty($routes['store']) && $allowed('store') && !$readonly) {
                                 Route::post('/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'store',
                                 ])->name('store')->permit($permissions['store'] ?? []);
                             }
 
-                            if (!empty($routes['show'])) {
+                            if (!empty($routes['show']) && $allowed('show')) {
                                 Route::get('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'show',
@@ -166,7 +168,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($routes['update']) && !$readonly) {
+                            if (!empty($routes['update']) && $allowed('update') && !$readonly) {
                                 Route::put('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'update',
@@ -182,7 +184,7 @@ final class ResourceRouteRegistrar
                                     ->where('id', '[0-9]+');
                             }
 
-                            if (!empty($routes['destroy']) && !$readonly) {
+                            if (!empty($routes['destroy']) && $allowed('destroy') && !$readonly) {
                                 Route::delete('/{id}/', $rootApp.'/http/api/resource/index.php', [
                                     'resource' => $slug,
                                     'resource_action' => 'destroy',
@@ -195,5 +197,24 @@ final class ResourceRouteRegistrar
                         });
                 }
             });
+    }
+
+    /**
+     * Rotta abilitata ma senza permessi `api` per l'azione: non registrata
+     * (il controller risponderebbe comunque 403) e segnalata nel log.
+     */
+    private static function apiActionAllowed(string $resourceClass, string $slug, string $action, array $routes): bool
+    {
+        if (empty($routes[$action])) {
+            return false;
+        }
+
+        if (ResourceApiAccess::declared($resourceClass, $action) !== []) {
+            return true;
+        }
+
+        error_log("[wonder-image] api.resource.{$slug}.{$action} non registrata: permissionSchema()->api('{$action}') vuoto.");
+
+        return false;
     }
 }

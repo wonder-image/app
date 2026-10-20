@@ -191,6 +191,12 @@
 
         }
 
+        /** @return list<string> authority possedute dall'utente API del token. */
+        public function userAuthorities(): array
+        {
+            return array_values(array_map('strval', (array) ($this->user->authority ?? [])));
+        }
+
         /** true se la richiesta usa il token di pagina stampato in `API_TOKEN`. */
         public function isPageToken(): bool
         {
