@@ -51,10 +51,19 @@ lista esplicita delle authority backend autorizzate. Il servizio:
 
 - accetta soltanto attori backend attivi e soggetti frontend attivi;
 - vieta auto-impersonificazione e soggetti che possiedono anche accesso backend;
-- trasferisce l'identità con token monouso di breve durata;
+- trasferisce l'identità con token monouso di breve durata, valido solo nella
+  sessione che l'ha emesso: `issue()` salva nei metadata lo sha256 dell'ID
+  sessione (`actor_session`) e `start()` lo confronta con `hash_equals`; da
+  un'altra sessione l'avvio fallisce (`impersonation_session_mismatch`, audit
+  `start_denied`) e il token resta consumato;
+- dura al massimo `maxDurationSeconds` (terzo parametro del costruttore,
+  default 1800): `start()` salva `expires_at` e, dopo la scadenza, `current()`
+  torna `null`, rimette in sessione l'attore (o chiude la sessione se l'attore
+  non è più attivo) e registra `expired`. Una sessione avviata senza
+  `expires_at` scade da `started_at`;
 - rigenera l'ID sessione all'ingresso e all'uscita;
 - conserva attore, soggetto, inizio e URL di ritorno nella sessione;
-- registra emissione, avvio, rifiuto e arresto in
+- registra emissione, avvio, rifiuto, scadenza e arresto in
   `auth_impersonation_audits`;
 - richiede CSRF sia per l'emissione sia per l'arresto.
 

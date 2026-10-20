@@ -13,6 +13,7 @@ final class Impersonation
     public function __construct(
         private readonly array $allowedActorAuthorities,
         private readonly int $tokenTtlSeconds = 120,
+        private readonly int $maxDurationSeconds = 1800,
     ) {}
 
     public function issue(
@@ -31,6 +32,8 @@ final class Impersonation
             [
                 'return_url' => $returnUrl,
                 'stop_url' => $stopUrl,
+                // Il token vale solo nella sessione che l'ha emesso.
+                'actor_session' => self::sessionFingerprint(),
             ]
         );
 
@@ -54,6 +57,16 @@ final class Impersonation
             return (object) ['success' => false, 'reason' => 'impersonation_token_invalid'];
         }
 
+        $actorSession = (string) ($consumed->metadata['actor_session'] ?? '');
+
+        if ($actorSession === '' || !hash_equals($actorSession, self::sessionFingerprint())) {
+            $this->audit('start_denied', $consumed->actor_user_id, $consumed->subject_user_id, [
+                'reason' => 'session_mismatch',
+            ]);
+
+            return (object) ['success' => false, 'reason' => 'impersonation_session_mismatch'];
+        }
+
         try {
             $this->assertEligiblePair($consumed->actor_user_id, $consumed->subject_user_id);
         } catch (\Throwable $exception) {
@@ -68,6 +81,7 @@ final class Impersonation
             'actor_user_id' => $consumed->actor_user_id,
             'subject_user_id' => $consumed->subject_user_id,
             'started_at' => time(),
+            'expires_at' => time() + max(60, $this->maxDurationSeconds),
             'return_url' => (string) ($consumed->metadata['return_url'] ?? ''),
             'stop_url' => (string) ($consumed->metadata['stop_url'] ?? ''),
         ];
@@ -100,20 +114,13 @@ final class Impersonation
             return (object) ['success' => false, 'reason' => 'impersonation_csrf_invalid'];
         }
 
-        $actor = \infoUser($current->actor_user_id, 'id');
-        if (!($actor->exists ?? false) || ($actor->deleted ?? true) || !($actor->active ?? false)) {
-            unset($_SESSION[self::SESSION_KEY], $_SESSION[self::CSRF_KEY], $_SESSION['user_id']);
-            $this->regenerateSession();
+        if (!$this->restoreActor($current)) {
             $this->audit('failed', $current->actor_user_id, $current->subject_user_id, [
                 'reason' => 'actor_no_longer_active',
             ]);
 
             return (object) ['success' => false, 'reason' => 'impersonation_actor_invalid'];
         }
-
-        $_SESSION['user_id'] = $current->actor_user_id;
-        unset($_SESSION[self::SESSION_KEY], $_SESSION[self::CSRF_KEY]);
-        $this->regenerateSession();
 
         $this->audit('stopped', $current->actor_user_id, $current->subject_user_id, [
             'duration_seconds' => max(0, time() - $current->started_at),
@@ -142,13 +149,29 @@ final class Impersonation
             return null;
         }
 
-        return (object) [
+        $startedAt = (int) ($state['started_at'] ?? 0);
+        $current = (object) [
             'actor_user_id' => $actorUserId,
             'subject_user_id' => $subjectUserId,
-            'started_at' => (int) ($state['started_at'] ?? 0),
+            'started_at' => $startedAt,
             'return_url' => (string) ($state['return_url'] ?? ''),
             'stop_url' => (string) ($state['stop_url'] ?? ''),
         ];
+
+        // Sessioni avviate prima di `expires_at`: scadenza da `started_at`.
+        $expiresAt = (int) ($state['expires_at'] ?? ($startedAt + max(60, $this->maxDurationSeconds)));
+
+        if (time() >= $expiresAt) {
+            $restored = $this->restoreActor($current);
+            $this->audit('expired', $actorUserId, $subjectUserId, [
+                'duration_seconds' => max(0, time() - $startedAt),
+                'actor_restored' => $restored,
+            ]);
+
+            return null;
+        }
+
+        return $current;
     }
 
     public function csrfToken(string $purpose = 'stop'): string
@@ -199,6 +222,29 @@ final class Impersonation
         if (!in_array('frontend', $subjectAreas, true) || in_array('backend', $subjectAreas, true)) {
             throw new InvalidArgumentException('impersonation_subject_not_frontend_only');
         }
+    }
+
+    /** Torna all'attore; se non è più attivo chiude anche la sua sessione. */
+    private function restoreActor(object $current): bool
+    {
+        $actor = \infoUser($current->actor_user_id, 'id');
+        $active = ($actor->exists ?? false) && !($actor->deleted ?? true) && ($actor->active ?? false);
+
+        if ($active) {
+            $_SESSION['user_id'] = $current->actor_user_id;
+            unset($_SESSION[self::SESSION_KEY], $_SESSION[self::CSRF_KEY]);
+        } else {
+            unset($_SESSION[self::SESSION_KEY], $_SESSION[self::CSRF_KEY], $_SESSION['user_id']);
+        }
+
+        $this->regenerateSession();
+
+        return $active;
+    }
+
+    private static function sessionFingerprint(): string
+    {
+        return hash('sha256', (string) session_id());
     }
 
     private function audit(string $event, ?int $actorUserId, ?int $subjectUserId, array $metadata = []): void
