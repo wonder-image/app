@@ -117,6 +117,20 @@
 
     }
 
+    /**
+     * Sostituisce `?` e `:nome` con valori escapati sulla connessione corrente
+     * (vedi Wonder\Sql\Query::bind()).
+     */
+    function sqlBind(string $sql, array $params): string {
+
+        global $mysqli;
+
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->bind($sql, $params);
+
+    }
+
     function sqlDatabase($database = 'main') {
 
         global $mysqli;

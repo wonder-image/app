@@ -12,6 +12,7 @@
 
         public mysqli $mysqli;
         private bool $informationSchema = false;
+        private ?\Closure $escaper = null;
 
         public function __construct( ?mysqli $connection = null, bool $informationSchema = false ) 
         { 
@@ -124,7 +125,165 @@
                 return '';
             }
 
+            if ($this->escaper !== null) {
+                return (string) ($this->escaper)($value);
+            }
+
             return $this->mysqli->real_escape_string($value);
+
+        }
+
+        /**
+         * Istanza senza connessione con un escape dato (per i test di bind()).
+         */
+        public static function withEscaper( callable $escaper ): self
+        {
+
+            $query = (new \ReflectionClass(self::class))->newInstanceWithoutConstructor();
+            $query->escaper = \Closure::fromCallable($escaper);
+
+            return $query;
+
+        }
+
+        /**
+         * Sostituisce i segnaposto `?` (posizionali) e `:nome` con i valori
+         * escapati: null → NULL, int/float → numero, bool → 1/0, stringa →
+         * letterale quotato. I segnaposto dentro stringhe, identificatori e
+         * commenti restano intatti. Un segnaposto senza valore o un valore
+         * non usato lanciano RuntimeException.
+         *
+         * @param array<int|string,mixed> $params chiavi intere per `?`, stringhe (con o senza `:`) per `:nome`
+         */
+        public function bind( string $sql, array $params ): string
+        {
+
+            $positional = [];
+            $named = [];
+
+            foreach ($params as $key => $value) {
+                if (is_int($key)) {
+                    $positional[] = $value;
+                } else {
+                    $named[ltrim($key, ':')] = $value;
+                }
+            }
+
+            $out = '';
+            $length = strlen($sql);
+            $next = 0;
+            $usedNamed = [];
+
+            for ($i = 0; $i < $length; $i++) {
+
+                $char = $sql[$i];
+
+                if ($char === "'" || $char === '"' || $char === '`') {
+                    $end = self::quotedEnd($sql, $i, $char);
+                    $out .= substr($sql, $i, $end - $i + 1);
+                    $i = $end;
+                    continue;
+                }
+
+                if ($char === '#' || ($char === '-' && substr($sql, $i, 2) === '--' && ($i + 2 >= $length || ctype_space($sql[$i + 2]) || ctype_cntrl($sql[$i + 2])))) {
+                    $end = strpos($sql, "\n", $i);
+                    $end = $end === false ? $length - 1 : $end;
+                    $out .= substr($sql, $i, $end - $i + 1);
+                    $i = $end;
+                    continue;
+                }
+
+                if ($char === '/' && substr($sql, $i, 2) === '/*') {
+                    $end = strpos($sql, '*/', $i + 2);
+                    $end = $end === false ? $length - 1 : $end + 1;
+                    $out .= substr($sql, $i, $end - $i + 1);
+                    $i = $end;
+                    continue;
+                }
+
+                if ($char === '?') {
+                    if (!array_key_exists($next, $positional)) {
+                        throw new RuntimeException('Query::bind: segnaposto ? numero '.($next + 1).' senza valore.');
+                    }
+                    $out .= $this->bindValue($positional[$next++]);
+                    continue;
+                }
+
+                if ($char === ':' && ($i === 0 || $sql[$i - 1] !== ':')
+                    && preg_match('/\G:([A-Za-z_][A-Za-z0-9_]*)/', $sql, $match, 0, $i)) {
+                    $name = $match[1];
+                    if (!array_key_exists($name, $named)) {
+                        throw new RuntimeException('Query::bind: segnaposto :'.$name.' senza valore.');
+                    }
+                    $out .= $this->bindValue($named[$name]);
+                    $usedNamed[$name] = true;
+                    $i += strlen($match[0]) - 1;
+                    continue;
+                }
+
+                $out .= $char;
+
+            }
+
+            if ($next < count($positional) || count($usedNamed) < count($named)) {
+                throw new RuntimeException('Query::bind: valori senza segnaposto.');
+            }
+
+            return $out;
+
+        }
+
+        /** Indice del carattere che chiude la stringa/identificatore aperto in $start. */
+        private static function quotedEnd( string $sql, int $start, string $quote ): int
+        {
+
+            $length = strlen($sql);
+
+            for ($i = $start + 1; $i < $length; $i++) {
+                if ($sql[$i] === '\\' && $quote !== '`') {
+                    $i++;
+                    continue;
+                }
+                if ($sql[$i] === $quote) {
+                    if ($i + 1 < $length && $sql[$i + 1] === $quote) {
+                        $i++;
+                        continue;
+                    }
+                    return $i;
+                }
+            }
+
+            return $length - 1;
+
+        }
+
+        private function bindValue( mixed $value ): string
+        {
+
+            if ($value === null) {
+                return 'NULL';
+            }
+
+            if (is_bool($value)) {
+                return $value ? '1' : '0';
+            }
+
+            if (is_int($value)) {
+                return (string) $value;
+            }
+
+            if (is_float($value)) {
+                if (!is_finite($value)) {
+                    throw new RuntimeException('Query::bind: numero non finito.');
+                }
+                return var_export($value, true);
+            }
+
+            if (is_string($value)) {
+                return "'".$this->escapeString($this->protectLatin1String($value))."'";
+            }
+
+            throw new RuntimeException('Query::bind: tipo '.get_debug_type($value).' non supportato.');
 
         }
 
