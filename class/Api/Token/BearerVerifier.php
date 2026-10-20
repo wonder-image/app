@@ -155,7 +155,7 @@ final class BearerVerifier
     private function checkSession(object $claims, ?string $sessionId): void
     {
         if (!isset($claims->sid)) {
-            // Retrocompatibilita: token senza `sid` validi fino a `exp`; da rimuovere.
+            // Retrocompatibilita: token senza `sid` validi fino a `exp`; da rimuovere nella beta successiva.
             if (!self::$legacyPageWarned) {
                 self::$legacyPageWarned = true;
                 error_log('[api] token di pagina senza sid accettato fino alla scadenza.');

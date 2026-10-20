@@ -7,11 +7,17 @@
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e
   `ResourceRouteRegistrar` non registra la route (`api.resource.<slug>.<azione>
-  non registrata` nel log). Prima `[]` significava «qualsiasi authority». Il
-  default di `PermissionSchema` è vuoto: le Resource (anche dei moduli) che non
-  dichiarano permessi API perdono le route API finché non li dichiarano.
+  non registrata` nel log, una volta per processo). Prima `[]` significava
+  «qualsiasi authority». Il default di `PermissionSchema` è vuoto: le Resource
+  (anche dei moduli) che non dichiarano permessi API perdono le route API
+  finché non li dichiarano.
   `Endpoint::resolveAuth([])` non cambia: MCP, task, update e alert restano
   come sono.
+- **Resource singleton del core: `app-config-analytics`, `app-config-seo`,
+  `app-media-logos`.** `index`, `store`, `destroy` non più registrate (prima
+  aperte a qualsiasi bearer API); `show`/`update` restano, solo `admin`. Le tre
+  `apiSchema()` dichiarano ora `->only(['show', 'update'])`, come
+  `SingletonResource`.
 - **API delle Resource: `apiSchema()->guard()` ora è applicato.** Se la Resource
   lo dichiara (default `api_internal_user`), l'utente del bearer deve avere
   anche quell'authority (`403` altrimenti). Prima il campo non era mai letto;
@@ -40,6 +46,8 @@
   viene ricaricata o il token rinnovato. `BearerVerifier::verify()` ha un
   parametro finale `?string $sessionId`. Compatibilità: i token senza `sid`
   emessi prima del rilascio valgono fino alla loro `exp` naturale, poi `401`.
+  Il ramo di compatibilità per i token senza `sid` sarà rimosso nella beta
+  successiva.
 
 ### Added
 - `POST /api/token/page/` (rotta `token.page`, area `api`): rinnovo del token di pagina
