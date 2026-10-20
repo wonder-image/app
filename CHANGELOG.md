@@ -359,6 +359,14 @@
 - `SSP::filter()`, `buildSearchWhere()` e `relationCondition()` richiedono
   l'array dei binding: non esiste più la ricerca con il termine nel letterale
   SQL.
+- Firma della config delle tabelle backend legata al contesto:
+  `ConfigCodec::encode()`/`decode()` accettano `$context` e
+  `ConfigCodec::context($table, $schema, $field)` lo costruisce; Table firma
+  ogni frammento per tabella canonica, schema e campo e `ListProvider::fetch()`
+  lo verifica prima di qualsiasi query. Frammenti riusati con un'altra
+  `config[table]` o un altro `custom[schema]` danno l'errore di firma invece
+  di arrivare al database. Nessun cambio per i client: la config la genera
+  solo il server; una pagina aperta prima dell'aggiornamento va ricaricata.
 - `resizeImage()` usa Intervention Image (GD) al posto di Gumlet, che non era
   installato: stesse uscite small/medium/large, restituisce `bool`.
 - Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel

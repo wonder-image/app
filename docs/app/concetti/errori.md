@@ -70,3 +70,12 @@ del database. Il dettaglio finisce in `storage/logs/error.log` tramite
 `Logger::log()`, con servizio `backend` e azione `list.table`. Solo con il
 debug attivo (`Debug::enabled()`: `APP_DEBUG`, o in locale) la risposta
 aggiunge la chiave `detail` con il messaggio.
+
+Prima di qualsiasi query, COUNT compreso, `ListProvider::fetch()` verifica la
+firma dei frammenti della config (`query`, `query_filter`, `query_custom`,
+`search_columns`, `select`, `group_by`). Ogni firma è legata alla chiave
+canonica della tabella, allo schema (`custom[schema]`) e al campo
+(`ConfigCodec::context()`). Se un frammento è manomesso, spostato su un altro
+campo o riusato con un'altra `config[table]` o un altro schema, la risposta è
+200 con `{"error":"Invalid table configuration signature.", "data":[]}` e
+il `draw` della richiesta: nessuna query parte.

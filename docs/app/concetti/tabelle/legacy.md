@@ -97,8 +97,11 @@ Regole:
 **Sicurezza**: `select` e `group_by` sono frammenti SQL generati server-side e
 **firmati** (`ConfigCodec`, HMAC con `APP_KEY`) esattamente come `query` /
 `query_filter`; `ListProvider::fetch` li verifica prima di passarli a
-`SSP::complex`. Il client non può alterarli senza rompere la firma. Chiave
-assente ⇒ nessun group by (tabelle non aggregate invariate).
+`SSP::complex`. Il client non può alterarli senza rompere la firma. La firma
+copre anche tabella (chiave canonica), schema e nome del campo
+(`ConfigCodec::context()`): un frammento emesso per una lista non vale su
+un'altra tabella o un altro schema. Chiave assente ⇒ nessun group by (tabelle
+non aggregate invariate).
 
 La rotta `api.backend.list.table` è `guarded()`: senza sessione backend non
 risponde. La tabella arriva dal client ma vale solo se è una chiave di
