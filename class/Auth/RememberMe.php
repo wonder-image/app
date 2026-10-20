@@ -85,7 +85,7 @@
                 'token_hash' => $newHash,
                 'expires_at' => date('Y-m-d H:i:s', $newExpires),
                 'last_used' => date('Y-m-d H:i:s'),
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'ip' => \Wonder\Http\ClientIp::resolve(),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
             ], 'id', $row['id']);
 
@@ -111,7 +111,7 @@
                 'area' => $area,
                 'expires_at' => date('Y-m-d H:i:s', $expiresAt),
                 'last_used' => date('Y-m-d H:i:s'),
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'ip' => \Wonder\Http\ClientIp::resolve(),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
             ];
 

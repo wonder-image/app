@@ -730,6 +730,9 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- **Ricordami: IP da `ClientIp`.** `RememberMe::set()` e la rotazione in
+  `RememberMe::tryLogin()` scrivono in `auth_remember.ip` il valore di
+  `ClientIp::resolve()` invece di `REMOTE_ADDR`.
 - **Audit impersonificazione: IP da `ClientIp` (review `N9`).**
   `Impersonation::audit()` scrive in `auth_impersonation_audits.ip` il valore di
   `ClientIp::resolve()`: dietro proxy con `APP_TRUST_PROXY` è l'IP del client,
