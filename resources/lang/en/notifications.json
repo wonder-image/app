@@ -354,6 +354,11 @@
         "title": "Error 927",
         "text": "The file content does not match its extension!"
     },
+    "928": {
+        "type": "danger",
+        "title": "Error 928",
+        "text": "Image processing failed: upload a valid PNG, JPG or WEBP file."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

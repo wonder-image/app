@@ -354,6 +354,11 @@
         "title": "Errore 927",
         "text": "Il contenuto del file non corrisponde alla sua estensione!"
     },
+    "928": {
+        "type": "danger",
+        "title": "Errore 928",
+        "text": "L'elaborazione dell'immagine non è riuscita: carica un file PNG, JPG o WEBP valido."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",

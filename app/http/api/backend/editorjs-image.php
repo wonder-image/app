@@ -68,7 +68,7 @@ $resized = resizeImage($uploadImage, 600, 600, rtrim($dir, '/'), 'small')
 
 if (!$resized) {
     $removeUpload();
-    $fail(422, 926);
+    $fail(422, UploadValidator::IMAGE_PROCESSING);
 }
 
 $url = rtrim((string) $PATH->upload, '/').$folder.$code.'/';

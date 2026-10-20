@@ -16,6 +16,8 @@ final class UploadValidator
     public const EXTENSION = 921;
     public const SIZE = 922;
     public const MIME_MISMATCH = 927;
+    /** Ridimensionamento fallito su un'immagine della whitelist (`IMAGE_TYPES`). */
+    public const IMAGE_PROCESSING = 928;
 
     public const DEFAULT_MAX_SIZE = 10 * 1048576;
 

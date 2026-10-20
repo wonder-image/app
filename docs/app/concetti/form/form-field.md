@@ -200,7 +200,7 @@ Gli upload dell'editor (`api.backend.editorjs.image` e `.file`) sono
 `guarded()`: servono una sessione backend. Accettano un solo file fino a 10 MB,
 con estensione in whitelist (immagini `png`, `jpg`, `jpeg`, `webp`; allegati
 documenti comuni, niente HTML, SVG o eseguibili) e MIME reale coerente
-(alert 921, 922, 927). L'header `Dir` vale solo come sottocartella relativa di
+(alert 921, 922, 927; 928 se il ridimensionamento non riesce). L'header `Dir` vale solo come sottocartella relativa di
 `upload/`, e il file prende un nome casuale. Codici in
 `Support\UploadValidator`, cartella in `Support\UploadDir`.
 

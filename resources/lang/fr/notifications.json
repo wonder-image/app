@@ -354,6 +354,11 @@
         "title": "Erreur 927",
         "text": "Le contenu du fichier ne correspond pas à son extension !"
     },
+    "928": {
+        "type": "danger",
+        "title": "Erreur 928",
+        "text": "Le traitement de l'image a échoué : téléverse un fichier PNG, JPG ou WEBP valide."
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

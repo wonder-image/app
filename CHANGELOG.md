@@ -9,7 +9,8 @@
   degli helper `sql*` non cambiano.
 - `Support\UploadValidator` e `Support\UploadDir`: controllo di un upload
   (whitelist estensioni, 10 MB, MIME reale) e sottocartella sicura dentro
-  `upload/`. Nuovo alert 927 (tipo di file non coerente) in tutte le lingue.
+  `upload/`. Nuovi alert 927 (tipo di file non coerente) e 928 (elaborazione
+  dell'immagine non riuscita, PNG, JPG o WEBP) in tutte le lingue.
 - Element `StatusCard`, `LinkCard` e `LinkListCard` (tema Bootstrap): card di
   stato con icona e link, scorciatoia verso una pagina, elenco di link
   raggruppati. Li usa la home del backend; schede nel catalogo.
@@ -343,15 +344,21 @@
 - **list/table, editorjs e SSP: cambia il comportamento per chi chiama senza
   sessione backend.** `api.backend.list.table`, `api.backend.editorjs.file` e
   `.image` sono `guarded()`: senza login rimandano al Login e l'handler non
-  parte. list/table accetta solo tabelle di `Table::$list` (altrimenti 422),
+  parte. list/table accetta solo tabelle di `Table::$list` (altrimenti 422) e
+  usa la chiave canonica del registro (minuscola), mentre
+  `ListTableRequest::schema()` scarta gli schemi non registrati. La rotta
   lavora sempre sul database principale e non legge più area, autorità e
   database dal POST. `SSP::complex` usa la connessione `mysqli` del chiamante
   invece di aprire un PDO, escapa tabella e chiave primaria, lega i termini di
-  ricerca (`%` e `_` letterali) e in caso di errore risponde solo
+  ricerca (`%`, `_` e `\` letterali) e in caso di errore risponde solo
   `{"error":"Errore nel caricamento della tabella."}`, con il dettaglio nel
   log e, solo con `APP_DEBUG`, nella chiave `detail`. Gli upload di editorjs
   accettano un file alla volta in whitelist, con nome casuale; l'header `Dir`
-  vale solo come sottocartella relativa.
+  vale solo come sottocartella relativa. Un resize fallito risponde 928, non
+  più 926 (che resta per la conversione di formato).
+- `SSP::filter()`, `buildSearchWhere()` e `relationCondition()` richiedono
+  l'array dei binding: non esiste più la ricerca con il termine nel letterale
+  SQL.
 - `resizeImage()` usa Intervention Image (GD) al posto di Gumlet, che non era
   installato: stesse uscite small/medium/large, restituisce `bool`.
 - Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel

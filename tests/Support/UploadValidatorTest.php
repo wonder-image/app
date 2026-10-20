@@ -188,4 +188,28 @@ $removeTree = static function (string $path) use (&$removeTree): void {
 };
 $removeTree($dir);
 
+check('928: resize fallito, messaggio coerente con la whitelist immagini in tutte le lingue', function () {
+    $source = (string) file_get_contents(__DIR__.'/../../app/http/api/backend/editorjs-image.php');
+
+    if (UploadValidator::IMAGE_PROCESSING !== 928
+        || !str_contains($source, '$fail(422, UploadValidator::IMAGE_PROCESSING)')
+        || str_contains($source, '926')) {
+        return false;
+    }
+
+    foreach (glob(__DIR__.'/../../resources/lang/*/notifications.json') as $file) {
+        $text = strtoupper((string) (json_decode((string) file_get_contents($file), true)['928']['text'] ?? ''));
+
+        foreach (array_keys(UploadValidator::IMAGE_TYPES) as $extension) {
+            // jpeg è coperto da JPG nel testo.
+            $label = $extension === 'jpeg' ? 'JPG' : strtoupper($extension);
+            if (!str_contains($text, $label)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+});
+
 summary();

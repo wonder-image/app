@@ -220,8 +220,8 @@ usarli:
   i bottoni; il resto mostra gli ultimi 25.
 - **Ricerca**: i termini entrano nel `LIKE` con l'escape della connessione.
   La ricerca della DataTable (`SSP::complex`) invece lega ogni termine con un
-  segnaposto `Query::bind()` ed escapa `%` e `_`, quindi `100%` cerca il testo
-  letterale.
+  segnaposto `Query::bind()` ed escapa `%`, `_` e `\`, quindi `100%` cerca il
+  testo letterale. Senza array dei binding la ricerca non si costruisce.
   Barra e titolo mostrano la ricerca codificata, senza la barra di
   `addslashes()`.
 - **Campi nascosti** del form dei filtri: chiavi e valori codificati; i

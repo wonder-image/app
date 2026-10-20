@@ -60,3 +60,13 @@ ErrorReporter::resolve($id, $userId);
 
 La tabella non si sincronizza tra ambienti: gli errori di un ambiente sono i
 suoi.
+
+## Tabelle DataTables (`list.table`)
+
+Un errore SQL delle liste backend (`api.backend.list.table`, `SSP::complex`)
+non passa da `error_reports`. La risposta al browser è sempre la stessa,
+`{"error":"Errore nel caricamento della tabella."}`, senza query né messaggio
+del database. Il dettaglio finisce in `storage/logs/error.log` tramite
+`Logger::log()`, con servizio `backend` e azione `list.table`. Solo con il
+debug attivo (`Debug::enabled()`: `APP_DEBUG`, o in locale) la risposta
+aggiunge la chiave `detail` con il messaggio.
