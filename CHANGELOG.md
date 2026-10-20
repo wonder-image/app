@@ -736,6 +736,11 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- **Login: tempo di risposta uniforme (review `R1`).** Con utente inesistente
+  o registrato senza password, `authenticateUser()` esegue comunque una
+  verifica su `dummyPasswordHash()`, con lo stesso algoritmo e lo stesso costo
+  di `hashPassword()`: il tempo non distingue più questi casi da una password
+  errata.
 - **Ricordami: IP da `ClientIp`.** `RememberMe::set()` e la rotazione in
   `RememberMe::tryLogin()` scrivono in `auth_remember.ip` il valore di
   `ClientIp::resolve()` invece di `REMOTE_ADDR`.

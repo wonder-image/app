@@ -168,6 +168,8 @@
         $reason = '';
 
         if (!$U->exists) {
+            // Verifica fittizia: stesso tempo di risposta di una password errata.
+            checkUserPassword($PASSWORD, dummyPasswordHash());
             $ALERT = ($KEY === 'email') ? 904 : 901;
             $reason = 'user_not_found';
             return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
@@ -175,6 +177,7 @@
 
         $passwordMissing = trim((string) ($U->password ?? '')) === '';
         if ($passwordMissing) {
+            checkUserPassword($PASSWORD, dummyPasswordHash());
             $ALERT = 924;
             $reason = 'partial_registration_password_missing';
             return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);

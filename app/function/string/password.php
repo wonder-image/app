@@ -70,3 +70,26 @@
             && checkPassword(sanitize((string) $password), $hashPassword);
 
     }
+
+    /**
+     * Hash fittizio per i login senza utente o senza password: verificarlo costa
+     * quanto una password errata. Precalcolato con i parametri di default; se
+     * i default cambiano si rigenera una volta per processo.
+     */
+    function dummyPasswordHash(): string {
+
+        static $hash = null;
+
+        if ($hash === null) {
+            $hash = defined('PASSWORD_ARGON2ID')
+                ? '$argon2id$v=19$m=65536,t=4,p=1$UWtCeTRKbDRRSEFkZWxqNQ$ovEPl5lo1GRSSoSJEQxu5tXri4CfEOx4B00fNHR87Ew'
+                : '$2y$12$L2pMEVRt9T1MKnzN9Iw53es9/yvMmb/8lrFGluKlM8YTn7yItzi3e';
+
+            if (passwordNeedsRehash($hash)) {
+                $hash = hashPassword(bin2hex(random_bytes(16)));
+            }
+        }
+
+        return $hash;
+
+    }
