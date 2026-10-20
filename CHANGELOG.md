@@ -42,7 +42,7 @@
   emessi prima del rilascio valgono fino alla loro `exp` naturale, poi `401`.
 
 ### Added
-- `POST /api/token/page/` (rotta `api.token.page`): rinnovo del token di pagina
+- `POST /api/token/page/` (rotta `token.page`, area `api`): rinnovo del token di pagina
   per la sessione corrente, `{ token, expires_in }`. Senza guard, solo
   same-origin e con sessione attiva (`403` altrimenti, `405` se non POST),
   `Cache-Control: no-store`. La lib non lo usa ancora.

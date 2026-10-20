@@ -358,7 +358,7 @@ php forge start
   (HMAC of the session id; `BearerVerifier::verify(..., $sessionId)` rejects a
   mismatch, sid-less legacy tokens live until `exp`): never print
   `Credentials::appToken()` in HTML. Renewal is `POST /api/token/page/`
-  (`api.token.page`), no guard but `Wonder\Http\SameOrigin` and an active
+  (route `token.page`, area `api`), no guard but `Wonder\Http\SameOrigin` and an active
   session. Server-only endpoints pass `allowPageToken: false` to
   `Handler::run()`.
 - Resource API routes: an action with no authorities in

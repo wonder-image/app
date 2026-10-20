@@ -228,10 +228,26 @@ check('Senza Sec-Fetch-Site ne Origin: rifiutato', fn () => !SameOrigin::check($
 
 echo "\nRinnovo (POST /api/token/page/)\n";
 
-check('Rotta api.token.page registrata in POST, senza guard', function () {
-    $source = (string) file_get_contents(dirname(__DIR__, 2).'/app/config/routes/route.api.php');
+check('Rotta token.page (area api) registrata in POST su /api/token/page/, senza guard', function () {
+    $root = dirname(__DIR__, 2);
+    $script = tempnam(sys_get_temp_dir(), 'wi-routes-');
+    if (!is_string($script)) {
+        return false;
+    }
+    $source = '<?php require '.var_export($root.'/vendor/autoload.php', true).';'
+        .'spl_autoload_register(static function (string $c): void { if (str_starts_with($c, "Wonder\\\\")) {'
+        .' $f = '.var_export($root.'/class/', true).'.str_replace("\\\\", "/", substr($c, 7)).".php"; if (is_file($f)) { require $f; } } }, true, true);'
+        .'ini_set("error_log", "/dev/null"); $ROOT_APP = '.var_export($root.'/app', true).'; $ROOT = '.var_export($root, true).';'
+        .'require $ROOT_APP."/config/routes/route.api.php";'
+        .'foreach (Wonder\\Http\\Route::all() as $r) { if (($r["name"] ?? "") === "token.page") { echo json_encode($r); } }';
+    file_put_contents($script, $source);
+    exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($script).' 2>&1', $output);
+    unlink($script);
+    $route = json_decode(implode('', $output), true);
 
-    return preg_match("#Route::post\\('/token/page/', \\\$ROOT_APP\\.'/http/api/token/page\\.php'\\)\\s*->name\\('token\\.page'\\);#", $source) === 1;
+    return is_array($route) && $route['area'] === 'api' && $route['method'] === 'POST'
+        && $route['path'] === '/api/token/page/' && $route['private'] === false && $route['permit'] === []
+        && str_ends_with((string) $route['handler'], '/app/http/api/token/page.php');
 });
 
 /**
