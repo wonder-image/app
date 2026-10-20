@@ -12,7 +12,8 @@ use Wonder\App\Credentials;
  *   push di terzi) non sanno rinnovare il token. I token gia emessi senza
  *   `exp` restano validi finche non vengono rigenerati, salvo
  *   `API_TOKEN_REQUIRE_EXP=true`.
- * - `API_PAGE_TOKEN_TTL`: durata del token di pagina stampato in `API_TOKEN`.
+ * - `API_PAGE_TOKEN_TTL`: durata del token di pagina stampato in `API_TOKEN`;
+ *   default `3600` (1 ora), rinnovabile con `POST /api/token/page/`.
  * - `API_TOKEN_REQUIRE_EXP`: rifiuta i token senza `exp` (opt-in esplicito).
  */
 final class TokenConfig
@@ -20,7 +21,7 @@ final class TokenConfig
     /** chiave => [default, minimo, massimo] */
     private const KEYS = [
         'API_TOKEN_TTL' => [0, 0, 157680000],
-        'API_PAGE_TOKEN_TTL' => [43200, 300, 604800],
+        'API_PAGE_TOKEN_TTL' => [3600, 300, 604800],
     ];
 
     private static array $warned = [];

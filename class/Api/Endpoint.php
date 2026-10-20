@@ -180,7 +180,9 @@
                 $this->auth,
                 $this->ip,
                 $this->domain,
-                $this->allowPageToken
+                $this->allowPageToken,
+                null,
+                ApiTokens::currentSessionId()
             );
 
             $this->user = $verified->user;

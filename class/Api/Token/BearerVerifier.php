@@ -20,13 +20,17 @@ use Wonder\Http\UrlParser;
  * Un token di pagina (`typ = page`) non coincide col token salvato: vale se
  * ha `exp`, se `tid` e la riga trovata e se `tkh` e l'impronta del token
  * salvato in quel momento. Gli endpoint solo server lo rifiutano con
- * `$allowPageToken = false`.
+ * `$allowPageToken = false`. Se porta `sid` deve coincidere con la sessione
+ * della richiesta (`$sessionId`); senza `sid` (emesso prima del legame alla
+ * sessione) vale fino alla sua `exp`.
  *
  * Rifiuti: `EndpointException` 401 (token) o 403 (authority).
  */
 final class BearerVerifier
 {
     private ApiUserProvider $users;
+
+    private static bool $legacyPageWarned = false;
 
     public function __construct(
         private readonly string $key,
@@ -43,6 +47,7 @@ final class BearerVerifier
 
     /**
      * @param list<string> $authorities authority ammesse dall'endpoint (la prima posseduta vince)
+     * @param string|null $sessionId id della sessione PHP della richiesta (per `sid`)
      * @throws EndpointException
      */
     public function verify(
@@ -52,6 +57,7 @@ final class BearerVerifier
         ?string $domain = null,
         bool $allowPageToken = true,
         ?int $now = null,
+        ?string $sessionId = null,
     ): VerifiedBearer {
         $claims = $this->decode($bearer, $now);
         $isPage = ($claims->typ ?? null) === ApiTokens::PAGE_TYPE;
@@ -66,6 +72,10 @@ final class BearerVerifier
 
         if (($isPage || ($this->requireExp ?? TokenConfig::requireExp())) && !isset($claims->exp)) {
             throw new EndpointException('Token senza scadenza', 401);
+        }
+
+        if ($isPage) {
+            $this->checkSession($claims, $sessionId);
         }
 
         $sub = $claims->sub ?? null;
@@ -140,6 +150,24 @@ final class BearerVerifier
             $isPage ? VerifiedBearer::KIND_PAGE : VerifiedBearer::KIND_API,
             isset($claims->exp) ? (int) $claims->exp : null,
         );
+    }
+
+    private function checkSession(object $claims, ?string $sessionId): void
+    {
+        if (!isset($claims->sid)) {
+            // Retrocompatibilita: token senza `sid` validi fino a `exp`; da rimuovere.
+            if (!self::$legacyPageWarned) {
+                self::$legacyPageWarned = true;
+                error_log('[api] token di pagina senza sid accettato fino alla scadenza.');
+            }
+
+            return;
+        }
+
+        if ($sessionId === null || $sessionId === ''
+            || !hash_equals(ApiTokens::sessionBinding($sessionId, $this->key), (string) $claims->sid)) {
+            throw new EndpointException('Token di pagina non valido per questa sessione', 401);
+        }
     }
 
     private function decode(string $bearer, ?int $now): object
