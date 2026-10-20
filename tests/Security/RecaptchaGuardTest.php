@@ -443,10 +443,7 @@ check('37. APP_ENV=local → salto con log, engine non chiamato, anche senza tok
     assertTrue(str_contains($log, 'local_env') && str_contains($log, 'skipped'), 'salto loggato');
 });
 
-check('38. il login frontend usa la guardia fail-closed', function () {
-    $source = (string) file_get_contents(__DIR__ . '/../../class/Auth/Frontend/AuthController.php');
-    assertTrue(preg_match('/RecaptchaGuard::for\([^;]*->failClosed\(\)[^;]*->verify\(\);/s', $source) === 1, 'failClosed() mancante in AuthController::verifyRecaptcha');
-});
+// Il fail-closed del login frontend è verificato sul comportamento in tests/Auth/AuthControllerTest.php.
 
 echo "\n{$tests} test, {$failures} fallimenti\n";
 ob_end_flush();

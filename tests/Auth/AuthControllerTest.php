@@ -105,13 +105,46 @@ check('login: checkbox «remember» resa solo con optional', function () use ($r
     return $fields('optional') === ['email', 'password', 'remember'] && $fields('always') === ['email', 'password'] && $fields('never') === ['email', 'password'];
 });
 check('AuthProfile::rememberMe() di default è optional', fn () => (new \Wonder\Auth\Frontend\AuthProfile())->rememberMe() === 'optional');
-check('federato: la scelta passa dal profilo e dal token di completamento', function () {
-    $src = (string) file_get_contents(__DIR__.'/../../class/Auth/Frontend/AuthController.php');
+// Flusso Google reale fino al controller: id token firmato, JWKS in cache, gateway finto.
+$google = static fn (array $post, array $extra = []): array => $run('federated', ['google' => true, 'post' => $post] + $extra);
+$gPlain = $google([]);
+check('Google senza checkbox → sessione aperta, nessun remember-me', fn () =>
+    ($gPlain['session_user'] ?? null) === 7 && ($gPlain['remember'] ?? null) === [] && ($gPlain['redirect'] ?? null) === '/account/'
+);
+check('Google con checkbox spuntata → un token remember-me per l\'area', function () use ($google) {
+    $r = $google(['remember' => 'true']);
 
-    return substr_count($src, 'new LegacySessionLoginAdapter()') === 0
-        && str_contains($src, "new LegacySessionLoginAdapter(\$this->profile->remember(\$_POST))")
-        && str_contains($src, "'remember' => \$this->profile->remember(\$_POST)")
-        && str_contains($src, "new LegacySessionLoginAdapter((bool) (\$record->metadata['remember'] ?? false))");
+    return count($r['remember'] ?? []) === 1 && ($r['remember'][0]['user_id'] ?? null) === 7 && ($r['remember'][0]['area'] ?? null) === 'frontend';
+});
+check('Google con rememberMe() never → niente remember-me anche con checkbox', fn () =>
+    ($google(['remember' => 'true'], ['policy' => 'never'])['remember'] ?? null) === []
+);
+$gPending = $google(['remember' => 'true'], ['completion' => true]);
+$gMeta = (array) json_decode((string) ($gPending['tokens'][0]['metadata_json'] ?? ''), true);
+check('Google con completamento → scelta salvata nel token, nessun remember-me prima del completamento', fn () =>
+    ($gMeta['remember'] ?? null) === true && ($gPending['remember'] ?? null) === []
+    && str_starts_with((string) ($gPending['redirect'] ?? ''), '/account.auth.signup.completion?token=')
+);
+check('completamento Google → remember-me dal token emesso al login', function () use ($run, $gMeta) {
+    $r = $run('completion', ['google' => true, 'metadata' => $gMeta]);
+
+    return ($r['session_user'] ?? null) === 8 && count($r['remember'] ?? []) === 1 && ($r['remember'][0]['user_id'] ?? null) === 8;
+});
+check('completamento Google senza scelta nel token → niente remember-me, anche con checkbox nel POST', function () use ($run) {
+    $r = $run('completion', ['google' => true, 'metadata' => ['federated_provider' => 'google', 'signup_event' => false], 'post' => ['remember' => 'true']]);
+
+    return ($r['session_user'] ?? null) === 8 && ($r['remember'] ?? null) === [];
+});
+
+// --- I3: reCAPTCHA fail-closed sull'auth -----------------------------------
+check('login in produzione con Google irraggiungibile → 617, nessun accesso', function () use ($run) {
+    $action = (new \Wonder\Auth\Frontend\AuthProfile())->captchaAction('login');
+    $r = $run('login', ['user' => 'local', 'env' => 'production', 'recaptcha' => true, 'post' => [
+        'password' => 'Giusta-1', 'g-recaptcha-token' => 'token-di-prova', 'g-recaptcha-action' => $action,
+    ]]);
+
+    return ($r['render']['alert'] ?? null) === 617 && ($r['session_user'] ?? null) === null && ($r['remember'] ?? null) === []
+        && in_array('engine_error', $r['captcha'] ?? [], true);
 });
 check('RememberMe::requested(): solo valori di checkbox spuntata', fn () =>
     \Wonder\Auth\RememberMe::requested(['remember' => 'true']) && \Wonder\Auth\RememberMe::requested(['remember' => 'on'])
@@ -139,8 +172,14 @@ function authScenario(string $scenario, array $opts): void
     $GLOBALS['PAGE'] = (object) [];
 
     // In locale reCAPTCHA salta: qui interessa il flusso dopo il captcha.
-    $_ENV['APP_ENV'] = 'local';
+    $_ENV['APP_ENV'] = (string) ($opts['env'] ?? 'local');
     \Wonder\App\Environment::reset();
+
+    // ROOT temporaneo: log della guardia e cache JWKS fuori dal repo.
+    $root = sys_get_temp_dir().'/wi-auth-root-'.getmypid();
+    @mkdir($root.'/storage/cache', 0775, true);
+    define('ROOT', $root);
+    $GLOBALS['TOKENS'] = [];
 
     $_SESSION = [];
     $_SERVER = ['REQUEST_METHOD' => 'POST', 'REMOTE_ADDR' => '203.0.113.9'];
@@ -160,8 +199,12 @@ function authScenario(string $scenario, array $opts): void
             'logs' => $GLOBALS['LOGS'],
             'remember' => $GLOBALS['REMEMBER'],
             'session_user' => $_SESSION['user_id'] ?? null,
+            'tokens' => $GLOBALS['TOKENS'],
+            'captcha' => array_map(static fn (string $line) => json_decode($line, true)['context']['reason'] ?? null,
+                array_filter(explode("\n", (string) @file_get_contents(ROOT.'/storage/logs/error/recaptcha.log')))),
         ]);
         @unlink($view);
+        exec('rm -rf '.escapeshellarg(ROOT));
     });
 
     authStubs();
@@ -170,15 +213,31 @@ function authScenario(string $scenario, array $opts): void
 
     $profile = new class extends \Wonder\Auth\Frontend\AuthProfile {
         public function viewPath(string $page): string { return $GLOBALS['VIEW']; }
-        public function googleEnabled(): bool { return false; }
+        public function googleEnabled(): bool { return !empty($GLOBALS['OPTS']['google']); }
         public function rememberMe(): string { return (string) ($GLOBALS['OPTS']['policy'] ?? parent::rememberMe()); }
+        public function requiresCompletion(array $user): bool { return !empty($GLOBALS['OPTS']['completion']); }
+        public function gateway(): \Wonder\Auth\Federated\Contract\UserAccountGatewayInterface { return new \FakeGateway(); }
     };
+    if (!empty($opts['google']) || !empty($opts['recaptcha'])) {
+        authCredentials(!empty($opts['recaptcha']));
+    }
+    if (!empty($opts['google'])) {
+        $_SESSION['wonder_oidc_nonce'][$profile->key()]['google'] = 'nonce-di-prova';
+    }
     $controller = new \Wonder\Auth\Frontend\AuthController($profile);
 
     switch ($scenario) {
         case 'login':
             $_POST += (array) ($opts['post'] ?? []) + ['email' => 'mario@example.com', 'password' => 'Sbagliata-1'];
             $controller->handle('login');
+            break;
+        case 'federated':
+            $_POST += (array) ($opts['post'] ?? []) + ['credential' => authIdToken('nonce-di-prova')];
+            $controller->handle('federated', ['provider' => 'google']);
+            break;
+        case 'completion':
+            $_POST += (array) ($opts['post'] ?? []) + ['token' => authCompletionToken((array) ($opts['metadata'] ?? []))];
+            $controller->handle('signup.completion');
             break;
         case 'signup':
             $_POST += ['name' => 'Mario', 'surname' => 'Rossi', 'email' => 'mario@example.com', 'accept_privacy_policy' => 'true'];
@@ -221,6 +280,12 @@ function authStubs(): void
             }
             function sqlBind($sql, $params) { foreach ((array) $params as $p) { $sql = preg_replace('/\?/', "'".addslashes((string) $p)."'", $sql, 1); } return $sql; }
             function sqlSelect($table, $cond = null, $limit = null, $order = null, $dir = null, $attributes = '*') {
+                if ($table === 'auth_federated' && !empty($GLOBALS['OPTS']['google'])) {
+                    return (object) ['exists' => true, 'row' => ['id' => 1, 'user_id' => 7, 'provider' => 'google', 'provider_user_id' => 'g-7', 'email' => 'mario@example.com']];
+                }
+                if ($table === 'auth_one_time_tokens' && isset($GLOBALS['TOKEN_ROW']) && isset($cond['selector'])) {
+                    return (object) ['exists' => true, 'row' => $GLOBALS['TOKEN_ROW']];
+                }
                 if ($table === 'auth_federated' && ($GLOBALS['OPTS']['user'] ?? '') === 'federated') {
                     return (object) ['exists' => true, 'row' => [['id' => 1, 'user_id' => 7, 'provider' => 'google', 'subject' => 'g-7', 'email' => 'mario@example.com']]];
                 }
@@ -229,9 +294,34 @@ function authStubs(): void
             function sqlInsert($table, $values) {
                 if ($table === 'auth_log') { $GLOBALS['LOGS'][] = $values; }
                 if ($table === 'auth_remember') { $GLOBALS['REMEMBER'][] = $values; }
+                if ($table === 'auth_one_time_tokens') { $GLOBALS['TOKENS'][] = $values; }
                 return (object) ['success' => true, 'insert_id' => 1];
             }
             function sqlModify($table, $values, $col = null, $id = null) { return (object) ['success' => true]; }
+
+            final class FakeGateway implements \Wonder\Auth\Federated\Contract\UserAccountGatewayInterface {
+                public function findUserByEmail(string $email): ?array { return ['id' => 7, 'email' => $email]; }
+                public function findUserById(int $userId): ?array { return ['id' => $userId, 'email' => 'mario@example.com', 'phone' => '']; }
+                public function createUserFromFederatedIdentity(\Wonder\Auth\Federated\FederatedIdentityPayload $identity, string $area): int { return 0; }
+                public function hasLocalPassword(int $userId): bool { return false; }
+                public function setLocalPassword(int $userId, string $passwordHash): void {}
+                public function canAccessArea(int $userId, string $area, array $requiredAuthorities = []): bool { return true; }
+            }
+
+            // `markConsumed()` e `Transaction::run()` usano mysqli: connessione finta in cache.
+            final class FakeStmt {
+                public int $affected_rows = 1;
+                public function bind_param(string $types, mixed &...$vars): bool { return true; }
+                public function execute(): bool { return true; }
+                public function close(): bool { return true; }
+            }
+            final class FakeMysqli extends \mysqli {
+                public function __construct() {}
+                #[\ReturnTypeWillChange] public function prepare(string $query) { return new FakeStmt(); }
+                public function begin_transaction(int $flags = 0, ?string $name = null): bool { return true; }
+                public function commit(int $flags = 0, ?string $name = null): bool { return true; }
+                public function rollback(int $flags = 0, ?string $name = null): bool { return true; }
+            }
         }
     STUBS);
 
@@ -240,6 +330,72 @@ function authStubs(): void
     require_once __DIR__.'/../../app/function/string/sanitize.php';
     require_once __DIR__.'/../../app/function/string/password.php';
     require_once __DIR__.'/../../app/function/user/auth.php';
+}
+
+/** Credenziali finte; con $engineDown il costruttore dell'engine reCAPTCHA lancia. */
+function authCredentials(bool $engineDown): void
+{
+    $api = new class($engineDown) {
+        public string $google_oauth_client_id = 'client-di-prova';
+        public string $g_recaptcha_site_key = 'site-checkbox';
+        public string $g_recaptcha_score_site_key = '';
+        public string $g_recaptcha_badge = '';
+        public string $g_maps_place_id = '';
+        public string $g_maps_map_id = '';
+        public string $gcp_api_key = 'api-key';
+        private int $reads = 0;
+        public function __construct(private bool $engineDown) {}
+        // Prima lettura: chiavi della guardia; la seconda è nel costruttore dell'engine.
+        public function __get(string $name): mixed
+        {
+            if ($name === 'gcp_project_id') {
+                if ($this->engineDown && ++$this->reads > 1) { throw new \RuntimeException('engine giù'); }
+                return 'progetto';
+            }
+            return null;
+        }
+    };
+    (new ReflectionProperty(\Wonder\App\Credentials::class, 'API'))->setValue(null, $api);
+
+    $set = static fn (string $class, string $prop, mixed $value) => (new ReflectionProperty($class, $prop))->setValue(null, $value);
+    $set(\Wonder\App\Credentials::class, 'DB', (object) [
+        'hostname' => 'stub.invalid', 'username' => 'u', 'password' => 'p',
+        'database' => ['main' => 'stubdb'], 'charset' => 'latin1', 'collation' => '',
+    ]);
+    foreach (['hostname' => 'stub.invalid', 'username' => 'u', 'password' => 'p', 'database' => 'stubdb'] as $k => $v) {
+        $set(\Wonder\Sql\Connection::class, $k, $v);
+    }
+    $set(\Wonder\Sql\Connection::class, 'connection', [base64_encode('stub.invalid | u | p | stubdb') => new FakeMysqli()]);
+}
+
+/** Id token Google firmato con una chiave RSA locale, pubblicata nella cache JWKS del verificatore. */
+function authIdToken(string $nonce): string
+{
+    $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    openssl_pkey_export($key, $pem);
+    $rsa = openssl_pkey_get_details($key)['rsa'];
+    $b64 = static fn (string $v): string => rtrim(strtr(base64_encode($v), '+/', '-_'), '=');
+    $jwks = ['keys' => [['kty' => 'RSA', 'kid' => 'k1', 'use' => 'sig', 'alg' => 'RS256', 'n' => $b64($rsa['n']), 'e' => $b64($rsa['e'])]]];
+    file_put_contents(ROOT.'/storage/cache/oidc-'.hash('sha256', 'https://www.googleapis.com/oauth2/v3/certs').'.json', json_encode($jwks));
+
+    return \Firebase\JWT\JWT::encode([
+        'iss' => 'https://accounts.google.com', 'aud' => 'client-di-prova', 'sub' => 'g-7', 'nonce' => $nonce,
+        'email' => 'mario@example.com', 'email_verified' => true, 'iat' => time(), 'exp' => time() + 300,
+    ], $pem, 'RS256', 'k1');
+}
+
+/** Token di completamento valido: la riga che `OneTimeToken::inspect()` legge. */
+function authCompletionToken(array $metadata): string
+{
+    $selector = bin2hex(random_bytes(12));
+    $validator = bin2hex(random_bytes(32));
+    $GLOBALS['TOKEN_ROW'] = [
+        'id' => 5, 'subject_user_id' => 7, 'actor_user_id' => null, 'continue_url' => '/account/',
+        'validator_hash' => hash('sha256', $validator), 'metadata_json' => json_encode($metadata),
+        'expires_at' => date('Y-m-d H:i:s', time() + 600), 'consumed_at' => null, 'revoked_at' => null,
+    ];
+
+    return $selector.'.'.$validator;
 }
 
 if (($argv[1] ?? '') === '--scenario') {

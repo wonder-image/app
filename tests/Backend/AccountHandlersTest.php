@@ -4,6 +4,28 @@ declare(strict_types=1);
 
 require __DIR__.'/../../vendor/autoload.php';
 
+// Vista di login resa davvero; View finta perché il layout backend.auth qui non serve.
+if (($argv[1] ?? '') === '--view') {
+    eval(<<<'STUBS'
+        namespace Wonder\View {
+            final class View {
+                public static function layout(string $name): void { ob_start(); }
+                public static function end(): void { $GLOBALS['HTML'] = (string) ob_get_clean(); }
+            }
+        }
+        namespace {
+            function submit($label, $name) { return '<button name="'.$name.'">'.$label.'</button>'; }
+            function __r(string $name, array $params = []): string { return '/'.$name; }
+            function __t(string $key, array $params = []): string { return $key; }
+        }
+    STUBS);
+    $FORM_SCHEMA = \Wonder\App\PageSchema\AccountPageSchema::loginFormSchema();
+    $DEFAULT = (object) ['BeLogoBlack' => '', 'BeLogoWhite' => ''];
+    require __DIR__.'/../../app/view/pages/backend/account/login.php';
+    echo "\n@@".json_encode(['html' => $GLOBALS['HTML'] ?? '']);
+    exit;
+}
+
 // Handler account del backend (C-PWD-I4): ogni scenario gira in un processo
 // figlio perché gli handler chiudono con exit().
 if (($argv[1] ?? '') !== '--scenario') {
@@ -44,11 +66,13 @@ check('login: token nell\'header X-WI-CSRF → passa ad authenticateUserLogin', 
 // Remember-me opt-in (C-PWD-I7): senza checkbox niente cookie.
 check('login: checkbox non spuntata → authenticateUserLogin con remember false', fn () => ($run('login', 'valid')['remember'] ?? null) === false);
 check('login: checkbox spuntata → authenticateUserLogin con remember true', fn () => ($run('login', 'valid', 'remember')['remember'] ?? null) === true);
-check('login: lo schema ha la checkbox «remember» e la vista la rende', function () {
-    $schema = \Wonder\App\PageSchema\AccountPageSchema::loginFormSchema();
-    $view = (string) file_get_contents(dirname(__DIR__, 2).'/app/view/pages/backend/account/login.php');
+check('login: la vista resa contiene la checkbox «remember» dello schema', function () {
+    $out = (string) shell_exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' --view 2>&1');
+    $pos = strrpos($out, "\n@@");
+    $html = $pos === false ? '' : (string) (json_decode(substr($out, $pos + 3), true)['html'] ?? '');
 
-    return ($schema['remember'] ?? null) instanceof \Wonder\App\ResourceSchema\Inputs\InputCheckbox && str_contains($view, "\$renderInput('remember')");
+    return preg_match('/<input type="checkbox"[^>]*name="remember"[^>]*value="true"/', $html) === 1
+        && preg_match('/<input[^>]*name="remember"[^>]*checked/', $html) === 0;
 });
 
 // Recupero: risposta 601 uniforme.
