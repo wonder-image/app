@@ -137,6 +137,7 @@ scrivere:
 | Eliminazione da pagina (`POST /{id}/delete/`) e pagina-form (`submit`) | redirect con `FlashAlert::code(929)` |
 | Utenti (`UserManagementPageController`: creazione e modifica) | il form torna con l'alert `929` |
 | Account (`/backend/account/`: profilo e password) | alert `929`, nessuno dei due form scrive |
+| Login, recupero, restore e imposta password (`/backend/account/login/`, `password-recovery/`, `password-restore/`, `password-set/`) | alert `929`: nessun login tentato, nessuna mail, nessun token consumato |
 | Uploader massivo, file di configurazione | alert `929`, nessun file salvato |
 | `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
 | Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
@@ -145,7 +146,8 @@ scrivere:
 Il codice `929` («Richiesta non valida») è in `notifications.json` e si
 mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
 di queste pagine portano già `_csrf` (`Csrf::field()` o `Csrf::fieldFor()`).
-Login e recupero password del backend non sono in questo elenco.
+Sulle pagine di login e password il controllo CSRF viene prima del throttle e
+della ricerca dell'utente.
 
 Nel form legacy (scritto dal sito, con la pagina che include
 `app/html/backend/index.php`) il token lo emette il core: il template chiama

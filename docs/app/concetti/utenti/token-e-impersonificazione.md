@@ -33,6 +33,14 @@ Entrambe le pagine verificano il token e l'accesso all'area backend prima di
 mostrare il form; un token assente, scaduto o già usato rimanda al login con
 l'avviso 913.
 
+Il recupero backend risponde sempre allo stesso modo (redirect al login con
+`?alert=601`), sia che l'utente esista sia che non esista o che la mail non
+parta; in `auth_log` restano `password_recovery` (con `reason: mail_failed` se
+l'invio fallisce) o `recovery_unknown`. Le mail di recupero, restore e set
+partono da `$SOCIETY->email`, con ripiego su `noreply@wonderimage.it`. I
+quattro form (login, recupero, restore, set) portano `_csrf`: senza token
+valido mostrano l'alert `929` ([CSRF](../form/csrf.md)).
+
 Gli URL contenuti nei token devono essere normalizzati dal consumer e limitati
 allo stesso host o a percorsi relativi.
 

@@ -105,6 +105,16 @@
   successiva.
 
 ### Added
+- **Login e password del backend: CSRF, risposta uniforme, mittente
+  (`C-PWD-I4`).** I form di login, recupero, restore e imposta password del
+  backend emettono `_csrf` e gli handler lo verificano prima di tutto il resto:
+  senza token valido alert `929` (`ResourcePageController::CSRF_ALERT`), nessun
+  login, nessuna mail, nessun token consumato. Il recupero risponde sempre con
+  il redirect `?alert=601`, anche con utente inesistente (evento
+  `recovery_unknown`, senza lo username in chiaro) o mail non partita. Le mail
+  di recupero, restore e set partono da `$SOCIETY->email` (ripiego
+  `noreply@wonderimage.it`). reCAPTCHA sul login backend arriva in un intervento
+  successivo.
 - **Throttle di login e recupero password (`C-PWD-I2`).** Nuovo
   `Wonder\Auth\LoginThrottle`: conteggio su `auth_log` in finestra scorrevole.
   Login 5/15 min per email o username e 20/15 min per IP; recupero 3/15 min

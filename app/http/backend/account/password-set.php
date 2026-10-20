@@ -3,6 +3,8 @@
 use Wonder\App\PageSchema\AccountPageSchema;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Auth\RememberMe;
+use Wonder\Backend\Support\ResourcePageController;
+use Wonder\Http\Csrf;
 use Wonder\Sql\Transaction;
 
 // `verifyUser()` popola `$ALERT` come variabile globale; allinea i write/read
@@ -28,7 +30,9 @@ if (!($VERIFY->response ?? false)) {
 
 $USER = $VERIFY->user;
 
-if (isset($_POST['set-password']) && trim((string) ($_POST['password'] ?? '')) !== '') {
+if (isset($_POST['set-password']) && !Csrf::verify()) {
+    $ALERT = ResourcePageController::CSRF_ALERT;
+} elseif (isset($_POST['set-password']) && trim((string) ($_POST['password'] ?? '')) !== '') {
     if (!empty($USER->password)) {
         $ALERT = 916;
     } else {
@@ -68,7 +72,8 @@ if (isset($_POST['set-password']) && trim((string) ($_POST['password'] ?? '')) !
         <br>
         Se non sei stato tu a richiederlo contattaci: info@wonderimage.it";
 
-        $mailSent = sendMail('noreply@wonderimage.it', $USER->email, 'Password impostata', $content);
+        $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
+        $mailSent = sendMail($from, $USER->email, 'Password impostata', $content);
         Wonder\Auth\AuthLog::write('password_set', (int) $USER->id, 'backend', true, $mailSent ? [] : [
             'reason' => 'mail_failed',
         ]);

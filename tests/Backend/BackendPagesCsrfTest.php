@@ -127,6 +127,10 @@ $forms = [
     'app/view/pages/backend/account/index.php' => 2,
     'app/view/pages/backend/user/manage.php' => 1,
     'app/view/pages/backend/config/configuration-file.php' => 1,
+    'app/view/pages/backend/account/login.php' => 1,
+    'app/view/pages/backend/account/password-recovery.php' => 1,
+    'app/view/pages/backend/account/password-restore.php' => 1,
+    'app/view/pages/backend/account/password-set.php' => 1,
 ];
 
 foreach ($forms as $file => $count) {
@@ -148,16 +152,16 @@ check('QuickCreateModal manda l\'header X-WI-CSRF letto dal meta wi-csrf', funct
     return str_contains($src, "'X-WI-CSRF': csrfToken()") && str_contains($src, 'meta[name="wi-csrf"]');
 });
 
-check('login e recupero password del backend non toccati (sono in 2c)', function () use ($root) {
-    $files = glob($root.'/app/http/backend/account/{login,password-recovery,password-restore}*.php', GLOB_BRACE) ?: [];
+check('login, recupero, restore e set del backend controllano il CSRF (C-PWD-I4)', function () use ($root) {
+    $files = glob($root.'/app/http/backend/account/{login,password-recovery,password-restore,password-set}.php', GLOB_BRACE) ?: [];
 
     foreach ($files as $file) {
-        if (str_contains((string) file_get_contents($file), 'CSRF_ALERT')) {
+        if (!str_contains((string) file_get_contents($file), 'ResourcePageController::CSRF_ALERT')) {
             return false;
         }
     }
 
-    return true;
+    return count($files) === 4;
 });
 
 summary();

@@ -1,6 +1,8 @@
 <?php
 
 use Wonder\App\PageSchema\AccountPageSchema;
+use Wonder\Backend\Support\ResourcePageController;
+use Wonder\Http\Csrf;
 
 // `verifyUser()` popola `$ALERT` come variabile globale; senza `global` qui,
 // il `$ALERT ?? null` letto sotto resterebbe la versione LOCALE (sempre null)
@@ -12,13 +14,16 @@ $VALUES = $_POST;
 
 $RECOVERY_IDENTIFIER = Wonder\Auth\LoginThrottle::identifier((string) ($_POST['username'] ?? ''));
 
-if (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $RECOVERY_IDENTIFIER, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+if (isset($_POST['recovery']) && !Csrf::verify()) {
+    $ALERT = ResourcePageController::CSRF_ALERT;
+} elseif (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $RECOVERY_IDENTIFIER, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
     $ALERT = Wonder\Auth\LoginThrottle::ALERT;
     Wonder\Auth\LoginThrottle::sendRetryAfter();
     Wonder\Auth\AuthLog::write('recovery_throttled', null, 'backend', false, ['identifier' => $RECOVERY_IDENTIFIER]);
 } elseif (isset($_POST['recovery'])) {
     $VERIFY = verifyUser('username', $_POST['username'], 'backend');
 
+    // Risposta 601 uniforme: non rivela se l'utente esiste o se la mail è partita.
     if ($VERIFY->response) {
         $USER = $VERIFY->user;
         // Token monouso valido 30 minuti; uno nuovo annulla quelli ancora aperti.
@@ -30,23 +35,26 @@ if (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $
         <br>
         Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 
-        if (sendMail('noreply@wonderimage.it', $USER->email, 'Recupero password', $content)) {
-            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true, ['identifier' => $RECOVERY_IDENTIFIER]);
-            header('Location: '.__r('backend.account.login').'?alert=601');
-            exit;
-        }
+        $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
 
-        Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
-            'reason' => 'mail_failed',
-            'identifier' => $RECOVERY_IDENTIFIER,
-        ]);
+        if (sendMail($from, $USER->email, 'Recupero password', $content)) {
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true, ['identifier' => $RECOVERY_IDENTIFIER]);
+        } else {
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
+                'reason' => 'mail_failed',
+                'identifier' => $RECOVERY_IDENTIFIER,
+            ]);
+        }
     } else {
-        Wonder\Auth\AuthLog::write('password_recovery', null, 'backend', false, [
-            'username' => $_POST['username'] ?? '',
-            'alert' => $ALERT ?? null,
+        Wonder\Auth\AuthLog::write('recovery_unknown', null, 'backend', false, [
             'identifier' => $RECOVERY_IDENTIFIER,
+            'alert' => $ALERT ?? null,
         ]);
     }
+
+    $ALERT = null;
+    header('Location: '.__r('backend.account.login').'?alert=601');
+    exit;
 }
 
 \Wonder\View\View::make($ROOT_APP.'/view/pages/backend/account/password-recovery.php', [
