@@ -345,6 +345,10 @@
   `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
+- La chiave `stats.contact_tables` dell'esito di `forge update` e di
+  `/api/app/update/` si chiama `stats.external_references`: la migrazione del
+  core rinomina solo `gst_external_references`. Il deploy dei siti stampa il
+  JSON senza leggere la chiave; un client che la leggeva va aggiornato.
 - Scheduler nel backend: attiva/sospendi, **Esegui ora** e registro sono nel
   menu a tre puntini di ogni riga; il nome apre la pagina della pianificazione
   con i dati di esecuzione, la DataTable **Esecuzioni** e in testata **Esegui
