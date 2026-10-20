@@ -70,6 +70,20 @@ foreach (['upload' => 'Salva', 'upload-add' => 'Salva e aggiungi'] as $button =>
 
 check('form legacy: modifica con token valido → sqlModify', fn () => ($run('legacy-index', 'valid', 'modify')['writes'] ?? []) === ['modify csrf_legacy']);
 
+// Il core emette `_csrf` nel form del sito tramite i pulsanti del template legacy.
+$legacy = $run('legacy-render', 'none');
+$forms = $legacy['extra']['forms'] ?? [];
+$countCsrf = static fn (string $html): int => preg_match_all('/name="_csrf"/', $html);
+
+check('form legacy reso: submitAdd() emette un solo _csrf per i due pulsanti', fn () => isset($forms['submitAdd']) && $countCsrf($forms['submitAdd']) === 1);
+check('form legacy reso: form con Csrf::field() già presente → nessun doppione', fn () => isset($forms['giaPresente']) && $countCsrf($forms['giaPresente']) === 1);
+check('form legacy reso: due submit() nello stesso form → un solo _csrf', fn () => isset($forms['dueSubmit']) && $countCsrf($forms['dueSubmit']) === 1);
+check('form legacy reso: senza buffer, due submit() → un solo _csrf', fn () => isset($forms['senzaBuffer']) && $countCsrf($forms['senzaBuffer']) === 1);
+check('form legacy reso: POST con il token della pagina supera il controllo e scrive', fn () =>
+    ($legacy['alert'] ?? null) != $csrfAlert && ($legacy['writes'] ?? []) === ['insert csrf_legacy'] && ($legacy['exited'] ?? null) === true
+);
+check('fuori dal template legacy submit() non emette _csrf', fn () => isset($forms['fuoriLegacy']) && $countCsrf($forms['fuoriLegacy']) === 0);
+
 // Il token arriva anche dall'header (stesso comportamento di `Csrf::verify()`).
 check('store della Resource: token nell\'header X-WI-CSRF → arriva alla scrittura', function () use ($run) {
     return ($run('resource-store', 'header')['writes'] ?? []) !== [];
@@ -190,6 +204,7 @@ function csrfPagesScenario(string $scenario, string $tokenMode): void
             'exited' => $GLOBALS['EXITED'],
             'status' => http_response_code(),
             'output' => $output,
+            'extra' => $GLOBALS['EXTRA'] ?? null,
         ]);
         exec('rm -rf '.escapeshellarg($appDir));
     });
@@ -260,6 +275,45 @@ function csrfPagesScenario(string $scenario, string $tokenMode): void
             if ($tokenMode === 'valid' && !is_dir($root)) {
                 $GLOBALS['W'][] = 'scrittura tentata';
             }
+            break;
+
+        case 'legacy-render':
+            require_once __DIR__.'/../../app/function/backend/input.php';
+            session_save_path($appDir);
+            session_start();
+            $forms = [];
+            $forms['fuoriLegacy'] = '<form method="post">'.submit().'</form>';
+            $legacyVars = [
+                'NAME' => (object) ['table' => 'csrf_legacy', 'database' => '', 'folder' => 'legacy'],
+                'TEXT' => (object) ['titleS' => 'voce'],
+                'PATH' => (object) ['backend' => '/backend'],
+                'PAGE' => (object) ['redirect' => '/backend/legacy/list.php', 'redirectBase64' => ''],
+                'PAGE_TABLE' => ['name' => []],
+            ];
+            // GET: la pagina del sito include il template e rende il suo form.
+            $_POST = [];
+            csrfPagesInclude('/../../app/html/backend/index.php', $legacyVars);
+            ob_start();
+            echo '<form method="post">'.submitAdd().'</form>';
+            echo '<form method="post">'.\Wonder\Http\Csrf::field()->render();
+            echo submit();
+            echo '</form>';
+            echo '<form method="post">';
+            echo submit('Salva', 'upload');
+            echo submit('Salva e aggiungi', 'upload-add');
+            echo '</form>';
+            $page = (string) ob_get_clean();
+            preg_match_all('/<form.*?<\/form>/s', $page, $m);
+            [$forms['submitAdd'], $forms['giaPresente'], $forms['dueSubmit']] = $m[0] + ['', '', ''];
+            \Wonder\Http\Csrf::enableLegacyFormField();
+            $a = submit();
+            $b = submit('Salva e aggiungi', 'upload-add');
+            $forms['senzaBuffer'] = '<form method="post">'.$a.$b.'</form>';
+            $GLOBALS['EXTRA'] = ['forms' => $forms];
+            // POST con il token letto dalla pagina resa.
+            preg_match('/name="_csrf" value="([0-9a-f]+)"/', $forms['submitAdd'], $t);
+            $_POST = ['_csrf' => $t[1] ?? '', 'upload' => '1', 'name' => 'nuovo'];
+            csrfPagesInclude('/../../app/html/backend/index.php', $legacyVars);
             break;
 
         case 'legacy-index':

@@ -25,8 +25,10 @@
   l'alert `929` («Richiesta non valida», nuovo codice in `notifications.json`).
   La creazione rapida risponde `403` JSON e il modal manda ora l'header
   `X-WI-CSRF`. Aggiunto `_csrf` ai form che non lo avevano (account, utenti,
-  file di configurazione, uploader massivo). Un form scritto a mano da un sito
-  che fa POST su queste pagine deve portare `Csrf::field()`.
+  file di configurazione, uploader massivo). Nei form legacy il token lo emette
+  il core: `submit()` e `submitAdd()` aggiungono `_csrf` una volta per form
+  quando la pagina include `app/html/backend/index.php`, senza doppioni se il
+  form lo ha già. I siti non cambiano nulla.
 - **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e

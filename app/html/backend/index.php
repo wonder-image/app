@@ -2,6 +2,9 @@
 
     $ALERT = '';
 
+    // I pulsanti `submit()`/`submitAdd()` del form del sito emettono `_csrf`.
+    \Wonder\Http\Csrf::enableLegacyFormField();
+
     if (!isset($NAME->database) || $NAME->database == '') { 
         $NAME->database = 'main';
     } else {

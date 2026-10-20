@@ -26,6 +26,7 @@ richieste lo chiamano a mano (vedi [Verifica](#verifica)).
 | `Csrf::verify()` | `true` se la richiesta porta il token giusto. |
 | `Csrf::active()` | `true` se il token può finire nell'HTML senza che la pagina lo chieda. |
 | `Csrf::fieldFor($method)` | HTML del campo per un form con quel metodo; stringa vuota per `GET`/`HEAD` o se `active()` è falso. |
+| `Csrf::legacyFormField()` | HTML del campo per i pulsanti del template legacy, una volta per form; vuoto se il template non è attivo (`enableLegacyFormField()`). |
 
 Costanti: `Csrf::FIELD` (`_csrf`) e `Csrf::HEADER` (`X-WI-CSRF`).
 
@@ -146,8 +147,14 @@ mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
 di queste pagine portano già `_csrf` (`Csrf::field()` o `Csrf::fieldFor()`).
 Login e recupero password del backend non sono in questo elenco.
 
-Il form legacy lo scrive il sito, non il core: deve portare
-`<?=\Wonder\Http\Csrf::field()->render()?>` dentro `<form>`.
+Nel form legacy (scritto dal sito, con la pagina che include
+`app/html/backend/index.php`) il token lo emette il core: il template chiama
+`Csrf::enableLegacyFormField()` e `submit()`/`submitAdd()` aggiungono `_csrf`
+con `Csrf::legacyFormField()`. Esce una volta per form: `submitAdd()` lo mette
+una sola volta per i due pulsanti, e se il `<form>` aperto nel buffer di output
+contiene già `_csrf` non lo ripete. Quando il form non è visibile nel buffer
+(pagina stampata senza `View`), esce una volta per richiesta. Fuori da quel
+template `submit()` non emette nulla.
 
 ## Sessione e cache
 
