@@ -35,12 +35,13 @@ final class ConfigCodec
      */
     public static function context(string $table, string $schema, string $field): string
     {
-        return (string) json_encode([
+        // Mai '' (firma senza contesto): input non codificabile => eccezione.
+        return json_encode([
             'list.table',
             strtolower(trim($table)),
             strtolower(trim($schema)),
             $field,
-        ]);
+        ], JSON_THROW_ON_ERROR);
     }
 
     /**
