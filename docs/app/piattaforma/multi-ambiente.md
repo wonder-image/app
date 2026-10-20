@@ -427,7 +427,7 @@ Variabili introdotte per il supporto multi-ambiente:
 | `APP_DOMAIN` | `.env` / `vars.APP_DOMAIN` | -- | Dominio del sito (fallback per `robots.txt`) |
 | `SYNC_AUTO_EXPORT` | `.env` produzione | `false` | Se `true`, rigenera `shared/sync-data.json` ad ogni save dal backend |
 | `SYNC_TABLES` | `.env` | *(tutte)* | Comma-separated: tabelle da includere nel sync (es. `css_font,css_color,seo`) |
-| `APP_TRUST_PROXY` | `.env` produzione | `false` | Se `true`, `X-Forwarded-Proto: https` rende i cookie `Secure`; solo dietro un proxy che termina HTTPS. Vedi [Cookie](../concetti/form/csrf.md#cookie) |
+| `APP_TRUST_PROXY` | `.env` produzione | `false` | Se `true`, `X-Forwarded-Proto: https` rende i cookie `Secure` e l'IP del throttle di login e di `auth_log` diventa l'ultima voce di `X-Forwarded-For`. Solo dietro un proxy che termina HTTPS e aggiunge la propria voce a `X-Forwarded-For`, altrimenti il client sceglie il proprio IP. Vedi [Cookie](../concetti/form/csrf.md#cookie) e [Throttle](../concetti/utenti/auth-frontend.md#throttle) |
 
 ### GitHub Actions variables
 

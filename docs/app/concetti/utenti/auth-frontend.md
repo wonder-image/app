@@ -550,13 +550,33 @@ lo duplicano.
 
 L'identificatore è email o username in minuscolo senza spazi, salvato in
 `meta.identifier`. Con `Environment::isLocal()` i tentativi sono x10. Oltre il
-limite il login risponde con l'alert `930` e `Retry-After` (`/oauth/login`
+limite il login risponde con l'alert `930` e `Retry-After`, pari ai secondi che
+mancano perché il tentativo più vecchio esca dalla finestra (`/oauth/login`
 anche con `429`) e scrive `login_throttled` senza cercare l'utente né
 verificare la password; il recupero frontend mostra la pagina «inviata» senza
 spedire mail, quello backend mostra `930`; entrambi scrivono
 `recovery_throttled`. Gli eventi `*_throttled` non sono contati. Google e gli
 altri accessi federati non passano dal throttle password. Indici
 `auth_log(ip, creation)` e `(event, creation)` nello schema del core.
+
+L'IP del bucket e della colonna `auth_log.ip` viene da
+`Wonder\Http\ClientIp::resolve()`. Senza `APP_TRUST_PROXY` vale `REMOTE_ADDR`;
+`X-Forwarded-For` è ignorato perché lo sceglie il client. Con
+`APP_TRUST_PROXY=true` vale l'ULTIMA voce di `X-Forwarded-For`, cioè quella
+aggiunta dal proxy; se manca o non è un IP valido si torna a `REMOTE_ADDR`.
+
+Rischi da tenere presenti:
+
+- dietro un proxy senza il flag tutti i client condividono l'IP del proxy, e 20
+  login falliti in 15 minuti bloccano il login per tutti fino alla fine della
+  finestra;
+- il flag va attivato solo se il proxy aggiunge davvero la propria voce a
+  `X-Forwarded-For`. Un proxy che inoltra l'header del client senza
+  aggiungerla lascia scegliere l'IP al client, che così aggira il bucket per IP
+  (il bucket per identificatore resta). Con più proxy in catena conta solo
+  l'ultimo.
+
+Se `sqlCount` fallisce il throttle lascia passare (fail-open).
 
 ## Verifiche
 

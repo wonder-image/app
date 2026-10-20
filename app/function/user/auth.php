@@ -152,7 +152,7 @@
 
         // Throttle prima di cercare l'utente: nessuna verifica password se bloccato.
         $throttleIdentifier = Wonder\Auth\LoginThrottle::identifier((string) $VALUE);
-        if (!Wonder\Auth\LoginThrottle::check('login', $throttleIdentifier, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+        if (!Wonder\Auth\LoginThrottle::check('login', $throttleIdentifier, Wonder\Http\ClientIp::resolve())) {
             $ALERT = Wonder\Auth\LoginThrottle::ALERT;
             Wonder\Auth\LoginThrottle::sendRetryAfter();
             Wonder\Auth\AuthLog::write('login_throttled', null, $AREA, false, [

@@ -29,6 +29,9 @@
         /** @var callable|null Contatore sostituibile nei test: fn(string $where): int */
         private static $counter = null;
 
+        /** @var callable|null Età in secondi del tentativo più vecchio, sostituibile nei test: fn(string $where): ?int */
+        private static $oldestAge = null;
+
         private static int $retryAfter = 0;
 
         /** True se il tentativo può procedere. */
@@ -53,10 +56,11 @@
 
             foreach ($checks as [$scope, $value]) {
                 [$limit, $window] = self::limit($bucket, $scope);
-                $count = self::count(self::condition($config['events'], $scope, $value, $window));
+                $where = self::condition($config['events'], $scope, $value, $window);
+                $count = self::count($where);
 
                 if ($count >= $limit) {
-                    self::$retryAfter = $window;
+                    self::$retryAfter = self::remaining($where, $window);
                     return false;
                 }
             }
@@ -110,6 +114,30 @@
         public static function useCounter(?callable $counter): void
         {
             self::$counter = $counter;
+        }
+
+        /** Solo test: null ripristina la lettura su `auth_log`. */
+        public static function useOldestAge(?callable $oldestAge): void
+        {
+            self::$oldestAge = $oldestAge;
+        }
+
+        /** Secondi finché il tentativo più vecchio esce dalla finestra (almeno 1). */
+        private static function remaining(string $where, int $window): int
+        {
+            if (self::$oldestAge !== null) {
+                $age = (self::$oldestAge)($where);
+            } else {
+                $SQL = sqlSelect('auth_log', $where, 1, null, null, 'TIMESTAMPDIFF(SECOND, MIN(`creation`), NOW()) AS `age`');
+                $age = ($SQL->success ?? false) && isset($SQL->row['age']) ? (int) $SQL->row['age'] : null;
+            }
+
+            // Età sconosciuta: si indica l'intera finestra.
+            if ($age === null) {
+                return $window;
+            }
+
+            return max(1, min($window, $window - (int) $age));
         }
 
         private static function count(string $where): int

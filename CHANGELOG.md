@@ -152,6 +152,10 @@
   limite risponde «inviata» senza mail e ora scrive `recovery_request`.
   `login_failed` e i log del recupero salvano `meta.identifier`. Indici
   `auth_log(ip, creation)` e `(event, creation)` (non distruttivi).
+  `Retry-After` indica i secondi che mancano perché il tentativo più vecchio
+  esca dalla finestra. L'IP del throttle e di `auth_log.ip` viene da
+  `Wonder\Http\ClientIp::resolve()`: `REMOTE_ADDR`, oppure con
+  `APP_TRUST_PROXY=true` l'ultima voce di `X-Forwarded-For` (quella del proxy).
 - `POST /api/token/page/` (rotta `token.page`, area `api`): rinnovo del token di pagina
   per la sessione corrente, `{ token, expires_in }`. Senza guard, solo
   same-origin e con sessione attiva (`403` altrimenti, `405` se non POST),

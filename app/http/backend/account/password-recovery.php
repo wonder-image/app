@@ -16,7 +16,7 @@ $RECOVERY_IDENTIFIER = Wonder\Auth\LoginThrottle::identifier((string) ($_POST['u
 
 if (isset($_POST['recovery']) && !Csrf::verify()) {
     $ALERT = ResourcePageController::CSRF_ALERT;
-} elseif (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $RECOVERY_IDENTIFIER, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+} elseif (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $RECOVERY_IDENTIFIER, Wonder\Http\ClientIp::resolve())) {
     $ALERT = Wonder\Auth\LoginThrottle::ALERT;
     Wonder\Auth\LoginThrottle::sendRetryAfter();
     Wonder\Auth\AuthLog::write('recovery_throttled', null, 'backend', false, ['identifier' => $RECOVERY_IDENTIFIER]);

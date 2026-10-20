@@ -239,7 +239,7 @@ final class AuthController
             $area = $this->profile->area();
 
             // Oltre il limite la pagina risponde come un invio riuscito, senza mail.
-            if (!LoginThrottle::check('recovery', $email, (string) ($_SERVER['REMOTE_ADDR'] ?? ''))) {
+            if (!LoginThrottle::check('recovery', $email, \Wonder\Http\ClientIp::resolve())) {
                 LoginThrottle::sendRetryAfter();
                 AuthLog::write('recovery_throttled', null, $area, false, ['identifier' => $email]);
                 $this->render('password-recovery', ['sent' => true, 'alert' => $ALERT ?? null]);
