@@ -359,6 +359,11 @@
         "title": "Erreur 928",
         "text": "Le traitement de l'image a échoué : téléverse un fichier PNG, JPG ou WEBP valide."
     },
+    "929": {
+        "type": "danger",
+        "title": "Requête non valide",
+        "text": "La page a expiré ou la requête n'est pas valide. Rechargez la page et réessayez."
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

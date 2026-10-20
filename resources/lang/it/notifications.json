@@ -359,6 +359,11 @@
         "title": "Errore 928",
         "text": "L'elaborazione dell'immagine non è riuscita: carica un file PNG, JPG o WEBP valido."
     },
+    "929": {
+        "type": "danger",
+        "title": "Richiesta non valida",
+        "text": "La pagina è scaduta o la richiesta non è valida. Ricarica la pagina e riprova."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",

@@ -16,6 +16,16 @@
   (`wonder-image/lib` PR #12, header `X-WI-CSRF` da `ajaxRequest`, `fetch`,
   `ApiClient`, DataTables ed Editor.js); con una lib precedente le azioni
   dell'elenco backend, gli upload Editor.js e la revoca OAuth ricevono `403`.
+- **Pagine backend: token CSRF obbligatorio sui POST che scrivono
+  (`C-CSRF-I3`).** Store, update, eliminazione da pagina e pagina-form delle
+  Resource, utenti (`UserManagementPageController`), account (profilo e
+  password), uploader massivo, file di configurazione e `POST /backend/`
+  verificano `_csrf`/`X-WI-CSRF`: senza token valido non scrivono e mostrano
+  l'alert `929` («Richiesta non valida», nuovo codice in `notifications.json`).
+  La creazione rapida risponde `403` JSON e il modal manda ora l'header
+  `X-WI-CSRF`. Aggiunto `_csrf` ai form che non lo avevano (account, utenti,
+  file di configurazione, uploader massivo). Un form scritto a mano da un sito
+  che fa POST su queste pagine deve portare `Csrf::field()`.
 - **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e

@@ -359,6 +359,11 @@
         "title": "Error 928",
         "text": "El procesamiento de la imagen ha fallado: sube un archivo PNG, JPG o WEBP válido."
     },
+    "929": {
+        "type": "danger",
+        "title": "Solicitud no válida",
+        "text": "La página ha caducado o la solicitud no es válida. Recarga la página e inténtalo de nuevo."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

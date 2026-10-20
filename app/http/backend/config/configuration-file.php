@@ -6,7 +6,11 @@ $htaccessPath = rtrim((string) $ROOT, '/').'/.htaccess';
 $robotsPath = rtrim((string) $ROOT, '/').'/robots.txt';
 $errors = [];
 
-if (isset($_POST['modify'])) {
+if (isset($_POST['modify']) && !\Wonder\Http\Csrf::verify()) {
+    // Il handler gira dentro un metodo del dispatcher: l'alert va nel globale letto dal layout.
+    global $ALERT;
+    $ALERT = \Wonder\Backend\Support\ResourcePageController::CSRF_ALERT;
+} elseif (isset($_POST['modify'])) {
     $htaccess = (string) ($_POST['htaccess'] ?? '');
     $robots = (string) ($_POST['robots'] ?? '');
 

@@ -125,6 +125,26 @@ Rotte del core con `->csrf()`: tutte quelle sotto `/api/backend/` tranne
 `delete`, `authority`, `move`, `file/delete`, `file/move`, `delete-icon`,
 `oauth/revoke`, `editorjs/file`, `editorjs/image`).
 
+## Pagine backend del core
+
+Le pagine backend con un POST che scrive verificano il token prima di
+scrivere:
+
+| Pagina | Senza token valido |
+|---|---|
+| CRUD delle Resource (`ResourcePageController`: `store`, `update`) | il form torna con i valori inviati e l'alert `929` |
+| Eliminazione da pagina (`POST /{id}/delete/`) e pagina-form (`submit`) | redirect con `FlashAlert::code(929)` |
+| Utenti (`UserManagementPageController`: creazione e modifica) | il form torna con l'alert `929` |
+| Account (`/backend/account/`: profilo e password) | alert `929`, nessuno dei due form scrive |
+| Uploader massivo, file di configurazione | alert `929`, nessun file salvato |
+| `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
+| Creazione rapida (`backend.resource.quick-create`) | `403` JSON, il controller non viene chiamato |
+
+Il codice `929` («Richiesta non valida») è in `notifications.json` e si
+mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
+di queste pagine portano già `_csrf` (`Csrf::field()` o `Csrf::fieldFor()`).
+Login e recupero password del backend non sono in questo elenco.
+
 ## Sessione e cache
 
 Il token è personale: non deve finire in HTML servito a più persone.

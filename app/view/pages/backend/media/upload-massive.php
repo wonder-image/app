@@ -38,6 +38,7 @@ $layout = (new Form)->components([
         'action' => '',
         'method' => 'POST',
         'enctype' => 'multipart/form-data',
+        'footer' => \Wonder\Http\Csrf::fieldFor('post'),
     ]) ?>
 </div>
 

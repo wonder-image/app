@@ -6,6 +6,7 @@ use RuntimeException;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Resources\Support\UserManagementResource;
+use Wonder\Http\Csrf;
 use Wonder\View\View;
 
 final class UserManagementPageController
@@ -51,6 +52,15 @@ final class UserManagementPageController
         }
 
         $post = array_merge($_POST, $_FILES);
+
+        // Senza token valido niente scrittura: si torna al form con l'alert.
+        if (!Csrf::verify()) {
+            $ALERT = ResourcePageController::CSRF_ALERT;
+            $this->render($mode, $id, $mode === 'edit' && $id !== null ? array_merge($this->loadValues($id), $_POST) : $_POST, true);
+
+            return;
+        }
+
         $upload = user($post, $modifyId);
         $values = isset($upload->values) && is_array($upload->values) ? $upload->values : $post;
 

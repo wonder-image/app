@@ -359,6 +359,11 @@
         "title": "Error 928",
         "text": "Image processing failed: upload a valid PNG, JPG or WEBP file."
     },
+    "929": {
+        "type": "danger",
+        "title": "Invalid request",
+        "text": "The page has expired or the request is not valid. Reload the page and try again."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

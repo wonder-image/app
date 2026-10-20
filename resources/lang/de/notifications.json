@@ -359,6 +359,11 @@
         "title": "Fehler 928",
         "text": "Die Bildverarbeitung ist fehlgeschlagen: Lade eine gültige PNG-, JPG- oder WEBP-Datei hoch."
     },
+    "929": {
+        "type": "danger",
+        "title": "Ungültige Anfrage",
+        "text": "Die Seite ist abgelaufen oder die Anfrage ist ungültig. Lade die Seite neu und versuche es erneut."
+    },
     "950": {
         "type": "danger",
         "title": "Fehler 950",

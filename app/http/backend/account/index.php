@@ -27,7 +27,14 @@ foreach ($DEFAULT->colorUser as $key => $color) {
     }
 }
 
-if (isset($_POST['modify'])) {
+// Senza token CSRF valido nessuno dei due form scrive.
+$CSRF_VALID = \Wonder\Http\Csrf::verify();
+
+if (!$CSRF_VALID && (isset($_POST['modify']) || isset($_POST['modify-password']))) {
+    $ALERT = 929;
+}
+
+if ($CSRF_VALID && isset($_POST['modify'])) {
     $password = sanitize($_POST['password']);
 
     if (checkPassword($password, $VALUES['password'])) {
@@ -43,7 +50,7 @@ if (isset($_POST['modify'])) {
     }
 }
 
-if (isset($_POST['modify-password'])) {
+if ($CSRF_VALID && isset($_POST['modify-password'])) {
     $oldPassword = sanitize($_POST['old-password']);
 
     if (checkPassword($oldPassword, $VALUES['password'])) {
