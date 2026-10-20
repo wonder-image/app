@@ -152,7 +152,7 @@ class UpdateRunner
             $result->run_id = $runId > 0 ? $runId : null;
 
             if ($this->shouldBackup($options)) {
-                $result->backup = $this->runBackup();
+                $this->runBackup($result);
             }
 
             // Le rinomine legacy precedono runTables(): creata vuota la tabella nuova, la vecchia non si migrerebbe più.
@@ -234,13 +234,25 @@ class UpdateRunner
         return false;
     }
 
-    private function runBackup(): string
+    /** Il backup è fatto con il dump PHP al posto di mysqldump: lo dice `backup_warning` del risultato. */
+    private function runBackup(object $result): void
     {
         try {
-            return (new DatabaseBackup(null, $this->connection))->run()->path;
+            $backup = $this->makeBackup()->run();
         } catch (Throwable $throwable) {
             throw new RuntimeException('Backup del database non riuscito, update interrotto: '.$throwable->getMessage().' (per saltarlo: php forge update --no-backup, o "backup": false nella chiamata API)', 0, $throwable);
         }
+
+        $result->backup = $backup->path;
+
+        if ($backup->fallback !== null) {
+            $result->backup_warning = 'mysqldump non riuscito, usato il dump PHP: '.$backup->fallback;
+        }
+    }
+
+    protected function makeBackup(): DatabaseBackup
+    {
+        return new DatabaseBackup(null, $this->connection);
     }
 
     public function jsonPayload(object $result): string

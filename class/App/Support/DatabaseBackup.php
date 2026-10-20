@@ -18,9 +18,9 @@ use Wonder\Sql\Connection;
  * Usa `mysqldump` se presente nel PATH e `proc_open` è disponibile (credenziali in un
  * `--defaults-extra-file` temporaneo 0600, mai negli argomenti),
  * altrimenti un dump PHP via mysqli (solo tabelle e dati).
- * Se mysqldump fallisce (exit ≠ 0, stderr, output vuoto o senza il marcatore
- * finale `-- Dump completed`) si riprova con il dump PHP; l'errore arriva solo se
- * falliscono entrambi. Il file finale compare solo a dump riuscito: si scrive su
+ * Se mysqldump fallisce (exit ≠ 0, stderr, output vuoto o, con i commenti attivi,
+ * senza il marcatore finale `-- Dump completed`) si riprova con il dump PHP;
+ * l'errore arriva solo se falliscono entrambi. Il file finale compare solo a dump riuscito: si scrive su
  * un temporaneo nella stessa cartella e si rinomina alla fine.
  */
 final class DatabaseBackup
@@ -113,6 +113,39 @@ final class DatabaseBackup
             ...$options,
             $database,
         ];
+    }
+
+    /**
+     * Opzioni effettive che spengono i commenti di mysqldump, e con loro il marcatore finale:
+     * `--skip-comments`, `--comments=0|off|false`, `--compact` (anche con `_` o `loose-`, come nei
+     * file di opzioni). Vale l'ultima che compare.
+     *
+     * @param list<string> $arguments
+     */
+    public static function commentsDisabled(array $arguments): bool
+    {
+        $disabled = false;
+
+        foreach ($arguments as $argument) {
+            if (!str_starts_with($argument, '--')) {
+                continue;
+            }
+
+            [$name, $value] = array_pad(explode('=', substr($argument, 2), 2), 2, null);
+            $name = str_replace('_', '-', strtolower($name));
+            $name = str_starts_with($name, 'loose-') ? substr($name, 6) : $name;
+            $off = $value !== null && in_array(strtolower(trim($value)), ['0', 'off', 'false'], true);
+
+            if ($name === 'skip-comments' || $name === 'disable-comments') {
+                $disabled = true;
+            } elseif ($name === 'comments' || $name === 'enable-comments') {
+                $disabled = $off;
+            } elseif ($name === 'compact' && !$off) {
+                $disabled = true;
+            }
+        }
+
+        return $disabled;
     }
 
     /** Versione di `mysqldump --version` o di `SELECT VERSION()` che indica MariaDB. */
@@ -277,10 +310,13 @@ final class DatabaseBackup
             }
 
             $stderrFile = $this->privateTempFile('wi-mysqldump-err-');
-            $mariaDb = self::isMariaDb($this->binaryVersion($binary)) || self::isMariaDb($this->serverVersion());
+            $mariaDb = self::isMariaDb($this->capture([$binary, '--version'])) || self::isMariaDb($this->serverVersion());
+            $arguments = self::mysqldumpArguments($binary, $defaultsFile, $database, $mariaDb);
+            // Il marcatore c'è solo con i commenti attivi: si guardano anche i file di opzioni (my.cnf).
+            $checkMarker = !self::commentsDisabled([...$this->optionFileArguments($binary, $defaultsFile), ...$arguments]);
 
             $process = proc_open(
-                self::mysqldumpArguments($binary, $defaultsFile, $database, $mariaDb),
+                $arguments,
                 [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['file', $stderrFile, 'w']],
                 $pipes
             );
@@ -336,7 +372,7 @@ final class DatabaseBackup
                 throw new RuntimeException('mysqldump non ha prodotto alcun output.');
             }
 
-            if (!str_contains($tail, self::DUMP_COMPLETED_MARKER)) {
+            if ($checkMarker && !str_contains($tail, self::DUMP_COMPLETED_MARKER)) {
                 throw new RuntimeException('Output di mysqldump troncato (manca «'.self::DUMP_COMPLETED_MARKER.'»).');
             }
         } finally {
@@ -352,22 +388,37 @@ final class DatabaseBackup
         }
     }
 
-    private function binaryVersion(string $binary): string
+    /** Stdout di un comando breve (versione, opzioni); stringa vuota se non parte. */
+    private function capture(array $command): string
     {
-        $process = @proc_open([$binary, '--version'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $process = @proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
 
         if (!is_resource($process)) {
             return '';
         }
 
         fclose($pipes[0]);
-        $version = (string) stream_get_contents($pipes[1]);
+        $output = (string) stream_get_contents($pipes[1]);
         stream_get_contents($pipes[2]);
         fclose($pipes[1]);
         fclose($pipes[2]);
         proc_close($process);
 
-        return $version;
+        return $output;
+    }
+
+    /**
+     * Opzioni lette dai file di opzioni (`--print-defaults`, ammesso subito dopo
+     * `--defaults-extra-file`). L'output può contenere la password: resta in memoria.
+     *
+     * @return list<string>
+     */
+    private function optionFileArguments(string $binary, string $defaultsFile): array
+    {
+        $output = $this->capture([$binary, '--defaults-extra-file='.$defaultsFile, '--print-defaults']);
+        $tokens = preg_split('/\s+/', $output, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return array_values(array_filter($tokens, static fn (string $token): bool => str_starts_with($token, '--')));
     }
 
     /**

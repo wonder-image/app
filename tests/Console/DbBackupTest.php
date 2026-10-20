@@ -42,10 +42,12 @@ const MYSQL_VERSION = 'mysqldump  Ver 8.0.36 for Linux on x86_64 (MySQL Communit
 const MARIADB_VERSION = 'mysqldump  Ver 10.19 Distrib 10.11.6-MariaDB, for debian-linux-gnu (x86_64)';
 const MARKER = '-- Dump completed on 2026-10-20 10:00:00';
 
-// Lo script risponde a `--version` (rilevamento MariaDB) prima del corpo.
-$script = static function (string $name, string $body, string $version = MYSQL_VERSION) use ($base): string {
+// Lo script risponde a `--version` (rilevamento MariaDB) e a `--print-defaults`
+// (opzioni dei file di opzioni, formato reale di mysqldump 9.6) prima del corpo.
+$script = static function (string $name, string $body, string $version = MYSQL_VERSION, string $optionFiles = '--user=shop --password=*****') use ($base): string {
     $path = $base.'/bin-'.$name;
-    $head = 'if [ "$1" = "--version" ]; then echo '.escapeshellarg($version).'; exit 0; fi';
+    $head = 'if [ "$1" = "--version" ]; then echo '.escapeshellarg($version).'; exit 0; fi'."\n"
+        .'if [ "$2" = "--print-defaults" ]; then echo "mysqldump would have been started with the following arguments:"; echo '.escapeshellarg($optionFiles.' ').'; exit 0; fi';
     file_put_contents($path, "#!/bin/sh\n".$head."\n".$body."\n");
     chmod($path, 0755);
     return $path;
@@ -104,6 +106,22 @@ check('rilevamento MariaDB da --version e da VERSION()', fn () =>
         && !DatabaseBackup::isMariaDb(MYSQL_VERSION)
         && !DatabaseBackup::isMariaDb('8.0.36')
         && !DatabaseBackup::isMariaDb(''));
+
+check('commenti spenti: --skip-comments, --comments=0, --compact, varianti da file di opzioni; vale l\'ultima', fn () =>
+    DatabaseBackup::commentsDisabled(['--user=shop', '--skip-comments'])
+        && DatabaseBackup::commentsDisabled(['--skip_comments'])
+        && DatabaseBackup::commentsDisabled(['--loose-skip-comments'])
+        && DatabaseBackup::commentsDisabled(['--comments=0'])
+        && DatabaseBackup::commentsDisabled(['--comments=OFF'])
+        && DatabaseBackup::commentsDisabled(['--compact'])
+        && DatabaseBackup::commentsDisabled(['--disable-comments'])
+        && !DatabaseBackup::commentsDisabled([])
+        && !DatabaseBackup::commentsDisabled(['--user=shop', '--password=*****', '--skip-dump-date'])
+        && !DatabaseBackup::commentsDisabled(['--skip-comments', '--comments'])
+        && !DatabaseBackup::commentsDisabled(['--comments=1'])
+        && !DatabaseBackup::commentsDisabled(['--compact=0'])
+        && !DatabaseBackup::commentsDisabled(['skip-comments'])
+        && !DatabaseBackup::commentsDisabled(DatabaseBackup::mysqldumpArguments('/usr/bin/mysqldump', '/tmp/x.cnf', 'shop_db')));
 
 check('file di opzioni: password quotata ed escapata, host e porta separati', fn () =>
     DatabaseBackup::defaultsFileContent($credentials) === "[client]\nuser=\"shop\"\npassword=\"S3gr\\\"eto\\\\pw\"\nhost=\"db.example.test\"\nport=3307\ndefault-character-set=\"utf8mb4\"\n");
@@ -278,6 +296,27 @@ check('mysqldump exit 0 senza «-- Dump completed» (troncato): si ripiega sul d
         && str_contains((string) $backup->fallback, 'troncato')
         && !str_contains($dump, 'INSERT INTO t VALUES (1')
         && $entries($dir) === ['20261020-140000.sql.gz'];
+});
+
+check('mysqldump OK con skip-comments nei file di opzioni: niente marcatore, nessun ripiego, file presente', function () use ($base, $credentials, $script, $fakeMysqli, $tables, $entries) {
+    $binary = $script('skip-comments', "echo 'CREATE TABLE t (id int);'\necho 'INSERT INTO t VALUES (1);'", MYSQL_VERSION, '--user=shop --password=***** --skip-comments');
+    $dir = $base.'/skip-comments';
+    $connection = $fakeMysqli($tables);
+    $backup = (new DatabaseBackup($binary, $connection, $credentials))->run($dir, 5, new DateTimeImmutable('2026-10-20 15:00:00'));
+    $dump = (string) gzdecode((string) file_get_contents($backup->path));
+
+    return $backup->method === 'mysqldump'
+        && $backup->fallback === null
+        && $dump === "CREATE TABLE t (id int);\nINSERT INTO t VALUES (1);\n"
+        && $entries($dir) === ['20261020-150000.sql.gz']
+        && !in_array(['SHOW FULL TABLES', MYSQLI_STORE_RESULT], $connection->queries, true);
+});
+
+check('skip-comments non spegne gli altri controlli: exit ≠ 0 ripiega comunque', function () use ($base, $credentials, $script, $fakeMysqli, $tables) {
+    $binary = $script('skip-comments-ko', "echo 'CREATE TABLE parziale'\nexit 3", MYSQL_VERSION, '--skip-comments');
+    $backup = (new DatabaseBackup($binary, $fakeMysqli($tables), $credentials))->run($base.'/skip-comments-ko');
+
+    return $backup->method === 'php' && str_contains((string) $backup->fallback, 'exit 3');
 });
 
 check('mysqldump di MariaDB: --set-gtid-purged assente negli argomenti passati', function () use ($base, $credentials, $script) {
@@ -455,6 +494,36 @@ check('update con backup=false: nessun backup e nessuna query al database', func
         && $queriesWhenSkipped === 0
         && $should(Wonder\App\UpdateRunner::apiOptions([])) === true
         && $should([]) === true;
+});
+
+/** UpdateRunner con DatabaseBackup iniettato: runBackup() scrive nel risultato, in ROOT/storage/backup. */
+$runBackup = static function (DatabaseBackup $backup) use ($base): object {
+    $GLOBALS['ROOT'] = $base.'/update-root-'.bin2hex(random_bytes(3));
+    $runner = new class($backup) extends Wonder\App\UpdateRunner {
+        public function __construct(private DatabaseBackup $injected) {}
+        protected function makeBackup(): DatabaseBackup { return $this->injected; }
+    };
+    $result = (object) [];
+    (new ReflectionMethod(Wonder\App\UpdateRunner::class, 'runBackup'))->invoke($runner, $result);
+
+    return $result;
+};
+
+check('update: con il ripiego sul dump PHP l\'avviso compare nel risultato (backup_warning)', function () use ($base, $credentials, $failingScript, $fakeMysqli, $tables, $runBackup) {
+    $result = $runBackup(new DatabaseBackup($failingScript('update-fallback'), $fakeMysqli($tables), $credentials));
+    $json = (new Wonder\App\UpdateRunner(new class extends mysqli { public function __construct() {} }))->jsonPayload($result);
+
+    return is_file($result->backup)
+        && str_starts_with($result->backup, $GLOBALS['ROOT'].'/storage/backup/')
+        && str_starts_with((string) $result->backup_warning, 'mysqldump non riuscito, usato il dump PHP: ')
+        && str_contains($result->backup_warning, 'Access denied')
+        && str_contains($json, '"backup_warning"');
+});
+
+check('update: mysqldump riuscito, nessun backup_warning', function () use ($base, $credentials, $script, $runBackup) {
+    $result = $runBackup(new DatabaseBackup($script('update-ok', "echo 'SELECT 1;'\necho ".escapeshellarg(MARKER)), null, $credentials));
+
+    return is_file($result->backup) && !property_exists($result, 'backup_warning');
 });
 
 check('endpoint /api/app/update/: entrambi i percorsi passano da UpdateRunner::apiOptions()', function () {

@@ -7,8 +7,11 @@
   database in `storage/backup/<Ymd-His>.sql.gz`, con `mysqldump` (credenziali in
   un file di opzioni temporaneo `0600`, mai sulla riga di comando) o, se manca,
   con un dump PHP via mysqli. Se `mysqldump` fallisce (exit ≠ 0, stderr, output
-  vuoto o senza il marcatore finale `-- Dump completed`) riprova con il dump PHP
-  e avvisa; fallisce solo se falliscono entrambi, senza lasciare file parziali.
+  vuoto o, con i commenti attivi, senza il marcatore finale `-- Dump completed`;
+  con `skip-comments`/`compact` anche da `my.cnf` il marcatore non si controlla)
+  riprova con il dump PHP e avvisa (in `forge update` nel campo
+  `backup_warning`); fallisce solo se falliscono entrambi, senza lasciare file
+  parziali.
   Con MariaDB (client `mysqldump --version` o server `SELECT VERSION()`) omette
   `--set-gtid-purged=OFF`. `--keep=N` (default 5) ruota i vecchi backup,
   `--path=` cambia cartella.
