@@ -2,7 +2,7 @@
 
     # Imposto la durata delle sessioni in secondi
         ini_set('session.gc_maxlifetime', 14400); # 4 Ore
-        session_set_cookie_params(14400); # 4 Ore
+        session_set_cookie_params(\Wonder\Http\Cookie::sessionOptions(14400)); # 4 Ore, SameSite=Lax, HttpOnly, Secure su HTTPS
 
     # Mostro tutti gli errori
         error_reporting(E_ALL);

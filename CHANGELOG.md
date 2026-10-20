@@ -34,6 +34,19 @@
   innocuo. Le pagine con un solo form legacy non cambiano nulla; con più form
   legacy nella stessa pagina, o con form costruiti come stringa, il sito stampa
   `Csrf::field()` in ogni form.
+- **Cookie: `SameSite=Lax`, `Secure` su HTTPS, `HttpOnly` (`C-CSRF-I4`).**
+  `Wonder\Http\Cookie` emette ogni cookie con `SameSite=Lax`, `HttpOnly` (si
+  spegne solo con `httpOnly: false`) e `Secure` quando la richiesta è HTTPS.
+  Lo stesso vale per il cookie di sessione (`ini.php` usa
+  `Cookie::sessionOptions()`: prima non aveva né `Secure` né `HttpOnly` salvo
+  `php.ini`), per `visitor_id` (ora via `Cookie::set()`, `HttpOnly` e path `/`
+  invece della cartella della richiesta) e per i cookie remember-me. Il core
+  non ha un concetto di proxy fidato: `X-Forwarded-Proto: https` conta solo con
+  il nuovo flag `.env` `APP_TRUST_PROXY=true` (default spento); senza flag
+  dietro un proxy che termina HTTPS i cookie escono senza `Secure`. Un JS di
+  sito che leggeva `visitor_id` non lo vede più. Un ritorno da pagamento con
+  POST cross-site non porta il cookie di sessione: Nexi HPP e PayPal del core
+  tornano in GET, POST-back di siti NON VERIFICATO.
 - **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e

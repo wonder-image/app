@@ -183,6 +183,34 @@ visitatore. Il framework non può accorgersene: le pagine con un form o con il
 meta vanno escluse da quella regola.
 {% endhint %}
 
+## Cookie
+
+`Wonder\Http\Cookie` è l'unico punto che chiama `setcookie()` nel core. Ogni
+cookie esce con:
+
+| Attributo | Valore |
+| --- | --- |
+| `SameSite` | `Lax`: niente cookie su POST, iframe e fetch cross-site; i link e i redirect in GET li portano. |
+| `HttpOnly` | Sempre, salvo `Cookie::set($nome, $valore, $scadenza, '/', false)` per un cookie che il JS deve leggere. |
+| `Secure` | Quando la richiesta è HTTPS (`Cookie::isSecure()`). |
+| `Path` | `/` di default. |
+
+Il cookie di sessione usa `Cookie::sessionOptions(14400)` in
+`app/config/app/ini.php`; `visitor_id` (frontend) e i cookie remember-me passano
+da `Cookie::set()`/`Cookie::clear()`.
+
+### HTTPS dietro proxy
+
+Il core non ha un elenco di proxy fidati. `Cookie::isSecure()` guarda
+`$_SERVER['HTTPS']`; `X-Forwarded-Proto` conta solo se il `.env` ha
+`APP_TRUST_PROXY=true` (accetta anche `1`, `on`, `yes`), e allora decide il
+primo valore della catena. Accendilo solo se il sito è raggiungibile
+esclusivamente dal proxy: altrimenti un client può mandare l'header da sé.
+Senza flag, dietro un proxy che termina HTTPS i cookie escono senza `Secure`.
+
+`UrlParser::isHttpsRequest()` (URL assoluti) legge ancora `X-Forwarded-*` senza
+flag: non governa i cookie.
+
 ## Token già esistenti
 
 | Token | Stato |
@@ -198,4 +226,6 @@ meta vanno escluse da quella regola.
 - `class/Http/CsrfGuard.php`
 - `tests/Http/CsrfTest.php`
 - `tests/Http/BackendApiCsrfTest.php`
+- `class/Http/Cookie.php`
+- `tests/Http/CookieTest.php`
 - [Auth frontend e pannello account](../utenti/auth-frontend.md)
