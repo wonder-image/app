@@ -38,8 +38,10 @@
   (`use_federated_login_*`): risponde `925`, conta il tentativo e spedisce la
   mail `auth.email.federated_*`. La registrazione con un'email già registrata
   (`906`) non mostra più `email_exists`: reindirizza a `email.sent` come il
-  caso nuovo e spedisce `auth.email.existing_*`, nel bucket `recovery` con
-  l'evento `signup_existing`. I siti che leggono `906`/`924` dal login o
+  caso nuovo e spedisce `auth.email.existing_*`, con l'evento
+  `signup_existing` nel nuovo bucket `signup` di `LoginThrottle` (3 in 15 min
+  per email, 10 in 60 min per IP), separato da `recovery`: la mail non
+  consuma i tentativi di recupero password dell'utente. I siti che leggono `906`/`924` dal login o
   l'errore `email.exists` della registrazione vanno aggiornati.
 - **Ricordami opt-in, frontend e backend (`C-PWD-I7`).** Nuovo
   `AuthProfile::rememberMe()` (`always|optional|never`, default `optional`) e

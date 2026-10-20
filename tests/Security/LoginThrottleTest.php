@@ -198,6 +198,24 @@ check('recovery: 3 richieste per identificatore, la 4ª è bloccata (tutti gli e
         && LoginThrottle::check('recovery', 'altro@example.test', '198.51.100.9') === true;
 });
 
+check('signup_existing ha un bucket suo: non blocca il recupero e il recupero non lo blocca', function () use ($reset) {
+    $reset();
+    $log = static fn (string $event) => Wonder\Auth\AuthLog::write($event, null, 'frontend', true, ['identifier' => 'mario@example.test']);
+    for ($i = 0; $i < 3; $i++) {
+        $log('signup_existing');
+    }
+    $signupBlocked = LoginThrottle::check('signup', 'mario@example.test', '198.51.100.9') === false;
+    $recoveryOpen = LoginThrottle::check('recovery', 'mario@example.test', '198.51.100.9') === true;
+    $reset();
+    for ($i = 0; $i < 3; $i++) {
+        $log('recovery_request');
+    }
+
+    return $signupBlocked && $recoveryOpen
+        && LoginThrottle::check('recovery', 'mario@example.test', '198.51.100.9') === false
+        && LoginThrottle::check('signup', 'mario@example.test', '198.51.100.9') === true;
+});
+
 check('recovery: 10 richieste per IP in un\'ora, l\'11ª è bloccata', function () use ($reset) {
     $reset();
     for ($i = 0; $i < 10; $i++) {

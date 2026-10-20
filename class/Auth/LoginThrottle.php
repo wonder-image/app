@@ -20,7 +20,13 @@
                 'ip' => [20, 900],
             ],
             'recovery' => [
-                'events' => ['recovery_request', 'password_recovery', 'recovery_unknown', 'signup_existing'],
+                'events' => ['recovery_request', 'password_recovery', 'recovery_unknown'],
+                'identifier' => [3, 900],
+                'ip' => [10, 3600],
+            ],
+            // Mail «hai già un account»: bucket proprio, così non blocca il recupero della vittima.
+            'signup' => [
+                'events' => ['signup_existing'],
                 'identifier' => [3, 900],
                 'ip' => [10, 3600],
             ],

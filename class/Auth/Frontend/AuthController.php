@@ -398,8 +398,8 @@ final class AuthController
         $email = strtolower(trim($email));
         $area = $this->profile->area();
 
-        // Stesso limite del recupero password: oltre, nessuna mail e stessa risposta.
-        if (!LoginThrottle::check('recovery', $email, \Wonder\Http\ClientIp::resolve())) {
+        // Bucket proprio (limiti del recupero): oltre, nessuna mail e stessa risposta.
+        if (!LoginThrottle::check('signup', $email, \Wonder\Http\ClientIp::resolve())) {
             AuthLog::write('signup_existing_throttled', null, $area, false, ['identifier' => $email]);
             return;
         }

@@ -72,9 +72,11 @@ check('registrazione, email di un account fuori area → stessa risposta, nessun
 
     return $redirect($r) === $redirect($fresh) && ($r['mails'] ?? null) === [];
 });
-check('registrazione: signup_existing conta nel bucket recovery', fn () =>
-    in_array('signup_existing', (new ReflectionClassConstant(\Wonder\Auth\LoginThrottle::class, 'BUCKETS'))->getValue()['recovery']['events'] ?? [], true)
-);
+check('registrazione, email esistente con il recupero saturo → la mail parte (bucket signup)', function () use ($run, $subjects) {
+    $r = $run('signup', ['signup' => 'existing', 'user' => 'local', 'saturate' => 'recovery_request']);
+
+    return $subjects($r) === ['auth.email.existing_subject'];
+});
 
 // --- I7: remember-me opt-in ------------------------------------------------
 $login = static fn (array $post, string $policy = 'optional'): array => $run('login', ['user' => 'local', 'policy' => $policy, 'post' => ['password' => 'Giusta-1'] + $post]);
@@ -209,7 +211,9 @@ function authScenario(string $scenario, array $opts): void
 
     authStubs();
 
-    \Wonder\Auth\LoginThrottle::useCounter(static fn (string $where): int => !empty($GLOBALS['OPTS']['throttled']) ? 100000 : 0);
+    // `saturate`: satura solo i bucket che contano quell'evento.
+    \Wonder\Auth\LoginThrottle::useCounter(static fn (string $where): int => !empty($GLOBALS['OPTS']['throttled'])
+        || (isset($GLOBALS['OPTS']['saturate']) && str_contains($where, "'".$GLOBALS['OPTS']['saturate']."'")) ? 100000 : 0);
 
     $profile = new class extends \Wonder\Auth\Frontend\AuthProfile {
         public function viewPath(string $page): string { return $GLOBALS['VIEW']; }

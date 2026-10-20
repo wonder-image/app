@@ -565,21 +565,24 @@ come `login_failed` e l'indicazione «accedi con Google» arriva per mail
 registrata porta alla stessa pagina «controlla la tua email» del caso nuovo e
 spedisce la mail «hai già un account» (`auth.email.existing_*`) con i link a
 login e recupero password; la mail parte solo se l'account può accedere
-all'area del profilo, è contata nel bucket `recovery` come `signup_existing`
-e, oltre il limite, non parte (`signup_existing_throttled`).
+all'area del profilo, è contata nel bucket `signup` come `signup_existing`
+e, oltre il limite, non parte (`signup_existing_throttled`). Il bucket è
+separato da `recovery`: chi registra più volte l'email di un altro non gli
+blocca il recupero password.
 
 ### Throttle
 
 `Wonder\Auth\LoginThrottle::check($bucket, $identificatore, $ip)` conta le
 righe di `auth_log` in una finestra scorrevole sull'orologio del DB
 (`creation`), senza tabelle dedicate. Il core lo applica a login (frontend,
-backend, `/oauth/login`) e recupero password (frontend e backend); i moduli non
-lo duplicano.
+backend, `/oauth/login`), recupero password (frontend e backend) e mail «hai
+già un account» della registrazione frontend; i moduli non lo duplicano.
 
 | bucket | eventi contati | per identificatore | per IP |
 |---|---|---|---|
 | `login` | `login_failed` | 5 in 15 min | 20 in 15 min |
-| `recovery` | `recovery_request`, `password_recovery`, `recovery_unknown`, `signup_existing` | 3 in 15 min | 10 in 60 min |
+| `recovery` | `recovery_request`, `password_recovery`, `recovery_unknown` | 3 in 15 min | 10 in 60 min |
+| `signup` | `signup_existing` | 3 in 15 min | 10 in 60 min |
 
 L'identificatore è email o username in minuscolo senza spazi, salvato in
 `meta.identifier`. Con `Environment::isLocal()` i tentativi sono x10. Oltre il
