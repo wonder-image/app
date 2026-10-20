@@ -305,16 +305,16 @@ final class FakePlacesClient implements PlaceDetailsClient
     }
 }
 
-function gp_location(int $id, string $placeId, array $hours = []): array
+function gp_location(int $id, string $placeId, array $hours = [], bool $syncHours = false): array
 {
-    return ['id' => $id, 'label' => 'Sede '.$id, 'place_id' => $placeId, 'business_status' => 'operational', 'hours' => $hours ?: gp_local_hours(), 'special_hours' => [], 'inherited' => false];
+    return ['id' => $id, 'label' => 'Sede '.$id, 'place_id' => $placeId, 'sync_hours' => $syncHours, 'business_status' => 'operational', 'hours' => $hours ?: gp_local_hours(), 'special_hours' => [], 'inherited' => false];
 }
 
 check('sync: errore su una sede non ferma le altre, copie orfane cancellate', function () {
     $store = new FakePlacesStore([gp_location(1, 'ok'), gp_location(2, 'ko'), gp_location(3, '')], [1, 3, 9]);
     $client = new FakePlacesClient(['ok' => gp_place()]);
     $log = [];
-    $summary = (new GooglePlacesSync($client, $store))->run(false, 'it', function (string $line) use (&$log): void { $log[] = $line; }, null, new DateTimeImmutable('2026-10-12'));
+    $summary = (new GooglePlacesSync($client, $store))->run('it', function (string $line) use (&$log): void { $log[] = $line; }, null, new DateTimeImmutable('2026-10-12'));
 
     return $summary === ['locations' => 2, 'synced' => 1, 'failed' => 1, 'applied' => 0, 'differences' => 0, 'cleared' => 2]
         && $store->cleared === [3, 9]
@@ -327,12 +327,12 @@ check('sync: errore su una sede non ferma le altre, copie orfane cancellate', fu
         && count(array_filter($log, fn ($l) => str_contains($l, 'Sede 2: errore'))) === 1;
 });
 
-check('sync: apply scrive gli orari e salva le differenze rimaste', function () {
+check('sync: sede con sincronizzazione orari scrive gli orari e salva le differenze rimaste', function () {
     $hours = gp_local_hours();
     $hours[0]['close_time'] = '17:00';
-    $store = new FakePlacesStore([gp_location(1, 'ok', $hours)]);
+    $store = new FakePlacesStore([gp_location(1, 'ok', $hours, true)]);
     $summary = (new GooglePlacesSync(new FakePlacesClient(['ok' => gp_place(['businessStatus' => 'CLOSED_TEMPORARILY'])]), $store))
-        ->run(true, 'it', null, null, new DateTimeImmutable('2026-10-12'));
+        ->run('it', null, null, new DateTimeImmutable('2026-10-12'));
 
     return $summary['applied'] === 1
         && $store->hours[1][0][0]['close_time'] === '18:00'
@@ -340,11 +340,26 @@ check('sync: apply scrive gli orari e salva le differenze rimaste', function () 
         && array_column($store->snapshots[1]['differences'], 'kind') === ['status'];
 });
 
+check('sync: sede senza sincronizzazione orari tiene i suoi orari, senza differenze', function () {
+    $hours = gp_local_hours();
+    $hours[0]['close_time'] = '17:00';
+    $store = new FakePlacesStore([gp_location(1, 'ok', $hours, true), gp_location(2, 'ok', $hours)]);
+    $summary = (new GooglePlacesSync(new FakePlacesClient(['ok' => gp_place(['businessStatus' => 'CLOSED_TEMPORARILY'])]), $store))
+        ->run('it', null, null, new DateTimeImmutable('2026-10-12'));
+
+    return $summary['applied'] === 1
+        && $summary['differences'] === 1
+        && array_keys($store->hours) === [1]
+        && $store->snapshots[2]['differences'] === []
+        && $store->snapshots[2]['rating'] === 4.7
+        && count($store->reviews[2]) === 1;
+});
+
 check('sync: tutte le sedi in errore fanno fallire l\'esecuzione', function () {
     $store = new FakePlacesStore([gp_location(1, 'ko')]);
 
     try {
-        (new GooglePlacesSync(new FakePlacesClient([]), $store))->run(false, 'it');
+        (new GooglePlacesSync(new FakePlacesClient([]), $store))->run('it');
     } catch (RuntimeException $exception) {
         return str_contains($exception->getMessage(), '1 errori') && isset($store->errors[1]);
     }
@@ -358,7 +373,7 @@ check('sync: nessun place_id, il client non si crea', function () {
         $created = true;
 
         throw new RuntimeException('GCP_API_KEY mancante');
-    }, new FakePlacesStore([gp_location(1, '')])))->run(false, 'it');
+    }, new FakePlacesStore([gp_location(1, '')])))->run('it');
 
     return $created === false && $summary['locations'] === 0;
 });
@@ -367,7 +382,7 @@ check('sync: chiave mancante ferma tutto prima delle sedi', function () {
     $store = new FakePlacesStore([gp_location(1, 'ok')]);
 
     try {
-        (new GooglePlacesSync(fn (): PlaceDetailsClient => throw new RuntimeException('GCP_API_KEY mancante'), $store))->run(false, 'it');
+        (new GooglePlacesSync(fn (): PlaceDetailsClient => throw new RuntimeException('GCP_API_KEY mancante'), $store))->run('it');
     } catch (RuntimeException $exception) {
         return $exception->getMessage() === 'GCP_API_KEY mancante' && $store->errors === [];
     }
@@ -380,10 +395,12 @@ check('sync: chiave mancante ferma tutto prima delle sedi', function () {
 check('task: sempre attiva, parametri di default e validazione', function () {
     $task = new GooglePlacesTask();
     $defaults = $task->validate([]);
-    $valid = $task->validate(['apply_hours' => true, 'language' => 'en-GB']);
+    $valid = $task->validate(['language' => 'en-GB']);
+    // Chiave delle versioni precedenti, ancora salvata nelle pianificazioni.
+    $legacy = $task->validate(['apply_hours' => true, 'language' => 'it']);
     $errors = 0;
 
-    foreach ([['apply_hours' => 'si'], ['language' => 'it;drop'], ['altro' => 1], ['language' => 5]] as $parameters) {
+    foreach ([['language' => 'it;drop'], ['altro' => 1], ['language' => 5]] as $parameters) {
         try {
             $task->validate($parameters);
         } catch (Throwable) {
@@ -394,9 +411,10 @@ check('task: sempre attiva, parametri di default e validazione', function () {
     return $task->key() === 'wonder.google-places'
         && $task->enabled() === true
         && $task->alwaysEnabled() === true
-        && $defaults === ['apply_hours' => false, 'language' => '']
-        && $valid === ['apply_hours' => true, 'language' => 'en-GB']
-        && $errors === 4;
+        && $defaults === ['language' => '']
+        && $valid === ['language' => 'en-GB']
+        && $legacy === ['language' => 'it']
+        && $errors === 3;
 });
 
 // --- GoogleReviews --------------------------------------------------------
