@@ -50,7 +50,7 @@ final class AuthController
                     $this->render('login', ['errors' => $errors]);
                     return;
                 }
-                if (\authenticateUserLogin($_POST['email'] ?? '', $_POST['password'] ?? '', $this->profile->area(), $this->profile->authorities())) {
+                if (\authenticateUserLogin($_POST['email'] ?? '', $_POST['password'] ?? '', $this->profile->area(), $this->profile->authorities(), $this->profile->remember($_POST))) {
                     AuthSession::queueEvent('login', 'password');
                     $this->redirect(SafeRedirect::fromRequest($_POST['continue'] ?? '', $this->profile->home()));
                 }
@@ -188,8 +188,8 @@ final class AuthController
 
                 if ($updated !== null && empty($ALERT) && ($updated->user->exists ?? false)) {
                     $loggedIn = $isFederated
-                        ? (new LegacySessionLoginAdapter())->loginUser((int) $updated->user->id, $this->profile->area(), ['provider' => $federatedProvider])
-                        : \authenticateUser('email', $updated->user->email, $_POST['password'], $this->profile->area(), $this->profile->authorities());
+                        ? (new LegacySessionLoginAdapter((bool) ($record->metadata['remember'] ?? false)))->loginUser((int) $updated->user->id, $this->profile->area(), ['provider' => $federatedProvider])
+                        : \authenticateUser('email', $updated->user->email, $_POST['password'], $this->profile->area(), $this->profile->authorities(), $this->profile->remember([]));
 
                     if ($loggedIn) {
                         if (!$isFederated || !empty($record->metadata['signup_event'])) {
@@ -348,12 +348,12 @@ final class AuthController
                         $result->userId,
                         null,
                         SafeRedirect::fromRequest($_POST['continue'] ?? '', $this->profile->home()),
-                        ['federated_provider' => $provider, 'signup_event' => $newAccount]
+                        ['federated_provider' => $provider, 'signup_event' => $newAccount, 'remember' => $this->profile->remember($_POST)]
                     );
                 $this->redirect($this->route('signup.completion').'?token='.rawurlencode($completion->token));
             }
 
-            if (!(new LegacySessionLoginAdapter())->loginUser($result->userId, $this->profile->area(), ['provider' => $provider])) {
+            if (!(new LegacySessionLoginAdapter($this->profile->remember($_POST)))->loginUser($result->userId, $this->profile->area(), ['provider' => $provider])) {
                 throw new \RuntimeException('federated_login_failed');
             }
             if ($newAccount) { AuthSession::queueEvent('sign_up', $provider); }

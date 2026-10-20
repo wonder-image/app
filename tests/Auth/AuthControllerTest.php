@@ -76,6 +76,49 @@ check('registrazione: signup_existing conta nel bucket recovery', fn () =>
     in_array('signup_existing', (new ReflectionClassConstant(\Wonder\Auth\LoginThrottle::class, 'BUCKETS'))->getValue()['recovery']['events'] ?? [], true)
 );
 
+// --- I7: remember-me opt-in ------------------------------------------------
+$login = static fn (array $post, string $policy = 'optional'): array => $run('login', ['user' => 'local', 'policy' => $policy, 'post' => ['password' => 'Giusta-1'] + $post]);
+
+$plain = $login([]);
+check('login riuscito senza checkbox → sessione aperta, nessun remember-me', fn () =>
+    ($plain['session_user'] ?? null) === 7 && ($plain['remember'] ?? null) === [] && ($plain['redirect'] ?? null) === '/account/'
+);
+check('login riuscito con il solo hidden vuoto → nessun remember-me', function () use ($login) {
+    $r = $login(['remember' => '']);
+
+    return ($r['session_user'] ?? null) === 7 && ($r['remember'] ?? null) === [];
+});
+check('login riuscito con checkbox spuntata → un token remember-me per l\'area', function () use ($login) {
+    $r = $login(['remember' => 'true']);
+
+    return count($r['remember'] ?? []) === 1 && ($r['remember'][0]['area'] ?? null) === 'frontend' && ($r['remember'][0]['user_id'] ?? null) === 7;
+});
+check('rememberMe() always → remember-me anche senza checkbox', fn () => count($login([], 'always')['remember'] ?? []) === 1);
+check('rememberMe() never → niente remember-me anche con checkbox', function () use ($login) {
+    $r = $login(['remember' => 'true'], 'never');
+
+    return ($r['session_user'] ?? null) === 7 && ($r['remember'] ?? null) === [];
+});
+check('login: checkbox «remember» resa solo con optional', function () use ($run) {
+    $fields = static fn (string $policy): array => (array) ($run('login', ['user' => 'none', 'policy' => $policy])['render']['fields'] ?? []);
+
+    return $fields('optional') === ['email', 'password', 'remember'] && $fields('always') === ['email', 'password'] && $fields('never') === ['email', 'password'];
+});
+check('AuthProfile::rememberMe() di default è optional', fn () => (new \Wonder\Auth\Frontend\AuthProfile())->rememberMe() === 'optional');
+check('federato: la scelta passa dal profilo e dal token di completamento', function () {
+    $src = (string) file_get_contents(__DIR__.'/../../class/Auth/Frontend/AuthController.php');
+
+    return substr_count($src, 'new LegacySessionLoginAdapter()') === 0
+        && str_contains($src, "new LegacySessionLoginAdapter(\$this->profile->remember(\$_POST))")
+        && str_contains($src, "'remember' => \$this->profile->remember(\$_POST)")
+        && str_contains($src, "new LegacySessionLoginAdapter((bool) (\$record->metadata['remember'] ?? false))");
+});
+check('RememberMe::requested(): solo valori di checkbox spuntata', fn () =>
+    \Wonder\Auth\RememberMe::requested(['remember' => 'true']) && \Wonder\Auth\RememberMe::requested(['remember' => 'on'])
+    && !\Wonder\Auth\RememberMe::requested(['remember' => '']) && !\Wonder\Auth\RememberMe::requested([])
+    && !\Wonder\Auth\RememberMe::requested(['remember' => ['true']])
+);
+
 summary();
 }
 
@@ -128,12 +171,13 @@ function authScenario(string $scenario, array $opts): void
     $profile = new class extends \Wonder\Auth\Frontend\AuthProfile {
         public function viewPath(string $page): string { return $GLOBALS['VIEW']; }
         public function googleEnabled(): bool { return false; }
+        public function rememberMe(): string { return (string) ($GLOBALS['OPTS']['policy'] ?? parent::rememberMe()); }
     };
     $controller = new \Wonder\Auth\Frontend\AuthController($profile);
 
     switch ($scenario) {
         case 'login':
-            $_POST += ['email' => 'mario@example.com', 'password' => 'Sbagliata-1'] + (array) ($opts['post'] ?? []);
+            $_POST += (array) ($opts['post'] ?? []) + ['email' => 'mario@example.com', 'password' => 'Sbagliata-1'];
             $controller->handle('login');
             break;
         case 'signup':
@@ -167,6 +211,9 @@ function authStubs(): void
                 ];
             }
             function isUserEmailVerified($userId): bool { return true; }
+            function permissions($authority) { return (object) ['area' => 'frontend']; }
+            function userPermissionVerificationRules($permission) { return []; }
+            function userPermissionEmailVerificationConfig($permission, $rules, $flow) { return ['required' => false]; }
             function sendMail($from, $to, $subject, $content) { $GLOBALS['MAILS'][] = ['from' => $from, 'to' => $to, 'subject' => $subject, 'body' => $content]; return true; }
             function user($values, $id = null) {
                 if (($GLOBALS['OPTS']['signup'] ?? '') === 'existing') { $GLOBALS['ALERT'] = 906; return (object) ['user' => (object) ['exists' => false]]; }

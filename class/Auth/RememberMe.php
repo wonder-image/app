@@ -15,6 +15,14 @@
             return 60 * 60 * 24 * 30; // 30 giorni
         }
 
+        // Checkbox «remember» del form: spuntata solo con un valore scalare vero.
+        public static function requested(array $input, string $key = 'remember'): bool
+        {
+            $value = $input[$key] ?? '';
+
+            return is_scalar($value) && in_array(strtolower((string) $value), ['true', '1', 'on'], true);
+        }
+
         // Prova il login automatico con cookie
         public static function tryLogin(string $area): ?int
         {

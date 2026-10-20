@@ -39,6 +39,17 @@
   caso nuovo e spedisce `auth.email.existing_*`, nel bucket `recovery` con
   l'evento `signup_existing`. I siti che leggono `906`/`924` dal login o
   l'errore `email.exists` della registrazione vanno aggiornati.
+- **Ricordami opt-in, frontend e backend (`C-PWD-I7`).** Nuovo
+  `AuthProfile::rememberMe()` (`always|optional|never`, default `optional`) e
+  `AuthProfile::remember(array $input)`. Con `optional` il login frontend
+  mostra la checkbox `remember` non spuntata: il cookie di 30 giorni si crea
+  solo se è spuntata (prima: sempre). Vale anche per Google dal login, anche
+  dopo il completamento della registrazione. Il completamento con password e
+  Google dalla registrazione ricordano solo con `always`. Il login backend ha
+  la stessa checkbox (`AccountPageSchema`, campo `remember`) e passa
+  `RememberMe::requested($_POST)`. Nuovo `RememberMe::requested()`. I default
+  `$REMEMBER = true` di `authenticateUserLogin()`/`authenticateUser()` non
+  cambiano: chi li chiama senza argomento continua a ricordare.
 - **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
   `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
   `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,

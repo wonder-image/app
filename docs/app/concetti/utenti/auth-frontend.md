@@ -535,6 +535,24 @@ beta successiva. Al login riuscito un hash phpass o con parametri superati
 viene sostituito (`passwordNeedsRehash()`), con evento `password_rehash` in
 `auth_log`. Nessun reset forzato degli utenti esistenti.
 
+### Ricordami
+
+`AuthProfile::rememberMe()` decide il cookie "ricordami" (30 giorni,
+`RememberMe::ttlSeconds()`):
+
+| Valore | Comportamento |
+|---|---|
+| `optional` (default) | checkbox `remember` nel login, non spuntata; ricorda solo se spuntata |
+| `always` | nessuna checkbox, ricorda sempre |
+| `never` | nessuna checkbox, mai |
+
+La scelta vale anche per Google dal login: lo script federato copia la
+checkbox spuntata nel POST e, se serve completare la registrazione, viaggia nei
+metadati del token di completamento. Google dalla pagina di registrazione e il
+completamento con password non hanno checkbox: ricordano solo con `always`. Il
+login backend ha la stessa checkbox opt-in (`AccountPageSchema`), letta con
+`RememberMe::requested($_POST)`.
+
 ### Enumerazione degli account
 
 Login e registrazione non dicono in pagina se un'email ha già un account.

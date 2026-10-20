@@ -41,6 +41,16 @@ check('login: token valido → passa ad authenticateUserLogin', function () use 
 
 check('login: token nell\'header X-WI-CSRF → passa ad authenticateUserLogin', fn () => ($run('login', 'header')['writes'] ?? []) === ['authenticateUserLogin']);
 
+// Remember-me opt-in (C-PWD-I7): senza checkbox niente cookie.
+check('login: checkbox non spuntata → authenticateUserLogin con remember false', fn () => ($run('login', 'valid')['remember'] ?? null) === false);
+check('login: checkbox spuntata → authenticateUserLogin con remember true', fn () => ($run('login', 'valid', 'remember')['remember'] ?? null) === true);
+check('login: lo schema ha la checkbox «remember» e la vista la rende', function () {
+    $schema = \Wonder\App\PageSchema\AccountPageSchema::loginFormSchema();
+    $view = (string) file_get_contents(dirname(__DIR__, 2).'/app/view/pages/backend/account/login.php');
+
+    return ($schema['remember'] ?? null) instanceof \Wonder\App\ResourceSchema\Inputs\InputCheckbox && str_contains($view, "\$renderInput('remember')");
+});
+
 // Recupero: risposta 601 uniforme.
 $unknown = $run('recovery', 'valid', 'unknown');
 // In CLI headers_list() è vuoto: si confrontano stato, rotta del redirect e exit.
@@ -160,6 +170,7 @@ function accountScenario(string $scenario, string $tokenMode, string $extra): vo
             'exited' => $GLOBALS['EXITED'],
             'status' => http_response_code(),
             'routes' => $GLOBALS['ROUTES'] ?? [],
+            'remember' => $GLOBALS['REMEMBER'] ?? null,
         ]);
         exec('rm -rf '.escapeshellarg($appDir));
     });
@@ -177,7 +188,7 @@ function accountScenario(string $scenario, string $tokenMode, string $extra): vo
     try {
         switch ($scenario) {
             case 'login':
-                $_POST = $csrf + ['login' => '1', 'username' => 'mario', 'password' => 'x'];
+                $_POST = $csrf + ['login' => '1', 'username' => 'mario', 'password' => 'x'] + ($extra === 'remember' ? ['remember' => 'true'] : ['remember' => '']);
                 accountInclude('login', $vars);
                 break;
             case 'recovery':
@@ -221,7 +232,11 @@ function accountStubs(): void
             function __r(string $name, array $params = []): string { $GLOBALS['ROUTES'][] = $name; return '/'.$name; }
             function sqlBind($sql, $params) { foreach ((array) $params as $p) { $sql = preg_replace('/\?/', "'".addslashes((string) $p)."'", $sql, 1); } return $sql; }
             function __t(string $key, array $params = []): string { return $key; }
-            function authenticateUserLogin($u, $p, $area) { $GLOBALS['W'][] = 'authenticateUserLogin'; return false; }
+            function authenticateUserLogin($u, $p, $area) {
+                $GLOBALS['W'][] = 'authenticateUserLogin';
+                $GLOBALS['REMEMBER'] = func_num_args() > 4 ? func_get_arg(4) : 'default';
+                return false;
+            }
             function verifyUser($key, $value, $area = null, $permit = null) {
                 $known = $key === 'id' || str_starts_with((string) $GLOBALS['MODE'], 'known');
                 if (!$known) { $GLOBALS['ALERT'] = 913; return (object) ['response' => false]; }
