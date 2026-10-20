@@ -24,10 +24,24 @@ if (isset($_POST['recovery']) && !Csrf::verify()) {
     $VERIFY = verifyUser('username', $_POST['username'], 'backend');
 
     // Risposta 601 uniforme: non rivela se l'utente esiste o se la mail è partita.
+    $issued = null;
     if ($VERIFY->response) {
         $USER = $VERIFY->user;
+
         // Token monouso valido 30 minuti; uno nuovo annulla quelli ancora aperti.
-        $issued = (new Wonder\Auth\PasswordReset(1800))->issueForUser((int) $USER->id);
+        // Un errore di emissione non deve distinguersi dall'utente inesistente.
+        try {
+            $issued = (new Wonder\Auth\PasswordReset(1800))->issueForUser((int) $USER->id);
+        } catch (\Throwable $exception) {
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
+                'reason' => 'token_failed',
+                'error' => $exception::class,
+                'identifier' => $RECOVERY_IDENTIFIER,
+            ]);
+        }
+    }
+
+    if ($VERIFY->response && $issued !== null) {
         $link = __r('backend.account.password.restore').'?token='.rawurlencode($issued->token);
 
         $content = "Ecco il link per modificare la tua password.<br>
@@ -45,7 +59,7 @@ if (isset($_POST['recovery']) && !Csrf::verify()) {
                 'identifier' => $RECOVERY_IDENTIFIER,
             ]);
         }
-    } else {
+    } elseif (!$VERIFY->response) {
         Wonder\Auth\AuthLog::write('recovery_unknown', null, 'backend', false, [
             'identifier' => $RECOVERY_IDENTIFIER,
             'alert' => $ALERT ?? null,

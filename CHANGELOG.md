@@ -141,7 +141,8 @@
   senza token valido alert `929` (`ResourcePageController::CSRF_ALERT`), nessun
   login, nessuna mail, nessun token consumato. Il recupero risponde sempre con
   il redirect `?alert=601`, anche con utente inesistente (evento
-  `recovery_unknown`, senza lo username in chiaro) o mail non partita. Le mail
+  `recovery_unknown`, senza lo username in chiaro), mail non partita o errore
+  nell'emissione del token (`password_recovery` con `reason=token_failed`). Le mail
   di recupero, restore e set partono da `$SOCIETY->email` (ripiego
   `noreply@wonderimage.it`). reCAPTCHA sul login backend arriva in un intervento
   successivo.

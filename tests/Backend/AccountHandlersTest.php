@@ -77,6 +77,19 @@ check('recupero, mail non partita → stessa risposta e log mail_failed', functi
         && ($mailFailed['logs'][0]['success'] ?? null) === 0 && ($meta['reason'] ?? null) === 'mail_failed';
 });
 
+// Errore nell'emissione del token: stessa risposta dell'utente inesistente (C-PWD-I4).
+$issueFailed = $run('recovery', 'valid', 'known-issuefail');
+check('recupero, emissione token fallita → stessa risposta dell\'utente inesistente', fn () =>
+    $redirect($issueFailed) === $redirect($unknown)
+);
+check('recupero, emissione token fallita → nessuna mail e log token_failed', function () use ($issueFailed, $events) {
+    $meta = json_decode((string) ($issueFailed['logs'][0]['meta'] ?? ''), true);
+
+    return ($issueFailed['mails'] ?? null) === [] && $events($issueFailed) === ['password_recovery']
+        && ($issueFailed['logs'][0]['success'] ?? null) === 0 && ($meta['reason'] ?? null) === 'token_failed'
+        && ($meta['error'] ?? null) === 'RuntimeException';
+});
+
 $throttled = $run('recovery', 'valid', 'throttled');
 check('recupero oltre il limite → alert 930, nessuna mail, log recovery_throttled', fn () =>
     ($throttled['alert'] ?? null) == \Wonder\Auth\LoginThrottle::ALERT && ($throttled['mails'] ?? null) === []
@@ -221,7 +234,10 @@ function accountStubs(): void
             }
             function sqlInsert($table, $values) {
                 if ($table === 'auth_log') { $GLOBALS['LOGS'][] = $values; return (object) ['success' => true]; }
-                if ($table === 'auth_one_time_tokens') { return (object) ['success' => true, 'insert_id' => 1]; }
+                if ($table === 'auth_one_time_tokens') {
+                    if ($GLOBALS['MODE'] === 'known-issuefail') { throw new RuntimeException('db down'); }
+                    return (object) ['success' => true, 'insert_id' => 1];
+                }
                 $GLOBALS['W'][] = "insert {$table}"; return (object) ['success' => false];
             }
             function sqlModify($table, $values, $col = null, $id = null) { $GLOBALS['W'][] = "modify {$table}"; return (object) ['success' => false]; }
