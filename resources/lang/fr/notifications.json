@@ -349,6 +349,11 @@
         "title": "Erreur 926",
         "text": "La conversion de l'image a échoué : téléverse un fichier PNG ou JPG valide."
     },
+    "927": {
+        "type": "danger",
+        "title": "Erreur 927",
+        "text": "Le contenu du fichier ne correspond pas à son extension !"
+    },
     "950": {
         "type": "danger",
         "title": "Erreur 950",

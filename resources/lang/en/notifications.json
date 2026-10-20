@@ -349,6 +349,11 @@
         "title": "Error 926",
         "text": "Image conversion failed: upload a valid PNG or JPG file."
     },
+    "927": {
+        "type": "danger",
+        "title": "Error 927",
+        "text": "The file content does not match its extension!"
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

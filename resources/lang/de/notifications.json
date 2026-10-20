@@ -349,6 +349,11 @@
         "title": "Fehler 926",
         "text": "Die Bildkonvertierung ist fehlgeschlagen: Lade eine gültige PNG- oder JPG-Datei hoch."
     },
+    "927": {
+        "type": "danger",
+        "title": "Fehler 927",
+        "text": "Der Dateiinhalt passt nicht zur Dateiendung!"
+    },
     "950": {
         "type": "danger",
         "title": "Fehler 950",

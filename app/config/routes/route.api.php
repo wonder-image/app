@@ -99,10 +99,14 @@ Route::area('api')
                 }
 
                 Route::post('/editorjs/file/', $ROOT_APP.'/http/api/backend/editorjs-file.php')
-                    ->name('editorjs.file');
+                    ->name('editorjs.file')
+                    ->guarded()
+                    ->permit([]);
 
                 Route::post('/editorjs/image/', $ROOT_APP.'/http/api/backend/editorjs-image.php')
-                    ->name('editorjs.image');
+                    ->name('editorjs.image')
+                    ->guarded()
+                    ->permit([]);
 
             });
 

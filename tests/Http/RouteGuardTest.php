@@ -16,6 +16,8 @@ $match = static fn (string $path): ?array => (new Router($routes))->match('POST'
 // Endpoint backend che devono richiedere un utente backend valido.
 $guarded = [
     '/api/backend/list/table/',
+    '/api/backend/editorjs/file/',
+    '/api/backend/editorjs/image/',
 ];
 
 foreach ($guarded as $path) {
@@ -28,6 +30,22 @@ foreach ($guarded as $path) {
             && ($route['permit'] ?? null) === [];
     });
 }
+
+check('ogni rotta /api/backend/ è protetta (tranne alert)', function () use ($routes) {
+    foreach ($routes as $route) {
+        $path = (string) ($route['path'] ?? '');
+
+        if (!str_starts_with($path, '/api/backend/') || $path === '/api/backend/alert/') {
+            continue;
+        }
+
+        if (($route['private'] ?? false) !== true) {
+            return false;
+        }
+    }
+
+    return true;
+});
 
 foreach ($guarded as $path) {
     check("{$path}: senza sessione redirect 302 e handler non eseguito", function () use ($match, $path) {
