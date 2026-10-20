@@ -229,6 +229,7 @@
             'fancyapps' => [
                 'name' => 'Fancyapps',
                 'site' => 'https://fancyapps.com',
+                'css_defer' => true, // Performance: serve all'apertura del lightbox; lo zoom lo rimette bloccante (blockingStyle)
                 'files' => [
                     'head' => [
                         '/dist/lib/fancyapps/fancyapps.js',
@@ -314,6 +315,7 @@
         protected static array $toLoad = [];
 
         private static bool $deferFrontendScripts = true;
+        private static array $blockingStyleKeys = [];
         private static array $inlineFrontendStyleKeys = ['wi-lib', 'wi-frontend', 'swiper'];
 
         private const INLINE_FRONTEND_STYLE_OPTIONS = [
@@ -333,6 +335,12 @@
         public static function deferFrontend(bool $value = true): void
         {
             self::$deferFrontendScripts = $value;
+        }
+
+        /** Rimette bloccante il CSS di una dipendenza css_defer che disegna la pagina prima del click. */
+        public static function blockingStyle(string $key): void
+        {
+            self::$blockingStyleKeys[$key] = true;
         }
 
         public static function isFrontendDeferred(): bool
@@ -437,7 +445,7 @@
                         // render-blocking (preload + swap a stylesheet on-load), con fallback
                         // <noscript>. Sicuro solo per CSS non above-the-fold (icone, widget
                         // inizializzati tardi), non per i CSS core del layout.
-                        if (!empty($dep['css_defer']) && !empty($GLOBALS['FRONTEND'])) {
+                        if (!empty($dep['css_defer']) && empty(self::$blockingStyleKeys[$key]) && !empty($GLOBALS['FRONTEND'])) {
                             $html .= "<link rel=\"preload\" as=\"style\" href=\"$url\" onload=\"this.onload=null;this.rel='stylesheet'\">\n";
                             $html .= "<noscript><link href=\"$url\" rel=\"stylesheet\"></noscript>\n";
                         } else {
