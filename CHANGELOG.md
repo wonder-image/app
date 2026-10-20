@@ -730,6 +730,10 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- **Audit impersonificazione: IP da `ClientIp` (review `N9`).**
+  `Impersonation::audit()` scrive in `auth_impersonation_audits.ip` il valore di
+  `ClientIp::resolve()`: dietro proxy con `APP_TRUST_PROXY` è l'IP del client,
+  non quello del proxy.
 - `ConfigCodec::context()` codifica con `JSON_THROW_ON_ERROR`: un contesto non
   codificabile lancia invece di diventare `''`.
 - `SSP::complex`: i binding di `whereAll` valgono anche per le query dei dati
