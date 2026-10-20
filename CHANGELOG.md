@@ -552,6 +552,15 @@
   `RememberMe::requested($_POST)` o `false`). Tutti i chiamanti del core la
   passano già: login frontend (`AuthController`), login backend,
   `/oauth/login` e `authenticateUserLogin()` verso `authenticateUser()`.
+  Stesso default, deprecato allo stesso modo, in
+  `new LegacySessionLoginAdapter()` senza argomento
+  (`class/Auth/Federated/Bridge/LegacySessionLoginAdapter.php:13`,
+  `$rememberMe = true`) e in `verifyFederatedLogin()` senza l'opzione
+  `remember_me` (`app/function/frontend/plugin/federated.php:154`,
+  `remember_me ?? true`): un sito che usa il `verifyFederatedLogin()` legacy
+  ricorda sempre l'utente, senza checkbox. I default non cambiano. Nel core
+  `LegacySessionLoginAdapter` riceve sempre il valore esplicito e
+  `verifyFederatedLogin()` non ha chiamanti.
 - **list/table, editorjs e SSP: cambia il comportamento per chi chiama senza
   sessione backend.** `api.backend.list.table`, `api.backend.editorjs.file` e
   `.image` sono `guarded()`: senza login rimandano al Login e l'handler non
