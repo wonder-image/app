@@ -118,7 +118,10 @@ final class ResourceRegistry
      * Ordine di `all()` (= ordine di inserimento):
      * 1. Resource scoperte nelle cartelle: pacchetto `class/App/Resources`,
      *    moduli, `ROOT/app/Resources`, `ROOT/custom/class/Resources`
-     *    (file in ordine alfabetico in ogni cartella);
+     *    (file in ordine alfabetico in ogni cartella). I moduli seguono
+     *    l'ordine delle chiavi di `custom/config/modules.php`
+     *    (`Module\Registry::enabled()` scorre `StateRepository::all()`), non
+     *    quello alfabetico di `Module\Registry::all()`;
      * 2. Resource dei `resources.php` configurati (pacchetto, poi sito),
      *    nell'ordine dell'array. Una classe già vista non si sposta.
      * Se uno slug viene sostituito da una Resource con priorità più alta,

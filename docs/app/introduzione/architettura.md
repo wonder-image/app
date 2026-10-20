@@ -79,7 +79,8 @@ ben definita (chi sta più in alto sovrascrive chi sta più in basso):
 `ModelRegistry` e `ResourceRegistry` caricano da:
 
 1. core framework (`class/App/Models`, `class/App/Resources`)
-2. moduli abilitati
+2. moduli abilitati, nell'ordine in cui compaiono in `custom/config/modules.php`
+   (`Module\Registry::enabled()`), non in ordine alfabetico di slug
 3. sito (`app/Models`, `app/Resources`)
 4. sito (`custom/class/Models`, `custom/class/Resources`)
 5. liste di risorse dai file di configurazione, quando presenti
