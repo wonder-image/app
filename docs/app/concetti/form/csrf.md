@@ -11,9 +11,10 @@ scrive nei form e nel `<head>`, e lo confronta. Un token solo per sessione,
 creato al primo uso.
 
 {% hint style="warning" %}
-**Oggi il token viene solo emesso.** Nessuna richiesta viene bloccata dal
-framework: `RouteDispatcher` non chiama `Csrf::verify()`. Chi vuole proteggere
-una propria richiesta lo chiama a mano (vedi [Verifica](#verifica)).
+**La verifica non è centrale.** `RouteDispatcher` verifica il token solo sulle
+route che lo dichiarano con `->csrf()` (vedi [Route con `->csrf()`](#route-con-csrf)):
+oggi il gruppo delle API backend di sessione (`/api/backend/*`). Le altre
+richieste lo chiamano a mano (vedi [Verifica](#verifica)).
 {% endhint %}
 
 ## API
@@ -88,6 +89,42 @@ if (!Csrf::verify()) {
 
 Un token vuoto o assente non è mai valido, nemmeno a sessione appena nata.
 
+## Route con `->csrf()`
+
+Un gruppo o una singola route possono chiedere la verifica al dispatcher:
+
+```php
+Route::name('backend.')
+    ->prefix('/backend')
+    ->backend()
+    ->csrf()
+    ->group(function () use ($ROOT_APP) {
+        Route::post('/delete/', $ROOT_APP.'/http/api/backend/delete.php')->guarded();
+
+        // Solo Bearer: la singola route esce dal gruppo.
+        Route::post('/alert/', $ROOT_APP.'/http/api/backend/alert.php')->csrf(false);
+    });
+```
+
+- Il default è `false`: è un opt-in, non vale per tutte le route.
+- `Wonder\Http\CsrfGuard` controlla i metodi diversi da `GET`, `HEAD` e
+  `OPTIONS`, dopo la sessione e l'autorizzazione (`authorizeUser()`) e prima
+  dell'handler.
+- Token mancante o sbagliato: `ForbiddenHttpException`, cioè `403` con il
+  payload JSON delle API (`{"success": false, "status": 403, "response": …}`)
+  o la pagina d'errore HTML. L'handler non viene incluso.
+- Il token arriva da `_csrf` nel corpo o dall'header `X-WI-CSRF`, che la lib
+  manda da `ajaxRequest`, `fetch`, `ApiClient`, DataTables ed Editor.js.
+  L'header è ammesso in CORS (`Access-Control-Allow-Headers`).
+- Le route autenticate solo con Bearer (Resource API, token di pagina, task,
+  `/api/app/update/`) e i flussi OAuth non la dichiarano: il browser non manda
+  da solo l'header `Authorization`.
+
+Rotte del core con `->csrf()`: tutte quelle sotto `/api/backend/` tranne
+`/api/backend/alert/` (`list/table`, `change/boolean`, `active`, `visible`,
+`delete`, `authority`, `move`, `file/delete`, `file/move`, `delete-icon`,
+`oauth/revoke`, `editorjs/file`, `editorjs/image`).
+
 ## Sessione e cache
 
 Il token è personale: non deve finire in HTML servito a più persone.
@@ -119,5 +156,7 @@ meta vanno escluse da quella regola.
 ## Riferimenti
 
 - `class/Http/Csrf.php`
+- `class/Http/CsrfGuard.php`
 - `tests/Http/CsrfTest.php`
+- `tests/Http/BackendApiCsrfTest.php`
 - [Auth frontend e pannello account](../utenti/auth-frontend.md)

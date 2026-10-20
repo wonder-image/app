@@ -3,6 +3,19 @@
 ## Unreleased
 
 ### Breaking
+- **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
+  `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
+  `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,
+  `file/move`, `delete-icon`, `oauth/revoke`, `editorjs/file`,
+  `editorjs/image` rispondono `403` JSON («Token CSRF non valido.») a un POST
+  senza `_csrf` o header `X-WI-CSRF` validi, prima dell'handler.
+  `/api/backend/alert/` (solo Bearer) resta fuori. Nuovi `->csrf()` su
+  `RouteGroup`/`RouteDefinition` e `Wonder\Http\CsrfGuard`: opt-in, la verifica
+  non diventa centrale. `X-WI-CSRF` è ammesso in `Access-Control-Allow-Headers`.
+  **Vincolo di rilascio:** richiede sui siti la lib con `C-CSRF-I1`
+  (`wonder-image/lib` PR #12, header `X-WI-CSRF` da `ajaxRequest`, `fetch`,
+  `ApiClient`, DataTables ed Editor.js); con una lib precedente le azioni
+  dell'elenco backend, gli upload Editor.js e la revoca OAuth ricevono `403`.
 - **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e

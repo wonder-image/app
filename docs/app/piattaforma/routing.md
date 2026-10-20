@@ -50,7 +50,9 @@ Le route non vengono dedotte dalla URL. L'`area` viene dichiarata nella route.
 6. il dispatcher pubblica `PRIVATE` e `PERMIT`, poi bootstrappa
    `wonder-image.php`
 7. `app/service/auth.php` chiama `authorizeUser()` per le route protette
-8. solo dopo un'autorizzazione riuscita viene incluso l'handler della route
+8. sulle route con `->csrf()` `CsrfGuard` verifica il token CSRF (403 se manca
+   o non vale)
+9. solo dopo un'autorizzazione riuscita viene incluso l'handler della route
 
 ## Autenticazione e autorizzazione delle route protette
 
@@ -166,6 +168,10 @@ Route::get('/user/{id}/', $ROOT_APP.'/http/backend/user/view.php')
     ->permit(['admin'])
     ->where('id', '[0-9]+');
 ```
+
+`->csrf()` (su gruppo o route) chiede la verifica del token CSRF prima
+dell'handler; `->csrf(false)` toglie una route da un gruppo che la chiede. Vedi
+[Token CSRF](../concetti/form/csrf.md#route-con-csrf).
 
 ### Traducibilità (`->translatable()`)
 
