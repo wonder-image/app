@@ -61,6 +61,7 @@ final class SocietyLocation extends Model
             ...static::sqlColumnsFromDataSchema(['opening_date']),
             ...static::address()->tableSchema(),
             Column::key('google_place_id'),
+            Column::key('google_sync_hours')->enum(['true', 'false'])->default('false'),
             ...static::sqlColumnsFromDataSchema([
                 'google_synced_at',
                 'email',
@@ -100,6 +101,7 @@ final class SocietyLocation extends Model
             Field::key('opening_date')->date(),
             ...static::address()->dataSchema(),
             Field::key('google_place_id')->text()->sanitize(false),
+            Field::key('google_sync_hours')->text()->sanitize(false),
             Field::key('google_synced_at')->date(),
             Field::key('email')->email(),
             Field::key('pec')->text(),
