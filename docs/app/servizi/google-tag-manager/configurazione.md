@@ -57,7 +57,14 @@ prima del loader GTM, lo script di `Wonder\Frontend\Support\DataLayer`:
   (serve perché Iubenda si carica dentro GTM, dopo il default);
 - `{ user: { id } }`, dove `id` è un HMAC dell'id utente con `APP_KEY` (32
   caratteri esadecimali, stabile per utente), `null` senza utente o senza
-  `APP_KEY`. L'id numerico non arriva più al dataLayer.
+  `APP_KEY`. Il core non manda più l'id numerico.
+
+{% hint style="warning" %}
+Con il modulo ecommerce serve la versione con il fix `fix/2026-10-2d-datalayer`:
+le versioni precedenti fanno un secondo push `{ user: { id: 7 } }` con l'id in
+chiaro e, nel merge di GTM, l'ultimo valore vince. Dal fix ecommerce non manda
+più `user` e resta l'hash del core.
+{% endhint %}
 
 Il Meta Pixel (`Dev > API e servizi > Analitica`, `pixel_facebook`) è ancora
 emesso senza attendere il consenso.

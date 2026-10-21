@@ -18,9 +18,11 @@
   `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
   `ad_user_data` e `ad_personalization` a `denied` e `wait_for_update: 500`:
   i tag Google aspettano fino a 500 ms l'aggiornamento della CMP (Iubenda in
-  GTM). `user.id` nel dataLayer è un
-  HMAC dell'id con `APP_KEY` (`DataLayer::userId()`), non più l'id numerico: le
-  variabili e i tag GTM che lo usano ricevono un valore diverso.
+  GTM). Il core manda in `user.id` solo un HMAC dell'id con `APP_KEY`
+  (`DataLayer::userId()`), non più l'id numerico: le variabili e i tag GTM che
+  lo usano ricevono un valore diverso. Con il modulo ecommerce richiede la
+  versione con il fix `fix/2026-10-2d-datalayer` (ecommerce non manda più
+  `user`); le versioni precedenti rimandano l'id in chiaro dopo il core.
 - **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`
   con `_csrf` (o `X-WI-CSRF`); in `GET` mostra una pagina di conferma con il
   bottone «Esci» e non chiude più la sessione. Nel menu del core «Esci» è un
