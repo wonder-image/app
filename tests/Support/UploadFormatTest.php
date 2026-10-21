@@ -120,6 +120,20 @@ check('csv che inizia con # accettato', function () use ($dir) {
         && UploadValidator::checkFormat('csv', $csv, []) === null;
 });
 
+check('estensione con spazio, tab, \x0B o punto finale rifiutata (921), anche via uploadFiles', function () use ($dir, $files, $upload) {
+    $svg = $dir.'/script.svg';
+    file_put_contents($svg, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+    foreach (['logo.svg ', "logo.svg\t", "logo.svg\x0B", 'logo.svg.', 'logo.SVG '] as $name) {
+        $extension = (string) pathinfo(strtolower($name), PATHINFO_EXTENSION);
+        if (UploadValidator::checkFormat($extension, $svg, ['svg']) !== UploadValidator::EXTENSION
+            || $upload($files($name, $svg), ['extensions' => ['svg']]) !== UploadValidator::EXTENSION) {
+            echo '    passa: '.json_encode($name)."\n";
+            return false;
+        }
+    }
+    return !is_dir($dir.'/dest') || glob($dir.'/dest/*') === [];
+});
+
 $format = static fn (string $resource, string $key): array => $resource::prepareSchema()[$key]['input']['format'] ?? [];
 
 check('ImageResource e IconResource: png/jpg/jpeg/webp, niente gif e svg', function () use ($format) {

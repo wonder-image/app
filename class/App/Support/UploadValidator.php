@@ -125,8 +125,13 @@ final class UploadValidator
      */
     public static function checkFormat(string $extension, string $tmpPath, mixed $extensions = []): ?int
     {
-        $extension = strtolower(trim($extension));
+        $extension = strtolower($extension);
         $allowed = self::normalizeExtensions($extensions);
+
+        // Niente trim: `svg ` deve essere rifiutato, non salvato così.
+        if (preg_match('/^[a-z0-9]+$/D', $extension) !== 1) {
+            return self::EXTENSION;
+        }
 
         if (in_array($extension, self::ALWAYS_DENIED_EXTENSIONS, true)) {
             return self::EXTENSION;

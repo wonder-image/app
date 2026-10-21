@@ -72,10 +72,11 @@
                 if (!empty($TEMPORARY)) {
 
                     $FILE_NAME = strtolower((string) ($FILES['name'][$i] ?? ''));
-                    $EXTENSION = pathinfo($FILE_NAME, PATHINFO_EXTENSION);
+                    # checkFormat ammette solo [a-z0-9]+: la stessa vale per sanitizer e nome.
+                    $EXTENSION = (string) pathinfo($FILE_NAME, PATHINFO_EXTENSION);
                     $SIZE = (int) ($FILES['size'][$i] ?? 0);
 
-                    $FORMAT_ALERT = \Wonder\App\Support\UploadValidator::checkFormat((string) $EXTENSION, (string) $TEMPORARY, $EXTENSIONS);
+                    $FORMAT_ALERT = \Wonder\App\Support\UploadValidator::checkFormat($EXTENSION, (string) $TEMPORARY, $EXTENSIONS);
                     if ($FORMAT_ALERT !== null) { $ALERT = $FORMAT_ALERT; }
 
                     # SVG ammesso solo esplicitamente e solo ripulito.
