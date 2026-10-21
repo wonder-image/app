@@ -43,6 +43,9 @@
   per email, 10 in 60 min per IP), separato da `recovery`: la mail non
   consuma i tentativi di recupero password dell'utente. I siti che leggono `906`/`924` dal login o
   l'errore `email.exists` della registrazione vanno aggiornati.
+  Resta un residuo fino al blocco 2d (coda mail): se l'invio sincrono della
+  verifica fallisce, il caso nuovo risponde `908` mentre quello esistente
+  reindirizza comunque, e l'utente creato ritenta nel ramo `906`.
 - **Ricordami opt-in, frontend e backend (`C-PWD-I7`).** Nuovo
   `AuthProfile::rememberMe()` (`always|optional|never`, default `optional`) e
   `AuthProfile::remember(array $input)`. Con `optional` il login frontend
