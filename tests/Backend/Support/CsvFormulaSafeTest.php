@@ -95,12 +95,33 @@ check('controller: CSV neutralizzato di serie, grezzo con l\'opt-out, testo inva
         && $text[1] === ["'=1+1", "'-5", "'@x", 'Mario Rossi'];
 });
 
-check('sqlExport passa il default (neutralizzato) ad arrayToCsv', function () {
-    require_once __DIR__ . '/../../../app/function/sql.php';
-    $parameter = (new ReflectionFunction('sqlExport'))->getParameters()[2] ?? null;
-    $source = (string) file_get_contents(__DIR__ . '/../../../app/function/sql.php');
-    return $parameter !== null && $parameter->getDefaultValue() === true
-        && str_contains($source, 'arrayToCsv($ARRAY, $table, $formulaSafe)');
+# sqlExport in un processo separato, con una Query finta al posto del DB.
+$sqlExportCsv = static function (string $call): string {
+    $root = dirname(__DIR__, 3);
+    $script = tempnam(sys_get_temp_dir(), 'wi-sqlexport');
+    file_put_contents($script, '<?php
+namespace Wonder\Sql { final class Query {
+    public function __construct($db) {}
+    public function Select(...$args) { return (object) ["row" => ($args[2] ?? null) === 1
+        ? ["nome" => "=1+1", "tel" => "-5"]
+        : [["nome" => "=1+1", "tel" => "-5"], ["nome" => "@x", "tel" => "Mario"]]]; }
+} }
+namespace {
+    require '.var_export($root.'/vendor/autoload.php', true).';
+    require '.var_export($root.'/app/function/arrayTo.php', true).';
+    require '.var_export($root.'/app/function/sql.php', true).';
+    '.$call.';
+}');
+    $csv = (string) shell_exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($script).' 2>/dev/null');
+    unlink($script);
+    return $csv;
+};
+
+check('sqlExport: CSV neutralizzato di serie, grezzo con false', function () use ($sqlExportCsv) {
+    $safe = $sqlExportCsv('sqlExport("t", "csv")');
+    $raw = $sqlExportCsv('sqlExport("t", "csv", false)');
+    return $safe === "nome,tel\n'=1+1,-5\n'@x,Mario\n"
+        && $raw === "nome,tel\n=1+1,-5\n@x,Mario\n";
 });
 
 summary();
