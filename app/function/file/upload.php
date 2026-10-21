@@ -75,7 +75,8 @@
                     $EXTENSION = pathinfo($FILE_NAME, PATHINFO_EXTENSION);
                     $SIZE = (int) ($FILES['size'][$i] ?? 0);
 
-                    if (!empty($EXTENSIONS) && !in_array($EXTENSION, $EXTENSIONS)) { $ALERT = 921; }
+                    $FORMAT_ALERT = \Wonder\App\Support\UploadValidator::checkFormat((string) $EXTENSION, (string) $TEMPORARY, $EXTENSIONS);
+                    if ($FORMAT_ALERT !== null) { $ALERT = $FORMAT_ALERT; }
                     if (empty($ALERT) && $SIZE >= $MAX_SIZE) { $ALERT = 922; }
 
                     if (empty($ALERT)) {
