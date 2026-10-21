@@ -8,7 +8,7 @@
  *   php tests/Security/RecaptchaGuardTest.php
  *
  * L'engine reCAPTCHA è iniettato (fake) via withEngine(), quindi nessuna HTTP
- * reale. I log finiscono in una cartella temporanea (chdir) e vengono ignorati.
+ * reale. I log finiscono in una cartella temporanea (ROOT) e vengono ignorati.
  */
 
 declare(strict_types=1);
@@ -24,10 +24,11 @@ putenv('APP_ENV');
 $_ENV['APP_ENV'] = 'production';
 \Wonder\App\Environment::reset();
 
-// Isola i log in una dir temporanea (Logger scrive in getcwd()/storage/logs).
+// Isola i log in una dir temporanea (Logger scrive in ROOT/storage/logs).
 $tmp = sys_get_temp_dir() . '/wi-recaptcha-test-' . getmypid();
 @mkdir($tmp, 0777, true);
 chdir($tmp);
+$GLOBALS['ROOT'] = $tmp;
 
 // In CLI session_start() dopo un output fallisce: tutto l'output va nel buffer.
 ob_start();
