@@ -84,7 +84,10 @@ check('tipi non scalari e float non finiti → eccezione', function () use ($que
     return $throws(fn () => $query->bind('a = ?', [[1]]))
         && $throws(fn () => $query->bind('a = ?', [new stdClass()]))
         && $throws(fn () => $query->bind('a = ?', [INF]))
-        && $throws(fn () => $query->bind('a = ?', [NAN]));
+        && $throws(fn () => $query->bind('a = ?', [NAN]))
+        && $throws(fn () => $query->bind('a = :a', ['a' => [1]]))
+        && $throws(fn () => $query->bind('a = :a', [':a' => new stdClass()]))
+        && $throws(fn () => $query->bind('a = :a', ['a' => fopen('php://memory', 'r')]));
 });
 
 check('operatori :: e := non sono segnaposto', function () use ($query) {
@@ -93,6 +96,13 @@ check('operatori :: e := non sono segnaposto', function () use ($query) {
 
 check('caratteri fuori da latin1 trattati come in valueToSql', function () use ($query) {
     return $query->bind('a = ?', ['€']) === "a = '&#8364;'";
+});
+
+check('chiavi :a e a insieme → eccezione, non sovrascrittura silenziosa', function () use ($query, $throws) {
+    return $throws(fn () => $query->bind('a = :a', [':a' => 1, 'a' => 2]))
+        && $throws(fn () => $query->bind('a = :a', ['a' => 1, ':a' => 2]))
+        && $query->bind('a = :a', [':a' => 1]) === 'a = 1'
+        && $query->bind('a = :a', ['a' => 1]) === 'a = 1';
 });
 
 check('helper sqlBind() definito', fn () => function_exists('sqlBind'));

@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Breaking
+- **Sql: chiavi duplicate in `Query::bind()` (`C-SQL-I8`).** `':a'` e `'a'`
+  nello stesso array di parametri lanciano `RuntimeException`; prima vinceva
+  in silenzio l'ultima. Nessun chiamante fuori dal core usa `bind()`. Il
+  contratto degli argomenti grezzi di `Query` (chiavi delle condizioni,
+  `$attributes`, `$order`, `$column`, `JoinTable()`) è documentato in
+  `docs/app/piattaforma/sicurezza.md`.
 - **Sql: `ORDER BY` validato (`C-SQL-I6`).** `Query::Select()` e
   `SelectForUpdate()` passano ordine e direzione da `Query::orderClause()`:
   una direzione diversa da `ASC`/`DESC` (per esempio `'DESC, id'`, prima

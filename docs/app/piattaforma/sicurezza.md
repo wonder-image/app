@@ -263,6 +263,14 @@ accetta solo `ASC` o `DESC` (maiuscole o minuscole, spazi ignorati); vuota
 o null non aggiunge nulla, e una direzione senza ordine lancia
 `RuntimeException`.
 
+`Query::bind()` rifiuta la stessa chiave passata con e senza i due punti
+(`':a'` e `'a'`) invece di tenere in silenzio l'ultima. Nelle condizioni ad
+array di `Query` (`Select()`, `Count()`, `Sum()`, ...) l'escape copre solo i
+valori: le chiavi sono nomi di colonna (o una lista JSON per `CONCAT_WS`)
+scritti dal codice. Restano SQL grezzo scritto dal codice anche gli
+`$attributes` di `Select()`, `$order`, la `$column` di `Sum()` e `Count()` e
+tabelle e chiavi di `JoinTable()`: mai valori presi dalla richiesta.
+
 ## Log
 
 `Logger` scrive in `ROOT/storage/logs/` e non usa mai la cartella corrente.

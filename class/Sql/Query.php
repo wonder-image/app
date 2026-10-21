@@ -150,8 +150,8 @@
          * Sostituisce i segnaposto `?` (posizionali) e `:nome` con i valori
          * escapati: null → NULL, int/float → numero, bool → 1/0, stringa →
          * letterale quotato. I segnaposto dentro stringhe, identificatori e
-         * commenti restano intatti. Un segnaposto senza valore o un valore
-         * non usato lanciano RuntimeException.
+         * commenti restano intatti. Un segnaposto senza valore, un valore
+         * non usato o la stessa chiave con e senza `:` lanciano RuntimeException.
          *
          * @param array<int|string,mixed> $params chiavi intere per `?`, stringhe (con o senza `:`) per `:nome`
          */
@@ -165,7 +165,11 @@
                 if (is_int($key)) {
                     $positional[] = $value;
                 } else {
-                    $named[ltrim($key, ':')] = $value;
+                    $name = ltrim($key, ':');
+                    if (array_key_exists($name, $named)) {
+                        throw new RuntimeException('Query::bind: chiave :'.$name.' passata due volte.');
+                    }
+                    $named[$name] = $value;
                 }
             }
 
