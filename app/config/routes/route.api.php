@@ -14,7 +14,7 @@ Route::area('api')
             ->name('states')
             ->frontend();
 
-        // Rinnovo del token di pagina (`API_TOKEN`): same-origin, senza guard.
+        // Rinnovo del token di pagina (`API_TOKEN`): same-origin, sessione e CSRF, senza guard.
         Route::post('/token/page/', $ROOT_APP.'/http/api/token/page.php')
             ->name('token.page');
 
