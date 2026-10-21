@@ -612,7 +612,7 @@ Nota:
 - il workflow GitHub Actions carica tutti i secret presenti nel project Bitwarden dentro `.env` e `$GITHUB_ENV` (i nomi `FTP_*` e `BWS_*` sono comunque mascherati e non finiscono nel `.env` deployato)
 - `php forge provision` sincronizza automaticamente: `APP_KEY`, `DB_HOSTNAME`/`DB_HOST`, `DB_USERNAME`/`DB_USER`, `DB_PASSWORD`, `DB_DATABASE`/`DB_NAME`, `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_PATH`, `USER_USERNAME`, `USER_PASSWORD`
 - secret extra (es. `GITHUB_API_TOKEN`) vanno aggiunti manualmente con `bws secret create` o `gh secret set`
-- reCAPTCHA in produzione: servono `GCP_PROJECT_ID`, `GCP_API_KEY` (reCAPTCHA Enterprise API abilitata) e le chiavi del sito `G_RECAPTCHA_SITE_KEY` / `G_RECAPTCHA_SCORE_SITE_KEY`. Login, registrazione, completamento della registrazione, recupero e reimpostazione della password sono fail-closed: con Google irraggiungibile o con una chiave API sbagliata (401/403) rispondono `617`. `G_RECAPTCHA_SECRET_KEY` è deprecata e non serve più (vedi [reCAPTCHA](../servizi/recaptcha.md))
+- reCAPTCHA in produzione: servono `GCP_PROJECT_ID`, `GCP_API_KEY` (reCAPTCHA Enterprise API abilitata) e le chiavi del sito `G_RECAPTCHA_SITE_KEY` / `G_RECAPTCHA_SCORE_SITE_KEY`. Login, registrazione, completamento della registrazione, recupero e reimpostazione della password sono fail-closed: con Google irraggiungibile o con una chiave API sbagliata (401/403) rispondono `617`. Le chiavi sono un requisito: senza, in produzione queste cinque azioni rispondono sempre `617` (`reason: invalid`) e nessuno riesce ad accedere o registrarsi. Non impostare mai `APP_ENV=local` in produzione per aggirare il problema: salta il reCAPTCHA e moltiplica per 10 i limiti del throttle di login. `G_RECAPTCHA_SECRET_KEY` è deprecata e non serve più (vedi [reCAPTCHA](../servizi/recaptcha.md))
 
 ### 7. Crea la repository GitHub
 
@@ -978,7 +978,11 @@ php forge provision
 Guarda `storage/logs/error/recaptcha.log`. Con `reason: config` Google ha
 risposto 401/403: controlla `GCP_PROJECT_ID`, `GCP_API_KEY` e che la
 reCAPTCHA Enterprise API sia abilitata sul progetto. Con `fail_closed: true`
-Google non era raggiungibile. In locale (`APP_ENV=local`) la verifica si salta.
+Google non era raggiungibile. Con `reason: invalid` e nessuna chiamata a
+Google mancano le chiavi del sito: configurale, perché in produzione senza
+chiavi il `617` è sistematico. In locale (`APP_ENV=local`) la verifica si salta,
+ma `APP_ENV=local` non va mai usato in produzione: toglie il reCAPTCHA e
+moltiplica per 10 i limiti del throttle.
 
 ### In GitHub Actions stai ancora lanciando `php forge config`
 

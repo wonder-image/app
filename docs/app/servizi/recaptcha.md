@@ -145,6 +145,14 @@ API o progetto GCP sbagliati (o API Enterprise non abilitata): `617` con
 **In locale si salta.** Con `APP_ENV=local` la verifica si salta sempre, prima
 di leggere il token, con una riga `INFO` `reason: local_env`: i login su
 `*.test` funzionano anche con le chiavi GCP valorizzate e senza widget.
+`APP_ENV` assente o con un valore diverso da `local` vale `production`.
+Attenzione: `APP_ENV=local` su un server di produzione disattiva il reCAPTCHA
+su tutte le azioni e moltiplica per 10 i limiti di `LoginThrottle`.
+
+**Senza chiavi in produzione.** Senza chiave del sito per il tipo richiesto la
+verifica fallisce con `invalid` (engine non chiamato): le cinque azioni
+dell'auth frontend rispondono sempre `617`. Le chiavi sono un requisito del
+deploy (vedi [Installazione e deploy](../piattaforma/installazione-e-deploy.md)).
 
 **Credenziali server.** La verifica usa reCAPTCHA Enterprise: `GCP_PROJECT_ID`
 e `GCP_API_KEY` (chiave API Google Cloud con reCAPTCHA Enterprise API
