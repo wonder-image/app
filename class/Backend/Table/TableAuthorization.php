@@ -10,7 +10,7 @@ use Wonder\App\Table as AppTable;
 /**
  * Autorizzazione delle mutazioni backend su tabella scelta dal client
  * (`api.backend.change.boolean`, `delete`, `move`, `file.delete`,
- * `file.move`, `authority`).
+ * `file.move`, `delete-icon`, `authority`).
  *
  * - tabella con Resource registrata: `Resource::allows()` sull'azione
  *   backend (`update` o `delete`) di `permissionSchema()`;
@@ -127,6 +127,37 @@ final class TableAuthorization
         }
 
         return [$table, $column];
+    }
+
+    /** Tabella registrata con una colonna `icon` nello schema; null altrimenti. */
+    public static function iconTable(mixed $table, ?array $registry = null): ?string
+    {
+        $registry ??= AppTable::$list;
+        $table = ListTableRequest::table($table, $registry);
+
+        return $table !== null && is_array($registry[$table]['icon'] ?? null) ? $table : null;
+    }
+
+    /**
+     * Percorso reale di un file esistente sotto la radice upload, oppure null.
+     * Del nome file salvato in colonna conta solo il basename.
+     */
+    public static function uploadFile(string $uploadRoot, string $folder, string $file): ?string
+    {
+        $root = realpath($uploadRoot);
+        $file = basename(trim($file));
+
+        if ($root === false || $file === '' || $file === '.' || $file === '..') {
+            return null;
+        }
+
+        $path = realpath($root.($folder !== '' ? '/'.$folder : '').'/'.$file);
+
+        if ($path === false || !is_file($path) || !str_starts_with($path, $root.DIRECTORY_SEPARATOR)) {
+            return null;
+        }
+
+        return $path;
     }
 
     /**
