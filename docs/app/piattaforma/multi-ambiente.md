@@ -27,6 +27,13 @@ Environment::isLocal();      // true solo con APP_ENV=local
 Environment::isProduction();
 ```
 
+`Debug::enabled()` segue `APP_DEBUG` quando è presente; altrimenti è acceso
+solo con `APP_ENV=local`. Una richiesta da localhost non accende più il debug.
+`display_errors` segue il debug. `APP_HSTS=true` attiva
+`Strict-Transport-Security` sulle risposte HTTPS: impostalo solo in
+produzione e solo quando tutto il dominio è in HTTPS. Vedi
+[Sicurezza HTTP, errori e log](sicurezza.md).
+
 ## Media: proxy fallback in locale
 
 ### Problema

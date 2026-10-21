@@ -3,6 +3,42 @@
 ## Unreleased
 
 ### Breaking
+- **API: 500 generico con `request_id` (`C-ERR-I2`).** Sui 500 di
+  `RouteDispatcher`, `Wonder\Api\Handler`, API delle Resource e
+  `api/app/update`, `response` è `Errore interno.` (`UpdateRunner failed` per
+  l'update) se il debug è spento. `success` e `status` restano; si aggiungono
+  `request_id` e l'header `X-Request-Id`. I client esterni che leggevano il
+  messaggio dell'eccezione dai 500 ricevono il testo generico. `api/app/update`
+  non restituisce più `file` e `line`: finiscono in `error_log` con il
+  `request_id`. I 4xx non cambiano.
+- **Debug e `display_errors` (`C-ERR-I4`).** `Debug::enabled()` segue
+  `APP_DEBUG` se presente, altrimenti `APP_ENV=local`. Le richieste da
+  localhost o da reti private non accendono più il debug. `display_errors`
+  segue il debug (fuori dalla CLI), `log_errors` è sempre attivo,
+  `X-Powered-By` viene tolto.
+- **Header di sicurezza e `Cache-Control` (`C-ERR-I1`).** Le risposte PHP
+  hanno `nosniff`, `X-Frame-Options: SAMEORIGIN`,
+  `frame-ancestors 'self'`, `Referrer-Policy` e `Permissions-Policy`. HSTS è
+  opt-in con `APP_HSTS=true`. Backend e pagine con utente autenticato hanno
+  `Cache-Control: no-store, private`. Forge aggiunge a `.htaccess` il blocco
+  `WONDER SECURITY` (header per gli statici, deny di `.env`, log, dump,
+  manifest e cartelle interne) e toglie il vecchio blocco `Header always set`
+  con `X-XSS-Protection` se è identico a quello generato.
+- **Upload senza esecuzione di script (`C-UPL-3`).** Forge scrive il blocco
+  `WONDER UPLOAD` in `assets/upload/.htaccess`.
+- **Errori SQL senza query (`C-SQL-I3`).** `Sql\Utility\Error` lancia
+  `Sql\Utility\QueryException` (estende `Exception`). Il messaggio non
+  contiene più la query, disponibile in `query()` e nel contesto del log.
+- **Log in `storage/logs` con redazione (`C-ERR-I3`).** `Logger` scrive solo
+  in `ROOT/storage/logs/` (cartelle `0750`, file `0640`), senza ripiegare sulla
+  cartella corrente; `db-connections.log` è ora lì. Gli URI nei log mascherano
+  `token`, `t`, `key`, `password`, `email`, `_csrf`. In `auth_log`, `value` è
+  mascherato e `verification_sent_link` non viene più scritto. I log esistenti
+  non vengono spostati.
+- **Validazioni backend.** `ApiRequest::selectDatabase()` accetta solo `main`
+  o un database configurato (altrimenti 422). `delete-icon` accetta solo
+  tabelle registrate con colonna `icon`, richiede il permesso di modifica e
+  cancella solo file dentro la cartella di upload.
 - **Password: argon2id/bcrypt, niente `sanitize()` (`C-PWD-I1`).**
   `hashPassword()` usa `password_hash()` con `PASSWORD_ARGON2ID` (bcrypt se
   argon2id non è disponibile). `checkPassword()` verifica sia i nuovi hash sia
@@ -148,6 +184,10 @@
   successiva.
 
 ### Added
+- `Wonder\Http\SecurityHeaders`, `Wonder\Http\RequestId`,
+  `Wonder\App\LogRedactor`, `Wonder\Sql\Utility\QueryException`,
+  `Logger::append()` e `Logger::root()`. Doc:
+  `docs/app/piattaforma/sicurezza.md`.
 - **Token di verifica email salvati come hash (`C-PWD-I9`).**
   `consent_confirmation_tokens` ha la nuova colonna `token_hash` (64, nullable,
   unica); `token` diventa nullable, nessuna colonna rimossa.

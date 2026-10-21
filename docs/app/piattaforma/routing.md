@@ -54,6 +54,12 @@ Le route non vengono dedotte dalla URL. L'`area` viene dichiarata nella route.
    o non vale)
 9. solo dopo un'autorizzazione riuscita viene incluso l'handler della route
 
+Se l'handler lancia un'eccezione, il dispatcher risponde 500. Sulle route API
+il messaggio dell'eccezione compare solo con il debug acceso; altrimenti
+`response` è `Errore interno.`. Ogni risposta 500 porta `request_id` e
+l'header `X-Request-Id`, che ritrovi nel log. Vedi
+[Sicurezza HTTP, errori e log](sicurezza.md).
+
 ## Autenticazione e autorizzazione delle route protette
 
 `Route::permit()` non esegue direttamente il controllo: salva le authority
