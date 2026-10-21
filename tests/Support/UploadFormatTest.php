@@ -95,6 +95,31 @@ check('mp4 e csv riconosciuti', function () use ($mp4, $csv) {
         && UploadValidator::checkFormat('csv', $csv, []) === null;
 });
 
+check('deny-list estesa: xhtml, xht, svgz, shtml e php3-8 rifiutati senza whitelist (921)', function () use ($dir) {
+    $padded = $dir.'/padding.txt';
+    file_put_contents($padded, str_repeat("riga di testo\n", 50)."<?php system('id');");
+    foreach (['xhtml', 'xht', 'svgz', 'shtml', 'php3', 'php4', 'php5', 'php6', 'php7', 'php8', 'mjs', 'htaccess'] as $extension) {
+        if (UploadValidator::checkFormat($extension, $padded, []) !== UploadValidator::EXTENSION) {
+            echo "    passa: $extension\n";
+            return false;
+        }
+    }
+    return true;
+});
+
+check('svgz rifiutato anche se dichiarato (921)', function () use ($dir) {
+    $svgz = $dir.'/logo.svgz';
+    file_put_contents($svgz, gzencode('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>'));
+    return UploadValidator::checkFormat('svgz', $svgz, ['svgz', 'svg']) === UploadValidator::EXTENSION;
+});
+
+check('csv che inizia con # accettato', function () use ($dir) {
+    $csv = $dir.'/commento.csv';
+    file_put_contents($csv, "#include,x\n1,2\n");
+    return UploadValidator::checkFormat('csv', $csv, ['csv']) === null
+        && UploadValidator::checkFormat('csv', $csv, []) === null;
+});
+
 $format = static fn (string $resource, string $key): array => $resource::prepareSchema()[$key]['input']['format'] ?? [];
 
 check('ImageResource e IconResource: png/jpg/jpeg/webp, niente gif e svg', function () use ($format) {

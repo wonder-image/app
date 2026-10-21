@@ -22,7 +22,14 @@ final class UploadValidator
     public const DEFAULT_MAX_SIZE = 10 * 1048576;
 
     /** Estensioni rifiutate quando il campo non dichiara una whitelist. */
-    public const DENIED_EXTENSIONS = ['php', 'phtml', 'phar', 'pht', 'phps', 'html', 'htm', 'js', 'svg', 'xml'];
+    public const DENIED_EXTENSIONS = [
+        'php', 'php3', 'php4', 'php5', 'php6', 'php7', 'php8', 'phtml', 'phar', 'pht', 'phps',
+        'html', 'htm', 'xhtml', 'xht', 'shtml', 'mht', 'js', 'mjs',
+        'svg', 'svgz', 'xml', 'xsl', 'xslt', 'cgi', 'pl', 'py', 'sh', 'htaccess',
+    ];
+
+    /** Rifiutate anche se dichiarate: il contenuto compresso non si può ripulire. */
+    public const ALWAYS_DENIED_EXTENSIONS = ['svgz'];
 
     /** MIME che `finfo` riconosce come codice o markup eseguibile. */
     public const DANGEROUS_MIMES = [
@@ -52,7 +59,8 @@ final class UploadValidator
     public const FILE_TYPES = [
         'pdf' => ['application/pdf'],
         'txt' => ['text/plain'],
-        'csv' => ['text/csv', 'text/plain', 'application/csv'],
+        // Un csv che inizia con `#` è letto da finfo come sorgente C.
+        'csv' => ['text/csv', 'text/plain', 'application/csv', 'text/x-c', 'text/x-c++'],
         'doc' => ['application/msword', 'application/vnd.ms-office', 'application/x-ole-storage', 'application/CDFV2'],
         'xls' => ['application/vnd.ms-excel', 'application/vnd.ms-office', 'application/x-ole-storage', 'application/CDFV2'],
         'ppt' => ['application/vnd.ms-powerpoint', 'application/vnd.ms-office', 'application/x-ole-storage', 'application/CDFV2'],
@@ -119,6 +127,10 @@ final class UploadValidator
     {
         $extension = strtolower(trim($extension));
         $allowed = self::normalizeExtensions($extensions);
+
+        if (in_array($extension, self::ALWAYS_DENIED_EXTENSIONS, true)) {
+            return self::EXTENSION;
+        }
 
         if ($allowed !== []) {
             if ($extension === '' || !in_array($extension, $allowed, true)) {
