@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Text e RichText nel tema Wonder (`B-CORE-I1`).** Nuovo renderer
+  `Themes\Wonder\Components\Text` sulle utility della lib (`fw-700`,
+  `text-small`, `tx-secondary`, `tx-<colore>`, `a-l`/`a-c`/`a-r`, `subtitle`);
+  `italic()` non aggiunge classi. Senza `columnSpan()` il testo esce senza
+  `<div>` intorno. `AccountModal::confirm()` usa `Text` al posto di un oggetto
+  anonimo: il markup resta `<p>…</p>`.
+- **`Elements\Frontend\EmptyState` e `Elements\Frontend\Pagination`
+  (`B-CORE-I2`)**, solo tema Wonder, sulle classi `.wi-empty-state*` e
+  `.wi-pagination*` della lib. `Pagination::make($page, $pages)->url(...)` per
+  qualunque lista, `Pagination::account($pagination, $baseUrl)` per i conti di
+  `AccountPagination`. Nuove chiavi `components.pagination.{label,previous,next}`.
+
+### Cambiato
+- Il componente `frontend.account.pagination` è un wrapper di
+  `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
+  tra i tag.
+
+### Deprecato
+- `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:
+  usa `Elements\Frontend\Pagination`.
+
 ## 2.4.0-beta.4 — 2026-10-21
 
 ### Breaking
