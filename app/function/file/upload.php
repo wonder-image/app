@@ -77,6 +77,14 @@
 
                     $FORMAT_ALERT = \Wonder\App\Support\UploadValidator::checkFormat((string) $EXTENSION, (string) $TEMPORARY, $EXTENSIONS);
                     if ($FORMAT_ALERT !== null) { $ALERT = $FORMAT_ALERT; }
+
+                    # SVG ammesso solo esplicitamente e solo ripulito.
+                    $SVG_CONTENT = null;
+                    if (empty($ALERT) && $EXTENSION === 'svg') {
+                        $SVG_CONTENT = \Wonder\App\Security\SvgSanitizer::sanitize((string) @file_get_contents($TEMPORARY));
+                        if ($SVG_CONTENT === null) { $ALERT = 931; }
+                    }
+
                     if (empty($ALERT) && $SIZE >= $MAX_SIZE) { $ALERT = 922; }
 
                     if (empty($ALERT)) {
@@ -121,11 +129,16 @@
 
                         if (empty($ALERT) && move_uploaded_file($TEMPORARY, $NEW_PATH)) {
 
+                            if ($SVG_CONTENT !== null && @file_put_contents($NEW_PATH, $SVG_CONTENT) === false) {
+                                @unlink($NEW_PATH);
+                                $ALERT = 920;
+                            }
+
                             # Il campo può accettare più estensioni e volerne
                             # conservare una sola: si converte qui, prima del
                             # ridimensionamento, così le misure nascono già
                             # nel formato che verrà registrato a database.
-                            if ($CONVERT !== '') {
+                            if (empty($ALERT) && $CONVERT !== '') {
 
                                 $CONVERTED = \Wonder\App\Support\ImageConverter::convert($NEW_PATH, $CONVERT);
 

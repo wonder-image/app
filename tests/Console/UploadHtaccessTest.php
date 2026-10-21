@@ -108,4 +108,16 @@ check('R2-1: SECURITY con START orfano con testo dopo: un solo START, custom int
         && str_contains($twice, "# regola custom A");
 });
 
+check('SVG servito in sandbox e nosniff, dopo il deny', function () {
+    $block = Build::uploadHtaccessBlock();
+    $svg = strpos($block, '<FilesMatch "(?i)\\.svgz?$">');
+    preg_match_all('/<FilesMatch "([^"]+)">/', $block, $m);
+    $re = '/'.$m[1][1].'/';
+    return $svg !== false && $svg > strpos($block, 'Deny from all')
+        && str_contains($block, 'Header set Content-Security-Policy "sandbox"')
+        && str_contains($block, 'Header set X-Content-Type-Options "nosniff"')
+        && preg_match($re, 'logo.svg') === 1 && preg_match($re, 'LOGO.SVGZ') === 1
+        && preg_match($re, 'foto.jpg') !== 1 && preg_match($re, 'logo.svg.png') !== 1;
+});
+
 summary();
