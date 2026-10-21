@@ -3,6 +3,17 @@
 ## Unreleased
 
 ### Breaking
+- **Sql: `ORDER BY` validato (`C-SQL-I6`).** `Query::Select()` e
+  `SelectForUpdate()` passano ordine e direzione da `Query::orderClause()`:
+  una direzione diversa da `ASC`/`DESC` (per esempio `'DESC, id'`, prima
+  accodata così com'era) ora lancia `RuntimeException`; maiuscole, minuscole
+  e spazi attorno sono normalizzati, null o vuota = nessuna. Lanciano anche
+  una direzione senza `$order` (prima SQL non valido) e un `$order` con `;`,
+  `--`, `#`, `/*` fuori dalle stringhe, con stringhe/backtick non chiusi o
+  con una `\` dentro una stringa (l'apice si raddoppia: `'it''s'`), tutto
+  prima della query. Le sottoquery `(SELECT ...)` restano ammesse: l'ordine
+  va sempre scelto dal codice da una whitelist, mai preso dall'input. I chiamanti verificati (core,
+  gestionale, ecommerce, siti) usano già solo `ASC`, `DESC` o null.
 - **Upload: `gif` e `svg` esclusi di default (`C-UPL-2`).** Un campo file
   senza `extensions` accetta la lista del tipo dell'input: `image` =
   `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` = l'unione. Con un
