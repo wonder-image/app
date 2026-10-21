@@ -370,7 +370,7 @@ HTACCESS;
   Header always unset X-Powered-By
   Header unset X-Powered-By
   # Solo file statici: per le pagine PHP gli header arrivano dal bootstrap.
-  <FilesMatch "^(?!.*\\.php\$)">
+  <FilesMatch "(?i)^(?!.*\\.php\$)">
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Content-Security-Policy "frame-ancestors 'self'"
@@ -379,7 +379,7 @@ HTACCESS;
   </FilesMatch>
 </IfModule>
 
-<FilesMatch "^(\\.env.*|\\.git.*|\\.ht.*|.*\\.log|.*\\.sql(\\.gz)?|.*\\.bak|composer\\.(json|lock)|package(-lock)?\\.json|skills-lock\\.json|sync-data\\.json|generator\\.conf|forge)\$">
+<FilesMatch "(?i)^(\\.env.*|\\.git.*|\\.ht.*|.*\\.log(\\.\\d+)?|.*\\.sql(\\.gz)?|.*\\.(bak|old|orig|swp)|.*~|composer\\.(json|lock)|package(-lock)?\\.json|skills-lock\\.json|sync-data\\.json|generator\\.conf|forge)\$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -391,9 +391,11 @@ HTACCESS;
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^(\\.git|\\.audit|storage|state|tests|docs|node_modules|lang|handler/storage)(/|\$) - [F,L]
+  RewriteRule ^(\\.git|\\.audit|storage|state|tests|docs|node_modules|lang|handler/storage)(/|\$) - [F,L,NC]
+  # Archivi e backup negati ovunque tranne nei file caricati.
+  RewriteRule ^(?!assets/upload/).*\\.(zip|tgz|tar(\\.gz)?)\$ - [F,L,NC]
   # vendor/ negata, tranne gli asset statici dei pacchetti e il generatore xml-sitemaps.
-  RewriteRule ^vendor(/|\$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\\.(?:php\\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\\.|\$))[^/]+\\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)\$|wonder-image/app/vendor-static/xml-sitemaps(/|\$)) - [F,L]
+  RewriteRule ^vendor(/|\$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\\.(?:php\\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\\.|\$))[^/]+\\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)\$|wonder-image/app/vendor-static/xml-sitemaps(/|\$)) - [F,L,NC]
 </IfModule>
 # WONDER SECURITY END
 HTACCESS;

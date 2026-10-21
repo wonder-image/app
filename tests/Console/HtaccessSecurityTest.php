@@ -60,7 +60,7 @@ check('deny con doppia sintassi Apache 2.2/2.4 e file/cartelle richiesti', funct
         if (!str_contains($b, $n)) { return false; }
     }
     // La regex del FilesMatch deve negare questi nomi e lasciare passare gli asset.
-    preg_match('/<FilesMatch "(\^\(\\\\\.env[^"]+)">/', $b, $m);
+    preg_match('/<FilesMatch "(\(\?i\)\^\(\\\\\.env[^"]+)">/', $b, $m);
     $re = '/'.$m[1].'/';
     foreach (['.env', '.env.local', '.gitignore', '.htaccess', 'error.log', 'dump.sql', 'dump.sql.gz', 'x.bak',
               'composer.json', 'composer.lock', 'package.json', 'package-lock.json', 'skills-lock.json',
@@ -70,8 +70,8 @@ check('deny con doppia sintassi Apache 2.2/2.4 e file/cartelle richiesti', funct
     foreach (['index.php', 'style.css', 'logo.png', 'forge.js', 'catalog.json'] as $f) {
         if (preg_match($re, $f) === 1) { echo "    negato per errore: $f\n"; return false; }
     }
-    preg_match('/RewriteRule (\^\([^ ]+) - \[F,L\]/', $b, $r);
-    $dirRe = '#'.$r[1].'#';
+    preg_match('/RewriteRule (\^\(\\\\\.git[^ ]+) - \[F,L,NC\]/', $b, $r);
+    $dirRe = '#'.$r[1].'#i';
     foreach (['.git/config', '.audit/x.md', 'storage/logs/error.log', 'state/a', 'tests/harness.php', 'docs',
               'node_modules/x/y.js', 'lang/it/pages.json', 'handler/storage/x'] as $p) {
         if (preg_match($dirRe, $p) !== 1) { echo "    cartella non negata: $p\n"; return false; }
@@ -84,8 +84,8 @@ check('deny con doppia sintassi Apache 2.2/2.4 e file/cartelle richiesti', funct
 
 check('vendor/ negata tranne asset statici dei pacchetti e generatore xml-sitemaps', function () {
     $b = Build::htaccessSecurityBlock();
-    if (preg_match('/RewriteRule (\^vendor[^ ]+) - \[F,L\]/', $b, $r) !== 1) { echo "    regola vendor assente\n"; return false; }
-    $re = '#'.$r[1].'#';
+    if (preg_match('/RewriteRule (\^vendor[^ ]+) - \[F,L,NC\]/', $b, $r) !== 1) { echo "    regola vendor assente\n"; return false; }
+    $re = '#'.$r[1].'#i';
     $allowed = [
         'vendor/wonder-image/app/resources/assets/font/web/DMSans/dm-sans-latin-wght-normal.woff2',
         'vendor/wonder-image/app/resources/assets/images/under-construction.png',
@@ -108,6 +108,8 @@ check('vendor/ negata tranne asset statici dei pacchetti e generatore xml-sitema
         'vendor/wonder-image/app/resources/views/x.css',
         'vendor/wonder-image/app/vendor-static/xml-sitemaps-x/index.php',
         'vendor/wonder-image/app/vendor-static/README.md',
+        'Vendor/autoload.php',
+        'vendor/wonder-image/app/resources/assets/x.PHP.css',
     ];
     foreach ($allowed as $p) {
         if (preg_match($re, $p) === 1) { echo "    negato per errore: $p\n"; return false; }
@@ -116,14 +118,49 @@ check('vendor/ negata tranne asset statici dei pacchetti e generatore xml-sitema
         if (preg_match($re, $p) !== 1) { echo "    non negato: $p\n"; return false; }
     }
     // generator.conf resta negato per nome anche dentro la cartella consentita.
-    preg_match('/<FilesMatch "(\^\(\\\\\.env[^"]+)">/', $b, $f);
+    preg_match('/<FilesMatch "(\(\?i\)\^\(\\\\\.env[^"]+)">/', $b, $f);
     return isset($f[1]) && preg_match('#'.$f[1].'#', 'generator.conf') === 1;
+});
+
+check('N3: deny e header senza distinzione di maiuscole', function () {
+    $b = Build::htaccessSecurityBlock();
+    if (preg_match('/<FilesMatch "(\(\?i\)\^\(\\\\\.env[^"]+)">/', $b, $m) !== 1) { echo "    FilesMatch deny senza (?i)\n"; return false; }
+    $re = '/'.$m[1].'/';
+    foreach (['.ENV', 'Composer.json', 'db.SQL', 'error.LOG', 'X.BAK'] as $f) {
+        if (preg_match($re, $f) !== 1) { echo "    non negato: $f\n"; return false; }
+    }
+    preg_match('/RewriteRule (\^\(\\\\\.git[^ ]+) - \[F,L,NC\]/', $b, $r);
+    return str_contains($b, '<FilesMatch "(?i)^(?!.*\.php$)">')
+        && preg_match('/(?i)^(?!.*\.php$)/', 'INDEX.PHP') === 0
+        && isset($r[1]) && preg_match('#'.$r[1].'#i', 'Storage/logs/error.log') === 1
+        && substr_count($b, '- [F,L]') === 0;
+});
+
+check('N4: estensioni di backup negate, archivi negati fuori da assets/upload', function () {
+    $b = Build::htaccessSecurityBlock();
+    preg_match('/<FilesMatch "(\(\?i\)\^\(\\\\\.env[^"]+)">/', $b, $m);
+    $re = '/'.($m[1] ?? 'x^').'/';
+    foreach (['error.log.1', 'error.log.12', 'x.old', 'x.orig', '.index.php.swp', 'x.swp', 'index.php~', 'config.php.OLD'] as $f) {
+        if (preg_match($re, $f) !== 1) { echo "    non negato: $f\n"; return false; }
+    }
+    foreach (['old.css', 'origin.js', 'logo.png', 'index.php', 'swap.js'] as $f) {
+        if (preg_match($re, $f) === 1) { echo "    negato per errore: $f\n"; return false; }
+    }
+    if (preg_match('/RewriteRule (\^\(\?!assets[^ ]+) - \[F,L,NC\]/', $b, $z) !== 1) { echo "    regola archivi assente\n"; return false; }
+    $zipRe = '#'.$z[1].'#i';
+    foreach (['backup.zip', 'site.tar.gz', 'site.tgz', 'site.tar', 'dump.sql.zip', 'X.ZIP', 'storage/a.zip'] as $p) {
+        if (preg_match($zipRe, $p) !== 1) { echo "    archivio non negato: $p\n"; return false; }
+    }
+    foreach (['assets/upload/documents/a.zip', 'assets/0.0/a.js', 'zip.css'] as $p) {
+        if (preg_match($zipRe, $p) === 1) { echo "    negato per errore: $p\n"; return false; }
+    }
+    return true;
 });
 
 check('header statici solo fuori dai .php (lookahead del FilesMatch)', function () {
     $re = '/^(?!.*\.php$)/';
     return preg_match($re, 'logo.png') === 1 && preg_match($re, 'index.php') === 0
-        && str_contains(Build::htaccessSecurityBlock(), '<FilesMatch "^(?!.*\.php$)">')
+        && str_contains(Build::htaccessSecurityBlock(), '<FilesMatch "(?i)^(?!.*\.php$)">')
         && str_contains(Build::htaccessSecurityBlock(), 'geolocation=(self)');
 });
 
