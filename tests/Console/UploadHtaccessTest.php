@@ -89,4 +89,23 @@ check('N1: file CRLF: blocco scritto in CRLF, niente LF singoli, idempotente', f
         && preg_match('/(?<!\r)\n/', $repl) === 0 && !str_contains($repl, 'vecchio') && str_contains($repl, "# dopo\r\n");
 });
 
+check('R2-1: START orfano con testo dopo: marker tolto, custom intatto, idempotente', function () {
+    $x = "# prima\n# WONDER UPLOAD START (non toccare)\n# regola custom A\n# regola custom B\n";
+    $once = Build::updateUploadHtaccess($x);
+    $twice = Build::updateUploadHtaccess($once);
+    return $twice === $once
+        && substr_count($twice, '# WONDER UPLOAD START') === 1
+        && substr_count($twice, '# WONDER UPLOAD END') === 1
+        && str_contains($twice, "# regola custom A\n# regola custom B");
+});
+
+check('R2-1: SECURITY con START orfano con testo dopo: un solo START, custom intatto', function () {
+    $x = "# prima\n# WONDER SECURITY START (non toccare)\n# regola custom A\n";
+    $once = Build::updateHtaccessSecurity($x);
+    $twice = Build::updateHtaccessSecurity($once);
+    return $twice === $once
+        && substr_count($twice, '# WONDER SECURITY START') === 1
+        && str_contains($twice, "# regola custom A");
+});
+
 summary();

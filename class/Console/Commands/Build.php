@@ -459,6 +459,7 @@ HTACCESS;
     /**
      * Toglie le sole righe marcatore senza coppia (START senza END, END senza
      * START): il testo in mezzo resta, così il match successivo non lo inghiotte.
+     * Marcatore = riga che lo contiene, come nei pattern di update (anche con testo dopo).
      */
     private static function removeOrphanMarkers(string $content, string $start, string $end): string
     {
@@ -467,13 +468,12 @@ HTACCESS;
         $orphans = [];
 
         foreach ($lines as $i => $line) {
-            $marker = trim($line);
-            if ($marker === $start) {
+            if (str_contains($line, $start)) {
                 if ($open !== null) {
                     $orphans[] = $open;
                 }
                 $open = $i;
-            } elseif ($marker === $end) {
+            } elseif (str_contains($line, $end)) {
                 if ($open === null) {
                     $orphans[] = $i;
                 }
