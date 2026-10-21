@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "950fc9227768b57691f10447ac5c90c8",
+    "content-hash": "0ac0734e63e890c2e87f9434e7ad9089",
     "packages": [
         {
             "name": "chillerlan/php-qrcode",

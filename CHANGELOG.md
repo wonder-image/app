@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0-beta.4 — 2026-10-21
+
 ### Breaking
 - **Sql: chiavi duplicate in `Query::bind()` (`C-SQL-I8`).** `':a'` e `'a'`
   nello stesso array di parametri lanciano `RuntimeException`; prima vinceva
