@@ -144,8 +144,11 @@ Route::area('api')
                         Route::get('/onboarding/check/', $ROOT_APP.'/http/api/service/stripe/onboarding-check.php')
                             ->name('onboarding.check');
 
+                        // GET mostra la conferma, POST (con CSRF) collega il webhook.
                         Route::get('/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
                             ->name('connect');
+
+                        Route::post('/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php');
 
                     });
 

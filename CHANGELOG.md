@@ -11,6 +11,13 @@
   `403 Richiesta non sicura` e la lista IP degli utenti API confronta l'IP del
   proxy: va attivato il flag. Prima la prima voce di `X-Forwarded-For`, scelta
   dal client, aggirava la lista IP.
+  Senza il flag anche `__url()`, `currentBase()` e i redirect assoluti escono in
+  `http://` dietro quel proxy.
+- **«Collega webhook» Stripe in POST.** `GET /api/service/stripe/connect/`
+  mostra solo una pagina di conferma; il collegamento avviene in `POST` con
+  `_csrf` nel corpo (o `X-WI-CSRF`), altrimenti `403`; altri metodi `405`. Il
+  token non è più nell'URL dei bottoni delle credenziali: i link salvati con
+  `?_csrf=` aprono la conferma e non collegano più nulla da soli.
 - **Rinnovo del token di pagina con CSRF.** `POST /api/token/page/` richiede
   anche il token CSRF di sessione (`X-WI-CSRF` o `_csrf`), altrimenti `403`.
 - **API: 500 generico con `request_id` (`C-ERR-I2`).** Sui 500 di
