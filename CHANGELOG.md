@@ -763,7 +763,8 @@
   o registrato senza password, `authenticateUser()` esegue comunque una
   verifica su `dummyPasswordHash()`, con lo stesso algoritmo e lo stesso costo
   di `hashPassword()`: il tempo non distingue più questi casi da una password
-  errata.
+  errata. Resta distinguibile, fino al blocco 2d (coda mail), l'account solo
+  Google: dopo il 925 `mailFederatedHint` invia la mail via SMTP sincrono.
 - **Ricordami: IP da `ClientIp`.** `RememberMe::set()` e la rotazione in
   `RememberMe::tryLogin()` scrivono in `auth_remember.ip` il valore di
   `ClientIp::resolve()` invece di `REMOTE_ADDR`.
