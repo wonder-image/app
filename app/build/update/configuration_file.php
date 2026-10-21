@@ -27,7 +27,7 @@
     $ROUTER_BLOCK .= "# WONDER ROUTER END";
 
     // --- .htaccess ---
-    // Se esiste già: aggiorna i blocchi WONDER ROUTER e PERFORMANCE (preserva
+    // Se esiste già: aggiorna i blocchi WONDER ROUTER, PERFORMANCE e SECURITY (preserva
     // personalizzazioni dell'utente). Se non esiste: crea da template
     // unico (Build::htaccessTemplate), con force-www parametrico.
 
@@ -72,6 +72,10 @@
             }
 
             $updatedContent = \Wonder\Console\Commands\Build::updateHtaccessPerformance((string) $updatedContent);
+            $updatedContent = \Wonder\Console\Commands\Build::updateHtaccessSecurity(
+                (string) $updatedContent,
+                \Wonder\Console\Commands\Build::hstsEnabled()
+            );
 
             // Pulizia: evita troppe righe vuote consecutive
             $updatedContent = preg_replace("/\n{3,}/", "\n\n", (string) $updatedContent);
@@ -88,7 +92,10 @@
         // Il flag force-www viene letto dalla variabile d'ambiente
         // APP_FORCE_WWW (impostata nel .env o nelle GitHub Actions vars).
         $forceWww = filter_var($_ENV['APP_FORCE_WWW'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
-        $htaccessContent = \Wonder\Console\Commands\Build::htaccessTemplate($forceWww);
+        $htaccessContent = \Wonder\Console\Commands\Build::htaccessTemplate(
+            $forceWww,
+            \Wonder\Console\Commands\Build::hstsEnabled()
+        );
 
         file_put_contents($HTACCESS_PATH, $htaccessContent.PHP_EOL);
 

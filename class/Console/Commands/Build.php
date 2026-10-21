@@ -119,7 +119,7 @@ class Build extends Command
         $forceWww = (bool) $input->getOption('force-www');
 
         if (!file_exists($htaccessPath) || $force) {
-            $htaccessContent = self::htaccessTemplate($forceWww);
+            $htaccessContent = self::htaccessTemplate($forceWww, self::hstsEnabled());
             $written = file_put_contents($htaccessPath, $htaccessContent.PHP_EOL);
             if ($written === false) {
                 $output->writeln('<error>❌ Impossibile scrivere '.$htaccessPath.'</error>');
@@ -175,8 +175,9 @@ PHP;
      *   come default su shared hosting);
      * - directory listing comunque disabilitato con `Options -Indexes`.
      */
-    public static function htaccessTemplate(bool $forceWww = false): string
+    public static function htaccessTemplate(bool $forceWww = false, bool $hsts = false): string
     {
+        $securityBlock = self::htaccessSecurityBlock($hsts);
         $performanceBlock = self::htaccessPerformanceBlock();
         $forceWwwBlock = $forceWww
             ? <<<'HTACCESS'
@@ -195,6 +196,8 @@ HTACCESS
 Options +FollowSymLinks -MultiViews -Indexes
 AddDefaultCharset UTF-8
 DefaultLanguage it
+
+$securityBlock
 
 # ----------------------------------------------------------------------
 # Routing
@@ -242,14 +245,6 @@ $forceWwwBlock
 # Cache ottimizzata
 # ----------------------------------------------------------------------
 $performanceBlock
-
-<IfModule mod_headers.c>
-  Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set X-Content-Type-Options "nosniff"
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-  Header always set X-XSS-Protection "1; mode=block"
-</IfModule>
 HTACCESS;
     }
 
@@ -336,6 +331,106 @@ HTACCESS;
 
         // Append overriding rules on legacy installations without deleting custom rules.
         return rtrim($content)."\n\n".$block."\n";
+    }
+
+    /** `APP_HSTS=true` abilita Strict-Transport-Security (opt-in). */
+    public static function hstsEnabled(): bool
+    {
+        $value = $_ENV['APP_HSTS'] ?? $_SERVER['APP_HSTS'] ?? getenv('APP_HSTS');
+
+        return filter_var(is_bool($value) ? $value : (string) $value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Blocco gestito di sicurezza: header per gli asset statici (le risposte
+     * PHP li ricevono da `Wonder\Http\SecurityHeaders`), deny di file e
+     * cartelle che non devono mai essere serviti via HTTP.
+     */
+    public static function htaccessSecurityBlock(bool $hsts = false): string
+    {
+        $hstsLine = $hsts
+            ? "\n    Header set Strict-Transport-Security \"max-age=31536000\" env=HTTPS"
+            : '';
+
+        return <<<HTACCESS
+# WONDER SECURITY START
+<IfModule mod_headers.c>
+  Header always unset X-Powered-By
+  Header unset X-Powered-By
+  # Solo file statici: per le pagine PHP gli header arrivano dal bootstrap.
+  <FilesMatch "^(?!.*\\.php\$)">
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Content-Security-Policy "frame-ancestors 'self'"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"$hstsLine
+  </FilesMatch>
+</IfModule>
+
+<FilesMatch "^(\\.env.*|\\.git.*|\\.ht.*|.*\\.log|.*\\.sql(\\.gz)?|.*\\.bak|composer\\.(json|lock)|package(-lock)?\\.json|skills-lock\\.json|sync-data\\.json|generator\\.conf|forge)\$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(\\.git|\\.audit|storage|state|tests|docs|node_modules|lang|handler/storage)(/|\$) - [F,L]
+</IfModule>
+# WONDER SECURITY END
+HTACCESS;
+    }
+
+    /**
+     * Inserisce o aggiorna il blocco SECURITY senza toccare il resto del
+     * file. Se manca va in testa, prima del router; i duplicati vengono
+     * rimossi. Idempotente.
+     */
+    public static function updateHtaccessSecurity(string $content, bool $hsts = false): string
+    {
+        $block = self::htaccessSecurityBlock($hsts);
+        $pattern = '/# WONDER SECURITY START.*?# WONDER SECURITY END\R?/s';
+
+        $content = self::removeLegacyHeaderBlock($content);
+
+        if (preg_match($pattern, $content) === 1) {
+            $first = true;
+
+            return preg_replace_callback($pattern, static function (array $m) use (&$first, $block): string {
+                if (!$first) {
+                    return '';
+                }
+                $first = false;
+                $eol = preg_match('/\R$/', $m[0]) === 1 ? "\n" : '';
+
+                return $block.$eol;
+            }, $content) ?? $content;
+        }
+
+        return $block."\n\n".ltrim($content);
+    }
+
+    /**
+     * Toglie il blocco header non marcato generato dalle versioni precedenti,
+     * solo se identico all'originale (righe custom = file non toccato).
+     */
+    private static function removeLegacyHeaderBlock(string $content): string
+    {
+        $lines = [
+            'Header always set X-Frame-Options "SAMEORIGIN"',
+            'Header always set X-Content-Type-Options "nosniff"',
+            'Header always set Referrer-Policy "strict-origin-when-cross-origin"',
+            'Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"',
+            'Header always set X-XSS-Protection "1; mode=block"',
+        ];
+        $body = implode('\s*\R\s*', array_map(static fn (string $l): string => preg_quote($l, '/'), $lines));
+        $pattern = '/\R?[ \t]*<IfModule mod_headers\.c>\s*\R\s*'.$body.'\s*\R\s*<\/IfModule>[ \t]*/';
+
+        return preg_replace($pattern, '', $content) ?? $content;
     }
 
     private static function removeDirectory(string $dir): void
