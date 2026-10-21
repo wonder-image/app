@@ -33,7 +33,7 @@ final class Connect
 
     public function __construct(string $secretKey, string $accountId)
     {
-        $this->client = new StripeClient([ 'api_key' => $secretKey, 'stripe_version' => Stripe::API_VERSION ]);
+        $this->client = new StripeClient(Stripe::clientConfig($secretKey));
         $this->options = ['stripe_account' => $accountId];
     }
 

@@ -259,6 +259,16 @@
   successiva.
 
 ### Added
+- **`Stripe::clientConfig()` e `Stripe::httpClient()` (`C-CHK-I4`).** I
+  client del plugin (`Stripe`, `PaymentIntent`, `Connect`) hanno
+  `max_network_retries` 2 e la versione `2025-08-27.basil`; il `CurlClient`
+  condiviso dell'SDK passa a timeout 20 s e connessione 5 s (erano 80/30) e i
+  retry globali di `\Stripe\Stripe` salgono a 2, così le POST v1 senza
+  chiave ricevono l'`Idempotency-Key` automatica. Vale per tutto il processo,
+  anche per i `StripeClient` dei moduli creati dopo; uno senza
+  `clientConfig()` eredita i 2 retry solo se nasce dopo la prima chiamata a
+  `httpClient()`, quindi dipende dall'ordine di creazione. Un client HTTP
+  finto installato resta com'è.
 - **`Connect::addEvents()` e `Connect::events()` (`C-CHK-I3`).** I moduli
   registrano al bootstrap gli eventi Stripe che gestiscono; «Collega webhook»
   registra `Connect::EVENTS` più quelli aggiunti, senza doppioni.
