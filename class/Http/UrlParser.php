@@ -164,19 +164,10 @@
             return (string) ($server['REQUEST_URI'] ?? '/');
         }
 
+        /** Stessa regola di `ClientIp`: `X-Forwarded-For` solo con `APP_TRUST_PROXY`. */
         public static function requestIp(?array $server = null): string
         {
-            $server = $server ?? $_SERVER;
-            $forwardedFor = (string) ($server['HTTP_X_FORWARDED_FOR'] ?? '');
-
-            if ($forwardedFor !== '') {
-                $firstIp = trim(explode(',', $forwardedFor)[0]);
-                if ($firstIp !== '') {
-                    return $firstIp;
-                }
-            }
-
-            return (string) ($server['REMOTE_ADDR'] ?? '');
+            return ClientIp::resolve($server ?? $_SERVER);
         }
 
         public static function requestHost(?array $server = null): string
@@ -195,19 +186,22 @@
                 return true;
             }
 
-            $forwardedProto = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? ''));
-            if ($forwardedProto === 'https') {
-                return true;
-            }
+            // Gli header `X-Forwarded-*` li sceglie il client se non c'è un proxy fidato.
+            if (Cookie::trustsProxy()) {
+                $forwardedProto = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? ''));
+                if ($forwardedProto === 'https') {
+                    return true;
+                }
 
-            $forwardedScheme = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_SCHEME'] ?? ''));
-            if ($forwardedScheme === 'https') {
-                return true;
-            }
+                $forwardedScheme = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_SCHEME'] ?? ''));
+                if ($forwardedScheme === 'https') {
+                    return true;
+                }
 
-            $forwardedSsl = strtolower(trim((string) ($server['HTTP_X_FORWARDED_SSL'] ?? '')));
-            if (in_array($forwardedSsl, [ 'on', '1' ], true)) {
-                return true;
+                $forwardedSsl = strtolower(trim((string) ($server['HTTP_X_FORWARDED_SSL'] ?? '')));
+                if (in_array($forwardedSsl, [ 'on', '1' ], true)) {
+                    return true;
+                }
             }
 
             $requestScheme = strtolower(trim((string) ($server['REQUEST_SCHEME'] ?? '')));

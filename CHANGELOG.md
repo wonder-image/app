@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Breaking
+- **`X-Forwarded-*` solo con `APP_TRUST_PROXY`.** `UrlParser::isHttpsRequest()`
+  e `requestScheme()` ignorano `X-Forwarded-Proto`, `-Scheme` e `-Ssl` se il
+  flag è spento; `UrlParser::requestIp()` segue `ClientIp::resolve()`
+  (`REMOTE_ADDR`, oppure l'ultima voce di `X-Forwarded-For` con il flag). Dietro
+  un proxy che termina HTTPS senza `APP_TRUST_PROXY=true` le API rispondono
+  `403 Richiesta non sicura` e la lista IP degli utenti API confronta l'IP del
+  proxy: va attivato il flag. Prima la prima voce di `X-Forwarded-For`, scelta
+  dal client, aggirava la lista IP.
+- **Rinnovo del token di pagina con CSRF.** `POST /api/token/page/` richiede
+  anche il token CSRF di sessione (`X-WI-CSRF` o `_csrf`), altrimenti `403`.
 - **API: 500 generico con `request_id` (`C-ERR-I2`).** Sui 500 di
   `RouteDispatcher`, `Wonder\Api\Handler`, API delle Resource e
   `api/app/update`, `response` è `Errore interno.` (`UpdateRunner failed` per
