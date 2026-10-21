@@ -27,6 +27,28 @@ check('identifier: email mascherata, altro testo ridotto alla prima lettera', fu
         && LogRedactor::identifier('  ') === '';
 });
 
+check('M5: code, state, access_token, refresh_token, pwd, reset, signature, hash oscurati', function () {
+    $u = LogRedactor::uri('/cb/?code=c1&state=s1&access_token=a&refresh_token=r&pwd=p&reset=x&signature=sg&hash=h&page=2');
+    return $u === '/cb/?code=***&state=***&access_token=***&refresh_token=***&pwd=***&reset=***&signature=***&hash=***&page=2';
+});
+
+check('M5: nomi che contengono token, secret o password oscurati', function () {
+    $u = LogRedactor::uri('/x?id_token=1&client_secret=2&new_password=3&passwordConfirm=4&X-Api-Token=5&q=ok&tokenless=6');
+    return $u === '/x?id_token=***&client_secret=***&new_password=***&passwordConfirm=***&X-Api-Token=***&q=ok&tokenless=***';
+});
+
+check('M6: text maschera le email dentro un messaggio libero', function () {
+    $t = LogRedactor::text('550 5.1.1 <mario.rossi@example.com>: Recipient address rejected; cc Anna.B+x@sub.example.it');
+    return $t === '550 5.1.1 <m***@example.com>: Recipient address rejected; cc A***@sub.example.it'
+        && LogRedactor::text('SMTP connect() failed.') === 'SMTP connect() failed.';
+});
+
+check('M6: auth_log scrive il messaggio SMTP passato da LogRedactor::text', function () {
+    $src = (string) file_get_contents(__DIR__.'/../../app/function/user/auth.php');
+    return str_contains($src, "\$logMeta['error'] = Wonder\\App\\LogRedactor::text((string) (\$MAIL_RESULT->message ?? ''));")
+        && !str_contains($src, "\$logMeta['error'] = (string) (\$MAIL_RESULT->message ?? '');");
+});
+
 /** Root temporanea per il Logger, ripulita dopo la verifica. */
 function withLogRoot(callable $fn): mixed {
     $dir = sys_get_temp_dir() . '/wi-log-' . bin2hex(random_bytes(4));

@@ -230,7 +230,7 @@
             if (!($MAIL_RESULT->success ?? false)) {
                 $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
                 $reason = 'email_verification_mail_failed';
-                $logMeta['error'] = (string) ($MAIL_RESULT->message ?? '');
+                $logMeta['error'] = Wonder\App\LogRedactor::text((string) ($MAIL_RESULT->message ?? ''));
                 return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, $logMeta);
             }
 
