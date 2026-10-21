@@ -341,9 +341,7 @@ HTACCESS;
     /** `APP_HSTS=true` abilita Strict-Transport-Security (opt-in). */
     public static function hstsEnabled(): bool
     {
-        $value = $_ENV['APP_HSTS'] ?? $_SERVER['APP_HSTS'] ?? getenv('APP_HSTS');
-
-        return filter_var(is_bool($value) ? $value : (string) $value, FILTER_VALIDATE_BOOLEAN);
+        return \Wonder\Http\SecurityHeaders::hstsEnabled();
     }
 
     /**
