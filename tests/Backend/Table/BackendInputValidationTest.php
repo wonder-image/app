@@ -26,6 +26,27 @@ check('uploadFolder: rifiuta la risalita', function () {
         && TableAuthorization::uploadFolder('../../config') === null;
 });
 
+check('M9: symlink interno alla root: si cancella il link, non il file a cui punta', function () {
+    $base = sys_get_temp_dir() . '/wi-icon-' . bin2hex(random_bytes(4));
+    mkdir($base . '/upload/category', 0777, true);
+    mkdir($base . '/upload/other');
+    file_put_contents($base . '/upload/other/b.svg', 'x');
+    symlink($base . '/upload/other/b.svg', $base . '/upload/category/alias.svg');
+    try {
+        $root = $base . '/upload';
+        $path = TableAuthorization::uploadFile($root, 'category', 'alias.svg');
+        $ok = $path === realpath($root) . '/category/alias.svg' && is_link((string) $path);
+        if ($path !== null) {
+            @unlink($path);
+        }
+        clearstatcache();
+        $ok = $ok && is_file($base . '/upload/other/b.svg') && !is_link($base . '/upload/category/alias.svg');
+    } finally {
+        exec('rm -rf ' . escapeshellarg($base));
+    }
+    return $ok;
+});
+
 check('uploadFile: file sotto upload sì; risalita, symlink esterni e cartelle no', function () {
     $base = sys_get_temp_dir() . '/wi-icon-' . bin2hex(random_bytes(4));
     mkdir($base . '/upload/category', 0777, true);

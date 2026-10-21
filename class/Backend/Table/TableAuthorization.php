@@ -139,8 +139,10 @@ final class TableAuthorization
     }
 
     /**
-     * Percorso reale di un file esistente sotto la radice upload, oppure null.
-     * Del nome file salvato in colonna conta solo il basename.
+     * Percorso (non risolto) di un file esistente sotto la radice upload,
+     * oppure null. Del nome file salvato in colonna conta solo il basename.
+     * Il controllo usa realpath; si restituisce il path non risolto così un
+     * symlink interno viene cancellato al posto del file a cui punta.
      */
     public static function uploadFile(string $uploadRoot, string $folder, string $file): ?string
     {
@@ -151,13 +153,16 @@ final class TableAuthorization
             return null;
         }
 
-        $path = realpath($root.($folder !== '' ? '/'.$folder : '').'/'.$file);
+        $candidate = $root.($folder !== '' ? '/'.$folder : '').'/'.$file;
+        $path = realpath($candidate);
+        $dir = realpath(dirname($candidate));
+        $inside = static fn (string|false $p): bool => $p !== false && str_starts_with($p, $root.DIRECTORY_SEPARATOR);
 
-        if ($path === false || !is_file($path) || !str_starts_with($path, $root.DIRECTORY_SEPARATOR)) {
+        if (!$inside($path) || !is_file((string) $path) || ($dir !== $root && !$inside($dir))) {
             return null;
         }
 
-        return $path;
+        return $candidate;
     }
 
     /**

@@ -16,7 +16,8 @@ if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
 
 $id = ApiRequest::int('id');
 
-// Tabella registrata con colonna icon, cartella sotto upload.
+// Tabella registrata con colonna icon, cartella sotto upload. La cartella
+// arriva dalla richiesta: Table::$list non la dichiara (da decidere).
 $table = TableAuthorization::iconTable($table);
 $folder = TableAuthorization::uploadFolder(ApiRequest::string('folder'));
 
