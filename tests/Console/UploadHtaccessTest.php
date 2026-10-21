@@ -108,16 +108,32 @@ check('R2-1: SECURITY con START orfano con testo dopo: un solo START, custom int
         && str_contains($twice, "# regola custom A");
 });
 
-check('SVG servito in sandbox e nosniff, dopo il deny', function () {
+check('nosniff su tutti i file di upload, CSP sandbox solo sugli SVG, dopo il deny', function () {
     $block = Build::uploadHtaccessBlock();
     $svg = strpos($block, '<FilesMatch "(?i)\\.svgz?$">');
+    $svgBlock = $svg === false ? '' : substr($block, $svg, strpos($block, '</FilesMatch>', $svg) - $svg);
+    $nosniff = strpos($block, 'Header set X-Content-Type-Options "nosniff"');
     preg_match_all('/<FilesMatch "([^"]+)">/', $block, $m);
     $re = '/'.$m[1][1].'/';
-    return $svg !== false && $svg > strpos($block, 'Deny from all')
-        && str_contains($block, 'Header set Content-Security-Policy "sandbox"')
-        && str_contains($block, 'Header set X-Content-Type-Options "nosniff"')
+    // nosniff fuori da ogni FilesMatch: fra la fine del deny e l'inizio del blocco svg.
+    $outside = $nosniff !== false && $nosniff > strpos($block, '</FilesMatch>') && $nosniff < $svg;
+    return $svg !== false && $svg > strpos($block, 'Deny from all') && $outside
+        && substr_count($block, 'X-Content-Type-Options') === 1
+        && str_contains($svgBlock, 'Header set Content-Security-Policy "sandbox"')
+        && substr_count($block, 'Content-Security-Policy') === 1
         && preg_match($re, 'logo.svg') === 1 && preg_match($re, 'LOGO.SVGZ') === 1
         && preg_match($re, 'foto.jpg') !== 1 && preg_match($re, 'logo.svg.png') !== 1;
+});
+
+check('blocco del round precedente (nosniff solo sugli svg) sostituito, idempotente', function () {
+    $old = "# custom\n# WONDER UPLOAD START\n<FilesMatch \"(?i)\\.svgz?$\">\n  <IfModule mod_headers.c>\n"
+        ."    Header set Content-Security-Policy \"sandbox\"\n    Header set X-Content-Type-Options \"nosniff\"\n"
+        ."  </IfModule>\n</FilesMatch>\n# WONDER UPLOAD END\n# dopo\n";
+    $once = Build::updateUploadHtaccess($old);
+    return $once === Build::updateUploadHtaccess($once)
+        && substr_count($once, 'X-Content-Type-Options') === 1
+        && str_contains($once, Build::uploadHtaccessBlock())
+        && str_starts_with($once, "# custom\n") && str_contains($once, "# dopo");
 });
 
 summary();
