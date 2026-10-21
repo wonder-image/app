@@ -64,6 +64,9 @@ toccato:
     `Order allow,deny`).
 - `# WONDER UPLOAD START` / `END` in `assets/upload/.htaccess`: niente
   esecuzione di PHP o CGI, niente indice delle cartelle, niente `.ht*`.
+  I file `.svg` e `.svgz` escono con `Content-Security-Policy "sandbox"` e
+  `X-Content-Type-Options "nosniff"` (serve `mod_headers`): uno script
+  rimasto nel file non gira nemmeno aperto da solo nel browser.
   Forge lo scrive solo se `assets/upload` esiste. Le righe custom dello
   stesso file restano.
 
@@ -110,6 +113,65 @@ prima che corrisponde: metti queste regole prima della location che passa i
 
 Herd (Valet) in locale serve qualunque file statico della cartella del sito.
 Le regole sopra valgono per i server pubblici.
+
+## Upload
+
+`uploadFiles()` controlla ogni file con
+`Wonder\App\Support\UploadValidator::checkFormat()` prima di spostarlo:
+
+- `extensions` esplicito nel campo (modello o input): l'estensione deve
+  essere nella lista, altrimenti ALERT 921. Le estensioni del modello
+  valgono anche quando l'input dichiara un tipo (`fileDragDrop('image')`).
+- `extensions` vuoto e tipo dell'input noto: vale la lista del tipo.
+  `image` = `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` =
+  l'unione; `pdf`, `png`, `jpg`, `webp`, `svg` = sé stessi.
+- `extensions` vuoto e tipo ignoto: è negata la lista fissa `php`, `phtml`,
+  `phar`, `pht`, `phps`, `html`, `htm`, `js`, `svg`, `xml` e un file senza
+  estensione (ALERT 921).
+- Poi `finfo`: per le estensioni note il MIME deve corrispondere (un `.png`
+  che contiene PHP non passa), per le altre si rifiuta solo un contenuto
+  PHP, HTML, JavaScript o shell. In entrambi i casi ALERT 927. Il contenuto
+  dei file validi non viene analizzato oltre.
+
+`gif` e `svg` non sono più ammessi di serie: vanno dichiarati in
+`extensions`. Le Resource Media `ImageResource` e `IconResource` accettano
+`png`, `jpg`, `jpeg`, `webp`.
+
+### SVG
+
+Un `svg` ammesso da `extensions` passa da
+`Wonder\App\Security\SvgSanitizer::sanitize()` prima di essere salvato:
+
+- lettura solo DOM, con `LIBXML_NONET` e senza espandere entità;
+- rifiutati (ALERT 931) `<!DOCTYPE>`, `<!ENTITY>`, XML non valido e radici
+  diverse da `<svg>`;
+- tolti `script`, `foreignObject`, `iframe`, `embed`, `object`, gli
+  attributi `on*`, i valori con `javascript:` o `vbscript:`, i `data:` che
+  non sono immagini raster (`png`, `jpeg`, `gif`, `webp`), gli stili con
+  `url(javascript` o `expression(` e le processing instruction;
+- un SVG senza nulla da togliere resta identico, byte per byte.
+
+Un modulo che salva SVG senza `uploadFiles()` chiama `sanitize()` e scarta
+il file se restituisce `null`.
+
+## Export CSV
+
+`arrayToCsv()`, `sqlExport()` e il download delle Resource mettono un apice
+davanti alle celle che iniziano con `=`, `+`, `-`, `@`, tabulazione o
+ritorno a capo, così un foglio di calcolo non le esegue come formule
+(`'=1+1`, `'@x`, `'+39 333 1234567`). Restano invariati i valori numerici
+(`-5`, `+39`, `3.5`), i segni isolati (`-`) e ogni altra cella.
+
+Opt-out, solo per CSV letti da programmi che non tollerano l'apice:
+
+- `arrayToCsv($rows, $filename, false)`;
+- `sqlExport($table, 'csv', false)`;
+- `->downloadFormulaSafe(false)` sul `TableLayoutSchema`.
+
+`downloadAsText()` resta com'era: apice davanti a ogni cella che inizia con
+quei caratteri, numeri compresi (telefoni come `+393331234567`), e celle
+di testo nell'export Excel. L'export Excel senza `downloadAsText()` non
+cambia: le celle sono scritte con il loro tipo e mai come formula.
 
 ## Debug e `display_errors`
 

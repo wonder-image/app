@@ -3,6 +3,25 @@
 ## Unreleased
 
 ### Breaking
+- **Upload: `gif` e `svg` esclusi di default (`C-UPL-2`).** Un campo file
+  senza `extensions` accetta la lista del tipo dell'input: `image` =
+  `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` = l'unione. Con un
+  tipo ignoto sono negati `php`, `phtml`, `phar`, `pht`, `phps`, `html`,
+  `htm`, `js`, `svg`, `xml` e i file senza estensione (ALERT 921). Le
+  Resource Media Immagini e Icone accettano `png`, `jpg`, `jpeg`, `webp`:
+  una gif o un svg caricati lì ora sono rifiutati. `finfo` rifiuta un file il
+  cui contenuto non corrisponde all'estensione (ALERT 927). Le `extensions`
+  del modello non sono più scavalcate dal tipo dell'input. Per tornare ad
+  ammettere gif o svg in un campo vanno dichiarati in `extensions`; un svg
+  ammesso passa da `SvgSanitizer` e, se non è valido, è rifiutato con
+  ALERT 931.
+- **CSV neutralizzato di default (`C-UPL-4`).** `arrayToCsv()`,
+  `sqlExport()` e il download CSV delle Resource mettono un apice davanti
+  alle celle che iniziano con `=`, `+`, `-`, `@`, tabulazione o CR, tranne i
+  valori numerici (`-5`, `+39`): `+39 333 1234567` esce come
+  `'+39 333 1234567`. Opt-out: `arrayToCsv(..., false)`,
+  `sqlExport(..., false)`, `->downloadFormulaSafe(false)`. Excel e
+  `downloadAsText()` non cambiano.
 - **`X-Forwarded-*` solo con `APP_TRUST_PROXY`.** `UrlParser::isHttpsRequest()`
   e `requestScheme()` ignorano `X-Forwarded-Proto`, `-Scheme` e `-Ssl` se il
   flag è spento; `UrlParser::requestIp()` segue `ClientIp::resolve()`
@@ -237,6 +256,14 @@
   successiva.
 
 ### Added
+- **`Wonder\App\Security\SvgSanitizer::sanitize()`.** Pulisce un SVG via DOM
+  (`LIBXML_NONET`, niente entità) e restituisce `null` se non è valido;
+  `uploadFiles()` lo applica a ogni svg ammesso da `extensions`. Il blocco
+  `WONDER UPLOAD` di `assets/upload/.htaccess` serve `.svg`/`.svgz` con
+  `Content-Security-Policy "sandbox"` e `nosniff` (al prossimo `forge update`).
+- **`UploadValidator::checkFormat()`** (whitelist, deny-list e `finfo` per
+  `uploadFiles()`), `SpreadsheetText::formulaSafe()`/`formulaSafeMatrix()` e
+  `TableLayoutSchema::downloadFormulaSafe()`.
 - `Wonder\Http\SecurityHeaders`, `Wonder\Http\RequestId`,
   `Wonder\App\LogRedactor`, `Wonder\Sql\Utility\QueryException`,
   `Logger::append()` e `Logger::root()`. Doc:
