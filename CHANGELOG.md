@@ -27,7 +27,9 @@
   vecchio blocco `Header always set` con `X-XSS-Protection` se è identico a
   quello generato. Se il blocco è stato modificato va tolto a mano: `forge
   update` stampa un avviso per ogni `Header always set` fuori dai blocchi
-  `WONDER`. Un sito che serve altri file da `/vendor/` riceve 403.
+  `WONDER`. Un sito che serve altri file da `/vendor/` riceve 403, come
+  chi serve `*.zip`, `*.tar`, `*.tar.gz` o `*.tgz` fuori da `assets/upload/`.
+  Deny e cartelle negate valgono senza distinzione di maiuscole.
 - **Upload senza esecuzione di script (`C-UPL-3`).** Forge scrive il blocco
   `WONDER UPLOAD` in `assets/upload/.htaccess`.
 - **Errori SQL senza query (`C-SQL-I3`).** `Sql\Utility\Error` lancia

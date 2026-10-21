@@ -24,7 +24,11 @@ dell'autorizzazione OAuth) resta quello della pagina. `Cache-Control` invece
 viene sempre sostituito quando serve `no-store`. Le pagine anonime restano
 cacheabili anche se stampano il token di pagina, perché il token è legato
 alla sessione. `X-Powered-By` viene tolto.
-`geolocation=(self)` lascia funzionare la navigazione di Google Maps sul sito.
+`geolocation` vale `(self)` e non `()`: la navigazione del componente
+GoogleMap (`MapNavigator.js` della lib wonder-image) chiama
+`navigator.geolocation.watchPosition()`, che con `()` verrebbe bloccata
+anche sul sito stesso. `(self)` la consente solo all'origine del sito, non
+agli iframe di terze parti.
 
 `expose_php` si imposta solo in `php.ini` (`expose_php = Off`): da PHP il core
 toglie l'header con `header_remove()`.
@@ -38,10 +42,13 @@ toccato:
 - `# WONDER SECURITY START` / `END`: gli stessi header per i file statici
   (`Header set`, che sostituisce senza duplicare), il deny dei file non
   pubblici e il 403 sulle cartelle interne.
-  - File negati: `.env*`, `.git*`, `.ht*`, `*.log`, `*.sql`, `*.sql.gz`,
-    `*.bak`, `composer.json`, `composer.lock`, `package.json`,
+  - File negati, senza distinzione di maiuscole: `.env*`, `.git*`, `.ht*`,
+    `*.log`, `*.log.N`, `*.sql`, `*.sql.gz`, `*.bak`, `*.old`, `*.orig`,
+    `*.swp`, `*~`, `composer.json`, `composer.lock`, `package.json`,
     `package-lock.json`, `skills-lock.json`, `sync-data.json`,
     `generator.conf`, `forge`.
+  - Archivi negati fuori da `assets/upload/`: `*.zip`, `*.tar`, `*.tar.gz`,
+    `*.tgz`. Gli zip caricati dal backend restano scaricabili.
   - Cartelle negate: `.git/`, `.audit/`, `storage/`, `state/`, `tests/`,
     `docs/`, `node_modules/`, `lang/`, `handler/storage/`.
   - `vendor/` è negata con due eccezioni:
@@ -62,7 +69,13 @@ toccato:
 
 Al primo aggiornamento Forge toglie il vecchio blocco `Header always set`
 senza marcatori, che conteneva `X-XSS-Protection`, solo se è identico a
-quello generato in passato.
+quello generato in passato. Se è stato modificato resta e va tolto a mano:
+`forge update` stampa un avviso per ogni `Header always set` fuori dai
+blocchi `WONDER`.
+
+Un marcatore START senza END (o END senza START) viene tolto prima di
+aggiornare il blocco; le righe intorno restano. Su un file con terminazioni
+CRLF il blocco viene scritto in CRLF.
 
 `RemoveHandler`, `Options` e `php_flag` richiedono un `AllowOverride` che li
 permetta. Se l'hosting non lo concede, Apache risponde 500 sull'intera
@@ -75,14 +88,21 @@ block. Lo snippet seguente non viene applicato da Forge:
 
 ```nginx
 location ~ /\.(?!well-known/) { deny all; }
-location ~ ^/(storage|state|tests|docs|node_modules|lang|handler/storage|\.audit)(/|$) { deny all; }
-location ~ ^/vendor(/|$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\.(?:php\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\.|$))[^/]+\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)$|wonder-image/app/vendor-static/xml-sitemaps(/|$)) { deny all; }
-location ~ (^|/)(composer\.(json|lock)|package(-lock)?\.json|skills-lock\.json|sync-data\.json|generator\.conf|forge)$ { deny all; }
-location ~ \.(log|sql|sql\.gz|bak)$ { deny all; }
+location ~* ^/(storage|state|tests|docs|node_modules|lang|handler/storage|\.audit)(/|$) { deny all; }
+location ~* ^/vendor/wonder-image/app/vendor-static/xml-sitemaps/data/(?!.*\.(txt|html|gz|jpe?g|png|gif)$) { deny all; }
+location ~* ^/vendor/wonder-image/app/vendor-static/xml-sitemaps/(pages/|.*\.conf$) { deny all; }
+location ~* ^/vendor(/|$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\.(?:php\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\.|$))[^/]+\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)$|wonder-image/app/vendor-static/xml-sitemaps(/|$)) { deny all; }
+location ~* (^|/)(composer\.(json|lock)|package(-lock)?\.json|skills-lock\.json|sync-data\.json|generator\.conf|forge)$ { deny all; }
+location ~* (\.(log(\.\d+)?|sql(\.gz)?|bak|old|orig|swp)|~)$ { deny all; }
+location ~* ^/(?!assets/upload/).*\.(zip|tgz|tar(\.gz)?)$ { deny all; }
 location ^~ /assets/upload/ {
-    location ~ \.(php\d?|phtml|phar|phps|pht|cgi|pl|py|sh)(\.|$) { deny all; }
+    location ~* \.(php\d?|phtml|phar|phps|pht|cgi|pl|py|sh)(\.|$) { deny all; }
 }
 ```
+
+Su Apache la cartella `data/` di xml-sitemaps è protetta dal suo `.htaccess`
+(solo `txt`, `html`, `gz` e immagini). nginx lo ignora, quindi le due regole
+su `xml-sitemaps` ne fanno le veci e negano anche `pages/` e `default.conf`.
 
 nginx valuta le location con regex nell'ordine in cui compaiono e si ferma alla
 prima che corrisponde: metti queste regole prima della location che passa i
@@ -132,8 +152,19 @@ Per trovare la root prova, in ordine:
 3. la prima cartella con `vendor/autoload.php`, risalendo dallo script in
    esecuzione.
 
+Senza `ROOT` e senza uno script dentro il sito non cerca altrove (niente
+fallback sulla cartella del pacchetto) e scrive con `error_log()`. Un nome
+file con `..` viene rifiutato allo stesso modo.
+
 Crea le cartelle con permessi `0750` e i file con `0640`. Se non riesce a
 scrivere, ripiega su `error_log()` di PHP e non lancia eccezioni.
+
+Con questi permessi l'utente di deploy (quello che lancia `php forge`) e
+l'utente del web server (PHP-FPM) devono stare nello stesso gruppo, e la
+cartella `storage/logs` deve appartenere a quel gruppo. Altrimenti, se Forge
+crea `storage/logs` o un file di log, il web non riesce più a scriverci e i
+log finiscono in silenzio in `error_log()`.
+Sull'hosting reale: NON VERIFICATO.
 `db-connections.log` (con `DB_CONNECTION_LOG=true`) è ora in
 `storage/logs/db-connections.log`. Anche `php forge build` crea `storage/logs`
 con `0750` e le altre cartelle di runtime con `0755`. Le cartelle che esistono
