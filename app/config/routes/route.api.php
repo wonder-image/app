@@ -17,7 +17,8 @@ Route::area('backend')
         Route::get('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
             ->name('connect');
 
-        Route::post('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php');
+        Route::post('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
+            ->name('connect.submit');
     });
 
 Route::area('api')

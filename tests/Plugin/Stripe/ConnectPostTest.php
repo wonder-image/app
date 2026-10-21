@@ -101,6 +101,17 @@ check('matchByPath /api/service/stripe/connect/: area backend (niente CORS api)'
     ((new \Wonder\Http\Router($routes))->matchByPath('/api/service/stripe/connect/?account=test')['area'] ?? null) === 'backend');
 check('nome rotta service.stripe.connect invariato', fn () =>
     in_array('service.stripe.connect', array_column($routes, 'name'), true));
+check('POST con nome service.stripe.connect.submit, nessun nome duplicato', function () use ($routes) {
+    $route = (new \Wonder\Http\Router($routes))->match('POST', '/api/service/stripe/connect/');
+    $names = array_filter(array_column($routes, 'name'), static fn ($n) => str_starts_with((string) $n, 'service.stripe.'));
+
+    return ($route['name'] ?? null) === 'service.stripe.connect.submit'
+        && $names === array_filter($names, static fn ($n) => substr_count((string) $n, 'stripe.') === 1);
+});
+// Il router non mappa HEAD e PUT: il dispatcher risponde 404 prima dell'handler.
+check('router: HEAD e PUT senza rotta (404 dal dispatcher)', fn () =>
+    (new \Wonder\Http\Router($routes))->match('HEAD', '/api/service/stripe/connect/') === null
+    && (new \Wonder\Http\Router($routes))->match('PUT', '/api/service/stripe/connect/') === null);
 
 // Testo del sorgente: il bottone della Resource non deve più portare il token nell'URL.
 check('SecurityResource: nessun _csrf= negli URL', fn () =>
