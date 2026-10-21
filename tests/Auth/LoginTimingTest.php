@@ -16,6 +16,22 @@ if (($argv[1] ?? '') === '--real') {
         'needs_rehash' => passwordNeedsRehash($dummy),
         'cached' => dummyPasswordHash() === $dummy,
         'rejects' => !checkUserPassword('Qualunque-1', $dummy) && !checkUserPassword('', $dummy),
+        'bcrypt_default' => password_get_info(password_hash('x', PASSWORD_BCRYPT))['options']['cost']
+            === (passwordHashSettings(false)[1]['cost'] ?? null),
+        'matrix' => array_map(static function (array $case): array {
+            [$argon, $version] = $case;
+            [$algorithm, $options] = passwordHashSettings($argon, $version);
+            $real = password_hash('Qualunque-1', $algorithm, $options);
+            $dummy = dummyPasswordHashFor($argon, $version);
+
+            return [
+                'case' => ($argon ? 'argon2id' : 'bcrypt') . "@{$version}",
+                'real_stable' => !password_needs_rehash($real, $algorithm, $options),
+                'dummy_stable' => !password_needs_rehash($dummy, $algorithm, $options),
+                'same_cost' => password_get_info($dummy) == password_get_info($real),
+                'cost' => $options['cost'] ?? null,
+            ];
+        }, [[false, 80230], [false, 80330], [false, 80400], [false, 80505], [true, 80230]]),
     ]);
     exit;
 }
@@ -70,6 +86,13 @@ check('registrazione senza password → una verifica sull\'hash fittizio, alert 
 $real = json_decode((string) shell_exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' --real 2>&1'), true);
 check('hash fittizio: stesso algoritmo e stessi parametri di hashPassword()', fn () => ($real['info_equal'] ?? false) === true && ($real['needs_rehash'] ?? true) === false);
 check('hash fittizio: stabile fra le chiamate', fn () => ($real['cached'] ?? false) === true);
+check('bcrypt: il costo coincide con il default di PHP in esecuzione', fn () => ($real['bcrypt_default'] ?? false) === true);
+// Default bcrypt di PHP: 10 fino alla 8.3, 12 dalla 8.4.
+$expectedCost = ['bcrypt@80230' => 10, 'bcrypt@80330' => 10, 'bcrypt@80400' => 12, 'bcrypt@80505' => 12, 'argon2id@80230' => null];
+check('bcrypt: costo per versione PHP (10 prima della 8.4, poi 12)', fn () => array_column($real['matrix'] ?? [], 'cost', 'case') === $expectedCost);
+foreach (($real['matrix'] ?? [['case' => 'figlio fallito']]) as $row) {
+    check("{$row['case']}: hash reale senza rehash, fittizio senza rehash e allo stesso costo", fn () => ($row['real_stable'] ?? false) && ($row['dummy_stable'] ?? false) && ($row['same_cost'] ?? false));
+}
 check('hash fittizio: nessuna password lo verifica', fn () => ($real['rejects'] ?? false) === true);
 
 summary();

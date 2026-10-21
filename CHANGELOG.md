@@ -753,6 +753,12 @@
   registra `remote_addr` via `Wonder\Http\ClientIp::resolve()`, come throttle e
   `auth_log`. L'`ip_address` del consenso (`app/function/user/user.php:209`) resta
   su `REMOTE_ADDR`: è fuori dal perimetro auth.
+- **Password: costo bcrypt per versione PHP (review `RR1`).** Senza argon2id,
+  `hashPassword()` e `passwordNeedsRehash()` usano il costo bcrypt di default
+  della versione in esecuzione (10 prima della 8.4, 12 dalla 8.4), scelto con
+  `PHP_VERSION_ID` in `passwordHashSettings()`. L'hash fittizio
+  (`dummyPasswordHashFor()`) ha lo stesso costo: su PHP 8.2/8.3 non viene più
+  rigenerato a ogni richiesta e non costa il doppio di una password errata.
 - **Login: tempo di risposta uniforme (review `R1`).** Con utente inesistente
   o registrato senza password, `authenticateUser()` esegue comunque una
   verifica su `dummyPasswordHash()`, con lo stesso algoritmo e lo stesso costo
