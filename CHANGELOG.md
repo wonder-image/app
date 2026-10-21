@@ -25,7 +25,9 @@
   manifest e cartelle interne; `vendor/` è negata tranne gli asset statici di
   `vendor/*/*/resources/assets/` e il generatore xml-sitemaps) e toglie il
   vecchio blocco `Header always set` con `X-XSS-Protection` se è identico a
-  quello generato. Un sito che serve altri file da `/vendor/` riceve 403.
+  quello generato. Se il blocco è stato modificato va tolto a mano: `forge
+  update` stampa un avviso per ogni `Header always set` fuori dai blocchi
+  `WONDER`. Un sito che serve altri file da `/vendor/` riceve 403.
 - **Upload senza esecuzione di script (`C-UPL-3`).** Forge scrive il blocco
   `WONDER UPLOAD` in `assets/upload/.htaccess`.
 - **Errori SQL senza query (`C-SQL-I3`).** `Sql\Utility\Error` lancia

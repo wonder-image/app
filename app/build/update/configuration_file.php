@@ -83,6 +83,14 @@
             if (is_string($updatedContent) && $updatedContent !== $htaccessContent) {
                 file_put_contents($HTACCESS_PATH, $updatedContent);
             }
+
+            // Vecchio blocco header modificato a mano: Forge non lo tocca, va tolto a mano.
+            $unmanagedHeaders = \Wonder\Console\Commands\Build::unmanagedHeaderSetLines((string) $updatedContent);
+            if ($unmanagedHeaders !== []) {
+                $headerWarning = "Attenzione: ".$HTACCESS_PATH." contiene righe `Header always set` fuori dai blocchi WONDER."
+                    ." Duplicano gli header di sicurezza: toglile a mano.\n  ".implode("\n  ", $unmanagedHeaders)."\n";
+                PHP_SAPI === 'cli' && defined('STDERR') ? fwrite(STDERR, $headerWarning) : error_log($headerWarning);
+            }
         }
     }
 

@@ -215,6 +215,38 @@ check('f(f(x)) === f(x) anche dopo il blocco performance (come forge update)', f
     return $f($f($x)) === $f($x);
 });
 
+check('M4: Header always set fuori dai marcatori segnalato, il blocco originale no', function () use ($custom, $legacyHeaders) {
+    $edited = str_replace('geolocation=()', 'geolocation=(self)', $legacyHeaders);
+    $kept = Build::updateHtaccessSecurity($custom."\n\n".$edited."\n");
+    $clean = Build::updateHtaccessSecurity($custom."\n\n".$legacyHeaders."\n");
+    $lines = Build::unmanagedHeaderSetLines($kept);
+    $managed = SEC_START."\nHeader always set X-Interno \"1\"\n".SEC_END."\n";
+    return count($lines) === 5 && str_contains($lines[4], 'X-XSS-Protection')
+        && Build::unmanagedHeaderSetLines($clean) === []
+        && Build::unmanagedHeaderSetLines(Build::htaccessTemplate()) === []
+        && Build::unmanagedHeaderSetLines($managed) === []
+        && Build::unmanagedHeaderSetLines("Header always unset X-Powered-By\n") === [];
+});
+
+check('M4: configuration_file.php avvisa su STDERR in CLI se resta un Header always set', function () use ($custom, $legacyHeaders) {
+    $root = sys_get_temp_dir().'/wi-htwarn-'.bin2hex(random_bytes(4));
+    mkdir($root, 0777, true);
+    $edited = str_replace('geolocation=()', 'geolocation=(self)', $legacyHeaders);
+    file_put_contents($root.'/.htaccess', $custom."\n\n".$edited."\n");
+    file_put_contents($root.'/robots.txt', "User-agent: *\n");
+    $app = realpath(__DIR__.'/../../app');
+    $script = $root.'/run.php';
+    file_put_contents($script, '<?php require '.var_export(realpath(__DIR__.'/../../vendor/autoload.php'), true).';'
+        .' $ROOT = '.var_export($root, true).'; $ROOT_APP = '.var_export($app, true).';'
+        .' $PAGE = (object) ["domain" => "example.test"];'
+        .' require $ROOT_APP."/build/update/configuration_file.php";');
+    $p = proc_open([PHP_BINARY, $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $root, ['HOME' => $root]);
+    $out = stream_get_contents($pipes[1]); $err = stream_get_contents($pipes[2]);
+    fclose($pipes[1]); fclose($pipes[2]); proc_close($p);
+    exec('rm -rf '.escapeshellarg($root));
+    return str_contains($err, 'Header always set') && str_contains($err, 'X-XSS-Protection') && !str_contains($out, 'Header always set');
+});
+
 check('configuration_file.php su un .htaccess custom: custom preservato, upload creato', function () use ($custom, $legacyHeaders) {
     $root = sys_get_temp_dir().'/wi-htsec-'.bin2hex(random_bytes(4));
     mkdir($root.'/assets/upload', 0777, true);

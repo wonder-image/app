@@ -431,6 +431,20 @@ HTACCESS;
         return $block.$eol.$eol.ltrim($content);
     }
 
+    /**
+     * Righe `Header always set` fuori dai blocchi gestiti: sulle risposte PHP
+     * si sommano agli header di `SecurityHeaders`, vanno tolte a mano.
+     *
+     * @return list<string>
+     */
+    public static function unmanagedHeaderSetLines(string $content): array
+    {
+        $outside = preg_replace('/# WONDER ([A-Z]+) START.*?# WONDER \1 END/s', '', $content) ?? $content;
+        preg_match_all('/^[ \t]*Header[ \t]+always[ \t]+set[ \t].*$/mi', $outside, $m);
+
+        return array_map(static fn (string $l): string => trim($l), $m[0]);
+    }
+
     /** `\r\n` se il file lo usa, altrimenti `\n`. */
     private static function lineEnding(string $content): string
     {
