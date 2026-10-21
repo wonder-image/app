@@ -19,6 +19,7 @@ final class AccountPageSchema extends CustomPageSchema
             'password' => 'Password',
             'old-password' => 'Vecchia password',
             'new-password' => 'Nuova password',
+            'remember' => 'Ricordami per 30 giorni',
         ];
     }
 
@@ -49,6 +50,7 @@ final class AccountPageSchema extends CustomPageSchema
         return static::applyLabelSchema([
             'username' => FormField::key('username')->text()->label('Username o email')->required(),
             'password' => FormField::key('password')->password()->required(),
+            'remember' => FormField::key('remember')->checkbox(),
         ]);
     }
 

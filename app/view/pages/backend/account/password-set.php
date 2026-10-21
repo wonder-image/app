@@ -11,6 +11,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
 };
 ?>
 <form method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
+    <?=\Wonder\Http\Csrf::field()->render()?>
     <wi-card>
         <div class="d-grid col-12 mx-auto">
             <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="position-relative w-75 start-50 translate-middle-x d-none" ><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="position-relative w-75 start-50 translate-middle-x d-none">

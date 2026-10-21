@@ -9,7 +9,8 @@
     /**
      * Chiamata a reCAPTCHA Enterprise (assessments). Oltre a `valid` dice se
      * Google ha risposto davvero (`available`): la guardia salta la verifica
-     * quando non ha risposto (rete, 429, 5xx, 4xx diversi da 400).
+     * quando non ha risposto (rete, 429, 5xx, altri 4xx). 401/403 contano come
+     * risposta: chiave API o progetto sbagliati sono un errore di configurazione.
      */
     class reCAPTCHA {
 
@@ -53,7 +54,7 @@
 
         }
 
-        /** Risposta di Google → `valid`, `score`, `action`, `available`, `httpCode`, `result`. */
+        /** Risposta di Google → `valid`, `score`, `action`, `available`, `config`, `httpCode`, `result`. */
         public static function classify(array $response, int $httpCode): object {
 
             $properties = (array) ($response['tokenProperties'] ?? []);
@@ -64,7 +65,8 @@
                 'valid' => in_array($properties['valid'] ?? false, [true, 'true'], true),
                 'score' => is_numeric($score) ? (float) $score : null,
                 'action' => $action !== '' ? $action : null,
-                'available' => ($httpCode === 200 && $response !== []) || $httpCode === 400,
+                'available' => ($httpCode === 200 && $response !== []) || in_array($httpCode, [400, 401, 403], true),
+                'config' => in_array($httpCode, [401, 403], true),
                 'httpCode' => $httpCode,
                 'result' => $response,
             ];

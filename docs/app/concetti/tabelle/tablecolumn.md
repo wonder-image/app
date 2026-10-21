@@ -175,6 +175,7 @@ la cornice attorno alla tabella. Si costruisce con
 | `downloadFileName(string $filename)` | nome file export |
 | `downloadUsing(callable $handler)` | export con un gestore proprio: riceve il formato e invia il file |
 | `downloadAsText($enabled = true)` | ogni cella come testo: Excel non converte telefoni, CAP e codici in numeri, il CSV mette un apice davanti alle celle che iniziano con `=`, `+`, `-`, `@` |
+| `downloadFormulaSafe($enabled = true)` | attivo di serie: il CSV mette un apice davanti alle celle-formula (`=1+1`, `@x`), non ai numeri (`-5`, `+39`). `false` solo per CSV letti da programmi |
 
 ### Default
 
@@ -201,6 +202,8 @@ L'export della cornice si appoggia alla route `export` generata dalla Resource
 Per dati scritti da chi visita il sito (contatti, moduli pubblici) usare
 `downloadAsText()`: una cella `=HYPERLINK(...)` resta una scritta anche
 aperta in un foglio di calcolo (`Wonder\Backend\Support\SpreadsheetText`).
+Senza `downloadAsText()` il CSV neutralizza comunque le celle-formula
+(vedi [Sicurezza](../../piattaforma/sicurezza.md#export-csv)).
 
 ### Azioni custom nell'header
 

@@ -433,7 +433,8 @@ $ok = authenticateUser(
     $_POST['email'] ?? '',
     $_POST['password'] ?? '',
     'frontend',
-    [ 'client' ]
+    [ 'client' ],
+    \Wonder\Auth\RememberMe::requested($_POST)
 );
 
 if ($ok) {

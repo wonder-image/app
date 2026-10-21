@@ -137,15 +137,27 @@ scrivere:
 | Eliminazione da pagina (`POST /{id}/delete/`) e pagina-form (`submit`) | redirect con `FlashAlert::code(929)` |
 | Utenti (`UserManagementPageController`: creazione e modifica) | il form torna con l'alert `929` |
 | Account (`/backend/account/`: profilo e password) | alert `929`, nessuno dei due form scrive |
+| Login, recupero, restore e imposta password (`/backend/account/login/`, `password-recovery/`, `password-restore/`, `password-set/`) | alert `929`: nessun login tentato, nessuna mail, nessun token consumato |
 | Uploader massivo, file di configurazione | alert `929`, nessun file salvato |
 | `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
 | Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
 | Creazione rapida (`backend.resource.quick-create`) | `403` JSON, il controller non viene chiamato |
+| Logout (`POST /backend/account/logout/`) | alert `929` sulla pagina di conferma, nessun logout |
+| «Collega webhook» Stripe (`POST /api/service/stripe/connect/`, area backend, solo admin) | `403` sulla pagina di conferma, credenziali non toccate |
+
+Logout e «Collega webhook» in `GET` mostrano solo una pagina di conferma con un
+form `POST` e `_csrf`: non escono e non collegano nulla da soli, anche con
+`?_csrf=` nella query (il token conta solo dal corpo o da `X-WI-CSRF`). Nel menu
+del backend «Esci» è un form: in `sidebarOffcanvas()` una voce con
+`'method' => 'post'` diventa un form con `Csrf::fieldFor('post')` al posto del
+link. Il logout frontend (`AuthRoutes`, `/account/auth/logout/`) è già solo
+`POST` con `csrf_token`.
 
 Il codice `929` («Richiesta non valida») è in `notifications.json` e si
 mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
 di queste pagine portano già `_csrf` (`Csrf::field()` o `Csrf::fieldFor()`).
-Login e recupero password del backend non sono in questo elenco.
+Sulle pagine di login e password il controllo CSRF viene prima del throttle e
+della ricerca dell'utente.
 
 Nel form legacy (scritto dal sito, con la pagina che include
 `app/html/backend/index.php`) il token lo emette il core: il template chiama
@@ -183,6 +195,34 @@ visitatore. Il framework non può accorgersene: le pagine con un form o con il
 meta vanno escluse da quella regola.
 {% endhint %}
 
+## Cookie
+
+`Wonder\Http\Cookie` è l'unico punto che chiama `setcookie()` nel core. Ogni
+cookie esce con:
+
+| Attributo | Valore |
+| --- | --- |
+| `SameSite` | `Lax`: niente cookie su POST, iframe e fetch cross-site; i link e i redirect in GET li portano. |
+| `HttpOnly` | Sempre, salvo `Cookie::set($nome, $valore, $scadenza, '/', false)` per un cookie che il JS deve leggere. |
+| `Secure` | Quando la richiesta è HTTPS (`Cookie::isSecure()`). |
+| `Path` | `/` di default. |
+
+Il cookie di sessione usa `Cookie::sessionOptions(14400)` in
+`app/config/app/ini.php`; `visitor_id` (frontend) e i cookie remember-me passano
+da `Cookie::set()`/`Cookie::clear()`.
+
+### HTTPS dietro proxy
+
+Il core non ha un elenco di proxy fidati. `Cookie::isSecure()` guarda
+`$_SERVER['HTTPS']`; `X-Forwarded-Proto` conta solo se il `.env` ha
+`APP_TRUST_PROXY=true` (accetta anche `1`, `on`, `yes`), e allora decide il
+primo valore della catena. Accendilo solo se il sito è raggiungibile
+esclusivamente dal proxy: altrimenti un client può mandare l'header da sé.
+Senza flag, dietro un proxy che termina HTTPS i cookie escono senza `Secure`.
+
+`UrlParser::isHttpsRequest()` (URL assoluti) e `UrlParser::requestIp()` seguono
+lo stesso flag: senza `APP_TRUST_PROXY` ignorano `X-Forwarded-*`.
+
 ## Token già esistenti
 
 | Token | Stato |
@@ -198,4 +238,6 @@ meta vanno escluse da quella regola.
 - `class/Http/CsrfGuard.php`
 - `tests/Http/CsrfTest.php`
 - `tests/Http/BackendApiCsrfTest.php`
+- `class/Http/Cookie.php`
+- `tests/Http/CookieTest.php`
 - [Auth frontend e pannello account](../utenti/auth-frontend.md)
