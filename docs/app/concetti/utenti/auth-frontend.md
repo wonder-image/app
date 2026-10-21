@@ -157,9 +157,10 @@ loro route non si registrano. Il core usa solo `overview` e `personal`;
 non producono route, voci o righe. `billing` non ha una voce di menu: è la riga
 della fatturazione in «Dati personali», e toglierla dalle sezioni toglie la riga.
 La scheda `.wi-address-card--add` per aggiungere un indirizzo esce dallo stesso
-componente delle schede, `frontend.account.address-card`, con `add` (`href`,
-`modal`, `label`) al posto di `card`; il componente è del core, le pagine degli
-indirizzi del modulo.
+componente delle schede, `components/account/address-card.php` di
+`customer-account`, con `add` (`href`, `modal`, `label`) al posto di `card`:
+componente e pagine degli indirizzi sono del modulo, il core tiene solo
+`AccountAddressForm`, `AccountAddressValidation` e `AccountModal`.
 La stessa sottoclasse cambia `title()`, `authorities()` e `parentLayout()`; se
 sovrascrive un hook chiama `parent::`, altrimenti perde le estensioni dei moduli.
 Le viste del pannello sono sigillate: non si sostituiscono da `custom/`, si
@@ -364,6 +365,13 @@ i valori del proprio form. `AccountPersonal` salva nome e cellulare, passando da
 ganci delle estensioni (`validatePersonal()` prima, `personalUserValues()` e
 `afterPersonalSaved()` dopo), in una sola transazione con quanto scrivono: o
 tutto o niente. Il core conserva gli invarianti base su identità e cellulare.
+Il cellulare si salva canonico con `AuthValidator::canonicalPhone()`
+(`+39` + `333…` → `+39333…`); il modal lo rimostra diviso con
+`AuthValidator::localPhone($phone, $prefix)`, che toglie il prefisso solo da un
+numero che inizia con `+` e con quel prefisso (`+39333` → `333`, `333` resta
+`333`, `+44333` resta `+44333` se il prefisso è `+39`). Senza prefisso scelto si
+propone `AuthValidator::defaultPrefix()` (`Prettify\Phone::$defaultCountryCode`,
+`+39`).
 
 Il cambio email (`AccountEmail`) chiede la password attuale e manda alla nuova
 casella un link monouso (token `email_change`, 24 ore) a
@@ -515,8 +523,7 @@ di `APP_URL` (con o senza `www.`), stessa porta e senza credenziali; `//host`,
 `/\host`, schemi come `javascript:` e caratteri di controllo (CR/LF) tornano al
 fallback. `infoPage()` scarta già un `?redirect=` non valido (`$PAGE->redirect`
 e `redirectBase64` vuoti), quindi il login backend ripiega su `backend.home` e
-il salvataggio legacy sulla lista. `Wonder\Auth\Frontend\SafeRedirect` resta come
-alias deprecato.
+il salvataggio legacy sulla lista.
 
 Auth è `NOINDEX,FOLLOW`, account `NOINDEX,NOFOLLOW`, canonical senza query,
 un solo h1, breadcrumb SEO vuoto e nessun JSON-LD pubblico per queste pagine.

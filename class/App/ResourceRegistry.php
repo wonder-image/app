@@ -65,6 +65,7 @@ final class ResourceRegistry
                 }
             }
 
+            // Sostituire una chiave esistente ne conserva la posizione: conta per resolveByTable().
             $resources[$slug] = $resourceClass;
             $priorities[$slug] = $priority;
         }
@@ -108,6 +109,23 @@ final class ResourceRegistry
      * Ritorna `null` se nessuna Resource registrata mappa quella tabella:
      * la registrazione di consensi è polimorfica e può puntare anche a
      * tabelle senza Resource associata (raro ma legittimo).
+     *
+     * Precedenza se più Resource mappano la stessa tabella: vince la prima
+     * con `isTableFallback() === false` nell'ordine di `all()`; solo se non
+     * ce n'è nessuna, la prima fallback. Due non-fallback non sono un errore:
+     * vince la prima inserita.
+     *
+     * Ordine di `all()` (= ordine di inserimento):
+     * 1. Resource scoperte nelle cartelle: pacchetto `class/App/Resources`,
+     *    moduli, `ROOT/app/Resources`, `ROOT/custom/class/Resources`
+     *    (file in ordine alfabetico in ogni cartella). I moduli seguono
+     *    l'ordine delle chiavi di `custom/config/modules.php`
+     *    (`Module\Registry::enabled()` scorre `StateRepository::all()`), non
+     *    quello alfabetico di `Module\Registry::all()`;
+     * 2. Resource dei `resources.php` configurati (pacchetto, poi sito),
+     *    nell'ordine dell'array. Una classe già vista non si sposta.
+     * Se uno slug viene sostituito da una Resource con priorità più alta,
+     * la nuova prende la posizione della vecchia.
      *
      * @return class-string<Resource>|null
      */

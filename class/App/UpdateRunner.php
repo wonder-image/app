@@ -156,7 +156,7 @@ class UpdateRunner
             }
 
             // Le rinomine legacy precedono runTables(): creata vuota la tabella nuova, la vecchia non si migrerebbe più.
-            $result->stats->contact_tables = SharedContactTablesMigration::run($this->connection);
+            $result->stats->external_references = SharedContactTablesMigration::run($this->connection);
             $result->stats->module_migrations = $this->runModuleMigrations();
             $result->stats->tables = $this->runTables();
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);

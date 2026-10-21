@@ -53,8 +53,6 @@ check('fromBase64: path interno', fn () => SafeRedirect::fromBase64(base64_encod
 check('fromBase64: host esterno -> fallback', fn () => SafeRedirect::fromBase64(base64_encode('https://evil.com/'), '') === '');
 check('fromBase64: base64 non valido -> fallback', fn () => SafeRedirect::fromBase64('%%%not-base64', '') === '');
 
-check('alias Auth\\Frontend\\SafeRedirect', fn () => \Wonder\Auth\Frontend\SafeRedirect::fromRequest('//evil.com', '/f/') === '/f/');
-
 unset($_SERVER['HTTP_HOST']);
 
 check('infoPage: ?redirect= esterno viene scartato', function () {

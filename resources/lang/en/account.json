@@ -1,7 +1,7 @@
 {
     "title": "My account",
     "seo": {
-        "description": "Manage your personal details, addresses and payment methods."
+        "description": "Manage your personal details and addresses."
     },
     "overview": {
         "title": "Your account"
@@ -56,8 +56,6 @@
         "label": "Account navigation",
         "overview": "Overview",
         "personal": "Personal details",
-        "billing": "Billing",
-        "payment_methods": "Payment methods",
         "password": "Password",
         "logout": "Sign out"
     },
@@ -72,13 +70,6 @@
         "saved": "Your password has been updated.",
         "summary_set": "Set",
         "summary_missing": "Not set"
-    },
-    "payment_methods": {
-        "label": "Payment methods",
-        "title": "Payment methods",
-        "summary": "Managed securely through Stripe",
-        "pending": "The Stripe portal entry point is ready, but it remains disabled until the management module exposes the Stripe customer identifier.",
-        "ready": "You will be redirected to Stripe's secure portal to manage payment methods."
     },
     "pagination": {
         "summary": "Showing {{from}} to {{to}} of {{total}}",
