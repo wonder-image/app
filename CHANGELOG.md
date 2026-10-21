@@ -22,8 +22,10 @@
   opt-in con `APP_HSTS=true`. Backend e pagine con utente autenticato hanno
   `Cache-Control: no-store, private`. Forge aggiunge a `.htaccess` il blocco
   `WONDER SECURITY` (header per gli statici, deny di `.env`, log, dump,
-  manifest e cartelle interne) e toglie il vecchio blocco `Header always set`
-  con `X-XSS-Protection` se è identico a quello generato.
+  manifest e cartelle interne; `vendor/` è negata tranne gli asset statici di
+  `vendor/*/*/resources/assets/` e il generatore xml-sitemaps) e toglie il
+  vecchio blocco `Header always set` con `X-XSS-Protection` se è identico a
+  quello generato. Un sito che serve altri file da `/vendor/` riceve 403.
 - **Upload senza esecuzione di script (`C-UPL-3`).** Forge scrive il blocco
   `WONDER UPLOAD` in `assets/upload/.htaccess`.
 - **Errori SQL senza query (`C-SQL-I3`).** `Sql\Utility\Error` lancia

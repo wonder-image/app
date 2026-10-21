@@ -44,8 +44,15 @@ toccato:
     `generator.conf`, `forge`.
   - Cartelle negate: `.git/`, `.audit/`, `storage/`, `state/`, `tests/`,
     `docs/`, `node_modules/`, `lang/`, `handler/storage/`.
-  - `vendor/` non è negata: il generatore xml-sitemaps si raggiunge con un
-    URL diretto sotto `/vendor/` (punto aperto).
+  - `vendor/` è negata con due eccezioni:
+    - gli asset statici dei pacchetti sotto `vendor/<vendor>/<pacchetto>/resources/assets/`,
+      solo con estensione `css`, `js`, `map`, `woff`, `woff2`, `ttf`, `otf`,
+      `eot`, `png`, `jpg`, `jpeg`, `gif`, `webp`, `avif`, `svg`, `ico`. Restano
+      negati i `.php`, i nomi con doppia estensione script (`x.php.css`) e le
+      cartelle con un punto nel nome;
+    - la cartella del generatore xml-sitemaps,
+      `vendor/wonder-image/app/vendor-static/xml-sitemaps/`. Il suo
+      `generator.conf` resta negato per nome.
   - Funziona con Apache 2.2 e 2.4 (`Require all denied` oppure
     `Order allow,deny`).
 - `# WONDER UPLOAD START` / `END` in `assets/upload/.htaccess`: niente
@@ -69,12 +76,17 @@ block. Lo snippet seguente non viene applicato da Forge:
 ```nginx
 location ~ /\.(?!well-known/) { deny all; }
 location ~ ^/(storage|state|tests|docs|node_modules|lang|handler/storage|\.audit)(/|$) { deny all; }
+location ~ ^/vendor(/|$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\.(?:php\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\.|$))[^/]+\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)$|wonder-image/app/vendor-static/xml-sitemaps(/|$)) { deny all; }
 location ~ (^|/)(composer\.(json|lock)|package(-lock)?\.json|skills-lock\.json|sync-data\.json|generator\.conf|forge)$ { deny all; }
 location ~ \.(log|sql|sql\.gz|bak)$ { deny all; }
 location ^~ /assets/upload/ {
     location ~ \.(php\d?|phtml|phar|phps|pht|cgi|pl|py|sh)(\.|$) { deny all; }
 }
 ```
+
+nginx valuta le location con regex nell'ordine in cui compaiono e si ferma alla
+prima che corrisponde: metti queste regole prima della location che passa i
+`.php` a PHP-FPM, altrimenti un `.php` sotto `vendor/` viene eseguito.
 
 Herd (Valet) in locale serve qualunque file statico della cartella del sito.
 Le regole sopra valgono per i server pubblici.

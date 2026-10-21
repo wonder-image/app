@@ -79,7 +79,45 @@ check('deny con doppia sintassi Apache 2.2/2.4 e file/cartelle richiesti', funct
     foreach (['handler/index.php', 'assets/0.0/css/a.css', 'api/states/', 'app/docs/components/', 'vendor/wonder-image/app/resources/assets/logo.svg', 'storefront/'] as $p) {
         if (preg_match($dirRe, $p) === 1) { echo "    negato per errore: $p\n"; return false; }
     }
-    return !str_contains($b, 'vendor');
+    return true;
+});
+
+check('vendor/ negata tranne asset statici dei pacchetti e generatore xml-sitemaps', function () {
+    $b = Build::htaccessSecurityBlock();
+    if (preg_match('/RewriteRule (\^vendor[^ ]+) - \[F,L\]/', $b, $r) !== 1) { echo "    regola vendor assente\n"; return false; }
+    $re = '#'.$r[1].'#';
+    $allowed = [
+        'vendor/wonder-image/app/resources/assets/font/web/DMSans/dm-sans-latin-wght-normal.woff2',
+        'vendor/wonder-image/app/resources/assets/images/under-construction.png',
+        'vendor/wonder-image/app/resources/assets/logos/Wonder-Image-White.png',
+        'vendor/wonder-image/ecommerce/resources/assets/js/mini-cart.js',
+        'vendor/wonder-image/app/resources/assets/font/web/fonts.css',
+        'vendor/wonder-image/app/vendor-static/xml-sitemaps/',
+        'vendor/wonder-image/app/vendor-static/xml-sitemaps/index.php',
+        'vendor/wonder-image/app/vendor-static/xml-sitemaps',
+    ];
+    $denied = [
+        'vendor', 'vendor/', 'vendor/autoload.php', 'vendor/composer/installed.json',
+        'vendor/wonder-image/app/wonder-image.php',
+        'vendor/wonder-image/app/composer.json',
+        'vendor/wonder-image/app/resources/assets/font/Montserrat/montserrat.php',
+        'vendor/wonder-image/app/resources/assets/x.php.css',
+        'vendor/wonder-image/app/resources/assets/x.php/y.css',
+        'vendor/wonder-image/app/resources/assets/font/web/LICENSE',
+        'vendor/wonder-image/app/resources/assets/a.json',
+        'vendor/wonder-image/app/resources/views/x.css',
+        'vendor/wonder-image/app/vendor-static/xml-sitemaps-x/index.php',
+        'vendor/wonder-image/app/vendor-static/README.md',
+    ];
+    foreach ($allowed as $p) {
+        if (preg_match($re, $p) === 1) { echo "    negato per errore: $p\n"; return false; }
+    }
+    foreach ($denied as $p) {
+        if (preg_match($re, $p) !== 1) { echo "    non negato: $p\n"; return false; }
+    }
+    // generator.conf resta negato per nome anche dentro la cartella consentita.
+    preg_match('/<FilesMatch "(\^\(\\\\\.env[^"]+)">/', $b, $f);
+    return isset($f[1]) && preg_match('#'.$f[1].'#', 'generator.conf') === 1;
 });
 
 check('header statici solo fuori dai .php (lookahead del FilesMatch)', function () {

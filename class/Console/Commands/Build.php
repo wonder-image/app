@@ -392,6 +392,8 @@ HTACCESS;
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteRule ^(\\.git|\\.audit|storage|state|tests|docs|node_modules|lang|handler/storage)(/|\$) - [F,L]
+  # vendor/ negata, tranne gli asset statici dei pacchetti e il generatore xml-sitemaps.
+  RewriteRule ^vendor(/|\$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\\.(?:php\\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\\.|\$))[^/]+\\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)\$|wonder-image/app/vendor-static/xml-sitemaps(/|\$)) - [F,L]
 </IfModule>
 # WONDER SECURITY END
 HTACCESS;
