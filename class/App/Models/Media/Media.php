@@ -32,7 +32,7 @@ final class Media extends Model
             Field::key('name')->text()->required()->sanitizeFirst(),
             Field::key('alt')->text(),
             Field::key('type')->text()->required(),
-            Field::key('file')->text()->required(),
+            Field::key('file')->file()->required(),
         ];
     }
 }
