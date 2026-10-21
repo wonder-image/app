@@ -868,6 +868,9 @@
   `Impersonation::audit()` scrive in `auth_impersonation_audits.ip` il valore di
   `ClientIp::resolve()`: dietro proxy con `APP_TRUST_PROXY` è l'IP del client,
   non quello del proxy.
+- **Geolocalizzazione: IP da `ClientIp` (review `M4`).** `IPInfo` senza IP
+  esplicito usa `ClientIp::resolve()`: `X-Forwarded-For` e `Client-IP` non
+  contano più se `APP_TRUST_PROXY` è spento.
 - `ConfigCodec::context()` codifica con `JSON_THROW_ON_ERROR`: un contesto non
   codificabile lancia invece di diventare `''`.
 - `SSP::complex`: i binding di `whereAll` valgono anche per le query dei dati
