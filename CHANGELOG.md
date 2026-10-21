@@ -3,6 +3,23 @@
 ## Unreleased
 
 ### Breaking
+- **Sql: chiavi duplicate in `Query::bind()` (`C-SQL-I8`).** `':a'` e `'a'`
+  nello stesso array di parametri lanciano `RuntimeException`; prima vinceva
+  in silenzio l'ultima. Nessun chiamante fuori dal core usa `bind()`. Il
+  contratto degli argomenti grezzi di `Query` (chiavi delle condizioni,
+  `$attributes`, `$order`, `$column`, `JoinTable()`) è documentato in
+  `docs/app/piattaforma/sicurezza.md`.
+- **Sql: `ORDER BY` validato (`C-SQL-I6`).** `Query::Select()` e
+  `SelectForUpdate()` passano ordine e direzione da `Query::orderClause()`:
+  una direzione diversa da `ASC`/`DESC` (per esempio `'DESC, id'`, prima
+  accodata così com'era) ora lancia `RuntimeException`; maiuscole, minuscole
+  e spazi attorno sono normalizzati, null o vuota = nessuna. Lanciano anche
+  una direzione senza `$order` (prima SQL non valido) e un `$order` con `;`,
+  `--`, `#`, `/*` fuori dalle stringhe, con stringhe/backtick non chiusi o
+  con una `\` dentro una stringa (l'apice si raddoppia: `'it''s'`), tutto
+  prima della query. Le sottoquery `(SELECT ...)` restano ammesse: l'ordine
+  va sempre scelto dal codice da una whitelist, mai preso dall'input. I chiamanti verificati (core,
+  gestionale, ecommerce, siti) usano già solo `ASC`, `DESC` o null.
 - **Upload: `gif` e `svg` esclusi di default (`C-UPL-2`).** Un campo file
   senza `extensions` accetta la lista del tipo dell'input: `image` =
   `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` = l'unione. Con un
@@ -259,6 +276,22 @@
   successiva.
 
 ### Added
+- **`Stripe::clientConfig()` e `Stripe::httpClient()` (`C-CHK-I4`).** I
+  client del plugin (`Stripe`, `PaymentIntent`, `Connect`) hanno
+  `max_network_retries` 2 e la versione `2025-08-27.basil`; il `CurlClient`
+  condiviso dell'SDK passa a timeout 20 s e connessione 5 s (erano 80/30) e i
+  retry globali di `\Stripe\Stripe` salgono a 2, così le POST v1 senza
+  chiave ricevono l'`Idempotency-Key` automatica. Vale per tutto il processo,
+  anche per i `StripeClient` dei moduli creati dopo; uno senza
+  `clientConfig()` eredita i 2 retry solo se nasce dopo la prima chiamata a
+  `httpClient()`, quindi dipende dall'ordine di creazione. Un client HTTP
+  finto installato resta com'è.
+- **`Connect::addEvents()` e `Connect::events()` (`C-CHK-I3`).** I moduli
+  registrano al bootstrap gli eventi Stripe che gestiscono; «Collega webhook»
+  registra `Connect::EVENTS` più quelli aggiunti, senza doppioni.
+  `Connect::webhook($url, ?array $events = null)` accetta un elenco
+  esplicito. Il default del core resta di quattro eventi. Doc:
+  `docs/app/servizi/configurazione/pagamenti.md`.
 - **`Wonder\App\Security\SvgSanitizer::sanitize()`.** Pulisce un SVG via DOM
   (`LIBXML_NONET`, niente entità, solo namespace SVG) e restituisce `null` se
   non è valido;
@@ -678,6 +711,17 @@
   `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
+- **Escape della connessione al posto di `addslashes()` (`C-SQL-I5`).**
+  `FilterCustom::condition($options, $value, ?callable $escape = null)`:
+  `generate()` passa il `real_escape_string` della connessione del filtro;
+  senza `$escape` resta `addslashes()`, come prima. `Popup::currentForPageKey()`
+  costruisce la condizione con `Popup::pageKeyCondition()`, che lega i valori
+  con `Query::bind()`. Per i valori normali l'SQL è identico; con
+  `NO_BACKSLASH_ESCAPES` un apice non chiude più la stringa.
+  Nelle LIKE di `column_type` multiple `%`, `_` e `\` del valore vengono
+  escapati prima dell'escape della connessione: una barra (`\%`) non riattiva
+  più il jolly. Anche `Popup::pageKeyCondition()` escapa `%`, `_` e `\` della
+  chiave (e di `__all__`), che nel LIKE valgono come caratteri.
 - **Deprecato il default `$REMEMBER = true` di `authenticateUserLogin()` e
   `authenticateUser()`.** Il default resta per retrocompatibilità, ma i
   chiamanti devono passare la scelta esplicita (ad esempio
@@ -867,6 +911,13 @@
   (`ApiActivityTokenMigration`, statistica `api_activity_tokens`).
 
 ### Removed
+- **Backend: blocco `$USER_FILTER` di `app/html/backend/list.php`
+  (`C-SQL-I7`).** Costruiva `$QUERY_CUSTOM` concatenando `authority` e `area`
+  senza escape; nessuno imposta più `$USER_FILTER` dal commit 817af162 (core,
+  moduli menu/blog/gallery, siti verificati). Tolte anche le due righe che
+  passavano `user_area`/`user_authority` all'endpoint: `Table` li legge con
+  default vuoto, quindi il risultato non cambia. `app/function/backend/filter.php` è
+  marcato `@deprecated` e resta per compatibilità.
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
   `Wonder\App\Resources\Contacts\*`, `Wonder\Auth\Frontend\{ContactAccount,
   AccountAddresses,AccountBilling}`, le view degli indirizzi e le traduzioni

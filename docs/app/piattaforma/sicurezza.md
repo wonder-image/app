@@ -235,6 +235,42 @@ query, per esempio `near '...'`.
   (Consent Mode) e passa al dataLayer solo un hash dell'id utente. Vedi
   [Google Tag Manager](../servizi/google-tag-manager/configurazione.md#consenso-e-datalayer).
 
+## SQL
+
+I valori entrano nell'SQL con i segnaposto di `Query::bind()` o con l'escape
+della connessione (`real_escape_string`), mai con `addslashes()`: con
+`NO_BACKSLASH_ESCAPES` la barra non protegge l'apice. `FilterCustom` usa
+l'escape della sua connessione; `FilterCustom::condition()` chiamata da sola
+senza il terzo argomento resta su `addslashes()`. `Popup::pageKeyCondition()`
+lega la chiave della pagina con `Query::bind()`.
+
+Dentro un `LIKE` i valori passano prima da `addcslashes($v, '%_\\')` e poi
+dall'escape della connessione, in quest'ordine: al contrario una barra nel
+valore (`\%`) riattiverebbe il jolly. Così fanno `SSP`, le LIKE di
+`FilterCustom` con `column_type` multiple e `Popup::pageKeyCondition()`.
+
+L'ordinamento di `Query::Select()` (e di `Model::find()`, `sqlSelect()`)
+è un frammento scritto dal codice, mai preso dalla richiesta: se l'utente
+sceglie l'ordine, il codice mappa la sua scelta su una whitelist di
+frammenti fissi, come fa `CatalogFilter::applyOrder()` dell'ecommerce.
+Passa da `Query::orderClause()`, che non basta da sola contro l'input: le
+sottoquery `(SELECT ...)` restano ammesse, quindi un ordine costruito dalla
+richiesta permetterebbe comunque un'injection. `;`, `--`, `#`, `/*` fuori
+dalle stringhe, stringhe o backtick non chiusi e una `\` dentro una
+stringa (letta in modo diverso con `NO_BACKSLASH_ESCAPES`) lanciano
+`RuntimeException`; per un apice si raddoppia (`'it''s'`). La direzione
+accetta solo `ASC` o `DESC` (maiuscole o minuscole, spazi ignorati); vuota
+o null non aggiunge nulla, e una direzione senza ordine lancia
+`RuntimeException`.
+
+`Query::bind()` rifiuta la stessa chiave passata con e senza i due punti
+(`':a'` e `'a'`) invece di tenere in silenzio l'ultima. Nelle condizioni ad
+array di `Query` (`Select()`, `Count()`, `Sum()`, ...) l'escape copre solo i
+valori: le chiavi sono nomi di colonna (o una lista JSON per `CONCAT_WS`)
+scritti dal codice. Restano SQL grezzo scritto dal codice anche gli
+`$attributes` di `Select()`, `$order`, la `$column` di `Sum()` e `Count()` e
+tabelle e chiavi di `JoinTable()`: mai valori presi dalla richiesta.
+
 ## Log
 
 `Logger` scrive in `ROOT/storage/logs/` e non usa mai la cartella corrente.

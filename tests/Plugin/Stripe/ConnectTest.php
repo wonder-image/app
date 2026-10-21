@@ -155,4 +155,52 @@ check('la rotta connect vuole il token CSRF e non scrive il messaggio di Stripe 
         && !str_contains($risorsa, 'Csrf::token()');
 });
 
+
+check('webhook: un elenco esplicito sostituisce quello di default, senza doppioni', function () use ($http) {
+    $http->requests = [];
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => false, 'data' => []]);
+    $http->queue(200, ['id' => 'we_3', 'object' => 'webhook_endpoint', 'url' => URL, 'secret' => 'whsec_3']);
+
+    (new Connect('sk_test_prova', 'acct_test'))->webhook(URL, ['charge.refunded', 'payment_intent.succeeded', 'charge.refunded']);
+
+    return array_values($http->requests[1]['params']['enabled_events']) === ['charge.refunded', 'payment_intent.succeeded'];
+});
+
+check('webhook: elenco vuoto o eventi non validi si fermano prima di Stripe', function () use ($http) {
+    $http->requests = [];
+    $rifiutati = 0;
+
+    foreach ([[], [''], [42]] as $events) {
+        try {
+            (new Connect('sk_test_prova', 'acct_test'))->webhook(URL, $events);
+        } catch (InvalidArgumentException) {
+            $rifiutati++;
+        }
+    }
+
+    try {
+        Connect::addEvents(['  ']);
+    } catch (InvalidArgumentException) {
+        $rifiutati++;
+    }
+
+    return $rifiutati === 4 && $http->requests === [] && Connect::events() === Connect::EVENTS;
+});
+
+// Ultimo: addEvents resta registrato per il resto del processo.
+check('addEvents: i moduli aggiungono eventi a quelli di default, senza doppioni', function () use ($http) {
+    Connect::addEvents(['payment_intent.processing', 'charge.refunded']);
+    Connect::addEvents(['payment_intent.processing', 'charge.dispute.created']);
+
+    $http->requests = [];
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => false, 'data' => []]);
+    $http->queue(200, ['id' => 'we_4', 'object' => 'webhook_endpoint', 'url' => URL, 'secret' => 'whsec_4']);
+    (new Connect('sk_test_prova', 'acct_test'))->webhook(URL);
+
+    $atteso = [...Connect::EVENTS, 'payment_intent.processing', 'charge.dispute.created'];
+
+    return Connect::events() === $atteso
+        && array_values($http->requests[1]['params']['enabled_events']) === $atteso;
+});
+
 summary();

@@ -150,8 +150,8 @@
          * Sostituisce i segnaposto `?` (posizionali) e `:nome` con i valori
          * escapati: null → NULL, int/float → numero, bool → 1/0, stringa →
          * letterale quotato. I segnaposto dentro stringhe, identificatori e
-         * commenti restano intatti. Un segnaposto senza valore o un valore
-         * non usato lanciano RuntimeException.
+         * commenti restano intatti. Un segnaposto senza valore, un valore
+         * non usato o la stessa chiave con e senza `:` lanciano RuntimeException.
          *
          * @param array<int|string,mixed> $params chiavi intere per `?`, stringhe (con o senza `:`) per `:nome`
          */
@@ -165,7 +165,11 @@
                 if (is_int($key)) {
                     $positional[] = $value;
                 } else {
-                    $named[ltrim($key, ':')] = $value;
+                    $name = ltrim($key, ':');
+                    if (array_key_exists($name, $named)) {
+                        throw new RuntimeException('Query::bind: chiave :'.$name.' passata due volte.');
+                    }
+                    $named[$name] = $value;
                 }
             }
 
@@ -233,6 +237,30 @@
 
         }
 
+        /** Come quotedEnd(), ma null se la stringa aperta in $start non si chiude. */
+        private static function closingQuote( string $sql, int $start, string $quote ): ?int
+        {
+
+            $length = strlen($sql);
+
+            for ($i = $start + 1; $i < $length; $i++) {
+                if ($sql[$i] === '\\' && $quote !== '`') {
+                    $i++;
+                    continue;
+                }
+                if ($sql[$i] === $quote) {
+                    if ($i + 1 < $length && $sql[$i + 1] === $quote) {
+                        $i++;
+                        continue;
+                    }
+                    return $i;
+                }
+            }
+
+            return null;
+
+        }
+
         /** Indice del carattere che chiude la stringa/identificatore aperto in $start. */
         private static function quotedEnd( string $sql, int $start, string $quote ): int
         {
@@ -296,6 +324,73 @@
         public static function escapeIdentifier(string $identifier): string
         {
             return '`' . str_replace('`', '``', $identifier) . '`';
+        }
+
+        /**
+         * ` ORDER BY ...` di Select e SelectForUpdate. `$order` resta SQL
+         * scritto dal codice (colonne, espressioni, sottoquery) e va sempre
+         * scelto da una whitelist decisa dal codice, mai preso dalla
+         * richiesta: le sottoquery restano ammesse, quindi un order costruito
+         * dall'input permetterebbe injection booleane o a tempo. Esempio:
+         * `CatalogFilter::applyOrder()` di ecommerce mappa il parametro con un
+         * `match` su ordinamenti fissi. Fuori dalle stringhe non può avere
+         * `;`, `--`, `#` o `/*`; dentro le stringhe non può avere `\`, che
+         * con o senza NO_BACKSLASH_ESCAPES verrebbe letta in modo diverso. La
+         * direzione vale solo ASC o DESC, maiuscola o minuscola; null o vuota
+         * = nessuna; una direzione senza order non è ammessa. Il resto lancia
+         * RuntimeException prima della query.
+         */
+        public static function orderClause( ?string $order, ?string $orderDirection ): string
+        {
+
+            $clause = '';
+
+            if ($order !== null && trim($order) !== '') {
+
+                $length = strlen($order);
+
+                for ($i = 0; $i < $length; $i++) {
+
+                    $char = $order[$i];
+
+                    if ($char === "'" || $char === '"' || $char === '`') {
+                        $end = self::closingQuote($order, $i, $char)
+                            ?? throw new RuntimeException('Query: ORDER BY con una stringa non chiusa.');
+                        if ($char !== '`' && str_contains(substr($order, $i, $end - $i), '\\')) {
+                            throw new RuntimeException('Query: ORDER BY con \\ dentro una stringa non ammesso.');
+                        }
+                        $i = $end;
+                        continue;
+                    }
+
+                    if ($char === ';' || $char === '#' || substr($order, $i, 2) === '--' || substr($order, $i, 2) === '/*') {
+                        throw new RuntimeException('Query: ORDER BY con ; o commenti non ammesso.');
+                    }
+
+                }
+
+                $clause .= " ORDER BY $order";
+
+            }
+
+            if ($orderDirection !== null && trim($orderDirection) !== '') {
+
+                if ($clause === '') {
+                    throw new RuntimeException('Query: direzione ORDER BY senza colonne da ordinare.');
+                }
+
+                $direction = strtoupper(trim($orderDirection));
+
+                if ($direction !== 'ASC' && $direction !== 'DESC') {
+                    throw new RuntimeException('Query: direzione ORDER BY non valida, ammesse ASC e DESC.');
+                }
+
+                $clause .= " $direction";
+
+            }
+
+            return $clause;
+
         }
 
         /**
@@ -610,8 +705,7 @@
                 $query .= $this->informationSchema ? "INFORMATION_SCHEMA.$table" : self::escapeIdentifier($table);
             }
             $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
-            $query .= ($order == null) ? "" : " ORDER BY $order";
-            $query .= ($orderDirection == null) ? "" : " $orderDirection";
+            $query .= self::orderClause($order, $orderDirection);
             $safeLimit = self::sanitizeLimit($limit);
             $query .= ($safeLimit === '') ? "" : " LIMIT $safeLimit";
             $query .= $forUpdate ? " FOR UPDATE" : "";
