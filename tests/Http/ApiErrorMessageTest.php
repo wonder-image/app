@@ -79,7 +79,7 @@ check('Handler::run in sottoprocesso: body 500 con chiavi attese, stesso id nel 
     $dir = sys_get_temp_dir() . '/wi-api-err-' . bin2hex(random_bytes(4));
     mkdir($dir);
     $autoload = escapeshellarg(realpath(__DIR__ . '/../../vendor/autoload.php'));
-    $code = '$_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTP_X_REQUEST_ID"]="sub-77";'
+    $code = '$_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTP_X_REQUEST_ID"]="sub-77"; $GLOBALS["ROOT"]=getcwd();'
         . 'require ' . $autoload . ';'
         . '\Wonder\Api\Handler::run("/api/x/", "GET", null, function(){ throw new RuntimeException("SELECT segreto"); });';
     $cmd = 'cd ' . escapeshellarg($dir) . ' && APP_ENV=production APP_DEBUG=false php -d display_errors=0 -r ' . escapeshellarg($code) . ' 2>/dev/null';

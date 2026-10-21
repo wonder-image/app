@@ -165,14 +165,12 @@
 
             $host = self::$hostname ?? '-';
             $user = self::$username ?? '-';
-            $uri = $_SERVER['REQUEST_URI'] ?? '-';
+            $uri = \Wonder\App\LogRedactor::uri((string) ($_SERVER['REQUEST_URI'] ?? '-'));
             $pid = function_exists('getmypid') ? getmypid() : '-';
 
             $line = "[".date('Y-m-d H:i:s')."] [wonder-db] connect host=$host user=$user db=$database pid=$pid uri=$uri";
 
-            $logFile = rtrim(ROOT, "/")."/db-connections.log";
-            error_log($line."\n", 3, $logFile);
-        
+            \Wonder\App\Logger::append('db-connections', $line);
 
         }
 

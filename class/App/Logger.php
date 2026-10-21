@@ -45,9 +45,6 @@ class Logger
             'context' => self::normalizeContext(self::exceptionContext($exception) + $context),
         ];
 
-        $logPath = self::buildLogPath($file);
-        self::ensureDirectory($logPath);
-
         $encoded = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
             $encoded = json_encode([
@@ -60,7 +57,7 @@ class Logger
         }
 
         if (is_string($encoded)) {
-            error_log($encoded . PHP_EOL, 3, $logPath);
+            self::append($file, $encoded);
         }
 
         if ($renderDebug && self::isDebug()) {
@@ -84,20 +81,65 @@ class Logger
         return $message !== '' ? $message : '[messaggio non disponibile]';
     }
 
-    private static function buildLogPath(string $file): string
+    /**
+     * Aggiunge una riga a `ROOT/storage/logs/<file>.log` (cartella 0750, file
+     * 0640). Non lancia mai: senza root o senza permessi ripiega su error_log().
+     */
+    public static function append(string $file, string $line): void
     {
-        $root = defined('ROOT') ? (string) ROOT : (getcwd() ?: '.');
-        return rtrim($root, '/') . '/storage/logs/' . ltrim($file, '/') . '.log';
-    }
-
-    private static function ensureDirectory(string $logPath): void
-    {
-        $dir = dirname($logPath);
-        if (is_dir($dir)) {
+        $root = self::root();
+        if ($root === null) {
+            @error_log($line);
             return;
         }
 
-        @mkdir($dir, 0777, true);
+        $logPath = $root . '/storage/logs/' . ltrim($file, '/') . '.log';
+        $dir = dirname($logPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0750, true);
+        }
+
+        $isNew = !is_file($logPath);
+        if (!@error_log($line . PHP_EOL, 3, $logPath)) {
+            @error_log($line);
+            return;
+        }
+
+        if ($isNew) {
+            @chmod($logPath, 0640);
+        }
+    }
+
+    /** Root del sito: costante ROOT, poi $GLOBALS['ROOT'], poi la cartella con vendor/autoload.php. */
+    public static function root(): ?string
+    {
+        if (defined('ROOT') && (string) ROOT !== '') {
+            return rtrim((string) ROOT, '/');
+        }
+
+        $globalRoot = $GLOBALS['ROOT'] ?? null;
+        if (is_string($globalRoot) && $globalRoot !== '') {
+            return rtrim($globalRoot, '/');
+        }
+
+        // Prima lo script in esecuzione: __DIR__ può risolvere il symlink del pacchetto.
+        $starts = [];
+        $script = (string) ($_SERVER['SCRIPT_FILENAME'] ?? '');
+        if ($script !== '') {
+            $starts[] = dirname(realpath($script) ?: $script);
+        }
+        $starts[] = __DIR__;
+
+        foreach ($starts as $dir) {
+            for ($i = 0; $i < 8 && $dir !== '' && $dir !== '/' && $dir !== '.'; $i++) {
+                if (is_file($dir . '/vendor/autoload.php')) {
+                    return rtrim($dir, '/');
+                }
+                $dir = dirname($dir);
+            }
+        }
+
+        return null;
     }
 
     private static function normalizeLevel(string $level): string

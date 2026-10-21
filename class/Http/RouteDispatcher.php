@@ -3,6 +3,7 @@
 namespace Wonder\Http;
 
 use Throwable;
+use Wonder\App\LogRedactor;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Logger;
 use Wonder\Http\Exceptions\HttpException;
@@ -338,7 +339,7 @@ class RouteDispatcher
             [
                 'area' => $this->area,
                 'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? ''),
-                'uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+                'uri' => LogRedactor::uri((string) ($_SERVER['REQUEST_URI'] ?? '')),
                 'route' => $this->summarizeCurrentRoute(),
             ],
             false
