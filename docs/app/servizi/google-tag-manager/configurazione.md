@@ -43,3 +43,19 @@ Per i progetti Wonder il setup standard desiderato e':
 
 Nel tempo questo sostituira' progressivamente il vecchio blocco statistiche proprietario del framework.
 
+
+### Consenso e dataLayer
+
+Il layout frontend (`app/view/components/frontend/layout/head.php`) scrive,
+prima del loader GTM, lo script di `Wonder\Frontend\Support\DataLayer`:
+
+- `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
+  `ad_user_data` e `ad_personalization` a `denied` (Consent Mode). Il core non
+  ha un banner: il tag Iubenda in GTM aggiorna il consenso con
+  `gtag('consent', 'update', …)`;
+- `{ user: { id } }`, dove `id` è un HMAC dell'id utente con `APP_KEY` (32
+  caratteri esadecimali, stabile per utente), `null` senza utente o senza
+  `APP_KEY`. L'id numerico non arriva più al dataLayer.
+
+Il Meta Pixel (`Dev > API e servizi > Analitica`, `pixel_facebook`) è ancora
+emesso senza attendere il consenso.

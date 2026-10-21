@@ -13,6 +13,13 @@
   dal client, aggirava la lista IP.
   Senza il flag anche `__url()`, `currentBase()` e i redirect assoluti escono in
   `http://` dietro quel proxy.
+- **dataLayer: consenso negato di default e `user.id` come hash
+  (`C-ERR-I5`).** Prima del loader GTM il layout frontend emette
+  `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
+  `ad_user_data` e `ad_personalization` a `denied`: i tag Google aspettano
+  l'aggiornamento della CMP (Iubenda in GTM). `user.id` nel dataLayer è un
+  HMAC dell'id con `APP_KEY` (`DataLayer::userId()`), non più l'id numerico: le
+  variabili e i tag GTM che lo usano ricevono un valore diverso.
 - **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`
   con `_csrf` (o `X-WI-CSRF`); in `GET` mostra una pagina di conferma con il
   bottone «Esci» e non chiude più la sessione. Nel menu del core «Esci» è un
