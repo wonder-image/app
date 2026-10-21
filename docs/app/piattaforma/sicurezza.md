@@ -64,9 +64,10 @@ toccato:
     `Order allow,deny`).
 - `# WONDER UPLOAD START` / `END` in `assets/upload/.htaccess`: niente
   esecuzione di PHP o CGI, niente indice delle cartelle, niente `.ht*`.
-  I file `.svg` e `.svgz` escono con `Content-Security-Policy "sandbox"` e
-  `X-Content-Type-Options "nosniff"` (serve `mod_headers`): uno script
-  rimasto nel file non gira nemmeno aperto da solo nel browser.
+  Tutti i file escono con `X-Content-Type-Options "nosniff"`, così il
+  browser non indovina il tipo di un'estensione ignota; i `.svg` e `.svgz`
+  anche con `Content-Security-Policy "sandbox"` (serve `mod_headers`): uno
+  script rimasto nel file non gira nemmeno aperto da solo nel browser.
   Forge lo scrive solo se `assets/upload` esiste. Le righe custom dello
   stesso file restano.
 
@@ -119,6 +120,11 @@ Le regole sopra valgono per i server pubblici.
 `uploadFiles()` controlla ogni file con
 `Wonder\App\Support\UploadValidator::checkFormat()` prima di spostarlo:
 
+- un'estensione che non è solo lettere minuscole e cifre (`logo.svg `,
+  `logo.svg.`, con tab o altri caratteri di controllo) è rifiutata
+  (ALERT 921): la stessa estensione vale per il controllo, il sanitizer e il
+  nome del file salvato;
+
 - `extensions` esplicito nel campo (modello o input): l'estensione deve
   essere nella lista, altrimenti ALERT 921. Le estensioni del modello
   valgono anche quando l'input dichiara un tipo (`fileDragDrop('image')`).
@@ -154,7 +160,8 @@ Un `svg` ammesso da `extensions` passa da
   `embed`, `object`, gli attributi `on*`, i valori con `javascript:` o
   `vbscript:`, i valori con un `data:` non raster (`png`, `jpeg`, `gif`,
   `webp`) in qualsiasi punto, gli stili con `@import`, `url(javascript` o
-  `expression(` (anche scritti con escape CSS) e le processing instruction;
+  `expression(` (anche scritti con escape CSS), le processing instruction e
+  i commenti (`<!-->` chiuderebbe subito se lo SVG finisse inline in HTML);
 - un SVG senza nulla da togliere resta identico, byte per byte. Un SVG
   esportato da un editor con metadati propri (`sodipodi:`, `inkscape:`)
   perde quegli elementi.

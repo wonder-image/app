@@ -9,7 +9,8 @@
   tipo ignoto sono negati `php`, `php3`-`php8`, `phtml`, `phar`, `pht`,
   `phps`, `html`, `htm`, `xhtml`, `xht`, `shtml`, `mht`, `js`, `mjs`, `svg`,
   `svgz`, `xml`, `xsl`, `xslt`, `cgi`, `pl`, `py`, `sh`, `htaccess` e i file
-  senza estensione (ALERT 921); `svgz` è rifiutato anche se dichiarato. Le
+  senza estensione (ALERT 921); `svgz` è rifiutato anche se dichiarato, come
+  ogni estensione che non è `[a-z0-9]+` (`logo.svg `, `logo.svg.`). Le
   Resource Media Immagini e Icone accettano `png`, `jpg`, `jpeg`, `webp`:
   una gif o un svg caricati lì ora sono rifiutati. `finfo` rifiuta un file il
   cui contenuto non corrisponde all'estensione (ALERT 927). Le `extensions`
@@ -262,8 +263,9 @@
   (`LIBXML_NONET`, niente entità, solo namespace SVG) e restituisce `null` se
   non è valido;
   `uploadFiles()` lo applica a ogni svg ammesso da `extensions`. Il blocco
-  `WONDER UPLOAD` di `assets/upload/.htaccess` serve `.svg`/`.svgz` con
-  `Content-Security-Policy "sandbox"` e `nosniff` (al prossimo `forge update`).
+  `WONDER UPLOAD` di `assets/upload/.htaccess` serve ogni file con `nosniff`
+  e `.svg`/`.svgz` anche con `Content-Security-Policy "sandbox"` (al prossimo
+  `forge update`). Il sanitizer toglie anche i commenti XML.
 - **`UploadValidator::checkFormat()`** (whitelist, deny-list e `finfo` per
   `uploadFiles()`), `SpreadsheetText::formulaSafe()`/`formulaSafeMatrix()` e
   `TableLayoutSchema::downloadFormulaSafe()`.
