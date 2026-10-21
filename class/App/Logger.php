@@ -5,6 +5,8 @@ namespace Wonder\App;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Throwable;
+use Wonder\Http\RequestId;
+use Wonder\Sql\Utility\QueryException;
 
 /**
  * Logger applicativo minimale.
@@ -38,9 +40,9 @@ class Logger
             'file' => basename($path),
             'path' => $path,
             'line' => (int) $exception->getLine(),
-            'request_id' => (string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ($_SERVER['REQUEST_ID'] ?? '-')),
-            'trace_id' => (string) ($_SERVER['HTTP_TRACE_ID'] ?? ($_SERVER['TRACE_ID'] ?? '-')),
-            'context' => self::normalizeContext($context),
+            'request_id' => RequestId::current(),
+            'trace_id' => RequestId::trace(),
+            'context' => self::normalizeContext(self::exceptionContext($exception) + $context),
         ];
 
         $logPath = self::buildLogPath($file);
@@ -65,6 +67,15 @@ class Logger
             self::renderDebug($entry, $exception);
             exit();
         }
+    }
+
+    private static function exceptionContext(Throwable $exception): array
+    {
+        if ($exception instanceof QueryException) {
+            return [ 'query' => $exception->query() ];
+        }
+
+        return [];
     }
 
     private static function message(Throwable $exception): string

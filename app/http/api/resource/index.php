@@ -31,10 +31,25 @@ try {
         'response' => $exception->getMessage(),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (Throwable $throwable) {
-    http_response_code(\Wonder\Api\ErrorStatus::http((int) ($throwable->getCode() ?: 500)));
-    echo json_encode([
+    $errorCode = (int) ($throwable->getCode() ?: 500);
+    [$errorMessage, $errorRequestId] = \Wonder\Api\Handler::throwableResponse($errorCode, $throwable);
+
+    if ($errorRequestId !== null) {
+        \Wonder\App\Logger::log($throwable, 'api', 'resource_api', 'ERROR', 'error/api', [
+            'resource' => $resourceSlug,
+            'action' => $resourceAction,
+        ], false);
+    }
+
+    $errorPayload = [
         'success' => false,
-        'status' => (int) ($throwable->getCode() ?: 500),
-        'response' => $throwable->getMessage(),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        'status' => $errorCode,
+        'response' => $errorMessage,
+    ];
+    if ($errorRequestId !== null) {
+        $errorPayload['request_id'] = $errorRequestId;
+    }
+
+    http_response_code(\Wonder\Api\ErrorStatus::http($errorCode));
+    echo json_encode($errorPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
