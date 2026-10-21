@@ -259,6 +259,12 @@
   successiva.
 
 ### Added
+- **`Connect::addEvents()` e `Connect::events()` (`C-CHK-I3`).** I moduli
+  registrano al bootstrap gli eventi Stripe che gestiscono; «Collega webhook»
+  registra `Connect::EVENTS` più quelli aggiunti, senza doppioni.
+  `Connect::webhook($url, ?array $events = null)` accetta un elenco
+  esplicito. Il default del core resta di quattro eventi. Doc:
+  `docs/app/servizi/configurazione/pagamenti.md`.
 - **`Wonder\App\Security\SvgSanitizer::sanitize()`.** Pulisce un SVG via DOM
   (`LIBXML_NONET`, niente entità, solo namespace SVG) e restituisce `null` se
   non è valido;

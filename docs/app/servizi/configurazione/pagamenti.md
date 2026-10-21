@@ -5,6 +5,30 @@ Le credenziali Stripe, PayPal e Nexi si configurano nella pagina backend
 `Wonder\App\Credentials::api()` con la cascata `.env` → riga `security` →
 default vuoto.
 
+## Stripe
+
+«Collega webhook» (`POST /api/service/stripe/connect/`) rifà l'endpoint
+Connect dell'ambiente scelto con `Wonder\Plugin\Stripe\Connect`. Gli eventi
+registrati sono `Connect::events()`: i quattro di `Connect::EVENTS`
+(`payment_intent.succeeded`, `payment_intent.payment_failed`,
+`payment_intent.canceled`, `charge.refunded`) più quelli aggiunti dai moduli.
+Il core non conosce gli eventi dei moduli: un modulo che ne gestisce altri li
+registra al suo bootstrap, prima che il webhook venga collegato.
+
+```php
+use Wonder\Plugin\Stripe\Connect;
+
+Connect::addEvents(['payment_intent.processing']);
+```
+
+L'elenco è senza doppioni; stringhe vuote o non stringhe lanciano
+`InvalidArgumentException`. `webhook($url, $events)` accetta anche un elenco
+esplicito, che sostituisce quello composto. Dopo aver aggiunto eventi il
+webhook va ricollegato: l'endpoint già registrato su Stripe non cambia da
+solo. La creazione dell'endpoint non ha idempotency key: un doppio invio
+crea due endpoint per lo stesso url, e il collegamento successivo li
+cancella entrambi prima di crearne uno nuovo.
+
 ## PayPal
 
 | Proprietà | Variabile `.env` | Colonna `security` |
