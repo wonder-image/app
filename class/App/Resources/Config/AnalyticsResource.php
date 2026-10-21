@@ -6,7 +6,7 @@ use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
-use Wonder\Elements\Components\{ SectionTitle, Card };
+use Wonder\Elements\Components\{ SectionTitle, Card, HelpText };
 use Wonder\Elements\Form\Form;
 
 final class AnalyticsResource extends SingletonResource
@@ -67,6 +67,7 @@ final class AnalyticsResource extends SingletonResource
                 SectionTitle::make('Facebook')->columnSpan(12),
                 static::getInput('pixel_facebook')->columnSpan(8),
                 static::getInput('active_pixel_facebook')->columnSpan(4),
+                HelpText::make(e(__t('analytics.pixel.deprecated')))->columnSpan(12),
             ])->columns(12)->columnSpan(6),
         ])->columns(12);
     }

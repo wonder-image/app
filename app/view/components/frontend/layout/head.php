@@ -73,6 +73,7 @@
         && $ACTIVE_STATISTICS
         && (($SQL_ANALYTICS['active_tag_manager'] ?? '') === "" || ($SQL_ANALYTICS['active_tag_manager'] ?? '') === "true")
     ) ? true : false;
+    // Pixel: resta in $ANALYTICS per gli override dei siti, il core non lo emette.
     $ANALYTICS->pixel->id = $SQL_ANALYTICS['pixel_facebook'] ?? '';
     $ANALYTICS->pixel->active = (
         !empty($ANALYTICS->pixel->id)
@@ -269,22 +270,4 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 
 </script>
 
-<?php if ($ANALYTICS->pixel->active) : ?>
-<!-- Inizio Meta Pixel -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', <?=json_encode((string) $ANALYTICS->pixel->id, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>);
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=<?=e($ANALYTICS->pixel->id)?>&ev=PageView&noscript=1"
-/></noscript>
-<!-- Fine Meta Pixel -->
-<?php endif; ?>
+<?php // Meta Pixel: non più emesso dal core, va configurato come tag GTM soggetto al consenso. ?>

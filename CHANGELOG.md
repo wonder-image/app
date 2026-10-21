@@ -23,6 +23,13 @@
   lo usano ricevono un valore diverso. Con il modulo ecommerce richiede la
   versione con il fix `fix/2026-10-2d-datalayer` (ecommerce non manda più
   `user`); le versioni precedenti rimandano l'id in chiaro dopo il core.
+- **Meta Pixel non più emesso dal core.** Il layout frontend (`head.php`) non
+  stampa più lo script `fbq` né il `<noscript>` di `facebook.com/tr`, anche con
+  `pixel_facebook` compilato e attivo in `Dev > API e servizi > Analitica`:
+  partiva senza attendere il consenso. Il Pixel va configurato come tag GTM
+  bloccato dal consenso di Iubenda (docs GTM, «Meta Pixel in GTM»). Il campo
+  resta nel backend con un testo di aiuto e `$ANALYTICS->pixel` è ancora
+  calcolato per gli override dei siti; la rimozione del campo è in Fase 3.
 - **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`
   con `_csrf` (o `X-WI-CSRF`); in `GET` mostra una pagina di conferma con il
   bottone «Esci» e non chiude più la sessione. Nel menu del core «Esci» è un

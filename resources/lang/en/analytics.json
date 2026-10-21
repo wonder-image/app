@@ -1,0 +1,5 @@
+{
+    "pixel": {
+        "deprecated": "The core no longer outputs the Meta Pixel: set it up as a Google Tag Manager tag, blocked by the Iubenda consent. This field is kept only for sites that read it."
+    }
+}
