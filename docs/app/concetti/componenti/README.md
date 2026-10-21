@@ -627,8 +627,8 @@ Wonder le utility sono quelle della lib:
 | `bold()` | `fw-bold` | `fw-700` |
 | `small()` | `small` | `text-small` |
 | `muted()` | `text-body-secondary` | `tx-secondary` |
-| `color('x')` | `text-x` | `tx-x` |
-| `align()` | `text-<valore>` | `a-l` (`start`, `left`), `a-c` (`center`), `a-r` (`end`, `right`) |
+| `color('x')` | `text-x` | `tx-x`, solo se `x` è un ruolo della palette del sito (`color.css` dai token) |
+| `align()` | `text-<valore>` | `a-l` (`start`, `left`), `a-c` (`center`), `a-r` (`end`, `right`); `justify` non aggiunge classi |
 | `lead()` | `lead` | `subtitle` |
 | `italic()` | `fst-italic` | nessuna classe: la lib non ha una utility |
 
