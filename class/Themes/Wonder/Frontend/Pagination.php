@@ -38,7 +38,11 @@ class Pagination extends Component
 
         // Classi e attributi dati vanno sul tag esterno: il piede col riepilogo o l'elenco.
         if (!is_string($summary)) {
-            return '<ul '.$this->renderComponentAttributes($class, ['wi-pagination']).$ariaLabel.'>'.$items.'</ul>';
+            // Un aria-label dato con attr() vince su label(): uno solo sul tag.
+            $attributes = $schema['attributes'] ?? [];
+            $given = is_array($attributes) && in_array('aria-label', array_map('strtolower', array_map('strval', array_keys($attributes))), true);
+
+            return '<ul '.$this->renderComponentAttributes($class, ['wi-pagination']).($given ? '' : $ariaLabel).'>'.$items.'</ul>';
         }
 
         return '<div '.$this->renderComponentAttributes($class, ['wi-row-table__foot']).'>'

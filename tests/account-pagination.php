@@ -92,6 +92,10 @@ $check(Pagination::make(2, 3)->pageUrl(1) === '?page=1' && Pagination::make(2, 3
 
 // Una pagina sola (o nessuna): la generica non stampa nulla, a meno di hidden(false).
 $check(Pagination::make(1, 1)->render('wonder') === '' && Pagination::make(9, 0)->render('wonder') === '', 'Con una pagina sola la paginazione generica stampa qualcosa.');
+// Un aria-label dato con attr() vince su label() e non si ripete.
+$labelled = Pagination::make(2, 3)->label('Pagine')->attr('aria-label', 'Archivio')->render('wonder');
+$check(substr_count($labelled, '<ul ') === 1 && preg_match('/^<ul [^>]*>/', $labelled, $tag) === 1 && substr_count($tag[0], 'aria-label=') === 1 && str_contains($tag[0], 'aria-label="Archivio"'), 'L\'aria-label di attr() è ripetuto o perso sull\'elenco.');
+$check(str_contains(Pagination::make(2, 3)->label('Pagine <a>')->render('wonder'), '<ul class="wi-pagination" aria-label="Pagine &lt;a&gt;">'), 'Senza attr() l\'aria-label di label() manca.');
 $single = Pagination::make(9, 1)->hidden(false)->render('wonder');
 $check(substr_count($single, 'aria-disabled="true"') === 2 && str_contains($single, 'href="?page=1" aria-current="page">1</a>'), 'Mostrata con hidden(false), una pagina sola non ha le frecce spente.');
 $check(Pagination::make(2, 3)->summary('2 di 3 <ok>')->render('wonder') !== '' && str_starts_with(Pagination::make(2, 3)->summary('2 di 3 <ok>')->render('wonder'), '<div class="wi-row-table__foot"><span>2 di 3 &lt;ok&gt;</span><ul class="wi-pagination"'), 'Il riepilogo generico non apre il piede.');
