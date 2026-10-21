@@ -1,4 +1,5 @@
 {
+    "pagination": { "label": "Pages", "previous": "Previous page", "next": "Next page" },
     "code": { "copy": "Copy", "copied": "Copied" },
     "preview": { "open": "Open in a new tab", "scheme": "Switch light / dark", "unavailable": "Not available" },
     "media": { "load_content": "Load content", "image_missing": "Image not set" },
