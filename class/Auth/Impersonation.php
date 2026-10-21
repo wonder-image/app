@@ -269,7 +269,7 @@ final class Impersonation
             'actor_user_id' => $actorUserId,
             'subject_user_id' => $subjectUserId,
             'event' => $event,
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+            'ip' => \Wonder\Http\ClientIp::resolve(),
             'user_agent' => substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
             'metadata_json' => is_string($encoded) ? $encoded : '{}',
             'created_at' => date('Y-m-d H:i:s'),

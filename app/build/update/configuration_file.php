@@ -27,7 +27,7 @@
     $ROUTER_BLOCK .= "# WONDER ROUTER END";
 
     // --- .htaccess ---
-    // Se esiste già: aggiorna i blocchi WONDER ROUTER e PERFORMANCE (preserva
+    // Se esiste già: aggiorna i blocchi WONDER ROUTER, PERFORMANCE e SECURITY (preserva
     // personalizzazioni dell'utente). Se non esiste: crea da template
     // unico (Build::htaccessTemplate), con force-www parametrico.
 
@@ -72,12 +72,24 @@
             }
 
             $updatedContent = \Wonder\Console\Commands\Build::updateHtaccessPerformance((string) $updatedContent);
+            $updatedContent = \Wonder\Console\Commands\Build::updateHtaccessSecurity(
+                (string) $updatedContent,
+                \Wonder\Console\Commands\Build::hstsEnabled()
+            );
 
             // Pulizia: evita troppe righe vuote consecutive
             $updatedContent = preg_replace("/\n{3,}/", "\n\n", (string) $updatedContent);
 
             if (is_string($updatedContent) && $updatedContent !== $htaccessContent) {
                 file_put_contents($HTACCESS_PATH, $updatedContent);
+            }
+
+            // Vecchio blocco header modificato a mano: Forge non lo tocca, va tolto a mano.
+            $unmanagedHeaders = \Wonder\Console\Commands\Build::unmanagedHeaderSetLines((string) $updatedContent);
+            if ($unmanagedHeaders !== []) {
+                $headerWarning = "Attenzione: ".$HTACCESS_PATH." contiene righe `Header always set` fuori dai blocchi WONDER."
+                    ." Duplicano gli header di sicurezza: toglile a mano.\n  ".implode("\n  ", $unmanagedHeaders)."\n";
+                PHP_SAPI === 'cli' && defined('STDERR') ? fwrite(STDERR, $headerWarning) : error_log($headerWarning);
             }
         }
     }
@@ -88,11 +100,17 @@
         // Il flag force-www viene letto dalla variabile d'ambiente
         // APP_FORCE_WWW (impostata nel .env o nelle GitHub Actions vars).
         $forceWww = filter_var($_ENV['APP_FORCE_WWW'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
-        $htaccessContent = \Wonder\Console\Commands\Build::htaccessTemplate($forceWww);
+        $htaccessContent = \Wonder\Console\Commands\Build::htaccessTemplate(
+            $forceWww,
+            \Wonder\Console\Commands\Build::hstsEnabled()
+        );
 
         file_put_contents($HTACCESS_PATH, $htaccessContent.PHP_EOL);
 
     }
+
+    // --- assets/upload/.htaccess (blocco gestito, righe custom preservate) ---
+    \Wonder\Console\Commands\Build::writeUploadHtaccess($ROOT);
 
     // --- robots.txt ---
     // Scritto se manca o se è ancora quello generato (marcatore): chi lo

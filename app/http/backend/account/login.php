@@ -17,7 +17,7 @@ use Wonder\Http\SafeRedirect;
 
     } elseif (isset($_POST['login'])) {
 
-        if (authenticateUserLogin($_POST['username'] ?? '', $_POST['password'] ?? '', 'backend')) {
+        if (authenticateUserLogin($_POST['username'] ?? '', $_POST['password'] ?? '', 'backend', null, \Wonder\Auth\RememberMe::requested($_POST))) {
 
             header('Location: '.SafeRedirect::fromRequest($PAGE->redirect ?? '', __r('backend.home')));
 

@@ -108,8 +108,13 @@ Route::area('backend')
                     ->guarded(false)
                     ->permit([]);
 
+                // GET mostra la conferma, POST (con CSRF) esce.
                 Route::get('/logout/', $ROOT_APP.'/http/backend/account/logout.php')
                     ->name('logout')
+                    ->guarded(false)
+                    ->permit([]);
+
+                Route::post('/logout/', $ROOT_APP.'/http/backend/account/logout.php')
                     ->guarded(false)
                     ->permit([]);
 

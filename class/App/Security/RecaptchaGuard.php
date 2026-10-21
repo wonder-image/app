@@ -4,6 +4,7 @@ namespace Wonder\App\Security;
 
 use RuntimeException;
 use Throwable;
+use Wonder\App\Environment;
 use Wonder\App\Logger;
 use Wonder\Plugin\Google\Credentials as GoogleCredentials;
 use Wonder\Plugin\Google\Security\reCAPTCHA;
@@ -35,8 +36,11 @@ use Wonder\Plugin\Google\Security\reCAPTCHA;
  * `checkbox`, assente = `checkbox`). Punteggio sotto {@see minScore()} con la
  * chiave a casella configurata → segno in sessione e {@see RecaptchaChallenge}
  * (618: il form mostra la casella); senza chiave a casella → 617. Se l'engine
- * lancia o Google non risponde (rete, 429, 5xx, 4xx diversi da 400) la verifica
- * si salta (fail-open) con una riga di log.
+ * lancia o Google non risponde (rete, 429, 5xx) la verifica si salta
+ * (fail-open) con una riga di log; con {@see failClosed()} attivo dà invece
+ * 617. Un 401/403 di Google è un errore di configurazione (chiave API o
+ * progetto): 617, mai salto. Con `APP_ENV=local` la verifica si salta sempre,
+ * con una riga di log.
  */
 final class RecaptchaGuard
 {
@@ -76,6 +80,9 @@ final class RecaptchaGuard
 
     /** Chiavi `checkbox`/`score`; null = lazy dalle credenziali. */
     private ?array $siteKeys = null;
+
+    /** Google non raggiungibile → 617 invece del salto; null = `Environment::isProduction()`. */
+    private ?bool $failClosed = false;
 
     private function __construct(string $expectedAction)
     {
@@ -159,6 +166,17 @@ final class RecaptchaGuard
         return $this;
     }
 
+    /**
+     * Google non raggiungibile (eccezione, rete, 429, 5xx) → 617 invece del
+     * salto. Senza argomento vale solo in produzione (letto al `verify()`).
+     */
+    public function failClosed(?bool $value = null): self
+    {
+        $this->failClosed = $value;
+
+        return $this;
+    }
+
     /** Almeno una chiave reCAPTCHA configurata. */
     public static function configured(): bool
     {
@@ -195,6 +213,12 @@ final class RecaptchaGuard
      */
     public function verify(): void
     {
+        if (Environment::isLocal()) {
+            $this->skip('local_env', 'INFO', []);
+
+            return;
+        }
+
         $request = $this->request ?? $_POST;
 
         $token = trim((string) ($request[self::TOKEN_KEY] ?? ''));
@@ -234,6 +258,10 @@ final class RecaptchaGuard
             $engine = $this->engine ?? new reCAPTCHA();
             $result = $engine->verify($token, $expected, $keys[$type]);
         } catch (Throwable $exception) {
+            if ($this->closed()) {
+                $this->fail('engine_error', ['expected' => $expected, 'type' => $type, 'fail_closed' => true], $exception, null, 'ERROR');
+            }
+
             $this->skip('engine_error', 'ERROR', ['expected' => $expected, 'type' => $type], $exception);
 
             return;
@@ -242,7 +270,16 @@ final class RecaptchaGuard
         $httpCode = (int) ($result->httpCode ?? 200);
         $context = ['expected' => $expected, 'type' => $type, 'http_code' => $httpCode];
 
+        // Chiave API o progetto GCP sbagliati: errore di configurazione, non indisponibilità.
+        if (in_array($httpCode, [401, 403], true)) {
+            $this->fail('config', $context, null, null, 'ERROR');
+        }
+
         if (($result->available ?? true) === false) {
+            if ($this->closed()) {
+                $this->fail('engine_unavailable', $context + ['fail_closed' => true], null, null, 'ERROR');
+            }
+
             $level = in_array($httpCode, [0, 200, 429], true) || $httpCode >= 500 ? 'WARNING' : 'ERROR';
             $this->skip('engine_unavailable', $level, $context);
 
@@ -306,7 +343,7 @@ final class RecaptchaGuard
      * @param RuntimeException|null $error eccezione da lanciare al posto del 617
      * @return never
      */
-    private function fail(string $reason, array $context = [], ?Throwable $cause = null, ?RuntimeException $error = null): void
+    private function fail(string $reason, array $context = [], ?Throwable $cause = null, ?RuntimeException $error = null, string $level = 'WARNING'): void
     {
         $exception = $error ?? new RuntimeException($this->userMessage(), self::ERROR_CODE, $cause);
 
@@ -314,7 +351,7 @@ final class RecaptchaGuard
             $cause ?? $exception,
             $this->service,
             $this->logAction,
-            'WARNING',
+            $level,
             $this->logFile,
             array_merge($this->baseContext(), ['reason' => $reason], $context),
             false
@@ -335,6 +372,11 @@ final class RecaptchaGuard
             array_merge($this->baseContext(), ['reason' => $reason, 'skipped' => true], $context),
             false
         );
+    }
+
+    private function closed(): bool
+    {
+        return $this->failClosed ?? Environment::isProduction();
     }
 
     private function markChallenge(string $action): void
@@ -392,7 +434,7 @@ final class RecaptchaGuard
         $context = [
             'expected_action' => $this->expectedAction,
             'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
-            'remote_addr' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'remote_addr' => \Wonder\Http\ClientIp::resolve(),
         ];
 
         // Presenza credenziali: utile per diagnosticare misconfigurazioni

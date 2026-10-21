@@ -50,23 +50,14 @@ final class AuthController
                     $this->render('login', ['errors' => $errors]);
                     return;
                 }
-                $users = $this->profile->gateway();
-                $user = $users->findUserByEmail((string) ($_POST['email'] ?? ''));
-                $provider = is_array($user) && !$users->hasLocalPassword((int) ($user['id'] ?? 0))
-                    ? $this->federatedProviderForUser((int) ($user['id'] ?? 0))
-                    : null;
-
-                if ($provider !== null) {
-                    $this->render('login', [
-                        'alert' => $ALERT ?? null,
-                        'federated_error' => 'use_federated_login_'.$provider,
-                    ]);
-                    return;
-                }
-
-                if (\authenticateUserLogin($_POST['email'] ?? '', $_POST['password'] ?? '', $this->profile->area(), $this->profile->authorities())) {
+                if (\authenticateUserLogin($_POST['email'] ?? '', $_POST['password'] ?? '', $this->profile->area(), $this->profile->authorities(), $this->profile->remember($_POST))) {
                     AuthSession::queueEvent('login', 'password');
                     $this->redirect(SafeRedirect::fromRequest($_POST['continue'] ?? '', $this->profile->home()));
+                }
+
+                // Account solo federato: la pagina resta quella generica, l'indicazione va per mail.
+                if ((int) ($ALERT ?? 0) === 925) {
+                    $this->mailFederatedHint((string) ($_POST['email'] ?? ''));
                 }
             }
         }
@@ -108,10 +99,11 @@ final class AuthController
                 ]);
                 $created = \user($payload);
 
-                // Email di un account già attivo: errore sul campo, senza il testo generico del 906.
+                // Email già registrata: stessa risposta del caso nuovo, l'avviso va per mail.
                 if ((int) ($ALERT ?? 0) === 906) {
-                    $errors['email'] = 'exists';
                     $ALERT = null;
+                    $this->mailExistingAccount((string) ($payload['email'] ?? ''));
+                    $this->redirect($this->route('email.sent'));
                 } elseif (empty($ALERT) && (int) ($created->user->id ?? 0) > 0) {
                     if ($this->afterUserSaved((int) $created->user->id, 'signup-request', $_POST)) {
                         $this->redirect($this->route('email.sent'));
@@ -196,8 +188,8 @@ final class AuthController
 
                 if ($updated !== null && empty($ALERT) && ($updated->user->exists ?? false)) {
                     $loggedIn = $isFederated
-                        ? (new LegacySessionLoginAdapter())->loginUser((int) $updated->user->id, $this->profile->area(), ['provider' => $federatedProvider])
-                        : \authenticateUser('email', $updated->user->email, $_POST['password'], $this->profile->area(), $this->profile->authorities());
+                        ? (new LegacySessionLoginAdapter((bool) ($record->metadata['remember'] ?? false)))->loginUser((int) $updated->user->id, $this->profile->area(), ['provider' => $federatedProvider])
+                        : \authenticateUser('email', $updated->user->email, $_POST['password'], $this->profile->area(), $this->profile->authorities(), $this->profile->remember([]));
 
                     if ($loggedIn) {
                         if (!$isFederated || !empty($record->metadata['signup_event'])) {
@@ -356,12 +348,12 @@ final class AuthController
                         $result->userId,
                         null,
                         SafeRedirect::fromRequest($_POST['continue'] ?? '', $this->profile->home()),
-                        ['federated_provider' => $provider, 'signup_event' => $newAccount]
+                        ['federated_provider' => $provider, 'signup_event' => $newAccount, 'remember' => $this->profile->remember($_POST)]
                     );
                 $this->redirect($this->route('signup.completion').'?token='.rawurlencode($completion->token));
             }
 
-            if (!(new LegacySessionLoginAdapter())->loginUser($result->userId, $this->profile->area(), ['provider' => $provider])) {
+            if (!(new LegacySessionLoginAdapter($this->profile->remember($_POST)))->loginUser($result->userId, $this->profile->area(), ['provider' => $provider])) {
                 throw new \RuntimeException('federated_login_failed');
             }
             if ($newAccount) { AuthSession::queueEvent('sign_up', $provider); }
@@ -379,6 +371,56 @@ final class AuthController
         $this->redirect(($result->success ?? false)
             ? SafeRedirect::fromRequest($result->continue_url, '/')
             : $this->route('login'));
+    }
+
+    private function mailFederatedHint(string $email): void
+    {
+        $users = $this->profile->gateway();
+        $user = $users->findUserByEmail($email);
+        if (!is_array($user) || $users->hasLocalPassword((int) $user['id'])) {
+            return;
+        }
+        $provider = $this->federatedProviderForUser((int) $user['id']);
+        if ($provider === null) {
+            return;
+        }
+
+        \sendMail(
+            (string) ($GLOBALS['SOCIETY']->email ?? ''),
+            (string) $user['email'],
+            (string) __t('auth.email.federated_subject'),
+            (string) __t('auth.email.federated_body', ['provider' => ucfirst($provider), 'url' => $this->absolute($this->route('login'))])
+        );
+    }
+
+    private function mailExistingAccount(string $email): void
+    {
+        $email = strtolower(trim($email));
+        $area = $this->profile->area();
+
+        // Bucket proprio (limiti del recupero): oltre, nessuna mail e stessa risposta.
+        if (!LoginThrottle::check('signup', $email, \Wonder\Http\ClientIp::resolve())) {
+            AuthLog::write('signup_existing_throttled', null, $area, false, ['identifier' => $email]);
+            return;
+        }
+
+        $user = \infoUser($email, 'email');
+        $userId = null;
+        $mailSent = false;
+        if (($user->exists ?? false) && $this->profile->gateway()->canAccessArea((int) $user->id, $area, $this->profile->authorities())) {
+            $userId = (int) $user->id;
+            $mailSent = (bool) \sendMail(
+                (string) ($GLOBALS['SOCIETY']->email ?? ''),
+                $email,
+                (string) __t('auth.email.existing_subject'),
+                (string) __t('auth.email.existing_body', [
+                    'login' => $this->absolute($this->route('login')),
+                    'recovery' => $this->absolute($this->route('password.recovery')),
+                ])
+            );
+        }
+
+        AuthLog::write('signup_existing', $userId, $area, $mailSent, ['identifier' => $email]);
     }
 
     private function federatedProviderForUser(int $userId): ?string
@@ -439,6 +481,7 @@ final class AuthController
             RecaptchaGuard::for($this->profile->captchaAction($action))
                 ->withService('auth-'.$this->profile->key())
                 ->withLogAction($action)
+                ->failClosed()
                 ->verify();
 
             return true;

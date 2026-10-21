@@ -12,6 +12,12 @@ if (isset($_POST['modify']) && !\Wonder\Http\Csrf::verify()) {
     $ALERT = \Wonder\Backend\Support\ResourcePageController::CSRF_ALERT;
 } elseif (isset($_POST['modify'])) {
     $htaccess = (string) ($_POST['htaccess'] ?? '');
+    // I blocchi gestiti vengono riapplicati: il resto del file resta com'è.
+    $htaccess = \Wonder\Console\Commands\Build::updateHtaccessPerformance($htaccess);
+    $htaccess = \Wonder\Console\Commands\Build::updateHtaccessSecurity(
+        $htaccess,
+        \Wonder\Console\Commands\Build::hstsEnabled()
+    );
     $robots = (string) ($_POST['robots'] ?? '');
 
     $htaccessWritten = @file_put_contents($htaccessPath, $htaccess);

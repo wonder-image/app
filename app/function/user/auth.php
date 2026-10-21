@@ -86,7 +86,7 @@
             if ($authorization->alert() === 917) {
                 $separator = (strpos($login_redirect, '?') !== false) ? '&' : '?';
                 $login_redirect .= $separator."alert=917";
-                Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => $_SERVER['REQUEST_URI'] ?? '' ]);
+                Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => Wonder\App\LogRedactor::uri((string) ($_SERVER['REQUEST_URI'] ?? '')) ]);
             }
                 
             header("Location: $login_redirect");
@@ -124,6 +124,7 @@
         return 'username';
     }
 
+    // Default di `$REMEMBER` deprecato: passare la scelta esplicita.
     function authenticateUserLogin($VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null, bool $REMEMBER = true)
     {
 
@@ -132,7 +133,8 @@
         $key = resolveUserLoginIdentifierKey((string) $VALUE);
         $authenticated = authenticateUser($key, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED, $REMEMBER);
 
-        if (!$authenticated && in_array((int) ($ALERT ?? 0), [901, 904, 905], true)) {
+        // Stesso 925 per utente inesistente, password errata e registrazione senza password.
+        if (!$authenticated && in_array((int) ($ALERT ?? 0), [901, 904, 905, 924], true)) {
             $ALERT = 925;
         }
 
@@ -140,7 +142,7 @@
 
     }
 
-    // Login utente (remember-me automatico)
+    // Login utente. Default di `$REMEMBER` deprecato: passare la scelta esplicita.
     function authenticateUser($KEY, $VALUE, $PASSWORD, $AREA, $PERMIT_REQUIRED = null, bool $REMEMBER = true)
     {
 
@@ -166,6 +168,8 @@
         $reason = '';
 
         if (!$U->exists) {
+            // Verifica fittizia: stesso tempo di risposta di una password errata.
+            checkUserPassword($PASSWORD, dummyPasswordHash());
             $ALERT = ($KEY === 'email') ? 904 : 901;
             $reason = 'user_not_found';
             return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
@@ -173,6 +177,7 @@
 
         $passwordMissing = trim((string) ($U->password ?? '')) === '';
         if ($passwordMissing) {
+            checkUserPassword($PASSWORD, dummyPasswordHash());
             $ALERT = 924;
             $reason = 'partial_registration_password_missing';
             return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason);
@@ -218,15 +223,14 @@
             $logMeta = [
                 'authority' => $EMAIL_VERIFICATION['authority'] ?? '',
                 'flow' => (string) ($MAIL_RESULT->flow ?? ($EMAIL_VERIFICATION['flow'] ?? 'login')),
-                'requested_from_url' => (string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? '')),
+                'requested_from_url' => Wonder\App\LogRedactor::uri((string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? ''))),
                 'email_sent' => (bool) ($MAIL_RESULT->sent ?? false),
-                'verification_sent_link' => $sentLink,
             ];
 
             if (!($MAIL_RESULT->success ?? false)) {
                 $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
                 $reason = 'email_verification_mail_failed';
-                $logMeta['error'] = (string) ($MAIL_RESULT->message ?? '');
+                $logMeta['error'] = Wonder\App\LogRedactor::text((string) ($MAIL_RESULT->message ?? ''));
                 return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, $logMeta);
             }
 
@@ -272,7 +276,7 @@
         }
         Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
             'key' => $KEY,
-            'value' => $VALUE,
+            'value' => Wonder\App\LogRedactor::identifier((string) $VALUE),
         ]);
 
         return true;
@@ -296,7 +300,7 @@
     {
         $meta = [
             'key' => $KEY,
-            'value' => $VALUE,
+            'value' => Wonder\App\LogRedactor::identifier((string) $VALUE),
             'reason' => $reason,
             'identifier' => Wonder\Auth\LoginThrottle::identifier((string) $VALUE),
         ];

@@ -24,6 +24,10 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
             <?=$renderInput('password')?>
         </div>
 
+        <div class="col-12">
+            <?=$renderInput('remember')?>
+        </div>
+
         <div class="d-grid col-8 mx-auto">
             <?=submit('Accedi', 'login'); ?>
         </div>

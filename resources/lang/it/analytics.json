@@ -1,0 +1,5 @@
+{
+    "pixel": {
+        "deprecated": "Il core non emette più il Meta Pixel: configuralo come tag in Google Tag Manager, bloccato dal consenso di Iubenda. Questo campo resta solo per i siti che lo leggono."
+    }
+}

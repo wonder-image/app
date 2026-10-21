@@ -535,18 +535,54 @@ beta successiva. Al login riuscito un hash phpass o con parametri superati
 viene sostituito (`passwordNeedsRehash()`), con evento `password_rehash` in
 `auth_log`. Nessun reset forzato degli utenti esistenti.
 
+### Ricordami
+
+`AuthProfile::rememberMe()` decide il cookie "ricordami" (30 giorni,
+`RememberMe::ttlSeconds()`):
+
+| Valore | Comportamento |
+|---|---|
+| `optional` (default) | checkbox `remember` nel login, non spuntata; ricorda solo se spuntata |
+| `always` | nessuna checkbox, ricorda sempre |
+| `never` | nessuna checkbox, mai |
+
+La scelta vale anche per Google dal login: lo script federato copia la
+checkbox spuntata nel POST e, se serve completare la registrazione, viaggia nei
+metadati del token di completamento. Google dalla pagina di registrazione e il
+completamento con password non hanno checkbox: ricordano solo con `always`. Il
+login backend ha la stessa checkbox opt-in (`AccountPageSchema`), letta con
+`RememberMe::requested($_POST)`.
+
+### Enumerazione degli account
+
+Login e registrazione non dicono in pagina se un'email ha già un account.
+`authenticateUserLogin()` risponde `925` per utente inesistente (`901`/`904`),
+password errata (`905`) e registrazione senza password (`924`, anche
+l'email da verificare quando non c'è un `sent_link` verso cui reindirizzare).
+Un account solo Google/Apple riceve lo stesso `925`: il tentativo è contato
+come `login_failed` e l'indicazione «accedi con Google» arriva per mail
+(`auth.email.federated_*`), mai in pagina. La registrazione con un'email già
+registrata porta alla stessa pagina «controlla la tua email» del caso nuovo e
+spedisce la mail «hai già un account» (`auth.email.existing_*`) con i link a
+login e recupero password; la mail parte solo se l'account può accedere
+all'area del profilo, è contata nel bucket `signup` come `signup_existing`
+e, oltre il limite, non parte (`signup_existing_throttled`). Il bucket è
+separato da `recovery`: chi registra più volte l'email di un altro non gli
+blocca il recupero password.
+
 ### Throttle
 
 `Wonder\Auth\LoginThrottle::check($bucket, $identificatore, $ip)` conta le
 righe di `auth_log` in una finestra scorrevole sull'orologio del DB
 (`creation`), senza tabelle dedicate. Il core lo applica a login (frontend,
-backend, `/oauth/login`) e recupero password (frontend e backend); i moduli non
-lo duplicano.
+backend, `/oauth/login`), recupero password (frontend e backend) e mail «hai
+già un account» della registrazione frontend; i moduli non lo duplicano.
 
 | bucket | eventi contati | per identificatore | per IP |
 |---|---|---|---|
 | `login` | `login_failed` | 5 in 15 min | 20 in 15 min |
 | `recovery` | `recovery_request`, `password_recovery`, `recovery_unknown` | 3 in 15 min | 10 in 60 min |
+| `signup` | `signup_existing` | 3 in 15 min | 10 in 60 min |
 
 L'identificatore è email o username in minuscolo senza spazi, salvato in
 `meta.identifier`. Con `Environment::isLocal()` i tentativi sono x10. Oltre il

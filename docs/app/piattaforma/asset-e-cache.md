@@ -90,6 +90,11 @@ La cache lunga è sicura solo perché gli URL sono versionati. Se un sito emette
 css/js **senza** passare da `__asset()` / `__asset_version()` /
 `Dependencies`, quei file restano in cache fino a un anno: versiona sempre.
 
+Le risposte PHP del backend e del frontend con utente autenticato hanno
+`Cache-Control: no-store, private` (`Wonder\Http\SecurityHeaders`). Gli asset
+statici e le pagine anonime non cambiano. Vedi
+[Sicurezza HTTP, errori e log](sicurezza.md).
+
 ## root.css / color.css e il deploy
 
 Il flusso che mantiene allineati i CSS generati dal DB:

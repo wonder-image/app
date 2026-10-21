@@ -299,4 +299,24 @@ check('bootstrap di sessione senza impersonificazione: utente invariato', functi
     return ($_SESSION['user_id'] ?? 0) === 1 && $events() === [];
 });
 
+check('audit: con APP_TRUST_PROXY l\'ip è quello di ClientIp, non REMOTE_ADDR', function () use ($reset, $service) {
+    $reset();
+    $saved = [$_SERVER['REMOTE_ADDR'] ?? null, $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null, $_ENV['APP_TRUST_PROXY'] ?? null];
+    $_SERVER['REMOTE_ADDR'] = '10.0.0.1';
+    $_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1, 203.0.113.9';
+    $_ENV['APP_TRUST_PROXY'] = 'true';
+    $service->issue(1, 2);
+    $proxied = $GLOBALS['tAudits'][0]['ip'] ?? null;
+    $_ENV['APP_TRUST_PROXY'] = 'false';
+    $GLOBALS['tAudits'] = [];
+    $service->issue(1, 2);
+    $direct = $GLOBALS['tAudits'][0]['ip'] ?? null;
+    [$r, $x, $e] = $saved;
+    if ($r === null) { unset($_SERVER['REMOTE_ADDR']); } else { $_SERVER['REMOTE_ADDR'] = $r; }
+    if ($x === null) { unset($_SERVER['HTTP_X_FORWARDED_FOR']); } else { $_SERVER['HTTP_X_FORWARDED_FOR'] = $x; }
+    if ($e === null) { unset($_ENV['APP_TRUST_PROXY']); } else { $_ENV['APP_TRUST_PROXY'] = $e; }
+
+    return $proxied === '203.0.113.9' && $direct === '10.0.0.1';
+});
+
 summary();

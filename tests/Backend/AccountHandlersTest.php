@@ -4,6 +4,28 @@ declare(strict_types=1);
 
 require __DIR__.'/../../vendor/autoload.php';
 
+// Vista di login resa davvero; View finta perché il layout backend.auth qui non serve.
+if (($argv[1] ?? '') === '--view') {
+    eval(<<<'STUBS'
+        namespace Wonder\View {
+            final class View {
+                public static function layout(string $name): void { ob_start(); }
+                public static function end(): void { $GLOBALS['HTML'] = (string) ob_get_clean(); }
+            }
+        }
+        namespace {
+            function submit($label, $name) { return '<button name="'.$name.'">'.$label.'</button>'; }
+            function __r(string $name, array $params = []): string { return '/'.$name; }
+            function __t(string $key, array $params = []): string { return $key; }
+        }
+    STUBS);
+    $FORM_SCHEMA = \Wonder\App\PageSchema\AccountPageSchema::loginFormSchema();
+    $DEFAULT = (object) ['BeLogoBlack' => '', 'BeLogoWhite' => ''];
+    require __DIR__.'/../../app/view/pages/backend/account/login.php';
+    echo "\n@@".json_encode(['html' => $GLOBALS['HTML'] ?? '']);
+    exit;
+}
+
 // Handler account del backend (C-PWD-I4): ogni scenario gira in un processo
 // figlio perché gli handler chiudono con exit().
 if (($argv[1] ?? '') !== '--scenario') {
@@ -40,6 +62,18 @@ check('login: token valido → passa ad authenticateUserLogin', function () use 
 });
 
 check('login: token nell\'header X-WI-CSRF → passa ad authenticateUserLogin', fn () => ($run('login', 'header')['writes'] ?? []) === ['authenticateUserLogin']);
+
+// Remember-me opt-in (C-PWD-I7): senza checkbox niente cookie.
+check('login: checkbox non spuntata → authenticateUserLogin con remember false', fn () => ($run('login', 'valid')['remember'] ?? null) === false);
+check('login: checkbox spuntata → authenticateUserLogin con remember true', fn () => ($run('login', 'valid', 'remember')['remember'] ?? null) === true);
+check('login: la vista resa contiene la checkbox «remember» dello schema', function () {
+    $out = (string) shell_exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' --view 2>&1');
+    $pos = strrpos($out, "\n@@");
+    $html = $pos === false ? '' : (string) (json_decode(substr($out, $pos + 3), true)['html'] ?? '');
+
+    return preg_match('/<input type="checkbox"[^>]*name="remember"[^>]*value="true"/', $html) === 1
+        && preg_match('/<input[^>]*name="remember"[^>]*checked/', $html) === 0;
+});
 
 // Recupero: risposta 601 uniforme.
 $unknown = $run('recovery', 'valid', 'unknown');
@@ -160,6 +194,7 @@ function accountScenario(string $scenario, string $tokenMode, string $extra): vo
             'exited' => $GLOBALS['EXITED'],
             'status' => http_response_code(),
             'routes' => $GLOBALS['ROUTES'] ?? [],
+            'remember' => $GLOBALS['REMEMBER'] ?? null,
         ]);
         exec('rm -rf '.escapeshellarg($appDir));
     });
@@ -177,7 +212,7 @@ function accountScenario(string $scenario, string $tokenMode, string $extra): vo
     try {
         switch ($scenario) {
             case 'login':
-                $_POST = $csrf + ['login' => '1', 'username' => 'mario', 'password' => 'x'];
+                $_POST = $csrf + ['login' => '1', 'username' => 'mario', 'password' => 'x'] + ($extra === 'remember' ? ['remember' => 'true'] : ['remember' => '']);
                 accountInclude('login', $vars);
                 break;
             case 'recovery':
@@ -221,7 +256,11 @@ function accountStubs(): void
             function __r(string $name, array $params = []): string { $GLOBALS['ROUTES'][] = $name; return '/'.$name; }
             function sqlBind($sql, $params) { foreach ((array) $params as $p) { $sql = preg_replace('/\?/', "'".addslashes((string) $p)."'", $sql, 1); } return $sql; }
             function __t(string $key, array $params = []): string { return $key; }
-            function authenticateUserLogin($u, $p, $area) { $GLOBALS['W'][] = 'authenticateUserLogin'; return false; }
+            function authenticateUserLogin($u, $p, $area) {
+                $GLOBALS['W'][] = 'authenticateUserLogin';
+                $GLOBALS['REMEMBER'] = func_num_args() > 4 ? func_get_arg(4) : 'default';
+                return false;
+            }
             function verifyUser($key, $value, $area = null, $permit = null) {
                 $known = $key === 'id' || str_starts_with((string) $GLOBALS['MODE'], 'known');
                 if (!$known) { $GLOBALS['ALERT'] = 913; return (object) ['response' => false]; }

@@ -54,6 +54,12 @@ Le route non vengono dedotte dalla URL. L'`area` viene dichiarata nella route.
    o non vale)
 9. solo dopo un'autorizzazione riuscita viene incluso l'handler della route
 
+Se l'handler lancia un'eccezione, il dispatcher risponde 500. Sulle route API
+il messaggio dell'eccezione compare solo con il debug acceso; altrimenti
+`response` è `Errore interno.`. Ogni risposta 500 porta `request_id` e
+l'header `X-Request-Id`, che ritrovi nel log. Vedi
+[Sicurezza HTTP, errori e log](sicurezza.md).
+
 ## Autenticazione e autorizzazione delle route protette
 
 `Route::permit()` non esegue direttamente il controllo: salva le authority
@@ -172,6 +178,12 @@ Route::get('/user/{id}/', $ROOT_APP.'/http/backend/user/view.php')
 `->csrf()` (su gruppo o route) chiede la verifica del token CSRF prima
 dell'handler; `->csrf(false)` toglie una route da un gruppo che la chiede. Vedi
 [Token CSRF](../concetti/form/csrf.md#route-con-csrf).
+
+Un'azione che cambia stato non sta in `GET`: il token CSRF finirebbe nell'URL
+(cronologia, log, `Referer`). Il core registra la stessa path due volte, `GET`
+per una pagina di conferma e `POST` per l'azione, come
+`/backend/account/logout/` e `/api/service/stripe/connect/`. Vedi
+[Pagine backend del core](../concetti/form/csrf.md#pagine-backend-del-core).
 
 ### Traducibilità (`->translatable()`)
 
