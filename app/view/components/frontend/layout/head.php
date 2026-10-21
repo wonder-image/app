@@ -248,7 +248,9 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
                 echo "<noscript><link href='".$escapedFontLink."' rel='stylesheet'></noscript>";
             } else {
-                echo "<link href='".e($fontLink)."' rel='stylesheet'>";
+                // Il foglio locale è piccolo: inline, con gli url() dei woff2 resi assoluti.
+                echo Wonder\App\Support\Asset::inlineStyle($fontLink, null, null, 32768, true)
+                    ?? "<link href='".e($fontLink)."' rel='stylesheet'>";
             }
         }
     }

@@ -22,6 +22,8 @@
             $lightbox = !$contentMode && (bool) ($class->getSchema('lightbox') ?? false);
             \Wonder\App\Dependencies::swiper();
             if ($zoom || $lightbox) { \Wonder\App\Dependencies::fancyapps(); }
+            // Lo zoom impagina con le classi f-panzoom: il loro CSS serve subito.
+            if ($zoom) { \Wonder\App\Dependencies::blockingStyle('fancyapps'); }
             $group    = $class->getSchema('lightbox-group') ?? ($id . '-lightbox');
 
             $size      = (int) ($class->getSchema('size') ?? 1440);

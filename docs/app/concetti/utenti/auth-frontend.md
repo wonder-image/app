@@ -437,8 +437,8 @@ chi li importava passa a `Wonder\Plugin\CustomerAccount\…`. Il gestionale este
 i modelli del modulo nei suoi namespace; Contact aggiunge listino, metodo e
 termine di pagamento. Le sue resource e i vincoli commerciali restano nel
 gestionale. Non disabilitare il gestionale su un database operativo senza un
-backup e una verifica dello schema: Forge allinea le colonne al modello del
-modulo abilitato.
+backup (`php forge db:backup`) e una verifica dello schema: Forge allinea le
+colonne al modello del modulo abilitato.
 
 `AccountAddressForm::layout()` usa un singolo contenitore per cella e applica
 la visibilità condizionale dell'azienda alla cella intera, senza buchi nella

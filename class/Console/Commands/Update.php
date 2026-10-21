@@ -18,7 +18,8 @@ class Update extends Command
         $this
             ->setName($this->name)
             ->setDescription('Esegue update applicativo e task CLI locali opzionali')
-            ->addOption('local', null, InputOption::VALUE_NONE, 'Esegue anche i file di build/cli');
+            ->addOption('local', null, InputOption::VALUE_NONE, 'Esegue anche i file di build/cli')
+            ->addOption('no-backup', null, InputOption::VALUE_NONE, 'Salta il backup del database prima delle migrazioni');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -50,6 +51,7 @@ class Update extends Command
             'trigger_type' => 'cli',
             'source' => 'local',
             'include_cli_files' => (bool) $input->getOption('local'),
+            'backup' => !$input->getOption('no-backup'),
         ]);
 
         $output->writeln($runner->jsonPayload($result));
