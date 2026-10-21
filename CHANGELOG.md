@@ -905,6 +905,13 @@
   (`ApiActivityTokenMigration`, statistica `api_activity_tokens`).
 
 ### Removed
+- **Backend: blocco `$USER_FILTER` di `app/html/backend/list.php`
+  (`C-SQL-I7`).** Costruiva `$QUERY_CUSTOM` concatenando `authority` e `area`
+  senza escape; nessuno imposta più `$USER_FILTER` dal commit 817af162 (core,
+  moduli menu/blog/gallery, siti verificati). Tolte anche le due righe che
+  passavano `user_area`/`user_authority` all'endpoint: `Table` li legge con
+  default vuoto, quindi il risultato non cambia. `app/function/backend/filter.php` è
+  marcato `@deprecated` e resta per compatibilità.
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
   `Wonder\App\Resources\Contacts\*`, `Wonder\Auth\Frontend\{ContactAccount,
   AccountAddresses,AccountBilling}`, le view degli indirizzi e le traduzioni
