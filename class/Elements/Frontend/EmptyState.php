@@ -13,13 +13,15 @@ use Wonder\Elements\Concerns\Renderer;
  *
  *   EmptyState::make('Non hai ancora ordini.', 'bi bi-bag')
  *   EmptyState::make('Il carrello è vuoto.', 'bi bi-cart')
- *       ->title('Niente qui')->textClass('text tx-secondary')
+ *       ->title('Niente qui')->titleTag('h3')->textClass('text tx-secondary')
  *       ->action(Button::make('Vai al negozio')->href('/shop/'))
  *       ->attr('role', 'status')
  */
 class EmptyState extends Component
 {
     use HasPartAttributes, Renderer;
+
+    public const TITLE_TAGS = ['h2', 'h3', 'h4', 'h5', 'h6'];
 
     public function __construct(string $text = '', string $icon = '')
     {
@@ -41,6 +43,18 @@ class EmptyState extends Component
     public function title(string $title): static
     {
         return $this->schema('title', $title);
+    }
+
+    /** Il livello del titolo, da `h2` (default) a `h6`, per seguire i titoli della sezione. */
+    public function titleTag(string $tag): static
+    {
+        $tag = strtolower(trim($tag));
+
+        if (!in_array($tag, self::TITLE_TAGS, true)) {
+            throw new InvalidArgumentException("Il titolo di EmptyState va da h2 a h6, non «{$tag}».");
+        }
+
+        return $this->schema('title_tag', $tag);
     }
 
     public function text(string $text): static

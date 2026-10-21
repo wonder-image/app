@@ -26,7 +26,8 @@ class EmptyState extends Component
         }
 
         if ($title !== '') {
-            $html .= '<h2 '.$this->partAttributes($class, 'title', 'subtitle').'>'.$this->escape($title).'</h2>';
+            $tag = in_array($schema['title_tag'] ?? null, $class::TITLE_TAGS, true) ? $schema['title_tag'] : 'h2';
+            $html .= '<'.$tag.' '.$this->partAttributes($class, 'title', 'subtitle').'>'.$this->escape($title).'</'.$tag.'>';
         }
 
         if ($text !== '') {

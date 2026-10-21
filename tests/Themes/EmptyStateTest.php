@@ -35,6 +35,24 @@ check('wonder: le classi delle parti si aggiungono a quelle del tema', fn () =>
     EmptyState::make('x', 'bi bi-bag')->iconClass('tx-primary')->title('T')->titleClass('mb-2')->render('wonder')
         === '<div class="wi-empty-state"><i class="wi-empty-state__icon bi bi-bag tx-primary" aria-hidden="true"></i><h2 class="subtitle mb-2">T</h2><p>x</p></div>');
 
+check('wonder: titleTag() cambia il livello del titolo, h2 di default', fn () =>
+    EmptyState::make('x')->title('T')->titleTag('H3')->titleClass('mb-2')->render('wonder')
+        === '<div class="wi-empty-state"><h3 class="subtitle mb-2">T</h3><p>x</p></div>'
+    && str_contains(EmptyState::make('x')->title('T')->render('wonder'), '<h2 class="subtitle">T</h2>'));
+
+check('titleTag() fuori da h2-h6 è rifiutato', function () {
+    foreach (['h1', 'p', 'script', 'h7'] as $tag) {
+        try {
+            EmptyState::make('x')->titleTag($tag);
+
+            return false;
+        } catch (InvalidArgumentException) {
+        }
+    }
+
+    return true;
+});
+
 check("un'azione non renderizzabile è rifiutata", function () {
     try {
         EmptyState::make('x')->action(new stdClass());

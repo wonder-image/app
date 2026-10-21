@@ -652,6 +652,7 @@ EmptyState::make('Non hai ancora ordini.', 'bi bi-bag');
 
 EmptyState::make('Aggiungi qualche prodotto.', 'bi bi-cart')
     ->title('Il carrello è vuoto')          // <h2 class="subtitle">
+    ->titleTag('h3')                        // h2 di default, da h2 a h6
     ->textClass('text tx-secondary')        // classi sul <p>
     ->attr('role', 'status')
     ->action(Button::make('Vai al negozio')->href('/shop/'));
@@ -665,7 +666,9 @@ Pagination::account($pagination, $baseUrl);                          // pannello
   non si stampa. Titolo e testo si escapano. L'azione è un componente
   renderizzabile, di solito un `Button`. `iconClass()`, `titleClass()` e
   `textClass()` aggiungono classi alle parti (vedi «Classi delle parti»);
-  `attr()` e `addClass()` vanno sul contenitore.
+  `attr()` e `addClass()` vanno sul contenitore. `titleTag()` sceglie il livello
+  del titolo (`h2` di default, fino a `h6`; altri tag sono rifiutati): dentro un
+  pannello o un box che ha già un `h2` usa `h3`.
 - **Pagination** non fa query e non legge la richiesta: `make($page, $pages)`
   riceve pagina corrente e totale pagine (la pagina si riporta tra 1 e l'ultima).
   - `url(string $base, string $param = 'page')`: la prima pagina è la base, le
