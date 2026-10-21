@@ -73,6 +73,7 @@
         && $ACTIVE_STATISTICS
         && (($SQL_ANALYTICS['active_tag_manager'] ?? '') === "" || ($SQL_ANALYTICS['active_tag_manager'] ?? '') === "true")
     ) ? true : false;
+    // Pixel: resta in $ANALYTICS per gli override dei siti, il core non lo emette.
     $ANALYTICS->pixel->id = $SQL_ANALYTICS['pixel_facebook'] ?? '';
     $ANALYTICS->pixel->active = (
         !empty($ANALYTICS->pixel->id)
@@ -83,8 +84,7 @@
 ?>
 <?php $dataLayerFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR; ?>
 <script>
-window.dataLayer = window.dataLayer || [];
-window.dataLayer.push(<?=json_encode(['user' => ['id' => (int) ($_SESSION['user_id'] ?? 0) > 0 ? (int) $_SESSION['user_id'] : null]], $dataLayerFlags)?>);
+<?=\Wonder\Frontend\Support\DataLayer::bootstrapScript($_SESSION['user_id'] ?? null)?>
 <?php foreach (\Wonder\Auth\Frontend\AuthSession::consumeEvents() as $authEvent): ?>
 window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 <?php endforeach; ?>
@@ -248,7 +248,9 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
                 echo "<noscript><link href='".$escapedFontLink."' rel='stylesheet'></noscript>";
             } else {
-                echo "<link href='".e($fontLink)."' rel='stylesheet'>";
+                // Il foglio locale è piccolo: inline, con gli url() dei woff2 resi assoluti.
+                echo Wonder\App\Support\Asset::inlineStyle($fontLink, null, null, 32768, true)
+                    ?? "<link href='".e($fontLink)."' rel='stylesheet'>";
             }
         }
     }
@@ -268,22 +270,4 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 
 </script>
 
-<?php if ($ANALYTICS->pixel->active) : ?>
-<!-- Inizio Meta Pixel -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', <?=json_encode((string) $ANALYTICS->pixel->id, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>);
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=<?=e($ANALYTICS->pixel->id)?>&ev=PageView&noscript=1"
-/></noscript>
-<!-- Fine Meta Pixel -->
-<?php endif; ?>
+<?php // Meta Pixel: non più emesso dal core, va configurato come tag GTM soggetto al consenso. ?>

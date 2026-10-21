@@ -68,7 +68,7 @@ non passa da `error_reports`. La risposta al browser è sempre la stessa,
 `{"error":"Errore nel caricamento della tabella."}`, senza query né messaggio
 del database. Il dettaglio finisce in `storage/logs/error.log` tramite
 `Logger::log()`, con servizio `backend` e azione `list.table`. Solo con il
-debug attivo (`Debug::enabled()`: `APP_DEBUG`, o in locale) la risposta
+debug attivo (`Debug::enabled()`: `APP_DEBUG`, o `APP_ENV=local`) la risposta
 aggiunge la chiave `detail` con il messaggio.
 
 Prima di qualsiasi query, COUNT compreso, `ListProvider::fetch()` verifica la
@@ -79,3 +79,16 @@ canonica della tabella, allo schema (`custom[schema]`) e al campo
 campo o riusato con un'altra `config[table]` o un altro schema, la risposta è
 200 con `{"error":"Invalid table configuration signature.", "data":[]}` e
 il `draw` della richiesta: nessuna query parte.
+
+## Errori 500 delle API
+
+Sui 500 delle API (`RouteDispatcher`, `Wonder\Api\Handler`, API delle
+Resource, `api/app/update`) la risposta ha sempre `success`, `status` e
+`response`. Senza debug `response` è `Errore interno.`; aggiunge `request_id`
+e l'header `X-Request-Id`, che collegano la risposta alla riga di log. I 4xx
+non cambiano.
+
+Gli errori SQL lanciano `Wonder\Sql\Utility\QueryException`: il messaggio
+non contiene la query, che resta in `query()` e nel contesto del log. I log
+sono in `ROOT/storage/logs/`. Vedi
+[Sicurezza HTTP, errori e log](../piattaforma/sicurezza.md).

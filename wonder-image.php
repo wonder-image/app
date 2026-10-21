@@ -65,4 +65,6 @@
 
     if (isset($FRONTEND) && $FRONTEND) { require_once $ROOT_APP."/bootstrap/frontend.php"; }
 
+    \Wonder\Http\SecurityHeaders::apply(!empty($BACKEND), !empty($_SESSION['user_id']));
+
     \Wonder\App\LegacyGlobals::capture(get_defined_vars());

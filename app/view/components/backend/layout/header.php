@@ -153,8 +153,9 @@
         }
 
         $settingsItems[] = [
-            'title' => 'Esci',
+            'title' => __t('auth.logout.menu'),
             'link' => $PATH->backend.'/account/logout/',
+            'method' => 'post',
             'active' => false,
         ];
 

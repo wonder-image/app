@@ -75,7 +75,7 @@ final class ResourceDownloadController
 
         $filename = $this->resolveFilename($download);
 
-        $this->dispatch($format, $matrix, $filename, !empty($download['text']));
+        $this->dispatch($format, $matrix, $filename, !empty($download['text']), (bool) ($download['formula_safe'] ?? true));
     }
 
     /**
@@ -205,10 +205,10 @@ final class ResourceDownloadController
         return $this->slug.'-'.date('Y-m-d');
     }
 
-    private function dispatch(string $format, array $matrix, string $filename, bool $asText): void
+    private function dispatch(string $format, array $matrix, string $filename, bool $asText, bool $formulaSafe = true): void
     {
         match ($format) {
-            'csv' => arrayToCsv($asText ? SpreadsheetText::matrix($matrix) : $matrix, $filename),
+            'csv' => arrayToCsv($asText ? SpreadsheetText::matrix($matrix) : $matrix, $filename, $formulaSafe),
             'xlsx', 'xls' => arrayToXlsx($matrix, $filename, $asText),
             default => throw new RuntimeException("Dispatch export non implementato: {$format}"),
         };

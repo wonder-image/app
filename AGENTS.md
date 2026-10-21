@@ -319,6 +319,8 @@ php forge start
 
 - Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend(false)` is a temporary legacy opt-out; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
 
+- Managed `.htaccess` blocks: `WONDER PERFORMANCE`, `WONDER SECURITY` (headers for static files, deny of non-public files and internal folders; `vendor/` denied except static extensions under `vendor/*/*/resources/assets/` and the xml-sitemaps generator, so package assets served to the browser must live there) and `WONDER UPLOAD` in `assets/upload/.htaccess` (no script execution). PHP responses get the same headers from `Wonder\Http\SecurityHeaders` in the bootstrap. API 500s return a generic `response` unless `Debug::enabled()`, plus `request_id` / `X-Request-Id` (`Wonder\Http\RequestId`). `Logger` writes only under `ROOT/storage/logs/`; redact URIs and identifiers with `Wonder\App\LogRedactor`. See `docs/app/piattaforma/sicurezza.md`.
+
 - The framework version lives only in `composer.json` `"version"`. `Wonder\App\Version::get()` feeds `$APP_VERSION` / `APP_VERSION` (package manifest first, then `InstalledVersions`, then `dev`); `Version::label()` adds `dev-main@<hash>` for branch installs. Never hardcode it in `wonder-image.php`. Release from the package root with `composer release -- X.Y.Z` (script `bin/release.php`, gitignored and local-only) (or `X.Y.Z-beta.N`, `patch|minor|major`, `--dry-run`): it bumps composer.json, commits, tags `vX.Y.Z`, pushes and creates the GitHub (pre-)release. Tags must be `vX.Y.Z`, never `v.X.Y.Z`. See `docs/app/piattaforma/versioni-e-release.md`.
 
 - The minimum `wonder-image/lib` (npm) version lives only in `extra.wonder.lib`
@@ -353,9 +355,27 @@ php forge start
   never 500. Mint tokens with `ApiTokens::issue()` (random `jti`, `exp` from
   `API_TOKEN_TTL`, default 0 = none; `@system` always none) and rotate with
   `regenerateApiToken()`. Pages print `API_TOKEN = ApiTokens::pageToken()`,
-  a short-lived `typ: page` JWT bound to the `@system` token: never print
-  `Credentials::appToken()` in HTML. Server-only endpoints pass
-  `allowPageToken: false` to `Handler::run()`. `api_activity.token` stores only
+  a `typ: page` JWT (`API_PAGE_TOKEN_TTL`, default 3600) bound to the
+  `@system` token and, with an active session, to it through the `sid` claim
+  (HMAC of the session id; `BearerVerifier::verify(..., $sessionId)` rejects a
+  mismatch, sid-less legacy tokens live until `exp`): never print
+  `Credentials::appToken()` in HTML. Renewal is `POST /api/token/page/`
+  (route `token.page`, area `api`), no guard but `Wonder\Http\SameOrigin` and an active
+  session. Server-only endpoints pass `allowPageToken: false` to
+  `Handler::run()`.
+- Resource API routes: an action with no authorities in
+  `permissionSchema()->api(...)` is denied (403) and not registered; a declared
+  `apiSchema()->guard()` is an extra required authority; page tokens are
+  rejected unless `apiSchema()->allowPageToken()`. Checks live in
+  `Wonder\Api\Support\ResourceApiAccess`; never change
+  `Endpoint::resolveAuth([])`, which non-Resource handlers rely on.
+- Backend list mutations (`change/boolean`, `active`, `visible`, `delete`,
+  `move`, `file/delete`, `file/move`, `authority`) authorize through
+  `Wonder\Backend\Table\TableAuthorization` before any SQL: Resource tables
+  use `permissionSchema()->backend()` `update`/`delete`, legacy tables admin
+  only; file endpoints validate table/column (`format.file`) and folder
+  (`UploadDir::normalize`) with a generic 422; `authority` only on `user`,
+  never the caller's own row. `api_activity.token` stores only
   `ApiTokens::fingerprint()`; `ApiActivityTokenMigration` clears old bearers
   during `forge update`. See `docs/app/piattaforma/api.md#token`.
 - Request-supplied redirect targets (`continue`, backend `?redirect=` base64)

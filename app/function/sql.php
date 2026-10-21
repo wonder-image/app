@@ -495,7 +495,7 @@
 
     }
 
-    function sqlExport($table, $format) {
+    function sqlExport($table, $format, bool $formulaSafe = true) {
 
         $ARRAY_LABEL = [];
 
@@ -528,7 +528,7 @@
         $ARRAY = array_merge($ARRAY_LABEL, $ARRAY_VALUES);
         
         if ($format == 'csv') {
-            arrayToCsv($ARRAY, $table);
+            arrayToCsv($ARRAY, $table, $formulaSafe);
         } elseif ($format == 'xls') {
             arrayToXls($ARRAY, $table);
         }

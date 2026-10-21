@@ -5,6 +5,8 @@ namespace Wonder\App;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Throwable;
+use Wonder\Http\RequestId;
+use Wonder\Sql\Utility\QueryException;
 
 /**
  * Logger applicativo minimale.
@@ -38,13 +40,10 @@ class Logger
             'file' => basename($path),
             'path' => $path,
             'line' => (int) $exception->getLine(),
-            'request_id' => (string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ($_SERVER['REQUEST_ID'] ?? '-')),
-            'trace_id' => (string) ($_SERVER['HTTP_TRACE_ID'] ?? ($_SERVER['TRACE_ID'] ?? '-')),
-            'context' => self::normalizeContext($context),
+            'request_id' => RequestId::current(),
+            'trace_id' => RequestId::trace(),
+            'context' => self::normalizeContext(self::exceptionContext($exception) + $context),
         ];
-
-        $logPath = self::buildLogPath($file);
-        self::ensureDirectory($logPath);
 
         $encoded = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
@@ -58,7 +57,7 @@ class Logger
         }
 
         if (is_string($encoded)) {
-            error_log($encoded . PHP_EOL, 3, $logPath);
+            self::append($file, $encoded);
         }
 
         if ($renderDebug && self::isDebug()) {
@@ -67,26 +66,79 @@ class Logger
         }
     }
 
+    private static function exceptionContext(Throwable $exception): array
+    {
+        if ($exception instanceof QueryException) {
+            return [ 'query' => $exception->query() ];
+        }
+
+        return [];
+    }
+
     private static function message(Throwable $exception): string
     {
         $message = trim($exception->getMessage());
         return $message !== '' ? $message : '[messaggio non disponibile]';
     }
 
-    private static function buildLogPath(string $file): string
+    /**
+     * Aggiunge una riga a `ROOT/storage/logs/<file>.log` (cartella 0750, file
+     * 0640). Non lancia mai: senza root o senza permessi ripiega su error_log().
+     */
+    public static function append(string $file, string $line): void
     {
-        $root = defined('ROOT') ? (string) ROOT : (getcwd() ?: '.');
-        return rtrim($root, '/') . '/storage/logs/' . ltrim($file, '/') . '.log';
-    }
-
-    private static function ensureDirectory(string $logPath): void
-    {
-        $dir = dirname($logPath);
-        if (is_dir($dir)) {
+        $root = self::root();
+        // Nome file con `..`: niente traversal fuori da storage/logs.
+        if ($root === null || str_contains($file, '..')) {
+            @error_log($line);
             return;
         }
 
-        @mkdir($dir, 0777, true);
+        $logPath = $root . '/storage/logs/' . ltrim($file, '/') . '.log';
+        $dir = dirname($logPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0750, true);
+        }
+
+        $isNew = !is_file($logPath);
+        if (!@error_log($line . PHP_EOL, 3, $logPath)) {
+            @error_log($line);
+            return;
+        }
+
+        if ($isNew) {
+            @chmod($logPath, 0640);
+        }
+    }
+
+    /**
+     * Root del sito: costante ROOT, poi $GLOBALS['ROOT'], poi la prima cartella
+     * con vendor/autoload.php sopra lo script in esecuzione; altrimenti null.
+     */
+    public static function root(): ?string
+    {
+        if (defined('ROOT') && (string) ROOT !== '') {
+            return rtrim((string) ROOT, '/');
+        }
+
+        $globalRoot = $GLOBALS['ROOT'] ?? null;
+        if (is_string($globalRoot) && $globalRoot !== '') {
+            return rtrim($globalRoot, '/');
+        }
+
+        // Niente fallback su __DIR__: col pacchetto in symlink porterebbe fuori dal sito.
+        $script = (string) ($_SERVER['SCRIPT_FILENAME'] ?? '');
+        if ($script !== '') {
+            $dir = dirname(realpath($script) ?: $script);
+            for ($i = 0; $i < 8 && $dir !== '' && $dir !== '/' && $dir !== '.'; $i++) {
+                if (is_file($dir . '/vendor/autoload.php')) {
+                    return rtrim($dir, '/');
+                }
+                $dir = dirname($dir);
+            }
+        }
+
+        return null;
     }
 
     private static function normalizeLevel(string $level): string

@@ -3,9 +3,11 @@
 namespace Wonder\App;
 
 /**
- * Gate di debug condiviso: unica fonte di verità per APP_DEBUG + fallback
- * localhost. Estratto da RouteDispatcher::debugEnabled() per evitare la
- * duplicazione tra dispatcher e diagnostica.
+ * Gate di debug condiviso: unica fonte di verità per il debug.
+ *
+ * `APP_DEBUG` impostato vince sempre (anche `false`); se manca vale
+ * `APP_ENV=local`. Nessun fallback su `REMOTE_ADDR`/`SERVER_NAME`: dietro
+ * un reverse proxy la richiesta arriva da 127.0.0.1 anche in produzione.
  */
 final class Debug
 {
@@ -17,6 +19,11 @@ final class Debug
             return self::$enabled;
         }
 
+        // Senza il .env caricato una chiamata precoce memorizzerebbe il default.
+        if (class_exists(Credentials::class)) {
+            Credentials::loadEnv();
+        }
+
         $env = $_ENV['APP_DEBUG'] ?? ($_SERVER['APP_DEBUG'] ?? null);
 
         if (is_bool($env)) {
@@ -25,16 +32,11 @@ final class Debug
 
         $envValue = strtolower(trim((string) $env));
 
-        if (in_array($envValue, ['1', 'true', 'on', 'yes'], true)) {
-            return self::$enabled = true;
+        if ($envValue !== '') {
+            return self::$enabled = in_array($envValue, ['1', 'true', 'on', 'yes'], true);
         }
 
-        $remoteAddr = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
-        $serverName = trim((string) ($_SERVER['SERVER_NAME'] ?? ''));
-
-        return self::$enabled =
-            in_array($remoteAddr, ['127.0.0.1', '::1'], true)
-            || in_array($serverName, ['127.0.0.1', 'localhost'], true);
+        return self::$enabled = Environment::isLocal();
     }
 
     /** Azzera la memoizzazione (uso nei test). */

@@ -180,7 +180,9 @@
                 $this->auth,
                 $this->ip,
                 $this->domain,
-                $this->allowPageToken
+                $this->allowPageToken,
+                null,
+                ApiTokens::currentSessionId()
             );
 
             $this->user = $verified->user;
@@ -189,6 +191,12 @@
             $this->tokenId = $verified->tokenId;
             $this->tokenKind = $verified->kind;
 
+        }
+
+        /** @return list<string> authority possedute dall'utente API del token. */
+        public function userAuthorities(): array
+        {
+            return array_values(array_map('strval', (array) ($this->user->authority ?? [])));
         }
 
         /** true se la richiesta usa il token di pagina stampato in `API_TOKEN`. */

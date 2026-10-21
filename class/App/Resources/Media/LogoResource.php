@@ -81,6 +81,7 @@ final class LogoResource extends SingletonResource
     public static function apiSchema(): ApiSchema
     {
         return ApiSchema::for(static::class)
+            ->only(['show', 'update'])
             ->fields('show', ['id', 'main', 'black', 'white', 'icon', 'icon_black', 'icon_white', 'favicon', 'app_icon'])
             ->fields('update', ['main', 'black', 'white', 'icon', 'icon_black', 'icon_white', 'favicon', 'app_icon']);
     }

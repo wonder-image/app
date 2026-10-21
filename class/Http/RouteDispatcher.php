@@ -3,6 +3,7 @@
 namespace Wonder\Http;
 
 use Throwable;
+use Wonder\App\LogRedactor;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Logger;
 use Wonder\Http\Exceptions\HttpException;
@@ -81,6 +82,9 @@ class RouteDispatcher
 
             $this->bootApplication($route);
 
+            // Dopo la sessione e l'autorizzazione, prima di qualsiasi handler.
+            CsrfGuard::enforce($route);
+
             // Override lingua post-bootApplication se la route matched è una
             // variante tradotta: l'URL vince sulla preferenza utente.
             if (!empty($route['_locale']) && is_string($route['_locale'])) {
@@ -135,7 +139,7 @@ class RouteDispatcher
 
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization, Mcp-Protocol-Version, Mcp-Session-Id');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-WI-CSRF, Mcp-Protocol-Version, Mcp-Session-Id');
         header('Access-Control-Expose-Headers: WWW-Authenticate, Mcp-Session-Id');
         header('Content-Type: application/json; charset=utf-8');
 
@@ -273,9 +277,10 @@ class RouteDispatcher
     {
         $this->logThrowable($throwable);
 
+        // Il messaggio può contenere query o percorsi: al client solo con debug.
         $this->fail(
             500,
-            $this->area === 'api' ? $throwable->getMessage() : '',
+            $this->area === 'api' && $this->debugEnabled() ? $throwable->getMessage() : '',
             $throwable
         );
     }
@@ -284,9 +289,14 @@ class RouteDispatcher
     {
         http_response_code($status);
 
+        $requestId = $status >= 500 ? RequestId::current() : null;
+        if ($requestId !== null && !headers_sent()) {
+            header('X-Request-Id: '.$requestId);
+        }
+
         if ($this->area === 'api') {
             echo json_encode(
-                HttpErrorResponse::jsonPayload($status, $message),
+                HttpErrorResponse::jsonPayload($status, $message, $requestId),
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             );
             exit();
@@ -314,21 +324,8 @@ class RouteDispatcher
 
     private function ensureRequestIdentifiers(): void
     {
-        $requestId = trim((string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ($_SERVER['REQUEST_ID'] ?? '')));
-        if ($requestId === '') {
-            try {
-                $requestId = bin2hex(random_bytes(8));
-            } catch (Throwable) {
-                $requestId = uniqid('req_', true);
-            }
-        }
-
-        $_SERVER['REQUEST_ID'] = $requestId;
-
-        $traceId = trim((string) ($_SERVER['HTTP_TRACE_ID'] ?? ($_SERVER['TRACE_ID'] ?? '')));
-        if ($traceId === '') {
-            $_SERVER['TRACE_ID'] = $requestId;
-        }
+        RequestId::current();
+        RequestId::trace();
     }
 
     private function logThrowable(Throwable $throwable): void
@@ -342,7 +339,7 @@ class RouteDispatcher
             [
                 'area' => $this->area,
                 'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? ''),
-                'uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+                'uri' => LogRedactor::uri((string) ($_SERVER['REQUEST_URI'] ?? '')),
                 'route' => $this->summarizeCurrentRoute(),
             ],
             false

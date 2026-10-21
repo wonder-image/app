@@ -60,6 +60,14 @@ file_put_contents($sandbox.'/assets/lib/wonder-image/dist/lib/swiperjs/swiper.cs
 Dependencies::swiper();
 has('frontend inlines Swiper CSS by default', Dependencies::Head(), '<style>.swiper{display:block}</style>');
 
+$fancyapps = APP_URL.'/assets/lib/wonder-image/dist/lib/fancyapps/fancyapps.css';
+Dependencies::fancyapps();
+has('frontend defers Fancyapps CSS', Dependencies::Head(), '<link rel="preload" as="style" href="'.$fancyapps.'"');
+Dependencies::blockingStyle('fancyapps');
+$head = Dependencies::Head();
+has('blockingStyle keeps Fancyapps CSS render-blocking', $head, "\n<link href=\"$fancyapps\" rel=\"stylesheet\">");
+if (str_contains($head, 'href="'.$fancyapps.'" onload')) { $fail++; echo "FAIL: blockingStyle leaves no preload\n"; }
+
 $GLOBALS['FRONTEND'] = false;
 has('backend remains synchronous', Dependencies::Head(), 'moment.js"></script>');
 $GLOBALS['FRONTEND'] = true;

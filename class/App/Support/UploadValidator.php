@@ -21,6 +21,32 @@ final class UploadValidator
 
     public const DEFAULT_MAX_SIZE = 10 * 1048576;
 
+    /** Estensioni rifiutate quando il campo non dichiara una whitelist. */
+    public const DENIED_EXTENSIONS = [
+        'php', 'php3', 'php4', 'php5', 'php6', 'php7', 'php8', 'phtml', 'phar', 'pht', 'phps',
+        'html', 'htm', 'xhtml', 'xht', 'shtml', 'mht', 'js', 'mjs',
+        'svg', 'svgz', 'xml', 'xsl', 'xslt', 'cgi', 'pl', 'py', 'sh', 'htaccess',
+    ];
+
+    /** Rifiutate anche se dichiarate: il contenuto compresso non si può ripulire. */
+    public const ALWAYS_DENIED_EXTENSIONS = ['svgz'];
+
+    /** MIME che `finfo` riconosce come codice o markup eseguibile. */
+    public const DANGEROUS_MIMES = [
+        'text/x-php', 'application/x-php', 'application/x-httpd-php',
+        'text/html', 'application/xhtml+xml',
+        'application/javascript', 'text/javascript',
+        'text/x-shellscript', 'application/x-sh',
+    ];
+
+    /** Altri formati con MIME noto oltre a `IMAGE_TYPES` e `FILE_TYPES`. */
+    public const MEDIA_TYPES = [
+        'gif' => ['image/gif'],
+        'svg' => ['image/svg+xml', 'text/xml', 'application/xml', 'text/plain'],
+        'mp4' => ['video/mp4', 'application/mp4', 'video/x-m4v', 'video/quicktime'],
+        'ico' => ['image/vnd.microsoft.icon', 'image/x-icon', 'image/ico'],
+    ];
+
     /** Immagini dell'editor: estensione => MIME ammessi da `finfo`. */
     public const IMAGE_TYPES = [
         'png' => ['image/png'],
@@ -33,7 +59,8 @@ final class UploadValidator
     public const FILE_TYPES = [
         'pdf' => ['application/pdf'],
         'txt' => ['text/plain'],
-        'csv' => ['text/csv', 'text/plain', 'application/csv'],
+        // Un csv che inizia con `#` è letto da finfo come sorgente C.
+        'csv' => ['text/csv', 'text/plain', 'application/csv', 'text/x-c', 'text/x-c++'],
         'doc' => ['application/msword', 'application/vnd.ms-office', 'application/x-ole-storage', 'application/CDFV2'],
         'xls' => ['application/vnd.ms-excel', 'application/vnd.ms-office', 'application/x-ole-storage', 'application/CDFV2'],
         'ppt' => ['application/vnd.ms-powerpoint', 'application/vnd.ms-office', 'application/x-ole-storage', 'application/CDFV2'],
@@ -85,6 +112,74 @@ final class UploadValidator
         }
 
         return null;
+    }
+
+    /**
+     * Estensione e contenuto di un file per `uploadFiles()`.
+     *
+     * Whitelist esplicita: l'estensione deve esserci. Whitelist vuota: vale
+     * `DENIED_EXTENSIONS`. Poi `finfo`: per le estensioni note il MIME deve
+     * corrispondere, per le altre si rifiuta solo codice o markup.
+     *
+     * @param mixed $extensions lista o stringa separata da virgole
+     */
+    public static function checkFormat(string $extension, string $tmpPath, mixed $extensions = []): ?int
+    {
+        $extension = strtolower($extension);
+        $allowed = self::normalizeExtensions($extensions);
+
+        // Niente trim: `svg ` deve essere rifiutato, non salvato così.
+        if (preg_match('/^[a-z0-9]+$/D', $extension) !== 1) {
+            return self::EXTENSION;
+        }
+
+        if (in_array($extension, self::ALWAYS_DENIED_EXTENSIONS, true)) {
+            return self::EXTENSION;
+        }
+
+        if ($allowed !== []) {
+            if ($extension === '' || !in_array($extension, $allowed, true)) {
+                return self::EXTENSION;
+            }
+        } elseif ($extension === '' || in_array($extension, self::DENIED_EXTENSIONS, true)) {
+            return self::EXTENSION;
+        }
+
+        if (!is_file($tmpPath)) {
+            return null;
+        }
+
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($tmpPath);
+        $mime = is_string($mime) ? strtolower($mime) : '';
+        $known = self::IMAGE_TYPES + self::FILE_TYPES + self::MEDIA_TYPES;
+
+        if (isset($known[$extension])) {
+            return in_array($mime, array_map('strtolower', $known[$extension]), true) ? null : self::MIME_MISMATCH;
+        }
+
+        return in_array($mime, self::DANGEROUS_MIMES, true) ? self::MIME_MISMATCH : null;
+    }
+
+    /** @return list<string> */
+    public static function normalizeExtensions(mixed $extensions): array
+    {
+        if (is_string($extensions)) {
+            $extensions = explode(',', $extensions);
+        }
+
+        if (!is_array($extensions)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($extensions as $extension) {
+            if (is_scalar($extension) && ($extension = strtolower(trim((string) $extension, " .\t"))) !== '') {
+                $normalized[] = $extension;
+            }
+        }
+
+        return array_values(array_unique($normalized));
     }
 
     public static function extension(string $name): string

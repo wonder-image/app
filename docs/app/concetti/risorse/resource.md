@@ -152,8 +152,10 @@ Metodi: `.backend($actions, $authorities)`, `.api($actions, $authorities)`,
 `.backendCrud($authorities)`, `.apiCrud($authorities)`,
 `.allow($area, $actions, $authorities)`. Azioni backend valide: `list`,
 `create`, `store`, `view`, `edit`, `update`, `delete`. Azioni API: `index`,
-`store`, `show`, `update`, `destroy`. `$authorities = []` significa "nessun gate
-extra oltre all'essere autenticati nell'area".
+`store`, `show`, `update`, `destroy`. Nel backend `$authorities = []` significa
+"nessun gate extra oltre all'essere autenticati nell'area". Nell'API un'azione
+senza authority è **negata** (`403`, route non registrata): vedi
+[Route e API](route-e-api.md#chi-puo-chiamare-le-route-api).
 
 ### `navigationSchema()`
 

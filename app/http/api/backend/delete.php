@@ -1,6 +1,8 @@
 <?php
 
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
@@ -16,6 +18,11 @@ $id = ApiRequest::int('id');
 
 if ($table === '' || $id <= 0) {
     ApiRequest::error('Parametri non validi.', 422);
+}
+
+// Permessi per tabella prima di qualsiasi query (Resource o solo admin).
+if (!TableAuthorization::make()->allows($table, TableAuthorization::DELETE, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
+    ApiRequest::error('Operazione non consentita.', 403);
 }
 
 ApiRequest::selectDatabase(ApiRequest::string('database', 'main'));

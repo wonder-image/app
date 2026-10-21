@@ -359,6 +359,21 @@
         "title": "Error 928",
         "text": "El procesamiento de la imagen ha fallado: sube un archivo PNG, JPG o WEBP válido."
     },
+    "929": {
+        "type": "danger",
+        "title": "Solicitud no válida",
+        "text": "La página ha caducado o la solicitud no es válida. Recarga la página e inténtalo de nuevo."
+    },
+    "930": {
+        "type": "warning",
+        "title": "Demasiados intentos",
+        "text": "Has realizado demasiados intentos en poco tiempo. Espera unos minutos e inténtalo de nuevo."
+    },
+    "931": {
+        "type": "danger",
+        "title": "Error 931",
+        "text": "El archivo SVG no se puede leer o contiene una declaración DOCTYPE. Expórtalo de nuevo e inténtalo otra vez."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

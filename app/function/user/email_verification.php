@@ -205,7 +205,7 @@
         $insert = sqlInsert('consent_confirmation_tokens', [
             'token_type' => userEmailVerificationTokenType(),
             'user_id' => $userId,
-            'token' => $token,
+            'token_hash' => userEmailVerificationHashToken($token),
             'language_code' => $languageCode,
             'metadata_json' => $metadataJson,
             'expires_at' => $expiresAt,
@@ -273,9 +273,17 @@
         }
 
         $SQL = sqlSelect('consent_confirmation_tokens', [
-            'token' => $token,
+            'token_hash' => userEmailVerificationHashToken($token),
             'token_type' => $tokenType
         ], 1);
+
+        // Ripiego per i token in chiaro emessi prima di `token_hash`: rimosso nella beta successiva.
+        if (!$SQL->exists) {
+            $SQL = sqlSelect('consent_confirmation_tokens', [
+                'token' => $token,
+                'token_type' => $tokenType
+            ], 1);
+        }
 
         if (!$SQL->exists || !is_array($SQL->row)) {
             return $fail(918);
@@ -341,6 +349,12 @@
                 }
 
             } else {
+
+                // Senza mysqli niente UPDATE condizionato: si rilegge la riga subito prima.
+                $fresh = sqlSelect('consent_confirmation_tokens', [ 'id' => $tokenId ], 1);
+                if (!$fresh->exists || !empty($fresh->row['confirmed_at']) || !empty($fresh->row['revoked_at'])) {
+                    throw new RuntimeException('Token verifica utente già utilizzato o revocato');
+                }
 
                 $modify = sqlModify('consent_confirmation_tokens', [ 'confirmed_at' => $now ], 'id', $tokenId);
                 if (!($modify->success ?? false)) {
@@ -591,6 +605,16 @@
     {
 
         return bin2hex(random_bytes(32));
+
+    }
+
+    /**
+     * Hash del token salvato in `token_hash`.
+     */
+    function userEmailVerificationHashToken(string $token): string
+    {
+
+        return hash('sha256', trim($token));
 
     }
 

@@ -29,6 +29,12 @@ final class ResourceApiController
         return new self(ResourceRegistry::resolve($slug));
     }
 
+    /** Controller per una classe Resource gia risolta (test, rotte custom). */
+    public static function forResource(string $resourceClass): self
+    {
+        return new self($resourceClass);
+    }
+
     public function handle(string $action, array $routeParameters = []): array
     {
         $endpoint = $this->endpoint($action);
@@ -206,13 +212,19 @@ final class ResourceApiController
     {
         $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? '/';
         $requestMethod = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
-        $permissions = (array) $this->resourceClass::permissionSchema()->get('api');
+        // Prima di Endpoint: permessi vuoti negano, non ricadono su permissionsApi().
+        $authorities = ResourceApiAccess::authorities($this->resourceClass, $action);
 
-        return new Endpoint(
+        $endpoint = new Endpoint(
             rtrim($requestPath, '/'),
             $requestMethod,
-            $permissions[$action] ?? []
+            $authorities,
+            ResourceApiAccess::allowsPageToken($this->resourceClass)
         );
+
+        ResourceApiAccess::requireGuard($this->resourceClass, $endpoint->userAuthorities());
+
+        return $endpoint;
     }
 
     private function guardPositiveId(int $id): void

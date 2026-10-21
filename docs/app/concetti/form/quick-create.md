@@ -183,7 +183,9 @@ ricevono comunque dall'adapter della lib, come con il "+" di un campo.
 ### Precondizione: lo store API della risorsa target
 
 La creazione passa dallo **store API** della risorsa collegata: il target deve
-esporlo. Basta che l'`apiSchema()` includa `store` con i campi del sottoinsieme:
+esporlo. L'`apiSchema()` deve includere `store` con i campi del sottoinsieme e
+`permissionSchema()` deve permettere lo store API all'authority di `@system`
+(`api_internal_user`):
 
 ```php
 // In CategoryResource
@@ -193,12 +195,22 @@ public static function apiSchema(): ApiSchema
         ->only(['store'])
         ->fields('store', ['name']);   // deve includere le chiavi del subset
 }
+
+public static function permissionSchema(): PermissionSchema
+{
+    return PermissionSchema::for(static::class)
+        // ->backend(...) / ->access(...) come già dichiarati
+        ->api('store', ['api_internal_user']);
+}
 ```
 
-Non serve permettere lo store a ruoli backend: la chiamata viene fatta come
-utente `@system` (`api_internal_user`). Il controllo dei permessi è sul
-**bottone** (visibile solo a chi può creare quella risorsa) e ripetuto nel
-proxy server-side.
+La chiamata viene fatta come utente `@system` (`api_internal_user`): serve il
+permesso **API** per quell'authority, non un ruolo backend. Senza
+`->api('store', ['api_internal_user'])` la route `store` non viene registrata
+(permessi vuoti negano) e il modal riceve un errore: vedi
+[Chi può chiamare le route API](../risorse/route-e-api.md#chi-puo-chiamare-le-route-api).
+Il controllo dei permessi dell'utente backend è sul **bottone** (visibile solo
+a chi può creare quella risorsa) e ripetuto nel proxy server-side.
 
 ## Come funziona (flusso)
 
@@ -209,6 +221,9 @@ proxy server-side.
    modifica in locale e si pubblica con il deploy rifiuterebbe lo store).
 2. All'invio, un piccolo JS fa POST a `backend.resource.quick-create`
    (`app/http/backend/resource/quick-create.php`), gato dalla sessione backend.
+   Il JS manda l'header `X-WI-CSRF` letto dal meta `wi-csrf`: senza token
+   valido la risposta è `403` JSON (`{"success": false, "error": …}`) e il
+   controller non viene chiamato.
 3. Il `QuickCreateController` ri-verifica il permesso, rimuove i campi di
    controllo del modal e passa il resto allo **store API** della risorsa target
    (che filtra coi propri `apiSchema('store')`), **lato server come `@system`**

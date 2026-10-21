@@ -51,7 +51,7 @@
             $values = [
                 'token_type' => $tokenType,
                 'user_id' => $userId,
-                'token' => $token,
+                'token_hash' => hash('sha256', $token),
                 'language_code' => $languageCode,
                 'continue_url' => $continueUrl,
                 'metadata_json' => $metadata,
@@ -89,33 +89,37 @@
                 $tokenType = ConsentDictionary::normalizeConsentType($tokenType);
             }
 
-            $sql = "SELECT * FROM `consent_confirmation_tokens` ";
-            $sql .= "WHERE `token` = '".$this->escape($token)."' ";
+            $typeSql = ($tokenType !== null && $tokenType !== '')
+                ? "AND `token_type` = '".$this->escape($tokenType)."' "
+                : '';
 
-            if ($tokenType !== null && $tokenType !== '') {
-                $sql .= "AND `token_type` = '".$this->escape($tokenType)."' ";
-            }
+            $row = $this->fetchOne(
+                "SELECT * FROM `consent_confirmation_tokens` WHERE `token_hash` = '".hash('sha256', $token)."' ".$typeSql."LIMIT 1 FOR UPDATE"
+            );
 
-            $sql .= "LIMIT 1 FOR UPDATE";
-
-            return $this->fetchOne($sql);
+            // Ripiego per i token in chiaro emessi prima di `token_hash`: rimosso nella beta successiva.
+            return $row ?? $this->fetchOne(
+                "SELECT * FROM `consent_confirmation_tokens` WHERE `token` = '".$this->escape($token)."' ".$typeSql."LIMIT 1 FOR UPDATE"
+            );
 
         }
 
-        public function markConfirmed(int $tokenId, ?string $confirmedAt = null): void
+        // True solo se questa chiamata ha confermato il token (non già usato né revocato).
+        public function markConfirmed(int $tokenId, ?string $confirmedAt = null): bool
         {
 
             if ($tokenId <= 0) {
-                return;
+                return false;
             }
 
             $confirmedAt = $confirmedAt ?? $this->now();
 
             $sql = "UPDATE `consent_confirmation_tokens` SET ";
             $sql .= "`confirmed_at` = ".$this->toSqlValue($confirmedAt)." ";
-            $sql .= "WHERE `id` = ".(int) $tokenId;
+            $sql .= "WHERE `id` = ".(int) $tokenId." ";
+            $sql .= "AND `confirmed_at` IS NULL AND `revoked_at` IS NULL";
 
-            $this->mysqli->query($sql);
+            return $this->mysqli->query($sql) === true && $this->mysqli->affected_rows === 1;
 
         }
 

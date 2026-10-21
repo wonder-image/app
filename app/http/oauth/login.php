@@ -51,6 +51,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             exit;
         }
         $alert = (int) ($GLOBALS['ALERT'] ?? 905);
+        if ($alert === Wonder\Auth\LoginThrottle::ALERT) {
+            http_response_code(429);
+        }
     }
 }
 
