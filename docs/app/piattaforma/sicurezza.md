@@ -125,13 +125,17 @@ Le regole sopra valgono per i server pubblici.
 - `extensions` vuoto e tipo dell'input noto: vale la lista del tipo.
   `image` = `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` =
   l'unione; `pdf`, `png`, `jpg`, `webp`, `svg` = sé stessi.
-- `extensions` vuoto e tipo ignoto: è negata la lista fissa `php`, `phtml`,
-  `phar`, `pht`, `phps`, `html`, `htm`, `js`, `svg`, `xml` e un file senza
-  estensione (ALERT 921).
+- `extensions` vuoto e tipo ignoto: è negata la lista fissa `php`,
+  `php3`-`php8`, `phtml`, `phar`, `pht`, `phps`, `html`, `htm`, `xhtml`,
+  `xht`, `shtml`, `mht`, `js`, `mjs`, `svg`, `svgz`, `xml`, `xsl`, `xslt`,
+  `cgi`, `pl`, `py`, `sh`, `htaccess` e un file senza estensione (ALERT 921).
+- `svgz` è sempre rifiutato (ALERT 921), anche se dichiarato: il contenuto
+  compresso non passa dal sanitizer.
 - Poi `finfo`: per le estensioni note il MIME deve corrispondere (un `.png`
   che contiene PHP non passa), per le altre si rifiuta solo un contenuto
   PHP, HTML, JavaScript o shell. In entrambi i casi ALERT 927. Il contenuto
-  dei file validi non viene analizzato oltre.
+  dei file validi non viene analizzato oltre. Un `.csv` che inizia con `#`
+  (che finfo legge come sorgente C) è accettato.
 
 `gif` e `svg` non sono più ammessi di serie: vanno dichiarati in
 `extensions`. Le Resource Media `ImageResource` e `IconResource` accettano
@@ -144,12 +148,16 @@ Un `svg` ammesso da `extensions` passa da
 
 - lettura solo DOM, con `LIBXML_NONET` e senza espandere entità;
 - rifiutati (ALERT 931) `<!DOCTYPE>`, `<!ENTITY>`, XML non valido e radici
-  diverse da `<svg>`;
-- tolti `script`, `foreignObject`, `iframe`, `embed`, `object`, gli
-  attributi `on*`, i valori con `javascript:` o `vbscript:`, i `data:` che
-  non sono immagini raster (`png`, `jpeg`, `gif`, `webp`), gli stili con
-  `url(javascript` o `expression(` e le processing instruction;
-- un SVG senza nulla da togliere resta identico, byte per byte.
+  non SVG (diverse da `<svg>` nel namespace `http://www.w3.org/2000/svg`);
+- tolti gli elementi fuori dal namespace SVG (XHTML `form`, `input`, `meta`,
+  XInclude, metadati di editor), `script`, `foreignObject`, `iframe`,
+  `embed`, `object`, gli attributi `on*`, i valori con `javascript:` o
+  `vbscript:`, i valori con un `data:` non raster (`png`, `jpeg`, `gif`,
+  `webp`) in qualsiasi punto, gli stili con `@import`, `url(javascript` o
+  `expression(` (anche scritti con escape CSS) e le processing instruction;
+- un SVG senza nulla da togliere resta identico, byte per byte. Un SVG
+  esportato da un editor con metadati propri (`sodipodi:`, `inkscape:`)
+  perde quegli elementi.
 
 Un modulo che salva SVG senza `uploadFiles()` chiama `sanitize()` e scarta
 il file se restituisce `null`.

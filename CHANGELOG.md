@@ -6,15 +6,17 @@
 - **Upload: `gif` e `svg` esclusi di default (`C-UPL-2`).** Un campo file
   senza `extensions` accetta la lista del tipo dell'input: `image` =
   `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` = l'unione. Con un
-  tipo ignoto sono negati `php`, `phtml`, `phar`, `pht`, `phps`, `html`,
-  `htm`, `js`, `svg`, `xml` e i file senza estensione (ALERT 921). Le
+  tipo ignoto sono negati `php`, `php3`-`php8`, `phtml`, `phar`, `pht`,
+  `phps`, `html`, `htm`, `xhtml`, `xht`, `shtml`, `mht`, `js`, `mjs`, `svg`,
+  `svgz`, `xml`, `xsl`, `xslt`, `cgi`, `pl`, `py`, `sh`, `htaccess` e i file
+  senza estensione (ALERT 921); `svgz` è rifiutato anche se dichiarato. Le
   Resource Media Immagini e Icone accettano `png`, `jpg`, `jpeg`, `webp`:
   una gif o un svg caricati lì ora sono rifiutati. `finfo` rifiuta un file il
   cui contenuto non corrisponde all'estensione (ALERT 927). Le `extensions`
   del modello non sono più scavalcate dal tipo dell'input. Per tornare ad
   ammettere gif o svg in un campo vanno dichiarati in `extensions`; un svg
-  ammesso passa da `SvgSanitizer` e, se non è valido, è rifiutato con
-  ALERT 931.
+  ammesso passa da `SvgSanitizer` e, se non è valido o la radice non è
+  `<svg>` nel namespace SVG, è rifiutato con ALERT 931.
 - **CSV neutralizzato di default (`C-UPL-4`).** `arrayToCsv()`,
   `sqlExport()` e il download CSV delle Resource mettono un apice davanti
   alle celle che iniziano con `=`, `+`, `-`, `@`, tabulazione o CR, tranne i
@@ -257,7 +259,8 @@
 
 ### Added
 - **`Wonder\App\Security\SvgSanitizer::sanitize()`.** Pulisce un SVG via DOM
-  (`LIBXML_NONET`, niente entità) e restituisce `null` se non è valido;
+  (`LIBXML_NONET`, niente entità, solo namespace SVG) e restituisce `null` se
+  non è valido;
   `uploadFiles()` lo applica a ogni svg ammesso da `extensions`. Il blocco
   `WONDER UPLOAD` di `assets/upload/.htaccess` serve `.svg`/`.svgz` con
   `Content-Security-Policy "sandbox"` e `nosniff` (al prossimo `forge update`).
