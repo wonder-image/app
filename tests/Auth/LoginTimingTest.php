@@ -6,6 +6,23 @@ require __DIR__.'/../../vendor/autoload.php';
 
 // Login senza utente o senza password: stessa verifica (e stesso costo) di una password errata.
 // Il seam è checkUserPassword(): qui conta le chiamate e l'hash ricevuto.
+// Build PHP senza argon2id simulata: password.php caricato con la costante rinominata.
+if (($argv[1] ?? '') === '--no-argon') {
+    $source = str_replace('PASSWORD_ARGON2ID', 'PASSWORD_ARGON2ID_ASSENTE', (string) file_get_contents(__DIR__.'/../../app/function/string/password.php'));
+    eval('?>'.$source);
+    $out = [];
+    foreach (['settings' => static fn () => passwordHashSettings(true, 80230)[0] === PASSWORD_BCRYPT,
+        'dummy' => static fn () => str_starts_with(dummyPasswordHash(), '$2y$'),
+        'dummy_for' => static fn () => str_starts_with(dummyPasswordHashFor(true, 80230), '$2y$10$'),
+        'hash' => static fn () => !passwordNeedsRehash(hashPassword('Qualunque-1')),
+        'rejects' => static fn () => !checkUserPassword('Qualunque-1', dummyPasswordHash()),
+    ] as $name => $probe) {
+        try { $out[$name] = $probe(); } catch (\Throwable $e) { $out[$name] = get_class($e).': '.$e->getMessage(); }
+    }
+    echo json_encode($out);
+    exit;
+}
+
 if (($argv[1] ?? '') === '--real') {
     require __DIR__.'/../../app/function/string/password.php';
     $dummy = dummyPasswordHash();
@@ -93,6 +110,8 @@ check('bcrypt: costo per versione PHP (10 prima della 8.4, poi 12)', fn () => ar
 foreach (($real['matrix'] ?? [['case' => 'figlio fallito']]) as $row) {
     check("{$row['case']}: hash reale senza rehash, fittizio senza rehash e allo stesso costo", fn () => ($row['real_stable'] ?? false) && ($row['dummy_stable'] ?? false) && ($row['same_cost'] ?? false));
 }
+$noArgon = json_decode((string) shell_exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' --no-argon 2>&1'), true);
+check('senza argon2id: nessun errore, bcrypt ovunque (anche chiedendo argon2id)', fn () => $noArgon === ['settings' => true, 'dummy' => true, 'dummy_for' => true, 'hash' => true, 'rejects' => true]);
 check('hash fittizio: nessuna password lo verifica', fn () => ($real['rejects'] ?? false) === true);
 
 summary();

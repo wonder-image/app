@@ -759,6 +759,8 @@
   `PHP_VERSION_ID` in `passwordHashSettings()`. L'hash fittizio
   (`dummyPasswordHashFor()`) ha lo stesso costo: su PHP 8.2/8.3 non viene più
   rigenerato a ogni richiesta e non costa il doppio di una password errata.
+  Senza argon2id nessuna funzione legge `PASSWORD_ARGON2ID` (review `B1`):
+  prima l'hash fittizio dava un errore fatale e un 500 al posto del 925.
 - **Login: tempo di risposta uniforme (review `R1`).** Con utente inesistente
   o registrato senza password, `authenticateUser()` esegue comunque una
   verifica su `dummyPasswordHash()`, con lo stesso algoritmo e lo stesso costo

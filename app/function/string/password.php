@@ -8,7 +8,8 @@
      */
     function passwordHashSettings(?bool $argon2id = null, ?int $phpVersionId = null): array {
 
-        if ($argon2id ?? defined('PASSWORD_ARGON2ID')) {
+        // argon2id solo se la build lo supporta, anche quando è richiesto.
+        if (($argon2id ?? true) && defined('PASSWORD_ARGON2ID')) {
             return [PASSWORD_ARGON2ID, []];
         }
 
@@ -95,7 +96,8 @@
 
         [$algorithm, $options] = passwordHashSettings($argon2id, $phpVersionId);
 
-        if ($algorithm === PASSWORD_ARGON2ID) {
+        // Mai leggere PASSWORD_ARGON2ID: senza argon2id non è definita.
+        if ($algorithm !== PASSWORD_BCRYPT) {
             return '$argon2id$v=19$m=65536,t=4,p=1$UWtCeTRKbDRRSEFkZWxqNQ$ovEPl5lo1GRSSoSJEQxu5tXri4CfEOx4B00fNHR87Ew';
         }
 
