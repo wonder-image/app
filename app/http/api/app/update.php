@@ -29,6 +29,10 @@ use Wonder\Api\{ Endpoint, Handler, Response };
  *    Bearer = JWT firmato con APP_KEY. `Wonder\Api\Endpoint` verifica firma,
  *    decodifica `sub`, risolve `user_id` in `api_users` e controlla
  *    authority (`api_internal_user` o `api_public_access`).
+ *
+ * Parametri (entrambi i percorsi, vedi `UpdateRunner::apiOptions()`): `release_id`,
+ * `source` (`github`|`backend`), `backup` (default true; `false` salta il backup
+ * del database, come `php forge update --no-backup`).
  */
 
 // 1) Deploy bootstrap
@@ -60,11 +64,6 @@ if ($envToken !== '') {
             }
         }
 
-        $source = trim((string) ($payload['source'] ?? 'github'));
-        if (!in_array($source, [ 'github', 'backend' ], true)) {
-            $source = 'github';
-        }
-
         header('Content-Type: application/json; charset=utf-8');
 
         // Wrap in try/catch così un'exception interna (es. JWT::encode su
@@ -76,11 +75,7 @@ if ($envToken !== '') {
         try {
 
             $RUNNER = new Wonder\App\UpdateRunner();
-            $RESULT = $RUNNER->execute([
-                'release_id' => trim((string) ($payload['release_id'] ?? '')),
-                'trigger_type' => 'api',
-                'source' => $source,
-            ]);
+            $RESULT = $RUNNER->execute(Wonder\App\UpdateRunner::apiOptions($payload));
 
             http_response_code($RESULT->success ? 200 : 500);
             echo $RUNNER->jsonPayload($RESULT);
@@ -109,18 +104,9 @@ if ($envToken !== '') {
 Handler::run('/api/app/update/', 'POST', [ 'api_internal_user', 'api_public_access' ], function (Endpoint $CALL) {
 
     $PARAMETERS = is_array($CALL->parameters) ? $CALL->parameters : [];
-    $source = trim((string) ($PARAMETERS['source'] ?? 'github'));
-
-    if (!in_array($source, [ 'github', 'backend' ], true)) {
-        $source = 'github';
-    }
 
     $RUNNER = new Wonder\App\UpdateRunner();
-    $RESULT = $RUNNER->execute([
-        'release_id' => trim((string) ($PARAMETERS['release_id'] ?? '')),
-        'trigger_type' => 'api',
-        'source' => $source,
-    ]);
+    $RESULT = $RUNNER->execute(Wonder\App\UpdateRunner::apiOptions($PARAMETERS));
 
     return Response::raw(
         $RUNNER->jsonPayload($RESULT),

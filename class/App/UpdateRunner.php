@@ -10,6 +10,7 @@ use Wonder\App\Module\Contracts\ModuleMigration;
 use Wonder\App\Module\ModuleDependencySorter;
 use Wonder\App\Module\Registry as ModuleRegistry;
 use Wonder\App\Support\ApiActivityTokenMigration;
+use Wonder\App\Support\DatabaseBackup;
 use Wonder\App\Support\DefaultRows;
 use Wonder\App\Support\SocietyLocationsMigration;
 use Wonder\App\Support\SharedContactTablesMigration;
@@ -50,6 +51,42 @@ class UpdateRunner
         }
 
         return $result->row;
+    }
+
+    /**
+     * Opzioni di `execute()` dai parametri di `/api/app/update/` (corpo JSON o form):
+     * `release_id`, `source` (`github`|`backend`), `backup` (default true, come senza `--no-backup`).
+     *
+     * @return array{release_id: string, trigger_type: string, source: string, backup: bool}
+     */
+    public static function apiOptions(array $parameters): array
+    {
+        $source = trim((string) ($parameters['source'] ?? 'github'));
+
+        return [
+            'release_id' => trim((string) ($parameters['release_id'] ?? '')),
+            'trigger_type' => 'api',
+            'source' => in_array($source, ['github', 'backend'], true) ? $source : 'github',
+            'backup' => self::backupRequested($parameters['backup'] ?? null),
+        ];
+    }
+
+    /** `false`, `0`, `"false"`, `"no"`, `"off"` disattivano il backup; assente o vuoto = attivo. */
+    public static function backupRequested(mixed $value): bool
+    {
+        if ($value === null || $value === '') {
+            return true;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (!is_scalar($value)) {
+            return true;
+        }
+
+        return !in_array(strtolower(trim((string) $value)), ['0', 'false', 'no', 'off'], true);
     }
 
     public function execute(array $options = []): object
@@ -114,6 +151,10 @@ class UpdateRunner
             $runId = $this->createRunRow($releaseId, $triggerType, $source, $startedAt);
             $result->run_id = $runId > 0 ? $runId : null;
 
+            if ($this->shouldBackup($options)) {
+                $this->runBackup($result);
+            }
+
             // Le rinomine legacy precedono runTables(): creata vuota la tabella nuova, la vecchia non si migrerebbe più.
             $result->stats->contact_tables = SharedContactTablesMigration::run($this->connection);
             $result->stats->module_migrations = $this->runModuleMigrations();
@@ -164,6 +205,54 @@ class UpdateRunner
                 $lock->release();
             }
         }
+    }
+
+    /** Con `backup` a false non si interroga nemmeno il database. */
+    private function shouldBackup(array $options): bool
+    {
+        return ($options['backup'] ?? true) !== false && $this->hasApplicationTables();
+    }
+
+    /** Database non vuoto (esclusa la tabella del runner): c'è qualcosa che le migrazioni possono toccare. */
+    private function hasApplicationTables(): bool
+    {
+        $result = $this->connection->query('SHOW TABLES');
+
+        if (!is_object($result)) {
+            throw new RuntimeException('Impossibile leggere le tabelle del database prima del backup.');
+        }
+
+        while (is_array($row = $result->fetch_row())) {
+            if ((string) ($row[0] ?? '') !== 'app_update_runs') {
+                $result->free();
+                return true;
+            }
+        }
+
+        $result->free();
+
+        return false;
+    }
+
+    /** Il backup è fatto con il dump PHP al posto di mysqldump: lo dice `backup_warning` del risultato. */
+    private function runBackup(object $result): void
+    {
+        try {
+            $backup = $this->makeBackup()->run();
+        } catch (Throwable $throwable) {
+            throw new RuntimeException('Backup del database non riuscito, update interrotto: '.$throwable->getMessage().' (per saltarlo: php forge update --no-backup, o "backup": false nella chiamata API)', 0, $throwable);
+        }
+
+        $result->backup = $backup->path;
+
+        if ($backup->fallback !== null) {
+            $result->backup_warning = 'mysqldump non riuscito, usato il dump PHP: '.$backup->fallback;
+        }
+    }
+
+    protected function makeBackup(): DatabaseBackup
+    {
+        return new DatabaseBackup(null, $this->connection);
     }
 
     public function jsonPayload(object $result): string
