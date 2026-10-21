@@ -65,7 +65,7 @@ class Build extends Command
 
         foreach ($directories as $dir) {
             if (!is_dir($dir)) {
-                if (@mkdir($dir, 0777, true) || is_dir($dir)) {
+                if (@mkdir($dir, self::runtimeDirectoryMode($dir), true) || is_dir($dir)) {
                     $output->writeln('<info>📁 Creato '.$dir.'</info>');
                 } else {
                     $output->writeln('<comment>⚠️  Non sono riuscito a creare '.$dir.'</comment>');
@@ -100,7 +100,7 @@ class Build extends Command
         $handlerContent = self::handlerTemplate();
 
         if (!is_dir($root.'/handler')) {
-            @mkdir($root.'/handler', 0777, true);
+            @mkdir($root.'/handler', 0755, true);
         }
 
         $written = file_put_contents($handlerPath, $handlerContent);
@@ -336,6 +336,15 @@ HTACCESS;
 
         // Append overriding rules on legacy installations without deleting custom rules.
         return rtrim($content)."\n\n".$block."\n";
+    }
+
+    /**
+     * Permessi delle cartelle create da Forge: 0750 per `storage/logs`, 0755
+     * per le altre. Le cartelle esistenti non vengono toccate.
+     */
+    public static function runtimeDirectoryMode(string $dir): int
+    {
+        return str_ends_with(rtrim(str_replace('\\', '/', $dir), '/'), '/storage/logs') ? 0750 : 0755;
     }
 
     /** `APP_HSTS=true` abilita Strict-Transport-Security (opt-in). */

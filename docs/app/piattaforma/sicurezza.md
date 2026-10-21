@@ -123,7 +123,9 @@ Per trovare la root prova, in ordine:
 Crea le cartelle con permessi `0750` e i file con `0640`. Se non riesce a
 scrivere, ripiega su `error_log()` di PHP e non lancia eccezioni.
 `db-connections.log` (con `DB_CONNECTION_LOG=true`) è ora in
-`storage/logs/db-connections.log`.
+`storage/logs/db-connections.log`. Anche `php forge build` crea `storage/logs`
+con `0750` e le altre cartelle di runtime con `0755`. Le cartelle che esistono
+già mantengono i loro permessi.
 
 Redazione (`Wonder\App\LogRedactor`):
 

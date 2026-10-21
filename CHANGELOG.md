@@ -34,7 +34,9 @@
   cartella corrente; `db-connections.log` è ora lì. Gli URI nei log mascherano
   `token`, `t`, `key`, `password`, `email`, `_csrf`. In `auth_log`, `value` è
   mascherato e `verification_sent_link` non viene più scritto. I log esistenti
-  non vengono spostati.
+  non vengono spostati. `php forge build` e `Command::ensureDir()` creano le
+  cartelle con `0755` (`storage/logs` con `0750`) invece di `0777`; le cartelle
+  esistenti non cambiano permessi.
 - **Validazioni backend.** `ApiRequest::selectDatabase()` accetta solo `main`
   o un database configurato (altrimenti 422). `delete-icon` accetta solo
   tabelle registrate con colonna `icon`, richiede il permesso di modifica e
