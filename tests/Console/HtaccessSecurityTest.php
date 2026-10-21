@@ -205,4 +205,29 @@ check('configuration_file.php su un .htaccess custom: custom preservato, upload 
         && str_contains($upload, '# WONDER UPLOAD START');
 });
 
+check('M1: START orfano: marker tolto, righe custom intatte, idempotente', function () use ($custom) {
+    $x = "# testa\n".SEC_START."\n# custom dopo lo START\n".$custom;
+    $once = Build::updateHtaccessSecurity($x);
+    return Build::updateHtaccessSecurity($once) === $once
+        && secCount($once) === 1 && substr_count($once, SEC_END) === 1
+        && str_contains($once, "# testa\n# custom dopo lo START\n".$custom);
+});
+
+check('M1: END orfano prima del blocco: marker tolto, idempotente', function () use ($custom) {
+    $x = "# testa\n".SEC_END."\n".$custom;
+    $once = Build::updateHtaccessSecurity($x);
+    return Build::updateHtaccessSecurity($once) === $once
+        && substr_count($once, SEC_END) === 1 && str_contains($once, "# testa\n".$custom);
+});
+
+check('N1: file CRLF: blocco scritto in CRLF, niente LF singoli, idempotente', function () use ($custom) {
+    $crlf = str_replace("\n", "\r\n", $custom);
+    $once = Build::updateHtaccessSecurity($crlf);
+    $old = "# testa\r\n".SEC_START."\r\nvecchio\r\n".SEC_END."\r\n".$crlf;
+    $repl = Build::updateHtaccessSecurity($old, true);
+    return preg_match('/(?<!\r)\n/', $once) === 0 && Build::updateHtaccessSecurity($once) === $once
+        && preg_match('/(?<!\r)\n/', $repl) === 0 && !str_contains($repl, 'vecchio')
+        && str_contains($repl, 'Strict-Transport-Security');
+});
+
 summary();

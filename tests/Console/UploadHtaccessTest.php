@@ -62,4 +62,31 @@ check('secondo run non riscrive il file; senza assets/upload non fa nulla', func
     return $second === null && $r === null && !is_dir($none.'/assets');
 });
 
+check('M1: START orfano con righe custom: marker tolto, custom intatto, idempotente', function () {
+    $x = "# prima\n# WONDER UPLOAD START\n# regola custom A\nHeader set X-A \"1\"\n# regola custom B\n";
+    $once = Build::updateUploadHtaccess($x);
+    $twice = Build::updateUploadHtaccess($once);
+    return $twice === $once
+        && substr_count($once, '# WONDER UPLOAD START') === 1
+        && substr_count($once, '# WONDER UPLOAD END') === 1
+        && str_contains($twice, "# regola custom A\nHeader set X-A \"1\"\n# regola custom B");
+});
+
+check('M1: END orfano tolto, custom intatto, idempotente', function () {
+    $x = "# prima\n# WONDER UPLOAD END\n# dopo\n";
+    $once = Build::updateUploadHtaccess($x);
+    return Build::updateUploadHtaccess($once) === $once
+        && substr_count($once, '# WONDER UPLOAD END') === 1
+        && str_contains($once, "# prima\n# dopo");
+});
+
+check('N1: file CRLF: blocco scritto in CRLF, niente LF singoli, idempotente', function () {
+    $x = "# prima\r\nHeader set X-A \"1\"\r\n";
+    $once = Build::updateUploadHtaccess($x);
+    $old = "# prima\r\n# WONDER UPLOAD START\r\nvecchio\r\n# WONDER UPLOAD END\r\n# dopo\r\n";
+    $repl = Build::updateUploadHtaccess($old);
+    return preg_match('/(?<!\r)\n/', $once) === 0 && Build::updateUploadHtaccess($once) === $once
+        && preg_match('/(?<!\r)\n/', $repl) === 0 && !str_contains($repl, 'vecchio') && str_contains($repl, "# dopo\r\n");
+});
+
 summary();

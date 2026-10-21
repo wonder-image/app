@@ -406,10 +406,12 @@ HTACCESS;
      */
     public static function updateHtaccessSecurity(string $content, bool $hsts = false): string
     {
-        $block = self::htaccessSecurityBlock($hsts);
-        $pattern = '/# WONDER SECURITY START.*?# WONDER SECURITY END\R?/s';
+        $eol = self::lineEnding($content);
+        $block = self::withLineEnding(self::htaccessSecurityBlock($hsts), $eol);
+        $pattern = '/# WONDER SECURITY START.*?# WONDER SECURITY END(\R?)/s';
 
         $content = self::removeLegacyHeaderBlock($content);
+        $content = self::removeOrphanMarkers($content, '# WONDER SECURITY START', '# WONDER SECURITY END');
 
         if (preg_match($pattern, $content) === 1) {
             $first = true;
@@ -419,13 +421,59 @@ HTACCESS;
                     return '';
                 }
                 $first = false;
-                $eol = preg_match('/\R$/', $m[0]) === 1 ? "\n" : '';
 
-                return $block.$eol;
+                return $block.$m[1];
             }, $content) ?? $content;
         }
 
-        return $block."\n\n".ltrim($content);
+        return $block.$eol.$eol.ltrim($content);
+    }
+
+    /** `\r\n` se il file lo usa, altrimenti `\n`. */
+    private static function lineEnding(string $content): string
+    {
+        return str_contains($content, "\r\n") ? "\r\n" : "\n";
+    }
+
+    private static function withLineEnding(string $block, string $eol): string
+    {
+        return $eol === "\n" ? $block : str_replace("\n", $eol, $block);
+    }
+
+    /**
+     * Toglie le sole righe marcatore senza coppia (START senza END, END senza
+     * START): il testo in mezzo resta, così il match successivo non lo inghiotte.
+     */
+    private static function removeOrphanMarkers(string $content, string $start, string $end): string
+    {
+        $lines = preg_split('/(?<=\n)/', $content) ?: [];
+        $open = null;
+        $orphans = [];
+
+        foreach ($lines as $i => $line) {
+            $marker = trim($line);
+            if ($marker === $start) {
+                if ($open !== null) {
+                    $orphans[] = $open;
+                }
+                $open = $i;
+            } elseif ($marker === $end) {
+                if ($open === null) {
+                    $orphans[] = $i;
+                }
+                $open = null;
+            }
+        }
+
+        if ($open !== null) {
+            $orphans[] = $open;
+        }
+
+        foreach ($orphans as $i) {
+            unset($lines[$i]);
+        }
+
+        return implode('', $lines);
     }
 
     /**
@@ -480,8 +528,10 @@ HTACCESS;
     /** Inserisce o aggiorna il blocco UPLOAD preservando le righe custom. Idempotente. */
     public static function updateUploadHtaccess(string $content): string
     {
-        $block = self::uploadHtaccessBlock();
+        $eol = self::lineEnding($content);
+        $block = self::withLineEnding(self::uploadHtaccessBlock(), $eol);
         $pattern = '/# WONDER UPLOAD START.*?# WONDER UPLOAD END/s';
+        $content = self::removeOrphanMarkers($content, '# WONDER UPLOAD START', '# WONDER UPLOAD END');
 
         if (preg_match($pattern, $content) === 1) {
             $first = true;
@@ -498,7 +548,7 @@ HTACCESS;
 
         $content = trim($content);
 
-        return $content === '' ? $block."\n" : $content."\n\n".$block."\n";
+        return $content === '' ? $block.$eol : $content.$eol.$eol.$block.$eol;
     }
 
     /**
