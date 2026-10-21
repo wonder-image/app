@@ -6,29 +6,58 @@ use Wonder\Http\Csrf;
 use Wonder\Http\Route;
 use Wonder\Plugin\Stripe\Connect;
 
-// Il link cambia le credenziali: senza il token della sessione non si tocca niente.
-if (!Csrf::verify(ApiRequest::string('_csrf'))) {
-    http_response_code(403);
-    echo 'Errore Stripe: richiesta non valida, riapri la pagina delle credenziali.';
+$method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+$env = ApiRequest::string('account') === 'test' ? 'test' : 'live';
+$credentials = rtrim((string) ($PATH->backend ?? ''), '/').'/app/config/credentials/';
+
+// Pagina di conferma con il layout backend.auth; $message è l'esito di un POST fallito.
+$render = static function (?string $message = null) use ($ROOT_APP, $env, $credentials): never {
+    \Wonder\View\View::make($ROOT_APP.'/view/pages/backend/service/stripe/connect.php', [
+        'TITLE' => __t('stripe.connect.title'),
+        'ACTION' => (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH),
+        'ACCOUNT' => $env === 'test' ? 'test' : 'production',
+        'CONFIRM' => __t('stripe.connect.confirm.'.$env),
+        'MESSAGE' => $message,
+        'CANCEL' => $credentials,
+    ])->render();
+    exit;
+};
+
+// HEAD: solo gli header, nessun corpo.
+if ($method === 'HEAD') {
     exit;
 }
 
-$env = ApiRequest::string('account') === 'test' ? 'test' : 'live';
+// GET non cambia niente: mostra la conferma che invia in POST con il token nel corpo.
+if ($method === 'GET') {
+    $render();
+}
+
+if ($method !== 'POST') {
+    http_response_code(405);
+    header('Allow: GET, HEAD, POST');
+    exit;
+}
+
+// Il token arriva solo dal corpo o dall'header, mai dalla query.
+if (!Csrf::verify()) {
+    http_response_code(403);
+    $render(__t('stripe.connect.invalid'));
+}
+
 $url = Route::url('api.gestionale.stripe.webhook');
 
 if ($url === '') {
-    echo 'Errore Stripe: il webhook del gestionale non è installato.';
-    exit;
+    $render(__t('stripe.connect.webhook_missing'));
 }
 
 try {
     $secret = Connect::environment($env, $url, (string) parse_url($url, PHP_URL_HOST));
 } catch (ApiErrorException|RuntimeException $e) {
-    echo 'Errore Stripe: '.htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-    exit;
+    $render(__t('stripe.connect.error', ['message' => $e->getMessage()]));
 }
 
 sqlModify('security', [Connect::secretColumn($env) => $secret], 'id', 1);
 
-header('Location: '.rtrim((string) $PATH->backend, '/').'/app/config/credentials/');
+header('Location: '.$credentials);
 exit;

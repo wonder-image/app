@@ -3,6 +3,73 @@
 ## Unreleased
 
 ### Breaking
+- **Upload: `gif` e `svg` esclusi di default (`C-UPL-2`).** Un campo file
+  senza `extensions` accetta la lista del tipo dell'input: `image` =
+  `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` = l'unione. Con un
+  tipo ignoto sono negati `php`, `php3`-`php8`, `phtml`, `phar`, `pht`,
+  `phps`, `html`, `htm`, `xhtml`, `xht`, `shtml`, `mht`, `js`, `mjs`, `svg`,
+  `svgz`, `xml`, `xsl`, `xslt`, `cgi`, `pl`, `py`, `sh`, `htaccess` e i file
+  senza estensione (ALERT 921); `svgz` è rifiutato anche se dichiarato, come
+  ogni estensione che non è `[a-z0-9]+` (`logo.svg `, `logo.svg.`). Le
+  Resource Media Immagini e Icone accettano `png`, `jpg`, `jpeg`, `webp`:
+  una gif o un svg caricati lì ora sono rifiutati. `finfo` rifiuta un file il
+  cui contenuto non corrisponde all'estensione (ALERT 927). Le `extensions`
+  del modello non sono più scavalcate dal tipo dell'input. Per tornare ad
+  ammettere gif o svg in un campo vanno dichiarati in `extensions`; un svg
+  ammesso passa da `SvgSanitizer` e, se non è valido o la radice non è
+  `<svg>` nel namespace SVG, è rifiutato con ALERT 931.
+- **CSV neutralizzato di default (`C-UPL-4`).** `arrayToCsv()`,
+  `sqlExport()` e il download CSV delle Resource mettono un apice davanti
+  alle celle che iniziano con `=`, `+`, `-`, `@`, tabulazione o CR, tranne i
+  valori numerici (`-5`, `+39`): `+39 333 1234567` esce come
+  `'+39 333 1234567`. Opt-out: `arrayToCsv(..., false)`,
+  `sqlExport(..., false)`, `->downloadFormulaSafe(false)`. Excel e
+  `downloadAsText()` non cambiano.
+- **`X-Forwarded-*` solo con `APP_TRUST_PROXY`.** `UrlParser::isHttpsRequest()`
+  e `requestScheme()` ignorano `X-Forwarded-Proto`, `-Scheme` e `-Ssl` se il
+  flag è spento; `UrlParser::requestIp()` segue `ClientIp::resolve()`
+  (`REMOTE_ADDR`, oppure l'ultima voce di `X-Forwarded-For` con il flag). Dietro
+  un proxy che termina HTTPS senza `APP_TRUST_PROXY=true` le API rispondono
+  `403 Richiesta non sicura` e la lista IP degli utenti API confronta l'IP del
+  proxy: va attivato il flag. Prima la prima voce di `X-Forwarded-For`, scelta
+  dal client, aggirava la lista IP.
+  Senza il flag anche `__url()`, `currentBase()` e i redirect assoluti escono in
+  `http://` dietro quel proxy.
+- **dataLayer: consenso negato di default e `user.id` come hash
+  (`C-ERR-I5`).** Prima del loader GTM il layout frontend emette
+  `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
+  `ad_user_data` e `ad_personalization` a `denied` e `wait_for_update: 500`:
+  i tag Google aspettano fino a 500 ms l'aggiornamento della CMP (Iubenda in
+  GTM). Il core manda in `user.id` solo un HMAC dell'id con `APP_KEY`
+  (`DataLayer::userId()`), non più l'id numerico: le variabili e i tag GTM che
+  lo usano ricevono un valore diverso. Con il modulo ecommerce richiede la
+  versione con il fix `fix/2026-10-2d-datalayer` (ecommerce non manda più
+  `user`); le versioni precedenti rimandano l'id in chiaro dopo il core.
+- **Meta Pixel non più emesso dal core.** Il layout frontend (`head.php`) non
+  stampa più lo script `fbq` né il `<noscript>` di `facebook.com/tr`, anche con
+  `pixel_facebook` compilato e attivo in `Dev > API e servizi > Analitica`:
+  partiva senza attendere il consenso. Il Pixel va configurato come tag GTM
+  bloccato dal consenso di Iubenda (docs GTM, «Meta Pixel in GTM»). Il campo
+  resta nel backend con un testo di aiuto e `$ANALYTICS->pixel` è ancora
+  calcolato per gli override dei siti; la rimozione del campo è in Fase 3.
+- **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`
+  con `_csrf` (o `X-WI-CSRF`); in `GET` mostra una pagina di conferma con il
+  bottone «Esci» e non chiude più la sessione. Nel menu del core «Esci» è un
+  form (`sidebarOffcanvas()` accetta `'method' => 'post'`). I link `<a>` a
+  `/backend/account/logout/` in moduli e siti ora portano alla conferma: per
+  uscire in un clic vanno sostituiti con un form `POST` e `Csrf::field()`.
+- **«Collega webhook» Stripe in POST.** `GET /api/service/stripe/connect/`
+  mostra solo una pagina di conferma; il collegamento avviene in `POST` con
+  `_csrf` nel corpo (o `X-WI-CSRF`), altrimenti `403`. Il
+  token non è più nell'URL dei bottoni delle credenziali: i link salvati con
+  `?_csrf=` aprono la conferma e non collegano più nulla da soli. La rotta
+  (stessa URL) è ora in `area('backend')` con il layout `backend.auth`, senza
+  header CORS, e chiede il login admin (`guarded()->permit(['admin'])`): prima
+  bastava una sessione qualsiasi. `HEAD` e gli altri metodi ricevono `404` dal
+  router, che non mappa `HEAD` su `GET`. La `POST` si chiama
+  `service.stripe.connect.submit`.
+- **Rinnovo del token di pagina con CSRF.** `POST /api/token/page/` richiede
+  anche il token CSRF di sessione (`X-WI-CSRF` o `_csrf`), altrimenti `403`.
 - **API: 500 generico con `request_id` (`C-ERR-I2`).** Sui 500 di
   `RouteDispatcher`, `Wonder\Api\Handler`, API delle Resource e
   `api/app/update`, `response` è `Errore interno.` (`UpdateRunner failed` per
@@ -192,6 +259,16 @@
   successiva.
 
 ### Added
+- **`Wonder\App\Security\SvgSanitizer::sanitize()`.** Pulisce un SVG via DOM
+  (`LIBXML_NONET`, niente entità, solo namespace SVG) e restituisce `null` se
+  non è valido;
+  `uploadFiles()` lo applica a ogni svg ammesso da `extensions`. Il blocco
+  `WONDER UPLOAD` di `assets/upload/.htaccess` serve ogni file con `nosniff`
+  e `.svg`/`.svgz` anche con `Content-Security-Policy "sandbox"` (al prossimo
+  `forge update`). Il sanitizer toglie anche i commenti XML.
+- **`UploadValidator::checkFormat()`** (whitelist, deny-list e `finfo` per
+  `uploadFiles()`), `SpreadsheetText::formulaSafe()`/`formulaSafeMatrix()` e
+  `TableLayoutSchema::downloadFormulaSafe()`.
 - `Wonder\Http\SecurityHeaders`, `Wonder\Http\RequestId`,
   `Wonder\App\LogRedactor`, `Wonder\Sql\Utility\QueryException`,
   `Logger::append()` e `Logger::root()`. Doc:
@@ -825,6 +902,9 @@
   `Impersonation::audit()` scrive in `auth_impersonation_audits.ip` il valore di
   `ClientIp::resolve()`: dietro proxy con `APP_TRUST_PROXY` è l'IP del client,
   non quello del proxy.
+- **Geolocalizzazione: IP da `ClientIp` (review `M4`).** `IPInfo` senza IP
+  esplicito usa `ClientIp::resolve()`: `X-Forwarded-For` e `Client-IP` non
+  contano più se `APP_TRUST_PROXY` è spento.
 - `ConfigCodec::context()` codifica con `JSON_THROW_ON_ERROR`: un contesto non
   codificabile lancia invece di diventare `''`.
 - `SSP::complex`: i binding di `whereAll` valgono anche per le query dei dati

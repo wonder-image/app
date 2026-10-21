@@ -369,6 +369,11 @@
         "title": "Troppi tentativi",
         "text": "Hai fatto troppi tentativi in poco tempo. Attendi qualche minuto e riprova."
     },
+    "931": {
+        "type": "danger",
+        "title": "Errore 931",
+        "text": "Il file SVG non è leggibile o contiene una dichiarazione DOCTYPE. Esportalo di nuovo e riprova."
+    },
     "950": {
         "type": "danger",
         "title": "Errore 950",

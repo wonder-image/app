@@ -67,6 +67,7 @@ final class ImageResource extends MediaResource
                 ->fileDragDrop('image')
                 ->storeAs('{slug}')
                 ->prepare([
+                    'extensions' => ['png', 'jpg', 'jpeg', 'webp'],
                     'webp' => RESPONSIVE_IMAGE_WEBP,
                     'resize' => RESPONSIVE_IMAGE_SIZES,
                 ])

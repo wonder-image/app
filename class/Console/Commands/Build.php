@@ -537,6 +537,14 @@ RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
     Deny from all
   </IfModule>
 </FilesMatch>
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>
+<FilesMatch "(?i)\.svgz?$">
+  <IfModule mod_headers.c>
+    Header set Content-Security-Policy "sandbox"
+  </IfModule>
+</FilesMatch>
 # WONDER UPLOAD END
 HTACCESS;
     }
