@@ -77,8 +77,23 @@ $callable = Pagination::make(2, 4)->url(static fn (int $page): string => "/p/{$p
 $check(str_starts_with($callable, '<ul class="wi-pagination mt-4" aria-label="Archivio &lt;x&gt;">'), 'Classe aggiunta o etichetta escapata mancanti sull\'elenco.');
 $check(str_contains($callable, 'href="/p/1/" aria-label="Prima"') && str_contains($callable, 'href="/p/3/" aria-label="Dopo"') && !str_contains($callable, '>4</a>'), 'Funzione di link, etichette o finestra personalizzate ignorate.');
 
-$single = Pagination::make(9, 1)->render('wonder');
-$check(substr_count($single, 'aria-disabled="true"') === 2 && str_contains($single, 'href="?" aria-current="page">1</a>'), 'Con una pagina sola precedente e successiva non sono spente.');
+// Base a stringa: via il `page` che ha già, gli altri parametri restano, il frammento torna in coda.
+$links = static fn (string $base): array => [Pagination::make(1, 5)->url($base)->pageUrl(1), Pagination::make(1, 5)->url($base)->pageUrl(2)];
+$check($links('/c/') === ['/c/', '/c/?page=2'], 'Una base semplice non dà /c/ e /c/?page=2.');
+$check($links('/c/?page=3&q=a&f%5B%5D=x') === ['/c/?q=a&f%5B%5D=x', '/c/?q=a&f%5B%5D=x&page=2'], 'Il page già nella query non si toglie o gli altri parametri cambiano.');
+$check($links('/c/?q=a&page=3') === ['/c/?q=a', '/c/?q=a&page=2'], 'Un page in coda alla query non si toglie.');
+$check($links('/c/?page=3') === ['/c/', '/c/?page=2'], 'Tolto il page, la prima pagina tiene un ? vuoto.');
+$check($links('/c/#lista') === ['/c/#lista', '/c/?page=2#lista'], 'Con un frammento la query non va prima del #.');
+$check($links('/c/?page=1&q=a#lista') === ['/c/?q=a#lista', '/c/?q=a&page=2#lista'], 'Con query e frammento i link non sono ricostruiti bene.');
+$check(Pagination::make(1, 5)->url('/c/?pagina=4&q=a', 'pagina')->pageUrl(3) === '/c/?q=a&pagina=3', 'Il nome del parametro scelto non si toglie dalla base.');
+
+// Senza url(): ?page=N anche per la prima pagina, mai un ? vuoto.
+$check(Pagination::make(2, 3)->pageUrl(1) === '?page=1' && Pagination::make(2, 3)->pageUrl(3) === '?page=3', 'Senza url() la prima pagina non è ?page=1.');
+
+// Una pagina sola (o nessuna): la generica non stampa nulla, a meno di hidden(false).
+$check(Pagination::make(1, 1)->render('wonder') === '' && Pagination::make(9, 0)->render('wonder') === '', 'Con una pagina sola la paginazione generica stampa qualcosa.');
+$single = Pagination::make(9, 1)->hidden(false)->render('wonder');
+$check(substr_count($single, 'aria-disabled="true"') === 2 && str_contains($single, 'href="?page=1" aria-current="page">1</a>'), 'Mostrata con hidden(false), una pagina sola non ha le frecce spente.');
 $check(Pagination::make(2, 3)->summary('2 di 3 <ok>')->render('wonder') !== '' && str_starts_with(Pagination::make(2, 3)->summary('2 di 3 <ok>')->render('wonder'), '<div class="wi-row-table__foot"><span>2 di 3 &lt;ok&gt;</span><ul class="wi-pagination"'), 'Il riepilogo generico non apre il piede.');
 $check(Pagination::make(2, 3)->hidden()->render('wonder') === '', 'Una paginazione nascosta stampa qualcosa.');
 

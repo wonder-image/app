@@ -15,6 +15,7 @@ use Wonder\Localization\TranslationProvider;
  * e non legge la richiesta: riceve pagina e totale già calcolati.
  *
  *   // Generica: pagina corrente, totale pagine, come si costruisce il link.
+ *   // Con una pagina sola (o nessuna) non stampa nulla.
  *   Pagination::make(3, 12)->url('/blog/')            // /blog/?page=3
  *   Pagination::make(3, 12)->url(fn (int $page) => "/blog/p/{$page}/")
  *
@@ -34,7 +35,7 @@ class Pagination extends Component
         $this->schema('pages', $pages);
         $this->schema('page', min(max(1, $page), $pages));
         $this->schema('window', 2);
-        $this->schema('hidden', false);
+        $this->schema('hidden', $pages <= 1);
     }
 
     public static function make(int $page = 1, int $pages = 1): static
@@ -66,17 +67,22 @@ class Pagination extends Component
     }
 
     /**
-     * Il link di ogni pagina. Una stringa è la base: la prima pagina resta la
-     * base, le altre aggiungono `?{$param}=N` (o `&` se la base ha già una query).
+     * Il link di ogni pagina. Una stringa è la base, anche l'URL corrente: si
+     * toglie il `{$param}` che ha già, si tengono gli altri parametri così come
+     * sono e il frammento `#...` torna in coda. La prima pagina è la base così
+     * ripulita, le altre aggiungono `{$param}=N` con `?` o `&`.
      * Una funzione riceve il numero di pagina e restituisce l'URL.
      */
     public function url(string|callable $url, string $param = 'page'): static
     {
         if (is_string($url)) {
-            $base = $url;
-            $url = static fn (int $page): string => $page <= 1
-                ? $base
-                : $base.(str_contains($base, '?') ? '&' : '?').rawurlencode($param).'='.$page;
+            [$base, $query, $fragment] = self::splitUrl($url, $param);
+            $name = rawurlencode($param);
+            $url = static function (int $page) use ($base, $query, $fragment, $name): string {
+                $parts = $page <= 1 ? $query : [...$query, $name.'='.$page];
+
+                return $base.($parts === [] ? '' : '?'.implode('&', $parts)).$fragment;
+            };
         }
 
         $this->url = Closure::fromCallable($url);
@@ -112,7 +118,10 @@ class Pagination extends Component
         return $this->schema('next_label', $label);
     }
 
-    /** Nascosta, il renderer non stampa nulla (per esempio senza risultati). */
+    /**
+     * Nascosta, il renderer non stampa nulla (per esempio senza risultati).
+     * `make()` la nasconde già con una pagina sola: `hidden(false)` la mostra.
+     */
     public function hidden(bool $hidden = true): static
     {
         return $this->schema('hidden', $hidden);
@@ -136,12 +145,35 @@ class Pagination extends Component
         return range(max(1, $this->page() - $side), min($this->pages(), $this->page() + $side));
     }
 
-    /** Senza `url()` il link è la sola query: `?` per la prima pagina, `?page=N` per le altre. */
+    /**
+     * Senza `url()` il link è la sola query `?page=N`, anche per la prima
+     * pagina, come il vecchio `pagination()`: non conserva gli altri parametri
+     * della pagina, quindi con dei filtri passa l'URL corrente a `url()`.
+     */
     public function pageUrl(int $page): string
     {
-        $url = $this->url ?? static fn (int $page): string => $page <= 1 ? '?' : '?page='.$page;
+        $url = $this->url ?? static fn (int $page): string => '?page='.$page;
 
         return (string) $url($page);
+    }
+
+    /**
+     * La base senza query e frammento, i parametri da tenere (senza `$param`)
+     * e il frammento con il suo `#`.
+     *
+     * @return array{0: string, 1: list<string>, 2: string}
+     */
+    private static function splitUrl(string $url, string $param): array
+    {
+        [$url, $fragment] = array_pad(explode('#', $url, 2), 2, null);
+        [$base, $query] = array_pad(explode('?', $url, 2), 2, '');
+
+        $kept = array_values(array_filter(
+            explode('&', $query),
+            static fn (string $pair): bool => $pair !== '' && urldecode(explode('=', $pair, 2)[0]) !== $param,
+        ));
+
+        return [$base, $kept, $fragment === null ? '' : '#'.$fragment];
     }
 
     private static function translate(string $key, array $replacements = []): string
