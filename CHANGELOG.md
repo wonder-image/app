@@ -694,6 +694,17 @@
   `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
+- **Escape della connessione al posto di `addslashes()` (`C-SQL-I5`).**
+  `FilterCustom::condition($options, $value, ?callable $escape = null)`:
+  `generate()` passa il `real_escape_string` della connessione del filtro;
+  senza `$escape` resta `addslashes()`, come prima. `Popup::currentForPageKey()`
+  costruisce la condizione con `Popup::pageKeyCondition()`, che lega i valori
+  con `Query::bind()`. Per i valori normali l'SQL è identico; con
+  `NO_BACKSLASH_ESCAPES` un apice non chiude più la stringa.
+  Nelle LIKE di `column_type` multiple `%`, `_` e `\` del valore vengono
+  escapati prima dell'escape della connessione: una barra (`\%`) non riattiva
+  più il jolly. Anche `Popup::pageKeyCondition()` escapa `%`, `_` e `\` della
+  chiave (e di `__all__`), che nel LIKE valgono come caratteri.
 - **Deprecato il default `$REMEMBER = true` di `authenticateUserLogin()` e
   `authenticateUser()`.** Il default resta per retrocompatibilità, ma i
   chiamanti devono passare la scelta esplicita (ad esempio

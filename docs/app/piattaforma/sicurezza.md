@@ -235,6 +235,20 @@ query, per esempio `near '...'`.
   (Consent Mode) e passa al dataLayer solo un hash dell'id utente. Vedi
   [Google Tag Manager](../servizi/google-tag-manager/configurazione.md#consenso-e-datalayer).
 
+## SQL
+
+I valori entrano nell'SQL con i segnaposto di `Query::bind()` o con l'escape
+della connessione (`real_escape_string`), mai con `addslashes()`: con
+`NO_BACKSLASH_ESCAPES` la barra non protegge l'apice. `FilterCustom` usa
+l'escape della sua connessione; `FilterCustom::condition()` chiamata da sola
+senza il terzo argomento resta su `addslashes()`. `Popup::pageKeyCondition()`
+lega la chiave della pagina con `Query::bind()`.
+
+Dentro un `LIKE` i valori passano prima da `addcslashes($v, '%_\\')` e poi
+dall'escape della connessione, in quest'ordine: al contrario una barra nel
+valore (`\%`) riattiverebbe il jolly. Così fanno `SSP`, le LIKE di
+`FilterCustom` con `column_type` multiple e `Popup::pageKeyCondition()`.
+
 ## Log
 
 `Logger` scrive in `ROOT/storage/logs/` e non usa mai la cartella corrente.
