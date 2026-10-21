@@ -142,6 +142,16 @@ scrivere:
 | `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
 | Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
 | Creazione rapida (`backend.resource.quick-create`) | `403` JSON, il controller non viene chiamato |
+| Logout (`POST /backend/account/logout/`) | alert `929` sulla pagina di conferma, nessun logout |
+| «Collega webhook» Stripe (`POST /api/service/stripe/connect/`) | `403`, credenziali non toccate |
+
+Logout e «Collega webhook» in `GET` mostrano solo una pagina di conferma con un
+form `POST` e `_csrf`: non escono e non collegano nulla da soli, anche con
+`?_csrf=` nella query (il token conta solo dal corpo o da `X-WI-CSRF`). Nel menu
+del backend «Esci» è un form: in `sidebarOffcanvas()` una voce con
+`'method' => 'post'` diventa un form con `Csrf::fieldFor('post')` al posto del
+link. Il logout frontend (`AuthRoutes`, `/account/auth/logout/`) è già solo
+`POST` con `csrf_token`.
 
 Il codice `929` («Richiesta non valida») è in `notifications.json` e si
 mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
@@ -210,8 +220,8 @@ primo valore della catena. Accendilo solo se il sito è raggiungibile
 esclusivamente dal proxy: altrimenti un client può mandare l'header da sé.
 Senza flag, dietro un proxy che termina HTTPS i cookie escono senza `Secure`.
 
-`UrlParser::isHttpsRequest()` (URL assoluti) legge ancora `X-Forwarded-*` senza
-flag: non governa i cookie.
+`UrlParser::isHttpsRequest()` (URL assoluti) e `UrlParser::requestIp()` seguono
+lo stesso flag: senza `APP_TRUST_PROXY` ignorano `X-Forwarded-*`.
 
 ## Token già esistenti
 

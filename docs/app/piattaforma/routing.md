@@ -179,6 +179,12 @@ Route::get('/user/{id}/', $ROOT_APP.'/http/backend/user/view.php')
 dell'handler; `->csrf(false)` toglie una route da un gruppo che la chiede. Vedi
 [Token CSRF](../concetti/form/csrf.md#route-con-csrf).
 
+Un'azione che cambia stato non sta in `GET`: il token CSRF finirebbe nell'URL
+(cronologia, log, `Referer`). Il core registra la stessa path due volte, `GET`
+per una pagina di conferma e `POST` per l'azione, come
+`/backend/account/logout/` e `/api/service/stripe/connect/`. Vedi
+[Pagine backend del core](../concetti/form/csrf.md#pagine-backend-del-core).
+
 ### Traducibilità (`->translatable()`)
 
 Le route in `area('frontend')` sono **traducibili di default** (lo slug viene preso da `lang/{locale}/urls.json`). Le route in `area('api')` e `area('backend')` no.

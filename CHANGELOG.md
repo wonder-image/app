@@ -13,6 +13,12 @@
   dal client, aggirava la lista IP.
   Senza il flag anche `__url()`, `currentBase()` e i redirect assoluti escono in
   `http://` dietro quel proxy.
+- **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`
+  con `_csrf` (o `X-WI-CSRF`); in `GET` mostra una pagina di conferma con il
+  bottone «Esci» e non chiude più la sessione. Nel menu del core «Esci» è un
+  form (`sidebarOffcanvas()` accetta `'method' => 'post'`). I link `<a>` a
+  `/backend/account/logout/` in moduli e siti ora portano alla conferma: per
+  uscire in un clic vanno sostituiti con un form `POST` e `Csrf::field()`.
 - **«Collega webhook» Stripe in POST.** `GET /api/service/stripe/connect/`
   mostra solo una pagina di conferma; il collegamento avviene in `POST` con
   `_csrf` nel corpo (o `X-WI-CSRF`), altrimenti `403`; altri metodi `405`. Il
