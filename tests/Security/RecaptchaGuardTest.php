@@ -461,6 +461,35 @@ check('38. dietro proxy fidato il log registra l\'IP del client (ClientIp)', fun
     assertTrue(str_contains($log, '"remote_addr":"203.0.113.7"'), 'remote_addr = ultima voce di X-Forwarded-For');
 });
 
+check('39. APP_ENV assente o non valido → produzione: niente salto, failClosed() chiude', function () use ($valid, $logFile) {
+    foreach ([null, 'staging'] as $value) {
+        unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+        putenv('APP_ENV');
+        if ($value !== null) {
+            $_ENV['APP_ENV'] = $value;
+        }
+        \Wonder\App\Environment::reset();
+        try {
+            @unlink($logFile);
+            $engine = new FakeEngine(valid: false);
+            assert617(fn () => guard()->withRequest([])->withEngine($engine)->verify());
+            assertTrue($engine->calls === 0 && !str_contains((string) @file_get_contents($logFile), 'local_env'), 'nessun salto locale');
+            assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(throws: true))->failClosed()->verify());
+        } finally {
+            $_ENV['APP_ENV'] = 'production';
+            \Wonder\App\Environment::reset();
+        }
+    }
+});
+
+check('40. in produzione senza chiavi del sito → 617 invalid, engine non chiamato', function () use ($valid, $logFile) {
+    @unlink($logFile);
+    $engine = new FakeEngine(valid: true);
+    assert617(fn () => RecaptchaGuard::for('contact')->withSiteKeys('', '')->withRequest($valid)->withEngine($engine)->failClosed()->verify());
+    assertTrue($engine->calls === 0, 'engine non chiamato');
+    assertTrue(str_contains((string) @file_get_contents($logFile), '"reason":"invalid"'), 'log invalid');
+});
+
 // Il fail-closed del login frontend è verificato sul comportamento in tests/Auth/AuthControllerTest.php.
 
 echo "\n{$tests} test, {$failures} fallimenti\n";
