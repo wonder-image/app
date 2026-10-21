@@ -87,7 +87,7 @@
                 $this->filter .= '</div>';
 
                 # Creo la query
-                    $query = self::condition($options, $value);
+                    $query = self::condition($options, $value, $this->escaper());
 
                     if ($query !== '') {
                         $this->query .= empty($this->query) ? $query : 'AND '.$query;
@@ -120,11 +120,15 @@
          * Condizione SQL di un filtro per il valore arrivato da GET (o dal
          * default). Vuota se non c'è niente da filtrare: nessun valore, solo
          * l'input nascosto delle checkbox, un array su un filtro a scelta
-         * singola. Valori escapati; con `column_type` multiple le LIKE stanno
-         * fra parentesi.
+         * singola. Valori escapati con `$escape` (l'escape della connessione,
+         * da generate()); senza, con addslashes(), che non regge
+         * NO_BACKSLASH_ESCAPES. Con `column_type` multiple le LIKE stanno fra
+         * parentesi.
          */
-        public static function condition( array $options, mixed $value ): string
+        public static function condition( array $options, mixed $value, ?callable $escape = null ): string
         {
+            $escape ??= static fn (string $v): string => addslashes($v);
+
             $input = (string) ($options['input'] ?? 'select');
             $values = self::values($value, in_array($input, ['checkbox', 'tree'], true));
 
@@ -150,7 +154,7 @@
 
             if (($options['column_type'] ?? null) === 'multiple') {
                 $likes = array_map(
-                    static fn (string $v) => $column." LIKE '%\"".addcslashes(addslashes($v), '%_')."\"%'",
+                    static fn (string $v) => $column." LIKE '%\"".$escape(addcslashes($v, '%_\\'))."\"%'",
                     $values
                 );
 
@@ -158,10 +162,22 @@
             }
 
             if (is_array($value)) {
-                return $column.' IN ('.implode(', ', array_map(static fn (string $v) => "'".addslashes($v)."'", $values)).') ';
+                return $column.' IN ('.implode(', ', array_map(static fn (string $v) => "'".$escape($v)."'", $values)).') ';
             }
 
-            return $column." = '".addslashes($values[0])."' ";
+            return $column." = '".$escape($values[0])."' ";
+        }
+
+        /** Escape della connessione del filtro; null senza connessione. */
+        private function escaper(): ?callable
+        {
+            $mysqli = $this->mysqli ?? null;
+
+            if (!is_object($mysqli) || !method_exists($mysqli, 'real_escape_string')) {
+                return null;
+            }
+
+            return static fn (string $v): string => (string) $mysqli->real_escape_string($v);
         }
 
         /**

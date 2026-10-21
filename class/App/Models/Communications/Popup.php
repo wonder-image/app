@@ -4,6 +4,7 @@ namespace Wonder\App\Models\Communications;
 
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
+use Wonder\Sql\Query;
 use Wonder\Sql\TableSchema as Column;
 
 final class Popup extends Model
@@ -68,12 +69,24 @@ final class Popup extends Model
             return null;
         }
 
-        $escapedPageKey = addslashes($pageKey);
-        $allPagesKey = addslashes(static::ALL_PAGES_KEY);
-        $condition = '(pages LIKE '."'%\\\"{$escapedPageKey}\\\"%'".' OR pages LIKE '."'%\\\"{$allPagesKey}\\\"%'".') AND visible = \'true\'';
-        $popup = static::find($condition, 1, 'position', 'ASC');
+        $popup = static::find(static::pageKeyCondition($pageKey), 1, 'position', 'ASC');
 
         return is_array($popup) && $popup !== [] ? $popup : null;
+    }
+
+    /** Condizione dei popup visibili su questa pagina o su tutte, con i valori legati. */
+    public static function pageKeyCondition(string $pageKey, ?Query $query = null): string
+    {
+        return ($query ?? static::query())->bind(
+            "(pages LIKE :page OR pages LIKE :all) AND visible = 'true'",
+            ['page' => '%"'.self::likeLiteral($pageKey).'"%', 'all' => '%"'.self::likeLiteral(static::ALL_PAGES_KEY).'"%']
+        );
+    }
+
+    /** `%`, `_` e `\` della chiave valgono come caratteri, non come jolly del LIKE. */
+    private static function likeLiteral(string $value): string
+    {
+        return addcslashes($value, '%_\\');
     }
 
     public static function modalPayloadForPageKey(string $pageKey): ?array
