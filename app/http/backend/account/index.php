@@ -35,9 +35,9 @@ if (!$CSRF_VALID && (isset($_POST['modify']) || isset($_POST['modify-password'])
 }
 
 if ($CSRF_VALID && isset($_POST['modify'])) {
-    $password = sanitize($_POST['password']);
+    $password = (string) ($_POST['password'] ?? '');
 
-    if (checkPassword($password, $VALUES['password'])) {
+    if (checkUserPassword($password, $VALUES['password'])) {
         $POST = array_merge($_POST, $_FILES);
         $UPLOAD = user($POST, $USER->id);
         $VALUES = $UPLOAD->values;
@@ -51,10 +51,14 @@ if ($CSRF_VALID && isset($_POST['modify'])) {
 }
 
 if ($CSRF_VALID && isset($_POST['modify-password'])) {
-    $oldPassword = sanitize($_POST['old-password']);
+    $oldPassword = (string) ($_POST['old-password'] ?? '');
+    $rawNewPassword = (string) ($_POST['new-password'] ?? '');
 
-    if (checkPassword($oldPassword, $VALUES['password'])) {
-        $newPassword = hashPassword($_POST['new-password']);
+    // Password nuova vuota o di soli spazi: rifiutata lato server.
+    if (trim($rawNewPassword) === '') {
+        $ALERT = 977;
+    } elseif (checkUserPassword($oldPassword, $VALUES['password'])) {
+        $newPassword = hashPassword($rawNewPassword);
         $saved = sqlModify('user', ['password' => $newPassword], 'id', $USER->id);
 
         // Una sessione o un cookie "ricordami" rubati prima del cambio non restano validi.

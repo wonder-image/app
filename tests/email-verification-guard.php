@@ -43,6 +43,14 @@ function sqlModify($table, $values, $column, $value)
     return (object) [ 'success' => true, 'query' => '' ];
 }
 
+function __l() { return "it"; }
+function sqlInsert($table, $values)
+{
+    $id = count($GLOBALS['FAKE_DB'][$table] ?? []) + 1;
+    $GLOBALS['FAKE_DB'][$table][$id] = [ 'id' => $id, 'confirmed_at' => null, 'revoked_at' => null ] + $values;
+    return (object) [ 'success' => true, 'insert_id' => $id ];
+}
+
 require dirname(__DIR__).'/app/function/user/email_verification.php';
 
 $tokenConfirmed = static fn (): bool => $GLOBALS['FAKE_DB']['consent_confirmation_tokens'][1]['confirmed_at'] !== null;
@@ -69,6 +77,48 @@ $called = false;
 $GLOBALS['FAKE_DB']['consent_confirmation_tokens'][1]['confirmed_at'] = '2026-01-01 00:00:00';
 $result = confirmUserVerificationToken('tok', static function (int $userId) use (&$called): bool { $called = true; return false; });
 $check($result->success === false && ($result->rejected ?? false) === false && $called === false, 'Un token già usato non resta "non valido" prima della guardia.');
+
+// C-PWD-I9: il token è salvato solo come hash, conferma atomica.
+// La riga 'tok' delle fixture è in chiaro: le conferme sopra passano dal ripiego legacy.
+fakeDbReset();
+$issued = generateUserVerificationToken(7, 24, [ 'requested_from_url' => 'https://sito.test/registrati/' ]);
+$issuedRow = $GLOBALS['FAKE_DB']['consent_confirmation_tokens'][$issued->token_id] ?? [];
+$check(($issued->success ?? false) === true && preg_match('/^[0-9a-f]{64}$/', (string) $issued->token) === 1, 'Il token emesso non torna in chiaro al chiamante.');
+$check(!array_key_exists('token', $issuedRow) && ($issuedRow['token_hash'] ?? '') === hash('sha256', $issued->token), 'La riga contiene il token in chiaro o un hash sbagliato.');
+$check(!in_array($issued->token, array_map('strval', $issuedRow), true), 'Il token in chiaro compare in una colonna della riga.');
+$check($issued->requested_from_url === 'https://sito.test/registrati/', 'L\'emissione cambia requested_from_url.');
+
+$result = confirmUserVerificationToken($issued->token);
+$check($result->success === true && $userVerified() && $issuedRow['confirmed_at'] === null, 'Un token salvato come hash non conferma l\'utente.');
+$check($result->requested_from_url === 'https://sito.test/registrati/', 'La conferma cambia requested_from_url.');
+$again = confirmUserVerificationToken($issued->token);
+$check($again->success === false && $again->alert_code === 918, 'Una seconda conferma dello stesso token riesce.');
+
+// Conferma concorrente fra la lettura e la scrittura: vince solo la prima.
+fakeDbReset();
+$issued = generateUserVerificationToken(7);
+$result = confirmUserVerificationToken($issued->token, static function () use ($issued): bool {
+    $GLOBALS['FAKE_DB']['consent_confirmation_tokens'][$issued->token_id]['confirmed_at'] = '2026-01-01 00:00:00';
+    return true;
+});
+$check($result->success === false && !$userVerified(), 'Una conferma concorrente verifica l\'utente due volte.');
+
+fakeDbReset();
+$issued = generateUserVerificationToken(7);
+$GLOBALS['FAKE_DB']['consent_confirmation_tokens'][$issued->token_id]['expires_at'] = date('Y-m-d H:i:s', time() - 60);
+$result = confirmUserVerificationToken($issued->token);
+$check($result->success === false && $result->alert_code === 919 && !$userVerified(), 'Un token scaduto non dà 919.');
+
+fakeDbReset();
+$issued = generateUserVerificationToken(7);
+$GLOBALS['FAKE_DB']['consent_confirmation_tokens'][$issued->token_id]['revoked_at'] = date('Y-m-d H:i:s');
+$result = confirmUserVerificationToken($issued->token);
+$check($result->success === false && $result->alert_code === 918 && !$userVerified(), 'Un token revocato non dà 918.');
+
+fakeDbReset();
+$first = generateUserVerificationToken(7);
+$result = confirmUserVerificationToken(hash('sha256', $first->token));
+$check($result->success === false && !$userVerified(), 'L\'hash salvato vale come token.');
 
 // Registrazione con email esistente: si riusa l'account solo per rimandare il
 // link a chi non ha ancora verificato l'indirizzo.

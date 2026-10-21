@@ -22,7 +22,7 @@
                 'event' => $event,
                 'area' => $area ?? '',
                 'success' => is_null($success) ? null : ($success ? 1 : 0),
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'ip' => \Wonder\Http\ClientIp::resolve(),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
                 'meta' => $metaJson
             ];

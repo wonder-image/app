@@ -16,5 +16,8 @@
         }
 
 
+    # Impersonificazione scaduta: torna all'attore prima di risolvere l'utente
+        \Wonder\Auth\Impersonation::enforceExpiry();
+
     # Imposto la sessione con utente non definito se non è impostato
         if (!isset($_SESSION['user_id'])) { $_SESSION['user_id'] = null; }

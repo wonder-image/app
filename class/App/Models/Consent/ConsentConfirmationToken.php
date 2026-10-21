@@ -17,7 +17,9 @@ final class ConsentConfirmationToken extends Model
         return [
             Column::key('token_type')->length(50)->null(false),
             Column::key('user_id')->int()->null(false)->foreign('user'),
-            Column::key('token')->length(128)->null(false)->unique(),
+            // Solo l'hash sha256; `token` in chiaro resta per le righe emesse prima.
+            Column::key('token_hash')->length(64)->null()->unique(),
+            Column::key('token')->length(128)->null()->unique(),
             Column::key('language_code')->length(2)->null(),
             Column::key('continue_url')->type('LONGTEXT')->null(),
             Column::key('metadata_json')->json()->null(),
@@ -49,7 +51,8 @@ final class ConsentConfirmationToken extends Model
         return [
             Field::key('token_type')->text()->required(),
             Field::key('user_id')->number()->required(),
-            Field::key('token')->text()->required(),
+            Field::key('token_hash')->text(),
+            Field::key('token')->text(),
             Field::key('language_code')->text(),
             Field::key('continue_url')->text(),
             Field::key('metadata_json')->text()->json()->sanitize(false),

@@ -51,6 +51,16 @@ foreach ($pageScenarios as $scenario => $label) {
     });
 }
 
+// Cambio password dell'account: la password nuova vuota o di soli spazi è rifiutata (C-PWD-I1).
+foreach (['empty' => 'vuota', 'spaces' => 'di soli spazi'] as $extra => $label) {
+    check("account: password nuova {$label} → alert 977 e nessuna scrittura", function () use ($run, $extra) {
+        $r = $run('account-password', 'valid', $extra);
+
+        return ($r['alert'] ?? null) == 977 && ($r['writes'] ?? null) === [] && !empty($r['rendered']);
+    });
+}
+check('account: password nuova valida → salva la password', fn () => ($run('account-password', 'valid')['writes'] ?? []) === ['modify user']);
+
 // Form legacy (`app/html/backend/index.php`): non rende pagina, scrive e redirige.
 foreach (['none', 'wrong'] as $token) {
     check("form legacy: token {$token} → alert {$csrfAlert}, nessuna scrittura e nessun redirect", function () use ($run, $token, $csrfAlert) {
@@ -127,6 +137,10 @@ $forms = [
     'app/view/pages/backend/account/index.php' => 2,
     'app/view/pages/backend/user/manage.php' => 1,
     'app/view/pages/backend/config/configuration-file.php' => 1,
+    'app/view/pages/backend/account/login.php' => 1,
+    'app/view/pages/backend/account/password-recovery.php' => 1,
+    'app/view/pages/backend/account/password-restore.php' => 1,
+    'app/view/pages/backend/account/password-set.php' => 1,
 ];
 
 foreach ($forms as $file => $count) {
@@ -148,16 +162,16 @@ check('QuickCreateModal manda l\'header X-WI-CSRF letto dal meta wi-csrf', funct
     return str_contains($src, "'X-WI-CSRF': csrfToken()") && str_contains($src, 'meta[name="wi-csrf"]');
 });
 
-check('login e recupero password del backend non toccati (sono in 2c)', function () use ($root) {
-    $files = glob($root.'/app/http/backend/account/{login,password-recovery,password-restore}*.php', GLOB_BRACE) ?: [];
+check('login, recupero, restore e set del backend controllano il CSRF (C-PWD-I4)', function () use ($root) {
+    $files = glob($root.'/app/http/backend/account/{login,password-recovery,password-restore,password-set}.php', GLOB_BRACE) ?: [];
 
     foreach ($files as $file) {
-        if (str_contains((string) file_get_contents($file), 'CSRF_ALERT')) {
+        if (!str_contains((string) file_get_contents($file), 'ResourcePageController::CSRF_ALERT')) {
             return false;
         }
     }
 
-    return true;
+    return count($files) === 4;
 });
 
 summary();
@@ -241,7 +255,12 @@ function csrfPagesScenario(string $scenario, string $tokenMode): void
         case 'account-password':
             $_POST = $csrf + ($scenario === 'account-modify'
                 ? ['modify' => '1', 'password' => 'x']
-                : ['modify-password' => '1', 'old-password' => 'x', 'new-password' => 'y']);
+                : ['modify-password' => '1', 'old-password' => 'x', 'new-password' => match ($GLOBALS['argv'][4] ?? '') {
+                    // $argv[4]: 'empty' o 'spaces' per la password nuova (C-PWD-I1).
+                    'empty' => '',
+                    'spaces' => "   \t",
+                    default => 'y',
+                }]);
             csrfPagesInclude('/../../app/http/backend/account/index.php', [
                 'USER' => (object) ['id' => 7, 'authority' => []],
                 'DEFAULT' => (object) ['colorUser' => []],
@@ -361,6 +380,7 @@ function csrfPagesStubs(): void
         function user($post, $id = null) { $GLOBALS['W'][] = 'user()'; $GLOBALS['ALERT'] = 900; return (object) ['values' => $post, 'written' => false]; }
         function sanitize($v) { return $v; }
         function checkPassword($a, $b) { return true; }
+        function checkUserPassword($a, $b) { return true; }
         function hashPassword($v) { return 'h'; }
         function formToArray($table, $post, $fields, $old = null) { return ['name' => $post['name'] ?? '']; }
     STUBS);

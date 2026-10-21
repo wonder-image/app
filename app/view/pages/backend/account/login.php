@@ -9,6 +9,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
 };
 ?>
 <form method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
+    <?=\Wonder\Http\Csrf::field()->render()?>
     <wi-card>
 
         <div class="d-grid col-12 mx-auto">
@@ -21,6 +22,10 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
 
         <div class="col-12">
             <?=$renderInput('password')?>
+        </div>
+
+        <div class="col-12">
+            <?=$renderInput('remember')?>
         </div>
 
         <div class="d-grid col-8 mx-auto">

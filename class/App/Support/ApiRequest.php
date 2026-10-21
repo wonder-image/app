@@ -44,7 +44,13 @@ final class ApiRequest
         return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST';
     }
 
-    public static function selectDatabase(?string $database = null): string
+    /**
+     * Connessione scelta dal client: solo un alias configurato in `$DB->database`
+     * (mai `information_schema`), altrimenti 422.
+     *
+     * @param list<string>|null $allowed alias ammessi; default da `$DB->database`
+     */
+    public static function selectDatabase(?string $database = null, ?array $allowed = null): string
     {
         $database = trim((string) ($database ?? 'main'));
 
@@ -52,11 +58,27 @@ final class ApiRequest
             $database = 'main';
         }
 
-        if ($database !== 'main') {
-            sqlDatabase($database);
+        if ($database === 'main') {
+            return $database;
         }
 
+        $allowed ??= self::configuredDatabases();
+
+        if (strtolower($database) === 'information_schema' || !in_array($database, $allowed, true)) {
+            self::error('Parametri non validi.', 422);
+        }
+
+        sqlDatabase($database);
+
         return $database;
+    }
+
+    /** @return list<string> */
+    private static function configuredDatabases(): array
+    {
+        $databases = $GLOBALS['DB']->database ?? [];
+
+        return is_array($databases) ? array_values(array_map('strval', array_keys($databases))) : [];
     }
 
     public static function json(array $payload, int $status = 200): never

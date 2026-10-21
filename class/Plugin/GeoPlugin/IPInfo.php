@@ -20,15 +20,9 @@
             
             if ($ip === null) {
                 
-                if (isset($_SERVER['REMOTE_ADDR'])) {
-                    $this->IP = $_SERVER['REMOTE_ADDR'];
-                } else if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                    $this->IP = $_SERVER['HTTP_X_FORWARDED_FOR'];
-                } else if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-                    $this->IP = $_SERVER['HTTP_CLIENT_IP'];
-                } else {
-                    $this->IP = null;
-                }
+                // Stessa regola di throttle e auth_log: X-Forwarded-For solo con APP_TRUST_PROXY.
+                $ip = \Wonder\Http\ClientIp::resolve($_SERVER);
+                $this->IP = $ip === '' ? null : $ip;
 
             } else {
 

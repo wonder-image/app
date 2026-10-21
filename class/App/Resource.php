@@ -192,6 +192,7 @@ abstract class Resource
                 static::modelClass()::prepareFormatFromField($fields[$key] ?? null),
                 static::prepareFormatFromInput($inputs[$key] ?? null)
             );
+            $format = static::withTypeExtensions($format, $inputs[$key] ?? null);
 
             if ($format !== []) {
                 $entry['input']['format'] = $format;
@@ -945,16 +946,29 @@ abstract class Resource
                 'max_size' => 5,
                 'max_file' => (bool) ($input->get('multiple') ?? false) ? 10 : 1,
             ], $prepare);
-
-            $file = (string) ($input->get('file') ?? 'image');
-            $extensions = static::fileExtensionsFor($file);
-
-            if ($extensions !== [] && !isset($prepare['extensions'])) {
-                $prepare['extensions'] = $extensions;
-            }
         }
 
         return $prepare;
+    }
+
+    /** Whitelist del tipo di input solo se né modello né input dichiarano `extensions`. */
+    private static function withTypeExtensions(array $format, ?object $input): array
+    {
+        if ($input === null || !method_exists($input, 'get') || !empty($format['extensions'])) {
+            return $format;
+        }
+
+        if (!in_array((string) ($input->get('helper') ?? ''), ['inputFile', 'inputFileDragDrop'], true)) {
+            return $format;
+        }
+
+        $extensions = static::fileExtensionsFor((string) ($input->get('file') ?? 'image'));
+
+        if ($extensions !== []) {
+            $format['extensions'] = $extensions;
+        }
+
+        return $format;
     }
 
     private static function fileExtensionsFor(string $file): array
@@ -965,6 +979,9 @@ abstract class Resource
             'jpg', 'jpeg' => ['jpg', 'jpeg'],
             'svg' => ['svg'],
             'webp' => ['webp'],
+            'image' => ['png', 'jpg', 'jpeg', 'webp'],
+            'video' => ['mp4'],
+            'gallery' => ['png', 'jpg', 'jpeg', 'webp', 'mp4'],
             default => [],
         };
     }

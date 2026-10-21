@@ -3,7 +3,10 @@
 namespace Wonder\Api;
 
 use Throwable;
+use Wonder\App\Debug;
 use Wonder\App\Logger;
+use Wonder\Http\HttpErrorResponse;
+use Wonder\Http\RequestId;
 
 class Handler
 {
@@ -30,7 +33,9 @@ class Handler
                 ],
                 false
             );
-            self::sendError((int) ($throwable->getCode() ?: 500), $throwable->getMessage());
+            $code = (int) ($throwable->getCode() ?: 500);
+            [$message, $requestId] = self::throwableResponse($code, $throwable);
+            self::sendError($code, $message, $requestId);
         }
     }
 
@@ -59,15 +64,41 @@ class Handler
         exit();
     }
 
-    private static function sendError(int $status, string $message): never
+    /**
+     * Testo e request id per un'eccezione non prevista: sui 500 il messaggio
+     * solo con debug, altrimenti quello generico + `request_id`. I 4xx restano
+     * com'erano.
+     *
+     * @return array{0: string, 1: ?string}
+     */
+    public static function throwableResponse(int $code, Throwable $throwable): array
+    {
+        if (ErrorStatus::http($code) < 500) {
+            return [$throwable->getMessage(), null];
+        }
+
+        $message = Debug::enabled() ? trim($throwable->getMessage()) : '';
+
+        return [$message !== '' ? $message : HttpErrorResponse::GENERIC_MESSAGE, RequestId::current()];
+    }
+
+    private static function sendError(int $status, string $message, ?string $requestId = null): never
     {
         http_response_code(ErrorStatus::http($status));
+        if ($requestId !== null && !headers_sent()) {
+            header('X-Request-Id: '.$requestId);
+        }
 
-        echo json_encode([
+        $payload = [
             'success' => false,
             'status' => $status,
             'response' => $message,
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        ];
+        if ($requestId !== null) {
+            $payload['request_id'] = $requestId;
+        }
+
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         exit();
     }

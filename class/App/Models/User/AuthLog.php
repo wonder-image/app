@@ -31,6 +31,13 @@ final class AuthLog extends Model
             'ind_user_event' => [
                 'index' => ['user_id', 'event'],
             ],
+            // Conteggi di LoginThrottle per IP ed evento nella finestra.
+            'ind_ip_creation' => [
+                'index' => ['ip', 'creation'],
+            ],
+            'ind_event_creation' => [
+                'index' => ['event', 'creation'],
+            ],
         ];
     }
 

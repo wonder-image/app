@@ -1,6 +1,8 @@
 <?php
 
 use Wonder\App\PageSchema\AccountPageSchema;
+use Wonder\Backend\Support\ResourcePageController;
+use Wonder\Http\Csrf;
 use Wonder\Http\SafeRedirect;
 
     // authenticateUser() / verifyUser() popolano `$ALERT` come variabile
@@ -9,9 +11,13 @@ use Wonder\Http\SafeRedirect;
     // a video non comparirebbe mai dopo un login fallito.
     global $ALERT;
 
-    if (isset($_POST['login'])) {
+    if (isset($_POST['login']) && !Csrf::verify()) {
 
-        if (authenticateUserLogin($_POST['username'] ?? '', $_POST['password'] ?? '', 'backend')) {
+        $ALERT = ResourcePageController::CSRF_ALERT;
+
+    } elseif (isset($_POST['login'])) {
+
+        if (authenticateUserLogin($_POST['username'] ?? '', $_POST['password'] ?? '', 'backend', null, \Wonder\Auth\RememberMe::requested($_POST))) {
 
             header('Location: '.SafeRedirect::fromRequest($PAGE->redirect ?? '', __r('backend.home')));
 
