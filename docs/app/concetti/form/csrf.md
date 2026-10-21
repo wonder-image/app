@@ -228,7 +228,7 @@ lo stesso flag: senza `APP_TRUST_PROXY` ignorano `X-Forwarded-*`.
 | Token | Stato |
 | --- | --- |
 | `AuthSession::csrfToken()` / `verify()` | Delega a `Csrf`: stesso token, stessa chiave di sessione, campo `csrf_token` invariato. |
-| `_contact_csrf` (pannelli Contatti) | Invariato; usa già lo stesso token tramite `AuthSession`. |
+| `_contact_csrf` (pannelli Contatti) | Del modulo `customer-account`, non del core: i form delle sue Resource dei contatti lo emettono con lo stesso token, tramite `AuthSession`. |
 | Scheduler (azioni backend) | Usa `Csrf`: `toggle`, `run` e il form verificano `Csrf::verify()`. |
 | `Impersonation` | Invariato: token per scopo, cancellato alla fine dell'impersonazione. |
 

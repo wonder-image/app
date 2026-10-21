@@ -14,6 +14,7 @@ I comandi importanti sono questi:
 - `php forge update`
 - `php forge build`
 - `php forge db:init`
+- `php forge db:backup`
 - `php forge start`
 - `php forge export`
 - `php forge import`
@@ -154,6 +155,7 @@ Serve per l’update applicativo.
 
 Fa questo:
 
+- se il database ha già tabelle, prima di rinomine e migrazioni crea un backup come `php forge db:backup` (in `storage/backup`, ultimi 5, percorso nel campo `backup` del risultato); se il backup fallisce l'update si ferma; se è stato fatto con il dump PHP perché `mysqldump` è fallito, l'update prosegue e il risultato riporta l'avviso in `backup_warning`. `--no-backup` lo salta; nell'update via API (`/api/app/update/`) fa lo stesso il parametro `"backup": false` (default `true`)
 - applica tabelle
 - esegue i file in `build/row`
   - `build/row` e' il lifecycle di seed/bootstrap idempotente
@@ -194,6 +196,27 @@ php forge db:init --admin-host=127.0.0.1 --admin-port=3306 --admin-username=root
 ```
 
 Con `APP_DOMAIN=wonderimage.it` il valore scritto è `DB_DATABASE=main:wonderimage_it`.
+
+### `php forge db:backup`
+
+Crea un dump gzip del database in `storage/backup/<Ymd-His>-<8 hex>.sql.gz` (cartella creata con permessi `0750`, file `0640`). Data e ora del nome sono in UTC, non nell'ora del sito; le 8 cifre esadecimali sono casuali, così il nome non si indovina.
+
+- usa `mysqldump` se è nel `PATH`, con `--single-transaction --skip-lock-tables --no-tablespaces --set-gtid-purged=OFF --routines --triggers`; le credenziali (lette come fa il core, da `.env`) passano da un file di opzioni temporaneo `0600`, mai dalla riga di comando
+- con MariaDB (riconosciuto da `mysqldump --version` o da `SELECT VERSION()` sul server) `--set-gtid-purged=OFF` viene omesso: il `mysqldump` di MariaDB non lo conosce
+- senza `mysqldump` (o senza `proc_open`, tipico degli hosting condivisi) usa un dump PHP via mysqli: solo tabelle e dati, niente viste, routine, trigger ed eventi. È un ripiego: se c'è, ripristina da un dump di `mysqldump`. Limiti noti: le colonne generate (`GENERATED ALWAYS AS`) finiscono negli `INSERT` e il ripristino di quelle tabelle fallisce; i valori binari (`BLOB`, `BINARY`) sono scritti come stringhe escapate, sicure solo con il charset di connessione single-byte di default (`latin1`); manca `SET TIME_ZONE='+00:00'`, quindi le colonne `TIMESTAMP` si ripristinano nel fuso della sessione che importa
+- se `mysqldump` fallisce (exit ≠ 0, scrive su stderr, non produce output o l'output non finisce con `-- Dump completed`, cioè è troncato) si riprova con il dump PHP e il comando lo segnala con un avviso; esce con errore solo se falliscono entrambi. Il file compare solo a dump riuscito, mai parziale
+- il marcatore si controlla solo con i commenti di `mysqldump` attivi (default). Se le opzioni effettive li spengono (`--skip-comments`, `--comments=0`, `--compact`, anche da `my.cnf`, lette con `mysqldump --print-defaults`), il troncamento si rileva solo da exit code, stderr e output vuoto, senza ripiegare sul dump PHP
+- `--keep=N` mantiene gli ultimi N backup (default 5), in ordine di data del nome e non di modifica del file; `--path=DIR` scrive in un'altra cartella (un percorso relativo parte dalla radice del progetto)
+- nella cartella scrive, se mancano, un `.htaccess` con `Require all denied` e un `index.html` vuoto (quelli già presenti non vengono toccati); se non riesce a scriverli il backup non parte
+
+```bash
+php forge db:backup
+php forge db:backup --keep=10
+php forge db:backup --path=/percorso/backup
+```
+
+`storage/` non deve essere raggiungibile via HTTP: il dump contiene tutti i dati del sito. Su Apache 2.4 ci pensa l'`.htaccess` della cartella dei backup; su nginx, o dove `.htaccess` è ignorato (`AllowOverride None`), serve una regola del server, per esempio `location /storage/ { deny all; }`. Il suffisso casuale del nome riduce il rischio, ma non sostituisce il blocco.
+
 
 ### `php forge start`
 

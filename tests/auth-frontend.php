@@ -33,7 +33,21 @@ try {
     $check(false, 'Migration accepted conflicting tables.');
 } catch (RuntimeException) {}
 $check(\Wonder\App\Models\System\ExternalReference::rawTableSchema() !== [] && \Wonder\App\Models\System\ExternalReference::syncSchema() === null, 'Shared model requires gestionale or syncs operational data.');
-$check(!class_exists('Wonder\\App\\Models\\Contacts\\Contact') && !class_exists('Wonder\\Plugin\\CustomerAccount\\CustomerAccount'), 'Core still owns contacts or depends on customer-account.');
+// Sul sorgente e non su class_exists(): il vendor del core può contenere il modulo.
+$coreSources = static function (): \Generator {
+    foreach (['class', 'app'] as $dir) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__).'/'.$dir, FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->getExtension() === 'php') { yield $file->getPathname() => str_replace('\\\\', '\\', (string) file_get_contents($file->getPathname())); }
+        }
+    }
+};
+$coreRefs = [];
+foreach ($coreSources() as $path => $source) {
+    foreach (['Wonder\\Plugin\\CustomerAccount', 'Wonder\\App\\Models\\Contacts'] as $namespace) {
+        if (str_contains($source, $namespace)) { $coreRefs[] = basename($path).': '.$namespace; }
+    }
+}
+$check($coreRefs === [], 'Core still owns contacts or depends on customer-account: '.implode(', ', $coreRefs));
 $check(!class_exists('Wonder\\Plugin\\Ecommerce\\Ecommerce'), 'Core test unexpectedly depends on ecommerce.');
 $check(array_keys($profile->fields('signup-request')) === ['name', 'surname', 'email', 'accept_privacy_policy'], 'Generic signup fields mismatch.');
 $check($profile->validate('signup-completion', ['password' => 'password123', 'password_confirmation' => 'password123']) === [], 'Core forces a mobile number.');
@@ -89,5 +103,10 @@ $check($profile->phoneColumns('signup-completion') === 5 && $profile->phoneField
 $check($profile->phoneColumns('login') === 1 && $profile->phoneFieldSpan('signup-request', 'name') === 1, 'Other auth forms lost the single phone column.');
 $authForm = (string) file_get_contents(dirname(__DIR__).'/app/view/components/frontend/account/auth-form.php');
 $check(str_contains($authForm, 'col-p-<?=$phone_columns?>') && str_contains($authForm, '$auth_profile->phoneFieldSpan($surface'), 'Auth form ignores the phone grid.');
+$validator = \Wonder\Auth\Frontend\AuthValidator::class;
+$check($validator::localPhone('+39333', '+39') === '333', 'localPhone does not strip the matching prefix.');
+$check($validator::localPhone('333', '+39') === '333' && $validator::localPhone('333 123', '+39') === '333 123', 'localPhone altered a local number.');
+$check($validator::localPhone('+44333', '+39') === '+44333', 'localPhone stripped a different prefix.');
+$check($validator::defaultPrefix() === '+39', 'Default phone prefix changed.');
 if ($failures !== []) { fwrite(STDERR, implode("\n", $failures)."\n"); exit(1); }
 echo "Auth frontend: OK\n";

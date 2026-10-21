@@ -381,6 +381,41 @@
   (whitelist estensioni, 10 MB, MIME reale) e sottocartella sicura dentro
   `upload/`. Nuovi alert 927 (tipo di file non coerente) e 928 (elaborazione
   dell'immagine non riuscita, PNG, JPG o WEBP) in tutte le lingue.
+- Test `tests/App/RegistryPrecedenceTest.php` sulla precedenza per tabella:
+  `ResourceRegistry::resolveByTable()` (non-fallback prima della fallback in
+  entrambi gli ordini, solo fallback, due non-fallback) e `ModelRegistry::all()`
+  (vince il FQCN alfabeticamente ultimo, qualunque sia la cartella). Docblock
+  con la regola reale nei due registry e nota in `introduzione/architettura.md`.
+  Nessun cambio di comportamento.
+- `AuthValidator::localPhone($phone, $prefix)`: il numero da mostrare dopo il
+  prefisso, tolto da un cellulare canonico (`+39333…` → `333…`) solo se inizia
+  con quel prefisso. `AuthValidator::defaultPrefix()` dà il prefisso proposto
+  (`Prettify\Phone::$defaultCountryCode`, `+39`). Li usano «Dati personali»
+  (`AccountController`) e il completamento della registrazione (`AuthProfile`),
+  senza cambiare il comportamento.
+- Comando `php forge db:backup` (`Support\DatabaseBackup`): dump gzip del
+  database in `storage/backup/<Ymd-His>-<8 hex>.sql.gz` (data e ora UTC, suffisso
+  casuale), con `mysqldump` (credenziali in
+  un file di opzioni temporaneo `0600`, mai sulla riga di comando) o, se manca,
+  con un dump PHP via mysqli. Se `mysqldump` fallisce (exit ≠ 0, stderr, output
+  vuoto o, con i commenti attivi, senza il marcatore finale `-- Dump completed`;
+  con `skip-comments`/`compact` anche da `my.cnf` il marcatore non si controlla)
+  riprova con il dump PHP e avvisa (in `forge update` nel campo
+  `backup_warning`); fallisce solo se falliscono entrambi, senza lasciare file
+  parziali.
+  Con MariaDB (client `mysqldump --version` o server `SELECT VERSION()`) omette
+  `--set-gtid-purged=OFF`. `--keep=N` (default 5) ruota i vecchi backup in
+  ordine di data del nome, `--path=` cambia cartella. Nella cartella scrive, se
+  mancano, `.htaccess` con `Require all denied` e un `index.html` vuoto; senza,
+  il backup non parte. Su nginx serve una regola del server per `storage/`.
+  Il dump PHP non gestisce colonne generate, binari con charset multibyte e
+  fuso dei `TIMESTAMP`: è un ripiego.
+- `php forge update` crea un backup prima di rinomine e migrazioni quando il
+  database ha già tabelle; se il backup fallisce l'update si ferma. L'opzione
+  `--no-backup` (o `'backup' => false` in `UpdateRunner::execute()`) lo salta;
+  `/api/app/update/` accetta lo stesso parametro `backup` (default `true`;
+  `false`, `0`, `"false"`, `"no"`, `"off"` lo disattivano), letto da
+  `UpdateRunner::apiOptions()` in entrambi i percorsi di autenticazione.
 - Campo «Sincronizzazione orari da Google» nelle sedi (`google_sync_hours`,
   default No): con Sì il task `wonder.google-places` sostituisce gli orari
   della sede con quelli di Google, con No restano gli orari manuali e la
@@ -769,6 +804,10 @@
   solo il server; una pagina aperta prima dell'aggiornamento va ricaricata.
 - `resizeImage()` usa Intervention Image (GD) al posto di Gumlet, che non era
   installato: stesse uscite small/medium/large, restituisce `bool`.
+- La chiave `stats.contact_tables` dell'esito di `forge update` e di
+  `/api/app/update/` si chiama `stats.external_references`: la migrazione del
+  core rinomina solo `gst_external_references`. Il deploy dei siti stampa il
+  JSON senza leggere la chiave; un client che la leggeva va aggiornato.
 - `wonder.google-places`: tolto il parametro `apply_hours` (le pianificazioni
   che lo hanno ancora non danno errore, si ignora); decide il campo della sede.
   `GooglePlacesSync::run()` non riceve più `$applyHours`.
@@ -925,6 +964,16 @@
   passavano `user_area`/`user_authority` all'endpoint: `Table` li legge con
   default vuoto, quindi il risultato non cambia. `app/function/backend/filter.php` è
   marcato `@deprecated` e resta per compatibilità.
+- BREAKING: l'alias deprecato `Wonder\Auth\Frontend\SafeRedirect`. Si usa
+  `Wonder\Http\SafeRedirect`, stessa API (`fromRequest()`, `fromBase64()`).
+  Si aggiorna insieme a `wonder-image/ecommerce` con A-I2, che passa a
+  `Wonder\Http\SafeRedirect`: le versioni precedenti usano ancora l'alias in
+  `src/Support/SafeRedirect.php` e con questo core si rompono.
+- Traduzioni orfane di `account.json` (it/en): `account.navigation.billing`,
+  `account.navigation.payment_methods` e il blocco `account.payment_methods.*`.
+  Il core non le legge (il menu usa solo `overview` e `personal`), l'ecommerce
+  usa le sue `ecommerce.account.payment_methods.*`. `account.seo.description`
+  non cita più i metodi di pagamento.
 - `Wonder\App\Models\Contacts\{Contact,ContactAddress}`,
   `Wonder\App\Resources\Contacts\*`, `Wonder\Auth\Frontend\{ContactAccount,
   AccountAddresses,AccountBilling}`, le view degli indirizzi e le traduzioni

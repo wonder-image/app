@@ -112,7 +112,7 @@ class AuthProfile
         }
         if ($surface === 'signup-completion') {
             if ($this->phoneEnabled()) {
-                $fields['phone_prefix'] = FormField::key('phone_prefix')->phonePrefix()->label((string) __t('auth.fields.prefix'))->required($this->phoneRequired())->value($values['phone_prefix'] ?? '+39');
+                $fields['phone_prefix'] = FormField::key('phone_prefix')->phonePrefix()->label((string) __t('auth.fields.prefix'))->required($this->phoneRequired())->value($values['phone_prefix'] ?? AuthValidator::defaultPrefix());
                 $fields['phone'] = FormField::key('phone')->phone()->label((string) __t('auth.fields.mobile'))->required($this->phoneRequired())->value($values['phone'] ?? '');
             }
             $fields += ['password' => $password, 'password_confirmation' => $confirmation];

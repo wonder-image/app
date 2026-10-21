@@ -136,7 +136,8 @@
 
         }
 
-        private static function parseHostAndPort(string $hostname): array
+        /** Divide `host:porta` in [host, porta] (porta 3306 se assente). */
+        public static function parseHostAndPort(string $hostname): array
         {
 
             $hostname = trim($hostname);

@@ -1,7 +1,7 @@
 {
     "title": "Il mio account",
     "seo": {
-        "description": "Gestisci dati personali, indirizzi e metodi di pagamento del tuo account."
+        "description": "Gestisci dati personali e indirizzi del tuo account."
     },
     "overview": {
         "title": "Il tuo account"
@@ -56,8 +56,6 @@
         "label": "Navigazione account",
         "overview": "Panoramica",
         "personal": "Dati personali",
-        "billing": "Fatturazione",
-        "payment_methods": "Metodi di pagamento",
         "password": "Password",
         "logout": "Esci"
     },
@@ -72,13 +70,6 @@
         "saved": "La password è stata aggiornata.",
         "summary_set": "Impostata",
         "summary_missing": "Non impostata"
-    },
-    "payment_methods": {
-        "label": "Metodi di pagamento",
-        "title": "Metodi di pagamento",
-        "summary": "Gestiti in sicurezza tramite Stripe",
-        "pending": "Il collegamento al portale Stripe è predisposto, ma resterà disattivato finché il gestionale non esporrà l’identificativo cliente Stripe.",
-        "ready": "Verrai reindirizzato al portale sicuro di Stripe per gestire i metodi di pagamento."
     },
     "pagination": {
         "summary": "Risultati da {{from}} a {{to}} di {{total}}",
