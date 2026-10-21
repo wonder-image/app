@@ -10,12 +10,16 @@ use Wonder\App\Credentials;
  */
 final class DataLayer
 {
-    /** Consent Mode: tutto negato finché la CMP (Iubenda in GTM) non aggiorna. */
+    /**
+     * Consent Mode: tutto negato finché la CMP (Iubenda in GTM) non aggiorna.
+     * `wait_for_update`: i tag Google aspettano fino a 500 ms l'update.
+     */
     public const CONSENT_DEFAULT = [
         'ad_storage' => 'denied',
         'analytics_storage' => 'denied',
         'ad_user_data' => 'denied',
         'ad_personalization' => 'denied',
+        'wait_for_update' => 500,
     ];
 
     /**

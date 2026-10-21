@@ -22,7 +22,7 @@ $runJs = static function (string $script): ?array {
 
 $node = trim((string) shell_exec('command -v node')) !== '';
 
-check('dataLayer: primo evento consent default con i 4 segnali negati', function () use ($runJs, $key, $node) {
+check('dataLayer: primo evento consent default con i 4 segnali negati e wait_for_update 500', function () use ($runJs, $key, $node) {
     if (!$node) {
         return false;
     }
@@ -31,6 +31,7 @@ check('dataLayer: primo evento consent default con i 4 segnali negati', function
     return ($dl[0]['args'] ?? null) === ['consent', 'default', [
         'ad_storage' => 'denied', 'analytics_storage' => 'denied',
         'ad_user_data' => 'denied', 'ad_personalization' => 'denied',
+        'wait_for_update' => 500,
     ]];
 });
 

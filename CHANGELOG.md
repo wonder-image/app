@@ -16,8 +16,9 @@
 - **dataLayer: consenso negato di default e `user.id` come hash
   (`C-ERR-I5`).** Prima del loader GTM il layout frontend emette
   `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
-  `ad_user_data` e `ad_personalization` a `denied`: i tag Google aspettano
-  l'aggiornamento della CMP (Iubenda in GTM). `user.id` nel dataLayer è un
+  `ad_user_data` e `ad_personalization` a `denied` e `wait_for_update: 500`:
+  i tag Google aspettano fino a 500 ms l'aggiornamento della CMP (Iubenda in
+  GTM). `user.id` nel dataLayer è un
   HMAC dell'id con `APP_KEY` (`DataLayer::userId()`), non più l'id numerico: le
   variabili e i tag GTM che lo usano ricevono un valore diverso.
 - **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`

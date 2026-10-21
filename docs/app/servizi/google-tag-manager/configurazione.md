@@ -50,9 +50,11 @@ Il layout frontend (`app/view/components/frontend/layout/head.php`) scrive,
 prima del loader GTM, lo script di `Wonder\Frontend\Support\DataLayer`:
 
 - `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
-  `ad_user_data` e `ad_personalization` a `denied` (Consent Mode). Il core non
-  ha un banner: il tag Iubenda in GTM aggiorna il consenso con
-  `gtag('consent', 'update', …)`;
+  `ad_user_data` e `ad_personalization` a `denied` (Consent Mode) e
+  `wait_for_update: 500`. Il core non ha un banner: il tag Iubenda in GTM
+  aggiorna il consenso con `gtag('consent', 'update', …)`, e i tag Google
+  aspettano quell'aggiornamento fino a 500 ms prima di partire con il default
+  (serve perché Iubenda si carica dentro GTM, dopo il default);
 - `{ user: { id } }`, dove `id` è un HMAC dell'id utente con `APP_KEY` (32
   caratteri esadecimali, stabile per utente), `null` senza utente o senza
   `APP_KEY`. L'id numerico non arriva più al dataLayer.
