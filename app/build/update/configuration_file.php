@@ -101,6 +101,9 @@
 
     }
 
+    // --- assets/upload/.htaccess (blocco gestito, righe custom preservate) ---
+    \Wonder\Console\Commands\Build::writeUploadHtaccess($ROOT);
+
     // --- robots.txt ---
     // Scritto se manca o se è ancora quello generato (marcatore): chi lo
     // personalizza toglie il marcatore. Il dominio viene da $PAGE->domain,

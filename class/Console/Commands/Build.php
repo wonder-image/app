@@ -131,6 +131,11 @@ class Build extends Command
             $output->writeln('<comment>↺ '.$htaccessPath.' esiste già, nessuna modifica. Usa --force per sovrascrivere.</comment>');
         }
 
+        $uploadHtaccess = self::writeUploadHtaccess($root);
+        if ($uploadHtaccess !== null) {
+            $output->writeln('<info>✅ Aggiornato '.$uploadHtaccess.'</info>');
+        }
+
         $output->writeln('<info>🧱 Build completato.</info>');
 
         return Command::SUCCESS;
@@ -431,6 +436,81 @@ HTACCESS;
         $pattern = '/\R?[ \t]*<IfModule mod_headers\.c>\s*\R\s*'.$body.'\s*\R\s*<\/IfModule>[ \t]*/';
 
         return preg_replace($pattern, '', $content) ?? $content;
+    }
+
+    /** Blocco gestito di `assets/upload/.htaccess`: niente PHP, niente `.ht*`. */
+    public static function uploadHtaccessBlock(): string
+    {
+        return <<<'HTACCESS'
+# WONDER UPLOAD START
+Options -Indexes -ExecCGI
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
+<FilesMatch "(?i)(\.(php\d?|phtml|phar|phps|pht|cgi|pl|py|sh)(\.|$)|^\.ht)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+# WONDER UPLOAD END
+HTACCESS;
+    }
+
+    /** Inserisce o aggiorna il blocco UPLOAD preservando le righe custom. Idempotente. */
+    public static function updateUploadHtaccess(string $content): string
+    {
+        $block = self::uploadHtaccessBlock();
+        $pattern = '/# WONDER UPLOAD START.*?# WONDER UPLOAD END/s';
+
+        if (preg_match($pattern, $content) === 1) {
+            $first = true;
+
+            return preg_replace_callback($pattern, static function () use (&$first, $block): string {
+                if (!$first) {
+                    return '';
+                }
+                $first = false;
+
+                return $block;
+            }, $content) ?? $content;
+        }
+
+        $content = trim($content);
+
+        return $content === '' ? $block."\n" : $content."\n\n".$block."\n";
+    }
+
+    /**
+     * Scrive `assets/upload/.htaccess` solo se cambia. Ritorna il percorso
+     * scritto, `null` se non c'era nulla da fare.
+     */
+    public static function writeUploadHtaccess(string $root): ?string
+    {
+        $dir = rtrim($root, '/').'/assets/upload';
+        if (!is_dir($dir)) {
+            return null;
+        }
+
+        $path = $dir.'/.htaccess';
+        $current = is_file($path) ? (string) file_get_contents($path) : '';
+        $updated = self::updateUploadHtaccess($current);
+        if ($updated === $current) {
+            return null;
+        }
+
+        return file_put_contents($path, $updated) === false ? null : $path;
     }
 
     private static function removeDirectory(string $dir): void

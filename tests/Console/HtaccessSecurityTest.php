@@ -140,7 +140,7 @@ check('f(f(x)) === f(x) anche dopo il blocco performance (come forge update)', f
     return $f($f($x)) === $f($x);
 });
 
-check('configuration_file.php su un .htaccess custom: custom preservato', function () use ($custom, $legacyHeaders) {
+check('configuration_file.php su un .htaccess custom: custom preservato, upload creato', function () use ($custom, $legacyHeaders) {
     $root = sys_get_temp_dir().'/wi-htsec-'.bin2hex(random_bytes(4));
     mkdir($root.'/assets/upload', 0777, true);
     $orig = $custom."\n\n".$legacyHeaders."\n";
@@ -164,7 +164,7 @@ check('configuration_file.php su un .htaccess custom: custom preservato', functi
         && str_contains($first, "# custom prima\nRedirect 301 /vecchia/ /nuova/")
         && str_contains($first, "# custom dopo\nHeader set X-Custom \"1\"")
         && !str_contains($first, 'X-XSS-Protection')
-        && true;
+        && str_contains($upload, '# WONDER UPLOAD START');
 });
 
 summary();
