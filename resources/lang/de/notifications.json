@@ -359,6 +359,21 @@
         "title": "Fehler 928",
         "text": "Die Bildverarbeitung ist fehlgeschlagen: Lade eine gültige PNG-, JPG- oder WEBP-Datei hoch."
     },
+    "929": {
+        "type": "danger",
+        "title": "Ungültige Anfrage",
+        "text": "Die Seite ist abgelaufen oder die Anfrage ist ungültig. Lade die Seite neu und versuche es erneut."
+    },
+    "930": {
+        "type": "warning",
+        "title": "Zu viele Versuche",
+        "text": "Du hast in kurzer Zeit zu viele Versuche unternommen. Warte einige Minuten und versuche es erneut."
+    },
+    "931": {
+        "type": "danger",
+        "title": "Fehler 931",
+        "text": "Die SVG-Datei ist nicht lesbar oder enthält eine DOCTYPE-Deklaration. Exportiere sie erneut und versuche es noch einmal."
+    },
     "950": {
         "type": "danger",
         "title": "Fehler 950",

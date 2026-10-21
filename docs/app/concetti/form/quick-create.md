@@ -221,6 +221,9 @@ a chi può creare quella risorsa) e ripetuto nel proxy server-side.
    modifica in locale e si pubblica con il deploy rifiuterebbe lo store).
 2. All'invio, un piccolo JS fa POST a `backend.resource.quick-create`
    (`app/http/backend/resource/quick-create.php`), gato dalla sessione backend.
+   Il JS manda l'header `X-WI-CSRF` letto dal meta `wi-csrf`: senza token
+   valido la risposta è `403` JSON (`{"success": false, "error": …}`) e il
+   controller non viene chiamato.
 3. Il `QuickCreateController` ri-verifica il permesso, rimuove i campi di
    controllo del modal e passa il resto allo **store API** della risorsa target
    (che filtra coi propri `apiSchema('store')`), **lato server come `@system`**

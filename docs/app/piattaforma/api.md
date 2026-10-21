@@ -22,6 +22,17 @@ La logica API vive in `app/http/api/*` e viene esposta solo tramite route dichia
 Il boilerplate corretto non è più quello vecchio con `try/catch` scritto a mano in ogni file.
 Adesso il pattern da usare è questo.
 
+## API backend di sessione
+
+Le route sotto `/api/backend/` (gruppo `backend.` di `route.api.php`) usano la
+sessione del backend, non un Bearer: per questo il gruppo dichiara `->csrf()` e
+ogni POST senza token CSRF valido (`_csrf` o header `X-WI-CSRF`) riceve `403`
+`{"success": false, "status": 403, "response": "Token CSRF non valido."}` senza
+che l'handler parta. Fa eccezione `/api/backend/alert/`, che usa `Handler::run`
+con Bearer. Un endpoint di sito aggiunto a questo gruppo eredita la verifica;
+uno di sessione aggiunto altrove deve dichiarare `->csrf()`. Dettagli in
+[Token CSRF](../concetti/form/csrf.md#route-con-csrf).
+
 ## Endpoint base
 
 ```php
@@ -135,7 +146,7 @@ Le pagine frontend e backend stampano `const API_TOKEN`, che la lib manda come `
 - Gli endpoint con `allowPageToken: false` lo rifiutano con `401` (`/api/app/update/`, `/api/task/scheduler/`, `/api/task/sitemap/`).
 - Le route Resource (`api.resource.*`) lo rifiutano con `401` salvo `apiSchema()->allowPageToken()`: vedi [Route e API](../concetti/risorse/route-e-api.md#chi-puo-chiamare-le-route-api).
 - **Legato alla sessione.** Con una sessione PHP attiva (sempre nelle pagine, anche anonime) il token porta `sid`, un HMAC dell'id di sessione con `APP_KEY`: vale solo insieme al cookie di quella sessione, altrimenti `401 Token di pagina non valido per questa sessione`. Copiato fuori dal browser, o dopo `session_regenerate_id()` (login, logout), non vale più.
-- **Rinnovo**: `POST /api/token/page/` (rotta `token.page`, area `api`) restituisce `{ "success": true, "token": "…", "expires_in": 3600 }`, un token nuovo per la stessa sessione. Non ha guard ma risponde solo a richieste same-origin (`Wonder\Http\SameOrigin`: `Sec-Fetch-Site: same-origin`, oppure `Origin` con lo stesso host e porta) e con una sessione attiva; altrimenti `403`, `405` se non è POST. La risposta ha `Cache-Control: no-store`. La lib non lo usa ancora: una scheda rimasta aperta oltre la durata riceve `401 Token scaduto` e va ricaricata.
+- **Rinnovo**: `POST /api/token/page/` (rotta `token.page`, area `api`) restituisce `{ "success": true, "token": "…", "expires_in": 3600 }`, un token nuovo per la stessa sessione. Non ha guard ma risponde solo a richieste same-origin (`Wonder\Http\SameOrigin`: `Sec-Fetch-Site: same-origin`, oppure `Origin` con lo stesso host e porta), con una sessione attiva e con il token CSRF di sessione (header `X-WI-CSRF` dal meta `wi-csrf`, oppure `_csrf` nel body: `Wonder\Http\Csrf::verify()`); altrimenti `403`, `405` se non è POST. La risposta ha `Cache-Control: no-store`. La lib non lo usa ancora: una scheda rimasta aperta oltre la durata riceve `401 Token scaduto` e va ricaricata.
 - I token senza `sid`, emessi prima di questa versione, valgono fino alla loro `exp` (al massimo il vecchio `API_PAGE_TOKEN_TTL`), poi `401`. Il ramo di compatibilità per i token senza `sid` sarà rimosso nella beta successiva.
 - `$CALL->isPageToken()` dice all'endpoint se la chiamata arriva da una pagina.
 

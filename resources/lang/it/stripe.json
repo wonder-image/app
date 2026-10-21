@@ -1,0 +1,14 @@
+{
+    "connect": {
+        "title": "Collega webhook Stripe",
+        "confirm": {
+            "live": "Crea o aggiorna il webhook del gestionale sull'account Stripe di produzione e salva il secret nelle credenziali.",
+            "test": "Crea o aggiorna il webhook del gestionale sull'account Stripe di test e salva il secret nelle credenziali."
+        },
+        "submit": "Collega webhook",
+        "cancel": "Torna alle credenziali",
+        "invalid": "Errore Stripe: richiesta non valida, riapri la pagina delle credenziali.",
+        "webhook_missing": "Errore Stripe: il webhook del gestionale non è installato.",
+        "error": "Errore Stripe: {{message}}"
+    }
+}

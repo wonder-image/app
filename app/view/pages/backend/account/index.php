@@ -24,6 +24,7 @@ $renderPasswordInput = static function (string $key, mixed $value = null) use ($
     </wi-card>
 
     <form class="col-9" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()" data-wi-save-bar<?=!empty($PROFILE_DIRTY) ? ' data-wi-save-bar-dirty' : ''?>>
+        <?=\Wonder\Http\Csrf::field()->render()?>
         <wi-card class="col-12">
             <div class="col-12">
                 <h6>Modifica dati</h6>
@@ -67,6 +68,7 @@ $renderPasswordInput = static function (string $key, mixed $value = null) use ($
     </form>
 
     <form class="col-3" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
+            <?=\Wonder\Http\Csrf::field()->render()?>
             <wi-card class="col-12">
                 <div class="col-12">
                     <h6>Modifica password</h6>

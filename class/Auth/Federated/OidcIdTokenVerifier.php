@@ -16,6 +16,7 @@ final class OidcIdTokenVerifier
         private readonly string $jwksUrl,
         private readonly ?string $expectedNonce = null,
         private readonly int $cacheTtlSeconds = 3600,
+        private readonly ?string $cacheDir = null,
     ) {}
 
     public function claims(string $idToken): array
@@ -47,7 +48,7 @@ final class OidcIdTokenVerifier
 
     private function jwks(): array
     {
-        $cacheFile = rtrim(sys_get_temp_dir(), '/').'/wonder-oidc-'.hash('sha256', $this->jwksUrl).'.json';
+        $cacheFile = $this->cacheDirectory().'/oidc-'.hash('sha256', $this->jwksUrl).'.json';
 
         if (is_file($cacheFile) && filemtime($cacheFile) >= time() - max(60, $this->cacheTtlSeconds)) {
             $cached = json_decode((string) file_get_contents($cacheFile), true);
@@ -71,5 +72,22 @@ final class OidcIdTokenVerifier
         @file_put_contents($cacheFile, json_encode($jwks, JSON_UNESCAPED_SLASHES), LOCK_EX);
 
         return $jwks;
+    }
+
+    // Cache nello storage del sito, non nella /tmp condivisa fra siti.
+    private function cacheDirectory(): string
+    {
+        $dir = $this->cacheDir;
+
+        if ($dir === null || $dir === '') {
+            $root = defined('ROOT') ? (string) constant('ROOT') : (string) ($GLOBALS['ROOT'] ?? '');
+            $dir = $root !== '' ? rtrim($root, '/').'/storage/cache' : '';
+        }
+
+        if ($dir !== '' && (is_dir($dir) || @mkdir($dir, 0775, true)) && is_writable($dir)) {
+            return rtrim($dir, '/');
+        }
+
+        return rtrim(sys_get_temp_dir(), '/');
     }
 }

@@ -11,12 +11,19 @@ Verificare l'email utente con token one-time prima di consentire il marketing e 
 ## Tabelle coinvolte
 
 - `user` (`email_verified`, `email_verified_at`)
-- `consent_confirmation_tokens` (`token_type=user_email_verification`, `token`, `expires_at`, `confirmed_at`, `revoked_at`, `language_code`, `continue_url`)
+- `consent_confirmation_tokens` (`token_type=user_email_verification`, `token_hash`, `token`, `expires_at`, `confirmed_at`, `revoked_at`, `language_code`, `continue_url`)
 
 Definizione:
 
-- `app/build/table/user.php` (tabella `user`)
-- `app/build/table/consent.php` (tabella `consent_confirmation_tokens`)
+- `class/App/Models/User/User.php` (tabella `user`)
+- `class/App/Models/Consent/ConsentConfirmationToken.php` (tabella `consent_confirmation_tokens`)
+
+Il token del link non si salva: la riga contiene solo `token_hash`
+(sha256, 64 caratteri, unico) e il chiamante riceve il valore in chiaro una
+volta sola, in `generateUserVerificationToken()->token`. La colonna `token`
+resta, nullable, per le righe emesse prima: `confirmUserVerificationToken()`
+cerca per `token_hash` e, se non trova nulla, per `token` in chiaro. **Ripiego
+per un solo rilascio, rimosso nella beta successiva.**
 
 ## Funzioni disponibili
 
@@ -101,3 +108,7 @@ Chiavi usate:
 
 Sul link pubblico **non** chiamare direttamente `markUserEmailVerified()`.
 Usa sempre `confirmUserVerificationToken($token)` perché valida scadenza, stato token e atomicità della conferma.
+La conferma è un `UPDATE … WHERE id = ? AND confirmed_at IS NULL AND revoked_at IS NULL`
+con controllo delle righe modificate (senza `mysqli` rilegge la riga subito
+prima di scrivere): due clic sullo stesso link verificano l'utente una volta
+sola, il secondo riceve `918`.

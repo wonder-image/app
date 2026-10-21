@@ -2,6 +2,25 @@
 
 use Wonder\Http\Route;
 
+// Conferma webhook Stripe: pagina HTML del backend (niente CORS), solo admin.
+// Registrata prima del gruppo api perché matchByPath prende la prima rotta che combacia.
+Route::area('backend')
+    ->response('html')
+    ->theme('backend')
+    ->guarded()
+    ->permit(['admin'])
+    ->translatable(false)
+    ->name('service.stripe.')
+    ->group(function () use ($ROOT_APP) {
+
+        // GET mostra la conferma, POST (con CSRF) collega il webhook.
+        Route::get('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
+            ->name('connect');
+
+        Route::post('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
+            ->name('connect.submit');
+    });
+
 Route::area('api')
     ->prefix('/api')
     ->response('json')
@@ -14,7 +33,7 @@ Route::area('api')
             ->name('states')
             ->frontend();
 
-        // Rinnovo del token di pagina (`API_TOKEN`): same-origin, senza guard.
+        // Rinnovo del token di pagina (`API_TOKEN`): same-origin, sessione e CSRF, senza guard.
         Route::post('/token/page/', $ROOT_APP.'/http/api/token/page.php')
             ->name('token.page');
 
@@ -33,13 +52,18 @@ Route::area('api')
 
             });
 
+        // API backend di sessione: ogni POST richiede il token CSRF
+        // (`_csrf` o header `X-WI-CSRF`, mandato dalla lib).
         Route::name('backend.')
             ->prefix('/backend')
             ->backend()
+            ->csrf()
             ->group(function () use ($ROOT_APP) {
 
+                // Solo Bearer (`Handler::run`): niente cookie di sessione, niente CSRF.
                 Route::post('/alert/', $ROOT_APP.'/http/api/backend/alert.php')
-                    ->name('alert');
+                    ->name('alert')
+                    ->csrf(false);
 
                 Route::post('/list/table/', $ROOT_APP.'/http/api/backend/list-table.php')
                     ->name('list.table')
@@ -138,9 +162,6 @@ Route::area('api')
 
                         Route::get('/onboarding/check/', $ROOT_APP.'/http/api/service/stripe/onboarding-check.php')
                             ->name('onboarding.check');
-
-                        Route::get('/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
-                            ->name('connect');
 
                     });
 

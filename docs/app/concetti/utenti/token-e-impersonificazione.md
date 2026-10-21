@@ -25,13 +25,23 @@ Il backend usa gli stessi token:
   `/backend/account/password-restore/?token=…`, emesso da
   `PasswordReset(1800)`;
 - `/backend/account/password-set/?token=…` accetta soltanto token di purpose
-  `password_set`, emessi dal consumer con
+  `password_set`, emessi dalla welcome mail dei nuovi utenti backend (vedi
+  [Gestione utenti](gestione-utenti.md#password-iniziale)) o dal consumer con
   `(new OneTimeToken('password_set', $ttl))->issue($userId)`, e imposta la
   password solo se l'utente non ne ha già una.
 
 Entrambe le pagine verificano il token e l'accesso all'area backend prima di
 mostrare il form; un token assente, scaduto o già usato rimanda al login con
 l'avviso 913.
+
+Il recupero backend risponde sempre allo stesso modo (redirect al login con
+`?alert=601`), sia che l'utente esista sia che non esista o che la mail non
+parta; in `auth_log` restano `password_recovery` (con `reason: mail_failed` se
+l'invio fallisce, `token_failed` se l'emissione del token lancia un'eccezione)
+o `recovery_unknown`. Le mail di recupero, restore e set
+partono da `$SOCIETY->email`, con ripiego su `noreply@wonderimage.it`. I
+quattro form (login, recupero, restore, set) portano `_csrf`: senza token
+valido mostrano l'alert `929` ([CSRF](../form/csrf.md)).
 
 Gli URL contenuti nei token devono essere normalizzati dal consumer e limitati
 allo stesso host o a percorsi relativi.
@@ -43,10 +53,22 @@ lista esplicita delle authority backend autorizzate. Il servizio:
 
 - accetta soltanto attori backend attivi e soggetti frontend attivi;
 - vieta auto-impersonificazione e soggetti che possiedono anche accesso backend;
-- trasferisce l'identità con token monouso di breve durata;
+- trasferisce l'identità con token monouso di breve durata, valido solo nella
+  sessione che l'ha emesso: `issue()` salva nei metadata lo sha256 dell'ID
+  sessione (`actor_session`) e `start()` lo confronta con `hash_equals`; da
+  un'altra sessione l'avvio fallisce (`impersonation_session_mismatch`, audit
+  `start_denied`) e il token resta consumato;
+- dura al massimo `maxDurationSeconds` (terzo parametro del costruttore,
+  default 1800): `start()` salva `expires_at` e, dopo la scadenza, `current()`
+  torna `null`, rimette in sessione l'attore (o chiude la sessione se l'attore
+  non è più attivo) e registra `expired`. Una sessione avviata senza
+  `expires_at` scade da `started_at`. La scadenza è applicata a ogni
+  richiesta dal bootstrap di sessione (`config/app/session.php`, tramite
+  `Impersonation::enforceExpiry()`) prima che l'utente venga risolto, quindi
+  vale anche per API, endpoint e layout senza overlay;
 - rigenera l'ID sessione all'ingresso e all'uscita;
 - conserva attore, soggetto, inizio e URL di ritorno nella sessione;
-- registra emissione, avvio, rifiuto e arresto in
+- registra emissione, avvio, rifiuto, scadenza e arresto in
   `auth_impersonation_audits`;
 - richiede CSRF sia per l'emissione sia per l'arresto.
 

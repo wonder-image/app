@@ -11,11 +11,8 @@ if (isset($_COOKIE['visitor_id'])) {
 } else {
     $VISITOR_ID = strtolower(code(25, 'letters'));
 
-    setcookie(
-        'visitor_id',
-        $VISITOR_ID,
-        time() + (10 * 365 * 24 * 60 * 60)
-    );
+    // HttpOnly: nessun JS del core o della lib lo legge.
+    \Wonder\Http\Cookie::set('visitor_id', $VISITOR_ID, time() + (10 * 365 * 24 * 60 * 60));
 }
 
 if (isset($_SESSION['user_id'])) {

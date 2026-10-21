@@ -387,6 +387,11 @@ final class QuickCreateModal
     }
   });
 
+  function csrfToken() {
+    var meta = document.querySelector('meta[name="wi-csrf"]');
+    return meta ? meta.content : '';
+  }
+
   document.addEventListener('click', function (ev) {
     var button = ev.target.closest ? ev.target.closest('.wi-qc-submit') : null;
     if (!button) return;
@@ -409,7 +414,7 @@ final class QuickCreateModal
       method: 'POST',
       body: valuesOf(form),
       credentials: 'same-origin',
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-WI-CSRF': csrfToken() }
     })
       .then(function (r) { return r.json(); })
       .then(function (res) {

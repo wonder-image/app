@@ -54,7 +54,9 @@ final class TableLayoutSchema
             // per controllare label e valore di output (callable riceve
             // l'intera riga e ritorna la cella). `handler`, se presente,
             // costruisce e invia lui il file al posto delle colonne. `text`
-            // scrive ogni cella come testo (vedi `downloadAsText()`).
+            // scrive ogni cella come testo (vedi `downloadAsText()`);
+            // `formula_safe` neutralizza le formule nel CSV (vedi
+            // `downloadFormulaSafe()`).
             'download' => [
                 'enabled' => false,
                 'formats' => ['csv' => 'CSV', 'xlsx' => 'Excel'],
@@ -63,6 +65,7 @@ final class TableLayoutSchema
                 'label' => null,
                 'handler' => null,
                 'text' => false,
+                'formula_safe' => true,
             ],
         ];
     }
@@ -441,6 +444,18 @@ final class TableLayoutSchema
     public function downloadAsText(bool $enabled = true): self
     {
         $this->schema['download']['text'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Il CSV mette un apice davanti alle celle che un foglio leggerebbe come
+     * formula (`=1+1`, `@x`, `-A1`), non ai numeri (`-5`, `+39`). Spegnerlo
+     * solo per CSV destinati a programmi che non lo tollerano.
+     */
+    public function downloadFormulaSafe(bool $enabled = true): self
+    {
+        $this->schema['download']['formula_safe'] = $enabled;
 
         return $this;
     }

@@ -450,6 +450,8 @@ class Route
             // null = deriva dall'area (frontend → true, api/backend → false).
             // Override esplicito via RouteDefinition::translatable() o RouteGroup::translatable().
             'translatable' => null,
+            // Opt-in per gruppo o route: vedi `CsrfGuard`.
+            'csrf' => false,
         ];
     }
 

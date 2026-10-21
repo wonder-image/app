@@ -27,6 +27,17 @@ class AuthProfile
     public function impersonationAuthorities(): array { return ['admin']; }
     public function impersonationTtl(): int { return 120; }
     public function parentLayout(): string { return 'frontend.minimal'; }
+    /** Remember-me di 30 giorni: `always`, `optional` (checkbox non spuntata) o `never`. */
+    public function rememberMe(): string { return 'optional'; }
+
+    public function remember(array $input): bool
+    {
+        return match ($this->rememberMe()) {
+            'always' => true,
+            'optional' => \Wonder\Auth\RememberMe::requested($input),
+            default => false,
+        };
+    }
 
     public function gateway(): UserAccountGatewayInterface
     {
@@ -84,7 +95,9 @@ class AuthProfile
         $confirmation = FormField::key('password_confirmation')->password()->label((string) __t('auth.fields.password_confirmation'))->required($passwordRequired);
 
         $fields = match ($surface) {
-            'login' => ['email' => $email, 'password' => $password],
+            'login' => ['email' => $email, 'password' => $password] + ($this->rememberMe() === 'optional'
+                ? ['remember' => FormField::key('remember')->checkbox()->label((string) __t('auth.fields.remember'))->value($values['remember'] ?? '')]
+                : []),
             'signup-request' => ['name' => $field('name'), 'surname' => $field('surname'), 'email' => $email],
             'signup-completion' => ['email' => $email->disabled()],
             'password-recovery' => ['email' => $email],

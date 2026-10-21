@@ -1,6 +1,11 @@
 <?php
 
-    function arrayToCsv($ARRAY, $FILENAME = null) {
+    # $FORMULA_SAFE = false solo per CSV letti da programmi, mai da un foglio di calcolo.
+    function arrayToCsv($ARRAY, $FILENAME = null, bool $FORMULA_SAFE = true) {
+
+        if ($FORMULA_SAFE && is_array($ARRAY)) {
+            $ARRAY = \Wonder\Backend\Support\SpreadsheetText::formulaSafeMatrix($ARRAY);
+        }
 
         header("Content-Type: text/csv");
         header("Content-Disposition: attachment; filename=$FILENAME.csv");
