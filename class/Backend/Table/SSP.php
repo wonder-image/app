@@ -1,10 +1,20 @@
 <?php
 
     namespace Wonder\Backend\Table;
-    
-    use PDO;
-    
+
+    use mysqli;
+    use mysqli_result;
+    use RuntimeException;
+    use Throwable;
+    use Wonder\App\Credentials;
+    use Wonder\App\Debug;
+    use Wonder\App\Logger;
+    use Wonder\Sql\Query;
+
     class SSP {
+
+        /** Messaggio mostrato al client quando una query della lista fallisce. */
+        public const FATAL_MESSAGE = 'Errore nel caricamento della tabella.';
         
         static function data_output ($columns, $data)
         {
@@ -66,7 +76,7 @@
         /**
          * Database connection
          *
-         * Obtain an PHP PDO connection from a connection details array
+         * Connessione mysqli: quella passata, o una nuova da un array di parametri
          *
          *  @param  mixed $conn SQL connection details. The array should have
          *    the following properties
@@ -75,12 +85,16 @@
          *     * user - user name
          *     * pass - user password
          *     * Optional: `'charset' => 'utf8'` - you might need this depending on your PHP / MySQL config
-         *  @return PDO PDO connection
+         *  @return mysqli connessione mysqli
          */
         static function db ( $conn )
         {
             if ( is_array( $conn ) ) {
                 return self::sql_connect( $conn );
+            }
+
+            if ( !$conn instanceof mysqli ) {
+                self::fatal( 'SSP: serve una connessione mysqli o un array di parametri.' );
             }
 
             return $conn;
@@ -145,7 +159,7 @@
          */
         static function escapeIdentifier ( string $identifier )
         {
-            return '`' . str_replace('`', '``', $identifier) . '`';
+            return Query::escapeIdentifier( $identifier );
         }
 
         /**
@@ -185,18 +199,21 @@
          *
          *  @param  array $request Data sent to server by DataTables
          *  @param  array $columns Column information array
-         *  @param  array $bindings Array of values for PDO bindings, used in the
-         *    sql_exec() function
+         *  @param  array $bindings Riceve i binding del termine (segnaposto
+         *    `:binding_N`, vedi bind()): il termine non entra mai nel SQL.
          *  @return string SQL where clause
          */
-        static function filter ( $request, $columns )
+        static function filter ( $request, $columns, array &$bindings )
         {
 
             if ( !isset($request['search']) || $request['search']['value'] === '' ) {
                 return '';
             }
 
-            $where = self::buildSearchWhere( sanitize($request['search']['value']), is_array($columns) ? $columns : [] );
+            $fields = is_array($columns) ? $columns : [];
+
+            // Codifica di sanitize() conservata, barre di addslashes tolte: l'escape lo fa il binding.
+            $where = self::buildSearchWhere( stripslashes(sanitize($request['search']['value'])), $fields, $bindings );
 
             return $where === '' ? '' : 'WHERE '.$where;
 
@@ -210,9 +227,11 @@
          * @param array  $fields      Mixed list: string = main-table column;
          *   array = relation descriptor with keys table, local_key, foreign_key,
          *   columns[] and/or relations[] (nested descriptors, same shape)
+         * @param array $bindings Ogni LIKE diventa un segnaposto distinto con
+         *   valore `%termine%` (`%`, `_` e `\` del termine escapati).
          * @return string WHERE body, or '' when nothing is searchable
          */
-        static function buildSearchWhere ( string $searchValue, array $fields )
+        static function buildSearchWhere ( string $searchValue, array $fields, array &$bindings )
         {
             $searchValue = trim($searchValue);
             if ( $searchValue === '' ) {
@@ -243,15 +262,16 @@
             $mainConcat = $mainCols !== [] ? self::concatIdentifiers($mainCols) : '';
 
             foreach ( $words as $word ) {
-                $like = "'%".$word."%'";
-                $ors  = [];
+                $ors = [];
+                // `\` è il carattere di escape di LIKE: va raddoppiato come `%` e `_`.
+                $value = '%'.addcslashes($word, '%_\\').'%';
 
                 if ( $mainConcat !== '' ) {
-                    $ors[] = "(".$mainConcat." LIKE ".$like.")";
+                    $ors[] = "(".$mainConcat." LIKE ".self::bind($bindings, $value).")";
                 }
 
                 foreach ( $relations as $rel ) {
-                    $ors[] = self::relationCondition($rel, $like);
+                    $ors[] = self::relationCondition($rel, $value, $bindings);
                 }
 
                 $perWord[] = count($ors) === 1 ? $ors[0] : '('.implode(' OR ', $ors).')';
@@ -292,19 +312,20 @@
          * `local_key IN (SELECT foreign_key FROM table WHERE ...)` for one
          * relation: its own columns and its nested relations, OR-ed, so the
          * search can walk movement -> version -> product. Every identifier is
-         * escaped at every level.
+         * escaped at every level. Ogni LIKE riceve un proprio segnaposto per
+         * `$value`.
          */
-        static function relationCondition ( array $relation, string $like )
+        static function relationCondition ( array $relation, string $value, array &$bindings )
         {
             $conditions = [];
 
             if ( !empty($relation['columns']) && is_array($relation['columns']) ) {
-                $conditions[] = self::concatIdentifiers($relation['columns'])." LIKE ".$like;
+                $conditions[] = self::concatIdentifiers($relation['columns'])." LIKE ".self::bind($bindings, $value);
             }
 
             foreach ( (array) ($relation['relations'] ?? []) as $child ) {
                 if ( self::isRelation($child) ) {
-                    $conditions[] = self::relationCondition($child, $like);
+                    $conditions[] = self::relationCondition($child, $value, $bindings);
                 }
             }
 
@@ -329,7 +350,7 @@
          * sending back to the client.
          *
          *  @param  array $request Data sent to server by DataTables
-         *  @param  array|PDO $conn PDO connection resource or connection parameters array
+         *  @param  array|mysqli $conn connessione mysqli o array di parametri
          *  @param  string $table SQL table to query
          *  @param  string $primaryKey Primary key of the table
          *  @param  array $columns Column information array
@@ -410,7 +431,7 @@
          * values.
          *
          *  @param  array $request Data sent to server by DataTables
-         *  @param  array|PDO $conn PDO connection resource or connection parameters array
+         *  @param  array|mysqli $conn connessione mysqli o array di parametri
          *  @param  string $table SQL table to query
          *  @param  string $primaryKey Primary key of the table
          *  @param  array $columns Column information array
@@ -432,106 +453,33 @@
             $select=null,
             $groupBy=null
         ) {
-            $bindings = array();
-            $whereAllBindings = array();
             $db = self::db( $conn );
-            $whereAllSql = '';
 
-            // GROUP BY opzionale. $select e $groupBy sono frammenti SQL generati
-            // server-side e firmati (ConfigCodec), verificati in
-            // ListProvider::fetch prima di arrivare qui: stesso modello di
-            // fiducia dei $whereResult/$whereAll, nessuna nuova superficie di
-            // injection. Con il group by i conteggi contano i GRUPPI (subquery),
-            // non le righe, e il SELECT diventa la lista di aggregati.
-            $groupBy    = ( $groupBy !== null && trim((string) $groupBy) !== '' ) ? trim((string) $groupBy) : '';
-            $selectList = ( $select  !== null && trim((string) $select)  !== '' ) ? trim((string) $select)  : '*';
-            $groupSql   = $groupBy !== '' ? 'GROUP BY '.$groupBy : '';
-
-            // Build the SQL query string from the request
-            $limit = self::limit( $request, $columns );
-            $order = self::order( $orderCol, $orderDir );
-            $where = self::filter( $request, $searchField );
-
-            // whereResult can be a simple string, or an assoc. array with a
-            // condition and bindings
-            if ( $whereResult ) {
-                $str = $whereResult;
-
-                if ( is_array($whereResult) ) {
-                    $str = $whereResult['condition'];
-
-                    if ( isset($whereResult['bindings']) ) {
-                        self::add_bindings($bindings, $whereResult['bindings']);
-                    }
-                }
-
-                $where = $where ?
-                    $where .' AND '.$str :
-                    'WHERE '.$str;
-            }
-
-            // Likewise for whereAll
-            if ( $whereAll ) {
-                $str = $whereAll;
-
-                if ( is_array($whereAll) ) {
-                    $str = $whereAll['condition'];
-
-                    if ( isset($whereAll['bindings']) ) {
-                        self::add_bindings($whereAllBindings, $whereAll['bindings']);
-                    }
-                }
-
-                $where = $where ?
-                    $where .' AND '.$str :
-                    'WHERE '.$str;
-
-                $whereAllSql = 'WHERE '.$str;
-            }
-
-            // Main query to actually get the data
-            $data = self::sql_exec( $db, $bindings,
-                "SELECT $selectList
-                FROM `$table`
-                $where
-                $groupSql
-                $order
-                $limit"
+            $queries = self::complexQueries(
+                new Query( $db ),
+                $request,
+                $table,
+                $primaryKey,
+                $columns,
+                $searchField,
+                $whereResult,
+                $whereAll,
+                $orderCol,
+                $orderDir,
+                $select,
+                $groupBy
             );
 
-            if ( $groupBy !== '' ) {
+            // Main query to actually get the data
+            $data = self::sql_exec( $db, $queries['data'] );
 
-                // Con il GROUP BY il conteggio delle righe è il numero di
-                // GRUPPI: si avvolge la query raggruppata in una subquery.
-                $resFilterLength = self::sql_exec( $db, $bindings,
-                    "SELECT COUNT(*) FROM (SELECT 1 FROM `$table` $where $groupSql) `wi_grouped`"
-                );
-                $recordsFiltered = $resFilterLength[0][0];
+            // Data set length after filtering
+            $resFilterLength = self::sql_exec( $db, $queries['filtered'] );
+            $recordsFiltered = $resFilterLength[0][0] ?? 0;
 
-                $resTotalLength = self::sql_exec( $db, $whereAllBindings,
-                    "SELECT COUNT(*) FROM (SELECT 1 FROM `$table` $whereAllSql $groupSql) `wi_grouped`"
-                );
-                $recordsTotal = $resTotalLength[0][0];
-
-            } else {
-
-                // Data set length after filtering
-                $resFilterLength = self::sql_exec( $db, $bindings,
-                    "SELECT COUNT(`{$primaryKey}`)
-                    FROM   `$table`
-                    $where"
-                );
-                $recordsFiltered = $resFilterLength[0][0];
-
-                // Total data set length
-                $resTotalLength = self::sql_exec( $db, $whereAllBindings,
-                    "SELECT COUNT(`{$primaryKey}`)
-                    FROM   `$table` ".
-                    $whereAllSql
-                );
-                $recordsTotal = $resTotalLength[0][0];
-
-            }
+            // Total data set length
+            $resTotalLength = self::sql_exec( $db, $queries['total'] );
+            $recordsTotal = $resTotalLength[0][0] ?? 0;
 
             /*
             * Output
@@ -548,7 +496,139 @@
 
 
         /**
-         * Connect to the database
+         * Le tre query di complex() (dati, conteggio filtrato, conteggio totale)
+         * già complete dei valori, senza eseguirle.
+         *
+         * Tabella e chiave primaria passano da Query::escapeIdentifier. Ogni
+         * frammento (ricerca, whereResult, whereAll) viene legato da solo con
+         * i propri binding tramite `$binder`: i frammenti firmati senza binding
+         * non passano dallo scanner dei segnaposto. I binding della ricerca
+         * non entrano mai nel conteggio totale.
+         *
+         * @return array{data:string,filtered:string,total:string}
+         */
+        static function complexQueries (
+            Query $binder,
+            $request,
+            $table,
+            $primaryKey,
+            $columns,
+            $searchField=null,
+            $whereResult=null,
+            $whereAll=null,
+            $orderCol=null,
+            $orderDir=null,
+            $select=null,
+            $groupBy=null
+        ): array {
+            $tableSql    = Query::escapeIdentifier( (string) $table );
+            $pkSql       = Query::escapeIdentifier( (string) $primaryKey );
+            $whereAllSql = '';
+
+            // GROUP BY opzionale. $select e $groupBy sono frammenti SQL generati
+            // server-side e firmati (ConfigCodec), verificati in
+            // ListProvider::fetch prima di arrivare qui: stesso modello di
+            // fiducia dei $whereResult/$whereAll, nessuna nuova superficie di
+            // injection. Con il group by i conteggi contano i GRUPPI (subquery),
+            // non le righe, e il SELECT diventa la lista di aggregati.
+            $groupBy    = ( $groupBy !== null && trim((string) $groupBy) !== '' ) ? trim((string) $groupBy) : '';
+            $selectList = ( $select  !== null && trim((string) $select)  !== '' ) ? trim((string) $select)  : '*';
+            $groupSql   = $groupBy !== '' ? 'GROUP BY '.$groupBy : '';
+
+            // Build the SQL query string from the request
+            $limit = self::limit( $request, $columns );
+            $order = self::order( $orderCol, $orderDir );
+
+            $searchBindings = array();
+            $where = self::bindFragment( $binder, self::filter( $request, $searchField, $searchBindings ), $searchBindings );
+
+            // whereResult can be a simple string, or an assoc. array with a
+            // condition and bindings
+            if ( $whereResult ) {
+                $str = self::conditionFragment( $binder, $whereResult );
+
+                $where = $where ?
+                    $where .' AND '.$str :
+                    'WHERE '.$str;
+            }
+
+            // Likewise for whereAll
+            if ( $whereAll ) {
+                $str = self::conditionFragment( $binder, $whereAll );
+
+                $where = $where ?
+                    $where .' AND '.$str :
+                    'WHERE '.$str;
+
+                $whereAllSql = 'WHERE '.$str;
+            }
+
+            $data = "SELECT $selectList
+                FROM $tableSql
+                $where
+                $groupSql
+                $order
+                $limit";
+
+            if ( $groupBy !== '' ) {
+
+                // Con il GROUP BY il conteggio delle righe è il numero di
+                // GRUPPI: si avvolge la query raggruppata in una subquery.
+                $filtered = "SELECT COUNT(*) FROM (SELECT 1 FROM $tableSql $where $groupSql) `wi_grouped`";
+                $total    = "SELECT COUNT(*) FROM (SELECT 1 FROM $tableSql $whereAllSql $groupSql) `wi_grouped`";
+
+            } else {
+
+                $filtered = "SELECT COUNT($pkSql)
+                    FROM   $tableSql
+                    $where";
+
+                $total = "SELECT COUNT($pkSql)
+                    FROM   $tableSql ".
+                    $whereAllSql;
+
+            }
+
+            return array(
+                'data'     => $data,
+                'filtered' => $filtered,
+                'total'    => $total,
+            );
+        }
+
+        /**
+         * Condizione whereResult/whereAll: stringa, oppure
+         * `['condition' => ..., 'bindings' => [...]]` legata con i suoi binding.
+         */
+        static function conditionFragment ( Query $binder, $condition ): string
+        {
+            if ( !is_array($condition) ) {
+                return (string) $condition;
+            }
+
+            $bindings = array();
+
+            if ( isset($condition['bindings']) ) {
+                self::add_bindings( $bindings, $condition['bindings'] );
+            }
+
+            return self::bindFragment( $binder, (string) ($condition['condition'] ?? ''), $bindings );
+        }
+
+        /** Sostituisce i segnaposto del frammento; senza binding lo lascia intatto. */
+        static function bindFragment ( Query $binder, string $sql, array $bindings ): string
+        {
+            if ( $bindings === array() ) {
+                return $sql;
+            }
+
+            return $binder->bind( $sql, self::bindParams($bindings) );
+        }
+
+
+        /**
+         * Connessione da array di parametri (host, db, user, pass, charset
+         * opzionale). Nessun valore deve arrivare dalla richiesta.
          *
          * @param  array $sql_details SQL server connection details array, with the
          *   properties:
@@ -556,37 +636,69 @@
          *     * db   - database name
          *     * user - user name
          *     * pass - user password
-         * @return PDO Database connection handle
+         * @return mysqli Database connection handle
          */
         static function sql_connect ( $sql_details )
         {
             try {
-                $db = @new PDO(
-                    "mysql:host={$sql_details['host']};dbname={$sql_details['db']}",
-                    $sql_details['user'],
-                    $sql_details['pass'],
-                    array( PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION )
+                $db = @new mysqli(
+                    (string) ($sql_details['host'] ?? ''),
+                    (string) ($sql_details['user'] ?? ''),
+                    (string) ($sql_details['pass'] ?? ''),
+                    (string) ($sql_details['db'] ?? '')
                 );
             }
-            catch (PDOException $e) {
+            catch (Throwable $e) {
                 self::fatal(
                     "An error occurred while connecting to the database. ".
                     "The error reported by the server was: ".$e->getMessage()
                 );
-                exit(0); // redundant, but PHPStan wants it.
+            }
+
+            if ( $db->connect_errno ) {
+                self::fatal(
+                    "An error occurred while connecting to the database. ".
+                    "The error reported by the server was: ".$db->connect_error
+                );
+            }
+
+            $charset = trim( (string) ($sql_details['charset'] ?? self::defaultCharset()) );
+
+            try {
+                $charsetSet = $db->set_charset( $charset !== '' ? $charset : 'latin1' );
+            }
+            catch (Throwable $e) {
+                $charsetSet = false;
+            }
+
+            if ( !$charsetSet ) {
+                self::fatal( "Unable to set the connection charset '{$charset}': ".$db->error );
             }
 
             return $db;
+        }
+
+        /** Charset delle connessioni del framework (DB_CHARSET, default latin1). */
+        private static function defaultCharset (): string
+        {
+            try {
+                $charset = trim( (string) (Credentials::database()->charset ?? '') );
+            }
+            catch (Throwable $e) {
+                $charset = '';
+            }
+
+            return $charset !== '' ? $charset : 'latin1';
         }
 
 
         /**
          * Execute an SQL query on the database
          *
-         * @param  PDO $db  Database handler
-         * @param  array    $bindings Array of PDO binding values from bind() to be
-         *   used for safely escaping strings. Note that this can be given as the
-         *   SQL query string if no bindings are required.
+         * @param  mysqli $db  Database handler
+         * @param  array    $bindings Binding da bind()/add_bindings(), sostituiti
+         *   con Query::bind() prima dell'esecuzione. Note that this can be given
+         *   as the SQL query string if no bindings are required.
          * @param  string   $sql SQL query to execute.
          * @return array         Result from the query (all rows)
          */
@@ -595,26 +707,101 @@
             // Argument shifting
             if ( $sql === null ) {
                 $sql = $bindings;
+                $bindings = array();
             }
 
-            $stmt = $db->prepare( $sql );
-
-            // Bind parameters
-            for ( $i=0, $ien=count($bindings) ; $i<$ien ; $i++ ) {
-                $binding = $bindings[$i];
-                $stmt->bindValue( $binding['key'], $binding['val'], $binding['type'] );
-            }
-
-            // Execute
             try {
-                $stmt->execute();
+                if ( is_array($bindings) && $bindings !== array() ) {
+                    $sql = ( new Query($db) )->bind( (string) $sql, self::bindParams($bindings) );
+                }
+
+                $result = $db->query( (string) $sql );
             }
-            catch (PDOException $e) {
+            catch (Throwable $e) {
                 self::fatal( "An SQL error occurred: ".$e->getMessage() );
             }
 
+            if ( $result === false ) {
+                self::fatal( "An SQL error occurred: ".$db->error );
+            }
+
+            if ( !$result instanceof mysqli_result ) {
+                return array();
+            }
+
             // Return all
-            return $stmt->fetchAll( PDO::FETCH_BOTH );
+            $rows = self::nativeTypes( $result, $result->fetch_all( MYSQLI_BOTH ) );
+            $result->free();
+
+            return $rows;
+        }
+
+        /**
+         * Interi e float come tipi PHP nativi, come li restituiva pdo_mysql
+         * (prepare emulate, PHP >= 8.1); DECIMAL e il resto restano stringhe.
+         */
+        static function nativeTypes ( mysqli_result $result, array $rows ): array
+        {
+            $casts = array();
+            $lastIndex = array();
+
+            foreach ( $result->fetch_fields() as $index => $field ) {
+                $kind = self::nativeKind( (int) $field->type );
+                $lastIndex[$field->name] = $index;
+
+                if ( $kind !== null ) {
+                    $casts[$index] = array( $kind, $field->name );
+                }
+            }
+
+            if ( $casts === array() ) {
+                return $rows;
+            }
+
+            foreach ( $rows as &$row ) {
+                foreach ( $casts as $index => [ $kind, $name ] ) {
+                    if ( !isset($row[$index]) ) {
+                        continue;
+                    }
+
+                    $row[$index] = self::castNative( $row[$index], $kind );
+
+                    // Con nomi duplicati la chiave associativa è dell'ultima colonna.
+                    if ( $lastIndex[$name] === $index ) {
+                        $row[$name] = $row[$index];
+                    }
+                }
+            }
+            unset($row);
+
+            return $rows;
+        }
+
+        static function nativeKind ( int $type ): ?string
+        {
+            if ( in_array($type, array( MYSQLI_TYPE_TINY, MYSQLI_TYPE_SHORT, MYSQLI_TYPE_LONG, MYSQLI_TYPE_LONGLONG, MYSQLI_TYPE_INT24, MYSQLI_TYPE_YEAR ), true) ) {
+                return 'int';
+            }
+
+            if ( in_array($type, array( MYSQLI_TYPE_FLOAT, MYSQLI_TYPE_DOUBLE ), true) ) {
+                return 'float';
+            }
+
+            return null;
+        }
+
+        static function castNative ( $value, string $kind )
+        {
+            if ( !is_string($value) ) {
+                return $value;
+            }
+
+            if ( $kind === 'int' ) {
+                // Oltre PHP_INT_MAX (BIGINT UNSIGNED) resta stringa.
+                return preg_match('/^-?\d+\z/', $value) === 1 && (string) (int) $value === $value ? (int) $value : $value;
+            }
+
+            return is_numeric($value) ? (float) $value : $value;
         }
 
 
@@ -623,33 +810,56 @@
         */
 
         /**
+         * Risposta JSON di errore: messaggio generico, dettaglio solo in debug.
+         *
+         * @return array{error:string,detail?:string}
+         */
+        static function fatalPayload ( string $public, ?string $detail = null, ?bool $debug = null ): array
+        {
+            $payload = array( 'error' => $public );
+
+            if ( $detail !== null && $detail !== '' && ( $debug ?? Debug::enabled() ) ) {
+                $payload['detail'] = $detail;
+            }
+
+            return $payload;
+        }
+
+        /**
          * Throw a fatal error.
          *
-         * This writes out an error message in a JSON string which DataTables will
-         * see and show to the user in the browser.
+         * Scrive il dettaglio nel log (`backend` / `list.table`) e risponde con
+         * il JSON di fatalPayload(), che DataTables mostra all'utente.
          *
-         * @param  string $msg Message to send to the client
+         * @param  string $msg Dettaglio dell'errore (non mostrato fuori dal debug)
          */
-        static function fatal ( $msg )
+        static function fatal ( $msg ): never
         {
-            echo json_encode( array( 
-                "error" => $msg
-            ) );
+            $detail = (string) $msg;
+
+            try {
+                Logger::log( new RuntimeException($detail), 'backend', 'list.table', 'ERROR', 'error', [], false );
+            }
+            catch (Throwable $e) {
+                // Il log non deve impedire la risposta.
+            }
+
+            echo json_encode( self::fatalPayload( self::FATAL_MESSAGE, $detail ) );
 
             exit(0);
         }
 
         /**
-         * Create a PDO binding key which can be used for escaping variables safely
+         * Create a binding key which can be used for escaping variables safely
          * when executing a query with sql_exec()
          *
          * @param  array &$a    Array of bindings
          * @param  mixed  $val  Value to bind
-         * @param  int    $type PDO field type
+         * @param  mixed  $type Ignorato (era il tipo PDO), tenuto per compatibilità
          * @return string       Bound key to be used in the SQL where this parameter
          *   would be used.
          */
-        static function bind ( &$a, $val, $type )
+        static function bind ( &$a, $val, $type = null )
         {
             $key = ':binding_'.count( $a );
 
@@ -662,15 +872,45 @@
             return $key;
         }
 
+        /**
+         * Aggiunge a `$a` i binding di una condizione: mappa `chiave => valore`
+         * (chiavi con o senza `:`, intere per `?`) o il vecchio formato
+         * `['bindings' => [...]]`.
+         */
         static function add_bindings(&$a, $vals)
         {
-            foreach($vals['bindings'] as $key => $value) {
-                $bindings[] = array(
-                    'key' => $key,
-                    'val' => $value,
-                    'type' => PDO::PARAM_STR
+            if ( is_array($vals) && isset($vals['bindings']) && is_array($vals['bindings']) ) {
+                $vals = $vals['bindings'];
+            }
+
+            foreach ( (array) $vals as $key => $value ) {
+                $a[] = array(
+                    'key'  => is_int($key) ? $key : ':'.ltrim((string) $key, ':'),
+                    'val'  => $value,
+                    'type' => null
                 );
             }
+        }
+
+        /**
+         * Binding nel formato di Query::bind(): chiavi intere in ordine per `?`,
+         * nomi senza `:` per i segnaposto con nome.
+         */
+        static function bindParams ( array $bindings ): array
+        {
+            $params = array();
+
+            foreach ( $bindings as $binding ) {
+                $key = $binding['key'] ?? null;
+
+                if ( $key === null || is_int($key) ) {
+                    $params[] = $binding['val'] ?? null;
+                } else {
+                    $params[ltrim((string) $key, ':')] = $binding['val'] ?? null;
+                }
+            }
+
+            return $params;
         }
 
 

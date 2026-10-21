@@ -97,8 +97,22 @@ Regole:
 **Sicurezza**: `select` e `group_by` sono frammenti SQL generati server-side e
 **firmati** (`ConfigCodec`, HMAC con `APP_KEY`) esattamente come `query` /
 `query_filter`; `ListProvider::fetch` li verifica prima di passarli a
-`SSP::complex`. Il client non può alterarli senza rompere la firma. Chiave
-assente ⇒ nessun group by (tabelle non aggregate invariate).
+`SSP::complex`. Il client non può alterarli senza rompere la firma. La firma
+copre anche tabella (chiave canonica), schema e nome del campo
+(`ConfigCodec::context()`): un frammento emesso per una lista non vale su
+un'altra tabella o un altro schema. Chiave assente ⇒ nessun group by (tabelle
+non aggregate invariate).
+
+La rotta `api.backend.list.table` è `guarded()`: senza sessione backend non
+risponde. La tabella arriva dal client ma vale solo se è una chiave di
+`Table::$list` (cioè una tabella dichiarata), e la connessione è quella
+principale del sito. `SSP::complex` usa la connessione `mysqli` del chiamante
+(niente più PDO né DSN da POST), mette tabella e chiave primaria tra backtick
+con `Query::escapeIdentifier()` e lega i termini di ricerca con
+`Query::bind()`. Un errore SQL risponde solo
+`{"error":"Errore nel caricamento della tabella."}` e finisce nel log
+`storage/logs/error.log` (servizio `backend`, azione `list.table`); con
+`APP_DEBUG` la risposta aggiunge la chiave `detail`.
 
 Nelle Resource le colonne calcolate si dichiarano con `tableLayoutSchema()->select()`
 ([TableColumn e tableLayoutSchema](tablecolumn.md)): il renderer passa a
@@ -208,6 +222,9 @@ usarli:
 - **Limite**: `limit` vale solo `25`, `50`, `100`, `250`, `500` o `all`, cioè
   i bottoni; il resto mostra gli ultimi 25.
 - **Ricerca**: i termini entrano nel `LIKE` con l'escape della connessione.
+  La ricerca della DataTable (`SSP::complex`) invece lega ogni termine con un
+  segnaposto `Query::bind()` ed escapa `%`, `_` e `\`, quindi `100%` cerca il
+  testo letterale. Senza array dei binding la ricerca non si costruisce.
   Barra e titolo mostrano la ricerca codificata, senza la barra di
   `addslashes()`.
 - **Campi nascosti** del form dei filtri: chiavi e valori codificati; i

@@ -206,7 +206,7 @@ all'originale (`nome-480.png`, `nome-960.png`, ...). Le opzioni principali:
 
 | Metodo | Cosa fa |
 | --- | --- |
-| `->extensions([...])` | Estensioni accettate in ingresso |
+| `->extensions([...])` | Estensioni accettate in ingresso; senza, vale la lista del tipo dell'input (vedi [Sicurezza](../../piattaforma/sicurezza.md#upload)) |
 | `->responsive()` | Misure responsive del sito + WebP, in un colpo solo |
 | `->resize([...])` | Misure su misura, al posto di quelle responsive |
 | `->webp(bool)` | Genera (o no) la copia `.webp` accanto a ogni misura |

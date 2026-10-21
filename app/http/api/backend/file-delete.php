@@ -1,7 +1,9 @@
 <?php
 
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
 use Wonder\App\Support\MediaFileManager;
+use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
@@ -18,8 +20,19 @@ $column = ApiRequest::string('column');
 $rowId = ApiRequest::int('row_id');
 $fileId = ApiRequest::int('file_id', -1);
 
-if ($table === '' || $column === '' || $rowId <= 0 || $fileId < 0) {
+// Tabella registrata, colonna file dello schema, cartella sotto upload.
+$target = TableAuthorization::fileColumn($table, $column);
+$folder = TableAuthorization::uploadFolder($folder);
+
+if ($target === null || $folder === null || $rowId <= 0 || $fileId < 0) {
     ApiRequest::error('Parametri non validi.', 422);
+}
+
+[$table, $column] = $target;
+
+// Permessi per tabella prima di qualsiasi query (Resource o solo admin).
+if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
+    ApiRequest::error('Operazione non consentita.', 403);
 }
 
 $query = sqlSelect($table, ['id' => $rowId], 1);
@@ -29,7 +42,11 @@ if (!($query->exists ?? false)) {
 }
 
 $files = json_decode((string) ($query->row[$column] ?? '[]'), true);
-$files = is_array($files) ? $files : [];
+
+// Niente riscrittura se la colonna non contiene quel file.
+if (!is_array($files) || !array_key_exists($fileId, $files)) {
+    ApiRequest::error('File non trovato.', 404);
+}
 
 $newArray = [];
 
@@ -39,14 +56,11 @@ foreach ($files as $id => $image) {
         continue;
     }
 
-    $tableKey = strtoupper($table);
-    $tableColumn = $TABLE->$tableKey[$column]['input'] ?? [];
-    $format = (array) ($tableColumn['format'] ?? []);
+    $format = (array) (\Wonder\App\Table::$list[$table][$column]['input']['format'] ?? []);
     $basePath = rtrim((string) $PATH->rUpload, '/');
-    $trimmedFolder = trim($folder, '/');
 
-    if ($trimmedFolder !== '') {
-        $basePath .= '/'.$trimmedFolder;
+    if ($folder !== '') {
+        $basePath .= '/'.$folder;
     }
 
     MediaFileManager::deleteFile($basePath, $format, (string) $image);

@@ -319,6 +319,8 @@ php forge start
 
 - Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend(false)` is a temporary legacy opt-out; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
 
+- Managed `.htaccess` blocks: `WONDER PERFORMANCE`, `WONDER SECURITY` (headers for static files, deny of non-public files and internal folders; `vendor/` denied except static extensions under `vendor/*/*/resources/assets/` and the xml-sitemaps generator, so package assets served to the browser must live there) and `WONDER UPLOAD` in `assets/upload/.htaccess` (no script execution). PHP responses get the same headers from `Wonder\Http\SecurityHeaders` in the bootstrap. API 500s return a generic `response` unless `Debug::enabled()`, plus `request_id` / `X-Request-Id` (`Wonder\Http\RequestId`). `Logger` writes only under `ROOT/storage/logs/`; redact URIs and identifiers with `Wonder\App\LogRedactor`. See `docs/app/piattaforma/sicurezza.md`.
+
 - The framework version lives only in `composer.json` `"version"`. `Wonder\App\Version::get()` feeds `$APP_VERSION` / `APP_VERSION` (package manifest first, then `InstalledVersions`, then `dev`); `Version::label()` adds `dev-main@<hash>` for branch installs. Never hardcode it in `wonder-image.php`. Release from the package root with `composer release -- X.Y.Z` (script `bin/release.php`, gitignored and local-only) (or `X.Y.Z-beta.N`, `patch|minor|major`, `--dry-run`): it bumps composer.json, commits, tags `vX.Y.Z`, pushes and creates the GitHub (pre-)release. Tags must be `vX.Y.Z`, never `v.X.Y.Z`. See `docs/app/piattaforma/versioni-e-release.md`.
 
 - The minimum `wonder-image/lib` (npm) version lives only in `extra.wonder.lib`
@@ -353,9 +355,27 @@ php forge start
   never 500. Mint tokens with `ApiTokens::issue()` (random `jti`, `exp` from
   `API_TOKEN_TTL`, default 0 = none; `@system` always none) and rotate with
   `regenerateApiToken()`. Pages print `API_TOKEN = ApiTokens::pageToken()`,
-  a short-lived `typ: page` JWT bound to the `@system` token: never print
-  `Credentials::appToken()` in HTML. Server-only endpoints pass
-  `allowPageToken: false` to `Handler::run()`. `api_activity.token` stores only
+  a `typ: page` JWT (`API_PAGE_TOKEN_TTL`, default 3600) bound to the
+  `@system` token and, with an active session, to it through the `sid` claim
+  (HMAC of the session id; `BearerVerifier::verify(..., $sessionId)` rejects a
+  mismatch, sid-less legacy tokens live until `exp`): never print
+  `Credentials::appToken()` in HTML. Renewal is `POST /api/token/page/`
+  (route `token.page`, area `api`), no guard but `Wonder\Http\SameOrigin` and an active
+  session. Server-only endpoints pass `allowPageToken: false` to
+  `Handler::run()`.
+- Resource API routes: an action with no authorities in
+  `permissionSchema()->api(...)` is denied (403) and not registered; a declared
+  `apiSchema()->guard()` is an extra required authority; page tokens are
+  rejected unless `apiSchema()->allowPageToken()`. Checks live in
+  `Wonder\Api\Support\ResourceApiAccess`; never change
+  `Endpoint::resolveAuth([])`, which non-Resource handlers rely on.
+- Backend list mutations (`change/boolean`, `active`, `visible`, `delete`,
+  `move`, `file/delete`, `file/move`, `authority`) authorize through
+  `Wonder\Backend\Table\TableAuthorization` before any SQL: Resource tables
+  use `permissionSchema()->backend()` `update`/`delete`, legacy tables admin
+  only; file endpoints validate table/column (`format.file`) and folder
+  (`UploadDir::normalize`) with a generic 422; `authority` only on `user`,
+  never the caller's own row. `api_activity.token` stores only
   `ApiTokens::fingerprint()`; `ApiActivityTokenMigration` clears old bearers
   during `forge update`. See `docs/app/piattaforma/api.md#token`.
 - Request-supplied redirect targets (`continue`, backend `?redirect=` base64)
@@ -415,6 +435,9 @@ php forge start
 - `SortableInput` is deprecated. Keep it only for compatibility; do not add new usages.
 - The global `filterDate()` in `app/function/backend/filter.php` is deprecated: keep it only for compatibility and use `Table::filterDate()` (backed by `Backend\Filter\FilterDate`) for new code. Its GET validation must stay aligned with `FilterDate::parseDate()`, `parseInteger()` and `buildCondition()`.
 - The other legacy list filters in `app/function/backend/filter.php` whitelist `$FILTER_CUSTOM` values against `filterCustomOptions()`, the single source of options for both `createFilterCustom()` and `filterCustom()`: add any new option source there, never only in the form. SQL values go through the connection escape, identifiers through `Query::escapeIdentifier()`, HTML through `htmlspecialchars()`, not `e()`, which the tests do not load. `$QUERY_CUSTOM`, `$QUERY_ORDER` and `$QUERY_DIRECTION` stay raw site-written SQL.
+- Every route in `route.api.php` under `api/backend` is `guarded()` (with `permit([])` when any backend user may call it). The only exception is `api.backend.alert`, which also answers without a session. A new backend API route without `guarded()` is a bug.
+- Sql ORDER: the `$order` of `Query::Select()`/`SelectForUpdate()` (and of `Model::find()`, `sqlSelect()`) is a raw fragment written by code, never by the request: a user-chosen sort maps onto a code-owned whitelist of fixed fragments (see the ecommerce `CatalogFilter::applyOrder()`). `Query::orderClause()` is not an input filter: `(SELECT ...)` subqueries are allowed, but `;`, `--`, `#`, `/*` outside strings, unclosed strings or backticks and any `\` inside a quoted string throw `RuntimeException` (double the quote instead: `'it''s'`). `$orderDirection` only accepts `ASC`/`DESC` (case-insensitive, trimmed) or null/empty; a direction without an order throws.
+- Sql: `Query::bind($sql, $params)` and the global `sqlBind()` bind values into hand-written SQL (`?` positional or `:name`), escaping through the connection; passing the same name with and without `:` (`':a'` and `'a'`) throws instead of silently keeping the last one. In array conditions of `Query` (`buildConditions()`) only the values are escaped: the keys are column identifiers (or a JSON list for `CONCAT_WS`) written by code, never by the request. `$attributes` of `Select()`, `$order`, the `$column` of `Sum()`/`Count()` and the tables/keys of `JoinTable()` are raw SQL written by code as well; existing `sql*` helpers keep their signatures. `Backend\Table\SSP` runs on the caller's `mysqli` connection (no PDO, no DSN from the request), binds search terms and escapes table and primary key with `Query::escapeIdentifier()`. `api.backend.list.table` only accepts tables listed in `Table::$list`.
 - Local Herd routing uses a global driver stub:
   - `app/build/stubs/WonderValetDriver.php`
   - generated into `~/Library/Application Support/Herd/config/valet/Drivers/WonderValetDriver.php` by consumer-project Forge commands

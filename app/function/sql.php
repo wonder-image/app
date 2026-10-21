@@ -117,6 +117,20 @@
 
     }
 
+    /**
+     * Sostituisce `?` e `:nome` con valori escapati sulla connessione corrente
+     * (vedi Wonder\Sql\Query::bind()).
+     */
+    function sqlBind(string $sql, array $params): string {
+
+        global $mysqli;
+
+        $SQL = new Wonder\Sql\Query($mysqli);
+
+        return $SQL->bind($sql, $params);
+
+    }
+
     function sqlDatabase($database = 'main') {
 
         global $mysqli;
@@ -481,7 +495,7 @@
 
     }
 
-    function sqlExport($table, $format) {
+    function sqlExport($table, $format, bool $formulaSafe = true) {
 
         $ARRAY_LABEL = [];
 
@@ -514,7 +528,7 @@
         $ARRAY = array_merge($ARRAY_LABEL, $ARRAY_VALUES);
         
         if ($format == 'csv') {
-            arrayToCsv($ARRAY, $table);
+            arrayToCsv($ARRAY, $table, $formulaSafe);
         } elseif ($format == 'xls') {
             arrayToXls($ARRAY, $table);
         }

@@ -1,6 +1,8 @@
 <?php
 
 use Wonder\App\PageSchema\AccountPageSchema;
+use Wonder\Backend\Support\ResourcePageController;
+use Wonder\Http\Csrf;
 
 // `verifyUser()` popola `$ALERT` come variabile globale; senza `global` qui,
 // il `$ALERT ?? null` letto sotto resterebbe la versione LOCALE (sempre null)
@@ -10,13 +12,36 @@ global $ALERT;
 $TITLE = 'Recupero password';
 $VALUES = $_POST;
 
-if (isset($_POST['recovery'])) {
+$RECOVERY_IDENTIFIER = Wonder\Auth\LoginThrottle::identifier((string) ($_POST['username'] ?? ''));
+
+if (isset($_POST['recovery']) && !Csrf::verify()) {
+    $ALERT = ResourcePageController::CSRF_ALERT;
+} elseif (isset($_POST['recovery']) && !Wonder\Auth\LoginThrottle::check('recovery', $RECOVERY_IDENTIFIER, Wonder\Http\ClientIp::resolve())) {
+    $ALERT = Wonder\Auth\LoginThrottle::ALERT;
+    Wonder\Auth\LoginThrottle::sendRetryAfter();
+    Wonder\Auth\AuthLog::write('recovery_throttled', null, 'backend', false, ['identifier' => $RECOVERY_IDENTIFIER]);
+} elseif (isset($_POST['recovery'])) {
     $VERIFY = verifyUser('username', $_POST['username'], 'backend');
 
+    // Risposta 601 uniforme: non rivela se l'utente esiste o se la mail è partita.
+    $issued = null;
     if ($VERIFY->response) {
         $USER = $VERIFY->user;
+
         // Token monouso valido 30 minuti; uno nuovo annulla quelli ancora aperti.
-        $issued = (new Wonder\Auth\PasswordReset(1800))->issueForUser((int) $USER->id);
+        // Un errore di emissione non deve distinguersi dall'utente inesistente.
+        try {
+            $issued = (new Wonder\Auth\PasswordReset(1800))->issueForUser((int) $USER->id);
+        } catch (\Throwable $exception) {
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
+                'reason' => 'token_failed',
+                'error' => $exception::class,
+                'identifier' => $RECOVERY_IDENTIFIER,
+            ]);
+        }
+    }
+
+    if ($VERIFY->response && $issued !== null) {
         $link = __r('backend.account.password.restore').'?token='.rawurlencode($issued->token);
 
         $content = "Ecco il link per modificare la tua password.<br>
@@ -24,21 +49,26 @@ if (isset($_POST['recovery'])) {
         <br>
         Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 
-        if (sendMail('noreply@wonderimage.it', $USER->email, 'Recupero password', $content)) {
-            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true);
-            header('Location: '.__r('backend.account.login').'?alert=601');
-            exit;
-        }
+        $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
 
-        Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
-            'reason' => 'mail_failed',
-        ]);
-    } else {
-        Wonder\Auth\AuthLog::write('password_recovery', null, 'backend', false, [
-            'username' => $_POST['username'] ?? '',
+        if (sendMail($from, $USER->email, 'Recupero password', $content)) {
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', true, ['identifier' => $RECOVERY_IDENTIFIER]);
+        } else {
+            Wonder\Auth\AuthLog::write('password_recovery', (int) $USER->id, 'backend', false, [
+                'reason' => 'mail_failed',
+                'identifier' => $RECOVERY_IDENTIFIER,
+            ]);
+        }
+    } elseif (!$VERIFY->response) {
+        Wonder\Auth\AuthLog::write('recovery_unknown', null, 'backend', false, [
+            'identifier' => $RECOVERY_IDENTIFIER,
             'alert' => $ALERT ?? null,
         ]);
     }
+
+    $ALERT = null;
+    header('Location: '.__r('backend.account.login').'?alert=601');
+    exit;
 }
 
 \Wonder\View\View::make($ROOT_APP.'/view/pages/backend/account/password-recovery.php', [

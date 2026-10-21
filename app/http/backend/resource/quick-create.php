@@ -7,7 +7,9 @@ use Wonder\Backend\Support\QuickCreateController;
 header('Content-Type: application/json; charset=utf-8');
 
 $userAuthority = (array) ($USER->authority ?? []);
-$result = QuickCreateController::handle($_POST, $userAuthority);
+$result = \Wonder\Http\Csrf::verify()
+    ? QuickCreateController::handle($_POST, $userAuthority)
+    : ['success' => false, 'error' => 'Token CSRF non valido: ricarica la pagina.', 'status' => 403];
 
 http_response_code((int) ($result['status'] ?? 200));
 unset($result['status']);

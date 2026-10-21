@@ -349,6 +349,31 @@
         "title": "Error 926",
         "text": "Image conversion failed: upload a valid PNG or JPG file."
     },
+    "927": {
+        "type": "danger",
+        "title": "Error 927",
+        "text": "The file content does not match its extension!"
+    },
+    "928": {
+        "type": "danger",
+        "title": "Error 928",
+        "text": "Image processing failed: upload a valid PNG, JPG or WEBP file."
+    },
+    "929": {
+        "type": "danger",
+        "title": "Invalid request",
+        "text": "The page has expired or the request is not valid. Reload the page and try again."
+    },
+    "930": {
+        "type": "warning",
+        "title": "Too many attempts",
+        "text": "You have made too many attempts in a short time. Wait a few minutes and try again."
+    },
+    "931": {
+        "type": "danger",
+        "title": "Error 931",
+        "text": "The SVG file cannot be read or contains a DOCTYPE declaration. Export it again and try once more."
+    },
     "950": {
         "type": "danger",
         "title": "Error 950",

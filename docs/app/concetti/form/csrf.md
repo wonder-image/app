@@ -11,9 +11,10 @@ scrive nei form e nel `<head>`, e lo confronta. Un token solo per sessione,
 creato al primo uso.
 
 {% hint style="warning" %}
-**Oggi il token viene solo emesso.** Nessuna richiesta viene bloccata dal
-framework: `RouteDispatcher` non chiama `Csrf::verify()`. Chi vuole proteggere
-una propria richiesta lo chiama a mano (vedi [Verifica](#verifica)).
+**La verifica non è centrale.** `RouteDispatcher` verifica il token solo sulle
+route che lo dichiarano con `->csrf()` (vedi [Route con `->csrf()`](#route-con-csrf)):
+oggi il gruppo delle API backend di sessione (`/api/backend/*`). Le altre
+richieste lo chiamano a mano (vedi [Verifica](#verifica)).
 {% endhint %}
 
 ## API
@@ -25,6 +26,7 @@ una propria richiesta lo chiama a mano (vedi [Verifica](#verifica)).
 | `Csrf::verify()` | `true` se la richiesta porta il token giusto. |
 | `Csrf::active()` | `true` se il token può finire nell'HTML senza che la pagina lo chieda. |
 | `Csrf::fieldFor($method)` | HTML del campo per un form con quel metodo; stringa vuota per `GET`/`HEAD` o se `active()` è falso. |
+| `Csrf::legacyFormField()` | HTML del campo per i pulsanti del template legacy, una volta per form; vuoto se il template non è attivo (`enableLegacyFormField()`). |
 
 Costanti: `Csrf::FIELD` (`_csrf`) e `Csrf::HEADER` (`X-WI-CSRF`).
 
@@ -88,6 +90,92 @@ if (!Csrf::verify()) {
 
 Un token vuoto o assente non è mai valido, nemmeno a sessione appena nata.
 
+## Route con `->csrf()`
+
+Un gruppo o una singola route possono chiedere la verifica al dispatcher:
+
+```php
+Route::name('backend.')
+    ->prefix('/backend')
+    ->backend()
+    ->csrf()
+    ->group(function () use ($ROOT_APP) {
+        Route::post('/delete/', $ROOT_APP.'/http/api/backend/delete.php')->guarded();
+
+        // Solo Bearer: la singola route esce dal gruppo.
+        Route::post('/alert/', $ROOT_APP.'/http/api/backend/alert.php')->csrf(false);
+    });
+```
+
+- Il default è `false`: è un opt-in, non vale per tutte le route.
+- `Wonder\Http\CsrfGuard` controlla i metodi diversi da `GET`, `HEAD` e
+  `OPTIONS`, dopo la sessione e l'autorizzazione (`authorizeUser()`) e prima
+  dell'handler.
+- Token mancante o sbagliato: `ForbiddenHttpException`, cioè `403` con il
+  payload JSON delle API (`{"success": false, "status": 403, "response": …}`)
+  o la pagina d'errore HTML. L'handler non viene incluso.
+- Il token arriva da `_csrf` nel corpo o dall'header `X-WI-CSRF`, che la lib
+  manda da `ajaxRequest`, `fetch`, `ApiClient`, DataTables ed Editor.js.
+  L'header è ammesso in CORS (`Access-Control-Allow-Headers`).
+- Le route autenticate solo con Bearer (Resource API, token di pagina, task,
+  `/api/app/update/`) e i flussi OAuth non la dichiarano: il browser non manda
+  da solo l'header `Authorization`.
+
+Rotte del core con `->csrf()`: tutte quelle sotto `/api/backend/` tranne
+`/api/backend/alert/` (`list/table`, `change/boolean`, `active`, `visible`,
+`delete`, `authority`, `move`, `file/delete`, `file/move`, `delete-icon`,
+`oauth/revoke`, `editorjs/file`, `editorjs/image`).
+
+## Pagine backend del core
+
+Le pagine backend con un POST che scrive verificano il token prima di
+scrivere:
+
+| Pagina | Senza token valido |
+|---|---|
+| CRUD delle Resource (`ResourcePageController`: `store`, `update`) | il form torna con i valori inviati e l'alert `929` |
+| Eliminazione da pagina (`POST /{id}/delete/`) e pagina-form (`submit`) | redirect con `FlashAlert::code(929)` |
+| Utenti (`UserManagementPageController`: creazione e modifica) | il form torna con l'alert `929` |
+| Account (`/backend/account/`: profilo e password) | alert `929`, nessuno dei due form scrive |
+| Login, recupero, restore e imposta password (`/backend/account/login/`, `password-recovery/`, `password-restore/`, `password-set/`) | alert `929`: nessun login tentato, nessuna mail, nessun token consumato |
+| Uploader massivo, file di configurazione | alert `929`, nessun file salvato |
+| `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
+| Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
+| Creazione rapida (`backend.resource.quick-create`) | `403` JSON, il controller non viene chiamato |
+| Logout (`POST /backend/account/logout/`) | alert `929` sulla pagina di conferma, nessun logout |
+| «Collega webhook» Stripe (`POST /api/service/stripe/connect/`, area backend, solo admin) | `403` sulla pagina di conferma, credenziali non toccate |
+
+Logout e «Collega webhook» in `GET` mostrano solo una pagina di conferma con un
+form `POST` e `_csrf`: non escono e non collegano nulla da soli, anche con
+`?_csrf=` nella query (il token conta solo dal corpo o da `X-WI-CSRF`). Nel menu
+del backend «Esci» è un form: in `sidebarOffcanvas()` una voce con
+`'method' => 'post'` diventa un form con `Csrf::fieldFor('post')` al posto del
+link. Il logout frontend (`AuthRoutes`, `/account/auth/logout/`) è già solo
+`POST` con `csrf_token`.
+
+Il codice `929` («Richiesta non valida») è in `notifications.json` e si
+mostra con il meccanismo di alert esistente (`$ALERT` o `FlashAlert`). I form
+di queste pagine portano già `_csrf` (`Csrf::field()` o `Csrf::fieldFor()`).
+Sulle pagine di login e password il controllo CSRF viene prima del throttle e
+della ricerca dell'utente.
+
+Nel form legacy (scritto dal sito, con la pagina che include
+`app/html/backend/index.php`) il token lo emette il core: il template chiama
+`Csrf::enableLegacyFormField()` e `submit()`/`submitAdd()` aggiungono `_csrf`
+con `Csrf::legacyFormField()`. Fuori da quel template `submit()` non emette
+nulla.
+
+- **Senza buffer di output** (il caso delle pagine legacy reali) il token esce
+  una volta per richiesta: la garanzia vale per un solo form legacy per pagina.
+  Se il form contiene già `Csrf::field()` può uscire un secondo `_csrf` con lo
+  stesso valore; è innocuo, `verify()` passa.
+- **Con il buffer di output** esce una volta per form: `submitAdd()` lo mette
+  una sola volta per i due pulsanti, e se il `<form>` aperto nel buffer
+  contiene già `_csrf` non lo ripete.
+
+Con più form legacy nella stessa pagina, o con form costruiti come stringa, il
+sito stampa `Csrf::field()` in ogni form.
+
 ## Sessione e cache
 
 Il token è personale: non deve finire in HTML servito a più persone.
@@ -107,6 +195,34 @@ visitatore. Il framework non può accorgersene: le pagine con un form o con il
 meta vanno escluse da quella regola.
 {% endhint %}
 
+## Cookie
+
+`Wonder\Http\Cookie` è l'unico punto che chiama `setcookie()` nel core. Ogni
+cookie esce con:
+
+| Attributo | Valore |
+| --- | --- |
+| `SameSite` | `Lax`: niente cookie su POST, iframe e fetch cross-site; i link e i redirect in GET li portano. |
+| `HttpOnly` | Sempre, salvo `Cookie::set($nome, $valore, $scadenza, '/', false)` per un cookie che il JS deve leggere. |
+| `Secure` | Quando la richiesta è HTTPS (`Cookie::isSecure()`). |
+| `Path` | `/` di default. |
+
+Il cookie di sessione usa `Cookie::sessionOptions(14400)` in
+`app/config/app/ini.php`; `visitor_id` (frontend) e i cookie remember-me passano
+da `Cookie::set()`/`Cookie::clear()`.
+
+### HTTPS dietro proxy
+
+Il core non ha un elenco di proxy fidati. `Cookie::isSecure()` guarda
+`$_SERVER['HTTPS']`; `X-Forwarded-Proto` conta solo se il `.env` ha
+`APP_TRUST_PROXY=true` (accetta anche `1`, `on`, `yes`), e allora decide il
+primo valore della catena. Accendilo solo se il sito è raggiungibile
+esclusivamente dal proxy: altrimenti un client può mandare l'header da sé.
+Senza flag, dietro un proxy che termina HTTPS i cookie escono senza `Secure`.
+
+`UrlParser::isHttpsRequest()` (URL assoluti) e `UrlParser::requestIp()` seguono
+lo stesso flag: senza `APP_TRUST_PROXY` ignorano `X-Forwarded-*`.
+
 ## Token già esistenti
 
 | Token | Stato |
@@ -119,5 +235,9 @@ meta vanno escluse da quella regola.
 ## Riferimenti
 
 - `class/Http/Csrf.php`
+- `class/Http/CsrfGuard.php`
 - `tests/Http/CsrfTest.php`
+- `tests/Http/BackendApiCsrfTest.php`
+- `class/Http/Cookie.php`
+- `tests/Http/CookieTest.php`
 - [Auth frontend e pannello account](../utenti/auth-frontend.md)

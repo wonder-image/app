@@ -1,5 +1,11 @@
 <?php
 
+    // Deprecato: filtri legacy delle liste backend, tenuti solo per compatibilità.
+    // Per il codice nuovo usare Wonder\Backend\Table\Table e Wonder\Backend\Filter\*.
+
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Table e Wonder\Backend\Filter\*.
+     */
     function filter() {
 
         global $TEXT;
@@ -39,6 +45,9 @@
 
     }
 
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Table e Wonder\Backend\Filter\*.
+     */
     function filterOrder($ARROW) {
 
         global $NAME;
@@ -349,6 +358,9 @@
 
     }
 
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Table e Wonder\Backend\Filter\*.
+     */
     function filterCustom() {
 
         global $NAME;
@@ -509,6 +521,9 @@
 
     }
 
+    /**
+     * @deprecated Usare Wonder\Backend\Table\Table e Wonder\Backend\Filter\*.
+     */
     function createFilterCustom() {
 
         global $FILTER_CUSTOM;

@@ -63,6 +63,15 @@ check('429 e 503: non disponibile', function () {
     return $a->available === false && $a->valid === false && $b->available === false;
 });
 
+check('401 e 403: Google ha risposto, errore di configurazione (C-PWD-I3)', function () {
+    $a = engine(ok(['error' => ['code' => 401]]), 401)->verify('tok', 'contact');
+    $b = engine(ok(['error' => ['code' => 403, 'status' => 'PERMISSION_DENIED']]), 403)->verify('tok', 'contact');
+    $c = engine(ok(['error' => ['code' => 429]]), 429)->verify('tok', 'contact');
+
+    return $a->available === true && $a->valid === false && $a->config === true
+        && $b->available === true && $b->config === true && $c->config === false;
+});
+
 check('errore di rete (success falso, codice 0): non disponibile', function () {
     $r = engine(['success' => false, 'error' => 'timeout', 'errno' => 28, 'result' => null], 0)->verify('tok', 'contact');
 

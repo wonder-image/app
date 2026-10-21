@@ -10,10 +10,14 @@ use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
 use Wonder\Backend\Support\FlashAlert;
 use Wonder\Backend\Support\ReadonlyFields;
+use Wonder\Http\Csrf;
 use Wonder\View\View;
 
 final class ResourcePageController
 {
+    // Codice di `notifications.json`: richiesta senza token CSRF valido.
+    public const CSRF_ALERT = 929;
+
     private string $resourceClass;
     private ResourcePagePresenter $presenter;
 
@@ -70,6 +74,12 @@ final class ResourcePageController
         global $ALERT;
 
         $this->guardWritable();
+
+        if (!Csrf::verify()) {
+            $ALERT = self::CSRF_ALERT;
+            $this->renderForm('create', (array) $_POST, ['alert' => (string) $ALERT]);
+            return;
+        }
 
         $ALERT = '';
         $modelClass = $this->resourceClass::modelClass();
@@ -174,6 +184,12 @@ final class ResourcePageController
         $existingValues = $this->resourceClass::isSingleton()
             ? $this->resourceRowOrNull($id)
             : $this->resourceRow($id);
+
+        if (!Csrf::verify()) {
+            $ALERT = self::CSRF_ALERT;
+            $this->renderForm('edit', array_merge((array) $existingValues, (array) $_POST), ['alert' => (string) $ALERT], $id);
+            return;
+        }
         $values = $this->preparedValues($existingValues);
         $result = (object) ['success' => false];
 
@@ -205,6 +221,13 @@ final class ResourcePageController
     private function delete(int $id): never
     {
         $this->guardWritable();
+
+        if (!Csrf::verify()) {
+            FlashAlert::code(self::CSRF_ALERT);
+            header('Location: '.$this->presenter->redirectUrl('delete', null));
+            exit();
+        }
+
         $values = $this->resourceRow($id);
         $result = $this->resourceClass::deleteRecord($id);
         $this->resourceClass::afterDelete($id, $result, $values);
@@ -228,6 +251,12 @@ final class ResourcePageController
         if ($this->resourceClass::isReadonly()) {
             http_response_code(403);
             exit($this->resourceClass::readonlyNotice());
+        }
+
+        if (!Csrf::verify()) {
+            FlashAlert::code(self::CSRF_ALERT);
+            header('Location: '.__r('backend.resource.'.$this->resourceClass::slug().'.form'));
+            exit();
         }
 
         $message = $this->resourceClass::submitFormPage($this->requestValues());

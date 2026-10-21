@@ -12,7 +12,7 @@ final class FakeStripeHttp implements \Stripe\HttpClient\ClientInterface
     /** @var list<array{0: int, 1: array}> */
     private array $responses = [];
 
-    /** @var list<array{method: string, url: string, headers: array<string, string>, params: array}> */
+    /** @var list<array{method: string, url: string, headers: array<string, string>, params: array, retries: ?int}> */
     public array $requests = [];
 
     public static function install(): self
@@ -37,7 +37,7 @@ final class FakeStripeHttp implements \Stripe\HttpClient\ClientInterface
             $named[strtolower($name)] = $value;
         }
 
-        $this->requests[] = ['method' => strtoupper((string) $method), 'url' => (string) $absUrl, 'headers' => $named, 'params' => (array) $params];
+        $this->requests[] = ['method' => strtoupper((string) $method), 'url' => (string) $absUrl, 'headers' => $named, 'params' => (array) $params, 'retries' => $maxNetworkRetries];
         [$code, $body] = array_shift($this->responses) ?? [500, ['error' => ['message' => 'Nessuna risposta in coda']]];
 
         return [json_encode($body), $code, []];

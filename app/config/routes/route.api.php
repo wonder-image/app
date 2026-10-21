@@ -2,6 +2,25 @@
 
 use Wonder\Http\Route;
 
+// Conferma webhook Stripe: pagina HTML del backend (niente CORS), solo admin.
+// Registrata prima del gruppo api perché matchByPath prende la prima rotta che combacia.
+Route::area('backend')
+    ->response('html')
+    ->theme('backend')
+    ->guarded()
+    ->permit(['admin'])
+    ->translatable(false)
+    ->name('service.stripe.')
+    ->group(function () use ($ROOT_APP) {
+
+        // GET mostra la conferma, POST (con CSRF) collega il webhook.
+        Route::get('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
+            ->name('connect');
+
+        Route::post('/api/service/stripe/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
+            ->name('connect.submit');
+    });
+
 Route::area('api')
     ->prefix('/api')
     ->response('json')
@@ -13,6 +32,10 @@ Route::area('api')
         Route::post('/states/', $ROOT_APP.'/http/api/states.php')
             ->name('states')
             ->frontend();
+
+        // Rinnovo del token di pagina (`API_TOKEN`): same-origin, sessione e CSRF, senza guard.
+        Route::post('/token/page/', $ROOT_APP.'/http/api/token/page.php')
+            ->name('token.page');
 
         Route::get('/export/', $ROOT_APP.'/http/api/export.php')
             ->name('export')
@@ -29,16 +52,23 @@ Route::area('api')
 
             });
 
+        // API backend di sessione: ogni POST richiede il token CSRF
+        // (`_csrf` o header `X-WI-CSRF`, mandato dalla lib).
         Route::name('backend.')
             ->prefix('/backend')
             ->backend()
+            ->csrf()
             ->group(function () use ($ROOT_APP) {
 
+                // Solo Bearer (`Handler::run`): niente cookie di sessione, niente CSRF.
                 Route::post('/alert/', $ROOT_APP.'/http/api/backend/alert.php')
-                    ->name('alert');
+                    ->name('alert')
+                    ->csrf(false);
 
                 Route::post('/list/table/', $ROOT_APP.'/http/api/backend/list-table.php')
-                    ->name('list.table');
+                    ->name('list.table')
+                    ->guarded()
+                    ->permit([]);
 
                 Route::post('/change/boolean/', $ROOT_APP.'/http/api/backend/change-boolean.php')
                     ->name('change.boolean')
@@ -65,7 +95,7 @@ Route::area('api')
                 Route::post('/authority/', $ROOT_APP.'/http/api/backend/authority.php')
                     ->name('authority')
                     ->guarded()
-                    ->permit([]);
+                    ->permit(['admin']);
 
                 Route::post('/move/', $ROOT_APP.'/http/api/backend/move.php')
                     ->name('move')
@@ -97,10 +127,14 @@ Route::area('api')
                 }
 
                 Route::post('/editorjs/file/', $ROOT_APP.'/http/api/backend/editorjs-file.php')
-                    ->name('editorjs.file');
+                    ->name('editorjs.file')
+                    ->guarded()
+                    ->permit([]);
 
                 Route::post('/editorjs/image/', $ROOT_APP.'/http/api/backend/editorjs-image.php')
-                    ->name('editorjs.image');
+                    ->name('editorjs.image')
+                    ->guarded()
+                    ->permit([]);
 
             });
 
@@ -128,9 +162,6 @@ Route::area('api')
 
                         Route::get('/onboarding/check/', $ROOT_APP.'/http/api/service/stripe/onboarding-check.php')
                             ->name('onboarding.check');
-
-                        Route::get('/connect/', $ROOT_APP.'/http/api/service/stripe/connect.php')
-                            ->name('connect');
 
                     });
 

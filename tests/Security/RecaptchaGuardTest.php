@@ -8,7 +8,7 @@
  *   php tests/Security/RecaptchaGuardTest.php
  *
  * L'engine reCAPTCHA è iniettato (fake) via withEngine(), quindi nessuna HTTP
- * reale. I log finiscono in una cartella temporanea (chdir) e vengono ignorati.
+ * reale. I log finiscono in una cartella temporanea (ROOT) e vengono ignorati.
  */
 
 declare(strict_types=1);
@@ -18,10 +18,17 @@ use Wonder\App\Security\RecaptchaChallenge;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-// Isola i log in una dir temporanea (Logger scrive in getcwd()/storage/logs).
+// Ambiente fissato a produzione: in locale la guardia salta sempre (C-PWD-I3).
+unset($_SERVER['APP_ENV']);
+putenv('APP_ENV');
+$_ENV['APP_ENV'] = 'production';
+\Wonder\App\Environment::reset();
+
+// Isola i log in una dir temporanea (Logger scrive in ROOT/storage/logs).
 $tmp = sys_get_temp_dir() . '/wi-recaptcha-test-' . getmypid();
 @mkdir($tmp, 0777, true);
 chdir($tmp);
+$GLOBALS['ROOT'] = $tmp;
 
 // In CLI session_start() dopo un output fallisce: tutto l'output va nel buffer.
 ob_start();
@@ -291,8 +298,8 @@ check('17. tipo sconosciuto → 617, engine non chiamato', function () use ($val
     assertTrue($engine->calls === 0, 'engine non chiamato');
 });
 
-check('18. Google non disponibile (429, 500, 0, 401) → la verifica si salta', function () use ($valid) {
-    foreach ([429, 500, 0, 401] as $code) {
+check('18. Google non disponibile (429, 500, 0, 404) → la verifica si salta', function () use ($valid) {
+    foreach ([429, 500, 0, 404] as $code) {
         guard()->withRequest($valid)->withEngine(new FakeEngine(valid: false, available: false, httpCode: $code))->verify();
     }
 });
@@ -350,11 +357,11 @@ check('27. il log non contiene il token', function () use ($logFile) {
     assertTrue(!str_contains($log, 'tok-segreto-123'), 'il token non deve finire nel log');
 });
 
-check('28. salto loggato: engine_unavailable, ERROR per 401, WARNING per 429', function () use ($valid, $logFile) {
+check('28. salto loggato: engine_unavailable, ERROR per 404, WARNING per 429', function () use ($valid, $logFile) {
     @unlink($logFile);
-    guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 401))->verify();
+    guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 404))->verify();
     $log = (string) @file_get_contents($logFile);
-    assertTrue(str_contains($log, 'engine_unavailable') && str_contains($log, 'ERROR'), '401 → ERROR');
+    assertTrue(str_contains($log, 'engine_unavailable') && str_contains($log, 'ERROR'), '404 → ERROR');
 
     @unlink($logFile);
     guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 429))->verify();
@@ -390,6 +397,101 @@ check('32. token di 8192 caratteri stampabili → arriva all\'engine', function 
     guard()->withRequest(['g-recaptcha-token' => str_repeat('A-_9', 2048)] + $valid)->withEngine($engine)->verify();
     assertTrue($engine->calls === 1, 'engine chiamato');
 });
+
+// C-PWD-I3: fail-closed in produzione, 401/403 errore di configurazione, salto in locale.
+check('33. failClosed: l\'engine lancia → 617 con log ERROR engine_error', function () use ($valid, $logFile) {
+    @unlink($logFile);
+    $engine = new FakeEngine(throws: true);
+    assert617(fn () => guard()->withRequest($valid)->withEngine($engine)->failClosed(true)->verify());
+    $log = (string) @file_get_contents($logFile);
+    assertTrue($engine->calls === 1, 'engine chiamato');
+    assertTrue(str_contains($log, 'engine_error') && str_contains($log, 'ERROR') && str_contains($log, 'fail_closed'), 'log ERROR engine_error');
+});
+
+check('34. failClosed: Google non disponibile (429, 500, 0) → 617', function () use ($valid) {
+    foreach ([429, 500, 0] as $code) {
+        assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(valid: false, available: false, httpCode: $code))->failClosed(true)->verify());
+    }
+});
+
+check('35. failClosed() senza argomento in produzione → 617; failClosed(false) → salto', function () use ($valid) {
+    assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 503))->failClosed()->verify());
+    guard()->withRequest($valid)->withEngine(new FakeEngine(available: false, httpCode: 503))->failClosed(false)->verify();
+});
+
+check('36. HTTP 401/403 → 617 (configurazione, log ERROR) anche senza failClosed', function () use ($valid, $logFile) {
+    foreach ([401, 403] as $code) {
+        @unlink($logFile);
+        assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(valid: false, available: false, httpCode: $code))->verify());
+        $log = (string) @file_get_contents($logFile);
+        assertTrue(str_contains($log, '"reason":"config"') && str_contains($log, 'ERROR'), "{$code}: log config ERROR");
+    }
+});
+
+check('37. APP_ENV=local → salto con log, engine non chiamato, anche senza token e con failClosed', function () use ($logFile) {
+    $_ENV['APP_ENV'] = 'local';
+    \Wonder\App\Environment::reset();
+    @unlink($logFile);
+    $engine = new FakeEngine(valid: false);
+    try {
+        guard()->withRequest([])->withEngine($engine)->failClosed(true)->verify();
+    } finally {
+        $_ENV['APP_ENV'] = 'production';
+        \Wonder\App\Environment::reset();
+    }
+    $log = (string) @file_get_contents($logFile);
+    assertTrue($engine->calls === 0, 'engine non chiamato');
+    assertTrue(str_contains($log, 'local_env') && str_contains($log, 'skipped'), 'salto loggato');
+});
+
+check('38. dietro proxy fidato il log registra l\'IP del client (ClientIp)', function () use ($valid, $logFile) {
+    $saved = [$_SERVER['REMOTE_ADDR'] ?? null, $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null, $_ENV['APP_TRUST_PROXY'] ?? null];
+    $_SERVER['REMOTE_ADDR'] = '10.0.0.1';
+    $_SERVER['HTTP_X_FORWARDED_FOR'] = '1.1.1.1, 203.0.113.7';
+    $_ENV['APP_TRUST_PROXY'] = 'true';
+    @unlink($logFile);
+    try {
+        assert617(fn () => guard()->withRequest(['g-recaptcha-action' => 'contact'])->verify());
+    } finally {
+        foreach (['REMOTE_ADDR' => 0, 'HTTP_X_FORWARDED_FOR' => 1] as $k => $i) {
+            if ($saved[$i] === null) { unset($_SERVER[$k]); } else { $_SERVER[$k] = $saved[$i]; }
+        }
+        if ($saved[2] === null) { unset($_ENV['APP_TRUST_PROXY']); } else { $_ENV['APP_TRUST_PROXY'] = $saved[2]; }
+    }
+    $log = (string) @file_get_contents($logFile);
+    assertTrue(str_contains($log, '"remote_addr":"203.0.113.7"'), 'remote_addr = ultima voce di X-Forwarded-For');
+});
+
+check('39. APP_ENV assente o non valido → produzione: niente salto, failClosed() chiude', function () use ($valid, $logFile) {
+    foreach ([null, 'staging'] as $value) {
+        unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+        putenv('APP_ENV');
+        if ($value !== null) {
+            $_ENV['APP_ENV'] = $value;
+        }
+        \Wonder\App\Environment::reset();
+        try {
+            @unlink($logFile);
+            $engine = new FakeEngine(valid: false);
+            assert617(fn () => guard()->withRequest([])->withEngine($engine)->verify());
+            assertTrue($engine->calls === 0 && !str_contains((string) @file_get_contents($logFile), 'local_env'), 'nessun salto locale');
+            assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(throws: true))->failClosed()->verify());
+        } finally {
+            $_ENV['APP_ENV'] = 'production';
+            \Wonder\App\Environment::reset();
+        }
+    }
+});
+
+check('40. in produzione senza chiavi del sito → 617 invalid, engine non chiamato', function () use ($valid, $logFile) {
+    @unlink($logFile);
+    $engine = new FakeEngine(valid: true);
+    assert617(fn () => RecaptchaGuard::for('contact')->withSiteKeys('', '')->withRequest($valid)->withEngine($engine)->failClosed()->verify());
+    assertTrue($engine->calls === 0, 'engine non chiamato');
+    assertTrue(str_contains((string) @file_get_contents($logFile), '"reason":"invalid"'), 'log invalid');
+});
+
+// Il fail-closed del login frontend è verificato sul comportamento in tests/Auth/AuthControllerTest.php.
 
 echo "\n{$tests} test, {$failures} fallimenti\n";
 ob_end_flush();

@@ -1,0 +1,14 @@
+{
+    "connect": {
+        "title": "Connect Stripe webhook",
+        "confirm": {
+            "live": "Create or update the gestionale webhook on the live Stripe account and save its secret in the credentials.",
+            "test": "Create or update the gestionale webhook on the test Stripe account and save its secret in the credentials."
+        },
+        "cancel": "Back to credentials",
+        "submit": "Connect webhook",
+        "invalid": "Stripe error: invalid request, reopen the credentials page.",
+        "webhook_missing": "Stripe error: the gestionale webhook is not installed.",
+        "error": "Stripe error: {{message}}"
+    }
+}

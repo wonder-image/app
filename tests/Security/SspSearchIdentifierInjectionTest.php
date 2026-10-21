@@ -13,6 +13,16 @@ declare(strict_types=1);
 require __DIR__ . '/../../vendor/autoload.php';
 
 use Wonder\Backend\Table\SSP;
+use Wonder\Sql\Query;
+
+// Il termine arriva solo come binding: per confrontare il SQL lo si lega con un escaper finto.
+function searchWhere(string $value, array $fields): string
+{
+    $bindings = [];
+    $where = SSP::buildSearchWhere($value, $fields, $bindings);
+
+    return Query::withEscaper('addslashes')->bind($where, SSP::bindParams($bindings));
+}
 
 $fail = 0;
 function check(string $label, $got, $expected) {
@@ -28,7 +38,7 @@ function check(string $label, $got, $expected) {
 // 1) benign identifiers are unchanged (backtick-quoted exactly as before).
 check(
     'benign main columns unchanged',
-    SSP::buildSearchWhere('mario', ['name', 'surname']),
+    searchWhere('mario', ['name', 'surname']),
     "(CONCAT_WS(' ', `name`, `surname`) LIKE '%mario%')"
 );
 
@@ -36,7 +46,7 @@ check(
 //    is doubled and stays inside the quoted identifier.
 check(
     'main column backtick breakout neutralised',
-    SSP::buildSearchWhere('x', ['id`)-- ']),
+    searchWhere('x', ['id`)-- ']),
     "(CONCAT_WS(' ', `id``)-- `) LIKE '%x%')"
 );
 
@@ -50,7 +60,7 @@ $evilRelation = [
 ];
 check(
     'relation identifiers fully escaped',
-    SSP::buildSearchWhere('x', [$evilRelation]),
+    searchWhere('x', [$evilRelation]),
     "(`uid``` IN (SELECT `id``` FROM `user`` WHERE 1=1 UNION SELECT password FROM admin-- ` WHERE CONCAT_WS(' ', `email```) LIKE '%x%'))"
 );
 

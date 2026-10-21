@@ -25,8 +25,12 @@ final class ApiSchema
                 'update' => true,
                 'destroy' => true,
             ],
+            // `guard` vale solo se dichiarato con guard(); `page_token` è
+            // l'opt-in al token di pagina (vedi allowPageToken()).
             'auth' => [
                 'guard' => 'api_internal_user',
+                'guard_declared' => false,
+                'page_token' => false,
             ],
             'fields' => [
                 'index' => [],
@@ -79,11 +83,42 @@ final class ApiSchema
         return $this;
     }
 
-    public function guard(string $guard): self
+    /**
+     * Authority API richiesta in più ai permessi `api` della Resource: il
+     * token deve averla oltre a una di quelle di `permissionSchema()->api()`.
+     * Senza questa chiamata non si applica.
+     */
+    public function guard(string $guard = 'api_internal_user'): self
     {
         $this->schema['auth']['guard'] = trim($guard);
+        $this->schema['auth']['guard_declared'] = trim($guard) !== '';
 
         return $this;
+    }
+
+    /** Guard dichiarato con guard(), o null. */
+    public function declaredGuard(): ?string
+    {
+        $auth = (array) ($this->schema['auth'] ?? []);
+        $guard = trim((string) ($auth['guard'] ?? ''));
+
+        return ($auth['guard_declared'] ?? false) === true && $guard !== '' ? $guard : null;
+    }
+
+    /**
+     * Ammette il token di pagina (`API_TOKEN`, `typ = page`) sulle rotte API
+     * della Resource. Default: rifiutato.
+     */
+    public function allowPageToken(bool $allow = true): self
+    {
+        $this->schema['auth']['page_token'] = $allow;
+
+        return $this;
+    }
+
+    public function allowsPageToken(): bool
+    {
+        return ($this->schema['auth']['page_token'] ?? false) === true;
     }
 
     public function pagination(bool $enabled = true, int $defaultLimit = 25, int $maxLimit = 100): self

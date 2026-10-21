@@ -33,16 +33,21 @@ function check(string $label, $got, $expected) {
 $name = (object) ['table' => 'users', 'database' => 'main'];
 $stub = (object) [];
 
+// Blob validi firmati con lo stesso contesto che fetch() verifica
+// (tabella `users`, schema vuoto, nome del campo).
+$signed = static fn (string $field, string $payload): string
+    => ConfigCodec::encode($payload, null, ConfigCodec::context('users', '', $field));
+
 // Attacker crafts an unsigned query_filter carrying raw SQL. fetch() must
 // return a DataTables error response without ever running a query.
 $tampered = [
     'draw'   => 7,
     'fields' => [],
     'config' => [
-        'query'          => ConfigCodec::encode(''),                                   // valid
+        'query'          => $signed('query', ''),                                      // valid
         'query_filter'   => base64_encode("1=1 UNION SELECT password FROM admin-- "),  // FORGED
-        'query_custom'   => ConfigCodec::encode(''),                                   // valid
-        'search_columns' => ConfigCodec::encode(json_encode([])),                      // valid
+        'query_custom'   => $signed('query_custom', ''),                               // valid
+        'search_columns' => $signed('search_columns', json_encode([])),                // valid
     ],
 ];
 
@@ -55,6 +60,29 @@ try {
     // Reaching the DB / throwing means the reject guard is missing.
     $fail++;
     echo "FAIL: tampered request must be rejected before DB access\n  threw: " . $e->getMessage() . "\n";
+}
+
+// Controprova: con tutti i blob firmati nel contesto giusto la firma passa e
+// fetch() prosegue verso il database (lo stub lo fa fallire con un'eccezione
+// o con un risultato senza `error`): il rifiuto sopra dipende solo dal blob
+// forgiato.
+$genuine = $tampered;
+$genuine['config']['query_filter'] = $signed('query_filter', '');
+
+try {
+    $result = ListProvider::fetch($genuine, $name, $stub, $stub, $stub, null);
+    check('genuine request passes the signature check', isset($result['error']), false);
+} catch (\Throwable $e) {
+    echo "ok: genuine request passes the signature check (reached DB stub: " . get_class($e) . ")\n";
+}
+
+// context() non degrada mai a '' (che equivarrebbe a firmare senza contesto).
+try {
+    ConfigCodec::context("users\xB1", '', 'query');
+    $fail++;
+    echo "FAIL: context() with invalid UTF-8 must throw\n";
+} catch (\JsonException $e) {
+    echo "ok: context() with invalid UTF-8 throws instead of returning ''\n";
 }
 
 echo $fail === 0 ? "\nALL PASS\n" : "\n$fail FAILURES\n";

@@ -3,6 +3,8 @@
 use Wonder\App\PageSchema\AccountPageSchema;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Auth\PasswordReset;
+use Wonder\Backend\Support\ResourcePageController;
+use Wonder\Http\Csrf;
 
 // `verifyUser()` popola `$ALERT` come variabile globale; allinea i write/read
 // fatti in questo file con il global così `alert()` in body-end vede gli
@@ -25,7 +27,9 @@ if (!($VERIFY->response ?? false)) {
 
 $USER = $VERIFY->user;
 
-if (isset($_POST['restore']) && trim((string) ($_POST['password'] ?? '')) !== '') {
+if (isset($_POST['restore']) && !Csrf::verify()) {
+    $ALERT = ResourcePageController::CSRF_ALERT;
+} elseif (isset($_POST['restore']) && trim((string) ($_POST['password'] ?? '')) !== '') {
     $result = (new PasswordReset())->reset($token, (string) $_POST['password']);
 
     if (!($result->success ?? false)) {
@@ -39,7 +43,8 @@ if (isset($_POST['restore']) && trim((string) ($_POST['password'] ?? '')) !== ''
     <br>
     Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
 
-    $mailSent = sendMail('noreply@wonderimage.it', $USER->email, 'Password modificata', $content);
+    $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
+    $mailSent = sendMail($from, $USER->email, 'Password modificata', $content);
     Wonder\Auth\AuthLog::write('password_reset', (int) $USER->id, 'backend', true, $mailSent ? [] : [
         'reason' => 'mail_failed',
     ]);

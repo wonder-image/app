@@ -6,6 +6,7 @@ Questa sezione è divisa in due aree operative:
 
 ## Sicurezza
 - [reCAPTCHA — verifica server-side](recaptcha.md)
+- [Throttle di login e recupero password](../concetti/utenti/auth-frontend.md#throttle)
 
 ## Google Tag Manager
 - [Configurazione](google-tag-manager/configurazione.md)

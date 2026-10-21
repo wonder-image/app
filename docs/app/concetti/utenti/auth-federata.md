@@ -67,7 +67,10 @@ Nota:
 - In tabella non sono previsti access token/refresh token in chiaro.
 - Se un progetto deve salvare token provider, usare storage separato cifrato o solo hash/opaque reference.
 - I verifier di produzione validano firma JWKS, scadenza, issuer, audience e,
-  quando fornito, nonce. Le chiavi pubbliche hanno cache locale limitata.
+  quando fornito, nonce. Le chiavi pubbliche hanno cache locale limitata, in
+  `ROOT/storage/cache/oidc-<sha256 url>.json` del sito (ultimo parametro
+  `cacheDir` di `OidcIdTokenVerifier` per cambiarla; `sys_get_temp_dir()` solo
+  se lo storage non è scrivibile).
 - Un modulo deve verificare anche lo `state` del callback e non può collegare
   per email un'identità il cui claim `email_verified` non sia vero.
 

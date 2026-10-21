@@ -1,40 +1,57 @@
 <?php
 
 use Wonder\App\Support\ApiRequest;
+use Wonder\App\Support\UploadDir;
+use Wonder\App\Support\UploadValidator;
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
 }
 
-$return = ['success' => 0];
+$fail = static function (int $status, int $alert): never {
+    ApiRequest::json(['success' => 0, 'alert' => $alert], $status);
+};
 
-if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
-    ApiRequest::json($return);
+$file = $_FILES['file'] ?? null;
+$folder = UploadDir::normalize((string) ($_SERVER['HTTP_DIR'] ?? ''));
+
+if ($folder === null) {
+    $fail(400, UploadValidator::UPLOAD_FAILED);
 }
 
-$file = $_FILES['file'];
-$folder = empty($_SERVER['HTTP_DIR']) ? '' : '/'.trim((string) $_SERVER['HTTP_DIR'], '/').'/';
-$tmpFile = $file['tmp_name'] ?? '';
-$tmpName = $file['name'] ?? '';
-$fileSize = (int) ($file['size'] ?? 0);
-$mimeType = getMimeType((string) $tmpName);
-$extension = strtolower((string) pathinfo((string) $tmpName, PATHINFO_EXTENSION));
-$code = code(10, 'all');
-$dir = rtrim((string) $PATH->rUpload, '/').$folder;
-$fileName = $extension !== '' ? $code.'.'.$extension : $code;
-$uploadFile = $dir.$fileName;
+$alert = UploadValidator::validate($file, UploadValidator::FILE_TYPES);
 
-if ($tmpFile !== '' && move_uploaded_file((string) $tmpFile, $uploadFile)) {
-    $return = [
-        'success' => 1,
-        'file' => [
-            'url' => $PATH->upload.$folder.$fileName,
-            'size' => $fileSize,
-            'name' => $tmpName,
-            'extension' => $extension,
-            'mime-type' => $mimeType,
-        ],
-    ];
+if ($alert !== null) {
+    $fail($alert === UploadValidator::SIZE ? 413 : 422, $alert);
 }
 
-ApiRequest::json($return);
+$tmpFile = (string) $file['tmp_name'];
+
+if (!is_uploaded_file($tmpFile)) {
+    $fail(400, UploadValidator::UPLOAD_FAILED);
+}
+
+$dir = UploadDir::ensure((string) $PATH->rUpload, $folder);
+
+if ($dir === null) {
+    $fail(500, UploadValidator::UPLOAD_FAILED);
+}
+
+$tmpName = (string) $file['name'];
+$extension = UploadValidator::extension($tmpName);
+$fileName = UploadDir::randomName().'.'.$extension;
+
+if (!move_uploaded_file($tmpFile, $dir.$fileName)) {
+    $fail(500, UploadValidator::UPLOAD_FAILED);
+}
+
+ApiRequest::json([
+    'success' => 1,
+    'file' => [
+        'url' => rtrim((string) $PATH->upload, '/').$folder.$fileName,
+        'size' => (int) filesize($dir.$fileName),
+        'name' => $tmpName,
+        'extension' => $extension,
+        'mime-type' => getMimeType($tmpName),
+    ],
+]);

@@ -18,12 +18,13 @@ namespace {
 
     use Wonder\Backend\Filter\FilterCustom;
 
-    function runFilter(array $filters, array $get, array $customGet = []): FilterCustom
+    function runFilter(array $filters, array $get, array $customGet = [], ?object $mysqli = null): FilterCustom
     {
         $_GET = $get;
 
         $filter = (new ReflectionClass(FilterCustom::class))->newInstanceWithoutConstructor();
         $filter->table = 'tbl';
+        $filter->mysqli = $mysqli;
         $filter->filterColumn = $filters;
         $filter->dropdown = true;
         $filter->customGet = $customGet;
@@ -57,6 +58,17 @@ namespace {
 
         return str_contains($filter->filter, 'value="&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"')
             && !str_contains($filter->filter, '<script>');
+    });
+
+    check('con una connessione i valori passano dal suo escape, anche con NO_BACKSLASH_ESCAPES', function () use ($filters) {
+        // Escape di una connessione con NO_BACKSLASH_ESCAPES: l'apice si raddoppia.
+        $mysqli = new class {
+            public function real_escape_string(string $v): string { return str_replace("'", "''", $v); }
+        };
+        $filters[0]['array'] = ["x' OR '1'='1" => 'A'];
+        $filter = runFilter($filters, ['tbl__brand_id' => "x' OR '1'='1", 'tbl__tags' => ['', "a'b"]], [], $mysqli);
+
+        return $filter->query === "`brand_id` = 'x'' OR ''1''=''1' AND (`tags` LIKE '%\"a''b\"%') ";
     });
 
     summary();

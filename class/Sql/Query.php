@@ -12,6 +12,7 @@
 
         public mysqli $mysqli;
         private bool $informationSchema = false;
+        private ?\Closure $escaper = null;
 
         public function __construct( ?mysqli $connection = null, bool $informationSchema = false ) 
         { 
@@ -124,7 +125,193 @@
                 return '';
             }
 
+            if ($this->escaper !== null) {
+                return (string) ($this->escaper)($value);
+            }
+
             return $this->mysqli->real_escape_string($value);
+
+        }
+
+        /**
+         * Istanza senza connessione con un escape dato (per i test di bind()).
+         */
+        public static function withEscaper( callable $escaper ): self
+        {
+
+            $query = (new \ReflectionClass(self::class))->newInstanceWithoutConstructor();
+            $query->escaper = \Closure::fromCallable($escaper);
+
+            return $query;
+
+        }
+
+        /**
+         * Sostituisce i segnaposto `?` (posizionali) e `:nome` con i valori
+         * escapati: null → NULL, int/float → numero, bool → 1/0, stringa →
+         * letterale quotato. I segnaposto dentro stringhe, identificatori e
+         * commenti restano intatti. Un segnaposto senza valore, un valore
+         * non usato o la stessa chiave con e senza `:` lanciano RuntimeException.
+         *
+         * @param array<int|string,mixed> $params chiavi intere per `?`, stringhe (con o senza `:`) per `:nome`
+         */
+        public function bind( string $sql, array $params ): string
+        {
+
+            $positional = [];
+            $named = [];
+
+            foreach ($params as $key => $value) {
+                if (is_int($key)) {
+                    $positional[] = $value;
+                } else {
+                    $name = ltrim($key, ':');
+                    if (array_key_exists($name, $named)) {
+                        throw new RuntimeException('Query::bind: chiave :'.$name.' passata due volte.');
+                    }
+                    $named[$name] = $value;
+                }
+            }
+
+            $out = '';
+            $length = strlen($sql);
+            $next = 0;
+            $usedNamed = [];
+
+            for ($i = 0; $i < $length; $i++) {
+
+                $char = $sql[$i];
+
+                if ($char === "'" || $char === '"' || $char === '`') {
+                    $end = self::quotedEnd($sql, $i, $char);
+                    $out .= substr($sql, $i, $end - $i + 1);
+                    $i = $end;
+                    continue;
+                }
+
+                if ($char === '#' || ($char === '-' && substr($sql, $i, 2) === '--' && ($i + 2 >= $length || ctype_space($sql[$i + 2]) || ctype_cntrl($sql[$i + 2])))) {
+                    $end = strpos($sql, "\n", $i);
+                    $end = $end === false ? $length - 1 : $end;
+                    $out .= substr($sql, $i, $end - $i + 1);
+                    $i = $end;
+                    continue;
+                }
+
+                if ($char === '/' && substr($sql, $i, 2) === '/*') {
+                    $end = strpos($sql, '*/', $i + 2);
+                    $end = $end === false ? $length - 1 : $end + 1;
+                    $out .= substr($sql, $i, $end - $i + 1);
+                    $i = $end;
+                    continue;
+                }
+
+                if ($char === '?') {
+                    if (!array_key_exists($next, $positional)) {
+                        throw new RuntimeException('Query::bind: segnaposto ? numero '.($next + 1).' senza valore.');
+                    }
+                    $out .= $this->bindValue($positional[$next++]);
+                    continue;
+                }
+
+                if ($char === ':' && ($i === 0 || $sql[$i - 1] !== ':')
+                    && preg_match('/\G:([A-Za-z_][A-Za-z0-9_]*)/', $sql, $match, 0, $i)) {
+                    $name = $match[1];
+                    if (!array_key_exists($name, $named)) {
+                        throw new RuntimeException('Query::bind: segnaposto :'.$name.' senza valore.');
+                    }
+                    $out .= $this->bindValue($named[$name]);
+                    $usedNamed[$name] = true;
+                    $i += strlen($match[0]) - 1;
+                    continue;
+                }
+
+                $out .= $char;
+
+            }
+
+            if ($next < count($positional) || count($usedNamed) < count($named)) {
+                throw new RuntimeException('Query::bind: valori senza segnaposto.');
+            }
+
+            return $out;
+
+        }
+
+        /** Come quotedEnd(), ma null se la stringa aperta in $start non si chiude. */
+        private static function closingQuote( string $sql, int $start, string $quote ): ?int
+        {
+
+            $length = strlen($sql);
+
+            for ($i = $start + 1; $i < $length; $i++) {
+                if ($sql[$i] === '\\' && $quote !== '`') {
+                    $i++;
+                    continue;
+                }
+                if ($sql[$i] === $quote) {
+                    if ($i + 1 < $length && $sql[$i + 1] === $quote) {
+                        $i++;
+                        continue;
+                    }
+                    return $i;
+                }
+            }
+
+            return null;
+
+        }
+
+        /** Indice del carattere che chiude la stringa/identificatore aperto in $start. */
+        private static function quotedEnd( string $sql, int $start, string $quote ): int
+        {
+
+            $length = strlen($sql);
+
+            for ($i = $start + 1; $i < $length; $i++) {
+                if ($sql[$i] === '\\' && $quote !== '`') {
+                    $i++;
+                    continue;
+                }
+                if ($sql[$i] === $quote) {
+                    if ($i + 1 < $length && $sql[$i + 1] === $quote) {
+                        $i++;
+                        continue;
+                    }
+                    return $i;
+                }
+            }
+
+            return $length - 1;
+
+        }
+
+        private function bindValue( mixed $value ): string
+        {
+
+            if ($value === null) {
+                return 'NULL';
+            }
+
+            if (is_bool($value)) {
+                return $value ? '1' : '0';
+            }
+
+            if (is_int($value)) {
+                return (string) $value;
+            }
+
+            if (is_float($value)) {
+                if (!is_finite($value)) {
+                    throw new RuntimeException('Query::bind: numero non finito.');
+                }
+                return var_export($value, true);
+            }
+
+            if (is_string($value)) {
+                return "'".$this->escapeString($this->protectLatin1String($value))."'";
+            }
+
+            throw new RuntimeException('Query::bind: tipo '.get_debug_type($value).' non supportato.');
 
         }
 
@@ -137,6 +324,73 @@
         public static function escapeIdentifier(string $identifier): string
         {
             return '`' . str_replace('`', '``', $identifier) . '`';
+        }
+
+        /**
+         * ` ORDER BY ...` di Select e SelectForUpdate. `$order` resta SQL
+         * scritto dal codice (colonne, espressioni, sottoquery) e va sempre
+         * scelto da una whitelist decisa dal codice, mai preso dalla
+         * richiesta: le sottoquery restano ammesse, quindi un order costruito
+         * dall'input permetterebbe injection booleane o a tempo. Esempio:
+         * `CatalogFilter::applyOrder()` di ecommerce mappa il parametro con un
+         * `match` su ordinamenti fissi. Fuori dalle stringhe non può avere
+         * `;`, `--`, `#` o `/*`; dentro le stringhe non può avere `\`, che
+         * con o senza NO_BACKSLASH_ESCAPES verrebbe letta in modo diverso. La
+         * direzione vale solo ASC o DESC, maiuscola o minuscola; null o vuota
+         * = nessuna; una direzione senza order non è ammessa. Il resto lancia
+         * RuntimeException prima della query.
+         */
+        public static function orderClause( ?string $order, ?string $orderDirection ): string
+        {
+
+            $clause = '';
+
+            if ($order !== null && trim($order) !== '') {
+
+                $length = strlen($order);
+
+                for ($i = 0; $i < $length; $i++) {
+
+                    $char = $order[$i];
+
+                    if ($char === "'" || $char === '"' || $char === '`') {
+                        $end = self::closingQuote($order, $i, $char)
+                            ?? throw new RuntimeException('Query: ORDER BY con una stringa non chiusa.');
+                        if ($char !== '`' && str_contains(substr($order, $i, $end - $i), '\\')) {
+                            throw new RuntimeException('Query: ORDER BY con \\ dentro una stringa non ammesso.');
+                        }
+                        $i = $end;
+                        continue;
+                    }
+
+                    if ($char === ';' || $char === '#' || substr($order, $i, 2) === '--' || substr($order, $i, 2) === '/*') {
+                        throw new RuntimeException('Query: ORDER BY con ; o commenti non ammesso.');
+                    }
+
+                }
+
+                $clause .= " ORDER BY $order";
+
+            }
+
+            if ($orderDirection !== null && trim($orderDirection) !== '') {
+
+                if ($clause === '') {
+                    throw new RuntimeException('Query: direzione ORDER BY senza colonne da ordinare.');
+                }
+
+                $direction = strtoupper(trim($orderDirection));
+
+                if ($direction !== 'ASC' && $direction !== 'DESC') {
+                    throw new RuntimeException('Query: direzione ORDER BY non valida, ammesse ASC e DESC.');
+                }
+
+                $clause .= " $direction";
+
+            }
+
+            return $clause;
+
         }
 
         /**
@@ -451,8 +705,7 @@
                 $query .= $this->informationSchema ? "INFORMATION_SCHEMA.$table" : self::escapeIdentifier($table);
             }
             $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
-            $query .= ($order == null) ? "" : " ORDER BY $order";
-            $query .= ($orderDirection == null) ? "" : " $orderDirection";
+            $query .= self::orderClause($order, $orderDirection);
             $safeLimit = self::sanitizeLimit($limit);
             $query .= ($safeLimit === '') ? "" : " LIMIT $safeLimit";
             $query .= $forUpdate ? " FOR UPDATE" : "";

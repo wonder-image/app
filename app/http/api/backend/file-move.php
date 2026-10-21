@@ -1,6 +1,8 @@
 <?php
 
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
@@ -17,8 +19,18 @@ $rowId = ApiRequest::int('row_id');
 $oldId = ApiRequest::int('file_id', -1);
 $action = ApiRequest::string('action');
 
-if ($table === '' || $column === '' || $rowId <= 0 || $oldId < 0 || !in_array($action, ['up', 'down'], true)) {
+// Tabella registrata e colonna file dello schema.
+$target = TableAuthorization::fileColumn($table, $column);
+
+if ($target === null || $rowId <= 0 || $oldId < 0 || !in_array($action, ['up', 'down'], true)) {
     ApiRequest::error('Parametri non validi.', 422);
+}
+
+[$table, $column] = $target;
+
+// Permessi per tabella prima di qualsiasi query (Resource o solo admin).
+if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
+    ApiRequest::error('Operazione non consentita.', 403);
 }
 
 $query = sqlSelect($table, ['id' => $rowId], 1);
@@ -28,8 +40,16 @@ if (!($query->exists ?? false)) {
 }
 
 $files = json_decode((string) ($query->row[$column] ?? '[]'), true);
-$files = is_array($files) ? $files : [];
 $newId = $action === 'up' ? $oldId - 1 : $oldId + 1;
+
+if (!is_array($files) || !array_key_exists($oldId, $files)) {
+    ApiRequest::error('File non trovato.', 404);
+}
+
+if (!array_key_exists($newId, $files)) {
+    ApiRequest::error('Posizione non valida.', 422);
+}
+
 $newArray = [];
 
 foreach ($files as $id => $image) {

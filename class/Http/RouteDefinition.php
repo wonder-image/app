@@ -96,4 +96,11 @@ class RouteDefinition
         Route::update($this->index, [ 'translatable' => $value ]);
         return $this;
     }
+
+    /** Opt-in / opt-out alla verifica CSRF della singola route (vedi `CsrfGuard`). */
+    public function csrf(bool $enabled = true): self
+    {
+        Route::update($this->index, [ 'csrf' => $enabled ]);
+        return $this;
+    }
 }

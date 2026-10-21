@@ -13,52 +13,10 @@
             : (\Wonder\App\Table::$list[strtolower($NAME->table)] ?? []);
     }
 
-    if ((isset($USER_FILTER->authority) && !empty($USER_FILTER->authority)) || 
-        (isset($USER_FILTER->area) && !empty($USER_FILTER->area))) {
-            
-        $QUERY_CUSTOM = isset($QUERY_CUSTOM) ? $QUERY_CUSTOM.' AND ' : '';
-
-        if (!empty($USER_FILTER->authority)) {
-            if (is_array($USER_FILTER->authority)) {
-
-                $QUERY_CUSTOM .= '(';
-                foreach ($USER_FILTER->authority as $k => $v) { $QUERY_CUSTOM .= "`authority` LIKE '%\"$v\"%' OR "; }
-                $QUERY_CUSTOM = substr($QUERY_CUSTOM, 0, -4).')';
-
-            } else {
-
-                $QUERY_CUSTOM .= "`authority` LIKE '%\"$USER_FILTER->authority\"%'";
-
-            }
-        }
-
-        if (!empty($USER_FILTER->authority) && !empty($USER_FILTER->area)) {
-            $QUERY_CUSTOM .= " AND ";
-        }
-
-        if (!empty($USER_FILTER->area)) {
-            if (is_array($USER_FILTER->area)) {
-
-                $QUERY_CUSTOM .= '(';
-                foreach ($USER_FILTER->area as $k => $v) { $QUERY_CUSTOM .= "`area` LIKE '%\"$v\"%' OR "; }
-                $QUERY_CUSTOM = substr($QUERY_CUSTOM, 0, -4).')';
-
-            } else {
-
-                $QUERY_CUSTOM .= "`area` LIKE '%\"$USER_FILTER->area\"%'";
-                
-            }
-        }
-        
-    }
-
     use Wonder\Backend\Table\Table;
     $TABLE = new Table( $NAME->table, $mysqli );
 
     $TABLE->endpoint( $API->DataTables );
-
-    if (isset($USER_FILTER->area)) { $TABLE->addEndpointValue('user_area', $USER_FILTER->area); }
-    if (isset($USER_FILTER->authority)) { $TABLE->addEndpointValue('user_authority', $USER_FILTER->authority); }
 
     $currentDir = str_replace('backend/', '', $PAGE->dir);
 

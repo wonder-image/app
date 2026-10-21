@@ -72,7 +72,8 @@ public static function pageSchema(): PageSchema
 ## Route API generate
 
 Nome route: `api.resource.<slug>.*`. Emesse solo se `apiSchema()->get('enabled')`
-è vero e l'azione è attiva:
+è vero, l'azione è attiva **e** `permissionSchema()` dichiara almeno
+un'authority API per quell'azione:
 
 | Azione | Metodo + path | Gate (`permissionSchema` api) |
 |---|---|---|
@@ -98,7 +99,37 @@ public static function apiSchema(): ApiSchema
 
 Builder: `.enabled(bool)`, `.route($action, $enabled = true)`,
 `.only([$routes])`, `.fields($action, [$fields])`, `.guard($guard)` (default
-`api_internal_user`), `.pagination($enabled, $defaultLimit, $maxLimit)`.
+`api_internal_user`), `.allowPageToken(bool $allow = true)`,
+`.pagination($enabled, $defaultLimit, $maxLimit)`.
+
+### Chi può chiamare le route API
+
+- **Permessi vuoti negano.** Un'azione senza authority in
+  `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
+  non consentita per questa risorsa.») prima di leggere il bearer, e il
+  registrar non la registra (scrive `api.resource.<slug>.<azione> non
+  registrata` nel log). Il default di `PermissionSchema` è vuoto: una Resource
+  che non dichiara permessi API non ha API. Gli endpoint non-Resource (MCP,
+  task, update, alert) non cambiano.
+- **`.guard($guard)`**: se la Resource lo dichiara, l'utente del bearer deve
+  avere anche quell'authority, oltre a una di quelle dell'azione (`403`
+  altrimenti). Senza `guard()` non si richiede nulla in più.
+- **Token di pagina** (`API_TOKEN` stampato nelle pagine, `typ: page`):
+  rifiutato con `401` sulle route Resource, salvo `.allowPageToken()`. Serve
+  alle Resource chiamate dalla lib nel browser, per esempio un form pubblico
+  che fa `store`:
+
+```php
+public static function permissionSchema(): PermissionSchema
+{
+    return PermissionSchema::for(static::class)->api('store', ['api_internal_user']);
+}
+
+public static function apiSchema(): ApiSchema
+{
+    return ApiSchema::for(static::class)->only(['store'])->allowPageToken();
+}
+```
 
 {% hint style="warning" %}
 `apiSchema()` modella **solo la superficie** (quali azioni e quali campi). **Chi
@@ -106,6 +137,24 @@ può chiamarle** dipende sempre da `permissionSchema()->apiCrud(...)` /
 `->api(...)`. La proiezione `.fields(...)` è importante per non esporre colonne
 sensibili.
 {% endhint %}
+
+## Mutazioni dall'elenco backend
+
+Gli endpoint `api.backend.change.boolean` (e `.active`, `.visible`),
+`api.backend.delete`, `api.backend.move`, `api.backend.file.delete`,
+`api.backend.file.move` e `api.backend.authority` passano da
+`Wonder\Backend\Table\TableAuthorization`:
+
+- tabella con una Resource registrata: vale `permissionSchema()->backend(...)`
+  di `update` (cambio booleano, ordinamento, file) o `delete`;
+- tabella legacy senza Resource: solo `admin`;
+- `file/delete` e `file/move`: tabella risolta su `Table::$list`, colonna con
+  input di tipo file (`format.file`), `folder` normalizzato sotto `upload/`;
+  altrimenti `422` generico, senza SQL;
+- `authority`: solo tabella `user`, mai la propria riga, rotta
+  `permit(['admin'])`.
+
+Rifiuto: `403` «Operazione non consentita.».
 
 ## Slug e path
 
@@ -127,7 +176,9 @@ Lo slug usato nei nomi route è la versione "slugificata" del path (es.
 - **"La pagina dettaglio non esiste"** → `view` è off di default; attivala con
   `pageSchema()->enable('view')`.
 - **API non risponde** → `apiSchema()->enabled` falso, oppure azione non attiva,
-  oppure permesso API mancante.
+  oppure permesso API mancante (la route non è registrata, `403`).
+- **401 «Token di pagina non ammesso»** → la chiamata arriva dalla lib con
+  `API_TOKEN`: aggiungi `apiSchema()->allowPageToken()`.
 - **403 sull'export** → l'utente non ha il permesso `list`.
 - **Route in conflitto** → registri una route custom per un'azione senza averla
   messa in `customBackendPages()`.
@@ -136,5 +187,6 @@ Lo slug usato nei nomi route è la versione "slugificata" del path (es.
 
 - [ ] azioni backend attive coerenti col bisogno (`view` esplicito se serve)
 - [ ] `apiSchema()` abilitato e con `.fields(...)` per le proiezioni
-- [ ] permessi backend e API definiti in `permissionSchema()`
+- [ ] permessi backend e API definiti in `permissionSchema()` (vuoto = negato)
+- [ ] `allowPageToken()` solo se l'API è chiamata dalle pagine
 - [ ] route custom dichiarate in `customBackendPages()` per evitare conflitti
