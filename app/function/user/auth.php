@@ -86,7 +86,7 @@
             if ($authorization->alert() === 917) {
                 $separator = (strpos($login_redirect, '?') !== false) ? '&' : '?';
                 $login_redirect .= $separator."alert=917";
-                Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => $_SERVER['REQUEST_URI'] ?? '' ]);
+                Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => Wonder\App\LogRedactor::uri((string) ($_SERVER['REQUEST_URI'] ?? '')) ]);
             }
                 
             header("Location: $login_redirect");
@@ -223,15 +223,14 @@
             $logMeta = [
                 'authority' => $EMAIL_VERIFICATION['authority'] ?? '',
                 'flow' => (string) ($MAIL_RESULT->flow ?? ($EMAIL_VERIFICATION['flow'] ?? 'login')),
-                'requested_from_url' => (string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? '')),
+                'requested_from_url' => Wonder\App\LogRedactor::uri((string) ($MAIL_RESULT->requested_from_url ?? ($EMAIL_VERIFICATION['requested_from_url'] ?? ''))),
                 'email_sent' => (bool) ($MAIL_RESULT->sent ?? false),
-                'verification_sent_link' => $sentLink,
             ];
 
             if (!($MAIL_RESULT->success ?? false)) {
                 $ALERT = (int) ($MAIL_RESULT->alert_code ?? $MAIL_RESULT->alert ?? 908);
                 $reason = 'email_verification_mail_failed';
-                $logMeta['error'] = (string) ($MAIL_RESULT->message ?? '');
+                $logMeta['error'] = Wonder\App\LogRedactor::text((string) ($MAIL_RESULT->message ?? ''));
                 return logFailedLogin($U, $AREA, $KEY, $VALUE, $reason, $logMeta);
             }
 
@@ -277,7 +276,7 @@
         }
         Wonder\Auth\AuthLog::write('login_success', (int) $U->id, $AREA, true, [
             'key' => $KEY,
-            'value' => $VALUE,
+            'value' => Wonder\App\LogRedactor::identifier((string) $VALUE),
         ]);
 
         return true;
@@ -301,7 +300,7 @@
     {
         $meta = [
             'key' => $KEY,
-            'value' => $VALUE,
+            'value' => Wonder\App\LogRedactor::identifier((string) $VALUE),
             'reason' => $reason,
             'identifier' => Wonder\Auth\LoginThrottle::identifier((string) $VALUE),
         ];

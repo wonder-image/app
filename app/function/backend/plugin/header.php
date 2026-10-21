@@ -34,6 +34,19 @@
                 $stateClass = $listActive ? 'fw-semibold text-body-emphasis be-nav-active' : 'text-secondary';
                 $padding = $depth > 0 ? 'ps-4' : 'ps-2';
 
+                $linkClass = 'be-nav-link d-block w-100 m-0 py-1 pe-2 float-none '.$padding.' '.$stateClass.' text-decoration-none';
+
+                // `'method' => 'post'`: form con CSRF al posto del link (es. «Esci»).
+                if (strtoupper((string) ($value['method'] ?? 'get')) === 'POST') {
+                    $markup .= "<li class='list-group-item border-0 m-0 p-0 w-100 float-none'>"
+                        ."<form method='post' action='".e($listHref)."' class='m-0'>"
+                        .\Wonder\Http\Csrf::fieldFor('post')
+                        ."<button type='submit' class='".e($linkClass)." border-0 bg-transparent text-start'>".e($listTitle)."</button>"
+                        ."</form>"
+                        ."</li>";
+                    continue;
+                }
+
                 $markup .= "<li class='list-group-item border-0 m-0 p-0 w-100 float-none'>"
                     ."<a href='".e($listHref)."' class='be-nav-link d-block w-100 m-0 py-1 pe-2 float-none ".e($padding).' '.e($stateClass)." text-decoration-none'>".e($listTitle)."</a>"
                     ."</li>";

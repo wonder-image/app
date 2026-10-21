@@ -136,6 +136,10 @@ Fa questo:
 - pulisce endpoint legacy che ora vivono come route
 - genera `handler/index.php` (front controller)
 - genera `.htaccess` se non esiste (o con `--force` per sovrascrivere)
+- aggiorna i blocchi gestiti di `.htaccess` (`WONDER SECURITY`: header e deny
+  dei file non pubblici) e scrive `assets/upload/.htaccess` (`WONDER UPLOAD`:
+  niente esecuzione di script). Su nginx servono regole equivalenti: vedi
+  [Sicurezza HTTP, errori e log](sicurezza.md)
 
 Opzioni:
 
