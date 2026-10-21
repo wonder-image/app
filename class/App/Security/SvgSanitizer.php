@@ -10,16 +10,20 @@ use DOMXPath;
 /**
  * Pulizia di un SVG caricato: solo DOM, niente rete, niente entità.
  *
- * Toglie script, foreignObject e contenitori HTML, attributi `on*`, URL
- * `javascript:`/`vbscript:`, `data:` che non siano immagini raster e stili
- * con `url(javascript` o `expression(`. Rifiuta (null) DOCTYPE, entità,
- * XML non valido e radici diverse da `<svg>`.
+ * Toglie gli elementi fuori dal namespace SVG (XHTML, XInclude, metadati
+ * di editor), script, foreignObject e contenitori HTML, attributi `on*`, URL
+ * `javascript:`/`vbscript:`, ogni `data:` che non sia un'immagine raster e
+ * stili con `@import`, `url(javascript` o `expression(`. Rifiuta (null)
+ * DOCTYPE, entità, XML non valido e radici che non siano `<svg>` SVG.
  */
 final class SvgSanitizer
 {
     private const REMOVED_ELEMENTS = ['script', 'foreignobject', 'iframe', 'embed', 'object', 'handler', 'listener'];
 
-    private const SAFE_DATA_URI = '/^data:image\/(png|jpe?g|gif|webp)[;,]/';
+    private const NAMESPACE = 'http://www.w3.org/2000/svg';
+
+    /** Un `data:` qualsiasi, ovunque nel valore, che non sia raster. */
+    private const UNSAFE_DATA_URI = '/data:(?!image\/(png|jpe?g|gif|webp)[;,])/';
 
     /** SVG pulito, identico all'originale se non c'era nulla da togliere. */
     public static function sanitize(string $svg): ?string
@@ -36,7 +40,8 @@ final class SvgSanitizer
 
         $root = $document->documentElement;
 
-        if (!$loaded || $document->doctype !== null || !$root instanceof DOMElement || strtolower($root->localName) !== 'svg') {
+        if (!$loaded || $document->doctype !== null || !$root instanceof DOMElement
+            || $root->namespaceURI !== self::NAMESPACE || $root->localName !== 'svg') {
             return null;
         }
 
@@ -55,7 +60,8 @@ final class SvgSanitizer
 
             $name = strtolower($element->localName);
 
-            if ($element !== $root && (in_array($name, self::REMOVED_ELEMENTS, true)
+            if ($element !== $root && ($element->namespaceURI !== self::NAMESPACE
+                || in_array($name, self::REMOVED_ELEMENTS, true)
                 || ($name === 'style' && self::unsafeStyle($element->textContent)))) {
                 $element->parentNode?->removeChild($element);
                 $changed = true;
@@ -92,7 +98,7 @@ final class SvgSanitizer
             return true;
         }
 
-        if (str_starts_with($value, 'data:') && preg_match(self::SAFE_DATA_URI, $value) !== 1) {
+        if (preg_match(self::UNSAFE_DATA_URI, $value) === 1) {
             return true;
         }
 
@@ -101,10 +107,22 @@ final class SvgSanitizer
 
     private static function unsafeStyle(string $css): bool
     {
-        $css = self::normalize($css);
+        $css = self::normalize(self::decodeCssEscapes($css));
 
-        return str_contains($css, 'url(javascript') || str_contains($css, 'javascript:')
+        return str_contains($css, '@import') || str_contains($css, 'url(javascript') || str_contains($css, 'javascript:')
             || str_contains($css, 'vbscript:') || str_contains($css, 'expression(');
+    }
+
+    /** `\6a` e `\j` diventano `j`, come li legge il parser CSS. */
+    private static function decodeCssEscapes(string $css): string
+    {
+        $css = (string) preg_replace_callback('/\\\\([0-9a-fA-F]{1,6})\s?/', static function (array $match): string {
+            $code = hexdec($match[1]);
+
+            return $code > 0 && $code <= 0x10FFFF ? mb_chr((int) $code, 'UTF-8') : '';
+        }, $css);
+
+        return (string) preg_replace('/\\\\(.)/s', '$1', $css);
     }
 
     /** Minuscolo e senza spazi o caratteri di controllo, come li salta il browser. */
