@@ -10,7 +10,7 @@ require __DIR__.'/../../app/function/file/upload.php';
 use Wonder\App\Security\SvgSanitizer;
 
 $ns = 'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"';
-$clean = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg $ns viewBox=\"0 0 10 10\">\n  <!-- logo -->\n  <style>.a{fill:#c00}</style>\n  <rect class=\"a\" width=\"10\" height=\"10\"/>\n  <a href=\"https://example.com/\"><circle cx=\"5\" cy=\"5\" r=\"2\"/></a>\n  <image xlink:href=\"data:image/png;base64,iVBORw0KGgo=\" width=\"1\" height=\"1\"/>\n</svg>\n";
+$clean = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg $ns viewBox=\"0 0 10 10\">\n  <style>.a{fill:#c00}</style>\n  <rect class=\"a\" width=\"10\" height=\"10\"/>\n  <a href=\"https://example.com/\"><circle cx=\"5\" cy=\"5\" r=\"2\"/></a>\n  <image xlink:href=\"data:image/png;base64,iVBORw0KGgo=\" width=\"1\" height=\"1\"/>\n</svg>\n";
 
 $sanitized = static function (string $body) use ($ns): ?string {
     return SvgSanitizer::sanitize("<svg $ns>$body</svg>");
@@ -109,6 +109,12 @@ check('style con @import o escape CSS pericolosi rimosso', function () use ($san
     $escape = $sanitized('<style>rect{fill:url(\6a avascript:alert(1))}</style><rect style="fill:url(\6a avascript:x)" width="1"/>');
     return $import !== null && !str_contains($import, '@import') && str_contains($import, '<rect')
         && $escape !== null && !str_contains($escape, 'avascript');
+});
+
+check('commenti XML rimossi, anche <!--> e <!---> che in HTML chiudono subito', function () use ($ns, $sanitized) {
+    $out = $sanitized('<!--><script>alert(1)</script>--><!---><script>alert(2)</script>--><!--[if IE]><script>x</script><![endif]--><rect width="1"/>');
+    return $out !== null && !str_contains($out, '<!--') && !str_contains($out, 'script') && str_contains($out, '<rect')
+        && SvgSanitizer::sanitize("<svg $ns><!-- logo --><rect width=\"1\"/></svg>") === "<svg $ns><rect width=\"1\"/></svg>";
 });
 
 check('idempotente: ripulire due volte non cambia nulla', function () use ($sanitized) {

@@ -13,7 +13,7 @@ use DOMXPath;
  * Toglie gli elementi fuori dal namespace SVG (XHTML, XInclude, metadati
  * di editor), script, foreignObject e contenitori HTML, attributi `on*`, URL
  * `javascript:`/`vbscript:`, ogni `data:` che non sia un'immagine raster e
- * stili con `@import`, `url(javascript` o `expression(`. Rifiuta (null)
+ * stili con `@import`, `url(javascript` o `expression(`, commenti. Rifiuta (null)
  * DOCTYPE, entità, XML non valido e radici che non siano `<svg>` SVG.
  */
 final class SvgSanitizer
@@ -48,7 +48,8 @@ final class SvgSanitizer
         $changed = false;
         $xpath = new DOMXPath($document);
 
-        foreach (iterator_to_array($xpath->query('//processing-instruction()') ?: []) as $instruction) {
+        // Anche i commenti: `<!-->` in HTML chiude subito se lo SVG finisce inline.
+        foreach (iterator_to_array($xpath->query('//processing-instruction() | //comment()') ?: []) as $instruction) {
             $instruction->parentNode?->removeChild($instruction);
             $changed = true;
         }
