@@ -142,6 +142,22 @@ La query è in `QueryException::query()` e il `Logger` la scrive nel contesto
 del log. Il testo dell'errore MySQL può comunque citare un frammento della
 query, per esempio `near '...'`.
 
+## Richieste che cambiano stato
+
+- **Niente azioni in `GET`.** Logout backend e «Collega webhook» Stripe in
+  `GET` mostrano una conferma; l'azione è un `POST` con `_csrf` nel corpo (o
+  `X-WI-CSRF`). Un token nella query non conta. Vedi
+  [Token CSRF](../concetti/form/csrf.md#pagine-backend-del-core).
+- **Rinnovo del token di pagina** (`POST /api/token/page/`): same-origin,
+  sessione attiva e token CSRF; il token resta legato alla sessione (`sid`).
+  Vedi [API](api.md).
+- **Header del proxy.** `X-Forwarded-For`, `-Proto`, `-Scheme` e `-Ssl` contano
+  solo con `APP_TRUST_PROXY=true`, per cookie, IP del client (`ClientIp`) e
+  URL assoluti (`UrlParser`). Vedi [Multi-ambiente](multi-ambiente.md).
+- **Analitica.** Prima di GTM il layout frontend nega il consenso di default
+  (Consent Mode) e passa al dataLayer solo un hash dell'id utente. Vedi
+  [Google Tag Manager](../servizi/google-tag-manager/configurazione.md#consenso-e-datalayer).
+
 ## Log
 
 `Logger` scrive in `ROOT/storage/logs/` e non usa mai la cartella corrente.
