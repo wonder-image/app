@@ -671,15 +671,23 @@ Pagination::account($pagination, $baseUrl);                          // pannello
   pannello o un box che ha già un `h2` usa `h3`.
 - **Pagination** non fa query e non legge la richiesta: `make($page, $pages)`
   riceve pagina corrente e totale pagine (la pagina si riporta tra 1 e l'ultima).
-  - `url(string $base, string $param = 'page')`: la prima pagina è la base, le
-    altre aggiungono `?page=N` (o `&` se la base ha già una query). Con una
+  - `url(string $base, string $param = 'page')`: la base può essere l'URL
+    corrente. Il `page` che ha già si toglie, gli altri parametri restano come
+    sono e il `#frammento` torna in coda: la prima pagina è la base così
+    ripulita, le altre aggiungono `page=N` con `?` o `&`
+    (`/c/?page=3&q=a#lista` → `/c/?q=a#lista`, `/c/?q=a&page=2#lista`). Con una
     funzione `fn (int $page): string` il link lo costruisci tu.
+  - Senza `url()` il link è `?page=N`, anche per la prima pagina: la pagina non
+    legge la richiesta e non conserva gli altri parametri, quindi su una lista
+    con filtri passa l'URL corrente a `url()`.
   - `window(int)` sceglie quante pagine mostrare per lato (2 di default).
   - `summary($testo)` mette il riepilogo e porta l'elenco nel piede
     `.wi-row-table__foot`. Senza riepilogo esce il solo `<ul class="wi-pagination">`.
   - `label()`, `previousLabel()`, `nextLabel()` cambiano l'`aria-label`
     dell'elenco e delle frecce; i default sono `components.pagination.*`.
-  - `hidden()` non stampa nulla.
+  - `hidden()` non stampa nulla. `make()` con una pagina sola (o zero) è già
+    nascosta; `hidden(false)` la mostra comunque.
+  - Un `aria-label` dato con `attr()` vince su `label()`.
   - `Pagination::account($pagination, $baseUrl)` prende il risultato di
     `AccountPagination::make()`: link `?pagina=N`, testi `account.pagination.*`,
     niente con zero righe. Il componente `frontend.account.pagination` è un

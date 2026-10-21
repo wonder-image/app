@@ -14,6 +14,15 @@
   `.wi-pagination*` della lib. `Pagination::make($page, $pages)->url(...)` per
   qualunque lista, `Pagination::account($pagination, $baseUrl)` per i conti di
   `AccountPagination`. Nuove chiavi `components.pagination.{label,previous,next}`.
+  - `url($base)` accetta anche l'URL corrente: toglie il `page` già presente,
+    conserva gli altri parametri e rimette il `#frammento` in coda. Senza
+    `url()` il link è `?page=N`, anche per la prima pagina.
+  - `make()` con una pagina sola (o zero) non stampa nulla, a differenza del
+    vecchio `pagination()` che mostrava un "1" attivo: `hidden(false)` la mostra.
+    `Pagination::account()` resta com'era (nascosta solo senza righe).
+  - Un `aria-label` dato con `attr()` vince su `label()` e non si ripete.
+  - `EmptyState::titleTag('h3')` sceglie il livello del titolo (`h2` di
+    default, da `h2` a `h6`).
 
 ### Cambiato
 - Il componente `frontend.account.pagination` è un wrapper di
