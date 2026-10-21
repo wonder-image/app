@@ -40,7 +40,10 @@
   mostra solo una pagina di conferma; il collegamento avviene in `POST` con
   `_csrf` nel corpo (o `X-WI-CSRF`), altrimenti `403`; altri metodi `405`. Il
   token non è più nell'URL dei bottoni delle credenziali: i link salvati con
-  `?_csrf=` aprono la conferma e non collegano più nulla da soli.
+  `?_csrf=` aprono la conferma e non collegano più nulla da soli. La rotta
+  (stessa URL) è ora in `area('backend')` con il layout `backend.auth`, senza
+  header CORS, e chiede il login admin (`guarded()->permit(['admin'])`): prima
+  bastava una sessione qualsiasi. `HEAD` non ha corpo.
 - **Rinnovo del token di pagina con CSRF.** `POST /api/token/page/` richiede
   anche il token CSRF di sessione (`X-WI-CSRF` o `_csrf`), altrimenti `403`.
 - **API: 500 generico con `request_id` (`C-ERR-I2`).** Sui 500 di
