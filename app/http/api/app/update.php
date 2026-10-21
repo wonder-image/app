@@ -87,15 +87,22 @@ if ($envToken !== '') {
 
         } catch (Throwable $e) {
 
-            error_log('[/api/app/update/ deploy bypass] '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine());
+            // Dettagli (file/riga) solo nel log del server, collegati dal request_id.
+            $requestId = \Wonder\Http\RequestId::current();
+            error_log('[/api/app/update/ deploy bypass] request_id='.$requestId.' '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine());
+
+            if (!headers_sent()) {
+                header('X-Request-Id: '.$requestId);
+            }
 
             http_response_code(500);
             echo json_encode([
                 'success' => false,
                 'status' => 500,
-                'response' => 'UpdateRunner exception: '.$e->getMessage(),
-                'file' => basename($e->getFile()),
-                'line' => $e->getLine(),
+                'response' => \Wonder\App\Debug::enabled()
+                    ? 'UpdateRunner exception: '.$e->getMessage()
+                    : 'UpdateRunner failed',
+                'request_id' => $requestId,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         }

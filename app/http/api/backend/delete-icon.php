@@ -1,6 +1,8 @@
 <?php
 
+use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
@@ -12,11 +14,20 @@ if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
     ApiRequest::error('Tabella in sola lettura in questo ambiente.', 403);
 }
 
-$folder = ApiRequest::string('folder');
 $id = ApiRequest::int('id');
 
-if ($table === '' || $folder === '' || $id <= 0) {
+// Tabella registrata con colonna icon, cartella sotto upload. La cartella
+// arriva dalla richiesta: Table::$list non la dichiara (da decidere).
+$table = TableAuthorization::iconTable($table);
+$folder = TableAuthorization::uploadFolder(ApiRequest::string('folder'));
+
+if ($table === null || $folder === null || $folder === '' || $id <= 0) {
     ApiRequest::error('Parametri non validi.', 422);
+}
+
+// Permessi per tabella prima di qualsiasi query (Resource o solo admin).
+if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
+    ApiRequest::error('Operazione non consentita.', 403);
 }
 
 $query = sqlSelect($table, ['id' => $id], 1);
@@ -28,9 +39,9 @@ if (!($query->exists ?? false)) {
 $icon = trim((string) ($query->row['icon'] ?? ''));
 
 if ($icon !== '') {
-    $path = rtrim((string) $PATH->rUpload, '/').'/'.trim($folder, '/').'/'.$icon;
+    $path = TableAuthorization::uploadFile((string) $PATH->rUpload, $folder, $icon);
 
-    if (is_file($path)) {
+    if ($path !== null) {
         @unlink($path);
     }
 }

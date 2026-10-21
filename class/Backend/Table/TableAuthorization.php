@@ -10,7 +10,7 @@ use Wonder\App\Table as AppTable;
 /**
  * Autorizzazione delle mutazioni backend su tabella scelta dal client
  * (`api.backend.change.boolean`, `delete`, `move`, `file.delete`,
- * `file.move`, `authority`).
+ * `file.move`, `delete-icon`, `authority`).
  *
  * - tabella con Resource registrata: `Resource::allows()` sull'azione
  *   backend (`update` o `delete`) di `permissionSchema()`;
@@ -127,6 +127,42 @@ final class TableAuthorization
         }
 
         return [$table, $column];
+    }
+
+    /** Tabella registrata con una colonna `icon` nello schema; null altrimenti. */
+    public static function iconTable(mixed $table, ?array $registry = null): ?string
+    {
+        $registry ??= AppTable::$list;
+        $table = ListTableRequest::table($table, $registry);
+
+        return $table !== null && is_array($registry[$table]['icon'] ?? null) ? $table : null;
+    }
+
+    /**
+     * Percorso (non risolto) di un file esistente sotto la radice upload,
+     * oppure null. Del nome file salvato in colonna conta solo il basename.
+     * Il controllo usa realpath; si restituisce il path non risolto così un
+     * symlink interno viene cancellato al posto del file a cui punta.
+     */
+    public static function uploadFile(string $uploadRoot, string $folder, string $file): ?string
+    {
+        $root = realpath($uploadRoot);
+        $file = basename(trim($file));
+
+        if ($root === false || $file === '' || $file === '.' || $file === '..') {
+            return null;
+        }
+
+        $candidate = $root.($folder !== '' ? '/'.$folder : '').'/'.$file;
+        $path = realpath($candidate);
+        $dir = realpath(dirname($candidate));
+        $inside = static fn (string|false $p): bool => $p !== false && str_starts_with($p, $root.DIRECTORY_SEPARATOR);
+
+        if (!$inside($path) || !is_file((string) $path) || ($dir !== $root && !$inside($dir))) {
+            return null;
+        }
+
+        return $candidate;
     }
 
     /**

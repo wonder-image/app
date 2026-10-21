@@ -30,7 +30,11 @@ LegacyGlobals::set('NAME', $NAME);
 
 $FORM_SCHEMA = UploadMassivePageSchema::formSchema();
 
-if (isset($_POST['upload']) && isset($_FILES['file']) && is_array($_FILES['file']['name'] ?? null)) {
+if (isset($_POST['upload']) && !\Wonder\Http\Csrf::verify()) {
+    // Il handler gira dentro un metodo del dispatcher: l'alert va nel globale letto dal layout.
+    global $ALERT;
+    $ALERT = \Wonder\Backend\Support\ResourcePageController::CSRF_ALERT;
+} elseif (isset($_POST['upload']) && isset($_FILES['file']) && is_array($_FILES['file']['name'] ?? null)) {
     foreach ($_FILES['file']['name'] as $key => $fileName) {
         $fileName = pathinfo((string) $fileName, PATHINFO_FILENAME);
 

@@ -281,6 +281,7 @@ if ({$sessionExport}) {
     ini_set('session.use_cookies', '0');
     session_save_path({$savePath});
     session_start();
+    \$_SESSION['wonder_auth_csrf'] = 'tok-csrf-test';
 }
 // Nessun database: la credenziale di sistema non e disponibile.
 \$property = new ReflectionProperty(\Wonder\App\Credentials::class, 'appKey');
@@ -326,8 +327,8 @@ check('Rinnovo same-origin senza sessione: 403 (mai un token senza sid)', functi
     return str_contains($out, '|status=403') && str_contains($out, 'Sessione non disponibile.');
 });
 
-check('Rinnovo same-origin con sessione supera i controlli (senza DB: 503 generico)', function () use ($runRenewal, $post) {
-    $out = $runRenewal($post + ['HTTP_SEC_FETCH_SITE' => 'same-origin'], true);
+check('Rinnovo same-origin con sessione e CSRF supera i controlli (senza DB: 503 generico)', function () use ($runRenewal, $post) {
+    $out = $runRenewal($post + ['HTTP_SEC_FETCH_SITE' => 'same-origin', 'HTTP_X_WI_CSRF' => 'tok-csrf-test'], true);
 
     return str_contains($out, '|status=503') && str_contains($out, 'Token non disponibile.')
         && !str_contains(strtolower($out), 'sql');

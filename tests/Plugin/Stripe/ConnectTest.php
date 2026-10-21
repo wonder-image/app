@@ -144,6 +144,7 @@ check('webhook: scorre tutte le pagine degli endpoint', function () use ($http) 
         && [$http->requests[2]['method'], $http->path(2)] === ['DELETE', '/v1/webhook_endpoints/we_vecchio'];
 });
 
+// Comportamento GET/POST in ConnectPostTest; qui solo il testo del sorgente.
 check('la rotta connect vuole il token CSRF e non scrive il messaggio di Stripe senza escape', function () {
     $rotta = (string) file_get_contents(__DIR__.'/../../../app/http/api/service/stripe/connect.php');
     $risorsa = (string) file_get_contents(__DIR__.'/../../../class/App/Resources/Config/SecurityResource.php');
@@ -151,7 +152,7 @@ check('la rotta connect vuole il token CSRF e non scrive il messaggio di Stripe 
     return str_contains($rotta, 'Csrf::verify(')
         && !str_contains($rotta, "'Errore Stripe: '.\$e->getMessage()")
         && substr_count($risorsa, "/service/stripe/connect/?account=") === 2
-        && substr_count($risorsa, 'Csrf::token()') >= 2;
+        && !str_contains($risorsa, 'Csrf::token()');
 });
 
 summary();

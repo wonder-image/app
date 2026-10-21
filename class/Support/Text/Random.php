@@ -32,7 +32,7 @@ class Random
 
         $code = '';
         for ($i = 0; $i < $length; $i++) {
-            $code .= self::$characters[rand(0, strlen(self::$characters) - 1)];
+            $code .= self::$characters[random_int(0, strlen(self::$characters) - 1)];
         }
 
         if (!empty($prefix)) {

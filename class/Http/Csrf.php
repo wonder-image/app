@@ -21,6 +21,12 @@ final class Csrf
     // e chi usa `AuthSession` continuino a vedere lo stesso token.
     private const KEY = 'wonder_auth_csrf';
 
+    // Template legacy `app/html/backend/index.php`: i pulsanti di submit emettono il token.
+    private static bool $legacyForm = false;
+
+    /** @var array<string, true> form legacy che hanno già ricevuto il token */
+    private static array $legacyEmitted = [];
+
     public static function token(): string
     {
         if (empty($_SESSION[self::KEY])) {
@@ -64,6 +70,49 @@ final class Csrf
     public static function active(): bool
     {
         return session_status() === PHP_SESSION_ACTIVE && session_cache_limiter() !== 'public';
+    }
+
+    /** Attiva `legacyFormField()`: lo chiama `app/html/backend/index.php`. */
+    public static function enableLegacyFormField(bool $enabled = true): void
+    {
+        self::$legacyForm = $enabled;
+        self::$legacyEmitted = [];
+    }
+
+    /**
+     * `_csrf` per i pulsanti `submit()`/`submitAdd()` del template legacy:
+     * uno per form. Se il buffer di output mostra il `<form>` aperto, salta
+     * quando contiene già `_csrf`; altrimenti un solo token per richiesta.
+     */
+    public static function legacyFormField(): string
+    {
+        if (!self::$legacyForm) {
+            return '';
+        }
+
+        $key = 'request';
+        $buffer = ob_get_level() > 0 ? (string) ob_get_contents() : '';
+        $start = strripos($buffer, '<form');
+
+        if ($start !== false && stripos($buffer, '</form', $start) === false) {
+            if (preg_match('/name\s*=\s*["\']?'.self::FIELD.'["\'\s>]/i', substr($buffer, $start))) {
+                return '';
+            }
+
+            $key = ob_get_level().':'.$start;
+        }
+
+        if (isset(self::$legacyEmitted[$key])) {
+            return '';
+        }
+
+        $field = self::fieldFor('post');
+
+        if ($field !== '') {
+            self::$legacyEmitted[$key] = true;
+        }
+
+        return $field;
     }
 
     /** Campo già renderizzato per un form con quel metodo; vuoto per GET o quando `active()` è falso. */

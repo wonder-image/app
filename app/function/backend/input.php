@@ -877,6 +877,12 @@
 
     function submit($label = 'Salva', $name = 'upload', $class = null, $onclick = null) {
 
+        return \Wonder\Http\Csrf::legacyFormField().backendSubmitButton($label, $name, $class, $onclick);
+
+    }
+
+    function backendSubmitButton($label = 'Salva', $name = 'upload', $class = null, $onclick = null) {
+
         # Shim backend Bootstrap: l'Element non porta più un default
         # tema-specifico (vedi `Wonder\Elements\Form\Components\Submit`),
         # quindi qui inizializziamo esplicitamente la baseline Bootstrap
@@ -900,10 +906,12 @@
 
     function submitAdd() {
 
-        $submit = submit('Salva', 'upload');
-        $submitAdd = submit('Salva e aggiungi', 'upload-add');
+        // Un solo `_csrf` per i due pulsanti.
+        $csrf = \Wonder\Http\Csrf::legacyFormField();
+        $submit = backendSubmitButton('Salva', 'upload');
+        $submitAdd = backendSubmitButton('Salva e aggiungi', 'upload-add');
 
-        return "
+        return "$csrf
         <div class='container' style='max-width: 100%;'>
             <div class='row row-cols-auto gap-2 justify-content-end'>
                 $submitAdd

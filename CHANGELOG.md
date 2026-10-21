@@ -3,6 +3,171 @@
 ## Unreleased
 
 ### Breaking
+- **Upload: `gif` e `svg` esclusi di default (`C-UPL-2`).** Un campo file
+  senza `extensions` accetta la lista del tipo dell'input: `image` =
+  `png`, `jpg`, `jpeg`, `webp`; `video` = `mp4`; `gallery` = l'unione. Con un
+  tipo ignoto sono negati `php`, `php3`-`php8`, `phtml`, `phar`, `pht`,
+  `phps`, `html`, `htm`, `xhtml`, `xht`, `shtml`, `mht`, `js`, `mjs`, `svg`,
+  `svgz`, `xml`, `xsl`, `xslt`, `cgi`, `pl`, `py`, `sh`, `htaccess` e i file
+  senza estensione (ALERT 921); `svgz` è rifiutato anche se dichiarato, come
+  ogni estensione che non è `[a-z0-9]+` (`logo.svg `, `logo.svg.`). Le
+  Resource Media Immagini e Icone accettano `png`, `jpg`, `jpeg`, `webp`:
+  una gif o un svg caricati lì ora sono rifiutati. `finfo` rifiuta un file il
+  cui contenuto non corrisponde all'estensione (ALERT 927). Le `extensions`
+  del modello non sono più scavalcate dal tipo dell'input. Per tornare ad
+  ammettere gif o svg in un campo vanno dichiarati in `extensions`; un svg
+  ammesso passa da `SvgSanitizer` e, se non è valido o la radice non è
+  `<svg>` nel namespace SVG, è rifiutato con ALERT 931.
+- **CSV neutralizzato di default (`C-UPL-4`).** `arrayToCsv()`,
+  `sqlExport()` e il download CSV delle Resource mettono un apice davanti
+  alle celle che iniziano con `=`, `+`, `-`, `@`, tabulazione o CR, tranne i
+  valori numerici (`-5`, `+39`): `+39 333 1234567` esce come
+  `'+39 333 1234567`. Opt-out: `arrayToCsv(..., false)`,
+  `sqlExport(..., false)`, `->downloadFormulaSafe(false)`. Excel e
+  `downloadAsText()` non cambiano.
+- **`X-Forwarded-*` solo con `APP_TRUST_PROXY`.** `UrlParser::isHttpsRequest()`
+  e `requestScheme()` ignorano `X-Forwarded-Proto`, `-Scheme` e `-Ssl` se il
+  flag è spento; `UrlParser::requestIp()` segue `ClientIp::resolve()`
+  (`REMOTE_ADDR`, oppure l'ultima voce di `X-Forwarded-For` con il flag). Dietro
+  un proxy che termina HTTPS senza `APP_TRUST_PROXY=true` le API rispondono
+  `403 Richiesta non sicura` e la lista IP degli utenti API confronta l'IP del
+  proxy: va attivato il flag. Prima la prima voce di `X-Forwarded-For`, scelta
+  dal client, aggirava la lista IP.
+  Senza il flag anche `__url()`, `currentBase()` e i redirect assoluti escono in
+  `http://` dietro quel proxy.
+- **dataLayer: consenso negato di default e `user.id` come hash
+  (`C-ERR-I5`).** Prima del loader GTM il layout frontend emette
+  `gtag('consent', 'default', …)` con `ad_storage`, `analytics_storage`,
+  `ad_user_data` e `ad_personalization` a `denied` e `wait_for_update: 500`:
+  i tag Google aspettano fino a 500 ms l'aggiornamento della CMP (Iubenda in
+  GTM). Il core manda in `user.id` solo un HMAC dell'id con `APP_KEY`
+  (`DataLayer::userId()`), non più l'id numerico: le variabili e i tag GTM che
+  lo usano ricevono un valore diverso. Con il modulo ecommerce richiede la
+  versione con il fix `fix/2026-10-2d-datalayer` (ecommerce non manda più
+  `user`); le versioni precedenti rimandano l'id in chiaro dopo il core.
+- **Meta Pixel non più emesso dal core.** Il layout frontend (`head.php`) non
+  stampa più lo script `fbq` né il `<noscript>` di `facebook.com/tr`, anche con
+  `pixel_facebook` compilato e attivo in `Dev > API e servizi > Analitica`:
+  partiva senza attendere il consenso. Il Pixel va configurato come tag GTM
+  bloccato dal consenso di Iubenda (docs GTM, «Meta Pixel in GTM»). Il campo
+  resta nel backend con un testo di aiuto e `$ANALYTICS->pixel` è ancora
+  calcolato per gli override dei siti; la rimozione del campo è in Fase 3.
+- **Logout backend in POST.** `/backend/account/logout/` esce solo in `POST`
+  con `_csrf` (o `X-WI-CSRF`); in `GET` mostra una pagina di conferma con il
+  bottone «Esci» e non chiude più la sessione. Nel menu del core «Esci» è un
+  form (`sidebarOffcanvas()` accetta `'method' => 'post'`). I link `<a>` a
+  `/backend/account/logout/` in moduli e siti ora portano alla conferma: per
+  uscire in un clic vanno sostituiti con un form `POST` e `Csrf::field()`.
+- **«Collega webhook» Stripe in POST.** `GET /api/service/stripe/connect/`
+  mostra solo una pagina di conferma; il collegamento avviene in `POST` con
+  `_csrf` nel corpo (o `X-WI-CSRF`), altrimenti `403`. Il
+  token non è più nell'URL dei bottoni delle credenziali: i link salvati con
+  `?_csrf=` aprono la conferma e non collegano più nulla da soli. La rotta
+  (stessa URL) è ora in `area('backend')` con il layout `backend.auth`, senza
+  header CORS, e chiede il login admin (`guarded()->permit(['admin'])`): prima
+  bastava una sessione qualsiasi. `HEAD` e gli altri metodi ricevono `404` dal
+  router, che non mappa `HEAD` su `GET`. La `POST` si chiama
+  `service.stripe.connect.submit`.
+- **Rinnovo del token di pagina con CSRF.** `POST /api/token/page/` richiede
+  anche il token CSRF di sessione (`X-WI-CSRF` o `_csrf`), altrimenti `403`.
+- **API: 500 generico con `request_id` (`C-ERR-I2`).** Sui 500 di
+  `RouteDispatcher`, `Wonder\Api\Handler`, API delle Resource e
+  `api/app/update`, `response` è `Errore interno.` (`UpdateRunner failed` per
+  l'update) se il debug è spento. `success` e `status` restano; si aggiungono
+  `request_id` e l'header `X-Request-Id`. I client esterni che leggevano il
+  messaggio dell'eccezione dai 500 ricevono il testo generico. `api/app/update`
+  non restituisce più `file` e `line`: finiscono in `error_log` con il
+  `request_id`. I 4xx non cambiano.
+- **Debug e `display_errors` (`C-ERR-I4`).** `Debug::enabled()` segue
+  `APP_DEBUG` se presente, altrimenti `APP_ENV=local`. Le richieste da
+  localhost o da reti private non accendono più il debug. `display_errors`
+  segue il debug (fuori dalla CLI), `log_errors` è sempre attivo,
+  `X-Powered-By` viene tolto.
+- **Header di sicurezza e `Cache-Control` (`C-ERR-I1`).** Le risposte PHP
+  hanno `nosniff`, `X-Frame-Options: SAMEORIGIN`,
+  `frame-ancestors 'self'`, `Referrer-Policy` e `Permissions-Policy`. HSTS è
+  opt-in con `APP_HSTS=true`. Backend e pagine con utente autenticato hanno
+  `Cache-Control: no-store, private`. Forge aggiunge a `.htaccess` il blocco
+  `WONDER SECURITY` (header per gli statici, deny di `.env`, log, dump,
+  manifest e cartelle interne; `vendor/` è negata tranne gli asset statici di
+  `vendor/*/*/resources/assets/` e il generatore xml-sitemaps) e toglie il
+  vecchio blocco `Header always set` con `X-XSS-Protection` se è identico a
+  quello generato. Se il blocco è stato modificato va tolto a mano: `forge
+  update` stampa un avviso per ogni `Header always set` fuori dai blocchi
+  `WONDER`. Un sito che serve altri file da `/vendor/` riceve 403, come
+  chi serve `*.zip`, `*.tar`, `*.tar.gz` o `*.tgz` fuori da `assets/upload/`.
+  Deny e cartelle negate valgono senza distinzione di maiuscole.
+- **Upload senza esecuzione di script (`C-UPL-3`).** Forge scrive il blocco
+  `WONDER UPLOAD` in `assets/upload/.htaccess`.
+- **Errori SQL senza query (`C-SQL-I3`).** `Sql\Utility\Error` lancia
+  `Sql\Utility\QueryException` (estende `Exception`). Il messaggio non
+  contiene più la query, disponibile in `query()` e nel contesto del log.
+- **Log in `storage/logs` con redazione (`C-ERR-I3`).** `Logger` scrive solo
+  in `ROOT/storage/logs/` (cartelle `0750`, file `0640`), senza ripiegare sulla
+  cartella corrente; `db-connections.log` è ora lì. Gli URI nei log mascherano
+  `token`, `t`, `key`, `password`, `email`, `_csrf`. In `auth_log`, `value` è
+  mascherato e `verification_sent_link` non viene più scritto. I log esistenti
+  non vengono spostati. `php forge build` e `Command::ensureDir()` creano le
+  cartelle con `0755` (`storage/logs` con `0750`) invece di `0777`; le cartelle
+  esistenti non cambiano permessi.
+- **Validazioni backend.** `ApiRequest::selectDatabase()` accetta solo `main`
+  o un database configurato (altrimenti 422). `delete-icon` accetta solo
+  tabelle registrate con colonna `icon`, richiede il permesso di modifica e
+  cancella solo file dentro la cartella di upload.
+- **Password: argon2id/bcrypt, niente `sanitize()` (`C-PWD-I1`).**
+  `hashPassword()` usa `password_hash()` con `PASSWORD_ARGON2ID` (bcrypt se
+  argon2id non è disponibile). `checkPassword()` verifica sia i nuovi hash sia
+  i phpass `$P$`/`$H$` (confronto con `hash_equals`); al login riuscito
+  `authenticateUser()` reidrata la password con `hashPassword()` quando
+  `passwordNeedsRehash()` è vero e scrive `password_rehash` in `auth_log`.
+  Nessun reset forzato. La password non passa più da `sanitize()`, né al login
+  né in account backend: `checkUserPassword()` prova il valore grezzo e, solo
+  per un hash phpass, ripiega sul valore sanificato (password storiche con
+  apostrofi o spazi). **Ripiego transitorio, rimosso nella beta successiva.**
+  `Wonder\Password::CheckPassword()` confronta con `hash_equals`. In account
+  backend una password nuova vuota o di soli spazi è rifiutata con alert `977`.
+- **reCAPTCHA: fail-closed in produzione sull'auth, 401/403 errore di
+  configurazione, salto in locale (`C-PWD-I3`).** Nuovo
+  `RecaptchaGuard::failClosed(?bool $value = null)` (senza argomento: solo in
+  produzione): con Google irraggiungibile (eccezione, rete, 429, 5xx) la
+  verifica dà `617` con log `ERROR` invece del salto. Lo usano login,
+  registrazione, completamento della registrazione, recupero e reimpostazione
+  della password del frontend (`AuthController`: `login`, `signup-request`,
+  `signup-completion`, `password-recovery`, `password-restore`); form
+  contatti, checkout e gli altri `Resource::verifyRecaptcha()` restano
+  fail-open. Un 401/403 di Google è ora `617` con `reason: config` (prima:
+  salto); l'engine li classifica `available: true` con il nuovo campo
+  `config`. Con `APP_ENV=local` la guardia salta sempre, prima di leggere il
+  token, con una riga `INFO` `reason: local_env`.
+  **Deprecata `G_RECAPTCHA_SECRET_KEY`:** nessuna verifica la usa (il server
+  usa `GCP_PROJECT_ID` + `GCP_API_KEY` di reCAPTCHA Enterprise); resta letta
+  dalle credenziali per compatibilità e verrà rimossa.
+- **Auth: nessuna enumerazione degli account in pagina (`C-PWD-I5`).**
+  `authenticateUserLogin()` mappa anche `924` (registrazione senza password,
+  email da verificare senza `sent_link`) su `925`. Il login frontend di un
+  account solo federato non mostra più «accedi con Google»
+  (`use_federated_login_*`): risponde `925`, conta il tentativo e spedisce la
+  mail `auth.email.federated_*`. La registrazione con un'email già registrata
+  (`906`) non mostra più `email_exists`: reindirizza a `email.sent` come il
+  caso nuovo e spedisce `auth.email.existing_*`, con l'evento
+  `signup_existing` nel nuovo bucket `signup` di `LoginThrottle` (3 in 15 min
+  per email, 10 in 60 min per IP), separato da `recovery`: la mail non
+  consuma i tentativi di recupero password dell'utente. I siti che leggono `906`/`924` dal login o
+  l'errore `email.exists` della registrazione vanno aggiornati.
+  Resta un residuo fino al blocco 2d (coda mail): se l'invio sincrono della
+  verifica fallisce, il caso nuovo risponde `908` mentre quello esistente
+  reindirizza comunque, e l'utente creato ritenta nel ramo `906`.
+- **Ricordami opt-in, frontend e backend (`C-PWD-I7`).** Nuovo
+  `AuthProfile::rememberMe()` (`always|optional|never`, default `optional`) e
+  `AuthProfile::remember(array $input)`. Con `optional` il login frontend
+  mostra la checkbox `remember` non spuntata: il cookie di 30 giorni si crea
+  solo se è spuntata (prima: sempre). Vale anche per Google dal login, anche
+  dopo il completamento della registrazione. Il completamento con password e
+  Google dalla registrazione ricordano solo con `always`. Il login backend ha
+  la stessa checkbox (`AccountPageSchema`, campo `remember`) e passa
+  `RememberMe::requested($_POST)`. Nuovo `RememberMe::requested()`. I default
+  `$REMEMBER = true` di `authenticateUserLogin()`/`authenticateUser()` non
+  cambiano: chi li chiama senza argomento continua a ricordare.
 - **API backend di sessione: token CSRF obbligatorio (`C-CSRF-I2`).** Il gruppo
   `/api/backend/*` dichiara `->csrf()`: `list/table`, `change/boolean`,
   `active`, `visible`, `delete`, `authority`, `move`, `file/delete`,
@@ -16,6 +181,37 @@
   (`wonder-image/lib` PR #12, header `X-WI-CSRF` da `ajaxRequest`, `fetch`,
   `ApiClient`, DataTables ed Editor.js); con una lib precedente le azioni
   dell'elenco backend, gli upload Editor.js e la revoca OAuth ricevono `403`.
+- **Pagine backend: token CSRF obbligatorio sui POST che scrivono
+  (`C-CSRF-I3`).** Store, update, eliminazione da pagina e pagina-form delle
+  Resource, utenti (`UserManagementPageController`), account (profilo e
+  password), uploader massivo, file di configurazione, `POST /backend/` e i
+  form legacy che includono `app/html/backend/index.php` (`upload`/`upload-add`)
+  verificano `_csrf`/`X-WI-CSRF`: senza token valido non scrivono e mostrano
+  l'alert `929` («Richiesta non valida», nuovo codice in `notifications.json`).
+  La creazione rapida risponde `403` JSON e il modal manda ora l'header
+  `X-WI-CSRF`. Aggiunto `_csrf` ai form che non lo avevano (account, utenti,
+  file di configurazione, uploader massivo). Nei form legacy il token lo emette
+  il core: `submit()` e `submitAdd()` aggiungono `_csrf` quando la pagina
+  include `app/html/backend/index.php`. Con il buffer di output esce una volta
+  per form; senza buffer (il caso delle pagine legacy reali) esce una volta per
+  richiesta, quindi copre un solo form legacy per pagina. Se il form ha già
+  `Csrf::field()` può uscire un secondo `_csrf` con lo stesso valore: è
+  innocuo. Le pagine con un solo form legacy non cambiano nulla; con più form
+  legacy nella stessa pagina, o con form costruiti come stringa, il sito stampa
+  `Csrf::field()` in ogni form.
+- **Cookie: `SameSite=Lax`, `Secure` su HTTPS, `HttpOnly` (`C-CSRF-I4`).**
+  `Wonder\Http\Cookie` emette ogni cookie con `SameSite=Lax`, `HttpOnly` (si
+  spegne solo con `httpOnly: false`) e `Secure` quando la richiesta è HTTPS.
+  Lo stesso vale per il cookie di sessione (`ini.php` usa
+  `Cookie::sessionOptions()`: prima non aveva né `Secure` né `HttpOnly` salvo
+  `php.ini`), per `visitor_id` (ora via `Cookie::set()`, `HttpOnly` e path `/`
+  invece della cartella della richiesta) e per i cookie remember-me. Il core
+  non ha un concetto di proxy fidato: `X-Forwarded-Proto: https` conta solo con
+  il nuovo flag `.env` `APP_TRUST_PROXY=true` (default spento); senza flag
+  dietro un proxy che termina HTTPS i cookie escono senza `Secure`. Un JS di
+  sito che leggeva `visitor_id` non lo vede più. Un ritorno da pagamento con
+  POST cross-site non porta il cookie di sessione: Nexi HPP e PayPal del core
+  tornano in GET, POST-back di siti NON VERIFICATO.
 - **API delle Resource: permessi vuoti negano.** Un'azione senza authority in
   `permissionSchema()->api(...)` / `->apiCrud(...)` risponde `403` («Azione API
   non consentita per questa risorsa.») prima di `Endpoint`, e
@@ -63,6 +259,74 @@
   successiva.
 
 ### Added
+- **`Wonder\App\Security\SvgSanitizer::sanitize()`.** Pulisce un SVG via DOM
+  (`LIBXML_NONET`, niente entità, solo namespace SVG) e restituisce `null` se
+  non è valido;
+  `uploadFiles()` lo applica a ogni svg ammesso da `extensions`. Il blocco
+  `WONDER UPLOAD` di `assets/upload/.htaccess` serve ogni file con `nosniff`
+  e `.svg`/`.svgz` anche con `Content-Security-Policy "sandbox"` (al prossimo
+  `forge update`). Il sanitizer toglie anche i commenti XML.
+- **`UploadValidator::checkFormat()`** (whitelist, deny-list e `finfo` per
+  `uploadFiles()`), `SpreadsheetText::formulaSafe()`/`formulaSafeMatrix()` e
+  `TableLayoutSchema::downloadFormulaSafe()`.
+- `Wonder\Http\SecurityHeaders`, `Wonder\Http\RequestId`,
+  `Wonder\App\LogRedactor`, `Wonder\Sql\Utility\QueryException`,
+  `Logger::append()` e `Logger::root()`. Doc:
+  `docs/app/piattaforma/sicurezza.md`.
+- **Token di verifica email salvati come hash (`C-PWD-I9`).**
+  `consent_confirmation_tokens` ha la nuova colonna `token_hash` (64, nullable,
+  unica); `token` diventa nullable, nessuna colonna rimossa.
+  `generateUserVerificationToken()` salva solo lo sha256 e restituisce il token
+  in chiaro al chiamante; `confirmUserVerificationToken()` cerca per hash e
+  ripiega su `token` in chiaro per le righe già emesse (**ripiego rimosso nella
+  beta successiva**). La conferma senza `mysqli` rilegge la riga prima di
+  scrivere; `ConsentConfirmationTokenRepository` salva l'hash e
+  `markConfirmed()` torna `bool` (conferma solo se non già usato né revocato).
+  Richiede `php forge update` per la colonna.
+- **Nuovo utente backend senza password in chiaro (`C-PWD-I8`).** Il form
+  utenti non contiene più l'input nascosto con la password generata e la
+  welcome mail non riporta credenziali: l'utente è creato senza password e la
+  mail porta un link `password_set` valido 72 ore
+  (`UserManagementPageController::WELCOME_TOKEN_TTL`). Mittente
+  `$SOCIETY->email` (ripiego `noreply@wonderimage.it`, prima
+  `info@wonderimage.it`). Esito in `auth_log` (`welcome_mail`, `mail_failed`,
+  `token_failed`); senza mail l'utente usa il recupero password.
+  `Random::generate()` (e quindi `code()`) usa `random_int()`. La cache JWKS di
+  `OidcIdTokenVerifier` passa da `sys_get_temp_dir()` a
+  `ROOT/storage/cache/` (nuovo parametro opzionale `cacheDir`).
+- **Impersonificazione legata alla sessione e con scadenza (`C-PWD-I6`).**
+  `Impersonation::issue()` salva lo sha256 dell'ID sessione dell'attore nel
+  token; `start()` da un'altra sessione fallisce con audit `start_denied`.
+  Nuovo parametro opzionale del costruttore `maxDurationSeconds` (default
+  1800): dopo `expires_at` `current()` torna `null`, ripristina l'attore e
+  registra `expired`. La scadenza è applicata a ogni richiesta dal bootstrap
+  di sessione (`Impersonation::enforceExpiry()`), non solo dall'overlay
+  frontend. Firma pubblica invariata.
+- **Login e password del backend: CSRF, risposta uniforme, mittente
+  (`C-PWD-I4`).** I form di login, recupero, restore e imposta password del
+  backend emettono `_csrf` e gli handler lo verificano prima di tutto il resto:
+  senza token valido alert `929` (`ResourcePageController::CSRF_ALERT`), nessun
+  login, nessuna mail, nessun token consumato. Il recupero risponde sempre con
+  il redirect `?alert=601`, anche con utente inesistente (evento
+  `recovery_unknown`, senza lo username in chiaro), mail non partita o errore
+  nell'emissione del token (`password_recovery` con `reason=token_failed`). Le mail
+  di recupero, restore e set partono da `$SOCIETY->email` (ripiego
+  `noreply@wonderimage.it`). reCAPTCHA sul login backend arriva in un intervento
+  successivo.
+- **Throttle di login e recupero password (`C-PWD-I2`).** Nuovo
+  `Wonder\Auth\LoginThrottle`: conteggio su `auth_log` in finestra scorrevole.
+  Login 5/15 min per email o username e 20/15 min per IP; recupero 3/15 min
+  per identificatore e 10/60 min per IP; x10 con `Environment::isLocal()`.
+  Bloccato: alert `930` («Troppi tentativi», nuovo in `notifications.json`;
+  il piano indicava `926`, già usato), `Retry-After`, `429` su `/oauth/login`,
+  evento `login_throttled`/`recovery_throttled`. Il recupero frontend oltre il
+  limite risponde «inviata» senza mail e ora scrive `recovery_request`.
+  `login_failed` e i log del recupero salvano `meta.identifier`. Indici
+  `auth_log(ip, creation)` e `(event, creation)` (non distruttivi).
+  `Retry-After` indica i secondi che mancano perché il tentativo più vecchio
+  esca dalla finestra. L'IP del throttle e di `auth_log.ip` viene da
+  `Wonder\Http\ClientIp::resolve()`: `REMOTE_ADDR`, oppure con
+  `APP_TRUST_PROXY=true` l'ultima voce di `X-Forwarded-For` (quella del proxy).
 - `POST /api/token/page/` (rotta `token.page`, area `api`): rinnovo del token di pagina
   per la sessione corrente, `{ token, expires_in }`. Senza guard, solo
   same-origin e con sessione attiva (`403` altrimenti, `405` se non POST),
@@ -414,6 +678,21 @@
   `IMAGE_MISSING_LABEL=false`; nessun controllo sul disco.
 
 ### Changed
+- **Deprecato il default `$REMEMBER = true` di `authenticateUserLogin()` e
+  `authenticateUser()`.** Il default resta per retrocompatibilità, ma i
+  chiamanti devono passare la scelta esplicita (ad esempio
+  `RememberMe::requested($_POST)` o `false`). Tutti i chiamanti del core la
+  passano già: login frontend (`AuthController`), login backend,
+  `/oauth/login` e `authenticateUserLogin()` verso `authenticateUser()`.
+  Stesso default, deprecato allo stesso modo, in
+  `new LegacySessionLoginAdapter()` senza argomento
+  (`class/Auth/Federated/Bridge/LegacySessionLoginAdapter.php:13`,
+  `$rememberMe = true`) e in `verifyFederatedLogin()` senza l'opzione
+  `remember_me` (`app/function/frontend/plugin/federated.php:154`,
+  `remember_me ?? true`): un sito che usa il `verifyFederatedLogin()` legacy
+  ricorda sempre l'utente, senza checkbox. I default non cambiano. Nel core
+  `LegacySessionLoginAdapter` riceve sempre il valore esplicito e
+  `verifyFederatedLogin()` non ha chiamanti.
 - **list/table, editorjs e SSP: cambia il comportamento per chi chiama senza
   sessione backend.** `api.backend.list.table`, `api.backend.editorjs.file` e
   `.image` sono `guarded()`: senza login rimandano al Login e l'handler non
@@ -598,6 +877,34 @@
   `AccountModal` e `AccountAddressForm::layout()`.
 
 ### Fixed
+- **Log reCAPTCHA: IP del client dietro proxy (review `N4`).** `RecaptchaGuard`
+  registra `remote_addr` via `Wonder\Http\ClientIp::resolve()`, come throttle e
+  `auth_log`. L'`ip_address` del consenso (`app/function/user/user.php:209`) resta
+  su `REMOTE_ADDR`: è fuori dal perimetro auth.
+- **Password: costo bcrypt per versione PHP (review `RR1`).** Senza argon2id,
+  `hashPassword()` e `passwordNeedsRehash()` usano il costo bcrypt di default
+  della versione in esecuzione (10 prima della 8.4, 12 dalla 8.4), scelto con
+  `PHP_VERSION_ID` in `passwordHashSettings()`. L'hash fittizio
+  (`dummyPasswordHashFor()`) ha lo stesso costo: su PHP 8.2/8.3 non viene più
+  rigenerato a ogni richiesta e non costa il doppio di una password errata.
+  Senza argon2id nessuna funzione legge `PASSWORD_ARGON2ID` (review `B1`):
+  prima l'hash fittizio dava un errore fatale e un 500 al posto del 925.
+- **Login: tempo di risposta uniforme (review `R1`).** Con utente inesistente
+  o registrato senza password, `authenticateUser()` esegue comunque una
+  verifica su `dummyPasswordHash()`, con lo stesso algoritmo e lo stesso costo
+  di `hashPassword()`: il tempo non distingue più questi casi da una password
+  errata. Resta distinguibile, fino al blocco 2d (coda mail), l'account solo
+  Google: dopo il 925 `mailFederatedHint` invia la mail via SMTP sincrono.
+- **Ricordami: IP da `ClientIp`.** `RememberMe::set()` e la rotazione in
+  `RememberMe::tryLogin()` scrivono in `auth_remember.ip` il valore di
+  `ClientIp::resolve()` invece di `REMOTE_ADDR`.
+- **Audit impersonificazione: IP da `ClientIp` (review `N9`).**
+  `Impersonation::audit()` scrive in `auth_impersonation_audits.ip` il valore di
+  `ClientIp::resolve()`: dietro proxy con `APP_TRUST_PROXY` è l'IP del client,
+  non quello del proxy.
+- **Geolocalizzazione: IP da `ClientIp` (review `M4`).** `IPInfo` senza IP
+  esplicito usa `ClientIp::resolve()`: `X-Forwarded-For` e `Client-IP` non
+  contano più se `APP_TRUST_PROXY` è spento.
 - `ConfigCodec::context()` codifica con `JSON_THROW_ON_ERROR`: un contesto non
   codificabile lancia invece di diventare `''`.
 - `SSP::complex`: i binding di `whereAll` valgono anche per le query dei dati

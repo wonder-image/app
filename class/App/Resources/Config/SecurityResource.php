@@ -6,7 +6,6 @@ use Wonder\App\Credentials;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\Path;
 use Wonder\App\ResourceSchema\FormField;
-use Wonder\Http\Csrf;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\App\Support\GoogleCloud\GoogleApis;
@@ -221,7 +220,7 @@ final class SecurityResource extends SingletonResource
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production&_csrf='.Csrf::token(), 'Collega webhook')
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production', 'Collega webhook')
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
@@ -235,7 +234,7 @@ final class SecurityResource extends SingletonResource
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test&_csrf='.Csrf::token(), 'Collega webhook')
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test', 'Collega webhook')
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),

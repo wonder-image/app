@@ -59,6 +59,23 @@ abstract protected static function permissionsFunction(): string; // funzione ch
 3. Salvataggio: l'utente viene creato nell'area `backend`; se previsto, parte la
    welcome mail.
 
+### Password iniziale
+
+Il form non contiene né stampa alcuna password. Un nuovo utente backend viene
+creato **senza password** e la welcome mail porta il link
+`/backend/account/password-set/?token=…`: un token monouso di scopo
+`password_set` emesso con
+`(new OneTimeToken('password_set', UserManagementPageController::WELCOME_TOKEN_TTL))->issue($userId)`
+(72 ore). Le credenziali non viaggiano mai in mail. Un utente già esistente
+che ha una password riceve solo il link di accesso.
+
+L'esito finisce in `auth_log` con l'evento `welcome_mail` (`success` 0 e
+`reason` `mail_failed` o `token_failed` quando qualcosa non va). Se la mail non
+arriva o il link è scaduto, l'utente usa **Password dimenticata** dal login
+backend: il recupero funziona anche per un account ancora senza password. Gli
+utenti API non ricevono mail e restano senza password (si autenticano col
+token).
+
 ## Creare un utente API
 
 Stesso flusso su `ApiUserResource` (area `api`). Il form è leggermente diverso
