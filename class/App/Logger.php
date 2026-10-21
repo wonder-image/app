@@ -88,7 +88,8 @@ class Logger
     public static function append(string $file, string $line): void
     {
         $root = self::root();
-        if ($root === null) {
+        // Nome file con `..`: niente traversal fuori da storage/logs.
+        if ($root === null || str_contains($file, '..')) {
             @error_log($line);
             return;
         }
@@ -110,7 +111,10 @@ class Logger
         }
     }
 
-    /** Root del sito: costante ROOT, poi $GLOBALS['ROOT'], poi la cartella con vendor/autoload.php. */
+    /**
+     * Root del sito: costante ROOT, poi $GLOBALS['ROOT'], poi la prima cartella
+     * con vendor/autoload.php sopra lo script in esecuzione; altrimenti null.
+     */
     public static function root(): ?string
     {
         if (defined('ROOT') && (string) ROOT !== '') {
@@ -122,15 +126,10 @@ class Logger
             return rtrim($globalRoot, '/');
         }
 
-        // Prima lo script in esecuzione: __DIR__ può risolvere il symlink del pacchetto.
-        $starts = [];
+        // Niente fallback su __DIR__: col pacchetto in symlink porterebbe fuori dal sito.
         $script = (string) ($_SERVER['SCRIPT_FILENAME'] ?? '');
         if ($script !== '') {
-            $starts[] = dirname(realpath($script) ?: $script);
-        }
-        $starts[] = __DIR__;
-
-        foreach ($starts as $dir) {
+            $dir = dirname(realpath($script) ?: $script);
             for ($i = 0; $i < 8 && $dir !== '' && $dir !== '/' && $dir !== '.'; $i++) {
                 if (is_file($dir . '/vendor/autoload.php')) {
                     return rtrim($dir, '/');

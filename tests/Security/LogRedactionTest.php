@@ -92,6 +92,38 @@ check('Logger: la root non dipende dalla cartella corrente', function () {
     });
 });
 
+check('M8: senza ROOT e senza script nel sito, root() è null (niente fallback su __DIR__)', function () {
+    $prevScript = $_SERVER['SCRIPT_FILENAME'] ?? null;
+    $outside = sys_get_temp_dir() . '/wi-noroot-' . bin2hex(random_bytes(4));
+    mkdir($outside);
+    file_put_contents($outside . '/script.php', '<?php');
+    unset($GLOBALS['ROOT']);
+    $_SERVER['SCRIPT_FILENAME'] = $outside . '/script.php';
+    try {
+        $root = defined('ROOT') ? 'ROOT definita' : Logger::root();
+    } finally {
+        $_SERVER['SCRIPT_FILENAME'] = $prevScript;
+        exec('rm -rf ' . escapeshellarg($outside));
+    }
+    return $root === null;
+});
+
+check('M8: append rifiuta un nome file con .., niente scrittura fuori da storage/logs', function () {
+    return withLogRoot(function (string $dir) {
+        $capture = $dir . '/php-error.log';
+        $prevLog = ini_set('error_log', $capture);
+        try {
+            Logger::append('../../escape', 'riga-traversal');
+            Logger::append('error/..', 'riga-punti');
+        } finally {
+            ini_set('error_log', (string) $prevLog);
+        }
+        return !is_file($dir . '/escape.log') && !is_file($dir . '/storage/escape.log')
+            && !is_file($dir . '/storage/logs/error/...log') && !is_file($dir . '/storage/logs/error.log')
+            && str_contains((string) @file_get_contents($capture), 'riga-traversal');
+    });
+});
+
 check('Logger: cartella non scrivibile, nessuna eccezione', function () {
     $dir = sys_get_temp_dir() . '/wi-log-ro-' . bin2hex(random_bytes(4));
     mkdir($dir, 0500);
