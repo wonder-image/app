@@ -127,6 +127,14 @@ check('Google con completamento → scelta salvata nel token, nessun remember-me
     ($gMeta['remember'] ?? null) === true && ($gPending['remember'] ?? null) === []
     && str_starts_with((string) ($gPending['redirect'] ?? ''), '/account.auth.signup.completion?token=')
 );
+$gPendingPlain = $google([], ['completion' => true]);
+$gMetaPlain = (array) json_decode((string) ($gPendingPlain['tokens'][0]['metadata_json'] ?? ''), true);
+check('Google con completamento senza checkbox → remember: false nel token, niente remember-me al completamento', function () use ($run, $gMetaPlain, $gPendingPlain) {
+    $r = $run('completion', ['google' => true, 'metadata' => $gMetaPlain]);
+
+    return array_key_exists('remember', $gMetaPlain) && $gMetaPlain['remember'] === false && ($gPendingPlain['remember'] ?? null) === []
+        && ($r['session_user'] ?? null) === 8 && ($r['remember'] ?? null) === [];
+});
 check('completamento Google → remember-me dal token emesso al login', function () use ($run, $gMeta) {
     $r = $run('completion', ['google' => true, 'metadata' => $gMeta]);
 
