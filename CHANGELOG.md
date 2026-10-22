@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+- **`Badge::inline()`.** Nel tema Bootstrap il badge esce senza il
+  `<div class="col-span-*">` della colonna: solo `<span>` (o `<a>` con href),
+  da concatenare a testo, celle di tabella e helper delle Resource
+  (`->inline()->render('bootstrap')`). Variant, outline, pill, icona,
+  attributi ed escaping restano uguali; con `inline()` `columnSpan()` è
+  ignorato, in qualunque ordine. Nel tema Wonder il badge era già in linea e
+  l'HTML non cambia. Senza `inline()` l'output è identico a prima (bloccato da
+  `tests/Themes/BadgeInlineTest.php`). Doc: catalogo `badge` e
+  `docs/app/concetti/componenti/README.md`.
+
 ## 2.4.0-beta.4 — 2026-10-21
 
 ### Breaking
