@@ -4,6 +4,7 @@ namespace Wonder\Http;
 
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
+use Wonder\Frontend\Support\FlashMessage;
 
 /**
  * Token CSRF di sessione: generazione, emissione e confronto.
@@ -16,6 +17,12 @@ final class Csrf
 {
     public const FIELD = '_csrf';
     public const HEADER = 'X-WI-CSRF';
+
+    /** Notifica mostrata quando il token non vale (`notifications.929`): mai «CSRF» né «token». */
+    public const ALERT = 929;
+
+    // Campi che dopo un token non valido tornano al form senza valore; più i prefissi `password`.
+    private const SENSITIVE = [self::FIELD, 'csrf_token', 'logout_token', 'current_password'];
 
     // Nome storico di `AuthSession`: resta questo perché i form già aperti
     // e chi usa `AuthSession` continuino a vedere lo stesso token.
@@ -60,6 +67,42 @@ final class Csrf
         $stored = (string) ($_SESSION[self::KEY] ?? '');
 
         return is_string($token) && $stored !== '' && $token !== '' && hash_equals($stored, $token);
+    }
+
+    /**
+     * Input da rimandare al form dopo un token non valido. Password, token e
+     * le chiavi di `$extra` restano con valore vuoto: la chiave non sparisce
+     * perché alcuni form la usano per capire che c'è stato un invio.
+     *
+     * @param array<array-key, mixed> $input
+     * @param list<string> $extra altri campi da svuotare (es. carta, segreti)
+     * @return array<array-key, mixed>
+     */
+    public static function oldInput(array $input, array $extra = []): array
+    {
+        $deny = array_merge(self::SENSITIVE, $extra);
+
+        foreach ($input as $key => $value) {
+            if (in_array((string) $key, $deny, true) || str_starts_with((string) $key, 'password')) {
+                $input[$key] = '';
+            } elseif (is_array($value)) {
+                $input[$key] = self::oldInput($value, $extra);
+            }
+        }
+
+        return $input;
+    }
+
+    /** Testo generico della notifica `929`, per le risposte JSON. */
+    public static function failureMessage(): string
+    {
+        return (string) \__t('notifications.'.self::ALERT.'.text');
+    }
+
+    /** Mette in coda per la pagina dopo il redirect l'avviso della notifica `929` (layout `frontend.base`). */
+    public static function flashFailure(): void
+    {
+        FlashMessage::error(self::failureMessage(), (string) \__t('notifications.'.self::ALERT.'.title'));
     }
 
     /**
