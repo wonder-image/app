@@ -196,7 +196,7 @@ I form di accesso (`AuthController`) portano `csrf_token`, il pannello account
 | Logout (`POST /account/auth/logout/`) | nessun logout; redirect alla home dell'area con `Csrf::flashFailure()` |
 | Accesso Google (`federated`) | nessun accesso; redirect al login o alla registrazione (da `auth_surface`), `continue` conservato, con `Csrf::flashFailure()` |
 | Fine impersonificazione | redirect invariato, con `Csrf::flashFailure()` |
-| Dati personali (`account.personal`) | la pagina con il modal inviato riaperto, l'errore `929` dentro e i valori senza password; senza modal, il toast `929` |
+| Dati personali (`account.personal`) | la pagina con il modal inviato riaperto, l'errore `929` dentro e i valori senza password; con `form` assente, di un modulo o «email» senza password (modal che il core non costruisce) anche il toast `929` |
 | Conferma email (`POST account.email.confirm`) | la pagina di conferma con l'alert `929`, o l'esito «link non valido» se il link è scaduto |
 | Altre azioni (dei moduli) | redirect al pannello con `Csrf::flashFailure()` |
 
