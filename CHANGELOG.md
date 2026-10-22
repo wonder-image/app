@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Changed
+- **Token della pagina scaduto: niente più `419` «CSRF token invalid» sul
+  frontend.** I form di `AuthController` (login, registrazione, completamento,
+  recupero, restore) tornano con l'alert `929` e i campi scritti, senza
+  password né token; logout, accesso Google e fine impersonificazione fanno
+  redirect con lo stesso avviso (`FlashMessage`). Nel pannello account
+  `invalidCsrf()` resta `never` ma passa da `renderCsrfFailure()`, nuovo
+  punto di estensione `protected` per i moduli. Helper nuovi:
+  `Csrf::ALERT`, `Csrf::oldInput()`, `Csrf::failureMessage()`,
+  `Csrf::flashFailure()`. `CsrfGuard` e la creazione rapida del backend
+  restano `403` ma con un testo generico, senza «CSRF» né «token».
+
 ## 2.4.0-beta.4 — 2026-10-21
 
 ### Breaking

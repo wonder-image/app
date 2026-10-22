@@ -27,7 +27,7 @@ Adesso il pattern da usare è questo.
 Le route sotto `/api/backend/` (gruppo `backend.` di `route.api.php`) usano la
 sessione del backend, non un Bearer: per questo il gruppo dichiara `->csrf()` e
 ogni POST senza token CSRF valido (`_csrf` o header `X-WI-CSRF`) riceve `403`
-`{"success": false, "status": 403, "response": "Token CSRF non valido."}` senza
+`{"success": false, "status": 403, "response": "La pagina è scaduta o la richiesta non è valida. Ricarica la pagina e riprova."}` senza
 che l'handler parta. Fa eccezione `/api/backend/alert/`, che usa `Handler::run`
 con Bearer. Un endpoint di sito aggiunto a questo gruppo eredita la verifica;
 uno di sessione aggiunto altrove deve dichiarare `->csrf()`. Dettagli in

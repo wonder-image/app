@@ -215,8 +215,11 @@ Una riga ha questa forma, ed è quella che stampa `frontend.account.row`:
 
 Le pagine nuove sono di un controller che estende `AccountController`: la classe
 non è `final` e i suoi helper (`page()`, `user()`, `flash()`, `redirect()`,
-`requireCsrf()`, `translate()`, `post()`, `notFound()`, `requireSection()`) sono
-`protected`. Un controller che lavora sulla scheda cliente usa il trait
+`requireCsrf()`, `invalidCsrf()`, `renderCsrfFailure()`, `translate()`, `post()`,
+`notFound()`, `requireSection()`) sono `protected`. Con il token della pagina
+scaduto `requireCsrf()` non salva e chiama `renderCsrfFailure()`, che il modulo
+sovrascrive per ridisegnare le sue pagine con l'alert `929` (vedi
+[Token CSRF](../form/csrf.md#pagine-frontend-del-core)). Un controller che lavora sulla scheda cliente usa il trait
 `Wonder\Plugin\CustomerAccount\Account\Concerns\ManagesContact` del modulo
 (`contact($userId)`, `contactErrors($contact)`). Il modulo
 risponde alle sue azioni e passa le altre a `parent::handle()`:
