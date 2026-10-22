@@ -307,9 +307,10 @@ class AccountController
     {
         switch ($this->action) {
             case 'personal':
-                // L'errore va nel modal riaperto; senza modal resta il toast.
+                // L'errore va nel modal riaperto del core; per gli altri form (o senza modal) anche il toast.
                 $open = $this->text($_POST['form'] ?? '');
-                if ($open === '') {
+                $core = ['personal', 'password', ...($this->hasPassword((int) $this->user()->id) ? ['email'] : [])];
+                if (!in_array($open, $core, true)) {
                     $GLOBALS['ALERT'] = Csrf::ALERT;
                 }
                 $this->renderPersonal($open, [Csrf::failureMessage()], $open !== '' ? $this->personalValues() : []);

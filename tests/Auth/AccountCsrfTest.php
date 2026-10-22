@@ -31,6 +31,11 @@ check('dati personali senza modal indicato → pagina con il toast 929', functio
 
     return ($r['personal']['open'] ?? null) === '' && ($r['personal']['values'] ?? null) === [] && ($r['alert'] ?? null) === 929;
 });
+check('modal email senza password (modal assente) → pagina con il toast 929', function () use ($run) {
+    $r = $run('personal', ['form' => 'email', 'email' => 'nuova@example.com']);
+
+    return ($r['personal']['open'] ?? null) === 'email' && ($r['alert'] ?? null) === 929 && ($r['saved'] ?? null) === false;
+});
 check('conferma email con token scaduto e link non più valido → esito «invalid», nessun cambio', function () use ($run) {
     $r = $run('email.confirm', ['token' => 'non-valido']);
 
