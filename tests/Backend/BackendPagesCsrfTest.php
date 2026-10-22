@@ -121,7 +121,8 @@ foreach (['none', 'wrong'] as $token) {
         $body = json_decode((string) ($r['output'] ?? ''), true);
 
         return ($r['status'] ?? null) === 403 && is_array($body) && ($body['success'] ?? null) === false
-            && str_contains((string) ($body['error'] ?? ''), 'CSRF');
+            && str_contains((string) ($body['error'] ?? ''), 'Ricarica la pagina')
+            && preg_match('/csrf|token/i', (string) ($body['error'] ?? '')) !== 1;
     });
 }
 
