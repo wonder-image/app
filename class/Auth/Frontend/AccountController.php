@@ -322,7 +322,7 @@ class AccountController
                 return;
             default:
                 Csrf::flashFailure();
-                $this->redirect(Route::url('account.index'));
+                $this->redirect(Route::url('account.index') ?: $this->auth->home());
         }
     }
 }
