@@ -234,13 +234,15 @@ check('Csrf::oldInput() lascia «inviato» il form di registrazione: isset(csrf_
 );
 
 // --- Backend: stesso status, testo generico ---------------------------------
+// Il bootstrap carica sempre le traduzioni; qui basta la chiave per sapere che il testo è quello della 929.
+function __t(string $key, array $params = []): string { return $key; }
 check('CsrfGuard: route con ->csrf() e token errato → 403 senza «CSRF» né «token»', function () use ($noTech) {
     $_POST = ['_csrf' => 'sbagliato'];
     $_SESSION = [];
     try {
         \Wonder\Http\CsrfGuard::enforce(['csrf' => true], 'POST');
     } catch (\Wonder\Http\Exceptions\ForbiddenHttpException $e) {
-        return $e->statusCode() === 403 && $noTech($e->publicMessage()) && $noTech($e->getMessage()) && str_contains($e->getMessage(), 'Ricarica la pagina');
+        return $e->statusCode() === 403 && $noTech($e->publicMessage()) && $noTech($e->getMessage()) && $e->getMessage() === 'notifications.929.text';
     } finally {
         $_POST = [];
     }
@@ -248,7 +250,7 @@ check('CsrfGuard: route con ->csrf() e token errato → 403 senza «CSRF» né �
 });
 check('quick-create: risposta di token errato con 403 e testo generico', function () use ($noTech) {
     $src = (string) file_get_contents(__DIR__.'/../../app/http/backend/resource/quick-create.php');
-    return preg_match("/: \\['success' => false, 'error' => '([^']+)', 'status' => 403\\]/", $src, $m) === 1 && $noTech($m[1]);
+    return preg_match("/: \\['success' => false, 'error' => \\\\Wonder\\\\Http\\\\Csrf::failureMessage\\(\\), 'status' => 403\\]/", $src) === 1;
 });
 
 summary();

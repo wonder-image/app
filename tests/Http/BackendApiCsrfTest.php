@@ -12,6 +12,9 @@ use Wonder\Http\HttpErrorResponse;
 use Wonder\Http\Route;
 use Wonder\Http\Router;
 
+// Il bootstrap carica sempre le traduzioni: qui il messaggio della 403 è la chiave della notifica 929.
+function __t(string $key, array $params = []): string { return $key; }
+
 $_ENV['APP_URL'] = $_ENV['APP_URL'] ?? 'https://sito.it';
 $ROOT_APP = realpath(__DIR__.'/../../app');
 // Con almeno una risorsa OAuth si registra anche `/api/backend/oauth/revoke/`.

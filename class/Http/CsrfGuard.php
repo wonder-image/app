@@ -25,7 +25,7 @@ final class CsrfGuard
     public static function enforce(array $route, ?string $method = null): void
     {
         if (self::requires($route, $method) && !Csrf::verify()) {
-            throw new ForbiddenHttpException('La pagina è scaduta o la richiesta non è valida. Ricarica la pagina e riprova.');
+            throw new ForbiddenHttpException(Csrf::failureMessage());
         }
     }
 }

@@ -12,7 +12,8 @@
   punto di estensione `protected` per i moduli. Helper nuovi:
   `Csrf::ALERT`, `Csrf::oldInput()`, `Csrf::failureMessage()`,
   `Csrf::flashFailure()`. `CsrfGuard` e la creazione rapida del backend
-  restano `403` ma con un testo generico, senza «CSRF» né «token».
+  restano `403` ma con il testo tradotto della notifica `929`, senza «CSRF»
+  né «token».
 
 ## 2.4.0-beta.4 — 2026-10-21
 
