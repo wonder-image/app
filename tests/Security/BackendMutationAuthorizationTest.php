@@ -205,13 +205,14 @@ check('Handler: autorizzazione prima di selectDatabase/sqlSelect/sqlColumnExists
     return true;
 });
 
-check('Handler file: validazione su registro e cartella prima dell\'autorizzazione', function () {
-    foreach (['file-delete', 'file-move'] as $name) {
+check('Handler file: tabella registrata, poi autorizzazione, poi schema (fileColumn/iconTable)', function () {
+    foreach (['file-delete' => 'fileColumn(', 'file-move' => 'fileColumn(', 'delete-icon' => 'iconTable('] as $name => $schemaCall) {
         $source = (string) file_get_contents(dirname(__DIR__, 2)."/app/http/api/backend/{$name}.php");
-        $column = strpos($source, 'TableAuthorization::fileColumn(');
+        $table = strpos($source, 'ListTableRequest::table(');
         $guard = strpos($source, 'TableAuthorization::make()->');
+        $schema = strpos($source, 'TableAuthorization::'.$schemaCall);
 
-        if ($column === false || $guard === false || $column > $guard) {
+        if ($table === false || $guard === false || $schema === false || !($table < $guard && $guard < $schema)) {
             return false;
         }
     }
@@ -226,7 +227,7 @@ check('Handler file: validazione su registro e cartella prima dell\'autorizzazio
  * Esegue un handler in un processo separato, senza bootstrap: le funzioni
  * SQL e il pool sono finti e chiudono il processo se vengono raggiunti.
  */
-$runHandler = static function (string $name, array $post, array $authority) use ($registry): string {
+$runHandler = static function (string $name, array $post, array $authority, string $setup = '') use ($registry): string {
     $autoload = var_export(dirname(__DIR__, 2).'/vendor/autoload.php', true);
     $classes = var_export(dirname(__DIR__, 2).'/class/', true);
     $file = var_export(dirname(__DIR__, 2)."/app/http/api/backend/{$name}.php", true);
@@ -249,6 +250,7 @@ spl_autoload_register(static function (string \$class): void {
     }
 }, true, true);
 \Wonder\App\Table::\$list = {$registryExport};
+{$setup}
 (function () {
     \$property = new ReflectionProperty(\Wonder\App\ResourceRegistry::class, 'resources');
     \$property->setValue(null, []);
@@ -308,6 +310,50 @@ check('file-delete: admin con input valido arriva alla query', function () use (
     $out = $runHandler('file-delete', ['table' => 'user', 'column' => 'profile_picture', 'row_id' => 1, 'file_id' => 0, 'folder' => '/profile-picture/'], ['admin']);
 
     return str_ends_with($out, '|reached=sqlSelect');
+});
+
+// Schema lazy che costa query (formSchema): senza permesso non deve girare.
+$lazySetup = <<<'SETUP'
+\Wonder\App\Table::key('zz_lazy_files')->setSchemaResolver(static function (): array {
+    echo 'RESOLVED';
+    return ['icon' => [], 'cover' => ['input' => ['format' => ['file' => true]]]];
+});
+SETUP;
+
+check('file-delete / file-move / delete-icon: editor su schema lazy => 403, resolver mai eseguito', function () use ($runHandler, $lazySetup) {
+    $cases = [
+        ['file-delete', ['table' => 'zz_lazy_files', 'column' => 'cover', 'row_id' => 1, 'file_id' => 0, 'folder' => '']],
+        ['file-move', ['table' => 'zz_lazy_files', 'column' => 'cover', 'row_id' => 1, 'file_id' => 0, 'action' => 'down']],
+        ['delete-icon', ['table' => 'zz_lazy_files', 'id' => 1, 'folder' => 'icone']],
+    ];
+
+    foreach ($cases as [$name, $post]) {
+        $out = $runHandler($name, $post, ['editor'], $lazySetup);
+
+        if (!str_contains($out, '|status=403|reached=') || preg_match('/reached=\S/', $out) || str_contains($out, 'RESOLVED')) {
+            return false;
+        }
+    }
+
+    return true;
+});
+
+check('file-delete / file-move / delete-icon: admin su schema lazy => resolver eseguito, poi la query', function () use ($runHandler, $lazySetup) {
+    $cases = [
+        ['file-delete', ['table' => 'zz_lazy_files', 'column' => 'cover', 'row_id' => 1, 'file_id' => 0, 'folder' => '']],
+        ['file-move', ['table' => 'zz_lazy_files', 'column' => 'cover', 'row_id' => 1, 'file_id' => 0, 'action' => 'down']],
+        ['delete-icon', ['table' => 'zz_lazy_files', 'id' => 1, 'folder' => 'icone']],
+    ];
+
+    foreach ($cases as [$name, $post]) {
+        $out = $runHandler($name, $post, ['admin'], $lazySetup);
+
+        if (substr_count($out, 'RESOLVED') !== 1 || !str_ends_with($out, '|reached=sqlSelect')) {
+            return false;
+        }
+    }
+
+    return true;
 });
 
 check('change-boolean / delete / move su tabella legacy: editor => 403 senza query', function () use ($runHandler) {

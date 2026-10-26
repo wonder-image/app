@@ -281,6 +281,16 @@ I nomi sono minuscoli. Un secondo `setSchema()`/`setSchemaResolver()` sullo
 stesso nome sostituisce il precedente. Se il resolver lancia un'eccezione, la
 chiave resta lazy e il prossimo accesso riprova.
 
+- Il resolver gira una volta, nel contesto del primo chiamante (es. dentro il
+  `Repeater` con `NAME` della tabella figlia), non al boot.
+- Un resolver che rilegge la propria chiave, anche passando da un altro schema
+  (A → B → A), fa lanciare a `schema()` una `LogicException`: nessuno schema
+  della catena viene memorizzato, anche se un resolver intermedio intercetta
+  l'eccezione.
+- `Table::has()` guarda solo `Table::$list`. Dopo un'assegnazione intera
+  (`Table::$list = [...]`, es. nei test) una chiave lazy sparita non è più
+  registrata e il suo resolver non viene usato.
+
 ```php
 use Wonder\App\Table;
 

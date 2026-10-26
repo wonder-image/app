@@ -2,6 +2,7 @@
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\Backend\Table\ListTableRequest;
 use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
@@ -16,9 +17,9 @@ if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
 
 $id = ApiRequest::int('id');
 
-// Tabella registrata con colonna icon, cartella sotto upload. La cartella
-// arriva dalla richiesta: lo schema in Table non la dichiara (da decidere).
-$table = TableAuthorization::iconTable($table);
+// Tabella registrata (senza calcolarne lo schema), cartella sotto upload. La
+// cartella arriva dalla richiesta: lo schema in Table non la dichiara (da decidere).
+$table = ListTableRequest::table($table);
 $folder = TableAuthorization::uploadFolder(ApiRequest::string('folder'));
 
 if ($table === null || $folder === null || $folder === '' || $id <= 0) {
@@ -28,6 +29,11 @@ if ($table === null || $folder === null || $folder === '' || $id <= 0) {
 // Permessi per tabella prima di qualsiasi query (Resource o solo admin).
 if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
     ApiRequest::error('Operazione non consentita.', 403);
+}
+
+// Colonna icon nello schema: qui lo schema lazy viene calcolato.
+if (TableAuthorization::iconTable($table) === null) {
+    ApiRequest::error('Parametri non validi.', 422);
 }
 
 $query = sqlSelect($table, ['id' => $id], 1);

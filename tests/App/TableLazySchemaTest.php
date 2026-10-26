@@ -103,7 +103,7 @@ check('accessi successivi: nessun nuovo calcolo', function () use ($key) {
     return LazyResource::$calls === 1;
 });
 
-check('prepare()/prepareFor(): stesso risultato dello schema calcolato subito', function () use ($key) {
+check('prepareFor(): chiave lazy e resolver con la stessa funzione danno lo stesso formToArray() di prepareSchema() diretto', function () use ($key) {
     $GLOBALS['NAME'] = (object) ['table' => 'zz_lazy_items', 'folder' => '', 'schema' => $key];
     $post = ['title' => 'Ciao', 'icon' => 'x', 'altro' => 'ignorato'];
     $eager = formToArray('zz_lazy_items', $post, LazyResource::prepareSchema(), null);
@@ -167,11 +167,56 @@ check('resolver che lancia: si riprova al prossimo accesso', function () {
     return Table::key('zz_lazy_throw')->schema() === ['ok' => []] && $hits === 2;
 });
 
-check('resolver che rilegge la propria chiave: niente loop', function () {
+check('resolver che rilegge la propria chiave: LogicException, niente memorizzato', function () {
     Table::key('zz_lazy_self')->setSchemaResolver(static fn (): array =>
         ['inner' => Table::key('zz_lazy_self')->schema()]);
 
-    return Table::key('zz_lazy_self')->schema() === ['inner' => []];
+    try {
+        Table::key('zz_lazy_self')->schema();
+        return false;
+    } catch (\LogicException $error) {
+        $message = $error->getMessage();
+    }
+
+    return str_contains($message, 'zz_lazy_self → zz_lazy_self')
+        && Table::has('zz_lazy_self')
+        && Table::$list['zz_lazy_self'] === [];
+});
+
+check('rientro A → B → A intercettato da un resolver: nessuno dei due schemi memorizzato', function () {
+    Table::key('zz_lazy_a')->setSchemaResolver(static fn (): array =>
+        ['a' => [], 'b' => Table::key('zz_lazy_b')->schema()]);
+    // Come safeFormFieldsByKey(): l'eccezione del rientro viene inghiottita.
+    Table::key('zz_lazy_b')->setSchemaResolver(static function (): array {
+        try {
+            return ['b' => [], 'a' => Table::key('zz_lazy_a')->schema()];
+        } catch (\Throwable) {
+            return ['b' => []];
+        }
+    });
+
+    try {
+        Table::key('zz_lazy_a')->schema();
+        return false;
+    } catch (\LogicException) {
+    }
+
+    return Table::$list['zz_lazy_a'] === [] && Table::$list['zz_lazy_b'] === [];
+});
+
+check('has() dipende solo da $list: dopo un\'assegnazione intera la chiave lazy sparisce', function () {
+    $previous = Table::$list;
+    $hits = 0;
+    Table::key('zz_lazy_gone')->setSchemaResolver(static function () use (&$hits): array {
+        $hits++;
+        return ['x' => []];
+    });
+
+    Table::$list = ['altra' => []];
+    $ok = !Table::has('zz_lazy_gone') && Table::key('zz_lazy_gone')->schema() === [] && $hits === 0;
+    Table::$list = $previous;
+
+    return $ok;
 });
 
 summary();

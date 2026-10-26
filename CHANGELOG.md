@@ -13,11 +13,21 @@
   legge `Table::$list['resource:…']` direttamente trova la chiave vuota (`[]`)
   finché qualcuno non la risolve: va migrato a `Table::key(...)->schema()`.
   `array_key_exists(..., Table::$list)` vede ancora la chiave; il nuovo
-  `Table::has()` fa lo stesso controllo senza leggere `$list`. Nel core sono
+  `Table::has()` fa lo stesso controllo, solo su `$list`, senza calcolare lo
+  schema: dopo un'assegnazione intera di `$list` le chiavi lazy sparite non
+  risultano più registrate. Nel core sono
   migrati backend `index.php`/`list.php`, `backendPageTableSchema()`, `ListProvider`,
-  `ListTableRequest`, `TableAuthorization`, `file-delete`, `Repeater`,
-  `ResourcePageController` e `ResourceApiController`. Un'eccezione in
-  `formSchema()` ora esce al primo accesso, non più al boot.
+  `ListTableRequest`, `TableAuthorization`, `file-delete`, `file-move`,
+  `delete-icon`, `Repeater`, `ResourcePageController` e
+  `ResourceApiController`; `file-delete`, `file-move` e `delete-icon`
+  controllano i permessi prima di calcolare lo schema. Lo schema ora si calcola
+  nel contesto della richiesta, al primo accesso (dopo auth, lingua, boot dei
+  moduli e `custom/config/config.php`), non più dentro `app/config/config.php`
+  prima di tutto questo. Un'eccezione in `formSchema()` era e resta inghiottita
+  da `safeFormFieldsByKey()`; quella che si sposta dal boot al primo accesso è
+  un'eccezione in `modelClass()::dataFields()`/`prepareFormatFromField()`. Un
+  resolver che rilegge la propria chiave (anche A → B → A) lancia una
+  `LogicException` invece di memorizzare uno schema incompleto.
 - **Rimossi gli helper `wiCard()`, `wiCardLink()`, `wiCardStats()`,
   `wiCardAccordion()`, `wiAccordion()` e i componenti view
   `frontend.overlay.modal` e `frontend.ui.button`.** Nei repo locali non hanno

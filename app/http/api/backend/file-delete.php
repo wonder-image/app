@@ -3,6 +3,7 @@
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
 use Wonder\App\Support\MediaFileManager;
+use Wonder\Backend\Table\ListTableRequest;
 use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
@@ -20,20 +21,27 @@ $column = ApiRequest::string('column');
 $rowId = ApiRequest::int('row_id');
 $fileId = ApiRequest::int('file_id', -1);
 
-// Tabella registrata, colonna file dello schema, cartella sotto upload.
-$target = TableAuthorization::fileColumn($table, $column);
+// Tabella registrata (senza calcolarne lo schema), cartella sotto upload.
+$table = ListTableRequest::table($table);
 $folder = TableAuthorization::uploadFolder($folder);
 
-if ($target === null || $folder === null || $rowId <= 0 || $fileId < 0) {
+if ($table === null || $folder === null || $rowId <= 0 || $fileId < 0) {
     ApiRequest::error('Parametri non validi.', 422);
 }
-
-[$table, $column] = $target;
 
 // Permessi per tabella prima di qualsiasi query (Resource o solo admin).
 if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
     ApiRequest::error('Operazione non consentita.', 403);
 }
+
+// Colonna file dello schema: qui lo schema lazy viene calcolato.
+$target = TableAuthorization::fileColumn($table, $column);
+
+if ($target === null) {
+    ApiRequest::error('Parametri non validi.', 422);
+}
+
+[$table, $column] = $target;
 
 $query = sqlSelect($table, ['id' => $rowId], 1);
 
