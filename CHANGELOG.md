@@ -32,6 +32,23 @@
   l'HTML non cambia. Senza `inline()` l'output è identico a prima (bloccato da
   `tests/Themes/BadgeInlineTest.php`). Doc: catalogo `badge` e
   `docs/app/concetti/componenti/README.md`.
+- **`Alert::inline()`.** Nel tema Bootstrap l'Alert esce come avviso di pagina
+  visibile, `<div class="alert alert-{tipo}" role="alert">`, invece del `.toast`
+  nascosto. Il tipo segue la mappa dei livelli (`error` → `danger`). Il titolo
+  (`<strong class="alert-heading d-block">`) c'è solo con `title()`, la chiusura
+  (`alert-dismissible`, `btn-close` con `data-bs-dismiss="alert"`) solo con
+  `dismissible()` esplicito, l'id solo con `id()`. Classi e attributi aggiuntivi
+  restano sul tag; il messaggio è escapato con gli a capo come nel toast. Nel tema
+  Wonder `inline()` è ignorato: `wi-alert` è sempre fisso a lato dello schermo.
+  Senza `inline()` l'output è identico a prima (bloccato da
+  `tests/Themes/AlertInlineTest.php`). Gli avvisi fissi delle viste backend
+  (sola lettura di resource e scheduler, errori e `formNotices()` del layout
+  form, errori del file di configurazione, errore della lista) passano a
+  `Alert::make(...)->inline()->addClass('mb-0')`: in più hanno `role="alert"`,
+  e gli a capo escono come `<br />`. In sola lettura lo scheduler non va più
+  in Fatal (il figlio della Card ora è un Element, non una stringa). Restano
+  a mano il catalogo componenti (link e `<code>`) e `QuickCreateModal` (HTML
+  in JS).
 - **`POST /api/csrf/` (rotta `csrf`, area `api`).** Restituisce `{ "token": "…" }`, il
   token CSRF della sessione corrente, per i form AJAX rimasti aperti oltre la
   sessione: dopo un `403` (o un `401` del token di pagina, da rinnovare poi con

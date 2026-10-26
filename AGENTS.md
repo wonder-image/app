@@ -103,6 +103,7 @@ Key subareas:
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
 - `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, `Code`, `Preview`, ...)
+- `Alert::inline()` (Bootstrap) renders a visible page alert `div.alert.alert-{type}` with `role="alert"`; without it Alert is the hidden `.toast` used by `alertToast()` and `/api/backend/alert/`, whose output must stay byte-identical. Backend page notices use `Alert::make(...)->inline()`. Hand-written `class="alert` remains only in `app/view/pages/backend/docs/components.php` (link and `<code>`, must not be escaped) and `class/Backend/Support/QuickCreateModal.php` (HTML inside a JS string). In the Wonder theme `inline()` is ignored.
 - `class/Docs`: il catalogo dei componenti (schede in `docs/components`, server autonomo `bin/docs.php`)
 - `Accordion` is a shared non-form Element: `make($text)`, `description()`,
   and `components()` define its content; the Wonder renderer must reuse the

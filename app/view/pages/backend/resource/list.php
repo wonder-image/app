@@ -2,7 +2,7 @@
 
 <?php if (!empty($READONLY)) { ?>
 <wi-card class="col-12">
-    <div class="alert alert-warning mb-0"><?=htmlspecialchars((string) ($READONLY_NOTICE ?? ''), ENT_QUOTES, 'UTF-8')?></div>
+    <?=\Wonder\Elements\Components\Alert::make((string) ($READONLY_NOTICE ?? ''), 'warning')->inline()->addClass('mb-0')->render()?>
 </wi-card>
 <?php } ?>
 
