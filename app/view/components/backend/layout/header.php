@@ -253,8 +253,6 @@
     <!-- Open Page Content -->
     <div id="content">
 
-        <?=modal()?>
-
         <div class="w-100" style="min-height: calc(100vh - (50px + 22.5px + 1rem + 20px) - var(--wi-save-bar-reserve, 0px));">
                 
             <div id="page-loading" class="position-absolute top-50 start-50 translate-middle text-center">
