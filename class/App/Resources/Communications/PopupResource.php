@@ -2,6 +2,7 @@
 
 namespace Wonder\App\Resources\Communications;
 
+use InvalidArgumentException;
 use Throwable;
 use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
@@ -192,6 +193,16 @@ final class PopupResource extends Resource
         string $context = 'backend',
         ?array $oldValues = null
     ): array {
+        // Il `required` del gruppo vale solo nel browser: senza pagine il popup
+        // non si vede da nessuna parte. In modifica si controlla solo se arriva.
+        // Solo dal form backend: l'API (e QuickCreate, che la usa) non dichiara
+        // campi scrivibili e qui arriverebbe sempre senza `pages`.
+        if ($context === 'backend' && ($action === 'store' || array_key_exists('pages', $values))) {
+            if (static::selectedPages($values['pages'] ?? null) === []) {
+                throw new InvalidArgumentException(__t('popup.pages_required'), 422);
+            }
+        }
+
         if (!empty($values['name']) && empty($values['slug'])) {
             $values['slug'] = $values['name'];
         }
@@ -213,6 +224,39 @@ final class PopupResource extends Resource
         }
 
         return $values;
+    }
+
+    /**
+     * Pagine scelte, senza voci vuote: il form manda `pages[]` vuoto anche
+     * senza caselle spuntate, o un JSON (`"[]"`, `"null"`).
+     *
+     * @return list<string>
+     */
+    private static function selectedPages(mixed $pages): array
+    {
+        if (is_string($pages)) {
+            $decoded = json_decode($pages, true);
+            $pages = match (true) {
+                is_array($decoded) => $decoded,
+                // Il JSON `"null"` è un elenco assente, non una pagina.
+                $decoded === null && json_last_error() === JSON_ERROR_NONE => [],
+                default => [$pages],
+            };
+        }
+
+        if (!is_array($pages)) {
+            return [];
+        }
+
+        $selected = [];
+
+        foreach ($pages as $page) {
+            if (is_scalar($page) && trim((string) $page) !== '') {
+                $selected[] = trim((string) $page);
+            }
+        }
+
+        return $selected;
     }
 
     private static function frontendPageOptions(): array
