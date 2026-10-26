@@ -43,6 +43,16 @@ $group = static fn (string $type = 'checkbox', bool $pills = false): CheckGroup 
     ->pills($pills)
     ->required();
 
+/** La classe sta sul contenitore del gruppo: la forma reale di ciascun tema. */
+function requiredContainer(string $theme, string $type, bool $pills): string
+{
+    if ($theme === 'wonder') {
+        return "wi-input-container checkbox compiled wi-{$type}-required";
+    }
+
+    return "wi-container-{$type} ".($pills ? 'wi-check-pills ' : '')."wi-{$type}-required";
+}
+
 foreach (['bootstrap', 'wonder'] as $theme) {
     foreach (['lista' => false, 'pillole' => true] as $mode => $pills) {
         foreach (['checkbox', 'radio'] as $type) {
@@ -53,7 +63,7 @@ foreach (['bootstrap', 'wonder'] as $theme) {
 
                 return count($inputs) === 3
                     && !anyRequired($inputs)
-                    && str_contains($html, "wi-{$type}-required");
+                    && str_contains($html, requiredContainer($theme, $type, $pills));
             });
         }
     }
@@ -104,6 +114,20 @@ check('FormField checkbox()->required() (campo pagine del popup): niente require
     return count($inputs) === 3
         && !anyRequired($inputs)
         && str_contains($html, 'wi-container-checkbox wi-checkbox-required');
+});
+
+check('wonder: FormField checkbox()->required(): la classe sta sul contenitore, non sulle caselle', function () {
+    PageAssets::reset();
+    $html = FormField::key('pages')
+        ->checkbox()
+        ->options(['all' => 'Tutte le pagine', 'home' => 'Home', 'shop' => 'Negozio'])
+        ->required()
+        ->render('wonder');
+    $inputs = inputsOfType($html, 'checkbox');
+
+    return count($inputs) === 3
+        && !anyRequired($inputs)
+        && str_contains($html, 'wi-input-container checkbox compiled wi-checkbox-required');
 });
 
 summary();
