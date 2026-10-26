@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
 
+use Wonder\App\Theme;
 use Wonder\Elements\Components\Badge;
 
 // HTML di riferimento catturato prima di inline(): senza inline() non deve cambiare di un byte.
@@ -80,7 +81,20 @@ foreach (['bootstrap', 'wonder'] as $theme) {
     });
 }
 
-check('(string) usa il tema attivo e rispetta inline()', fn () =>
-    !str_contains((string) Badge::make('X')->inline(), '<div'));
+check('inline vale per qualunque valore truthy, come Button e Dropdown', fn () =>
+    Badge::make('A')->schema('inline', 1)->render('bootstrap') === '<span class="badge text-bg-secondary">A</span>');
+
+// In CLI il tema attivo è wonder, che non avvolge mai: per (string) imposta bootstrap e poi lo ripristina.
+check('(string) con tema attivo bootstrap rispetta inline()', function () {
+    $previous = Theme::get();
+    Theme::set('bootstrap');
+
+    try {
+        return (string) Badge::make('X') === '<div class="col-span-1"><span class="badge text-bg-secondary">X</span></div>'
+            && (string) Badge::make('X')->inline() === '<span class="badge text-bg-secondary">X</span>';
+    } finally {
+        Theme::set($previous);
+    }
+});
 
 summary();

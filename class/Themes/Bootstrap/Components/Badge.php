@@ -62,7 +62,7 @@ class Badge extends Component
         }
 
         // In linea il badge non occupa una colonna: columnSpan() è ignorato.
-        if (($schema['inline'] ?? false) === true) {
+        if ((bool) ($schema['inline'] ?? false)) {
             return $html;
         }
 
