@@ -59,6 +59,11 @@ final class ApiRequest
             $database = 'main';
         }
 
+        // Veto sul nome ricevuto: un alias potrebbe mappare lo schema di sistema.
+        if (strtolower($database) === 'information_schema') {
+            self::error('Parametri non validi.', 422);
+        }
+
         // Le liste del backend inviano il nome reale (Table::$database): si risale all'alias.
         $database = self::databaseAlias($database);
 
