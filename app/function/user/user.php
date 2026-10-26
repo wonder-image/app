@@ -577,6 +577,21 @@
 
             if ($HAS_SUBMITTED_PASSWORD && empty($M_USER->password)) { $UPLOAD['password'] = hashPassword($SUBMITTED_PASSWORD); }
 
+            // Un'email diversa da quella salvata non è verificata, qualunque cosa porti il POST.
+            // Chi conferma la nuova casella (cambio email del cliente) la rimarca dopo il salvataggio.
+            // Si confronta anche la forma sanificata: con un apostrofo la riga salvata può non coincidere col POST.
+            $EMAIL_CHANGED = isset($POST['email'])
+                && !in_array(strtolower(trim((string) ($M_USER->email ?? ''))), [
+                    strtolower(trim((string) $POST['email'])),
+                    $UPLOAD['email'],
+                    stripslashes($UPLOAD['email']),
+                ], true);
+
+            if ($EMAIL_CHANGED) {
+                $UPLOAD['email_verified'] = 0;
+                $UPLOAD['email_verified_at'] = null;
+            }
+
             // Aggiunge area se non presente.
             if (isset($POST['area']) && !in_array($POST['area'], $area)) { array_push($area, $POST['area']); }
 
@@ -624,6 +639,11 @@
                 // Aggiorna il record utente.
                 sqlModify('user', $UPLOAD, 'id', $MODIFY_ID);
                 $RETURN->written = true;
+
+                // I link di verifica spediti alla vecchia email non devono confermare la nuova.
+                if ($EMAIL_CHANGED && sqlTableExists('consent_confirmation_tokens')) {
+                    userEmailVerificationRevokeOpenTokens((int) $MODIFY_ID, date('Y-m-d H:i:s'));
+                }
 
                 // Prepara il ritorno base.
                 $RETURN->user = infoUser($M_USER->id);
