@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Breaking
+- **Backend: rimossi l'helper PHP `modal()` e il markup `#modal`.** Il file
+  `app/function/backend/modal.php` non c'è più e `header.php` del backend non
+  stampa più la modale Bootstrap `#modal`. I siti devono avere
+  **wonder-image (lib) >= 2.1.2-alpha.31**: le versioni precedenti confermano
+  l'eliminazione delle righe ripetibili, dei file e la `modal()` JS del backend
+  cliccando `#modal button.send`, che ora manca. Il vincolo `extra.wonder.lib`
+  (e `package.json`) è `^2.1.2-alpha.31`: `php forge update` si ferma se la lib
+  installata è più vecchia; aggiornarla con `npm install wonder-image` e
+  rilanciare. Le voci Elimina della tabella (`Field`) e i bottoni legacy
+  `delete()` / `removeAuthorization()` chiedono conferma con `data-wi-confirm*`
+  e poi chiamano `ajaxRequest` sullo stesso URL, invece di `onclick="modal(...)"`;
+  il bottone Annulla prende l'etichetta della lib (prima «Chiudi»). Un sito che
+  stampava a mano `<?=modal()?>` o chiamava la funzione PHP `modal()` va
+  migrato su `Button::post()->confirm()` / `data-wi-confirm` o `wi.confirm()`:
+  nei pacchetti e nei siti verificati non ce n'è nessuno. La `modal()` JS della
+  lib resta come alias `@deprecated` di `wi.confirm`.
+
 ## 2.4.0-beta.4 — 2026-10-21
 
 ### Breaking
