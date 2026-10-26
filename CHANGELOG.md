@@ -42,6 +42,13 @@
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.
 
+- **Renderer Alert su `ReadsAlertSchema` (`B-CORE-I8`).** I renderer
+  Bootstrap e Wonder leggono lo schema dallo stesso Concern; output identico,
+  coperto da snapshot in `tests/Themes/AlertSnapshotTest.php`.
+- **Scheduler in sola lettura non va più in Fatal (`B-CORE-I8`).** La pagina
+  `backend/scheduler/schedules.php` passava una stringa a
+  `Card->render('bootstrap')`; ora usa `ResourceFormLayoutRenderer::renderLayout()`.
+
 ### Deprecato
 - `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:
   usa `Elements\Frontend\Pagination`.

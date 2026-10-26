@@ -61,7 +61,7 @@ può prendere in carico. Guida: `docs/components/README.md` e
 
 ## Project overview
 
-- Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers.
+- Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers. Both read the schema through `Themes\Concerns\ReadsAlertSchema` (level to type, fallback title, escaped id, attributes and message); markup and icons stay per theme. The Bootstrap one is a `.toast` without `show`, hidden until a script opens it, so static notices inside backend pages (read-only, form errors, `formNotices()`) keep Bootstrap `.alert` markup inside a `Card`.
 
 - Button::lightbox(string|array, ?string) opens image/iframe URL groups in both themes through RendersButtonLightbox. Preserve disabled behavior and native URL fallback; disallow form actions. See docs/app/elementi/button-lightbox.md.
 

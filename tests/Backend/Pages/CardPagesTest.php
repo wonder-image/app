@@ -157,4 +157,15 @@ check('ResourcePagePresenter::listFallback: avviso in Card, messaggio escapato',
     str_starts_with($fallback, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0">')
     && str_contains($fallback, 'db &lt;giù&gt;'));
 
+if (!function_exists('e')) {
+    function e(mixed $value): string { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
+}
+defined('ROOT') || define('ROOT', $root);
+$scheduler = $page('scheduler/schedules.php', ['READONLY' => true, 'READONLY_NOTICE' => 'Solo <lettura>', 'TABLE_HTML' => '<table></table>']);
+
+// Prima Card->render('bootstrap') con un figlio stringa andava in Fatal.
+check('scheduler in sola lettura: avviso in Card, poi la tabella', fn () =>
+    str_starts_with($scheduler, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0">Solo &lt;lettura&gt;</div>')
+    && str_contains($scheduler, '<table></table>'));
+
 exit(summary());
