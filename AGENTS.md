@@ -220,8 +220,9 @@ php forge start
 - Prefer expressing reusable bundle-level constraints (default country, allowed countries, required fields, derived row decorators) inside the schema extension itself instead of reapplying them ad hoc in each consuming Model/Resource/Page.
 - If a schema extension also exposes helpers like `decorate(array $row): array`, keep them pure: they may enrich read rows with derived values, but must not run queries or perform persistence side effects.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
-- `<wi-card>` is retired: do not add new ones and do not call `wiCard()` /
-  `wiCardLink()` in new code. Use `Card` from `Wonder\Elements\Components`,
+- `<wi-card>` is retired: do not add new ones. The `wiCard()`, `wiCardStats()`,
+  `wiCardAccordion()` and `wiAccordion()` helpers are removed; `wiPreIfArray()`
+  stays for JSON shown in a `<pre>`. Use `Card` from `Wonder\Elements\Components`,
   which renders a `<div class="card">`, and never add an option to `Card` to
   change its tag. Replace existing occurrences when you touch the page. The
   lib keeps `createCard()` and the `wi-card` CSS rule until the old pages are

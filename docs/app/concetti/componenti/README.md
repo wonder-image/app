@@ -98,10 +98,11 @@ public static function formLayoutSchema(): ?Form
 
 Esempio reale completo: `class/App/Resources/Css/CssAlertResource.php`.
 
-`<wi-card>` è dismesso: non aggiungerne di nuovi né chiamare
-`wiCard()`/`wiCardLink()` in codice nuovo, usa `Card`, che rende
+`<wi-card>` è dismesso: non aggiungerne di nuovi, usa `Card`, che rende
 `<div class="card">` e non ha opzioni per cambiare tag. Le occorrenze esistenti
-si sostituiscono quando si tocca la pagina.
+si sostituiscono quando si tocca la pagina. Gli helper `wiCard()`,
+`wiCardStats()`, `wiCardAccordion()` e `wiAccordion()` sono stati rimossi;
+resta `wiPreIfArray()`, che mostra un JSON in un `<pre>`.
 
 ## InfoCard e MetricCard
 
@@ -126,7 +127,7 @@ Solo `null` e una stringa vuota usano il placeholder `--`: `0` e `'0'`
 restano valori validi. Il placeholder e il livello del valore sono
 configurabili con `->placeholder('n/d')` e `->valueLevel(4)`.
 
-Per un KPI usa `MetricCard`, che sostituisce `wiCardStats()`:
+Per un KPI usa `MetricCard`, che ha preso il posto di `wiCardStats()` (rimosso):
 
 ```php
 use Wonder\Elements\Components\MetricCard;

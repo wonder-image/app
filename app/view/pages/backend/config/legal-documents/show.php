@@ -54,12 +54,12 @@ echo ResourceFormLayoutRenderer::renderLayout(
 
         (new Card)->components([
             SectionTitle::make('Checkbox'),
-            (new RichText(wiCard($DOCUMENT->renderLabel ?? '')))->tag('div'),
+            (new Card)->components([wiPreIfArray($DOCUMENT->renderLabel ?? '')]),
         ])->columns(1)->columnSpan(8),
 
         (new Card)->components([
             SectionTitle::make('Testo documento'),
-            (new RichText(wiCard($DOCUMENT->renderContent ?? '')))->tag('div'),
+            (new Card)->components([wiPreIfArray($DOCUMENT->renderContent ?? '')]),
         ])->columns(1)->columnSpan(12),
 
     ])->columns(12)

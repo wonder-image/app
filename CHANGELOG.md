@@ -33,6 +33,15 @@
 - `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:
   usa `Elements\Frontend\Pagination`.
 
+### Rimosso
+- **Helper `wiCard()`, `wiCardLink()`, `wiCardStats()`, `wiCardAccordion()` e
+  `wiAccordion()` (`B-CORE-I3`).** Nessun chiamante in app, nei moduli e nei
+  siti locali. Al loro posto: `Card` (dentro un layout Resource, via
+  `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard` e `Accordion`.
+  `wiPreIfArray()` resta in `app/function/backend/components/accordion.php`.
+  Le pagine backend `log/auth-users/show`, `log/consent/show` e
+  `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
+
 ## 2.4.0-beta.4 — 2026-10-21
 
 ### Breaking
