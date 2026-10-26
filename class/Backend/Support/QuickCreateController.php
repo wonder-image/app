@@ -103,7 +103,8 @@ final class QuickCreateController
 
         // Store API della risorsa target, chiamato lato server come @system.
         $url = rtrim((new Path())->api, '/').'/resource/'.$slug.'/';
-        $response = curlJson($url, 'POST', $values, $token);
+        // 60 s: se il proxy smette di aspettare mentre lo store salva, chi riprova crea un doppione.
+        $response = curlJson($url, 'POST', $values, $token, null, null, 60);
 
         if (!is_array($response) || empty($response['success'])) {
             return ['success' => false, 'error' => self::storeError($response), 'status' => 422];

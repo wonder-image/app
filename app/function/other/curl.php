@@ -40,7 +40,8 @@
         array $values = [],
         ?string $bearer = null,
         ?string $username = null,
-        ?string $password = null
+        ?string $password = null,
+        ?int $timeout = null
     ): ?array {
 
         $CALL = new Wonder\Api\Call($url, $values);
@@ -54,6 +55,10 @@
 
         if ($username != null && $password != null) {
             $CALL->authBasic($username, $password);
+        }
+
+        if ($timeout !== null) {
+            $CALL->timeout($timeout);
         }
 
         $response = $CALL->result();

@@ -53,7 +53,7 @@ Nel file index.php è consigliato utilizzare questo codice per il redirect dell'
     require_once $ROOT."/vendor/wonder-image/app/wonder-image.php";
         
     (new Wonder\Localization\LanguageRedirector())
-        ->redirectByCountry($_SESSION['system_cache']['country'] ?? null);
+        ->redirectByCountry(); // paese da Geo::country(), solo se serve
 ```
 
 ## Ordine di precedenza dei file lingua

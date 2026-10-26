@@ -27,7 +27,7 @@
             $this->prefix = $prefix;
 
             $this->DEFAULT['type'] = 'private';
-            $this->DEFAULT['country'] = $_SESSION['system_cache']['country'];
+            $this->DEFAULT['country'] = \Wonder\Plugin\GeoPlugin\Geo::country();
             $this->DEFAULT['phone_prefix'] = countryPhonePrefix($this->DEFAULT['country']);
 
         }

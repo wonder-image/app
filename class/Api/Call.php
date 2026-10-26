@@ -6,6 +6,9 @@
 
     class Call {
 
+        /** Secondi massimi per una chiamata; `timeout()` lo sovrascrive. */
+        public const DEFAULT_TIMEOUT = 10;
+
         private $endpoint = "";
 
         public $headers = [];
@@ -21,6 +24,7 @@
 
             # Inizio connessione
             $this->cURL = curl_init();
+            curl_setopt($this->cURL, CURLOPT_TIMEOUT, static::DEFAULT_TIMEOUT);
 
         }
 
