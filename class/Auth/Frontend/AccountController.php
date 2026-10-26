@@ -10,10 +10,14 @@ use Wonder\View\View;
 /** Pagine del pannello account del core. I moduli lo estendono per le loro sezioni. */
 class AccountController
 {
+    /** L'azione in corso: dice a {@see renderCsrfFailure()} quale pagina ridisegnare. */
+    protected string $action = '';
+
     public function __construct(protected readonly AccountPanel $panel, protected readonly AuthProfile $auth) {}
 
     public function handle(string $action, array $parameters = []): void
     {
+        $this->action = $action;
         match ($action) {
             'index' => $this->overview(),
             'personal' => $this->personal(),
@@ -43,26 +47,35 @@ class AccountController
      */
     protected function personal(): void
     {
-        $user = $this->user();
-        $userId = (int) $user->id;
-        $hasPassword = trim((string) (\sqlSelect('user', ['id' => $userId], 1)->row['password'] ?? '')) !== '';
         $open = '';
         $errors = [];
-        $values = [];
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $this->requireCsrf();
+            $user = $this->user();
             $form = $this->text($_POST['form'] ?? '');
             // Senza password l'email non si cambia (la richiede AccountEmail): quel modal non esiste.
             $errors = match ($form) {
-                'personal' => $this->savePersonal($userId),
-                'email' => $hasPassword ? $this->requestEmail($user) : $this->notFound(),
-                'password' => $this->changePassword($userId),
+                'personal' => $this->savePersonal((int) $user->id),
+                'email' => $this->hasPassword((int) $user->id) ? $this->requestEmail($user) : $this->notFound(),
+                'password' => $this->changePassword((int) $user->id),
                 default => $this->saveExtensionForm($form, $user),
             };
             $open = $form;
-            $values = array_diff_key($this->post(), array_flip([Csrf::FIELD, 'form', 'current_password', 'password']));
         }
+
+        $this->renderPersonal($open, $errors, $open !== '' ? $this->personalValues() : []);
+    }
+
+    /**
+     * La pagina dei dati personali con il modal `$open` aperto, i suoi errori e i valori scritti.
+     *
+     * @param list<string> $errors Già tradotti.
+     */
+    protected function renderPersonal(string $open, array $errors, array $values): void
+    {
+        $user = $this->user();
+        $hasPassword = $this->hasPassword((int) $user->id);
 
         $modals = [AccountModal::make(
             'account-personal', (string) __t('account.personal.modal_title'),
@@ -103,6 +116,17 @@ class AccountController
         ]);
     }
 
+    protected function hasPassword(int $userId): bool
+    {
+        return trim((string) (\sqlSelect('user', ['id' => $userId], 1)->row['password'] ?? '')) !== '';
+    }
+
+    /** I valori postati da rimettere nei form, senza il campo `form`: token e password restano con la chiave ma vuoti. */
+    protected function personalValues(): array
+    {
+        return Csrf::oldInput(array_diff_key($this->post(), ['form' => true]));
+    }
+
     protected function requireSection(string $section): void
     {
         if (!$this->panel->enabled($section)) {
@@ -132,11 +156,17 @@ class AccountController
             $this->emailOutcome('invalid');
             return;
         }
+        $this->renderEmailConfirm($token, $email);
+    }
+
+    protected function renderEmailConfirm(string $token, string $email, ?int $alert = null): void
+    {
         View::make($this->auth->viewPath('email-confirm'), [
             'auth_profile' => $this->auth,
             'token' => $token,
             'email' => $email,
             'action' => Route::url('account.email.confirm'),
+            'alert' => $alert,
         ])->render();
     }
 
@@ -261,5 +291,39 @@ class AccountController
 
     protected function redirect(string $url): never { header('Location: '.$url); exit; }
     protected function notFound(): never { http_response_code(404); exit; }
-    protected function invalidCsrf(): never { http_response_code(419); exit('CSRF token invalid'); }
+
+    /** Token non valido (pagina scaduta): ridisegna la pagina con l'avviso ed esce, così il salvataggio non parte. */
+    protected function invalidCsrf(): never
+    {
+        $this->renderCsrfFailure();
+        exit;
+    }
+
+    /**
+     * Punto di estensione: i moduli che aggiungono azioni lo sovrascrivono per le loro e chiamano `parent` per le altre.
+     * Mai «CSRF» né «token» nel testo: l'avviso è il 929. Senza una pagina da ridisegnare torna al pannello.
+     */
+    protected function renderCsrfFailure(): void
+    {
+        switch ($this->action) {
+            case 'personal':
+                // L'errore va nel modal riaperto del core; per gli altri form (o senza modal) anche il toast.
+                $open = $this->text($_POST['form'] ?? '');
+                $core = ['personal', 'password', ...($this->hasPassword((int) $this->user()->id) ? ['email'] : [])];
+                if (!in_array($open, $core, true)) {
+                    $GLOBALS['ALERT'] = Csrf::ALERT;
+                }
+                $this->renderPersonal($open, [Csrf::failureMessage()], $open !== '' ? $this->personalValues() : []);
+                return;
+            case 'email.confirm':
+                $token = $this->text($_POST['token'] ?? '');
+                $email = AccountEmail::pendingEmail($token);
+                $GLOBALS['ALERT'] = Csrf::ALERT;
+                $email === null ? $this->emailOutcome('invalid') : $this->renderEmailConfirm($token, $email, Csrf::ALERT);
+                return;
+            default:
+                Csrf::flashFailure();
+                $this->redirect(Route::url('account.index') ?: $this->auth->home());
+        }
+    }
 }

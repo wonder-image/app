@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0-beta.5 — 2026-10-26
+
 ### Aggiunto
 - **Text e RichText nel tema Wonder (`B-CORE-I1`).** Nuovo renderer
   `Themes\Wonder\Components\Text` sulle utility della lib (`fw-700`,
@@ -23,6 +25,22 @@
   - Un `aria-label` dato con `attr()` vince su `label()` e non si ripete.
   - `EmptyState::titleTag('h3')` sceglie il livello del titolo (`h2` di
     default, da `h2` a `h6`).
+- **`Badge::inline()`.** Nel tema Bootstrap il badge esce senza il
+  `<div class="col-span-*">` della colonna: solo `<span>` (o `<a>` con href),
+  da concatenare a testo, celle di tabella e helper delle Resource
+  (`->inline()->render('bootstrap')`). Variant, outline, pill, icona,
+  attributi ed escaping restano uguali; con `inline()` `columnSpan()` è
+  ignorato, in qualunque ordine. Nel tema Wonder il badge era già in linea e
+  l'HTML non cambia. Senza `inline()` l'output è identico a prima (bloccato da
+  `tests/Themes/BadgeInlineTest.php`). Doc: catalogo `badge` e
+  `docs/app/concetti/componenti/README.md`.
+- **`POST /api/csrf/` (rotta `csrf`, area `api`).** Restituisce `{ "token": "…" }`, il
+  token CSRF della sessione corrente, per i form AJAX rimasti aperti oltre la
+  sessione: dopo un `403` (o un `401` del token di pagina, da rinnovare poi con
+  `/api/token/page/`) il form prende il token nuovo e il secondo invio
+  passa senza ricaricare la pagina. Solo POST same-origin (`SameOrigin`, se no
+  `403`), con sessione attiva, `Cache-Control: no-store`; non chiede il vecchio token e non
+  dà accesso ad altro. Test: `tests/Api/CsrfRenewTest.php`.
 
 ### Cambiato
 - **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le
@@ -43,6 +61,22 @@
 - Il componente `frontend.account.pagination` è un wrapper di
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.
+- **Token della pagina scaduto: niente più `419` «CSRF token invalid» sul
+  frontend.** I form di `AuthController` (login, registrazione, completamento,
+  recupero, restore) tornano con l'alert `929` e i campi scritti, senza
+  password né token; logout, accesso Google e fine impersonificazione fanno
+  redirect con lo stesso avviso (`FlashMessage`). Nel pannello account
+  `invalidCsrf()` resta `never` ma passa da `renderCsrfFailure()`, nuovo
+  punto di estensione `protected` per i moduli. Helper nuovi:
+  `Csrf::ALERT`, `Csrf::oldInput()`, `Csrf::failureMessage()`,
+  `Csrf::flashFailure()`. `CsrfGuard` e la creazione rapida del backend
+  restano `403` ma con il testo tradotto della notifica `929`, senza «CSRF»
+  né «token».
+- **Pannello account: i `$values` dei modal passano da `Csrf::oldInput()`.**
+  `personalModals()` e i form del core ricevono `_csrf`, `csrf_token`,
+  `logout_token`, `current_password` e `password*` con la chiave ma vuoti
+  (prima `_csrf`, `current_password` e `password` mancavano, gli altri
+  arrivavano con il valore scritto).
 
 - **Renderer Alert su `ReadsAlertSchema` (`B-CORE-I8`).** I renderer
   Bootstrap e Wonder leggono lo schema dallo stesso Concern; output identico,

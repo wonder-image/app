@@ -42,4 +42,15 @@ class Badge extends Link
     {
         return $this->schema('pill', $pill);
     }
+
+    /**
+     * Solo il `<span>` (o `<a>` con href), senza il `<div>` della colonna:
+     * per usarlo accanto ad altro testo, in una cella o in una frase.
+     * In linea `columnSpan()` è ignorato. Nel tema Wonder il badge è già
+     * in linea, quindi lì non cambia nulla.
+     */
+    public function inline(bool $inline = true): self
+    {
+        return $this->schema('inline', $inline);
+    }
 }

@@ -37,6 +37,10 @@ Route::area('api')
         Route::post('/token/page/', $ROOT_APP.'/http/api/token/page.php')
             ->name('token.page');
 
+        // Token CSRF della sessione per i form AJAX scaduti: same-origin, senza guard.
+        Route::post('/csrf/', $ROOT_APP.'/http/api/csrf.php')
+            ->name('csrf');
+
         Route::get('/export/', $ROOT_APP.'/http/api/export.php')
             ->name('export')
             ->backend()

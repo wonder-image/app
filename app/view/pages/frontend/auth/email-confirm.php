@@ -6,6 +6,7 @@ use Wonder\View\View;
 $auth_profile->layout([
     'title' => (string) __t('account.email.confirm_title'),
     'text' => (string) __t('account.email.confirm_intro', ['email' => $email]),
+    'alert' => $alert ?? null,
 ]);
 ?>
 <form method="post" action="<?=e($action)?>" class="w-100 d-grid col-1 gap-6 mt-6">

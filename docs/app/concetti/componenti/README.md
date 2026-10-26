@@ -480,6 +480,9 @@ Badge::make('Bozza')
     ->variant('secondary')
     ->outline();
 
+// In linea: solo <span>/<a>, senza il <div> della colonna (columnSpan() ignorato).
+$cella = 'Ordine #1042 '.Badge::make('Pagato')->variant('success')->inline()->render('bootstrap');
+
 ButtonGroup::make([
     Button::make('Annulla')->variant('secondary')->outline(),
     Button::make('Pubblica')->variant('primary'),
