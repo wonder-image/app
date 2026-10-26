@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0-beta.5 — 2026-10-26
+
 ### Aggiunto
 - **Text e RichText nel tema Wonder (`B-CORE-I1`).** Nuovo renderer
   `Themes\Wonder\Components\Text` sulle utility della lib (`fw-700`,
