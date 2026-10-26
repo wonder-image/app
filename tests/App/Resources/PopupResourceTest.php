@@ -19,10 +19,10 @@ TranslationBootstrap::preload($root . '/app', $root);
 echo "PopupResource\n";
 
 /** L'eccezione di mutateRequestValues, o null se passa. */
-function popupRejection(array $values, string $action): ?InvalidArgumentException
+function popupRejection(array $values, string $action, string $context = 'backend'): ?InvalidArgumentException
 {
     try {
-        PopupResource::mutateRequestValues($values, $action, 'backend', $action === 'update' ? ['id' => 1] : null);
+        PopupResource::mutateRequestValues($values, $action, $context, $action === 'update' ? ['id' => 1] : null);
     } catch (InvalidArgumentException $error) {
         return $error;
     }
@@ -35,6 +35,7 @@ $empty = [
     'null' => ['pages' => null],
     'stringa vuota' => ['pages' => ''],
     'JSON vuoto' => ['pages' => '[]'],
+    'JSON null' => ['pages' => 'null'],
     'array vuoto' => ['pages' => []],
     'hidden del form' => ['pages' => ['']],
     'solo spazi' => ['pages' => ['', '  ']],
@@ -64,14 +65,38 @@ foreach ($empty as $label => $values) {
     );
 }
 
-check('modifica che non manda le pagine: passa (API parziale)', fn () =>
+check('modifica che non manda le pagine: passa', fn () =>
     popupRejection(['visible' => 'false'], 'update') === null
 );
 
-check('pagine valide come array, JSON o chiave singola: passano', fn () =>
+check('pagine valide come array con l\'hidden del form: passano', fn () =>
     popupRejection(['pages' => ['', 'home']], 'store') === null
-        && popupRejection(['pages' => '["__all__"]'], 'store') === null
-        && popupRejection(['pages' => 'home'], 'update') === null
+);
+
+check('pagine valide come JSON: passano', fn () =>
+    popupRejection(['pages' => '["__all__"]'], 'store') === null
+);
+
+check('pagina singola come stringa: passa', fn () =>
+    popupRejection(['pages' => 'home'], 'update') === null
+);
+
+check('la pagina «0» resta una pagina', fn () =>
+    popupRejection(['pages' => ['0']], 'store') === null
+);
+
+// L'API scarta il payload prima del mutator (apiSchema() ha solo `index`):
+// lì il controllo non deve scattare, altrimenti il 422 non sarebbe risolvibile.
+check('API: creazione senza pagine non rifiutata (payload già scartato)', fn () =>
+    popupRejection([], 'store', 'api') === null
+);
+
+check('API: modifica con pagine vuote non rifiutata', fn () =>
+    popupRejection(['pages' => []], 'update', 'api') === null
+);
+
+check('backend: la stessa creazione senza pagine è rifiutata', fn () =>
+    popupRejection([], 'store', 'backend')?->getCode() === 422
 );
 
 check('con pagine valide lo slug nasce ancora dal nome', fn () =>
