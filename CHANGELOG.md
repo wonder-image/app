@@ -37,6 +37,22 @@
 - Il componente `frontend.account.pagination` è un wrapper di
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.
+- **Token della pagina scaduto: niente più `419` «CSRF token invalid» sul
+  frontend.** I form di `AuthController` (login, registrazione, completamento,
+  recupero, restore) tornano con l'alert `929` e i campi scritti, senza
+  password né token; logout, accesso Google e fine impersonificazione fanno
+  redirect con lo stesso avviso (`FlashMessage`). Nel pannello account
+  `invalidCsrf()` resta `never` ma passa da `renderCsrfFailure()`, nuovo
+  punto di estensione `protected` per i moduli. Helper nuovi:
+  `Csrf::ALERT`, `Csrf::oldInput()`, `Csrf::failureMessage()`,
+  `Csrf::flashFailure()`. `CsrfGuard` e la creazione rapida del backend
+  restano `403` ma con il testo tradotto della notifica `929`, senza «CSRF»
+  né «token».
+- **Pannello account: i `$values` dei modal passano da `Csrf::oldInput()`.**
+  `personalModals()` e i form del core ricevono `_csrf`, `csrf_token`,
+  `logout_token`, `current_password` e `password*` con la chiave ma vuoti
+  (prima `_csrf`, `current_password` e `password` mancavano, gli altri
+  arrivavano con il valore scritto).
 
 ### Deprecato
 - `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:

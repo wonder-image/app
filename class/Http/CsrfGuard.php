@@ -25,7 +25,7 @@ final class CsrfGuard
     public static function enforce(array $route, ?string $method = null): void
     {
         if (self::requires($route, $method) && !Csrf::verify()) {
-            throw new ForbiddenHttpException('Token CSRF non valido.');
+            throw new ForbiddenHttpException(Csrf::failureMessage());
         }
     }
 }
