@@ -16,7 +16,9 @@ use Wonder\App\Theme;
 $root = sys_get_temp_dir().'/card-pages-'.uniqid();
 @mkdir($root.'/custom/view/layout/backend', 0777, true);
 // Layout finto: stampa solo il contenuto della pagina.
-file_put_contents($root.'/custom/view/layout/backend/show.php', '<?php echo $PAGE_CONTENT;');
+foreach (['show', 'list', 'form', 'main'] as $layout) {
+    file_put_contents($root.'/custom/view/layout/backend/'.$layout.'.php', '<?php echo $PAGE_CONTENT;');
+}
 // Il backend gira col tema bootstrap, come in runtime.
 Theme::set('bootstrap');
 LegacyGlobals::share(['ROOT' => $root, 'ROOT_APP' => dirname(__DIR__, 3).'/app']);
@@ -31,6 +33,9 @@ function consentEventAction(string $a): object { return (object) ['badge' => '<s
 function consentEventSource(string $s): object { return (object) ['text' => $s]; }
 function active($v, $id): object { return (object) ['badge' => '<span class="badge">attivo</span>']; }
 function __r(string $name, array $params = []): string { return '/backend/'.$name.'/'.($params['id'] ?? ''); }
+
+function mailService(string $s): object { return (object) ['text' => 'smtp']; }
+function mailLogStatus(string $s): object { return (object) ['badge' => '<span class="badge">inviata</span>']; }
 
 final class FakeLegalResource { public static function slug(): string { return 'legal-documents'; } }
 
@@ -90,5 +95,66 @@ check('config/legal-documents: checkbox e testo in Card annidate, senza <wi-card
 
 check('wiCard() e wiAccordion() non esistono più, wiPreIfArray() sì', fn () =>
     !function_exists('wiCard') && !function_exists('wiAccordion') && function_exists('wiPreIfArray'));
+
+$email = $page('log/email/show.php', ['ITEM' => [
+    'user_id' => 3, 'subject' => 'Ciao <b>', 'from_email' => 'a@b.it', 'to_email' => 'c@d.it',
+    'body_text' => "riga 1\nriga 2", 'attachments' => '["a.pdf"]', 'error_message' => '', 'status' => 'sent',
+]]);
+
+check('log/email: cinque card, le due centrali affiancate col-6', fn () =>
+    !str_contains($email, '<wi-card') && substr_count($email, $card) === 5
+    && substr_count($email, '<div class="col-6">'.$card) === 2
+    && str_contains($email, '<div class="col-9"><div class="row g-3"><div class="col-12">'.$card)
+    && str_contains($email, '<div class="col-3"><div class="row g-3"><div class="col-12">'.$card)
+    && str_contains($email, 'Ciao &lt;b&gt;'));
+
+$sqlError = $page('config/sql-error/show.php', ['ITEM' => [
+    'table' => 'user', 'error_n' => 1064, 'error' => 'syntax', 'query' => 'SELECT 1', 'function' => 'sqlSelect',
+]]);
+
+check('config/sql-error: quattro card su col-8 e col-4', fn () =>
+    !str_contains($sqlError, '<wi-card') && substr_count($sqlError, $card) === 4
+    && str_contains($sqlError, '<div class="col-8"><div class="row g-3"><div class="col-12">'.$card)
+    && str_contains($sqlError, '<div class="col-4"><div class="row g-3"><div class="col-12">'.$card));
+
+$list = $page('resource/list.php', ['READONLY' => true, 'READONLY_NOTICE' => 'Solo <lettura>', 'TABLE_HTML' => '<table></table>']);
+
+check('resource/list: avviso di sola lettura in una Card col-12', fn () =>
+    !str_contains($list, '<wi-card')
+    && str_contains($list, '<div class="col-12">'.$card.'    <div class="alert alert-warning mb-0">Solo &lt;lettura&gt;</div>'."\n".'</div></div></div>'));
+
+$form = $page('resource/form.php', ['READONLY' => true, 'READONLY_NOTICE' => 'Bloccato', 'FIELDS' => [], 'SIDEBAR_FIELDS' => []]);
+
+check('resource/form: avviso e campi in Card, senza <wi-card>', fn () =>
+    !str_contains($form, '<wi-card') && substr_count($form, $card) === 2
+    && str_contains($form, '<div class="alert alert-warning mb-0">Bloccato</div>'));
+
+$formEdit = $page('resource/form.php', ['FIELDS' => [], 'SIDEBAR_FIELDS' => []]);
+
+check('resource/form: in modifica campi e pulsante Salva in due Card', fn () =>
+    !str_contains($formEdit, '<wi-card') && substr_count($formEdit, $card) === 2
+    && str_contains($formEdit, 'Salva</button>'));
+
+$layoutShow = (static function (): string {
+    $TITLE = 'Titolo <x>';
+    $PAGE_CONTENT = '<p>contenuto</p>';
+    $BACK_URL = '';
+    ob_start();
+    include dirname(__DIR__, 3).'/app/view/layout/backend/show.php';
+
+    return (string) ob_get_clean();
+})();
+
+check('layout backend.show: intestazione in Card, contenuto dopo', fn () =>
+    !str_contains($layoutShow, '<wi-card')
+    && str_contains($layoutShow, '<div class="row g-3">'."\n    ".'<div class="col-12">'.$card)
+    && str_contains($layoutShow, 'Titolo &lt;x&gt;') && str_contains($layoutShow, '<p>contenuto</p>'));
+
+$presenter = (new ReflectionClass(\Wonder\Backend\Support\ResourcePagePresenter::class))->newInstanceWithoutConstructor();
+$fallback = $presenter->listFallback(new RuntimeException('db <giù>'));
+
+check('ResourcePagePresenter::listFallback: avviso in Card, messaggio escapato', fn () =>
+    str_starts_with($fallback, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0">')
+    && str_contains($fallback, 'db &lt;giù&gt;'));
 
 exit(summary());

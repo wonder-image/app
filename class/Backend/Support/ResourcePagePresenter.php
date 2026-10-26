@@ -7,6 +7,7 @@ use Throwable;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\Backend\Support\ReadonlyFields;
+use Wonder\Elements\Components\Card;
 
 final class ResourcePagePresenter
 {
@@ -191,14 +192,12 @@ final class ResourcePagePresenter
     {
         $message = htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8');
 
-        return <<<HTML
-<wi-card class="col-12">
-    <div class="alert alert-warning mb-0">
-        La tabella non può essere caricata senza una connessione database valida.<br>
-        <small class="text-body-secondary">{$message}</small>
-    </div>
-</wi-card>
-HTML;
+        return ResourceFormLayoutRenderer::renderLayout((new Card)->components([<<<HTML
+<div class="alert alert-warning mb-0">
+    La tabella non può essere caricata senza una connessione database valida.<br>
+    <small class="text-body-secondary">{$message}</small>
+</div>
+HTML]));
     }
 
     public function legacyName(): object

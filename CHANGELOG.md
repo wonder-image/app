@@ -25,6 +25,14 @@
     default, da `h2` a `h6`).
 
 ### Cambiato
+- **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le
+  pagine backend (account, utenti, log email, errori SQL, media, Stripe
+  Connect, form e lista Resource), i layout `backend.form` e `backend.show`,
+  `Table` con `card` attivo e `ResourcePagePresenter::listFallback()` rendono
+  la card dal server con `ResourceFormLayoutRenderer::renderLayout()`: stesso
+  markup che `createCard()` della lib costruiva nel browser
+  (`div.col-12 > div.card.border > div.card-body.row.g-3`). Le pagine non
+  dipendono più dal JS per mostrare le card.
 - Il componente `frontend.account.pagination` è un wrapper di
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.

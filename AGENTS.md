@@ -224,9 +224,12 @@ php forge start
   `wiCardAccordion()` and `wiAccordion()` helpers are removed; `wiPreIfArray()`
   stays for JSON shown in a `<pre>`. Use `Card` from `Wonder\Elements\Components`,
   which renders a `<div class="card">`, and never add an option to `Card` to
-  change its tag. Replace existing occurrences when you touch the page. The
-  lib keeps `createCard()` and the `wi-card` CSS rule until the old pages are
-  migrated; do not remove them. See `docs/app/concetti/componenti/README.md`.
+  change its tag. `class/` and `app/` no longer contain any `<wi-card>`: a
+  template with mixed PHP wraps the block in `ob_start()` and closes it with
+  `ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))`.
+  The lib keeps `createCard()` and the `wi-card` CSS rule for sites and modules
+  that still use the tag; do not remove them. See
+  `docs/app/concetti/componenti/README.md`.
 - Declare Resource-list header actions through `TableLayoutSchema::buttonCustom()` / `buttonsCustom()` with `Wonder\Elements\Components\Button` or `Dropdown`; use `Button::post($action, $label)->confirm(...)` for POST actions and reserve `buttonCustomHtml()` for trusted markup that no Element can represent.
 - Resource-list extras live in TableColumn/TableLayoutSchema: custom row-menu entries are arrays in `actions()` (`label` per column value, `href` with `{column}` placeholders, escaped, `filter.row`); computed columns go through `TableLayoutSchema::select()` (aliases are display/sort only: never in WHERE, filters, counts or search); filters that are not `column = value` use `filterQuery()` with a closure that receives only whitelisted option values; cross-table search uses relation descriptors in `searchFields()`, nested through `relations`. Exports of visitor-written data (contacts, public forms) use `downloadAsText()`: cells stay text in Excel and CSV formula prefixes are neutralized by `Backend\Support\SpreadsheetText`.
 - Backend navigation supports `section → optional group → Resource`. Declare a

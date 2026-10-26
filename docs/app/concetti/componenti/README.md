@@ -99,8 +99,28 @@ public static function formLayoutSchema(): ?Form
 Esempio reale completo: `class/App/Resources/Css/CssAlertResource.php`.
 
 `<wi-card>` è dismesso: non aggiungerne di nuovi, usa `Card`, che rende
-`<div class="card">` e non ha opzioni per cambiare tag. Le occorrenze esistenti
-si sostituiscono quando si tocca la pagina. Gli helper `wiCard()`,
+`<div class="card">` e non ha opzioni per cambiare tag. In `class/` e `app/`
+non ne resta nessuno; nei siti e nei moduli si sostituiscono quando si tocca la
+pagina. Fuori da un layout Resource la Card passa da
+`ResourceFormLayoutRenderer::renderLayout()`, che produce lo stesso markup di
+`createCard()` della lib (`div.col-12 > div.card.border > div.card-body.row.g-3`).
+In un template con PHP mescolato il blocco si cattura con `ob_start()`:
+
+```php
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
+
+<?php ob_start(); ?>
+    <h3>Report</h3>
+<?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
+```
+
+Gli helper `wiCard()`,
 `wiCardStats()`, `wiCardAccordion()` e `wiAccordion()` sono stati rimossi;
 resta `wiPreIfArray()`, che mostra un JSON in un `<pre>`.
 

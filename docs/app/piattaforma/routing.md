@@ -238,12 +238,18 @@ File:
 Esempio:
 
 ```php
-<?php \Wonder\View\View::layout('backend.main'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
 
 <div class="row g-3">
-    <wi-card class="col-12">
+    <?php ob_start(); ?>
         <h3>Report</h3>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 </div>
 
 <?php \Wonder\View\View::end(); ?>

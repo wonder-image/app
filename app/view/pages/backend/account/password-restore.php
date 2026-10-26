@@ -1,4 +1,10 @@
-<?php \Wonder\View\View::layout('backend.auth'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.auth');
+?>
 <?php
 $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCHEMA, $VALUES): string {
     $field = clone $FORM_SCHEMA[$key];
@@ -12,7 +18,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
 ?>
 <form method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
     <?=\Wonder\Http\Csrf::field()->render()?>
-    <wi-card>
+    <?php ob_start(); ?>
         <div class="d-grid col-12 mx-auto">
             <img id="be-logo-black" src="<?=$DEFAULT->BeLogoBlack?>" class="position-relative w-75 start-50 translate-middle-x d-none" ><img id="be-logo-white" src="<?=$DEFAULT->BeLogoWhite?>" class="position-relative w-75 start-50 translate-middle-x d-none">
         </div>
@@ -28,7 +34,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($FORM_SCH
         <div class="d-grid col-8 mx-auto">
             <?=submit('Cambia password', 'restore'); ?>
         </div>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 </form>
 
 <div class="row mt-3">

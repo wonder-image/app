@@ -1,4 +1,10 @@
-<?php \Wonder\View\View::layout('backend.main'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
 <?php
 $renderProfileInput = static function (string $key, mixed $value = null) use ($PROFILE_FORM_SCHEMA, $VALUES): string {
     $field = clone $PROFILE_FORM_SCHEMA[$key];
@@ -19,13 +25,13 @@ $renderPasswordInput = static function (string $key, mixed $value = null) use ($
 ?>
 <div class="row g-3">
 
-    <wi-card class="col-12">
+    <?php ob_start(); ?>
         <h3>Impostazioni account</h3>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
     <form class="col-9" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()" data-wi-save-bar<?=!empty($PROFILE_DIRTY) ? ' data-wi-save-bar-dirty' : ''?>>
         <?=\Wonder\Http\Csrf::field()->render()?>
-        <wi-card class="col-12">
+        <?php ob_start(); ?>
             <div class="col-12">
                 <h6>Modifica dati</h6>
             </div>
@@ -64,12 +70,12 @@ $renderPasswordInput = static function (string $key, mixed $value = null) use ($
             <div class="col-12">
                 <?=submit('Modifica dati', 'modify'); ?>
             </div>
-        </wi-card>
+        <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
     </form>
 
     <form class="col-3" method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
             <?=\Wonder\Http\Csrf::field()->render()?>
-            <wi-card class="col-12">
+            <?php ob_start(); ?>
                 <div class="col-12">
                     <h6>Modifica password</h6>
                 </div>
@@ -82,7 +88,7 @@ $renderPasswordInput = static function (string $key, mixed $value = null) use ($
             <div class="col-12">
                 <?=submit('Modifica password', 'modify-password'); ?>
             </div>
-        </wi-card>
+        <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
     </form>
 
 </div>
