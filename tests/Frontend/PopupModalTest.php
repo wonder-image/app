@@ -40,6 +40,7 @@ namespace {
             'code' => 'promo-1', 'title' => 'Saldi <30%>', 'url' => '', 'url_label' => '', 'view' => '',
             'image' => null, 'content_class' => 'bg-white tx-black', 'footer_class' => 'b-0 bg-white tx-black',
         ];
+        unset($GLOBALS['WI_POPUP_RENDERED']);
         ob_start();
         include __DIR__.'/../../app/view/components/frontend/overlay/popup.php';
 
@@ -79,6 +80,15 @@ namespace {
     check('popup: con un codice non valido come selettore non esce niente, e la pagina regge', fn () =>
         $popup(['code' => 'promo 2026']) === '' && $popup(['code' => '1promo']) === ''
         && !isset($_SESSION['promo 2026']));
+
+    $_SESSION = [];
+    $first = $popup([]);
+    ob_start();
+    include __DIR__.'/../../app/view/components/frontend/overlay/popup.php';
+    $second = (string) ob_get_clean();
+
+    check('popup: una sola volta per richiesta, anche se il layout lo include due volte', fn () =>
+        $first !== '' && $second === '' && $_SESSION['promo-1'] === 1);
 
     check('overlay.modal e ui.button non esistono più', fn () =>
         !is_file(__DIR__.'/../../app/view/components/frontend/overlay/modal.php')

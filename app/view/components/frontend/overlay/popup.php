@@ -5,6 +5,12 @@ use Wonder\App\Models\Communications\Popup;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Modal;
 
+// Al massimo un popup per richiesta: i siti nati dallo scaffold lo rendono
+// anche nel loro body-start, e due modal con lo stesso id non si chiudono.
+if (!empty($GLOBALS['WI_POPUP_RENDERED'])) {
+    return;
+}
+
 $pageKey = FrontendRouteCatalog::currentPageKey();
 
 if ($pageKey === null) {
@@ -33,6 +39,7 @@ if ($maxView !== '' && $_SESSION[$sessionKey] >= (int) $maxView) {
 }
 
 $_SESSION[$sessionKey]++;
+$GLOBALS['WI_POPUP_RENDERED'] = true;
 
 $image = $popup['image'] ?? null;
 $title = trim((string) ($popup['title'] ?? ''));

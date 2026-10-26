@@ -45,7 +45,10 @@
   `<div>`, footer dentro il dialogo, bottone con `btn-icon-right` invece di
   `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder. Un popup con un
   `code` non valido come selettore non si stampa (prima `modal()` falliva nel
-  browser); i codici generati `pop_xxxxxxx` lo sono sempre.
+  browser); i codici generati `pop_xxxxxxx` lo sono sempre. Il popup si
+  stampa al massimo una volta per richiesta: il `body-start.php` dello scaffold
+  lo include già e il core lo rimette in `body-end`, e con due modal dallo
+  stesso id quella in primo piano non si chiudeva.
 - **Renderer Alert su `ReadsAlertSchema` (`B-CORE-I8`).** I renderer
   Bootstrap e Wonder leggono lo schema dallo stesso Concern; output identico,
   coperto da snapshot in `tests/Themes/AlertSnapshotTest.php`.
