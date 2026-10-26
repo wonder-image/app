@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0-beta.6 — 2026-10-26
+
 ### Breaking
 - **Schemi `resource:*` di `Wonder\App\Table` calcolati al primo accesso.**
   `app/config/app/table.php` non chiama più `prepareSchema()` per ogni Resource
