@@ -2,6 +2,52 @@
 
 ## Unreleased
 
+### Breaking
+- **Rimossi gli helper `wiCard()`, `wiCardLink()`, `wiCardStats()`,
+  `wiCardAccordion()`, `wiAccordion()` e i componenti view
+  `frontend.overlay.modal` e `frontend.ui.button`.** Nei repo locali non hanno
+  chiamanti. Un sito che li usa ancora va migrato: `Card` (in un layout
+  Resource con `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard`,
+  `Accordion`, `Modal::make()->frontend()` e `Button::make()`. Un override di
+  `frontend.overlay.popup` va riallineato al nuovo markup (vedi «Cambiato»).
+- Il popup frontend e le card server-side richiedono `wonder-image` lib
+  `2.1.2-alpha.24` o successiva; il vincolo del core è già `^2.1.2-alpha.30`.
+
+### Cambiato
+- **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le
+  pagine backend (account, utenti, log email, errori SQL, media, Stripe
+  Connect, form e lista Resource), i layout `backend.form` e `backend.show`,
+  `Table` con `card` attivo e `ResourcePagePresenter::listFallback()` rendono
+  la card dal server con `ResourceFormLayoutRenderer::renderLayout()`: stesso
+  markup che `createCard()` della lib costruiva nel browser
+  (`div.col-12 > div.card.border > div.card-body.row.g-3`). Le pagine non
+  dipendono più dal JS per mostrare le card.
+- **Popup frontend su `Modal::make()->frontend()` (`B-CORE-I5`).** Il
+  componente `frontend.overlay.popup` esce già aperto con `wi-show`, senza lo
+  `<script>` che chiamava `modal()` al `load`. Titolo in `<h2>` invece che in
+  `<div>`, footer dentro il dialogo, bottone con `btn-icon-right` invece di
+  `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder. Un popup con un
+  `code` non valido come selettore non si stampa (prima `modal()` falliva nel
+  browser); i codici generati `pop_xxxxxxx` lo sono sempre.
+- **Renderer Alert su `ReadsAlertSchema` (`B-CORE-I8`).** I renderer
+  Bootstrap e Wonder leggono lo schema dallo stesso Concern; output identico,
+  coperto da snapshot in `tests/Themes/AlertSnapshotTest.php`.
+- **Scheduler in sola lettura non va più in Fatal (`B-CORE-I8`).** La pagina
+  `backend/scheduler/schedules.php` passava una stringa a
+  `Card->render('bootstrap')`; ora usa `ResourceFormLayoutRenderer::renderLayout()`.
+
+### Rimosso
+- **Componenti `frontend.overlay.modal` e `frontend.ui.button`
+  (`B-CORE-I5`).** L'unico chiamante era il popup; nessun override nei siti
+  locali. Al loro posto `Modal::make()->frontend()` e `Button::make()`.
+- **Helper `wiCard()`, `wiCardLink()`, `wiCardStats()`, `wiCardAccordion()` e
+  `wiAccordion()` (`B-CORE-I3`).** Nessun chiamante in app, nei moduli e nei
+  siti locali. Al loro posto: `Card` (dentro un layout Resource, via
+  `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard` e `Accordion`.
+  `wiPreIfArray()` resta in `app/function/backend/components/accordion.php`.
+  Le pagine backend `log/auth-users/show`, `log/consent/show` e
+  `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
+
 ## 2.4.0-beta.5 — 2026-10-26
 
 ### Aggiunto
@@ -43,21 +89,6 @@
   dà accesso ad altro. Test: `tests/Api/CsrfRenewTest.php`.
 
 ### Cambiato
-- **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le
-  pagine backend (account, utenti, log email, errori SQL, media, Stripe
-  Connect, form e lista Resource), i layout `backend.form` e `backend.show`,
-  `Table` con `card` attivo e `ResourcePagePresenter::listFallback()` rendono
-  la card dal server con `ResourceFormLayoutRenderer::renderLayout()`: stesso
-  markup che `createCard()` della lib costruiva nel browser
-  (`div.col-12 > div.card.border > div.card-body.row.g-3`). Le pagine non
-  dipendono più dal JS per mostrare le card.
-- **Popup frontend su `Modal::make()->frontend()` (`B-CORE-I5`).** Il
-  componente `frontend.overlay.popup` esce già aperto con `wi-show`, senza lo
-  `<script>` che chiamava `modal()` al `load`. Titolo in `<h2>` invece che in
-  `<div>`, footer dentro il dialogo, bottone con `btn-icon-right` invece di
-  `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder. Un popup con un
-  `code` non valido come selettore non si stampa (prima `modal()` falliva nel
-  browser); i codici generati `pop_xxxxxxx` lo sono sempre.
 - Il componente `frontend.account.pagination` è un wrapper di
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.
@@ -78,28 +109,9 @@
   (prima `_csrf`, `current_password` e `password` mancavano, gli altri
   arrivavano con il valore scritto).
 
-- **Renderer Alert su `ReadsAlertSchema` (`B-CORE-I8`).** I renderer
-  Bootstrap e Wonder leggono lo schema dallo stesso Concern; output identico,
-  coperto da snapshot in `tests/Themes/AlertSnapshotTest.php`.
-- **Scheduler in sola lettura non va più in Fatal (`B-CORE-I8`).** La pagina
-  `backend/scheduler/schedules.php` passava una stringa a
-  `Card->render('bootstrap')`; ora usa `ResourceFormLayoutRenderer::renderLayout()`.
-
 ### Deprecato
 - `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:
   usa `Elements\Frontend\Pagination`.
-
-### Rimosso
-- **Componenti `frontend.overlay.modal` e `frontend.ui.button`
-  (`B-CORE-I5`).** L'unico chiamante era il popup; nessun override nei siti
-  locali. Al loro posto `Modal::make()->frontend()` e `Button::make()`.
-- **Helper `wiCard()`, `wiCardLink()`, `wiCardStats()`, `wiCardAccordion()` e
-  `wiAccordion()` (`B-CORE-I3`).** Nessun chiamante in app, nei moduli e nei
-  siti locali. Al loro posto: `Card` (dentro un layout Resource, via
-  `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard` e `Accordion`.
-  `wiPreIfArray()` resta in `app/function/backend/components/accordion.php`.
-  Le pagine backend `log/auth-users/show`, `log/consent/show` e
-  `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
 
 ## 2.4.0-beta.4 — 2026-10-21
 
