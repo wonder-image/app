@@ -3,6 +3,7 @@
 namespace Wonder\Sql;
 
 use mysqli;
+use Wonder\App\Support\RequestMemo;
 use Throwable;
 
 /**
@@ -45,6 +46,9 @@ final class Transaction
             $result = $callback();
         } catch (Throwable $throwable) {
             self::restoreDepth($key, $depth);
+
+            // Il memo può contenere letture di righe che l'annullamento toglie.
+            RequestMemo::reset();
 
             if ($depth === 0) {
                 $connection->rollback();

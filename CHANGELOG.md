@@ -87,6 +87,18 @@
   (massimo 5 s) hanno già i loro timeout più corti.
 
 ### Aggiunto
+- **Contatore delle query per richiesta (`QueryCounter`, D-I11).** Solo con
+  Debug attivo: a fine richiesta il log riceve una riga `[SQL] {uri} queries=N
+  top=...` con le forme di query più ripetute (`QUERY_COUNTER_TOP`, default 10).
+  Fuori Debug `note()` esce subito. Conta solo le query che passano da
+  `Wonder\Sql\Query`.
+- **Memo per richiesta (`RequestMemo`, D-I2).** `sqlTableExists()` memoizza
+  solo le tabelle trovate; `infoUser()` per id memoizza la riga letta (nuova
+  `forgetInfoUser()`), mentre l'oggetto restituito si ricostruisce a ogni
+  chiamata; `head.php` legge `css_font` e `analytics` una volta;
+  `Asset::version()` fa uno stat per percorso. Insert, Update, Delete e
+  Truncate di `Query` svuotano lo scope della tabella, `Transaction` svuota
+  tutto su rollback, `CreateTable` dopo il DDL. Vedi `docs/performance.md`.
 - **`Geo::country()`** (`Wonder\Plugin\GeoPlugin\Geo`): paese del visitatore
   calcolato al primo uso e salvato in `$_SESSION['system_cache']['country']`;
   senza sessione resta in memoria per la richiesta.

@@ -2,6 +2,7 @@
 
     namespace Wonder\Sql;
 
+    use Wonder\App\Support\RequestMemo;
     use Wonder\Sql\Connection;
     use Wonder\Sql\Utility\Error;
 
@@ -20,6 +21,29 @@
             $this->mysqli = ($connection === null) ? Connection::Connect('main') : $connection; 
             $this->informationSchema = $informationSchema;
         
+        }
+
+        /**
+         * Unico punto di esecuzione: conta la query in Debug (QueryCounter).
+         * @return \mysqli_result|bool
+         */
+        private function run( string $query ): mixed
+        {
+
+            QueryCounter::note($query);
+
+            return $this->mysqli->query($query);
+
+        }
+
+        /** Scrittura: svuota prima il memo per richiesta della tabella. */
+        private function write( string $table, string $query ): mixed
+        {
+
+            RequestMemo::forget(trim($table, '`'));
+
+            return $this->run($query);
+
         }
 
         public static function Conditions( string | array $conditions, bool $where = true ): string
@@ -630,7 +654,7 @@
             $RETURN->table = $table;
             $RETURN->query = $query;
 
-            if (!$this->mysqli->query( $query )) {
+            if (!$this->write( $table, $query )) {
                 
                 $RETURN->success = false;
 
@@ -658,7 +682,7 @@
             $RETURN->table = $table;
             $RETURN->query = $query;
 
-            if (!$this->mysqli->query( $query )) { 
+            if (!$this->write( $table, $query )) { 
 
                 $RETURN->success = false;
                 
@@ -715,7 +739,7 @@
             $RETURN->success = true;
             $RETURN->row = [];
             
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->run( $query )) {
                 
                 $RETURN->success = false;
 
@@ -755,7 +779,7 @@
             $query .= self::escapeIdentifier($table);
             $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
 
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->write( $table, $query )) {
                 
                 new Error( 'Delete', $table, $query, $this->mysqli );
 
@@ -771,7 +795,7 @@
             $query = "TRUNCATE TABLE ";
             $query .= self::escapeIdentifier($table);
 
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->write( $table, $query )) {
                 
                 new Error( 'Truncate', $table, $query, $this->mysqli );
 
@@ -791,7 +815,7 @@
 
             $query = "SELECT DATABASE() AS db";
 
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->run( $query )) {
                 
                 new Error( 'GetDatabase', '', $query, $this->mysqli );
                 return '';
@@ -841,7 +865,7 @@
             $query = "SHOW DATABASES LIKE ";
             $query .= "'".$this->escapeString($name)."'";
 
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->run( $query )) {
                 
                 new Error( 'DatabaseExists', '', $query, $this->mysqli );
                 return false;
@@ -867,7 +891,7 @@
             $query = "SHOW TABLES LIKE ";
             $query .= "'".$this->escapeString($name)."'";
 
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->run( $query )) {
                 
                 new Error( 'TableExists', '', $query, $this->mysqli );
                 return false;
@@ -896,7 +920,7 @@
             $query .= "LIKE ";
             $query .= "'".$this->escapeString($column)."'";
 
-            if (!$RESULT = $this->mysqli->query( $query )) {
+            if (!$RESULT = $this->run( $query )) {
                 
                 new Error( 'ColumnExists', $table, $query, $this->mysqli );
                 return false;
@@ -955,7 +979,7 @@
                 $query .= "AND `column_name` = '{$columnEscaped}' ";
             }
 
-            $result = $this->mysqli->query($query);
+            $result = $this->run($query);
 
             if ($result === false) {
                 new Error( 'ColumnForeign', $table, $query, $this->mysqli );

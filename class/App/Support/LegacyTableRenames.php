@@ -46,6 +46,12 @@ final class LegacyTableRenames
             if ($connection->query('RENAME TABLE '.implode(', ', $renames)) === false) {
                 throw new RuntimeException("Rinomina delle {$subject} non riuscita.");
             }
+            // Il memo di sqlTableExists() vedrebbe ancora la vecchia e non la nuova.
+            RequestMemo::forget('@sql.table_exists');
+            foreach ($plan as $old => $new) {
+                RequestMemo::forget($old);
+                RequestMemo::forget($new);
+            }
         }
         return $plan;
     }

@@ -376,6 +376,8 @@
 
             if ($hasTransaction) {
                 $mysqli->rollback();
+                // Niente letture memoizzate dalla transazione annullata.
+                \Wonder\App\Support\RequestMemo::reset();
             }
 
             return $fail(900);

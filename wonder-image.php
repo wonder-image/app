@@ -57,6 +57,9 @@
     require_once $ROOT_APP."/config/config.php";
     \Wonder\App\LegacyGlobals::capture(get_defined_vars());
     
+    // Riepilogo query a fine richiesta, solo in Debug (vedi docs/performance.md).
+    if (PHP_SAPI !== 'cli') { \Wonder\Sql\QueryCounter::register(); }
+
     require_once $ROOT_APP."/service/service.php";
 
     require_once $ROOT_APP."/middleware/middleware.php";

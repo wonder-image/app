@@ -54,6 +54,8 @@
             $FILE = fopen($PATH, "w");
             fwrite($FILE, $RETURN);
             fclose($FILE);
+            // Il file è cambiato: Asset::version() non deve dare il filemtime memoizzato.
+            \Wonder\App\Support\RequestMemo::forget(\Wonder\App\Support\Asset::VERSION_MEMO);
 
             // Solo in sviluppo: docs/ai/DESIGN.md è la proiezione dei token per
             // gli agenti AI. Deriva dal DB come root.css ed è gitignorato nel
@@ -86,6 +88,8 @@
             $FILE = fopen($PATH, "w");
             fwrite($FILE, $RETURN);
             fclose($FILE);
+            // Il file è cambiato: Asset::version() non deve dare il filemtime memoizzato.
+            \Wonder\App\Support\RequestMemo::forget(\Wonder\App\Support\Asset::VERSION_MEMO);
             
         } else {
 

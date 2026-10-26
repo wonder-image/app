@@ -58,11 +58,12 @@
     $seoOgMeta = is_array($SEO->ogMeta ?? null) ? $SEO->ogMeta : [];
     $faviconPath = (string) ($PATH->favicon ?? '');
 
-    $SQL_ANALYTICS = [];
-
-    if (sqlTableExists('analytics')) {
-        $SQL_ANALYTICS = sqlSelect('analytics', ['id' => '1'], 1)->row;
-    }
+    // Una lettura per richiesta (RequestMemo, scope = tabella: le scritture lo svuotano).
+    $SQL_ANALYTICS = \Wonder\App\Support\RequestMemo::remember(
+        'analytics',
+        'head:'.sqlMemoConnectionKey($GLOBALS['mysqli'] ?? null),
+        static fn () => sqlTableExists('analytics') ? sqlSelect('analytics', ['id' => '1'], 1)->row : []
+    );
 
     $ANALYTICS->tag_manager = (object) array();
     $ANALYTICS->pixel = (object) array();
@@ -238,11 +239,18 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 
 <?php
 
-    if (sqlTableExists('css_font')) {
+    // Una lettura per richiesta; null = tabella assente.
+    $CSS_FONT_ROWS = \Wonder\App\Support\RequestMemo::remember(
+        'css_font',
+        'head:'.sqlMemoConnectionKey($GLOBALS['mysqli'] ?? null),
+        static fn () => sqlTableExists('css_font') ? sqlSelect('css_font', ['visible' => 'true', 'deleted' => 'false'])->row : null
+    );
+
+    if ($CSS_FONT_ROWS !== null) {
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
         // Link relativi fatti assoluti, display=swap su Google, ogni foglio una volta.
-        foreach (Wonder\App\Support\CssFontLinks::hrefs(sqlSelect('css_font', ['visible' => 'true', 'deleted' => 'false'])->row, (string) ($PATH->site ?? '')) as $fontLink) {
+        foreach (Wonder\App\Support\CssFontLinks::hrefs($CSS_FONT_ROWS, (string) ($PATH->site ?? '')) as $fontLink) {
             if (str_contains($fontLink, 'fonts.googleapis.com')) {
                 $escapedFontLink = e($fontLink);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
