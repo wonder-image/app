@@ -176,6 +176,21 @@
   sistema). Con MySQL `lower_case_table_names=1` il nome restituito da
   `SELECT DATABASE()` può differire nelle maiuscole da quello configurato:
   il confronto è esatto, quindi la richiesta resta rifiutata (fail-closed).
+- **`CheckGroup` obbligatorio: basta una casella, non tutte.** Con
+  `required()` i renderer Bootstrap e Wonder mettevano `required` su ogni
+  `<input>` del gruppo, quindi il browser bloccava l'invio finché non erano
+  tutte spuntate: nel backend non si poteva creare un popup senza spuntare
+  tutte le pagine. Ora `required` resta sul gruppo, come classe
+  `wi-{type}-required` sul contenitore (come `CheckTree` e `DynamicCheck`),
+  che la lib backend controlla come «almeno una». Prima il salvataggio era
+  bloccato anche dal `check()` della lib del backend, non solo dal browser.
+  Il controllo lato server non c'è: il form del backend non passa dal
+  validator del `dataSchema`, e un JSON vuoto (`"[]"`) supera `required()`;
+  per il popup serve un controllo in `PopupResource::mutateRequestValues`
+  (follow-up). Nel tema Wonder frontend la lib non legge ancora
+  `.wi-checkbox-required`/`.wi-radio-required`: lì un gruppo obbligatorio non
+  ha controllo lato client (follow-up nella lib). Coperto da
+  `tests/Themes/CheckGroupRequiredTest.php`.
 - **Cambiare l'email di un utente azzera `email_verified`.** Nel ramo di
   modifica di `user()` (form utenti del backend, account backend, chiamanti dei
   siti) un'email diversa da quella salvata, senza contare maiuscole e spazi,

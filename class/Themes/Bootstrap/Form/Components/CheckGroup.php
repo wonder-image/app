@@ -25,6 +25,10 @@ class CheckGroup extends Field
         $value = $this->schema['value'] ?? null;
         $searchBar = !empty($this->schema['search_bar']);
         $required = !empty($this->schema['attributes']['required']) ? "wi-{$type}-required" : '';
+        // L'obbligatorio vale per il gruppo («almeno una»), non per ogni
+        // casella: resta solo la classe del contenitore, che la lib controlla.
+        $attributes = (array) ($this->schema['attributes'] ?? []);
+        unset($attributes['required']);
         $label = $this->escape($this->resolvedLabel());
         $bar = $searchBar ? "<input type='text' class='form-control card-header m-0 border-0 border-bottom bg-body' placeholder='Cerca...' aria-label='Cerca...' data-wi-search='true' >" : '';
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
@@ -32,7 +36,7 @@ class CheckGroup extends Field
 
         if (!empty($this->schema['pills'])) {
             // Il "+" della creazione rapida è l'ultima pillola della fila.
-            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value)
+            $pillsHtml = $this->renderPills($options, $type, $fieldName, $value, $attributes)
                 .$this->inlineQuickCreateButton();
             // Senza etichetta niente titolo: un `<h6>` vuoto lascerebbe il
             // suo margine sopra una pillola sola, come il «Preferito» di
@@ -53,7 +57,7 @@ class CheckGroup extends Field
 HTML;
         }
 
-        $optionsHtml = $this->renderOptions($options, $type, $fieldName, $value);
+        $optionsHtml = $this->renderOptions($options, $type, $fieldName, $value, $attributes);
 
         return <<<HTML
 <div id="container-{$id}" class="w-100 wi-container-{$type} {$required}">
@@ -76,10 +80,10 @@ HTML;
      * elenchi corti, quelli che si leggono tutti in una riga; per un elenco
      * lungo resta il riquadro che scorre.
      */
-    private function renderPills(array $options, string $type, string $name, mixed $value): string
+    private function renderPills(array $options, string $type, string $name, mixed $value, array $attributes): string
     {
         $html = '';
-        $inputClass = $this->fieldClass('btn-check');
+        $inputClass = $this->fieldClass('btn-check', $attributes);
 
         foreach ($options as $optionValue => $optionName) {
             $visual = $this->optionVisual($optionName);
@@ -101,7 +105,7 @@ HTML;
             $escapedId = $this->escape($type.'-'.$name.'-'.$optionValue);
             $escapedType = $this->escape($type);
             $escapedName = $this->escape($name);
-            $optionAttributes = $this->fieldAttributes($checked === '' ? ['data-wi-check', 'autocomplete'] : ['data-wi-check', 'autocomplete', 'checked']);
+            $optionAttributes = $this->fieldAttributes($checked === '' ? ['data-wi-check', 'autocomplete'] : ['data-wi-check', 'autocomplete', 'checked'], $attributes);
 
             $html .= <<<HTML
 <input class="{$inputClass}" type="{$escapedType}" name="{$escapedName}" value="{$escapedValue}" id="{$escapedId}" autocomplete="off" data-wi-check="true"{$optionAttributes}{$checked}>
@@ -112,10 +116,10 @@ HTML;
         return $html;
     }
 
-    private function renderOptions(array $options, string $type, string $name, mixed $value): string
+    private function renderOptions(array $options, string $type, string $name, mixed $value, array $attributes): string
     {
         $html = '';
-        $inputClass = $this->fieldClass('form-check-input');
+        $inputClass = $this->fieldClass('form-check-input', $attributes);
 
         foreach ($options as $optionValue => $optionName) {
             $checked = '';
@@ -126,7 +130,7 @@ HTML;
                 $checked = ' checked';
             }
 
-            $optionAttributes = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked']);
+            $optionAttributes = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked'], $attributes);
             $childHtml = '';
             $visual = $this->optionVisual($optionName);
 
@@ -141,7 +145,7 @@ HTML;
 
                 if ($children !== []) {
                     $childHtml .= "<div class='w-100 ps-3'>";
-                    $childHtml .= $this->renderOptions($children, $type, $name, $value);
+                    $childHtml .= $this->renderOptions($children, $type, $name, $value, $attributes);
                     $childHtml .= '</div>';
                 }
             }
