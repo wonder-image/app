@@ -9,8 +9,14 @@ declare(strict_types=1);
 require __DIR__ . '/../../../vendor/autoload.php';
 require __DIR__ . '/../../harness.php';
 require __DIR__ . '/../../../app/function/helper.php';
+// formToArray() senza il bootstrap completo, come in RichTextFieldTest.
+require __DIR__ . '/../../../app/function/string/common.php';
+require __DIR__ . '/../../../app/function/string/sanitize.php';
+require __DIR__ . '/../../../app/function/sql.php';
 
 use Wonder\Api\Support\ResourceApiPresenter;
+use Wonder\App\Model;
+use Wonder\App\Models\Communications\Popup;
 use Wonder\App\Resources\Communications\PopupResource;
 use Wonder\App\TranslationBootstrap;
 
@@ -125,6 +131,73 @@ check('backend: la stessa creazione senza pagine è rifiutata', fn () =>
 
 check('con pagine valide lo slug nasce ancora dal nome', fn () =>
     (PopupResource::mutateRequestValues(['name' => 'Saldi', 'pages' => ['', 'home']], 'store')['slug'] ?? null) === 'Saldi'
+);
+
+/** `pages` come lo salva prepare (formato json del Model), dopo il mutator. */
+function savedPages(array $values): ?string
+{
+    $GLOBALS['ALERT'] = null;
+    $GLOBALS['NAME'] = (object) ['folder' => ''];
+    $GLOBALS['CHARACTERS'] = [];
+
+    $field = null;
+    foreach (Popup::dataSchema() as $candidate) {
+        if ($candidate->key === 'pages') { $field = $candidate; }
+    }
+
+    $saved = formToArray('popup_test', $values, [
+        'pages' => ['input' => ['format' => Model::prepareFormatFromField($field)]],
+    ]);
+
+    return isset($saved['pages']) ? json_encode(json_decode($saved['pages'], true)) : null;
+}
+
+foreach ([
+    'stringa form-urlencoded' => ['home', '["home"]'],
+    'stringa "0"' => ['0', '["0"]'],
+    'JSON di un elenco' => ['["home"]', '["home"]'],
+] as $label => [$posted, $expected]) {
+    check("api: pages $label passa e si salva come $expected", function () use ($posted, $expected) {
+        $values = PopupResource::mutateRequestValues(['name' => 'Saldi', 'pages' => $posted], 'store', 'api');
+
+        return savedPages($values) === $expected;
+    });
+}
+
+check('api: senza normalizzare, la stringa `home` si salverebbe vuota (il bug)', fn () =>
+    savedPages(['pages' => 'home']) === '[]'
+);
+
+check('api: il JSON `null` resta un elenco vuoto, non la pagina "null"', fn () =>
+    popupRejection(['name' => 'Saldi', 'pages' => 'null'], 'store', 'api')?->getCode() === 422
+);
+
+foreach (['true', 'false'] as $visible) {
+    check("api: visible '$visible' passa", fn () =>
+        popupRejection(['visible' => $visible], 'update', 'api') === null
+    );
+}
+
+check('api: visible booleano JSON diventa la stringa del form', fn () =>
+    (PopupResource::mutateRequestValues(['visible' => true], 'update', 'api')['visible'] ?? null) === 'true'
+    && (PopupResource::mutateRequestValues(['visible' => false], 'update', 'api')['visible'] ?? null) === 'false'
+);
+
+foreach (['1' => '1', 'yes' => 'yes', 'TRUE' => 'TRUE', 'vuoto' => '', 'null' => null, 'intero' => 1] as $label => $visible) {
+    check("api: visible $label è rifiutato con 422 e messaggio tradotto", function () use ($visible) {
+        $error = popupRejection(['visible' => $visible], 'update', 'api');
+
+        return $error?->getCode() === 422 && $error->getMessage() === __t('popup.visible_invalid')
+            && $error->getMessage() !== 'popup.visible_invalid';
+    });
+}
+
+check('backend: il select manda già \'true\'/\'false\' e passa', fn () =>
+    popupRejection(['name' => 'Saldi', 'pages' => ['home'], 'visible' => 'true'], 'store', 'backend') === null
+);
+
+check('visible assente non viene controllato', fn () =>
+    !array_key_exists('visible', PopupResource::mutateRequestValues(['pages' => ['home']], 'update', 'api'))
 );
 
 summary();

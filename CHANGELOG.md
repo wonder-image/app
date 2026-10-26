@@ -13,7 +13,12 @@
   `title`, `bg_color`, `tx_color`, `url`, `url_label`, `pages`, `view`,
   `visible` (`images` no: l'upload resta nel form backend). Prima lo store API
   scartava tutto il payload e salvava una riga senza nome né pagine. Chi ha
-  l'authority dell'API popup (`avvisi`) ora può scrivere questi campi. Coperto
+  l'authority dell'API popup (`avvisi`) ora può scrivere questi campi.
+  `pages` come stringa non JSON (`pages=home` form-urlencoded, `"0"`) diventa
+  `[valore]` prima del salvataggio: prima passava il controllo ma il formato
+  `json` di prepare la salvava come `[]`. `visible` accetta solo `'true'` e
+  `'false'` (come il select del form e il toggle della lista; i booleani JSON
+  diventano le stringhe), altrimenti 422 con `popup.visible_invalid`. Coperto
   da `tests/App/Resources/PopupResourceTest.php`.
 
 ## 2.4.0-beta.6 — 2026-10-26
@@ -218,7 +223,8 @@
   `pages` arriva. Vale solo per il context `backend`: l'API del popup non
   dichiara campi scrivibili (`apiSchema()` ha solo `index`), quindi lo store
   API (usato anche da QuickCreate) riceve sempre un payload vuoto e resta
-  com'era. Nessuna migrazione: i popup già salvati senza pagine restano, si
+  com'era (esteso ad API e QuickCreate in Unreleased, «Popup: pagine
+  obbligatorie anche via API e QuickCreate»). Nessuna migrazione: i popup già salvati senza pagine restano, si
   possono ancora mostrare/nascondere e riordinare dalla lista, e alla
   prossima modifica dal form chiedono una pagina. Coperto da
   `tests/App/Resources/PopupResourceTest.php`.

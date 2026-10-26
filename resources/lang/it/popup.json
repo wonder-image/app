@@ -1,3 +1,4 @@
 {
-    "pages_required": "Scegli almeno una pagina in cui mostrare il popup."
+    "pages_required": "Scegli almeno una pagina in cui mostrare il popup.",
+    "visible_invalid": "Lo stato del popup deve essere 'true' (visibile) o 'false' (nascosto)."
 }

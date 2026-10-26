@@ -201,8 +201,25 @@ final class PopupResource extends Resource
         // non si vede da nessuna parte. Vale per form backend, API e QuickCreate
         // (che usa lo store API). In modifica si controlla solo se arriva.
         if ($action === 'store' || array_key_exists('pages', $values)) {
+            // Il formato `json` di prepare salva `[]` per ogni stringa che non
+            // è un elenco JSON: `pages=home` (o `"0"`) è una pagina sola.
+            if (is_string($values['pages'] ?? null) && !static::isJsonListOrNull($values['pages'])) {
+                $values['pages'] = [$values['pages']];
+            }
+
             if (static::selectedPages($values['pages'] ?? null) === []) {
                 throw new InvalidArgumentException(__t('popup.pages_required'), 422);
+            }
+        }
+
+        // Come le opzioni del form e il toggle della tabella: solo 'true'/'false'.
+        if (array_key_exists('visible', $values)) {
+            if (is_bool($values['visible'])) {
+                $values['visible'] = $values['visible'] ? 'true' : 'false';
+            }
+
+            if (!in_array($values['visible'], ['true', 'false'], true)) {
+                throw new InvalidArgumentException(__t('popup.visible_invalid'), 422);
             }
         }
 
@@ -260,6 +277,14 @@ final class PopupResource extends Resource
         }
 
         return $selected;
+    }
+
+    /** Elenco JSON, o `null` JSON (nessuna pagina, non la pagina "null"). */
+    private static function isJsonListOrNull(string $value): bool
+    {
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded) || ($decoded === null && json_last_error() === JSON_ERROR_NONE);
     }
 
     private static function frontendPageOptions(): array
