@@ -18,7 +18,10 @@ web scrive nel PHP error log una riga così:
 - `QUERY_COUNTER_TOP` (env) cambia quante forme mostrare, default 10.
 - In CLI la riga non si scrive. Nei test: `QueryCounter::setSink()`,
   `QueryCounter::groups()`, `QueryCounter::reset()`.
-- Fuori Debug `QueryCounter::note()` esce alla prima riga: nessun costo.
+- `QueryCounter::note()` conta solo dopo `QueryCounter::register()`, che
+  `wonder-image.php` chiama solo per le richieste web e solo in Debug. Prima
+  esce alla prima riga (un flag statico): nessun costo, e in CLI nessun conteggio.
+- Nel log va solo il path della richiesta, mai la query string.
 
 Il contatore non vede le query che usano `mysqli` direttamente: i repository
 del consenso, SSP delle tabelle backend, `prepare` dello scheduler, il DDL di
@@ -50,6 +53,16 @@ Automatica:
   scritta. Passano di qui `sqlInsert`, `sqlModify`, `sqlDelete` e i `Model`.
 - `Transaction` svuota tutto quando annulla.
 - `CreateTable` svuota lo scope della tabella dopo il DDL.
+- `LegacyTableRenames::run()` svuota `@sql.table_exists` e gli scope delle
+  tabelle rinominate.
+- `cssRoot()` e `cssColor()` svuotano `Asset::VERSION_MEMO` dopo aver
+  riscritto `root.css` e `color.css`.
+
+Non coperto: upload, resize e varianti webp delle immagini (`upload.php`,
+`resize.php`, `webp.php`, `ImageConverter`, `ResponsiveImage`) non svuotano
+`Asset::VERSION_MEMO`. Se sovrascrivono un file già versionato nella stessa
+richiesta, `Asset::version()` restituisce il filemtime vecchio fino alla
+richiesta successiva.
 
 A mano, se si scrive una tabella senza `Query` (SQL diretto su `mysqli`):
 

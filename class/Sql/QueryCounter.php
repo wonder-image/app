@@ -7,7 +7,8 @@ use Wonder\App\Debug;
 /**
  * Contatore delle query eseguite da `Query` nella richiesta, raggruppate per
  * testo normalizzato (letterali e numeri sostituiti da `?`).
- * Solo in Debug: fuori da Debug `note()` è un check booleano memoizzato.
+ * Conta solo dopo `register()`, che si attiva solo in Debug (web, da
+ * wonder-image.php): altrimenti `note()` è un check su un flag statico.
  * Vedi docs/performance.md.
  */
 final class QueryCounter
@@ -34,10 +35,10 @@ final class QueryCounter
         register_shutdown_function([self::class, 'report']);
     }
 
-    /** Conta una query. No-op se debug spento. */
+    /** Conta una query. No-op se `register()` non è stato chiamato. */
     public static function note(string $sql): void
     {
-        if (!Debug::enabled()) {
+        if (!self::$registered) {
             return;
         }
 
@@ -74,7 +75,8 @@ final class QueryCounter
 
         $line = self::formatReport(
             self::$total,
-            (string) ($_SERVER['REQUEST_URI'] ?? ''),
+            // Solo il path: la query string può contenere token.
+            (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH),
             self::groups(self::topLimit())
         );
 

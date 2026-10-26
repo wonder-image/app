@@ -13,6 +13,7 @@ function counterDebug(bool $on): void {
     unset($_ENV['QUERY_COUNTER_TOP'], $_SERVER['QUERY_COUNTER_TOP']);
     Debug::reset();
     QueryCounter::reset();
+    QueryCounter::register();
 }
 
 check('debug spento: nessun conteggio, nessun report', function () {
@@ -22,6 +23,24 @@ check('debug spento: nessun conteggio, nessun report', function () {
     QueryCounter::setSink(function (string $l) use (&$captured) { $captured[] = $l; });
     QueryCounter::report();
     return QueryCounter::total() === 0 && QueryCounter::groups() === [] && $captured === [];
+});
+
+check('debug acceso ma register() non chiamato: nessun conteggio', function () {
+    counterDebug(true);
+    QueryCounter::reset();
+    QueryCounter::note("SELECT 1");
+    return QueryCounter::total() === 0 && QueryCounter::groups() === [];
+});
+
+check('report: solo il path, mai la query string', function () {
+    counterDebug(true);
+    $_SERVER['REQUEST_URI'] = '/conferma/?token=segreto&x=1';
+    QueryCounter::note("SELECT 1");
+    $captured = [];
+    QueryCounter::setSink(function (string $l) use (&$captured) { $captured[] = $l; });
+    QueryCounter::report();
+    unset($_SERVER['REQUEST_URI']);
+    return $captured === ['[SQL] /conferma/ queries=1 top=1x SELECT ?'];
 });
 
 check('stessa forma con valori diversi: un solo gruppo', function () {

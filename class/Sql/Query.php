@@ -40,7 +40,7 @@
         private function write( string $table, string $query ): mixed
         {
 
-            RequestMemo::forget($table);
+            RequestMemo::forget(trim($table, '`'));
 
             return $this->run($query);
 

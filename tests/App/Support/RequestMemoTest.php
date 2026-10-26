@@ -9,6 +9,7 @@ require __DIR__.'/../../../app/function/user/user.php';
 
 use Wonder\App\Debug;
 use Wonder\App\Support\Asset;
+use Wonder\App\Support\LegacyTableRenames;
 use Wonder\App\Support\RequestMemo;
 use Wonder\Sql\Query;
 use Wonder\Sql\QueryCounter;
@@ -60,6 +61,8 @@ final class MemoFakeResult
     public function fetch_assoc(): ?array { return $this->rows[0] ?? null; }
 
     public function fetch_all(int $mode = MYSQLI_NUM): array { return $this->rows; }
+
+    public function free(): void {}
 }
 
 final class MemoFakeTransaction implements TransactionConnection
@@ -127,6 +130,28 @@ check('Insert/Update/Delete/Truncate svuotano solo lo scope della propria tabell
     return $ok;
 });
 
+check('scrittura con nome tabella fra backtick: svuota lo scope senza backtick', function () {
+    $mysqli = memoFresh();
+    RequestMemo::put('user', 'k', 1);
+    (new Query($mysqli))->Truncate('`user`');
+    return !RequestMemo::has('user', 'k');
+});
+
+check('LegacyTableRenames: dopo il RENAME sqlTableExists non usa il memo', function () {
+    $mysqli = memoFresh();
+    $mysqli->rows["SHOW TABLES LIKE 'vecchia'"] = [['t' => 'vecchia']];
+    $before = sqlTableExists('vecchia');
+    RequestMemo::put('vecchia', 'k', 1);
+    $mysqli->rows = ['SELECT TABLE_NAME' => [['TABLE_NAME' => 'vecchia']]];
+    LegacyTableRenames::run($mysqli, ['vecchia' => 'nuova']);
+    $renamed = in_array('RENAME TABLE `vecchia` TO `nuova`', $mysqli->log, true);
+    $mysqli->rows = ["SHOW TABLES LIKE 'nuova'" => [['t' => 'nuova']]];
+    return $before && $renamed
+        && sqlTableExists('vecchia') === false
+        && sqlTableExists('nuova') === true
+        && !RequestMemo::has('vecchia', 'k');
+});
+
 check('Transaction annullata: memo svuotato', function () {
     RequestMemo::reset();
     RequestMemo::put('user', 'k', 1);
@@ -149,6 +174,7 @@ check('le query di Query passano dal contatore in Debug', function () {
     $_ENV['APP_DEBUG'] = '1';
     Debug::reset();
     QueryCounter::reset();
+    QueryCounter::register();
     (new Query($mysqli))->Select('user', ['id' => 7], 1);
     (new Query($mysqli))->Select('user', ['id' => 8], 1);
     $groups = QueryCounter::groups();

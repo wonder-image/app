@@ -120,6 +120,11 @@ final class Asset
      * restituiti invariati. Non solleva mai eccezioni.
      *
      * `$root` e `$appUrl` sono iniettabili per i test.
+     *
+     * Il filemtime è memoizzato per richiesta (`VERSION_MEMO`): chi riscrive un
+     * file esistente e poi ne stampa l'URL nella stessa richiesta deve chiamare
+     * `RequestMemo::forget(Asset::VERSION_MEMO)`. Lo fanno `cssRoot()` e
+     * `cssColor()`; upload, resize e varianti webp delle immagini no.
      */
     public static function version(string $url, ?string $root = null, ?string $appUrl = null): string
     {
