@@ -33,6 +33,11 @@
   markup che `createCard()` della lib costruiva nel browser
   (`div.col-12 > div.card.border > div.card-body.row.g-3`). Le pagine non
   dipendono più dal JS per mostrare le card.
+- **Popup frontend su `Modal::make()->frontend()` (`B-CORE-I5`).** Il
+  componente `frontend.overlay.popup` esce già aperto con `wi-show`, senza lo
+  `<script>` che chiamava `modal()` al `load`. Titolo in `<h2>` invece che in
+  `<div>`, footer dentro il dialogo, bottone con `btn-icon-right` invece di
+  `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder.
 - Il componente `frontend.account.pagination` è un wrapper di
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.
@@ -42,6 +47,9 @@
   usa `Elements\Frontend\Pagination`.
 
 ### Rimosso
+- **Componenti `frontend.overlay.modal` e `frontend.ui.button`
+  (`B-CORE-I5`).** L'unico chiamante era il popup; nessun override nei siti
+  locali. Al loro posto `Modal::make()->frontend()` e `Button::make()`.
 - **Helper `wiCard()`, `wiCardLink()`, `wiCardStats()`, `wiCardAccordion()` e
   `wiAccordion()` (`B-CORE-I3`).** Nessun chiamante in app, nei moduli e nei
   siti locali. Al loro posto: `Card` (dentro un layout Resource, via

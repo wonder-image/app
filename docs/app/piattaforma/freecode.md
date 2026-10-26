@@ -89,11 +89,14 @@ Lo stesso vale per componenti come:
 
 ```php
 <?= \Wonder\View\View::component('overlay.popup') ?>
-<?= \Wonder\View\View::component('ui.button', ['label' => 'Apri']) ?>
+<?= \Wonder\View\View::component('overlay.loading-spinner') ?>
 ```
 
 Nota: se il nome non parte da `frontend.` o `backend.`, viene considerato frontend.
-Per esempio `ui.button` diventa `frontend/ui/button.php`.
+Per esempio `overlay.popup` diventa `frontend/overlay/popup.php`.
+
+I componenti `overlay.modal` e `ui.button` non esistono più: una finestra si
+scrive con `Modal::make()->frontend()->id(...)`, un bottone con `Button::make()`.
 
 ### Layout
 
@@ -218,6 +221,9 @@ File:
 - `custom/view/components/frontend/overlay/popup.php`
 
 Usalo solo se devi cambiare il markup o il comportamento visuale.
+Il core rende il popup con `Modal::make()->frontend()` già aperto (classe
+`wi-show`): lo script della lib lo collega al caricamento, senza `<script>` nella
+pagina. Il contatore di visite in sessione resta nel componente.
 Se devi cambiare dati, filtri o regole di visibilita', correggi prima:
 
 - `class/App/Models/Communications/Popup.php`

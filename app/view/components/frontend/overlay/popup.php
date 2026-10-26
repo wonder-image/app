@@ -2,6 +2,8 @@
 
 use Wonder\App\Support\FrontendRouteCatalog;
 use Wonder\App\Models\Communications\Popup;
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\Modal;
 
 $pageKey = FrontendRouteCatalog::currentPageKey();
 
@@ -34,39 +36,22 @@ if ($urlLabel === '') {
     $urlLabel = __t('components.buttons.more');
 }
 
-$body = '';
-
-$footer = null;
-$showFooter = $url !== '';
+$modal = Modal::make($title)
+    ->id((string) $popup['code'])
+    ->frontend()
+    // Il server la manda già aperta: niente script di apertura.
+    ->addClass('wi-show')
+    ->headerClass('b-0')
+    ->titleClass('subtitle')
+    ->dialogClass((string) ($popup['content_class'] ?? ''))
+    ->footerClass((string) ($popup['footer_class'] ?? 'b-0'));
 
 if (is_string($image) && $image !== '') {
-    $body = __ri($image)->alt($title)->addClass('p-r f-start w-100')->skeleton(false)->render();
+    $modal->components([__ri($image)->alt($title)->addClass('p-r f-start w-100')->skeleton(false)]);
 }
 
-if ($showFooter) {
-    $footer = '
-        <div class="btn-group j-content-end">'.
-            \Wonder\View\View::component('ui.button', [
-                'label' => $urlLabel,
-                'href' => $url,
-                'class' => 'wi-close-modal',
-                'type' => 'primary',
-                'iconClass' => 'bi bi-chevron-right',
-            ])
-        .'</div>';
+if ($url !== '') {
+    $modal->footer([Button::make($urlLabel, $url)->arrow()->addClass('wi-close-modal')]);
 }
 
-echo \Wonder\View\View::component('overlay.modal', [
-    'id' => $popup['code'],
-    'title' => $title,
-    'titleClass' => 'subtitle',
-    'headerClass' => 'b-0',
-    'bodyClass' => 'no-scrollbar',
-    'contentClass' => $popup['content_class'] ?? '',
-    'footerClass' => $popup['footer_class'] ?? 'b-0',
-    'body' => $body,
-    'footer' => $footer,
-    'showFooter' => $showFooter,
-]);
-?>
-<script> window.addEventListener('load', () => { modal('#<?=$popup['code']?>'); }) </script>
+echo $modal->render();
