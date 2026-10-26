@@ -7,6 +7,7 @@ use Throwable;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\Backend\Support\ReadonlyFields;
+use Wonder\Elements\Components\Alert;
 use Wonder\Elements\Components\Card;
 
 final class ResourcePagePresenter
@@ -190,14 +191,12 @@ final class ResourcePagePresenter
 
     public function listFallback(Throwable $exception): string
     {
-        $message = htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8');
+        $alert = Alert::make(
+            "La tabella non può essere caricata senza una connessione database valida.\n".$exception->getMessage(),
+            'warning'
+        )->inline()->addClass('mb-0')->render();
 
-        return ResourceFormLayoutRenderer::renderLayout((new Card)->components([<<<HTML
-<div class="alert alert-warning mb-0">
-    La tabella non può essere caricata senza una connessione database valida.<br>
-    <small class="text-body-secondary">{$message}</small>
-</div>
-HTML]));
+        return ResourceFormLayoutRenderer::renderLayout((new Card)->components([$alert]));
     }
 
     public function legacyName(): object

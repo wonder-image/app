@@ -16,12 +16,11 @@ use Wonder\Elements\Components\Card;
     $formMethod = (string) ($FORM_METHOD ?? 'POST');
     $csrfField = \Wonder\Http\Csrf::fieldFor($formMethod);
     $saveBarAttributes = ['data-wi-save-bar' => !$locked, 'data-wi-save-bar-dirty' => !$locked && !empty($FORM_ERRORS)];
-    $readonlyNotice = htmlspecialchars((string) ($READONLY_NOTICE ?? ''), ENT_QUOTES, 'UTF-8');
+    $readonlyNotice = \Wonder\Elements\Components\Alert::make((string) ($READONLY_NOTICE ?? ''), 'warning')
+        ->inline()->addClass('mb-0')->render();
     $noticeHtml = '
         <div class="col-12">
-            '.ResourceFormLayoutRenderer::renderLayout((new Card)->components([
-                '<div class="alert alert-warning mb-0">'.$readonlyNotice.'</div>',
-            ])).'
+            '.ResourceFormLayoutRenderer::renderLayout((new Card)->components([$readonlyNotice])).'
         </div>';
     $submitHtml = function (string $class = ''): string {
         if (!function_exists('submit')) {
