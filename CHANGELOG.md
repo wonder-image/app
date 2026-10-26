@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Corretto
+- **Popup: pagine obbligatorie anche via API e QuickCreate.** Il controllo
+  `popup.pages_required` di `PopupResource::mutateRequestValues()` (2.4.0-beta.6)
+  valeva solo per il context `backend`. Ora vale in ogni context: creazione
+  senza pagine e modifica che manda `pages` vuoto rispondono 422 con lo stesso
+  messaggio (`InvalidArgumentException`, codice 422; l'API lo restituisce in
+  `response`, QuickCreate lo mostra nel modal). Perché il 422 sia risolvibile,
+  `apiSchema()` dichiara i campi scrivibili di `store` e `update`: `name`,
+  `title`, `bg_color`, `tx_color`, `url`, `url_label`, `pages`, `view`,
+  `visible` (`images` no: l'upload resta nel form backend). Prima lo store API
+  scartava tutto il payload e salvava una riga senza nome né pagine. Chi ha
+  l'authority dell'API popup (`avvisi`) ora può scrivere questi campi. Coperto
+  da `tests/App/Resources/PopupResourceTest.php`.
+
 ## 2.4.0-beta.6 — 2026-10-26
 
 ### Breaking

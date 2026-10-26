@@ -10,6 +10,7 @@ require __DIR__ . '/../../../vendor/autoload.php';
 require __DIR__ . '/../../harness.php';
 require __DIR__ . '/../../../app/function/helper.php';
 
+use Wonder\Api\Support\ResourceApiPresenter;
 use Wonder\App\Resources\Communications\PopupResource;
 use Wonder\App\TranslationBootstrap;
 
@@ -85,14 +86,37 @@ check('la pagina «0» resta una pagina', fn () =>
     popupRejection(['pages' => ['0']], 'store') === null
 );
 
-// L'API scarta il payload prima del mutator (apiSchema() ha solo `index`):
-// lì il controllo non deve scattare, altrimenti il 422 non sarebbe risolvibile.
-check('API: creazione senza pagine non rifiutata (payload già scartato)', fn () =>
-    popupRejection([], 'store', 'api') === null
+// Prima l'API scartava il payload (apiSchema() aveva solo `index`) e il
+// controllo era escluso lì; ora dichiara i campi scrivibili e vale ovunque.
+check('API: creazione senza pagine rifiutata con lo stesso messaggio', function () {
+    $error = popupRejection(['name' => 'Saldi'], 'store', 'api');
+
+    return $error !== null
+        && $error->getCode() === 422
+        && $error->getMessage() === __t('popup.pages_required');
+});
+
+check('API: modifica con pagine vuote rifiutata', fn () =>
+    popupRejection(['pages' => []], 'update', 'api')?->getCode() === 422
 );
 
-check('API: modifica con pagine vuote non rifiutata', fn () =>
-    popupRejection(['pages' => []], 'update', 'api') === null
+check('API: modifica che non manda le pagine: passa', fn () =>
+    popupRejection(['visible' => 'false'], 'update', 'api') === null
+);
+
+check('API: creazione con pagine valide passa', fn () =>
+    popupRejection(['name' => 'Saldi', 'pages' => ['home']], 'store', 'api') === null
+);
+
+$presenter = new ResourceApiPresenter(PopupResource::class);
+$posted = ['name' => 'Saldi', 'pages' => ['home'], 'images' => ['x'], 'position' => 3, 'id' => 9];
+
+check('API store: `name` e `pages` arrivano al mutator, `images`/`position`/`id` no', fn () =>
+    $presenter->writableValues($posted, 'store') === ['name' => 'Saldi', 'pages' => ['home']]
+);
+
+check('API update: `pages` arriva al mutator', fn () =>
+    array_key_exists('pages', $presenter->writableValues(['pages' => []], 'update'))
 );
 
 check('backend: la stessa creazione senza pagine è rifiutata', fn () =>
