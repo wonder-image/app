@@ -46,6 +46,36 @@ check('senza IP (CLI): IT', function () use ($fresh) {
     return Geo::country() === 'IT';
 });
 
+$memo = new ReflectionProperty(Geo::class, 'memo');
+
+check('senza sessione: usa il valore in memoria', function () use ($fresh, $memo) {
+    $fresh(['REMOTE_ADDR' => '127.0.0.1']);
+    unset($_SESSION);
+    $memo->setValue(null, 'DE');
+    $country = Geo::country();
+    $_SESSION = [];
+
+    return $country === 'DE';
+});
+
+check('senza sessione e senza memo: calcola e ricorda per la richiesta', function () use ($fresh, $memo) {
+    $fresh(['REMOTE_ADDR' => '127.0.0.1']);
+    unset($_SESSION);
+    $country = Geo::country();
+    $memoized = $memo->getValue();
+    $noSession = !isset($_SESSION);
+    $_SESSION = [];
+
+    return $country === 'IT' && $memoized === 'IT' && $noSession;
+});
+
+check('con la sessione il memo non conta: sessione vuota, si ricalcola', function () use ($fresh, $memo) {
+    $fresh(['REMOTE_ADDR' => '127.0.0.1']);
+    $memo->setValue(null, 'DE');
+
+    return Geo::country() === 'IT' && ($_SESSION['system_cache']['country'] ?? null) === 'IT';
+});
+
 echo "IPInfo e IP non pubblici\n";
 
 check('privati, locali e riservati non sono pubblici', fn () =>
@@ -55,6 +85,32 @@ check('privati, locali e riservati non sono pubblici', fn () =>
     && !IPInfo::isPublicIp('non-un-ip'));
 
 check('IP pubblici sì', fn () => IPInfo::isPublicIp('8.8.8.8') && IPInfo::isPublicIp('2001:4860:4860::8888'));
+
+check('IPv4 mappato (dual-stack): pubblico se lo è l\'IPv4', fn () =>
+    IPInfo::isPublicIp('::ffff:8.8.8.8') && IPInfo::isPublicIp('::FFFF:203.0.114.9')
+    && !IPInfo::isPublicIp('::ffff:10.0.0.1') && !IPInfo::isPublicIp('::ffff:127.0.0.1')
+    && !IPInfo::isPublicIp('::ffff:192.168.1.10'));
+
+check('normalizeIp: toglie ::ffff: solo davanti a un IPv4 valido', fn () =>
+    IPInfo::normalizeIp('::ffff:203.0.113.9') === '203.0.113.9'
+    && IPInfo::normalizeIp('::FFFF:8.8.8.8') === '8.8.8.8'
+    && IPInfo::normalizeIp('::ffff:abcd') === '::ffff:abcd'
+    && IPInfo::normalizeIp('2001:4860:4860::8888') === '2001:4860:4860::8888'
+    && IPInfo::normalizeIp('8.8.8.8') === '8.8.8.8'
+    && IPInfo::normalizeIp(null) === null);
+
+check('IPv4 mappato privato: niente provider, IP normalizzato per i provider', function () {
+    $start = microtime(true);
+    $info = new IPInfo('::ffff:10.0.0.1');
+
+    return $info->Country() === 'IT' && $info->IP === '10.0.0.1' && microtime(true) - $start < 0.5;
+});
+
+check('countryCode: solo due lettere, in maiuscolo', fn () =>
+    IPInfo::countryCode('FR') === 'FR' && IPInfo::countryCode(' it ') === 'IT'
+    && IPInfo::countryCode('') === null && IPInfo::countryCode(null) === null
+    && IPInfo::countryCode('ITA') === null && IPInfo::countryCode('1T') === null
+    && IPInfo::countryCode(['IT']) === null);
 
 check('IP privati: dati di default, nessuna attesa di rete', function () {
     $start = microtime(true);
@@ -68,6 +124,10 @@ check('IP privati: dati di default, nessuna attesa di rete', function () {
 
 $ipinfo = (string) file_get_contents($root.'/class/Plugin/GeoPlugin/IPInfo.php');
 check('sorgente: searchData() passa da isPublicIp()', fn () => str_contains($ipinfo, 'if (self::isPublicIp($this->IP))'));
+check('sorgente: i tre provider validano il codice paese prima di usarlo', fn () =>
+    substr_count($ipinfo, '($code = self::countryCode($this->result[') === 3
+    && substr_count($ipinfo, "'country_code' => \$code") === 3
+    && !str_contains($ipinfo, "\$this->data['country_code']\n"));
 
 echo "session.php e lettori\n";
 

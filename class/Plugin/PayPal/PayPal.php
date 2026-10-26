@@ -34,6 +34,7 @@
             $call = new Call($this->ENDPOINT."/v1/oauth2/token", [ "grant_type" => "client_credentials" ]);
             $call->authBasic( $this->CLIENT_ID, $this->CLIENT_SECRET );
             $call->contentType('application/x-www-form-urlencoded');
+            $call->timeout(30);
 
             $response = json_decode($call->result(), true);
 
@@ -52,6 +53,7 @@
 
             $call->authBearer( $this->TOKEN );
             $call->contentType('application/json');
+            $call->timeout(30);
 
             $response = json_decode($call->result(), true);
 
@@ -83,6 +85,7 @@
 
             $call->authBearer( $this->TOKEN );
             $call->contentType('application/json');
+            $call->timeout(30);
 
             return json_decode($call->result(), true);
 
@@ -94,6 +97,7 @@
 
             $call->authBearer( $this->TOKEN );
             $call->method('GET');
+            $call->timeout(30);
 
             return json_decode($call->result(), true);
 

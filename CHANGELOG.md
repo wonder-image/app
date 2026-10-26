@@ -33,10 +33,16 @@
   continua a funzionare: con `null` il paese si calcola dentro.
 - **`Wonder\Api\Call` ha un timeout di default di 10 secondi (`D-I10`).** Prima
   non ne aveva (attesa illimitata di cURL). Una chiamata che può durare di più
-  deve impostarlo con `->timeout($secondi)`. Alla scadenza `call()` restituisce
-  `success => false` con `errno` 28 e `result()` il messaggio d'errore di cURL.
-  Vale anche per `curl()`, `curlJson()`, `wiApi()`/`wiApiJson()`, Nexi e PayPal;
-  `IPInfo` e reCAPTCHA hanno già i loro timeout più corti.
+  deve impostarlo con `->timeout($secondi)` (è il totale, connessione inclusa).
+  Alla scadenza `call()` restituisce `success => false` con `errno` 28;
+  `result()` restituisce la stringa d'errore di cURL (non `null`), quindi chi la
+  passa a `json_decode()` ottiene `null`; `curlJson()` e `wiApiJson()`
+  restituiscono `null`. Vale anche per `curl()` e `wiApi()`. PayPal (token,
+  ordine, capture, info ordine) e Nexi (`CallPost`, `CallGet`) impostano 30 s,
+  così una capture lenta non si interrompe dopo che il pagamento è avvenuto; la
+  creazione rapida del backend chiama lo store con 60 s (`curlJson()` accetta
+  ora un `$timeout` opzionale in coda). `IPInfo` (massimo 3 s) e reCAPTCHA
+  (massimo 5 s) hanno già i loro timeout più corti.
 
 ### Aggiunto
 - **`Geo::country()`** (`Wonder\Plugin\GeoPlugin\Geo`): paese del visitatore
@@ -61,7 +67,10 @@
 ### Cambiato
 - **`IPInfo` non interroga i provider per IP privati, locali o riservati**
   (`IPInfo::isPublicIp()`): restano i dati di default (`IT`). Il risultato era
-  già quello, ma costava fino a tre chiamate HTTP.
+  già quello, ma costava fino a tre chiamate HTTP. Gli IPv4 mappati
+  (`::ffff:203.0.113.9`, server dual-stack) si trattano come IPv4. Un provider
+  che non restituisce un codice paese di due lettere (anche `""`) non vale:
+  si prova il successivo, poi `IT`.
 - **`LanguageRedirector::redirectByCountry()` non calcola il paese per i bot**,
   che vanno comunque sulla lingua default.
 - **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le

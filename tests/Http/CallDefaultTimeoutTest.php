@@ -26,28 +26,52 @@ for ($i = 0; $i < 50; $i++) {
     usleep(100000);
 }
 
+// Stesso costruttore con un default di 1 s: verifica che il default si applichi senza aspettarne 10.
+final class ShortDefaultCall extends Call { public const DEFAULT_TIMEOUT = 1; }
+
 check('il default è 10 secondi', fn () => Call::DEFAULT_TIMEOUT === 10);
 
+check('il costruttore applica DEFAULT_TIMEOUT', fn () => str_contains(
+    (string) file_get_contents(__DIR__ . '/../../class/Api/Call.php'),
+    'curl_setopt($this->cURL, CURLOPT_TIMEOUT, static::DEFAULT_TIMEOUT);'
+));
+
 check('risposta sotto il default: la chiamata riesce', function () use ($port) {
-    $result = (new Call("http://127.0.0.1:{$port}/?s=2", []))->method('GET')->call();
+    $result = (new Call("http://127.0.0.1:{$port}/?s=1", []))->method('GET')->call();
 
     return $result['success'] === true && $result['result'] === 'ok';
 });
 
-check('timeout() più corto sovrascrive il default: errno 28', function () use ($port) {
+check('senza setter la chiamata si interrompe al default: errno 28', function () use ($port) {
     $start = microtime(true);
-    $result = (new Call("http://127.0.0.1:{$port}/?s=3", []))->method('GET')->timeout(1)->call();
+    $result = (new ShortDefaultCall("http://127.0.0.1:{$port}/?s=3", []))->method('GET')->call();
 
     return $result['success'] === false && $result['errno'] === 28 && microtime(true) - $start < 2.5;
 });
 
-check('senza setter la chiamata si interrompe a 10 secondi', function () use ($port) {
-    $start = microtime(true);
-    $result = (new Call("http://127.0.0.1:{$port}/?s=13", []))->method('GET')->call();
-    $elapsed = microtime(true) - $start;
+check('timeout() sovrascrive il default', function () use ($port) {
+    $result = (new ShortDefaultCall("http://127.0.0.1:{$port}/?s=2", []))->method('GET')->timeout(4)->call();
 
-    return $result['success'] === false && $result['errno'] === 28 && $elapsed >= 9.5 && $elapsed < 12;
+    return $result['success'] === true && $result['result'] === 'ok';
 });
+
+require_once __DIR__ . '/../../app/function/other/curl.php';
+
+check('curlJson(): timeout opzionale in coda, alla scadenza null', function () use ($port) {
+    $start = microtime(true);
+    $result = curlJson("http://127.0.0.1:{$port}/?s=3", 'GET', [], null, null, null, 1);
+
+    return $result === null && microtime(true) - $start < 2.5;
+});
+
+$root = __DIR__ . '/../..';
+check('sorgente: QuickCreate chiama lo store con 60 s', fn () => str_contains(
+    (string) file_get_contents($root . '/class/Backend/Support/QuickCreateController.php'),
+    "curlJson(\$url, 'POST', \$values, \$token, null, null, 60)"
+));
+check('sorgente: PayPal (4 chiamate) e Nexi (2) impostano 30 s', fn () =>
+    substr_count((string) file_get_contents($root . '/class/Plugin/PayPal/PayPal.php'), '$call->timeout(30);') === 4
+    && substr_count((string) file_get_contents($root . '/class/Plugin/Nexi/Nexi.php'), '$call->timeout(30);') === 2);
 
 proc_terminate($server);
 @unlink($dir . '/router.php');

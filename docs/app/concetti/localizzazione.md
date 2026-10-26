@@ -87,13 +87,15 @@ Route::area('frontend')
 `Wonder\Plugin\GeoPlugin\Geo::country()` restituisce il codice ISO a due
 lettere del visitatore (`IT` se non si trova). Il calcolo è pigro: alla prima
 chiamata `IPInfo` interroga i provider (ipinfo.io, poi ip-api.com, poi
-ipwho.is, 3 s + 1 s di connessione ciascuno) e il codice finisce in
+ipwho.is, al massimo 3 s ciascuno, connessione inclusa) e il codice finisce in
 `$_SESSION['system_cache']['country']`; le chiamate successive lo rileggono da
 lì. La sessione nuova non fa più chiamate: `config/app/session.php` prepara solo
 `system_cache` e `system_cache.geo`.
 
 Con IP privati, locali o riservati (`127.0.0.1`, `::1`, `10.x`, `192.168.x`...)
-nessun provider viene chiamato e resta `IT`.
+nessun provider viene chiamato e resta `IT`. Gli IPv4 mappati dei server
+dual-stack (`::ffff:203.0.113.9`) valgono come il loro IPv4. Se un provider non
+restituisce un codice di due lettere si passa al successivo.
 
 ```php
 use Wonder\Plugin\GeoPlugin\Geo;

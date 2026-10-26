@@ -29,6 +29,8 @@
                 $this->IP = $ip;
 
             }
+
+            $this->IP = self::normalizeIp($this->IP);
             
             $this->searchData();
 
@@ -60,13 +62,13 @@
             $url .= $this->IP;
             $url .= '?token='.Credentials::api()->ipinfo_api_key;
 
-            if ($this->callCurl($url)) {
+            if ($this->callCurl($url) && ($code = self::countryCode($this->result['countryCode'] ?? null)) !== null) {
 
                 $this->data = [
                     'continent' => $this->result['continent'] ?? $this->data['continent'],
                     'continent_code' => $this->result['continentCode'] ?? $this->data['continent_code'],
                     'country' => $this->result['country'] ?? $this->data['country'],
-                    'country_code' => $this->result['countryCode'] ?? $this->data['country_code']
+                    'country_code' => $code
                 ];
 
                 return true;
@@ -85,13 +87,14 @@
             $url .= $this->IP;
             $url .= '?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,zip,lat,lon,timezone,currency,isp,org,as,query';
 
-            if ($this->callCurl($url) && $this->result['status'] == 'success') {
+            if ($this->callCurl($url) && ($this->result['status'] ?? null) == 'success'
+                && ($code = self::countryCode($this->result['countryCode'] ?? null)) !== null) {
 
                 $this->data = [
                     'continent' => $this->result['continent'] ?? $this->data['continent'],
                     'continent_code' => $this->result['continentCode'] ?? $this->data['continent_code'],
                     'country' => $this->result['country'] ?? $this->data['country'],
-                    'country_code' => $this->result['countryCode'] ?? $this->data['country_code']
+                    'country_code' => $code
                 ];
 
                 return true;
@@ -109,13 +112,14 @@
             $url = 'http://ipwho.is/';
             $url .= $this->IP;
 
-            if ($this->callCurl($url) && $this->result['success'] == true) {
+            if ($this->callCurl($url) && ($this->result['success'] ?? false) == true
+                && ($code = self::countryCode($this->result['country_code'] ?? null)) !== null) {
 
                 $this->data = [
                     'continent' => $this->result['continent'] ?? $this->data['continent'],
                     'continent_code' => $this->result['continent_code'] ?? $this->data['continent_code'],
                     'country' => $this->result['country'] ?? $this->data['country'],
-                    'country_code' => $this->result['country_code'] ?? $this->data['country_code']
+                    'country_code' => $code
                 ];
 
                 return true;
@@ -126,9 +130,34 @@
 
         }
 
+        /** Codice paese ISO a due lettere, maiuscolo; null se il provider non ne dà uno valido. */
+        public static function countryCode(mixed $code): ?string
+        {
+
+            $code = is_string($code) ? strtoupper(trim($code)) : '';
+
+            return preg_match('/^[A-Z]{2}$/', $code) === 1 ? $code : null;
+
+        }
+
+        /** `::ffff:203.0.113.9` (IPv4 mappato, server dual-stack) diventa `203.0.113.9`. */
+        public static function normalizeIp(?string $ip): ?string
+        {
+
+            if ($ip !== null && preg_match('/^::ffff:(.+)$/i', $ip, $match) === 1
+                && filter_var($match[1], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+                return $match[1];
+            }
+
+            return $ip;
+
+        }
+
         /** Solo IP pubblici: privati, locali e riservati non dicono il paese. */
         public static function isPublicIp(?string $ip): bool
         {
+
+            $ip = self::normalizeIp($ip);
 
             return $ip !== null && filter_var(
                 $ip,

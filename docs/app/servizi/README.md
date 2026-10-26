@@ -28,8 +28,9 @@ Questa sezione è divisa in due aree operative:
 I servizi esterni passano da `Wonder\Api\Call` (anche `curl()`, `curlJson()`,
 `wiApi()`). Ogni chiamata ha un timeout di default di 10 secondi
 (`Call::DEFAULT_TIMEOUT`); senza, cURL aspetterebbe all'infinito. Chi ha bisogno
-di altro lo imposta: `->timeout($secondi)` per il totale, `->connectTimeout($secondi)`
-per la sola connessione.
+di altro lo imposta: `->timeout($secondi)` per il totale (connessione inclusa),
+`->connectTimeout($secondi)` per la sola connessione. `curlJson()` accetta il
+timeout come ultimo parametro.
 
 ```php
 $call = (new Wonder\Api\Call($url, $values))
@@ -38,6 +39,7 @@ $call = (new Wonder\Api\Call($url, $values))
     ->timeout(30);
 ```
 
-Alla scadenza `call()` restituisce `success => false` con `errno` 28 e
-`result()` il messaggio d'errore di cURL. `IPInfo` (3 s + 1 s) e reCAPTCHA
-(5 s + 3 s) usano timeout più corti.
+Alla scadenza `call()` restituisce `success => false` con `errno` 28,
+`result()` la stringa d'errore di cURL (non `null`), `curlJson()` e
+`wiApiJson()` `null`. `IPInfo` (massimo 3 s) e reCAPTCHA (massimo 5 s) usano
+timeout più corti; PayPal e Nexi 30 s, la creazione rapida del backend 60 s.

@@ -17,7 +17,8 @@
         public static function country(): string
         {
 
-            $cached = $_SESSION['system_cache']['country'] ?? self::$memo;
+            // Con la sessione vale solo la sessione; il memo serve quando non c'è.
+            $cached = isset($_SESSION) ? ($_SESSION['system_cache']['country'] ?? null) : self::$memo;
 
             if (is_string($cached) && $cached !== '') {
                 return $cached;

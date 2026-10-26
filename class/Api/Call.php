@@ -24,7 +24,7 @@
 
             # Inizio connessione
             $this->cURL = curl_init();
-            curl_setopt($this->cURL, CURLOPT_TIMEOUT, self::DEFAULT_TIMEOUT);
+            curl_setopt($this->cURL, CURLOPT_TIMEOUT, static::DEFAULT_TIMEOUT);
 
         }
 
