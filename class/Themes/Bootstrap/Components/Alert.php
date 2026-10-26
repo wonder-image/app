@@ -4,10 +4,11 @@ namespace Wonder\Themes\Bootstrap\Components;
 
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Concerns\MergesClassAttribute;
 
 class Alert extends Component
 {
-    use HasAttributes;
+    use HasAttributes, MergesClassAttribute;
 
     public function render($class): string
     {
@@ -17,6 +18,11 @@ class Alert extends Component
         $level = strtolower((string) ($schema['level'] ?? 'info'));
         $dismissible = (bool) ($schema['dismissible'] ?? true);
         $type = $this->themeType($level);
+
+        if ((bool) ($schema['inline'] ?? false)) {
+            return $this->renderInline($schema, $message, $title, $type);
+        }
+
         $icon = $this->iconByType($type);
         $id = $this->resolveId($schema['id'] ?? null);
         $safeId = $this->escape($id);
@@ -37,6 +43,43 @@ class Alert extends Component
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * Avviso di pagina Bootstrap, visibile. Le classi date al componente
+     * finiscono nello stesso attributo `class`.
+     */
+    private function renderInline(array $schema, string $message, string $title, string $type): string
+    {
+        $attributes = is_array($schema['attributes'] ?? null) ? $schema['attributes'] : [];
+        $dismissible = (bool) ($schema['dismissible'] ?? false);
+        $id = trim(is_scalar($schema['id'] ?? null) ? (string) $schema['id'] : '');
+        $classes = $this->mergeClassAttribute(
+            "alert alert-{$type}".($dismissible ? ' alert-dismissible fade show' : ''),
+            $attributes['class'] ?? []
+        );
+        unset($attributes['class']);
+
+        $attributes = array_merge(
+            ['class' => $classes],
+            $id !== '' ? ['id' => $id] : [],
+            ['role' => 'alert'],
+            $attributes
+        );
+
+        $html = '<div '.$this->renderAttributes($attributes).'>';
+
+        if ($title !== '') {
+            $html .= '<strong class="alert-heading d-block">'.$this->escape($title).'</strong>';
+        }
+
+        $html .= $message;
+
+        if ($dismissible) {
+            $html .= '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        }
+
+        return $html.'</div>';
     }
 
     private function themeType(string $level): string

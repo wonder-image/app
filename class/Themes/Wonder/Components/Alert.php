@@ -6,6 +6,10 @@ use Wonder\Themes\Wonder\Component;
 
 class Alert extends Component
 {
+    /**
+     * `inline()` qui è ignorato: la lib non ha un avviso di pagina e
+     * `wi-alert` è sempre fisso a lato dello schermo.
+     */
     public function render($class): string
     {
         $schema = $class->getSchema();
