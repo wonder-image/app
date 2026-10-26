@@ -424,7 +424,7 @@ check('SelectDate (wonder) espone il contratto del datepicker alla lib', functio
         && !str_contains($html, '<script');
 });
 
-check('check() legacy (bootstrap): un solo data-wi-check per casella', function () {
+check('check() legacy (bootstrap): un solo data-wi-check per casella, required sul gruppo', function () {
     $codice = <<<'PHP'
         require 'vendor/autoload.php';
         require 'app/function/string/common.php';
@@ -441,12 +441,13 @@ check('check() legacy (bootstrap): un solo data-wi-check per casella', function 
     }
 
     foreach ($caselle as $casella) {
-        if (valoriDi($casella, 'data-wi-check') !== ['true'] || valoriDi($casella, 'required') !== [null]) {
+        // L'obbligatorio è «almeno una»: sta sul contenitore, non sulle caselle.
+        if (valoriDi($casella, 'data-wi-check') !== ['true'] || valoriDi($casella, 'required') !== []) {
             return false;
         }
     }
 
-    return true;
+    return str_contains($html, 'wi-checkbox-required');
 });
 
 summary();
