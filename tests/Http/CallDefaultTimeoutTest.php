@@ -73,7 +73,13 @@ check('sorgente: PayPal (4 chiamate) e Nexi (2) impostano 30 s', fn () =>
     substr_count((string) file_get_contents($root . '/class/Plugin/PayPal/PayPal.php'), '$call->timeout(30);') === 4
     && substr_count((string) file_get_contents($root . '/class/Plugin/Nexi/Nexi.php'), '$call->timeout(30);') === 2);
 
+// Con i worker, proc_terminate() chiude solo il padre: prima i figli
+$serverPid = (int) (proc_get_status($server)['pid'] ?? 0);
+if ($serverPid > 0) {
+    exec('pkill -TERM -P ' . $serverPid);
+}
 proc_terminate($server);
+proc_close($server);
 @unlink($dir . '/router.php');
 @rmdir($dir);
 summary();
