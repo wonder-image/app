@@ -64,7 +64,7 @@ $GLOBALS['NAME'] = (object) [ 'table' => 'event' ];
 $GLOBALS['PATH'] = (object) [ 'api' => '/api' ];
 $GLOBALS['TEXT'] = (object) [ 'this' => 'questo', 'titleS' => '"evento"' ];
 
-$confirm = ' data-wi-confirm="Sei sicuro di voler eliminare questo &quot;evento&quot;?" data-wi-confirm-title="ATTENZIONE" data-wi-confirm-ok="Elimina" data-wi-confirm-variant="danger"';
+$confirm = ' data-wi-confirm="Sei sicuro di voler eliminare questo &quot;evento&quot;?" data-wi-confirm-title="ATTENZIONE" data-wi-confirm-ok="Elimina" data-wi-confirm-variant="danger" data-wi-confirm-cancel="Chiudi"';
 
 $obj = delete(4);
 eq('delete action', $obj->action, "onclick=\"ajaxRequest('/api/backend/delete/?table=event&id=4')\"".$confirm);

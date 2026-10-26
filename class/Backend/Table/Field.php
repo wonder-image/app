@@ -240,7 +240,7 @@
                 'confirm_title' => 'ATTENZIONE',
                 'confirm_ok' => 'Elimina',
                 'confirm_variant' => 'danger',
-            ]);
+            ]).' data-wi-confirm-cancel="Chiudi"';
 
         }
 

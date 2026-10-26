@@ -155,6 +155,7 @@ check('delete: conferma data-wi-confirm e ajaxRequest, senza modal()', function 
         && str_contains($html, 'data-wi-confirm-title="ATTENZIONE"')
         && str_contains($html, 'data-wi-confirm-ok="Elimina"')
         && str_contains($html, 'data-wi-confirm-variant="danger"')
+        && str_contains($html, 'data-wi-confirm-cancel="Chiudi"')
         && str_contains($html, "ajaxRequest(\n                '/api/backend/delete/?database=main&table=immobili&id=7',\n                reloadDataTable, \n                '#tbl-1'")
         && !str_contains($html, 'modal(');
 });

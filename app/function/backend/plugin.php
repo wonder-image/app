@@ -99,7 +99,7 @@
         $text = "Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?";
 
         return ' data-wi-confirm="'.htmlspecialchars($text, ENT_QUOTES, 'UTF-8').'"'
-            .' data-wi-confirm-title="ATTENZIONE" data-wi-confirm-ok="Elimina" data-wi-confirm-variant="danger"';
+            .' data-wi-confirm-title="ATTENZIONE" data-wi-confirm-ok="Elimina" data-wi-confirm-variant="danger" data-wi-confirm-cancel="Chiudi"';
 
     }
 
