@@ -56,7 +56,7 @@ foreach ($files as $id => $image) {
         continue;
     }
 
-    $format = (array) (\Wonder\App\Table::$list[$table][$column]['input']['format'] ?? []);
+    $format = (array) (\Wonder\App\Table::key($table)->schema()[$column]['input']['format'] ?? []);
     $basePath = rtrim((string) $PATH->rUpload, '/');
 
     if ($folder !== '') {

@@ -81,9 +81,9 @@ final class ListProvider
             $legacy = [];
         }
 
-        $tableFields    = AppTable::$list[strtolower($table)] ?? [];
+        $tableFields    = AppTable::key($table)->schema();
         $schema         = trim($schema);
-        $resourceFields = $schema !== '' ? (AppTable::$list[strtolower($schema)] ?? []) : [];
+        $resourceFields = $schema !== '' ? AppTable::key($schema)->schema() : [];
 
         return array_replace_recursive(
             is_array($legacy) ? $legacy : [],

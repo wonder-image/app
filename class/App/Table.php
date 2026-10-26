@@ -7,6 +7,9 @@
         public string $name;
         public static array $list = [];
 
+        /** Schemi registrati ma non ancora calcolati: nome => callable. */
+        private static array $resolvers = [];
+
         public function __construct( string $name )
         {
 
@@ -25,11 +28,52 @@
         {
 
             self::$list[$this->name] = $schema;
+            unset(self::$resolvers[$this->name]);
             return $this;
 
         }
 
-        public function schema() {
+        /**
+         * Schema calcolato al primo accesso (schema(), prepare(), ...) e poi
+         * memorizzato in `$list`. Fino ad allora `$list` ha la chiave con `[]`,
+         * così i controlli `array_key_exists` esistenti la riconoscono.
+         */
+        public function setSchemaResolver( callable $resolver ): static
+        {
+
+            self::$list[$this->name] = [];
+            self::$resolvers[$this->name] = $resolver;
+            return $this;
+
+        }
+
+        /** Registrata (anche lazy), senza calcolare lo schema. */
+        public static function has( string $name ): bool
+        {
+
+            $name = strtolower($name);
+
+            return array_key_exists($name, self::$list) || isset(self::$resolvers[$name]);
+
+        }
+
+        public function schema()
+        {
+
+            if (isset(self::$resolvers[$this->name])) {
+
+                // Tolto prima della chiamata: un resolver che rilegge sé stesso non va in loop.
+                $resolver = self::$resolvers[$this->name];
+                unset(self::$resolvers[$this->name]);
+
+                try {
+                    self::$list[$this->name] = (array) $resolver();
+                } catch (\Throwable $error) {
+                    self::$resolvers[$this->name] = $resolver;
+                    throw $error;
+                }
+
+            }
 
             return self::$list[$this->name] ?? [];
 

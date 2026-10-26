@@ -15,7 +15,7 @@
         $table = strtoupper($NAME->table);
         $PAGE_TABLE = isset($TABLE->$table)
             ? $TABLE->$table
-            : (\Wonder\App\Table::$list[strtolower($NAME->table)] ?? []);
+            : \Wonder\App\Table::key((string) $NAME->table)->schema();
     }
     
     if (!empty($_GET['modify']) || !empty($_GET['duplicate'])) {

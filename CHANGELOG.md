@@ -3,6 +3,21 @@
 ## Unreleased
 
 ### Breaking
+- **Schemi `resource:*` di `Wonder\App\Table` calcolati al primo accesso.**
+  `app/config/app/table.php` non chiama più `prepareSchema()` per ogni Resource
+  a ogni richiesta (costruiva l'intero `formSchema()` con le opzioni dal DB:
+  186 query per pagina, anche in frontend). Registra un resolver con il nuovo
+  `Table::key(...)->setSchemaResolver(callable)`; `schema()`, `columns()`,
+  `hasColumn()`, `prepare()` e `prepareFor()` lo risolvono e lo memorizzano.
+  Gli schemi delle tabelle legacy e dei Model restano calcolati subito. Chi
+  legge `Table::$list['resource:…']` direttamente trova la chiave vuota (`[]`)
+  finché qualcuno non la risolve: va migrato a `Table::key(...)->schema()`.
+  `array_key_exists(..., Table::$list)` vede ancora la chiave; il nuovo
+  `Table::has()` fa lo stesso controllo senza leggere `$list`. Nel core sono
+  migrati backend `index.php`/`list.php`, `backendPageTableSchema()`, `ListProvider`,
+  `ListTableRequest`, `TableAuthorization`, `file-delete`, `Repeater`,
+  `ResourcePageController` e `ResourceApiController`. Un'eccezione in
+  `formSchema()` ora esce al primo accesso, non più al boot.
 - **Rimossi gli helper `wiCard()`, `wiCardLink()`, `wiCardStats()`,
   `wiCardAccordion()`, `wiAccordion()` e i componenti view
   `frontend.overlay.modal` e `frontend.ui.button`.** Nei repo locali non hanno

@@ -258,11 +258,11 @@ final class ResourceApiController
 
         $resourceSchemaName = $this->resourceClass::prepareSchemaName();
 
-        if (array_key_exists($resourceSchemaName, Table::$list)) {
+        if (Table::has($resourceSchemaName)) {
             return Table::key($resourceSchemaName)->prepareFor($tableName, $values, $oldValues);
         }
 
-        if (array_key_exists($tableName, Table::$list)) {
+        if (Table::has($tableName)) {
             return Table::key($tableName)->prepare($values, $oldValues);
         }
 

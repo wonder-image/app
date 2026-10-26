@@ -8,17 +8,17 @@ use Wonder\App\Table as AppTable;
  * Validazione della richiesta POST di `api.backend.list.table`.
  *
  * La tabella e lo schema arrivano dal client: valgono solo se presenti in
- * `Wonder\App\Table::$list`, il registro popolato al bootstrap da
+ * `Wonder\App\Table` (`Table::has()`), il registro popolato al bootstrap da
  * `app/config/app/table.php` (tabelle legacy di `app/build/table` e
- * `custom/build/table`, Model di `ModelRegistry`, schemi delle Resource).
+ * `custom/build/table`, Model di `ModelRegistry`, schemi lazy delle Resource).
  */
 final class ListTableRequest
 {
     /**
-     * Chiave canonica (minuscola, come in `Table::$list`) della tabella
+     * Chiave canonica (minuscola, come in `Table`) della tabella
      * richiesta se registrata, altrimenti null (l'handler risponde 422).
      *
-     * @param array<string,mixed>|null $registry default `Table::$list`
+     * @param array<string,mixed>|null $registry default il registro di `Table`
      */
     public static function table(mixed $table, ?array $registry = null): ?string
     {
@@ -32,7 +32,7 @@ final class ListTableRequest
     /**
      * Schema richiesto se registrato; uno schema sconosciuto viene ignorato.
      *
-     * @param array<string,mixed>|null $registry default `Table::$list`
+     * @param array<string,mixed>|null $registry default il registro di `Table`
      */
     public static function schema(mixed $schema, ?array $registry = null): string
     {
@@ -46,6 +46,9 @@ final class ListTableRequest
     /** @param array<string,mixed>|null $registry */
     private static function registered(string $name, ?array $registry): bool
     {
-        return array_key_exists(strtolower($name), $registry ?? AppTable::$list);
+        // Senza registro esplicito: Table::has() riconosce le chiavi lazy senza risolverle.
+        return $registry === null
+            ? AppTable::has($name)
+            : array_key_exists(strtolower($name), $registry);
     }
 }

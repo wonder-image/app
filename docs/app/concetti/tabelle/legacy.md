@@ -104,8 +104,8 @@ un'altra tabella o un altro schema. Chiave assente ⇒ nessun group by (tabelle
 non aggregate invariate).
 
 La rotta `api.backend.list.table` è `guarded()`: senza sessione backend non
-risponde. La tabella arriva dal client ma vale solo se è una chiave di
-`Table::$list` (cioè una tabella dichiarata), e la connessione è quella
+risponde. La tabella arriva dal client ma vale solo se è registrata in
+`Wonder\App\Table` (`Table::has()`, anche se lazy), e la connessione è quella
 principale del sito. `SSP::complex` usa la connessione `mysqli` del chiamante
 (niente più PDO né DSN da POST), mette tabella e chiave primaria tra backtick
 con `Query::escapeIdentifier()` e lega i termini di ricerca con

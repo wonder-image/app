@@ -148,7 +148,7 @@ Gli endpoint `api.backend.change.boolean` (e `.active`, `.visible`),
 - tabella con una Resource registrata: vale `permissionSchema()->backend(...)`
   di `update` (cambio booleano, ordinamento, file) o `delete`;
 - tabella legacy senza Resource: solo `admin`;
-- `file/delete` e `file/move`: tabella risolta su `Table::$list`, colonna con
+- `file/delete` e `file/move`: tabella registrata in `Table` (schema letto con `Table::key(...)->schema()`), colonna con
   input di tipo file (`format.file`), `folder` normalizzato sotto `upload/`;
   altrimenti `422` generico, senza SQL;
 - `authority`: solo tabella `user`, mai la propria riga, rotta

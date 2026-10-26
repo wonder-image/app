@@ -30,7 +30,7 @@ final class ConfigCodec
 
     /**
      * Contesto di firma dei frammenti di `api.backend.list.table`: chiave
-     * canonica della tabella (minuscola, come in `Table::$list`), schema
+     * canonica della tabella (minuscola, come in `Table`), schema
      * (già normalizzato da `ListTableRequest::schema()`) e nome del campo.
      */
     public static function context(string $table, string $schema, string $field): string
