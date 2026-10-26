@@ -171,9 +171,13 @@
   tutte spuntate: nel backend non si poteva creare un popup senza spuntare
   tutte le pagine. Ora `required` resta sul gruppo, come classe
   `wi-{type}-required` sul contenitore (come `CheckTree` e `DynamicCheck`),
-  che la lib backend controlla come «almeno una». Nel tema Wonder la lib
-  frontend non ha ancora un controllo per quella classe: lì l'obbligo va
-  verificato lato server. Coperto da `tests/Themes/CheckGroupRequiredTest.php`.
+  che la lib backend controlla come «almeno una». Prima il salvataggio era
+  bloccato anche dal `check()` della lib del backend, non solo dal browser.
+  Per avere il controllo lato server va dichiarato `required()` anche nel
+  `dataSchema`. Nel tema Wonder frontend la lib non legge ancora
+  `.wi-checkbox-required`/`.wi-radio-required`: lì un gruppo obbligatorio non
+  ha controllo lato client (follow-up nella lib). Coperto da
+  `tests/Themes/CheckGroupRequiredTest.php`.
 
 ## 2.4.0-beta.5 — 2026-10-26
 
