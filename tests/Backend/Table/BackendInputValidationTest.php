@@ -70,12 +70,13 @@ check('uploadFile: file sotto upload sì; risalita, symlink esterni e cartelle n
 });
 
 /** selectDatabase esce con 422: si esegue in un sottoprocesso con sqlDatabase() finto. */
-function selectDatabaseIn(string $database): string {
+function selectDatabaseIn(string $database, ?array $allowed = null, ?array $databases = null): string {
+    $databases ??= ['main' => 'db_main', 'shop' => 'db_shop', 'information_schema' => 'INFORMATION_SCHEMA'];
     $autoload = escapeshellarg(realpath(__DIR__ . '/../../../vendor/autoload.php'));
     $code = 'require ' . $autoload . ';'
         . 'function sqlDatabase($d) { echo "SELECTED:" . $d; }'
-        . '$GLOBALS["DB"] = (object) ["database" => ["main" => "db_main", "shop" => "db_shop", "information_schema" => "INFORMATION_SCHEMA"]];'
-        . 'echo \Wonder\App\Support\ApiRequest::selectDatabase(' . var_export($database, true) . ');';
+        . '$GLOBALS["DB"] = (object) ["database" => ' . var_export($databases, true) . '];'
+        . 'echo \Wonder\App\Support\ApiRequest::selectDatabase(' . var_export($database, true) . ', ' . var_export($allowed, true) . ');';
     return (string) shell_exec('php -d display_errors=0 -r ' . escapeshellarg($code) . ' 2>/dev/null');
 }
 
@@ -85,12 +86,35 @@ check('selectDatabase: main e alias configurati accettati', function () {
         && selectDatabaseIn('shop') === 'SELECTED:shopshop';
 });
 
+// Regressione: Field::ajaxRequest() invia il nome reale (SELECT DATABASE()), non l'alias.
+check('selectDatabase: nome reale di un database configurato => suo alias', function () {
+    return selectDatabaseIn('db_main') === 'main'
+        && selectDatabaseIn('db_shop') === 'SELECTED:shopshop';
+});
+
 check('selectDatabase: alias sconosciuto o information_schema => 422 senza selezione', function () {
     $expected = '{"success":false,"status":422,"response":"Parametri non validi."}';
-    return selectDatabaseIn('db_shop') === $expected
+    return selectDatabaseIn('db_other') === $expected
+        && selectDatabaseIn('DB_SHOP') === $expected
         && selectDatabaseIn('information_schema') === $expected
         && selectDatabaseIn('INFORMATION_SCHEMA') === $expected
         && selectDatabaseIn('mysql') === $expected;
+});
+
+// Il veto vale sul nome ricevuto, non solo su quello risolto: con un alias
+// per lo schema di sistema (meta => information_schema) la richiesta
+// `information_schema` non deve passare come `meta`.
+check('selectDatabase: information_schema rifiutato anche se un alias lo mappa', function () {
+    $expected = '{"success":false,"status":422,"response":"Parametri non validi."}';
+    $databases = ['main' => 'db_main', 'shop' => 'db_shop', 'meta' => 'information_schema'];
+    return selectDatabaseIn('information_schema', null, $databases) === $expected
+        && selectDatabaseIn('INFORMATION_SCHEMA', null, $databases) === $expected;
+});
+
+check('selectDatabase: $allowed esplicito vale sull\'alias risolto', function () {
+    $expected = '{"success":false,"status":422,"response":"Parametri non validi."}';
+    return selectDatabaseIn('db_shop', ['main']) === $expected
+        && selectDatabaseIn('db_shop', ['shop']) === 'SELECTED:shopshop';
 });
 
 summary();
