@@ -164,6 +164,17 @@
   Le pagine backend `log/auth-users/show`, `log/consent/show` e
   `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
 
+### Corretto
+- **`CheckGroup` obbligatorio: basta una casella, non tutte.** Con
+  `required()` i renderer Bootstrap e Wonder mettevano `required` su ogni
+  `<input>` del gruppo, quindi il browser bloccava l'invio finché non erano
+  tutte spuntate: nel backend non si poteva creare un popup senza spuntare
+  tutte le pagine. Ora `required` resta sul gruppo, come classe
+  `wi-{type}-required` sul contenitore (come `CheckTree` e `DynamicCheck`),
+  che la lib backend controlla come «almeno una». Nel tema Wonder la lib
+  frontend non ha ancora un controllo per quella classe: lì l'obbligo va
+  verificato lato server. Coperto da `tests/Themes/CheckGroupRequiredTest.php`.
+
 ## 2.4.0-beta.5 — 2026-10-26
 
 ### Aggiunto
