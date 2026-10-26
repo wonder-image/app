@@ -17,6 +17,9 @@ use Wonder\App\LegacyGlobals;
  */
 final class Asset
 {
+    /** Scope di RequestMemo con il filemtime per percorso usato da `version()`. */
+    public const VERSION_MEMO = '@asset.version';
+
     /** Inline bounded CSS, optionally resolving relative asset URLs first. */
     public static function inlineStyle(
         string $url,
@@ -122,19 +125,26 @@ final class Asset
     {
         $path = self::resolve($url, $root, $appUrl);
 
-        if ($path !== null) {
+        if ($path === null) {
+            return $url;
+        }
+
+        // Un solo stat per percorso e richiesta; i file assenti non si memoizzano
+        // (una variante può essere generata più avanti nella stessa richiesta).
+        $modified = RequestMemo::get(self::VERSION_MEMO, $path);
+
+        if ($modified === null) {
             clearstatcache(true, $path);
-        }
+            $modified = is_file($path) ? @filemtime($path) : false;
 
-        if ($path !== null && is_file($path)) {
-            $modified = @filemtime($path);
-
-            if ($modified !== false) {
-                return $url.'?v='.(string) $modified;
+            if ($modified === false) {
+                return $url;
             }
+
+            RequestMemo::put(self::VERSION_MEMO, $path, $modified);
         }
 
-        return $url;
+        return $url.'?v='.(string) $modified;
     }
 
     /**

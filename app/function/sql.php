@@ -176,9 +176,30 @@
 
         global $mysqli;
 
+        // Memo per richiesta solo dei true: CreateTable può creare la tabella dopo un false.
+        // La chiave include la connessione: sqlDatabase() può cambiare $mysqli.
+        $memoKey = sqlMemoConnectionKey($mysqli).':'.$table;
+
+        if (Wonder\App\Support\RequestMemo::has('@sql.table_exists', $memoKey)) {
+            return true;
+        }
+
         $SQL = new Wonder\Sql\Query($mysqli);
 
-        return $SQL->TableExists( $table );
+        $exists = $SQL->TableExists( $table );
+
+        if ($exists) {
+            Wonder\App\Support\RequestMemo::put('@sql.table_exists', $memoKey, true);
+        }
+
+        return $exists;
+
+    }
+
+    /** Parte di chiave dei memo per richiesta che identifica la connessione. */
+    function sqlMemoConnectionKey($mysqli = null): string {
+
+        return $mysqli instanceof mysqli ? (string) spl_object_id($mysqli) : 'main';
 
     }
 

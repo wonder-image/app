@@ -773,6 +773,8 @@
                     # presenti. L'integrità resta garantita dalle scritture runtime.
                     $this->mysqli->query('SET FOREIGN_KEY_CHECKS = 0');
                     $ddlOk = $this->mysqli->query( $query );
+                    // Struttura cambiata: le righe memoizzate della tabella non valgono più.
+                    \Wonder\App\Support\RequestMemo::forget($name);
 
                     if ($ddlOk) {
 

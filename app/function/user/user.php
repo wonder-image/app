@@ -6,7 +6,19 @@
         global $DEFAULT;
 
         if ($filter == 'id') {
-            $SQL = sqlSelect('user', [$filter => $value], 1);
+            // Memo per richiesta della sola riga: l'oggetto si ricostruisce a ogni chiamata.
+            // Query svuota lo scope 'user' a ogni scrittura sulla tabella.
+            global $mysqli;
+            $memoKey = sqlMemoConnectionKey($mysqli).':'.(is_scalar($value) ? (string) $value : '');
+            $SQL = Wonder\App\Support\RequestMemo::get('user', $memoKey);
+
+            if ($SQL === null) {
+                $SQL = sqlSelect('user', [$filter => $value], 1);
+
+                if (!empty($SQL->success) && is_scalar($value)) {
+                    Wonder\App\Support\RequestMemo::put('user', $memoKey, $SQL);
+                }
+            }
         } else {
             $SQL = sqlSelect('user', [$filter => $value, 'deleted' => 'false'], 1);
         }
@@ -59,6 +71,24 @@
         $RETURN->deleted = filter_var($RETURN->deleted ?? true, FILTER_VALIDATE_BOOLEAN);
 
         return $RETURN;
+
+    }
+
+    /**
+     * Dimentica la riga di `infoUser()` memoizzata per un id, o tutte con `null`.
+     * Le scritture via Query/Model/sql*() su `user` lo fanno già da sole: serve
+     * solo dopo una scrittura che non passa da lì (SQL grezzo, altra connessione).
+     */
+    function forgetInfoUser($id = null): void {
+
+        if ($id === null) {
+            Wonder\App\Support\RequestMemo::forget('user');
+            return;
+        }
+
+        global $mysqli;
+
+        Wonder\App\Support\RequestMemo::forget('user', sqlMemoConnectionKey($mysqli).':'.(string) $id);
 
     }
 

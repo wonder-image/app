@@ -2,6 +2,7 @@
 
     namespace Wonder\Sql;
 
+    use Wonder\App\Support\RequestMemo;
     use Wonder\Sql\Connection;
     use Wonder\Sql\Utility\Error;
 
@@ -22,13 +23,26 @@
         
         }
 
-        /** Unico punto di esecuzione: conta la query in Debug (QueryCounter). */
-        private function run( string $query ): \mysqli_result | bool
+        /**
+         * Unico punto di esecuzione: conta la query in Debug (QueryCounter).
+         * @return \mysqli_result|bool
+         */
+        private function run( string $query ): mixed
         {
 
             QueryCounter::note($query);
 
             return $this->mysqli->query($query);
+
+        }
+
+        /** Scrittura: svuota prima il memo per richiesta della tabella. */
+        private function write( string $table, string $query ): mixed
+        {
+
+            RequestMemo::forget($table);
+
+            return $this->run($query);
 
         }
 
@@ -640,7 +654,7 @@
             $RETURN->table = $table;
             $RETURN->query = $query;
 
-            if (!$this->run( $query )) {
+            if (!$this->write( $table, $query )) {
                 
                 $RETURN->success = false;
 
@@ -668,7 +682,7 @@
             $RETURN->table = $table;
             $RETURN->query = $query;
 
-            if (!$this->run( $query )) { 
+            if (!$this->write( $table, $query )) { 
 
                 $RETURN->success = false;
                 
@@ -765,7 +779,7 @@
             $query .= self::escapeIdentifier($table);
             $query .= ($condition == null) ? "" : $this->buildConditions( $condition, true );
 
-            if (!$RESULT = $this->run( $query )) {
+            if (!$RESULT = $this->write( $table, $query )) {
                 
                 new Error( 'Delete', $table, $query, $this->mysqli );
 
@@ -781,7 +795,7 @@
             $query = "TRUNCATE TABLE ";
             $query .= self::escapeIdentifier($table);
 
-            if (!$RESULT = $this->run( $query )) {
+            if (!$RESULT = $this->write( $table, $query )) {
                 
                 new Error( 'Truncate', $table, $query, $this->mysqli );
 
