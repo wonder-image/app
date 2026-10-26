@@ -192,7 +192,7 @@ le implementa entrambe, senza effetti) riceve in più:
 | Gancio | Cosa fa |
 |---|---|
 | `personalFormFields(array $fields, object $user, array $values)` | Campi del modal dei dati personali, per chiave, già idratati: si inseriscono campi (la data di nascita) o si cambiano i valori iniziali. `$values` sono i valori postati quando il modal si riapre. |
-| `personalModals(array $modals, object $user, string $open, array $errors, array $values)` | Modal in più di «Dati personali». `$open` è il `form` da riaprire con `$errors` e `$values`. |
+| `personalModals(array $modals, object $user, string $open, array $errors, array $values)` | Modal in più di «Dati personali». `$open` è il `form` da riaprire con `$errors` e `$values` (filtrati da `Csrf::oldInput()`: token e password hanno la chiave ma il valore vuoto). |
 | `savePersonalForm(string $form, object $user, array $input): ?array` | POST di «Dati personali» con un `form` che il core non conosce: `null` se il form non è dell'estensione (il core risponde 404), altrimenti la lista di errori tradotti, vuota se il salvataggio è riuscito. |
 | `pageErrors(array $errors, object $user, string $page)` | Avvisi di pagina, stampati fuori dai form. |
 | `afterEmailConfirmed(int $userId, string $email)` | Dopo il cambio email, nella stessa transazione: un'eccezione `AccountSaveFailed` annulla il cambio. |

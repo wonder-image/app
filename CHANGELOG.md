@@ -14,6 +14,11 @@
   `Csrf::flashFailure()`. `CsrfGuard` e la creazione rapida del backend
   restano `403` ma con il testo tradotto della notifica `929`, senza «CSRF»
   né «token».
+- **Pannello account: i `$values` dei modal passano da `Csrf::oldInput()`.**
+  `personalModals()` e i form del core ricevono `_csrf`, `csrf_token`,
+  `logout_token`, `current_password` e `password*` con la chiave ma vuoti
+  (prima `_csrf`, `current_password` e `password` mancavano, gli altri
+  arrivavano con il valore scritto).
 
 ## 2.4.0-beta.4 — 2026-10-21
 

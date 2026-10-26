@@ -121,10 +121,10 @@ class AccountController
         return trim((string) (\sqlSelect('user', ['id' => $userId], 1)->row['password'] ?? '')) !== '';
     }
 
-    /** I valori postati da rimettere nei form: senza token, password e campo `form`. */
+    /** I valori postati da rimettere nei form, senza il campo `form`: token e password restano con la chiave ma vuoti. */
     protected function personalValues(): array
     {
-        return array_diff_key($this->post(), array_flip([Csrf::FIELD, 'form', 'current_password', 'password']));
+        return Csrf::oldInput(array_diff_key($this->post(), ['form' => true]));
     }
 
     protected function requireSection(string $section): void
