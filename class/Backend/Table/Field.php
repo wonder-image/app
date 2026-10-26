@@ -209,17 +209,7 @@
 
         private function deleteRow() {
 
-            $action = "onclick=\"modal(
-                'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '{$this->link->api}/backend/delete/?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}',
-                'ATTENZIONE',
-                'Elimina',
-                'danger',
-                'Chiudi',
-                'dark',
-                'reloadDataTable', 
-                '#".$this->table->id."'
-            )\"";
+            $action = $this->ajaxRequest("{$this->link->api}/backend/delete/").$this->deleteConfirm();
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
 
@@ -227,29 +217,30 @@
 
         private function deleteAuthority() {
 
-            $url = "{$this->link->api}/backend/authority/?database={$this->table->database}&table={$this->table->name}&id={$this->rowId}";
+            $key = [];
 
             if ($this->user->authority != '') {
-                $url .= "&authority={$this->user->authority}";
+                $key['authority'] = $this->user->authority;
             }
 
             if ($this->user->area != '') {
-                $url .= "&area={$this->user->area}";
+                $key['area'] = $this->user->area;
             }
 
-            $action = "onclick=\"modal(
-                'Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?',
-                '$url',
-                'ATTENZIONE',
-                'Elimina',
-                'danger',
-                'Chiudi',
-                'dark',
-                'reloadDataTable', 
-                '#".$this->table->id."'
-            )\"";
+            $action = $this->ajaxRequest("{$this->link->api}/backend/authority/", $key).$this->deleteConfirm();
 
             return $this->actionButtonItem("Elimina", $action, 'danger', true);
+
+        }
+
+        private function deleteConfirm(): string {
+
+            return $this->confirmAttributes([
+                'confirm' => "Sei sicuro di voler eliminare {$this->text->this} {$this->text->titleS}?",
+                'confirm_title' => 'ATTENZIONE',
+                'confirm_ok' => 'Elimina',
+                'confirm_variant' => 'danger',
+            ]).' data-wi-confirm-cancel="Chiudi"';
 
         }
 

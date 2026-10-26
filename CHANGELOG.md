@@ -3,6 +3,23 @@
 ## Unreleased
 
 ### Breaking
+- **Backend: rimossi l'helper PHP `modal()` e il markup `#modal`.** Il file
+  `app/function/backend/modal.php` non c'è più e `header.php` del backend non
+  stampa più la modale Bootstrap `#modal`. I siti devono avere
+  **wonder-image (lib) >= 2.1.2-alpha.31**: le versioni precedenti (alpha.30 e
+  prima) eliminano le righe ripetibili leggendo `#modal button.send`, che ora
+  manca (TypeError in `inputRow.js`, la riga non si toglie); file e `modal()` JS
+  del backend usano già `wi.confirm` dalla alpha.23. Il vincolo
+  `extra.wonder.lib` (e `package.json`) è `^2.1.2-alpha.31`: `php forge update`
+  si ferma se la lib installata è più vecchia; aggiornarla con
+  `npm install 'wonder-image@^2.1.2-alpha.31'` (il tag `latest` su npm non è
+  l'ultima alpha) e rilanciare. Le voci Elimina della tabella (`Field`) e i
+  bottoni legacy `delete()` / `removeAuthorization()` chiedono conferma con
+  `data-wi-confirm*` (Annulla resta «Chiudi») e poi chiamano `ajaxRequest`
+  sullo stesso URL, invece di `onclick="modal(...)"`. Un sito che stampava a
+  mano `<?=modal()?>` o chiamava la funzione PHP `modal()` va migrato su `Button::post()->confirm()` / `data-wi-confirm` o `wi.confirm()`:
+  nei pacchetti e nei siti verificati non ce n'è nessuno. La `modal()` JS della
+  lib resta come alias `@deprecated` di `wi.confirm`.
 - **Rimossi gli helper `wiCard()`, `wiCardLink()`, `wiCardStats()`,
   `wiCardAccordion()`, `wiAccordion()` e i componenti view
   `frontend.overlay.modal` e `frontend.ui.button`.** Nei repo locali non hanno
@@ -19,7 +36,7 @@
 - Il flag `WI_POPUP_RENDERED` non si azzera: uno script CLI che rende più
   pagine nello stesso processo deve fare `unset($GLOBALS['WI_POPUP_RENDERED'])`.
 - Il popup frontend e le card server-side richiedono `wonder-image` lib
-  `2.1.2-alpha.24` o successiva; il vincolo del core è già `^2.1.2-alpha.30`.
+  `2.1.2-alpha.24` o successiva; il vincolo del core è `^2.1.2-alpha.31`.
 
 ### Aggiunto
 - **`Alert::inline()`.** Nel tema Bootstrap l'Alert esce come avviso di pagina
