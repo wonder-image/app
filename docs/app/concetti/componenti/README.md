@@ -46,6 +46,8 @@ avvisi — senza scrivere HTML/CSS a mano.
 | `GoogleReviews` | `Elements/Components/GoogleReviews.php` | recensioni Google di una sede con le attribuzioni richieste ([Sedi](../sedi.md#recensioni-google)) |
 | `ChoiceGroup` | `Elements/Components/ChoiceGroup.php` | `fieldset` con legend e una lista di `Choice` |
 | `Steps` | `Elements/Components/Steps.php` | percorso a passi (fatto, in corso, da fare) |
+| `EmptyState` | `Elements/Frontend/EmptyState.php` | stato vuoto del frontend: icona, titolo, testo, azione (solo tema Wonder) |
+| `Pagination` | `Elements/Frontend/Pagination.php` | paginazione del frontend, generica o dai conti di `AccountPagination` (solo tema Wonder) |
 | `Image` | `Elements/Media/Image.php` | immagine responsive |
 | `Video` | `Elements/Media/Video.php` | video HTML5 |
 | `Iframe` | `Elements/Media/Iframe.php` | contenuto iframe |
@@ -96,10 +98,31 @@ public static function formLayoutSchema(): ?Form
 
 Esempio reale completo: `class/App/Resources/Css/CssAlertResource.php`.
 
-`<wi-card>` è dismesso: non aggiungerne di nuovi né chiamare
-`wiCard()`/`wiCardLink()` in codice nuovo, usa `Card`, che rende
-`<div class="card">` e non ha opzioni per cambiare tag. Le occorrenze esistenti
-si sostituiscono quando si tocca la pagina.
+`<wi-card>` è dismesso: non aggiungerne di nuovi, usa `Card`, che rende
+`<div class="card">` e non ha opzioni per cambiare tag. In `class/` e `app/`
+non ne resta nessuno; nei siti e nei moduli si sostituiscono quando si tocca la
+pagina. Fuori da un layout Resource la Card passa da
+`ResourceFormLayoutRenderer::renderLayout()`, che produce lo stesso markup di
+`createCard()` della lib (`div.col-12 > div.card.border > div.card-body.row.g-3`).
+In un template con PHP mescolato il blocco si cattura con `ob_start()`:
+
+```php
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
+
+<?php ob_start(); ?>
+    <h3>Report</h3>
+<?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
+```
+
+Gli helper `wiCard()`,
+`wiCardStats()`, `wiCardAccordion()` e `wiAccordion()` sono stati rimossi;
+resta `wiPreIfArray()`, che mostra un JSON in un `<pre>`.
 
 ## InfoCard e MetricCard
 
@@ -124,7 +147,7 @@ Solo `null` e una stringa vuota usano il placeholder `--`: `0` e `'0'`
 restano valori validi. Il placeholder e il livello del valore sono
 configurabili con `->placeholder('n/d')` e `->valueLevel(4)`.
 
-Per un KPI usa `MetricCard`, che sostituisce `wiCardStats()`:
+Per un KPI usa `MetricCard`, che ha preso il posto di `wiCardStats()` (rimosso):
 
 ```php
 use Wonder\Elements\Components\MetricCard;
@@ -433,8 +456,17 @@ Alert::make('Operazione completata', 'success')
 ```
 
 `Alert::make($message, $level = 'info')`; poi `->title()`, `->message()`,
-`->level()`, `->dismissible()`. Livelli tipici: `info`, `success`, `warning`,
-`danger`.
+`->level()`, `->dismissible()`. Livelli: `info`, `success`, `warning`,
+`error`.
+
+Nel backend l'Alert è un toast nascosto finché `alertToast()` non lo apre. Per
+un avviso fisso di pagina usa `->inline()`: nel tema Bootstrap esce
+`<div class="alert alert-{tipo}" role="alert">`, con titolo e chiusura solo se
+chiesti; nel tema Wonder `inline()` è ignorato.
+
+```php
+Alert::make('Pagina in sola lettura.', 'warning')->inline()->addClass('mb-0');
+```
 
 ## Esempio: Button, Badge, Group, Dropdown
 
@@ -456,6 +488,9 @@ Button::post('/backend/publish/', 'Pubblica')
 Badge::make('Bozza')
     ->variant('secondary')
     ->outline();
+
+// In linea: solo <span>/<a>, senza il <div> della colonna (columnSpan() ignorato).
+$cella = 'Ordine #1042 '.Badge::make('Pagato')->variant('success')->inline()->render('bootstrap');
 
 ButtonGroup::make([
     Button::make('Annulla')->variant('secondary')->outline(),
@@ -614,6 +649,84 @@ ChoiceGroup::make('Pagamento')
         Choice::make('payment_method_id', 2)->title('Bonifico')->panel($istruzioni),
     );
 ```
+
+## Text nel tema Wonder
+
+`Text` e `RichText` (che lo estende) si rendono in entrambi i temi. Nel tema
+Wonder le utility sono quelle della lib:
+
+| Metodo | Bootstrap | Wonder |
+|---|---|---|
+| `bold()` | `fw-bold` | `fw-700` |
+| `small()` | `small` | `text-small` |
+| `muted()` | `text-body-secondary` | `tx-secondary` |
+| `color('x')` | `text-x` | `tx-x`, solo se `x` è un ruolo della palette del sito (`color.css` dai token) |
+| `align()` | `text-<valore>` | `a-l` (`start`, `left`), `a-c` (`center`), `a-r` (`end`, `right`); `justify` non aggiunge classi |
+| `lead()` | `lead` | `subtitle` |
+| `italic()` | `fst-italic` | nessuna classe: la lib non ha una utility |
+
+Nel tema Wonder il testo esce senza `<div>` intorno, a meno di un `columnSpan()`
+esplicito (`col-N`, come `Container`): `Text::make('Eliminare?')` è
+`<p>Eliminare?</p>`. Classi, `id()` e attributi vanno sul tag del testo. I link
+inline sono `<a>` semplici: `Link` da solo non ha un renderer Wonder.
+
+## EmptyState e Pagination
+
+Due Element del frontend (`Wonder\Elements\Frontend\*`), solo nel tema Wonder,
+sulle classi `.wi-empty-state*`, `.wi-pagination*` e `.wi-row-table__foot` della
+lib. Il markup è quello che i moduli scrivevano a mano: migrare non cambia il CSS.
+
+```php
+use Wonder\Elements\Components\Button;
+use Wonder\Elements\Frontend\EmptyState;
+use Wonder\Elements\Frontend\Pagination;
+
+EmptyState::make('Non hai ancora ordini.', 'bi bi-bag');
+
+EmptyState::make('Aggiungi qualche prodotto.', 'bi bi-cart')
+    ->title('Il carrello è vuoto')          // <h2 class="subtitle">
+    ->titleTag('h3')                        // h2 di default, da h2 a h6
+    ->textClass('text tx-secondary')        // classi sul <p>
+    ->attr('role', 'status')
+    ->action(Button::make('Vai al negozio')->href('/shop/'));
+
+Pagination::make($page, $pages)->url('/blog/');                       // /blog/?page=N
+Pagination::make($page, $pages)->url(fn (int $p): string => "/blog/pagina/{$p}/");
+Pagination::account($pagination, $baseUrl);                          // pannello account
+```
+
+- **EmptyState**: icona, titolo, testo e azione, in quest'ordine; ogni parte vuota
+  non si stampa. Titolo e testo si escapano. L'azione è un componente
+  renderizzabile, di solito un `Button`. `iconClass()`, `titleClass()` e
+  `textClass()` aggiungono classi alle parti (vedi «Classi delle parti»);
+  `attr()` e `addClass()` vanno sul contenitore. `titleTag()` sceglie il livello
+  del titolo (`h2` di default, fino a `h6`; altri tag sono rifiutati): dentro un
+  pannello o un box che ha già un `h2` usa `h3`.
+- **Pagination** non fa query e non legge la richiesta: `make($page, $pages)`
+  riceve pagina corrente e totale pagine (la pagina si riporta tra 1 e l'ultima).
+  - `url(string $base, string $param = 'page')`: la base può essere l'URL
+    corrente. Il `page` che ha già si toglie, gli altri parametri restano come
+    sono e il `#frammento` torna in coda: la prima pagina è la base così
+    ripulita, le altre aggiungono `page=N` con `?` o `&`
+    (`/c/?page=3&q=a#lista` → `/c/?q=a#lista`, `/c/?q=a&page=2#lista`). Con una
+    funzione `fn (int $page): string` il link lo costruisci tu.
+  - Senza `url()` il link è `?page=N`, anche per la prima pagina: la pagina non
+    legge la richiesta e non conserva gli altri parametri, quindi su una lista
+    con filtri passa l'URL corrente a `url()`.
+  - `window(int)` sceglie quante pagine mostrare per lato (2 di default).
+  - `summary($testo)` mette il riepilogo e porta l'elenco nel piede
+    `.wi-row-table__foot`. Senza riepilogo esce il solo `<ul class="wi-pagination">`.
+  - `label()`, `previousLabel()`, `nextLabel()` cambiano l'`aria-label`
+    dell'elenco e delle frecce; i default sono `components.pagination.*`.
+  - `hidden()` non stampa nulla. `make()` con una pagina sola (o zero) è già
+    nascosta; `hidden(false)` la mostra comunque.
+  - Un `aria-label` dato con `attr()` vince su `label()`.
+  - `Pagination::account($pagination, $baseUrl)` prende il risultato di
+    `AccountPagination::make()`: link `?pagina=N`, testi `account.pagination.*`,
+    niente con zero righe. Il componente `frontend.account.pagination` è un
+    wrapper di questo metodo (vedi [Area utente](../utenti/auth-frontend.md#paginazione)).
+- `app/function/frontend/plugin/pagination.php` (`pagination()`, che conta con
+  `sqlCount()`) è deprecato: conta prima e passa i numeri a `Pagination::make()`.
 
 ## Layout dei media
 

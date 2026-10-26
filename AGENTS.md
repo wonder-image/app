@@ -61,7 +61,7 @@ può prendere in carico. Guida: `docs/components/README.md` e
 
 ## Project overview
 
-- Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers.
+- Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers. Both read the schema through `Themes\Concerns\ReadsAlertSchema` (level to type, fallback title, escaped id, attributes and message); markup and icons stay per theme. The Bootstrap one is a `.toast` without `show`, hidden until a script opens it, so static notices inside backend pages (read-only, form errors, `formNotices()`) use `Alert::make(...)->inline()` inside a `Card`.
 
 - Button::lightbox(string|array, ?string) opens image/iframe URL groups in both themes through RendersButtonLightbox. Preserve disabled behavior and native URL fallback; disallow form actions. See docs/app/elementi/button-lightbox.md.
 
@@ -103,6 +103,7 @@ Key subareas:
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
 - `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, `Code`, `Preview`, ...)
+- `Alert::inline()` (Bootstrap) renders a visible page alert `div.alert.alert-{type}` with `role="alert"`; without it Alert is the hidden `.toast` used by `alertToast()` and `/api/backend/alert/`, whose output must stay byte-identical. Backend page notices use `Alert::make(...)->inline()`. Hand-written `class="alert` remains only in `app/view/pages/backend/docs/components.php` (link and `<code>`, must not be escaped) and `class/Backend/Support/QuickCreateModal.php` (HTML inside a JS string). In the Wonder theme `inline()` is ignored.
 - `class/Docs`: il catalogo dei componenti (schede in `docs/components`, server autonomo `bin/docs.php`)
 - `Accordion` is a shared non-form Element: `make($text)`, `description()`,
   and `components()` define its content; the Wonder renderer must reuse the
@@ -220,12 +221,16 @@ php forge start
 - Prefer expressing reusable bundle-level constraints (default country, allowed countries, required fields, derived row decorators) inside the schema extension itself instead of reapplying them ad hoc in each consuming Model/Resource/Page.
 - If a schema extension also exposes helpers like `decorate(array $row): array`, keep them pure: they may enrich read rows with derived values, but must not run queries or perform persistence side effects.
 - When writing or changing view/components, first verify whether an existing component can be reused or extended instead of duplicating markup or creating a new ad-hoc component.
-- `<wi-card>` is retired: do not add new ones and do not call `wiCard()` /
-  `wiCardLink()` in new code. Use `Card` from `Wonder\Elements\Components`,
+- `<wi-card>` is retired: do not add new ones. The `wiCard()`, `wiCardLink()`,
+  `wiCardStats()`, `wiCardAccordion()` and `wiAccordion()` helpers are removed; `wiPreIfArray()`
+  stays for JSON shown in a `<pre>`. Use `Card` from `Wonder\Elements\Components`,
   which renders a `<div class="card">`, and never add an option to `Card` to
-  change its tag. Replace existing occurrences when you touch the page. The
-  lib keeps `createCard()` and the `wi-card` CSS rule until the old pages are
-  migrated; do not remove them. See `docs/app/concetti/componenti/README.md`.
+  change its tag. `class/` and `app/` no longer contain any `<wi-card>`: a
+  template with mixed PHP wraps the block in `ob_start()` and closes it with
+  `ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))`.
+  The lib keeps `createCard()` and the `wi-card` CSS rule for sites and modules
+  that still use the tag; do not remove them. See
+  `docs/app/concetti/componenti/README.md`.
 - Declare Resource-list header actions through `TableLayoutSchema::buttonCustom()` / `buttonsCustom()` with `Wonder\Elements\Components\Button` or `Dropdown`; use `Button::post($action, $label)->confirm(...)` for POST actions and reserve `buttonCustomHtml()` for trusted markup that no Element can represent.
 - Resource-list extras live in TableColumn/TableLayoutSchema: custom row-menu entries are arrays in `actions()` (`label` per column value, `href` with `{column}` placeholders, escaped, `filter.row`); computed columns go through `TableLayoutSchema::select()` (aliases are display/sort only: never in WHERE, filters, counts or search); filters that are not `column = value` use `filterQuery()` with a closure that receives only whitelisted option values; cross-table search uses relation descriptors in `searchFields()`, nested through `relations`. Exports of visitor-written data (contacts, public forms) use `downloadAsText()`: cells stay text in Excel and CSV formula prefixes are neutralized by `Backend\Support\SpreadsheetText`.
 - Backend navigation supports `section → optional group → Resource`. Declare a

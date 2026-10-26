@@ -1,5 +1,9 @@
 <?php
 
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\Container;
+
 \Wonder\View\View::layout('backend.show');
 
 $mail = (object) ($ITEM ?? []);
@@ -17,59 +21,53 @@ if (is_string($attachments) && $attachments !== '') {
         $attachments = $decodedAttachments;
     }
 }
-?>
+$esc = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
-<div class="row g-3">
-    <wi-card class="col-12">
-        <h6><?=htmlspecialchars((string) ($mail->subject ?? ''), ENT_QUOTES, 'UTF-8')?></h6>
-        <div><?=htmlspecialchars((string) $userName, ENT_QUOTES, 'UTF-8')?></div>
-    </wi-card>
+echo ResourceFormLayoutRenderer::renderLayout(
+    (new Container)->components([
 
-    <div class="col-9">
-        <div class="row g-3">
-            <wi-card class="col-12">
-                <h6 class="col-12 mb-2">Dettagli</h6>
-                <div class="col-12">
-                    Mittente: <b><?=htmlspecialchars((string) ($mail->from_email ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Risposta: <b><?=htmlspecialchars((string) ($mail->reply_to_email ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Destinatario: <b><?=htmlspecialchars((string) ($mail->to_email ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Template: <b><?=htmlspecialchars((string) ($mail->template ?? ''), ENT_QUOTES, 'UTF-8')?></b>
-                </div>
-            </wi-card>
+        (new Card)->components([
+            '<h6>'.$esc((string) ($mail->subject ?? '')).'</h6>',
+            '<div>'.$esc((string) $userName).'</div>',
+        ])->columnSpan(12),
 
-            <wi-card class="col-6">
-                <h6 class="col-12">Messaggio</h6>
-                <div class="col-12">
-                    <?=wiPreIfArray(nl2br((string) $bodyText))?>
-                </div>
-                <h6 class="col-12">Allegati</h6>
-                <div class="col-12">
-                    <?=wiPreIfArray($attachments)?>
-                </div>
-            </wi-card>
+        (new Container)->components([
+            (new Card)->components([
+                '<h6 class="col-12 mb-2">Dettagli</h6>',
+                '<div class="col-12">'
+                    .'Mittente: <b>'.$esc((string) ($mail->from_email ?? '')).'</b><br>'
+                    .'Risposta: <b>'.$esc((string) ($mail->reply_to_email ?? '')).'</b><br>'
+                    .'Destinatario: <b>'.$esc((string) ($mail->to_email ?? '')).'</b><br>'
+                    .'Template: <b>'.$esc((string) ($mail->template ?? '')).'</b>'
+                .'</div>',
+            ])->columnSpan(12),
 
-            <wi-card class="col-6">
-                <h6 class="col-12">Errori</h6>
-                <div class="col-12">
-                    <?=wiPreIfArray($errorMessage)?>
-                </div>
-            </wi-card>
-        </div>
-    </div>
+            (new Card)->components([
+                '<h6 class="col-12">Messaggio</h6>',
+                '<div class="col-12">'.wiPreIfArray(nl2br((string) $bodyText)).'</div>',
+                '<h6 class="col-12">Allegati</h6>',
+                '<div class="col-12">'.wiPreIfArray($attachments).'</div>',
+            ])->columnSpan(6),
 
-    <div class="col-3">
-        <div class="row g-3">
-            <wi-card class="col-12">
-                <h6 class="col-12 mb-2">Altro</h6>
-                <div class="col-12">
-                    Servizio: <b><?=htmlspecialchars((string) $serviceText, ENT_QUOTES, 'UTF-8')?></b><br>
-                    IP: <b><?=htmlspecialchars((string) ($mail->ip ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Browser: <b><?=htmlspecialchars((string) ($mail->user_agent ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Stato: <b><?=$statusBadge?></b>
-                </div>
-            </wi-card>
-        </div>
-    </div>
-</div>
+            (new Card)->components([
+                '<h6 class="col-12">Errori</h6>',
+                '<div class="col-12">'.wiPreIfArray($errorMessage).'</div>',
+            ])->columnSpan(6),
+        ])->columns(12)->columnSpan(9),
 
-<?php \Wonder\View\View::end(); ?>
+        (new Container)->components([
+            (new Card)->components([
+                '<h6 class="col-12 mb-2">Altro</h6>',
+                '<div class="col-12">'
+                    .'Servizio: <b>'.$esc((string) $serviceText).'</b><br>'
+                    .'IP: <b>'.$esc((string) ($mail->ip ?? '')).'</b><br>'
+                    .'Browser: <b>'.$esc((string) ($mail->user_agent ?? '')).'</b><br>'
+                    .'Stato: <b>'.$statusBadge.'</b>'
+                .'</div>',
+            ]),
+        ])->columnSpan(3),
+
+    ])->columns(12)
+);
+
+\Wonder\View\View::end();

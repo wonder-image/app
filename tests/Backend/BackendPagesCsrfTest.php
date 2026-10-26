@@ -121,7 +121,7 @@ foreach (['none', 'wrong'] as $token) {
         $body = json_decode((string) ($r['output'] ?? ''), true);
 
         return ($r['status'] ?? null) === 403 && is_array($body) && ($body['success'] ?? null) === false
-            && str_contains((string) ($body['error'] ?? ''), 'CSRF');
+            && ($body['error'] ?? null) === 'notifications.929.text';
     });
 }
 

@@ -192,7 +192,7 @@ le implementa entrambe, senza effetti) riceve in più:
 | Gancio | Cosa fa |
 |---|---|
 | `personalFormFields(array $fields, object $user, array $values)` | Campi del modal dei dati personali, per chiave, già idratati: si inseriscono campi (la data di nascita) o si cambiano i valori iniziali. `$values` sono i valori postati quando il modal si riapre. |
-| `personalModals(array $modals, object $user, string $open, array $errors, array $values)` | Modal in più di «Dati personali». `$open` è il `form` da riaprire con `$errors` e `$values`. |
+| `personalModals(array $modals, object $user, string $open, array $errors, array $values)` | Modal in più di «Dati personali». `$open` è il `form` da riaprire con `$errors` e `$values` (filtrati da `Csrf::oldInput()`: token e password hanno la chiave ma il valore vuoto). |
 | `savePersonalForm(string $form, object $user, array $input): ?array` | POST di «Dati personali» con un `form` che il core non conosce: `null` se il form non è dell'estensione (il core risponde 404), altrimenti la lista di errori tradotti, vuota se il salvataggio è riuscito. |
 | `pageErrors(array $errors, object $user, string $page)` | Avvisi di pagina, stampati fuori dai form. |
 | `afterEmailConfirmed(int $userId, string $email)` | Dopo il cambio email, nella stessa transazione: un'eccezione `AccountSaveFailed` annulla il cambio. |
@@ -215,8 +215,11 @@ Una riga ha questa forma, ed è quella che stampa `frontend.account.row`:
 
 Le pagine nuove sono di un controller che estende `AccountController`: la classe
 non è `final` e i suoi helper (`page()`, `user()`, `flash()`, `redirect()`,
-`requireCsrf()`, `translate()`, `post()`, `notFound()`, `requireSection()`) sono
-`protected`. Un controller che lavora sulla scheda cliente usa il trait
+`requireCsrf()`, `invalidCsrf()`, `renderCsrfFailure()`, `translate()`, `post()`,
+`notFound()`, `requireSection()`) sono `protected`. Con il token della pagina
+scaduto `requireCsrf()` non salva e chiama `renderCsrfFailure()`, che il modulo
+sovrascrive per ridisegnare le sue pagine con l'alert `929` (vedi
+[Token CSRF](../form/csrf.md#pagine-frontend-del-core)). Un controller che lavora sulla scheda cliente usa il trait
 `Wonder\Plugin\CustomerAccount\Account\Concerns\ManagesContact` del modulo
 (`contact($userId)`, `contactErrors($contact)`). Il modulo
 risponde alle sue azioni e passa le altre a `parent::handle()`:
@@ -309,12 +312,15 @@ un `?`); `window($pagination)` dà le pagine da mostrare, la corrente con due pe
 lato.
 
 Il componente riceve `pagination` (il risultato di `make()`) e `base_url` (l'URL
-della sezione, senza `?pagina`) e stampa il piede della tabella: «Risultati da X
+della sezione, senza `?pagina`). È un wrapper dell'Element
+`Wonder\Elements\Frontend\Pagination::account($pagination, $base_url)`, che nel
+codice nuovo si può usare direttamente (vedi [Componenti UI](../componenti/README.md#emptystate-e-pagination)).
+Stampa il piede della tabella: «Risultati da X
 a Y di Z» e i quadrati delle pagine, con la corrente segnata da
 `aria-current="page"` e le frecce spente agli estremi (`aria-disabled`). Va
 messo dopo l'ultima riga. Con zero righe non stampa nulla:
-in quel caso la vista mostra lo stato vuoto (`.wi-empty-state`) al posto della
-tabella. I testi sono del core, sotto `account.pagination.*` (`summary`, `label`,
+in quel caso la vista mostra lo stato vuoto al posto della tabella, con
+`Wonder\Elements\Frontend\EmptyState` (`.wi-empty-state`). I testi sono del core, sotto `account.pagination.*` (`summary`, `label`,
 `previous`, `next`).
 
 ```php

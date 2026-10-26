@@ -27,8 +27,16 @@ richieste lo chiamano a mano (vedi [Verifica](#verifica)).
 | `Csrf::active()` | `true` se il token può finire nell'HTML senza che la pagina lo chieda. |
 | `Csrf::fieldFor($method)` | HTML del campo per un form con quel metodo; stringa vuota per `GET`/`HEAD` o se `active()` è falso. |
 | `Csrf::legacyFormField()` | HTML del campo per i pulsanti del template legacy, una volta per form; vuoto se il template non è attivo (`enableLegacyFormField()`). |
+| `Csrf::oldInput($input, $extra = [])` | I valori postati da rimettere nel form dopo un token non valido: svuota `_csrf`, `csrf_token`, `logout_token`, `current_password`, ogni chiave che inizia con `password` e le chiavi di `$extra`, anche negli array annidati. Le chiavi restano. |
+| `Csrf::failureMessage()` | Il testo dell'alert `929` nella lingua corrente. |
+| `Csrf::flashFailure()` | Mette in `FlashMessage::error()` titolo e testo del `929`, per un redirect. |
 
-Costanti: `Csrf::FIELD` (`_csrf`) e `Csrf::HEADER` (`X-WI-CSRF`).
+Costanti: `Csrf::FIELD` (`_csrf`), `Csrf::HEADER` (`X-WI-CSRF`) e
+`Csrf::ALERT` (`929`).
+
+Il token non valido di solito vuol dire una pagina rimasta aperta oltre la
+sessione: il messaggio per l'utente è sempre il `929` («La pagina è scaduta o
+la richiesta non è valida»), mai «CSRF» o «token».
 
 ## Dove esce da solo
 
@@ -113,7 +121,8 @@ Route::name('backend.')
   dell'handler.
 - Token mancante o sbagliato: `ForbiddenHttpException`, cioè `403` con il
   payload JSON delle API (`{"success": false, "status": 403, "response": …}`)
-  o la pagina d'errore HTML. L'handler non viene incluso.
+  o la pagina d'errore HTML, con il testo generico «La pagina è scaduta o la richiesta non è valida. Ricarica la pagina e riprova.».
+  L'handler non viene incluso.
 - Il token arriva da `_csrf` nel corpo o dall'header `X-WI-CSRF`, che la lib
   manda da `ajaxRequest`, `fetch`, `ApiClient`, DataTables ed Editor.js.
   L'header è ammesso in CORS (`Access-Control-Allow-Headers`).
@@ -141,7 +150,7 @@ scrivere:
 | Uploader massivo, file di configurazione | alert `929`, nessun file salvato |
 | `POST /backend/` (home) | alert `929`; il POST non scrive comunque nulla |
 | Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
-| Creazione rapida (`backend.resource.quick-create`) | `403` JSON, il controller non viene chiamato |
+| Creazione rapida (`backend.resource.quick-create`) | `403` JSON con il testo generico della pagina scaduta, il controller non viene chiamato |
 | Logout (`POST /backend/account/logout/`) | alert `929` sulla pagina di conferma, nessun logout |
 | «Collega webhook» Stripe (`POST /api/service/stripe/connect/`, area backend, solo admin) | `403` sulla pagina di conferma, credenziali non toccate |
 
@@ -176,6 +185,40 @@ nulla.
 Con più form legacy nella stessa pagina, o con form costruiti come stringa, il
 sito stampa `Csrf::field()` in ogni form.
 
+## Pagine frontend del core
+
+I form di accesso (`AuthController`) portano `csrf_token`, il pannello account
+(`AccountController`) `_csrf`. Nessuno risponde più `419` con un testo tecnico:
+
+| Pagina | Senza token valido |
+|---|---|
+| Login, registrazione, completamento, recupero e restore password | stessa pagina (`200`) con l'alert `929`; campi ripopolati con `Csrf::oldInput()` (password e token vuoti); nessun login, mail o token consumato |
+| Logout (`POST /account/auth/logout/`) | nessun logout; redirect alla home dell'area con `Csrf::flashFailure()` |
+| Accesso Google (`federated`) | nessun accesso; redirect al login o alla registrazione (da `auth_surface`), `continue` conservato, con `Csrf::flashFailure()` |
+| Fine impersonificazione | redirect invariato, con `Csrf::flashFailure()` |
+| Dati personali (`account.personal`) | la pagina con il modal inviato riaperto, l'errore `929` dentro e i valori senza password; con `form` assente, di un modulo o «email» senza password (modal che il core non costruisce) anche il toast `929` |
+| Conferma email (`POST account.email.confirm`) | la pagina di conferma con l'alert `929`, o l'esito «link non valido» se il link è scaduto |
+| Altre azioni (dei moduli) | redirect al pannello con `Csrf::flashFailure()` |
+
+Nel pannello il fallimento passa sempre da `requireCsrf()` → `invalidCsrf()`
+(`never`: il salvataggio non parte) → `renderCsrfFailure()`. È il punto di
+estensione dei moduli: un controller che aggiunge azioni lo sovrascrive per le
+sue e chiama `parent::renderCsrfFailure()` per le altre. L'azione in corso è in
+`$this->action`, che `AccountController::handle()` imposta; un `handle()` che
+risponde da sé senza `parent::handle()` la imposta a sua volta, altrimenti cade
+nel redirect al pannello.
+
+```php
+protected function renderCsrfFailure(): void
+{
+    if ($this->action !== 'addresses.edit') {
+        parent::renderCsrfFailure();
+        return;
+    }
+    $this->renderAddressEditor(\Wonder\Http\Csrf::oldInput($_POST), [\Wonder\Http\Csrf::failureMessage()]);
+}
+```
+
 ## Sessione e cache
 
 Il token è personale: non deve finire in HTML servito a più persone.
@@ -194,6 +237,26 @@ Una CDN configurata per mettere in cache anche l'HTML ignorando
 visitatore. Il framework non può accorgersene: le pagine con un form o con il
 meta vanno escluse da quella regola.
 {% endhint %}
+
+### Token scaduto in un form AJAX
+
+Se la sessione scade con la pagina aperta, il `_csrf` del form non vale più e
+l'invio riceve `403`. `POST /api/csrf/` (rotta `csrf`, area `api`) restituisce
+`{ "success": true, "token": "…" }`, il token della sessione corrente: il JS
+lo scrive nel campo `_csrf` (che vince sull'header: se il form ha il campo
+va aggiornato quello, altrimenti l'header `X-WI-CSRF`) e il secondo invio
+passa senza ricaricare, con i campi ancora compilati.
+
+- Solo POST (un'altra richiesta riceve `404` dal router) e solo dallo stesso
+  sito (`Wonder\Http\SameOrigin`), altrimenti `403`; risposta
+  `Cache-Control: no-store`.
+- Non chiede il token vecchio. Una pagina di un altro sito riceve `403` da
+  `SameOrigin` prima di qualunque token; in più il CORS (`*` senza
+  `Allow-Credentials`) non le farebbe leggere una risposta con il cookie di
+  sessione. Il token da solo non apre altro.
+- Se il form usa anche il token di pagina (`API_TOKEN`, legato alla sessione),
+  dopo `/api/csrf/` va rinnovato pure quello con `POST /api/token/page/`, che
+  ora riceve il CSRF nuovo: un `401` si risolve allo stesso modo.
 
 ## Cookie
 

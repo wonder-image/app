@@ -1,5 +1,8 @@
 <?php
 
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
 \Wonder\View\View::layout('backend.form');
 
 $selectedActive = (string) ($VALUES['active'] ?? 'true');
@@ -25,17 +28,17 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
             <div class="row g-3">
 
                 <?php if (!empty($ALLOW_EXISTING_USER) && !empty($EXISTING_USER_OPTIONS)) { ?>
-                    <wi-card class="col-12">
+                    <?php ob_start(); ?>
                         <div class="col-12">
                             <h6>Crea utente da email già esistente</h6>
                         </div>
                         <div class="col-6">
                             <?=check('Username', 'user_id', $EXISTING_USER_OPTIONS, "onclick=\"if (this.value != '') { disableInput('user'); } else { enabledInput('user'); }\"", 'radio', true);?>
                         </div>
-                    </wi-card>
+                    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
                 <?php } ?>
 
-                <wi-card class="col-12">
+                <?php ob_start(); ?>
                     <div class="col-3">
                         <div class="row g-3">
                             <div class="col-12">
@@ -65,7 +68,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
                             </div>
                         </div>
                     </div>
-                </wi-card>
+                <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
             </div>
         </div>
@@ -74,16 +77,16 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
             <div class="row g-3">
 
                 <?php if (!empty($SHOW_API_FIELDS)) { ?>
-                    <wi-card class="col-12">
+                    <?php ob_start(); ?>
                         <?=$renderInput('allowed_domains')?>
-                    </wi-card>
+                    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
-                    <wi-card class="col-12">
+                    <?php ob_start(); ?>
                         <?=$renderInput('allowed_ips')?>
-                    </wi-card>
+                    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
                 <?php } ?>
 
-                <wi-card class="col-12">
+                <?php ob_start(); ?>
                     <div class="col-12">
                         <?=$renderInput('authority', $SELECTED_AUTHORITY)?>
                     </div>
@@ -93,7 +96,7 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
                     <div class="col-12">
                         <?=submitAdd()?>
                     </div>
-                </wi-card>
+                <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
             </div>
         </div>

@@ -25,14 +25,14 @@ $layout = (new Form)->components([
 ?>
 
 <div class="row g-3">
-    <wi-card class="col-12">
+    <?php ob_start(); ?>
         <h3>
             <?php if (!empty($BACK_URL)) { ?>
             <a href="<?=htmlspecialchars((string) $BACK_URL, ENT_QUOTES, 'UTF-8')?>" class="text-dark text-decoration-none"><i class="bi bi-arrow-left-short"></i></a>
             <?php } ?>
             <?=htmlspecialchars((string) ($TITLE ?? ''), ENT_QUOTES, 'UTF-8')?>
         </h3>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
     <?= ResourceFormLayoutRenderer::render($layout, [
         'action' => '',

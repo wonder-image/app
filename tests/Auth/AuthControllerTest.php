@@ -162,6 +162,97 @@ check('RememberMe::requested(): solo valori di checkbox spuntata', fn () =>
     && !\Wonder\Auth\RememberMe::requested(['remember' => ['true']])
 );
 
+// --- Token scaduto: avviso 929, campi ripopolati, nessun testo tecnico -----
+$noTech = static fn (mixed $v): bool => preg_match('/csrf|token/i', strip_tags((string) json_encode($v, JSON_UNESCAPED_UNICODE))) !== 1;
+$bad = $run('login', ['user' => 'local', 'bad_csrf' => true, 'post' => ['password' => 'Giusta-1', 'continue' => '/carrello/']]);
+check('login con token scaduto → stessa pagina con alert 929, nessun accesso, nessun tentativo contato', fn () =>
+    ($bad['render']['surface'] ?? null) === 'login' && ($bad['render']['alert'] ?? null) === 929 && ($bad['global_alert'] ?? null) === 929
+    && ($bad['session_user'] ?? null) === null && ($bad['logs'] ?? null) === [] && ($bad['redirect'] ?? null) === null && ($bad['exited'] ?? null) === false
+);
+check('login con token scaduto → email e continue ripopolati, password e token vuoti (chiave presente)', fn () =>
+    ($bad['render']['values']['email'] ?? null) === 'mario@example.com' && ($bad['render']['values']['continue'] ?? null) === '/carrello/'
+    && ($bad['render']['values']['password'] ?? null) === '' && array_key_exists('csrf_token', (array) ($bad['render']['values'] ?? []))
+    && $bad['render']['values']['csrf_token'] === ''
+);
+$badSignup = $run('signup', ['signup' => 'new', 'bad_csrf' => true]);
+check('registrazione con token scaduto → form con 929 e i dati scritti, nessun utente né mail', fn () =>
+    ($badSignup['render']['surface'] ?? null) === 'signup-request' && ($badSignup['render']['alert'] ?? null) === 929
+    && ($badSignup['render']['values']['name'] ?? null) === 'Mario' && ($badSignup['render']['values']['email'] ?? null) === 'mario@example.com'
+    && ($badSignup['redirect'] ?? null) === null && ($badSignup['mails'] ?? null) === []
+);
+$badCompletion = $run('completion', ['google' => true, 'metadata' => ['federated_provider' => 'google'], 'bad_csrf' => true, 'post' => ['password' => 'Nuova-12']]);
+check('completamento con token scaduto → stessa pagina con 929, nessun accesso, password vuota', fn () =>
+    ($badCompletion['render']['surface'] ?? null) === 'signup-completion' && ($badCompletion['render']['alert'] ?? null) === 929
+    && ($badCompletion['session_user'] ?? null) === null && ($badCompletion['render']['values']['password'] ?? null) === ''
+);
+$badRecovery = $run('recovery', ['user' => 'local', 'bad_csrf' => true]);
+check('recupero password con token scaduto → form con 929 e email, nessuna mail', fn () =>
+    ($badRecovery['render']['surface'] ?? null) === 'password-recovery' && ($badRecovery['render']['alert'] ?? null) === 929
+    && ($badRecovery['render']['values']['email'] ?? null) === 'mario@example.com' && ($badRecovery['mails'] ?? null) === []
+);
+$badLogout = $run('logout', ['bad_csrf' => true]);
+check('logout con token scaduto → resta dentro, redirect all\'area con l\'avviso 929', fn () =>
+    ($badLogout['session_user'] ?? null) === 7 && ($badLogout['redirect'] ?? null) === '/account/'
+    && ($badLogout['flash']['level'] ?? null) === 'error' && ($badLogout['flash']['message'] ?? null) === 'notifications.929.text'
+    && ($badLogout['flash']['title'] ?? null) === 'notifications.929.title'
+);
+$badGoogle = $run('federated', ['google' => true, 'bad_csrf' => true, 'post' => ['continue' => '/carrello/']]);
+check('Google con token scaduto → nessun accesso, redirect al login (continue conservato) con l\'avviso', fn () =>
+    ($badGoogle['session_user'] ?? null) === null && ($badGoogle['redirect'] ?? null) === '/account.auth.login?continue=%2Fcarrello%2F'
+    && ($badGoogle['flash']['message'] ?? null) === 'notifications.929.text' && ($badGoogle['render'] ?? null) === null
+);
+check('Google dalla registrazione con token scaduto → redirect alla registrazione', fn () =>
+    ($run('federated', ['google' => true, 'bad_csrf' => true, 'post' => ['auth_surface' => 'signup']])['redirect'] ?? null) === '/account.auth.signup.request'
+);
+check('token scaduto → nessun «CSRF» né «token» nelle risposte (salvo il nome del campo, vuoto)', fn () =>
+    $noTech([$bad['render']['alert'], $bad['render']['errors'], $badLogout['flash'], $badGoogle['flash'], $badRecovery['render']['errors']])
+);
+check('notifications 929 in tutte le lingue: titolo e testo senza «CSRF» né «token»', function () use ($noTech) {
+    foreach (['it', 'en', 'de', 'fr', 'es'] as $lang) {
+        $n = json_decode((string) file_get_contents(__DIR__.'/../../resources/lang/'.$lang.'/notifications.json'), true)['929'] ?? null;
+        if (!is_array($n) || trim((string) ($n['text'] ?? '')) === '' || !$noTech($n)) { return false; }
+    }
+    return true;
+});
+
+// --- Csrf::oldInput(): cosa torna nei form ----------------------------------
+$old = \Wonder\Http\Csrf::oldInput([
+    'email' => 'a@b.it', 'csrf_token' => 'x', '_csrf' => 'y', 'logout_token' => 'z', 'password' => 'p', 'password_confirm' => 'p',
+    'current_password' => 'p', 'billing' => ['name' => 'Mario', 'password' => 'p'], 'token' => 'link-di-completamento',
+], ['secret']);
+check('Csrf::oldInput() svuota token di sessione e password, chiavi conservate', fn () =>
+    $old['csrf_token'] === '' && $old['_csrf'] === '' && $old['logout_token'] === '' && $old['password'] === ''
+    && $old['password_confirm'] === '' && $old['current_password'] === '' && $old['billing'] === ['name' => 'Mario', 'password' => '']
+    && $old['email'] === 'a@b.it'
+);
+check('Csrf::oldInput() conserva il token del link (non è il CSRF) e accetta chiavi extra', fn () =>
+    $old['token'] === 'link-di-completamento' && \Wonder\Http\Csrf::oldInput(['secret' => 's', 'a' => 1], ['secret']) === ['secret' => '', 'a' => 1]
+);
+// customer-account (HasSignupFields) legge `isset($values['csrf_token'])` per capire che il form è stato inviato.
+check('Csrf::oldInput() lascia «inviato» il form di registrazione: isset(csrf_token) resta vero', fn () =>
+    isset(\Wonder\Http\Csrf::oldInput(['csrf_token' => 'scaduto', 'name' => 'Mario'])['csrf_token'])
+);
+
+// --- Backend: stesso status, testo generico ---------------------------------
+// Il bootstrap carica sempre le traduzioni; qui basta la chiave per sapere che il testo è quello della 929.
+function __t(string $key, array $params = []): string { return $key; }
+check('CsrfGuard: route con ->csrf() e token errato → 403 senza «CSRF» né «token»', function () use ($noTech) {
+    $_POST = ['_csrf' => 'sbagliato'];
+    $_SESSION = [];
+    try {
+        \Wonder\Http\CsrfGuard::enforce(['csrf' => true], 'POST');
+    } catch (\Wonder\Http\Exceptions\ForbiddenHttpException $e) {
+        return $e->statusCode() === 403 && $noTech($e->publicMessage()) && $noTech($e->getMessage()) && $e->getMessage() === 'notifications.929.text';
+    } finally {
+        $_POST = [];
+    }
+    return false;
+});
+check('quick-create: risposta di token errato con 403 e testo generico', function () use ($noTech) {
+    $src = (string) file_get_contents(__DIR__.'/../../app/http/backend/resource/quick-create.php');
+    return preg_match("/: \\['success' => false, 'error' => \\\\Wonder\\\\Http\\\\Csrf::failureMessage\\(\\), 'status' => 403\\]/", $src) === 1;
+});
+
 summary();
 }
 
@@ -197,7 +288,7 @@ function authScenario(string $scenario, array $opts): void
     $_POST = ['csrf_token' => \Wonder\Http\Csrf::token()];
 
     $view = sys_get_temp_dir().'/wi-auth-controller-'.getmypid().'.php';
-    file_put_contents($view, '<?php $GLOBALS["RENDER"] = ["surface" => $surface, "alert" => $alert === null ? null : (int) $alert, "errors" => $errors, "federated_error" => $federated_error, "fields" => array_keys($fields)];');
+    file_put_contents($view, '<?php $GLOBALS["RENDER"] = ["surface" => $surface, "alert" => $alert === null ? null : (int) $alert, "errors" => $errors, "federated_error" => $federated_error, "fields" => array_keys($fields), "values" => isset($values["csrf_token"]) && $values["csrf_token"] !== "" ? ["csrf_token" => "valido"] + $values : ($values ?? null)];');
     $GLOBALS['VIEW'] = $view;
 
     register_shutdown_function(static function () use ($view): void {
@@ -210,6 +301,8 @@ function authScenario(string $scenario, array $opts): void
             'remember' => $GLOBALS['REMEMBER'],
             'session_user' => $_SESSION['user_id'] ?? null,
             'tokens' => $GLOBALS['TOKENS'],
+            'flash' => $_SESSION[\Wonder\Frontend\Support\FlashMessage::KEY] ?? null,
+            'global_alert' => $GLOBALS['ALERT'] ?? null,
             'captcha' => array_map(static fn (string $line) => json_decode($line, true)['context']['reason'] ?? null,
                 array_filter(explode("\n", (string) @file_get_contents(ROOT.'/storage/logs/error/recaptcha.log')))),
         ]);
@@ -237,23 +330,41 @@ function authScenario(string $scenario, array $opts): void
         $_SESSION['wonder_oidc_nonce'][$profile->key()]['google'] = 'nonce-di-prova';
     }
     $controller = new \Wonder\Auth\Frontend\AuthController($profile);
+    // `bad_csrf`: il token della pagina è scaduto (sessione nuova, form vecchio).
+    $expire = static function (): void {
+        if (!empty($GLOBALS['OPTS']['bad_csrf'])) { $_POST['csrf_token'] = 'scaduto'; }
+    };
 
     switch ($scenario) {
         case 'login':
             $_POST += (array) ($opts['post'] ?? []) + ['email' => 'mario@example.com', 'password' => 'Sbagliata-1'];
+            $expire();
             $controller->handle('login');
             break;
         case 'federated':
             $_POST += (array) ($opts['post'] ?? []) + ['credential' => authIdToken('nonce-di-prova')];
+            $expire();
             $controller->handle('federated', ['provider' => 'google']);
             break;
         case 'completion':
             $_POST += (array) ($opts['post'] ?? []) + ['token' => authCompletionToken((array) ($opts['metadata'] ?? []))];
+            $expire();
             $controller->handle('signup.completion');
             break;
         case 'signup':
             $_POST += ['name' => 'Mario', 'surname' => 'Rossi', 'email' => 'mario@example.com', 'accept_privacy_policy' => 'true'];
+            $expire();
             $controller->handle('signup.request');
+            break;
+        case 'recovery':
+            $_POST += ['email' => 'mario@example.com'];
+            $expire();
+            $controller->handle('password.recovery');
+            break;
+        case 'logout':
+            $_SESSION['user_id'] = 7;
+            $expire();
+            $controller->handle('logout');
             break;
     }
 

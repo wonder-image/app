@@ -33,11 +33,8 @@ $renderInput = static function (string $key, mixed $value = null) use ($RESOURCE
             <div class="card border">
                 <div class="card-body row g-3">
                     <div class="col-12">
-                <div class="alert alert-danger mb-0">
-                    <?php foreach ($ERRORS as $message) { ?>
-                        <div><?=htmlspecialchars((string) $message, ENT_QUOTES, 'UTF-8')?></div>
-                    <?php } ?>
-                </div>
+                <?=\Wonder\Elements\Components\Alert::make(implode("\n", array_map('strval', (array) $ERRORS)), 'error')
+                    ->inline()->addClass('mb-0')->render()?>
                     </div>
                 </div>
             </div>

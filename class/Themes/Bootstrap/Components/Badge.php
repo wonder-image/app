@@ -44,7 +44,6 @@ class Badge extends Component
             $classes[] = $extraClass;
         }
 
-        $classSpanColumn = $this->getColumnSpan($class->columnSpan);
         $attributes['class'] = array_values(array_unique(array_filter($classes)));
         $iconHtml = $icon !== '' ? '<i class="'.$this->escape($icon).'"></i>' : '';
         $content = match ($icon !== '' ? $iconPosition : 'none') {
@@ -53,20 +52,21 @@ class Badge extends Component
             default => $label,
         };
 
-        $html = "<div class=\"{$classSpanColumn}\">";
-
         if ($href !== '') {
             $attributeString = $this->renderAttributes($attributes);
-            $html .= '<a'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</a>';
+            $html = '<a'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</a>';
         } else {
             $spanAttributes = $this->attributesWithoutKeys($attributes, ['href', 'target', 'rel', 'download']);
             $attributeString = $this->renderAttributes($spanAttributes);
-            $html .= '<span'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</span>';
+            $html = '<span'.($attributeString !== '' ? ' '.$attributeString : '').'>'.$content.'</span>';
         }
 
-        $html .= '</div>';
+        // In linea il badge non occupa una colonna: columnSpan() è ignorato.
+        if ((bool) ($schema['inline'] ?? false)) {
+            return $html;
+        }
 
-        return $html;
+        return '<div class="'.$this->getColumnSpan($class->columnSpan).'">'.$html.'</div>';
     }
 
     private function normalizeVariant(string $variant): string

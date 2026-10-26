@@ -20,6 +20,143 @@
   mano `<?=modal()?>` o chiamava la funzione PHP `modal()` va migrato su `Button::post()->confirm()` / `data-wi-confirm` o `wi.confirm()`:
   nei pacchetti e nei siti verificati non ce n'è nessuno. La `modal()` JS della
   lib resta come alias `@deprecated` di `wi.confirm`.
+- **Rimossi gli helper `wiCard()`, `wiCardLink()`, `wiCardStats()`,
+  `wiCardAccordion()`, `wiAccordion()` e i componenti view
+  `frontend.overlay.modal` e `frontend.ui.button`.** Nei repo locali non hanno
+  chiamanti. Un sito che li usa ancora va migrato: `Card` (in un layout
+  Resource con `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard`,
+  `Accordion`, `Modal::make()->frontend()` e `Button::make()`. Un override di
+  `frontend.overlay.popup` va riallineato al nuovo markup (vedi «Cambiato»)
+  e deve ripetere il controllo su `$GLOBALS['WI_POPUP_RENDERED']`, altrimenti
+  il popup esce due volte; in alternativa si toglie la riga del popup dal
+  `body-start.php` del sito.
+- Markup del popup cambiato (`<h2>`, footer nel dialogo, `btn-icon-right`,
+  `wi-show`): il CSS di un sito che lo stila va controllato. L'etichetta del
+  bottone ora è escapata: un `url_label` con HTML appare come testo.
+- Il flag `WI_POPUP_RENDERED` non si azzera: uno script CLI che rende più
+  pagine nello stesso processo deve fare `unset($GLOBALS['WI_POPUP_RENDERED'])`.
+- Il popup frontend e le card server-side richiedono `wonder-image` lib
+  `2.1.2-alpha.24` o successiva; il vincolo del core è `^2.1.2-alpha.31`.
+
+### Aggiunto
+- **`Alert::inline()`.** Nel tema Bootstrap l'Alert esce come avviso di pagina
+  visibile, `<div class="alert alert-{tipo}" role="alert">`, invece del `.toast`
+  nascosto. Il tipo segue la mappa dei livelli (`error` → `danger`). Il titolo
+  (`<strong class="alert-heading d-block">`) c'è solo con `title()`, la chiusura
+  (`alert-dismissible`, `btn-close` con `data-bs-dismiss="alert"`) solo con
+  `dismissible()` esplicito, l'id solo con `id()`. Classi e attributi aggiuntivi
+  restano sul tag; il messaggio è escapato con gli a capo come nel toast. Nel tema
+  Wonder `inline()` è ignorato: `wi-alert` è sempre fisso a lato dello schermo.
+  Senza `inline()` l'output è identico a prima (bloccato da
+  `tests/Themes/AlertInlineTest.php`). Gli avvisi fissi delle viste backend
+  (sola lettura di resource e scheduler, errori e `formNotices()` del layout
+  form, errori del file di configurazione, errore della lista) passano a
+  `Alert::make(...)->inline()->addClass('mb-0')`: in più hanno `role="alert"`,
+  e gli a capo escono come `<br />`. Restano a mano il catalogo componenti
+  (link e `<code>`) e `QuickCreateModal` (HTML in JS).
+
+### Cambiato
+- **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le
+  pagine backend (account, utenti, log email, errori SQL, media, Stripe
+  Connect, form e lista Resource), i layout `backend.form` e `backend.show`,
+  `Table` con `card` attivo e `ResourcePagePresenter::listFallback()` rendono
+  la card dal server con `ResourceFormLayoutRenderer::renderLayout()`: stesso
+  markup che `createCard()` della lib costruiva nel browser
+  (`div.col-12 > div.card.border > div.card-body.row.g-3`). Le pagine non
+  dipendono più dal JS per mostrare le card.
+- **Popup frontend su `Modal::make()->frontend()` (`B-CORE-I5`).** Il
+  componente `frontend.overlay.popup` esce già aperto con `wi-show`, senza lo
+  `<script>` che chiamava `modal()` al `load`. Titolo in `<h2>` invece che in
+  `<div>`, footer dentro il dialogo, bottone con `btn-icon-right` invece di
+  `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder. Un popup con un
+  `code` non valido come selettore non si stampa (prima `modal()` falliva nel
+  browser); i codici generati `pop_xxxxxxx` lo sono sempre. Il popup si
+  stampa al massimo una volta per richiesta: il `body-start.php` dello scaffold
+  lo include già e il core lo rimette in `body-end`, e con due modal dallo
+  stesso id quella in primo piano non si chiudeva.
+- **Renderer Alert su `ReadsAlertSchema` (`B-CORE-I8`).** I renderer
+  Bootstrap e Wonder leggono lo schema dallo stesso Concern; output identico,
+  coperto da snapshot in `tests/Themes/AlertSnapshotTest.php`.
+- **Scheduler in sola lettura non va più in Fatal (`B-CORE-I8`).** La pagina
+  `backend/scheduler/schedules.php` passava una stringa a
+  `Card->render('bootstrap')`; ora usa `ResourceFormLayoutRenderer::renderLayout()`.
+
+### Rimosso
+- **Componenti `frontend.overlay.modal` e `frontend.ui.button`
+  (`B-CORE-I5`).** L'unico chiamante era il popup; nessun override nei siti
+  locali. Al loro posto `Modal::make()->frontend()` e `Button::make()`.
+- **Helper `wiCard()`, `wiCardLink()`, `wiCardStats()`, `wiCardAccordion()` e
+  `wiAccordion()` (`B-CORE-I3`).** Nessun chiamante in app, nei moduli e nei
+  siti locali. Al loro posto: `Card` (dentro un layout Resource, via
+  `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard` e `Accordion`.
+  `wiPreIfArray()` resta in `app/function/backend/components/accordion.php`.
+  Le pagine backend `log/auth-users/show`, `log/consent/show` e
+  `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
+
+## 2.4.0-beta.5 — 2026-10-26
+
+### Aggiunto
+- **Text e RichText nel tema Wonder (`B-CORE-I1`).** Nuovo renderer
+  `Themes\Wonder\Components\Text` sulle utility della lib (`fw-700`,
+  `text-small`, `tx-secondary`, `tx-<colore>`, `a-l`/`a-c`/`a-r`, `subtitle`);
+  `italic()` non aggiunge classi. Senza `columnSpan()` il testo esce senza
+  `<div>` intorno. `AccountModal::confirm()` usa `Text` al posto di un oggetto
+  anonimo: il markup resta `<p>…</p>`.
+- **`Elements\Frontend\EmptyState` e `Elements\Frontend\Pagination`
+  (`B-CORE-I2`)**, solo tema Wonder, sulle classi `.wi-empty-state*` e
+  `.wi-pagination*` della lib. `Pagination::make($page, $pages)->url(...)` per
+  qualunque lista, `Pagination::account($pagination, $baseUrl)` per i conti di
+  `AccountPagination`. Nuove chiavi `components.pagination.{label,previous,next}`.
+  - `url($base)` accetta anche l'URL corrente: toglie il `page` già presente,
+    conserva gli altri parametri e rimette il `#frammento` in coda. Senza
+    `url()` il link è `?page=N`, anche per la prima pagina.
+  - `make()` con una pagina sola (o zero) non stampa nulla, a differenza del
+    vecchio `pagination()` che mostrava un "1" attivo: `hidden(false)` la mostra.
+    `Pagination::account()` resta com'era (nascosta solo senza righe).
+  - Un `aria-label` dato con `attr()` vince su `label()` e non si ripete.
+  - `EmptyState::titleTag('h3')` sceglie il livello del titolo (`h2` di
+    default, da `h2` a `h6`).
+- **`Badge::inline()`.** Nel tema Bootstrap il badge esce senza il
+  `<div class="col-span-*">` della colonna: solo `<span>` (o `<a>` con href),
+  da concatenare a testo, celle di tabella e helper delle Resource
+  (`->inline()->render('bootstrap')`). Variant, outline, pill, icona,
+  attributi ed escaping restano uguali; con `inline()` `columnSpan()` è
+  ignorato, in qualunque ordine. Nel tema Wonder il badge era già in linea e
+  l'HTML non cambia. Senza `inline()` l'output è identico a prima (bloccato da
+  `tests/Themes/BadgeInlineTest.php`). Doc: catalogo `badge` e
+  `docs/app/concetti/componenti/README.md`.
+- **`POST /api/csrf/` (rotta `csrf`, area `api`).** Restituisce `{ "token": "…" }`, il
+  token CSRF della sessione corrente, per i form AJAX rimasti aperti oltre la
+  sessione: dopo un `403` (o un `401` del token di pagina, da rinnovare poi con
+  `/api/token/page/`) il form prende il token nuovo e il secondo invio
+  passa senza ricaricare la pagina. Solo POST same-origin (`SameOrigin`, se no
+  `403`), con sessione attiva, `Cache-Control: no-store`; non chiede il vecchio token e non
+  dà accesso ad altro. Test: `tests/Api/CsrfRenewTest.php`.
+
+### Cambiato
+- Il componente `frontend.account.pagination` è un wrapper di
+  `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
+  tra i tag.
+- **Token della pagina scaduto: niente più `419` «CSRF token invalid» sul
+  frontend.** I form di `AuthController` (login, registrazione, completamento,
+  recupero, restore) tornano con l'alert `929` e i campi scritti, senza
+  password né token; logout, accesso Google e fine impersonificazione fanno
+  redirect con lo stesso avviso (`FlashMessage`). Nel pannello account
+  `invalidCsrf()` resta `never` ma passa da `renderCsrfFailure()`, nuovo
+  punto di estensione `protected` per i moduli. Helper nuovi:
+  `Csrf::ALERT`, `Csrf::oldInput()`, `Csrf::failureMessage()`,
+  `Csrf::flashFailure()`. `CsrfGuard` e la creazione rapida del backend
+  restano `403` ma con il testo tradotto della notifica `929`, senza «CSRF»
+  né «token».
+- **Pannello account: i `$values` dei modal passano da `Csrf::oldInput()`.**
+  `personalModals()` e i form del core ricevono `_csrf`, `csrf_token`,
+  `logout_token`, `current_password` e `password*` con la chiave ma vuoti
+  (prima `_csrf`, `current_password` e `password` mancavano, gli altri
+  arrivavano con il valore scritto).
+
+### Deprecato
+- `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:
+  usa `Elements\Frontend\Pagination`.
 
 ## 2.4.0-beta.4 — 2026-10-21
 

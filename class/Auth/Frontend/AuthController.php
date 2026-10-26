@@ -13,6 +13,7 @@ use Wonder\Auth\Impersonation;
 use Wonder\Auth\LoginThrottle;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Auth\PasswordReset;
+use Wonder\Http\Csrf;
 use Wonder\Http\SafeRedirect;
 use Wonder\View\View;
 
@@ -43,7 +44,10 @@ final class AuthController
         global $ALERT;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
+            if (!$this->csrfValid()) {
+                $this->renderCsrfFailure('login');
+                return;
+            }
             if ($this->verifyRecaptcha('login')) {
                 $errors = $this->profile->validate('login', $_POST);
                 if ($errors !== []) {
@@ -67,7 +71,11 @@ final class AuthController
 
     private function logout(): void
     {
-        $this->requireCsrf();
+        // Token scaduto: l'utente resta dentro e torna all'area con l'avviso.
+        if (!$this->csrfValid()) {
+            Csrf::flashFailure();
+            $this->redirect($this->profile->home());
+        }
         \logoutUser($this->profile->area());
         $this->redirect($this->route('login'));
     }
@@ -78,7 +86,10 @@ final class AuthController
         $errors = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
+            if (!$this->csrfValid()) {
+                $this->renderCsrfFailure('signup-request');
+                return;
+            }
             if (!$this->verifyRecaptcha('signup-request')) {
                 $this->render('signup-request', ['errors' => [], 'alert' => $ALERT ?? null]);
                 return;
@@ -159,7 +170,14 @@ final class AuthController
         $isFederated = $federatedProvider !== '';
         $errors = [];
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
+            if (!$this->csrfValid()) {
+                $this->renderCsrfFailure('signup-completion', [
+                    'token' => $tokenValue,
+                    'email' => (string) (\infoUser($record->subject_user_id, 'id')->email ?? ''),
+                    'password_required' => !$isFederated,
+                ]);
+                return;
+            }
             if (!$this->verifyRecaptcha('signup-completion')) {
                 $this->render('signup-completion', [
                     'token' => $tokenValue,
@@ -217,7 +235,10 @@ final class AuthController
         global $ALERT;
         $sent = false;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
+            if (!$this->csrfValid()) {
+                $this->renderCsrfFailure('password-recovery', ['sent' => false]);
+                return;
+            }
             if (!$this->verifyRecaptcha('password-recovery')) {
                 $this->render('password-recovery', ['sent' => false, 'alert' => $ALERT ?? null]);
                 return;
@@ -267,7 +288,10 @@ final class AuthController
         $errors = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
+            if (!$this->csrfValid()) {
+                $this->renderCsrfFailure('password-restore', ['token' => $token]);
+                return;
+            }
             if (!$this->verifyRecaptcha('password-restore')) {
                 $this->render('password-restore', [
                     'token' => $token,
@@ -303,8 +327,15 @@ final class AuthController
         $nonce = (string) ($_SESSION['wonder_oidc_nonce'][$this->profile->key()][$provider] ?? '');
         $idToken = (string) ($_POST['credential'] ?? $_POST['id_token'] ?? '');
 
+        // Nessun form da ricompilare: torna alla pagina di partenza con l'avviso.
+        if (!$this->csrfValid()) {
+            Csrf::flashFailure();
+            $continue = SafeRedirect::fromRequest($_POST['continue'] ?? '', '');
+            $this->redirect($this->route($surface === 'signup-request' ? 'signup.request' : 'login')
+                .($continue !== '' ? '?continue='.rawurlencode($continue) : ''));
+        }
+
         try {
-            $this->requireCsrf();
             if (!$this->profile->googleEnabled() || $provider !== 'google' || $nonce === '') {
                 throw new \RuntimeException('provider_not_supported');
             }
@@ -438,6 +469,9 @@ final class AuthController
     private function stopImpersonation(): void
     {
         $result = $this->impersonation()->stop((string) ($_POST['csrf_token'] ?? ''));
+        if (($result->reason ?? '') === 'impersonation_csrf_invalid') {
+            Csrf::flashFailure();
+        }
         $this->redirect(($result->success ?? false)
             ? SafeRedirect::fromRequest($result->return_url, '/backend/')
             : '/');
@@ -457,11 +491,12 @@ final class AuthController
         $nonce = bin2hex(random_bytes(24));
         $api = Credentials::api();
         $_SESSION['wonder_oidc_nonce'][$this->profile->key()]['google'] = $nonce;
+        $input = (array) ($data['values'] ?? $_POST);
 
         View::make($this->profile->viewPath($page), $data + [
             'auth_profile' => $this->profile,
             'surface' => $page,
-            'fields' => $this->profile->fields($page, array_merge($_POST, isset($data['email']) ? ['email' => $data['email']] : []), $data['password_required'] ?? true),
+            'fields' => $this->profile->fields($page, array_merge($input, isset($data['email']) ? ['email' => $data['email']] : []), $data['password_required'] ?? true),
             'alert' => null,
             'errors' => [],
             'validation_messages' => $this->profile->validationTexts((array) ($data['errors'] ?? [])),
@@ -469,7 +504,7 @@ final class AuthController
             'csrf_token' => AuthSession::csrfToken(),
             'oidc_nonce' => $nonce,
             'google_client_id' => $this->profile->googleEnabled() ? (string) ($api->google_oauth_client_id ?? '') : '',
-            'values' => $_POST,
+            'values' => $input,
         ])->render();
     }
 
@@ -547,12 +582,16 @@ final class AuthController
         $SEO->robots = 'NOINDEX,FOLLOW';
     }
 
-    private function requireCsrf(): void
+    private function csrfValid(): bool
     {
-        if (!AuthSession::verify($_POST['csrf_token'] ?? '')) {
-            http_response_code(419);
-            exit('CSRF token invalid');
-        }
+        return AuthSession::verify($_POST['csrf_token'] ?? '');
+    }
+
+    /** Token non valido (pagina scaduta): il form torna con l'avviso 929 e i campi scritti, senza password né token. */
+    private function renderCsrfFailure(string $page, array $data = []): void
+    {
+        $GLOBALS['ALERT'] = Csrf::ALERT;
+        $this->render($page, $data + ['alert' => Csrf::ALERT, 'errors' => [], 'values' => Csrf::oldInput($_POST)]);
     }
 
     private function route(string $name, array $parameters = []): string
