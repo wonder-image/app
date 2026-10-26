@@ -1,5 +1,8 @@
 <?php
 
+    /**
+     * @deprecated usa l'Element `Wonder\Elements\Frontend\Pagination`.
+     */
     function paginationButton($text, $url, $style, $active = false, $disabled = false) {
 
         $href = $disabled ? '' : 'href="'.$url.'"';
@@ -17,6 +20,10 @@
 
     }
 
+    /**
+     * @deprecated conta le righe con `sqlCount()` dentro la paginazione: conta prima
+     * e passa pagina e totale pagine a `Wonder\Elements\Frontend\Pagination::make()`.
+     */
     function pagination($table, $query, $row, $scroll = null, $style = [
             'container' => 'w-100 j-content-center d-flex gap-3',
             'button' => [

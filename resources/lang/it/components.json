@@ -1,4 +1,5 @@
 {
+    "pagination": { "label": "Pagine", "previous": "Pagina precedente", "next": "Pagina successiva" },
     "code": { "copy": "Copia", "copied": "Copiato" },
     "preview": { "open": "Apri in una nuova scheda", "scheme": "Passa da chiaro a scuro", "unavailable": "Non disponibile" },
     "media": { "load_content": "Carica contenuto", "image_missing": "Immagine non impostata" },

@@ -312,12 +312,15 @@ un `?`); `window($pagination)` dà le pagine da mostrare, la corrente con due pe
 lato.
 
 Il componente riceve `pagination` (il risultato di `make()`) e `base_url` (l'URL
-della sezione, senza `?pagina`) e stampa il piede della tabella: «Risultati da X
+della sezione, senza `?pagina`). È un wrapper dell'Element
+`Wonder\Elements\Frontend\Pagination::account($pagination, $base_url)`, che nel
+codice nuovo si può usare direttamente (vedi [Componenti UI](../componenti/README.md#emptystate-e-pagination)).
+Stampa il piede della tabella: «Risultati da X
 a Y di Z» e i quadrati delle pagine, con la corrente segnata da
 `aria-current="page"` e le frecce spente agli estremi (`aria-disabled`). Va
 messo dopo l'ultima riga. Con zero righe non stampa nulla:
-in quel caso la vista mostra lo stato vuoto (`.wi-empty-state`) al posto della
-tabella. I testi sono del core, sotto `account.pagination.*` (`summary`, `label`,
+in quel caso la vista mostra lo stato vuoto al posto della tabella, con
+`Wonder\Elements\Frontend\EmptyState` (`.wi-empty-state`). I testi sono del core, sotto `account.pagination.*` (`summary`, `label`,
 `previous`, `next`).
 
 ```php
