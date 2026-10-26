@@ -48,6 +48,11 @@ class CheckGroup extends Field
         $label = $this->resolvedLabel();
         $fieldName = $type === 'checkbox' ? $name.'[]' : $name;
         $pills = !empty($this->schema['pills']);
+        // L'obbligatorio vale per il gruppo («almeno una»), non per ogni
+        // casella: sugli input non va, il contenitore porta la classe.
+        $attributes = (array) ($this->schema['attributes'] ?? []);
+        $required = !empty($attributes['required']) ? " wi-{$this->escape($type)}-required" : '';
+        unset($attributes['required']);
 
         $labelHtml = $label !== '' ? "<div class=\"wi-label\">{$this->escape($label)}</div>" : '';
 
@@ -59,34 +64,34 @@ class CheckGroup extends Field
             }
 
             return PageAssets::once('wi-check-group', $this->style()).<<<HTML
-<div class="wi-input-container checkbox compiled">
+<div class="wi-input-container checkbox compiled{$required}">
     {$labelHtml}
     <div class="wi-check-pills">
-        {$this->renderPills($options, $type, $fieldName, $value)}
+        {$this->renderPills($options, $type, $fieldName, $value, $attributes)}
     </div>
 </div>
 HTML;
         }
 
         return <<<HTML
-<div class="wi-input-container checkbox compiled">
+<div class="wi-input-container checkbox compiled{$required}">
     {$labelHtml}
     <div class="wi-checkbox-list">
-        {$this->renderOptions($options, $type, $fieldName, $value)}
+        {$this->renderOptions($options, $type, $fieldName, $value, $attributes)}
     </div>
 </div>
 HTML;
     }
 
-    private function renderOptions(array $options, string $type, string $fieldName, mixed $value): string
+    private function renderOptions(array $options, string $type, string $fieldName, mixed $value, array $attributes): string
     {
         $html = '';
-        $inputClass = $this->fieldClass('wi-checkbox');
+        $inputClass = $this->fieldClass('wi-checkbox', $attributes);
 
         foreach ($options as $optionValue => $optionLabel) {
             [$checkboxLabel, $optionAttribute] = $this->normalizeOption($optionValue, $optionLabel);
             $checked = $this->isChecked($optionValue, $value) ? ' checked' : '';
-            $attributesStr = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked']);
+            $attributesStr = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked'], $attributes);
             $visual = $this->optionVisual($optionLabel);
             $optionId = $this->optionId();
 
@@ -107,15 +112,15 @@ HTML;
      * nel flusso (trasparente, sopra la pillola) così tastiera e lettori di
      * schermo lo vedono; lo stato si legge dal fratello `label`.
      */
-    private function renderPills(array $options, string $type, string $fieldName, mixed $value): string
+    private function renderPills(array $options, string $type, string $fieldName, mixed $value, array $attributes): string
     {
         $html = '';
-        $inputClass = $this->fieldClass('wi-check-pill-input');
+        $inputClass = $this->fieldClass('wi-check-pill-input', $attributes);
 
         foreach ($options as $optionValue => $optionLabel) {
             [$pillLabel, $optionAttribute] = $this->normalizeOption($optionValue, $optionLabel);
             $checked = $this->isChecked($optionValue, $value) ? ' checked' : '';
-            $attributesStr = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked']);
+            $attributesStr = $this->fieldAttributes($checked === '' ? ['data-wi-check'] : ['data-wi-check', 'checked'], $attributes);
             $visual = $this->optionVisual($optionLabel);
             $optionId = $this->optionId();
 
