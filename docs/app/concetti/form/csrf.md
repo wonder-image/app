@@ -200,7 +200,8 @@ meta vanno escluse da quella regola.
 Se la sessione scade con la pagina aperta, il `_csrf` del form non vale più e
 l'invio riceve `403`. `POST /api/csrf/` (rotta `csrf`, area `api`) restituisce
 `{ "success": true, "token": "…" }`, il token della sessione corrente: il JS
-lo scrive nel campo `_csrf` (o nell'header `X-WI-CSRF`) e il secondo invio
+lo scrive nel campo `_csrf` (che vince sull'header: se il form ha il campo
+va aggiornato quello, altrimenti l'header `X-WI-CSRF`) e il secondo invio
 passa senza ricaricare, con i campi ancora compilati.
 
 - Solo POST (un'altra richiesta riceve `404` dal router) e solo dallo stesso
