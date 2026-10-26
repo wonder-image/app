@@ -22,3 +22,22 @@ Questa sezione è divisa in due aree operative:
 - [Credenziali dei pagamenti](configurazione/pagamenti.md)
 - [Brevo](configurazione/brevo.md)
 - [Klaviyo](configurazione/klaviyo.md)
+
+## Chiamate HTTP in uscita
+
+I servizi esterni passano da `Wonder\Api\Call` (anche `curl()`, `curlJson()`,
+`wiApi()`). Ogni chiamata ha un timeout di default di 10 secondi
+(`Call::DEFAULT_TIMEOUT`); senza, cURL aspetterebbe all'infinito. Chi ha bisogno
+di altro lo imposta: `->timeout($secondi)` per il totale, `->connectTimeout($secondi)`
+per la sola connessione.
+
+```php
+$call = (new Wonder\Api\Call($url, $values))
+    ->contentType('application/json')
+    ->connectTimeout(3)
+    ->timeout(30);
+```
+
+Alla scadenza `call()` restituisce `success => false` con `errno` 28 e
+`result()` il messaggio d'errore di cURL. `IPInfo` (3 s + 1 s) e reCAPTCHA
+(5 s + 3 s) usano timeout più corti.

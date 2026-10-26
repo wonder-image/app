@@ -60,8 +60,8 @@ Per i siti in modalità path la home `/` non esprime una lingua. La
 convenzione è il redirect alla home localizzata con
 `LanguageRedirector::redirectByCountry()`:
 
-- paese del visitatore (di default `$_SESSION['system_cache']['country']`,
-  popolato da `config/app/session.php` via GeoPlugin) confrontato con i
+- paese del visitatore (di default `Geo::country()`, vedi sotto; ai bot non
+  serve e non si calcola) confrontato con i
   `countries` dichiarati in `addLanguage(...)`;
 - fallback su `Accept-Language`;
 - fallback sulla lingua default. I bot ricevono sempre la lingua default.
@@ -81,3 +81,25 @@ Route::area('frontend')
 
     });
 ```
+
+## Paese del visitatore
+
+`Wonder\Plugin\GeoPlugin\Geo::country()` restituisce il codice ISO a due
+lettere del visitatore (`IT` se non si trova). Il calcolo è pigro: alla prima
+chiamata `IPInfo` interroga i provider (ipinfo.io, poi ip-api.com, poi
+ipwho.is, 3 s + 1 s di connessione ciascuno) e il codice finisce in
+`$_SESSION['system_cache']['country']`; le chiamate successive lo rileggono da
+lì. La sessione nuova non fa più chiamate: `config/app/session.php` prepara solo
+`system_cache` e `system_cache.geo`.
+
+Con IP privati, locali o riservati (`127.0.0.1`, `::1`, `10.x`, `192.168.x`...)
+nessun provider viene chiamato e resta `IT`.
+
+```php
+use Wonder\Plugin\GeoPlugin\Geo;
+
+$country = Geo::country();
+```
+
+Non leggere `$_SESSION['system_cache']['country']` direttamente: prima della
+prima chiamata all'accessor la chiave non c'è.
