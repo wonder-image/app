@@ -10,8 +10,9 @@
   .wi-checkbox:not(:checked)` non si applicava. Ora il contenitore è
   `wi-input-container checkbox compiled … input-error` e sotto la lista (o le
   pillole) esce lo `<span class='alert-error'>` degli altri input. Senza
-  errore il markup è identico a prima. Nelle pillole (`pills()`) la lib non
-  ha una regola d'errore: c'è solo il messaggio. Coperto da
+  errore il markup è identico a prima. Le pillole (`pills()`) si bordano di
+  rosso dalla lib successiva alla 2.1.2-alpha.32 (wonder-image/lib#16); fino
+  ad allora c'è solo il messaggio. Coperto da
   `tests/Themes/WonderCheckGroupTest.php`.
 
 ## 2.4.0-beta.6 — 2026-10-26
