@@ -184,13 +184,28 @@
   `wi-{type}-required` sul contenitore (come `CheckTree` e `DynamicCheck`),
   che la lib backend controlla come «almeno una». Prima il salvataggio era
   bloccato anche dal `check()` della lib del backend, non solo dal browser.
-  Il controllo lato server non c'è: il form del backend non passa dal
-  validator del `dataSchema`, e un JSON vuoto (`"[]"`) supera `required()`;
-  per il popup serve un controllo in `PopupResource::mutateRequestValues`
-  (follow-up). Nel tema Wonder frontend la lib non legge ancora
+  Il form del backend non passa dal validator del `dataSchema`, e un JSON
+  vuoto (`"[]"`) supera `required()`: per le pagine del popup il controllo
+  lato server è in `PopupResource::mutateRequestValues` (voce sotto). Nel
+  tema Wonder frontend la lib non legge ancora
   `.wi-checkbox-required`/`.wi-radio-required`: lì un gruppo obbligatorio non
   ha controllo lato client (follow-up nella lib). Coperto da
   `tests/Themes/CheckGroupRequiredTest.php`.
+- **Popup: le pagine sono obbligatorie anche lato server.** Il gruppo
+  `pages` era obbligatorio solo nel browser: un POST senza pagine, con
+  l'array vuoto del form (`pages[]` = `''`) o con `"[]"` salvava un popup
+  che non compare su nessuna pagina. Ora `PopupResource::mutateRequestValues()`
+  lo rifiuta con `InvalidArgumentException` (codice 422) e il messaggio
+  `popup.pages_required` (`resources/lang/{it,en}/popup.json`): nel backend
+  esce come avviso del form, dall'API come risposta 422. In creazione il
+  controllo vale sempre, in modifica solo se `pages` arriva. L'API del popup
+  non dichiara campi scrivibili (`apiSchema()` ha solo `index`), quindi una
+  creazione via API, che prima arrivava al salvataggio senza alcun campo,
+  ora risponde 422; la modifica via API resta com'era. Nessuna migrazione:
+  i popup già salvati senza pagine restano, si possono ancora
+  mostrare/nascondere e riordinare dalla lista, e alla prossima modifica dal
+  form chiedono una pagina. Coperto da
+  `tests/App/Resources/PopupResourceTest.php`.
 - **Cambiare l'email di un utente azzera `email_verified`.** Nel ramo di
   modifica di `user()` (form utenti del backend, account backend, chiamanti dei
   siti) un'email diversa da quella salvata, senza contare maiuscole e spazi,
