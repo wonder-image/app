@@ -1,5 +1,9 @@
 <?php
 
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\Container;
+
 \Wonder\View\View::layout('backend.show');
 
 $event = (object) ($ITEM ?? []);
@@ -22,56 +26,57 @@ if (is_string($evidence) && $evidence !== '') {
 
 $actionBadge = consentEventAction((string) ($event->action ?? ''))->badge ?? '';
 $sourceText = consentEventSource((string) ($event->source ?? ''))->text ?? '';
-?>
 
-<div class="row g-3">
-    <wi-card class="col-12">
-        <h6><?=htmlspecialchars((string) $documentName, ENT_QUOTES, 'UTF-8')?></h6>
-        <div><?=htmlspecialchars((string) $userName, ENT_QUOTES, 'UTF-8')?></div>
-    </wi-card>
+$esc = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
-    <div class="col-9">
-        <div class="row g-3">
-            <wi-card class="col-6">
-                <h6 class="col-12 mb-2">Documento</h6>
-                <div class="col-12">
-                    Nome: <b><?=htmlspecialchars((string) $documentName, ENT_QUOTES, 'UTF-8')?></b><br>
-                    Tipologia: <b><?=htmlspecialchars((string) ($document->doc_type ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Versione: <b><?=htmlspecialchars((string) ($document->version ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Lingua: <b><?=htmlspecialchars((string) ($document->language_code ?? ''), ENT_QUOTES, 'UTF-8')?></b>
-                </div>
-            </wi-card>
+echo ResourceFormLayoutRenderer::renderLayout(
+    (new Container)->components([
 
-            <wi-card class="col-6">
-                <h6 class="col-12 mb-2">Risposta utente</h6>
-                <div class="col-12">
-                    Fonte: <b><?=htmlspecialchars((string) $sourceText, ENT_QUOTES, 'UTF-8')?></b><br>
-                    Azione: <?=$actionBadge?>
-                </div>
-            </wi-card>
+        (new Card)->components([
+            '<h6>'.$esc((string) $documentName).'</h6>',
+            '<div>'.$esc((string) $userName).'</div>',
+        ])->columnSpan(12),
 
-            <wi-card class="col-12">
-                <h6 class="col-12">Prova</h6>
-                <div class="col-12">
-                    <?=wiCard($evidence)?>
-                </div>
-            </wi-card>
-        </div>
-    </div>
+        (new Container)->components([
+            (new Card)->components([
+                '<h6 class="col-12 mb-2">Documento</h6>',
+                '<div class="col-12">'
+                    .'Nome: <b>'.$esc((string) $documentName).'</b><br>'
+                    .'Tipologia: <b>'.$esc((string) ($document->doc_type ?? '')).'</b><br>'
+                    .'Versione: <b>'.$esc((string) ($document->version ?? '')).'</b><br>'
+                    .'Lingua: <b>'.$esc((string) ($document->language_code ?? '')).'</b>'
+                .'</div>',
+            ])->columnSpan(6),
 
-    <div class="col-3">
-        <div class="row g-3">
-            <wi-card class="col-12">
-                <h6 class="col-12 mb-2">Altro</h6>
-                <div class="col-12">
-                    Lingua: <b><?=htmlspecialchars((string) ($event->locale ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    IP: <b><?=htmlspecialchars((string) ($event->ip_address ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Browser: <b><?=htmlspecialchars((string) ($event->user_agent ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Creazione: <b><?=htmlspecialchars((string) ($event->creation ?? ''), ENT_QUOTES, 'UTF-8')?></b>
-                </div>
-            </wi-card>
-        </div>
-    </div>
-</div>
+            (new Card)->components([
+                '<h6 class="col-12 mb-2">Risposta utente</h6>',
+                '<div class="col-12">'
+                    .'Fonte: <b>'.$esc((string) $sourceText).'</b><br>'
+                    .'Azione: '.$actionBadge
+                .'</div>',
+            ])->columnSpan(6),
 
-<?php \Wonder\View\View::end(); ?>
+            (new Card)->components([
+                '<h6 class="col-12">Prova</h6>',
+                '<div class="col-12">'
+                    .ResourceFormLayoutRenderer::renderLayout((new Card)->components([wiPreIfArray($evidence)]))
+                .'</div>',
+            ])->columnSpan(12),
+        ])->columns(12)->columnSpan(9),
+
+        (new Container)->components([
+            (new Card)->components([
+                '<h6 class="col-12 mb-2">Altro</h6>',
+                '<div class="col-12">'
+                    .'Lingua: <b>'.$esc((string) ($event->locale ?? '')).'</b><br>'
+                    .'IP: <b>'.$esc((string) ($event->ip_address ?? '')).'</b><br>'
+                    .'Browser: <b>'.$esc((string) ($event->user_agent ?? '')).'</b><br>'
+                    .'Creazione: <b>'.$esc((string) ($event->creation ?? '')).'</b>'
+                .'</div>',
+            ]),
+        ])->columnSpan(3),
+
+    ])->columns(12)
+);
+
+\Wonder\View\View::end();

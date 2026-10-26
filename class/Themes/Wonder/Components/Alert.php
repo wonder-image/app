@@ -2,27 +2,27 @@
 
 namespace Wonder\Themes\Wonder\Components;
 
+use Wonder\Themes\Concerns\ReadsAlertSchema;
 use Wonder\Themes\Wonder\Component;
 
 class Alert extends Component
 {
+    use ReadsAlertSchema;
+
     /**
      * `inline()` qui è ignorato: la lib non ha un avviso di pagina e
      * `wi-alert` è sempre fisso a lato dello schermo.
      */
     public function render($class): string
     {
-        $schema = $class->getSchema();
-        $message = $this->escapeWithLineBreaks((string) ($schema['message'] ?? ''));
-        $title = trim((string) ($schema['title'] ?? ''));
-        $level = strtolower((string) ($schema['level'] ?? 'info'));
-        $dismissible = (bool) ($schema['dismissible'] ?? true);
-        $type = $this->themeType($level);
+        $alert = $this->readAlertSchema($class);
+        $message = $alert['message'];
+        $type = $alert['type'];
         $icon = $this->iconByType($type);
-        $id = $this->resolveId($schema['id'] ?? null);
-        $safeId = $this->escape($id);
-        $safeTitle = $this->escape($title !== '' ? $title : ucfirst($type));
-        $attributes = $this->renderAttributes($schema['attributes'] ?? null);
+        $safeId = $alert['id'];
+        $safeTitle = $alert['title'];
+        $dismissible = $alert['dismissible'];
+        $attributes = $alert['attributes'];
 
         $html = "<div id='{$safeId}' class='wi-alert wi-show' {$attributes}>";
         $html .= "<div class='wi-alert-header'>";
@@ -38,16 +38,6 @@ class Alert extends Component
         $html .= "</div>";
 
         return $html;
-    }
-
-    private function themeType(string $level): string
-    {
-        return match ($level) {
-            'error' => 'danger',
-            'warning' => 'warning',
-            'success' => 'success',
-            default => 'info',
-        };
     }
 
     private function iconByType(string $type): string

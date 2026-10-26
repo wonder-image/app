@@ -8,6 +8,7 @@ use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\Elements\Components\Alert;
+use Wonder\Elements\Components\Card;
 
 final class ResourcePagePresenter
 {
@@ -195,11 +196,7 @@ final class ResourcePagePresenter
             'warning'
         )->inline()->addClass('mb-0')->render();
 
-        return <<<HTML
-<wi-card class="col-12">
-    {$alert}
-</wi-card>
-HTML;
+        return ResourceFormLayoutRenderer::renderLayout((new Card)->components([$alert]));
     }
 
     public function legacyName(): object

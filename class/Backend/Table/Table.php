@@ -3,6 +3,8 @@
     namespace Wonder\Backend\Table;
     
     use Wonder\App\Path;
+    use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+    use Wonder\Elements\Components\Card;
     
     use Wonder\Sql\Query;
     use Wonder\Backend\Filter\FilterDate;
@@ -853,7 +855,7 @@
             $CONTENT .= $this->script($config, $INITIAL_DATA);
 
             if ($card) {
-                return '<wi-card class="col-12">'.$CONTENT.'</wi-card>';
+                return ResourceFormLayoutRenderer::renderLayout((new Card)->components([$CONTENT]));
             } else {
                 return $CONTENT;
             }

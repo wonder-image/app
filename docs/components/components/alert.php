@@ -13,7 +13,7 @@ return ComponentDoc::for(Alert::class)
     ->uses(Container::class)
     ->docs('concetti/componenti/README.md#esempio-alert', 'Componenti UI')
     ->docs('concetti/notifiche.md', 'Notifiche')
-    ->note('bootstrap', 'Il markup è un `.toast` con intestazione colorata: va chiuso con `data-bs-dismiss="toast"`. È nascosto finché `alertToast()` o `/api/backend/alert/` non lo aprono. Con `inline()` diventa un `div.alert.alert-{tipo}` visibile con `role="alert"`: senza titolo né chiusura se non li chiedi.')
+    ->note('bootstrap', 'Il markup è un `.toast` con intestazione colorata: va chiuso con `data-bs-dismiss="toast"`. Esce senza `show`, quindi nascosto finché uno script non lo apre (`alertToast()`, `/api/backend/alert/`). Per gli avvisi fissi di pagina usa `inline()`: diventa un `div.alert.alert-{tipo}` visibile con `role="alert"`, senza titolo né chiusura se non li chiedi.')
     ->note('wonder', '`inline()` è ignorato: la `wi-alert` della lib è sempre fissa a lato dello schermo.')
     ->example('Base', <<<'PHP'
     Alert::make('Operazione completata', 'success')

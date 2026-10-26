@@ -77,7 +77,7 @@ return ComponentDoc::for(Modal::class)
                     ]),
             ]
             PHP)
-            ->description('`footer()` sostituisce Annulla e Salva con i bottoni dati; `scrollable()` tiene fermi intestazione e fondo.')
+            ->description('`footer()` sostituisce Annulla e Salva con i bottoni dati; `scrollable()` tiene fermi intestazione e fondo. Solo Bootstrap: il renderer Wonder non legge `scrollable()` e il bottone Rifiuta chiude con `data-bs-dismiss`.')
             ->themes('bootstrap')
             ->height(120)
     );

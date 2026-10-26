@@ -1,7 +1,13 @@
-<?php \Wonder\View\View::layout('backend.main'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
 
 <div class="row g-3">
-    <wi-card class="col-12">
+    <?php ob_start(); ?>
         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
             <div class="flex-grow-1 min-w-0">
                 <h3 class="mb-0">
@@ -18,10 +24,10 @@
             </div>
             <?php include __DIR__.'/partials/header-actions.php'; ?>
         </div>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
     <?php if (!empty($FORM_ERRORS)) { ?>
-    <wi-card class="col-12">
+    <?php ob_start(); ?>
         <div class="col-12">
             <?=\Wonder\Elements\Components\Alert::make(
                 trim((string) ($FORM_ERROR_MESSAGE ?? '')) !== ''
@@ -30,7 +36,7 @@
                 'error'
             )->inline()->addClass('mb-0')->render()?>
         </div>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
     <?php } ?>
 
     <?php foreach ((array) ($FORM_NOTICES ?? []) as $notice) { ?>

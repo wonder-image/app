@@ -1,4 +1,10 @@
-<?php \Wonder\View\View::layout('backend.form'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.form');
+?>
 
 <?php
     $readonly = (bool) ($READONLY ?? false);
@@ -14,9 +20,7 @@
         ->inline()->addClass('mb-0')->render();
     $noticeHtml = '
         <div class="col-12">
-            <wi-card class="col-12">
-                '.$readonlyNotice.'
-            </wi-card>
+            '.ResourceFormLayoutRenderer::renderLayout((new Card)->components([$readonlyNotice])).'
         </div>';
     $submitHtml = function (string $class = ''): string {
         if (!function_exists('submit')) {
@@ -41,9 +45,9 @@
                     ? $noticeHtml
                     : ($partial ? $noticeHtml : '').(\Wonder\Backend\Support\ResourceFormLayoutRenderer::hasSubmit($FORM_LAYOUT) ? '' : '
                     <div class="col-12">
-                        <wi-card class="col-12">
-                            <div class="col-12">'.$submitHtml().'</div>
-                        </wi-card>
+                        '.ResourceFormLayoutRenderer::renderLayout((new Card)->components([
+                            '<div class="col-12">'.$submitHtml().'</div>',
+                        ])).'
                     </div>')),
             ]
         )
@@ -58,7 +62,7 @@
     <div class="row g-3">
         <?php if ($readonly) { echo $noticeHtml; } ?>
         <div class="<?=!empty($SIDEBAR_FIELDS) ? 'col-9' : 'col-12'?>">
-            <wi-card class="col-12">
+            <?php ob_start(); ?>
                 <?php foreach ((array) ($FIELDS ?? []) as $field) { ?>
                     <?php
                         if (is_object($field) && method_exists($field, 'render')) {
@@ -66,12 +70,12 @@
                         }
                     ?>
                 <?php } ?>
-            </wi-card>
+            <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
         </div>
 
         <?php if (!empty($SIDEBAR_FIELDS)) { ?>
         <div class="col-3">
-            <wi-card class="col-12">
+            <?php ob_start(); ?>
                 <?php foreach ((array) ($SIDEBAR_FIELDS ?? []) as $field) { ?>
                     <?php
                         if (is_object($field) && method_exists($field, 'render')) {
@@ -84,15 +88,15 @@
                     <?=$submitHtml('w-100')?>
                 </div>
                 <?php } ?>
-            </wi-card>
+            <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
         </div>
         <?php } elseif (!$locked) { ?>
         <div class="col-12">
-            <wi-card class="col-12">
+            <?php ob_start(); ?>
                 <div class="col-12">
                     <?=$submitHtml()?>
                 </div>
-            </wi-card>
+            <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
         </div>
         <?php } ?>
     </div>
