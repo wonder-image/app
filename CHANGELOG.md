@@ -172,7 +172,10 @@
   (`main`, …): `api/backend/delete`, `change/boolean`, `move` e `authority`
   uscivano con «Parametri non validi.». Ora il nome reale di un database
   configurato si risolve nel suo alias; nomi non configurati e
-  `information_schema` restano 422.
+  `information_schema` restano 422 (anche se un alias mappa lo schema di
+  sistema). Con MySQL `lower_case_table_names=1` il nome restituito da
+  `SELECT DATABASE()` può differire nelle maiuscole da quello configurato:
+  il confronto è esatto, quindi la richiesta resta rifiutata (fail-closed).
 
 ## 2.4.0-beta.5 — 2026-10-26
 
