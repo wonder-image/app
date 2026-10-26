@@ -155,7 +155,7 @@ check('le query di Query passano dal contatore in Debug', function () {
     $_ENV['APP_DEBUG'] = '0';
     Debug::reset();
     QueryCounter::reset();
-    return count($groups) === 1 && current($groups) === 2 && str_starts_with((string) key($groups), 'SELECT');
+    return $groups === ['SELECT * FROM `user` WHERE id = ? LIMIT ?' => 2];
 });
 
 // --- sqlTableExists ---
