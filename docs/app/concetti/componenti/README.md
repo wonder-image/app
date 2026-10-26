@@ -456,8 +456,17 @@ Alert::make('Operazione completata', 'success')
 ```
 
 `Alert::make($message, $level = 'info')`; poi `->title()`, `->message()`,
-`->level()`, `->dismissible()`. Livelli tipici: `info`, `success`, `warning`,
-`danger`.
+`->level()`, `->dismissible()`. Livelli: `info`, `success`, `warning`,
+`error`.
+
+Nel backend l'Alert è un toast nascosto finché `alertToast()` non lo apre. Per
+un avviso fisso di pagina usa `->inline()`: nel tema Bootstrap esce
+`<div class="alert alert-{tipo}" role="alert">`, con titolo e chiusura solo se
+chiesti; nel tema Wonder `inline()` è ignorato.
+
+```php
+Alert::make('Pagina in sola lettura.', 'warning')->inline()->addClass('mb-0');
+```
 
 ## Esempio: Button, Badge, Group, Dropdown
 

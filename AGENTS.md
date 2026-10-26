@@ -61,7 +61,7 @@ può prendere in carico. Guida: `docs/components/README.md` e
 
 ## Project overview
 
-- Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers. Both read the schema through `Themes\Concerns\ReadsAlertSchema` (level to type, fallback title, escaped id, attributes and message); markup and icons stay per theme. The Bootstrap one is a `.toast` without `show`, hidden until a script opens it, so static notices inside backend pages (read-only, form errors, `formNotices()`) keep Bootstrap `.alert` markup inside a `Card`.
+- Use `e()` for HTML text and attributes; use `e_br(?string)` only for text content needing newlines or bare `<br>` tags rendered as line breaks. Other HTML stays escaped. Shared formatting lives in `Support/Html/Entity::encodeWithLineBreaks()` and is also used by both Alert renderers. Both read the schema through `Themes\Concerns\ReadsAlertSchema` (level to type, fallback title, escaped id, attributes and message); markup and icons stay per theme. The Bootstrap one is a `.toast` without `show`, hidden until a script opens it, so static notices inside backend pages (read-only, form errors, `formNotices()`) use `Alert::make(...)->inline()` inside a `Card`.
 
 - Button::lightbox(string|array, ?string) opens image/iframe URL groups in both themes through RendersButtonLightbox. Preserve disabled behavior and native URL fallback; disallow form actions. See docs/app/elementi/button-lightbox.md.
 
@@ -103,6 +103,7 @@ Key subareas:
 - `class/App/SeedDefaults.php`: canonical default payloads for `build/row`, singleton bootstrap, and empty seed-backed backend forms
 - `class/Elements/Concerns/HasLinkAttributes.php`: concern condiviso per `Link`, `Button`, `Badge` e link inline di `Text`; salva `href`, `target`, `rel`, `title`, `onclick`, `download` dentro `attributes`
 - `class/Elements/Components`: non-form UI components rendered via theme resolver (`Card`, `InfoCard`, `MetricCard`, `Alert`, `Text`, `Link`, `Button`, `Badge`, `ButtonGroup`, `Dropdown`, `Code`, `Preview`, ...)
+- `Alert::inline()` (Bootstrap) renders a visible page alert `div.alert.alert-{type}` with `role="alert"`; without it Alert is the hidden `.toast` used by `alertToast()` and `/api/backend/alert/`, whose output must stay byte-identical. Backend page notices use `Alert::make(...)->inline()`. Hand-written `class="alert` remains only in `app/view/pages/backend/docs/components.php` (link and `<code>`, must not be escaped) and `class/Backend/Support/QuickCreateModal.php` (HTML inside a JS string). In the Wonder theme `inline()` is ignored.
 - `class/Docs`: il catalogo dei componenti (schede in `docs/components`, server autonomo `bin/docs.php`)
 - `Accordion` is a shared non-form Element: `make($text)`, `description()`,
   and `components()` define its content; the Wonder renderer must reuse the

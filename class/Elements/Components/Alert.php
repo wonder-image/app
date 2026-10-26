@@ -45,4 +45,17 @@ class Alert extends Component
     {
         return $this->schema('dismissible', $dismissible);
     }
+
+    /**
+     * Avviso fisso di pagina invece del toast. Nel tema Bootstrap esce un
+     * `div.alert.alert-{tipo}` visibile con `role="alert"`: il titolo solo se
+     * dato con `title()`, la chiusura solo con `dismissible()` esplicito
+     * (in linea il default è non chiudibile), l'id solo se dato con `id()`.
+     * Il tema Wonder non ha un avviso di pagina (`wi-alert` è fisso a lato
+     * dello schermo), quindi lì `inline()` è ignorato.
+     */
+    public function inline(bool $inline = true): self
+    {
+        return $this->schema('inline', $inline);
+    }
 }

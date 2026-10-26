@@ -121,13 +121,13 @@ $list = $page('resource/list.php', ['READONLY' => true, 'READONLY_NOTICE' => 'So
 
 check('resource/list: avviso di sola lettura in una Card col-12', fn () =>
     !str_contains($list, '<wi-card')
-    && str_contains($list, '<div class="col-12">'.$card.'    <div class="alert alert-warning mb-0">Solo &lt;lettura&gt;</div>'."\n".'</div></div></div>'));
+    && str_contains($list, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0" role="alert">Solo &lt;lettura&gt;</div></div></div></div>'));
 
 $form = $page('resource/form.php', ['READONLY' => true, 'READONLY_NOTICE' => 'Bloccato', 'FIELDS' => [], 'SIDEBAR_FIELDS' => []]);
 
 check('resource/form: avviso e campi in Card, senza <wi-card>', fn () =>
     !str_contains($form, '<wi-card') && substr_count($form, $card) === 2
-    && str_contains($form, '<div class="alert alert-warning mb-0">Bloccato</div>'));
+    && str_contains($form, '<div class="alert alert-warning mb-0" role="alert">Bloccato</div>'));
 
 $formEdit = $page('resource/form.php', ['FIELDS' => [], 'SIDEBAR_FIELDS' => []]);
 
@@ -154,7 +154,7 @@ $presenter = (new ReflectionClass(\Wonder\Backend\Support\ResourcePagePresenter:
 $fallback = $presenter->listFallback(new RuntimeException('db <giù>'));
 
 check('ResourcePagePresenter::listFallback: avviso in Card, messaggio escapato', fn () =>
-    str_starts_with($fallback, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0">')
+    str_starts_with($fallback, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0" role="alert">')
     && str_contains($fallback, 'db &lt;giù&gt;'));
 
 if (!function_exists('e')) {
@@ -165,7 +165,7 @@ $scheduler = $page('scheduler/schedules.php', ['READONLY' => true, 'READONLY_NOT
 
 // Prima Card->render('bootstrap') con un figlio stringa andava in Fatal.
 check('scheduler in sola lettura: avviso in Card, poi la tabella', fn () =>
-    str_starts_with($scheduler, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0">Solo &lt;lettura&gt;</div>')
+    str_starts_with($scheduler, '<div class="col-12">'.$card.'<div class="alert alert-warning mb-0" role="alert">Solo &lt;lettura&gt;</div>')
     && str_contains($scheduler, '<table></table>'));
 
 exit(summary());
