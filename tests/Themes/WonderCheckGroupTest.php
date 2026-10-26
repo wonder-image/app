@@ -114,4 +114,49 @@ check('il CSS delle pillole esce una volta per pagina; la lista usa solo la lib'
         && !str_contains($second, 'data-wi-check-group-style');
 });
 
+$pages = static fn (): CheckGroup => (new CheckGroup('pages'))
+    ->label('Pagine')
+    ->options(['home' => 'Home', 'shop' => 'Shop']);
+$alert = "<span class='alert-error'><i class='bi bi-exclamation-triangle'></i> Scegli &lt;b&gt;una&lt;/b&gt; pagina</span>";
+
+check('senza errore: contenitore senza input-error e nessun messaggio', function () use ($pages) {
+    PageAssets::reset();
+    $list = $pages()->render('wonder');
+    $pills = $pages()->pills()->render('wonder');
+
+    return str_contains($list, '<div class="wi-input-container checkbox compiled">')
+        && str_contains($pills, '<div class="wi-input-container checkbox compiled">')
+        && !str_contains($list.$pills, 'input-error')
+        && !str_contains($list.$pills, 'alert-error');
+});
+
+check('con errore (lista): input-error sul contenitore e messaggio escapato dopo la lista', function () use ($pages, $alert) {
+    $html = $pages()->error('Scegli <b>una</b> pagina')->render('wonder');
+
+    return str_contains($html, '<div class="wi-input-container checkbox compiled input-error">')
+        && substr_count($html, 'alert-error') === 1
+        && preg_match('#</div>\s*</div>\s*'.preg_quote($alert, '#').'\s*</div>\s*$#', $html) === 1
+        && !str_contains($html, 'class="wi-checkbox input-error"');
+});
+
+check('con errore e required: restano entrambe le classi del contenitore', function () use ($pages) {
+    $html = $pages()->required()->error('Obbligatorio')->render('wonder');
+    $radio = $pages()->inputType('radio')->required()->error('Obbligatorio')->render('wonder');
+
+    return str_contains($html, 'class="wi-input-container checkbox compiled wi-checkbox-required input-error"')
+        && str_contains($radio, 'class="wi-input-container checkbox compiled wi-radio-required input-error"');
+});
+
+check('con errore (pills): input-error sul contenitore e messaggio dopo le pillole', function () use ($pages, $alert) {
+    PageAssets::reset();
+    $html = $pages()->pills()->error('Scegli <b>una</b> pagina')->render('wonder');
+
+    return str_contains($html, '<div class="wi-input-container checkbox compiled input-error">')
+        && preg_match('#class="wi-check-pills">.*</div>\s*'.preg_quote($alert, '#').'\s*</div>\s*$#s', $html) === 1;
+});
+
+check('errore vuoto o di soli spazi: come senza errore', fn () =>
+    !str_contains($pages()->error('  ')->render('wonder'), 'input-error')
+);
+
 summary();
