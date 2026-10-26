@@ -195,6 +195,19 @@ visitatore. Il framework non può accorgersene: le pagine con un form o con il
 meta vanno escluse da quella regola.
 {% endhint %}
 
+### Token scaduto in un form AJAX
+
+Se la sessione scade con la pagina aperta, il `_csrf` del form non vale più e
+l'invio riceve `403`. `POST /api/csrf/` (rotta `api.csrf`) restituisce
+`{ "success": true, "token": "…" }`, il token della sessione corrente: il JS
+lo scrive nel campo `_csrf` (o nell'header `X-WI-CSRF`) e il secondo invio
+passa senza ricaricare, con i campi ancora compilati.
+
+- Solo POST e solo dallo stesso sito (`Wonder\Http\SameOrigin`), altrimenti
+  `405` o `403`; risposta `Cache-Control: no-store`.
+- Non chiede il token vecchio: una pagina di un altro sito non può leggere la
+  risposta (CORS senza credenziali) e il token da solo non apre altro.
+
 ## Cookie
 
 `Wonder\Http\Cookie` è l'unico punto che chiama `setcookie()` nel core. Ogni
