@@ -9,7 +9,15 @@
   chiamanti. Un sito che li usa ancora va migrato: `Card` (in un layout
   Resource con `ResourceFormLayoutRenderer::renderLayout()`), `MetricCard`,
   `Accordion`, `Modal::make()->frontend()` e `Button::make()`. Un override di
-  `frontend.overlay.popup` va riallineato al nuovo markup (vedi «Cambiato»).
+  `frontend.overlay.popup` va riallineato al nuovo markup (vedi «Cambiato»)
+  e deve ripetere il controllo su `$GLOBALS['WI_POPUP_RENDERED']`, altrimenti
+  il popup esce due volte; in alternativa si toglie la riga del popup dal
+  `body-start.php` del sito.
+- Markup del popup cambiato (`<h2>`, footer nel dialogo, `btn-icon-right`,
+  `wi-show`): il CSS di un sito che lo stila va controllato. L'etichetta del
+  bottone ora è escapata: un `url_label` con HTML appare come testo.
+- Il flag `WI_POPUP_RENDERED` non si azzera: uno script CLI che rende più
+  pagine nello stesso processo deve fare `unset($GLOBALS['WI_POPUP_RENDERED'])`.
 - Il popup frontend e le card server-side richiedono `wonder-image` lib
   `2.1.2-alpha.24` o successiva; il vincolo del core è già `^2.1.2-alpha.30`.
 
