@@ -32,6 +32,13 @@
   l'HTML non cambia. Senza `inline()` l'output è identico a prima (bloccato da
   `tests/Themes/BadgeInlineTest.php`). Doc: catalogo `badge` e
   `docs/app/concetti/componenti/README.md`.
+- **`POST /api/csrf/` (rotta `csrf`, area `api`).** Restituisce `{ "token": "…" }`, il
+  token CSRF della sessione corrente, per i form AJAX rimasti aperti oltre la
+  sessione: dopo un `403` (o un `401` del token di pagina, da rinnovare poi con
+  `/api/token/page/`) il form prende il token nuovo e il secondo invio
+  passa senza ricaricare la pagina. Solo POST same-origin (`SameOrigin`, se no
+  `403`), con sessione attiva, `Cache-Control: no-store`; non chiede il vecchio token e non
+  dà accesso ad altro. Test: `tests/Api/CsrfRenewTest.php`.
 
 ### Cambiato
 - Il componente `frontend.account.pagination` è un wrapper di
