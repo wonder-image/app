@@ -212,10 +212,16 @@ Esempio reale:
 - `app/view/pages/backend/account/login.php`
 
 ```php
-<?php \Wonder\View\View::layout('backend.auth'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.auth');
+?>
 
 <form method="post" enctype="multipart/form-data" onsubmit="loadingSpinner()">
-    <wi-card>
+    <?php ob_start(); ?>
         <div class="col-12">
             <?=text('Username', 'username', 'required', $fieldUsername ?? ''); ?>
         </div>
@@ -227,7 +233,7 @@ Esempio reale:
         <div class="d-grid col-8 mx-auto">
             <?=submit('Accedi', 'login'); ?>
         </div>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 </form>
 
 <?php \Wonder\View\View::end(); ?>
@@ -292,12 +298,18 @@ File:
 - `app/view/pages/backend/report/index.php`
 
 ```php
-<?php \Wonder\View\View::layout('backend.main'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
 
 <div class="row g-3">
-    <wi-card class="col-12">
+    <?php ob_start(); ?>
         <h3>Report</h3>
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 </div>
 
 <?php \Wonder\View\View::end(); ?>
@@ -336,11 +348,17 @@ File:
 - `app/view/pages/backend/special/index.php`
 
 ```php
-<?php \Wonder\View\View::layout('backend.minimal'); ?>
+<?php
 
-<wi-card>
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.minimal');
+?>
+
+<?php ob_start(); ?>
     <h3>Pagina speciale</h3>
-</wi-card>
+<?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 
 <?php \Wonder\View\View::end(); ?>
 ```

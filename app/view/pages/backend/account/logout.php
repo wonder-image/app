@@ -1,7 +1,13 @@
-<?php \Wonder\View\View::layout('backend.auth'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.auth');
+?>
 <form method="post" action="<?=e(__r('backend.account.logout'))?>">
     <?=\Wonder\Http\Csrf::field()->render()?>
-    <wi-card>
+    <?php ob_start(); ?>
 
         <div class="col-12 text-center">
             <p class="mb-0"><?=e(__t('auth.logout.confirm'))?></p>
@@ -11,7 +17,7 @@
             <button type="submit" class="btn btn-dark"><?=e(__t('auth.logout.submit'))?></button>
         </div>
 
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 </form>
 
 <div class="row mt-3">

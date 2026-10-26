@@ -4,24 +4,23 @@ namespace Wonder\Themes\Bootstrap\Components;
 
 use Wonder\Themes\Bootstrap\Component;
 use Wonder\Themes\Concerns\HasAttributes;
+use Wonder\Themes\Concerns\ReadsAlertSchema;
 
 class Alert extends Component
 {
     use HasAttributes;
+    use ReadsAlertSchema;
 
     public function render($class): string
     {
-        $schema = $class->getSchema();
-        $message = $this->escapeWithLineBreaks((string) ($schema['message'] ?? ''));
-        $title = trim((string) ($schema['title'] ?? ''));
-        $level = strtolower((string) ($schema['level'] ?? 'info'));
-        $dismissible = (bool) ($schema['dismissible'] ?? true);
-        $type = $this->themeType($level);
+        $alert = $this->readAlertSchema($class);
+        $message = $alert['message'];
+        $type = $alert['type'];
         $icon = $this->iconByType($type);
-        $id = $this->resolveId($schema['id'] ?? null);
-        $safeId = $this->escape($id);
-        $safeTitle = $this->escape($title !== '' ? $title : ucfirst($type));
-        $attributes = $this->renderAttributes($schema['attributes'] ?? null);
+        $safeId = $alert['id'];
+        $safeTitle = $alert['title'];
+        $dismissible = $alert['dismissible'];
+        $attributes = $alert['attributes'];
 
         $html = "<div id='{$safeId}' class='toast border-{$type} overflow-hidden' role='alert' "
             . "aria-live='assertive' aria-atomic='true' {$attributes}>";
@@ -37,16 +36,6 @@ class Alert extends Component
         $html .= '</div>';
 
         return $html;
-    }
-
-    private function themeType(string $level): string
-    {
-        return match ($level) {
-            'error' => 'danger',
-            'warning' => 'warning',
-            'success' => 'success',
-            default => 'info',
-        };
     }
 
     private function iconByType(string $type): string

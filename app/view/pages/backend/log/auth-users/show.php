@@ -1,5 +1,9 @@
 <?php
 
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\Container;
+
 \Wonder\View\View::layout('backend.show');
 
 $log = (object) ($ITEM ?? []);
@@ -13,38 +17,39 @@ if (is_string($meta) && $meta !== '') {
         $meta = $decodedMeta;
     }
 }
-?>
 
-<div class="row g-3">
-    <wi-card class="col-12">
-        <h6><?=htmlspecialchars((string) ($log->event ?? ''), ENT_QUOTES, 'UTF-8')?></h6>
-        <div><?=htmlspecialchars((string) $userName, ENT_QUOTES, 'UTF-8')?></div>
-    </wi-card>
+$esc = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
-    <div class="col-9">
-        <div class="row g-3">
-            <wi-card class="col-12">
-                <h6 class="col-12">Dettagli</h6>
-                <div class="col-6 mt-2">
-                    Evento: <b><?=htmlspecialchars((string) ($log->event ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    Area: <b><?=htmlspecialchars((string) ($log->area ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    IP: <b><?=htmlspecialchars((string) ($log->ip ?? ''), ENT_QUOTES, 'UTF-8')?></b><br>
-                    User Agent: <b><?=htmlspecialchars((string) ($log->user_agent ?? ''), ENT_QUOTES, 'UTF-8')?></b>
-                </div>
-            </wi-card>
-        </div>
-    </div>
+echo ResourceFormLayoutRenderer::renderLayout(
+    (new Container)->components([
 
-    <div class="col-3">
-        <div class="row g-3">
-            <wi-card class="col-12">
-                <h6 class="col-12">Metadati</h6>
-                <div class="col-12">
-                    <?=wiCard($meta)?>
-                </div>
-            </wi-card>
-        </div>
-    </div>
-</div>
+        (new Card)->components([
+            '<h6>'.$esc((string) ($log->event ?? '')).'</h6>',
+            '<div>'.$esc((string) $userName).'</div>',
+        ])->columnSpan(12),
 
-<?php \Wonder\View\View::end(); ?>
+        (new Container)->components([
+            (new Card)->components([
+                '<h6 class="col-12">Dettagli</h6>',
+                '<div class="col-6 mt-2">'
+                    .'Evento: <b>'.$esc((string) ($log->event ?? '')).'</b><br>'
+                    .'Area: <b>'.$esc((string) ($log->area ?? '')).'</b><br>'
+                    .'IP: <b>'.$esc((string) ($log->ip ?? '')).'</b><br>'
+                    .'User Agent: <b>'.$esc((string) ($log->user_agent ?? '')).'</b>'
+                .'</div>',
+            ]),
+        ])->columnSpan(9),
+
+        (new Container)->components([
+            (new Card)->components([
+                '<h6 class="col-12">Metadati</h6>',
+                '<div class="col-12">'
+                    .ResourceFormLayoutRenderer::renderLayout((new Card)->components([wiPreIfArray($meta)]))
+                .'</div>',
+            ]),
+        ])->columnSpan(3),
+
+    ])->columns(12)
+);
+
+\Wonder\View\View::end();

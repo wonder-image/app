@@ -1,8 +1,14 @@
-<?php \Wonder\View\View::layout('backend.auth'); ?>
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.auth');
+?>
 <form method="post" action="<?=e($ACTION)?>">
     <?=\Wonder\Http\Csrf::field()->render()?>
     <input type="hidden" name="account" value="<?=e($ACCOUNT)?>">
-    <wi-card>
+    <?php ob_start(); ?>
 
         <div class="col-12 text-center">
             <h1 class="h5"><?=e(__t('stripe.connect.title'))?></h1>
@@ -16,7 +22,7 @@
             <button type="submit" class="btn btn-dark"><?=e(__t('stripe.connect.submit'))?></button>
         </div>
 
-    </wi-card>
+    <?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
 </form>
 
 <div class="row mt-3">

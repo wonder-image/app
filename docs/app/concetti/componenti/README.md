@@ -98,10 +98,31 @@ public static function formLayoutSchema(): ?Form
 
 Esempio reale completo: `class/App/Resources/Css/CssAlertResource.php`.
 
-`<wi-card>` è dismesso: non aggiungerne di nuovi né chiamare
-`wiCard()`/`wiCardLink()` in codice nuovo, usa `Card`, che rende
-`<div class="card">` e non ha opzioni per cambiare tag. Le occorrenze esistenti
-si sostituiscono quando si tocca la pagina.
+`<wi-card>` è dismesso: non aggiungerne di nuovi, usa `Card`, che rende
+`<div class="card">` e non ha opzioni per cambiare tag. In `class/` e `app/`
+non ne resta nessuno; nei siti e nei moduli si sostituiscono quando si tocca la
+pagina. Fuori da un layout Resource la Card passa da
+`ResourceFormLayoutRenderer::renderLayout()`, che produce lo stesso markup di
+`createCard()` della lib (`div.col-12 > div.card.border > div.card-body.row.g-3`).
+In un template con PHP mescolato il blocco si cattura con `ob_start()`:
+
+```php
+<?php
+
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
+use Wonder\Elements\Components\Card;
+
+\Wonder\View\View::layout('backend.main');
+?>
+
+<?php ob_start(); ?>
+    <h3>Report</h3>
+<?=ResourceFormLayoutRenderer::renderLayout((new Card)->components([ob_get_clean()]))?>
+```
+
+Gli helper `wiCard()`,
+`wiCardStats()`, `wiCardAccordion()` e `wiAccordion()` sono stati rimossi;
+resta `wiPreIfArray()`, che mostra un JSON in un `<pre>`.
 
 ## InfoCard e MetricCard
 
@@ -126,7 +147,7 @@ Solo `null` e una stringa vuota usano il placeholder `--`: `0` e `'0'`
 restano valori validi. Il placeholder e il livello del valore sono
 configurabili con `->placeholder('n/d')` e `->valueLevel(4)`.
 
-Per un KPI usa `MetricCard`, che sostituisce `wiCardStats()`:
+Per un KPI usa `MetricCard`, che ha preso il posto di `wiCardStats()` (rimosso):
 
 ```php
 use Wonder\Elements\Components\MetricCard;

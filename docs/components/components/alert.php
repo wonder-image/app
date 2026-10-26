@@ -13,7 +13,7 @@ return ComponentDoc::for(Alert::class)
     ->uses(Container::class)
     ->docs('concetti/componenti/README.md#esempio-alert', 'Componenti UI')
     ->docs('concetti/notifiche.md', 'Notifiche')
-    ->note('bootstrap', 'Il markup è un `.toast` con intestazione colorata: va chiuso con `data-bs-dismiss="toast"`.')
+    ->note('bootstrap', 'Il markup è un `.toast` con intestazione colorata: va chiuso con `data-bs-dismiss="toast"`. Esce senza `show`, quindi nascosto finché uno script non lo apre (`alertToast()`, `/api/backend/alert/`): non serve per gli avvisi fissi di pagina.')
     ->example('Base', <<<'PHP'
     Alert::make('Operazione completata', 'success')
         ->title('Fatto')
