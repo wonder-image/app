@@ -37,7 +37,8 @@
 
     foreach (Wonder\App\ResourceRegistry::classes() as $resourceClass) {
 
+        // Lazy: prepareSchema() costruisce il formSchema() con le opzioni dal DB.
         Wonder\App\Table::key($resourceClass::prepareSchemaName())
-            ->setSchema($resourceClass::prepareSchema());
+            ->setSchemaResolver(static fn (): array => $resourceClass::prepareSchema());
 
     }

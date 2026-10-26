@@ -3,6 +3,31 @@
 ## Unreleased
 
 ### Breaking
+- **Schemi `resource:*` di `Wonder\App\Table` calcolati al primo accesso.**
+  `app/config/app/table.php` non chiama più `prepareSchema()` per ogni Resource
+  a ogni richiesta (costruiva l'intero `formSchema()` con le opzioni dal DB:
+  186 query per pagina, anche in frontend). Registra un resolver con il nuovo
+  `Table::key(...)->setSchemaResolver(callable)`; `schema()`, `columns()`,
+  `hasColumn()`, `prepare()` e `prepareFor()` lo risolvono e lo memorizzano.
+  Gli schemi delle tabelle legacy e dei Model restano calcolati subito. Chi
+  legge `Table::$list['resource:…']` direttamente trova la chiave vuota (`[]`)
+  finché qualcuno non la risolve: va migrato a `Table::key(...)->schema()`.
+  `array_key_exists(..., Table::$list)` vede ancora la chiave; il nuovo
+  `Table::has()` fa lo stesso controllo, solo su `$list`, senza calcolare lo
+  schema: dopo un'assegnazione intera di `$list` le chiavi lazy sparite non
+  risultano più registrate. Nel core sono
+  migrati backend `index.php`/`list.php`, `backendPageTableSchema()`, `ListProvider`,
+  `ListTableRequest`, `TableAuthorization`, `file-delete`, `file-move`,
+  `delete-icon`, `Repeater`, `ResourcePageController` e
+  `ResourceApiController`; `file-delete`, `file-move` e `delete-icon`
+  controllano i permessi prima di calcolare lo schema. Lo schema ora si calcola
+  nel contesto della richiesta, al primo accesso (dopo auth, lingua, boot dei
+  moduli e `custom/config/config.php`), non più dentro `app/config/config.php`
+  prima di tutto questo. Un'eccezione in `formSchema()` era e resta inghiottita
+  da `safeFormFieldsByKey()`; quella che si sposta dal boot al primo accesso è
+  un'eccezione in `modelClass()::dataFields()`/`prepareFormatFromField()`. Un
+  resolver che rilegge la propria chiave (anche A → B → A) lancia una
+  `LogicException` invece di memorizzare uno schema incompleto.
 - **Backend: rimossi l'helper PHP `modal()` e il markup `#modal`.** Il file
   `app/function/backend/modal.php` non c'è più e `header.php` del backend non
   stampa più la modale Bootstrap `#modal`. I siti devono avere

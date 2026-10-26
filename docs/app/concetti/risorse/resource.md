@@ -257,6 +257,54 @@ return [
 Override quando servono filtri/limiti/ordinamenti calcolati. Mantieni le chiavi
 `condition` / `limit` / `order`: il codice di listing le legge direttamente.
 
+## Schema `prepare` e registro `Table`
+
+`Wonder\App\Table` tiene gli schemi `prepare` usati da `formToArray()` al
+salvataggio. Al bootstrap `app/config/app/table.php` registra:
+
+- le tabelle legacy (`app/build/table`, `custom/build/table`) e i Model di
+  `ModelRegistry` (`rawTableSchema()`), calcolati subito: non fanno query;
+- uno schema per Resource, chiave `resource:{slug}` (`prepareSchemaName()`),
+  **lazy**: `prepareSchema()` costruisce l'intero `formSchema()`, con le
+  opzioni delle select lette dal DB, e gira solo al primo accesso. Una
+  richiesta frontend non lo calcola mai.
+
+| Metodo | Cosa fa |
+|---|---|
+| `Table::key($nome)->setSchema(array $schema)` | registra uno schema già calcolato |
+| `Table::key($nome)->setSchemaResolver(callable $fn)` | registra uno schema calcolato al primo accesso e poi memorizzato |
+| `Table::has($nome)` | `true` se registrato, anche lazy; non calcola nulla |
+| `Table::key($nome)->schema()` | schema (risolve la chiave lazy), `[]` se assente |
+| `columns()`, `hasColumn()`, `prepare()`, `prepareFor()` | come sopra, risolvono al primo accesso |
+
+I nomi sono minuscoli. Un secondo `setSchema()`/`setSchemaResolver()` sullo
+stesso nome sostituisce il precedente. Se il resolver lancia un'eccezione, la
+chiave resta lazy e il prossimo accesso riprova.
+
+- Il resolver gira una volta, nel contesto del primo chiamante (es. dentro il
+  `Repeater` con `NAME` della tabella figlia), non al boot.
+- Un resolver che rilegge la propria chiave, anche passando da un altro schema
+  (A → B → A), fa lanciare a `schema()` una `LogicException`: nessuno schema
+  della catena viene memorizzato, anche se un resolver intermedio intercetta
+  l'eccezione.
+- `Table::has()` guarda solo `Table::$list`. Dopo un'assegnazione intera
+  (`Table::$list = [...]`, es. nei test) una chiave lazy sparita non è più
+  registrata e il suo resolver non viene usato.
+
+```php
+use Wonder\App\Table;
+
+$schemaName = ProductResource::prepareSchemaName(); // resource:product
+
+if (Table::has($schemaName)) {
+    $values = Table::key($schemaName)->prepareFor('product', $_POST, $oldValues);
+}
+```
+
+Non leggere `Table::$list` direttamente: una chiave lazy non ancora risolta
+c'è ma vale `[]`. Per l'esistenza usa `Table::has()`, per il contenuto
+`Table::key(...)->schema()`.
+
 ## Hook del ciclo di vita
 
 Override sulla Resource per iniettare comportamento attorno al CRUD (le

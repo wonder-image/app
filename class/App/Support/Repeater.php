@@ -315,7 +315,7 @@ final class Repeater
 
         $prepared = $payload;
 
-        if ($schemaName !== '' && array_key_exists($schemaName, Table::$list)) {
+        if ($schemaName !== '' && Table::has($schemaName)) {
             LegacyGlobals::set('NAME', (object) [
                 'table' => $prepareTable,
                 'folder' => $folder,
@@ -323,7 +323,7 @@ final class Repeater
             ]);
 
             $prepared = Table::key($schemaName)->prepareFor($prepareTable, $payload, $existingRow);
-        } elseif ($prepareTable !== '' && array_key_exists($prepareTable, Table::$list)) {
+        } elseif ($prepareTable !== '' && Table::has($prepareTable)) {
             LegacyGlobals::set('NAME', (object) [
                 'table' => $prepareTable,
                 'folder' => $folder,
