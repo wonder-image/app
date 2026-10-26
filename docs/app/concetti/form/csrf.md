@@ -210,6 +210,9 @@ passa senza ricaricare, con i campi ancora compilati.
   `SameOrigin` prima di qualunque token; in più il CORS (`*` senza
   `Allow-Credentials`) non le farebbe leggere una risposta con il cookie di
   sessione. Il token da solo non apre altro.
+- Se il form usa anche il token di pagina (`API_TOKEN`, legato alla sessione),
+  dopo `/api/csrf/` va rinnovato pure quello con `POST /api/token/page/`, che
+  ora riceve il CSRF nuovo: un `401` si risolve allo stesso modo.
 
 ## Cookie
 
