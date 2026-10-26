@@ -45,8 +45,9 @@ final class ApiRequest
     }
 
     /**
-     * Connessione scelta dal client: solo un alias configurato in `$DB->database`
-     * (mai `information_schema`), altrimenti 422.
+     * Connessione scelta dal client: un alias configurato in `$DB->database`
+     * o il nome reale di uno di quei database (mai `information_schema`),
+     * altrimenti 422.
      *
      * @param list<string>|null $allowed alias ammessi; default da `$DB->database`
      */
@@ -57,6 +58,14 @@ final class ApiRequest
         if ($database === '') {
             $database = 'main';
         }
+
+        // Veto sul nome ricevuto: un alias potrebbe mappare lo schema di sistema.
+        if (strtolower($database) === 'information_schema') {
+            self::error('Parametri non validi.', 422);
+        }
+
+        // Le liste del backend inviano il nome reale (Table::$database): si risale all'alias.
+        $database = self::databaseAlias($database);
 
         if ($database === 'main') {
             return $database;
@@ -71,6 +80,19 @@ final class ApiRequest
         sqlDatabase($database);
 
         return $database;
+    }
+
+    private static function databaseAlias(string $database): string
+    {
+        $databases = $GLOBALS['DB']->database ?? [];
+
+        if (!is_array($databases) || array_key_exists($database, $databases)) {
+            return $database;
+        }
+
+        $alias = array_search($database, array_map('strval', $databases), true);
+
+        return $alias === false ? $database : (string) $alias;
     }
 
     /** @return list<string> */

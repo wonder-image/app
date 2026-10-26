@@ -165,6 +165,17 @@
   `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
 
 ### Corretto
+- **Elimina dalle liste del backend non risponde più sempre 422.** Le azioni
+  della tabella (`Field::ajaxRequest()`, `move`) inviano `database=` con il nome
+  reale del database (`Table::$database`, da `SELECT DATABASE()`), mentre
+  `ApiRequest::selectDatabase()` accettava solo gli alias di `$DB->database`
+  (`main`, …): `api/backend/delete`, `change/boolean`, `move` e `authority`
+  uscivano con «Parametri non validi.». Ora il nome reale di un database
+  configurato si risolve nel suo alias; nomi non configurati e
+  `information_schema` restano 422 (anche se un alias mappa lo schema di
+  sistema). Con MySQL `lower_case_table_names=1` il nome restituito da
+  `SELECT DATABASE()` può differire nelle maiuscole da quello configurato:
+  il confronto è esatto, quindi la richiesta resta rifiutata (fail-closed).
 - **`CheckGroup` obbligatorio: basta una casella, non tutte.** Con
   `required()` i renderer Bootstrap e Wonder mettevano `required` su ogni
   `<input>` del gruppo, quindi il browser bloccava l'invio finché non erano
