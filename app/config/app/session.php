@@ -5,11 +5,8 @@
 
             $_SESSION['system_cache'] = [];
 
-            $IP = new Wonder\Plugin\GeoPlugin\IPInfo();
+            # Il paese si calcola al primo uso: Wonder\Plugin\GeoPlugin\Geo::country()
 
-            # Imposto il paese della sessione
-                $_SESSION['system_cache']['country'] = $IP->Country();
-        
             # Imposto la cache geo
                 $_SESSION['system_cache']['geo'] = [];
 

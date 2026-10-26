@@ -126,9 +126,21 @@
 
         }
 
+        /** Solo IP pubblici: privati, locali e riservati non dicono il paese. */
+        public static function isPublicIp(?string $ip): bool
+        {
+
+            return $ip !== null && filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            ) !== false;
+
+        }
+
         private function searchData() {
 
-            if ($this->IP != null) {
+            if (self::isPublicIp($this->IP)) {
 
                 if ($this->ipInfo()) {
                     # Risultato trovato da ipinfo.io
