@@ -23,6 +23,15 @@
   - Un `aria-label` dato con `attr()` vince su `label()` e non si ripete.
   - `EmptyState::titleTag('h3')` sceglie il livello del titolo (`h2` di
     default, da `h2` a `h6`).
+- **`Badge::inline()`.** Nel tema Bootstrap il badge esce senza il
+  `<div class="col-span-*">` della colonna: solo `<span>` (o `<a>` con href),
+  da concatenare a testo, celle di tabella e helper delle Resource
+  (`->inline()->render('bootstrap')`). Variant, outline, pill, icona,
+  attributi ed escaping restano uguali; con `inline()` `columnSpan()` è
+  ignorato, in qualunque ordine. Nel tema Wonder il badge era già in linea e
+  l'HTML non cambia. Senza `inline()` l'output è identico a prima (bloccato da
+  `tests/Themes/BadgeInlineTest.php`). Doc: catalogo `badge` e
+  `docs/app/concetti/componenti/README.md`.
 
 ### Cambiato
 - Il componente `frontend.account.pagination` è un wrapper di
