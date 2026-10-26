@@ -85,9 +85,16 @@ check('selectDatabase: main e alias configurati accettati', function () {
         && selectDatabaseIn('shop') === 'SELECTED:shopshop';
 });
 
+// Regressione: Field::ajaxRequest() invia il nome reale (SELECT DATABASE()), non l'alias.
+check('selectDatabase: nome reale di un database configurato => suo alias', function () {
+    return selectDatabaseIn('db_main') === 'main'
+        && selectDatabaseIn('db_shop') === 'SELECTED:shopshop';
+});
+
 check('selectDatabase: alias sconosciuto o information_schema => 422 senza selezione', function () {
     $expected = '{"success":false,"status":422,"response":"Parametri non validi."}';
-    return selectDatabaseIn('db_shop') === $expected
+    return selectDatabaseIn('db_other') === $expected
+        && selectDatabaseIn('DB_SHOP') === $expected
         && selectDatabaseIn('information_schema') === $expected
         && selectDatabaseIn('INFORMATION_SCHEMA') === $expected
         && selectDatabaseIn('mysql') === $expected;
