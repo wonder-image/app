@@ -90,13 +90,26 @@
 
     }
 
+    /**
+     * Conferma di eliminazione per i bottoni legacy: attributi `data-wi-confirm*`
+     * della lib, che fermano il click e solo dopo lasciano partire l'onclick.
+     */
+    function legacyDeleteConfirm($TEXT): string {
+
+        $text = "Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?";
+
+        return ' data-wi-confirm="'.htmlspecialchars($text, ENT_QUOTES, 'UTF-8').'"'
+            .' data-wi-confirm-title="ATTENZIONE" data-wi-confirm-ok="Elimina" data-wi-confirm-variant="danger"';
+
+    }
+
     function delete($id) {
 
         global $NAME;
         global $TEXT;
         global $PATH;
 
-        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->api/backend/delete/?table=$NAME->table&id=$id')\"";
+        $action = "onclick=\"ajaxRequest('$PATH->api/backend/delete/?table=$NAME->table&id=$id')\"".legacyDeleteConfirm($TEXT);
 
         $RETURN = returnButton("Elimina", $action, 'danger', true);
 
@@ -110,12 +123,12 @@
         global $TEXT;
         global $PATH;
 
-        $action = "onclick=\"modal('Sei sicuro di voler eliminare $TEXT->this $TEXT->titleS?' ,'$PATH->api/backend/authority/?table=$NAME->table&id=$id";
+        $action = "onclick=\"ajaxRequest('$PATH->api/backend/authority/?table=$NAME->table&id=$id";
         
         if ($authority != '') { $action .= "&authority=$authority"; }
         if ($area != '') { $action .= "&area=$area"; }
 
-        $action .= "')\"";
+        $action .= "')\"".legacyDeleteConfirm($TEXT);
 
         $RETURN = returnButton("Elimina", $action, 'danger', true);
 

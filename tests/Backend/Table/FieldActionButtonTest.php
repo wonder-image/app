@@ -147,4 +147,37 @@ check('color e divider come la voce Elimina', function () {
         && !str_contains(menu(['id' => 7], ['r' => ['label' => 'R', 'href' => '/r/']]), 'dropdown-divider');
 });
 
+// Elimina chiede conferma con data-wi-confirm della lib: niente modal() legacy né #modal.
+check('delete: conferma data-wi-confirm e ajaxRequest, senza modal()', function () {
+    $html = menu(['id' => 7], ['delete' => true]);
+
+    return str_contains($html, 'data-wi-confirm="Sei sicuro di voler eliminare questo immobile?"')
+        && str_contains($html, 'data-wi-confirm-title="ATTENZIONE"')
+        && str_contains($html, 'data-wi-confirm-ok="Elimina"')
+        && str_contains($html, 'data-wi-confirm-variant="danger"')
+        && str_contains($html, "ajaxRequest(\n                '/api/backend/delete/?database=main&table=immobili&id=7',\n                reloadDataTable, \n                '#tbl-1'")
+        && !str_contains($html, 'modal(');
+});
+
+check('authority: conferma data-wi-confirm e URL con authority e area, senza modal()', function () {
+    $TABLE = (object) [
+        'id' => 'tbl-u', 'table' => 'user', 'connection' => null, 'database' => 'main',
+        'field' => [], 'page' => 0, 'length' => 10, 'link' => [],
+    ];
+    $PATH = (object) [ 'site' => '', 'backend' => '/backend', 'app' => '/app', 'api' => '/api' ];
+    $TEXT = (object) [
+        'titleS' => "l'utente", 'titleP' => 'utenti', 'last' => '', 'all' => '',
+        'article' => '', 'full' => '', 'empty' => '', 'this' => 'questo',
+    ];
+    $USER = (object) [ 'area' => 'backend', 'authority' => 'admin' ];
+    $PAGE = (object) [ 'redirect' => '', 'redirectBase64' => '' ];
+    $field = new Field($TABLE, $PATH, $TEXT, $USER, $PAGE);
+
+    $html = $field->newField(['id' => 3, 'area' => '["backend","frontend"]', 'authority' => '["admin"]'], 'action_button', ['authority' => true]);
+
+    return str_contains($html, 'data-wi-confirm="Sei sicuro di voler eliminare questo l&#039;utente?"')
+        && str_contains($html, "'/api/backend/authority/?database=main&table=user&id=3&authority=admin&area=backend'")
+        && !str_contains($html, 'modal(');
+});
+
 summary();
