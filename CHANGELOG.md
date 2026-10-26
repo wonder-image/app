@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Text e RichText nel tema Wonder (`B-CORE-I1`).** Nuovo renderer
+  `Themes\Wonder\Components\Text` sulle utility della lib (`fw-700`,
+  `text-small`, `tx-secondary`, `tx-<colore>`, `a-l`/`a-c`/`a-r`, `subtitle`);
+  `italic()` non aggiunge classi. Senza `columnSpan()` il testo esce senza
+  `<div>` intorno. `AccountModal::confirm()` usa `Text` al posto di un oggetto
+  anonimo: il markup resta `<p>…</p>`.
+- **`Elements\Frontend\EmptyState` e `Elements\Frontend\Pagination`
+  (`B-CORE-I2`)**, solo tema Wonder, sulle classi `.wi-empty-state*` e
+  `.wi-pagination*` della lib. `Pagination::make($page, $pages)->url(...)` per
+  qualunque lista, `Pagination::account($pagination, $baseUrl)` per i conti di
+  `AccountPagination`. Nuove chiavi `components.pagination.{label,previous,next}`.
+  - `url($base)` accetta anche l'URL corrente: toglie il `page` già presente,
+    conserva gli altri parametri e rimette il `#frammento` in coda. Senza
+    `url()` il link è `?page=N`, anche per la prima pagina.
+  - `make()` con una pagina sola (o zero) non stampa nulla, a differenza del
+    vecchio `pagination()` che mostrava un "1" attivo: `hidden(false)` la mostra.
+    `Pagination::account()` resta com'era (nascosta solo senza righe).
+  - Un `aria-label` dato con `attr()` vince su `label()` e non si ripete.
+  - `EmptyState::titleTag('h3')` sceglie il livello del titolo (`h2` di
+    default, da `h2` a `h6`).
+
+### Cambiato
+- Il componente `frontend.account.pagination` è un wrapper di
+  `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
+  tra i tag.
+
+### Deprecato
+- `pagination()` e `paginationButton()` di `app/function/frontend/plugin/pagination.php`:
+  usa `Elements\Frontend\Pagination`.
+
 ## 2.4.0-beta.4 — 2026-10-21
 
 ### Breaking

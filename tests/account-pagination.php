@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
+use Wonder\App\LegacyGlobals;
 use Wonder\Auth\Frontend\AccountPagination;
+use Wonder\Elements\Frontend\Pagination;
+use Wonder\View\View;
+
+// Gli helper del sito, come nello snapshot di tests/fixtures/account-pagination.json.
+function e(mixed $value): string { return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function __t(string $key, array $replacements = []): string { return $key.($replacements === [] ? '' : ' '.json_encode($replacements)).' <&>'; }
 
 $failures = [];
 $check = static function (bool $condition, string $message) use (&$failures): void {
@@ -39,6 +46,60 @@ $_GET = ['pagina' => '4'];
 $check(AccountPagination::requested() === '4', 'requested() non legge ?pagina.');
 $_GET = [];
 $check(AccountPagination::requested() === 1, 'Senza ?pagina requested() non dà 1.');
+
+// Il componente frontend.account.pagination ora è un wrapper dell'Element:
+// stesso markup di prima, spazi tra i tag a parte.
+LegacyGlobals::share(['ROOT' => sys_get_temp_dir().'/account-pagination-'.uniqid(), 'ROOT_APP' => dirname(__DIR__).'/app']);
+$normalize = static fn (string $html): string => trim((string) preg_replace('/>\s+</', '><', $html));
+$snapshot = json_decode((string) file_get_contents(__DIR__.'/fixtures/account-pagination.json'), true);
+$baseUrl = '/account/ordini/?x=1&y=<2>';
+
+foreach ($snapshot as [$total, $page, $expected]) {
+    $pagination = AccountPagination::make($total, $page);
+    $view = View::component('frontend.account.pagination', ['pagination' => $pagination, 'base_url' => $baseUrl]);
+    $element = Pagination::account($pagination, $baseUrl)->render('wonder');
+    $check($normalize($view) === $expected, "Il componente con {$total} righe a pagina {$page} non ha il markup dello snapshot.");
+    $check($element === $expected, "Pagination::account() con {$total} righe a pagina {$page} non ha il markup dello snapshot.");
+}
+
+$account = Pagination::account(AccountPagination::make(100, 5), $baseUrl);
+$check($account->visiblePages() === AccountPagination::window(AccountPagination::make(100, 5)), 'La finestra dell\'Element non è quella di AccountPagination.');
+$check($account->pageUrl(3) === AccountPagination::url($baseUrl, 3) && $account->pageUrl(1) === $baseUrl, 'I link dell\'Element non sono quelli di AccountPagination.');
+
+// Sorgente generica: pagina, totale pagine e link, senza conti né SQL.
+$generic = Pagination::make(3, 12)->url('/blog/?tag=a&b')->render('wonder');
+$check(str_starts_with($generic, '<ul class="wi-pagination" aria-label="Pagine">') && !str_contains($generic, 'wi-row-table__foot'), 'Senza riepilogo la paginazione generica non è il solo elenco.');
+$check(str_contains($generic, 'href="/blog/?tag=a&amp;b&amp;page=4" aria-label="Pagina successiva"') && str_contains($generic, 'href="/blog/?tag=a&amp;b" aria-current') === false, 'La base generica non aggiunge &page=N.');
+$check(str_contains($generic, 'href="/blog/?tag=a&amp;b&amp;page=3" aria-current="page">3</a>') && str_contains($generic, '>1</a>') && str_contains($generic, '>5</a>') && !str_contains($generic, '>6</a>'), 'La finestra generica non è due pagine per lato.');
+$check(Pagination::make(1, 3)->url('/blog/')->pageUrl(1) === '/blog/', 'La prima pagina generica non è la base.');
+
+$callable = Pagination::make(2, 4)->url(static fn (int $page): string => "/p/{$page}/")->window(1)->label('Archivio <x>')->previousLabel('Prima')->nextLabel('Dopo')->addClass('mt-4')->render('wonder');
+$check(str_starts_with($callable, '<ul class="wi-pagination mt-4" aria-label="Archivio &lt;x&gt;">'), 'Classe aggiunta o etichetta escapata mancanti sull\'elenco.');
+$check(str_contains($callable, 'href="/p/1/" aria-label="Prima"') && str_contains($callable, 'href="/p/3/" aria-label="Dopo"') && !str_contains($callable, '>4</a>'), 'Funzione di link, etichette o finestra personalizzate ignorate.');
+
+// Base a stringa: via il `page` che ha già, gli altri parametri restano, il frammento torna in coda.
+$links = static fn (string $base): array => [Pagination::make(1, 5)->url($base)->pageUrl(1), Pagination::make(1, 5)->url($base)->pageUrl(2)];
+$check($links('/c/') === ['/c/', '/c/?page=2'], 'Una base semplice non dà /c/ e /c/?page=2.');
+$check($links('/c/?page=3&q=a&f%5B%5D=x') === ['/c/?q=a&f%5B%5D=x', '/c/?q=a&f%5B%5D=x&page=2'], 'Il page già nella query non si toglie o gli altri parametri cambiano.');
+$check($links('/c/?q=a&page=3') === ['/c/?q=a', '/c/?q=a&page=2'], 'Un page in coda alla query non si toglie.');
+$check($links('/c/?page=3') === ['/c/', '/c/?page=2'], 'Tolto il page, la prima pagina tiene un ? vuoto.');
+$check($links('/c/#lista') === ['/c/#lista', '/c/?page=2#lista'], 'Con un frammento la query non va prima del #.');
+$check($links('/c/?page=1&q=a#lista') === ['/c/?q=a#lista', '/c/?q=a&page=2#lista'], 'Con query e frammento i link non sono ricostruiti bene.');
+$check(Pagination::make(1, 5)->url('/c/?pagina=4&q=a', 'pagina')->pageUrl(3) === '/c/?q=a&pagina=3', 'Il nome del parametro scelto non si toglie dalla base.');
+
+// Senza url(): ?page=N anche per la prima pagina, mai un ? vuoto.
+$check(Pagination::make(2, 3)->pageUrl(1) === '?page=1' && Pagination::make(2, 3)->pageUrl(3) === '?page=3', 'Senza url() la prima pagina non è ?page=1.');
+
+// Una pagina sola (o nessuna): la generica non stampa nulla, a meno di hidden(false).
+$check(Pagination::make(1, 1)->render('wonder') === '' && Pagination::make(9, 0)->render('wonder') === '', 'Con una pagina sola la paginazione generica stampa qualcosa.');
+// Un aria-label dato con attr() vince su label() e non si ripete.
+$labelled = Pagination::make(2, 3)->label('Pagine')->attr('aria-label', 'Archivio')->render('wonder');
+$check(substr_count($labelled, '<ul ') === 1 && preg_match('/^<ul [^>]*>/', $labelled, $tag) === 1 && substr_count($tag[0], 'aria-label=') === 1 && str_contains($tag[0], 'aria-label="Archivio"'), 'L\'aria-label di attr() è ripetuto o perso sull\'elenco.');
+$check(str_contains(Pagination::make(2, 3)->label('Pagine <a>')->render('wonder'), '<ul class="wi-pagination" aria-label="Pagine &lt;a&gt;">'), 'Senza attr() l\'aria-label di label() manca.');
+$single = Pagination::make(9, 1)->hidden(false)->render('wonder');
+$check(substr_count($single, 'aria-disabled="true"') === 2 && str_contains($single, 'href="?page=1" aria-current="page">1</a>'), 'Mostrata con hidden(false), una pagina sola non ha le frecce spente.');
+$check(Pagination::make(2, 3)->summary('2 di 3 <ok>')->render('wonder') !== '' && str_starts_with(Pagination::make(2, 3)->summary('2 di 3 <ok>')->render('wonder'), '<div class="wi-row-table__foot"><span>2 di 3 &lt;ok&gt;</span><ul class="wi-pagination"'), 'Il riepilogo generico non apre il piede.');
+$check(Pagination::make(2, 3)->hidden()->render('wonder') === '', 'Una paginazione nascosta stampa qualcosa.');
 
 if ($failures !== []) {
     fwrite(STDERR, implode("\n", $failures)."\n");

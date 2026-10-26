@@ -1,0 +1,32 @@
+[
+ [
+  0,
+  1,
+  ""
+ ],
+ [
+  5,
+  1,
+  "<div class=\"wi-row-table__foot\"><span>account.pagination.summary {&quot;from&quot;:1,&quot;to&quot;:5,&quot;total&quot;:5} &lt;&amp;&gt;</span><ul class=\"wi-pagination\" aria-label=\"account.pagination.label &lt;&amp;&gt;\"><li><a class=\"wi-pagination__item\" aria-disabled=\"true\" tabindex=\"-1\" aria-label=\"account.pagination.previous &lt;&amp;&gt;\"><i class=\"bi bi-chevron-left\" aria-hidden=\"true\"></i></a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;\" aria-current=\"page\">1</a></li><li><a class=\"wi-pagination__item\" aria-disabled=\"true\" tabindex=\"-1\" aria-label=\"account.pagination.next &lt;&amp;&gt;\"><i class=\"bi bi-chevron-right\" aria-hidden=\"true\"></i></a></li></ul></div>"
+ ],
+ [
+  100,
+  5,
+  "<div class=\"wi-row-table__foot\"><span>account.pagination.summary {&quot;from&quot;:41,&quot;to&quot;:50,&quot;total&quot;:100} &lt;&amp;&gt;</span><ul class=\"wi-pagination\" aria-label=\"account.pagination.label &lt;&amp;&gt;\"><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=4\" aria-label=\"account.pagination.previous &lt;&amp;&gt;\"><i class=\"bi bi-chevron-left\" aria-hidden=\"true\"></i></a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=3\">3</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=4\">4</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=5\" aria-current=\"page\">5</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=6\">6</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=7\">7</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=6\" aria-label=\"account.pagination.next &lt;&amp;&gt;\"><i class=\"bi bi-chevron-right\" aria-hidden=\"true\"></i></a></li></ul></div>"
+ ],
+ [
+  100,
+  1,
+  "<div class=\"wi-row-table__foot\"><span>account.pagination.summary {&quot;from&quot;:1,&quot;to&quot;:10,&quot;total&quot;:100} &lt;&amp;&gt;</span><ul class=\"wi-pagination\" aria-label=\"account.pagination.label &lt;&amp;&gt;\"><li><a class=\"wi-pagination__item\" aria-disabled=\"true\" tabindex=\"-1\" aria-label=\"account.pagination.previous &lt;&amp;&gt;\"><i class=\"bi bi-chevron-left\" aria-hidden=\"true\"></i></a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;\" aria-current=\"page\">1</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=2\">2</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=3\">3</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=2\" aria-label=\"account.pagination.next &lt;&amp;&gt;\"><i class=\"bi bi-chevron-right\" aria-hidden=\"true\"></i></a></li></ul></div>"
+ ],
+ [
+  100,
+  10,
+  "<div class=\"wi-row-table__foot\"><span>account.pagination.summary {&quot;from&quot;:91,&quot;to&quot;:100,&quot;total&quot;:100} &lt;&amp;&gt;</span><ul class=\"wi-pagination\" aria-label=\"account.pagination.label &lt;&amp;&gt;\"><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=9\" aria-label=\"account.pagination.previous &lt;&amp;&gt;\"><i class=\"bi bi-chevron-left\" aria-hidden=\"true\"></i></a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=8\">8</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=9\">9</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=10\" aria-current=\"page\">10</a></li><li><a class=\"wi-pagination__item\" aria-disabled=\"true\" tabindex=\"-1\" aria-label=\"account.pagination.next &lt;&amp;&gt;\"><i class=\"bi bi-chevron-right\" aria-hidden=\"true\"></i></a></li></ul></div>"
+ ],
+ [
+  12,
+  2,
+  "<div class=\"wi-row-table__foot\"><span>account.pagination.summary {&quot;from&quot;:11,&quot;to&quot;:12,&quot;total&quot;:12} &lt;&amp;&gt;</span><ul class=\"wi-pagination\" aria-label=\"account.pagination.label &lt;&amp;&gt;\"><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;\" aria-label=\"account.pagination.previous &lt;&amp;&gt;\"><i class=\"bi bi-chevron-left\" aria-hidden=\"true\"></i></a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;\">1</a></li><li><a class=\"wi-pagination__item\" href=\"/account/ordini/?x=1&amp;y=&lt;2&gt;&amp;pagina=2\" aria-current=\"page\">2</a></li><li><a class=\"wi-pagination__item\" aria-disabled=\"true\" tabindex=\"-1\" aria-label=\"account.pagination.next &lt;&amp;&gt;\"><i class=\"bi bi-chevron-right\" aria-hidden=\"true\"></i></a></li></ul></div>"
+ ]
+]
