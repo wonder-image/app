@@ -72,10 +72,10 @@
         }
 
         $resourceSchema = $resourceSchemaName !== ''
-            ? (\Wonder\App\Table::$list[$resourceSchemaName] ?? [])
+            ? \Wonder\App\Table::key($resourceSchemaName)->schema()
             : [];
 
-        $modelSchema = \Wonder\App\Table::$list[strtolower((string) $NAME->table)] ?? [];
+        $modelSchema = \Wonder\App\Table::key((string) $NAME->table)->schema();
 
         return array_replace_recursive(
             is_array($tableSchema) ? $tableSchema : [],

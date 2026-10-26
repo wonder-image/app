@@ -14,7 +14,7 @@ $handler = realpath(__DIR__.'/../../app/http/api/backend/list-table.php');
  * Esegue l'handler in un processo separato con connessione finta:
  * stampa lo status HTTP, l'output e le chiavi chieste al pool.
  */
-$runHandler = static function (array $post) use ($handler): string {
+$runHandler = static function (array $post, string $setup = '') use ($handler): string {
     $autoload = var_export(__DIR__.'/../../vendor/autoload.php', true);
     $file = var_export($handler, true);
     $postExport = var_export($post, true);
@@ -28,6 +28,7 @@ $runHandler = static function (array $post) use ($handler): string {
 <?php
 require {$autoload};
 \Wonder\App\Table::\$list = ['users' => []];
+{$setup}
 \$_SERVER['REQUEST_METHOD'] = 'POST';
 \$_POST = {$postExport};
 \$GLOBALS['wiPoolKeys'] = [];
@@ -96,6 +97,18 @@ check('handler: con tabella valida usa sempre la connessione main', function () 
     $output = $runHandler(['config' => ['table' => 'users', 'database' => 'altro_db']]);
 
     return str_ends_with($output, '|pool=main');
+});
+
+check('handler: tabella e schema lazy accettati senza risolvere gli schemi', function () use ($runHandler) {
+    $setup = <<<'SETUP'
+\Wonder\App\Table::key('resource:lazy-a')->setSchemaResolver(static function (): array { echo 'RESOLVED-A'; return []; });
+\Wonder\App\Table::key('resource:lazy-b')->setSchemaResolver(static function (): array { echo 'RESOLVED-B'; return []; });
+SETUP;
+    $output = $runHandler(['config' => ['table' => 'resource:lazy-a'], 'custom' => ['schema' => 'resource:lazy-b']], $setup);
+
+    return str_ends_with($output, '|pool=main')
+        && !str_contains($output, '422')
+        && !str_contains($output, 'RESOLVED');
 });
 
 check('handler: database, area e autorità utente non arrivano dal POST', function () use ($handler) {

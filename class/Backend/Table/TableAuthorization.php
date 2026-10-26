@@ -104,15 +104,14 @@ final class TableAuthorization
 
     /**
      * Tabella e colonna di `file.delete`/`file.move`: tabella registrata in
-     * `Table::$list`, colonna dello schema con `input.format.file === true`.
+     * `Table`, colonna dello schema con `input.format.file === true`.
      * Restituisce `[tabella canonica, colonna]` o null.
      *
-     * @param array<string,mixed>|null $registry default `Table::$list`
+     * @param array<string,mixed>|null $registry default il registro di `Table`
      * @return array{0: string, 1: string}|null
      */
     public static function fileColumn(mixed $table, mixed $column, ?array $registry = null): ?array
     {
-        $registry ??= AppTable::$list;
         $table = ListTableRequest::table($table, $registry);
 
         if ($table === null || !is_string($column) || trim($column) === '') {
@@ -120,7 +119,7 @@ final class TableAuthorization
         }
 
         $column = trim($column);
-        $schema = $registry[$table][$column] ?? null;
+        $schema = self::registeredSchema($table, $registry)[$column] ?? null;
 
         if (!is_array($schema) || (($schema['input']['format']['file'] ?? false) !== true)) {
             return null;
@@ -132,10 +131,17 @@ final class TableAuthorization
     /** Tabella registrata con una colonna `icon` nello schema; null altrimenti. */
     public static function iconTable(mixed $table, ?array $registry = null): ?string
     {
-        $registry ??= AppTable::$list;
         $table = ListTableRequest::table($table, $registry);
 
-        return $table !== null && is_array($registry[$table]['icon'] ?? null) ? $table : null;
+        return $table !== null && is_array(self::registeredSchema($table, $registry)['icon'] ?? null) ? $table : null;
+    }
+
+    /** Schema della tabella: dal registro passato o da `Table` (risolve le chiavi lazy). */
+    private static function registeredSchema(string $table, ?array $registry): array
+    {
+        $schema = $registry === null ? AppTable::key($table)->schema() : ($registry[$table] ?? []);
+
+        return is_array($schema) ? $schema : [];
     }
 
     /**

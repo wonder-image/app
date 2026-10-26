@@ -3,6 +3,7 @@
     namespace Wonder\Localization;
 
     use Wonder\Localization\LanguageContext;
+    use Wonder\Plugin\GeoPlugin\Geo;
 
     class LanguageRedirector
     {
@@ -30,8 +31,8 @@
         /**
          * Redirect alla home della lingua del visitatore.
          *
-         * Risoluzione: paese (di default la cache di sessione popolata da
-         * `config/app/session.php`) → header `Accept-Language` → lingua
+         * Risoluzione: paese (di default `Geo::country()`, calcolato al
+         * primo uso) → header `Accept-Language` → lingua
          * default. I bot restano sulla lingua default per stabilità SEO.
          *
          * Lo status è 302 perché la destinazione varia per visitatore: un
@@ -40,11 +41,11 @@
         public function redirectByCountry(?string $country = null, int $status = 302): never
         {
 
-            $country ??= $_SESSION['system_cache']['country'] ?? null;
-
             $lang = $this->defaultLang;
 
+            // Ai bot il paese non serve: niente lookup.
             if (!$this->isBot()) {
+                $country ??= Geo::country();
                 $lang = $this->langByCountry($country)
                     ?? $this->langByHeader()
                     ?? $this->defaultLang;

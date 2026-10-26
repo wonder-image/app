@@ -113,6 +113,7 @@
             $call->header( 'X-Api-Key: '.$this->API_KEY );
             $call->header( 'Correlation-Id: '.$this->CORRELATION_ID );
             $call->contentType( 'application/json' );
+            $call->timeout(30);
 
             return json_decode($call->result(), true);
             
@@ -124,6 +125,7 @@
             $call->header( 'X-Api-Key: '.$this->API_KEY );
             $call->header( 'Correlation-Id: '.$this->CORRELATION_ID );
             $call->method( 'GET' );
+            $call->timeout(30);
 
             return json_decode($call->result(), true);
             

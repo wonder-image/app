@@ -3,6 +3,31 @@
 ## Unreleased
 
 ### Breaking
+- **Schemi `resource:*` di `Wonder\App\Table` calcolati al primo accesso.**
+  `app/config/app/table.php` non chiama più `prepareSchema()` per ogni Resource
+  a ogni richiesta (costruiva l'intero `formSchema()` con le opzioni dal DB:
+  186 query per pagina, anche in frontend). Registra un resolver con il nuovo
+  `Table::key(...)->setSchemaResolver(callable)`; `schema()`, `columns()`,
+  `hasColumn()`, `prepare()` e `prepareFor()` lo risolvono e lo memorizzano.
+  Gli schemi delle tabelle legacy e dei Model restano calcolati subito. Chi
+  legge `Table::$list['resource:…']` direttamente trova la chiave vuota (`[]`)
+  finché qualcuno non la risolve: va migrato a `Table::key(...)->schema()`.
+  `array_key_exists(..., Table::$list)` vede ancora la chiave; il nuovo
+  `Table::has()` fa lo stesso controllo, solo su `$list`, senza calcolare lo
+  schema: dopo un'assegnazione intera di `$list` le chiavi lazy sparite non
+  risultano più registrate. Nel core sono
+  migrati backend `index.php`/`list.php`, `backendPageTableSchema()`, `ListProvider`,
+  `ListTableRequest`, `TableAuthorization`, `file-delete`, `file-move`,
+  `delete-icon`, `Repeater`, `ResourcePageController` e
+  `ResourceApiController`; `file-delete`, `file-move` e `delete-icon`
+  controllano i permessi prima di calcolare lo schema. Lo schema ora si calcola
+  nel contesto della richiesta, al primo accesso (dopo auth, lingua, boot dei
+  moduli e `custom/config/config.php`), non più dentro `app/config/config.php`
+  prima di tutto questo. Un'eccezione in `formSchema()` era e resta inghiottita
+  da `safeFormFieldsByKey()`; quella che si sposta dal boot al primo accesso è
+  un'eccezione in `modelClass()::dataFields()`/`prepareFormatFromField()`. Un
+  resolver che rilegge la propria chiave (anche A → B → A) lancia una
+  `LogicException` invece di memorizzare uno schema incompleto.
 - **Backend: rimossi l'helper PHP `modal()` e il markup `#modal`.** Il file
   `app/function/backend/modal.php` non c'è più e `header.php` del backend non
   stampa più la modale Bootstrap `#modal`. I siti devono avere
@@ -37,6 +62,29 @@
   pagine nello stesso processo deve fare `unset($GLOBALS['WI_POPUP_RENDERED'])`.
 - Il popup frontend e le card server-side richiedono `wonder-image` lib
   `2.1.2-alpha.24` o successiva; il vincolo del core è `^2.1.2-alpha.31`.
+- **`$_SESSION['system_cache']['country']` non si riempie più all'avvio della
+  sessione (`D-I7`).** `config/app/session.php` non chiama `IPInfo` (fino a tre
+  provider HTTP a ogni sessione nuova, bot inclusi): il paese lo calcola
+  `Wonder\Plugin\GeoPlugin\Geo::country()` alla prima chiamata e lo salva in
+  quella chiave. Prima della prima chiamata la chiave non c'è: una lettura diretta
+  dà `null` (con `?? null`) o un warning di chiave mancante. Migrazione:
+  sostituire la lettura con `Geo::country()`, che restituisce sempre un codice
+  (`IT` se il paese non si trova). Nei siti e nei pacchetti locali non ci sono
+  lettori diretti; nel core li usavano `LanguageRedirector` e `Address`, già
+  migrati. `redirectByCountry($_SESSION['system_cache']['country'] ?? null)`
+  continua a funzionare: con `null` il paese si calcola dentro.
+- **`Wonder\Api\Call` ha un timeout di default di 10 secondi (`D-I10`).** Prima
+  non ne aveva (attesa illimitata di cURL). Una chiamata che può durare di più
+  deve impostarlo con `->timeout($secondi)` (è il totale, connessione inclusa).
+  Alla scadenza `call()` restituisce `success => false` con `errno` 28;
+  `result()` restituisce la stringa d'errore di cURL (non `null`), quindi chi la
+  passa a `json_decode()` ottiene `null`; `curlJson()` e `wiApiJson()`
+  restituiscono `null`. Vale anche per `curl()` e `wiApi()`. PayPal (token,
+  ordine, capture, info ordine) e Nexi (`CallPost`, `CallGet`) impostano 30 s,
+  così una capture lenta non si interrompe dopo che il pagamento è avvenuto; la
+  creazione rapida del backend chiama lo store con 60 s (`curlJson()` accetta
+  ora un `$timeout` opzionale in coda). `IPInfo` (massimo 3 s) e reCAPTCHA
+  (massimo 5 s) hanno già i loro timeout più corti.
 
 ### Aggiunto
 - **Contatore delle query per richiesta (`QueryCounter`, D-I11).** Solo con
@@ -51,6 +99,9 @@
   `Asset::version()` fa uno stat per percorso. Insert, Update, Delete e
   Truncate di `Query` svuotano lo scope della tabella, `Transaction` svuota
   tutto su rollback, `CreateTable` dopo il DDL. Vedi `docs/performance.md`.
+- **`Geo::country()`** (`Wonder\Plugin\GeoPlugin\Geo`): paese del visitatore
+  calcolato al primo uso e salvato in `$_SESSION['system_cache']['country']`;
+  senza sessione resta in memoria per la richiesta.
 - **`Alert::inline()`.** Nel tema Bootstrap l'Alert esce come avviso di pagina
   visibile, `<div class="alert alert-{tipo}" role="alert">`, invece del `.toast`
   nascosto. Il tipo segue la mappa dei livelli (`error` → `danger`). Il titolo
@@ -68,6 +119,14 @@
   (link e `<code>`) e `QuickCreateModal` (HTML in JS).
 
 ### Cambiato
+- **`IPInfo` non interroga i provider per IP privati, locali o riservati**
+  (`IPInfo::isPublicIp()`): restano i dati di default (`IT`). Il risultato era
+  già quello, ma costava fino a tre chiamate HTTP. Gli IPv4 mappati
+  (`::ffff:203.0.113.9`, server dual-stack) si trattano come IPv4. Un provider
+  che non restituisce un codice paese di due lettere (anche `""`) non vale:
+  si prova il successivo, poi `IT`.
+- **`LanguageRedirector::redirectByCountry()` non calcola il paese per i bot**,
+  che vanno comunque sulla lingua default.
 - **`<wi-card>` sostituito da `Card` in `class/` e `app/` (`B-CORE-I4`).** Le
   pagine backend (account, utenti, log email, errori SQL, media, Stripe
   Connect, form e lista Resource), i layout `backend.form` e `backend.show`,

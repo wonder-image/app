@@ -48,6 +48,23 @@ check('lo schema legacy fa da base', function () {
     return $fields['titolo']['label'] === 'Titolo' && $fields['copertina']['label'] === 'Copertina';
 });
 
+check('schema lazy della resource: campi risolti al primo fields(), resolver chiamato una volta', function () {
+    resetSchemas();
+    $hits = 0;
+    AppTable::$list['articoli_lazy'] = ['copertina' => ['input' => ['format' => ['resize' => 'thumb']]]];
+    AppTable::key('resource:articoli-lazy')->setSchemaResolver(static function () use (&$hits): array {
+        $hits++;
+        return ['copertina' => ['input' => ['format' => ['dir' => '/media/articoli']]]];
+    });
+
+    $first = ListProvider::fields('articoli_lazy', 'resource:articoli-lazy');
+    $second = ListProvider::fields('articoli_lazy', 'resource:articoli-lazy');
+
+    return $first === $second
+        && $first['copertina']['input']['format'] === ['resize' => 'thumb', 'dir' => '/media/articoli']
+        && $hits === 1;
+});
+
 check('il redirect porta pagina, lunghezza e ordinamento della lista', function () {
     $url = ListProvider::redirect('/backend/articoli/', 'example.it', 'articoli', [
         'page' => 2,

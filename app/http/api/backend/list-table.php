@@ -9,7 +9,7 @@ if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
 }
 
-// Solo tabelle registrate in Table::$list, prima di qualsiasi query.
+// Solo tabelle registrate in Table (anche lazy), prima di qualsiasi query.
 $table = ListTableRequest::table($_POST['config']['table'] ?? null);
 
 if ($table === null) {
