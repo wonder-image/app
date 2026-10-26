@@ -76,6 +76,10 @@ namespace {
         $popup(['view' => '2']) === '' && $_SESSION['promo-1'] === 2
         && $popup(['view' => '3']) !== '' && $_SESSION['promo-1'] === 3);
 
+    check('popup: con un codice non valido come selettore non esce niente, e la pagina regge', fn () =>
+        $popup(['code' => 'promo 2026']) === '' && $popup(['code' => '1promo']) === ''
+        && !isset($_SESSION['promo 2026']));
+
     check('overlay.modal e ui.button non esistono più', fn () =>
         !is_file(__DIR__.'/../../app/view/components/frontend/overlay/modal.php')
         && !is_file(__DIR__.'/../../app/view/components/frontend/ui/button.php'));

@@ -37,7 +37,9 @@
   componente `frontend.overlay.popup` esce già aperto con `wi-show`, senza lo
   `<script>` che chiamava `modal()` al `load`. Titolo in `<h2>` invece che in
   `<div>`, footer dentro il dialogo, bottone con `btn-icon-right` invece di
-  `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder.
+  `btn-icon`, dialogo largo al massimo 760px come le altre modal Wonder. Un popup con un
+  `code` non valido come selettore non si stampa (prima `modal()` falliva nel
+  browser); i codici generati `pop_xxxxxxx` lo sono sempre.
 - Il componente `frontend.account.pagination` è un wrapper di
   `Pagination::account()`: stessi parametri e stesso markup, a parte gli spazi
   tra i tag.

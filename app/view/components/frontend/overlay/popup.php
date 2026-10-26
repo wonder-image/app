@@ -17,6 +17,13 @@ if ($popup === null) {
     return;
 }
 
+// Il Modal frontend vuole un id valido come selettore (i codici generati sono
+// pop_xxxxxxx): con un codice scritto a mano non valido il popup si salta,
+// invece di far fallire tutta la pagina.
+if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/', (string) ($popup['code'] ?? ''))) {
+    return;
+}
+
 $sessionKey = $popup['code'];
 $_SESSION[$sessionKey] = (int) ($_SESSION[$sessionKey] ?? 0);
 
