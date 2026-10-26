@@ -164,6 +164,17 @@
   Le pagine backend `log/auth-users/show`, `log/consent/show` e
   `config/legal-documents/show` usano `Card` per il riquadro dei JSON.
 
+### Corretto
+- **Cambiare l'email di un utente azzera `email_verified`.** Nel ramo di
+  modifica di `user()` (form utenti del backend, account backend, chiamanti dei
+  siti) un'email diversa da quella salvata, senza contare maiuscole e spazi,
+  scrive `email_verified = 0` ed `email_verified_at = NULL` nella stessa UPDATE,
+  anche se il POST porta `email_verified`. Prima il flag restava `true` e la
+  nuova casella risultava verificata senza che nessuno l'avesse confermata. Nella
+  stessa modifica si revocano i link di verifica ancora aperti, spediti alla
+  vecchia email. Il cambio email del cliente (`AccountEmail::confirm()`) rimarca
+  la casella come verificata dopo il salvataggio, come prima.
+
 ## 2.4.0-beta.5 — 2026-10-26
 
 ### Aggiunto
