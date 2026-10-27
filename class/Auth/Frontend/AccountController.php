@@ -4,6 +4,7 @@ namespace Wonder\Auth\Frontend;
 
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Http\Csrf;
+use Wonder\Http\Exceptions\NotFoundHttpException;
 use Wonder\Http\Route;
 use Wonder\View\View;
 
@@ -290,7 +291,8 @@ class AccountController
     }
 
     protected function redirect(string $url): never { header('Location: '.$url); exit; }
-    protected function notFound(): never { http_response_code(404); exit; }
+    /** Il dispatcher la trasforma nella pagina 404 del sito: con il solo codice la pagina restava bianca. */
+    protected function notFound(): never { throw new NotFoundHttpException(); }
 
     /** Token non valido (pagina scaduta): ridisegna la pagina con l'avviso ed esce, così il salvataggio non parte. */
     protected function invalidCsrf(): never

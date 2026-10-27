@@ -53,6 +53,24 @@ check('fromBase64: path interno', fn () => SafeRedirect::fromBase64(base64_encod
 check('fromBase64: host esterno -> fallback', fn () => SafeRedirect::fromBase64(base64_encode('https://evil.com/'), '') === '');
 check('fromBase64: base64 non valido -> fallback', fn () => SafeRedirect::fromBase64('%%%not-base64', '') === '');
 
+check('continueFromRequest: il ?redirect= del pannello diventa il continue del login', function () {
+    $_POST = [];
+    $_GET = ['redirect' => base64_encode('/account/ordini/ord_1/')];
+    return SafeRedirect::continueFromRequest() === '/account/ordini/ord_1/';
+});
+check('continueFromRequest: continue vince su redirect', function () {
+    $_POST = ['continue' => '/carrello/'];
+    $_GET = ['redirect' => base64_encode('/account/')];
+    return SafeRedirect::continueFromRequest() === '/carrello/';
+});
+check('continueFromRequest: ?redirect= esterno -> vuoto', function () {
+    $_POST = [];
+    $_GET = ['redirect' => base64_encode('https://evil.com/')];
+    return SafeRedirect::continueFromRequest() === '';
+});
+$_POST = [];
+$_GET = [];
+
 unset($_SERVER['HTTP_HOST']);
 
 check('infoPage: ?redirect= esterno viene scartato', function () {

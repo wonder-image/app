@@ -37,6 +37,20 @@ class SafeRedirect
         return is_string($decoded) ? self::fromRequest($decoded, $fallback) : $fallback;
     }
 
+    /**
+     * Il ritorno da portare nei form di login e registrazione: `continue`, altrimenti il `?redirect=` (base64)
+     * con cui il pannello manda al login. Senza, dopo il login si finiva sulla home dell'area.
+     */
+    public static function continueFromRequest(): string
+    {
+        $continue = $_POST['continue'] ?? $_GET['continue'] ?? '';
+        if (is_scalar($continue) && (string) $continue !== '') {
+            return (string) $continue;
+        }
+
+        return self::fromBase64($_GET['redirect'] ?? '', '');
+    }
+
     public static function isSafe(string $value): bool
     {
         if ($value === '' || str_starts_with($value, '//') || str_contains($value, '\\') || preg_match('/[\x00-\x1f\x7f]/', $value)) {

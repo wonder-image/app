@@ -33,4 +33,16 @@ check('login: il 618 della guardia diventa l\'avviso, non un errore', function (
     return str_contains($source, 'if (!RecaptchaGuard::isFailure($exception))') && str_contains($source, '$ALERT = $exception->getCode();');
 });
 
+foreach ([\Wonder\Auth\Frontend\AccountController::class, \Wonder\Auth\Frontend\AuthController::class] as $controller) {
+    check("{$controller}::notFound → 404 del dispatcher, non pagina bianca", function () use ($controller) {
+        $method = new ReflectionMethod($controller, 'notFound');
+        try {
+            $method->invoke((new ReflectionClass($controller))->newInstanceWithoutConstructor());
+        } catch (\Wonder\Http\Exceptions\HttpException $e) {
+            return $e->statusCode() === 404;
+        }
+        return false;
+    });
+}
+
 summary();
