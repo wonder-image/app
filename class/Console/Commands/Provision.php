@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * - **GitHub Secrets** della repo: `BWS_ACCESS_TOKEN`, `BWS_PROJECT_ID`,
  *   `APP_DEPLOY_TOKEN` (auto-generato).
  * - **GitHub Variables** della repo: `APP_DOMAIN` di produzione,
- *   `ASSETS_VERSION`.
+ *   `ASSETS_VERSION`, `FORCE_WWW` e `APP_TRUST_PROXY`.
  * - **Bitwarden Secrets Manager**: `APP_KEY` di produzione (auto-gen,
  *   diversa da quella locale), `DB_*`/`FTP_*`/`USER_*` di produzione.
  *
@@ -131,6 +131,44 @@ class Provision extends Config
             return Command::FAILURE;
         }
 
+        // 2b. FORCE_WWW: www sì per il dominio principale, no per un
+        //     sottodominio (shop.esempio.it non ha www né il certificato).
+        $existingForceWww = self::parseYesNo($existingGhVars['FORCE_WWW'] ?? '');
+        $forceWww = $existingForceWww ?? self::defaultForceWww($appDomain);
+        if ($input->isInteractive()) {
+            $answer = $this->askWithDefault(
+                $input,
+                $output,
+                'FORCE_WWW',
+                'Forzare www (www.'.preg_replace('/^www\./', '', $appDomain).')? [s/n, Enter = '.($forceWww ? 's' : 'n').']:',
+                $forceWww ? 's' : 'n'
+            );
+            $parsed = self::parseYesNo($answer);
+            if ($parsed === null) {
+                $output->writeln('<comment>⚠️  Risposta non valida, uso '.($forceWww ? 's' : 'n').'.</comment>');
+            }
+            $forceWww = $parsed ?? $forceWww;
+        }
+
+        // 2c. APP_TRUST_PROXY: solo con un proxy davanti si legge
+        //     X-Forwarded-For; senza, l'IP sarebbe falsificabile.
+        $existingTrustProxy = self::parseYesNo($existingGhVars['APP_TRUST_PROXY'] ?? '');
+        $trustProxy = $existingTrustProxy ?? false;
+        if ($input->isInteractive()) {
+            $default = $trustProxy ? 'attivo' : 'nessuno';
+            $answer = $this->askWithDefault(
+                $input,
+                $output,
+                'APP_TRUST_PROXY',
+                'Che proxy o CDN c\'è davanti al sito? (nessuno, cloudflare, altro) [Enter = '.$default.']:',
+                $default
+            );
+            $trustProxy = self::trustProxyFromAnswer($answer, $trustProxy);
+            if ($trustProxy && !in_array(strtolower(trim($answer)), ['cloudflare', 'attivo'], true)) {
+                $output->writeln('<comment>ℹ️  Con APP_TRUST_PROXY l\'IP è l\'ultimo valore di X-Forwarded-For: il proxy deve impostarlo.</comment>');
+            }
+        }
+
         // 3. BWS_PROJECT_ID: cerca / crea il project Bitwarden per questo dominio.
         $bwProjectId = $this->envValue($lines, $keyToIndex, 'BWS_PROJECT_ID');
         if ($bwProjectId === '') {
@@ -205,7 +243,7 @@ class Provision extends Config
             $output->writeln('<comment>   gh secret delete GITHUB_API_TOKEN --repo '.$repoName.'</comment>');
         }
 
-        // 7. GitHub Variables: APP_DOMAIN + ASSETS_VERSION.
+        // 7. GitHub Variables: APP_DOMAIN, ASSETS_VERSION, FORCE_WWW, APP_TRUST_PROXY.
         $assetsVersion = $existingGhVars['ASSETS_VERSION'] ?? '';
         if ($assetsVersion === '') {
             $assetsVersion = $this->envValue($lines, $keyToIndex, 'ASSETS_VERSION');
@@ -217,6 +255,8 @@ class Provision extends Config
         if (!$this->syncGithubRepositoryVariables($repoName, [
             'APP_DOMAIN' => $appDomain,
             'ASSETS_VERSION' => $assetsVersion,
+            'FORCE_WWW' => $forceWww ? 'true' : 'false',
+            'APP_TRUST_PROXY' => $trustProxy ? 'true' : 'false',
         ], $output)) {
             return Command::FAILURE;
         }
@@ -246,5 +286,54 @@ class Provision extends Config
         $output->writeln('<info>✅ Provisioning GitHub e Bitwarden completato.</info>');
 
         return Command::SUCCESS;
+    }
+
+    /** Suffissi a due livelli più comuni: `esempio.co.uk` è un dominio principale. */
+    private const TWO_LEVEL_SUFFIXES = ['co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'com.au', 'net.au', 'org.au', 'co.nz', 'com.br', 'co.jp', 'co.za', 'com.mx', 'com.ar', 'com.tr'];
+
+    /** Vero se il dominio (senza www) è un sottodominio, es. `shop.esempio.it`. */
+    public static function isSubdomain(string $domain): bool
+    {
+        $domain = strtolower(trim($domain, ". \t\n\r\0\x0B"));
+        $domain = (string) preg_replace('/^www\./', '', $domain);
+        $labels = array_values(array_filter(explode('.', $domain), 'strlen'));
+        $base = 2;
+        if (count($labels) >= 3 && in_array(implode('.', array_slice($labels, -2)), self::TWO_LEVEL_SUFFIXES, true)) {
+            $base = 3;
+        }
+
+        return count($labels) > $base;
+    }
+
+    /** Default di FORCE_WWW: true per il dominio principale, false per un sottodominio. */
+    public static function defaultForceWww(string $domain): bool
+    {
+        return !self::isSubdomain($domain);
+    }
+
+    /** s/si/sì/y/yes/true/1 → true, n/no/false/0 → false, altro → null. */
+    public static function parseYesNo(string $value): ?bool
+    {
+        $value = strtolower(trim($value));
+
+        return match (true) {
+            in_array($value, ['s', 'si', 'sì', 'y', 'yes', 'true', '1', 'on'], true) => true,
+            in_array($value, ['n', 'no', 'false', '0', 'off'], true) => false,
+            default => null,
+        };
+    }
+
+    /** Risposta alla domanda sul proxy: vuota = default, «nessuno» = false, un proxy = true. */
+    public static function trustProxyFromAnswer(string $answer, bool $default): bool
+    {
+        $answer = strtolower(trim($answer));
+        if ($answer === '') {
+            return $default;
+        }
+        if (in_array($answer, ['nessuno', 'none', 'no', 'n', 'false', '0'], true)) {
+            return false;
+        }
+
+        return true;
     }
 }
