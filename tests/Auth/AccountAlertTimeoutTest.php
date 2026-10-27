@@ -8,6 +8,7 @@ require __DIR__.'/../harness.php';
 use Wonder\App\Theme;
 use Wonder\Auth\Frontend\AccountModal;
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\Frontend\Support\FlashMessage;
 
 // Gli avvisi del pannello portano data-wi-alert-timeout: la lib li porta a livello di pagina e li chiude.
 if (!function_exists('__t')) {
@@ -32,5 +33,16 @@ check('modal senza errori → nessun avviso', fn (): bool =>
 check('avviso di salvataggio del pannello con lo stesso timeout', fn (): bool =>
     str_contains((string) file_get_contents(__DIR__.'/../../app/view/layout/frontend/account/panel.php'), "Alert::make(\$notice, 'success')->title((string) __t('account.notice_title'))->attr('data-wi-alert-timeout', \\Wonder\\Auth\\Frontend\\AccountModal::ALERT_TIMEOUT)")
 );
+
+check('errori generali del pannello con lo stesso timeout', fn (): bool =>
+    str_contains((string) file_get_contents(__DIR__.'/../../app/view/layout/frontend/account/panel.php'), "Alert::make(implode(\"\\n\", \$errors), 'error')->title((string) __t('account.error_title'))->attr('data-wi-alert-timeout', \\Wonder\\Auth\\Frontend\\AccountModal::ALERT_TIMEOUT)")
+);
+
+check('FlashMessage (carrello, checkout) → avviso con timeout', function (): bool {
+    $_SESSION = [];
+    FlashMessage::error('Prodotto esaurito', 'Controlla il carrello');
+
+    return str_contains(FlashMessage::render(), 'data-wi-alert-timeout="'.FlashMessage::ALERT_TIMEOUT.'"');
+});
 
 summary();

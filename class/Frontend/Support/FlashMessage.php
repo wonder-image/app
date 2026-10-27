@@ -15,6 +15,9 @@ final class FlashMessage
 {
     public const KEY = 'wi_frontend_flash_message';
 
+    /** Millisecondi prima che la lib chiuda l'avviso (data-wi-alert-timeout). */
+    public const ALERT_TIMEOUT = 4000;
+
     private const LEVELS = ['info', 'success', 'warning', 'error'];
 
     public static function info(string $message, string $title = ''): void
@@ -88,7 +91,8 @@ final class FlashMessage
             return '';
         }
 
-        $alert = Alert::make($message['message'], $message['level']);
+        // La lib lo porta a livello di pagina e lo chiude da sola.
+        $alert = Alert::make($message['message'], $message['level'])->attr('data-wi-alert-timeout', self::ALERT_TIMEOUT);
         if ($message['title'] !== '') {
             $alert->title($message['title']);
         }

@@ -19,7 +19,7 @@ View::head((string) ($head ?? ''));
                     <h2 class="p-r f-start w-100 subtitle"><?=e((string) ($title ?? ''))?></h2>
                     <div class="w-100 tx-gray bb-1 mh-4"></div>
                     <?php if ($notice !== ''): ?><?=Alert::make($notice, 'success')->title((string) __t('account.notice_title'))->attr('data-wi-alert-timeout', \Wonder\Auth\Frontend\AccountModal::ALERT_TIMEOUT)->render()?><?php endif; ?>
-                    <?php if ($errors !== []): ?><?=Alert::make(implode("\n", $errors), 'error')->title((string) __t('account.error_title'))->render()?><?php endif; ?>
+                    <?php if ($errors !== []): ?><?=Alert::make(implode("\n", $errors), 'error')->title((string) __t('account.error_title'))->attr('data-wi-alert-timeout', \Wonder\Auth\Frontend\AccountModal::ALERT_TIMEOUT)->render()?><?php endif; ?>
                     <div class="w-100">
                         <?=$PAGE_CONTENT?>
                     </div>

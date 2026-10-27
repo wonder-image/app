@@ -42,9 +42,11 @@
   Con la lib che ha `setUpAlerts()` l'avviso esce dal box del contenuto e dal
   modal, va in `.alert-container` a livello di body e si chiude dopo 4
   secondi; con una lib precedente resta dov'era come prima. Markup, testo e
-  sessione (`wonder_account_notice`) non cambiano. Gli errori di pagina
-  (`pageErrors`) e `FlashMessage` restano come sono. Coperto da
-  `tests/Auth/AccountAlertTimeoutTest.php`.
+  sessione (`wonder_account_notice`) non cambiano. Lo stesso vale per gli
+  errori generali del pannello (`pageErrors`) e per `FlashMessage::render()`
+  (`FlashMessage::ALERT_TIMEOUT`, 4000 ms): gli avvisi di carrello, checkout e
+  abbonamenti di ecommerce, e di ogni sito che usa `FlashMessage`, ora si
+  chiudono da soli. Coperto da `tests/Auth/AccountAlertTimeoutTest.php`.
 - **CheckGroup (tema Wonder): stato d'errore sul contenitore.** Con `error()`
   il renderer Wonder di `CheckGroup` (e quindi di `CheckTree`) non metteva
   `input-error` sul contenitore né mostrava il messaggio, quindi la regola
