@@ -15,7 +15,7 @@ View::layout($auth_profile->parentLayout());
     <?=$authAlert?>
     <section>
         <div class="content content-little">
-            <div style="background:var(--auth-form-bg-color,var(--auth-bg-color,var(--bg-color)));color:var(--auth-form-tx-color,var(--auth-tx-color,var(--tx-color)));">
+            <div style="background:var(--auth-form-bg-color,var(--auth-bg-color,var(--bg-color)));color:var(--auth-form-tx-color,var(--auth-tx-color,var(--tx-color)));border-radius:var(--auth-form-border-radius,0);padding:var(--auth-form-padding,0);box-shadow:var(--auth-form-shadow,none);">
                 <?php if ($title !== ''): ?><h1 class="subtitle"><?=e($title)?></h1><?php endif; ?>
                 <?php if ($text !== ''): ?><p class="text mt-3"><?=e($text)?></p><?php endif; ?>
                 <?=$PAGE_CONTENT?>

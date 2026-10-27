@@ -36,6 +36,9 @@ final class CssAuthResource extends CssSingleton
             'form_bg_color' => 'Sfondo form',
             'form_tx_color' => 'Testo form',
             'form_border_color' => 'Bordo form',
+            'form_border_radius' => 'Raggio form (px)',
+            'form_padding' => 'Padding form (px)',
+            'form_shadow' => 'Ombra form',
         ];
     }
 
@@ -47,6 +50,9 @@ final class CssAuthResource extends CssSingleton
             FormField::key('form_bg_color')->color()->required(),
             FormField::key('form_tx_color')->color()->required(),
             FormField::key('form_border_color')->color()->required(),
+            FormField::key('form_border_radius')->text()->required(),
+            FormField::key('form_padding')->text()->required(),
+            FormField::key('form_shadow')->text()->required(),
         ];
     }
 
@@ -59,6 +65,9 @@ final class CssAuthResource extends CssSingleton
                 static::getInput('form_bg_color')->columnSpan(4),
                 static::getInput('form_tx_color')->columnSpan(4),
                 static::getInput('form_border_color')->columnSpan(4),
+                static::getInput('form_border_radius')->columnSpan(3),
+                static::getInput('form_padding')->columnSpan(3),
+                static::getInput('form_shadow')->columnSpan(6),
             ])->columns(12)->columnSpan(12),
         ])->columns(12);
     }

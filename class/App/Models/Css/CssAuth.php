@@ -26,6 +26,9 @@ final class CssAuth extends Model
             Column::key('form_bg_color'),
             Column::key('form_tx_color'),
             Column::key('form_border_color'),
+            Column::key('form_border_radius'),
+            Column::key('form_padding'),
+            Column::key('form_shadow'),
         ];
     }
 

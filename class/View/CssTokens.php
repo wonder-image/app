@@ -140,6 +140,9 @@ final class CssTokens
         $RETURN .= "--auth-form-bg-color: $auth->form_bg_color;\n";
         $RETURN .= "--auth-form-tx-color: $auth->form_tx_color;\n";
         $RETURN .= "--auth-form-border-color: $auth->form_border_color;\n";
+        $RETURN .= "--auth-form-border-radius: ".self::px($auth->form_border_radius ?? null).";\n";
+        $RETURN .= "--auth-form-padding: ".self::px($auth->form_padding ?? null).";\n";
+        $RETURN .= "--auth-form-shadow: ".self::shadow($auth->form_shadow ?? null).";\n";
         $RETURN .= "\n";
         $RETURN .= "\n";
         $RETURN .= "/* Set-up modal */\n";
@@ -443,5 +446,19 @@ final class CssTokens
         [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
 
         return "$r, $g, $b";
+    }
+
+    /** Numero in px; vuoto o non numerico (colonna appena aggiunta) diventa `0px`. */
+    private static function px(mixed $value): string
+    {
+        return (is_numeric($value) ? (float) $value : 0).'px';
+    }
+
+    /** Valore `box-shadow` libero, senza caratteri che chiuderebbero la regola. */
+    private static function shadow(mixed $value): string
+    {
+        $value = trim(str_replace([';', '{', '}', '<', '>'], '', (string) $value));
+
+        return $value === '' ? 'none' : $value;
     }
 }

@@ -511,7 +511,9 @@ campi, validazione e persistenza si estendono dal profilo, non dall'HTML.
 I colori auth usano `--auth-bg-color`, `--auth-tx-color`,
 `--auth-form-bg-color` e `--auth-form-tx-color` con fallback ai token del sito.
 `--auth-form-border-color` resta disponibile per varianti con contenitore
-bordato. Input, focus, bottoni e alert continuano a leggere i token condivisi;
+bordato. Il contenitore del form legge `--auth-form-border-radius`,
+`--auth-form-padding` (px, default `0`) e `--auth-form-shadow` (valore
+`box-shadow`, default `none`), impostabili dal backend in CSS › Autenticazione. Input, focus, bottoni e alert continuano a leggere i token condivisi;
 il pannello usa `--primary-color`, `--primary-color-10`, `--tx-color-10`,
 `--input-border-color`, `--button-border-radius` e `--spacer`.
 

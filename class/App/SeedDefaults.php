@@ -147,6 +147,9 @@ class SeedDefaults
             'form_bg_color' => '#ffffff',
             'form_tx_color' => '#000000',
             'form_border_color' => '#DEDEDE',
+            'form_border_radius' => 0,
+            'form_padding' => 0,
+            'form_shadow' => 'none',
         ];
     }
 
