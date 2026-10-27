@@ -73,6 +73,7 @@
 * [OAuth per le risorse MCP](piattaforma/oauth.md)
 * [Installazione e Deploy](piattaforma/installazione-e-deploy.md)
 * [Sicurezza HTTP, errori e log](piattaforma/sicurezza.md)
+* [Cloudflare](piattaforma/cloudflare.md)
 * [Versioni e release](piattaforma/versioni-e-release.md)
 * [Avvio locale (PHP 8.4)](piattaforma/avvio-locale.md)
 * [Dev-shared](piattaforma/dev-shared.md)

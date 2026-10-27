@@ -811,6 +811,7 @@ Su GitHub Actions il punto corretto è questo:
 - `composer install` con `--no-scripts`
 - `php forge update`
 - FTP deploy
+- con `vars.APP_PROXY == 'cloudflare'`, `php forge cloudflare:security` (non blocca il deploy, vedi [Cloudflare](cloudflare.md))
 - chiamata HTTP finale a `/api/app/update/`
 
 ### Workflow
