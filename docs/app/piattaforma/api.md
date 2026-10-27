@@ -132,19 +132,26 @@ Percorso di migrazione verso token con scadenza:
 2. rigenera i token degli utenti API con `regenerateApiToken()` e consegna i nuovi;
 3. quando non restano token senza `exp` (tranne `@system`, che va escluso o rigenerato con TTL e aggiornato nei trigger), attiva `API_TOKEN_REQUIRE_EXP=true`.
 
-### Token di pagina (`API_TOKEN`)
+### Pagine: sessione e CSRF, nessun bearer (`API_TOKEN`)
 
-Le pagine frontend e backend stampano `const API_TOKEN`, che la lib manda come `Authorization: Bearer` da `API_CLIENT` / `API_CLIENT_APP`. Prima era il token di `@system`, cioè un bearer riutilizzabile senza scadenza consegnato a ogni visitatore. Ora è `ApiTokens::pageToken()`: un JWT di `@system` con `typ: page`, `exp` obbligatoria (`API_PAGE_TOKEN_TTL`, 1 ora), legato al token di sistema corrente (`tid` + `tkh`, un'impronta parziale), senza contenerlo, e alla sessione (`sid`).
+Le pagine frontend e backend (e l'anteprima del catalogo) stampano `const API_TOKEN = '';`: nessun bearer nell'HTML. La costante resta definita perché la lib costruisce `API_CLIENT` / `API_CLIENT_APP` con `new ApiClient(..., API_TOKEN)`. Prima la pagina stampava `ApiTokens::pageToken()`: un JWT di `@system` con scadenza, ma leggibile nel sorgente di ogni pagina e, nella forma senza `sid`, riutilizzabile fuori dal browser fino alla scadenza (issue #85).
 
-- Gli endpoint con `api_internal_user` lo accettano come prima: le chiamate della lib non cambiano.
-- Gli endpoint con `allowPageToken: false` lo rifiutano con `401` (`/api/app/update/`, `/api/task/scheduler/`, `/api/task/sitemap/`).
-- Le route Resource (`api.resource.*`) lo rifiutano con `401` salvo `apiSchema()->allowPageToken()`: vedi [Route e API](../concetti/risorse/route-e-api.md#chi-puo-chiamare-le-route-api).
-- **Legato alla sessione.** Con una sessione PHP attiva (sempre nelle pagine, anche anonime) il token porta `sid`, un HMAC dell'id di sessione con `APP_KEY`: vale solo insieme al cookie di quella sessione, altrimenti `401 Token di pagina non valido per questa sessione`. Copiato fuori dal browser, o dopo `session_regenerate_id()` (login, logout), non vale più.
-- **Rinnovo**: `POST /api/token/page/` (rotta `token.page`, area `api`) restituisce `{ "success": true, "token": "…", "expires_in": 3600 }`, un token nuovo per la stessa sessione. Non ha guard ma risponde solo a richieste same-origin (`Wonder\Http\SameOrigin`: `Sec-Fetch-Site: same-origin`, oppure `Origin` con lo stesso host e porta), con una sessione attiva e con il token CSRF di sessione (header `X-WI-CSRF` dal meta `wi-csrf`, oppure `_csrf` nel body: `Wonder\Http\Csrf::verify()`); altrimenti `403`, `405` se non è POST. La risposta ha `Cache-Control: no-store`. La lib non lo usa ancora: una scheda rimasta aperta oltre la durata riceve `401 Token scaduto` e va ricaricata.
-- I token senza `sid`, emessi prima di questa versione, valgono fino alla loro `exp` (al massimo il vecchio `API_PAGE_TOKEN_TTL`), poi `401`. Il ramo di compatibilità per i token senza `sid` sarà rimosso nella beta successiva.
-- `$CALL->isPageToken()` dice all'endpoint se la chiamata arriva da una pagina.
+Una chiamata senza `Authorization: Bearer` viene accettata da `Wonder\Api\Endpoint` come **accesso di pagina** quando:
 
-Il token di pagina dà comunque accesso, per la sua durata, agli endpoint `api_internal_user`: la chiusura completa richiede che la lib chiami quelli con la sessione e il token CSRF invece del bearer.
+- l'endpoint ammette il token di pagina (`allowPageToken`, default `true` per gli handler; per le route Resource solo con `apiSchema()->allowPageToken()`);
+- la richiesta è dello stesso sito (`Wonder\Http\SameOrigin`) e c'è una sessione PHP attiva (`Endpoint::sessionRequestAllowed()`);
+- se non è `GET`/`HEAD`, porta il token CSRF di sessione (header `X-WI-CSRF` dal meta `wi-csrf`, che `ApiClient` manda già, oppure `_csrf` nel body: `Csrf::verify()`).
+
+L'accesso vale come l'utente `@system` (`Credentials::systemApiUser()`) e passa da `BearerVerifier::verifySession()`: utente e token di sistema attivi, authority dell'endpoint, IP e domini ammessi del token. `$CALL->isPageToken()` è `true`, quindi gli endpoint con `allowPageToken: false` (`/api/app/update/`, `/api/task/scheduler/`, `/api/task/sitemap/`) e le route Resource senza opt-in lo rifiutano con `401 Bearer token mancante!`. In `api_activity.token` si registra `session`.
+
+Senza sessione, da un altro sito o senza CSRF su `POST` la risposta resta `401 Bearer token mancante!`. Un bearer esplicito ha sempre la precedenza.
+
+Il **token di pagina** (`ApiTokens::pageToken()`, `typ: page`, `exp` con `API_PAGE_TOKEN_TTL`, legato a `@system` con `tid` + `tkh` e alla sessione con `sid`) resta valido per chi lo manda come bearer:
+
+- **Rinnovo**: `POST /api/token/page/` (rotta `token.page`, area `api`) restituisce `{ "success": true, "token": "…", "expires_in": 3600 }`. Risponde solo a richieste same-origin, con sessione attiva e token CSRF; altrimenti `403`, `405` se non è POST. Con l'accesso di pagina non serve più: resta per compatibilità con i siti che lo chiamano.
+- I token senza `sid` valgono fino alla loro `exp`, poi `401`.
+
+Gli endpoint ammessi alle pagine restano pubblici di fatto: chiunque apra il sito ottiene sessione e CSRF. La protezione è contro il riuso fuori dal browser e le richieste da altri siti, non contro un visitatore; un endpoint che non deve essere chiamato dal browser passa `allowPageToken: false`.
 
 ### `api_activity`
 

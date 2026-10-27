@@ -35,6 +35,20 @@
   `docs/app/piattaforma/cloudflare.md`. Coperto da
   `tests/Console/CloudflareSecurityTest.php`.
 
+### Cambiato
+- **Nessun bearer nell'HTML delle pagine (#85).** I `head.php` frontend e
+  backend e l'anteprima del catalogo stampano `const API_TOKEN = '';` invece
+  del token di pagina di `@system`, che finiva nel sorgente di ogni pagina e,
+  senza `sid`, era riutilizzabile fino alla scadenza. Le chiamate della lib
+  senza bearer valgono come accesso di pagina di `@system` quando la
+  richiesta è same-origin, c'è una sessione attiva e, se non è `GET`/`HEAD`,
+  porta il token CSRF (`X-WI-CSRF`, che `ApiClient` manda già):
+  `Endpoint::sessionRequestAllowed()` e `BearerVerifier::verifySession()`,
+  con le stesse regole del token di pagina (`allowPageToken`, authority, IP e
+  domini del token di sistema). Il bearer esplicito e `POST /api/token/page/`
+  restano per compatibilità. Nessun cambio richiesto alla lib. Coperto da
+  `tests/Api/SessionAccessTest.php`.
+
 ### Corretto
 - **Pannello account: avvisi a livello di pagina che si chiudono da soli.**
   L'avviso «salvato» del pannello e l'errore dei modal (`AccountModal::make`)

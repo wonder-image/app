@@ -359,15 +359,18 @@ php forge start
   rotation/revocation work), active row, IPs/domains; decode failures are 401,
   never 500. Mint tokens with `ApiTokens::issue()` (random `jti`, `exp` from
   `API_TOKEN_TTL`, default 0 = none; `@system` always none) and rotate with
-  `regenerateApiToken()`. Pages print `API_TOKEN = ApiTokens::pageToken()`,
-  a `typ: page` JWT (`API_PAGE_TOKEN_TTL`, default 3600) bound to the
-  `@system` token and, with an active session, to it through the `sid` claim
-  (HMAC of the session id; `BearerVerifier::verify(..., $sessionId)` rejects a
-  mismatch, sid-less legacy tokens live until `exp`): never print
-  `Credentials::appToken()` in HTML. Renewal is `POST /api/token/page/`
-  (route `token.page`, area `api`), no guard but `Wonder\Http\SameOrigin` and an active
-  session. Server-only endpoints pass `allowPageToken: false` to
-  `Handler::run()`.
+  `regenerateApiToken()`. Pages print an empty `const API_TOKEN = '';`: never
+  print a bearer (`pageToken()`, `Credentials::appToken()`) in HTML. A request
+  without bearer to an endpoint that allows page tokens is accepted as `@system`
+  page access when `Endpoint::sessionRequestAllowed()` holds (same origin,
+  active session, `Csrf::verify()` for non-GET/HEAD) and passes
+  `BearerVerifier::verifySession()` (user/token active, authority, IPs/domains;
+  `isPageToken()` true, activity token `session`). Page tokens
+  (`ApiTokens::pageToken()`, `typ: page`, `API_PAGE_TOKEN_TTL`, bound to the
+  `@system` token and the session `sid`; sid-less ones live until `exp`) are
+  still accepted as bearers and renewed by `POST /api/token/page/` (route
+  `token.page`, same origin, session and CSRF), kept for compatibility.
+  Server-only endpoints pass `allowPageToken: false` to `Handler::run()`.
 - Resource API routes: an action with no authorities in
   `permissionSchema()->api(...)` is denied (403) and not registered; a declared
   `apiSchema()->guard()` is an extra required authority; page tokens are

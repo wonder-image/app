@@ -265,7 +265,6 @@ final class Server
         }
 
         $data['paths'] = ['site' => APP_URL, 'app' => APP_URL.'/app', 'api' => APP_URL.'/api'];
-        $data['token'] = '';
         $data['lang'] = 'it';
 
         header('Content-Type: text/html; charset=UTF-8');

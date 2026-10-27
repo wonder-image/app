@@ -24,6 +24,9 @@ use Wonder\Http\UrlParser;
  * della richiesta (`$sessionId`); senza `sid` (emesso prima del legame alla
  * sessione) vale fino alla sua `exp`.
  *
+ * `verifySession()` e lo stesso accesso di pagina senza bearer: lo usa
+ * `Endpoint` quando la richiesta arriva dal sito con sessione e CSRF.
+ *
  * Rifiuti: `EndpointException` 401 (token) o 403 (authority).
  */
 final class BearerVerifier
@@ -84,6 +87,57 @@ final class BearerVerifier
             throw new EndpointException('Token non valido', 401);
         }
 
+        return $this->authorize(
+            $sub,
+            $authorities,
+            $ip,
+            $domain,
+            static fn (object $token): bool => $isPage
+                ? (string) ($claims->tid ?? '') === (string) ($token->id ?? '')
+                    && hash_equals(ApiTokens::binding((string) $token->token), (string) ($claims->tkh ?? ''))
+                : hash_equals((string) $token->token, $bearer),
+            $isPage ? VerifiedBearer::KIND_PAGE : VerifiedBearer::KIND_API,
+            isset($claims->exp) ? (int) $claims->exp : null,
+        );
+    }
+
+    /**
+     * Accesso di pagina senza bearer: la richiesta e gia passata dai
+     * controlli di sessione, stesso sito e CSRF (`Endpoint`). Vale come un
+     * token di pagina dell'utente `$sub` (`@system`), con gli stessi limiti
+     * di authority, riga token attiva, IP e domini.
+     *
+     * @param list<string> $authorities
+     * @throws EndpointException
+     */
+    public function verifySession(
+        int|string|null $sub,
+        array $authorities,
+        ?string $ip = null,
+        ?string $domain = null,
+    ): VerifiedBearer {
+        if (!is_int($sub) && !(is_string($sub) && $sub !== '')) {
+            throw new EndpointException('Sessione non valida per questa richiesta', 401);
+        }
+
+        return $this->authorize($sub, $authorities, $ip, $domain, null, VerifiedBearer::KIND_PAGE, null);
+    }
+
+    /**
+     * Controlli comuni dopo l'identificazione dell'utente.
+     *
+     * @param list<string> $authorities
+     * @param (callable(object): bool)|null $matches confronto col token salvato
+     */
+    private function authorize(
+        int|string $sub,
+        array $authorities,
+        ?string $ip,
+        ?string $domain,
+        ?callable $matches,
+        string $kind,
+        ?int $expiresAt,
+    ): VerifiedBearer {
         $user = $this->users->user($sub);
 
         if (!is_object($user) || empty($user->exists)) {
@@ -114,14 +168,7 @@ final class BearerVerifier
             throw new EndpointException('Token non valido', 401);
         }
 
-        $stored = (string) ($token->token ?? '');
-        $valid = $isPage
-            ? $stored !== ''
-                && (string) ($claims->tid ?? '') === (string) ($token->id ?? '')
-                && hash_equals(ApiTokens::binding($stored), (string) ($claims->tkh ?? ''))
-            : $stored !== '' && hash_equals($stored, $bearer);
-
-        if (!$valid) {
+        if ((string) ($token->token ?? '') === '' || ($matches !== null && !$matches($token))) {
             throw new EndpointException('Token non valido', 401);
         }
 
@@ -141,15 +188,7 @@ final class BearerVerifier
             throw new EndpointException('Token non valido per questo dominio', 401);
         }
 
-        return new VerifiedBearer(
-            $user,
-            $sub,
-            $matched,
-            $token,
-            $token->id ?? null,
-            $isPage ? VerifiedBearer::KIND_PAGE : VerifiedBearer::KIND_API,
-            isset($claims->exp) ? (int) $claims->exp : null,
-        );
+        return new VerifiedBearer($user, $sub, $matched, $token, $token->id ?? null, $kind, $expiresAt);
     }
 
     private function checkSession(object $claims, ?string $sessionId): void

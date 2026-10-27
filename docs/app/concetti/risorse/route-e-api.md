@@ -114,8 +114,9 @@ Builder: `.enabled(bool)`, `.route($action, $enabled = true)`,
 - **`.guard($guard)`**: se la Resource lo dichiara, l'utente del bearer deve
   avere anche quell'authority, oltre a una di quelle dell'azione (`403`
   altrimenti). Senza `guard()` non si richiede nulla in più.
-- **Token di pagina** (`API_TOKEN` stampato nelle pagine, `typ: page`):
-  rifiutato con `401` sulle route Resource, salvo `.allowPageToken()`. Serve
+- **Accesso di pagina** (chiamate della lib senza bearer, con sessione e CSRF,
+  o con un token di pagina `typ: page`): rifiutato con `401` sulle route
+  Resource, salvo `.allowPageToken()`. Serve
   alle Resource chiamate dalla lib nel browser, per esempio un form pubblico
   che fa `store`:
 
@@ -177,8 +178,9 @@ Lo slug usato nei nomi route è la versione "slugificata" del path (es.
   `pageSchema()->enable('view')`.
 - **API non risponde** → `apiSchema()->enabled` falso, oppure azione non attiva,
   oppure permesso API mancante (la route non è registrata, `403`).
-- **401 «Token di pagina non ammesso»** → la chiamata arriva dalla lib con
-  `API_TOKEN`: aggiungi `apiSchema()->allowPageToken()`.
+- **401 «Token di pagina non ammesso» o «Bearer token mancante!»** → la
+  chiamata arriva dalla lib (sessione e CSRF o token di pagina): aggiungi
+  `apiSchema()->allowPageToken()`.
 - **403 sull'export** → l'utente non ha il permesso `list`.
 - **Route in conflitto** → registri una route custom per un'azione senza averla
   messa in `customBackendPages()`.
