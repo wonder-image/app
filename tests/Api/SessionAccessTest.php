@@ -110,6 +110,15 @@ check('IP e domini ammessi del token valgono anche per la sessione', function ()
     return $ok && $ip && $domain;
 });
 
+echo "Endpoint::bearerFromHeader\n";
+
+check('Header della lib con API_TOKEN vuoto: nessun bearer, si passa alla sessione', fn () => Endpoint::bearerFromHeader('Bearer ') === null
+    && Endpoint::bearerFromHeader('Bearer') === null
+    && Endpoint::bearerFromHeader(null) === null
+    && Endpoint::bearerFromHeader('') === null);
+
+check('Bearer esplicito: letto come prima', fn () => Endpoint::bearerFromHeader('Bearer abc.def.ghi') === 'abc.def.ghi');
+
 echo "Endpoint::sessionRequestAllowed\n";
 
 $post = ['REQUEST_METHOD' => 'POST', 'HTTP_HOST' => 'example.test', 'HTTPS' => 'on', 'HTTP_SEC_FETCH_SITE' => 'same-origin'];
@@ -175,6 +184,21 @@ check('Head frontend, backend e anteprima docs non emettono token di pagina', fu
         $source = (string) file_get_contents($root.'/'.$view);
         if (str_contains($source, 'pageToken(') || str_contains($source, 'appToken(') || preg_match('/eyJ[\w-]+\./', $source)) {
             echo "    {$view}\n";
+            return false;
+        }
+    }
+    return true;
+});
+
+check('Nessuna vista in app/ stampa pageToken() o appToken()', function () use ($root) {
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/app', FilesystemIterator::SKIP_DOTS));
+    foreach ($files as $file) {
+        $path = $file->getPathname();
+        if (!str_ends_with($path, '.php') || !str_contains($path, '/view/')) {
+            continue;
+        }
+        if (preg_match('/(pageToken|appToken)\(/', (string) file_get_contents($path))) {
+            echo "    {$path}\n";
             return false;
         }
     }

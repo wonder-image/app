@@ -162,9 +162,11 @@
                 $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
             }
 
-            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            $bearer = self::bearerFromHeader($authHeader);
 
-                $this->token = $matches[1];
+            if ($bearer !== null) {
+
+                $this->token = $bearer;
 
             } elseif ($this->allowPageToken && self::sessionRequestAllowed($_SERVER)) {
 
@@ -176,6 +178,14 @@
                 throw new EndpointException('Bearer token mancante!', 401);
 
             }
+
+        }
+
+        /** Token dell'header; `Bearer` vuoto (API_TOKEN = '') vale come assente. */
+        public static function bearerFromHeader(?string $header): ?string
+        {
+
+            return $header !== null && preg_match('/Bearer\s(\S+)/', $header, $matches) ? $matches[1] : null;
 
         }
 
