@@ -191,4 +191,25 @@ check('una riga colore senza contrasto ha la cella vuota e una senza var si salt
         && str_contains($md, 'della palette (brand, accent):');
 });
 
+check('il form auth ha raggio, padding e ombra, con fallback per righe vecchie', function () use ($css) {
+    $row = fn (array $auth) => CssTokens::root(
+        (object) \Wonder\App\SeedDefaults::cssDefaultRow(),
+        (object) \Wonder\App\SeedDefaults::cssInputRow(),
+        (object) array_merge(\Wonder\App\SeedDefaults::cssAuthRow(), $auth),
+        (object) \Wonder\App\SeedDefaults::cssModalRow(),
+        (object) \Wonder\App\SeedDefaults::cssDropdownRow(),
+        (object) \Wonder\App\SeedDefaults::cssAlertRow(),
+        [],
+        []
+    );
+    $custom = $row(['form_border_radius' => '12', 'form_padding' => 24, 'form_shadow' => '0 4px 16px rgba(0,0,0,.1)']);
+    $legacy = $row(['form_border_radius' => null, 'form_padding' => '', 'form_shadow' => '']);
+    $unsafe = $row(['form_shadow' => '0 0 1px red; } body { display:none']);
+
+    return str_contains($css, "--auth-form-border-radius: 0px;\n--auth-form-padding: 0px;\n--auth-form-shadow: none;")
+        && str_contains($custom, "--auth-form-border-radius: 12px;\n--auth-form-padding: 24px;\n--auth-form-shadow: 0 4px 16px rgba(0,0,0,.1);")
+        && str_contains($legacy, "--auth-form-border-radius: 0px;\n--auth-form-padding: 0px;\n--auth-form-shadow: none;")
+        && str_contains($unsafe, '--auth-form-shadow: 0 0 1px red  body  display:none;');
+});
+
 summary();
