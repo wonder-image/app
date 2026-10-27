@@ -1,3 +1,4 @@
 {
-    "pages_required": "Choose at least one page to show the popup on."
+    "pages_required": "Choose at least one page to show the popup on.",
+    "visible_invalid": "The popup status must be 'true' (visible) or 'false' (hidden)."
 }
