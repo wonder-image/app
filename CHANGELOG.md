@@ -28,7 +28,10 @@
   Provision ora chiede il proxy come `nessuno` / `cloudflare` / `altro`
   (default `cloudflare` con nameserver Cloudflare), salva `APP_PROXY` nelle
   GitHub Variables e con Cloudflare salva token, `CLOUDFLARE_ZONE_ID` e
-  `CLOUDFLARE_ACCOUNT_ID` in Bitwarden e lancia il comando. Vedi
+  `CLOUDFLARE_ACCOUNT_ID` in Bitwarden e lancia il comando. Prima di
+  salvare il token controlla i workflow in `.github/workflows/`: se uno
+  scrive il `.env` senza escludere `CLOUDFLARE_*` (un `deploy.yml` vecchio
+  lo porterebbe in produzione) avvisa e non lo salva. Vedi
   `docs/app/piattaforma/cloudflare.md`. Coperto da
   `tests/Console/CloudflareSecurityTest.php`.
 
