@@ -15,6 +15,22 @@
   si usano i default senza chiedere. Il messaggio di sync ora elenca le
   variabili davvero scritte. Coperto da
   `tests/Console/ProvisionWwwProxyTest.php`.
+- **Cloudflare: `php forge cloudflare:security` e `APP_PROXY`.** Nuovo
+  comando che allinea la zona Cloudflare del sito: SSL Full (strict) solo
+  dopo aver verificato il certificato dell'origine, Always Use HTTPS,
+  Automatic HTTPS Rewrites, TLS minimo 1.2, TLS 1.3, Security Level
+  medium, Browser Integrity Check, Page Shield, regola WAF «wonder-image»
+  (skip di Security Level e BIC su `/api/` tranne `/api/frontend/`) e un
+  rate limit su `/api/`. Bot Fight Mode è spento di default e in CI viene
+  solo segnalato. Avvisa per HSTS, DNSSEC e record @/www non proxati.
+  Tocca solo le proprie regole (per `ref`), `--dry-run` valida senza
+  applicare, i default si cambiano in `custom/config/cloudflare.php`.
+  Provision ora chiede il proxy come `nessuno` / `cloudflare` / `altro`
+  (default `cloudflare` con nameserver Cloudflare), salva `APP_PROXY` nelle
+  GitHub Variables e con Cloudflare salva token, `CLOUDFLARE_ZONE_ID` e
+  `CLOUDFLARE_ACCOUNT_ID` in Bitwarden e lancia il comando. Vedi
+  `docs/app/piattaforma/cloudflare.md`. Coperto da
+  `tests/Console/CloudflareSecurityTest.php`.
 
 ### Corretto
 - **CheckGroup (tema Wonder): stato d'errore sul contenitore.** Con `error()`

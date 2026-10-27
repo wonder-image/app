@@ -18,7 +18,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  * - **GitHub Secrets** della repo: `BWS_ACCESS_TOKEN`, `BWS_PROJECT_ID`,
  *   `APP_DEPLOY_TOKEN` (auto-generato).
  * - **GitHub Variables** della repo: `APP_DOMAIN` di produzione,
- *   `ASSETS_VERSION`, `FORCE_WWW` e `APP_TRUST_PROXY`.
+ *   `ASSETS_VERSION`, `FORCE_WWW`, `APP_TRUST_PROXY` e `APP_PROXY`
+ *   (`nessuno`, `cloudflare`, `altro`).
+ * - **Cloudflare** (solo con `APP_PROXY=cloudflare`): `CLOUDFLARE_API_TOKEN`,
+ *   `CLOUDFLARE_ZONE_ID` e `CLOUDFLARE_ACCOUNT_ID` nel progetto Bitwarden,
+ *   poi `forge cloudflare:security`.
  * - **Bitwarden Secrets Manager**: `APP_KEY` di produzione (auto-gen,
  *   diversa da quella locale), `DB_*`/`FTP_*`/`USER_*` di produzione.
  *
@@ -150,24 +154,33 @@ class Provision extends Config
             $forceWww = $parsed ?? $forceWww;
         }
 
-        // 2c. APP_TRUST_PROXY: solo con un proxy davanti si legge
-        //     X-Forwarded-For; senza, l'IP sarebbe falsificabile.
+        // 2c. APP_PROXY e APP_TRUST_PROXY: solo con un proxy davanti si
+        //     legge X-Forwarded-For; senza, l'IP sarebbe falsificabile.
+        //     Default «cloudflare» se i nameserver del dominio sono di Cloudflare.
         $existingTrustProxy = self::parseYesNo($existingGhVars['APP_TRUST_PROXY'] ?? '');
         $trustProxy = $existingTrustProxy ?? false;
+        $proxy = self::proxyFromAnswer($existingGhVars['APP_PROXY'] ?? '', '');
+        if ($proxy === '') {
+            $proxy = match (true) {
+                self::usesCloudflareNameservers(self::nameservers($appDomain)) => 'cloudflare',
+                $trustProxy => 'altro',
+                default => 'nessuno',
+            };
+        }
         if ($input->isInteractive()) {
-            $default = $trustProxy ? 'attivo' : 'nessuno';
             $answer = $this->askWithDefault(
                 $input,
                 $output,
-                'APP_TRUST_PROXY',
-                'Che proxy o CDN c\'è davanti al sito? (nessuno, cloudflare, altro) [Enter = '.$default.']:',
-                $default
+                'APP_PROXY',
+                'Che proxy o CDN c\'è davanti al sito? (nessuno, cloudflare, altro) [Enter = '.$proxy.']:',
+                $proxy
             );
-            $trustProxy = self::trustProxyFromAnswer($answer, $trustProxy);
-            if ($trustProxy && !in_array(strtolower(trim($answer)), ['cloudflare', 'attivo'], true)) {
+            $proxy = self::proxyFromAnswer($answer, $proxy);
+            if ($proxy === 'altro') {
                 $output->writeln('<comment>ℹ️  Con APP_TRUST_PROXY l\'IP è l\'ultimo valore di X-Forwarded-For: il proxy deve impostarlo.</comment>');
             }
         }
+        $trustProxy = self::trustProxyFromAnswer($proxy, $trustProxy);
 
         // 3. BWS_PROJECT_ID: cerca / crea il project Bitwarden per questo dominio.
         $bwProjectId = $this->envValue($lines, $keyToIndex, 'BWS_PROJECT_ID');
@@ -243,7 +256,7 @@ class Provision extends Config
             $output->writeln('<comment>   gh secret delete GITHUB_API_TOKEN --repo '.$repoName.'</comment>');
         }
 
-        // 7. GitHub Variables: APP_DOMAIN, ASSETS_VERSION, FORCE_WWW, APP_TRUST_PROXY.
+        // 7. GitHub Variables: APP_DOMAIN, ASSETS_VERSION, FORCE_WWW, APP_TRUST_PROXY, APP_PROXY.
         $assetsVersion = $existingGhVars['ASSETS_VERSION'] ?? '';
         if ($assetsVersion === '') {
             $assetsVersion = $this->envValue($lines, $keyToIndex, 'ASSETS_VERSION');
@@ -257,6 +270,7 @@ class Provision extends Config
             'ASSETS_VERSION' => $assetsVersion,
             'FORCE_WWW' => $forceWww ? 'true' : 'false',
             'APP_TRUST_PROXY' => $trustProxy ? 'true' : 'false',
+            'APP_PROXY' => $proxy,
         ], $output)) {
             return Command::FAILURE;
         }
@@ -285,7 +299,84 @@ class Provision extends Config
 
         $output->writeln('<info>✅ Provisioning GitHub e Bitwarden completato.</info>');
 
+        // 10. Cloudflare: token e ID nel progetto Bitwarden (mai nel .env di
+        //     produzione), poi `cloudflare:security`. Un errore qui non
+        //     invalida il provisioning appena completato.
+        if ($proxy === 'cloudflare') {
+            $this->provisionCloudflare($input, $output, $appDomain, $bwProjectId, $bwAccessToken);
+        }
+
         return Command::SUCCESS;
+    }
+
+    private function provisionCloudflare(InputInterface $input, OutputInterface $output, string $appDomain, string $bwProjectId, string $bwAccessToken): void
+    {
+        $existing = $this->bitwardenProjectSecretsWithValues($bwProjectId, $bwAccessToken, $output) ?? [];
+        $current = (string) ($existing['CLOUDFLARE_API_TOKEN'] ?? '');
+
+        $token = $this->askWithDefault(
+            $input,
+            $output,
+            'CLOUDFLARE_API_TOKEN',
+            'CLOUDFLARE_API_TOKEN ('.($current !== '' ? 'Enter = mantieni' : 'Enter = salta').'):',
+            $current,
+            true
+        );
+
+        if ($token === '') {
+            $output->writeln('<comment>ℹ️  Nessun CLOUDFLARE_API_TOKEN: crea un token con i permessi indicati in docs/app/piattaforma/cloudflare.md e rilancia provision.</comment>');
+            return;
+        }
+
+        try {
+            $zone = (new \Wonder\Cloudflare\Client($token))->findZone($appDomain);
+        } catch (\Throwable $e) {
+            $output->writeln('<error>❌ Cloudflare: '.$e->getMessage().'</error>');
+            return;
+        }
+
+        if ($zone === null) {
+            $output->writeln('<error>❌ Nessuna zona Cloudflare per '.$appDomain.' visibile con questo token: non salvato.</error>');
+            return;
+        }
+
+        $values = [
+            'CLOUDFLARE_API_TOKEN' => $token,
+            'CLOUDFLARE_ZONE_ID' => $zone['id'],
+            'CLOUDFLARE_ACCOUNT_ID' => $zone['account_id'],
+        ];
+
+        $ids = $this->bitwardenProjectSecrets($bwProjectId, $bwAccessToken, $output) ?? [];
+        foreach ($values as $key => $value) {
+            if ($value === '' || ($existing[$key] ?? null) === $value) {
+                continue;
+            }
+
+            $command = isset($ids[$key])
+                ? ['bws', 'secret', 'edit', '--value', $value, $ids[$key], '--output', 'json']
+                : ['bws', 'secret', 'create', $key, $value, $bwProjectId, '--output', 'json'];
+            $result = $this->runCommand($command, ['BWS_ACCESS_TOKEN' => $bwAccessToken]);
+
+            if ($result['exitCode'] !== 0) {
+                $output->writeln('<error>❌ '.$key.' non salvato in Bitwarden.</error>');
+                return;
+            }
+            $output->writeln('<info>✅ '.$key.' salvato in Bitwarden.</info>');
+        }
+
+        foreach ($values as $key => $value) {
+            putenv($key.'='.$value);
+            $_ENV[$key] = $value;
+        }
+
+        $command = $this->getApplication()?->find('cloudflare:security');
+        if ($command === null) {
+            return;
+        }
+
+        $cloudflareInput = new \Symfony\Component\Console\Input\ArrayInput(['--domain' => $appDomain]);
+        $cloudflareInput->setInteractive($input->isInteractive());
+        $command->run($cloudflareInput, $output);
     }
 
     /** Suffissi a due livelli più comuni: `esempio.co.uk` è un dominio principale. */
@@ -321,6 +412,51 @@ class Provision extends Config
             in_array($value, ['n', 'no', 'false', '0', 'off'], true) => false,
             default => null,
         };
+    }
+
+    /** Risposta sul proxy: vuota = default, altrimenti `nessuno`, `cloudflare` o `altro`. */
+    public static function proxyFromAnswer(string $answer, string $default): string
+    {
+        $answer = strtolower(trim($answer));
+
+        return match (true) {
+            $answer === '' => $default,
+            in_array($answer, ['nessuno', 'none', 'no', 'n', 'false', '0'], true) => 'nessuno',
+            in_array($answer, ['cloudflare', 'cf'], true) => 'cloudflare',
+            default => 'altro',
+        };
+    }
+
+    /** Vero se tutti i nameserver sono `*.ns.cloudflare.com`. */
+    public static function usesCloudflareNameservers(array $nameservers): bool
+    {
+        if ($nameservers === []) {
+            return false;
+        }
+
+        foreach ($nameservers as $ns) {
+            if (!str_ends_with(strtolower(rtrim((string) $ns, '.')), '.ns.cloudflare.com')) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Nameserver del dominio principale (www e sottodominio risalgono al padre). */
+    private static function nameservers(string $domain): array
+    {
+        $labels = explode('.', (string) preg_replace('/^www\./', '', strtolower($domain)));
+
+        while (count($labels) >= 2) {
+            $records = @dns_get_record(implode('.', $labels), DNS_NS);
+            if (is_array($records) && $records !== []) {
+                return array_column($records, 'target');
+            }
+            array_shift($labels);
+        }
+
+        return [];
     }
 
     /** Risposta alla domanda sul proxy: vuota = default, «nessuno» = false, un proxy = true. */

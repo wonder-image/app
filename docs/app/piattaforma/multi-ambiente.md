@@ -443,6 +443,8 @@ Variabili introdotte per il supporto multi-ambiente:
 | `FORCE_WWW` | Se `true`, `forge build` genera `.htaccess` con force-www |
 | `APP_DOMAIN` | Dominio di produzione |
 | `ASSETS_VERSION` | Versione asset |
+| `APP_PROXY` | Proxy davanti al sito: `nessuno`, `cloudflare`, `altro`. Con `cloudflare` il deploy lancia `php forge cloudflare:security`, vedi [Cloudflare](cloudflare.md) |
+| `APP_TRUST_PROXY` | `true` se `APP_PROXY` non è `nessuno`; finisce nel `.env` di produzione |
 
 ---
 
