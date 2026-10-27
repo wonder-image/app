@@ -14,6 +14,7 @@ use Wonder\Auth\LoginThrottle;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Auth\PasswordReset;
 use Wonder\Http\Csrf;
+use Wonder\Http\Exceptions\NotFoundHttpException;
 use Wonder\Http\SafeRedirect;
 use Wonder\View\View;
 
@@ -610,9 +611,9 @@ final class AuthController
         exit;
     }
 
+    /** Come nel pannello: la pagina 404 del sito, non una pagina vuota. */
     private function notFound(): never
     {
-        http_response_code(404);
-        exit;
+        throw new NotFoundHttpException();
     }
 }
