@@ -118,6 +118,32 @@ check('provision: nameserver Cloudflare rilevati', function (): void {
     assertSame(false, Provision::usesCloudflareNameservers([]));
 });
 
+check('provision: workflow che scrive il .env senza escludere CLOUDFLARE_*', function (): void {
+    $dir = sys_get_temp_dir().'/wi-cf-wf-'.bin2hex(random_bytes(4));
+    mkdir($dir.'/.github/workflows', 0777, true);
+    $file = $dir.'/.github/workflows/deploy.yml';
+    $workflow = "case \"\$key\" in\n  FTP_*|BWS_*)\n    ;;\n  *)\n    printf '%s=%s\\n' \"\$key\" \"\$v\" >> .env\n    ;;\nesac\n";
+
+    assertSame([], Provision::workflowsLeakingCloudflare($dir), 'nessun workflow');
+
+    file_put_contents($file, $workflow);
+    assertSame(['.github/workflows/deploy.yml'], Provision::workflowsLeakingCloudflare($dir), 'workflow vecchio');
+
+    file_put_contents($file, str_replace("  FTP_*|BWS_*)\n", "  # CLOUDFLARE_*)\n  FTP_*|BWS_*)\n", $workflow));
+    assertSame(['.github/workflows/deploy.yml'], Provision::workflowsLeakingCloudflare($dir), 'un commento non basta');
+
+    file_put_contents($file, str_replace('FTP_*|BWS_*)', 'FTP_*|BWS_*|CLOUDFLARE_*)', $workflow));
+    assertSame([], Provision::workflowsLeakingCloudflare($dir), 'workflow aggiornato');
+
+    file_put_contents($file, "jobs: {}\n");
+    assertSame([], Provision::workflowsLeakingCloudflare($dir), 'workflow che non scrive il .env');
+
+    unlink($file);
+    rmdir($dir.'/.github/workflows');
+    rmdir($dir.'/.github');
+    rmdir($dir);
+});
+
 check('provision manda APP_PROXY nelle GitHub Variables', function (): void {
     $source = (string) file_get_contents(__DIR__.'/../../class/Console/Commands/Provision.php');
     assertSame(true, str_contains($source, "'APP_PROXY' => \$proxy,"));

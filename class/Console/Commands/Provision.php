@@ -311,6 +311,16 @@ class Provision extends Config
 
     private function provisionCloudflare(InputInterface $input, OutputInterface $output, string $appDomain, string $bwProjectId, string $bwAccessToken): void
     {
+        // Un workflow vecchio copia nel .env di produzione ogni secret di Bitwarden
+        $unsafe = self::workflowsLeakingCloudflare(getcwd() ?: '.');
+        if ($unsafe !== []) {
+            foreach ($unsafe as $file) {
+                $output->writeln('<error>❌ '.$file.' scrive i secret di Bitwarden nel .env senza escludere CLOUDFLARE_*: il token finirebbe in produzione.</error>');
+            }
+            $output->writeln('<comment>ℹ️  Aggiungi CLOUDFLARE_* a FTP_*|BWS_*) e lo step «☁️ Cloudflare» (vedi docs/app/piattaforma/cloudflare.md), poi rilancia provision. Token Cloudflare non salvato.</comment>');
+            return;
+        }
+
         $existing = $this->bitwardenProjectSecretsWithValues($bwProjectId, $bwAccessToken, $output) ?? [];
         $current = (string) ($existing['CLOUDFLARE_API_TOKEN'] ?? '');
 
@@ -425,6 +435,30 @@ class Provision extends Config
             in_array($answer, ['cloudflare', 'cf'], true) => 'cloudflare',
             default => 'altro',
         };
+    }
+
+    /**
+     * Workflow GitHub che scrivono nel `.env` senza escludere `CLOUDFLARE_*`
+     * in un pattern del `case` (come `FTP_*|BWS_*|CLOUDFLARE_*)`).
+     *
+     * @return string[] percorsi relativi
+     */
+    public static function workflowsLeakingCloudflare(string $cwd): array
+    {
+        $files = glob(rtrim($cwd, '/').'/.github/workflows/*.{yml,yaml}', GLOB_BRACE) ?: [];
+        $unsafe = [];
+
+        foreach ($files as $file) {
+            $content = (string) file_get_contents($file);
+            if (!preg_match('/>>\s*\.env\b/', $content)) {
+                continue;
+            }
+            if (!preg_match('/^[ \t]*[^#\n]*\bCLOUDFLARE_\*[^\n]*\)[ \t]*$/m', $content)) {
+                $unsafe[] = '.github/workflows/'.basename($file);
+            }
+        }
+
+        return $unsafe;
     }
 
     /** Vero se tutti i nameserver sono `*.ns.cloudflare.com`. */

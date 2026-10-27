@@ -20,6 +20,23 @@ dichiara con `APP_PROXY=cloudflare` (vedi [APP_PROXY](#app_proxy)).
 Lo step del deploy gira solo se `vars.APP_PROXY == 'cloudflare'` e il token è
 presente nel project Bitwarden; altrimenti viene saltato.
 
+### Progetti esistenti
+
+`composer update` non lancia provision e non aggiorna
+`.github/workflows/deploy.yml`, che appartiene al sito. Per un sito già
+avviato:
+
+1. `composer update` per avere `wonder-image/app` con il comando;
+2. nel `deploy.yml` aggiungi `CLOUDFLARE_*` al `case` che esclude i secret
+   dal `.env` (`FTP_*|BWS_*|CLOUDFLARE_*)`) e lo step `☁️ Cloudflare`, come
+   nello scaffold `new-site`;
+3. `php forge provision` e rispondi `cloudflare`.
+
+L'ordine conta: un `deploy.yml` vecchio copia nel `.env` di produzione ogni
+secret del project Bitwarden. Per questo provision controlla i workflow in
+`.github/workflows/`: se uno scrive il `.env` senza escludere
+`CLOUDFLARE_*`, avvisa e non salva il token.
+
 ## Token
 
 Il token lo crea l'utente in Cloudflare (My Profile › API Tokens › Create
