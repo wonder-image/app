@@ -36,6 +36,15 @@
   `tests/Console/CloudflareSecurityTest.php`.
 
 ### Corretto
+- **Pannello account: avvisi a livello di pagina che si chiudono da soli.**
+  L'avviso «salvato» del pannello e l'errore dei modal (`AccountModal::make`)
+  ora hanno `data-wi-alert-timeout` (`AccountModal::ALERT_TIMEOUT`, 4000 ms).
+  Con la lib che ha `setUpAlerts()` l'avviso esce dal box del contenuto e dal
+  modal, va in `.alert-container` a livello di body e si chiude dopo 4
+  secondi; con una lib precedente resta dov'era come prima. Markup, testo e
+  sessione (`wonder_account_notice`) non cambiano. Gli errori di pagina
+  (`pageErrors`) e `FlashMessage` restano come sono. Coperto da
+  `tests/Auth/AccountAlertTimeoutTest.php`.
 - **CheckGroup (tema Wonder): stato d'errore sul contenitore.** Con `error()`
   il renderer Wonder di `CheckGroup` (e quindi di `CheckTree`) non metteva
   `input-error` sul contenitore né mostrava il messaggio, quindi la regola
