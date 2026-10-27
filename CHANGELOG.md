@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Provision: FORCE_WWW e APP_TRUST_PROXY nelle GitHub Variables.**
+  `php forge provision` ora chiede se forzare www e che proxy o CDN c'è
+  davanti al sito, e salva `FORCE_WWW` e `APP_TRUST_PROXY` (`true`/`false`)
+  nelle variabili della repo insieme ad `APP_DOMAIN` e `ASSETS_VERSION`.
+  Default: `FORCE_WWW` è `true` per un dominio principale e `false` per un
+  sottodominio (`shop.esempio.it`: il certificato non copre
+  `www.shop.esempio.it`); `APP_TRUST_PROXY` è `false` e si attiva solo
+  indicando un proxy (`cloudflare`, `altro`). Una variabile già impostata
+  sulla repo diventa il default della domanda; senza terminale interattivo
+  si usano i default senza chiedere. Il messaggio di sync ora elenca le
+  variabili davvero scritte. Coperto da
+  `tests/Console/ProvisionWwwProxyTest.php`.
+
 ### Corretto
 - **CheckGroup (tema Wonder): stato d'errore sul contenitore.** Con `error()`
   il renderer Wonder di `CheckGroup` (e quindi di `CheckTree`) non metteva

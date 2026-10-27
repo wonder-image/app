@@ -475,7 +475,7 @@ class Config extends Command
             }
         }
 
-        $output->writeln('<info>✅ Repository variables GitHub aggiornate: APP_DOMAIN, ASSETS_VERSION</info>');
+        $output->writeln('<info>✅ Repository variables GitHub aggiornate: '.implode(', ', array_keys(array_filter($variables, fn ($value) => trim((string) $value) !== ''))).'</info>');
 
         return true;
     }
