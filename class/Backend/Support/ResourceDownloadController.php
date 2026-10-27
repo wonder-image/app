@@ -5,6 +5,8 @@ namespace Wonder\Backend\Support;
 use RuntimeException;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
+use Wonder\App\Visibility\RowVisibility;
+
 
 /**
  * Esporta i record di una Resource secondo i formati e le colonne
@@ -156,6 +158,7 @@ final class ResourceDownloadController
         $orderColumn = (string) ($this->querySchema['order']['column'] ?? 'creation');
         $orderDirection = (string) ($this->querySchema['order']['direction'] ?? 'DESC');
 
+        $condition = RowVisibility::apply(($this->modelClass)::$table, $condition, RowVisibility::currentUser());
         $rows = ($this->modelClass)::find($condition, null, $orderColumn, $orderDirection);
 
         return is_array($rows) ? $rows : [];

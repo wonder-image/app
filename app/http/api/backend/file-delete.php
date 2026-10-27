@@ -2,6 +2,7 @@
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\Backend\Table\ListTableRequest;
 use Wonder\Backend\Table\TableAuthorization;
@@ -42,6 +43,11 @@ if ($target === null) {
 }
 
 [$table, $column] = $target;
+
+// Riga che l'utente non vede: come se non esistesse.
+if (!RowVisibility::visible($table, $rowId, RowVisibility::currentUser())) {
+    ApiRequest::error('Riga non trovata.', 404);
+}
 
 $query = sqlSelect($table, ['id' => $rowId], 1);
 

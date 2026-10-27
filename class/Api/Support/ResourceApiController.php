@@ -8,6 +8,9 @@ use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
+use Wonder\App\Visibility\ResourceRows;
+use Wonder\App\Visibility\RowVisibility;
+use Wonder\Api\EndpointException;
 
 final class ResourceApiController
 {
@@ -56,7 +59,11 @@ final class ResourceApiController
         $fields = $this->presenter->fieldsFor('index', ['*']);
 
         $items = $modelClass::find(
-            $this->presenter->indexCondition(),
+            RowVisibility::apply(
+                $this->resourceClass::modelTable(),
+                $this->presenter->indexCondition(),
+                $this->visibilityUser($endpoint)
+            ),
             $limit,
             $this->presenter->indexOrderColumn(),
             $this->presenter->indexOrderDirection(),
@@ -69,7 +76,7 @@ final class ResourceApiController
     private function show(Endpoint $endpoint, int $id): array
     {
         $fields = $this->presenter->fieldsFor('show', ['*']);
-        $item = $this->resourceRow($id, $fields);
+        $item = $this->resourceRow($id, $this->visibilityUser($endpoint), $fields);
 
         return $endpoint->response($this->presenter->showPayload($item));
     }
@@ -87,6 +94,12 @@ final class ResourceApiController
         $requestValues = $this->requestValues($endpoint);
         $existingValues = $this->resourceClass::findStoreExistingValues($requestValues, 'api');
         $targetId = (int) ($existingValues['id'] ?? 0);
+
+        // Upsert su una riga nascosta: come se non esistesse.
+        if ($targetId > 0) {
+            $this->resourceRow($targetId, $this->visibilityUser($endpoint), 'id');
+        }
+
         $values = $this->preparedValues($endpoint, $targetId > 0 ? 'update' : 'store', $existingValues);
         $result = $targetId > 0
             ? $modelClass::update($values, $targetId)
@@ -108,7 +121,7 @@ final class ResourceApiController
                 'api'
             );
             $fields = $this->presenter->fieldsFor('show', ['*']);
-            $item = $this->resourceRow($targetId, $fields);
+            $item = $this->resourceRow($targetId, null, $fields);
             $this->resourceClass::afterUpdate($targetId, $result, $values);
             $this->resourceClass::exportSyncData();
 
@@ -147,7 +160,7 @@ final class ResourceApiController
         $item = [];
         if (isset($result->insert_id)) {
             $fields = $this->presenter->fieldsFor('show', ['*']);
-            $item = $this->resourceRow((int) $result->insert_id, $fields);
+            $item = $this->resourceRow((int) $result->insert_id, null, $fields);
         }
 
         return $endpoint->response($this->presenter->storePayload($item), 201);
@@ -163,7 +176,7 @@ final class ResourceApiController
         }
 
         $modelClass = $this->resourceClass::modelClass();
-        $existingValues = $this->resourceRow($id);
+        $existingValues = $this->resourceRow($id, $this->visibilityUser($endpoint));
         $values = $this->preparedValues($endpoint, 'update', $existingValues);
         $result = $modelClass::update($values, $id);
 
@@ -186,7 +199,7 @@ final class ResourceApiController
         $this->resourceClass::exportSyncData();
 
         $fields = $this->presenter->fieldsFor('show', ['*']);
-        $item = $this->resourceRow($id, $fields);
+        $item = $this->resourceRow($id, null, $fields);
 
         return $endpoint->response($this->presenter->updatePayload($item));
     }
@@ -200,7 +213,7 @@ final class ResourceApiController
             );
         }
 
-        $values = $this->resourceRow($id);
+        $values = $this->resourceRow($id, $this->visibilityUser($endpoint));
         $result = $this->resourceClass::deleteRecord($id);
         $this->resourceClass::afterDelete($id, $result, $values);
         $this->resourceClass::exportSyncData();
@@ -269,33 +282,38 @@ final class ResourceApiController
         return $values;
     }
 
-    private function resourceRow(int $id, array|string $fields = ['*']): array
+    /**
+     * Riga per id con la visibilità di `$user` (`null` = nessuna
+     * restrizione, per le riletture dopo una scrittura riuscita).
+     */
+    private function resourceRow(int $id, ?object $user, array|string $fields = ['*']): array
     {
         $this->guardPositiveId($id);
-        $modelClass = $this->resourceClass::modelClass();
-        $row = $modelClass::find($this->resourceConditionForId($id), 1, null, null, $fields);
+        $row = ResourceRows::find($this->resourceClass, $id, $user, $fields);
 
-        if (!is_array($row) || $row === []) {
-            throw new RuntimeException('Record resource non trovato.');
+        if ($row === null) {
+            throw new EndpointException('Record resource non trovato.', 404);
         }
 
         return $row;
     }
 
-    private function resourceConditionForId(int $id): string|array
+    /**
+     * Utente della visibilità per riga: token di pagina e sessione valgono
+     * per l'utente della sessione; `@system` con bearer vero legge tutto.
+     */
+    private function visibilityUser(Endpoint $endpoint): ?object
     {
-        $condition = $this->resourceClass::getQuery('condition');
-
-        if (is_array($condition)) {
-            $condition['id'] = $id;
-
-            return $condition;
+        if ($endpoint->isPageToken()) {
+            return RowVisibility::sessionUser();
         }
 
-        if (is_string($condition) && trim($condition) !== '') {
-            return "`id` = {$id} AND ({$condition})";
+        $user = $endpoint->user();
+
+        if ($user === null || ($user->username ?? '') === '@system') {
+            return null;
         }
 
-        return ['id' => $id];
+        return $user;
     }
 }

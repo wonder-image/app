@@ -8,9 +8,12 @@ use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
+use Wonder\App\Visibility\ResourceRows;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Support\FlashAlert;
 use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\Http\Csrf;
+use Wonder\Http\Exceptions\NotFoundHttpException;
 use Wonder\View\View;
 
 final class ResourcePageController
@@ -381,8 +384,8 @@ final class ResourcePageController
     {
         $row = $this->resourceRowOrNull($id);
 
-        if (!is_array($row) || $row === []) {
-            throw new RuntimeException('Record resource non trovato.');
+        if ($row === null) {
+            throw new NotFoundHttpException('Record resource non trovato.');
         }
 
         return $row;
@@ -391,30 +394,16 @@ final class ResourcePageController
     private function resourceRowOrNull(int $id): ?array
     {
         $this->guardPositiveId($id);
-        $modelClass = $this->resourceClass::modelClass();
-        $row = $modelClass::find($this->resourceConditionForId($id), 1);
+        $user = RowVisibility::currentUser();
+        $row = ResourceRows::find($this->resourceClass, $id, $user);
 
-        if (!is_array($row) || $row === []) {
-            return null;
+        // Singleton nascosto: 404, mai "crea nuovo" sopra la riga di un altro.
+        if ($row === null && $this->resourceClass::isSingleton()
+            && RowVisibility::conditionFor($this->resourceClass::modelTable(), $user) !== null
+            && ResourceRows::find($this->resourceClass, $id, null, 'id') !== null) {
+            throw new NotFoundHttpException('Record resource non trovato.');
         }
 
         return $row;
-    }
-
-    private function resourceConditionForId(int $id): string|array
-    {
-        $condition = $this->resourceClass::getQuery('condition');
-
-        if (is_array($condition)) {
-            $condition['id'] = $id;
-
-            return $condition;
-        }
-
-        if (is_string($condition) && trim($condition) !== '') {
-            return "`id` = {$id} AND ({$condition})";
-        }
-
-        return ['id' => $id];
     }
 }

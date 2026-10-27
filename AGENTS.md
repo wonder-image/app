@@ -374,6 +374,19 @@ php forge start
   rejected unless `apiSchema()->allowPageToken()`. Checks live in
   `Wonder\Api\Support\ResourceApiAccess`; never change
   `Endpoint::resolveAuth([])`, which non-Resource handlers rely on.
+- Row visibility (`class/App/Visibility`): a Resource declares
+  `rowVisibility(object $user)` (array `column => value`, code-written SQL
+  string, or `null`), an area adds `RowVisibility::rule($table, $rule,
+  $seeAll)`; rules on one table are ANDed, `admin`/`administrator` skip them
+  (`rowVisibilitySeeAll()`), a rule naming `deleted` throws. The core applies
+  it in `ListProvider` (rows, search, filters, counts), export, Resource pages
+  and generated APIs (`ResourceRows::find`) and the list id actions
+  (`RowVisibility::visible()`): a hidden row is 404, never 403. User `null`
+  (CLI, scheduler, `@system` bearer) = no restriction; page token without
+  session = anonymous. Code outside the core (MCP, dashboard totals, hand-built
+  relation options) reads through `RowVisibility::current()` / `for($user)`.
+  A table without a rule must stay byte-identical (no extra query). See
+  `docs/app/concetti/risorse/visibilita-per-riga.md`.
 - Backend list mutations (`change/boolean`, `active`, `visible`, `delete`,
   `move`, `file/delete`, `file/move`, `authority`) authorize through
   `Wonder\Backend\Table\TableAuthorization` before any SQL: Resource tables
