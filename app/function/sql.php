@@ -390,12 +390,12 @@
                         $VALUE = \Wonder\Support\Html\SafeHtml::clean(is_scalar($VALUE) ? (string) $VALUE : '');
                     }
 
-                    if (!$RICH_TEXT && (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false)) {
-                        $VALUE = sanitize($VALUE);
-                    }
-    
+                    # sanitizeFirst() contiene già sanitize(): uno solo dei due,
+                    # o addslashes() gira due volte (C'è -> C\\\'è nel DB).
                     if (isset($RULES['format']['sanitizeFirst']) && $RULES['format']['sanitizeFirst'] === true) {
                         $VALUE = sanitizeFirst($VALUE);
+                    } elseif (!$RICH_TEXT && (!isset($RULES['format']['sanitize']) || $RULES['format']['sanitize'] != false)) {
+                        $VALUE = sanitize($VALUE);
                     }
     
                     if (isset($RULES['format']['date']) && $RULES['format']['date'] === true) {

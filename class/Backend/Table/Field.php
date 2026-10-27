@@ -81,9 +81,36 @@
 
         }
 
+        /**
+         * Toglie le barre di addslashes() dalle colonne che in scrittura passano
+         * da sanitize(): stesse regole di formToArray() e Model::sanitizedReadColumns().
+         * Solo stripslashes, non sanitizeEcho(): le entità restano codificate
+         * perché la cella finisce nell'HTML così com'è.
+         */
+        private function unescapeRow($row) {
+
+            if (!is_array($row) || !is_array($this->table->field)) { return $row; }
+
+            foreach ($row as $column => $value) {
+
+                if (!is_string($value) || $value === '' || !isset($this->table->field[$column]['input']['format'])) { continue; }
+
+                $format = (array) $this->table->field[$column]['input']['format'];
+
+                if (isset($format['sanitize']) && $format['sanitize'] == false && ($format['sanitizeFirst'] ?? false) !== true) { continue; }
+                if (($format['rich_text'] ?? false) === true || ($format['file'] ?? false) === true || ($format['json'] ?? false) === true) { continue; }
+
+                $row[$column] = stripslashes($value);
+
+            }
+
+            return $row;
+
+        }
+
         public function newField($row, $column = null, $format = null) {
 
-            $this->row = $row;
+            $this->row = $this->unescapeRow($row);
             $this->column = $column;
 
             # Se cambia la linea
