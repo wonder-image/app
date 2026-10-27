@@ -3,6 +3,17 @@
 ## Unreleased
 
 ### Corretto
+- **CheckGroup (tema Wonder): stato d'errore sul contenitore.** Con `error()`
+  il renderer Wonder di `CheckGroup` (e quindi di `CheckTree`) non metteva
+  `input-error` sul contenitore né mostrava il messaggio, quindi la regola
+  della lib (2.1.2-alpha.32) `.wi-input-container.checkbox.input-error
+  .wi-checkbox:not(:checked)` non si applicava. Ora il contenitore è
+  `wi-input-container checkbox compiled … input-error` e sotto la lista (o le
+  pillole) esce lo `<span class='alert-error'>` degli altri input. Senza
+  errore il markup è identico a prima. Le pillole (`pills()`) si bordano di
+  rosso dalla lib successiva alla 2.1.2-alpha.32 (wonder-image/lib#16); fino
+  ad allora c'è solo il messaggio. Coperto da
+  `tests/Themes/WonderCheckGroupTest.php`.
 - **Popup: pagine obbligatorie anche via API e QuickCreate.** Il controllo
   `popup.pages_required` di `PopupResource::mutateRequestValues()` (2.4.0-beta.6)
   valeva solo per il context `backend`. Ora vale in ogni context: creazione

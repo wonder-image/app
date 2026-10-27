@@ -17,7 +17,7 @@ return ComponentDoc::for(CheckGroup::class)
     ->docs('concetti/form/form-field.md#opzioni-con-un-segno', 'Opzioni con un segno')
     ->related('checkbox', 'check-tree', 'dynamic-check', 'select')
     ->note('bootstrap', 'Il riquadro è alto 120px e scorre; le pillole (`pills()`) sono `btn-check` con label `btn-outline-secondary` e servono agli elenchi corti. Le voci `child` escono indentate sotto il genitore.')
-    ->note('wonder', 'Il contenitore ha sempre la classe `checkbox`, anche per le radio: la differenza la fa il tipo dell\'`<input>`. Le pillole (`pills()`) sono `wi-check-pill` e la lib non le ha: il loro CSS esce una volta per pagina dal renderer, scritto con i token `--input-*` del sito. Il segno dell\'opzione (`color`, `icon`, `image`) sta davanti al nome sia nella lista sia nelle pillole. Il confronto con `value()` è stretto: con chiavi numeriche passa i valori dello stesso tipo delle chiavi.')
+    ->note('wonder', 'Il contenitore ha sempre la classe `checkbox`, anche per le radio: la differenza la fa il tipo dell\'`<input>`. Le pillole (`pills()`) sono `wi-check-pill` e la lib non le ha: il loro CSS esce una volta per pagina dal renderer, scritto con i token `--input-*` del sito. Il segno dell\'opzione (`color`, `icon`, `image`) sta davanti al nome sia nella lista sia nelle pillole. Il confronto con `value()` è stretto: con chiavi numeriche passa i valori dello stesso tipo delle chiavi. Con `error()` il contenitore prende `input-error` (la lib borda di rosso le caselle non spuntate) e il messaggio esce sotto la lista, come negli altri input; senza errore il markup non cambia.')
     ->example('Base', <<<'PHP'
     (new CheckGroup('sizes'))
         ->label('Taglie disponibili')
@@ -55,6 +55,18 @@ return ComponentDoc::for(CheckGroup::class)
             ]
             PHP)
             ->description('`pills()` mette le voci in linea, senza il riquadro che scorre; con `label(\'\')` non resta un titolo sopra. Il segno di un\'opzione (`color`, `icon` o `image`) esce davanti al nome.')
+    )
+    ->example(
+        Example::make('Con errore di validazione')
+            ->code(<<<'PHP'
+            (new CheckGroup('pages'))
+                ->label('Pagine')
+                ->options(['home' => 'Home', 'shop' => 'Negozio', 'contact' => 'Contatti'])
+                ->required()
+                ->error('Scegli almeno una pagina.')
+            PHP)
+            ->description('L\'errore lato server passa da `error()`, come per ogni Field: nel frontend il contenitore prende `input-error` e il messaggio esce sotto la lista.')
+            ->themes('wonder')
     )
     ->example(
         Example::make('Con ricerca e sotto-voci')

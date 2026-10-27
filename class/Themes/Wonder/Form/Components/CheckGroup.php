@@ -55,6 +55,11 @@ class CheckGroup extends Field
         unset($attributes['required']);
 
         $labelHtml = $label !== '' ? "<div class=\"wi-label\">{$this->escape($label)}</div>" : '';
+        // Con errore il contenitore prende `input-error` (la lib colora le
+        // caselle non spuntate) e sotto la lista c'è il messaggio, come negli
+        // altri input. Senza errore il markup resta quello di prima.
+        $error = $this->hasError() ? ' input-error' : '';
+        $errorHtml = $this->hasError() ? "\n    ".$this->renderError() : '';
 
         if ($pills) {
             // Senza etichetta nello schema niente titolo: da solo l'asterisco
@@ -64,21 +69,21 @@ class CheckGroup extends Field
             }
 
             return PageAssets::once('wi-check-group', $this->style()).<<<HTML
-<div class="wi-input-container checkbox compiled{$required}">
+<div class="wi-input-container checkbox compiled{$required}{$error}">
     {$labelHtml}
     <div class="wi-check-pills">
         {$this->renderPills($options, $type, $fieldName, $value, $attributes)}
-    </div>
+    </div>{$errorHtml}
 </div>
 HTML;
         }
 
         return <<<HTML
-<div class="wi-input-container checkbox compiled{$required}">
+<div class="wi-input-container checkbox compiled{$required}{$error}">
     {$labelHtml}
     <div class="wi-checkbox-list">
         {$this->renderOptions($options, $type, $fieldName, $value, $attributes)}
-    </div>
+    </div>{$errorHtml}
 </div>
 HTML;
     }
