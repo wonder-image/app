@@ -3,7 +3,7 @@
 /**
  * La pagina dentro l'iframe di un'anteprima: un documento minimo con i soli
  * asset del tema chiesto e l'HTML di un esempio. Variabili da
- * `Wonder\Docs\PreviewPage::build()` più `paths`, `token`, `lang`.
+ * `Wonder\Docs\PreviewPage::build()` più `paths`, `lang`.
  *
  * @var \Wonder\Docs\ComponentDoc $doc
  * @var \Wonder\Docs\Example $example
@@ -15,7 +15,6 @@
  */
 
 $paths = is_array($paths ?? null) ? $paths : [];
-$token = (string) ($token ?? '');
 $lang = (string) ($lang ?? 'it');
 $translations = class_exists(\Wonder\Localization\TranslationProvider::class)
     ? (array) (\Wonder\Localization\TranslationProvider::$translations ?? [])
@@ -31,6 +30,7 @@ $json = static fn (mixed $value): string => json_encode($value, JSON_UNESCAPED_S
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
+    <?php if (\Wonder\Http\Csrf::active()) { ?><meta name="wi-csrf" content="<?= e(\Wonder\Http\Csrf::token()) ?>"><?php } ?>
     <link rel="icon" href="data:,">
     <title><?= e($title) ?></title>
 
@@ -39,7 +39,7 @@ $json = static fn (mixed $value): string => json_encode($value, JSON_UNESCAPED_S
         const pathApp = <?= $json((string) ($paths['app'] ?? '')) ?>;
         const pathApi = <?= $json((string) ($paths['api'] ?? '')) ?>;
         const NO_INTERNET_ALERT = '';
-        const API_TOKEN = <?= $json($token) ?>;
+        const API_TOKEN = '';
         const GOOGLE_API_KEY = '';
         const GOOGLE_SITE_KEY = '';
         const GOOGLE_PLACE_ID = '';

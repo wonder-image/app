@@ -222,7 +222,8 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
     const pathApi = <?=json_encode((string) ($PATH->api ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     const NO_INTERNET_ALERT = <?=json_encode((string) alertTheme(801), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
 
-    const API_TOKEN = <?=json_encode(Wonder\Api\Token\ApiTokens::pageToken(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    // Nessun bearer nell'HTML: le chiamate API della pagina usano sessione e CSRF.
+    const API_TOKEN = '';
     const GOOGLE_API_KEY = <?=json_encode((string) Wonder\App\Credentials::api()->gcp_client_api_key, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     const GOOGLE_SITE_KEY = <?=json_encode((string) Wonder\App\Credentials::api()->g_recaptcha_site_key, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     const GOOGLE_PLACE_ID = <?=json_encode((string) Wonder\App\Credentials::api()->g_maps_place_id, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;

@@ -6,7 +6,8 @@
     use Wonder\Api\Token\{ ApiTokens, BearerVerifier, VerifiedBearer };
     use Wonder\Api\EndpointException;
     use Wonder\Localization\LanguageContext;
-    use Wonder\Http\UrlParser;
+    use Wonder\App\Credentials;
+    use Wonder\Http\{ Csrf, SameOrigin, UrlParser };
 
     class Endpoint {
 
@@ -18,6 +19,7 @@
         // Token
         private $token, $tokenId;
         private string $tokenKind = '';
+        private bool $sessionAccess = false;
         private bool $allowPageToken = true;
 
         // Request
@@ -160,30 +162,71 @@
                 $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
             }
 
-            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-                
-                $this->token = $matches[1];
+            $bearer = self::bearerFromHeader($authHeader);
+
+            if ($bearer !== null) {
+
+                $this->token = $bearer;
+
+            } elseif ($this->allowPageToken && self::sessionRequestAllowed($_SERVER)) {
+
+                // Pagine del sito: nessun bearer nell'HTML, vale la sessione con CSRF.
+                $this->sessionAccess = true;
 
             } else {
-                
-                throw new EndpointException('Bearer token mancante!', 401); 
+
+                throw new EndpointException('Bearer token mancante!', 401);
 
             }
+
+        }
+
+        /** Token dell'header; `Bearer` vuoto (API_TOKEN = '') vale come assente. */
+        public static function bearerFromHeader(?string $header): ?string
+        {
+
+            return $header !== null && preg_match('/Bearer\s(\S+)/', $header, $matches) ? $matches[1] : null;
+
+        }
+
+        /**
+         * Richiesta del sito senza bearer: stesso sito, sessione attiva e,
+         * tranne GET/HEAD, token CSRF (`X-WI-CSRF` o `_csrf`).
+         */
+        public static function sessionRequestAllowed(array $server): bool
+        {
+
+            if (!SameOrigin::check($server) || ApiTokens::currentSessionId() === null) {
+                return false;
+            }
+
+            $method = strtoupper((string) ($server['REQUEST_METHOD'] ?? ''));
+
+            return in_array($method, [ 'GET', 'HEAD' ], true) || Csrf::verify();
 
         }
 
         private function verifyToken(): void
         {
 
-            $verified = BearerVerifier::make()->verify(
-                (string) $this->token,
-                $this->auth,
-                $this->ip,
-                $this->domain,
-                $this->allowPageToken,
-                null,
-                ApiTokens::currentSessionId()
-            );
+            $verifier = BearerVerifier::make();
+
+            $verified = $this->sessionAccess
+                ? $verifier->verifySession(
+                    Credentials::systemApiUser()['user_id'] ?? null,
+                    $this->auth,
+                    $this->ip,
+                    $this->domain
+                )
+                : $verifier->verify(
+                    (string) $this->token,
+                    $this->auth,
+                    $this->ip,
+                    $this->domain,
+                    $this->allowPageToken,
+                    null,
+                    ApiTokens::currentSessionId()
+                );
 
             $this->user = $verified->user;
             $this->userId = $verified->userId;
@@ -205,7 +248,7 @@
             return is_object($this->user ?? null) ? $this->user : null;
         }
 
-        /** true se la richiesta usa il token di pagina stampato in `API_TOKEN`. */
+        /** true per il token di pagina o per l'accesso di sessione senza bearer. */
         public function isPageToken(): bool
         {
             return $this->tokenKind === VerifiedBearer::KIND_PAGE;
@@ -338,7 +381,7 @@
             return [
                 "user_id" => $this->userId,
                 "token_id" => $this->tokenId,
-                "token" => ApiTokens::fingerprint($this->token),
+                "token" => $this->sessionAccess ? 'session' : ApiTokens::fingerprint($this->token),
                 "ip" => $this->ip,
                 "domain" => $this->domain,
                 "version" => $this->version,

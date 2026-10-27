@@ -225,9 +225,10 @@ query, per esempio `near '...'`.
   `GET` mostrano una conferma; l'azione è un `POST` con `_csrf` nel corpo (o
   `X-WI-CSRF`). Un token nella query non conta. Vedi
   [Token CSRF](../concetti/form/csrf.md#pagine-backend-del-core).
-- **Rinnovo del token di pagina** (`POST /api/token/page/`): same-origin,
-  sessione attiva e token CSRF; il token resta legato alla sessione (`sid`).
-  Vedi [API](api.md).
+- **Nessun bearer nelle pagine.** `const API_TOKEN` è vuoto: le chiamate API
+  della pagina valgono con sessione, same-origin e token CSRF (accesso di
+  pagina di `Endpoint`). Il rinnovo `POST /api/token/page/` resta per
+  compatibilità, con le stesse condizioni. Vedi [API](api.md).
 - **Header del proxy.** `X-Forwarded-For`, `-Proto`, `-Scheme` e `-Ssl` contano
   solo con `APP_TRUST_PROXY=true`, per cookie, IP del client (`ClientIp`) e
   URL assoluti (`UrlParser`). Vedi [Multi-ambiente](multi-ambiente.md).

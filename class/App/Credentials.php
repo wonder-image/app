@@ -282,7 +282,7 @@
 
         /**
          * Riga `api_users` di `@system` (id 1). Solo lato server: non va mai
-         * stampata in pagina, dove si usa `Wonder\Api\Token\ApiTokens::pageToken()`.
+         * stampata in pagina: le pagine chiamano le API con sessione e CSRF.
          */
         public static function systemApiUser(): array
         {

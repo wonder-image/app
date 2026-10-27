@@ -22,7 +22,6 @@ $PREVIEW['paths'] = [
     'app' => (string) ($PATH->app ?? ''),
     'api' => (string) ($PATH->api ?? ''),
 ];
-$PREVIEW['token'] = Wonder\Api\Token\ApiTokens::pageToken();
 $PREVIEW['lang'] = function_exists('__l') ? (string) __l() : 'it';
 
 View::make($ROOT_APP.'/view/pages/docs/preview.php', $PREVIEW)->render();
