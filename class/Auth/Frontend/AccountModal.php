@@ -10,11 +10,15 @@ use Wonder\Elements\Components\Text;
 /** Modal del pannello: form POST con CSRF, Salva nero a tutta larghezza spento finché mancano i campi obbligatori. */
 final class AccountModal
 {
+    /** Millisecondi prima che gli avvisi del pannello si chiudano. */
+    public const ALERT_TIMEOUT = 4000;
+
     public static function make(string $id, string $title, array $fields, string $action, array $hidden = [], array $errors = [], bool $open = false): Modal
     {
         $body = [];
         if ($errors !== []) {
-            $body[] = Alert::make(implode("\n", $errors), 'error')->title((string) __t('account.error_title'));
+            // La lib lo sposta a livello di pagina e lo chiude da sola (data-wi-alert-timeout).
+            $body[] = Alert::make(implode("\n", $errors), 'error')->title((string) __t('account.error_title'))->attr('data-wi-alert-timeout', self::ALERT_TIMEOUT);
         }
         $body[] = AccountAddressForm::layout($fields);
         $modal = Modal::make($title)->id($id)->frontend()->scrollable()
