@@ -3,6 +3,19 @@
 ## Unreleased
 
 ### Aggiunto
+- **Visibilità per riga (app#151).** Una Resource dichiara quali righe vede
+  ogni utente con `rowVisibility(object $user)` (array `colonna => valore`,
+  stringa SQL scritta dal codice o `null`); un sito o un modulo aggiunge una
+  regola a una tabella con `RowVisibility::rule($table, $rule, $seeAll)`.
+  Le regole della stessa tabella vanno in AND; `admin` e `administrator` le
+  saltano (`rowVisibilitySeeAll()`). Il core le applica a lista backend
+  (righe, ricerca, filtri, conteggi), export, pagine del record, API
+  generate e azioni per id della lista: una riga nascosta risponde 404.
+  CLI, scheduler e bearer `@system` leggono tutto. Il codice che legge da sé
+  (tool MCP, totali della dashboard, opzioni dei campi relazione) usa
+  `RowVisibility::current()` / `for($user)`. Una tabella senza regola non
+  cambia. Vedi `docs/app/concetti/risorse/visibilita-per-riga.md`. Coperto
+  da `tests/App/RowVisibilityTest.php`.
 - **Provision: FORCE_WWW e APP_TRUST_PROXY nelle GitHub Variables.**
   `php forge provision` ora chiede se forzare www e che proxy o CDN c'è
   davanti al sito, e salva `FORCE_WWW` e `APP_TRUST_PROXY` (`true`/`false`)
@@ -48,6 +61,10 @@
   domini del token di sistema). Il bearer esplicito e `POST /api/token/page/`
   restano per compatibilità. Nessun cambio richiesto alla lib. Coperto da
   `tests/Api/SessionAccessTest.php`.
+- **Pagine e API generate: record mancante = 404.** `ResourcePageController`
+  e `ResourceApiController` rispondevano 500 (`RuntimeException`) per un id
+  che non esiste; ora rispondono 404, come per una riga nascosta dalla
+  visibilità per riga. Vale anche per le Resource senza regola.
 
 ### Corretto
 - **Pannello account: avvisi a livello di pagina che si chiudono da soli.**

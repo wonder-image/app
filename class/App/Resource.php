@@ -145,6 +145,22 @@ abstract class Resource
     }
 
     /**
+     * Visibilità per riga: condizione (array `colonna => valore` o SQL
+     * scritto dal codice) sulle righe che `$user` può leggere, `null` per
+     * nessuna restrizione. Vedi `Wonder\App\Visibility\RowVisibility`.
+     */
+    public static function rowVisibility(object $user): string|array|null
+    {
+        return null;
+    }
+
+    /** @return list<string> authority che saltano `rowVisibility()`. */
+    public static function rowVisibilitySeeAll(): array
+    {
+        return \Wonder\App\Visibility\RowVisibility::SEE_ALL;
+    }
+
+    /**
      * Vero se chi ha queste autorità può eseguire l'azione backend (`list`,
      * `view`, `create`, `edit`, ...) secondo `permissionSchema()`, la stessa
      * regola delle route: nessuna autorità richiesta vale per ogni utente

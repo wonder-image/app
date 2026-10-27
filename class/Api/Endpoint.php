@@ -242,6 +242,12 @@
             return array_values(array_map('strval', (array) ($this->user->authority ?? [])));
         }
 
+        /** Utente API del token (`null` prima dell'autenticazione). */
+        public function user(): ?object
+        {
+            return is_object($this->user ?? null) ? $this->user : null;
+        }
+
         /** true per il token di pagina o per l'accesso di sessione senza bearer. */
         public function isPageToken(): bool
         {
