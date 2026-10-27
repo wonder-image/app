@@ -5,6 +5,7 @@ namespace Wonder\Backend\Table;
 use Wonder\App\Credentials;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Table as AppTable;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\Field;
 use Wonder\Backend\Table\SSP;
 
@@ -160,6 +161,14 @@ final class ListProvider
         if ($query === null || $queryFilter === null || $queryCustom === null || $searchBlob === null
             || $select === null || $groupBy === null) {
             return self::signatureError($request);
+        }
+
+        // Visibilità per riga: entra nel conteggio iniziale e nel whereAll di
+        // SSP (dati, filtrato, totale). Senza regola le stringhe restano identiche.
+        $visibilityUser = RowVisibility::currentUser();
+        if (RowVisibility::conditionFor((string) $name->table, $visibilityUser) !== null) {
+            $query       = RowVisibility::applySql((string) $name->table, $query, $visibilityUser);
+            $queryCustom = RowVisibility::applySql((string) $name->table, $queryCustom, $visibilityUser);
         }
 
         $custom = (object) [];

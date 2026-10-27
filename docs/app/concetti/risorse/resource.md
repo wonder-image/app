@@ -135,6 +135,7 @@ Vedi [Schema extension](schema-extensions.md).
 | `navigationSchema()` | voce di menu backend | qui sotto |
 | `apiSchema()` | superficie API e proiezione campi | [Route e API](route-e-api.md) |
 | `querySchema()` | condition/limit/order della lista | qui sotto |
+| `rowVisibility()` | righe visibili per utente | [Visibilità per riga](visibilita-per-riga.md) |
 | `pageSchema()` | quali pagine CRUD sono attive | [Route e API](route-e-api.md) |
 
 ### `permissionSchema()`

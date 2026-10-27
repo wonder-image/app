@@ -59,6 +59,7 @@ Dove vanno le tue classi:
   che non sono CRUD.
 - [Resource Singleton](singleton.md) — risorse a riga unica (es. configurazione).
 - [Route e API generate](route-e-api.md) — cosa emette `ResourceRouteRegistrar`.
+- [Visibilità per riga](visibilita-per-riga.md) — quali righe vede ogni utente (es. agenti).
 
 ## Regola d'oro
 

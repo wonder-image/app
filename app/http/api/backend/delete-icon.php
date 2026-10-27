@@ -2,6 +2,7 @@
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\ListTableRequest;
 use Wonder\Backend\Table\TableAuthorization;
 
@@ -34,6 +35,11 @@ if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, Tabl
 // Colonna icon nello schema: qui lo schema lazy viene calcolato.
 if (TableAuthorization::iconTable($table) === null) {
     ApiRequest::error('Parametri non validi.', 422);
+}
+
+// Riga che l'utente non vede: come se non esistesse.
+if (!RowVisibility::visible($table, $id, RowVisibility::currentUser())) {
+    ApiRequest::error('Riga non trovata.', 404);
 }
 
 $query = sqlSelect($table, ['id' => $id], 1);

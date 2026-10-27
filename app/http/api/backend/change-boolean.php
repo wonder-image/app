@@ -2,6 +2,7 @@
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
@@ -28,6 +29,11 @@ if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, Tabl
 }
 
 ApiRequest::selectDatabase(ApiRequest::string('database', 'main'));
+
+// Riga che l'utente non vede: come se non esistesse.
+if (!RowVisibility::visible($table, $id, RowVisibility::currentUser())) {
+    ApiRequest::error('Riga non trovata.', 404);
+}
 
 $query = sqlSelect($table, ['id' => $id], 1);
 $row = is_array($query->row ?? null) ? $query->row : [];

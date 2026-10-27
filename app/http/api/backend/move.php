@@ -2,6 +2,7 @@
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Support\ApiRequest;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\TableAuthorization;
 
 if (!ApiRequest::isPost()) {
@@ -28,6 +29,11 @@ if (!TableAuthorization::make()->allows($table, TableAuthorization::UPDATE, Tabl
 
 ApiRequest::selectDatabase(ApiRequest::string('database', 'main'));
 
+// Riga che l'utente non vede: come se non esistesse.
+if (!RowVisibility::visible($table, $rowId, RowVisibility::currentUser())) {
+    ApiRequest::error('Riga non trovata.', 404);
+}
+
 $filter = ApiRequest::string('filter');
 $filterId = ApiRequest::string('filter_id');
 
@@ -50,6 +56,21 @@ if ($filter === '' && $filterId === '') {
 }
 
 $newPosition = $action === 'up' ? $oldPosition - 1 : $oldPosition + 1;
+
+// Lo scambio non deve spostare una riga che l'utente non vede.
+if (RowVisibility::conditionFor($table, RowVisibility::currentUser()) !== null) {
+    $neighbourCondition = ['position' => $newPosition, 'deleted' => 'false'];
+
+    if ($filter !== null && $filter !== '' && $filterId !== '') {
+        $neighbourCondition[$filter] = $filterId;
+    }
+
+    $neighbourId = (int) (sqlSelect($table, $neighbourCondition, 1)->id ?? 0);
+
+    if ($neighbourId > 0 && !RowVisibility::visible($table, $neighbourId, RowVisibility::currentUser())) {
+        ApiRequest::error('Posizione non valida.', 422);
+    }
+}
 
 if ($filter !== null && $filter !== '' && $filterId !== '') {
     $oldPositionId = sqlSelect($table, ['position' => $newPosition, $filter => $filterId, 'deleted' => 'false'], 1)->id;

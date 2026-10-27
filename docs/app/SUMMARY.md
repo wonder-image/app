@@ -31,6 +31,7 @@
   * [Pagine non-CRUD (CustomPageSchema)](concetti/risorse/custom-page-schema.md)
   * [Resource Singleton](concetti/risorse/singleton.md)
   * [Route e API generate](concetti/risorse/route-e-api.md)
+  * [Visibilità per riga](concetti/risorse/visibilita-per-riga.md)
 * [Form](concetti/form/README.md)
   * [FormField](concetti/form/form-field.md)
   * [Repeater](concetti/form/repeater.md)
