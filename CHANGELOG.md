@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Corretto
+- **Foto modificabili nelle schede in sola lettura.** Le API `file-delete` e `file-move`
+  rifiutavano ogni colonna di una tabella `localOnly`, anche quelle di
+  `Resource::editableWhenReadonly()`: ora controllano la colonna con
+  `SyncedTables::isReadonlyColumn($table, $column)`.
 - **Riordino delle liste: niente più 404.** `ResourceTableRenderer` cercava la rotta
   `api.backend.reorder`, che non esiste (l'area `api` non prefissa i nomi): l'endpoint
   era vuoto e la POST finiva sull'URL della lista. Ora usa `backend.reorder` e senza

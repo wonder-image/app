@@ -5,6 +5,7 @@ namespace Wonder\App\Support;
 use Wonder\App\Environment;
 use Wonder\App\ModelRegistry;
 use Wonder\App\ResourceRegistry;
+use Wonder\Backend\Support\ReadonlyFields;
 
 /**
  * Sola lettura ed export per nome di tabella, per gli endpoint API
@@ -23,6 +24,23 @@ final class SyncedTables
         $schema = self::schema($table);
 
         return $schema instanceof SyncSchema && $schema->localOnly && !Environment::isLocal();
+    }
+
+    /**
+     * Come {@see isReadonly()}, ma una colonna fra i campi modificabili della
+     * Resource ({@see \Wonder\App\Resource::editableWhenReadonly()}) resta
+     * scrivibile: es. la foto di una scheda che per il resto arriva dal deploy.
+     */
+    public static function isReadonlyColumn(string $table, string $column): bool
+    {
+        if (!self::isReadonly($table)) {
+            return false;
+        }
+
+        $resourceClass = ResourceRegistry::resolveByTable($table);
+
+        return $resourceClass === null
+            || !in_array(trim($column), ReadonlyFields::normalize($resourceClass::editableWhenReadonly()), true);
     }
 
     public static function exportIfSynced(string $table): void

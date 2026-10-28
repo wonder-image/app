@@ -14,11 +14,11 @@ if (!ApiRequest::isPost()) {
 $folder = ApiRequest::string('folder');
 $table = ApiRequest::string('table');
 
-if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonly($table)) {
+$column = ApiRequest::string('column');
+
+if ($table !== '' && \Wonder\App\Support\SyncedTables::isReadonlyColumn($table, $column)) {
     ApiRequest::error('Tabella in sola lettura in questo ambiente.', 403);
 }
-
-$column = ApiRequest::string('column');
 $rowId = ApiRequest::int('row_id');
 $fileId = ApiRequest::int('file_id', -1);
 
