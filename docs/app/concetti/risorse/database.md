@@ -157,8 +157,8 @@ Field::key('description')->text()->richText();
 In scrittura l'HTML passa da `Wonder\Support\Html\SafeHtml::clean()`, una
 whitelist:
 
-- restano solo `p`, `br`, `strong`, `b`, `em`, `i`, `u`, `s`, `strike`, `del`
-  e `a`, sempre **senza attributi**;
+- restano solo `p`, `br`, `strong`, `b`, `em`, `i`, `u`, `s`, `strike`, `del`,
+  `a` e le liste `ul`, `ol`, `li`, sempre **senza attributi**;
 - sui link resta solo `href`, e solo se inizia con `http:`, `https:`, `mailto:`
   o `tel:` (il controllo ignora maiuscole, entità, spazi e caratteri di
   controllo). Un link relativo, `javascript:`, `data:`, `vbscript:` o `//host`

@@ -13,7 +13,8 @@ use DOMXPath;
  * Pulizia a whitelist dell'HTML scritto dall'editor dei testi formattati.
  *
  * Restano solo i tag della formattazione di base (`p`, `br`, `strong`, `b`,
- * `em`, `i`, `u`, `s`, `strike`, `del`, `a`), sempre senza attributi: l'unico
+ * `em`, `i`, `u`, `s`, `strike`, `del`, `a`) e le liste (`ul`, `ol`, `li`),
+ * sempre senza attributi: l'unico
  * che sopravvive è `href` sui link, e solo se inizia con `http:`, `https:`,
  * `mailto:` o `tel:`. Un link con un href diverso (relativo, `javascript:`,
  * `data:`, `//host`…) perde il tag e tiene il testo.
@@ -41,7 +42,7 @@ use DOMXPath;
 final class SafeHtml
 {
     /** Tag che restano (senza attributi, tranne `href` su `a`). */
-    private const ALLOWED = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del', 'a'];
+    private const ALLOWED = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del', 'a', 'ul', 'ol', 'li'];
 
     /** Tag vuoti: si scrivono senza chiusura. */
     private const VOID = ['br'];

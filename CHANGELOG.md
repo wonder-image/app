@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Corretto
+- **Liste nei testi formattati.** `SafeHtml` toglieva `ul`, `ol` e `li` tenendo solo
+  il testo, così una lista scritta nell'editor tornava una riga sola dopo il
+  salvataggio: ora restano, senza attributi come gli altri tag.
 - **Segnaposto del nome dei file in modifica.** `{slug}` (o un'altra colonna) usato
   in `->name()` restava vuoto quando la colonna non arrivava nella richiesta (in
   modifica, o in sola lettura): ora vale il valore salvato della riga.
