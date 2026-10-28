@@ -558,7 +558,8 @@
             }
 
             if (is_array($value) || is_object($value)) {
-                // In latin1 manteniamo JSON in ASCII con escape \uXXXX.
+                // In latin1 manteniamo JSON in ASCII con escape \uXXXX. In una colonna
+                // `json` MySQL toglie l'escape: in lettura ci pensa jsonColumnsToUtf8().
                 $encoded = json_encode($value, JSON_UNESCAPED_SLASHES);
                 if (!is_string($encoded)) {
                     $encoded = '';
@@ -750,19 +751,22 @@
                 $RETURN->exists = ($RESULT->num_rows > 0) ? true : false;
                 $RETURN->Nrow = $RESULT->num_rows;
 
+                $jsonColumns = $this->latin1JsonColumns($RESULT);
+                $toUtf8 = fn (array $row): array => self::jsonColumnsToUtf8($row, $jsonColumns);
+
                 if ($RESULT->num_rows == 1) {
 
                     if ($limit == 1) {
-                        $RETURN->row = $RESULT->fetch_assoc();
+                        $RETURN->row = $toUtf8($RESULT->fetch_assoc());
                         $RETURN->id = $RETURN->row['id'] ?? "";
                     } else {
-                        $RETURN->row = $RESULT->fetch_all( MYSQLI_ASSOC );
+                        $RETURN->row = array_map($toUtf8, $RESULT->fetch_all( MYSQLI_ASSOC ));
                         $RETURN->id = $RETURN->row[0]['id'] ?? "";
                     }
 
                 } else if ($RESULT->num_rows >= 2) {
 
-                    $RETURN->row = $RESULT->fetch_all( MYSQLI_ASSOC );
+                    $RETURN->row = array_map($toUtf8, $RESULT->fetch_all( MYSQLI_ASSOC ));
 
                 }
 
@@ -770,6 +774,53 @@
             
             return $RETURN;
         
+        }
+
+        /**
+         * Le colonne `json` di MySQL sono sempre utf8mb4: con una connessione
+         * latin1 arrivano convertite in cp1252 («ù» = F9) e `json_decode` fallisce.
+         * Con utf8/utf8mb4 non serve niente; con altri charset non si indovina.
+         *
+         * @return list<string>
+         */
+        private function latin1JsonColumns( \mysqli_result $result ): array
+        {
+
+            if ($this->mysqli->character_set_name() !== 'latin1') {
+                return [];
+            }
+
+            $columns = [];
+
+            foreach ($result->fetch_fields() as $field) {
+                if ($field->type === MYSQLI_TYPE_JSON) {
+                    $columns[] = $field->name;
+                }
+            }
+
+            return $columns;
+
+        }
+
+        /**
+         * Riporta in UTF-8 le colonne json lette in cp1252 (il `latin1` di MySQL).
+         * Restano persi i caratteri fuori da cp1252, che MySQL ridà già come «?».
+         *
+         * @param array<string, mixed> $row
+         * @param list<string> $columns
+         * @return array<string, mixed>
+         */
+        public static function jsonColumnsToUtf8( array $row, array $columns ): array
+        {
+
+            foreach ($columns as $column) {
+                if (is_string($row[$column] ?? null) && !mb_check_encoding($row[$column], 'UTF-8')) {
+                    $row[$column] = mb_convert_encoding($row[$column], 'UTF-8', 'Windows-1252');
+                }
+            }
+
+            return $row;
+
         }
 
         public function Delete( string $table, string | array | null $condition = null ): string
