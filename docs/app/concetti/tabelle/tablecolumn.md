@@ -365,7 +365,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
   in alto: per questo la Resource deve avere `$orderColumn` sulla posizione.
   Se l'utente ordina per un'altra colonna, la maniglia sparisce.
 - Lasciata la riga (o dopo 400 ms di frecce), il browser manda a
-  `POST /api/backend/reorder/` (`api.backend.reorder`) lo slug della Resource,
+  `POST /api/backend/reorder/` (`backend.reorder`: l'area `api` non prefissa i nomi) lo slug della Resource,
   la riga e gli id della pagina nell'ordine nuovo, poi ricarica la lista.
   Tabella, colonna e gruppo li legge il server dalla Resource, mai dalla
   richiesta.

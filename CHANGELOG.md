@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Corretto
+- **Riordino delle liste: niente più 404.** `ResourceTableRenderer` cercava la rotta
+  `api.backend.reorder`, che non esiste (l'area `api` non prefissa i nomi): l'endpoint
+  era vuoto e la POST finiva sull'URL della lista. Ora usa `backend.reorder` e senza
+  endpoint non aggiunge la maniglia.
+- **File drag & drop con `visibleWhen()` / `hiddenWhen()`.** FilePond sostituisce l'input e
+  ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
+
 ### Aggiunto
 - **Liste riordinabili trascinando le righe.** `TableLayoutSchema::reorderable($column = 'position', $group = null)`
   aggiunge a sinistra della lista la maniglia di `RowDrag`, visibile quando la

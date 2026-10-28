@@ -42,6 +42,16 @@ class File extends Field
         );
         // Qui la classe resta del campo: il tag non ne scrive una sua.
         unset($attributes['data-wi-check']);
+        // FilePond sostituisce l'input e ne perde gli attributi: le regole di
+        // visibleWhen()/hiddenWhen() vanno sul contenitore, che resta.
+        $visibility = [];
+        foreach ($attributes as $key => $rule) {
+            if (str_starts_with((string) $key, 'data-visible-when') || str_starts_with((string) $key, 'data-hidden-when')) {
+                $visibility[$key] = $rule;
+                unset($attributes[$key]);
+            }
+        }
+        $visibility = $visibility === [] ? '' : ' '.$this->renderAttributes($visibility);
         $attributes = $this->renderAttributes($attributes);
         $accept = $this->acceptByType($file);
         $acceptLabel = $this->acceptLabelByType($file);
@@ -60,7 +70,7 @@ class File extends Field
         }
 
         return <<<HTML
-<div id="container-{$id}" class="w-100">
+<div id="container-{$id}" class="w-100"{$visibility}>
     {$labelHtml}
     <div class="w-100{$class}">
         <input id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-max-file-size="{$maxSize}MB" data-min-size-image="{$imageSize}" data-size-before="{$sizeBefore}" data-max-files="{$maxFile}" data-wi-dir="{$directory}" data-wi-value="{$value}" data-wi-uploader="{$this->escape($uploader)}" data-wi-uploader-label="{$this->escape($acceptLabel)}" data-wi-check="true" {$multiple} {$attributes}>

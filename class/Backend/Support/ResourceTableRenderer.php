@@ -378,9 +378,15 @@ final class ResourceTableRenderer
             return;
         }
 
+        // L'area `api` non prefissa i nomi: la rotta è `backend.reorder`.
         try {
-            $endpoint = (string) __r('api.backend.reorder');
+            $endpoint = (string) __r('backend.reorder');
         } catch (\Throwable) {
+            return;
+        }
+
+        // Senza endpoint la POST andrebbe all'URL della pagina (404).
+        if ($endpoint === '') {
             return;
         }
 
