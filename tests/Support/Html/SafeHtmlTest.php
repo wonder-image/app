@@ -212,7 +212,22 @@ check('attributi dei tag ammessi scartati', fn () => same(
 
 check('tag non ammessi scartati tenendo il contenuto', fn () => same(
     SafeHtml::clean('<div><span style="x">uno</span> <h2>due</h2> <ul><li>tre</li></ul> <font color="red">quattro</font></div>'),
-    'uno due tre quattro'
+    'uno due <ul><li>tre</li></ul> quattro'
+));
+
+check('liste puntate e numerate restano, senza attributi', fn () => same(
+    SafeHtml::clean('<ul class="x" style="color:red"><li data-x="1">uno</li><li><strong>due</strong></li></ul><ol start="3" onclick="alert(1)"><li>tre</li></ol>'),
+    '<ul><li>uno</li><li><strong>due</strong></li></ul><ol><li>tre</li></ol>'
+));
+
+check('lista annidata', fn () => same(
+    SafeHtml::clean('<ul><li>a<ol><li>b</li></ol></li></ul>'),
+    '<ul><li>a<ol><li>b</li></ol></li></ul>'
+));
+
+check('li senza chiusura: si chiude dove lo chiude il browser', fn () => same(
+    SafeHtml::clean('<ul><li>a<li>b</ul>c'),
+    '<ul><li>a</li><li>b</li></ul>c'
 ));
 
 foreach (['script', 'style', 'iframe', 'object', 'template', 'noscript', 'svg', 'math'] as $tag) {
@@ -623,7 +638,7 @@ foreach (['script', 'style', 'iframe', 'noembed', 'noframes'] as $tag) {
     check("chiusura di un li che contiene <{$tag}>: è contenuto suo", function () use ($tag) {
         $out = SafeHtml::clean("<ul><li>a<{$tag}>b</li>c</{$tag}>d</ul>");
 
-        return same($out, 'ad') && inert($out) && noRename($out);
+        return same($out, '<ul><li>ad</li></ul>') && inert($out) && noRename($out);
     });
 }
 
@@ -982,7 +997,7 @@ foreach ($html5Voids as $tag) {
         'maiuscolo e chiuso con la barra' => ['<p>a<' . strtoupper($tag) . '/>b<div>c</div>d</p>', '<p>ab</p>cd'],
         'seguito da una chiusura di body' => ["<p>a<{$tag}>b</body>c<div>d</div>e</p>", '<p>abc</p>de'],
         'con la sua chiusura, che non chiude niente' => ["<p>a<{$tag}>b</{$tag}>c</p>d", '<p>abc</p>d'],
-        'in una lista' => ["<ul><li>a<{$tag}>b<li>c</ul>d", 'abcd'],
+        'in una lista' => ["<ul><li>a<{$tag}>b<li>c</ul>d", '<ul><li>ab</li><li>c</li></ul>d'],
         'dentro il grassetto' => ["<b>a<{$tag}>b</b>c", '<b>ab</b>c'],
         'dentro una tabella' => ["<table><{$tag}>a<tr><td>b</td></tr></table>c", 'abc'],
         'dentro <xmp>, dove è testo' => ["<xmp>a<{$tag}>b</xmp>c", 'abc'],
