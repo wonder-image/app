@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Corretto
+- **Segnaposto del nome dei file in modifica.** `{slug}` (o un'altra colonna) usato
+  in `->name()` restava vuoto quando la colonna non arrivava nella richiesta (in
+  modifica, o in sola lettura): ora vale il valore salvato della riga.
 - **Foto modificabili nelle schede in sola lettura.** Le API `file-delete` e `file-move`
   rifiutavano ogni colonna di una tabella `localOnly`, anche quelle di
   `Resource::editableWhenReadonly()`: ora controllano la colonna con

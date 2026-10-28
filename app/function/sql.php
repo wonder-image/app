@@ -325,7 +325,8 @@
 
                                     if ($match == 'rand') { continue; }
 
-                                    $replace = $VALUES[$match] ?? ($post[$match] ?? '');
+                                    // In modifica la colonna può mancare dalla richiesta: vale quella salvata.
+                                    $replace = $VALUES[$match] ?? ($post[$match] ?? ($OLD_VALUES[$match] ?? ''));
 
                                     $formatName = str_replace('{' . $match . '}', $replace, $formatName);
 
