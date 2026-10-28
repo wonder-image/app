@@ -15,9 +15,10 @@ final class ListProvider
      * Build the SSP column set (db name, dt index, format, formatter).
      *
      * @param array<int,array<string,mixed>> $fields config.fields entries
+     * @param bool $reorder la maniglia di {@see Reorder} si vede (lista ordinata per posizione)
      * @return array<int,array<string,mixed>>
      */
-    public static function buildColumns(array $fields, bool $arrow, int $lineCount, Field $renderer): array
+    public static function buildColumns(array $fields, bool $arrow, int $lineCount, Field $renderer, bool $reorder = false): array
     {
         $columns = [];
         $columnN = 0;
@@ -32,6 +33,12 @@ final class ListProvider
                 $format     = ['visible' => $arrow, 'lines' => $lineCount];
                 $formatter  = static function ($row, $column, $format) use ($renderer, $arrowDir) {
                     return $renderer->newField($row, $arrowDir, $format);
+                };
+            } elseif ($columnName === Reorder::COLUMN) {
+                $columnName = 'id';
+                $format     = ['reorder' => $reorder];
+                $formatter  = static function ($row, $column, $format) {
+                    return !empty($format['reorder']) ? Reorder::handle($row['id'] ?? 0) : '';
                 };
             } elseif ($columnName === 'menu') {
                 $columnName = 'id';
@@ -57,6 +64,24 @@ final class ListProvider
         }
 
         return $columns;
+    }
+
+    /**
+     * La config del riordino scritta sulla colonna della maniglia, se la
+     * tabella ce l'ha.
+     *
+     * @param array<int,array<string,mixed>> $fields
+     * @return array{column: string, group: ?string}|null
+     */
+    public static function reorderConfig(array $fields): ?array
+    {
+        foreach ($fields as $field) {
+            if (is_array($field) && ($field['name'] ?? '') === Reorder::COLUMN) {
+                return Reorder::config($field['other']['reorder'] ?? null);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -191,10 +216,22 @@ final class ListProvider
         $custom->order_column    = $request['order'][0]['name'] ?? ($request['default']['order'] ?? '');
         $custom->order_direction = $request['order'][0]['dir']  ?? ($request['default']['order_direction'] ?? '');
 
+        // La maniglia non è una colonna del database: ordinare per lei vuol
+        // dire l'ordine di partenza della lista.
+        if ($custom->order_column === Reorder::COLUMN) {
+            $custom->order_column    = $request['default']['order'] ?? '';
+            $custom->order_direction = $request['default']['order_direction'] ?? '';
+        }
+
         $lineCount = (int) sqlCount($name->table, $custom->query, 'id', true);
 
         $renderer = new Field($name, $path, $text, $user, $page);
-        $columns  = self::buildColumns((array) $request['fields'], $custom->arrow, $lineCount, $renderer);
+        $reorder  = Reorder::active(
+            self::reorderConfig((array) $request['fields']),
+            (string) $custom->order_column,
+            (string) $custom->order_direction
+        );
+        $columns  = self::buildColumns((array) $request['fields'], $custom->arrow, $lineCount, $renderer, $reorder);
 
         // Connessione già aperta dal chiamante (list-table, prerender di Table);
         // in mancanza, parametri dalle credenziali, mai dalla richiesta.

@@ -3,6 +3,19 @@
 ## Unreleased
 
 ### Aggiunto
+- **Liste riordinabili trascinando le righe.** `TableLayoutSchema::reorderable($column = 'position', $group = null)`
+  aggiunge a sinistra della lista la maniglia di `RowDrag`, visibile quando la
+  lista è ordinata per la posizione dal basso in alto. Lasciata la riga, il
+  browser manda riga e ordine della pagina a `POST /api/backend/reorder/`;
+  `Backend\Table\Reorder::apply()` la mette accanto alla vicina dello stesso
+  gruppo (`$group`, per esempio `parent_id`) e riscrive la colonna da 1 per
+  tutto il gruppo, chiudendo i buchi. Funziona con ricerca, filtri e
+  paginazione; rispetta permessi di modifica, sola lettura e visibilità per
+  riga. `RowDrag::handle()` accetta attributi in più; `Table::tableId()` e
+  `Table::appendScript()` per gli script che si agganciano alla tabella.
+  Le frecce legacy `position-up`/`position-down` restano com'erano. Vedi
+  `docs/app/concetti/tabelle/tablecolumn.md`. Coperto da
+  `tests/Backend/Table/ReorderTest.php`.
 - **Visibilità per riga (app#151).** Una Resource dichiara quali righe vede
   ogni utente con `rowVisibility(object $user)` (array `colonna => valore`,
   stringa SQL scritta dal codice o `null`); un sito o un modulo aggiunge una

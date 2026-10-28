@@ -23,9 +23,18 @@ final class RowDrag
 {
     public const LABEL = 'Trascina per spostare (frecce su e giù da tastiera)';
 
-    public static function handle(): string
+    /** @param array<string, string|int> $attributes altri attributi del bottone, escapati */
+    public static function handle(array $attributes = []): string
     {
-        return '<button type="button" class="btn btn-sm btn-link text-body-secondary p-0 px-1"'
+        $extra = '';
+
+        foreach ($attributes as $name => $value) {
+            if (preg_match('/^[a-z][a-z0-9-]*$/', (string) $name) === 1) {
+                $extra .= ' '.$name.'="'.htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8').'"';
+            }
+        }
+
+        return '<button type="button"'.$extra.' class="btn btn-sm btn-link text-body-secondary p-0 px-1"'
             .' style="cursor: grab" data-wi-row-drag aria-label="'.self::LABEL.'" title="'.self::LABEL.'">'
             .'<i class="bi bi-grip-vertical" aria-hidden="true"></i></button>';
     }

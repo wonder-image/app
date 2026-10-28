@@ -7,6 +7,7 @@ use RuntimeException;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
+use Wonder\Backend\Table\Reorder;
 use Wonder\Backend\Table\Table;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Dropdown;
@@ -121,6 +122,7 @@ final class ResourceTableRenderer
         $this->applyButtonsCustom($table);
         $this->applyButtonDocs($table);
         $this->applyButtonDownload($table);
+        $this->applyReorder($table);
         $this->applyColumns($table);
 
         return $table;
@@ -362,6 +364,28 @@ final class ResourceTableRenderer
         }
 
         return $component->render('bootstrap');
+    }
+
+    /**
+     * Con `reorderable()` la prima colonna è la maniglia e dopo la tabella
+     * arriva lo script che salva lo spostamento. In sola lettura niente.
+     */
+    private function applyReorder(Table $table): void
+    {
+        $config = Reorder::config($this->tableLayoutSchema['reorder'] ?? null);
+
+        if ($config === null || $this->resourceClass::isReadonly()) {
+            return;
+        }
+
+        try {
+            $endpoint = (string) __r('api.backend.reorder');
+        } catch (\Throwable) {
+            return;
+        }
+
+        $table->addColumn('', Reorder::COLUMN, false, '', '', 'little', ['reorder' => $config]);
+        $table->appendScript(Reorder::script($table->tableId(), $endpoint, $this->slug));
     }
 
     private function applyColumns(Table $table): void

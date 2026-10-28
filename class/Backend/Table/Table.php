@@ -106,6 +106,9 @@
             public $endpoint = "";
             public $endpointValues = [];
 
+        # Script dopo quello di DataTables (es. il riordino delle righe)
+            private $afterScript = "";
+
         # Utilità
             private $id = [];
             private $columnId = 0;
@@ -823,6 +826,22 @@
 
         }
 
+        /** L'id HTML della tabella, per gli script che le si agganciano. */
+        public function tableId(): string {
+
+            return (string) ($this->id['table'] ?? '');
+
+        }
+
+        /** HTML da stampare dopo lo script di DataTables: script che usano la tabella già creata. */
+        public function appendScript( string $html ): self {
+
+            $this->afterScript .= $html;
+
+            return $this;
+
+        }
+
         private function script( array $config, ?array $initialData = null ) {
 
             return Prerender::script($this->id['table'], $this->endpoint, $config, $initialData);
@@ -853,6 +872,7 @@
             $CONTENT = $HEADER;
             $CONTENT .= $this->rowTable();
             $CONTENT .= $this->script($config, $INITIAL_DATA);
+            $CONTENT .= $this->afterScript;
 
             if ($card) {
                 return ResourceFormLayoutRenderer::renderLayout((new Card)->components([$CONTENT]));
