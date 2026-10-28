@@ -106,6 +106,12 @@ Route::area('api')
                     ->guarded()
                     ->permit([]);
 
+                // Il trascinamento delle righe di una lista (`reorderable()`).
+                Route::post('/reorder/', $ROOT_APP.'/http/api/backend/reorder.php')
+                    ->name('reorder')
+                    ->guarded()
+                    ->permit([]);
+
                 Route::post('/file/delete/', $ROOT_APP.'/http/api/backend/file-delete.php')
                     ->name('file.delete')
                     ->guarded()

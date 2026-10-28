@@ -47,6 +47,9 @@ final class TableLayoutSchema
             'search_fields' => [],
             'custom_filters' => [],
             'select' => '',
+            // Righe da riordinare trascinandole (vedi `reorderable()`): null
+            // spento, altrimenti la colonna della posizione e quella del gruppo.
+            'reorder' => null,
             // Bottone "Esporta" nel header della tabella. `formats` mappa
             // codice → label visibile (es. ['csv' => 'CSV', 'xlsx' =>
             // 'Excel']). `columns` può contenere stringhe (nome colonna
@@ -211,6 +214,29 @@ final class TableLayoutSchema
     public function select(string $sql): self
     {
         $this->schema['select'] = trim($sql);
+
+        return $this;
+    }
+
+    /**
+     * Righe da riordinare trascinandole dalla maniglia a sinistra.
+     *
+     * La maniglia compare quando la lista è ordinata per `$column` dal basso
+     * in alto: con un altro ordine trascinare non vorrebbe dire niente. Il
+     * server riscrive `$column` da 1 in su, togliendo i buchi (vedi
+     * `Wonder\Backend\Table\Reorder`). `$group` è la colonna che divide le
+     * righe in elenchi separati, ognuno con le sue posizioni (`parent_id` di
+     * un albero): una riga si sposta solo fra quelle del suo gruppo.
+     */
+    public function reorderable(string $column = 'position', ?string $group = null): self
+    {
+        foreach ([$column, $group] as $name) {
+            if ($name !== null && preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) !== 1) {
+                throw new RuntimeException("Colonna non valida per reorderable(): {$name}");
+            }
+        }
+
+        $this->schema['reorder'] = ['column' => $column, 'group' => $group];
 
         return $this;
     }

@@ -169,6 +169,7 @@ la cornice attorno alla tabella. Si costruisce con
 | `filterCustom($label, $column, $options, $input = 'select', $search = false, $columnType = null, $value = null)` | filtro su una colonna (`=`, `IN`, `LIKE` con `multiple`) |
 | `filterRadio($label, $column, $options, $search = false, $value = null)` | filtro radio |
 | `filterQuery($label, $key, $options, Closure $where, $input = 'select', $search = false, $value = null)` | filtro con una condizione propria |
+| `reorderable($column = 'position', $group = null)` | righe da riordinare trascinandole; `$group` divide le righe in elenchi con le loro posizioni (`parent_id`) |
 | `cleanHeader()` | header pulito |
 | `download($formats = true, $label = null)` | export (CSV/…) |
 | `downloadColumns(array $columns)` | colonne incluse nell'export |
@@ -344,6 +345,46 @@ return TableLayoutSchema::for(static::class)
   scartato.
 - Gli alias di `select()` non si cercano mai.
 
+### Righe da trascinare (`reorderable()`)
+
+```php
+public static string $orderColumn = 'position';
+public static string $orderDirection = 'ASC';
+
+public static function tableLayoutSchema(): TableLayoutSchema
+{
+    return TableLayoutSchema::for(static::class)
+        ->reorderable();                        // colonna `position`
+        // ->reorderable('position', 'parent_id') per un albero
+}
+```
+
+- La lista ha a sinistra una colonna con la maniglia (`RowDrag`). Si trascina
+  dalla maniglia; da tastiera, Tab fino alla maniglia e frecce su e giù.
+- La maniglia c'è solo quando la lista è ordinata per quella colonna, dal basso
+  in alto: per questo la Resource deve avere `$orderColumn` sulla posizione.
+  Se l'utente ordina per un'altra colonna, la maniglia sparisce.
+- Lasciata la riga (o dopo 400 ms di frecce), il browser manda a
+  `POST /api/backend/reorder/` (`api.backend.reorder`) lo slug della Resource,
+  la riga e gli id della pagina nell'ordine nuovo, poi ricarica la lista.
+  Tabella, colonna e gruppo li legge il server dalla Resource, mai dalla
+  richiesta.
+- Il server (`Wonder\Backend\Table\Reorder::apply()`) mette la riga subito
+  dopo la prima riga del suo gruppo che la precede nella pagina (o prima di
+  quella che la segue, se è in cima) e riscrive la colonna da 1 in su per tutto
+  il gruppo, chiudendo i buchi delle righe eliminate. Vale anche con ricerca,
+  filtri e paginazione: le righe che non si vedono restano dove sono. Fra due
+  pagine non si trascina: si allarga la pagina.
+- Il gruppo sono le righe di `querySchema()['condition']` (di solito le non
+  cancellate) che l'utente vede (visibilità per riga) con lo stesso valore di
+  `$group`; `NULL` e `0` sono lo stesso gruppo, «in cima». In una lista
+  mista, una riga va accanto alla vicina più vicina del suo gruppo.
+- Permessi: quelli di modifica della tabella (`TableAuthorization`), come le
+  frecce legacy. In sola lettura, o su una tabella sincronizzata letta in
+  questo ambiente, la colonna non c'è e l'endpoint risponde 403.
+- Una riga nuova deve nascere in fondo: è la Resource a dargli la posizione
+  (per esempio l'ultima più uno) in `mutateRequestValues()`.
+
 ## Errori comuni
 
 - **Bottoni azione che non fanno nulla** → manca `->button()` prima di
@@ -368,3 +409,4 @@ return TableLayoutSchema::for(static::class)
 - [ ] colonne calcolate in SQL con `select()`, ognuna con un alias suo
 - [ ] filtri che non sono `colonna = valore` con `filterQuery()`
 - [ ] ricerca nelle tabelle collegate con descrittori (anche annidati in `relations`)
+- [ ] righe da riordinare con `reorderable()` e `$orderColumn` sulla posizione
