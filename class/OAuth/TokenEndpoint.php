@@ -34,7 +34,7 @@ final class TokenEndpoint
         $resource = $p('resource') !== '' ? $p('resource') : null;
 
         if ($grantType === 'refresh_token') {
-            $result = $this->issuer->refresh($p('refresh_token'), $clientId, $resource);
+            $result = $this->issuer->refresh($p('refresh_token'), $clientId, $resource, $p('scope'));
         } else {
             $code = $this->codes->consume($p('code'), $clientId, $p('redirect_uri'), $resource, $p('code_verifier'));
             if ($this->issuer->usableGrant($code['grant_id']) === null) {

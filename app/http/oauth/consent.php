@@ -10,6 +10,7 @@ use Wonder\OAuth\Http;
 use Wonder\OAuth\OAuth;
 use Wonder\OAuth\OAuthException;
 use Wonder\OAuth\RedirectUri;
+use Wonder\OAuth\ResourceRegistry;
 use Wonder\OAuth\TokenIssuer;
 
 Http::htmlPageHeaders();
@@ -71,7 +72,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         exit;
     }
 
-    if ($action !== 'approve') {
+    // Gli scope restano quelli spuntati, mai oltre quelli chiesti dal client.
+    $requested = (array) ($request['scopes'] ?? []);
+    $approved = array_values(array_intersect($requested, array_filter((array) ($_POST['scopes'] ?? []), 'is_string')));
+
+    if ($action !== 'approve' || ($requested !== [] && $approved === [])) {
         AuthorizationRequest::forget($_SESSION, $reqId);
         header('Location: '.AuthorizationRequest::redirectUrl($request['redirect_uri'], ['error' => 'access_denied', 'state' => $request['state'], 'iss' => $issuer]), true, 303);
         exit;
@@ -89,7 +94,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     AuthorizationRequest::forget($_SESSION, $reqId);
 
     $store = OAuth::store();
-    $grantId = (new TokenIssuer($store))->grantFor((int) $fresh->id, $request['client_id'], $request['resource']);
+    $grantId = (new TokenIssuer($store))->grantFor((int) $fresh->id, $request['client_id'], $request['resource'], $approved);
     $code = (new AuthorizationCode($store))->issue((int) $fresh->id, $request, $grantId);
 
     header('Location: '.AuthorizationRequest::redirectUrl($request['redirect_uri'], ['code' => $code, 'state' => $request['state'], 'iss' => $issuer]), true, 303);
@@ -102,5 +107,6 @@ $view('consent', [
     'user' => $user,
     'loopback' => RedirectUri::isLoopback($request['redirect_uri']),
     'redirectHost' => RedirectUri::host($request['redirect_uri']),
+    'scopes' => array_intersect_key(ResourceRegistry::findByUrl($request['resource'])['scopes'] ?? [], array_flip((array) ($request['scopes'] ?? []))),
     'siteName' => (string) (($SOCIETY ?? null)->name ?? ''),
 ]);

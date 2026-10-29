@@ -11,5 +11,7 @@ final readonly class OAuthCaller
         public int $grantId,
         public string $clientId,
         public string $resource,
+        /** @var list<string> vuoto se la risorsa non dichiara scope */
+        public array $scopes = [],
     ) {}
 }

@@ -10,9 +10,10 @@ final class OAuth
 {
     private static ?OAuthStore $store = null;
 
-    public static function resource(string $path, string $name): void
+    /** @param array<string,string> $scopes scope => etichetta; senza scope il token vale quanto l'utente */
+    public static function resource(string $path, string $name, array $scopes = []): void
     {
-        ResourceRegistry::register($path, $name);
+        ResourceRegistry::register($path, $name, $scopes);
     }
 
     public static function enabled(): bool

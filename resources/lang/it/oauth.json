@@ -9,6 +9,8 @@
   "consent": {
     "title": "Autorizzi {{client}}?",
     "intro": "{{client}} potrà usare {{resource}} su {{site}} con i tuoi permessi.",
+    "scopes": "Cosa può fare",
+    "intro_scopes": "{{client}} potrà usare {{resource}} su {{site}} con i tuoi permessi, limitati a quello che spunti qui sotto.",
     "redirect_to": "Dopo la conferma tornerai a {{host}}.",
     "loopback_warning": "La richiesta arriva da un'applicazione sul tuo computer. Approva solo se l'hai avviata tu.",
     "signed_in_as": "Collegato come {{name}}",

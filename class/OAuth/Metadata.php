@@ -12,7 +12,7 @@ final class Metadata
             'authorization_servers' => [Config::issuer()],
             'bearer_methods_supported' => ['header'],
             'resource_name' => $resource['name'],
-        ];
+        ] + (($resource['scopes'] ?? []) !== [] ? ['scopes_supported' => array_keys($resource['scopes'])] : []);
     }
 
     public static function authorizationServer(): array
@@ -30,7 +30,8 @@ final class Metadata
             'code_challenge_methods_supported' => ['S256'],
             'token_endpoint_auth_methods_supported' => ['none'],
             'revocation_endpoint_auth_methods_supported' => ['none'],
-            'scopes_supported' => [],
+            'scopes_supported' => array_values(array_unique(array_merge([], ...array_map(
+                static fn (array $r): array => array_keys($r['scopes']), ResourceRegistry::all())))),
         ];
     }
 

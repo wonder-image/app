@@ -9,6 +9,8 @@
   "consent": {
     "title": "Authorize {{client}}?",
     "intro": "{{client}} will be able to use {{resource}} on {{site}} with your permissions.",
+    "scopes": "What it can do",
+    "intro_scopes": "{{client}} will be able to use {{resource}} on {{site}} with your permissions, limited to what you tick below.",
     "redirect_to": "After confirming you will return to {{host}}.",
     "loopback_warning": "This request comes from an application on your computer. Approve only if you started it.",
     "signed_in_as": "Signed in as {{name}}",

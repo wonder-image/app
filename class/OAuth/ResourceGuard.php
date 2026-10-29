@@ -39,7 +39,8 @@ final class ResourceGuard
             $store->touchClient((string) $grant['client_id'], $stamp);
         }
 
-        return new OAuthCaller($usable['user'], (int) $grant['user_id'], (int) $grant['id'], (string) $grant['client_id'], (string) $grant['resource']);
+        return new OAuthCaller($usable['user'], (int) $grant['user_id'], (int) $grant['id'], (string) $grant['client_id'], (string) $grant['resource'],
+            Scope::granted((string) ($grant['scope'] ?? ''), $resource));
     }
 
     /** Bearer da Authorization, con fallback su REDIRECT_HTTP_AUTHORIZATION e getallheaders() (Apache CGI). */
