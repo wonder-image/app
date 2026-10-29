@@ -34,6 +34,16 @@ final class AuthorizationRequest
             throw $fail('invalid_target', 'Unknown or missing resource.');
         }
 
+        // Senza `scope` valgono tutti quelli della risorsa; una risorsa senza scope lo ignora.
+        $declared = array_keys($resource['scopes']);
+        $scopes = $declared !== [] ? Scope::parse($str('scope')) : [];
+        if (array_diff($scopes, $declared) !== []) {
+            throw $fail('invalid_scope', 'Unknown scope for this resource.');
+        }
+        if ($declared !== [] && $scopes === []) {
+            $scopes = Scope::parse(implode(' ', $declared));
+        }
+
         return [
             'client_id' => $client['client_id'],
             'client_name' => $client['client_name'],
@@ -41,6 +51,7 @@ final class AuthorizationRequest
             'code_challenge' => $str('code_challenge'),
             'resource' => $resource['url'],
             'resource_name' => $resource['name'],
+            'scopes' => $scopes,
             'state' => $state,
         ];
     }

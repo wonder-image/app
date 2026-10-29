@@ -26,6 +26,37 @@ Il file `route.api.php` del modulo viene caricato **prima** di
 `route.oauth.php` (l'ordine è alfabetico), che costruisce le rotte in base alle
 risorse già registrate.
 
+### Scope
+
+Il terzo argomento, facoltativo, elenca gli scope della risorsa con
+l'etichetta da mostrare nella pagina di consenso:
+
+```php
+\Wonder\OAuth\OAuth::resource('/api/<modulo>/mcp', '<Nome>', [
+    'catalog:read' => 'Leggere il catalogo',
+    'catalog:write' => 'Modificare il catalogo',
+]);
+```
+
+- `GET /oauth/authorize` accetta `scope` (separati da spazio). Uno scope che
+  la risorsa non dichiara torna al client con `invalid_scope`; senza `scope`
+  valgono tutti.
+- Nella pagina di consenso gli scope sono caselle già spuntate: l'utente può
+  toglierne. Se le toglie tutte è come annullare (`access_denied`).
+- Il grant salva gli scope approvati e la risposta del token li restituisce
+  in `scope`. Un nuovo consenso con scope diversi revoca il grant precedente
+  e i suoi token, invece di cambiarne i poteri.
+- Il refresh tiene gli scope del grant: un `scope` più largo risponde
+  `invalid_scope`, uno più stretto non restringe il nuovo token.
+- I metadati annunciano gli scope in `scopes_supported` (della risorsa e
+  dell'authorization server).
+- Senza scope dichiarati il parametro si ignora e il token vale quanto
+  l'utente. Anche un grant nato prima degli scope vale tutti quelli della
+  risorsa.
+
+Il significato degli scope è della risorsa: il core li valida e li consegna
+in `OAuthCaller::$scopes`, la risorsa decide cosa permettono.
+
 - Non registrare la risorsa in `custom/routes`: si carica dopo e la rotta
   PRM (`/.well-known/oauth-protected-resource/...`) non verrebbe generata.
 - Un catch-all frontend di un modulo (una rotta che accetta qualunque path)
@@ -57,10 +88,12 @@ contiene solo `resource_metadata`; con token non valido aggiunge
 | `grantId` | id del grant, utile per i log |
 | `clientId` | `client_id` del client registrato |
 | `resource` | URL della risorsa del grant |
+| `scopes` | scope approvati, ordinati; vuoto se la risorsa non ne dichiara |
 
-Le autorizzazioni (ruoli, permessi) **restano alla risorsa**: il guard non
-controlla `allowed_ips`, `allowed_domains` né i ruoli. Non esistono scope
-funzionali: il token ha i permessi dell'utente che ha dato il consenso.
+Le autorizzazioni (ruoli, permessi, scope) **restano alla risorsa**: il guard
+non controlla `allowed_ips`, `allowed_domains`, i ruoli né gli scope. Il token
+non supera mai i permessi dell'utente che ha dato il consenso; gli scope
+possono solo restringerli.
 
 ## Collegare un client
 
@@ -127,7 +160,7 @@ massimo 10 richieste in sessione.
 | `GET /.well-known/oauth-authorization-server` | metadata dell'authorization server (RFC 8414) |
 | `GET /.well-known/oauth-protected-resource[/<path>]` | metadata della risorsa (RFC 9728, PRM) |
 | `POST /oauth/register` | registrazione dinamica del client (RFC 7591), 201 |
-| `GET /oauth/authorize` | avvio del flusso con PKCE S256 e `resource` |
+| `GET /oauth/authorize` | avvio del flusso con PKCE S256, `resource` e `scope` facoltativo |
 | `GET/POST /oauth/login` | login dell'utente |
 | `GET/POST /oauth/consent` | consenso, poi redirect al client con `code` e `iss` |
 | `POST /oauth/token` | `authorization_code` e `refresh_token` |

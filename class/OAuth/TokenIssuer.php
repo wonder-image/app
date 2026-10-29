@@ -15,34 +15,39 @@ final class TokenIssuer
         $this->clock = $clock ?? static fn (): int => time();
     }
 
-    public function grantFor(int $userId, string $clientId, string $resource): int
+    /** @param list<string> $scopes quelli approvati nel consenso */
+    public function grantFor(int $userId, string $clientId, string $resource, array $scopes = []): int
     {
         $now = $this->date();
+        $scope = Scope::join($scopes);
         $grant = $this->store->findActiveGrant($userId, $clientId, $resource);
         if ($grant !== null) {
-            if ($this->usableGrant((int) $grant['id']) !== null) {
+            if ((string) $grant['scope'] === $scope && $this->usableGrant((int) $grant['id']) !== null) {
                 // Il consenso è stato richiesto di nuovo: la scadenza assoluta riparte da qui.
                 $this->store->updateGrant((int) $grant['id'], ['consented_at' => $now]);
                 return (int) $grant['id'];
             }
-            // Grant scaduto (o non più utilizzabile) ma non ancora ripulito: non va resuscitato.
+            // Grant non più utilizzabile, oppure con altri scope: i token già emessi
+            // non devono cambiare potere, quindi si chiude e se ne apre uno nuovo.
             $this->store->revokeGrant((int) $grant['id'], $now);
         }
-        return $this->store->createGrant(['user_id' => $userId, 'client_id' => $clientId, 'resource' => $resource, 'scope' => '', 'consented_at' => $now]);
+        return $this->store->createGrant(['user_id' => $userId, 'client_id' => $clientId, 'resource' => $resource, 'scope' => $scope, 'consented_at' => $now]);
     }
 
     public function issue(int $grantId): array
     {
         $accessTtl = Config::accessTokenTtl();
+        $scope = (string) ($this->store->findGrant($grantId)['scope'] ?? '');
         return [
             'access_token' => $this->mint('access', 'wio_at_', $grantId, $accessTtl),
             'token_type' => 'Bearer',
             'expires_in' => $accessTtl,
             'refresh_token' => $this->mint('refresh', 'wio_rt_', $grantId, Config::refreshTokenTtl()),
-        ];
+        ] + ($scope !== '' ? ['scope' => $scope] : []);
     }
 
-    public function refresh(string $refreshToken, string $clientId, ?string $resource): array
+    /** `$scope` può solo restringere a parole: il token nuovo ha comunque gli scope del grant. */
+    public function refresh(string $refreshToken, string $clientId, ?string $resource, ?string $scope = null): array
     {
         $row = $this->lookup('refresh', $refreshToken, 'wio_rt_');
         if ($row === null) {
@@ -69,6 +74,11 @@ final class TokenIssuer
         }
 
         $this->assertUsable((int) $grant['id']);
+
+        $granted = Scope::granted((string) $grant['scope'], ResourceRegistry::findByUrl((string) $grant['resource']) ?? []);
+        if (array_diff(Scope::parse((string) $scope), $granted) !== []) {
+            throw new OAuthException('invalid_scope', 'Scope exceeds the grant.');
+        }
 
         if (!$this->store->consumeRefresh((int) $row['id'], $this->date())) {
             // Corsa con un'altra richiesta sullo stesso refresh: trattata come riuso.
