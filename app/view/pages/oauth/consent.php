@@ -21,7 +21,7 @@ echo Layout::render((new Form())->components([
     (new Card())->gap(3)->components([
         SectionTitle::make(__t('oauth.consent.title', $vars))->level(1)->align('center'),
         Text::make(__t($scopes !== [] ? 'oauth.consent.intro_scopes' : 'oauth.consent.intro', $vars)),
-        $scopes !== [] ? FormField::key('scopes')->label(__t('oauth.consent.scopes'))->checkbox()->options($scopes)->value(array_keys($scopes)) : '',
+        $scopes !== [] ? FormField::key('scopes')->label(__t('oauth.consent.scopes'))->checkbox()->pills()->options($scopes)->value(array_keys($scopes)) : '',
         Text::make(__t('oauth.consent.redirect_to', $vars)),
         $loopback ? Text::make(__t('oauth.consent.loopback_warning'))->bold()->color('warning') : '',
         Csrf::field(),
