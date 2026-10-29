@@ -33,12 +33,24 @@ class SitemapTask extends AbstractTask
         $script = dirname(__DIR__, 4).'/bin/sitemap.php';
         $metrics = tempnam($GLOBALS['ROOT'].'/storage/tmp', 'sitemap-');
         if ($metrics === false) { throw new \RuntimeException('Impossibile creare il file metriche sitemap.'); }
+        // The marker is read from the raw stream: the context log is capped and may drop it on large sites.
+        $pages = null;
+        $tail = '';
+        $output = static function (string $chunk) use ($context, &$pages, &$tail): void {
+            $context->log($chunk);
+            $buffer = $tail.$chunk;
+            if (preg_match('/Total pages indexed:\s*([\d.,]+)\D/', $buffer, $match)) { $pages = (int) preg_replace('/\D/', '', $match[1]); }
+            $tail = substr($buffer, -64);
+        };
         try {
-            $exit = Process::run([PHP_BINARY, $script, $GLOBALS['ROOT'], $metrics], $GLOBALS['ROOT'], $this->timeout(), $context->log(...));
+            $exit = Process::run([PHP_BINARY, $script, $GLOBALS['ROOT'], $metrics], $GLOBALS['ROOT'], $this->timeout(), $output);
         } finally {
             $data = json_decode((string) file_get_contents($metrics), true);
             $context->processMetrics = is_array($data) ? $data : null;
             unlink($metrics);
+        }
+        if ($pages === 0) {
+            throw new \RuntimeException('Il crawler non ha indicizzato nessuna pagina partendo da '.$options['xs_initurl'].'. Controllare l\'output del task.');
         }
         if ($exit !== 0) { throw new \RuntimeException('Crawler sitemap terminato con codice '.$exit); }
         clearstatcache(true, $target);
@@ -55,6 +67,6 @@ class SitemapTask extends AbstractTask
             libxml_clear_errors();
             libxml_use_internal_errors($previous);
         }
-        return ['exit_code' => $exit, 'metrics_scope' => 'crawler_php_process'];
+        return ['exit_code' => $exit, 'pages' => $pages, 'metrics_scope' => 'crawler_php_process'];
     }
 }

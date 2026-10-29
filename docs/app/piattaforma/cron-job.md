@@ -276,7 +276,12 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   crawler XML-Sitemaps esistente in un processo isolato e la configurazione
   gestita da Forge. La classe e estendibile. Il runner controlla configurazione,
   codice di uscita e aggiornamento di un file XML valido: il crawler puo
-  segnalare errori anche uscendo con codice zero.
+  segnalare errori anche uscendo con codice zero. Se l'output riporta
+  `Total pages indexed: 0` il task fallisce con un messaggio dedicato invece
+  del codice di uscita. Il codice del crawler ha due sole modifiche locali:
+  i `count()` su `urls` e `urls_completed` in `class.xml-creator.inc.php` e
+  `class.html-creator.inc.php` accettano `null`, che su PHP 8 con zero pagine
+  terminava il processo con codice 255.
 - **Euribor**: `Tasks\EuriborTask`, disponibile automaticamente dove esiste
   `App\Models\Site\Euribor::sync()`, come nel sito Agliati. Pianificazione
   iniziale sospesa, ore 12:00 dal lunedi al venerdi. Riusa il servizio gia
