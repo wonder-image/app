@@ -18,8 +18,13 @@ register_shutdown_function(static function () use ($metrics): void {
 $FRONTEND = $BACKEND = false;
 chdir($ROOT);
 require dirname(__DIR__).'/wonder-image.php';
-$result = \Wonder\App\Support\NamedLock::run('scheduler:crawler:sitemap', static function (): void {
-    extract(\Wonder\App\LegacyGlobals::scope());
+extract(\Wonder\App\LegacyGlobals::scope());
+// The crawler reads its state through `global`: it must be required at file scope, not inside a closure.
+$sitemapLock = new \Wonder\App\Support\MysqliNamedLockConnection(\Wonder\Sql\Connection::Connect('main'));
+$sitemapLockName = \Wonder\App\Support\NamedLock::lockName('scheduler:crawler:sitemap');
+if (!$sitemapLock->acquire($sitemapLockName, 0)) { exit(75); }
+try {
     require dirname(__DIR__).'/vendor-static/xml-sitemaps/runcrawl.php';
-});
-if ($result === \Wonder\App\Support\NamedLock::NOT_ACQUIRED) { exit(75); }
+} finally {
+    $sitemapLock->release($sitemapLockName);
+}

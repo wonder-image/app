@@ -281,7 +281,11 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   del codice di uscita. Il codice del crawler ha due sole modifiche locali:
   i `count()` su `urls` e `urls_completed` in `class.xml-creator.inc.php` e
   `class.html-creator.inc.php` accettano `null`, che su PHP 8 con zero pagine
-  terminava il processo con codice 255.
+  terminava il processo con codice 255. `bin/sitemap.php` include
+  `runcrawl.php` a livello di file, mai dentro una closure: il crawler legge
+  configurazione e stato con `global`, e in uno scope locale li trova vuoti e
+  indicizza zero pagine. Il lock `scheduler:crawler:sitemap` viene quindi
+  acquisito direttamente con `MysqliNamedLockConnection`.
 - **Euribor**: `Tasks\EuriborTask`, disponibile automaticamente dove esiste
   `App\Models\Site\Euribor::sync()`, come nel sito Agliati. Pianificazione
   iniziale sospesa, ore 12:00 dal lunedi al venerdi. Riusa il servizio gia
