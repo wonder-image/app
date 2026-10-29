@@ -97,4 +97,44 @@ PHP;
     });
 }
 
+check('rotta api protetta senza sessione: 401, niente redirect e handler non eseguito', function () {
+    $autoload = var_export(__DIR__.'/../../vendor/autoload.php', true);
+    $auth = var_export(__DIR__.'/../../app/function/user/auth.php', true);
+    $service = var_export(__DIR__.'/../../app/service/auth.php', true);
+    $script = tempnam(sys_get_temp_dir(), 'wi-route-guard-api-');
+
+    if (!is_string($script)) {
+        return false;
+    }
+
+    $source = <<<PHP
+<?php
+require {$autoload};
+require {$auth};
+\$PAGE = (object) ['uriBase64' => 'cmV0dXJu'];
+\$PERMITS = ['backend' => ['links' => ['login' => '/backend/login/']]];
+\$_SERVER['REQUEST_METHOD'] = 'GET';
+\$_COOKIE = [];
+\$_SESSION = [];
+\$ROUTE_META = ['area' => 'api'];
+\$PRIVATE = true;
+\$BACKEND = true;
+\$PERMIT = [];
+\$handled = false;
+try {
+    require {$service};
+    \$handled = true;
+} catch (Wonder\Http\Exceptions\UnauthorizedHttpException \$e) {
+    echo 'code='.\$e->statusCode().';';
+}
+echo 'location='.(preg_grep('/^Location:/i', headers_list()) ? '1' : '0').';handled='.(\$handled ? '1' : '0').';';
+PHP;
+
+    file_put_contents($script, $source);
+    exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($script).' 2>&1', $output, $exitCode);
+    unlink($script);
+
+    return $exitCode === 0 && implode("\n", $output) === 'code=401;location=0;handled=0;';
+});
+
 summary();
