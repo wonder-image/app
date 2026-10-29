@@ -333,7 +333,7 @@
 																														foreach($this->vfkM65_qMiT5iQ94a as $tYegoJyswer2FPGW=>$LkUweVEuTBZM)
 																														{
 																														$ri = &$this->iqY5Ldu33e7WCSPatV[$tYegoJyswer2FPGW];
-																														if(count($ri['urls'])>1)
+																														if(count($ri['urls'] ?? [])>1)
 																														{
 																														$xf = $this->edvGKEzS2yH6($ri['urls']);
 																														array_unshift($ri['urls'],

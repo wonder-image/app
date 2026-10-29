@@ -170,7 +170,7 @@
 																									
 																									global $Fm7TTVIXUXBblAt3, $GfAZBwyaRMTouJ, $AIqYzQK_mhY, $grab_parameters, $UeAOSPFlLGgdorci9V;
 																									
-																									for ($i = 0; $i < count($AIqYzQK_mhY->urls_completed); $i++) {
+																									for ($i = 0; $i < count($AIqYzQK_mhY->urls_completed ?? []); $i++) {
 																									
 																									if ($i % 500 == 0) {
 																									
