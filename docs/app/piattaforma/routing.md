@@ -71,7 +71,10 @@ Il gate distingue due famiglie di fallimento:
 
 - sessione assente o scaduta, utente inesistente, eliminato, disattivato o non
   ammesso nell'area: redirect al Login. Il redirect di ritorno resta presente
-  per una sessione assente; un POST con sessione scaduta conserva l'alert 917;
+  per una sessione assente; un POST con sessione scaduta conserva l'alert 917.
+  Sulle route di area `api` niente redirect: `UnauthorizedHttpException`, che
+  il dispatcher traduce in HTTP 401 con il payload JSON
+  `{success:false,status:401,response}`;
 - utente esistente, attivo e ammesso nell'area, ma privo di tutte le authority
   dichiarate da `permit()`: `ForbiddenHttpException`. Il dispatcher la traduce
   in HTTP 403 usando `app/view/error/http.php` per HTML e un payload JSON con
