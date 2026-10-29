@@ -170,6 +170,32 @@ Lancia `EndpointException` con codice `401` / `403`. Un modulo con utenti propri
 
 ## Risposte
 
+Ogni risposta JSON ha la stessa busta, `Wonder\Api\Envelope`:
+
+| Esito | Corpo |
+|---|---|
+| va bene | `{"success": true, "status": 200, "response": <dato>}` |
+| errore | `{"success": false, "status": 422, "response": "<messaggio>"}`, più `request_id` quando serve a ritrovarlo nel log |
+
+`response` è il dato (oggetto, lista o stringa) o il messaggio d'errore.
+`status` è il codice dell'app; il codice HTTP lo dà `ErrorStatus::http()`
+(per esempio `617` → `422`). Chi legge controlla `success` e prende `response`.
+
+Negli handler di sessione (`ApiRequest`):
+
+```php
+ApiRequest::ok(['items' => $items]);          // 200, busta di successo
+ApiRequest::error('Cliente non trovato.', 404); // busta di errore
+```
+
+Negli endpoint `Handler::run()` la busta degli errori è automatica; per il
+successo usa `Envelope::success($dato)` o il formato qui sotto. Vale anche per
+la creazione rapida del backend (`response: {id, label, item}`), e la ricerca
+remota (`SearchRemote`) legge `response.items`.
+
+Fa eccezione `POST /api/token/page/`, che resta `{success, token, expires_in}`
+per i siti che lo leggono: è `ApiRequest::success()`, da non usare nel codice nuovo.
+
 ### JSON standard
 
 ```php

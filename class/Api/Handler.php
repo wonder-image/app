@@ -89,14 +89,7 @@ class Handler
             header('X-Request-Id: '.$requestId);
         }
 
-        $payload = [
-            'success' => false,
-            'status' => $status,
-            'response' => $message,
-        ];
-        if ($requestId !== null) {
-            $payload['request_id'] = $requestId;
-        }
+        $payload = Envelope::error($message, $status, $requestId);
 
         echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 

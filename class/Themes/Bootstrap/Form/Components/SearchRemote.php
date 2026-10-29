@@ -10,7 +10,8 @@ use Wonder\Themes\Bootstrap\Form\Field;
  * Il campo posta un id: la casella che si vede serve solo a cercare. Sotto
  * c'è una tendina `list-group` assoluta (non sposta la pagina) che si
  * riempie da `url?q=` dopo due lettere. L'endpoint risponde con
- * `{items: [{id, label, detail}]}` (vanno bene anche `results` o un array).
+ * `{items: [{id, label, detail}]}`, anche dentro la busta comune
+ * `{success, status, response}` (vanno bene anche `results` o un array).
  *
  * Scegliere una voce scrive l'id nel campo nascosto, l'etichetta nella
  * casella, e manda `change` sul campo nascosto più `wi:search-select`
@@ -164,7 +165,9 @@ window.wiRemoteSearch = window.wiRemoteSearch || (function () {
             .then(function (response) { return response.ok ? response.json() : []; })
             .then(function (data) {
                 if (p.input.value.trim() !== q) { return; }
-                var items = Array.isArray(data) ? data : (data.items || data.results || []);
+                // Busta comune `{success, status, response}`: il dato è in `response`.
+                if (data && typeof data === 'object' && 'success' in data && 'response' in data) { data = data.response; }
+                var items = Array.isArray(data) ? data : ((data && (data.items || data.results)) || []);
                 show(root, items);
             })
             .catch(function () { close(root); });

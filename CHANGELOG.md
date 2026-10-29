@@ -80,6 +80,13 @@
   `tests/Console/CloudflareSecurityTest.php`.
 
 ### Cambiato
+- **Un formato per le risposte JSON.** Nuova `Wonder\Api\Envelope`: `{success, status, response}`,
+  con il dato o il messaggio in `response` e `request_id` sugli errori che lo hanno.
+  La usano `Handler`, `HttpErrorResponse`, il nuovo `ApiRequest::ok()` e `ApiRequest::error()`.
+  La creazione rapida del backend risponde `response: {id, label, item}` (prima
+  `{success, id, label, item}` / `{success: false, error}`); `SearchRemote` legge anche
+  `response.items`. `ApiRequest::success()` resta solo per `/api/token/page/`.
+
 - **Nessun bearer nell'HTML delle pagine (#85).** I `head.php` frontend e
   backend e l'anteprima del catalogo stampano `const API_TOKEN = '';` invece
   del token di pagina di `@system`, che finiva nel sorgente di ogni pagina e,

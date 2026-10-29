@@ -420,7 +420,8 @@ final class QuickCreateModal
       .then(function (res) {
         if (res && res.success) {
           var trigger = modal.id ? document.querySelector('[data-wi-quick-create="' + modal.id + '"]') : null;
-          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), res.id, res.label, modal.getAttribute('data-wi-qc-resource'), res.item, trigger);
+          var made = res.response || {};
+          optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), made.id, made.label, modal.getAttribute('data-wi-qc-resource'), made.item, trigger);
           resetFields(form);
           var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
           if (window.bootstrap && window.bootstrap.Modal) {
@@ -428,7 +429,7 @@ final class QuickCreateModal
             m.hide();
           }
         } else {
-          showError(modal, res && res.error);
+          showError(modal, res && res.response);
         }
       })
       .catch(function () { showError(modal, 'Errore di rete.'); });

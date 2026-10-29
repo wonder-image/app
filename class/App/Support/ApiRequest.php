@@ -2,6 +2,9 @@
 
 namespace Wonder\App\Support;
 
+use Wonder\Api\Envelope;
+use Wonder\Api\ErrorStatus;
+
 final class ApiRequest
 {
     /** Corpo già letto: `php://input` si legge una volta per richiesta. */
@@ -169,6 +172,7 @@ final class ApiRequest
         exit;
     }
 
+    /** Messaggio più chiavi in cima: lo usa ancora `/api/token/page/`; il nuovo codice usa `ok()`. */
     public static function success(string $message = 'ok', array $extra = []): never
     {
         self::json(array_merge([
@@ -178,12 +182,14 @@ final class ApiRequest
         ], $extra), 200);
     }
 
+    /** Il dato nella busta comune: `{success: true, status, response}`. */
+    public static function ok(array|string $response = [], int $status = 200): never
+    {
+        self::json(Envelope::success($response, $status), $status);
+    }
+
     public static function error(string $message, int $status = 400): never
     {
-        self::json([
-            'success' => false,
-            'status' => $status,
-            'response' => $message,
-        ], $status);
+        self::json(Envelope::error($message, $status), ErrorStatus::http($status));
     }
 }
