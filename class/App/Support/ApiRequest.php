@@ -4,10 +4,15 @@ namespace Wonder\App\Support;
 
 final class ApiRequest
 {
+    /** Corpo già letto: `php://input` si legge una volta per richiesta. */
+    private static ?array $body = null;
+
     public static function input(string $key, mixed $default = null): mixed
     {
-        if (array_key_exists($key, $_POST)) {
-            return $_POST[$key];
+        $body = self::body();
+
+        if (array_key_exists($key, $body)) {
+            return $body[$key];
         }
 
         if (array_key_exists($key, $_GET)) {
@@ -15,6 +20,58 @@ final class ApiRequest
         }
 
         return $_REQUEST[$key] ?? $default;
+    }
+
+    /**
+     * Il corpo della richiesta: JSON con `Content-Type: application/json`,
+     * altrimenti `$_POST`. Un JSON non valido, o che non è un oggetto, è 400.
+     *
+     * @return array<string, mixed>
+     */
+    public static function body(): array
+    {
+        if (self::$body !== null) {
+            return self::$body;
+        }
+
+        $type = (string) ($_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '');
+        $body = self::parseBody($type, self::isJson($type) ? (string) file_get_contents('php://input') : '');
+
+        if ($body === null) {
+            self::error('Corpo JSON non valido.', 400);
+        }
+
+        return self::$body = $body;
+    }
+
+    /**
+     * @return array<string, mixed>|null null se il JSON non è valido
+     */
+    public static function parseBody(string $contentType, string $raw): ?array
+    {
+        if (!self::isJson($contentType)) {
+            return is_array($_POST) ? $_POST : [];
+        }
+
+        if (trim($raw) === '') {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+
+        // Solo oggetti: una lista o uno scalare non hanno chiavi da leggere.
+        if (!is_array($data) || ($data !== [] && array_is_list($data))) {
+            return null;
+        }
+
+        return $data;
+    }
+
+    private static function isJson(string $contentType): bool
+    {
+        $type = strtolower(trim(explode(';', $contentType)[0]));
+
+        return $type === 'application/json' || str_ends_with($type, '+json');
     }
 
     public static function string(string $key, string $default = ''): string
