@@ -69,6 +69,9 @@
 
         $login_redirect = "$login?redirect=$PAGE->uriBase64";
 
+        // Le API non seguono il redirect al Login: rispondono 401 in JSON.
+        $api = (($GLOBALS['ROUTE_META']['area'] ?? null) === 'api');
+
         if ($USER_ID == null) {
             $rememberedId = Wonder\Auth\RememberMe::tryLogin($AREA);
             if (!empty($rememberedId)) { $USER_ID = $rememberedId; }
@@ -88,7 +91,11 @@
                 $login_redirect .= $separator."alert=917";
                 Wonder\Auth\AuthLog::write('session_expired', null, $AREA, false, [ 'uri' => Wonder\App\LogRedactor::uri((string) ($_SERVER['REQUEST_URI'] ?? '')) ]);
             }
-                
+
+            if ($api) {
+                throw new Wonder\Http\Exceptions\UnauthorizedHttpException();
+            }
+
             header("Location: $login_redirect");
             exit;
 
@@ -103,6 +110,10 @@
 
             if ($authorization->isForbidden()) {
                 throw new Wonder\Http\Exceptions\ForbiddenHttpException();
+            }
+
+            if ($api) {
+                throw new Wonder\Http\Exceptions\UnauthorizedHttpException();
             }
 
             $alert = $authorization->alert();
