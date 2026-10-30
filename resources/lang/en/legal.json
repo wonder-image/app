@@ -139,6 +139,35 @@
             ]
         }
     },
+    "accessibility": {
+        "seo": {
+            "title": "Accessibility statement - {{society_name}}",
+            "description": "Accessibility statement of the {{society_name}} website under the European Accessibility Act."
+        },
+        "content": {
+            "title": "Accessibility statement",
+            "subtitle": "{{society_name}} is committed to making this website accessible in accordance with the European Accessibility Act (EU Directive 2019/882) and the EN 301 549 standard, which adopts WCAG 2.1 level AA.",
+            "paragraphs": [
+                {
+                    "title": "Compliance status",
+                    "text": "The website is designed to comply with WCAG 2.1 level AA: keyboard navigation, visible focus, a structure with headings and landmarks, alternative text for images and forms with labels and described errors."
+                },
+                {
+                    "title": "Non-accessible content",
+                    "text": "Any content not yet compliant, such as downloadable documents or third-party content, is being adapted. If you come across inaccessible content, let us know through the contacts listed on this page."
+                },
+                {
+                    "title": "Feedback and contact",
+                    "text": "If you encounter an accessibility barrier, write to us through the Contact page or at the email address shown in the footer: we will reply as soon as possible."
+                },
+                {
+                    "title": "Enforcement procedure",
+                    "text": "If the reply is unsatisfactory, you may contact the supervisory authority responsible for the market of accessible products and services."
+                }
+            ],
+            "payoff": ""
+        }
+    },
     "marketing": {
         "seo": {
             "title": "Marketing Consent for {{domain}}",

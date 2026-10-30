@@ -133,6 +133,35 @@
             ]
         }
     },
+    "accessibility" : {
+        "seo" : {
+            "title" : "Déclaration d'accessibilité - {{society_name}}",
+            "description" : "Déclaration d'accessibilité du site {{society_name}} au titre de l'European Accessibility Act."
+        },
+        "content" : {
+            "title" : "Déclaration d'accessibilité",
+            "subtitle" : "{{society_name}} s'engage à rendre ce site accessible conformément à l'European Accessibility Act (directive UE 2019/882) et à la norme EN 301 549, qui reprend les WCAG 2.1 niveau AA.",
+            "paragraphs" : [
+                {
+                    "title" : "État de conformité",
+                    "text" : "Le site est conçu pour être conforme aux WCAG 2.1 niveau AA : navigation au clavier, focus visible, structure avec titres et points de repère, textes alternatifs pour les images et formulaires avec étiquettes et erreurs décrites."
+                },
+                {
+                    "title" : "Contenus non accessibles",
+                    "text" : "Les contenus qui ne sont pas encore conformes, par exemple des documents téléchargeables ou des contenus fournis par des tiers, sont en cours d'adaptation. Si vous rencontrez un contenu non accessible, signalez-le-nous via les contacts indiqués sur cette page."
+                },
+                {
+                    "title" : "Signalements et contact",
+                    "text" : "Si vous rencontrez un obstacle à l'accessibilité, écrivez-nous via la page Contact ou à l'adresse e-mail indiquée en pied de page : nous vous répondrons dans les meilleurs délais."
+                },
+                {
+                    "title" : "Procédure de recours",
+                    "text" : "En cas de réponse insatisfaisante, vous pouvez vous adresser à l'autorité de surveillance compétente pour le marché des produits et services accessibles."
+                }
+            ],
+            "payoff" : ""
+        }
+    },
     "marketing" : {
         "seo" : {
             "title" : "Consentement Marketing de {{domain}}",

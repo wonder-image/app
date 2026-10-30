@@ -133,6 +133,35 @@
             ]
         }
     },
+    "accessibility" : {
+        "seo" : {
+            "title" : "Erklärung zur Barrierefreiheit - {{society_name}}",
+            "description" : "Erklärung zur Barrierefreiheit der Website {{society_name}} gemäß dem European Accessibility Act."
+        },
+        "content" : {
+            "title" : "Erklärung zur Barrierefreiheit",
+            "subtitle" : "{{society_name}} verpflichtet sich, diese Website gemäß dem European Accessibility Act (EU-Richtlinie 2019/882) und der Norm EN 301 549, die die WCAG 2.1 Stufe AA übernimmt, barrierefrei zu gestalten.",
+            "paragraphs" : [
+                {
+                    "title" : "Stand der Vereinbarkeit",
+                    "text" : "Die Website ist so gestaltet, dass sie den WCAG 2.1 Stufe AA entspricht: Tastaturnavigation, sichtbarer Fokus, Struktur mit Überschriften und Orientierungspunkten, Alternativtexte für Bilder sowie Formulare mit Beschriftungen und beschriebenen Fehlern."
+                },
+                {
+                    "title" : "Nicht barrierefreie Inhalte",
+                    "text" : "Inhalte, die noch nicht konform sind, etwa herunterladbare Dokumente oder von Dritten bereitgestellte Inhalte, werden derzeit angepasst. Wenn Sie auf nicht barrierefreie Inhalte stoßen, melden Sie uns dies über die auf dieser Seite angegebenen Kontakte."
+                },
+                {
+                    "title" : "Rückmeldung und Kontakt",
+                    "text" : "Wenn Sie auf eine Barriere stoßen, schreiben Sie uns über die Kontaktseite oder an die in der Fußzeile angegebene E-Mail-Adresse: Wir antworten so schnell wie möglich."
+                },
+                {
+                    "title" : "Durchsetzungsverfahren",
+                    "text" : "Bei einer unbefriedigenden Antwort können Sie sich an die zuständige Aufsichtsbehörde für den Markt barrierefreier Produkte und Dienstleistungen wenden."
+                }
+            ],
+            "payoff" : ""
+        }
+    },
     "marketing" : {
         "seo" : {
             "title" : "Marketing-Einwilligung von {{domain}}",

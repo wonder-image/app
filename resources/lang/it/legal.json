@@ -133,6 +133,35 @@
             ]
         }
     },
+    "accessibility" : {
+        "seo" : {
+            "title" : "Dichiarazione di accessibilità - {{society_name}}",
+            "description" : "Dichiarazione di accessibilità del sito {{society_name}} ai sensi dell'European Accessibility Act."
+        },
+        "content" : {
+            "title" : "Dichiarazione di accessibilità",
+            "subtitle" : "{{society_name}} si impegna a rendere questo sito accessibile in conformità all'European Accessibility Act (direttiva UE 2019/882) e alla norma EN 301 549, che adotta le WCAG 2.1 livello AA.",
+            "paragraphs" : [
+                {
+                    "title" : "Stato di conformità",
+                    "text" : "Il sito è progettato per essere conforme alle WCAG 2.1 livello AA: navigazione da tastiera, focus visibile, struttura con intestazioni e punti di riferimento, testi alternativi per le immagini e moduli con etichette ed errori descritti."
+                },
+                {
+                    "title" : "Contenuti non accessibili",
+                    "text" : "Eventuali contenuti non ancora conformi, ad esempio documenti scaricabili o contenuti forniti da terzi, sono in corso di adeguamento. Se incontri un contenuto non accessibile, segnalacelo tramite i contatti indicati in questa pagina."
+                },
+                {
+                    "title" : "Segnalazioni e contatti",
+                    "text" : "Se riscontri una barriera all'accessibilità, scrivici tramite la pagina Contatti o all'indirizzo email indicato nel piè di pagina: risponderemo nel più breve tempo possibile."
+                },
+                {
+                    "title" : "Procedura di attuazione",
+                    "text" : "In caso di risposta insoddisfacente è possibile rivolgersi all'autorità di vigilanza competente per il mercato dei prodotti e servizi accessibili."
+                }
+            ],
+            "payoff" : ""
+        }
+    },
     "marketing" : {
         "seo" : {
             "title" : "Consenso Marketing di {{domain}}",

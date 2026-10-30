@@ -21,6 +21,11 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Dichiarazione di accessibilità.** `resources/lang/*/legal.json` ha il blocco
+  `legal.accessibility` (seo, titolo, sottotitolo, paragrafi, payoff vuoto) in
+  it/en/de/es/fr, pronto per una pagina `/legal/accessibility/` del sito come le
+  altre pagine legali; il sito ridichiara solo ciò che vuole cambiare (es. il payoff
+  con la data della dichiarazione).
 - **Email di prova dalla pagina Credenziali.** Il bottone "Email di prova" (Dev →
   Credenziali) invia un'email all'indirizzo dell'utente con le credenziali salvate:
   con SMTP prova prima la connessione (`SmtpTransport::check()`, 15 secondi) e mostra

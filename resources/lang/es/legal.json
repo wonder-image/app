@@ -133,6 +133,35 @@
             ]
         }
     },
+    "accessibility" : {
+        "seo" : {
+            "title" : "Declaración de accesibilidad - {{society_name}}",
+            "description" : "Declaración de accesibilidad del sitio {{society_name}} conforme al European Accessibility Act."
+        },
+        "content" : {
+            "title" : "Declaración de accesibilidad",
+            "subtitle" : "{{society_name}} se compromete a hacer accesible este sitio de conformidad con el European Accessibility Act (Directiva UE 2019/882) y la norma EN 301 549, que adopta las WCAG 2.1 nivel AA.",
+            "paragraphs" : [
+                {
+                    "title" : "Situación de cumplimiento",
+                    "text" : "El sitio está diseñado para cumplir las WCAG 2.1 nivel AA: navegación por teclado, foco visible, estructura con encabezados y puntos de referencia, textos alternativos para las imágenes y formularios con etiquetas y errores descritos."
+                },
+                {
+                    "title" : "Contenido no accesible",
+                    "text" : "El contenido que aún no sea conforme, como documentos descargables o contenido proporcionado por terceros, está en proceso de adaptación. Si encuentras contenido no accesible, comunícanoslo a través de los contactos indicados en esta página."
+                },
+                {
+                    "title" : "Comunicaciones y contacto",
+                    "text" : "Si encuentras una barrera de accesibilidad, escríbenos a través de la página de Contacto o a la dirección de correo electrónico indicada en el pie de página: responderemos lo antes posible."
+                },
+                {
+                    "title" : "Procedimiento de aplicación",
+                    "text" : "Si la respuesta no es satisfactoria, puedes dirigirte a la autoridad de supervisión competente para el mercado de productos y servicios accesibles."
+                }
+            ],
+            "payoff" : ""
+        }
+    },
     "marketing" : {
         "seo" : {
             "title" : "Consentimiento de Marketing de {{domain}}",
