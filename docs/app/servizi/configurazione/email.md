@@ -27,7 +27,9 @@ Cosa succede alla conferma:
 
 - con SMTP il framework apre prima una connessione al server (`SmtpTransport::check()`,
   timeout di 15 secondi) e, se fallisce, mostra l'errore di PHPMailer senza
-  tentare l'invio;
+  tentare l'invio; il check fallito viene comunque registrato come un invio
+  fallito, con una riga `failed` in `mail_log` (oggetto *Email di prova*,
+  corpo vuoto) e una voce `[credentials-test]` nel log degli errori;
 - poi invia l'email con `sendMail()`, lo stesso percorso delle email reali:
   l'esito finisce nel log delle email (`mail_log`) come ogni altro invio;
 - il risultato compare come notifica nella pagina: *Email di prova inviata*
@@ -45,8 +47,9 @@ da CSRF e dagli stessi permessi di modifica della risorsa.
   riesce, altrimenti il messaggio di errore.
 - `Wonder\App\Support\Mail\CredentialsTest::run($recipient)` esegue l'intera
   prova e restituisce un `CredentialsTestResult` (`ok`, `title`, `message`).
-  Accetta chiusure al posto del check e dell'invio, così i test non toccano
-  la rete.
+  Accetta chiusure al posto del check, dell'invio e del log, così i test non
+  toccano rete né database. `CredentialsTest::logCheckFailure()` è il log del
+  check fallito (riga `mail_log` + `__log()`), non lancia mai.
 - `sendMailError()` restituisce l'ultimo errore di `sendMail()` (stringa vuota
   quando l'invio è riuscito): utile per mostrare all'utente perché un invio
   è fallito senza leggere `mail_log`.

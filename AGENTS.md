@@ -443,7 +443,9 @@ php forge start
   `App\Support\Mail\SmtpTransport::configure()` is the only PHPMailer SMTP
   setup (`sendMail()` uses it); `CredentialsTest::run($recipient)` checks the
   connection, sends through `sendMail()` and returns a `CredentialsTestResult`
-  shown with `FlashAlert`; `sendMailError()` exposes the last `sendMail()` error.
+  shown with `FlashAlert`; a failed check is logged like a failed send
+  (`logCheckFailure()`: `failed` row in `mail_log` plus `__log()`, never
+  throws); `sendMailError()` exposes the last `sendMail()` error.
   See `docs/app/servizi/configurazione/email.md`.
 - `Resource::formNotices($values, $mode)` returns `{level, message}` alerts
   printed above the backend form, outside the `<form>` (`FORM_NOTICES` in

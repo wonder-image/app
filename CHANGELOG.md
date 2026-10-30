@@ -32,7 +32,8 @@
 - **Email di prova dalla pagina Credenziali.** Il bottone "Email di prova" (Dev →
   Credenziali) invia un'email all'indirizzo dell'utente con le credenziali salvate:
   con SMTP prova prima la connessione (`SmtpTransport::check()`, 15 secondi) e mostra
-  l'errore di PHPMailer, poi passa da `sendMail()` come le email reali. La logica sta
+  l'errore di PHPMailer, registrandolo come invio fallito (riga `failed` in `mail_log`
+  e voce nel log errori), poi passa da `sendMail()` come le email reali. La logica sta
   in `Wonder\App\Support\Mail\CredentialsTest`; `sendMailError()` restituisce l'ultimo errore
   di `sendMail()`. Rotta POST `backend.resource.app-config-credentials.mail-test`
   con CSRF e permessi di modifica della risorsa.

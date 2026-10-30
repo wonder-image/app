@@ -43,10 +43,24 @@ check('SMTP incompleto → elenca i campi mancanti, niente connessione', functio
 
     return !$r->ok && $r->title === 'Credenziali SMTP incomplete' && str_contains($r->message, 'host') && str_contains($r->message, 'porta') && str_contains($r->message, 'password') && !str_contains($r->message, 'utente');
 });
-check('connessione SMTP fallita → errore del server nel messaggio, nessun invio', function () use ($smtp, $noSend, $noError) {
-    $r = CredentialsTest::run('me@example.test', $smtp, static fn (): string => 'SMTP Error: Could not authenticate.', $noSend, $noError);
+check('connessione SMTP fallita → errore del server nel messaggio, nessun invio, check loggato', function () use ($smtp, $noSend, $noError) {
+    $logged = [];
+    $r = CredentialsTest::run('me@example.test', $smtp, static fn (): string => 'SMTP Error: Could not authenticate.', $noSend, $noError, static function (string $to, object $c, string $e) use (&$logged): void {
+        $logged = [$to, $c, $e];
+    });
 
-    return !$r->ok && $r->title === 'Connessione SMTP non riuscita' && str_contains($r->message, 'smtp.example.test:465') && str_contains($r->message, 'Could not authenticate');
+    return !$r->ok && $r->title === 'Connessione SMTP non riuscita' && str_contains($r->message, 'smtp.example.test:465') && str_contains($r->message, 'Could not authenticate')
+        && $logged[0] === 'me@example.test' && $logged[1] === $smtp && $logged[2] === 'smtp.example.test:465 come noreply@example.test: SMTP Error: Could not authenticate.';
+});
+check('check ok → il log del check non viene chiamato', function () use ($smtp, $noError) {
+    $r = CredentialsTest::run('me@example.test', $smtp, static fn (): string => '', static fn (): bool => true, $noError, static function (): void { throw new RuntimeException('log non atteso'); });
+
+    return $r->ok;
+});
+check('logCheckFailure() senza __log()/sqlInsert (CLI, test) non lancia', function () use ($smtp) {
+    CredentialsTest::logCheckFailure('me@example.test', $smtp, 'SMTP Error: Could not connect to SMTP host.');
+
+    return !function_exists('sqlInsert');
 });
 check('connessione ok e invio ok → successo con destinatario e host', function () use ($smtp, $noError) {
     $sent = [];
