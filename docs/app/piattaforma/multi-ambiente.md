@@ -126,7 +126,7 @@ I Model vengono scoperti via `ModelRegistry` -- framework, moduli e sito contrib
 | `css_dropdown` | Singleton | Stili dropdown |
 | `css_alert` | Singleton | Stili alert/toast |
 | `seo` | Singleton | Meta tag SEO default |
-| `society_locations` | Multi-row con `keepIds()` | Sedi della società (orari, chiusure, Place ID, sincronizzazione orari e stato dell'attività non sincronizzati, vedi [Sedi](../concetti/sedi.md)) |
+| `society_locations` | Multi-row con `keepIds()` | Sedi della società (orari, chiusure, sincronizzazione orari e stato dell'attività non sincronizzati; il Place ID vuoto non sovrascrive, vedi [Sedi](../concetti/sedi.md)) |
 
 Le colonne di sistema (`id`, `last_modified`, `creation`, `deleted`) vengono escluse dall'export/import.
 
@@ -301,6 +301,7 @@ Value object che descrive il comportamento di sync di una tabella:
 - `SyncSchema::singleton()` -- tabella con una sola riga (id=1)
 - `SyncSchema::multiRow()` -- tabella con righe multiple
 - `->exclude(['col1', 'col2'])` -- esclude colonne aggiuntive dall'export
+- `->keepWhenEmpty(['col1'])` -- l'import non svuota la colonna su una riga esistente se nel file è vuota
 
 ### Auto-export dal backend
 

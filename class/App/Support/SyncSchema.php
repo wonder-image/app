@@ -15,6 +15,8 @@ namespace Wonder\App\Support;
  *
  * Opzioni (nuove istanze immutabili, componibili):
  * - `->exclude([...])` — colonne escluse dall'export e dall'import;
+ * - `->keepWhenEmpty([...])` — colonne che l'import scrive solo se il file ha
+ *   un valore: vuote nel file, non svuotano una riga esistente;
  * - `->keepIds()` — export con `id` e `deleted`; import che inserisce o
  *   aggiorna per `id` senza svuotare la tabella e segna `deleted = 'true'`
  *   le righe assenti dal file (per tabelle referenziate da chiavi esterne);
@@ -28,6 +30,9 @@ final class SyncSchema
     /** @var string[] Colonne escluse dall'export (oltre a quelle di sistema). */
     public readonly array $excludeColumns;
 
+    /** @var string[] Colonne che un valore vuoto nel file non sovrascrive. */
+    public readonly array $keepWhenEmptyColumns;
+
     public readonly bool $keepIds;
 
     public readonly bool $localOnly;
@@ -37,11 +42,13 @@ final class SyncSchema
         array $excludeColumns = [],
         bool $keepIds = false,
         bool $localOnly = false,
+        array $keepWhenEmptyColumns = [],
     ) {
         $this->singleton = $singleton;
         $this->excludeColumns = $excludeColumns;
         $this->keepIds = $keepIds;
         $this->localOnly = $localOnly;
+        $this->keepWhenEmptyColumns = $keepWhenEmptyColumns;
     }
 
     /**
@@ -68,7 +75,18 @@ final class SyncSchema
      */
     public function exclude(array $columns): self
     {
-        return new self($this->singleton, $columns, $this->keepIds, $this->localOnly);
+        return new self($this->singleton, $columns, $this->keepIds, $this->localOnly, $this->keepWhenEmptyColumns);
+    }
+
+    /**
+     * L'import non svuota queste colonne su una riga esistente se il file le
+     * ha vuote (`null` o stringa vuota).
+     *
+     * @param string[] $columns
+     */
+    public function keepWhenEmpty(array $columns): self
+    {
+        return new self($this->singleton, $this->excludeColumns, $this->keepIds, $this->localOnly, $columns);
     }
 
     /**
@@ -76,7 +94,7 @@ final class SyncSchema
      */
     public function keepIds(): self
     {
-        return new self($this->singleton, $this->excludeColumns, true, $this->localOnly);
+        return new self($this->singleton, $this->excludeColumns, true, $this->localOnly, $this->keepWhenEmptyColumns);
     }
 
     /**
@@ -84,6 +102,6 @@ final class SyncSchema
      */
     public function localOnly(): self
     {
-        return new self($this->singleton, $this->excludeColumns, $this->keepIds, true);
+        return new self($this->singleton, $this->excludeColumns, $this->keepIds, true, $this->keepWhenEmptyColumns);
     }
 }

@@ -36,14 +36,14 @@ final class SocietyLocation extends Model
 
     public static function syncSchema(): ?SyncSchema
     {
-        // Si gestiscono dal backend di ogni ambiente: il deploy non li sovrascrive.
+        // Stato e sincronizzazione orari si gestiscono da ogni ambiente. Il Place ID viaggia
+        // col file, ma vuoto non cancella quello già impostato (e con lui i dati di Google).
         // `google_synced_at` è tolta dal modello ma può restare nei file già esportati.
         return SyncSchema::multiRow()->keepIds()->exclude([
             'business_status',
-            'google_place_id',
             'google_sync_hours',
             'google_synced_at',
-        ]);
+        ])->keepWhenEmpty(['google_place_id']);
     }
 
     public static function address(): AddressExtension

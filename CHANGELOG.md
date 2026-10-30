@@ -5,9 +5,10 @@
 ### Corretto
 - **Il deploy non cancella più i dati Google delle sedi.** `forge update` riportava
   `google_place_id` al valore di `sync-data.json`, spesso `null`, e il task notturno
-  eliminava copia di Google e recensioni. `google_place_id`, `google_sync_hours` e
-  `business_status` ora sono esclusi dalla sincronizzazione: si impostano dal backend
-  di ogni ambiente, e un Place ID inserito in locale va inserito anche in produzione.
+  eliminava copia di Google e recensioni. Il Place ID si imposta in locale e arriva con
+  il deploy, ma vuoto nel file non cancella più quello esistente (nuova opzione
+  `SyncSchema::keepWhenEmpty()`). `google_sync_hours` e `business_status` ora sono esclusi
+  dalla sincronizzazione: si impostano dal backend di ogni ambiente.
   Tolta la colonna inutilizzata `google_synced_at`: `forge update` la elimina.
 - **Testi della privacy policy.** `resources/lang/*/legal.json` mostrava un tag PHP
   come testo (`<?=$LEGAL->name?>`, ora `{{legal_name}}`) e un `3` dopo l'indirizzo;

@@ -150,7 +150,8 @@ Regole:
 - Una sede che eredita gli orari dalla predefinita, con la sincronizzazione attiva, riceve orari propri.
 - Una riga di Google modificata a mano nel form resta `source = google` (la colonna è nascosta): il prossimo allineamento con la sincronizzazione attiva la sovrascrive se la data è da oggi in avanti. Per tenerla, eliminala e ricreala.
 - Se si toglie o si cambia il Place ID, la copia di Google e le recensioni della sede vengono eliminate al passaggio successivo; nel frattempo `SocietyLocations` non le restituisce.
-- Place ID, **Sincronizzazione orari da Google** e stato dell'attività (`google_place_id`, `google_sync_hours`, `business_status`) non passano da `shared/sync-data.json`: si impostano dal backend di ogni ambiente e il deploy non li tocca. Un Place ID inserito in locale non arriva in produzione: va inserito anche lì.
+- Il Place ID si imposta in locale e arriva in produzione con `shared/sync-data.json`. Se nel file è vuoto, il deploy non cancella quello già impostato: per toglierlo, svuotalo in locale e anche nel backend di produzione.
+- **Sincronizzazione orari da Google** e stato dell'attività (`google_sync_hours`, `business_status`) non passano dal file: si impostano dal backend di ogni ambiente e il deploy non li tocca.
 - Il task fallisce solo se nessuna sede è stata letta; gli errori delle singole sedi stanno nel log dell'esecuzione e nella scheda della sede.
 
 Nella scheda della sede, sopra il form, compaiono le differenze con Google (solo con la sincronizzazione attiva) e l'ultimo errore (`SocietyLocationResource::formNotices()`).
