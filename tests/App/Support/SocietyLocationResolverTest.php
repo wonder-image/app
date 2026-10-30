@@ -16,7 +16,7 @@ $default = [
     'name' => 'Esempio', 'legal_name' => 'Esempio srl', 'pi' => '01234567890', 'cf' => '01234567890',
     'sdi' => 'ABC1234', 'rea' => 'MI-1', 'share_capital' => '10000.00',
     'country' => 'IT', 'province' => 'MI', 'city' => 'Milano', 'cap' => '20100', 'street' => 'Via Roma',
-    'number' => '1', 'more' => '', 'gmaps' => '', 'google_place_id' => 'ChIJ-milano', 'google_synced_at' => null,
+    'number' => '1', 'more' => '', 'gmaps' => '', 'google_place_id' => 'ChIJ-milano',
     'legal_country' => 'IT', 'legal_province' => 'MI', 'legal_city' => 'Milano', 'legal_cap' => '20100',
     'legal_street' => 'Via Legale', 'legal_number' => '2', 'legal_more' => '', 'legal_gmaps' => '',
 ];
@@ -26,7 +26,7 @@ $branch = [
     'site' => '', 'instagram' => 'https://instagram.com/negozio',
     'name' => '', 'legal_name' => '', 'pi' => '', 'cf' => '', 'sdi' => '', 'rea' => '', 'share_capital' => null,
     'country' => 'IT', 'province' => 'BS', 'city' => 'Brescia', 'cap' => '25100', 'street' => '',
-    'number' => '', 'more' => '', 'gmaps' => '', 'google_place_id' => '', 'google_synced_at' => null,
+    'number' => '', 'more' => '', 'gmaps' => '', 'google_place_id' => '',
     'legal_country' => 'IT', 'legal_province' => '', 'legal_city' => '', 'legal_cap' => '',
     'legal_street' => '', 'legal_number' => '', 'legal_more' => '', 'legal_gmaps' => '',
 ];

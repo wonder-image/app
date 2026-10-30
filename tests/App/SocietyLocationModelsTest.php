@@ -21,11 +21,25 @@ check('sedi sincronizzate con id stabili, modificabili ovunque', function () {
         && $schema !== null && $schema->keepIds && !$schema->localOnly && !$schema->singleton;
 });
 
+check('le colonne gestite in ogni ambiente restano fuori dalla sincronizzazione', function () {
+    $excluded = SocietyLocation::syncSchema()->excludeColumns;
+    foreach (['business_status', 'google_place_id', 'google_sync_hours', 'google_synced_at'] as $column) {
+        if (!in_array($column, $excluded, true)) {
+            return false;
+        }
+    }
+    return !in_array('label', $excluded, true);
+});
+
+check('google_synced_at non è più una colonna della sede', function () {
+    return !array_key_exists('google_synced_at', SocietyLocation::getColumns());
+});
+
 check('colonne della sede per gruppo', function () {
     $columns = array_keys(SocietyLocation::getColumns());
     $expected = [
         'slug', 'label', 'is_default', 'visible', 'position', 'business_status', 'opening_date',
-        'country', 'province', 'city', 'cap', 'street', 'number', 'more', 'gmaps', 'google_place_id', 'google_synced_at',
+        'country', 'province', 'city', 'cap', 'street', 'number', 'more', 'gmaps', 'google_place_id',
         'email', 'pec', 'tel', 'cel',
         'name', 'legal_name', 'pi', 'cf', 'sdi', 'rea', 'share_capital',
         'legal_country', 'legal_province', 'legal_city', 'legal_cap', 'legal_street', 'legal_number', 'legal_more', 'legal_gmaps',

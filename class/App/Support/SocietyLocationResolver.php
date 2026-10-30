@@ -24,12 +24,12 @@ final class SocietyLocationResolver
 
     public const GROUPS = [
         'legal' => ['legal_name', 'pi', 'cf', 'sdi', 'rea', 'share_capital'],
-        'address' => ['country', 'province', 'city', 'cap', 'street', 'number', 'more', 'gmaps', 'google_place_id', 'google_synced_at'],
+        'address' => ['country', 'province', 'city', 'cap', 'street', 'number', 'more', 'gmaps', 'google_place_id'],
         'legal_address' => ['legal_country', 'legal_province', 'legal_city', 'legal_cap', 'legal_street', 'legal_number', 'legal_more', 'legal_gmaps'],
     ];
 
-    /** Campi che da soli non rendono compilato un gruppo: valori di default del form e date tecniche. */
-    private const NOT_SIGNIFICANT = ['country', 'legal_country', 'google_synced_at'];
+    /** Campi che da soli non rendono compilato un gruppo: valori di default del form. */
+    private const NOT_SIGNIFICANT = ['country', 'legal_country'];
 
     public static function resolve(array $location, ?array $default): array
     {

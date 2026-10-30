@@ -36,7 +36,14 @@ final class SocietyLocation extends Model
 
     public static function syncSchema(): ?SyncSchema
     {
-        return SyncSchema::multiRow()->keepIds();
+        // Si gestiscono dal backend di ogni ambiente: il deploy non li sovrascrive.
+        // `google_synced_at` è tolta dal modello ma può restare nei file già esportati.
+        return SyncSchema::multiRow()->keepIds()->exclude([
+            'business_status',
+            'google_place_id',
+            'google_sync_hours',
+            'google_synced_at',
+        ]);
     }
 
     public static function address(): AddressExtension
@@ -63,7 +70,6 @@ final class SocietyLocation extends Model
             Column::key('google_place_id'),
             Column::key('google_sync_hours')->enum(['true', 'false'])->default('false'),
             ...static::sqlColumnsFromDataSchema([
-                'google_synced_at',
                 'email',
                 'pec',
                 'tel',
@@ -102,7 +108,6 @@ final class SocietyLocation extends Model
             ...static::address()->dataSchema(),
             Field::key('google_place_id')->text()->sanitize(false),
             Field::key('google_sync_hours')->text()->sanitize(false),
-            Field::key('google_synced_at')->date(),
             Field::key('email')->email(),
             Field::key('pec')->text(),
             Field::key('tel')->text(),
