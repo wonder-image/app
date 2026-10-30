@@ -14,7 +14,7 @@ namespace Wonder\App\Support;
  * - `SyncSchema::multiRow()` — la tabella ha righe multiple
  *
  * Opzioni (nuove istanze immutabili, componibili):
- * - `->exclude([...])` — colonne escluse dall'export;
+ * - `->exclude([...])` — colonne escluse dall'export e dall'import;
  * - `->keepIds()` — export con `id` e `deleted`; import che inserisce o
  *   aggiorna per `id` senza svuotare la tabella e segna `deleted = 'true'`
  *   le righe assenti dal file (per tabelle referenziate da chiavi esterne);

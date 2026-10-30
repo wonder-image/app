@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Corretto
+- **Dati Google delle sedi e deploy.** Place ID e sincronizzazione orari si impostano in
+  locale e il deploy li riporta in produzione, anche vuoti: un Place ID vuoto nel file
+  elimina al passaggio notturno copia di Google e recensioni. `business_status` ora è
+  escluso dalla sincronizzazione. Con la sincronizzazione attiva il form della sede
+  nasconde la card "Orari e chiusure".
+  Tolta la colonna inutilizzata `google_synced_at`: `forge update` la elimina.
 - **Testi della privacy policy.** `resources/lang/*/legal.json` mostrava un tag PHP
   come testo (`<?=$LEGAL->name?>`, ora `{{legal_name}}`) e un `3` dopo l'indirizzo;
   in italiano corrette anche virgolette e preposizioni.

@@ -126,7 +126,7 @@ I Model vengono scoperti via `ModelRegistry` -- framework, moduli e sito contrib
 | `css_dropdown` | Singleton | Stili dropdown |
 | `css_alert` | Singleton | Stili alert/toast |
 | `seo` | Singleton | Meta tag SEO default |
-| `society_locations` | Multi-row con `keepIds()` | Sedi della società (orari e chiusure non sincronizzati, vedi [Sedi](../concetti/sedi.md)) |
+| `society_locations` | Multi-row con `keepIds()` | Sedi della società (orari, chiusure e stato dell'attività non sincronizzati; Place ID e sincronizzazione orari sì, vedi [Sedi](../concetti/sedi.md)) |
 
 Le colonne di sistema (`id`, `last_modified`, `creation`, `deleted`) vengono escluse dall'export/import.
 
