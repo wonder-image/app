@@ -93,6 +93,7 @@
     * [Google Search Console](servizi/configurazione/google-search-console.md)
     * [Fatture in Cloud](servizi/configurazione/fatture-in-cloud.md)
     * [Credenziali dei pagamenti](servizi/configurazione/pagamenti.md)
+    * [Credenziali email](servizi/configurazione/email.md)
     * [Brevo](servizi/configurazione/brevo.md)
     * [Klaviyo](servizi/configurazione/klaviyo.md)
   * [Google Tag Manager](servizi/google-tag-manager/configurazione.md)
