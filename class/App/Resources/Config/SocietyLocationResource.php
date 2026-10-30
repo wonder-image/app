@@ -272,7 +272,7 @@ class SocietyLocationResource extends Resource
                         ->columnSpan(12),
                     static::getInput('hours')->columnSpan(12),
                     static::getInput('special_hours')->columnSpan(12),
-                ])->columns(12)->columnSpan(2),
+                ])->columns(12)->columnSpan(2)->hiddenWhen('google_sync_hours', 'true'),
 
             ])->columns(2)->columnSpan(9),
 

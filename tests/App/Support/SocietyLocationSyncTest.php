@@ -43,18 +43,20 @@ $fileRow = [
     'google_synced_at' => null,
 ];
 
-check('il deploy aggiorna la sede senza toccare sincronizzazione e stato', function () use ($fileRow) {
+check('il deploy aggiorna la sede senza toccare lo stato', function () use ($fileRow) {
     return array_key_exists('label', $written = importLocation($fileRow))
-        && !array_intersect(['business_status', 'google_sync_hours', 'google_synced_at'], array_keys($written));
+        && !array_intersect(['business_status', 'google_synced_at'], array_keys($written));
 });
 
-check('il Place ID impostato in locale arriva con il deploy', function () use ($fileRow) {
-    return (importLocation(['google_place_id' => 'ChIJ-locale'] + $fileRow)['google_place_id'] ?? null) === 'ChIJ-locale';
+check('Place ID e sincronizzazione orari impostati in locale arrivano con il deploy', function () use ($fileRow) {
+    $written = importLocation(['google_place_id' => 'ChIJ-locale', 'google_sync_hours' => 'true'] + $fileRow);
+
+    return $written['google_place_id'] === 'ChIJ-locale' && $written['google_sync_hours'] === 'true';
 });
 
-check('un Place ID vuoto nel file non cancella quello esistente', function () use ($fileRow) {
-    return !array_key_exists('google_place_id', importLocation($fileRow))
-        && !array_key_exists('google_place_id', importLocation(['google_place_id' => ''] + $fileRow));
+check('un Place ID vuoto in locale svuota anche la produzione', function () use ($fileRow) {
+    return array_key_exists('google_place_id', $written = importLocation($fileRow))
+        && $written['google_place_id'] === null;
 });
 
 check('una sede nuova da un vecchio file non scrive google_synced_at', function () use ($fileRow) {

@@ -23,7 +23,7 @@ check('sedi sincronizzate con id stabili, modificabili ovunque', function () {
 
 check('le colonne gestite in ogni ambiente restano fuori dalla sincronizzazione', function () {
     $excluded = SocietyLocation::syncSchema()->excludeColumns;
-    foreach (['business_status', 'google_sync_hours', 'google_synced_at'] as $column) {
+    foreach (['business_status', 'google_synced_at'] as $column) {
         if (!in_array($column, $excluded, true)) {
             return false;
         }
@@ -31,11 +31,8 @@ check('le colonne gestite in ogni ambiente restano fuori dalla sincronizzazione'
     return !in_array('label', $excluded, true);
 });
 
-check('il Place ID si sincronizza, ma vuoto non sovrascrive', function () {
-    $schema = SocietyLocation::syncSchema();
-
-    return !in_array('google_place_id', $schema->excludeColumns, true)
-        && $schema->keepWhenEmptyColumns === ['google_place_id'];
+check('Place ID e sincronizzazione orari passano dal file', function () {
+    return !array_intersect(['google_place_id', 'google_sync_hours'], SocietyLocation::syncSchema()->excludeColumns);
 });
 
 check('google_synced_at non è più una colonna della sede', function () {

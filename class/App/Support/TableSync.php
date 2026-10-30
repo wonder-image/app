@@ -248,7 +248,7 @@ final class TableSync
             }
 
             if (sqlSelect($table, ['id' => 1], 1)->exists) {
-                sqlModify($table, self::withoutEmptyKept($values, $schema), 'id', '1');
+                sqlModify($table, $values, 'id', '1');
             } else {
                 sqlInsert($table, $values);
             }
@@ -321,8 +321,6 @@ final class TableSync
         }
 
         foreach ($plan->updates as $id => $values) {
-            $values = self::withoutEmptyKept($values, $schema);
-
             if ($values !== []) {
                 sqlModify($table, $values, 'id', $id);
             }
@@ -427,20 +425,6 @@ final class TableSync
         }
 
         return $cleaned;
-    }
-
-    /**
-     * Toglie da un aggiornamento le colonne `keepWhenEmpty()` vuote nel file.
-     */
-    private static function withoutEmptyKept(array $values, SyncSchema $schema): array
-    {
-        foreach ($schema->keepWhenEmptyColumns as $column) {
-            if (trim((string) ($values[$column] ?? '')) === '') {
-                unset($values[$column]);
-            }
-        }
-
-        return $values;
     }
 
     /**
