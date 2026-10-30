@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Corretto
+- **Testi della privacy policy.** `resources/lang/*/legal.json` mostrava un tag PHP
+  come testo (`<?=$LEGAL->name?>`, ora `{{legal_name}}`) e un `3` dopo l'indirizzo;
+  in italiano corrette anche virgolette e preposizioni.
 - **Liste nei testi formattati.** `SafeHtml` toglieva `ul`, `ol` e `li` tenendo solo
   il testo, così una lista scritta nell'editor tornava una riga sola dopo il
   salvataggio: ora restano, senza attributi come gli altri tag.
