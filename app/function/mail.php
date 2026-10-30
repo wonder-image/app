@@ -203,15 +203,8 @@
 
                 default:
 
-                    # Impostazioni server
-                        $MAIL->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; 
-                        $MAIL->isSMTP();
-                        $MAIL->Host = $CREDENTIALS->host;
-                        $MAIL->SMTPAuth = true;
-                        $MAIL->Username = $CREDENTIALS->username;
-                        $MAIL->Password = $CREDENTIALS->password;
-                        $MAIL->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-                        $MAIL->Port = $CREDENTIALS->port;
+                    # Impostazioni server (condivise con la verifica dal backend)
+                        Wonder\App\Support\Mail\SmtpTransport::configure($MAIL, $CREDENTIALS);
                     
                     # Header
                         $MAIL->addAddress($to);
@@ -255,6 +248,8 @@
 
         } finally {
 
+            $GLOBALS['MAIL_LAST_ERROR'] = $MAIL_ERROR;
+
             try {
 
                 $VALUES = Wonder\App\Table::key('mail_log')
@@ -288,6 +283,11 @@
 
         return $MAIL_SENT;
 
+    }
+
+    /** Errore dell'ultimo `sendMail()` ('' se è andato a buon fine o non è mai partito). */
+    function sendMailError(): string {
+        return (string) ($GLOBALS['MAIL_LAST_ERROR'] ?? '');
     }
 
     function emailTemplate($body = '', $template = 'basic') {

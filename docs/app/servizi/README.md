@@ -20,6 +20,7 @@ Questa sezione è divisa in due aree operative:
 - [Google Search Console](configurazione/google-search-console.md)
 - [Fatture in Cloud](configurazione/fatture-in-cloud.md)
 - [Credenziali dei pagamenti](configurazione/pagamenti.md)
+- [Credenziali email](configurazione/email.md)
 - [Brevo](configurazione/brevo.md)
 - [Klaviyo](configurazione/klaviyo.md)
 

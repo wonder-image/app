@@ -7,16 +7,19 @@ use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\Path;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
+use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\Resources\Support\SingletonResource;
 use Wonder\App\Support\GoogleCloud\GoogleApis;
 use Wonder\Elements\Components\Accordion;
 use Wonder\Elements\Components\Badge;
+use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Components\HelpText;
 use Wonder\Elements\Components\SectionTitle;
 use Wonder\Elements\Components\Text;
 use Wonder\Elements\Form\Form;
+use Wonder\Http\Route;
 
 final class SecurityResource extends SingletonResource
 {
@@ -276,6 +279,54 @@ final class SecurityResource extends SingletonResource
 
 
         ])->columns(12);
+    }
+
+    public static function pageSchema(): PageSchema
+    {
+        return parent::pageSchema()
+            ->actions('edit', static fn (): array => static::editActions());
+    }
+
+    /** Pagina Credenziali (singleton, id fisso). */
+    public static function editUrl(): string
+    {
+        return __r('backend.resource.'.static::slug().'.edit', ['id' => static::singletonRecordId()]);
+    }
+
+    public static function mailTestUrl(): string
+    {
+        return __r('backend.resource.'.static::slug().'.mail-test');
+    }
+
+    /** @return list<Button> */
+    public static function editActions(): array
+    {
+        $mail = Credentials::mail();
+        $service = strtolower((string) ($mail->service ?? 'phpmailer')) === 'brevo' ? 'Brevo' : 'il server SMTP';
+
+        return [
+            Button::post(static::mailTestUrl(), 'Email di prova')
+                ->variant('secondary')->outline()
+                ->icon('bi bi-envelope-check')
+                ->confirm(
+                    'Invia un\'email di prova al tuo indirizzo con le credenziali salvate ('.$service.'). '
+                    .'Le modifiche non ancora salvate in questa pagina non vengono provate.',
+                    'Prova le credenziali email',
+                    'Invia',
+                    'primary'
+                ),
+        ];
+    }
+
+    /** POST `/mail-test/`: prova le credenziali email salvate e torna alla pagina. */
+    public static function registerBackendRoutes(string $rootApp, string $slug): void
+    {
+        $permissions = (array) static::permissionSchema()->get('backend');
+
+        Route::post('/mail-test/', $rootApp.'/http/backend/config/security/mail-test.php', [
+            'resource' => $slug,
+            'resource_action' => 'mail-test',
+        ])->name('mail-test')->permit($permissions['update'] ?? ['admin']);
     }
 
     public static function apiSchema(): ApiSchema

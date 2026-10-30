@@ -437,6 +437,14 @@ php forge start
   `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
   page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
   fiscal data use `WhenFilledValidator`; required validators still apply.
+- Email credentials test: the Credenziali edit page (`SecurityResource`) adds
+  an "Email di prova" POST button through `pageSchema()->actions('edit', ...)`
+  and route `mail-test` in `registerBackendRoutes()` (CSRF, `update` permissions).
+  `App\Support\Mail\SmtpTransport::configure()` is the only PHPMailer SMTP
+  setup (`sendMail()` uses it); `CredentialsTest::run($recipient)` checks the
+  connection, sends through `sendMail()` and returns a `CredentialsTestResult`
+  shown with `FlashAlert`; `sendMailError()` exposes the last `sendMail()` error.
+  See `docs/app/servizi/configurazione/email.md`.
 - `Resource::formNotices($values, $mode)` returns `{level, message}` alerts
   printed above the backend form, outside the `<form>` (`FORM_NOTICES` in
   `ResourcePagePresenter`), for external state such as Google differences.
