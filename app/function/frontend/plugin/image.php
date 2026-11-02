@@ -8,7 +8,7 @@
         $srcset = [];
 
         foreach ($widths as $width) {
-            $src = $PATH->upload."/$folder/{$filenameBase}-{$width}.{$extension}";
+            $src = __asset_version($PATH->upload."/$folder/{$filenameBase}-{$width}.{$extension}");
             $srcset[] = "{$src} {$width}w";
         }
 
@@ -22,9 +22,10 @@
         global $PATH;
 
         $srcSet = srcSet($folder, $filenameBase, 'webp', $widths);
+        $src = __asset_version("{$PATH->upload}/$folder/{$filenameBase}-{$defaultWidth}.webp");
 
         return "<img 
-                    src=\"{$PATH->upload}/$folder/{$filenameBase}-{$defaultWidth}.webp\"
+                    src=\"$src\"
                     srcset=\"$srcSet\"
                     sizes=\"100vw\"
                     class=\"{$class} no-interaction unselectable\"

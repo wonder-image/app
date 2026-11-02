@@ -46,7 +46,7 @@
     $seoCopyright = (string) ($SEO->copyright ?? '');
     $seoReply = (string) ($SEO->reply ?? '');
     $seoDate = (string) ($SEO->date ?? '');
-    $seoImage = (string) ($SEO->image ?? '');
+    $seoImage = __asset_version((string) ($SEO->image ?? ''));
     $seoCreator = (string) ($SEO->creator ?? '');
     $seoRobots = strtoupper(trim((string) ($SEO->robots ?? 'INDEX,FOLLOW')));
     if (!in_array($seoRobots, ['INDEX,FOLLOW', 'INDEX,NOFOLLOW', 'NOINDEX,FOLLOW', 'NOINDEX,NOFOLLOW'], true)) {
@@ -186,28 +186,14 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 
     if (!empty($SOCIETY->appIcon)) {
 
-        echo "<link rel='apple-touch-icon' href='".e($SOCIETY->appIcon)."'>";
+        echo "<link rel='apple-touch-icon' href='".e(__asset_version((string) $SOCIETY->appIcon))."'>";
 
-        # Le misure stanno accanto all'originale: la cartella va letta
-        # dall'URL dell'icona, non ricostruita a mano. La resource che
-        # ospita i loghi può cambiare cartella, e ricomporla qui vuol dire
-        # sbagliarla in silenzio.
-        $pathInfo = pathinfo((string) $SOCIETY->appIcon);
+        $appIconSizes = \Wonder\App\RuntimeDefaults::appIconSizes();
 
-        $appIconDirectory = rtrim((string) ($pathInfo['dirname'] ?? ''), '/');
-        $name = (string) ($pathInfo['filename'] ?? '');
-        $extension = (string) ($pathInfo['extension'] ?? '');
+        foreach (\Wonder\App\Support\AppIconLinks::sized((string) $SOCIETY->appIcon, $appIconSizes) as $size => $appIconSized) {
 
-        if ($name !== '' && $extension !== '') {
-
-            foreach (\Wonder\App\RuntimeDefaults::appIconSizes() as $size) {
-
-                $appIconSized = $appIconDirectory."/{$name}-{$size}.{$extension}";
-
-                echo "<link rel='icon' sizes='".e($size)."x".e($size)."' href='".e($appIconSized)."'>";
-                echo "<link rel='apple-touch-icon' sizes='".e($size)."x".e($size)."' href='".e($appIconSized)."'>";
-
-            }
+            echo "<link rel='icon' sizes='".e((string) $size)."x".e((string) $size)."' href='".e($appIconSized)."'>";
+            echo "<link rel='apple-touch-icon' sizes='".e((string) $size)."x".e((string) $size)."' href='".e($appIconSized)."'>";
 
         }
 
@@ -257,9 +243,10 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
                 echo "<link rel='preload' as='style' href='".$escapedFontLink."' onload=\"this.onload=null;this.rel='stylesheet'\">";
                 echo "<noscript><link href='".$escapedFontLink."' rel='stylesheet'></noscript>";
             } else {
-                // Il foglio locale è piccolo: inline, con gli url() dei woff2 resi assoluti.
+                // Il foglio locale è piccolo: inline, con gli url() dei woff2 resi
+                // assoluti e versionati; il <link> di ripiego prende `?v=`.
                 echo Wonder\App\Support\Asset::inlineStyle($fontLink, null, null, 32768, true)
-                    ?? "<link href='".e($fontLink)."' rel='stylesheet'>";
+                    ?? "<link href='".e(__asset_version($fontLink))."' rel='stylesheet'>";
             }
         }
     }

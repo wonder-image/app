@@ -7,7 +7,11 @@
         $OLD_FILE = \Wonder\App\Support\MediaFileManager::decodeStoredFiles($OLD_FILE);
 
         if ($MANIFEST !== null) {
-            return \Wonder\App\Support\MediaFileManager::syncFiles($FILES, $FORMAT, $PATH_DIR, $OLD_FILE, $MANIFEST);
+            $SYNCED = \Wonder\App\Support\MediaFileManager::syncFiles($FILES, $FORMAT, $PATH_DIR, $OLD_FILE, $MANIFEST);
+            // File scritti o sostituiti: Asset::version() deve rileggere il filemtime.
+            \Wonder\App\Support\RequestMemo::forget(\Wonder\App\Support\Asset::VERSION_MEMO);
+
+            return $SYNCED;
         }
         
         $MAX_FILE = $FORMAT['max_file'] ?? 1;
@@ -186,6 +190,8 @@
             $ALERT = 923;
 
         }
+
+        \Wonder\App\Support\RequestMemo::forget(\Wonder\App\Support\Asset::VERSION_MEMO);
 
         return json_encode($NEW_FILE, JSON_PRETTY_PRINT);
     

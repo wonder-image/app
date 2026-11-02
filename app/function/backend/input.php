@@ -659,6 +659,10 @@
                 }
             }
 
+            // Un file sostituito con lo stesso nome deve aggiornare l'anteprima.
+            $link = __asset_version($link);
+            $linkDownload = __asset_version($linkDownload);
+
             $image = in_array($file, ['image', 'png', 'ico', 'jpg'], true)
                 ? "<img class='w-100 object-fit-contain' src='$link' height='200' lazyload>"
                 : '';

@@ -2,7 +2,7 @@
 
     function swiper_fashionSliderSlide($image) {
 
-        $src = $image['src'];
+        $src = __asset_version((string) $image['src']);
         $color = isset($image['color']) ? "data-slide-bg-color='{$image['color']}'" : "";
         $title = $image['title'];
 

@@ -38,21 +38,33 @@ final class Asset
 
         if (preg_match('/url\s*\(/i', $css)) {
             if (!$rewriteRelativeUrls) { return null; }
-            $css = self::rewriteRelativeCssUrls($css, $url);
+            $css = self::rewriteCssUrls($css, $url, $root, $appUrl);
             if ($css === null) { return null; }
         }
 
         return '<style>'.$css.'</style>';
     }
 
-    private static function rewriteRelativeCssUrls(string $css, string $stylesheetUrl): ?string
+    /**
+     * Prepara un CSS letto da `$stylesheetUrl` per finire inline nella pagina:
+     * gli `url()` relativi diventano assoluti rispetto al foglio e, come quelli
+     * root-relative, prendono `?v=` se puntano a un file locale. Riferimenti
+     * esterni, `data:`, `#` e URL con query o fragment propri restano come sono.
+     * Restituisce null se un riferimento relativo esce dalla radice.
+     */
+    public static function rewriteCssUrls(string $css, string $stylesheetUrl, ?string $root = null, ?string $appUrl = null): ?string
     {
         $failed = false;
         $rewritten = preg_replace_callback(
             '~url\(\s*(?:(["\'])(.*?)\1|([^)]*))\s*\)~i',
-            static function (array $matches) use ($stylesheetUrl, &$failed): string {
+            static function (array $matches) use ($stylesheetUrl, $root, $appUrl, &$failed): string {
                 $quote = (string) ($matches[1] ?? '');
                 $reference = trim((string) (($matches[2] ?? '') !== '' ? $matches[2] : ($matches[3] ?? '')));
+
+                if (str_starts_with($reference, '/') && !str_starts_with($reference, '//')) {
+                    $versioned = self::version($reference, $root, $appUrl);
+                    return $versioned === $reference ? $matches[0] : 'url('.$quote.$versioned.$quote.')';
+                }
 
                 if (
                     $reference === ''
@@ -70,7 +82,7 @@ final class Asset
                     return $matches[0];
                 }
 
-                return 'url('.$quote.$resolved.$quote.')';
+                return 'url('.$quote.self::version($resolved, $root, $appUrl).$quote.')';
             },
             $css,
         );
@@ -123,8 +135,9 @@ final class Asset
      *
      * Il filemtime è memoizzato per richiesta (`VERSION_MEMO`): chi riscrive un
      * file esistente e poi ne stampa l'URL nella stessa richiesta deve chiamare
-     * `RequestMemo::forget(Asset::VERSION_MEMO)`. Lo fanno `cssRoot()` e
-     * `cssColor()`; upload, resize e varianti webp delle immagini no.
+     * `RequestMemo::forget(Asset::VERSION_MEMO)`. Lo fanno `cssRoot()`,
+     * `cssColor()` e `uploadFiles()` (anche con il manifest di
+     * `MediaFileManager::syncFiles()`, che genera resize e varianti webp).
      */
     public static function version(string $url, ?string $root = null, ?string $appUrl = null): string
     {

@@ -11,6 +11,7 @@ cache lunga (`max-age=31536000, immutable`) in sicurezza.
 | --- | --- |
 | `Asset::version(string $url): string` | Appende `?v={filemtime}` a un URL locale già costruito (prefisso `APP_URL` o path relativo `/...`). URL esterni, con query string/fragment già presenti o file inesistenti restano invariati. Mai eccezioni. |
 | `Asset::url(string $file): string` | Costruisce e versiona l'URL di un file dentro `assets/{ASSETS_VERSION}/`. |
+| `Asset::rewriteCssUrls(string $css, string $stylesheetUrl): ?string` | Prepara un CSS da inlinare: `url()` relativi resi assoluti rispetto al foglio e, con quelli root-relative, versionati. `null` se un riferimento esce dalla radice. |
 
 ## Helper globali
 
@@ -38,6 +39,8 @@ che applica lo stesso schema `?v=`.
   non è risolvibile, `__inline_css()` ricade sul `<link>` versionato.
 - `Wonder\App\Dependencies::generate()` — tutte le librerie emesse
   (jquery, swiper, wi-lib, ...) sono versionate.
+- Media, favicon, icone, immagini social, upload del backend ed editor: l'elenco
+  completo è in [Prestazioni frontend](../concetti/frontend-performance.md).
 
 ## Ridurre il render-blocking (LCP)
 

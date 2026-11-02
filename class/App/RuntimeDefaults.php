@@ -132,14 +132,14 @@ class RuntimeDefaults
     {
         $appAssets = is_object($path) ? (string) ($path->appAssets ?? '') : '';
 
-        return $appAssets !== '' ? $appAssets.'/logos/Wonder-Image.png' : '';
+        return $appAssets !== '' ? Support\Asset::version($appAssets.'/logos/Wonder-Image.png') : '';
     }
 
     public static function backendLogoWhite(?object $path = null): string
     {
         $appAssets = is_object($path) ? (string) ($path->appAssets ?? '') : '';
 
-        return $appAssets !== '' ? $appAssets.'/logos/Wonder-Image-White.png' : '';
+        return $appAssets !== '' ? Support\Asset::version($appAssets.'/logos/Wonder-Image-White.png') : '';
     }
 
     public static function backendFavicon(): string

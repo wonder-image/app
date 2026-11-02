@@ -58,7 +58,8 @@
             $image = "<div><div class='position-absolute top-50 start-50 translate-middle text-center'>$firstLetterName$firstLetterSurname</div></div>";
 
         } else {
-            $image = "<img class='position-absolute top-50 start-50 translate-middle w-100 h-100' src='$PATH->upload/user/profile-picture/960x960-{$RETURN->profile_picture[0]}' alt='$RETURN->username'>";
+            $src = __asset_version("$PATH->upload/user/profile-picture/960x960-{$RETURN->profile_picture[0]}");
+            $image = "<img class='position-absolute top-50 start-50 translate-middle w-100 h-100' src='$src' alt='$RETURN->username'>";
         }
 
         $RETURN->avatar = "<div class='ratio ratio-1x1 rounded-circle border overflow-hidden' style='background: $RETURN->color !important;color: $RETURN->colorContrast !important;' >$image</div>";

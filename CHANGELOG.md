@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Corretto
+- **File sostituiti con lo stesso nome restavano in cache.** Video (src, WebM, poster),
+  lightbox, immagini delle opzioni, favicon e icone app, `og:image`, upload e loghi del
+  backend, blocchi dell'editor e helper legacy delle immagini ora escono con `?v=` come
+  già CSS, JS e immagini responsive. I CSS inlinati (`__inline_css()`, font locali)
+  rendono assoluti e versionati i propri `url()`: prima un `url()` relativo inlinato
+  puntava alla pagina. Dopo un caricamento l'URL stampato è già quello nuovo (#103).
 - **Breadcrumb su mobile.** Il renderer Wonder usava la classe inesistente `f-wrap`,
   così le voci restavano su una riga sola e il testo si spezzava dentro ogni voce:
   ora usa `flex-wrap` della lib e le voci che non ci stanno vanno a capo intere.

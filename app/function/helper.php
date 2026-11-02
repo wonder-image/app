@@ -157,6 +157,11 @@
         $path = Wonder\App\Support\Asset::path($url);
         $css = ($path !== null) ? @file_get_contents($path) : false;
 
+        if ($css !== false && $css !== '' && preg_match('/url\s*\(/i', $css)) {
+            // Inline gli url() relativi puntano alla pagina: assoluti e versionati.
+            $css = Wonder\App\Support\Asset::rewriteCssUrls($css, $url) ?? false;
+        }
+
         if ($css === false || $css === '') {
             return '<link href="'.htmlspecialchars(__asset_version($url), ENT_QUOTES).'" rel="stylesheet">';
         }

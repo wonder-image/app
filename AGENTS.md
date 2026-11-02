@@ -324,6 +324,8 @@ php forge start
 
 - Herd missing-media fallback sends a direct 302 from the driver. Never return a generated PHP proxy from `isStaticFile`: Nginx treats that path as static and can enter an internal redirect loop.
 
+- Local asset URLs printed by the framework (Video src/poster, lightbox hrefs, `OptionVisual`, head favicon, og:image and sized icons (`AppIconLinks`), backend uploads/logos, editor blocks, legacy image helpers) go through `Asset::version()`; inlined CSS rewrites `url()` with `Asset::rewriteCssUrls()`. Never add a second cache-busting scheme, and clear `Asset::VERSION_MEMO` after rewriting a file in the same request.
+
 - Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend(false)` is a temporary legacy opt-out; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.
 
 - Managed `.htaccess` blocks: `WONDER PERFORMANCE`, `WONDER SECURITY` (headers for static files, deny of non-public files and internal folders; `vendor/` denied except static extensions under `vendor/*/*/resources/assets/` and the xml-sitemaps generator, so package assets served to the browser must live there) and `WONDER UPLOAD` in `assets/upload/.htaccess` (no script execution). PHP responses get the same headers from `Wonder\Http\SecurityHeaders` in the bootstrap. API 500s return a generic `response` unless `Debug::enabled()`, plus `request_id` / `X-Request-Id` (`Wonder\Http\RequestId`). `Logger` writes only under `ROOT/storage/logs/`; redact URIs and identifiers with `Wonder\App\LogRedactor`. See `docs/app/piattaforma/sicurezza.md`.
