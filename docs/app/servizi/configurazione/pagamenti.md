@@ -7,7 +7,7 @@ default vuoto.
 
 ## Stripe
 
-«Collega webhook» (`POST /api/service/stripe/connect/`) rifà l'endpoint
+«Ricollega» del webhook (`POST /api/service/stripe/connect/`) rifà l'endpoint
 Connect dell'ambiente scelto con `Wonder\Plugin\Stripe\Connect`. Gli eventi
 registrati sono `Connect::events()`: i quattro di `Connect::EVENTS`
 (`payment_intent.succeeded`, `payment_intent.payment_failed`,

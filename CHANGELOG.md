@@ -3,12 +3,13 @@
 ## Unreleased
 
 ### Corretto
-- **«Collega webhook» lasciava su Stripe il vecchio endpoint senza `www`.**
+- **«Collega webhook» (ora «Ricollega») lasciava su Stripe il vecchio endpoint senza `www`.**
   `Connect::webhook()` cancellava solo l'endpoint con l'url identico: dopo il
   passaggio a `www` quello su `example.it` restava attivo, riceveva un 301 e
   Stripe segnalava le consegne fallite. Ora cancella gli endpoint dello stesso
   sito anche con l'altra forma dell'host, in `http` o senza slash finale
-  (`Connect::sameEndpoint()`); quelli degli altri siti restano.
+  (`Connect::sameEndpoint()`); quelli degli altri siti restano. In Sicurezza
+  i bottoni del webhook di produzione e test si chiamano «Ricollega».
 - **Catalogo dei componenti con PHP 8.5: `self` scritto col nome della classe.**
   Da PHP 8.5 la reflection risolve `self`; `ApiReference` lo riporta a `self`
   nelle firme e nei tipi di ritorno, come con PHP 8.2.

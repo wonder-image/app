@@ -152,9 +152,9 @@ scrivere:
 | Form legacy che includono `app/html/backend/index.php` (`upload`, `upload-add`) | alert `929`, nessun `sqlInsert`/`sqlModify`, nessun redirect |
 | Creazione rapida (`backend.resource.quick-create`) | `403` JSON con il testo generico della pagina scaduta, il controller non viene chiamato |
 | Logout (`POST /backend/account/logout/`) | alert `929` sulla pagina di conferma, nessun logout |
-| «Collega webhook» Stripe (`POST /api/service/stripe/connect/`, area backend, solo admin) | `403` sulla pagina di conferma, credenziali non toccate |
+| «Ricollega» del webhook Stripe (`POST /api/service/stripe/connect/`, area backend, solo admin) | `403` sulla pagina di conferma, credenziali non toccate |
 
-Logout e «Collega webhook» in `GET` mostrano solo una pagina di conferma con un
+Logout e «Ricollega» del webhook in `GET` mostrano solo una pagina di conferma con un
 form `POST` e `_csrf`: non escono e non collegano nulla da soli, anche con
 `?_csrf=` nella query (il token conta solo dal corpo o da `X-WI-CSRF`). Nel menu
 del backend «Esci» è un form: in `sidebarOffcanvas()` una voce con
