@@ -84,8 +84,8 @@ check('icon(), variant(), outline(false) e size() cambiano il bottone', function
         && str_contains($html, '<i class="bi bi-truck"></i> Costo</button>');
 });
 
-check('il tipo si raggiunge anche dall\'helper «button»', function () {
-    $html = (new FormField('cost_button', 'button'))->label('Costo')->render('bootstrap');
+check('il tipo si raggiunge dal type-helper button()', function () {
+    $html = FormField::key('cost_button')->label('Costo')->button()->render('bootstrap');
 
     return FormField::key('cost_button')->button() instanceof InputButton
         && str_contains($html, 'type="button"')

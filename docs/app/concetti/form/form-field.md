@@ -69,8 +69,8 @@ public static function formSchema(): array
 {% hint style="danger" %}
 Il metodo per il drag&drop si chiama **`fileDragDrop()`**, non
 `inputFileDragDrop()`. Quest'ultimo **non esiste** e produce un errore "method
-not found". L'helper imposta internamente `helper = 'inputFileDragDrop'`, ma il
-metodo pubblico è `fileDragDrop()` (`FormField.php:311`).
+not found": il metodo pubblico è `fileDragDrop()`, che ritorna un
+`InputFileDragDrop`.
 {% endhint %}
 
 ## Type-helper disponibili
