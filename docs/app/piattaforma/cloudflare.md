@@ -184,7 +184,11 @@ Con `APP_TRUST_PROXY=true` il sito si fida di `X-Forwarded-For` e
 `X-Forwarded-Proto`: è corretto solo se l'origine accetta traffico
 esclusivamente dal proxy. Con Cloudflare l'origine resta raggiungibile
 anche direttamente finché il firewall del server non limita le connessioni
-agli IP di Cloudflare.
+agli IP di Cloudflare. In alternativa elenca in `APP_TRUSTED_PROXIES` (in
+Bitwarden) gli intervalli pubblicati su
+[cloudflare.com/ips](https://www.cloudflare.com/ips/): gli header arrivati
+direttamente all'origine sono ignorati. La lista va aggiornata se Cloudflare
+la cambia. Vedi [Proxy fidati](multi-ambiente.md#proxy-fidati).
 
 ## Esempio
 

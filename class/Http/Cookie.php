@@ -53,8 +53,8 @@
 
         /**
          * HTTPS diretto (`$_SERVER['HTTPS']`); `X-Forwarded-Proto: https`
-         * conta solo con `APP_TRUST_PROXY` attivo, perché senza un proxy
-         * davanti l'header lo sceglie il client.
+         * conta solo da un proxy fidato (`TrustedProxies`), perché senza un
+         * proxy davanti l'header lo sceglie il client.
          */
         public static function isSecure(?array $server = null): bool
         {
@@ -65,7 +65,7 @@
                 return true;
             }
 
-            if (!self::trustsProxy()) {
+            if (!TrustedProxies::trusts($server)) {
                 return false;
             }
 
@@ -74,6 +74,7 @@
             return $proto === 'https';
         }
 
+        /** Solo il flag `APP_TRUST_PROXY`: per la richiesta usare `TrustedProxies::trusts()`. */
         public static function trustsProxy(): bool
         {
             if (class_exists(Credentials::class)) {
