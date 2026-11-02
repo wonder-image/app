@@ -22,6 +22,7 @@ final class CssInput extends Model
     {
         return [
             Column::key('tx_color'),
+            Column::key('font_size')->default('16'),
             Column::key('bg_color'),
             Column::key('dropdown_tx_color')->default('var(--input-tx-color)'),
             Column::key('dropdown_bg_color')->default('var(--input-bg-color)'),

@@ -115,6 +115,7 @@ class SeedDefaults
     {
         return [
             'tx_color' => '#000000',
+            'font_size' => 16,
             'bg_color' => '#ffffff',
             'disabled_bg_color' => '#eeeeee',
             'label_color' => '#626262',

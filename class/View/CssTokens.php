@@ -40,6 +40,8 @@ final class CssTokens
         $fontFamilySubtitle = (string) ($fontFamilies['subtitle'] ?? $fontFamilyDefault);
         $fontFamilyText = (string) ($fontFamilies['text'] ?? $fontFamilyDefault);
         $fontFamilyTextSmall = (string) ($fontFamilies['text_small'] ?? $fontFamilyDefault);
+        // Sotto i 16px Safari iOS zooma la pagina al tocco del campo.
+        $inputFontSize = (int) ($input->font_size ?? 0) ?: 16;
 
         $RETURN = ":root {\n";
         $RETURN .= "\n";
@@ -104,6 +106,7 @@ final class CssTokens
         $RETURN .= "--input-tx-color: $input->tx_color;\n";
         $RETURN .= "--input-tx-family: var(--font-family);\n";
         $RETURN .= "--input-tx-weight: var(--font-weight);\n";
+        $RETURN .= "--input-font-size: {$inputFontSize}px;\n";
         $RETURN .= "\n";
         $RETURN .= "--input-bg-color: $input->bg_color;\n";
         $RETURN .= "--input-disabled-bg: $input->disabled_bg_color;\n";

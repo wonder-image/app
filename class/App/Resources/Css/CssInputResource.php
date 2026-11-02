@@ -7,7 +7,7 @@ use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\Resources\Support\CssSingleton;
-use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\{Card, SectionTitle};
 use Wonder\Elements\Form\Form;
 
 final class CssInputResource extends CssSingleton
@@ -48,6 +48,7 @@ final class CssInputResource extends CssSingleton
             'label_weight' => 'Font weight',
             'label_weight_focus' => 'Font weight focus',
             'tx_color' => 'Testo',
+            'font_size' => 'Dimensione testo',
             'bg_color' => 'Sfondo',
             'disabled_bg_color' => 'Sfondo disabilitato',
             'dropdown_tx_color' => 'Testo',
@@ -76,6 +77,7 @@ final class CssInputResource extends CssSingleton
             FormField::key('label_weight')->text()->required(),
             FormField::key('label_weight_focus')->text()->required(),
             FormField::key('tx_color')->color()->required(),
+            FormField::key('font_size')->text()->required(),
             FormField::key('bg_color')->color()->required(),
             FormField::key('disabled_bg_color')->color()->required(),
             FormField::key('dropdown_tx_color')->color()->required(),
@@ -88,6 +90,7 @@ final class CssInputResource extends CssSingleton
     {
         return (new Form)->components([
             (new Card)->components([
+                (new SectionTitle)->text('Bordo')->columnSpan(12),
                 static::getInput('border_color')->columnSpan(6),
                 static::getInput('border_color_focus')->columnSpan(6),
                 static::getInput('border_radius')->columnSpan(12),
@@ -98,6 +101,7 @@ final class CssInputResource extends CssSingleton
             ])->columns(12)->columnSpan(6),
 
             (new Card)->components([
+                (new SectionTitle)->text('Calendario')->columnSpan(12),
                 static::getInput('date_default')->columnSpan(6),
                 static::getInput('date_active')->columnSpan(6),
                 static::getInput('date_bg')->columnSpan(6),
@@ -106,6 +110,7 @@ final class CssInputResource extends CssSingleton
             ])->columns(12)->columnSpan(6),
 
             (new Card)->components([
+                (new SectionTitle)->text('Label')->columnSpan(12),
                 static::getInput('label_color')->columnSpan(6),
                 static::getInput('label_color_focus')->columnSpan(6),
                 static::getInput('label_weight')->columnSpan(6),
@@ -113,19 +118,23 @@ final class CssInputResource extends CssSingleton
             ])->columns(12)->columnSpan(6),
 
             (new Card)->components([
+                (new SectionTitle)->text('Campo')->columnSpan(12),
                 static::getInput('tx_color')->columnSpan(6),
                 static::getInput('bg_color')->columnSpan(6),
-                static::getInput('disabled_bg_color')->columnSpan(12),
+                static::getInput('disabled_bg_color')->columnSpan(6),
+                static::getInput('font_size')->columnSpan(6),
             ])->columns(12)->columnSpan(3),
 
             (new Card)->components([
+                (new SectionTitle)->text('Tendina')->columnSpan(12),
                 static::getInput('dropdown_tx_color')->columnSpan(6),
                 static::getInput('dropdown_bg_color')->columnSpan(6),
             ])->columns(12)->columnSpan(3),
 
             (new Card)->components([
-                static::getInput('select_hover'),
-            ])->columns(1)->columnSpan(3),
+                (new SectionTitle)->text('Selezione')->columnSpan(12),
+                static::getInput('select_hover')->columnSpan(12),
+            ])->columns(12)->columnSpan(3),
         ])->columns(12);
     }
 
