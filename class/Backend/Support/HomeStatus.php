@@ -5,15 +5,17 @@ namespace Wonder\Backend\Support;
 use Throwable;
 use Wonder\App\Logger;
 use Wonder\App\Module\ConfigRepository;
+use Wonder\App\Support\Mail\Outbox;
 use Wonder\Backend\Contracts\HomeStatusItem;
 use Wonder\Backend\Home\ErrorStatus;
+use Wonder\Backend\Home\MailQueueStatus;
 use Wonder\Backend\Home\SchedulerStatus;
 use Wonder\Elements\Components\StatusCard;
 
 /**
  * Fascia di stato in cima alla home del backend. Le voci sono classi
- * `HomeStatusItem` indicizzate per chiave: il core registra `scheduler` ed
- * `errors`, i moduli abilitati aggiungono, sostituiscono o tolgono (`false`)
+ * `HomeStatusItem` indicizzate per chiave: il core registra `scheduler`,
+ * `errors` e `mail_queue`, i moduli abilitati aggiungono, sostituiscono o tolgono (`false`)
  * voci con `backend.home_status` nella propria configurazione e il sito ha
  * l'ultima parola con `HomeStatus::set()`. Ogni voce decide da sé chi la
  * vede; se una voce solleva un'eccezione sparisce, la home resta.
@@ -27,6 +29,7 @@ final class HomeStatus
     public const CORE = [
         'scheduler' => SchedulerStatus::class,
         'errors' => ErrorStatus::class,
+        'mail_queue' => MailQueueStatus::class,
     ];
 
     /** @var array<string, class-string<HomeStatusItem>|false> */
@@ -116,6 +119,16 @@ final class HomeStatus
         return $open > 0
             ? self::card('bi-bug', 'Errori', (string) $open, $open === 1 ? 'Errore da controllare' : 'Errori da controllare', 'danger', $href)
             : self::card('bi-bug', 'Errori', '0', 'Nessun errore aperto', 'success', $href);
+    }
+
+    /** Card solo quando la coda email è ferma (vedi `Outbox::stuck()`), altrimenti null. */
+    public static function mailQueue(?string $oldestDue, int $now, string $href): ?StatusCard
+    {
+        if (!Outbox::stuck($oldestDue, $now)) {
+            return null;
+        }
+
+        return self::card('bi-envelope-exclamation', 'Coda email', 'Ferma', 'Email in attesa dal '.gmdate('d/m/Y H:i', (int) strtotime($oldestDue.' UTC')).' UTC', 'warning', $href);
     }
 
     private static function card(string $icon, string $title, string $value, string $detail, string $variant, string $href): StatusCard

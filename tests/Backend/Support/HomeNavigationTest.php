@@ -222,13 +222,13 @@ check('i moduli aggiungono, sostituiscono e tolgono voci per chiave', function (
         'bad' => ['backend' => ['home_status' => ['nope' => stdClass::class]]],
     ];
 
-    return array_keys(HomeStatus::sources($configs)) === ['scheduler', 'orders'];
+    return array_keys(HomeStatus::sources($configs)) === ['scheduler', 'mail_queue', 'orders'];
 });
 
 check('il sito ha l\'ultima parola e una voce che fallisce sparisce', function () {
     HomeStatus::set('scheduler', false);
     HomeStatus::set('broken', HomeStatusFailingItem::class);
-    $configs = ['shop' => ['backend' => ['home_status' => ['orders' => HomeStatusTestItem::class, 'errors' => false]]]];
+    $configs = ['shop' => ['backend' => ['home_status' => ['orders' => HomeStatusTestItem::class, 'errors' => false, 'mail_queue' => false]]]];
     $items = HomeStatus::items(['admin'], '/backend', $configs);
     $keys = array_keys(HomeStatus::sources($configs));
     HomeStatus::reset();

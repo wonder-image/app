@@ -18,7 +18,8 @@ $check($task->alwaysEnabled() === false && (clone $task)->alwaysOn()->alwaysEnab
 $check(Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.google-places'])
     && !Repository::isAlwaysEnabled(['origin' => 'backend', 'task_key' => 'wonder.google-places'])
     && Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.sitemap'])
-    && !Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.euribor']), 'Google Places and sitemap are always enabled');
+    && Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.mail-outbox'])
+    && !Repository::isAlwaysEnabled(['origin' => 'code', 'task_key' => 'wonder.euribor']), 'Google Places, sitemap and mail outbox are always enabled');
 try { $task->schedule('not a cron'); $check(false, 'Invalid cron accepted'); } catch (InvalidArgumentException) { $checks++; }
 try { Repository::next('* * * * *', 'invalid/timezone'); $check(false, 'Invalid timezone accepted'); } catch (Exception) { $checks++; }
 $date = Repository::next('0 12 * * 1-5', 'Europe/Rome');

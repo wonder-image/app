@@ -314,6 +314,21 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   Profile con OAuth, non incluso. Le credenziali Google sono distinte dal
   token Wonder `@system`.
 
+- **Coda email**: `Tasks\MailOutboxTask` (`wonder.mail-outbox`), sempre attiva,
+  ogni minuto. Spedisce le email messe in coda con `queueMail()` (righe
+  `queued` di `mail_log` con `next_attempt_at` scaduto), al massimo 50 per
+  esecuzione, e si ferma 30 secondi prima del timeout invece di fallire.
+  Ogni riga viene presa con un `UPDATE` atomico (`queued` → `sending`), così
+  due esecuzioni non spediscono la stessa email; una riga rimasta `sending`
+  oltre 15 minuti (worker ucciso) torna in coda: la consegna e quindi
+  *almeno una volta*, non *esattamente una volta*. Un errore temporaneo
+  riprova dopo 1, 5, 15 e 60 minuti; dopo 5 tentativi, o subito per un errore
+  permanente (indirizzo rifiutato, 550-554, allegato mancante), la riga
+  diventa `failed`. Il risultato riporta `released`, `sent`, `retried` e
+  `failed`; senza la colonna `mail_log.payload` (prima di `forge update`)
+  l'esecuzione e saltata (`skipped: mail_log_outbox_missing`). Dettagli in
+  [Credenziali email](../servizi/configurazione/email.md#coda-di-invio).
+
 ## Verifica
 
 Dal framework: `php tests/scheduler.php`. Il test DB/processi

@@ -39,6 +39,46 @@ Cosa succede alla conferma:
 La rotta è `POST backend.resource.app-config-credentials.mail-test`, protetta
 da CSRF e dagli stessi permessi di modifica della risorsa.
 
+## Coda di invio
+
+`sendMail()` spedisce subito, dentro la richiesta: se il server SMTP è lento o
+non risponde, la pagina aspetta e l'email fallita resta fallita. `queueMail()`
+ha la stessa firma e lo stesso ritorno (`true` / `false`), ma salva l'email in
+`mail_log` con stato **In coda** (`queued`) e la lascia spedire al cron
+[Coda email](../../piattaforma/cron-job.md#preconfigurati-e-integrazioni-future)
+(`wonder.mail-outbox`, ogni minuto).
+
+```php
+queueMail($from, $to, $oggetto, $corpo, $allegati, 'basic');
+```
+
+La coda è opt-in: `sendMail()` resta sincrona e nessuna chiamata esistente
+cambia comportamento. Un sito o un modulo che vuole mettere in coda tutte le
+sue email cambia il punto in cui le spedisce (per esempio il gestionale
+imposta `Mailer::$transport = 'queueMail'`).
+
+- **Ripiego sincrono.** Se lo Scheduler non gira (ultimo contatto assente o
+  più vecchio di 5 minuti) o il salvataggio in coda fallisce, `queueMail()`
+  chiama `sendMail()`: l'email parte comunque, come prima.
+- **Tentativi.** Un errore temporaneo (connessione, autenticazione, timeout)
+  riprova dopo 1, 5, 15 e 60 minuti, al massimo 5 tentativi. Un errore
+  permanente (indirizzo non valido o rifiutato, codici 550-554, allegato non
+  trovato) passa subito a **Fallita**. Il motivo resta nella riga di `mail_log`.
+- **Almeno una volta.** Una riga rimasta **In invio** (`sending`) per più di
+  15 minuti, perché il processo è stato ucciso a metà, torna in coda: in casi
+  rari il destinatario può ricevere l'email due volte.
+- **Allegati.** In coda si salvano i percorsi, non i file: devono esistere
+  ancora quando il cron spedisce. Non mettere in coda allegati temporanei che
+  la richiesta cancella subito dopo.
+- **Corpo.** Il messaggio originale (mittente, destinatari, oggetto, corpo,
+  allegati, template) sta nella colonna `payload` finché l'email non è inviata
+  o fallita, poi viene svuotato; il log mostra il corpo spedito come per
+  `sendMail()`.
+- **Backend.** Il log delle email filtra anche per **In coda** e **In invio**.
+  Se la coda è ferma (l'email più vecchia da spedire aspetta da oltre 15
+  minuti) la home del backend mostra la card **Coda email**, a chi può vedere
+  il log, con il link alla lista.
+
 ## Per chi sviluppa
 
 - `Wonder\App\Support\Mail\SmtpTransport::configure($mail, $credentials)` è
@@ -57,3 +97,12 @@ da CSRF e dagli stessi permessi di modifica della risorsa.
   e registra la rotta in `registerBackendRoutes()`: un sito o un modulo che
   estende la risorsa può sostituire `editActions()` per cambiare o togliere
   il bottone.
+- `Wonder\App\Support\Mail\Outbox` contiene le regole della coda
+  (`queue()`, `process()`, `retryAt()`, `permanent()`, `stuck()` e le
+  costanti `MAX_ATTEMPTS`, `RETRY_DELAYS`, `CLAIM_TIMEOUT`, `BATCH`) e lavora
+  su un `OutboxStore`: `DatabaseOutboxStore` è quello su `mail_log`, i test
+  usano uno store in memoria. `process()` riceve la funzione che spedisce
+  (`mailDeliver()`, lo stesso invio di `sendMail()` senza la riga di log),
+  così un modulo può sostituire trasporto o archivio senza toccare le regole.
+- `mail_log` ha le colonne `attempts`, `next_attempt_at` (UTC) e `payload`
+  (JSON grezzo, scritto con prepared statement); `forge update` le aggiunge.
