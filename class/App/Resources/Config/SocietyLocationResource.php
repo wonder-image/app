@@ -306,7 +306,7 @@ class SocietyLocationResource extends Resource
                 ->badgeOff('Secondaria', 'bi bi-geo', 'secondary')
                 ->size('little'),
             TableColumn::key('visible')->visibleBadge()->size('little'),
-            TableColumn::key('actions')->button()->actions(['edit', 'delete']),
+            TableColumn::key('actions')->button()->actions(['edit', 'visible', 'delete']),
         ];
     }
 

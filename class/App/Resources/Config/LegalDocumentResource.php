@@ -99,7 +99,7 @@ final class LegalDocumentResource extends Resource
             TableColumn::key('version')->text()->size('little'),
             TableColumn::key('active')->activeBadge()->size('little'),
             TableColumn::key('published_at')->datetime()->size('medium'),
-            TableColumn::key('actions')->button()->actions(['view', 'download', 'edit']),
+            TableColumn::key('actions')->button()->actions(['view', 'download', 'edit', 'active']),
         ];
     }
 
