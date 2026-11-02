@@ -2,8 +2,10 @@
 
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
+use Wonder\App\Model;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputFile;
 use Wonder\App\Support\RepeaterGroups;
 use Wonder\Themes\Bootstrap\Form\Field;
 
@@ -284,6 +286,7 @@ HTML;
                 : $columnName.'[]';
 
             $field->inputName($inputName)->value($fieldValue);
+            $this->inheritRelationUploadDirectory($field, $columnName, $context);
 
             return [
                 $field->render('bootstrap'),
@@ -302,6 +305,42 @@ HTML;
             'col-'.max(1, min(12, (int) ($column['col'] ?? 11))),
             '',
         ];
+    }
+
+    /**
+     * Una colonna file prende la sottocartella dal Model della relazione.
+     *
+     * Le righe si salvano con la dataSchema() del Model correlato, che
+     * dichiara la `dir()`; la colonna invece non la conosce, e senza la
+     * preview del file già caricato lo cerca in `upload/{folder}/` e va in
+     * 404. Come `Resource::inheritModelUploadDirectory()` per i campi di
+     * primo livello: una dir dichiarata sulla colonna vince.
+     */
+    private function inheritRelationUploadDirectory(Input $field, string $columnName, array $context): void
+    {
+        if (!$field instanceof InputFile) {
+            return;
+        }
+
+        $current = ((array) ($field->get('prepare') ?? []))['dir'] ?? null;
+
+        if (is_string($current) && trim($current) !== '') {
+            return;
+        }
+
+        $relation = $context['relation'] ?? null;
+        $modelClass = is_object($relation) ? ($relation->modelClass ?? null) : null;
+
+        if (!is_string($modelClass) || !is_subclass_of($modelClass, Model::class)) {
+            return;
+        }
+
+        $format = $modelClass::prepareFormatFromField($modelClass::dataFields()[$columnName] ?? null);
+        $dir = $format['dir'] ?? null;
+
+        if (is_string($dir) && trim($dir, '/') !== '') {
+            $field->prepare('dir', $dir);
+        }
     }
 
     /**
