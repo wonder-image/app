@@ -2,6 +2,8 @@
 
 namespace Wonder\Themes\Concerns;
 
+use Wonder\App\Support\Asset;
+
 trait RendersVideo
 {
     use RendersMediaAttributes;
@@ -11,7 +13,7 @@ trait RendersVideo
         $attributes = $this->renderMediaAttributes(
             $class,
             $this->videoThemeClasses($class),
-            ['poster' => $class->posterUrl()]
+            ['poster' => Asset::version($class->posterUrl())]
         );
 
         $sources = [];
@@ -48,7 +50,7 @@ trait RendersVideo
 
     private function renderVideoSource(string $url, ?string $mimeType = null): string
     {
-        return '<source src="' . $this->escape($url) . '" type="' . ($mimeType ?? $this->videoMimeType($url)) . '">';
+        return '<source src="' . $this->escape(Asset::version($url)) . '" type="' . ($mimeType ?? $this->videoMimeType($url)) . '">';
     }
 
     private function videoMimeType(string $url): string

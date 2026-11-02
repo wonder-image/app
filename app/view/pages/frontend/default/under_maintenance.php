@@ -73,7 +73,7 @@
         <div class="content">
 
             <div class="p-a w-50 end c-h p-p-r w-p-100 p-c-h-off">
-                <img src="<?=e(($PATH->appAssets ?? '').'/images/under-construction.png')?>" alt="Sito in costruzione" class="w-100">
+                <img src="<?=e(__asset_version(($PATH->appAssets ?? '').'/images/under-construction.png'))?>" alt="Sito in costruzione" class="w-100">
             </div>
 
             <div class="p-a w-50 c-h p-p-r w-p-100 p-c-h-off mt-p-10">

@@ -34,7 +34,8 @@ final class OptionVisual
         $image = self::image((string) ($option['image'] ?? ''));
 
         if ($image !== '') {
-            return ['type' => 'image', 'value' => $image];
+            // Un file locale prende `?v=`: sostituito con lo stesso nome si aggiorna.
+            return ['type' => 'image', 'value' => Asset::version($image)];
         }
 
         $icon = self::icon((string) ($option['icon'] ?? ''));

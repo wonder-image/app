@@ -4,6 +4,7 @@ namespace Wonder\Themes\Concerns;
 
 use InvalidArgumentException;
 use Wonder\App\Dependencies;
+use Wonder\App\Support\Asset;
 
 trait RendersButtonLightbox
 {
@@ -23,11 +24,11 @@ trait RendersButtonLightbox
         Dependencies::fancyapps();
         $group = 'wi-button-'.bin2hex(random_bytes(8));
         $first = array_shift($items);
-        $button->href($first['src'])->attr('data-fancybox', $group)->attr('data-type', $first['type']);
+        $button->href(Asset::version($first['src']))->attr('data-fancybox', $group)->attr('data-type', $first['type']);
         $html = $this->render($button);
         foreach ($items as $item) {
             $attributes = $this->renderAttributes([
-                'href' => $item['src'], 'data-fancybox' => $group,
+                'href' => Asset::version($item['src']), 'data-fancybox' => $group,
                 'data-type' => $item['type'], 'hidden' => true,
                 'tabindex' => '-1', 'aria-hidden' => 'true',
             ]);

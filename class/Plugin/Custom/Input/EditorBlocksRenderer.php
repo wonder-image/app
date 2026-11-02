@@ -2,6 +2,8 @@
 
 namespace Wonder\Plugin\Custom\Input;
 
+use Wonder\App\Support\Asset;
+
 class EditorBlocksRenderer
 {
     private array $config = [];
@@ -155,8 +157,8 @@ class EditorBlocksRenderer
     {
         $file = $this->normalizeFile($data['file'] ?? null);
 
-        $large = $this->toString($file['large'] ?? $file['url'] ?? '');
-        $original = $this->toString($file['original'] ?? $file['url'] ?? $large);
+        $large = Asset::version($this->toString($file['large'] ?? $file['url'] ?? ''));
+        $original = Asset::version($this->toString($file['original'] ?? $file['url'] ?? $large));
 
         if ($large === '' && $original === '') {
             return '';
@@ -202,8 +204,8 @@ class EditorBlocksRenderer
         foreach ($files as $fileRow) {
             $file = $this->normalizeFile($fileRow);
 
-            $large = $this->toString($file['large'] ?? $file['url'] ?? '');
-            $original = $this->toString($file['original'] ?? $file['url'] ?? $large);
+            $large = Asset::version($this->toString($file['large'] ?? $file['url'] ?? ''));
+            $original = Asset::version($this->toString($file['original'] ?? $file['url'] ?? $large));
             $caption = $this->decodeHtml((string)($file['caption'] ?? ($data['caption'] ?? '')));
 
             if ($large === '' && $original === '') {
@@ -247,7 +249,7 @@ class EditorBlocksRenderer
     {
         $file = $this->normalizeFile($data['file'] ?? null);
 
-        $url = $this->toString($file['url'] ?? ($data['url'] ?? ''));
+        $url = Asset::version($this->toString($file['url'] ?? ($data['url'] ?? '')));
         $mimeType = $this->toString($file['mime-type'] ?? ($file['mimeType'] ?? ($data['mime-type'] ?? '')));
 
         if ($url === '') {
@@ -379,7 +381,7 @@ class EditorBlocksRenderer
     {
         $file = $this->normalizeFile($data['file'] ?? null);
         $title = $this->toString($data['title'] ?? '');
-        $fileUrl = $this->toString($file['url'] ?? '');
+        $fileUrl = Asset::version($this->toString($file['url'] ?? ''));
         $fileName = $this->toString($file['name'] ?? '');
         $fileSize = (int)($file['size'] ?? 0);
 

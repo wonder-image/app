@@ -77,11 +77,39 @@ File assenti, URL esterni o URL gia parametrizzati restano
 invariati. Usare `Image::priority()` sulla hero visibile inizialmente, mai su tutte
 le immagini: disabilita lazy loading e assegna fetchpriority high.
 
+Lo stesso `Asset::version()` copre gli altri URL locali che il framework stampa,
+così un file sostituito con lo stesso nome si aggiorna senza aspettare la cache:
+
+- `Video`: src, source WebM e poster (nel renderer, non nei getter dell'Element);
+- `Button::lightbox()`: href del primo elemento e degli elementi nascosti;
+- `OptionVisual::of()`: l'immagine delle opzioni di select e check;
+- `<head>` del frontend: favicon (`$PATH->favicon`), apple-touch-icon, icone app
+  per dimensione (`AppIconLinks::sized()`), `og:image` e `twitter:image`, il
+  `<link>` di ripiego dei font locali;
+- CSS inlinati (`Asset::inlineStyle()`, `__inline_css()`): gli `url()` relativi
+  diventano assoluti e, come quelli root-relative, prendono `?v=` tramite
+  `Asset::rewriteCssUrls()`;
+- backend: anteprima e download dei file caricati, immagini delle tabelle, loghi
+  (`RuntimeDefaults::backendLogoBlack()/White()`), blocchi immagine, video e
+  allegati dell'editor;
+- helper legacy `srcSet()`, `imgWebP()`, `swiper_fashionSliderSlide()`, avatar
+  utente e immagine delle pagine "in costruzione"/"in manutenzione".
+
+`uploadFiles()` svuota la memo dei filemtime (`RequestMemo::forget(Asset::VERSION_MEMO)`)
+anche quando salva con il manifest dei file, così l'URL stampato dopo il caricamento
+è già quello nuovo. Gli URL che hanno già una query o un fragment (es. `?#iefix` nei
+`@font-face`) restano senza versione. Le anteprime dei file disegnate dalla lib
+(`data-wi-dir`/`data-wi-value`) non passano da PHP e restano da versionare in
+`wonder-image/lib`.
+
 Il template Apache include il blocco `WONDER PERFORMANCE START/END`.
 `php forge update --local` (oppure update in produzione) lo aggiorna automaticamente;
 su installazioni legacy lo aggiunge in fondo senza cancellare personalizzazioni.
 Le modifiche manuali vanno fuori dal blocco gestito. La cache degli asset statici
 versionati dura un anno, quella degli URL non versionati un giorno con rivalidazione.
+Il giorno resta voluto: copre gli URL che il framework non può versionare (esterni,
+già parametrizzati, scritti a mano dai siti), che con una cache lunga non si
+aggiornerebbero più.
 WebP e AVIF sono inclusi. HTML non riceve cache immutable.
 
 Distribuzione: rilasciare wonder-image/app e la build npm di wonder-image/lib,
