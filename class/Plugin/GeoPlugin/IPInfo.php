@@ -20,7 +20,7 @@
             
             if ($ip === null) {
                 
-                // Stessa regola di throttle e auth_log: X-Forwarded-For solo con APP_TRUST_PROXY.
+                // Stessa regola di throttle e auth_log: X-Forwarded-For solo da un proxy fidato.
                 $ip = \Wonder\Http\ClientIp::resolve($_SERVER);
                 $this->IP = $ip === '' ? null : $ip;
 

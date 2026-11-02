@@ -435,6 +435,26 @@ Variabili introdotte per il supporto multi-ambiente:
 | `SYNC_AUTO_EXPORT` | `.env` produzione | `false` | Se `true`, rigenera `shared/sync-data.json` ad ogni save dal backend |
 | `SYNC_TABLES` | `.env` | *(tutte)* | Comma-separated: tabelle da includere nel sync (es. `css_font,css_color,seo`) |
 | `APP_TRUST_PROXY` | `.env` produzione | `false` | Se `true`, `X-Forwarded-Proto: https` rende i cookie `Secure` e la richiesta HTTPS per `UrlParser` e per le API (anche `X-Forwarded-Scheme` e `X-Forwarded-Ssl`; senza flag sono ignorati), e l'IP del throttle di login e di `auth_log` diventa l'ultima voce di `X-Forwarded-For` (anche `UrlParser::requestIp()` e la lista IP degli utenti API). Solo dietro un proxy che termina HTTPS e aggiunge la propria voce a `X-Forwarded-For`, altrimenti il client sceglie il proprio IP. Vedi [Cookie](../concetti/form/csrf.md#cookie) e [Throttle](../concetti/utenti/auth-frontend.md#throttle) |
+| `APP_TRUSTED_PROXIES` | Bitwarden → `.env` produzione | *(vuoto)* | IP e CIDR dei proxy fidati, IPv4 e IPv6, separati da virgole (es. `10.0.0.0/8, 2001:db8::/32`). Vedi [Proxy fidati](#proxy-fidati) |
+
+### Proxy fidati
+
+`APP_TRUSTED_PROXIES` restringe la fiducia ai proxy elencati, e basta da sola:
+non serve anche `APP_TRUST_PROXY`. Gli header `X-Forwarded-*` contano solo se
+`REMOTE_ADDR` è nella lista; chi si collega direttamente all'origine li manda
+invano. L'IP del client si legge scorrendo `X-Forwarded-For` da destra e
+saltando i proxy della lista: la prima voce che non lo è è il client. Una voce
+non valida, o una catena fatta solo di proxy, riporta a `REMOTE_ADDR`.
+
+| `APP_TRUSTED_PROXIES` | `APP_TRUST_PROXY` | Header `X-Forwarded-*` | IP del client |
+|---|---|---|---|
+| vuota | `false` | ignorati | `REMOTE_ADDR` |
+| vuota | `true` | accettati da chiunque | ultima voce di `X-Forwarded-For` |
+| con voci | qualsiasi | solo da `REMOTE_ADDR` nella lista | prima voce da destra fuori dalla lista |
+
+Le voci non valide sono ignorate: una lista con sole voci non valide vale come
+vuota. Il deploy scrive nel `.env` di produzione tutti i segreti Bitwarden,
+quindi la variabile va aggiunta lì; `provision` non la chiede.
 
 ### GitHub Actions variables
 
