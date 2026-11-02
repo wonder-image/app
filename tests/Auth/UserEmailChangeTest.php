@@ -19,6 +19,7 @@ final class EmailChangeFakeMysqli extends mysqli
     public array $rows = [];
 
     public function __construct() {}
+    public function character_set_name(): string { return 'utf8mb4'; }
 
     public function real_escape_string(string $string): string
     {

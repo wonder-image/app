@@ -32,7 +32,7 @@ class SearchRemote extends Field
         $value = $this->hasValue() ? $this->escape((string) $this->schema['value']) : '';
         $label = $value !== '' ? $this->escape((string) ($this->schema['value_label'] ?? '')) : '';
         $empty = $this->escape((string) ($this->schema['empty_text'] ?? 'Nessun risultato'));
-        $attributes = $this->fieldAttributes(['placeholder']);
+        $attributes = $this->fieldAttributes(['placeholder', 'autocomplete', 'role', 'aria-autocomplete', 'aria-expanded']);
         $class = $this->fieldClass($this->inputClass('form-control'));
         $placeholder = $this->isNoFloating()
             ? $this->escape((string) ($this->schema['placeholder'] ?? ''))
