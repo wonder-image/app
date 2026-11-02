@@ -15,7 +15,7 @@ trait RendersBreadcrumb
         $nav->attr('aria-label', $class->getLabel());
         $html = '<nav '.$this->renderComponentAttributes($nav).'>';
         $html .= $bootstrap ? '<ol class="breadcrumb">'
-            : '<ol class="d-flex f-wrap gap-1 text-small pl-0" style="list-style: none;">';
+            : '<ol class="d-flex flex-wrap gap-1 text-small pl-0" style="list-style: none;">';
 
         foreach ($items as $index => $item) {
             $name = $this->escape((string) ($item['name'] ?? ''));

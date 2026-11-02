@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Corretto
+- **Breadcrumb su mobile.** Il renderer Wonder usava la classe inesistente `f-wrap`,
+  così le voci restavano su una riga sola e il testo si spezzava dentro ogni voce:
+  ora usa `flex-wrap` della lib e le voci che non ci stanno vanno a capo intere.
 - **Dati Google delle sedi e deploy.** Place ID e sincronizzazione orari si impostano in
   locale e il deploy li riporta in produzione, anche vuoti: un Place ID vuoto nel file
   elimina al passaggio notturno copia di Google e recensioni. `business_status` ora è
