@@ -12,14 +12,22 @@ final class Presentation
         return $value === null ? 'Non disponibile' : number_format((float) $value / $factor, 2, ',', '.').($unit !== '' ? ' '.$unit : '');
     }
 
+    /** Esiti di un'esecuzione: etichetta e colore del badge. */
+    public const STATUSES = [
+        'success' => ['Riuscita', 'success'], 'failed' => ['Fallita', 'danger'],
+        'interrupted' => ['Interrotta', 'warning'], 'running' => ['In esecuzione', 'primary'],
+        'pending' => ['In attesa', 'secondary'], 'skipped' => ['Saltata', 'secondary'],
+    ];
+
+    /** @return array<string, string> esito => etichetta */
+    public static function statusLabels(): array
+    {
+        return array_map(static fn (array $status): string => $status[0], self::STATUSES);
+    }
+
     public static function status(string $status): string
     {
-        [$label, $color] = match ($status) {
-            'success' => ['Riuscita', 'success'], 'failed' => ['Fallita', 'danger'],
-            'interrupted' => ['Interrotta', 'warning'], 'running' => ['In esecuzione', 'primary'],
-            'pending' => ['In attesa', 'secondary'], 'skipped' => ['Saltata', 'secondary'],
-            default => [$status, 'secondary'],
-        };
+        [$label, $color] = self::STATUSES[$status] ?? [$status, 'secondary'];
         return Badge::make($label)->variant($color)->render('bootstrap');
     }
 

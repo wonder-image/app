@@ -35,6 +35,16 @@ pianificazione. Le azioni della pagina, **Esegui ora** e **Modifica**
 dichiarate con `pageSchema()->actions('view', ...)` (vedi
 [Azioni della testata](#azioni-della-testata)).
 
+Il **Registro esecuzioni** ha tre filtri, oltre alla ricerca: **Attivita**
+(le chiavi presenti nelle esecuzioni, con il nome dell'attivita in codice,
+altrimenti quello della pianificazione), **Esito** (riuscita, fallita,
+interrotta, in esecuzione, in attesa, saltata: le etichette di
+`Presentation::statusLabels()`, le stesse dei badge) e **Periodo** (ultime 24
+ore, 7 o 30 giorni, su `started_at` in UTC). Il periodo e un `filterQuery()`
+che accetta solo le chiavi di `RunResource::PERIODS`; senza scelta valgono i
+180 giorni di conservazione. La tabella **Esecuzioni** della pianificazione
+li tiene spenti.
+
 **Esegui ora** chiede conferma con `data-wi-confirm`, poi invia POST
 `/{id}/run/`: la richiesta mette `requested = 'true'` e il cron la esegue al
 passaggio successivo, quindi nel giro di un minuto. Lo spinner resta visibile

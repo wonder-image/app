@@ -33,6 +33,10 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Filtri nel Registro esecuzioni dello Scheduler.** La lista di `RunResource` filtra
+  per attività, esito e periodo (ultime 24 ore, 7 o 30 giorni); il periodo accetta solo
+  le chiavi di `RunResource::PERIODS`. Le etichette degli esiti stanno in
+  `Presentation::STATUSES`, condivise con i badge.
 - **Dimensione del testo degli input da backend.** Dev → Stile → Input ha il campo
   "Dimensione testo" (`css_input.font_size`, default 16) che scrive `--input-font-size`
   in `root.css`: sotto i 16px Safari iOS zooma la pagina al tocco del campo. Le card
