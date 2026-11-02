@@ -15,6 +15,15 @@ registrati sono `Connect::events()`: i quattro di `Connect::EVENTS`
 Il core non conosce gli eventi dei moduli: un modulo che ne gestisce altri li
 registra al suo bootstrap, prima che il webhook venga collegato.
 
+Prima di creare l'endpoint `webhook()` cancella quelli dello stesso sito,
+confrontati con `Connect::sameEndpoint()`: stesso host a meno di `www.` e
+maiuscole, stessa porta, stesso percorso a meno dello slash finale, schema
+ignorato. Così, se il sito passa da `example.it` a `www.example.it` (o al
+contrario), ricollegare toglie il vecchio endpoint, che riceverebbe un 301:
+Stripe non segue i redirect e lo conterebbe come fallito. Gli endpoint degli
+altri siti, anche sottodomini dello stesso dominio, restano: il conto della
+piattaforma è condiviso.
+
 ```php
 use Wonder\Plugin\Stripe\Connect;
 

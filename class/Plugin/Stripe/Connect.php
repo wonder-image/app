@@ -40,6 +40,11 @@ final class Connect
     /**
      * Rifà l'endpoint per questo url sul conto della piattaforma, come
      * webhook Connect: Stripe non lascia creare endpoint sui conti collegati.
+     * Cancella prima gli endpoint dello stesso sito, anche con l'altra forma
+     * dell'host (con o senza `www.`), `http` o senza slash finale: dopo il
+     * passaggio a `www` il vecchio endpoint riceverebbe un 301 e Stripe lo
+     * conterebbe come fallito. Quelli degli altri siti restano: il conto
+     * della piattaforma è condiviso.
      * Arrivano gli eventi di tutti i conti collegati, ognuno con `account`:
      * chi li riceve scarta quelli degli altri. Dà il segreto nuovo.
      * Senza `$events` registra EVENTS più quelli aggiunti con addEvents().
@@ -55,7 +60,7 @@ final class Connect
         }
 
         foreach ($this->client->webhookEndpoints->all(['limit' => 100])->autoPagingIterator() as $endpoint) {
-            if ((string) $endpoint->url === $url) {
+            if (self::sameEndpoint((string) $endpoint->url, $url)) {
                 $this->client->webhookEndpoints->delete((string) $endpoint->id);
             }
         }
@@ -63,6 +68,33 @@ final class Connect
         $endpoint = $this->client->webhookEndpoints->create(['url' => $url, 'enabled_events' => $events, 'connect' => true]);
 
         return (string) $endpoint->secret;
+    }
+
+    /**
+     * Stesso endpoint a meno di schema, `www.`, maiuscole dell'host e slash
+     * finale del percorso. Host o percorso diversi: è di un altro sito.
+     */
+    public static function sameEndpoint(string $a, string $b): bool
+    {
+        $key = static function (string $url): ?string {
+            $parts = parse_url(trim($url));
+            $host = strtolower((string) ($parts['host'] ?? ''));
+
+            if ($host === '') {
+                return null;
+            }
+
+            $host = str_starts_with($host, 'www.') ? substr($host, 4) : $host;
+            $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+            $path = rtrim((string) ($parts['path'] ?? ''), '/');
+            $query = isset($parts['query']) ? '?'.$parts['query'] : '';
+
+            return $host.$port.$path.$query;
+        };
+
+        $left = $key($a);
+
+        return $left !== null && $left === $key($b);
     }
 
     /**
