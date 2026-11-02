@@ -9,6 +9,9 @@ use Wonder\View\View;
 /** Site/module policy: fields, validation and business hooks, never authentication HTML. */
 class AuthProfile
 {
+    /** @var array<string, array> `custom/config/auth.php`, per percorso del file. */
+    private static array $siteConfig = [];
+
     public function key(): string { return 'account'; }
     public function routePrefix(): string { return 'account.auth'; }
     public function pathPrefix(): string { return '/account/auth'; }
@@ -80,6 +83,39 @@ class AuthProfile
             $surface === 'signup-completion' && $key === 'phone' => 3,
             default => $this->phoneColumns($surface),
         };
+    }
+    /** Spazio fra i campi del form, in passi della lib da 0 a 12 (`gap-N` / `gap-p-N`). Vedi formConfig(). */
+    public function formGap(string $surface, string $device = 'desktop'): int
+    {
+        return $this->formSpacing($surface, 'gap', $device);
+    }
+    /** Spazio sopra il form, sotto titolo e testo, in passi della lib da 0 a 12 (`mt-N` / `mt-p-N`). Vedi formConfig(). */
+    public function formMarginTop(string $surface, string $device = 'desktop'): int
+    {
+        return $this->formSpacing($surface, 'margin_top', $device);
+    }
+    /**
+     * `custom/config/auth.php` del sito: `form` vale per tutti i form, la chiave
+     * di una superficie (`login`, `signup-request`…) lo ridefinisce su quella.
+     * Ogni valore è un numero, oppure `['desktop' => N, 'phone' => N]`.
+     */
+    public function formConfig(): array
+    {
+        $file = rtrim((string) ($GLOBALS['ROOT'] ?? ''), '/').'/custom/config/auth.php';
+        if (!array_key_exists($file, self::$siteConfig)) {
+            $site = is_file($file) ? require $file : [];
+            self::$siteConfig[$file] = is_array($site) ? $site : [];
+        }
+        return self::$siteConfig[$file];
+    }
+    private function formSpacing(string $surface, string $key, string $device): int
+    {
+        $config = $this->formConfig();
+        $value = $config[$surface][$key] ?? $config['form'][$key] ?? 6;
+        if (is_array($value)) {
+            $value = $value[$device] ?? $value['desktop'] ?? 6;
+        }
+        return is_numeric($value) ? max(0, min(12, (int) $value)) : 6;
     }
     public function requiresCompletion(array $user): bool
     {

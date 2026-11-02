@@ -85,7 +85,25 @@ sulla provincia degli indirizzi.
 
 Importare `Wonder\App\ResourceSchema\FormField` e definire i testi in `lang/`.
 `columns()` e `fieldSpan()` configurano la griglia: il cellulare conserva un
-prefisso breve e il numero esteso. Le nuove traduzioni condivise sono `auth.*`
+prefisso breve e il numero esteso. Gli spazi del form si scelgono da
+`custom/config/auth.php` del sito, in passi della lib da 0 a 12 (default 6).
+`form` vale per tutti i form; la chiave di una superficie lo ridefinisce su
+quella. Un numero vale anche da cellulare; con `desktop` e `phone` il form
+riceve `gap-N gap-p-N` e `mt-N mt-p-N`. Un profilo può anche estendere
+`formGap($surface, $device)` e `formMarginTop($surface, $device)`:
+
+```php
+return [
+    'form' => [
+        'gap' => ['desktop' => 6, 'phone' => 4],          // fra i campi
+        'margin_top' => ['desktop' => 6, 'phone' => 4],   // sopra il form, sotto titolo e testo
+    ],
+    'login' => ['gap' => 4, 'margin_top' => 3],
+    'signup-completion' => ['gap' => ['desktop' => 4, 'phone' => 3]],
+];
+```
+
+Le nuove traduzioni condivise sono `auth.*`
 e `account.*`; eventuali override del vecchio `ecommerce.auth.*` vanno riportati
 in `lang/{locale}/auth.json` del sito. Le traduzioni ecommerce restano per
 compatibilità e per le pagine business del modulo.

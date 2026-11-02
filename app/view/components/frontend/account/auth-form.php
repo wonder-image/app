@@ -4,8 +4,10 @@ use Wonder\Elements\Components\Button;
 $form_id ??= $surface;
 $columns = max(1, min(12, $auth_profile->columns($surface)));
 $phone_columns = max(1, min(12, $auth_profile->phoneColumns($surface)));
+$spacing = 'gap-'.$auth_profile->formGap($surface).' gap-p-'.$auth_profile->formGap($surface, 'phone')
+    .' mt-'.$auth_profile->formMarginTop($surface).' mt-p-'.$auth_profile->formMarginTop($surface, 'phone');
 ?>
-<form id="<?=e($form_id)?>" method="post" class="w-100 d-grid col-<?=$columns?> col-p-<?=$phone_columns?> gap-6 mt-6" novalidate>
+<form id="<?=e($form_id)?>" method="post" class="p-r f-start w-100 d-grid col-<?=$columns?> col-p-<?=$phone_columns?> <?=$spacing?>" novalidate>
     <?=FormField::key('csrf_token')->hidden()->value($csrf_token)?>
     <?=FormField::key('continue')->hidden()->value(\Wonder\Http\SafeRedirect::continueFromRequest())?>
     <?php if (isset($token)): ?><?=FormField::key('token')->hidden()->value($token)?><?php endif; ?>
