@@ -76,7 +76,7 @@ final class ApiReference
                 static fn (ReflectionParameter $parameter): string => self::parameter($parameter),
                 $method->getParameters()
             )),
-            'returns' => self::type($method->getReturnType()),
+            'returns' => self::type($method->getReturnType(), $method->getDeclaringClass()->getName()),
             'summary' => self::summary($method->getDocComment() ?: ''),
             'origin' => self::shortName(self::origin($method, $class)),
             'deprecated' => str_contains((string) $method->getDocComment(), '@deprecated'),
@@ -147,7 +147,7 @@ final class ApiReference
 
     private static function parameter(ReflectionParameter $parameter): string
     {
-        $type = self::type($parameter->getType());
+        $type = self::type($parameter->getType(), $parameter->getDeclaringClass()?->getName());
         $signature = ($type !== '' ? $type.' ' : '')
             .($parameter->isPassedByReference() ? '&' : '')
             .($parameter->isVariadic() ? '...' : '')
@@ -181,7 +181,8 @@ final class ApiReference
         return str_replace(['NULL', 'TRUE', 'FALSE'], ['null', 'true', 'false'], var_export($value, true));
     }
 
-    private static function type(?ReflectionType $type): string
+    /** Da PHP 8.5 la reflection scrive `self` col nome della classe: qui torna `self`. */
+    private static function type(?ReflectionType $type, ?string $self = null): string
     {
         if ($type === null) {
             return '';
@@ -192,7 +193,7 @@ final class ApiReference
         }
 
         if ($type instanceof ReflectionNamedType) {
-            $name = self::shortName($type->getName());
+            $name = $type->getName() === $self ? 'self' : self::shortName($type->getName());
 
             return ($type->allowsNull() && $name !== 'mixed' && $name !== 'null' ? '?' : '').$name;
         }

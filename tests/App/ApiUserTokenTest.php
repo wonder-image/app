@@ -19,6 +19,7 @@ $GLOBALS['mysqli'] = new class extends mysqli {
 
     #[\ReturnTypeWillChange]
     public function real_escape_string($string) { return addslashes($string); }
+    public function character_set_name(): string { return 'utf8mb4'; }
 
     #[\ReturnTypeWillChange]
     public function query($query, $resultMode = MYSQLI_STORE_RESULT)

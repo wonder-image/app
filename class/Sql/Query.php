@@ -751,7 +751,7 @@
                 $RETURN->exists = ($RESULT->num_rows > 0) ? true : false;
                 $RETURN->Nrow = $RESULT->num_rows;
 
-                $jsonColumns = $this->latin1JsonColumns($RESULT);
+                $jsonColumns = $this->mysqli->character_set_name() === 'latin1' ? $this->latin1JsonColumns($RESULT) : [];
                 $toUtf8 = fn (array $row): array => self::jsonColumnsToUtf8($row, $jsonColumns);
 
                 if ($RESULT->num_rows == 1) {
@@ -785,10 +785,6 @@
          */
         private function latin1JsonColumns( \mysqli_result $result ): array
         {
-
-            if ($this->mysqli->character_set_name() !== 'latin1') {
-                return [];
-            }
 
             $columns = [];
 

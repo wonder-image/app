@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Corretto
+- **Catalogo dei componenti con PHP 8.5: `self` scritto col nome della classe.**
+  Da PHP 8.5 la reflection risolve `self`; `ApiReference` lo riporta a `self`
+  nelle firme e nei tipi di ritorno, come con PHP 8.2.
+- **SearchRemote (Bootstrap): `autocomplete` scritto due volte sull'input.**
+  `autocomplete="off"`, `role` e gli `aria-*` del combobox restano quelli del
+  tema; quelli passati al campo non ripetono più l'attributo.
+- **`Query::Select()` non legge più i metadati del risultato se la connessione
+  non è latin1.** Il charset si controlla prima di guardare le colonne json.
+  Riallineati i test con risultati SQL finti e la risposta Envelope del modal
+  di creazione rapida.
 - **File sostituiti con lo stesso nome restavano in cache.** Video (src, WebM, poster),
   lightbox, immagini delle opzioni, favicon e icone app, `og:image`, upload e loghi del
   backend, blocchi dell'editor e helper legacy delle immagini ora escono con `?v=` come

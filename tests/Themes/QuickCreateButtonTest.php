@@ -325,7 +325,7 @@ globalThis.CustomEvent = function (type, init) { this.type = type; this.detail =
 globalThis.Event = function (type) { this.type = type; };
 globalThis.FormData = function () { this.entries = []; this.append = function (k, v) { this.entries.push([k, v]); }; };
 globalThis.fetch = function () { return Promise.resolve({ json: function () {
-  return Promise.resolve({ success: true, id: 7, label: 'Colore', item: { id: 7, name: 'Colore', unit: 'pz' } }); } }); };
+  return Promise.resolve({ success: true, response: { id: 7, label: 'Colore', item: { id: 7, name: 'Colore', unit: 'pz' } } }); } }); };
 window.bootstrap = { Modal: { getInstance: function () { return { hide: function () { hidden = true; } }; } } };
 globalThis.document = {
   readyState: 'complete',
