@@ -41,6 +41,16 @@
   `OutboxStore` sostituibile. La home del backend mostra la card «Coda email» quando
   la coda è ferma da oltre 15 minuti; il log delle email filtra per «In coda» e
   «In invio». `sendMail()` resta sincrona: la coda è opt-in.
+- **Filtri nel Registro esecuzioni dello Scheduler.** La lista di `RunResource` filtra
+  per attività, esito e periodo (ultime 24 ore, 7 o 30 giorni); il periodo accetta solo
+  le chiavi di `RunResource::PERIODS`. Le etichette degli esiti stanno in
+  `Presentation::STATUSES`, condivise con i badge.
+- **Proxy fidati: `APP_TRUSTED_PROXIES`.** Lista di IP e CIDR (IPv4 e IPv6) dei proxy
+  davanti al sito, da mettere in Bitwarden. Con la lista gli header `X-Forwarded-*` contano
+  solo se `REMOTE_ADDR` è un proxy elencato, anche senza `APP_TRUST_PROXY`, e `ClientIp`
+  scorre `X-Forwarded-For` da destra saltando i proxy: giusto anche con più proxy in
+  catena. Senza lista resta il comportamento di `APP_TRUST_PROXY`. Regola unica in
+  `Wonder\Http\TrustedProxies`, usata da `ClientIp`, `Cookie::isSecure()` e `UrlParser`.
 - **Dimensione del testo degli input da backend.** Dev → Stile → Input ha il campo
   "Dimensione testo" (`css_input.font_size`, default 16) che scrive `--input-font-size`
   in `root.css`: sotto i 16px Safari iOS zooma la pagina al tocco del campo. Le card

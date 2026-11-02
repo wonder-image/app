@@ -164,7 +164,7 @@
             return (string) ($server['REQUEST_URI'] ?? '/');
         }
 
-        /** Stessa regola di `ClientIp`: `X-Forwarded-For` solo con `APP_TRUST_PROXY`. */
+        /** Stessa regola di `ClientIp`: `X-Forwarded-For` solo da un proxy fidato. */
         public static function requestIp(?array $server = null): string
         {
             return ClientIp::resolve($server ?? $_SERVER);
@@ -187,7 +187,7 @@
             }
 
             // Gli header `X-Forwarded-*` li sceglie il client se non c'è un proxy fidato.
-            if (Cookie::trustsProxy()) {
+            if (TrustedProxies::trusts($server)) {
                 $forwardedProto = self::firstForwardedHeaderValue((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? ''));
                 if ($forwardedProto === 'https') {
                     return true;

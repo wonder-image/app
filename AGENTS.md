@@ -320,6 +320,8 @@ php forge start
 
 - Frontend performance defaults to ordered deferred scripts and bounded inlining of `wi-lib`, Swiper CSS, and the structural `wi-frontend` stylesheet. Relative asset URLs in `wi-frontend` are resolved before inlining; Google Fonts are loaded asynchronously. Responsive raster images infer dimensions only from existing local files and preserve explicit dimensions; see `docs/app/concetti/frontend-performance.md`.
 
+- Proxy headers (`X-Forwarded-For/-Proto/-Scheme/-Ssl`) count only when `Wonder\Http\TrustedProxies::trusts()` holds: with `APP_TRUSTED_PROXIES` (IP/CIDR list, IPv4/IPv6; enough on its own) `REMOTE_ADDR` must be in the list and `ClientIp` walks `X-Forwarded-For` from the right skipping listed proxies; without a list `APP_TRUST_PROXY=true` trusts anyone (last XFF entry). Never read these headers directly: go through `TrustedProxies`, `ClientIp`, `Cookie::isSecure()` or `UrlParser`. The variable lives in Bitwarden. See `docs/app/piattaforma/multi-ambiente.md#proxy-fidati`.
+
 - Herd missing-media fallback sends a direct 302 from the driver. Never return a generated PHP proxy from `isStaticFile`: Nginx treats that path as static and can enter an internal redirect loop.
 
 - Frontend performance: see `docs/app/concetti/frontend-performance.md`. `Dependencies::deferFrontend(false)` is a temporary legacy opt-out; backend remains synchronous. Responsive image URLs are versioned per file, and Forge updates only the managed `WONDER PERFORMANCE` Apache block while retaining surrounding custom rules.

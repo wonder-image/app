@@ -230,8 +230,11 @@ query, per esempio `near '...'`.
   pagina di `Endpoint`). Il rinnovo `POST /api/token/page/` resta per
   compatibilità, con le stesse condizioni. Vedi [API](api.md).
 - **Header del proxy.** `X-Forwarded-For`, `-Proto`, `-Scheme` e `-Ssl` contano
-  solo con `APP_TRUST_PROXY=true`, per cookie, IP del client (`ClientIp`) e
-  URL assoluti (`UrlParser`). Vedi [Multi-ambiente](multi-ambiente.md).
+  solo da un proxy fidato, per cookie, IP del client (`ClientIp`) e URL
+  assoluti (`UrlParser`). Con `APP_TRUSTED_PROXIES` (IP e CIDR) il proxy è
+  fidato solo se `REMOTE_ADDR` è nella lista; senza lista vale il solo
+  `APP_TRUST_PROXY=true`, che si fida di chiunque si colleghi. La regola sta in
+  `Wonder\Http\TrustedProxies`. Vedi [Multi-ambiente](multi-ambiente.md#proxy-fidati).
 - **Analitica.** Prima di GTM il layout frontend nega il consenso di default
   (Consent Mode) e passa al dataLayer solo un hash dell'id utente. Vedi
   [Google Tag Manager](../servizi/google-tag-manager/configurazione.md#consenso-e-datalayer).

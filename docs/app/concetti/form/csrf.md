@@ -277,15 +277,17 @@ da `Cookie::set()`/`Cookie::clear()`.
 
 ### HTTPS dietro proxy
 
-Il core non ha un elenco di proxy fidati. `Cookie::isSecure()` guarda
-`$_SERVER['HTTPS']`; `X-Forwarded-Proto` conta solo se il `.env` ha
-`APP_TRUST_PROXY=true` (accetta anche `1`, `on`, `yes`), e allora decide il
-primo valore della catena. Accendilo solo se il sito è raggiungibile
+`Cookie::isSecure()` guarda `$_SERVER['HTTPS']`; `X-Forwarded-Proto` conta
+solo da un proxy fidato (`TrustedProxies::trusts()`), e allora decide il primo
+valore della catena. Con `APP_TRUSTED_PROXIES` il proxy è fidato se
+`REMOTE_ADDR` è nella lista; senza lista basta `APP_TRUST_PROXY=true` (accetta
+anche `1`, `on`, `yes`), da accendere solo se il sito è raggiungibile
 esclusivamente dal proxy: altrimenti un client può mandare l'header da sé.
-Senza flag, dietro un proxy che termina HTTPS i cookie escono senza `Secure`.
+Senza nessuno dei due, dietro un proxy che termina HTTPS i cookie escono
+senza `Secure`. Vedi [Proxy fidati](../../piattaforma/multi-ambiente.md#proxy-fidati).
 
 `UrlParser::isHttpsRequest()` (URL assoluti) e `UrlParser::requestIp()` seguono
-lo stesso flag: senza `APP_TRUST_PROXY` ignorano `X-Forwarded-*`.
+la stessa regola: da un proxy non fidato ignorano `X-Forwarded-*`.
 
 ## Token già esistenti
 
