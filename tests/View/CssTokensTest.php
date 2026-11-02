@@ -64,6 +64,24 @@ check('root() usa le righe e i font passati', function () {
         && str_contains($css, '--tx-color-rgb: 170, 187, 204;');
 });
 
+check('testo degli input a 16px di default, configurabile, mai vuoto', function () {
+    $root = static fn (array $input) => CssTokens::root(
+        (object) \Wonder\App\SeedDefaults::cssDefaultRow(),
+        (object) $input,
+        (object) \Wonder\App\SeedDefaults::cssAuthRow(),
+        (object) \Wonder\App\SeedDefaults::cssModalRow(),
+        (object) \Wonder\App\SeedDefaults::cssDropdownRow(),
+        (object) \Wonder\App\SeedDefaults::cssAlertRow(),
+        [],
+        []
+    );
+    $defaults = \Wonder\App\SeedDefaults::cssInputRow();
+
+    return str_contains(CssTokens::defaultRoot(), '--input-font-size: 16px;')
+        && str_contains($root(array_merge($defaults, ['font_size' => 18])), '--input-font-size: 18px;')
+        && str_contains($root(array_merge($defaults, ['font_size' => null])), '--input-font-size: 16px;');
+});
+
 check('colorClasses() scrive le utility per ogni colore', function () {
     $css = CssTokens::colorClasses([['var' => 'brand', 'color' => '#123456', 'contrast' => '#ffffff']]);
 

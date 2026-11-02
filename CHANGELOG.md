@@ -33,6 +33,10 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Dimensione del testo degli input da backend.** Dev → Stile → Input ha il campo
+  "Dimensione testo" (`css_input.font_size`, default 16) che scrive `--input-font-size`
+  in `root.css`: sotto i 16px Safari iOS zooma la pagina al tocco del campo. Le card
+  della pagina hanno ora i titoli (Bordo, Calendario, Label, Campo, Tendina, Selezione).
 - **Dichiarazione di accessibilità.** `resources/lang/*/legal.json` ha il blocco
   `legal.accessibility` (seo, titolo, sottotitolo, paragrafi, payoff vuoto) in
   it/en/de/es/fr, pronto per una pagina `/legal/accessibility/` del sito come le
