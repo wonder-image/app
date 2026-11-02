@@ -223,7 +223,7 @@ final class SecurityResource extends SingletonResource
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production', 'Ricollega')
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production', 'Ricollega webhook')
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
@@ -237,7 +237,7 @@ final class SecurityResource extends SingletonResource
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test', 'Ricollega')
+                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test', 'Ricollega webhook')
                         ->variant('dark')
                         ->addClass('float-end')
                         ->columnSpan(4),

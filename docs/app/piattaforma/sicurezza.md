@@ -221,7 +221,7 @@ query, per esempio `near '...'`.
 
 ## Richieste che cambiano stato
 
-- **Niente azioni in `GET`.** Logout backend e «Ricollega» del webhook Stripe in
+- **Niente azioni in `GET`.** Logout backend e «Ricollega webhook» Stripe in
   `GET` mostrano una conferma; l'azione è un `POST` con `_csrf` nel corpo (o
   `X-WI-CSRF`). Un token nella query non conta. Vedi
   [Token CSRF](../concetti/form/csrf.md#pagine-backend-del-core).
