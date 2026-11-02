@@ -33,6 +33,10 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Filtri nel Registro esecuzioni dello Scheduler.** La lista di `RunResource` filtra
+  per attività, esito e periodo (ultime 24 ore, 7 o 30 giorni); il periodo accetta solo
+  le chiavi di `RunResource::PERIODS`. Le etichette degli esiti stanno in
+  `Presentation::STATUSES`, condivise con i badge.
 - **Proxy fidati: `APP_TRUSTED_PROXIES`.** Lista di IP e CIDR (IPv4 e IPv6) dei proxy
   davanti al sito, da mettere in Bitwarden. Con la lista gli header `X-Forwarded-*` contano
   solo se `REMOTE_ADDR` è un proxy elencato, anche senza `APP_TRUST_PROXY`, e `ClientIp`
