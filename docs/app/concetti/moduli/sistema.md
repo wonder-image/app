@@ -120,8 +120,8 @@ La home del backend (`app/view/pages/backend/home.php`) usa solo classi
 Bootstrap, senza CSS proprio. Dall'alto:
 
 - saluto e data, con il pulsante **Vai al sito**;
-- la fascia di stato (`Wonder\Backend\Support\HomeStatus`): scheduler ed
-  errori aperti nel core, più le voci dei moduli, descritte sotto;
+- la fascia di stato (`Wonder\Backend\Support\HomeStatus`): scheduler,
+  errori aperti e coda email ferma nel core, più le voci dei moduli, descritte sotto;
 - i riquadri dei moduli, descritti sotto;
 - **Accesso rapido**: le sezioni della navigazione senza sottomenu;
 - **Sezioni**: una card per sezione con i suoi link. Se la sezione ha gruppi,
@@ -147,8 +147,9 @@ Ogni voce della fascia di stato è una classe che implementa
 | `order()` | ordine crescente tra le voci |
 
 Le voci hanno una chiave. Il core registra `scheduler`
-(`Wonder\Backend\Home\SchedulerStatus`) ed `errors`
-(`Wonder\Backend\Home\ErrorStatus`). Un modulo aggiunge, sostituisce o toglie
+(`Wonder\Backend\Home\SchedulerStatus`), `errors`
+(`Wonder\Backend\Home\ErrorStatus`) e `mail_queue`
+(`Wonder\Backend\Home\MailQueueStatus`). Un modulo aggiunge, sostituisce o toglie
 voci nella propria configurazione:
 
 ```php

@@ -33,6 +33,14 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Coda email nello Scheduler.** Nuova `queueMail()`, con la stessa firma di
+  `sendMail()`: salva l'email in `mail_log` (stato «In coda») e la spedisce il cron
+  sempre attivo `wonder.mail-outbox`, ogni minuto, con fino a 5 tentativi (1, 5, 15,
+  60 minuti) e fallimento immediato per gli errori permanenti. Senza Scheduler attivo
+  ripiega su `sendMail()`. Regole in `Wonder\App\Support\Mail\Outbox` su un
+  `OutboxStore` sostituibile. La home del backend mostra la card «Coda email» quando
+  la coda è ferma da oltre 15 minuti; il log delle email filtra per «In coda» e
+  «In invio». `sendMail()` resta sincrona: la coda è opt-in.
 - **Dimensione del testo degli input da backend.** Dev → Stile → Input ha il campo
   "Dimensione testo" (`css_input.font_size`, default 16) che scrive `--input-font-size`
   in `root.css`: sotto i 16px Safari iOS zooma la pagina al tocco del campo. Le card
@@ -109,6 +117,11 @@
   `tests/Console/CloudflareSecurityTest.php`.
 
 ### Cambiato
+- **`mail_log` e `sendMail()`.** `mail_log` ha le colonne `attempts`,
+  `next_attempt_at` e `payload` (le aggiunge `forge update`) e i nuovi stati `queued`
+  e `sending`. `sendMail()` ora è `mailDeliver()` (invio) più `mailLogInsert()` (log),
+  con lo stesso comportamento. `HomeStatus::CORE` ha la voce `mail_queue`: un sito la
+  toglie con `HomeStatus::set('mail_queue', false)`.
 - **Un formato per le risposte JSON.** Nuova `Wonder\Api\Envelope`: `{success, status, response}`,
   con il dato o il messaggio in `response` e `request_id` sugli errori che lo hanno.
   La usano `Handler`, `HttpErrorResponse`, il nuovo `ApiRequest::ok()` e `ApiRequest::error()`.

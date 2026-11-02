@@ -242,7 +242,7 @@ php forge start
   `Backend\Support\HomeNavigation` and renders it with the shared
   `LinkCard` / `LinkListCard` Elements (grouping lives in `LinkListCard`).
   The status strip is `HomeStatus`: keyed `HomeStatusItem` classes returning
-  a `StatusCard` or null (core `scheduler`, `errors`), extended, replaced or
+  a `StatusCard` or null (core `scheduler`, `mail_queue`, `errors`), extended, replaced or
   removed (`false`) by modules through `backend.home_status` and by the site
   through `HomeStatus::set()`. Each item gates itself with
   `Resource::allows($authorities, $action)` of the Resource it links to,
@@ -447,6 +447,19 @@ php forge start
   (`logCheckFailure()`: `failed` row in `mail_log` plus `__log()`, never
   throws); `sendMailError()` exposes the last `sendMail()` error.
   See `docs/app/servizi/configurazione/email.md`.
+- Mail outbox: `queueMail()` (same signature as `sendMail()`, which stays
+  synchronous) stores a `queued` `mail_log` row with the raw arguments in
+  `payload` (JSON, prepared statement, never `sanitize()`); the always-on
+  task `wonder.mail-outbox` sends it every minute through `mailDeliver()`.
+  Rules live in `App\Support\Mail\Outbox` over an `OutboxStore`
+  (`DatabaseOutboxStore`; tests use an in-memory store): atomic claim
+  `queued` -> `sending`, stale claims released after 15 min (at-least-once),
+  retries 1/5/15/60 min, 5 attempts, permanent errors fail at once, payload
+  cleared on `sent`/`failed`. Without a fresh scheduler heartbeat, or when
+  queuing throws, `queueMail()` falls back to `sendMail()`. Home status item
+  `mail_queue` warns when the oldest due mail waits over 15 min. Opt-in only:
+  never switch existing `sendMail()` callers. See
+  `docs/app/servizi/configurazione/email.md#coda-di-invio`.
 - `Resource::formNotices($values, $mode)` returns `{level, message}` alerts
   printed above the backend form, outside the `<form>` (`FORM_NOTICES` in
   `ResourcePagePresenter`), for external state such as Google differences.

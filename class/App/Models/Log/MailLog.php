@@ -30,6 +30,9 @@ final class MailLog extends Model
             Column::key('request_uri'),
             Column::key('ip')->length(45),
             Column::key('user_agent')->length(255),
+            Column::key('attempts')->int()->default('0'),
+            Column::key('next_attempt_at')->datetime(),
+            Column::key('payload')->type('LONGTEXT'),
         ];
     }
 
@@ -47,6 +50,9 @@ final class MailLog extends Model
             ],
             'ind_to_status' => [
                 'index' => ['to_email', 'status'],
+            ],
+            'ind_status_next_attempt' => [
+                'index' => ['status', 'next_attempt_at'],
             ],
         ];
     }

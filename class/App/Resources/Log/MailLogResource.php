@@ -74,6 +74,8 @@ final class MailLogResource extends Resource
                 '' => 'Tutti',
                 'sent' => 'Inviata',
                 'failed' => 'Fallita',
+                'queued' => 'In coda',
+                'sending' => 'In invio',
             ]);
     }
 

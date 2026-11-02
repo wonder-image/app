@@ -27,6 +27,18 @@
             'text' => 'Invio email non riuscito',
             'icon' => 'bi bi-exclamation-octagon',
             'color' => 'danger'
+        ],
+        'queued' => [
+            'name' => 'In coda',
+            'text' => 'In attesa del prossimo giro dello scheduler',
+            'icon' => 'bi bi-hourglass-split',
+            'color' => 'secondary'
+        ],
+        'sending' => [
+            'name' => 'In invio',
+            'text' => 'Presa in carico dallo scheduler',
+            'icon' => 'bi bi-send',
+            'color' => 'info'
         ]
     ];
 
@@ -74,6 +86,18 @@
                     'text' => 'Invio email non riuscito',
                     'icon' => 'bi bi-exclamation-octagon',
                     'color' => 'danger'
+                ],
+                'queued' => [
+                    'name' => 'In coda',
+                    'text' => 'In attesa del prossimo giro dello scheduler',
+                    'icon' => 'bi bi-hourglass-split',
+                    'color' => 'secondary'
+                ],
+                'sending' => [
+                    'name' => 'In invio',
+                    'text' => 'Presa in carico dallo scheduler',
+                    'icon' => 'bi bi-send',
+                    'color' => 'info'
                 ]
             ];
         }
@@ -90,65 +114,123 @@
             return true;
         }
 
-        global $SOCIETY;
+        $DELIVERY = mailDeliver($from, $to, $object, $body, $attachments, $template);
 
-        $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);
+        $GLOBALS['MAIL_LAST_ERROR'] = $DELIVERY['error'];
 
-        $MAIL = new PHPMailer\PHPMailer\PHPMailer(true);
-        $CREDENTIALS = Wonder\App\Credentials::mail();
+        mailLogInsert([
+            'from_email' => $DELIVERY['from_email'],
+            'reply_to_email' => $DELIVERY['reply_to_email'],
+            'to_email' => (string) $to,
+            'subject' => (string) $object,
+            'template' => (string) $template,
+            'body_raw' => $DELIVERY['body_raw'],
+            'body_text' => $DELIVERY['body_text'],
+            'attachments' => $attachments,
+            'service' => $DELIVERY['service'],
+            'status' => $DELIVERY['sent'] ? 'sent' : 'failed',
+            'error_message' => $DELIVERY['error'],
+        ]);
 
-        $BODY_RAW = emailTemplate($body, $template);
-        $BODY_TEXT = htmlToText($BODY_RAW);
-        $MAIL_SENT = false;
-        $MAIL_ERROR = '';
-        $mailService = strtolower((string) ($CREDENTIALS->service ?? 'phpmailer'));
-        $replyTo = trim((string) $from);
+        return $DELIVERY['sent'];
 
-        if (!in_array($mailService, [ 'phpmailer', 'brevo' ])) {
-            $mailService = 'phpmailer';
+    }
+
+    /**
+     * Come `sendMail()`, ma la mail entra nella coda (`mail_log` con stato
+     * `queued`) e parte al prossimo giro del task `wonder.mail-outbox`.
+     * Senza heartbeat recente dello scheduler, o se la coda non è
+     * scrivibile, spedisce subito con `sendMail()`. Vedi
+     * `Wonder\App\Support\Mail\Outbox`.
+     */
+    function queueMail($from, $to, $object, $body, $attachments = null, $template = 'basic'){
+
+        if (defined('WONDER_NO_MAIL') && WONDER_NO_MAIL === true) {
+            return true;
         }
+
+        return Wonder\App\Support\Mail\Outbox::queue([
+            'from' => (string) $from,
+            'to' => (string) $to,
+            'subject' => (string) $object,
+            'body' => (string) $body,
+            'attachments' => $attachments,
+            'template' => (string) $template,
+        ]);
+
+    }
+
+    /** Allegati di `sendMail()` come lista di `['path' => ..., 'name' => ...]`. */
+    function mailAttachments($attachments): array
+    {
 
         $attachmentList = [];
 
-        if ($attachments != null) {
+        if ($attachments == null) {
+            return $attachmentList;
+        }
 
-            if (is_array($attachments)) {
+        if (!is_array($attachments)) {
+            return [[ 'path' => $attachments, 'name' => '' ]];
+        }
 
-                if (count($attachments) >= 1) {
+        foreach ($attachments as $key => $attachment) {
 
-                    foreach ($attachments as $key => $attachment) {
-
-                        if (is_numeric($key)) {
-                            $attachmentName = '';
-                            $attachmentRelativePath = $attachment;
-                        } else {
-                            $attachmentName = $attachment;
-                            $attachmentRelativePath = $key;
-                        }
-
-                        $attachmentList[] = [
-                            'path' => $attachmentRelativePath,
-                            'name' => $attachmentName
-                        ];
-
-                    }
-
-                }
-
+            if (is_numeric($key)) {
+                $attachmentName = '';
+                $attachmentRelativePath = $attachment;
             } else {
-
-                $attachmentList[] = [
-                    'path' => $attachments,
-                    'name' => ''
-                ];
-
+                $attachmentName = $attachment;
+                $attachmentRelativePath = $key;
             }
+
+            $attachmentList[] = [
+                'path' => $attachmentRelativePath,
+                'name' => $attachmentName
+            ];
 
         }
 
-        $MAIL_SERVICE_SENT = $mailService;
+        return $attachmentList;
+
+    }
+
+    /**
+     * Spedisce una mail con il servizio configurato, senza scrivere
+     * `mail_log`: lo fanno `sendMail()` (riga nuova) e la coda (riga già
+     * accodata). Ritorna esito, servizio, errore e i dati da registrare.
+     */
+    function mailDeliver($from, $to, $object, $body, $attachments = null, $template = 'basic'): array
+    {
+
+        global $SOCIETY;
+
+        $BODY_RAW = '';
+        $BODY_TEXT = '';
+        $MAIL_SENT = false;
+        $MAIL_ERROR = '';
+        $CREDENTIALS = null;
+        $replyTo = trim((string) $from);
+        $MAIL_SERVICE_SENT = 'phpmailer';
 
         try {
+
+            $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);
+
+            $MAIL = new PHPMailer\PHPMailer\PHPMailer(true);
+            $CREDENTIALS = Wonder\App\Credentials::mail();
+
+            $BODY_RAW = emailTemplate($body, $template);
+            $BODY_TEXT = htmlToText($BODY_RAW);
+            $mailService = strtolower((string) ($CREDENTIALS->service ?? 'phpmailer'));
+
+            if (!in_array($mailService, [ 'phpmailer', 'brevo' ])) {
+                $mailService = 'phpmailer';
+            }
+
+            $attachmentList = mailAttachments($attachments);
+
+            $MAIL_SERVICE_SENT = $mailService;
 
             switch ($mailService) {
 
@@ -246,42 +328,48 @@
             $MAIL_ERROR = $e->getMessage();
             __log($e, '['.$MAIL_SERVICE_SENT.']', '[sendMail]');
 
-        } finally {
-
-            $GLOBALS['MAIL_LAST_ERROR'] = $MAIL_ERROR;
-
-            try {
-
-                $VALUES = Wonder\App\Table::key('mail_log')
-                    ->prepare([
-                        'user_id' => $_SESSION['user_id'] ?? null,
-                        'from_email' => (string) ($CREDENTIALS->username ?? ''),
-                        'reply_to_email' => $replyTo !== '' ? $replyTo : null,
-                        'to_email' => (string) $to,
-                        'subject' => (string) $object,
-                        'template' => (string) $template,
-                        'body_raw' => $BODY_RAW,
-                        'body_text' => $BODY_TEXT,
-                        'attachments' => $attachments,
-                        'service' => $MAIL_SERVICE_SENT,
-                        'status' => $MAIL_SENT ? 'sent' : 'failed',
-                        'error_message' => $MAIL_ERROR,
-                        'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
-                        'ip' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
-                        'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
-                    ]);
-                    
-                sqlInsert('mail_log', $VALUES);
-
-            } catch (Throwable $e) {
-
-                __log($e, '[mail_log]', '[sendMail]');
-
-            }
-
         }
 
-        return $MAIL_SENT;
+        return [
+            'sent' => $MAIL_SENT,
+            'service' => $MAIL_SERVICE_SENT,
+            'error' => $MAIL_ERROR,
+            'from_email' => (string) ($CREDENTIALS->username ?? ''),
+            'reply_to_email' => $replyTo !== '' ? $replyTo : null,
+            'body_raw' => $BODY_RAW,
+            'body_text' => $BODY_TEXT,
+        ];
+
+    }
+
+    /**
+     * Scrive una riga di `mail_log` con utente e richiesta correnti; ritorna
+     * l'id, o null se l'inserimento non riesce (l'errore finisce nel log).
+     */
+    function mailLogInsert(array $row): ?int
+    {
+
+        try {
+
+            $VALUES = Wonder\App\Table::key('mail_log')
+                ->prepare(array_merge([
+                    'user_id' => $_SESSION['user_id'] ?? null,
+                    'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+                    'ip' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+                    'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+                ], $row));
+
+            $RESULT = sqlInsert('mail_log', $VALUES);
+
+            return $RESULT->success ? (int) $RESULT->insert_id : null;
+
+        } catch (Throwable $e) {
+
+            __log($e, '[mail_log]', '[sendMail]');
+
+            return null;
+
+        }
 
     }
 
