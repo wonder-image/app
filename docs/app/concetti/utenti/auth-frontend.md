@@ -629,10 +629,13 @@ altri accessi federati non passano dal throttle password. Indici
 `auth_log(ip, creation)` e `(event, creation)` nello schema del core.
 
 L'IP del bucket e della colonna `auth_log.ip` viene da
-`Wonder\Http\ClientIp::resolve()`. Senza `APP_TRUST_PROXY` vale `REMOTE_ADDR`;
+`Wonder\Http\ClientIp::resolve()`. Senza proxy fidato vale `REMOTE_ADDR`;
 `X-Forwarded-For` è ignorato perché lo sceglie il client. Con
-`APP_TRUST_PROXY=true` vale l'ULTIMA voce di `X-Forwarded-For`, cioè quella
-aggiunta dal proxy; se manca o non è un IP valido si torna a `REMOTE_ADDR`.
+`APP_TRUSTED_PROXIES` si scorre `X-Forwarded-For` da destra saltando i proxy
+della lista, e vale la prima voce che non ne fa parte: anche con più proxy in
+catena. Con il solo `APP_TRUST_PROXY=true` vale l'ULTIMA voce, cioè quella
+aggiunta dal proxy. Se la voce manca o non è un IP valido si torna a
+`REMOTE_ADDR`. Vedi [Proxy fidati](../../piattaforma/multi-ambiente.md#proxy-fidati).
 
 Rischi da tenere presenti:
 
@@ -642,8 +645,8 @@ Rischi da tenere presenti:
 - il flag va attivato solo se il proxy aggiunge davvero la propria voce a
   `X-Forwarded-For`. Un proxy che inoltra l'header del client senza
   aggiungerla lascia scegliere l'IP al client, che così aggira il bucket per IP
-  (il bucket per identificatore resta). Con più proxy in catena conta solo
-  l'ultimo.
+  (il bucket per identificatore resta). Con più proxy in catena, senza
+  `APP_TRUSTED_PROXIES`, conta solo l'ultimo.
 
 Se `sqlCount` fallisce il throttle lascia passare (fail-open).
 
