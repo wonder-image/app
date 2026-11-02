@@ -15,7 +15,9 @@ use Wonder\App\Support\AppIconLinks;
 use Wonder\App\Support\Asset;
 use Wonder\App\Support\OptionVisual;
 use Wonder\Elements\Components\Button;
+use Wonder\App\RuntimeDefaults;
 use Wonder\Elements\Media\Video;
+use Wonder\Plugin\Custom\Input\EditorBlocksRenderer;
 
 $fail = 0;
 function check(string $label, bool $ok, string $detail = ''): void {
@@ -85,6 +87,24 @@ same('inline: traversal oltre la radice', Asset::inlineStyle(APP_URL.'/assets/cs
 $helper = __inline_css(APP_URL.'/assets/fonts/inter.css');
 check('__inline_css: url() riscritti', str_starts_with($helper, '<style>') && str_contains($helper, 'inter.woff2?v=1700000007'), $helper);
 check('__inline_css: ripiega sul link versionato', str_contains(__inline_css(APP_URL.'/assets/css/escape.css'), 'escape.css?v=1700000009'));
+
+// --- Editor ---
+$editor = EditorBlocksRenderer::make(['blocks' => [
+    ['type' => 'image', 'data' => ['file' => APP_URL."$up/gallery/a.jpg"]],
+    ['type' => 'video', 'data' => ['file' => ['url' => APP_URL."$up/video/clip.mp4"]]],
+    ['type' => 'attaches', 'data' => ['file' => ['url' => APP_URL."$up/options/red.png", 'name' => 'red.png']]],
+]]);
+check('editor: immagine versionata', str_contains($editor, 'a.jpg?v=1700000004'), $editor);
+check('editor: video versionato', str_contains($editor, 'clip.mp4?v=1700000001'), $editor);
+check('editor: allegato versionato', str_contains($editor, 'red.png?v=1700000005'), $editor);
+same('editor: blocco senza file', EditorBlocksRenderer::make(['blocks' => [['type' => 'image', 'data' => []]]]), '');
+same('stringa vuota invariata', Asset::version(''), '');
+
+// --- Loghi backend ---
+file_at($root, '/vendor/wonder-image/app/assets/logos/Wonder-Image.png', 'l', 1700000011);
+same('logo backend versionato',
+    RuntimeDefaults::backendLogoBlack((object) ['appAssets' => APP_URL.'/vendor/wonder-image/app/assets']),
+    APP_URL.'/vendor/wonder-image/app/assets/logos/Wonder-Image.png?v=1700000011');
 
 // --- Helper legacy ---
 $PATH = (object) ['upload' => APP_URL.$up];
