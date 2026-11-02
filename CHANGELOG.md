@@ -181,6 +181,7 @@
   `'false'` (come il select del form e il toggle della lista; i booleani JSON
   diventano le stringhe), altrimenti 422 con `popup.visible_invalid`. Coperto
   da `tests/App/Resources/PopupResourceTest.php`.
+
 ### Rimosso
 - **`FormField::HELPERS` e il secondo argomento di `new FormField($name, $helper)`
   (#102).** L'escape hatch che sceglieva il tipo da una stringa non esiste più:
