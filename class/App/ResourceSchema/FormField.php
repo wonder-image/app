@@ -2,7 +2,6 @@
 
 namespace Wonder\App\ResourceSchema;
 
-use RuntimeException;
 use Wonder\App\ResourceSchema\Inputs\Concerns\NormalizesExtensions;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesNumberConfig;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesPasswordRules;
@@ -65,11 +64,9 @@ use Wonder\Elements\Form\Field as ElementField;
  *
  * ## Render
  *
- * La facade non costruisce Element propri: al render sceglie la classe
- * tipizzata corrispondente all'helper corrente ({@see HELPERS}) e le delega
- * tutto. È l'unico punto in cui la stringa `helper` conta ancora, e serve
- * solo all'escape hatch `new FormField($name, 'select')` — chi passa dai
- * type-helper è già sulla classe giusta.
+ * La facade non costruisce Element propri: un campo senza type-helper
+ * (`FormField::key('nome')`) è un testo, e al render delega tutto a
+ * {@see InputText}. Chi passa dai type-helper è già sulla classe giusta.
  *
  * ## Shim `@deprecated`
  *
@@ -88,65 +85,6 @@ class FormField extends Input
     use NormalizesExtensions;
     use WritesNumberConfig;
     use WritesPasswordRules;
-
-    /**
-     * Helper legacy -> classe tipizzata che lo rende.
-     *
-     * Serve unicamente all'escape hatch `new FormField($name, $helper)`: i
-     * type-helper qui sotto istanziano già la classe giusta.
-     *
-     * @var array<string, class-string<Input>>
-     */
-    private const HELPERS = [
-        'text' => InputText::class,
-        'hidden' => InputHidden::class,
-        'textGenerator' => InputTextGenerator::class,
-        'button' => InputButton::class,
-        'email' => InputEmail::class,
-        'tel' => InputPhone::class,
-        'phone' => InputPhone::class,
-        'url' => InputUrl::class,
-        'color' => InputColor::class,
-        'icon' => InputIcon::class,
-        'number' => InputNumber::class,
-        'price' => InputPrice::class,
-        'percentige' => InputPercentige::class,
-        'password' => InputPassword::class,
-        'textDate' => InputTextDate::class,
-        'textDatetime' => InputTextDatetime::class,
-        'dateInput' => InputDate::class,
-        'dateRange' => InputDateRange::class,
-        'timeInput' => InputTime::class,
-        'textarea' => InputTextarea::class,
-        'select' => InputSelect::class,
-        'selectSearch' => InputSelectSearch::class,
-        'textList' => InputTextList::class,
-        'searchText' => InputSearchText::class,
-        'searchRadio' => InputSearchRadio::class,
-        'radio' => InputRadio::class,
-        'checkbox' => InputCheckbox::class,
-        'checkTree' => InputCheckTree::class,
-        'dynamicCheck' => InputDynamicCheck::class,
-        'checkBoolean' => InputCheckBoolean::class,
-        'toggle' => InputToggle::class,
-        'inputCountry' => InputCountry::class,
-        'inputStates' => InputStates::class,
-        'inputPhonePrefix' => InputPhonePrefix::class,
-        'inputFile' => InputFile::class,
-        'inputFileDragDrop' => InputFileDragDrop::class,
-        'inputRepeater' => InputRepeater::class,
-        'inputAcceptDocument' => InputAcceptDocument::class,
-        'recaptcha' => InputReCaptcha::class,
-        'googleAddress' => InputGoogleAddress::class,
-    ];
-
-    public function __construct(
-        string $name,
-        string $helper = 'text',
-    ) {
-        parent::__construct($name);
-        $this->helper = trim($helper) !== '' ? trim($helper) : 'text';
-    }
 
     /**
      * La facade delega tutto alla classe del tipo scelto, così i suoi hook
@@ -168,20 +106,10 @@ class FormField extends Input
         return $this->typedInput()->element();
     }
 
-    /** La classe `Inputs\Input*` che corrisponde all'helper corrente. */
+    /** Senza type-helper il campo è un testo. */
     protected function typedInput(): Input
     {
-        $inputClass = self::HELPERS[$this->helper] ?? null;
-
-        if ($inputClass === null) {
-            throw new RuntimeException(
-                "Helper form non supportato: {$this->helper}. "
-                .'Crea la classe del tipo sotto Wonder\\App\\ResourceSchema\\Inputs\\ '
-                .'e mappala in FormField::HELPERS.'
-            );
-        }
-
-        return $this->morphInto($inputClass);
+        return $this->morphInto(InputText::class);
     }
 
     public function text(): InputText

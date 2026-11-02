@@ -6,8 +6,9 @@ use mysqli;
 use RuntimeException;
 use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
-use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputReCaptcha;
+use Wonder\App\ResourceSchema\Inputs\InputRepeater;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema as ResourcePageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema as ResourcePermissionSchema;
@@ -297,7 +298,7 @@ abstract class Resource
         $actions = [];
 
         foreach (static::formSchema() as $field) {
-            if (!$field instanceof Input || $field->get('helper') !== 'recaptcha') {
+            if (!$field instanceof InputReCaptcha) {
                 continue;
             }
 
@@ -511,11 +512,7 @@ abstract class Resource
         $relationMap = static::repeaterRelations();
 
         foreach (static::safeFormFieldsByKey() as $inputName => $field) {
-            if (!is_object($field) || !method_exists($field, 'get')) {
-                continue;
-            }
-
-            if ($field->get('helper') !== 'inputRepeater') {
+            if (!$field instanceof InputRepeater) {
                 continue;
             }
 
@@ -952,9 +949,8 @@ abstract class Resource
         }
 
         $prepare = (array) ($input->get('prepare') ?? []);
-        $helper = (string) ($input->get('helper') ?? '');
 
-        if (in_array($helper, ['inputFile', 'inputFileDragDrop'], true)) {
+        if ($input instanceof InputFile) {
             $prepare = array_merge([
                 'sanitize' => false,
                 'file' => true,
@@ -974,7 +970,7 @@ abstract class Resource
             return $format;
         }
 
-        if (!in_array((string) ($input->get('helper') ?? ''), ['inputFile', 'inputFileDragDrop'], true)) {
+        if (!$input instanceof InputFile) {
             return $format;
         }
 

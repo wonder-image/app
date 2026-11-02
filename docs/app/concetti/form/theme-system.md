@@ -104,10 +104,15 @@ passa al `Themes\Resolver`. Un `element()` che ritorna `null` segnala che il
 campo non è renderizzabile nel contesto corrente (per esempio `InputCountry`
 senza la funzione `countries()`).
 
-{% hint style="info" %}
-La stringa `helper` esiste ancora (`$input->get('helper')`) ma **non decide più
-niente al render**: serve solo a riconoscere il tipo di un campo dall'esterno
-(`Resource`, il renderer `Repeater`, le colonne repeater dichiarate come array).
+Il tipo di un campo è la sua classe: chi deve riconoscerlo (`Resource`, il
+renderer `Repeater`) usa `instanceof` (`$field instanceof InputRepeater`,
+`InputFile`, `InputHidden`, ...). Un `FormField` senza type-helper è un testo.
+
+{% hint style="warning" %}
+`$input->get('helper')` è **deprecato**: ritorna ancora l'etichetta legacy del
+tipo (`'select'`, `'inputRepeater'`, ...) per i moduli che la leggono, ma il core
+non la usa più. `FormField::HELPERS` e `new FormField($name, $helper)` sono stati
+rimossi: PHP ignora l'argomento in più, quindi quella chiamata ora rende un testo.
 {% endhint %}
 
 ## Aggiungere un nuovo tipo di input
@@ -116,17 +121,14 @@ Se serve un input non coperto, l'intervento è a livello **framework**, non al
 call site:
 
 1. crea la classe del tipo sotto `class/App/ResourceSchema/Inputs/`
-   (`class InputFoo extends Input { protected string $helper = 'foo'; }`) con i
+   (`class InputFoo extends Input`, senza `$helper`: è deprecato) con i
    soli modificatori che quel tipo supporta — riusa i trait in `Inputs/Concerns/`
    per i gruppi già esistenti (opzioni, versione, upload, …);
 2. implementa `element()` sulla nuova classe: costruisce e configura il suo
    `Wonder\Elements\Form\Components\*` (nuovo o esistente). Se serve anche un
    ritocco dopo l'idratazione, aggiungi `decorate()`;
 3. aggiungi il type-helper su `FormField`
-   (`public function foo(): InputFoo { return $this->morphInto(InputFoo::class); }`).
-   Se il tipo deve funzionare anche con l'escape hatch
-   `new FormField($name, 'foo')`, aggiungilo pure a
-   `FormField::HELPERS`;
+   (`public function foo(): InputFoo { return $this->morphInto(InputFoo::class); }`);
 4. aggiungi il renderer sotto `class/Themes/Wonder/Form/` **e**
    `class/Themes/Bootstrap/Form/` così entrambi i temi sono coperti. Sul tag
    del campo scrivi la classe con `fieldClass()` e gli attributi del campo con
@@ -198,7 +200,7 @@ passa lo stesso array a tutti e due gli helper come secondo argomento.
 
 - [ ] classe sotto `Inputs/` con i soli modificatori del tipo
 - [ ] `element()` (e `decorate()` se serve)
-- [ ] type-helper su `FormField` (+ `FormField::HELPERS` per l'escape hatch legacy)
+- [ ] type-helper su `FormField`
 - [ ] renderer in `Themes/Wonder/Form/` e `Themes/Bootstrap/Form/`
 - [ ] tag del campo con `fieldClass()` e `fieldAttributes([chiavi già scritte])`
 - [ ] testato su entrambi i temi

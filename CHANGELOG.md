@@ -149,6 +149,14 @@
   che non esiste; ora rispondono 404, come per una riga nascosta dalla
   visibilità per riga. Vale anche per le Resource senza regola.
 
+- **Input riconosciuti dalla classe, non dalla stringa `helper` (#102).**
+  `Resource` (reCAPTCHA, repeater, formati di upload) e il renderer Bootstrap
+  `Repeater` (colonne nascoste, upload nelle righe) usano `instanceof`
+  (`InputReCaptcha`, `InputRepeater`, `InputFile`, `InputHidden`) invece di
+  confrontare `get('helper')`. Il renderer `Repeater` ha un solo percorso: le
+  colonne array diventano `RepeaterColumn` prima del render, con lo stesso HTML
+  di prima. Coperto da `tests/Themes/RepeaterArrayColumnTest.php`.
+
 ### Corretto
 - **Pannello account: avvisi a livello di pagina che si chiudono da soli.**
   L'avviso «salvato» del pannello e l'errore dei modal (`AccountModal::make`)
@@ -189,6 +197,21 @@
   `'false'` (come il select del form e il toggle della lista; i booleani JSON
   diventano le stringhe), altrimenti 422 con `popup.visible_invalid`. Coperto
   da `tests/App/Resources/PopupResourceTest.php`.
+
+### Rimosso
+- **`FormField::HELPERS` e il secondo argomento di `new FormField($name, $helper)`
+  (#102).** L'escape hatch che sceglieva il tipo da una stringa non esiste più:
+  si usa il type-helper (`FormField::key($name)->select(...)`) o la classe
+  (`InputSelect::key($name)`). Attenzione: PHP ignora gli argomenti in più, quindi
+  un `new FormField('x', 'select')` rimasto in un sito non dà errore ma rende un
+  campo di testo. Nel core e nei moduli `wonder-image/*` non ci sono chiamate.
+
+### Deprecato
+- **`Input::get('helper')` e le colonne repeater array (#102).** L'etichetta
+  `helper` resta su ogni `Inputs\Input*` solo per chi la legge da fuori (per
+  esempio `wonder-image/rsvp`): il core non la usa più, il codice nuovo usa
+  `instanceof`. Le colonne `['name' => ..., 'helper' => ...]` funzionano ancora,
+  convertite in `RepeaterColumn`; dichiarale con `RepeaterColumn::key()`.
 
 ## 2.4.0-beta.6 — 2026-10-26
 

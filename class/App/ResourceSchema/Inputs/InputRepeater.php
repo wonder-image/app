@@ -9,9 +9,9 @@ use Wonder\Elements\Form\Field as ElementField;
 /**
  * Blocco di righe ripetibili.
  *
- * Le colonne sono `Input` (tipicamente dichiarati con `RepeaterColumn::key()`)
- * oppure array descrittori `['name' => ..., 'helper' => ..., ...]`; il
- * renderer Bootstrap gestisce entrambe le forme.
+ * Le colonne sono `Input`, tipicamente dichiarati con `RepeaterColumn::key()`.
+ * Gli array descrittori `['name' => ..., 'helper' => ..., ...]` sono deprecati:
+ * il renderer Bootstrap li converte ancora in `RepeaterColumn`.
  *
  * `nested(true)` fa sì che i campi vengano postati come
  * `parent[rowKey][colonna]` invece che come `colonna[]`: serve quando le righe
@@ -26,7 +26,7 @@ class InputRepeater extends Input
     protected string $helper = 'inputRepeater';
 
     /**
-     * @param array<int, mixed> $columns Colonne del repeater (`Input` o array descrittori).
+     * @param array<int, mixed> $columns Colonne del repeater (`Input`; gli array descrittori sono deprecati).
      */
     public function columns(array $columns): static
     {

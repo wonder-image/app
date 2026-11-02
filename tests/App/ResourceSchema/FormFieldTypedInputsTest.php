@@ -252,13 +252,14 @@ $elements = [
     'dynamicCheck' => Elements\DynamicCheck::class,
     'checkBoolean' => Elements\CheckBoolean::class,
     'googleAddress' => Elements\GoogleAddress::class,
-    'inputRepeater' => Elements\Repeater::class,
+    'repeater' => Elements\Repeater::class,
     'recaptcha' => Elements\reCAPTCHA::class,
 ];
 
-foreach ($elements as $helper => $element) {
-    eq("compile() di {$helper} → " . substr(strrchr($element, '\\'), 1),
-        (new FormField('a', $helper))->compile()::class, $element);
+foreach ($elements as $method => $element) {
+    $field = $method === 'dynamicCheck' ? FormField::key('a')->dynamicCheck('/x') : FormField::key('a')->{$method}();
+    eq("compile() di {$method}() → " . substr(strrchr($element, '\\'), 1),
+        $field->compile()::class, $element);
 }
 
 # i tipi con opzioni cambiano Element in base a ciò che dichiarano
@@ -309,10 +310,12 @@ eq('searchRemote bootstrap: senza value niente etichetta',
 eq('searchRemote bootstrap: noFloating in un contenitore relativo',
     str_contains(FormField::key('c')->searchText('/x')->compile()->noFloating()->render('bootstrap'), '<div class="position-relative" data-wi-remote-search'), true);
 
-# helper sconosciuto: la facade lo dice esplicitamente
-$thrown = null;
-try { (new FormField('a', 'inesistente'))->compile(); } catch (Throwable $e) { $thrown = $e::class; }
-eq('helper sconosciuto solleva', $thrown, RuntimeException::class);
+# senza type-helper il campo è un testo: non esiste più un helper stringa da scegliere
+eq('FormField senza type-helper compila un InputText',
+    FormField::key('a')->compile()::class, Elements\InputText::class);
+eq('FormField senza type-helper rende come InputText [bootstrap]',
+    $strip(FormField::key('a')->label('A')->render('bootstrap')), $strip(Inputs\InputText::key('a')->label('A')->render('bootstrap')));
+eq('FormField::HELPERS non esiste più', defined(FormField::class . '::HELPERS'), false);
 
 echo $fail === 0 ? "\nTUTTI I TEST OK\n" : "\n{$fail} TEST FALLITI\n";
 exit($fail === 0 ? 0 : 1);

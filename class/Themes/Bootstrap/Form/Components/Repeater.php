@@ -3,9 +3,10 @@
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
 use Wonder\App\Model;
-use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputHidden;
+use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\Support\RepeaterGroups;
 use Wonder\Themes\Bootstrap\Form\Field;
 
@@ -31,18 +32,14 @@ class Repeater extends Field
         $addLabel = $this->escape((string) ($context['add_label'] ?? 'Aggiungi linea'));
         $addButtonClass = $this->escape((string) ($context['add_button_class'] ?? 'btn btn-secondary'));
 
-        if ($columns === []) {
-            $columns = [[
-                'name' => $name,
-                'label' => '',
-                'helper' => 'text',
-                'col' => 11,
-                'attribute' => '',
-                'options' => [],
-                'search_bar' => false,
-                'version' => null,
-            ]];
-        }
+        $columns = $columns === []
+            ? [RepeaterColumn::key($name)->text()]
+            : array_map(
+                fn (mixed $column): Input => $column instanceof Input
+                    ? $column
+                    : $this->columnFromArray(is_array($column) ? $column : [], $name),
+                $columns
+            );
 
         // Un form che si compila a mano parte con una riga pronta; uno che le
         // righe le riceve da altrove parte vuoto, o quella riga finta viene
@@ -259,14 +256,9 @@ HTML;
         return $html;
     }
 
-    /** La chiave di una colonna, qualunque delle due forme abbia. */
-    private function columnKey(mixed $column): string
+    private function columnKey(Input $column): string
     {
-        if ($column instanceof Input) {
-            return trim((string) $column->name);
-        }
-
-        return is_array($column) ? trim((string) ($column['name'] ?? '')) : '';
+        return trim((string) $column->name);
     }
 
     /**
@@ -275,35 +267,23 @@ HTML;
      *
      * @return array{0: string, 1: bool, 2: string, 3: string}
      */
-    private function renderColumn(mixed $column, string $name, array $rowValue, string $rowKey, array $context): array
+    private function renderColumn(Input $column, string $name, array $rowValue, string $rowKey, array $context): array
     {
-        if ($column instanceof Input) {
-            $field = clone $column;
-            $columnName = trim((string) $field->name);
-            $fieldValue = $rowValue[$columnName] ?? $field->get('value');
-            $inputName = !empty($context['nested'])
-                ? "{$name}[{$rowKey}][{$columnName}]"
-                : $columnName.'[]';
+        $field = clone $column;
+        $columnName = trim((string) $field->name);
+        $fieldValue = $rowValue[$columnName] ?? $field->get('value');
+        $inputName = !empty($context['nested'])
+            ? "{$name}[{$rowKey}][{$columnName}]"
+            : $columnName.'[]';
 
-            $field->inputName($inputName)->value($fieldValue);
-            $this->inheritRelationUploadDirectory($field, $columnName, $context);
-
-            return [
-                $field->render('bootstrap'),
-                $field->get('helper') === 'hidden',
-                $this->resolvedColumnClass($field),
-                $this->conditionalContainerAttributes($field),
-            ];
-        }
-
-        $column = is_array($column) ? $column : [];
-        $field = $this->buildField($column, $name, $rowValue, $rowKey, $context);
+        $field->inputName($inputName)->value($fieldValue);
+        $this->inheritRelationUploadDirectory($field, $columnName, $context);
 
         return [
             $field->render('bootstrap'),
-            ($column['helper'] ?? 'text') === 'hidden',
-            'col-'.max(1, min(12, (int) ($column['col'] ?? 11))),
-            '',
+            $field instanceof InputHidden,
+            $this->resolvedColumnClass($field),
+            $this->conditionalContainerAttributes($field),
         ];
     }
 
@@ -372,23 +352,25 @@ HTML;
 
     /**
      * Colonna dichiarata in forma di array (`['name' => ..., 'helper' => ...]`)
-     * invece che come `RepeaterColumn`.
+     * invece che come `RepeaterColumn`: diventa la `RepeaterColumn` del tipo,
+     * poi segue la strada di tutte le altre.
      *
-     * I type-helper di `FormField` non mutano più `$this`: ritornano l'istanza
-     * `Input*` del tipo scelto (vedi `Input::morphInto()`). Il risultato del
-     * `match` va quindi *riassegnato*, non scartato.
+     * @deprecated Dichiara le colonne con `RepeaterColumn::key(...)->tipo()`:
+     *             la forma array resta solo per i siti che la usano ancora.
      */
-    private function buildField(array $column, string $name, array $rowValue, string $rowKey, array $context): Input
+    private function columnFromArray(array $column, string $name): Input
     {
         $columnName = trim((string) ($column['name'] ?? $name));
         $helper = trim((string) ($column['helper'] ?? 'text'));
-        $field = FormField::key($columnName);
-        $fieldValue = $rowValue[$columnName] ?? ($column['value'] ?? null);
-        $inputName = !empty($context['nested'])
-            ? "{$name}[{$rowKey}][{$columnName}]"
-            : $columnName.'[]';
+        $field = RepeaterColumn::key($columnName);
 
-        $field->inputName($inputName)->value($fieldValue);
+        if (array_key_exists('value', $column)) {
+            $field->value($column['value']);
+        }
+
+        if (isset($column['col'])) {
+            $field->columnSpan((int) $column['col']);
+        }
 
         if (($column['label'] ?? '') !== '') {
             $field->label((string) $column['label']);

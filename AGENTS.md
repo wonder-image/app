@@ -256,6 +256,7 @@ php forge start
   - `Model::dataSchema()` = data treatment / prepare / upload
   - `Resource::formSchema()` = backend inputs (high-level DSL via `ResourceSchema/FormField`)
   - Under the hood, each typed `ResourceSchema/Inputs/Input*` builds its `Elements/Form/Components/*` object in `element()`, then `Input::compile()` / `render()` hands it to the selected theme. See the Form / Element / Theme system section below.
+  - An Input's type is its class: core code recognizes it with `instanceof` (`InputRepeater`, `InputFile`, `InputHidden`, ...), never by comparing `get('helper')`, which is deprecated and kept only for external readers. `FormField::HELPERS` and `new FormField($name, $helper)` are gone (a bare `FormField` is text); array repeater columns are deprecated and converted to `RepeaterColumn` before rendering.
 - For non-CRUD backend pages, use `CustomPageSchema`.
 - For repeatable rows, use `FormField::repeater()`, `RepeaterColumn`, and `Wonder\App\Support\Repeater`.
 - When changing architecture, rendering flow, layout structure, bootstrap/runtime setup, or developer-facing conventions, the work is not complete until all three are updated in the same change:

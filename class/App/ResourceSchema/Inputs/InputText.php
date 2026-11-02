@@ -13,7 +13,7 @@ use Wonder\Elements\Form\Field as ElementField;
  *
  * Estende `Input` per ereditare label/attribute/required/value/render/etc. e
  * costruisce direttamente il proprio `Elements\Form\Components\InputText`.
- * L'helper `'text'` resta soltanto come identità introspezionabile.
+ * È anche il tipo di un `FormField` senza type-helper.
  */
 class InputText extends Input
 {

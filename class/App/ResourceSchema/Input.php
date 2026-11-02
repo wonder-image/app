@@ -41,13 +41,12 @@ use Wonder\Elements\Form\Field as ElementField;
  * scrivere una classe sotto `Inputs\` con il suo `element()` — nient'altro da
  * registrare altrove.
  *
- * ## `$helper`
+ * ## `$helper` (deprecato)
  *
- * Non è più una chiave di dispatch: il render non lo guarda. Resta come
- * **etichetta d'identità** del tipo, letta via `get('helper')` da chi deve
- * riconoscere un campo senza dipendere dalla classe concreta (`Resource`, il
- * renderer `Repeater`, i moduli) e dalle colonne repeater dichiarate in forma
- * di array (`['name' => ..., 'helper' => ...]`).
+ * Il core non lo legge più: un tipo si riconosce dalla sua classe
+ * (`$field instanceof InputRepeater`, `InputFile`, `InputHidden`, ...). Resta
+ * solo come etichetta letta da `get('helper')` per i moduli e i test esterni
+ * che la confrontano ancora con una stringa; il codice nuovo usa `instanceof`.
  */
 abstract class Input
 {
@@ -56,9 +55,9 @@ abstract class Input
     public string $name;
 
     /**
-     * Nome DSL del tipo, per introspezione (`$input->get('helper')`).
+     * Nome DSL del tipo, letto solo da `get('helper')`.
      *
-     * NON partecipa al render: l'Element lo costruisce {@see element()}.
+     * @deprecated Riconosci il tipo con `instanceof` sulla classe `Inputs\Input*`.
      */
     protected string $helper = 'text';
 
@@ -252,9 +251,8 @@ abstract class Input
      * `->number()` in poi l'oggetto è un `InputNumber` e l'autocomplete mostra
      * solo i suoi setters.
      *
-     * L'`helper` NON viene copiato: è la proprietà della classe di destinazione
-     * a definirlo (`InputNumber::$helper = 'number'`), che è esattamente ciò
-     * che il type-helper sta scegliendo.
+     * Il tipo è la classe di destinazione, che è esattamente ciò che il
+     * type-helper sta scegliendo.
      *
      * @template T of Input
      * @param class-string<T> $inputClass
@@ -514,6 +512,12 @@ abstract class Input
         return $this->prepare('name', $name);
     }
 
+    /**
+     * Lo schema accumulato, o una sua chiave.
+     *
+     * `get('helper')` è deprecato: ritorna l'etichetta legacy del tipo, che il
+     * core non usa più. Usa `instanceof` sulla classe `Inputs\Input*`.
+     */
     public function get(?string $key = null): mixed
     {
         if ($key === null) {
@@ -541,7 +545,7 @@ abstract class Input
 
         if ($element === null) {
             throw new RuntimeException(
-                'Campo form non renderizzabile: '.static::class." (helper: {$this->helper}). "
+                'Campo form non renderizzabile: '.static::class.'. '
                 .'Il nome è vuoto oppure element() non ha potuto costruire il Component.'
             );
         }
