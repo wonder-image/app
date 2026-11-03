@@ -16,3 +16,6 @@ valido.
 
 La codifica pura è disponibile in `Wonder\Support\Barcode\Ean` per validare o
 preparare un GTIN senza creare un'immagine.
+
+Con `Wonder\Support\Labels\LabelSheet` gli stessi codici si stampano su fogli
+di etichette in PDF: vedi [Etichette in PDF](etichette.md).
