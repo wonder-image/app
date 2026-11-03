@@ -2,6 +2,8 @@
 
 Questa sezione contiene il recupero credenziali e i parametri da inserire nel backend (`Dev > API e servizi > Credenziali`).
 
+La pagina è descritta in [Integrazioni](../integrazioni.md): card per servizio, stato, `.env` e registro estendibile.
+
 Pagine disponibili:
 - [Google Cloud Platform](google-cloud-platform.md)
 - [Google Auth Platform](google-sign-in-oauth.md)

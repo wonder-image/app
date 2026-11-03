@@ -49,6 +49,19 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Pagina Credenziali a card di integrazione (#119).** Dev → Credenziali mostra
+  i servizi esterni in una griglia per categoria (Wonder Image, Google, Accesso,
+  Pagamenti, Email, Marketing, Fatturazione). Ogni card riporta lo stato (Da
+  connettere, Parziale, Connessa), i badge Test e `.env`, «In uso per l'invio» sul
+  servizio email attivo e «Richiede Google Cloud Platform» quando serve. Lo stato
+  si calcola senza chiamare i servizi. La card apre un modal con guida, campi e
+  azioni (Stripe: righe Produzione e Test con Collega e Collega webhook); il modal
+  salva solo i propri campi, lascia invariata una password vuota e mostra in sola
+  lettura i campi del `.env`. SMTP e Brevo sono card distinte. Il registro
+  `Wonder\App\Integrations\Integrations` segue lo schema di `HomeStatus`: i moduli
+  aggiungono, sostituiscono o tolgono (`false`) voci con `backend.integrations`, il
+  sito usa `Integrations::set()`; un'integrazione che fallisce viene registrata nel
+  log e saltata. Nuovo Element `IntegrationCard`. Vedi `docs/app/servizi/integrazioni.md`.
 - **Coda email nello Scheduler.** Nuova `queueMail()`, con la stessa firma di
   `sendMail()`: salva l'email in `mail_log` (stato «In coda») e la spedisce il cron
   sempre attivo `wonder.mail-outbox`, ogni minuto, con fino a 5 tentativi (1, 5, 15,
@@ -143,6 +156,11 @@
   `tests/Console/CloudflareSecurityTest.php`.
 
 ### Cambiato
+- **Email di prova dal modal del servizio.** Il bottone, ora «Invia email di prova»,
+  sta nel modal di Server SMTP e di Brevo e prova i valori scritti nel modal senza
+  salvarli (`CredentialsTest::fromForm()`): una password vuota usa quella salvata e
+  il `.env` vince sempre. Restano CSRF, permesso di modifica, `FlashAlert` e il log
+  del check fallito. `sendMail()` accetta credenziali esplicite come ultimo argomento.
 - **`mail_log` e `sendMail()`.** `mail_log` ha le colonne `attempts`,
   `next_attempt_at` e `payload` (le aggiunge `forge update`) e i nuovi stati `queued`
   e `sending`. `sendMail()` ora è `mailDeliver()` (invio) più `mailLogInsert()` (log),

@@ -6,6 +6,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
 
 use Wonder\App\Credentials;
+use Wonder\App\Integrations\Integrations;
 use Wonder\App\Models\Config\Security;
 use Wonder\App\Resources\Config\SecurityResource;
 use Wonder\App\Theme;
@@ -168,7 +169,7 @@ check('modello Security: colonna del badge con default \'true\', chiave v3 come 
         && in_array('g_recaptcha_badge', $campi, true);
 });
 
-check('backend: etichette, select del badge e le due righe reCAPTCHA v2 e v3', function () {
+check('backend: etichette, select del badge e le card reCAPTCHA v2 e v3', function () {
     $etichette = [
         'g_recaptcha_site_key' => 'Chiave Sito',
         'g_recaptcha_score_site_key' => 'Chiave Sito',
@@ -188,34 +189,36 @@ check('backend: etichette, select del badge e le due righe reCAPTCHA v2 e v3', f
         return false;
     }
 
-    $layout = SecurityResource::formLayoutSchema()->render('bootstrap');
+    // La chiave segreta non è un campo di nessuna integrazione; v2 e v3 sono
+    // due card della categoria Google, con la chiave v3 accanto al badge.
+    $integrations = Integrations::all([]);
+    $colonne = [];
 
-    if (str_contains($layout, 'name="g_recaptcha_secret_key"')) {
+    foreach ($integrations as $integration) {
+        $colonne = [...$colonne, ...array_keys($integration->fields())];
+    }
+
+    if (in_array('g_recaptcha_secret_key', $colonne, true)) {
+        return false;
+    }
+
+    $v2 = $integrations['recaptcha-v2'] ?? null;
+    $v3 = $integrations['recaptcha-v3'] ?? null;
+
+    if ($v2 === null || $v3 === null || $v2->category() !== 'google' || $v3->category() !== 'google'
+        || array_keys($v2->fields()) !== ['g_recaptcha_site_key']
+        || array_keys($v3->fields()) !== ['g_recaptcha_score_site_key', 'g_recaptcha_badge']) {
         return false;
     }
 
     // Il pannello delle API Google elenca reCAPTCHA Enterprise con il link alla console.
-    if (!str_contains($layout, 'href="https://console.cloud.google.com/apis/library/recaptchaenterprise.googleapis.com')) {
-        return false;
-    }
+    $gcp = $integrations['gcp'];
+    $pannello = implode('', array_map(
+        static fn (mixed $c): string => is_object($c) ? $c->render('bootstrap') : (string) $c,
+        $gcp->panel(['gcp_project_id' => 'progetto'], $gcp->status([]))
+    ));
 
-    // Riga v2 con la chiave a casella, riga v3 con chiave e badge, poi la sezione Maps.
-    $posizioni = [];
-
-    foreach (['Google reCAPTCHA v2*', 'name="g_recaptcha_site_key"', 'Google reCAPTCHA v3*', 'name="g_recaptcha_score_site_key"', 'name="g_recaptcha_badge"', 'Google Maps*'] as $pezzo) {
-        $pos = strpos($layout, $pezzo);
-
-        if ($pos === false) {
-            return false;
-        }
-
-        $posizioni[] = $pos;
-    }
-
-    $ordinate = $posizioni;
-    sort($ordinate);
-
-    return $ordinate === $posizioni;
+    return str_contains($pannello, 'recaptchaenterprise.googleapis.com');
 });
 
 check('dev-shared: la riga della chiave v3', fn () => str_contains($read('docs/app/piattaforma/dev-shared.md'), '`G_RECAPTCHA_SCORE_SITE_KEY`'));

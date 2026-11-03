@@ -2,23 +2,15 @@
 
 namespace Wonder\App\Resources\Config;
 
-use Wonder\App\Credentials;
+use InvalidArgumentException;
+use Wonder\App\Integrations\Integrations;
+use Wonder\App\LegacyGlobals;
 use Wonder\App\ResourceSchema\ApiSchema;
-use Wonder\App\Path;
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\Inputs\InputPassword;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\Resources\Support\SingletonResource;
-use Wonder\App\Support\GoogleCloud\GoogleApis;
-use Wonder\Elements\Components\Accordion;
-use Wonder\Elements\Components\Badge;
-use Wonder\Elements\Components\Button;
-use Wonder\Elements\Components\Card;
-use Wonder\Elements\Components\Container;
-use Wonder\Elements\Components\HelpText;
-use Wonder\Elements\Components\SectionTitle;
-use Wonder\Elements\Components\Text;
-use Wonder\Elements\Form\Form;
 use Wonder\Http\Route;
 
 final class SecurityResource extends SingletonResource
@@ -145,146 +137,65 @@ final class SecurityResource extends SingletonResource
         ];
     }
 
-    public static function formLayoutSchema(): ?Form
-    {
-        return (new Form)->components([
-
-            (new Container)->components([
-
-                (new Card)->components([
-                    SectionTitle::make('Wonder Image')->columnSpan(12),
-                    static::getInput('api_key')->columnSpan(12),
-                ])->columns(12)->columnSpan(2),
-                
-                (new Card)->components([
-                    SectionTitle::make('Google Cloud Platform')
-                        ->tooltip('Compila qui le chiavi progetto e i servizi collegati a Google.')
-                        ->columnSpan(12),
-                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/google-cloud-platform" target="_blank" rel="noopener noreferrer">clicca qui</a>.')
-                        ->columnSpan(12),
-                    static::getInput('gcp_project_id')->columnSpan(2),
-                    static::getInput('gcp_api_key')->columnSpan(5),
-                    static::getInput('gcp_client_api_key')->columnSpan(5),
-                    static::googleApisPanel()->columnSpan(12),
-                    SectionTitle::make('Google reCAPTCHA v2*')
-                        ->tooltip('Casella «Non sono un robot». Da sola compare sempre; con la v3 compare solo quando il punteggio è basso.')
-                        ->columnSpan(12),
-                    static::getInput('g_recaptcha_site_key')->columnSpan(6),
-                    SectionTitle::make('Google reCAPTCHA v3*')
-                        ->tooltip('Punteggio in background, senza casella. Badge nascosto: sotto il form compare la riga di attribuzione di Google.')
-                        ->columnSpan(12),
-                    static::getInput('g_recaptcha_score_site_key')->columnSpan(6),
-                    static::getInput('g_recaptcha_badge')->columnSpan(3),
-                    SectionTitle::make('Google Maps*')->columnSpan(12),
-                    static::getInput('g_maps_place_id')->columnSpan(4),
-                    static::getInput('g_maps_map_id')->columnSpan(4),
-                    SectionTitle::make('Google Auth Platform*')->columnSpan(12),
-                    static::getInput('google_oauth_client_id')->columnSpan(6),
-                    static::getInput('google_oauth_client_secret')->columnSpan(6),
-                    HelpText::make('*Per utilizzare questa funzione è necessario compilare i campi di <b>Google Cloud Platform</b>.')
-                    ->columnSpan(12),
-                ])->columns(12)->columnSpan(2),
-
-                (new Card)->components([
-                    SectionTitle::make('Klaviyo'),
-                    HelpText::make('<a href="https://developers.klaviyo.com/en/reference/api_overview" target="_blank" rel="noopener noreferrer">Apri documentazione API</a>.')
-                        ->columnSpan(12),
-                    static::getInput('klaviyo_api_key')
-                        ->columnSpan(12),
-                ])->columns(12)->columnSpan(2),
-
-                (new Card)->components([
-                    SectionTitle::make('Server mail')
-                        ->tooltip('Configura SMTP o Brevo per l’invio delle email.')
-                        ->columnSpan(12),
-                    static::getInput('mail_service')->columnSpan(12),
-                    static::getInput('brevo_api_key')->columnSpan(12),
-                    static::getInput('mail_host')->columnSpan(8),
-                    static::getInput('mail_port')->columnSpan(4),
-                    static::getInput('mail_username')->columnSpan(12),
-                    static::getInput('mail_password')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
-
-            ])->columns(2)->columnSpan(9),
-
-            (new Container)->components([
-
-                (new Card)->components([
-
-                    SectionTitle::make('Stripe')
-                        ->tooltip('Qui imposti ambiente e account collegati.')
-                        ->columnSpan(12),
-
-                    static::getInput('stripe_test')->columnSpan(12),
-
-                    SectionTitle::make('Produzione')
-                        ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/onboarding/?account=production', 'Collega')
-                        ->variant('dark')
-                        ->addClass('float-end')
-                        ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=production', 'Collega webhook')
-                        ->variant('dark')
-                        ->addClass('float-end')
-                        ->columnSpan(4),
-                    static::getInput('stripe_account_id')->columnSpan(12),
-                    static::getInput('stripe_public_key')->columnSpan(12),
-                    static::getInput('stripe_webhook_secret')->columnSpan(12),
-
-                    SectionTitle::make('Test')
-                        ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/onboarding/?account=test', 'Collega')
-                        ->variant('dark')
-                        ->addClass('float-end')
-                        ->columnSpan(4),
-                    Badge::to((new Path)->appApi.'/service/stripe/connect/?account=test', 'Collega webhook')
-                        ->variant('dark')
-                        ->addClass('float-end')
-                        ->columnSpan(4),
-                    static::getInput('stripe_test_account_id')->columnSpan(12),
-                    static::getInput('stripe_test_public_key')->columnSpan(12),
-                    static::getInput('stripe_test_webhook_secret')->columnSpan(12),
-                        
-                ])->columns(12)->columnSpan(1),
-
-                (new Card)->components([
-                    SectionTitle::make('PayPal')->columnSpan(12),
-                    static::getInput('paypal_live')->columnSpan(12),
-                    static::getInput('paypal_client_id')->columnSpan(12),
-                    static::getInput('paypal_client_secret')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
-
-                (new Card)->components([
-                    SectionTitle::make('Nexi')->columnSpan(12),
-                    HelpText::make('Compila l\'API Key per XPay Web/Global oppure alias e chiave MAC per XPay classico.')
-                        ->columnSpan(12),
-                    static::getInput('nexi_prod')->columnSpan(12),
-                    static::getInput('nexi_api_key')->columnSpan(12),
-                    static::getInput('nexi_alias')->columnSpan(12),
-                    static::getInput('nexi_mac_key')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
-
-
-                (new Card)->components([
-                    SectionTitle::make('Fatture in Cloud')
-                    ->columnSpan(12),
-                    HelpText::make('Segui la documentazione <a href="https://wonder-image.gitbook.io/app/altro/servizi/fatture-in-cloud" target="_blank" rel="noopener noreferrer">clicca qui</a>.')
-                    ->columnSpan(12),
-                    static::getInput('fatture_in_cloud_company_id')->columnSpan(12),
-                    static::getInput('fatture_in_cloud_token')->columnSpan(12),
-                ])->columns(12)->columnSpan(1),
-
-            ])->columnSpan(3)->columns(1)
-
-
-
-        ])->columns(12);
-    }
-
     public static function pageSchema(): PageSchema
     {
         return parent::pageSchema()
-            ->actions('edit', static fn (): array => static::editActions());
+            ->view('form', (string) LegacyGlobals::get('ROOT_APP', '').'/view/pages/backend/config/security/integrations.php');
+    }
+
+    /**
+     * Ogni modal salva una sola integrazione: passano solo i suoi campi, mai
+     * quelli del `.env`, quelli in sola lettura o le password lasciate vuote
+     * (restano quelle salvate). Il resto della riga non si tocca.
+     */
+    public static function mutateRequestValues(
+        array $values,
+        string $action,
+        string $context = 'backend',
+        ?array $oldValues = null
+    ): array {
+        if ($context !== 'backend') {
+            return $values;
+        }
+
+        $integration = Integrations::find((string) ($values['integration'] ?? ''));
+
+        if ($integration === null || $integration->readonly()) {
+            throw new InvalidArgumentException('Integrazione non valida.');
+        }
+
+        $fields = [];
+
+        foreach (static::formSchema() as $field) {
+            $fields[(string) $field->name] = $field;
+        }
+
+        $filtered = [];
+
+        foreach (array_keys($integration->fields()) as $column) {
+            $field = $fields[$column] ?? null;
+
+            if ($field === null || !array_key_exists($column, $values) || Integrations::env($column)
+                || static::locked($field)) {
+                continue;
+            }
+
+            if ($field instanceof InputPassword && trim((string) $values[$column]) === '') {
+                continue;
+            }
+
+            $filtered[$column] = $values[$column];
+        }
+
+        return $filtered;
+    }
+
+    /** Campo in sola lettura o disabilitato nel `formSchema()`: non si scrive dal modal. */
+    public static function locked(object $field): bool
+    {
+        $attributes = preg_split('/\s+/', trim((string) $field->get('attribute'))) ?: [];
+
+        return in_array('readonly', $attributes, true) || in_array('disabled', $attributes, true);
     }
 
     /** Pagina Credenziali (singleton, id fisso). */
@@ -298,27 +209,7 @@ final class SecurityResource extends SingletonResource
         return __r('backend.resource.'.static::slug().'.mail-test');
     }
 
-    /** @return list<Button> */
-    public static function editActions(): array
-    {
-        $mail = Credentials::mail();
-        $service = strtolower((string) ($mail->service ?? 'phpmailer')) === 'brevo' ? 'Brevo' : 'il server SMTP';
-
-        return [
-            Button::post(static::mailTestUrl(), 'Email di prova')
-                ->variant('secondary')->outline()
-                ->icon('bi bi-envelope-check')
-                ->confirm(
-                    'Invia un\'email di prova al tuo indirizzo con le credenziali salvate ('.$service.'). '
-                    .'Le modifiche non ancora salvate in questa pagina non vengono provate.',
-                    'Prova le credenziali email',
-                    'Invia',
-                    'primary'
-                ),
-        ];
-    }
-
-    /** POST `/mail-test/`: prova le credenziali email salvate e torna alla pagina. */
+    /** POST `/mail-test/`: prova le credenziali email del modal, senza salvarle, e torna alla pagina. */
     public static function registerBackendRoutes(string $rootApp, string $slug): void
     {
         $permissions = (array) static::permissionSchema()->get('backend');
@@ -365,28 +256,5 @@ final class SecurityResource extends SingletonResource
         }
 
         return $options;
-    }
-
-
-    /** Elenco delle API Google da abilitare, da `GoogleApis` (core, moduli, sito). */
-    private static function googleApisPanel(): Accordion
-    {
-        $projectId = (string) (Credentials::api()->gcp_project_id ?? '');
-        $rows = [Text::make(__t('google.credentials.intro'))->muted()->columnSpan(12)];
-
-        foreach (GoogleApis::all() as $api) {
-            $rows[] = Text::make()
-                ->link($api->consoleUrl($projectId), $api->getName(), ['blank' => true])
-                ->append(' · '.__t('google.credentials.key_types.'.$api->getKeyType()))
-                ->append(' · '.__t($api->isRequired() ? 'google.credentials.required' : 'google.credentials.optional'))
-                ->append(' — '.__t($api->getPurpose()))
-                ->small()
-                ->columnSpan(12);
-        }
-
-        return Accordion::make(__t('google.credentials.title'))
-            ->link()
-            ->columns(12)
-            ->components($rows);
     }
 }

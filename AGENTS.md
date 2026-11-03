@@ -442,9 +442,21 @@ php forge start
   `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
   page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
   fiscal data use `WhenFilledValidator`; required validators still apply.
-- Email credentials test: the Credenziali edit page (`SecurityResource`) adds
-  an "Email di prova" POST button through `pageSchema()->actions('edit', ...)`
-  and route `mail-test` in `registerBackendRoutes()` (CSRF, `update` permissions).
+- Credenziali page (`SecurityResource`, view
+  `app/view/pages/backend/config/security/integrations.php`) is a grid of
+  `IntegrationCard`s grouped by `Integrations::CATEGORIES`, each opening a
+  `Modal::form()` with only its fields (hidden `integration`; unknown key throws,
+  `.env` fields readonly and never saved, empty password keeps the saved one).
+  Integrations extend `Wonder\App\Integrations\Integration` (fields, modes,
+  required, testMode, note, requires, panel); status is computed offline from
+  saved values and `.env`, never by calling the service. The registry follows
+  `HomeStatus`: core `Integrations::CORE`, modules `backend.integrations`
+  (`false` removes), site `Integrations::set()`; failures are logged and skipped.
+  See `docs/app/servizi/integrazioni.md`.
+- Email credentials test: "Invia email di prova" is a `formaction` submit in the
+  SMTP / Brevo modal posting to route `mail-test` in `registerBackendRoutes()`
+  (CSRF, `update` permissions); it tests the modal values without saving them
+  through `CredentialsTest::fromForm()` (`.env` wins, empty password = saved).
   `App\Support\Mail\SmtpTransport::configure()` is the only PHPMailer SMTP
   setup (`sendMail()` uses it); `CredentialsTest::run($recipient)` checks the
   connection, sends through `sendMail()` and returns a `CredentialsTestResult`

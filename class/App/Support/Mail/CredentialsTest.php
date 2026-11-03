@@ -8,10 +8,10 @@ use Wonder\App\Credentials;
 use Wonder\App\Table;
 
 /**
- * Prova le credenziali email salvate (`Credentials::mail()`, quindi anche
- * gli override `MAIL_*` del `.env`): con PHPMailer apre e autentica la
- * connessione SMTP, poi spedisce un'email di prova al destinatario; con
- * Brevo spedisce soltanto. Non legge il form: valgono i valori salvati.
+ * Prova le credenziali email (di default `Credentials::mail()`, quindi anche
+ * gli override `MAIL_*` del `.env`; il backend passa quelle del modal con
+ * `fromForm()`): con PHPMailer apre e autentica la connessione SMTP, poi
+ * spedisce un'email di prova al destinatario; con Brevo spedisce soltanto.
  *
  * `$check`, `$send` e `$log` sono iniettabili per i test (niente rete né
  * database): `$check(object $credentials): string` ('' = ok, altrimenti
@@ -25,6 +25,38 @@ use Wonder\App\Table;
 final class CredentialsTest
 {
     public const SUBJECT = 'Email di prova';
+
+    /**
+     * Le credenziali da provare: quelle in uso con sopra i valori scritti nel
+     * modal, per il servizio indicato. Un campo vuoto (la password lasciata
+     * vuota) tiene quello salvato e il `.env` vince sempre, come in
+     * `Credentials::mail()`. Non scrive niente.
+     *
+     * @param array<string, mixed> $posted colonne di `security` (`mail_host`, ...)
+     */
+    public static function fromForm(string $service, array $posted, ?object $saved = null): object
+    {
+        $credentials = clone ($saved ?? Credentials::mail());
+        $credentials->service = $service;
+
+        $map = [
+            'mail_host' => ['host', 'MAIL_HOST'],
+            'mail_port' => ['port', 'MAIL_PORT'],
+            'mail_username' => ['username', 'MAIL_USERNAME'],
+            'mail_password' => ['password', 'MAIL_PASSWORD'],
+            'brevo_api_key' => ['brevo_api_key', 'BREVO_API_KEY'],
+        ];
+
+        foreach ($map as $column => [$property, $env]) {
+            $value = trim((string) ($posted[$column] ?? ''));
+
+            if ($value !== '' && trim((string) ($_ENV[$env] ?? '')) === '') {
+                $credentials->{$property} = $value;
+            }
+        }
+
+        return $credentials;
+    }
 
     public static function run(
         string $recipient,
@@ -92,7 +124,7 @@ final class CredentialsTest
             }
         }
 
-        $send ??= static fn (string $to, string $subject, string $body): bool => (bool) sendMail($to, $to, $subject, $body);
+        $send ??= static fn (string $to, string $subject, string $body): bool => (bool) sendMail($to, $to, $subject, $body, null, 'basic', $credentials);
         $sendError ??= static fn (): string => function_exists('sendMailError') ? sendMailError() : '';
 
         $sent = (bool) $send($recipient, self::SUBJECT, self::body($service, $host, $username));
