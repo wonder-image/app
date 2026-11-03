@@ -442,6 +442,26 @@ php forge start
   `AccountModal` (`make()` for forms, `confirm()` for deletions) for account dialogs, preserve
   page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
   fiscal data use `WhenFilledValidator`; required validators still apply.
+- Translations (`class/Localization/{Catalog,Content,Machine}`): the
+  Set-up Traduzioni page exports/imports a `Catalog` of `TranslationSource`s
+  (`json`, `legal`, `model:<table>`; modules `localization.sources`, site
+  `Catalog::set()`, `false` removes). Import is two-step: the diff is stored
+  server-side (`ImportStore`, session-bound token, 1h) and confirmation sends
+  only token and ids; an import never deletes a key and spreadsheet cells go
+  through `SpreadsheetText`. `legal_documents` is the only legal source: public
+  pages render `LegalDocument::make($type)`; `legal.json` is a seed only.
+  Translatable Models implement `Translatable` + `HasTranslations` and read
+  explicitly with `Model::translated($rows, $lang)` (one query per batch,
+  fallback to the column; `decorate()` stays pure). Values live in the generic
+  `translations` table with `source_hash` and status `automatic` / `reviewed` /
+  `review`; only the task `wonder.content-translation` (enabled by default) writes
+  `automatic` ones (vocabulary composition, then `translation_memory`, then the
+  `Translator` driver, `GoogleTranslator` with `GCP_API_KEY`) and never
+  overwrites `reviewed`. Vocabolario (`TranslationTermResource`) and Contenuti
+  tradotti (`TranslatedContentResource`) are admin-only; "Ritraduci" only nulls
+  `source_hash` of `automatic` rows. Tests inject store and driver
+  (`Translations::useStore()`), never Google. See
+  `docs/app/concetti/traduzioni.md`.
 - Credenziali page (`SecurityResource`, view
   `app/view/pages/backend/config/security/integrations.php`) is a grid of
   `IntegrationCard`s grouped by `Integrations::CATEGORIES`, each opening a

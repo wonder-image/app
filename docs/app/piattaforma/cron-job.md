@@ -301,6 +301,13 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   iniziale sospesa, ore 12:00 dal lunedi al venerdi. Riusa il servizio gia
   condiviso dall'endpoint e dal comando CLI, senza richieste durante
   l'installazione. Il modello e sostituibile in una sottoclasse.
+- **Traduzioni dei contenuti**: `Tasks\ContentTranslationTask`
+  (`wonder.content-translation`), attiva, ogni 10 minuti; parametri `budget`
+  (testi per esecuzione, 1-2000, default 200) e `threshold` (ripetizioni per
+  proporre un termine, 2-1000, default 3). Traduce i campi dei Model
+  `Translatable` con vocabolario, memoria e Google Cloud Translation; senza
+  `GCP_API_KEY` lavorano solo vocabolario e memoria e l'esecuzione riporta
+  `skipped: missing_api_key`. Dettagli in [Traduzioni](../concetti/traduzioni.md).
 - **Sedi e Google**: `Tasks\GooglePlacesTask` (`wonder.google-places`), sempre
   attiva, ore 03:30; senza `GCP_API_KEY` ogni esecuzione e registrata come
   saltata (`skipped: missing_api_key`). Per ogni sede con `google_place_id` legge da Places

@@ -105,3 +105,6 @@ $country = Geo::country();
 
 Non leggere `$_SESSION['system_cache']['country']` direttamente: prima della
 prima chiamata all'accessor la chiave non c'è.
+
+Per tradurre testi del sito, documenti legali e campi dei Model dal backend
+vedi [Traduzioni](traduzioni.md).

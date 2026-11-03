@@ -11,6 +11,7 @@
 
 * [Mappa end-to-end](concetti/mappa-end-to-end.md)
 * [Localizzazione](concetti/localizzazione.md)
+* [Traduzioni](concetti/traduzioni.md)
 * [Notifiche](concetti/notifiche.md)
 * [Errori ripetuti](concetti/errori.md)
 * [Performance frontend e cache](concetti/frontend-performance.md)
