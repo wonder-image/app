@@ -132,8 +132,9 @@ final class TranslatedContentResource extends Resource
     {
         return NavigationSchema::for(static::class)
             ->inSection('set-up')
+            ->inGroup('translations')
             ->title('Contenuti tradotti')
-            ->order(42)
+            ->order(30)
             ->authority(['admin']);
     }
 

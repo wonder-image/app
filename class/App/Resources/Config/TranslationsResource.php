@@ -31,8 +31,9 @@ final class TranslationsResource extends NavigationOnlyResource
     {
         return NavigationSchema::for(static::class)
             ->inSection('set-up')
-            ->title('Traduzioni')
-            ->order(40)
+            ->group('translations', 'Traduzioni', 40)
+            ->title('Export e import')
+            ->order(10)
             ->authority(['admin']);
     }
 

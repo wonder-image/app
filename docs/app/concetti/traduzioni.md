@@ -1,11 +1,11 @@
 # Traduzioni
 
-Tre strade per lo stesso problema, tutte nella sezione **Set-up** del backend:
+Tre strade per lo stesso problema, tutte nel gruppo **Traduzioni** della sezione **Set-up** del backend (voci Export e import, Documenti legali, Contenuti tradotti, Vocabolario):
 
 | Cosa | Dove | Come si traduce |
 | --- | --- | --- |
-| Testi del sito (`lang/*.json`) | Traduzioni | export per il traduttore, import con anteprima |
-| Documenti legali (`legal_documents`) | Traduzioni | export/import, una versione per lingua |
+| Testi del sito (`lang/*.json`) | Export e import | export per il traduttore, import con anteprima |
+| Documenti legali (`legal_documents`) | Documenti legali, Export e import | export/import, una versione per lingua |
 | Campi dei Model (`Translatable`) | Contenuti tradotti, Vocabolario | task automatico, correzioni a mano |
 
 Un sito o una tabella che non usa le traduzioni si comporta come prima: nessuna
@@ -13,7 +13,7 @@ query in più, nessun output diverso.
 
 ## Pagina Traduzioni: export e import
 
-`TranslationsResource` (Set-up → Traduzioni, solo `admin`) sceglie una sorgente,
+`TranslationsResource` (Set-up → Traduzioni → Export e import, solo `admin`) sceglie una sorgente,
 la lingua di partenza e quella di destinazione.
 
 - **Export** in XLSX o CSV con le colonne `id`, `contesto`, `<lingua sorgente>`,
@@ -71,7 +71,7 @@ echo LegalDocument::make('cookie')->title(true, 'h2');
 documento nella lingua di destinazione prende la stessa versione della
 sorgente: si crea se manca, si aggiorna se nessuno l'ha ancora accettato,
 altrimenti la riga va in errore e serve una versione nuova. La lista dei
-documenti legali ha un bottone verso Traduzioni con la sorgente già scelta.
+documenti legali ha un bottone verso Export e import con la sorgente già scelta.
 
 ## Campi traducibili dei Model
 
@@ -136,7 +136,7 @@ così i test non chiamano mai Google. Vedi [Cron job da codice](../piattaforma/c
 
 ## Vocabolario
 
-Set-up → Vocabolario (`TranslationTermResource`, tabella `translation_terms`):
+Set-up → Traduzioni → Vocabolario (`TranslationTermResource`, tabella `translation_terms`):
 
 - **Uso**: *Traduci sempre così* (`glossary`) o *Non tradurre* (`keep`).
 - **Stato**: *Confermato*, *Proposto* (`candidate`) o *Scartato* (`rejected`).
@@ -158,7 +158,7 @@ revisione.
 
 ## Contenuti tradotti
 
-Set-up → Contenuti tradotti (`TranslatedContentResource`) elenca la tabella
+Set-up → Traduzioni → Contenuti tradotti (`TranslatedContentResource`) elenca la tabella
 `translations` con filtri per stato, lingua e tabella. Si modifica solo il
 testo: il salvataggio la rende `reviewed` (motore `manual`) e ricalcola
 `source_hash` sul testo base attuale, mostrato sopra il form. Le traduzioni non

@@ -148,8 +148,9 @@ final class TranslationTermResource extends Resource
     {
         return NavigationSchema::for(static::class)
             ->inSection('set-up')
+            ->inGroup('translations')
             ->title('Vocabolario')
-            ->order(41)
+            ->order(40)
             ->authority(['admin']);
     }
 

@@ -445,7 +445,8 @@ php forge start
   page-only alerts, ownership checks, CSRF and non-JS editor routes. Optional
   fiscal data use `WhenFilledValidator`; required validators still apply.
 - Translations (`class/Localization/{Catalog,Content,Machine}`): the
-  Set-up Traduzioni page exports/imports a `Catalog` of `TranslationSource`s
+  Set-up → Traduzioni group (navigation group `translations`: Export e
+  import, Documenti legali, Contenuti tradotti, Vocabolario) exports/imports a `Catalog` of `TranslationSource`s
   (`json`, `legal`, `model:<table>`; modules `localization.sources`, site
   `Catalog::set()`, `false` removes). Import is two-step: the diff is stored
   server-side (`ImportStore`, session-bound token, 1h) and confirmation sends
