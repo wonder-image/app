@@ -9,7 +9,8 @@ use Wonder\Localization\Content\TranslationStore;
  * Pipeline della traduzione automatica: composizione locale dal vocabolario,
  * protezione dei termini (`translate="no"`), memoria, poi il motore. Solo le
  * stringhe che non si risolvono in locale né in memoria arrivano al motore,
- * in un'unica chiamata per lingua.
+ * in un'unica chiamata per lingua. Senza motore quelle stringhe tornano con
+ * `value` ed `engine` null e restano da tradurre.
  */
 class MachineTranslation
 {
@@ -24,12 +25,12 @@ class MachineTranslation
 
     public function __construct(
         private readonly TranslationStore $store,
-        private readonly Translator $translator
+        private readonly ?Translator $translator = null
     ) {}
 
     /**
      * @param list<string> $texts
-     * @return list<array{value: string, engine: string}>
+     * @return list<array{value: ?string, engine: ?string}>
      */
     public function translate(array $texts, string $from, string $to): array
     {
@@ -63,7 +64,13 @@ class MachineTranslation
             $missing[$hash]['indexes'][] = $index;
         }
 
-        if ($missing !== []) {
+        if ($missing !== [] && $this->translator === null) {
+            foreach ($missing as $item) {
+                foreach ($item['indexes'] as $index) {
+                    $result[$index] = ['value' => null, 'engine' => null];
+                }
+            }
+        } elseif ($missing !== []) {
             $translated = $this->translator->translate(array_column($missing, 'protected'), $from, $to);
             $engine = $this->translator->key();
 
@@ -81,6 +88,12 @@ class MachineTranslation
         ksort($result);
 
         return array_values($result);
+    }
+
+    /** Traduzione già in memoria, senza chiamare il motore. */
+    public function remembered(string $text, string $from, string $to): ?string
+    {
+        return $this->store->memory(hash('sha256', "{$from}|{$to}|".$this->protect($text, $to)));
     }
 
     /**
