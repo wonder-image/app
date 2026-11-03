@@ -14,6 +14,7 @@ Questa sezione è divisa in due aree operative:
 - [Google Analytics](google-tag-manager/google-analytics.md)
 
 ## Configurazione
+- [Integrazioni: la pagina Credenziali](integrazioni.md)
 - [Google Cloud Platform](configurazione/google-cloud-platform.md)
 - [Google Sign-In OAuth](configurazione/google-sign-in-oauth.md)
 - [Sign in with Apple](configurazione/sign-in-with-apple.md)

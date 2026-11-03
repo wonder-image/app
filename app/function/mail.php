@@ -106,7 +106,8 @@
 
     }
 
-    function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic'){
+    /** `$credentials` sostituisce `Credentials::mail()` per questo invio (la prova del backend). */
+    function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic', ?object $credentials = null){
 
         // I test girano sul database di un sito vero, con indirizzi veri:
         // lì non parte niente.
@@ -114,7 +115,7 @@
             return true;
         }
 
-        $DELIVERY = mailDeliver($from, $to, $object, $body, $attachments, $template);
+        $DELIVERY = mailDeliver($from, $to, $object, $body, $attachments, $template, $credentials);
 
         $GLOBALS['MAIL_LAST_ERROR'] = $DELIVERY['error'];
 
@@ -200,7 +201,7 @@
      * `mail_log`: lo fanno `sendMail()` (riga nuova) e la coda (riga già
      * accodata). Ritorna esito, servizio, errore e i dati da registrare.
      */
-    function mailDeliver($from, $to, $object, $body, $attachments = null, $template = 'basic'): array
+    function mailDeliver($from, $to, $object, $body, $attachments = null, $template = 'basic', ?object $credentials = null): array
     {
 
         global $SOCIETY;
@@ -218,7 +219,7 @@
             $SOCIETY_NAME = sanitizeEcho($SOCIETY->name);
 
             $MAIL = new PHPMailer\PHPMailer\PHPMailer(true);
-            $CREDENTIALS = Wonder\App\Credentials::mail();
+            $CREDENTIALS = $credentials ?? Wonder\App\Credentials::mail();
 
             $BODY_RAW = emailTemplate($body, $template);
             $BODY_TEXT = htmlToText($BODY_RAW);

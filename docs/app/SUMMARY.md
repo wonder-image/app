@@ -85,6 +85,7 @@
 * [Indice servizi](servizi/README.md)
   * [reCAPTCHA — verifica server-side](servizi/recaptcha.md)
   * [Google Maps — mappe frontend](servizi/google-maps.md)
+  * [Integrazioni — pagina Credenziali](servizi/integrazioni.md)
   * [Valori FatturaPA](servizi/fatturapa-valori.md)
   * [Configurazione](servizi/configurazione/README.md)
     * [Google Cloud Platform](servizi/configurazione/google-cloud-platform.md)

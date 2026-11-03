@@ -1,11 +1,14 @@
 # Credenziali email
 
 Le email del sito (`sendMail()`, notifiche dello scheduler, moduli) partono con le
-credenziali salvate nel backend in **Dev → Credenziali**, sezione *Server mail*.
+credenziali salvate nel backend in **Dev → Credenziali**, card *Server SMTP* o
+*Brevo* (categoria Email, vedi [Integrazioni](../integrazioni.md)).
 
 ## Configurazione
 
-1. Scegli il **Servizio**: `PHPMailer (SMTP)` oppure `Brevo API`.
+1. Apri la card del servizio e scegli il **Servizio** d'invio:
+   `PHPMailer (SMTP)` oppure `Brevo API`. La card del servizio scelto mostra
+   *In uso per l'invio*.
 2. Con SMTP compila `Host`, `Porta`, `Username` e `Password`. La connessione usa
    sempre TLS implicito (`ENCRYPTION_SMTPS`, di norma porta 465).
 3. Con Brevo incolla la chiave nel campo `Brevo API Key` (vedi [Brevo](brevo.md)).
@@ -18,10 +21,12 @@ fusione.
 
 ## Email di prova
 
-Il bottone **Email di prova** nell'intestazione della pagina Credenziali invia
-un'email all'indirizzo dell'utente backend che la preme, con le credenziali
-**salvate** (quelle restituite da `Credentials::mail()`): le modifiche non
-ancora salvate nel form non vengono provate.
+Il bottone **Invia email di prova** nel modal *Server SMTP* o *Brevo* invia
+un'email all'indirizzo dell'utente backend che lo preme, con i valori
+**scritti nel modal**, senza salvarli. Il servizio provato è quello del modal
+(SMTP o Brevo), qualunque sia il servizio scelto. Una password lasciata vuota
+usa quella salvata; un valore presente nel `.env` vince sempre su quello del
+modal, come nell'invio vero (`CredentialsTest::fromForm()`).
 
 Cosa succede alla conferma:
 
@@ -93,10 +98,12 @@ imposta `Mailer::$transport = 'queueMail'`).
 - `sendMailError()` restituisce l'ultimo errore di `sendMail()` (stringa vuota
   quando l'invio è riuscito): utile per mostrare all'utente perché un invio
   è fallito senza leggere `mail_log`.
-- La pagina aggiunge il bottone con `SecurityResource::pageSchema()->actions('edit', ...)`
-  e registra la rotta in `registerBackendRoutes()`: un sito o un modulo che
-  estende la risorsa può sostituire `editActions()` per cambiare o togliere
-  il bottone.
+- `CredentialsTest::fromForm($service, $posted)` costruisce le credenziali
+  della prova partendo da `Credentials::mail()`: i campi compilati nel POST
+  sostituiscono quelli salvati, tranne quelli presenti nel `.env`.
+- Il bottone è un `submit` con `formaction` nel footer del modal (vista
+  `app/view/pages/backend/config/security/integrations.php`); la rotta
+  `mail-test` è registrata in `SecurityResource::registerBackendRoutes()`.
 - `Wonder\App\Support\Mail\Outbox` contiene le regole della coda
   (`queue()`, `process()`, `retryAt()`, `permanent()`, `stuck()` e le
   costanti `MAX_ATTEMPTS`, `RETRY_DELAYS`, `CLAIM_TIMEOUT`, `BATCH`) e lavora

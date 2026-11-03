@@ -175,12 +175,14 @@ check('sameEndpoint: host vuoto o diverso non coincide', fn () => !Connect::same
 // Comportamento GET/POST in ConnectPostTest; qui solo il testo del sorgente.
 check('la rotta connect vuole il token CSRF e non scrive il messaggio di Stripe senza escape', function () {
     $rotta = (string) file_get_contents(__DIR__.'/../../../app/http/api/service/stripe/connect.php');
-    $risorsa = (string) file_get_contents(__DIR__.'/../../../class/App/Resources/Config/SecurityResource.php');
+    // I bottoni Collega / Ricollega webhook stanno nella card Stripe della pagina Credenziali.
+    $card = (string) file_get_contents(__DIR__.'/../../../class/App/Integrations/Core/Stripe.php');
 
     return str_contains($rotta, 'Csrf::verify(')
         && !str_contains($rotta, "'Errore Stripe: '.\$e->getMessage()")
-        && substr_count($risorsa, "/service/stripe/connect/?account=") === 2
-        && !str_contains($risorsa, 'Csrf::token()');
+        && str_contains($card, "/service/stripe")
+        && str_contains($card, "'/connect/?account='.\$account")
+        && !str_contains($card, 'Csrf::token()');
 });
 
 
