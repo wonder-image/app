@@ -179,8 +179,9 @@
 
 ### Cambiato
 - **Le pagine delle traduzioni stanno nel gruppo «Traduzioni» di Set-up.**
-  Export e import (prima «Traduzioni»), Documenti legali, Contenuti tradotti e
-  Vocabolario sono un'unica tendina di navigazione (gruppo `translations`).
+  Export e import (prima «Traduzioni»), Contenuti tradotti e Vocabolario sono
+  un'unica tendina di navigazione (gruppo `translations`); Documenti legali
+  resta direttamente in Set-up.
 - **Email di prova dal modal del servizio.** Il bottone, ora «Invia email di prova»,
   sta nel modal di Server SMTP e di Brevo e prova i valori scritti nel modal senza
   salvarli (`CredentialsTest::fromForm()`): una password vuota usa quella salvata e

@@ -1,6 +1,6 @@
 # Traduzioni
 
-Tre strade per lo stesso problema, tutte nel gruppo **Traduzioni** della sezione **Set-up** del backend (voci Export e import, Documenti legali, Contenuti tradotti, Vocabolario):
+Tre strade per lo stesso problema, tutte nel gruppo **Traduzioni** della sezione **Set-up** del backend (voci Export e import, Contenuti tradotti, Vocabolario); i documenti legali restano in Set-up → Documenti legali:
 
 | Cosa | Dove | Come si traduce |
 | --- | --- | --- |
