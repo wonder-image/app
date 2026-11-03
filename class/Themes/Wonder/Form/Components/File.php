@@ -44,6 +44,7 @@ HTML;
             'gallery' => 'image/png, image/jpeg, image/webp, video/mp4',
             'jpg' => 'image/jpeg',
             'font' => 'font/ttf',
+            'spreadsheet' => '.xlsx, .csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv',
             default => '',
         };
     }

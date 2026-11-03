@@ -59,6 +59,18 @@
   ne perdeva le regole, così il campo restava sempre visibile: ora stanno sul contenitore.
 
 ### Aggiunto
+- **Traduzioni dal backend (#124).** Set-up → Traduzioni esporta in XLSX o CSV
+  testi del sito, documenti legali e campi dei Model traducibili e li reimporta
+  con un'anteprima che segnala righe nuove, modificate, con sorgente cambiata o
+  in errore (placeholder, tag HTML); l'import non cancella mai una chiave. I
+  documenti legali hanno il database come unica fonte: le pagine pubbliche usano
+  `LegalDocument::make($type)` e `legal.json` resta solo come seed. I Model
+  implementano `Translatable` con `HasTranslations` e leggono le traduzioni con
+  `Model::translated()`. Il task `wonder.content-translation` traduce i campi
+  ogni 10 minuti con vocabolario, memoria e Google Cloud Translation (serve
+  `GCP_API_KEY`), senza toccare le traduzioni corrette a mano. Vocabolario e
+  Contenuti tradotti permettono di fissare termini, correggere testi e
+  ritradurre le traduzioni automatiche. Vedi `docs/app/concetti/traduzioni.md`.
 - **Pagina Credenziali a card di integrazione (#119).** Dev → Credenziali mostra
   i servizi esterni in una griglia per categoria (Wonder Image, Google, Accesso,
   Pagamenti, Email, Marketing, Fatturazione). Ogni card riporta lo stato (Da

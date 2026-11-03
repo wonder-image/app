@@ -77,6 +77,18 @@ Route::area('backend')
                     ->name('sql-download')
                     ->permit(['admin']);
 
+                // Traduzioni: la logica vive in TranslationsResource, upload e
+                // conferma dell'import passano da handleSubmit().
+                $translationsSlug = \Wonder\App\Resources\Config\TranslationsResource::slug();
+                Route::get('/translations/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $translationsSlug])
+                    ->name('translations')
+                    ->permit(['admin']);
+                Route::post('/translations/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $translationsSlug])
+                    ->permit(['admin']);
+                Route::get('/translations/export/', $ROOT_APP.'/http/backend/config/translations/export.php')
+                    ->name('translations.export')
+                    ->permit(['admin']);
+
             });
 
         Route::get('/login/', $ROOT_APP.'/http/backend/account/login.php')

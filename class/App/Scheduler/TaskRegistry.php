@@ -34,7 +34,7 @@ final class TaskRegistry
                 $tasks[$task->key()] = $task;
             }
         };
-        $add([new Tasks\SitemapTask(), new Tasks\GooglePlacesTask(), new Tasks\OAuthCleanupTask(), new Tasks\MailOutboxTask()]);
+        $add([new Tasks\SitemapTask(), new Tasks\GooglePlacesTask(), new Tasks\OAuthCleanupTask(), new Tasks\MailOutboxTask(), new Tasks\ContentTranslationTask()]);
         if (is_callable(['App\\Models\\Site\\Euribor', 'sync'])) {
             $add([new Tasks\EuriborTask()]);
         }

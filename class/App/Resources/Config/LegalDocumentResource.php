@@ -11,6 +11,7 @@ use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
+use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Form\Form;
 use Wonder\Http\Route;
@@ -108,6 +109,7 @@ final class LegalDocumentResource extends Resource
         return TableLayoutSchema::for(static::class)
             ->title('Lista '.static::pluralLabel())
             ->results()
+            ->buttonCustom(Button::make('Traduzioni', TranslationsResource::url(['source' => 'legal']))->variant('light'))
             ->buttonAdd('Aggiungi '.static::label())
             ->filters()
             ->searchFields(['name', 'doc_type', 'checkbox_label', 'version', 'language_code', 'content_hash'])

@@ -131,6 +131,7 @@ HTML;
             'gallery' => 'image/png, image/jpeg, image/webp, video/mp4',
             'jpg' => 'image/jpeg',
             'font' => 'font/ttf',
+            'spreadsheet' => '.xlsx, .csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv',
             default => '',
         };
     }
@@ -144,6 +145,7 @@ HTML;
             'video' => 'il tuo video',
             'gallery' => 'le tue foto e i tuoi video',
             'font' => 'il tuo font',
+            'spreadsheet' => 'il tuo foglio',
             default => 'il tuo file',
         };
     }
