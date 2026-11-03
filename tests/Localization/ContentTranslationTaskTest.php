@@ -131,6 +131,20 @@ check('candidati: un termine scartato non torna', function () {
     return $result['candidates'] === 0 && $store->terms['Lino']['status'] === 'rejected';
 });
 
+check('ritraduci: solo le automatic che contengono il termine si rifanno', function () {
+    $store = taskStore();
+    runTask($store, new FakeTranslator());
+    $store->save('products', 2, 'name', 'en', ['value' => 'Hoodie', 'status' => 'reviewed', 'source_hash' => Translations::hash('Felpa')]);
+    $usages = array_merge($store->usages('products', 'name', 'maglia', true), $store->usages('products', 'name', 'felpa', true));
+    $requeued = $store->requeue(array_column($usages, 'id'));
+    $driver = new FakeTranslator();
+    $result = runTask($store, $driver);
+
+    return count($usages) === 2 && $requeued === 1 && $result['memory'] === 1 && $driver->calls === []
+        && $store->rows['products|1|name|en']['value'] === '[en] Maglia'
+        && $store->rows['products|2|name|en']['value'] === 'Hoodie';
+});
+
 check('parametri non validi', function () {
     try {
         (new ContentTranslationTask())->validate(['budget' => 0, 'threshold' => 3]);
