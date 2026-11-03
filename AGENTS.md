@@ -65,6 +65,8 @@ può prendere in carico. Guida: `docs/components/README.md` e
 
 - Button::lightbox(string|array, ?string) opens image/iframe URL groups in both themes through RendersButtonLightbox. Preserve disabled behavior and native URL fallback; disallow form actions. See docs/app/elementi/button-lightbox.md.
 
+- Label sheets: `Wonder\Support\Labels\LabelFormat` (mm; `standard()`, `a4()`, `roll()`) and `LabelSheet` (`labels()` / `plan()` / `layout()` / `render()`) print text lines, a highlighted value and an EAN through `Ean` and `Wonder\Pdf`. Domain fields (price, SKU) stay in the caller; see docs/app/elementi/etichette.md.
+
 - Responsive media: use Image::displaySizes() for HTML sizes, Swiper::priority()/imageSizes()/thumbsImageSizes(), and Gallery::imageSizes() to override column-derived sizes. Keep these in shared renderers, not site wrappers; see docs/app/elementi/responsive-media.md.
   `RendersResponsiveImage` emits `data-wi-image-name` (original `src()` name, never the variant) for the lib missing-image label; no `file_exists()`. Opt out with `Image::missingLabel(false)` or `IMAGE_MISSING_LABEL=false`.
 

@@ -21,6 +21,7 @@
 * [Immagini di Swiper e Gallery](elementi/responsive-media.md)
 * [Button con lightbox](elementi/button-lightbox.md)
 * [Codici a barre](elementi/codici-a-barre.md)
+* [Etichette in PDF](elementi/etichette.md)
 * [Moduli](concetti/moduli/README.md)
   * [Sistema moduli](concetti/moduli/sistema.md)
   * [Contratto modulo (ModuleInterface)](concetti/moduli/contratto.md)
