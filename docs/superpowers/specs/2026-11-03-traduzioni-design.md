@@ -18,7 +18,7 @@ Vincolo comune: **una tabella o un sito che non usa le traduzioni si comporta co
 ## Decisioni
 
 1. **Un solo catalogo, più sorgenti.**
-   - `Wonder\Localization\Catalog\TranslationSource` è il contratto: `key()`, `label()`, `entries($source, $target)`, `apply($target, $changes)`.
+   - `Wonder\Localization\Catalog\TranslationSource` è il contratto: `key()`, `label()`, `entries($source, $target)`, `apply($source, $target, $changes)`.
    - Le sorgenti del core sono tre:
      - `json`: i testi del sito;
      - `legal`: i documenti legali;
@@ -38,7 +38,7 @@ Vincolo comune: **una tabella o un sito che non usa le traduzioni si comporta co
      - `errore`, nei casi seguenti:
        - l'id non esiste;
        - un `{{placeholder}}` della sorgente manca o è stato aggiunto;
-       - l'HTML non passa `SafeHtml::clean()` senza cambiare;
+       - i tag HTML della destinazione non sono gli stessi della sorgente (stesso insieme di nomi, con le ripetizioni);
        - una lista JSON resta incompleta;
        - per i documenti legali, la versione è già stata accettata.
    - **Secondo POST (conferma).** `Csrf::verify()`, poi si rilegge il diff dal server: dal client arrivano solo il token e gli id scelti. Le righe in errore non si applicano mai.
