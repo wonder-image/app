@@ -42,9 +42,14 @@ class TranslationTerm extends Model
         return [
             Column::key('term')->length(191)->unique(),
             Column::key('mode')->enum(self::MODES)->default(self::GLOSSARY),
-            Column::key('status')->enum(self::STATUSES)->default(self::CONFIRMED)->index(),
+            Column::key('status')->enum(self::STATUSES)->default(self::CONFIRMED),
             Column::key('occurrences')->int()->default('0'),
         ];
+    }
+
+    public static function tablePseudos(): array
+    {
+        return ['ind_status' => ['index' => 'status']];
     }
 
     public static function dataSchema(): array
