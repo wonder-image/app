@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Corretto
+- **L'export delle liste riordinabili includeva la colonna della maniglia.**
+  `extra.wonder.lib` e `package.json` richiedono `wonder-image@^2.1.2-alpha.39`,
+  che esclude `row-drag` dalle colonne esportate (wonder-image/app#156).
 - **«Collega webhook» (ora «Ricollega webhook») lasciava su Stripe il vecchio endpoint senza `www`.**
   `Connect::webhook()` cancellava solo l'endpoint con l'url identico: dopo il
   passaggio a `www` quello su `example.it` restava attivo, riceveva un 301 e
