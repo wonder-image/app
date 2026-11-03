@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Corretto
+- **«Collega webhook» (ora «Ricollega webhook») lasciava su Stripe il vecchio endpoint senza `www`.**
+  `Connect::webhook()` cancellava solo l'endpoint con l'url identico: dopo il
+  passaggio a `www` quello su `example.it` restava attivo, riceveva un 301 e
+  Stripe segnalava le consegne fallite. Ora cancella gli endpoint dello stesso
+  sito anche con l'altra forma dell'host, in `http` o senza slash finale
+  (`Connect::sameEndpoint()`); quelli degli altri siti restano. In Sicurezza
+  i bottoni del webhook di produzione e test si chiamano «Ricollega webhook».
 - **Catalogo dei componenti con PHP 8.5: `self` scritto col nome della classe.**
   Da PHP 8.5 la reflection risolve `self`; `ApiReference` lo riporta a `self`
   nelle firme e nei tipi di ritorno, come con PHP 8.2.
@@ -55,7 +62,7 @@
   connettere, Parziale, Connessa), i badge Test e `.env`, «In uso per l'invio» sul
   servizio email attivo e «Richiede Google Cloud Platform» quando serve. Lo stato
   si calcola senza chiamare i servizi. La card apre un modal con guida, campi e
-  azioni (Stripe: righe Produzione e Test con Collega e Collega webhook); il modal
+  azioni (Stripe: righe Produzione e Test con Collega e Ricollega webhook); il modal
   salva solo i propri campi, lascia invariata una password vuota e mostra in sola
   lettura i campi del `.env`. SMTP e Brevo sono card distinte. Il registro
   `Wonder\App\Integrations\Integrations` segue lo schema di `HomeStatus`: i moduli

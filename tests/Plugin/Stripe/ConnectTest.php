@@ -144,15 +144,45 @@ check('webhook: scorre tutte le pagine degli endpoint', function () use ($http) 
         && [$http->requests[2]['method'], $http->path(2)] === ['DELETE', '/v1/webhook_endpoints/we_vecchio'];
 });
 
+check('webhook: cancella anche l\'endpoint dello stesso sito senza www, in http o senza slash; non quelli degli altri siti', function () use ($http) {
+    $http->requests = [];
+    $http->queue(200, ['object' => 'list', 'url' => '/v1/webhook_endpoints', 'has_more' => false, 'data' => [
+        ['id' => 'we_nudo', 'object' => 'webhook_endpoint', 'url' => 'https://negozio.example/api/gestionale/stripe/webhook/'],
+        ['id' => 'we_http', 'object' => 'webhook_endpoint', 'url' => 'http://WWW.negozio.example/api/gestionale/stripe/webhook'],
+        ['id' => 'we_sito', 'object' => 'webhook_endpoint', 'url' => 'https://altro.example/api/gestionale/stripe/webhook/'],
+        ['id' => 'we_sotto', 'object' => 'webhook_endpoint', 'url' => 'https://shop.negozio.example/api/gestionale/stripe/webhook/'],
+        ['id' => 'we_percorso', 'object' => 'webhook_endpoint', 'url' => 'https://www.negozio.example/api/altro/webhook/'],
+    ]]);
+    $http->queue(200, ['id' => 'we_nudo', 'object' => 'webhook_endpoint', 'deleted' => true]);
+    $http->queue(200, ['id' => 'we_http', 'object' => 'webhook_endpoint', 'deleted' => true]);
+    $http->queue(200, ['id' => 'we_nuovo', 'object' => 'webhook_endpoint', 'url' => 'x', 'secret' => 'whsec_www']);
+
+    $segreto = (new Connect('sk_test_prova', 'acct_test'))->webhook('https://www.negozio.example/api/gestionale/stripe/webhook/');
+
+    return $segreto === 'whsec_www'
+        && count($http->requests) === 4
+        && [$http->requests[1]['method'], $http->path(1)] === ['DELETE', '/v1/webhook_endpoints/we_nudo']
+        && [$http->requests[2]['method'], $http->path(2)] === ['DELETE', '/v1/webhook_endpoints/we_http']
+        && $http->requests[3]['params']['url'] === 'https://www.negozio.example/api/gestionale/stripe/webhook/';
+});
+
+check('sameEndpoint: host vuoto o diverso non coincide', fn () => !Connect::sameEndpoint('', '')
+    && !Connect::sameEndpoint('/api/x/', '/api/x/')
+    && !Connect::sameEndpoint('https://a.example/x/', 'https://b.example/x/')
+    && !Connect::sameEndpoint('https://a.example:8443/x/', 'https://a.example/x/')
+    && Connect::sameEndpoint('https://www.a.example/x/', 'https://a.example/x'));
+
 // Comportamento GET/POST in ConnectPostTest; qui solo il testo del sorgente.
 check('la rotta connect vuole il token CSRF e non scrive il messaggio di Stripe senza escape', function () {
     $rotta = (string) file_get_contents(__DIR__.'/../../../app/http/api/service/stripe/connect.php');
-    $risorsa = (string) file_get_contents(__DIR__.'/../../../class/App/Resources/Config/SecurityResource.php');
+    // I bottoni Collega / Ricollega webhook stanno nella card Stripe della pagina Credenziali.
+    $card = (string) file_get_contents(__DIR__.'/../../../class/App/Integrations/Core/Stripe.php');
 
     return str_contains($rotta, 'Csrf::verify(')
         && !str_contains($rotta, "'Errore Stripe: '.\$e->getMessage()")
-        && substr_count($risorsa, "/service/stripe/connect/?account=") === 2
-        && !str_contains($risorsa, 'Csrf::token()');
+        && str_contains($card, "/service/stripe")
+        && str_contains($card, "'/connect/?account='.\$account")
+        && !str_contains($card, 'Csrf::token()');
 });
 
 

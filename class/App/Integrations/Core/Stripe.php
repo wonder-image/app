@@ -51,7 +51,7 @@ final class Stripe extends Integration
 
     public function guide(): string
     {
-        return 'Qui scegli l\'ambiente attivo e colleghi gli account: chiavi e segreti arrivano da Stripe con «Collega» e «Collega webhook».';
+        return 'Qui scegli l\'ambiente attivo e colleghi gli account: chiavi e segreti arrivano da Stripe con «Collega» e «Ricollega webhook».';
     }
 
     public function docsUrl(): ?string
@@ -126,7 +126,7 @@ final class Stripe extends Integration
 
         $buttons = [
             Button::to($api.'/onboarding/?account='.$account, 'Collega')->size('sm')->disabled(!$platform),
-            Button::to($api.'/connect/?account='.$account, 'Collega webhook')->size('sm')->variant('secondary')->outline()->disabled(!$platform),
+            Button::to($api.'/connect/?account='.$account, 'Ricollega webhook')->size('sm')->variant('secondary')->outline()->disabled(!$platform),
         ];
 
         $components = [

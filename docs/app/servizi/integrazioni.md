@@ -19,7 +19,7 @@ mai i servizi.
 
 Un clic sulla card apre il suo modal con la guida, i campi, i contenuti propri
 dell'integrazione (per Stripe le righe Produzione e Test con **Collega** e
-**Collega webhook**) e il link alla guida del servizio. Il modal salva solo i
+**Ricollega webhook**) e il link alla guida del servizio. Il modal salva solo i
 campi della sua integrazione:
 
 - i campi che arrivano dal `.env` sono in sola lettura e non vengono salvati;
