@@ -120,6 +120,12 @@ final class GoogleApis
                 ->keyType(GoogleApi::KEY_BROWSER)
                 ->fields(['gcp_client_api_key'])
                 ->usedBy('app'),
+            GoogleApi::make('translation')
+                ->name('Cloud Translation API')
+                ->service('translate.googleapis.com')
+                ->keyType(GoogleApi::KEY_SERVER)
+                ->fields(['gcp_api_key'])
+                ->usedBy('app'),
             GoogleApi::make('google_oauth')
                 ->name('Google Auth Platform')
                 ->keyType(GoogleApi::KEY_OAUTH)
