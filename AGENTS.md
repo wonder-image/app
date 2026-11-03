@@ -466,6 +466,18 @@ php forge start
   `source_hash` of `automatic` rows. Tests inject store and driver
   (`Translations::useStore()`), never Google. See
   `docs/app/concetti/traduzioni.md`.
+- File import (`class/App/Import`): generic engine for `.xlsx`/`.csv`
+  (`Reader`, `Mapping`, `Importer`: upload, map, start, step, undo). The core
+  knows no table: a module registers `Layout`s in config `import.layouts`
+  (`Layouts::set()`, `false` removes; `Layouts::CORE` is empty). A Layout owns
+  `columns()`, `validate()`, `apply()` (one transaction per row, returns
+  `Change`s) and `undo()`, plus `permits($user)`. Any row error blocks the
+  start. Rows are written in blocks by the page (`import.step`) and the
+  always-on task `wonder.import` under a `NamedLock`. The page is
+  `ImportResource::url(['layout' => $key])`, outside the menu. Set-up →
+  Tracciati file (`ImportLayoutResource`, admin only) saves column order and
+  headers per layout, read with `Profile::for()` by exports and the mapping.
+  See `docs/app/concetti/importazione.md`.
 - Credenziali page (`SecurityResource`, view
   `app/view/pages/backend/config/security/integrations.php`) is a grid of
   `IntegrationCard`s grouped by `Integrations::CATEGORIES`, each opening a
