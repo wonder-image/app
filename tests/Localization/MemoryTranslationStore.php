@@ -69,6 +69,21 @@ final class MemoryTranslationStore implements TranslationStore
         return $result;
     }
 
+    public function sourceRows(string $table, array $fields, bool $softDelete): array
+    {
+        $result = [];
+
+        foreach ($this->sources[$table] ?? [] as $id => $row) {
+            if (!$softDelete || ($row['deleted'] ?? 'false') === 'false') {
+                $result[$id] = array_map('strval', array_intersect_key($row + array_fill_keys($fields, ''), array_flip($fields)));
+            }
+        }
+
+        ksort($result);
+
+        return $result;
+    }
+
     public function memory(string $hash): ?string
     {
         return $this->memory[$hash]['value'] ?? null;

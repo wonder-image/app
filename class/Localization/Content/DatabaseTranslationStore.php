@@ -89,6 +89,25 @@ class DatabaseTranslationStore implements TranslationStore
         ], $rows);
     }
 
+    public function sourceRows(string $table, array $fields, bool $softDelete): array
+    {
+        if ($fields === []) {
+            return [];
+        }
+
+        $columns = implode(', ', array_map(static fn (string $field): string => Query::escapeIdentifier($field), $fields));
+        $where = $softDelete ? " WHERE `deleted` = 'false'" : '';
+        $result = [];
+
+        foreach ($this->fetch('SELECT `id`, '.$columns.' FROM '.Query::escapeIdentifier($table).$where.' ORDER BY `id`') as $row) {
+            $id = (int) $row['id'];
+            unset($row['id']);
+            $result[$id] = array_map(static fn (mixed $value): string => (string) $value, $row);
+        }
+
+        return $result;
+    }
+
     public function memory(string $hash): ?string
     {
         $rows = $this->fetch('SELECT `value` FROM `translation_memory` WHERE `hash` = ? AND `deleted` = \'false\' LIMIT 1', [$hash]);

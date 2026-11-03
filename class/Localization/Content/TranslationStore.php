@@ -34,6 +34,14 @@ interface TranslationStore
      */
     public function pending(string $table, string $field, string $lang, int $limit, bool $softDelete): array;
 
+    /**
+     * Righe della tabella sorgente con i campi chiesti, ordinate per id.
+     *
+     * @param list<string> $fields
+     * @return array<int, array<string, string>> id => campo => valore
+     */
+    public function sourceRows(string $table, array $fields, bool $softDelete): array;
+
     public function memory(string $hash): ?string;
 
     public function remember(string $hash, string $from, string $to, string $source, string $value, string $engine): void;
