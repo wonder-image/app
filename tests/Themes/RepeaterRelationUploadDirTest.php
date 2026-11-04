@@ -79,4 +79,32 @@ check('senza relazione resta la cartella del contenuto', function () use ($rende
     return str_contains($html, 'data-wi-dir="https://sito.test/assets/upload/test/values/"');
 });
 
+check('la colonna file prende la cartella del Model della relazione, non quella della pagina', function () use ($render, $relation) {
+    $previous = $GLOBALS['NAME'];
+    // La pagina dell'attributo ha la sua cartella; i valori si salvano in
+    // quella del loro Model.
+    $GLOBALS['NAME'] = (object) ['folder' => 'app/gestionale/attributi'];
+
+    try {
+        $html = $render([RepeaterColumn::key('image')->fileDragDrop('image')], $relation);
+    } finally {
+        $GLOBALS['NAME'] = $previous;
+    }
+
+    return str_contains($html, 'data-wi-dir="https://sito.test/assets/upload/test/values/catalogo/attributi/"');
+});
+
+check('anche con la dir sulla colonna la cartella resta quella del Model', function () use ($render, $relation) {
+    $previous = $GLOBALS['NAME'];
+    $GLOBALS['NAME'] = (object) ['folder' => 'app/gestionale/attributi'];
+
+    try {
+        $html = $render([RepeaterColumn::key('image')->fileDragDrop('image')->prepare('dir', '/altro/')], $relation);
+    } finally {
+        $GLOBALS['NAME'] = $previous;
+    }
+
+    return str_contains($html, 'data-wi-dir="https://sito.test/assets/upload/test/values/altro/"');
+});
+
 summary();

@@ -302,16 +302,20 @@ HTML;
             return;
         }
 
-        $current = ((array) ($field->get('prepare') ?? []))['dir'] ?? null;
-
-        if (is_string($current) && trim($current) !== '') {
-            return;
-        }
-
         $relation = $context['relation'] ?? null;
         $modelClass = is_object($relation) ? ($relation->modelClass ?? null) : null;
 
         if (!is_string($modelClass) || !is_subclass_of($modelClass, Model::class)) {
+            return;
+        }
+
+        // Le righe si salvano nella cartella del Model correlato, non in
+        // quella della pagina: senza, l'anteprima chiede un file che non c'è.
+        $field->uploadFolder($modelClass::$folder);
+
+        $current = ((array) ($field->get('prepare') ?? []))['dir'] ?? null;
+
+        if (is_string($current) && trim($current) !== '') {
             return;
         }
 
