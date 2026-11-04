@@ -8,6 +8,7 @@ use Wonder\App\ResourceSchema\FormField;
 use Wonder\Backend\Support\ResourceFormLayoutRenderer as Layout;
 use Wonder\Elements\Components\{Badge, Button};
 use Wonder\Elements\Form\Form;
+use Wonder\Http\Csrf;
 use Wonder\Http\Exceptions\ForbiddenHttpException;
 
 // File → colonne → anteprima → scrittura a blocchi → annullamento: lo stato
@@ -68,7 +69,7 @@ $list = static function (?string $json): array {
                 ->value((string) (Profile::defaultId($KEY) ?: ''))->label('Tracciato')->columnSpan(['default' => 12, 'md' => 3]),
         ]),
         Button::make('Carica')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
-    ]), ['id' => 'import-upload', 'method' => 'post', 'action' => $URL, 'enctype' => 'multipart/form-data']) ?>
+    ]), ['id' => 'import-upload', 'method' => 'post', 'action' => $URL, 'enctype' => 'multipart/form-data', 'footer' => Csrf::fieldFor('post')]) ?>
     <p class="small text-body-secondary mb-0 mt-3">La prima riga del file contiene le intestazioni. Niente cambia finché non avvii il caricamento dall'anteprima.</p>
 </div></div>
 <?php } else {
@@ -112,7 +113,7 @@ $list = static function (?string $json): array {
         ...$hidden(['layout' => $KEY, 'job' => (string) $jobId, 'action' => 'map']),
         ...$fields,
         Button::make($STATUS === 'validated' ? 'Controlla di nuovo' : 'Controlla le righe')->variant($STATUS === 'validated' ? 'light' : 'primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
-    ]), ['id' => 'import-map', 'method' => 'post', 'action' => $jobUrl]) ?>
+    ]), ['id' => 'import-map', 'method' => 'post', 'action' => $jobUrl, 'footer' => Csrf::fieldFor('post')]) ?>
 </div></div>
 <?php } ?>
 
