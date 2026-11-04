@@ -107,16 +107,31 @@ class InputFile extends Input
     }
 
     /**
+     * La cartella del Model che salva il file, al posto di quella della
+     * pagina: le righe di un repeater con relazione si salvano nella
+     * cartella del loro Model, non in quella del contenuto che le contiene.
+     */
+    public function uploadFolder(string $folder): static
+    {
+        $this->schema['upload_folder'] = trim($folder, '/');
+
+        return $this;
+    }
+
+    /**
      * Cartella di destinazione: upload root del sito più la cartella del
-     * contenuto corrente (`$GLOBALS['NAME']->folder`) e l'eventuale
-     * sottocartella dichiarata in `prepare['dir']`.
+     * contenuto corrente (`$GLOBALS['NAME']->folder`, o quella data con
+     * {@see uploadFolder()}) e l'eventuale sottocartella dichiarata in
+     * `prepare['dir']`.
      */
     protected function fileDirectory(?string $subDirectory = null): string
     {
         $name = $GLOBALS['NAME'] ?? null;
         $path = $GLOBALS['PATH'] ?? null;
 
-        $folder = is_object($name) ? trim((string) ($name->folder ?? ''), '/') : '';
+        $folder = isset($this->schema['upload_folder'])
+            ? (string) $this->schema['upload_folder']
+            : (is_object($name) ? trim((string) ($name->folder ?? ''), '/') : '');
         $directory = rtrim((string) ($path->upload ?? ''), '/');
 
         if ($folder !== '') {
