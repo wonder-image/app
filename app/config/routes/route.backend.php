@@ -89,6 +89,20 @@ Route::area('backend')
                     ->name('translations.export')
                     ->permit(['admin']);
 
+                // Carica da file: il permesso lo decide il tracciato (`Layout::permits()`).
+                $importSlug = \Wonder\App\Resources\Config\ImportResource::slug();
+                Route::get('/import/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $importSlug])
+                    ->name('import')
+                    ->permit([]);
+                Route::post('/import/', $ROOT_APP.'/http/backend/resource/page.php', ['resource' => $importSlug])
+                    ->permit([]);
+                Route::post('/import/{id}/step/', $ROOT_APP.'/http/backend/import/step.php')
+                    ->name('import.step')
+                    ->permit([]);
+                Route::get('/import/sample/', $ROOT_APP.'/http/backend/import/sample.php')
+                    ->name('import.sample')
+                    ->permit([]);
+
             });
 
         Route::get('/login/', $ROOT_APP.'/http/backend/account/login.php')

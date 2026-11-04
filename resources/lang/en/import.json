@@ -1,0 +1,18 @@
+{
+  "errors": {
+    "layout": "This import type does not exist.",
+    "format": "Upload the file as .xlsx or .csv.",
+    "unreadable": "The file cannot be read: save it again and retry.",
+    "too_many": "The file has more than {{max}} rows: split it into several files.",
+    "empty": "The file has no rows to import.",
+    "duplicate_column": "The column «{{column}}» is matched to more than one header: pick only one.",
+    "no_columns": "No header is matched to a column.",
+    "missing_column": "The required column «{{column}}» is missing: add it to the file or match it to a header.",
+    "has_errors": "{{count}} rows have errors: fix the file and upload it again.",
+    "busy": "The import is running: retry in a few seconds.",
+    "missing": "This import no longer exists.",
+    "status": "This import cannot be done in its current state.",
+    "row_failed": "The row could not be written: nothing was changed.",
+    "forbidden": "You are not allowed to run this import."
+  }
+}

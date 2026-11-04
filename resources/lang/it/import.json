@@ -1,0 +1,18 @@
+{
+  "errors": {
+    "layout": "Questo tipo di caricamento non esiste.",
+    "format": "Il file va caricato in formato .xlsx o .csv.",
+    "unreadable": "Il file non si legge: salvalo di nuovo e riprova.",
+    "too_many": "Il file ha più di {{max}} righe: dividilo in più file.",
+    "empty": "Il file non ha righe da caricare.",
+    "duplicate_column": "La colonna «{{column}}» è abbinata a più di un'intestazione: scegline una sola.",
+    "no_columns": "Nessuna intestazione è abbinata a una colonna.",
+    "missing_column": "Manca la colonna obbligatoria «{{column}}»: aggiungila al file o abbinala a un'intestazione.",
+    "has_errors": "Ci sono {{count}} righe con errori: correggi il file e caricalo di nuovo.",
+    "busy": "Il caricamento è in corso: riprova fra qualche secondo.",
+    "missing": "Questo caricamento non esiste più.",
+    "status": "Questo caricamento non si può più fare in questo stato.",
+    "row_failed": "La riga non si è potuta scrivere: nessuna modifica fatta.",
+    "forbidden": "Non hai i permessi per questo caricamento."
+  }
+}
