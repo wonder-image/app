@@ -7,13 +7,14 @@ use Wonder\App\Import\Store;
 use Wonder\App\Resources\Config\ImportResource;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Backend\Support\ResourceFormLayoutRenderer as Layout;
-use Wonder\Elements\Components\{Alert, Badge, Button};
+use Wonder\Elements\Components\{Alert, Badge, Button, Steps};
 use Wonder\Elements\Form\Form;
 use Wonder\Http\Csrf;
 use Wonder\Http\Exceptions\ForbiddenHttpException;
 
-// File → colonne → anteprima → scrittura a blocchi → annullamento: lo stato
-// del lavoro (`?job=`) dice quale passo mostrare.
+// Tre passi, uno per schermata: 1. il file, 2. le colonne, 3. anteprima,
+// scrittura a blocchi e annullamento. Lo stato del lavoro (`?job=`) dice il
+// passo; `?step=2` riapre le colonne di un file già controllato.
 $KEY = (string) ($_GET['layout'] ?? '');
 
 try {
@@ -34,6 +35,25 @@ $STATUSES = [
     'undone' => ['Annullato', 'secondary'],
 ];
 $ACTIONS = ['create' => 'Nuove', 'update' => 'Da aggiornare', 'unchanged' => 'Senza modifiche'];
+$JOB_URL = $JOB === null ? null : ImportResource::url(['layout' => $KEY, 'job' => (int) $JOB['id']]);
+$STEP = match (true) {
+    $JOB === null => 1,
+    $STATUS === 'uploaded', $STATUS === 'validated' && (int) ($_GET['step'] ?? 0) === 2 => 2,
+    default => 3,
+};
+$STEPS = Steps::make('Passi del caricamento');
+
+foreach (['Scegli il file', 'Abbina le colonne', 'Controlla e carica'] as $i => $label) {
+    $n = $i + 1;
+    // Si torna indietro solo finché non si è scritto niente.
+    $href = match (true) {
+        $n === $STEP, !in_array($STATUS, ['', 'uploaded', 'validated'], true) => null,
+        $n === 1 => $URL,
+        $n === 2 => $STATUS === 'validated' ? ImportResource::url(['layout' => $KEY, 'job' => (int) $JOB['id'], 'step' => 2]) : null,
+        default => $STATUS === 'validated' ? $JOB_URL : null,
+    };
+    $STEPS->step("{$n}. {$label}", $href, $n < $STEP ? 'done' : ($n === $STEP ? 'current' : 'todo'));
+}
 
 $hidden = static fn (array $values): array => array_map(
     static fn (string $key, string $value) => FormField::key($key)->hidden()->value($value),
@@ -55,6 +75,7 @@ $list = static function (?string $json): array {
 <?php if ($LAYOUT->backUrl() !== null) { ?>
 <div class="mb-3"><?= Button::make('Torna alla lista', $LAYOUT->backUrl())->variant('light')->size('sm')->render('bootstrap') ?></div>
 <?php } ?>
+<div class="mb-3"><?= $STEPS->render('bootstrap') ?></div>
 
 <?php if ($JOB === null) {
     $profiles = Profile::options($KEY);
@@ -80,7 +101,7 @@ $list = static function (?string $json): array {
 </div></div>
 <?php } else {
     $jobId = (int) $JOB['id'];
-    $jobUrl = ImportResource::url(['layout' => $KEY, 'job' => $jobId]);
+    $jobUrl = (string) $JOB_URL;
     $counts = Store::rowCounts($jobId);
     ?>
 <div class="card border"><div class="card-body">
@@ -93,7 +114,7 @@ $list = static function (?string $json): array {
     </div>
 </div></div>
 
-<?php if (in_array($STATUS, ['uploaded', 'validated'], true)) {
+<?php if ($STEP === 2) {
     $mapping = Importer::mapping($JOB);
     $options = ['' => '— non caricare —'];
 
@@ -106,12 +127,40 @@ $list = static function (?string $json): array {
     }
 
     $report = Mapping::report($mapping['headers'], $mapping['columns'], $LAYOUT->columns());
-    $fields = [];
+    $byIndex = [];
 
-    foreach ($mapping['headers'] as $index => $header) {
-        $fields[] = FormField::key('col_'.$index)->select($options, 'old')->value((string) ($mapping['columns'][$index] ?? ''))
-            ->label($header !== '' ? $header : 'Colonna '.($index + 1))->columnSpan(['default' => 12, 'md' => 6, 'lg' => 4]);
+    foreach ([...$report['recognized'], ...$report['ignored']] as $item) {
+        $byIndex[$item['index']] = $item;
     }
+
+    $where = ['' => 'Non si carica'];
+    $required = [];
+
+    foreach ($LAYOUT->columns() as $column) {
+        $where[$column->key] = (string) ($column->field ?? '');
+        $required[$column->key] = $column->required;
+    }
+
+    // Una riga per colonna del file: la tendina dice il dato, accanto dove va.
+    ob_start();
+    ?>
+    <div class="col-12"><div class="table-responsive">
+        <table class="table table-sm align-middle small mb-0" data-import-columns>
+            <thead><tr><th class="w-50">Colonna del file → dato del programma</th><th>Dove va</th></tr></thead>
+            <tbody>
+                <?php foreach ($mapping['headers'] as $index => $header) {
+                    $key = (string) ($mapping['columns'][$index] ?? '');
+                    ?>
+                <tr>
+                    <td><?= FormField::key('col_'.$index)->select($options, 'old')->value($key)->label($header !== '' ? $header : 'Colonna '.($index + 1))->render('bootstrap') ?></td>
+                    <td class="text-body-secondary" data-import-where><?= e($key === '' && isset($byIndex[$index]) ? 'Non riconosciuta: non si carica' : ($where[$key] ?? '')) ?><?= !empty($required[$key]) ? ' '.Badge::make('obbligatoria')->variant('secondary')->render('bootstrap') : '' ?></td>
+                </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div></div>
+    <?php
+    $table = (string) ob_get_clean();
     ?>
 <div class="card border mt-3"><div class="card-body">
     <h6 class="mb-1">Colonne</h6>
@@ -119,35 +168,23 @@ $list = static function (?string $json): array {
     <?php if ($report['missing'] !== []) { ?>
     <?= Alert::make('Mancano colonne obbligatorie: '.implode(', ', array_map(static fn ($column): string => '«'.($options[$column->key] ?? $column->header).'»', $report['missing'])).'. Aggiungile al file o abbinale qui sotto: le righe si controllano solo quando ci sono tutte.', 'warning')->inline()->addClass('mb-3')->render('bootstrap') ?>
     <?php } ?>
-    <div class="table-responsive mb-3">
-        <table class="table table-sm align-top small mb-0">
-            <thead><tr><th>Colonna del file</th><th>Dato del programma</th><th>Dove va</th></tr></thead>
-            <tbody>
-                <?php foreach ($report['recognized'] as $item) { ?>
-                <tr>
-                    <td><?= e($item['header'] !== '' ? $item['header'] : 'Colonna '.($item['index'] + 1)) ?></td>
-                    <td><?= e($options[$item['column']->key] ?? $item['column']->header) ?><?= $item['column']->required ? ' '.Badge::make('obbligatoria')->variant('secondary')->render('bootstrap') : '' ?></td>
-                    <td class="text-body-secondary"><?= e($item['column']->field ?? '') ?></td>
-                </tr>
-                <?php } ?>
-                <?php foreach ($report['ignored'] as $item) { ?>
-                <tr class="text-body-secondary">
-                    <td><?= e($item['header'] !== '' ? $item['header'] : 'Colonna '.($item['index'] + 1)) ?></td>
-                    <td colspan="2">Non riconosciuta: non si carica</td>
-                </tr>
-                <?php } ?>
-            </tbody>
-        </table>
-    </div>
     <?= Layout::render((new Form())->columns(12)->components([
         ...$hidden(['layout' => $KEY, 'job' => (string) $jobId, 'action' => 'map']),
-        ...$fields,
-        Button::make($STATUS === 'validated' ? 'Controlla di nuovo' : 'Controlla le righe')->variant($STATUS === 'validated' ? 'light' : 'primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
+        $table,
+        Button::make($STATUS === 'validated' ? 'Controlla di nuovo' : 'Controlla le righe')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
     ]), ['id' => 'import-map', 'method' => 'post', 'action' => $jobUrl, 'footer' => Csrf::fieldFor('post')]) ?>
+    <script>
+    (() => {
+        const where = <?= json_encode($where, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+        document.querySelectorAll('[data-import-columns] select').forEach((select) => select.addEventListener('change', () => {
+            select.closest('tr').querySelector('[data-import-where]').textContent = where[select.value] ?? '';
+        }));
+    })();
+    </script>
 </div></div>
 <?php } ?>
 
-<?php if ($STATUS !== 'uploaded') {
+<?php if ($STEP === 3) {
     $summary = [];
 
     foreach ($ACTIONS as $action => $label) {
@@ -222,7 +259,10 @@ $list = static function (?string $json): array {
         <?php if ($STATUS === 'validated' && (int) $JOB['rows_error'] === 0 && (int) $JOB['rows_valid'] > 0) { ?>
         <?= Button::post($jobUrl, 'Avvia il caricamento')->hidden(['layout' => $KEY, 'job' => $jobId, 'action' => 'start'])->variant('primary')->render('bootstrap') ?>
         <?php } elseif ($STATUS === 'validated' && (int) $JOB['rows_error'] > 0) { ?>
-        <p class="small text-danger mb-0">Correggi le righe con errori nel file e caricalo di nuovo: il caricamento parte solo senza errori.</p>
+        <p class="small text-danger mb-0 w-100">Correggi le righe con errori nel file e caricalo di nuovo: il caricamento parte solo senza errori.</p>
+        <?php } ?>
+        <?php if ($STATUS === 'validated') { ?>
+        <?= Button::make('Cambia le colonne', ImportResource::url(['layout' => $KEY, 'job' => $jobId, 'step' => 2]))->variant('light')->render('bootstrap') ?>
         <?php } ?>
         <?php if (in_array($STATUS, ['done', 'failed'], true)) { ?>
         <?= Button::post($jobUrl, 'Annulla il caricamento')->hidden(['layout' => $KEY, 'job' => $jobId, 'action' => 'undo'])->variant('danger')
@@ -233,7 +273,7 @@ $list = static function (?string $json): array {
 <?php } ?>
 <?php } ?>
 
-<?php $RECENT = Store::recentJobs($KEY, 10); ?>
+<?php $RECENT = $STEP === 1 ? Store::recentJobs($KEY, 10) : []; ?>
 <?php if ($RECENT !== []) { ?>
 <div class="card border mt-3"><div class="card-body">
     <h6 class="mb-3">Ultimi caricamenti</h6>
