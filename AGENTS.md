@@ -480,7 +480,9 @@ php forge start
   always-on task `wonder.import` under a `NamedLock`. The page is
   `ImportResource::url(['layout' => $key])`, outside the menu. Set-up →
   Tracciati file (`ImportLayoutResource`, admin only) saves column order and
-  headers per layout, read with `Profile::for()` by exports and the mapping.
+  headers per layout, read with `Profile::for()` by exports and the mapping;
+  a module moves or hides that menu entry with a subclass keeping the same
+  `path()` (it overrides the core Resource).
   See `docs/app/concetti/importazione.md`.
 - Credenziali page (`SecurityResource`, view
   `app/view/pages/backend/config/security/integrations.php`) is a grid of

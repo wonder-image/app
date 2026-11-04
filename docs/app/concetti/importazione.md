@@ -108,6 +108,11 @@ salvarne uno predefinito lo toglie agli altri. `Profile::for($layout)` dà le
 colonne del tracciato salvato (o null): l'export del modulo le usa per scrivere
 il file, il caricamento le propone per prime nell'abbinamento.
 
+Un modulo può spostare la voce nel menu, o nasconderla, con una sottoclasse
+che tiene lo stesso `path()` e cambia solo `navigationSchema()`: la Resource
+del modulo ha la priorità su quella del core. Il gestionale la mette in
+Set-up → Gestionale, accesa dalla funzionalità «Caricamento del catalogo».
+
 ## Test
 
 ```bash

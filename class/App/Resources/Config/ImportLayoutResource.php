@@ -23,8 +23,9 @@ use Wonder\Elements\Form\Form;
  * "Tracciati file": quali colonne, in che ordine e con che intestazione
  * escono nell'export e si propongono nel caricamento. Solo per gli admin.
  * Un tracciato predefinito per tipo: salvarne uno lo toglie agli altri.
+ * Un modulo può spostarlo nel menu con una sottoclasse dallo stesso `path()`.
  */
-final class ImportLayoutResource extends Resource
+class ImportLayoutResource extends Resource
 {
     public static string $model = ImportLayout::class;
     public static array|string $condition = [];
