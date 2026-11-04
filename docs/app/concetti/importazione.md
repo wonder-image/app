@@ -15,11 +15,17 @@ annullamento. Non conosce nessuna tabella: le tocca solo il **tracciato**
    del tracciato: vincono le intestazioni del tracciato salvato scelto, poi
    quella del codice, poi la chiave e gli altri nomi (`Column::make($key,
    $header, $aliases)`). Il confronto ignora maiuscole, spazi, punteggiatura
-   e accenti. Una colonna va a una sola intestazione.
+   e accenti. Una colonna va a una sola intestazione. `Mapping::report()`
+   dice quali intestazioni sono state riconosciute (con la colonna e il campo
+   in cui finiscono, `Column::field()`), quali non si leggono e quali colonne
+   obbligatorie (`Column::required()`) mancano: la pagina lo mostra in una
+   tabella sopra l'abbinamento.
 3. **Anteprima.** `Importer::map()` controlla l'abbinamento
    (`Layout::mappingErrors()`) e tutte le righe insieme (`Layout::validate()`):
    per ognuna l'azione prevista (`create`, `update`, `unchanged`), gli errori
-   e gli avvisi, in `import_rows`. Nessuna modifica ai dati.
+   e gli avvisi, in `import_rows`. Nessuna modifica ai dati. Una colonna
+   obbligatoria senza intestazione (`Mapping::missing()`) ferma qui il
+   caricamento con l'errore `missing_column`.
 4. **Scrittura.** `Importer::start()` parte solo se nessuna riga ha errori.
    `Importer::step()` scrive le righe a blocchi, una transazione per riga
    (`Layout::apply()`), sotto un `NamedLock` per lavoro: lo chiamano la pagina
@@ -29,6 +35,13 @@ annullamento. Non conosce nessuna tabella: le tocca solo il **tracciato**
    `created`, `updated` con i valori di prima, `stock` col movimento) in
    `import_changes`; `Importer::undo()` le disfa dall'ultima alla prima in una
    transazione sola (`Layout::undo()`).
+
+Il passo del file offre il **file di esempio** del tracciato in `.xlsx` e
+`.csv` (`GET /backend/app/config/import/sample/?layout=&format=`, route
+`import.sample`, stesso permesso della pagina): lo scrive `Sample` con le
+intestazioni di `Layout::sampleColumns()` e le righe di
+`Layout::sampleRows()`. Un esempio ricaricato così com'è deve passare
+l'anteprima senza errori.
 
 La pagina è `ImportResource` (`ImportResource::url(['layout' => 'catalog'])`),
 fuori dal menu: la apre un bottone della lista che la usa, e il permesso lo
@@ -48,7 +61,15 @@ final class BrandLayout extends Layout
 
     public function columns(): array
     {
-        return [Column::make('name', 'Nome', ['Marchio']), Column::make('slug', 'Slug')];
+        return [
+            Column::make('name', 'Nome', ['Marchio'])->required()->field('Nome del marchio'),
+            Column::make('slug', 'Slug')->field('Indirizzo della pagina'),
+        ];
+    }
+
+    public function sampleRows(): array
+    {
+        return [['name' => 'Esempio', 'slug' => 'esempio']];
     }
 
     public function validate(array $rows, Context $context): array { /* azione, errori, avvisi per riga */ }

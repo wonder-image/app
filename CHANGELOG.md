@@ -6,7 +6,10 @@
 - **Caricamento da file.** Motore generico `.xlsx`/`.csv` in `class/App/Import`
   (file → colonne → anteprima → scrittura a blocchi → annullamento), pagina
   `ImportResource`, task `wonder.import` e Set-up → Tracciati file; i tracciati
-  li registrano i moduli (`import.layouts`). Vedi `docs/app/concetti/importazione.md`.
+  li registrano i moduli (`import.layouts`). File di esempio per tracciato
+  (`Sample`, rotta `import.sample`), resoconto delle colonne riconosciute,
+  ignorate e mancanti (`Mapping::report()`) e colonne obbligatorie
+  (`Column::required()`). Vedi `docs/app/concetti/importazione.md`.
 
 ### Corretto
 - **Errori fatali dei processi dello scheduler invisibili nel registro esecuzioni.**

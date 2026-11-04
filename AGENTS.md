@@ -471,7 +471,11 @@ php forge start
   knows no table: a module registers `Layout`s in config `import.layouts`
   (`Layouts::set()`, `false` removes; `Layouts::CORE` is empty). A Layout owns
   `columns()`, `validate()`, `apply()` (one transaction per row, returns
-  `Change`s) and `undo()`, plus `permits($user)`. Any row error blocks the
+  `Change`s) and `undo()`, plus `permits($user)`. `Column::required()` /
+  `field()` feed the column report (`Mapping::report()`); a missing required
+  column stops `map()` (`missing_column`). `sampleColumns()` /
+  `sampleRows()` feed the sample file (`Sample`, route `import.sample`,
+  xlsx/csv), which must reload without errors. Any row error blocks the
   start. Rows are written in blocks by the page (`import.step`) and the
   always-on task `wonder.import` under a `NamedLock`. The page is
   `ImportResource::url(['layout' => $key])`, outside the menu. Set-up →
