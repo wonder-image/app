@@ -43,7 +43,7 @@ class SitemapTask extends AbstractTask
             $tail = substr($buffer, -64);
         };
         try {
-            $exit = Process::run([PHP_BINARY, $script, $GLOBALS['ROOT'], $metrics], $GLOBALS['ROOT'], $this->timeout(), $output);
+            $exit = Process::run(Process::php($script, $GLOBALS['ROOT'], $metrics), $GLOBALS['ROOT'], $this->timeout(), $output);
         } finally {
             $data = json_decode((string) file_get_contents($metrics), true);
             $context->processMetrics = is_array($data) ? $data : null;

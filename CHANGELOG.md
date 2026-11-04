@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Corretto
+- **Errori fatali dei processi dello scheduler invisibili nel registro esecuzioni.**
+  Con `display_errors` spento nel PHP CLI dell'hosting, un fatal del crawler
+  sitemap, del worker o di uno script pianificato lasciava solo «terminato con
+  codice 255». `Process::php()` avvia ogni processo PHP figlio con
+  `-d display_errors=stderr -d html_errors=0`, così il messaggio finisce
+  nell'output dell'esecuzione.
 - **L'export delle liste riordinabili includeva la colonna della maniglia.**
   `extra.wonder.lib` e `package.json` richiedono `wonder-image@^2.1.2-alpha.39`,
   che esclude `row-drag` dalle colonne esportate (wonder-image/app#156).

@@ -39,7 +39,7 @@ final class Scheduler
                 $id = (int) \Wonder\Sql\Connection::Connect('main')->insert_id;
                 $context = new Context([], microtime(true) + $task->timeout() + 10);
                 try {
-                    Process::run([PHP_BINARY, rtrim($GLOBALS['ROOT'], '/').'/bin/scheduler.php', '--worker='.$id], $GLOBALS['ROOT'], $task->timeout() + 10, $context->log(...));
+                    Process::run(Process::php(rtrim($GLOBALS['ROOT'], '/').'/bin/scheduler.php', '--worker='.$id), $GLOBALS['ROOT'], $task->timeout() + 10, $context->log(...));
                 } catch (\Throwable $error) {
                     $context->log($error->getMessage());
                 }

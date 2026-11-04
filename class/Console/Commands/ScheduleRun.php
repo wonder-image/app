@@ -20,6 +20,6 @@ class ScheduleRun extends Command
             $output->writeln('<error>Eseguire prima forge build dal sito.</error>');
             return Command::FAILURE;
         }
-        return \Wonder\App\Scheduler\Process::run([PHP_BINARY, $file], $root, 3620, static fn (string $text) => $output->write($text));
+        return \Wonder\App\Scheduler\Process::run(\Wonder\App\Scheduler\Process::php($file), $root, 3620, static fn (string $text) => $output->write($text));
     }
 }
