@@ -13,8 +13,17 @@ query in più, nessun output diverso.
 
 ## Pagina Traduzioni: export e import
 
-`TranslationsResource` (Set-up → Traduzioni → Export e import, solo `admin`) sceglie una sorgente,
-la lingua di partenza e quella di destinazione.
+`TranslationsResource` (Set-up → Traduzioni → Export e import, solo `admin`) è
+una procedura in tre passi, uno per schermata, guidata solo dall'URL (nessun
+JavaScript):
+
+1. **Cosa tradurre**: sorgente, lingua di partenza e di destinazione (form GET).
+2. **Scarica e carica**: i link al file per il traduttore e l'upload di quello
+   tradotto. Si arriva qui con `?source=&from=&to=`; `step=1` torna al passo 1
+   tenendo la scelta.
+3. **Controlla e applica**: l'anteprima (`?preview=<token>`) e la conferma.
+
+Con una sola lingua il sito vede un avviso al posto dei passi.
 
 - **Export** in XLSX o CSV con le colonne `id`, `contesto`, `<lingua sorgente>`,
   `<lingua destinazione>`. Le celle passano da `SpreadsheetText::cell()`, così

@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Corretto
+- **Errori fatali dei processi dello scheduler invisibili nel registro esecuzioni.**
+  Con `display_errors` spento nel PHP CLI dell'hosting, un fatal del crawler
+  sitemap, del worker o di uno script pianificato lasciava solo «terminato con
+  codice 255». `Process::php()` avvia ogni processo PHP figlio con
+  `-d display_errors=stderr -d html_errors=0`, così il messaggio finisce
+  nell'output dell'esecuzione.
 - **L'export delle liste riordinabili includeva la colonna della maniglia.**
   `extra.wonder.lib` e `package.json` richiedono `wonder-image@^2.1.2-alpha.39`,
   che esclude `row-drag` dalle colonne esportate (wonder-image/app#156).
@@ -182,6 +188,11 @@
   Export e import (prima «Traduzioni»), Contenuti tradotti e Vocabolario sono
   un'unica tendina di navigazione (gruppo `translations`); Documenti legali
   resta direttamente in Set-up.
+- **Export e import delle traduzioni è una procedura in tre passi.** La pagina
+  mostra un passo per volta: 1. cosa tradurre (testi e lingue, bottone
+  «Avanti»), 2. scarica il file per il traduttore e carica quello tradotto,
+  3. controlla le differenze e salva. Il bottone «Aggiorna» non c'è più e un
+  sito con una sola lingua vede un avviso invece dei form.
 - **Email di prova dal modal del servizio.** Il bottone, ora «Invia email di prova»,
   sta nel modal di Server SMTP e di Brevo e prova i valori scritti nel modal senza
   salvarli (`CredentialsTest::fromForm()`): una password vuota usa quella salvata e

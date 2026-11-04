@@ -3,13 +3,13 @@
 use Wonder\App\Resources\Config\TranslationsResource;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Backend\Support\ResourceFormLayoutRenderer as Layout;
-use Wonder\Elements\Components\{Badge, Button};
+use Wonder\Elements\Components\{Alert, Badge, Button, Steps};
 use Wonder\Elements\Form\Form;
 use Wonder\Localization\Catalog\Catalog;
 use Wonder\Localization\Catalog\ImportPreview;
 
-// Export del catalogo per il traduttore e import in due passi: il file
-// caricato diventa un'anteprima sul server (token), poi si confermano le righe.
+// Tre passi, uno per schermata: 1. cosa tradurre (GET), 2. scarica il file e
+// carica quello tradotto, 3. anteprima sul server (token) e conferma.
 $SELECTION = TranslationsResource::selection($_GET);
 $LANGS = TranslationsResource::languages();
 $SOURCES = array_map(static fn ($source): string => $source->label(), Catalog::all());
@@ -20,46 +20,70 @@ if ($PREVIEW !== null && array_intersect_key($PREVIEW, $SELECTION) != $SELECTION
     $PREVIEW = null;
 }
 
+$STEP = match (true) {
+    count($LANGS) < 2 => 0,
+    $PREVIEW !== null => 3,
+    isset($_GET['source']) && ($_GET['step'] ?? '') !== '1' && $SELECTION['from'] !== $SELECTION['to'] => 2,
+    default => 1,
+};
+
 \Wonder\View\View::layout('backend.show', [
     'TITLE' => 'Traduzioni',
-    'SUBTITLE' => 'Esporta i testi per il traduttore e importa il foglio tradotto',
+    'SUBTITLE' => 'Manda i testi al traduttore e carica il file che ti rimanda',
 ]);
 
-$third = ['default' => 12, 'md' => 4];
 $hidden = static fn (array $values): array => array_map(
     static fn (string $key, string $value) => FormField::key($key)->hidden()->value($value),
     array_keys($values),
     array_values($values),
 );
+$choice = ($SOURCES[$SELECTION['source']] ?? $SELECTION['source']).' · '
+    .($LANGS[$SELECTION['from']] ?? $SELECTION['from']).' → '.($LANGS[$SELECTION['to']] ?? $SELECTION['to']);
+$steps = Steps::make('Passi dell\'import');
+
+foreach (['Cosa tradurre', 'Scarica e carica', 'Controlla e applica'] as $i => $label) {
+    $n = $i + 1;
+    $href = match ($n) { 1 => TranslationsResource::url($SELECTION + ['step' => 1]), 2 => TranslationsResource::url($SELECTION), default => null };
+    $steps->step("{$n}. {$label}", $href, $n < $STEP ? 'done' : ($n === $STEP ? 'current' : 'todo'));
+}
 ?>
+<?php if ($STEP === 0) { ?>
+<?= Alert::make('Il sito ha una sola lingua: aggiungi una seconda lingua per poter tradurre i testi.', 'info')->title('Nessuna lingua da tradurre')->inline()->dismissible(false)->render('bootstrap') ?>
+<?php } else { ?>
+<div class="mb-3"><?= $steps->render('bootstrap') ?></div>
+<?php } ?>
+<?php if ($STEP === 0) { } elseif ($STEP === 1) { ?>
+<div class="card border"><div class="card-body">
+    <h6 class="mb-3">Cosa vuoi tradurre?</h6>
+    <?= Layout::render((new Form())->columns(12)->components([
+        FormField::key('source')->select($SOURCES, 'old')->value($SELECTION['source'])->label('Testi')->columnSpan(['default' => 12, 'md' => 4]),
+        FormField::key('from')->select($LANGS, 'old')->value($SELECTION['from'])->label('Dalla lingua')->columnSpan(['default' => 12, 'md' => 4]),
+        FormField::key('to')->select($LANGS, 'old')->value($SELECTION['to'])->label('Alla lingua')->columnSpan(['default' => 12, 'md' => 4]),
+        Button::make('Avanti')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4, 'lg' => 2]),
+    ]), ['id' => 'translations-selection', 'method' => 'get']) ?>
+</div></div>
+<?php } elseif ($STEP === 2) { ?>
 <div class="card border"><div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <h6 class="mb-0">Testi da tradurre</h6>
-        <div class="d-flex flex-wrap gap-2">
-            <?= Button::make('Scarica XLSX', TranslationsResource::exportUrl($SELECTION + ['format' => 'xlsx']))->variant('primary')->size('sm')->render('bootstrap') ?>
-            <?= Button::make('Scarica CSV', TranslationsResource::exportUrl($SELECTION + ['format' => 'csv']))->variant('light')->size('sm')->render('bootstrap') ?>
-        </div>
+        <div><strong><?= e($choice) ?></strong></div>
+        <a class="small" href="<?= e(TranslationsResource::url($SELECTION + ['step' => 1])) ?>">Cambia</a>
     </div>
-    <?= Layout::render((new Form())->columns(12)->components([
-        FormField::key('source')->select($SOURCES, 'old')->value($SELECTION['source'])->label('Sorgente')->columnSpan($third),
-        FormField::key('from')->select($LANGS, 'old')->value($SELECTION['from'])->label('Lingua sorgente')->columnSpan($third),
-        FormField::key('to')->select($LANGS, 'old')->value($SELECTION['to'])->label('Lingua destinazione')->columnSpan($third),
-        Button::make('Aggiorna')->variant('light')->type('submit')->columnSpan(['default' => 12, 'md' => 4, 'lg' => 2]),
-    ]), ['id' => 'translations-selection', 'method' => 'get']) ?>
-    <p class="small text-body-secondary mb-0 mt-3">Il foglio ha le colonne id, contesto, <?= e($SELECTION['from']) ?> e <?= e($SELECTION['to']) ?>. Il traduttore compila solo l'ultima: una cella vuota lascia la traduzione com'è.</p>
-</div></div>
-
-<div class="card border mt-3"><div class="card-body">
-    <h6 class="mb-3">Importa il foglio tradotto</h6>
+    <h6 class="mb-2">Manda il file al traduttore</h6>
+    <p class="small text-body-secondary mb-2">Il traduttore scrive le traduzioni solo nell'ultima colonna (<?= e($LANGS[$SELECTION['to']] ?? $SELECTION['to']) ?>) e non tocca le altre.</p>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <?= Button::make('Scarica il file Excel', TranslationsResource::exportUrl($SELECTION + ['format' => 'xlsx']))->variant('primary')->render('bootstrap') ?>
+        <?= Button::make('Scarica in CSV', TranslationsResource::exportUrl($SELECTION + ['format' => 'csv']))->variant('light')->render('bootstrap') ?>
+    </div>
+    <h6 class="mb-2">Carica il file tradotto</h6>
+    <p class="small text-body-secondary mb-2">Prima di salvare vedi cosa cambia. Le righe vuote o mancanti restano come sono.</p>
     <?= Layout::render((new Form())->columns(12)->components([
         ...$hidden($SELECTION + ['action' => 'upload']),
         FormField::key('sheet')->file('spreadsheet')->label('File .xlsx o .csv')->columnSpan(['default' => 12, 'md' => 8]),
-        Button::make('Mostra anteprima')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
+        Button::make('Controlla il file')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
     ]), ['id' => 'translations-upload', 'method' => 'post', 'action' => TranslationsResource::url($SELECTION), 'enctype' => 'multipart/form-data']) ?>
-    <p class="small text-body-secondary mb-0 mt-3">Nessuna traduzione cambia finché non confermi l'anteprima. Le chiavi che mancano nel file restano come sono.</p>
 </div></div>
 <?php
-if ($PREVIEW !== null) {
+} else {
     $rows = (array) ($PREVIEW['preview'] ?? []);
     $counts = array_count_values(array_column($rows, 'status'));
     $summary = [];
@@ -89,8 +113,12 @@ if ($PREVIEW !== null) {
         }
     }
     ?>
-<div class="card border mt-3"><div class="card-body">
-    <h6 class="mb-1">Anteprima di <?= e((string) ($PREVIEW['file'] ?? 'file')) ?></h6>
+<div class="card border"><div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+        <h6 class="mb-0">Cosa cambia con <?= e((string) ($PREVIEW['file'] ?? 'il file')) ?></h6>
+        <a class="small" href="<?= e(TranslationsResource::url($SELECTION)) ?>">Carica un altro file</a>
+    </div>
+    <p class="small mb-1"><?= e($choice) ?></p>
     <p class="small text-body-secondary mb-3"><?= e(implode(' · ', $summary) ?: 'Il file non contiene traduzioni.') ?></p>
     <div class="table-responsive">
         <table class="table table-sm align-top small">
@@ -119,11 +147,12 @@ if ($PREVIEW !== null) {
     <?php if ($options === []) { ?>
     <p class="small text-body-secondary mb-0">Nessuna riga da applicare.</p>
     <?php } else { ?>
+    <p class="small text-body-secondary mb-2">Scegli le righe da salvare: quelle con «sorgente cambiata» partono deselezionate.</p>
     <?= Layout::render((new Form())->columns(12)->components([
         ...$hidden($SELECTION + ['action' => 'confirm', 'token' => $TOKEN]),
         FormField::key('ids')->checkbox()->options($options)->value($selected)->searchBar()
-            ->label('Righe da applicare (le "sorgente cambiata" partono deselezionate)'),
-        Button::make('Applica le traduzioni scelte')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
+            ->label('Righe da salvare')->columnSpan(12),
+        Button::make('Salva le traduzioni scelte')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
     ]), ['id' => 'translations-confirm', 'method' => 'post', 'action' => TranslationsResource::url($SELECTION)]) ?>
     <?php } ?>
 </div></div>

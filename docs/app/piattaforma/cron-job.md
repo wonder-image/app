@@ -250,6 +250,16 @@ Il tick smette di avviare nuove attivita dopo 50 secondi; quella gia avviata
 puo proseguire fino al proprio timeout (default 300 secondi, massimo 3600),
 con 10 secondi di tolleranza per il worker.
 
+Tutti i processi PHP figli (worker, crawler sitemap, script PHP delle
+pianificazioni, `forge schedule:run`) partono da `Process::php()`, che
+aggiunge `-d display_errors=stderr -d html_errors=0`. Gli hosting tengono
+spesso `display_errors` spento nel PHP da riga di comando: senza questi flag un
+errore fatale finiva solo nel log di PHP e il run mostrava soltanto il codice
+di uscita (per esempio 255). Ora il messaggio arriva su stderr, che `Process::run()`
+cattura nell'output dell'esecuzione. I task dei moduli girano dentro il worker
+e ne ereditano l'impostazione; un modulo che avvia un proprio processo PHP deve
+usare `Process::php()` invece di `PHP_BINARY`.
+
 La scelta privilegia chi non viene eseguito da piu tempo. Dopo un fermo si
 esegue una volta il lavoro dovuto e si calcola la prossima scadenza futura:
 nessuna raffica di recupero e nessun retry automatico. Per grandi import
