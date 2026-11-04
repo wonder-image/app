@@ -19,6 +19,28 @@ abstract class Layout
     /** @return list<Column> */
     abstract public function columns(): array;
 
+    /**
+     * Le colonne del file di esempio, nell'ordine in cui escono: di base
+     * tutte quelle del tracciato.
+     *
+     * @return list<Column>
+     */
+    public function sampleColumns(): array
+    {
+        return $this->columns();
+    }
+
+    /**
+     * Le righe del file di esempio, per chiave di colonna; le chiavi che
+     * mancano escono vuote.
+     *
+     * @return list<array<string, string>>
+     */
+    public function sampleRows(): array
+    {
+        return [];
+    }
+
     /** La pagina a cui torna il caricamento (la lista da cui si parte). */
     public function backUrl(): ?string
     {

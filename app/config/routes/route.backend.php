@@ -99,6 +99,9 @@ Route::area('backend')
                 Route::post('/import/{id}/step/', $ROOT_APP.'/http/backend/import/step.php')
                     ->name('import.step')
                     ->permit([]);
+                Route::get('/import/sample/', $ROOT_APP.'/http/backend/import/sample.php')
+                    ->name('import.sample')
+                    ->permit([]);
 
             });
 

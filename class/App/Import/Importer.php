@@ -83,6 +83,10 @@ final class Importer
             $errors[] = ImportError::make('no_columns')->getMessage();
         }
 
+        foreach (Mapping::missing($clean, $layout->columns()) as $key) {
+            $errors[] = ImportError::make('missing_column', ['column' => self::header($layout, $key)])->getMessage();
+        }
+
         $errors = array_merge($errors, $layout->mappingErrors($clean, $headers));
         Store::updateJob($jobId, ['mapping' => ['headers' => $headers, 'columns' => $clean]]);
 

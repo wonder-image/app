@@ -112,4 +112,67 @@ final class Mapping
 
         return array_keys(array_filter($counts, static fn (int $count): bool => $count > 1));
     }
+
+    /**
+     * Le chiavi obbligatorie che nessuna intestazione usa.
+     *
+     * @param array<int, string|null> $mapping
+     * @param list<Column> $columns
+     * @return list<string>
+     */
+    public static function missing(array $mapping, array $columns): array
+    {
+        $used = array_flip(array_filter($mapping, static fn ($key): bool => is_string($key) && $key !== ''));
+        $missing = [];
+
+        foreach ($columns as $column) {
+            if ($column->required && !isset($used[$column->key])) {
+                $missing[] = $column->key;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * Il resoconto di un abbinamento: le intestazioni riconosciute (con la
+     * colonna e il campo in cui finiscono), quelle che non si leggono e le
+     * colonne obbligatorie che mancano.
+     *
+     * @param list<string> $headers
+     * @param array<int, string|null> $mapping
+     * @param list<Column> $columns
+     * @return array{
+     *     recognized: list<array{index: int, header: string, column: Column}>,
+     *     ignored: list<array{index: int, header: string}>,
+     *     missing: list<Column>
+     * }
+     */
+    public static function report(array $headers, array $mapping, array $columns): array
+    {
+        $byKey = [];
+
+        foreach ($columns as $column) {
+            $byKey[$column->key] = $column;
+        }
+
+        $recognized = [];
+        $ignored = [];
+
+        foreach ($headers as $index => $header) {
+            $key = $mapping[$index] ?? null;
+
+            if (is_string($key) && isset($byKey[$key])) {
+                $recognized[] = ['index' => (int) $index, 'header' => (string) $header, 'column' => $byKey[$key]];
+            } else {
+                $ignored[] = ['index' => (int) $index, 'header' => (string) $header];
+            }
+        }
+
+        return [
+            'recognized' => $recognized,
+            'ignored' => $ignored,
+            'missing' => array_map(static fn (string $key): Column => $byKey[$key], self::missing($mapping, $columns)),
+        ];
+    }
 }

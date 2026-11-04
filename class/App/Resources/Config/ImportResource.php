@@ -49,6 +49,11 @@ final class ImportResource extends NavigationOnlyResource
         return __r('backend.config.import.step', ['id' => $jobId]);
     }
 
+    public static function sampleUrl(string $layoutKey, string $format = 'xlsx'): string
+    {
+        return __r('backend.config.import.sample').'?'.http_build_query(['layout' => $layoutKey, 'format' => $format]);
+    }
+
     /**
      * Il tracciato chiesto, se l'utente lo può usare; altrimenti 403.
      */

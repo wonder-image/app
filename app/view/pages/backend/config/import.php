@@ -1,12 +1,13 @@
 <?php
 
 use Wonder\App\Import\Importer;
+use Wonder\App\Import\Mapping;
 use Wonder\App\Import\Profile;
 use Wonder\App\Import\Store;
 use Wonder\App\Resources\Config\ImportResource;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Backend\Support\ResourceFormLayoutRenderer as Layout;
-use Wonder\Elements\Components\{Badge, Button};
+use Wonder\Elements\Components\{Alert, Badge, Button};
 use Wonder\Elements\Form\Form;
 use Wonder\Http\Csrf;
 use Wonder\Http\Exceptions\ForbiddenHttpException;
@@ -71,6 +72,11 @@ $list = static function (?string $json): array {
         Button::make('Carica')->variant('primary')->type('submit')->columnSpan(['default' => 12, 'md' => 4]),
     ]), ['id' => 'import-upload', 'method' => 'post', 'action' => $URL, 'enctype' => 'multipart/form-data', 'footer' => Csrf::fieldFor('post')]) ?>
     <p class="small text-body-secondary mb-0 mt-3">La prima riga del file contiene le intestazioni. Niente cambia finché non avvii il caricamento dall'anteprima.</p>
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+        <span class="small text-body-secondary">File di esempio, con tutte le colonne:</span>
+        <?= Button::make('.xlsx', ImportResource::sampleUrl($KEY, 'xlsx'))->variant('light')->size('sm')->render('bootstrap') ?>
+        <?= Button::make('.csv', ImportResource::sampleUrl($KEY, 'csv'))->variant('light')->size('sm')->render('bootstrap') ?>
+    </div>
 </div></div>
 <?php } else {
     $jobId = (int) $JOB['id'];
@@ -99,6 +105,7 @@ $list = static function (?string $json): array {
         $options[$column->key] ??= $column->header;
     }
 
+    $report = Mapping::report($mapping['headers'], $mapping['columns'], $LAYOUT->columns());
     $fields = [];
 
     foreach ($mapping['headers'] as $index => $header) {
@@ -109,6 +116,29 @@ $list = static function (?string $json): array {
 <div class="card border mt-3"><div class="card-body">
     <h6 class="mb-1">Colonne</h6>
     <p class="small text-body-secondary mb-3">Per ogni colonna del file scegli il dato che contiene. Le colonne lasciate su «non caricare» non cambiano niente.</p>
+    <?php if ($report['missing'] !== []) { ?>
+    <?= Alert::make('Mancano colonne obbligatorie: '.implode(', ', array_map(static fn ($column): string => '«'.($options[$column->key] ?? $column->header).'»', $report['missing'])).'. Aggiungile al file o abbinale qui sotto: le righe si controllano solo quando ci sono tutte.', 'warning')->inline()->addClass('mb-3')->render('bootstrap') ?>
+    <?php } ?>
+    <div class="table-responsive mb-3">
+        <table class="table table-sm align-top small mb-0">
+            <thead><tr><th>Colonna del file</th><th>Dato del programma</th><th>Dove va</th></tr></thead>
+            <tbody>
+                <?php foreach ($report['recognized'] as $item) { ?>
+                <tr>
+                    <td><?= e($item['header'] !== '' ? $item['header'] : 'Colonna '.($item['index'] + 1)) ?></td>
+                    <td><?= e($options[$item['column']->key] ?? $item['column']->header) ?><?= $item['column']->required ? ' '.Badge::make('obbligatoria')->variant('secondary')->render('bootstrap') : '' ?></td>
+                    <td class="text-body-secondary"><?= e($item['column']->field ?? '') ?></td>
+                </tr>
+                <?php } ?>
+                <?php foreach ($report['ignored'] as $item) { ?>
+                <tr class="text-body-secondary">
+                    <td><?= e($item['header'] !== '' ? $item['header'] : 'Colonna '.($item['index'] + 1)) ?></td>
+                    <td colspan="2">Non riconosciuta: non si carica</td>
+                </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
     <?= Layout::render((new Form())->columns(12)->components([
         ...$hidden(['layout' => $KEY, 'job' => (string) $jobId, 'action' => 'map']),
         ...$fields,
