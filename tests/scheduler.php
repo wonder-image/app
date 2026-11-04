@@ -42,6 +42,15 @@ $check($code === 7 && str_contains($output, '$(echo injected)') && str_contains(
 $start = microtime(true);
 try { Process::run([PHP_BINARY, '-r', 'sleep(5);'], __DIR__, 1, static fn ($text) => null); $check(false, 'Timeout not enforced'); }
 catch (RuntimeException $error) { $check(str_contains($error->getMessage(), 'Timeout') && microtime(true) - $start < 3, 'Timeout enforced'); }
+$fatal = tempnam(sys_get_temp_dir(), 'wonder-fatal-');
+file_put_contents($fatal, '<?php undefined_scheduler_function();');
+$output = '';
+// The hosting php.ini may disable display_errors: the child flags must win so the fatal reaches the run output.
+$code = Process::run([PHP_BINARY, '-d', 'display_errors=0', ...array_slice(Process::php($fatal), 1)], __DIR__, 3,
+    static function ($chunk) use (&$output): void { $output .= $chunk; });
+unlink($fatal);
+$check($code === 255 && str_contains($output, 'undefined_scheduler_function') && !str_contains($output, '<b>'), 'Child fatal errors reach the output');
+$check(Process::php('job.php', 'a', 'b') === [PHP_BINARY, '-d', 'display_errors=stderr', '-d', 'html_errors=0', 'job.php', 'a', 'b'], 'PHP child command');
 $root = sys_get_temp_dir().'/wonder-custom-'.bin2hex(random_bytes(6));
 mkdir($root);
 $GLOBALS['ROOT'] = $root;

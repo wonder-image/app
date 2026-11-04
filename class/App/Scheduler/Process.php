@@ -4,6 +4,15 @@ namespace Wonder\App\Scheduler;
 
 final class Process
 {
+    /**
+     * PHP CLI command for scheduler child processes. Errors are printed to stderr, which run() captures,
+     * so a fatal error reaches the run output even where the hosting php.ini turns display_errors off.
+     */
+    public static function php(string $script, string ...$arguments): array
+    {
+        return [PHP_BINARY, '-d', 'display_errors=stderr', '-d', 'html_errors=0', $script, ...$arguments];
+    }
+
     /** Array commands bypass shell parsing. Output is always drained, but retained only up to the cap. */
     public static function run(array $command, string $cwd, int $timeout, callable $output): int
     {

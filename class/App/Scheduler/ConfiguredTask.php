@@ -64,7 +64,7 @@ final class ConfiguredTask extends AbstractTask
     {
         if ($this->schedule['kind'] === 'php') {
             $context->externalProcess = true;
-            $exit = Process::run([PHP_BINARY, self::script($this->schedule['target']), ...$context->parameters],
+            $exit = Process::run(Process::php(self::script($this->schedule['target']), ...$context->parameters),
                 $GLOBALS['ROOT'], $this->timeout(), $context->log(...));
             if ($exit !== 0) { throw new \RuntimeException('Lo script PHP ha restituito il codice '.$exit.'.'); }
             return ['exit_code' => $exit];
