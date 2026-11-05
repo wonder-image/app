@@ -171,10 +171,10 @@ la cornice attorno alla tabella. Si costruisce con
 | `filterQuery($label, $key, $options, Closure $where, $input = 'select', $search = false, $value = null)` | filtro con una condizione propria |
 | `reorderable($column = 'position', $group = null)` | righe da riordinare trascinandole; `$group` divide le righe in elenchi con le loro posizioni (`parent_id`) |
 | `cleanHeader()` | header pulito |
-| `download($formats = true, $label = null)` | export (CSV/…) |
+| `download($formats = true, $label = null)` | export (CSV/…); `$label` è il titolo della scheda Esporta nella finestra del bottone «File» |
 | `fileColumns(array $columns)` | colonne dell'export: nomi di campo, `Dataset\Column` o `['field', 'label', 'value']` (vedi [Tracciati](../tracciati.md)); `downloadColumns()` è l'alias deprecato |
 | `fileRows(callable $rows)` | righe dell'export al posto di quelle del Model: riceve la condizione già ristretta alla visibilità per riga |
-| `importLayout(?string $layout, ?string $label = null)` | bottone «Importa» accanto a «Esporta», verso il caricamento con quel tracciato |
+| `importLayout(?string $layout, ?string $label = null)` | scheda «Importa» nella finestra del bottone «File», verso il caricamento con quel tracciato; il titolo della scheda è sempre «Importa», `$label` non si vede più |
 | `downloadFileName(string $filename)` | nome file export |
 | `downloadUsing(callable $handler)` | export con un gestore proprio: riceve il formato e invia il file |
 | `downloadAsText($enabled = true)` | ogni cella come testo: Excel non converte telefoni, CAP e codici in numeri, il CSV mette un apice davanti alle celle che iniziano con `=`, `+`, `-`, `@` |

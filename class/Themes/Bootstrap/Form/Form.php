@@ -19,8 +19,16 @@
             $classGap = $this->getGap($class->gap);
 
             # Start - Form
-            $html = "<form action=\"\" method=\"post\" enctype=\"multipart/form-data\" onsubmit=\"loadingSpinner()\" class=\"$classColumn $classGap\">";
-            $html .= Csrf::fieldFor('post');
+            $action = $class->schema['action'] ?? null;
+            $get = $action !== null && ($class->schema['method'] ?? 'post') === 'get';
+            $url = htmlspecialchars((string) $action, ENT_QUOTES, 'UTF-8');
+
+            if ($get) {
+                $html = "<form action=\"$url\" method=\"get\" class=\"$classColumn $classGap\">";
+            } else {
+                $html = "<form action=\"$url\" method=\"post\" enctype=\"multipart/form-data\" onsubmit=\"loadingSpinner()\" class=\"$classColumn $classGap\">";
+                $html .= Csrf::fieldFor('post');
+            }
 
             # Field
             $html .= $this->renderComponents($class->components);

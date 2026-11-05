@@ -9,16 +9,19 @@ use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Components\Modal;
 use Wonder\Elements\Components\QuickCreateButton;
+use Wonder\Elements\Components\Tabs;
 use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Components\Submit;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
+use Wonder\Http\Csrf;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\Themes\Bootstrap\Components\AbstractValueCard as BootstrapValueCardRenderer;
 use Wonder\Themes\Bootstrap\Components\Accordion as BootstrapAccordionRenderer;
 use Wonder\Themes\Bootstrap\Components\Container as BootstrapContainerRenderer;
 use Wonder\Themes\Bootstrap\Components\Modal as BootstrapModalRenderer;
+use Wonder\Themes\Bootstrap\Components\Tabs as BootstrapTabsRenderer;
 use Wonder\Themes\Resolver;
 
 final class ResourceFormLayoutRenderer
@@ -55,6 +58,36 @@ final class ResourceFormLayoutRenderer
         $html .= '</form>';
 
         return $html;
+    }
+
+    /**
+     * Opzioni di {@see render()} per un form con `action()`; `[]` senza.
+     * GET: niente enctype, spinner né CSRF. POST: multipart, spinner e CSRF.
+     */
+    public static function formOptions(Form $form): array
+    {
+        $action = $form->schema['action'] ?? null;
+
+        if ($action === null) {
+            return [];
+        }
+
+        if (($form->schema['method'] ?? 'post') === 'get') {
+            return [
+                'action' => (string) $action,
+                'method' => 'GET',
+                'enctype' => 'application/x-www-form-urlencoded',
+                'onsubmit' => '',
+            ];
+        }
+
+        return [
+            'action' => (string) $action,
+            'method' => 'POST',
+            'enctype' => 'multipart/form-data',
+            'onsubmit' => 'loadingSpinner()',
+            'footer' => Csrf::fieldFor('post'),
+        ];
     }
 
     /**
@@ -143,6 +176,18 @@ final class ResourceFormLayoutRenderer
 
             if ($component instanceof Accordion) {
                 $html .= self::renderAccordion($component, $parentColumns);
+                continue;
+            }
+
+            if ($component instanceof Tabs) {
+                $html .= self::renderTabs($component, $parentColumns);
+                continue;
+            }
+
+            if ($component instanceof Form && ($component->schema['action'] ?? null) !== null) {
+                $html .= self::render($component, [
+                    'id' => (string) ($component->schema['id'] ?? uniqid('wi-form-')),
+                ] + self::formOptions($component));
                 continue;
             }
 
@@ -265,6 +310,28 @@ final class ResourceFormLayoutRenderer
     public static function renderModalBody(Modal $modal): string
     {
         return self::renderComponents((array) ($modal->components ?? []), self::columnsMap($modal));
+    }
+
+    /**
+     * Le schede, con i campi di ogni pannello nella sua colonna.
+     *
+     * Dentro un layout (`$parentColumns` pieno) il blocco sta in una colonna;
+     * reso da solo, fuori dai form, no. I pannelli passano da
+     * `renderComponents()` come il corpo di un accordion, così un `Form` con
+     * `action()` dentro una scheda resta un form.
+     */
+    public static function renderTabs(Tabs $tabs, array $parentColumns = []): string
+    {
+        $columns = self::columnsMap($tabs);
+        $panels = array_map(
+            static fn (array $tab): string => self::renderComponents((array) $tab['components'], $columns),
+            $tabs->tabs()
+        );
+        $html = (new BootstrapTabsRenderer())->renderInner($tabs, $panels, self::rowClass($tabs));
+
+        return $parentColumns === []
+            ? $html
+            : '<div class="'.self::columnSpanClass($tabs, $parentColumns).'">'.$html.'</div>';
     }
 
     /**

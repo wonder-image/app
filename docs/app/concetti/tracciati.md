@@ -102,7 +102,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
             ['label' => 'Cliente', 'value' => fn (array $row) => $row['name'].' '.$row['surname']],
         ])
         ->fileRows(fn ($condition) => Product::find($condition))        // facoltativo
-        ->importLayout('catalog', 'Importa catalogo');                  // bottone Importa
+        ->importLayout('catalog', 'Importa catalogo');                  // scheda «Importa» del bottone «File»
 }
 ```
 
@@ -110,12 +110,21 @@ public static function tableLayoutSchema(): TableLayoutSchema
 
 ## Il bottone della lista
 
-Sopra la lista, `Esporta` è un menu con i formati di `download()`. Se per la
-Resource ci sono tracciati salvati, sotto l'intestazione «Tracciati» compare
-una voce per tracciato e formato, che scarica con `?layout=ID`: colonne,
-ordine e intestazioni del tracciato. Senza `?layout` l'export usa sempre le
-colonne del codice; un tracciato di un'altra fonte, o senza colonne valide,
-viene ignorato.
+Sopra la lista c'è un solo bottone «File», che apre una finestra con due
+schede: Esporta e Importa. Se la Resource ha solo una delle due, la finestra
+non mostra la barra delle schede.
+
+La scheda **Esporta** ha il titolo di `download(label:)` (di base «Esporta») e
+un form GET verso la rotta `backend.resource.{slug}.export.file`, con
+`?format=` e, se serve, `?layout=`. Il formato è scelto con i radio (fino a
+quattro formati, oltre con un select); il select «Tracciato» compare solo se
+per la Resource ci sono tracciati salvati e almeno un formato li accetta, e
+scarica colonne, ordine e intestazioni del tracciato. Senza `?layout`
+l'export usa sempre le colonne del codice; un tracciato di un'altra fonte, o
+senza colonne valide, viene ignorato. La finestra propone l'ultima scelta
+(formato e tracciato) fatta in sessione per quella lista, se esiste ancora
+(`ResourceDownloadController::lastChoice()`); il percorso con il formato nel
+mezzo (`export`) resta valido per i link già in giro.
 
 Con `downloadUsing()` il file lo scrive il gestore e i tracciati compaiono
 solo se la Resource dice di quale fonte sono, con `downloadLayouts()`:
@@ -126,15 +135,23 @@ solo se la Resource dice di quale fonte sono, con `downloadLayouts()`:
 ->downloadLayouts('catalog', ['xlsx', 'csv'])   // fonte, formati che li accettano
 ```
 
-Il menu elenca i tracciati della fonte `catalog` solo per Excel e CSV; il
+Il select elenca i tracciati della fonte `catalog` e, sotto il formato,
+dice per quali formati valgono («I tracciati valgono per Excel e CSV»); il
 gestore riceve l'id come secondo argomento (null senza tracciato o per un
 formato escluso) e ricava le colonne con `Profile::for($fonte, $id)`, che
 ignora un id di un'altra fonte. Senza `downloadLayouts()` la fonte è lo slug
 della Resource e valgono tutti i formati.
 
-`importLayout($layout, $label)` aggiunge `Importa`, verso il caricamento con
-quel tracciato; compare solo se il tracciato esiste e l'utente può usarlo.
-Con entrambi i bottoni stanno in un `ButtonGroup` «Esporta e importa».
+`importLayout($layout, $label)` aggiunge la scheda **Importa**: un form POST
+verso il caricamento con la scelta del tracciato salvato, il file e il link
+al modello; compare solo se il tracciato esiste e l'utente può usarlo.
+
+Il bottone «File» non va reso dentro un `<form>`, per esempio in un
+`backendTable()` incorporato in una scheda del form di una Resource: il
+`<form>` della sua finestra verrebbe scartato già dal parser HTML e il
+bottone invierebbe il form esterno. `data-wi-modal-detach` non lo evita: lo
+script sposta la finestra solo dopo il parse, quando il `<form>` interno non
+c'è più.
 
 ## Tracciati file
 
@@ -142,7 +159,7 @@ Dev → File → Tracciati file (`ImportLayoutResource`, solo admin, accanto a D
 fonti del registro: per ognuna si salvano le colonne in ordine e con
 l'intestazione voluta. `Profile::for($source, $id)` dà le colonne di un
 tracciato salvato (null se non è di quella fonte); il caricamento propone il
-predefinito, l'export lo usa solo quando lo si sceglie dal menu.
+predefinito, l'export lo usa solo quando lo si sceglie nella scheda Esporta.
 
 ## Test
 

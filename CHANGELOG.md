@@ -20,6 +20,13 @@
   `fileRows()` e `importLayout()`. Vedi `docs/app/concetti/tracciati.md`.
 
 ### Cambiato
+- **Liste Resource: bottone «File».** Un solo bottone apre una finestra con le
+  schede Esporta e Importa al posto del menu «Esporta» e del bottone
+  «Importa» (`ResourceFileModal`). L'export è un form GET verso la rotta
+  `backend.resource.{slug}.export.file` (`?format=`, `?layout=`) e la finestra
+  propone l'ultima scelta fatta in sessione; `download(label:)` dà il titolo
+  della scheda. Nuovi `Form::action()` e il componente `Tabs`. Vedi
+  `docs/app/concetti/tracciati.md`.
 - **Google Tag Manager in Credenziali.** L'ID del contenitore e l'interruttore
   Attivo/Spento sono una card della categoria Google in Dev → API e servizi →
   Credenziali (`Integrations\Core\GoogleTagManager`, colonne
@@ -48,6 +55,10 @@
   come prima.
 
 ### Corretto
+- **Bottone «File» delle liste.** Con uno slug che dopo la pulizia resta vuoto
+  l'id della finestra e delle schede era `wi-file-`: ora è `wi-file-resource`.
+  Se `$_SESSION['wi_resource_export']` non era un array, ricordare l'ultima
+  scelta di export andava in errore: ora viene riportato a `[]`.
 - **Backend in errore 500 con «Caricamento del catalogo» spento.** Il
   gruppo «File» di Dev lo dichiara «Tracciati file», che il gestionale spegne
   senza quella funzionalità: «Download» restava in un gruppo inesistente.

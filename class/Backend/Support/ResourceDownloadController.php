@@ -45,6 +45,9 @@ final class ResourceDownloadController
             throw new RuntimeException("Formato export non supportato: {$format}");
         }
 
+        // Dopo i due controlli e prima del gestore, che può chiudere la risposta.
+        self::remember($slug, $format, $layoutId);
+
         if (is_callable($download['handler'] ?? null)) {
             // Il tracciato arriva al gestore solo per i formati che lo prevedono.
             $layouts = self::layouts($download, $slug);
@@ -63,6 +66,60 @@ final class ResourceDownloadController
             !empty($download['text']),
             (bool) ($download['formula_safe'] ?? true),
         );
+    }
+
+    /**
+     * Formato richiesto: parametro di rotta, altrimenti `?format=`.
+     *
+     * @param array<string, mixed> $routeParameters
+     * @param array<string, mixed> $query
+     */
+    public static function formatFrom(array $routeParameters, array $query): string
+    {
+        $format = $routeParameters['format'] ?? '';
+
+        if (!is_string($format) || trim($format) === '') {
+            $format = $query['format'] ?? '';
+        }
+
+        $format = is_string($format) ? strtolower(trim($format)) : '';
+
+        return preg_match('/^[a-z]+$/', $format) === 1 ? $format : '';
+    }
+
+    /**
+     * Ultima scelta di export di questa Resource nella sessione corrente.
+     *
+     * @return array{format: string, layout: ?int}|null
+     */
+    public static function lastChoice(string $slug): ?array
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return null;
+        }
+
+        $choice = $_SESSION['wi_resource_export'][$slug] ?? null;
+
+        if (!is_array($choice) || !is_string($choice['format'] ?? null)) {
+            return null;
+        }
+
+        $layout = $choice['layout'] ?? null;
+
+        return ['format' => $choice['format'], 'layout' => is_int($layout) ? $layout : null];
+    }
+
+    public static function remember(string $slug, string $format, ?int $layoutId): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        if (!is_array($_SESSION['wi_resource_export'] ?? null)) {
+            $_SESSION['wi_resource_export'] = [];
+        }
+
+        $_SESSION['wi_resource_export'][$slug] = ['format' => $format, 'layout' => $layoutId];
     }
 
     /**

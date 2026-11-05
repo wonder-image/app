@@ -18,7 +18,7 @@ return ComponentDoc::for(Modal::class)
     ->docs('concetti/componenti/README.md#modal', 'Componenti UI')
     ->docs('concetti/form/csrf.md', 'Token CSRF')
     ->related('button', 'accordion', 'quick-create-button')
-    ->note('bootstrap', 'Markup `.modal.fade[data-wi-modal-detach]`: uno script, una volta per pagina, sposta la finestra in fondo al `body` così i suoi campi non partono con il form della scheda.')
+    ->note('bootstrap', 'Markup `.modal.fade[data-wi-modal-detach]`: uno script, una volta per pagina, sposta la finestra in fondo al `body` così i suoi campi non partono con il form della scheda. Non salva un `<form>` annidato: il browser lo scarta già leggendo la pagina.')
     ->note('wonder', 'La finestra esce solo con `frontend()` e un `id()` esplicito, con la `wi-modal` della lib; senza `frontend()` il renderer ritorna una stringa vuota.')
     ->example(
         Example::make('Base')
