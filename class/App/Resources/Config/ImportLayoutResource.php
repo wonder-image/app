@@ -153,9 +153,10 @@ class ImportLayoutResource extends Resource
     public static function navigationSchema(): NavigationSchema
     {
         return NavigationSchema::for(static::class)
-            ->inSection('set-up')
+            ->inSection('dev')
+            ->group('files', 'File', 50)
             ->title('Tracciati file')
-            ->order(90)
+            ->order(10)
             ->authority(['admin']);
     }
 

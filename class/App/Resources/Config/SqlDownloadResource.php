@@ -31,8 +31,9 @@ final class SqlDownloadResource extends NavigationOnlyResource
     {
         return NavigationSchema::for(static::class)
             ->inSection('dev')
+            ->inGroup('files')
             ->title('Download')
-            ->order(60)
+            ->order(20)
             ->authority(['admin']);
     }
 }

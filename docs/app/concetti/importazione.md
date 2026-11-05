@@ -105,7 +105,7 @@ Un tracciato che non si costruisce va nel log e si salta.
 
 ## Tracciati file
 
-In Set-up → **Tracciati file** (`ImportLayoutResource`, solo admin) si salva
+In Dev → File → **Tracciati file** (`ImportLayoutResource`, solo admin) si salva
 per ogni fonte, di caricamento o di export, l'elenco delle colonne, in ordine
 e con l'intestazione voluta (`import_layouts`, `import_layout_columns`). Uno
 per fonte è il predefinito: salvarne uno predefinito lo toglie agli altri.
