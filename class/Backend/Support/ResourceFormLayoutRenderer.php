@@ -13,6 +13,7 @@ use Wonder\Elements\Component as ElementComponent;
 use Wonder\Elements\Form\Components\Submit;
 use Wonder\Elements\Form\Form;
 use Wonder\Elements\Media\Media;
+use Wonder\Http\Csrf;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\Themes\Bootstrap\Components\AbstractValueCard as BootstrapValueCardRenderer;
@@ -55,6 +56,36 @@ final class ResourceFormLayoutRenderer
         $html .= '</form>';
 
         return $html;
+    }
+
+    /**
+     * Opzioni di {@see render()} per un form con `action()`; `[]` senza.
+     * GET: niente enctype, spinner né CSRF. POST: multipart, spinner e CSRF.
+     */
+    public static function formOptions(Form $form): array
+    {
+        $action = $form->schema['action'] ?? null;
+
+        if ($action === null) {
+            return [];
+        }
+
+        if (($form->schema['method'] ?? 'post') === 'get') {
+            return [
+                'action' => (string) $action,
+                'method' => 'GET',
+                'enctype' => 'application/x-www-form-urlencoded',
+                'onsubmit' => '',
+            ];
+        }
+
+        return [
+            'action' => (string) $action,
+            'method' => 'POST',
+            'enctype' => 'multipart/form-data',
+            'onsubmit' => 'loadingSpinner()',
+            'footer' => Csrf::fieldFor('post'),
+        ];
     }
 
     /**
@@ -143,6 +174,13 @@ final class ResourceFormLayoutRenderer
 
             if ($component instanceof Accordion) {
                 $html .= self::renderAccordion($component, $parentColumns);
+                continue;
+            }
+
+            if ($component instanceof Form) {
+                $html .= self::render($component, [
+                    'id' => (string) ($component->schema['id'] ?? uniqid('wi-form-')),
+                ] + self::formOptions($component));
                 continue;
             }
 

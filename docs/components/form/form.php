@@ -39,4 +39,10 @@ return ComponentDoc::for(Form::class)
         (new InputText('city'))->label('Città'),
         (new InputText('zip'))->label('CAP')->noFloating(false),
     ])
-    PHP, 'Il form propaga `noFloating()`; il campo «CAP» la rimette con `noFloating(false)`.');
+    PHP, 'Il form propaga `noFloating()`; il campo «CAP» la rimette con `noFloating(false)`.')
+    ->example('Indirizzo e metodo', <<<'PHP'
+    (new Form())->action('/esporta/', 'get')->components([
+        (new InputText('q'))->label('Cerca'),
+        new Submit(),
+    ])
+    PHP, 'Con `action()` il form invia a quell\'indirizzo. Con `get` non porta CSRF, enctype né spinner; un metodo diverso da `get` vale `post`.');
