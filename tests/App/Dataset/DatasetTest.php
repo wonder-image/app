@@ -201,4 +201,26 @@ check('fileRows salva le righe dell\'export', function () {
     return (TableLayoutSchema::for(DatasetTestResource::class)->fileRows($rows)->all()['download']['rows'] ?? null) === $rows;
 });
 
+// Tracciati offerti da «Esporta»: fonte e formati.
+check('senza gestore i tracciati sono della Resource, in tutti i formati', function () {
+    $layouts = ResourceDownloadController::layouts(['handler' => null], 'prodotti');
+
+    return $layouts === ['source' => 'prodotti', 'formats' => null];
+});
+
+check('con downloadUsing e senza downloadLayouts niente tracciati', function () {
+    $download = TableLayoutSchema::for(DatasetTestResource::class)->downloadUsing(fn (string $format) => null)->all()['download'];
+
+    return ResourceDownloadController::layouts($download, 'prodotti')['source'] === '';
+});
+
+check('downloadLayouts dà fonte e formati anche con un gestore', function () {
+    $download = TableLayoutSchema::for(DatasetTestResource::class)
+        ->downloadUsing(fn (string $format, ?int $layout = null) => null)
+        ->downloadLayouts('catalog', ['xlsx', 'csv'])
+        ->all()['download'];
+
+    return ResourceDownloadController::layouts($download, 'prodotti') === ['source' => 'catalog', 'formats' => ['xlsx', 'csv']];
+});
+
 summary();

@@ -181,14 +181,17 @@ final class ResourceTableRenderer
             $dropdown->item((string) $formatLabel, $endpoint.rawurlencode((string) $format).'/');
         }
 
-        // Con un `downloadUsing()` il file lo fa il sito: niente tracciati.
-        $profiles = is_callable($download['handler'] ?? null) ? [] : Profile::options($this->slug);
+        $layouts = ResourceDownloadController::layouts($download, $this->slug);
+        $profiles = $layouts['source'] === '' ? [] : Profile::options($layouts['source']);
+        $layoutFormats = $layouts['formats'] === null
+            ? $formats
+            : array_intersect_key($formats, array_flip($layouts['formats']));
 
-        if ($profiles !== []) {
+        if ($profiles !== [] && $layoutFormats !== []) {
             $dropdown->divider()->header('Tracciati');
 
             foreach ($profiles as $id => $name) {
-                foreach ($formats as $format => $formatLabel) {
+                foreach ($layoutFormats as $format => $formatLabel) {
                     $dropdown->item($name.' · '.$formatLabel, $endpoint.rawurlencode((string) $format).'/?'.http_build_query(['layout' => $id]));
                 }
             }
