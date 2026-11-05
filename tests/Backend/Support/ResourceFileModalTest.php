@@ -166,6 +166,7 @@ check('feed: terza scheda con indirizzo, Copia e Scarica ora', function () use (
         && str_contains($html, 'value="https://negozio.it/shared/feeds/catalogo-meta.csv"')
         && str_contains($html, 'readonly') && str_contains($html, 'copyText(')
         && str_contains($html, 'Aggiornato il 05/11/2026 alle 14:05 · ogni 6 ore')
+        && !str_contains($html, 'Indirizzi fissi')
         && str_contains($html, 'href="/backend/products/export/?format=meta"');
 });
 
