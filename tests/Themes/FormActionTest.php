@@ -13,6 +13,7 @@ if (!function_exists('__t')) {
 }
 
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\Backend\Support\ResourceFormLayoutRenderer;
 use Wonder\Elements\Components\Modal;
 use Wonder\Elements\Form\Form;
 
@@ -66,6 +67,21 @@ check('un form dentro una Modal usa la sua action', function () use ($campo) {
     return preg_match('/<form[^>]*action="\/dl\/"/', $html) === 1
         && preg_match('/<form[^>]*method="get"/i', $html) === 1
         && !str_contains($html, '_csrf');
+});
+
+check('un Form annidato senza action() resta com\'era: POST multipart, CSRF, colonna', function () use ($campo) {
+    $html = ResourceFormLayoutRenderer::renderLayout((new Form)->components([(new Form)->components([$campo()])]));
+
+    return str_contains($html, 'action=""') && str_contains($html, 'method="post"')
+        && str_contains($html, 'enctype="multipart/form-data"') && str_contains($html, 'name="_csrf"')
+        && preg_match('/<div class="col-12"[^>]*><form /', $html) === 1;
+});
+
+check('un Form annidato con action() POST in una Modal ha CSRF e multipart', function () use ($campo) {
+    $html = Modal::make('M')->components([(new Form)->action('/up/', 'post')->components([$campo()])])->render('bootstrap');
+
+    return preg_match('/<form[^>]*action="\/up\/"/', $html) === 1
+        && str_contains($html, 'enctype="multipart/form-data"') && str_contains($html, 'name="_csrf"');
 });
 
 summary();

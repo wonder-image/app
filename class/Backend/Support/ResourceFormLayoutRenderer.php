@@ -177,7 +177,7 @@ final class ResourceFormLayoutRenderer
                 continue;
             }
 
-            if ($component instanceof Form) {
+            if ($component instanceof Form && ($component->schema['action'] ?? null) !== null) {
                 $html .= self::render($component, [
                     'id' => (string) ($component->schema['id'] ?? uniqid('wi-form-')),
                 ] + self::formOptions($component));
