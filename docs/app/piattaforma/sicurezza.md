@@ -324,7 +324,13 @@ righe di seed: cifra i segreti ancora in chiaro e ricifra quelli scritti con
 transazione e verifica ogni valore prima di salvarlo. Senza chiave valida
 salta con un avviso e non ne genera mai una. Un progetto già in produzione
 prima di questa versione deve rilanciare `php forge provision` e poi
-deployare: fino ad allora i segreti restano in chiaro.
+deployare: fino ad allora i segreti restano in chiaro. In alternativa al wizard
+completo, basta creare il solo secret (dopo aver controllato che non esista
+già nel project):
+
+```bash
+bws secret create APP_ENCRYPTION_KEY "$(php -r 'echo bin2hex(random_bytes(32));')" "$BWS_PROJECT_ID"
+```
 
 **Rotazione.**
 
