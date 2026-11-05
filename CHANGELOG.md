@@ -20,6 +20,13 @@
   `fileRows()` e `importLayout()`. Vedi `docs/app/concetti/tracciati.md`.
 
 ### Cambiato
+- **Liste Resource: bottone «File».** Un solo bottone apre una finestra con le
+  schede Esporta e Importa al posto del menu «Esporta» e del bottone
+  «Importa» (`ResourceFileModal`). L'export è un form GET verso la rotta
+  `backend.resource.{slug}.export.file` (`?format=`, `?layout=`) e la finestra
+  propone l'ultima scelta fatta in sessione; `download(label:)` dà il titolo
+  della scheda. Nuovi `Form::action()` e il componente `Tabs`. Vedi
+  `docs/app/concetti/tracciati.md`.
 - **Google Tag Manager in Credenziali.** L'ID del contenitore e l'interruttore
   Attivo/Spento sono una card della categoria Google in Dev → API e servizi →
   Credenziali (`Integrations\Core\GoogleTagManager`, colonne

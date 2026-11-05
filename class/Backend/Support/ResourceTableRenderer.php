@@ -15,7 +15,6 @@ use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\Reorder;
 use Wonder\Backend\Table\Table;
 use Wonder\Elements\Components\Button;
-use Wonder\Elements\Components\ButtonGroup;
 use Wonder\Elements\Components\Dropdown;
 use Wonder\Sql\Query;
 
@@ -135,30 +134,26 @@ final class ResourceTableRenderer
     }
 
     /**
-     * «Esporta» (un formato per voce, poi i tracciati salvati della Resource)
-     * e «Importa» (con `importLayout()`, se l'utente può usare il tracciato),
-     * in un solo gruppo nel posto del vecchio bottone di export.
+     * Un solo bottone «File» con la sua finestra (schede Esporta e Importa),
+     * nel posto del vecchio bottone di export.
      */
     private function applyButtonData(Table $table): void
     {
-        $buttons = array_values(array_filter([$this->exportDropdown(), $this->importButton()]));
+        $built = ResourceFileModal::build(
+            $this->slug,
+            $this->exportData(),
+            $this->importData(),
+            ResourceDownloadController::lastChoice($this->slug),
+        );
 
-        if ($buttons === []) {
+        if ($built === null) {
             return;
         }
 
-        if (count($buttons) === 1) {
-            $buttons[0]->schema('inline', true);
-        }
-
-        $html = count($buttons) === 1
-            ? $buttons[0]->render('bootstrap')
-            : (new ButtonGroup($buttons))->label('Esporta e importa')->size('sm')->render('bootstrap');
-
-        $table->buttonDataHtml($html);
+        $table->buttonDataHtml($built['button']->render('bootstrap').$built['modal']->render('bootstrap'));
     }
 
-    private function exportDropdown(): ?Dropdown
+    private function exportData(): ?array
     {
         $download = (array) ($this->tableLayoutSchema['download'] ?? []);
         $formats = (array) ($download['formats'] ?? []);
@@ -167,40 +162,28 @@ final class ResourceTableRenderer
             return null;
         }
 
-        // Il controller costruisce il file: `{endpoint}{formato}/`.
         try {
-            $endpoint = (string) str_replace('__FMT__/', '', __r('backend.resource.'.$this->slug.'.export', ['format' => '__FMT__']));
+            $action = (string) __r('backend.resource.'.$this->slug.'.export.file');
         } catch (Throwable) {
             return null;
         }
 
-        $label = is_string($download['label'] ?? null) && trim($download['label']) !== '' ? trim($download['label']) : 'Esporta';
-        $dropdown = Dropdown::make($label)->variant('secondary')->size('sm')->align('end');
-
-        foreach ($formats as $format => $formatLabel) {
-            $dropdown->item((string) $formatLabel, $endpoint.rawurlencode((string) $format).'/');
+        if ($action === '') {
+            return null;
         }
 
         $layouts = ResourceDownloadController::layouts($download, $this->slug);
-        $profiles = $layouts['source'] === '' ? [] : Profile::options($layouts['source']);
-        $layoutFormats = $layouts['formats'] === null
-            ? $formats
-            : array_intersect_key($formats, array_flip($layouts['formats']));
 
-        if ($profiles !== [] && $layoutFormats !== []) {
-            $dropdown->divider()->header('Tracciati');
-
-            foreach ($profiles as $id => $name) {
-                foreach ($layoutFormats as $format => $formatLabel) {
-                    $dropdown->item($name.' · '.$formatLabel, $endpoint.rawurlencode((string) $format).'/?'.http_build_query(['layout' => $id]));
-                }
-            }
-        }
-
-        return $dropdown;
+        return [
+            'action' => $action,
+            'label' => is_string($download['label'] ?? null) ? trim($download['label']) : '',
+            'formats' => array_map('strval', $formats),
+            'profiles' => $layouts['source'] === '' ? [] : Profile::options($layouts['source']),
+            'layout_formats' => $layouts['formats'],
+        ];
     }
 
-    private function importButton(): ?Button
+    private function importData(): ?array
     {
         $import = $this->tableLayoutSchema['import'] ?? null;
         $key = is_array($import) ? (string) ($import['layout'] ?? '') : '';
@@ -220,9 +203,15 @@ final class ResourceTableRenderer
             return null;
         }
 
-        return Button::to(ImportResource::url(['layout' => $key]), (string) ($import['label'] ?? null ?: 'Importa'))
-            ->variant('secondary')
-            ->size('sm');
+        $default = Profile::defaultId($key);
+
+        return [
+            'action' => ImportResource::url(),
+            'layout' => $key,
+            'profiles' => Profile::options($key),
+            'default' => $default > 0 ? $default : null,
+            'sample' => ImportResource::sampleUrl($key),
+        ];
     }
 
     private function applyLinks(Table $table): void

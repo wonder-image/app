@@ -10,6 +10,11 @@ colonne sono `Wonder\App\Dataset\Column` (`Import\Column` resta, deprecata) e
 
 ## Il percorso
 
+Dalla lista di una Resource con `importLayout()` si parte dal bottone «File»,
+scheda **Importa**: tracciato salvato (se ce ne sono), file e link «Scarica il
+modello». «Continua» invia il form (`action=upload`) a `ImportResource`; da
+lì i passi sono questi.
+
 1. **File.** `Importer::upload()` legge il file con `Reader` (BOM, separatore
    `,` `;` o tabulazione, Windows-1252, al massimo `Reader::MAX_ROWS` righe;
    i numeri interi di Excel restano stringhe di cifre, così gli EAN non
