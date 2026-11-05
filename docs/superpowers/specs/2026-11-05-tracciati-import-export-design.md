@@ -58,7 +58,7 @@
      - `type`: `text`, `number` (`decimals`), `money`, `boolean`, `date` / `datetime`, `list` (separatore), `path` (separatore `›`), `url`, `enum` (mappa valore → etichetta).
    - Il `type` porta nel core le conversioni che oggi stanno in `CatalogCells`, `yes()`, `' | '` e `' › '`. Ogni tipo sa **formattare** un valore per l'export e **leggerlo** per l'import, quindi il round trip export→import diventa generico.
    - `Import\Column` resta come sottoclasse o alias deprecato, con lo stesso costruttore. `CatalogLayout` e i Layout dei moduli continuano a funzionare.
-   - `TableLayoutSchema::downloadColumns()` accetta anche le nuove `Column`, oltre agli array `['label', 'value']`. `ContactExport` passa al nuovo formato senza cambiare l'output.
+   - `TableLayoutSchema::downloadColumns()` accetta anche le nuove `Column`, oltre agli array `['label', 'value']` (con `key` e `type` facoltativi, punto 4). `ContactExport` passa al nuovo formato senza cambiare l'output.
 
 3. **La sorgente è un contratto del core: `Wonder\App\Dataset\Source`.**
    - Metodi:
@@ -71,14 +71,21 @@
    - `Import\Layout` diventa una classe astratta che implementa `Source` e `Importable`, così i Layout esistenti valgono come sorgenti senza modifiche. `rows()` di default restituisce nulla, e un Layout senza `rows()` resta solo import.
    - Il registro è `Sources`, con lo stesso modello di `Layouts`, `HomeStatus` e `Integrations`: core, poi moduli (config `dataset.sources`, dove `false` toglie una sorgente), poi sito (`Sources::set()`). `import.layouts` resta letto come alias deprecato.
 
-4. **Una sorgente generica per qualsiasi Resource, attivata con opt-in** (decisione aperta 1, in fondo).
-   - `ResourceSource::for(SomeResource::class)` costruisce la sorgente senza codice di modulo:
-     - colonne dai campi di `Model::dataSchema()` / `tableSchema()`, con etichette da `labelSchema()` e tipo dedotto dalla colonna SQL (`DECIMAL` → number, `DATE` → date, booleani → boolean);
-     - relazioni: per ogni `Column::foreign($table)` in `tableSchema()` aggiunge i campi della tabella collegata come `relazione.campo`, un livello per default, configurabile. Le relazioni uno-a-molti (righe ordine, indirizzi) diventano colonne `list` aggregate;
-     - righe con una query a blocchi su `Model::find()`, filtrata da `RowVisibility::for($user)` e passata a `decorate()` e `Model::translated()` se il Model è traducibile;
+4. **Una sorgente generica per qualsiasi Resource, attivata con `download()` (opt-in).**
+   - Una Resource è sorgente se la sua lista dichiara `download()`; le sue colonne sono quelle di `downloadColumns()`. Non serve una seconda configurazione: l'export della lista dice già quali Resource sono esportabili e con quali campi. Una Resource senza `download()` non compare fra le sorgenti, a meno che un modulo non la registri in `dataset.sources`. Così tabelle come `user`, `api_users` e `import_jobs` restano fuori.
+   - `ResourceSource::for(SomeResource::class)` costruisce la sorgente da `tableLayoutSchema()`:
+     - colonne da `downloadColumns()`, convertite in `Dataset\Column`; senza `downloadColumns()`, le stesse colonne di default dell'export di oggi;
+     - righe con le stesse query, filtri e `RowVisibility::for($user)` dell'export della lista, passate a `decorate()` e a `Model::translated()` se il Model è traducibile;
      - permesso `Resource::allows($authorities, 'list')`;
      - mai `public()`.
-   - **Proposta: opt-in.** Una Resource diventa sorgente se dichiara `datasetSchema()`, che restituisce l'elenco dei campi esposti e delle relazioni da seguire, oppure se un modulo la registra in `dataset.sources`. Le Resource che già hanno `download()` si possono attivare con una riga. Senza opt-in, nel menu a tendina dell'admin comparirebbero tabelle come `user`, `api_users` e `import_jobs`.
+   - `downloadColumns()` si allarga, e gli array di oggi restano validi:
+     - `key` facoltativa e stabile, perché un tracciato salvato non si rompa se cambia l'etichetta o la lingua. Se manca vale il campo quando `value` è una stringa, altrimenti l'etichetta normalizzata;
+     - `type` facoltativo (punto 2), per le trasformazioni del tracciato e per un eventuale import;
+     - `value` accetta anche un percorso di relazione (`brand.name`), risolto da `Column::foreign()` in `tableSchema()`.
+   - Nuovo hook `TableLayoutSchema::downloadRows(callable $rows)`: riceve le righe a blocchi e ne restituisce altre, per esempio una riga per partecipante invece che per risposta. Vale per l'export della lista e per i tracciati.
+   - Le colonne condizionali o dinamiche (dipendenti da impostazioni o campi personalizzati) restano codice in `downloadColumns()`, come oggi.
+   - Una colonna con `value` callable si esporta ma non si rilegge in import: per quella il tracciato è solo in uscita.
+   - **Esempio di migrazione: rsvp.** `ResponseResource` oggi sostituisce la rotta dell'export (`registerBackendRoutes()`, `/participants-export/{format}/`) e `ResponseExporter` rilegge le colonne e scrive il file solo per espandere le righe. Con `downloadRows(fn ($rows) => ResponseExporter::expandRows($rows))` la rotta personalizzata sparisce, `ResponseExporter` si riduce a `expandRows()` e il file resta lo stesso.
    - L'import generico per qualsiasi Resource (crea/aggiorna via `Model::validate()` / `prepare()` / `createUpdate()` per chiave) è una possibilità futura, non in questa spec: ogni tabella ha regole di unicità e di sicurezza proprie.
 
 5. **Sorgenti di dominio nei moduli.**
@@ -137,7 +144,7 @@
     | Pezzo | Dove |
     |---|---|
     | `Dataset\Column`, tipi, `Transforms`, `Source`, `Importable`, `Sources`, `Query` | app (core) |
-    | `ResourceSource`, `datasetSchema()` | app |
+    | `ResourceSource`, `downloadColumns()` allargato, `downloadRows()` | app |
     | Destinazioni `csv`, `xlsx`, `json`, `xml-feed`, writer da `Support/Export` | app (spostati dal gestionale) |
     | Tracciati (Model, Resource, pagina), `DatasetExport`, task `wonder.exports`, uscite `file` ed `email` | app |
     | Motore di import (`Importer`, `Mapping`, `Reader`, `Store`) | app, invariato salvo leggere i nuovi `type` |
@@ -162,7 +169,7 @@
     4. **F4, core: consegna automatica.** Task `wonder.exports`, `schedule`, uscite `file` ed `email`, `owner_id`, regola `public()`, avviso in home, incrementale `since` / `last_cursor`.
     5. **F5, core e gestionale: feed.** Destinazione `xml-feed` nel core; `google-merchant` e `meta-catalog` come destinazioni a schema fisso con preset; migrazione dei due feed con URL invariati; `ProductFeedsTask` delega.
     6. **F6, gestionale: ordini.** Sorgenti `orders` / `order_items` con `since`, preset per i programmi gestionali più comuni dei clienti.
-    7. **F7, core: `ResourceSource`.** `datasetSchema()`, relazioni da `Column::foreign()`, campi tradotti. È l'ultima perché si appoggia su tutto il resto; può anticipare F6 se la priorità cambia (decisione aperta 2).
+    7. **F7, core: `ResourceSource`.** Sorgente da `download()` / `downloadColumns()`, `key` e `type` sulle colonne, `downloadRows()`, relazioni da `Column::foreign()`, campi tradotti. Test: export di una lista invariato byte per byte. Migrazione di rsvp nel modulo, nella stessa fase. È l'ultima perché si appoggia su tutto il resto; può anticipare F6 se la priorità cambia (decisione aperta).
 
 ## Fuori ambito
 
@@ -173,7 +180,6 @@
 
 ## Decisioni aperte per l'utente
 
-Tutto il resto della spec è deciso. Restano due scelte:
+Tutto il resto della spec è deciso. Le sorgenti generiche sono opt-in tramite `download()` / `downloadColumns()` (punto 4). Resta una scelta:
 
-1. **Sorgenti generiche: opt-in o automatiche?** Proposta opt-in (`datasetSchema()` o registrazione da modulo). Con l'automatica ogni Resource compare fra le sorgenti dei tracciati, comprese tabelle di sistema come utenti e token API.
-2. **Priorità dopo F2-F3.** Prima i feed Google e Meta configurabili dai tracciati (F5), oppure prima gli export di anagrafiche e ordini, anche incrementali, per i programmi dei clienti (F6 + F7)? L'ordine proposto è F4 → F5 → F6 → F7.
+1. **Priorità dopo F2-F3.** Prima i feed Google e Meta configurabili dai tracciati (F5), oppure prima gli export di anagrafiche e ordini, anche incrementali, per i programmi dei clienti (F6 + F7)? L'ordine proposto è F4 → F5 → F6 → F7.
