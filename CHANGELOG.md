@@ -12,6 +12,14 @@
   (`Column::required()`). Vedi `docs/app/concetti/importazione.md`.
 
 ### Corretto
+- **La freccia «indietro» e il salvataggio non tornavano alla pagina di
+  partenza.** Nelle Resource, nelle pagine-form, nella gestione utenti e
+  nell'upload massivo, `?torna=` (o lo storico `?redirect=` in base64) decide
+  la freccia del form e la pagina dopo il salvataggio, e viaggia nell'azione
+  del form; senza ritorno si va alla lista come prima. Dopo un'eliminazione
+  il ritorno verso la scheda cancellata si ignora. Le pagine-form mostrano la
+  freccia quando hanno un ritorno. Nuovi `SafeRedirect::backFromRequest()` e
+  `SafeRedirect::withBack()`.
 - **Titolo della scheda vuoto nelle pagine con layout annidati.** I dati di
   `View::layout()` (per esempio `TITLE`) non arrivavano ai layout aperti dal
   layout stesso, così `backend.base` scriveva `<title></title>` nelle pagine

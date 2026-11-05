@@ -69,6 +69,36 @@ public static function pageSchema(): PageSchema
 }
 ```
 
+## Dove si torna dopo il salvataggio
+
+Dopo `store`, `update` e `delete` la pagina va dove dice `->redirect($azione, $pagina)`
+(default `list`; `edit` apre la scheda appena scritta, `create` un form vuoto):
+
+```php
+PageSchema::for(static::class)->redirect('store', 'edit');
+```
+
+Se però l'indirizzo della pagina porta un ritorno, si torna lì e
+`redirect()` non conta. Il ritorno è `?torna=/percorso/` (in chiaro) oppure lo
+storico `?redirect=` in base64; si accettano solo percorsi interni
+(`SafeRedirect`). Lo stesso ritorno diventa la freccia "indietro" del form
+(`BACK_URL`) e viaggia nell'azione del form, così sopravvive al POST e agli
+errori di validazione. Unica eccezione: dopo un'eliminazione, se il ritorno
+punta alla scheda appena cancellata si va alla lista.
+
+Per mandare qualcuno su una scheda e farlo tornare indietro:
+
+```php
+use Wonder\Http\SafeRedirect;
+
+$url = SafeRedirect::withBack(__r('backend.resource.ordini.edit', ['id' => $id]), $_SERVER['REQUEST_URI']);
+// nella pagina di arrivo
+$back = SafeRedirect::backFromRequest(__r('backend.resource.ordini.list'));
+```
+
+Vale anche per le pagine-form (`formPage`, `submitFormPage()`): con un ritorno
+compaiono la freccia e il ritorno dopo il salvataggio; senza, si resta sul form.
+
 ## Route API generate
 
 Nome route: `api.resource.<slug>.*`. Emesse solo se `apiSchema()->get('enabled')`

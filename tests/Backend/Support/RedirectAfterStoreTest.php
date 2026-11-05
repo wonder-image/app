@@ -85,4 +85,54 @@ check('il form vuoto resta una destinazione possibile', function () use ($presen
         === '/backend.resource.'.RedirectTestResource::slug().'.create';
 });
 
+check('con ?torna= il salvataggio torna da dove si è partiti', function () use ($presenter) {
+    RedirectTestResource::redirectTo('edit');
+    $_GET = ['torna' => '/backend/scadenzario/?pagina=2'];
+    $ok = $presenter->redirectUrl('store', 7) === '/backend/scadenzario/?pagina=2'
+        && $presenter->redirectUrl('update', 7) === '/backend/scadenzario/?pagina=2';
+    $_GET = [];
+
+    return $ok;
+});
+
+check('vale anche lo storico ?redirect= in base64', function () use ($presenter) {
+    RedirectTestResource::redirectTo('list');
+    $_GET = ['redirect' => base64_encode('/backend/clienti/?clienti__page=3')];
+    $ok = $presenter->redirectUrl('update', 7) === '/backend/clienti/?clienti__page=3';
+    $_GET = [];
+
+    return $ok;
+});
+
+check('un ritorno verso un altro sito si ignora', function () use ($presenter, $lista) {
+    RedirectTestResource::redirectTo('list');
+    $_GET = ['torna' => 'https://evil.com/'];
+    $ok = $presenter->redirectUrl('update', 7) === $lista;
+    $_GET = [];
+
+    return $ok;
+});
+
+check('dopo un\'eliminazione non si torna alla scheda cancellata', function () use ($presenter, $lista) {
+    $_GET = ['torna' => $lista.'/7/'];
+    $skip = $presenter->redirectUrl('delete', 7) === $lista;
+    $_GET = ['torna' => '/backend/scadenzario/'];
+    $keep = $presenter->redirectUrl('delete', 7) === '/backend/scadenzario/';
+    $_GET = [];
+
+    return $skip && $keep;
+});
+
+check('la freccia e l\'azione del form portano il ritorno', function () use ($presenter, $lista) {
+    $_GET = ['torna' => '/backend/scadenzario/'];
+    $form = $presenter->form('edit', [], [], 7);
+    $_GET = [];
+    $plain = $presenter->form('edit', [], [], 7);
+
+    return $form['BACK_URL'] === '/backend/scadenzario/'
+        && str_ends_with($form['FORM_ACTION'], '?torna='.rawurlencode('/backend/scadenzario/'))
+        && $plain['BACK_URL'] === $lista
+        && !str_contains($plain['FORM_ACTION'], 'torna=');
+});
+
 summary();
