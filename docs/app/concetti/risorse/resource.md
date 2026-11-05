@@ -189,6 +189,9 @@ La gerarchia supportata è `sezione → gruppo → Resource`. Il gruppo è
 un'intestazione senza URL; le Resource lasciate fuori dai gruppi restano
 direttamente accessibili nella sezione. Dichiarazioni ripetute dello stesso
 gruppo sono ammesse solo con metadati identici.
+Vale anche la dichiarazione di una Resource spenta con `enabled(false)`:
+le altre voci del gruppo restano al loro posto, e un gruppo senza voci
+accese non compare.
 
 Metodi: `.enabled(bool)`,
 `.section($key, $title, $icon, $order = 500, $authority = [])`,
