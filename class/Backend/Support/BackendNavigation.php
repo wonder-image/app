@@ -242,13 +242,10 @@ final class BackendNavigation
     {
         $groups = [];
 
+        # Anche le Resource spente dichiarano il gruppo: le altre voci
+        # restano valide e un gruppo senza voci accese non compare.
         foreach ($schemas as $resourceClass => $navigationSchema) {
             $schema = $navigationSchema->all();
-
-            if (empty($schema['enabled'])) {
-                continue;
-            }
-
             $group = $schema['group'] ?? null;
 
             if (!is_array($group)) {

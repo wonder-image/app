@@ -48,6 +48,10 @@
   come prima.
 
 ### Corretto
+- **Backend in errore 500 con «Caricamento del catalogo» spento.** Il
+  gruppo «File» di Dev lo dichiara «Tracciati file», che il gestionale spegne
+  senza quella funzionalità: «Download» restava in un gruppo inesistente.
+  `BackendNavigation` ora raccoglie i gruppi anche dalle Resource spente.
 - **La freccia «indietro» e il salvataggio non tornavano alla pagina di
   partenza.** Nelle Resource, nelle pagine-form, nella gestione utenti e
   nell'upload massivo, `?torna=` (o lo storico `?redirect=` in base64) decide
