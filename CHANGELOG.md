@@ -13,6 +13,11 @@
   illeggibili. Serve l'estensione `sodium`. Per i progetti già in produzione:
   `php forge provision`, poi deploy. Vedi
   `docs/app/piattaforma/sicurezza.md#segreti-in-security` (#196).
+- **Scheda «Feed prodotti» nel bottone «File».** `TableLayoutSchema::feeds()`
+  elenca i feed a indirizzo fisso (Catalogo Meta, Google Merchant Center):
+  per ognuno indirizzo con «Copia», data dell'ultimo aggiornamento e «Scarica
+  ora». Il loro formato esce dai radio di Esporta, che resta per Excel e CSV
+  con i tracciati. Vedi `docs/app/concetti/tracciati.md`.
 - **Caricamento da file.** Motore generico `.xlsx`/`.csv` in `class/App/Import`
   (file → colonne → anteprima → scrittura a blocchi → annullamento), pagina
   `ImportResource`, task `wonder.import` e Set-up → Tracciati file; i tracciati

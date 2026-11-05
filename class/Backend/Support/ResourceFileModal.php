@@ -5,19 +5,21 @@ namespace Wonder\Backend\Support;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Modal;
+use Wonder\Elements\Components\SectionTitle;
 use Wonder\Elements\Components\Tabs;
 use Wonder\Elements\Components\Text;
 use Wonder\Elements\Form\Form;
 
 /**
  * Il bottone «File» di una lista e la sua finestra: la scheda Esporta
- * (GET verso la rotta `export.file`) e la scheda Importa (POST al
- * caricamento). Con una sola delle due la finestra non ha la barra delle schede.
+ * (GET verso la rotta `export.file`), la scheda Importa (POST al
+ * caricamento) e la scheda «Feed prodotti» (i feed a indirizzo fisso di
+ * `feeds()`). Con una sola scheda la finestra non ha la barra delle schede.
  */
 final class ResourceFileModal
 {
     /**
-     * @param array{action: string, label: string, formats: array<string, string>, profiles: array<int, string>, layout_formats: list<string>|null}|null $export
+     * @param array{action: string, label: string, formats: array<string, string>, profiles: array<int, string>, layout_formats: list<string>|null, feeds?: list<array{format: string, label: string, url: string, updated_at: ?int, every: ?string, download: string}>}|null $export
      * @param array{action: string, layout: string, profiles: array<int, string>, default: ?int, sample: string}|null $import
      * @param array{format: string, layout: ?int}|null $last
      *
@@ -25,7 +27,18 @@ final class ResourceFileModal
      */
     public static function build(string $slug, ?array $export, ?array $import, ?array $last = null): ?array
     {
-        if ($export === null && $import === null) {
+        // I formati dei feed escono da Esporta: restano solo per «Scarica ora».
+        $feeds = $export === null ? [] : array_values((array) ($export['feeds'] ?? []));
+
+        if ($export !== null) {
+            $export['formats'] = array_diff_key((array) $export['formats'], array_flip(array_column($feeds, 'format')));
+
+            if ($export['formats'] === []) {
+                $export = null;
+            }
+        }
+
+        if ($export === null && $import === null && $feeds === []) {
             return null;
         }
 
@@ -40,6 +53,10 @@ final class ResourceFileModal
 
         if ($import !== null) {
             $tabs->tab('import', 'Importa', [self::importForm($import)]);
+        }
+
+        if ($feeds !== []) {
+            $tabs->tab('feeds', 'Feed prodotti', self::feedPanel($feeds));
         }
 
         return [
@@ -125,6 +142,50 @@ final class ResourceFileModal
         $fields[] = Button::make('Continua')->type('submit')->variant('primary')->columnSpan(12);
 
         return (new Form)->action((string) $import['action'], 'post')->columns(12)->components($fields);
+    }
+
+    /**
+     * Un blocco per feed: nome, indirizzo da copiare, ultimo aggiornamento e
+     * «Scarica ora» (il file generato adesso, dalla rotta di export).
+     *
+     * @param list<array{format: string, label: string, url: string, updated_at: ?int, every: ?string, download: string}> $feeds
+     *
+     * @return list<object>
+     */
+    private static function feedPanel(array $feeds): array
+    {
+        $out = [];
+
+        foreach ($feeds as $feed) {
+            $key = $feed['format'];
+            $url = $feed['url'];
+            $out[] = SectionTitle::make($feed['label'])->columnSpan(12);
+
+            if ($url !== '') {
+                $out[] = FormField::key('feed_'.$key.'_url')->text()->label('Indirizzo del feed')
+                    ->value($url)->readonly()->columnSpan(9);
+                $out[] = Button::make('Copia')->variant('secondary')->outline()
+                    ->icon('bi bi-clipboard', 'start')
+                    ->onclick('copyText('.json_encode($url, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP).', this.querySelector(\'.bi\'))')
+                    ->columnSpan(3);
+            } else {
+                $out[] = Text::make('Indirizzo non ancora disponibile: manca il dominio del sito.')->muted()->columnSpan(12);
+            }
+
+            $updated = $feed['updated_at'] === null
+                ? 'Non ancora generato'
+                : 'Aggiornato il '.date('d/m/Y', $feed['updated_at']).' alle '.date('H:i', $feed['updated_at']);
+
+            if ($feed['every'] !== null) {
+                $updated .= ' · '.mb_strtolower($feed['every']);
+            }
+
+            $out[] = Text::make($updated)->muted()->columnSpan(8);
+            $out[] = Button::to($feed['download'], 'Scarica ora')->variant('primary')->size('sm')
+                ->icon('bi bi-download', 'start')->columnSpan(4);
+        }
+
+        return $out;
     }
 
     /** «A», «A e B», «A, B e C». */

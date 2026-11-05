@@ -144,4 +144,75 @@ check('l\'ultima scelta arriva nel markup', function () use ($export) {
         && (bool) preg_match('/<option value="3" selected>/', $html);
 });
 
+// Scheda «Feed prodotti»
+$feed = static fn (array $over = []): array => $over + [
+    'format' => 'meta',
+    'label' => 'Catalogo Meta',
+    'url' => 'https://negozio.it/shared/feeds/catalogo-meta.csv',
+    'updated_at' => mktime(14, 5, 0, 11, 5, 2026),
+    'every' => 'Ogni 6 ore',
+    'download' => '/backend/products/export/?format=meta',
+];
+$withFeed = static fn (array $over = []): array => $export([
+    'formats' => ['xlsx' => 'Excel', 'csv' => 'CSV', 'meta' => 'Catalogo Meta'],
+    'layout_formats' => ['xlsx', 'csv'],
+    'feeds' => [$feed($over)],
+]);
+
+check('feed: terza scheda con indirizzo, Copia e Scarica ora', function () use ($withFeed, $import, $modal) {
+    $html = $modal($withFeed(), $import());
+
+    return str_contains($html, 'wi-file-products-feeds') && str_contains($html, 'Feed prodotti')
+        && str_contains($html, 'value="https://negozio.it/shared/feeds/catalogo-meta.csv"')
+        && str_contains($html, 'readonly') && str_contains($html, 'copyText(')
+        && str_contains($html, 'Aggiornato il 05/11/2026 alle 14:05 · ogni 6 ore')
+        && !str_contains($html, 'Indirizzi fissi')
+        && str_contains($html, 'href="/backend/products/export/?format=meta"');
+});
+
+check('feed: il formato del feed esce da Esporta, e con lui il testo d\'aiuto', function () use ($withFeed, $modal) {
+    $html = $modal($withFeed(), null);
+
+    return !str_contains($html, 'value="meta"') && str_contains($html, 'value="xlsx"')
+        && !str_contains($html, 'I tracciati valgono per');
+});
+
+check('feed: ultima scelta «meta» ricade su Excel', function () use ($withFeed) {
+    $html = F::build('products', $withFeed(), null, ['format' => 'meta', 'layout' => null])['modal']->render('bootstrap');
+
+    return (bool) preg_match('/value="xlsx"[^>]*checked/', $html);
+});
+
+check('feed: solo formati feed, resta solo la scheda Feed prodotti', function () use ($export, $feed, $modal) {
+    $html = $modal($export(['formats' => ['meta' => 'Catalogo Meta'], 'feeds' => [$feed()]]), null);
+
+    return !str_contains($html, 'nav-tabs') && !str_contains($html, '>Scarica<')
+        && str_contains($html, 'Scarica ora');
+});
+
+check('feed: senza feed niente scheda', fn () => !str_contains($modal($export(), $import()), 'Feed prodotti'));
+
+check('feed: mai generato e senza dominio', function () use ($withFeed, $modal) {
+    $html = $modal($withFeed(['url' => '', 'updated_at' => null, 'every' => null]), null);
+
+    return str_contains($html, 'Non ancora generato') && str_contains($html, 'manca il dominio')
+        && !str_contains($html, 'copyText(');
+});
+
+check('feed: indirizzo con apici non rompe onclick', function () use ($withFeed, $modal) {
+    $html = $modal($withFeed(['url' => "https://x.it/a'b\"c"]), null);
+
+    return !str_contains($html, "a'b") && str_contains($html, 'copyText(');
+});
+
+check('feedsFor: scarta i formati non concessi e aggiunge ?format=', function () {
+    $feeds = [['format' => 'meta', 'label' => 'M'], ['format' => 'google', 'label' => 'G']];
+    $a = \Wonder\Backend\Support\ResourceTableRenderer::feedsFor($feeds, ['xlsx' => 'Excel', 'meta' => 'M'], '/x/export/');
+    $b = \Wonder\Backend\Support\ResourceTableRenderer::feedsFor($feeds, ['meta' => 'M'], '/x/export/?a=1');
+
+    return count($a) === 1 && $a[0]['download'] === '/x/export/?format=meta'
+        && $b[0]['download'] === '/x/export/?a=1&format=meta';
+});
+
 summary();
+

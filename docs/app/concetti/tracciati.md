@@ -110,9 +110,9 @@ public static function tableLayoutSchema(): TableLayoutSchema
 
 ## Il bottone della lista
 
-Sopra la lista c'è un solo bottone «File», che apre una finestra con due
-schede: Esporta e Importa. Se la Resource ha solo una delle due, la finestra
-non mostra la barra delle schede.
+Sopra la lista c'è un solo bottone «File», che apre una finestra con fino a
+tre schede: Esporta, Importa e Feed prodotti. Se la Resource ne ha una sola,
+la finestra non mostra la barra delle schede.
 
 La scheda **Esporta** ha il titolo di `download(label:)` (di base «Esporta») e
 un form GET verso la rotta `backend.resource.{slug}.export.file`, con
@@ -141,6 +141,32 @@ gestore riceve l'id come secondo argomento (null senza tracciato o per un
 formato escluso) e ricava le colonne con `Profile::for($fonte, $id)`, che
 ignora un id di un'altra fonte. Senza `downloadLayouts()` la fonte è lo slug
 della Resource e valgono tutti i formati.
+
+`feeds([...])` aggiunge la scheda **Feed prodotti**, per i file a indirizzo
+fisso (Catalogo Meta, Google Merchant Center) che si rigenerano da soli e si
+incollano una volta nella piattaforma. Hanno un formato deciso dalla
+piattaforma, quindi non sono tracciati: il loro formato esce dai radio di
+Esporta (e con lui il testo d'aiuto, se era l'unico a non accettare i
+tracciati) e un'ultima scelta salvata su quel formato ricade sul primo.
+
+```php
+->download(['xlsx' => 'Excel', 'csv' => 'CSV', 'meta' => 'Catalogo Meta'])
+->feeds([[
+    'format' => 'meta',                 // uno dei formati di download()
+    'label' => 'Catalogo Meta',
+    'url' => 'https://negozio.it/shared/feeds/catalogo-meta.csv',
+    'updated_at' => filemtime($file),   // null: «Non ancora generato»
+    'every' => 'Ogni 6 ore',            // facoltativo, accanto alla data
+]])
+```
+
+Per ogni feed la scheda mostra il nome, l'indirizzo in un campo di sola
+lettura con «Copia» (`copyText()` della lib), quando è stato aggiornato e
+«Scarica ora», che passa dalla stessa rotta di export con `?format=`. Un feed
+il cui formato non è tra quelli di `download()` (per esempio perché il
+gestore non lo concede all'utente) non compare; senza feed la scheda non c'è.
+Accendere un feed e sceglierne la frequenza resta compito del modulo che lo
+scrive.
 
 `importLayout($layout, $label)` aggiunge la scheda **Importa**: un form POST
 verso il caricamento con la scelta del tracciato salvato, il file e il link
