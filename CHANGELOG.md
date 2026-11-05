@@ -29,6 +29,13 @@
   `php forge update` copia l'ID e lo stato dalla tabella `analytics`
   (`AnalyticsToCredentialsMigration`, solo se in Credenziali l'ID è vuoto).
   Il gruppo «API e servizi» ora lo dichiara `SecurityResource`.
+- **Tracciati anche con un export proprio.** `downloadLayouts($fonte,
+  $formati)` nella cornice della lista: con `downloadUsing()` il menu
+  «Esporta» elenca i tracciati di quella fonte per i formati indicati e il
+  gestore riceve l'id del tracciato come secondo argomento (i gestori a un
+  argomento continuano a funzionare).
+- **Tracciati file e Download in Dev → File.** «Tracciati file» lascia
+  Set-up e sta con «Download» nel nuovo gruppo «File» della sezione Dev.
 - **Bottoni Esporta e Importa della lista.** «Esporta» è un menu con i
   formati e, sotto «Tracciati», i tracciati salvati della Resource
   (`?layout=ID`); con `importLayout()` accanto c'è «Importa», nello stesso

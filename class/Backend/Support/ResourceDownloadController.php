@@ -46,7 +46,12 @@ final class ResourceDownloadController
         }
 
         if (is_callable($download['handler'] ?? null)) {
-            ($download['handler'])($format);
+            // Il tracciato arriva al gestore solo per i formati che lo prevedono.
+            $layouts = self::layouts($download, $slug);
+            $offered = $layoutId !== null && $layouts['source'] !== ''
+                && ($layouts['formats'] === null || in_array($format, $layouts['formats'], true));
+
+            ($download['handler'])($format, $offered ? $layoutId : null);
 
             return;
         }
@@ -79,6 +84,28 @@ final class ResourceDownloadController
         }
 
         return $matrix;
+    }
+
+    /**
+     * Di quale fonte sono i tracciati che «Esporta» offre, e per quali
+     * formati (null = tutti). Con un `downloadUsing()` senza
+     * `downloadLayouts()` la fonte è vuota: niente tracciati.
+     *
+     * @return array{source: string, formats: list<string>|null}
+     */
+    public static function layouts(array $download, string $slug): array
+    {
+        $layouts = is_array($download['layouts'] ?? null) ? $download['layouts'] : [];
+        $source = trim((string) ($layouts['source'] ?? ''));
+
+        if ($source === '' && !is_callable($download['handler'] ?? null)) {
+            $source = $slug;
+        }
+
+        return [
+            'source' => $source,
+            'formats' => is_array($layouts['formats'] ?? null) ? array_values(array_map('strval', $layouts['formats'])) : null,
+        ];
     }
 
     private function resolveFilename(array $download): string

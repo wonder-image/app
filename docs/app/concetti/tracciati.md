@@ -4,7 +4,7 @@ Import ed export parlano la stessa lingua, `Wonder\App\Dataset`: una **fonte**
 (`Source`) ha un id, un'etichetta, delle **colonne** (`Column`) e dice per
 quali azioni si può usare. Un export legge le righe dalla fonte; un
 caricamento le scrive. Le colonne, l'ordine e le intestazioni scelte
-dall'amministratore si salvano in Set-up → **Tracciati file**, valide per
+dall'amministratore si salvano in Dev → File → **Tracciati file**, valide per
 entrambi.
 
 | Contratto | Cosa aggiunge | Esempi |
@@ -115,8 +115,22 @@ Resource ci sono tracciati salvati, sotto l'intestazione «Tracciati» compare
 una voce per tracciato e formato, che scarica con `?layout=ID`: colonne,
 ordine e intestazioni del tracciato. Senza `?layout` l'export usa sempre le
 colonne del codice; un tracciato di un'altra fonte, o senza colonne valide,
-viene ignorato. Con `downloadUsing()` il file lo
-scrive il sito e i tracciati non compaiono.
+viene ignorato.
+
+Con `downloadUsing()` il file lo scrive il gestore e i tracciati compaiono
+solo se la Resource dice di quale fonte sono, con `downloadLayouts()`:
+
+```php
+->download(['xlsx' => 'Excel', 'csv' => 'CSV', 'feed' => 'Feed'])
+->downloadUsing(fn (string $format, ?int $layout = null) => MyExport::send($format, $layout))
+->downloadLayouts('catalog', ['xlsx', 'csv'])   // fonte, formati che li accettano
+```
+
+Il menu elenca i tracciati della fonte `catalog` solo per Excel e CSV; il
+gestore riceve l'id come secondo argomento (null senza tracciato o per un
+formato escluso) e ricava le colonne con `Profile::for($fonte, $id)`, che
+ignora un id di un'altra fonte. Senza `downloadLayouts()` la fonte è lo slug
+della Resource e valgono tutti i formati.
 
 `importLayout($layout, $label)` aggiunge `Importa`, verso il caricamento con
 quel tracciato; compare solo se il tracciato esiste e l'utente può usarlo.
@@ -124,7 +138,7 @@ Con entrambi i bottoni stanno in un `ButtonGroup` «Esporta e importa».
 
 ## Tracciati file
 
-Set-up → Tracciati file (`ImportLayoutResource`, solo admin) elenca tutte le
+Dev → File → Tracciati file (`ImportLayoutResource`, solo admin, accanto a Download) elenca tutte le
 fonti del registro: per ognuna si salvano le colonne in ordine e con
 l'intestazione voluta. `Profile::for($source, $id)` dà le colonne di un
 tracciato salvato (null se non è di quella fonte); il caricamento propone il

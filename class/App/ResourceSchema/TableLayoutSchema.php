@@ -57,7 +57,9 @@ final class TableLayoutSchema
             // del record) o array `['label' => '...', 'value' => string|callable]`
             // per controllare label e valore di output (callable riceve
             // l'intera riga e ritorna la cella). `handler`, se presente,
-            // costruisce e invia lui il file al posto delle colonne. `text`
+            // costruisce e invia lui il file al posto delle colonne;
+            // `layouts` dice di quale fonte sono i tracciati da offrire
+            // (vedi `downloadLayouts()`). `text`
             // scrive ogni cella come testo (vedi `downloadAsText()`);
             // `formula_safe` neutralizza le formule nel CSV (vedi
             // `downloadFormulaSafe()`).
@@ -68,6 +70,7 @@ final class TableLayoutSchema
                 'filename' => null,
                 'label' => null,
                 'handler' => null,
+                'layouts' => null,
                 'rows' => null,
                 'text' => false,
                 'formula_safe' => true,
@@ -532,7 +535,8 @@ final class TableLayoutSchema
      * Affida l'export a un gestore proprio, per i file che non sono una
      * riga per record (es. una riga per variante). Bottone, formati e route
      * `export` restano quelli della cornice; il gestore riceve il formato
-     * richiesto, già validato su `download()`, e invia lui il file.
+     * richiesto, già validato su `download()`, e invia lui il file. I
+     * tracciati compaiono solo con `downloadLayouts()`.
      *
      * ```php
      * ->download(['xlsx' => 'Excel', 'csv' => 'CSV'])
@@ -542,6 +546,29 @@ final class TableLayoutSchema
     public function downloadUsing(callable $handler): self
     {
         $this->schema['download']['handler'] = $handler;
+
+        return $this;
+    }
+
+    /**
+     * I tracciati salvati che «Esporta» offre: quelli della fonte `$source`
+     * (di serie lo slug della Resource), solo per `$formats` (di serie tutti
+     * quelli di `download()`). Con `downloadUsing()` serve dirlo: il gestore
+     * riceve l'id del tracciato come secondo argomento.
+     *
+     * ```php
+     * ->downloadUsing(fn (string $format, ?int $layout = null) => MyExport::send($format, $layout))
+     * ->downloadLayouts('catalog', ['xlsx', 'csv'])
+     * ```
+     *
+     * @param list<string>|null $formats
+     */
+    public function downloadLayouts(string $source, ?array $formats = null): self
+    {
+        $this->schema['download']['layouts'] = [
+            'source' => trim($source),
+            'formats' => $formats === null ? null : array_values(array_map('strval', $formats)),
+        ];
 
         return $this;
     }
