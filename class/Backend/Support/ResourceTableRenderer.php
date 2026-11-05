@@ -173,14 +173,49 @@ final class ResourceTableRenderer
         }
 
         $layouts = ResourceDownloadController::layouts($download, $this->slug);
+        $formats = array_map('strval', $formats);
 
         return [
             'action' => $action,
             'label' => is_string($download['label'] ?? null) ? trim($download['label']) : '',
-            'formats' => array_map('strval', $formats),
+            'formats' => $formats,
             'profiles' => $layouts['source'] === '' ? [] : Profile::options($layouts['source']),
             'layout_formats' => $layouts['formats'],
+            'feeds' => self::feedsFor((array) ($this->tableLayoutSchema['feeds'] ?? []), $formats, $action),
         ];
+    }
+
+    /**
+     * I feed di `feeds()` con un formato concesso da `download()`, ciascuno
+     * con l'indirizzo di «Scarica ora».
+     *
+     * @param array<int, mixed> $feeds
+     * @param array<string, string> $formats
+     *
+     * @return list<array{format: string, label: string, url: string, updated_at: ?int, every: ?string, download: string}>
+     */
+    public static function feedsFor(array $feeds, array $formats, string $action): array
+    {
+        $out = [];
+
+        foreach ($feeds as $feed) {
+            $format = is_array($feed) ? (string) ($feed['format'] ?? '') : '';
+
+            if ($format === '' || !array_key_exists($format, $formats)) {
+                continue;
+            }
+
+            $out[] = [
+                'format' => $format,
+                'label' => (string) ($feed['label'] ?? $formats[$format]),
+                'url' => (string) ($feed['url'] ?? ''),
+                'updated_at' => isset($feed['updated_at']) ? (int) $feed['updated_at'] : null,
+                'every' => isset($feed['every']) ? (string) $feed['every'] : null,
+                'download' => $action.(str_contains($action, '?') ? '&' : '?').'format='.rawurlencode($format),
+            ];
+        }
+
+        return $out;
     }
 
     private function importData(): ?array

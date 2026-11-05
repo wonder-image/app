@@ -106,4 +106,13 @@ check('remember: una sessione corrotta torna un array', function () {
     return $ok;
 });
 
+check('feeds() dello schema arriva nella scheda Feed prodotti, con ?format=', function () use ($buttonHtml) {
+    $html = $buttonHtml(TableLayoutSchema::for(FileButtonResource::class)
+        ->download(['xlsx' => 'Excel', 'meta' => 'Catalogo Meta'])
+        ->feeds([['format' => 'meta', 'label' => 'Catalogo Meta', 'url' => 'https://x.it/f.csv'], ['format' => 'google']]));
+
+    return str_contains($html, 'Feed prodotti') && str_contains($html, 'format=meta')
+        && !str_contains($html, 'format=google') && !str_contains($html, 'value="meta"');
+});
+
 summary();
