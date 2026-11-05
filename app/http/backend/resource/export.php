@@ -4,7 +4,7 @@ $routeMeta = is_array($ROUTE_META ?? null) ? $ROUTE_META : [];
 $routeParameters = is_array($ROUTE_PARAMETERS ?? null) ? $ROUTE_PARAMETERS : [];
 
 $resourceSlug = trim((string) ($routeMeta['resource'] ?? ''));
-$format = trim((string) ($routeParameters['format'] ?? ''));
+$format = \Wonder\Backend\Support\ResourceDownloadController::formatFrom($routeParameters, $_GET);
 
 if ($resourceSlug === '' || $format === '') {
     throw new RuntimeException('Metadata export resource backend mancanti.');

@@ -120,6 +120,13 @@ final class ResourceRouteRegistrar
                                 ])->name('export')
                                     ->permit($permissions['list'] ?? [])
                                     ->where('format', '[a-z]+');
+
+                                // Senza formato nel percorso: lo manda il form del modal («?format=»).
+                                Route::get('/export/', $rootApp.'/http/backend/resource/export.php', [
+                                    'resource' => $slug,
+                                    'resource_action' => 'export',
+                                ])->name('export.file')
+                                    ->permit($permissions['list'] ?? []);
                             }
 
                             $resourceClass::registerBackendRoutes($rootApp, $slug);
