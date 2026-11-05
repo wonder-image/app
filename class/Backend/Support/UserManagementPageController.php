@@ -9,6 +9,7 @@ use Wonder\App\Resources\Support\UserManagementResource;
 use Wonder\Auth\AuthLog;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Http\Csrf;
+use Wonder\Http\SafeRedirect;
 use Wonder\View\View;
 
 final class UserManagementPageController
@@ -74,9 +75,10 @@ final class UserManagementPageController
         }
 
         if (empty($ALERT)) {
+            $back = SafeRedirect::backFromRequest('');
             $route = isset($_POST['upload-add'])
-                ? __r('backend.resource.'.$this->slug.'.create')
-                : __r('backend.resource.'.$this->slug.'.list');
+                ? SafeRedirect::withBack(__r('backend.resource.'.$this->slug.'.create'), $back)
+                : ($back !== '' ? $back : __r('backend.resource.'.$this->slug.'.list'));
 
             header('Location: '.$route);
             exit();
@@ -101,10 +103,13 @@ final class UserManagementPageController
 
         View::make($rootApp.'/view/pages/backend/user/manage.php', [
             'TITLE' => $title,
-            'BACK_URL' => __r('backend.resource.'.$this->slug.'.list'),
-            'FORM_ACTION' => $mode === 'edit' && $id !== null
-                ? __r('backend.resource.'.$this->slug.'.update', ['id' => $id])
-                : __r('backend.resource.'.$this->slug.'.store'),
+            'BACK_URL' => SafeRedirect::backFromRequest(__r('backend.resource.'.$this->slug.'.list')),
+            'FORM_ACTION' => SafeRedirect::withBack(
+                $mode === 'edit' && $id !== null
+                    ? __r('backend.resource.'.$this->slug.'.update', ['id' => $id])
+                    : __r('backend.resource.'.$this->slug.'.store'),
+                SafeRedirect::backFromRequest('')
+            ),
             'VALUES' => $values,
             'SAVE_BAR_DIRTY' => $dirty,
             'RESOURCE_CLASS' => $this->resourceClass,

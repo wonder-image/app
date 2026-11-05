@@ -104,4 +104,5 @@ View::make($ROOT_APP.'/view/pages/backend/media/upload-massive.php', [
     'TITLE' => $TITLE,
     'USER' => is_object($USER ?? null) ? $USER : (object) [ 'authority' => [] ],
     'FORM_SCHEMA' => $FORM_SCHEMA,
+    'BACK_URL' => \Wonder\Http\SafeRedirect::backFromRequest(''),
 ])->render();

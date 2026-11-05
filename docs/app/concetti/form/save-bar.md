@@ -30,7 +30,9 @@ servono alla lib, restano i bottoni originali.
 Il chevron "indietro" di `layout/backend/form.php` (`$BACK_URL`) porta
 `data-wi-save-bar-cancel`: la lib ne riusa l'`href` per il bottone Annulla, che
 sta alla sinistra dei bottoni di salvataggio (i bottoni stanno sempre a
-destra). Senza `$BACK_URL` non c'è chevron e quindi nemmeno Annulla. Il link è
+destra). Senza `$BACK_URL` non c'è chevron e quindi nemmeno Annulla. Nelle
+Resource `$BACK_URL` è il ritorno `?torna=` della pagina quando c'è, altrimenti la
+lista (vedi [Dove si torna dopo il salvataggio](../risorse/route-e-api.md#dove-si-torna-dopo-il-salvataggio)). Il link è
 una normale navigazione: con modifiche non salvate scatta l'avviso di uscita.
 Altre pagine possono marcare un loro link allo stesso modo.
 

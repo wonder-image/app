@@ -98,4 +98,22 @@ check('infoPage: senza ?redirect= nessuna proprietà', function () {
     return !isset($PAGE->redirect) && !isset($PAGE->redirectBase64);
 });
 
+check('backFromRequest: prima ?torna=, poi ?redirect=, poi il fallback', function () {
+    $_GET = ['torna' => '/backend/a/', 'redirect' => base64_encode('/backend/b/')];
+    $torna = SafeRedirect::backFromRequest('/f/') === '/backend/a/';
+    $_GET = ['redirect' => base64_encode('/backend/b/')];
+    $redirect = SafeRedirect::backFromRequest('/f/') === '/backend/b/';
+    $_GET = ['torna' => '//evil.com'];
+    $unsafe = SafeRedirect::backFromRequest('/f/') === '/f/';
+    $_GET = [];
+
+    return $torna && $redirect && $unsafe && SafeRedirect::backFromRequest() === '';
+});
+
+check('withBack: aggiunge ?torna= codificato, ignora i ritorni non sicuri', fn () =>
+    SafeRedirect::withBack('/backend/x/7/edit/', '/backend/y/?p=2') === '/backend/x/7/edit/?torna=%2Fbackend%2Fy%2F%3Fp%3D2'
+    && SafeRedirect::withBack('/backend/x/?a=1', '/b/') === '/backend/x/?a=1&torna=%2Fb%2F'
+    && SafeRedirect::withBack('/backend/x/', '') === '/backend/x/'
+    && SafeRedirect::withBack('/backend/x/', 'https://evil.com/') === '/backend/x/');
+
 summary();

@@ -13,6 +13,9 @@ namespace Wonder\Http;
  */
 class SafeRedirect
 {
+    /** Il parametro con cui una pagina del backend dice dove tornare: `?torna=` in chiaro. */
+    public const BACK = 'torna';
+
     public static function fromRequest(mixed $value, string $fallback = '/'): string
     {
         if (!is_scalar($value)) {
@@ -49,6 +52,27 @@ class SafeRedirect
         }
 
         return self::fromBase64($_GET['redirect'] ?? '', '');
+    }
+
+    /**
+     * Dove deve tornare la pagina del backend: `?torna=`, poi lo storico
+     * `?redirect=` in base64, altrimenti `$fallback`.
+     */
+    public static function backFromRequest(string $fallback = ''): string
+    {
+        $back = self::fromRequest($_GET[self::BACK] ?? '', '');
+
+        return $back !== '' ? $back : self::fromBase64($_GET['redirect'] ?? '', $fallback);
+    }
+
+    /** `$url` con `?torna=$back`; un ritorno vuoto o non sicuro lo lascia com'è. */
+    public static function withBack(string $url, string $back): string
+    {
+        if ($back === '' || !self::isSafe($back)) {
+            return $url;
+        }
+
+        return $url.(str_contains($url, '?') ? '&' : '?').self::BACK.'='.rawurlencode($back);
     }
 
     public static function isSafe(string $value): bool

@@ -9,6 +9,7 @@ use Wonder\App\Resource;
 use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\Elements\Components\Alert;
 use Wonder\Elements\Components\Card;
+use Wonder\Http\SafeRedirect;
 
 final class ResourcePagePresenter
 {
@@ -49,9 +50,11 @@ final class ResourcePagePresenter
             'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, $errors, $mode, $placeholders),
             'FORM_METHOD' => 'POST',
             'FORM_ENCTYPE' => 'multipart/form-data',
-            'FORM_ACTION' => $mode === 'edit' && $id !== null
-                ? $this->editUrl($id)
-                : $this->createUrl(),
+            // Il ritorno passa per l'azione del form: il POST lo ritrova in `$_GET`.
+            'FORM_ACTION' => SafeRedirect::withBack(
+                $mode === 'edit' && $id !== null ? $this->editUrl($id) : $this->createUrl(),
+                $this->back()
+            ),
             'BACK_URL' => $this->backUrl(),
             'FORM_ERRORS' => $errors,
             'FORM_ERROR_MESSAGE' => self::errorMessage($errors),
@@ -92,8 +95,8 @@ final class ResourcePagePresenter
             'FORM_LAYOUT' => $this->hydrateLayout($formLayout, $values, [], 'form', $placeholders),
             'FORM_METHOD' => 'POST',
             'FORM_ENCTYPE' => 'multipart/form-data',
-            'FORM_ACTION' => __r('backend.resource.'.$this->resourceClass::slug().'.submit'),
-            'BACK_URL' => '',
+            'FORM_ACTION' => SafeRedirect::withBack(__r('backend.resource.'.$this->resourceClass::slug().'.submit'), $this->back()),
+            'BACK_URL' => $this->back(),
             'FORM_ERRORS' => [],
             'FORM_ERROR_MESSAGE' => '',
             'FORM_NOTICES' => self::notices($this->resourceClass::formNotices($values, 'form')),
@@ -176,15 +179,25 @@ final class ResourcePagePresenter
      * dopo aver creato qualcosa si può atterrare sulla sua scheda invece che
      * su un elenco dove bisogna ritrovarla. Senza id non c'è scheda dove
      * andare, e si torna all'elenco.
+     *
+     * Un `?torna=` (o lo storico `?redirect=`) vince su tutto: si torna alla
+     * pagina da cui si è partiti. Dopo un'eliminazione no, se porta alla
+     * scheda della riga appena cancellata.
      */
     public function redirectUrl(string $action, int|string|null $id = null): string
     {
+        $back = $this->back();
+
+        if ($back !== '' && !($action === 'delete' && $this->pointsToRecord($back, $id))) {
+            return $back;
+        }
+
         $redirects = (array) $this->resourceClass::pageSchema()->get('redirects');
         $page = (string) ($redirects[$action] ?? 'list');
 
         return match ($page) {
             'create' => $this->createPageUrl(),
-            'edit' => (int) $id > 0 ? $this->editUrl((int) $id) : $this->listUrl(),
+            'edit' => $action !== 'delete' && (int) $id > 0 ? $this->editUrl((int) $id) : $this->listUrl(),
             default => $this->listUrl(),
         };
     }
@@ -440,12 +453,33 @@ final class ResourcePagePresenter
         return (object) [ 'authority' => [] ];
     }
 
+    /** La freccia «indietro»: il ritorno della richiesta, altrimenti l'elenco. */
     private function backUrl(): string
     {
-        if ($this->resourceClass::isSingleton()) {
-            return '';
+        $back = $this->back();
+
+        if ($back !== '' || $this->resourceClass::isSingleton()) {
+            return $back;
         }
 
         return $this->listUrl();
+    }
+
+    /** Il ritorno chiesto dalla pagina (`?torna=` o `?redirect=`), già verificato. */
+    public function back(): string
+    {
+        return SafeRedirect::backFromRequest('');
+    }
+
+    /** `$url` porta alla scheda (o alla modifica) della riga `$id` di questa Resource. */
+    private function pointsToRecord(string $url, int|string|null $id): bool
+    {
+        if ((int) $id <= 0) {
+            return false;
+        }
+
+        $record = rtrim((string) parse_url($this->listUrl(), PHP_URL_PATH), '/').'/'.(int) $id.'/';
+
+        return str_starts_with((string) parse_url($url, PHP_URL_PATH), $record);
     }
 }

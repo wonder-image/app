@@ -13,6 +13,7 @@ use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Support\FlashAlert;
 use Wonder\Backend\Support\ReadonlyFields;
 use Wonder\Http\Csrf;
+use Wonder\Http\SafeRedirect;
 use Wonder\Http\Exceptions\NotFoundHttpException;
 use Wonder\View\View;
 
@@ -227,7 +228,7 @@ final class ResourcePageController
 
         if (!Csrf::verify()) {
             FlashAlert::code(self::CSRF_ALERT);
-            header('Location: '.$this->presenter->redirectUrl('delete', null));
+            header('Location: '.$this->presenter->redirectUrl('delete', $id));
             exit();
         }
 
@@ -236,7 +237,7 @@ final class ResourcePageController
         $this->resourceClass::afterDelete($id, $result, $values);
         $this->resourceClass::exportSyncData();
 
-        $this->redirectToConfiguredPage('delete');
+        $this->redirectToConfiguredPage('delete', $id);
     }
 
     /** Pagina fatta di un solo form (`Resource::isFormPage()`). */
@@ -258,7 +259,7 @@ final class ResourcePageController
 
         if (!Csrf::verify()) {
             FlashAlert::code(self::CSRF_ALERT);
-            header('Location: '.__r('backend.resource.'.$this->resourceClass::slug().'.form'));
+            header('Location: '.SafeRedirect::withBack(__r('backend.resource.'.$this->resourceClass::slug().'.form'), $this->presenter->back()));
             exit();
         }
 
@@ -270,7 +271,9 @@ final class ResourcePageController
             FlashAlert::code(650);
         }
 
-        header('Location: '.__r('backend.resource.'.$this->resourceClass::slug().'.form'));
+        // Con un ritorno si torna da dove si è partiti, altrimenti alla pagina stessa.
+        $back = $this->presenter->back();
+        header('Location: '.($back !== '' ? $back : __r('backend.resource.'.$this->resourceClass::slug().'.form')));
         exit();
     }
 
