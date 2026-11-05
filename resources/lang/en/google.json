@@ -29,6 +29,9 @@
     "directions": {
       "purpose": "Routes drawn on maps, only when configured."
     },
+    "translation": {
+      "purpose": "Automatic translation of content from the backend (Settings › Translations)."
+    },
     "google_oauth": {
       "purpose": "Sign in with Google: create a Web application OAuth client and copy its Client ID."
     }
