@@ -115,6 +115,10 @@ final class ResourceDownloadController
             return;
         }
 
+        if (!is_array($_SESSION['wi_resource_export'] ?? null)) {
+            $_SESSION['wi_resource_export'] = [];
+        }
+
         $_SESSION['wi_resource_export'][$slug] = ['format' => $format, 'layout' => $layoutId];
     }
 

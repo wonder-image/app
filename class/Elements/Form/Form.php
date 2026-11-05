@@ -49,7 +49,9 @@
         /**
          * Indirizzo e metodo del form. Senza, il form invia alla pagina
          * stessa in POST. Un metodo diverso da `get` vale `post`.
-         * Con GET il form non porta CSRF, enctype né spinner.
+         * Con GET il form non porta CSRF, enctype né spinner, e il browser
+         * sostituisce la query string dell'action: i parametri che servono
+         * vanno passati come campi nascosti.
          */
         public function action(string $url, string $method = 'post'): static
         {

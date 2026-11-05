@@ -29,7 +29,8 @@ final class ResourceFileModal
             return null;
         }
 
-        $id = 'wi-file-'.(trim((string) preg_replace('/[^a-z0-9-]+/', '-', strtolower($slug)), '-'));
+        $clean = trim((string) preg_replace('/[^a-z0-9-]+/', '-', strtolower($slug)), '-');
+        $id = 'wi-file-'.($clean !== '' ? $clean : 'resource');
         $tabs = Tabs::make($id)->columns(12);
 
         if ($export !== null) {

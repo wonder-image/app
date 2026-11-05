@@ -55,6 +55,10 @@
   come prima.
 
 ### Corretto
+- **Bottone «File» delle liste.** Con uno slug che dopo la pulizia resta vuoto
+  l'id della finestra e delle schede era `wi-file-`: ora è `wi-file-resource`.
+  Se `$_SESSION['wi_resource_export']` non era un array, ricordare l'ultima
+  scelta di export andava in errore: ora viene riportato a `[]`.
 - **Backend in errore 500 con «Caricamento del catalogo» spento.** Il
   gruppo «File» di Dev lo dichiara «Tracciati file», che il gestionale spegne
   senza quella funzionalità: «Download» restava in un gruppo inesistente.

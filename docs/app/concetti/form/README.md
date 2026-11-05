@@ -49,6 +49,7 @@ Di norma il form invia alla pagina stessa in POST. `Form::action($url, $metodo =
 - Con `get` il form non ha `enctype`, né `onsubmit` con lo spinner, né il campo `_csrf`: i valori viaggiano nell'indirizzo.
 - Con `post` restano multipart, spinner e token CSRF.
 - Un metodo diverso da `get` vale `post`.
+- Con `get` il browser sostituisce la query string dell'indirizzo: `action('/x/?a=1', 'get')` perde `a`. I parametri si passano come campi nascosti.
 
 Un `Form` dentro una `Modal` (o in una scheda) si rende come un vero `<form>` con la sua `action()`.
 

@@ -102,7 +102,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
             ['label' => 'Cliente', 'value' => fn (array $row) => $row['name'].' '.$row['surname']],
         ])
         ->fileRows(fn ($condition) => Product::find($condition))        // facoltativo
-        ->importLayout('catalog', 'Importa catalogo');                  // bottone Importa
+        ->importLayout('catalog', 'Importa catalogo');                  // scheda «Importa» del bottone «File»
 }
 ```
 
@@ -145,6 +145,13 @@ della Resource e valgono tutti i formati.
 `importLayout($layout, $label)` aggiunge la scheda **Importa**: un form POST
 verso il caricamento con la scelta del tracciato salvato, il file e il link
 al modello; compare solo se il tracciato esiste e l'utente può usarlo.
+
+Il bottone «File» non va reso dentro un `<form>`, per esempio in un
+`backendTable()` incorporato in una scheda del form di una Resource: il
+`<form>` della sua finestra verrebbe scartato già dal parser HTML e il
+bottone invierebbe il form esterno. `data-wi-modal-detach` non lo evita: lo
+script sposta la finestra solo dopo il parse, quando il `<form>` interno non
+c'è più.
 
 ## Tracciati file
 

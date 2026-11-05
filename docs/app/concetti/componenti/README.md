@@ -376,7 +376,10 @@ Tre cose da sapere:
 - **Esce dal form.** Uno script, stampato una volta per pagina, sposta ogni
   `.modal[data-wi-modal-detach]` in fondo al `body` al `DOMContentLoaded`:
   i campi della finestra non partono con il record. È lo stesso passo della
-  [creazione rapida](../form/quick-create.md).
+  [creazione rapida](../form/quick-create.md). Non protegge da un `<form>`
+  annidato: il parser HTML scarta il `<form>` interno già al parse, prima dello
+  script. Per questo una finestra con `form()` (come quella del bottone «File»)
+  va resa fuori da ogni `<form>`.
 - **Nessuna colonna attorno.** `ResourceFormLayoutRenderer` rende il corpo con
   le colonne della finestra (un campo con `columnSpan(6)` su `columns(12)`
   diventa `col-6`) ma non mette la finestra in una colonna della scheda. Anche
