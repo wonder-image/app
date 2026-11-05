@@ -36,6 +36,12 @@
   `php forge update` copia l'ID e lo stato dalla tabella `analytics`
   (`AnalyticsToCredentialsMigration`, solo se in Credenziali l'ID è vuoto).
   Il gruppo «API e servizi» ora lo dichiara `SecurityResource`.
+  Il seed della riga `security` passa in `app/build/row/security.php`: senza,
+  un sito nuovo non salvava `api_key` e ne generava una diversa a ogni
+  processo, inviando a ogni `forge update` una nuova richiesta di attivazione
+  ad api.wonderimage.it. `php forge update` completa anche le righe con
+  `api_key` vuota (non con `API_KEY` nel `.env`). Non si scaricano più le
+  credenziali SMTP da `/mail/server/`.
 - **Tracciati anche con un export proprio.** `downloadLayouts($fonte,
   $formati)` nella cornice della lista: con `downloadUsing()` il menu
   «Esporta» elenca i tracciati di quella fonte per i formati indicati e il
