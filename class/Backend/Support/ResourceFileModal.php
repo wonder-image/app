@@ -154,7 +154,7 @@ final class ResourceFileModal
      */
     private static function feedPanel(array $feeds): array
     {
-        $out = [Text::make('Indirizzi fissi, aggiornati da soli: si incollano una volta in Meta Commerce Manager o in Google Merchant Center.')->muted()->columnSpan(12)];
+        $out = [];
 
         foreach ($feeds as $feed) {
             $key = $feed['format'];
