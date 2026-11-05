@@ -10,6 +10,26 @@
   (`Sample`, rotta `import.sample`), resoconto delle colonne riconosciute,
   ignorate e mancanti (`Mapping::report()`) e colonne obbligatorie
   (`Column::required()`). Vedi `docs/app/concetti/importazione.md`.
+- **Tracciati comuni a import ed export.** `class/App/Dataset`: fonti
+  (`Source`, `Exportable`, `Importable`), colonne `Dataset\Column` con
+  `value()`, `type()` (`Type`: testo, numero, importo, sì/no, data, data e
+  ora, lista; quello che esce si rilegge uguale) e `sensitive()`, registro
+  `Sources` (Resource con export, `import.layouts`, config `dataset.sources`,
+  `Sources::set()`). Set-up → Tracciati file elenca tutte le fonti, anche le
+  Resource esportabili. Nella cornice della lista `fileColumns()`,
+  `fileRows()` e `importLayout()`. Vedi `docs/app/concetti/tracciati.md`.
+
+### Cambiato
+- **Bottoni Esporta e Importa della lista.** «Esporta» è un menu con i
+  formati e, sotto «Tracciati», i tracciati salvati della Resource
+  (`?layout=ID`); con `importLayout()` accanto c'è «Importa», nello stesso
+  gruppo. Senza `?layout` l'export usa le colonne del codice come prima.
+- **`value` stringa nelle colonne dell'export è sempre un campo.** Prima un
+  nome che coincideva con una funzione globale (per esempio `'date'`) veniva
+  chiamato; ora si legge il campo. Per un valore calcolato serve una closure.
+- **Deprecati** `downloadColumns()` (alias di `fileColumns()`) e
+  `Wonder\App\Import\Column` (sottoclasse di `Dataset\Column`): funzionano
+  come prima.
 
 ### Corretto
 - **La freccia «indietro» e il salvataggio non tornavano alla pagina di

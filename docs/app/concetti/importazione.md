@@ -3,7 +3,10 @@
 Il core ha un motore generico per caricare righe da un file `.xlsx` o `.csv`:
 file → abbinamento delle colonne → anteprima → scrittura a blocchi →
 annullamento. Non conosce nessuna tabella: le tocca solo il **tracciato**
-(`Wonder\App\Import\Layout`) che un modulo o il sito registra.
+(`Wonder\App\Import\Layout`) che un modulo o il sito registra. Un tracciato
+è una fonte `Importable` di [Tracciati di import ed export](tracciati.md): le
+colonne sono `Wonder\App\Dataset\Column` (`Import\Column` resta, deprecata) e
+`Column::type()` rilegge numeri, date e liste.
 
 ## Il percorso
 
@@ -50,7 +53,8 @@ decide `Layout::permits($user)`.
 ## Scrivere un tracciato
 
 ```php
-use Wonder\App\Import\{Change, Column, Context, Layout};
+use Wonder\App\Dataset\Column;
+use Wonder\App\Import\{Change, Context, Layout};
 
 final class BrandLayout extends Layout
 {
@@ -102,11 +106,13 @@ Un tracciato che non si costruisce va nel log e si salta.
 ## Tracciati file
 
 In Set-up → **Tracciati file** (`ImportLayoutResource`, solo admin) si salva
-per un tipo l'elenco delle colonne, in ordine e con l'intestazione voluta
-(`import_layouts`, `import_layout_columns`). Uno per tipo è il predefinito:
-salvarne uno predefinito lo toglie agli altri. `Profile::for($layout)` dà le
-colonne del tracciato salvato (o null): l'export del modulo le usa per scrivere
-il file, il caricamento le propone per prime nell'abbinamento.
+per ogni fonte, di caricamento o di export, l'elenco delle colonne, in ordine
+e con l'intestazione voluta (`import_layouts`, `import_layout_columns`). Uno
+per fonte è il predefinito: salvarne uno predefinito lo toglie agli altri.
+`Profile::for($source, $id)` dà le colonne del tracciato salvato (o null): il
+caricamento propone il predefinito per primo nell'abbinamento, l'export della
+lista lo usa quando lo si sceglie dal menu (`?layout=ID`, vedi
+[Tracciati](tracciati.md#il-bottone-della-lista)).
 
 Un modulo può spostare la voce nel menu, o nasconderla, con una sottoclasse
 che tiene lo stesso `path()` e cambia solo `navigationSchema()`: la Resource
@@ -116,5 +122,5 @@ Set-up → Gestionale, accesa dalla funzionalità «Caricamento del catalogo».
 ## Test
 
 ```bash
-php tests/App/ImportEngineTest.php
+php tests/App/Dataset/DatasetTest.php
 ```

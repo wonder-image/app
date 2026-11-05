@@ -484,6 +484,20 @@ php forge start
   a module moves or hides that menu entry with a subclass keeping the same
   `path()` (it overrides the core Resource).
   See `docs/app/concetti/importazione.md`.
+- Import/export tracciati share `class/App/Dataset`: a `Source` (`id`, `label`,
+  `columns`, `allows($user, 'export'|'import')`), `Exportable` adds `rows()`,
+  `Import\Layout` is `Importable`. `Dataset\Column` (`value`, `type`,
+  `sensitive`; `Import\Column` is a deprecated subclass): a string `value` is
+  always a field name, never a global function; `Type` formats and parses
+  (`format()` / `parse()` round-trip). `Sources` merges Resources with
+  `download()` and no `downloadUsing()` (`ResourceSource`), `import.layouts`,
+  config `dataset.sources`, then `Sources::set()` (`false` removes; failures
+  logged). Resource export columns come from `TableLayoutSchema::fileColumns()`
+  (`downloadColumns()` deprecated alias), rows from `fileRows()` or
+  `querySchema()` + `RowVisibility`. The list "Esporta" dropdown lists formats
+  and saved tracciati (`?layout=ID`, used only when chosen explicitly);
+  `importLayout($layout)` adds "Importa" in a `ButtonGroup`. See
+  `docs/app/concetti/tracciati.md`.
 - Credenziali page (`SecurityResource`, view
   `app/view/pages/backend/config/security/integrations.php`) is a grid of
   `IntegrationCard`s grouped by `Integrations::CATEGORIES`, each opening a

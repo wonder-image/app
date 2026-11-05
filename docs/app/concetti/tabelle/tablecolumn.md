@@ -172,7 +172,9 @@ la cornice attorno alla tabella. Si costruisce con
 | `reorderable($column = 'position', $group = null)` | righe da riordinare trascinandole; `$group` divide le righe in elenchi con le loro posizioni (`parent_id`) |
 | `cleanHeader()` | header pulito |
 | `download($formats = true, $label = null)` | export (CSV/…) |
-| `downloadColumns(array $columns)` | colonne incluse nell'export |
+| `fileColumns(array $columns)` | colonne dell'export: nomi di campo, `Dataset\Column` o `['field', 'label', 'value']` (vedi [Tracciati](../tracciati.md)); `downloadColumns()` è l'alias deprecato |
+| `fileRows(callable $rows)` | righe dell'export al posto di quelle del Model: riceve la condizione già ristretta alla visibilità per riga |
+| `importLayout(?string $layout, ?string $label = null)` | bottone «Importa» accanto a «Esporta», verso il caricamento con quel tracciato |
 | `downloadFileName(string $filename)` | nome file export |
 | `downloadUsing(callable $handler)` | export con un gestore proprio: riceve il formato e invia il file |
 | `downloadAsText($enabled = true)` | ogni cella come testo: Excel non converte telefoni, CAP e codici in numeri, il CSV mette un apice davanti alle celle che iniziano con `=`, `+`, `-`, `@` |
@@ -193,7 +195,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
         ->filters()
         ->searchFields(['name', 'email'])
         ->download(['csv'])
-        ->downloadColumns(['id', 'name', 'email']);
+        ->fileColumns(['id', 'name', 'email']);
 }
 ```
 
@@ -271,7 +273,7 @@ public static function tableSchema(): array
   casella di ricerca non compare.
 - Per filtrare su un valore calcolato serve `filterQuery()` con una subquery.
 - L'export non vede le colonne calcolate, che escono vuote: per esportarle
-  serve in `downloadColumns()` una voce
+  serve in `fileColumns()` una voce
   `['label' => …, 'value' => fn ($row) => …]`.
 - È SQL dello sviluppatore, mai input dell'utente, e viaggia firmato come
   `query`. Una seconda chiamata sostituisce la prima; più colonne si separano
@@ -404,7 +406,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
 - [ ] ogni colonna ha un tipo (`text()`, `badge()`, …)
 - [ ] colonna `actions` con `->button()->actions([...])`
 - [ ] `tableLayoutSchema()` con `searchFields` se la ricerca serve
-- [ ] export configurato con `download()` + `downloadColumns()` se serve
+- [ ] export configurato con `download()` + `fileColumns()` se serve
 - [ ] voci personalizzate del menu con `label`, `href` e, se serve, `filter.row`
 - [ ] colonne calcolate in SQL con `select()`, ognuna con un alias suo
 - [ ] filtri che non sono `colonna = valore` con `filterQuery()`

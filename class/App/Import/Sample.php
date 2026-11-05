@@ -2,6 +2,7 @@
 
 namespace Wonder\App\Import;
 
+use Wonder\App\Dataset\Column;
 use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;

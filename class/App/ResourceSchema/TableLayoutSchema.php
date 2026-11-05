@@ -3,6 +3,7 @@
 namespace Wonder\App\ResourceSchema;
 
 use Closure;
+use Wonder\App\Dataset\Column;
 use RuntimeException;
 use Wonder\App\Resource;
 use Wonder\Elements\Components\Button;
@@ -67,9 +68,13 @@ final class TableLayoutSchema
                 'filename' => null,
                 'label' => null,
                 'handler' => null,
+                'rows' => null,
                 'text' => false,
                 'formula_safe' => true,
             ],
+            // Bottone "Importa" accanto a "Esporta": la chiave del tracciato
+            // di caricamento (`import.layouts`) e la sua etichetta.
+            'import' => null,
         ];
     }
 
@@ -395,37 +400,39 @@ final class TableLayoutSchema
     }
 
     /**
-     * Colonne da includere nell'export, in ordine.
+     * Le colonne del file esportato, in ordine: le stesse di un tracciato
+     * (`Wonder\App\Dataset\Column`), che l'amministratore può riordinare
+     * e rinominare in «Tracciati file».
      *
      * Ogni elemento può essere:
-     *  - **stringa** — nome del campo del record (es. `'email'`). La label
-     *    viene presa da `Resource::getLabel('email')` o, in fallback, dal
-     *    nome campo titolato.
-     *  - **array** con shape `['label' => string, 'value' => string|callable]`
-     *    — utile per:
-     *    * customizzare la label dell'header
-     *    * computare il valore con un `callable(array $row): mixed` (es.
-     *      concatenare `name + surname`, formattare una data, ecc.)
+     *  - una **`Column`**: chiave, intestazione, `value()` (campo o
+     *    `fn (array $row): mixed`) e `type()` per il formato della cella;
+     *  - una **stringa**: il nome del campo, con l'etichetta di
+     *    `Resource::getLabel()` o il nome titolato;
+     *  - un **array** `['label' => string, 'value' => string|callable]`
+     *    (`field` facoltativo). Una stringa in `value` è sempre un campo.
      *
-     * Senza `downloadColumns()` esplicito, l'export usa tutte le colonne
-     * del Model (comportamento del legacy `sqlExport()`).
-     *
-     * Esempio:
+     * Senza colonne l'export usa quelle di `tableSchema()`.
      *
      * ```php
-     * ->downloadColumns([
+     * ->fileColumns([
      *     'creation',
-     *     'email',
-     *     ['label' => 'Nome completo', 'value' => fn($r) => trim(($r['name'] ?? '').' '.($r['surname'] ?? ''))],
-     *     ['label' => 'Stato',          'value' => fn($r) => $r['active'] ? 'attivo' : 'inattivo'],
+     *     Column::make('email', 'Email'),
+     *     Column::make('nome', 'Nome completo')->value(fn ($r) => trim($r['name'].' '.$r['surname'])),
+     *     Column::make('price', 'Prezzo')->type('money'),
      * ])
      * ```
      */
-    public function downloadColumns(array $columns): self
+    public function fileColumns(array $columns): self
     {
         $normalized = [];
 
         foreach ($columns as $column) {
+            if ($column instanceof Column) {
+                $normalized[] = $column;
+                continue;
+            }
+
             if (is_string($column) && trim($column) !== '') {
                 $normalized[] = [
                     'field' => trim($column),
@@ -444,12 +451,47 @@ final class TableLayoutSchema
             $normalized[] = [
                 'field' => isset($column['field']) ? trim((string) $column['field']) : (is_string($value) ? trim($value) : ''),
                 'label' => isset($column['label']) ? trim((string) $column['label']) : null,
-                'value' => is_callable($value) ? $value : (is_string($value) ? trim($value) : null),
+                'value' => is_string($value) ? trim($value) : (is_callable($value) ? $value : null),
             ];
         }
 
         $this->schema['download']['columns'] = $normalized;
         $this->schema['download']['enabled'] = $this->schema['download']['enabled'] || $normalized !== [];
+
+        return $this;
+    }
+
+    /** @deprecated Usa `fileColumns()`, che accetta anche le `Column`. */
+    public function downloadColumns(array $columns): self
+    {
+        return $this->fileColumns($columns);
+    }
+
+    /**
+     * Le righe dell'export al posto di quelle del Model: riceve la
+     * condizione di `querySchema()` già ristretta alla visibilità per riga
+     * e ritorna le righe (array o iterabile), ognuna letta dalle colonne.
+     */
+    public function fileRows(callable $rows): self
+    {
+        $this->schema['download']['rows'] = $rows;
+
+        return $this;
+    }
+
+    /**
+     * Il bottone «Importa» accanto a «Esporta», verso il caricamento con il
+     * tracciato `$layout` (`import.layouts`); compare solo se il tracciato
+     * esiste e l'utente può usarlo.
+     */
+    public function importLayout(?string $layout, ?string $label = null): self
+    {
+        $layout = $layout === null ? '' : trim($layout);
+
+        $this->schema['import'] = $layout === '' ? null : [
+            'layout' => $layout,
+            'label' => $label !== null && trim($label) !== '' ? trim($label) : null,
+        ];
 
         return $this;
     }

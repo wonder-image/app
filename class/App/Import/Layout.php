@@ -2,19 +2,33 @@
 
 namespace Wonder\App\Import;
 
+use Wonder\App\Dataset\Column;
+use Wonder\App\Dataset\Importable;
+
 /**
  * Un tracciato di caricamento: le colonne che conosce, come controlla le righe
  * del file e come le scrive. Il motore (`Importer`) non sa niente delle
  * tabelle: le tocca solo il tracciato.
  */
-abstract class Layout
+abstract class Layout implements Importable
 {
     abstract public static function key(): string;
+
+    public function id(): string
+    {
+        return static::key();
+    }
 
     abstract public function label(): string;
 
     /** Chi può caricare con questo tracciato. */
     abstract public function permits(object $user): bool;
+
+    /** Un tracciato di caricamento serve solo all'import, e mai senza utente. */
+    public function allows(?object $user, string $action): bool
+    {
+        return $action === 'import' && $user !== null && $this->permits($user);
+    }
 
     /** @return list<Column> */
     abstract public function columns(): array;

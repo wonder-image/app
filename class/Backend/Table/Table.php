@@ -81,6 +81,8 @@
                 'label' => 'Esporta'
             ];
             public $buttonCustom = [];
+            // HTML fidato (Esporta / Importa) al posto del bottone di buttonDownload().
+            public $buttonDataHtml = '';
 
         # Filtri
             public $searchFields = [];
@@ -200,6 +202,16 @@
             if ($label !== null && trim($label) !== '') {
                 $this->buttonDownload['label'] = trim($label);
             }
+
+            return $this;
+
+        }
+
+        /** I bottoni di export e import già resi, nel posto di `buttonDownload()`. */
+        public function buttonDataHtml( string $html ): self
+        {
+
+            $this->buttonDataHtml = trim($html);
 
             return $this;
 
@@ -656,7 +668,11 @@
 
             $BUTTON_DOWNLOAD_HTML = '';
 
-            if ($this->buttonDownload['visible']) {
+            if ($this->buttonDataHtml !== '') {
+
+                $BUTTON_DOWNLOAD_HTML .= '<div class="col-auto ps-0"><div class="float-end">'.$this->buttonDataHtml.'</div></div>';
+
+            } elseif ($this->buttonDownload['visible']) {
 
                 $endpoint = (string) ($this->buttonDownload['endpoint'] ?? '');
                 $btnLabel = (string) ($this->buttonDownload['label'] ?? 'Esporta');

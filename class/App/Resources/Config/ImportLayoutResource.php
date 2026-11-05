@@ -2,7 +2,7 @@
 
 namespace Wonder\App\Resources\Config;
 
-use Wonder\App\Import\Layouts;
+use Wonder\App\Dataset\Sources;
 use Wonder\App\Models\Import\ImportLayout;
 use Wonder\App\Models\Import\ImportLayoutColumn;
 use Wonder\App\Resource;
@@ -109,7 +109,13 @@ class ImportLayoutResource extends Resource
     {
         return [
             TableColumn::key('name')->text()->link('edit'),
-            TableColumn::key('layout')->text()->formatter(static fn ($row) => e(static::layoutOptions()[$row['layout'] ?? ''] ?? (string) ($row['layout'] ?? ''))),
+            TableColumn::key('layout')->text()->formatter(static function ($row): string {
+                // Una volta per lista, non per riga.
+                static $options = null;
+                $options ??= static::layoutOptions();
+
+                return e($options[$row['layout'] ?? ''] ?? (string) ($row['layout'] ?? ''));
+            }),
             TableColumn::key('is_default')
                 ->booleanBadge()
                 ->badgeOn('Predefinito', 'bi bi-star-fill', 'primary')
@@ -168,31 +174,34 @@ class ImportLayoutResource extends Resource
     {
         $options = [];
 
-        foreach (Layouts::all() as $key => $layout) {
-            $options[$key] = $layout->label();
+        foreach (Sources::all() as $id => $source) {
+            $options[$id] = $source->label();
         }
+
+        asort($options);
 
         return $options;
     }
 
     /**
-     * Le colonne di tutti i tracciati: con più tipi l'etichetta dice di quale.
-     * Le chiavi che non sono del tipo scelto le ignora `Profile::for()`.
+     * Le colonne di tutte le fonti (Resource con export e tracciati di
+     * caricamento): con più fonti l'etichetta dice di quali. Le chiavi che non
+     * sono della fonte scelta le ignora `Profile::for()`.
      *
      * @return array<string, string>
      */
     public static function columnOptions(): array
     {
-        $layouts = Layouts::all();
-        $options = [];
+        $sources = Sources::all();
+        $labels = [];
 
-        foreach ($layouts as $layout) {
-            foreach ($layout->columns() as $column) {
-                $options[$column->key] ??= count($layouts) > 1 ? $layout->label().': '.$column->header : $column->header;
+        foreach ($sources as $source) {
+            foreach ($source->columns() as $column) {
+                $labels[$column->key][] = count($sources) > 1 ? $source->label().': '.$column->header : $column->header;
             }
         }
 
-        return $options;
+        return array_map(static fn (array $list): string => implode(' / ', array_unique($list)), $labels);
     }
 
     private static function keepSingleDefault(int $id): void

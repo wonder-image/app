@@ -13,6 +13,7 @@
 * [Localizzazione](concetti/localizzazione.md)
 * [Traduzioni](concetti/traduzioni.md)
 * [Caricamento da file](concetti/importazione.md)
+* [Tracciati di import ed export](concetti/tracciati.md)
 * [Notifiche](concetti/notifiche.md)
 * [Errori ripetuti](concetti/errori.md)
 * [Performance frontend e cache](concetti/frontend-performance.md)
