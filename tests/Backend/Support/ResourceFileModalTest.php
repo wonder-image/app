@@ -128,4 +128,20 @@ check('Importa senza tracciati: niente select', function () use ($import, $modal
     return !str_contains($modal(null, $import(['profiles' => [], 'default' => null])), 'name="import_layout_id"');
 });
 
+check('i bottoni occupano la riga intera, le radio sono pillole', function () use ($export, $import, $modal) {
+    $html = $modal($export(), $import());
+
+    return !preg_match('/col-1"[^>]*>(?:<div[^>]*>)*<button[^>]*>(Scarica|Continua)/', $html)
+        && !preg_match('/col-1"[^>]*>(?:<div[^>]*>)*<a[^>]*>Scarica il modello/', $html)
+        && !str_contains($html, 'height: 120px');
+});
+
+check('l\'ultima scelta arriva nel markup', function () use ($export) {
+    $html = F::build('products', $export(), null, ['format' => 'csv', 'layout' => 3])['modal']->render('bootstrap');
+
+    return (bool) preg_match('/value="csv"[^>]*checked/', $html)
+        && !preg_match('/value="xlsx"[^>]*checked/', $html)
+        && (bool) preg_match('/<option value="3" selected>/', $html);
+});
+
 summary();

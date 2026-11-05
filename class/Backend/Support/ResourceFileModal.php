@@ -87,7 +87,7 @@ final class ResourceFileModal
         }
 
         $format = FormField::key('format');
-        $format = count($formats) <= 4 ? $format->radio($formats) : $format->select($formats);
+        $format = count($formats) <= 4 ? $format->radio($formats)->pills() : $format->select($formats);
         $format->label('Formato')->value($choice['format'])->columnSpan(12);
 
         $fields[] = $format;
@@ -100,7 +100,7 @@ final class ResourceFileModal
             }
         }
 
-        $fields[] = Button::make('Scarica')->type('submit')->variant('primary');
+        $fields[] = Button::make('Scarica')->type('submit')->variant('primary')->columnSpan(12);
 
         return (new Form)->action((string) $export['action'], 'get')->columns(12)->components($fields);
     }
@@ -120,8 +120,8 @@ final class ResourceFileModal
         }
 
         $fields[] = FormField::key('file')->file('spreadsheet')->label('File .xlsx o .csv')->columnSpan(12);
-        $fields[] = Button::to((string) $import['sample'], 'Scarica il modello')->variant('link');
-        $fields[] = Button::make('Continua')->type('submit')->variant('primary');
+        $fields[] = Button::to((string) $import['sample'], 'Scarica il modello')->variant('link')->columnSpan(12);
+        $fields[] = Button::make('Continua')->type('submit')->variant('primary')->columnSpan(12);
 
         return (new Form)->action((string) $import['action'], 'post')->columns(12)->components($fields);
     }
