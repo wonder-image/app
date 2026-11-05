@@ -113,6 +113,12 @@ il resolver cerca in quest'ordine:
 3. `app/view/layout/frontend/main.php`
 4. `app/view/layout/frontend/main_layout.php`
 
+Un layout può aprirne un altro (`backend.show` apre `backend.main`, che apre
+`backend.base`). I dati passati a `View::layout()` arrivano anche ai layout
+annidati: il `TITLE` di `View::layout('backend.show', ['TITLE' => 'Etichette'])`
+finisce sia nell'intestazione sia in `<title>`. Se un layout interno passa la
+stessa chiave, vale la sua.
+
 ## Flusso corretto
 
 ### 1. Route
