@@ -29,6 +29,9 @@
     "directions": {
       "purpose": "Percorsi disegnati sulle mappe, solo se configurati."
     },
+    "translation": {
+      "purpose": "Traduzione automatica dei contenuti dal backend (Impostazioni › Traduzioni)."
+    },
     "google_oauth": {
       "purpose": "Accedi con Google: crea un client OAuth di tipo Applicazione web e copia il Client ID."
     }
