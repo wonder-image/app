@@ -445,6 +445,36 @@ usa `Elements\Concerns\HasPartAttributes` (metodi `protected`, uno pubblico
 per parte) e, nei renderer, `Themes\Concerns\RendersPartAttributes`
 (`partAttributes()`, `partClass()`).
 
+## Tabs
+
+`Tabs` divide un blocco in schede, ognuna con il suo pannello. Si scrive nel
+layout di una Resource come un `Accordion`, o dentro una `Modal`.
+
+```php
+use Wonder\App\ResourceSchema\FormField;
+use Wonder\Elements\Components\Tabs;
+
+Tabs::make('file')
+    ->columns(12)
+    ->tab('export', 'Esporta', [FormField::key('format')->text()->columnSpan(6)])
+    ->tab('import', 'Importa', [FormField::key('file')->text()->columnSpan(6)])
+    ->active('import');
+```
+
+- `make($id)`: il prefisso degli id di schede e pannelli (`file-export`);
+  si ripulisce a `[a-z0-9-]`.
+- `tab($key, $label, $components)`: una scheda, nell'ordine di chiamata.
+  L'etichetta si escapa; i componenti sono quelli di un `Accordion`, anche un
+  `Form` con `action()`.
+- `active($key)`: la scheda aperta; senza, è la prima.
+- `columns()` e `gap()` valgono per i campi di ogni pannello, come nella `Card`.
+- Con **una sola scheda** non c'è la barra: esce solo il contenuto del pannello.
+- **Tema `bootstrap`**: `nav nav-tabs` con un bottone `data-bs-toggle="tab"` per
+  scheda, poi `tab-content` con i `tab-pane`; la scheda aperta ha `active`.
+  Il tema `wonder` non lo ha.
+- Il markup passa da `ResourceFormLayoutRenderer::renderTabs()`, dentro e fuori
+  da un layout, come `renderModalBody()` per la `Modal`.
+
 ## Esempio: Alert
 
 ```php
