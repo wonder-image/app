@@ -58,29 +58,18 @@
     $seoOgMeta = is_array($SEO->ogMeta ?? null) ? $SEO->ogMeta : [];
     $faviconPath = (string) ($PATH->favicon ?? '');
 
-    // Una lettura per richiesta (RequestMemo, scope = tabella: le scritture lo svuotano).
-    $SQL_ANALYTICS = \Wonder\App\Support\RequestMemo::remember(
-        'analytics',
-        'head:'.sqlMemoConnectionKey($GLOBALS['mysqli'] ?? null),
-        static fn () => sqlTableExists('analytics') ? sqlSelect('analytics', ['id' => '1'], 1)->row : []
-    );
+    // GTM sta in Credenziali (Dev → API e servizi); parte solo col consenso alle statistiche.
+    $gtmApi = \Wonder\App\Credentials::api();
+    $gtmId = trim((string) ($gtmApi->g_tag_manager_id ?? ''));
 
-    $ANALYTICS->tag_manager = (object) array();
-    $ANALYTICS->pixel = (object) array();
-
-    $ANALYTICS->tag_manager->id = $SQL_ANALYTICS['tag_manager'] ?? '';
-    $ANALYTICS->tag_manager->active = (
-        !empty($ANALYTICS->tag_manager->id)
-        && $ACTIVE_STATISTICS
-        && (($SQL_ANALYTICS['active_tag_manager'] ?? '') === "" || ($SQL_ANALYTICS['active_tag_manager'] ?? '') === "true")
-    ) ? true : false;
-    // Pixel: resta in $ANALYTICS per gli override dei siti, il core non lo emette.
-    $ANALYTICS->pixel->id = $SQL_ANALYTICS['pixel_facebook'] ?? '';
-    $ANALYTICS->pixel->active = (
-        !empty($ANALYTICS->pixel->id)
-        && $ACTIVE_STATISTICS
-        && (($SQL_ANALYTICS['active_pixel_facebook'] ?? '') === "" || ($SQL_ANALYTICS['active_pixel_facebook'] ?? '') === "true")
-    ) ? true : false;
+    $ANALYTICS->tag_manager = (object) [
+        'id' => $gtmId,
+        'active' => $gtmId !== ''
+            && $ACTIVE_STATISTICS
+            && \Wonder\App\Integrations\Core\GoogleTagManager::active($gtmApi->g_tag_manager_active ?? ''),
+    ];
+    // Pixel Meta dismesso: resta spento per gli override dei siti che lo leggono.
+    $ANALYTICS->pixel = (object) ['id' => '', 'active' => false];
 
 ?>
 <?php $dataLayerFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR; ?>

@@ -10,6 +10,7 @@ use Wonder\App\Integrations\Core\FattureInCloud;
 use Wonder\App\Integrations\Core\GoogleCloud;
 use Wonder\App\Integrations\Core\GoogleMaps;
 use Wonder\App\Integrations\Core\GoogleSignIn;
+use Wonder\App\Integrations\Core\GoogleTagManager;
 use Wonder\App\Integrations\Core\Klaviyo;
 use Wonder\App\Integrations\Core\Nexi;
 use Wonder\App\Integrations\Core\PayPal;
@@ -51,6 +52,7 @@ final class Integrations
         'recaptcha-v3' => RecaptchaV3::class,
         'google-maps' => GoogleMaps::class,
         'google-sign-in' => GoogleSignIn::class,
+        'google-tag-manager' => GoogleTagManager::class,
         'apple' => Apple::class,
         'stripe' => Stripe::class,
         'paypal' => PayPal::class,

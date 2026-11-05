@@ -39,16 +39,6 @@ class SeedDefaults
         return 'github@wonderimage.it';
     }
 
-    public static function analyticsRow(): array
-    {
-        return [
-            'tag_manager' => '',
-            'active_tag_manager' => 'false',
-            'pixel_facebook' => '',
-            'active_pixel_facebook' => 'false',
-        ];
-    }
-
     public static function securityRow(string $apiKey = ''): array
     {
         return [

@@ -20,6 +20,15 @@
   `fileRows()` e `importLayout()`. Vedi `docs/app/concetti/tracciati.md`.
 
 ### Cambiato
+- **Google Tag Manager in Credenziali.** L'ID del contenitore e l'interruttore
+  Attivo/Spento sono una card della categoria Google in Dev → API e servizi →
+  Credenziali (`Integrations\Core\GoogleTagManager`, colonne
+  `security.g_tag_manager_id` e `g_tag_manager_active`, env `G_TAG_MANAGER_ID`
+  e `G_TAG_MANAGER_ACTIVE`). Il layout frontend lo legge da
+  `Credentials::api()`; resta legato al consenso alle statistiche.
+  `php forge update` copia l'ID e lo stato dalla tabella `analytics`
+  (`AnalyticsToCredentialsMigration`, solo se in Credenziali l'ID è vuoto).
+  Il gruppo «API e servizi» ora lo dichiara `SecurityResource`.
 - **Bottoni Esporta e Importa della lista.** «Esporta» è un menu con i
   formati e, sotto «Tracciati», i tracciati salvati della Resource
   (`?layout=ID`); con `importLayout()` accanto c'è «Importa», nello stesso
@@ -323,6 +332,13 @@
   da `tests/App/Resources/PopupResourceTest.php`.
 
 ### Rimosso
+- **Pagina Analitica (breaking).** Tolti `AnalyticsResource` (con la sua API
+  show/update), il Model `Config\Analytics`, `SeedDefaults::analyticsRow()`,
+  `app/build/row/analytics.php`, `lang/*/analytics.json` e la notifica 653. La
+  tabella `analytics` resta nel database ma il core non la legge più.
+- **Impostazione del Meta Pixel.** Il campo `ID Pixel` se ne va con la pagina
+  Analitica; `$ANALYTICS->pixel` resta, sempre spento, per gli override dei
+  siti. Il Pixel si configura in GTM.
 - **`FormField::HELPERS` e il secondo argomento di `new FormField($name, $helper)`
   (#102).** L'escape hatch che sceglieva il tipo da una stringa non esiste più:
   si usa il type-helper (`FormField::key($name)->select(...)`) o la classe

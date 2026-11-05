@@ -43,6 +43,8 @@ final class SecurityResource extends SingletonResource
             'g_recaptcha_badge' => 'Badge',
             'g_maps_place_id' => 'Place ID',
             'g_maps_map_id' => 'Map ID',
+            'g_tag_manager_id' => 'ID contenitore (GTM-XXXXXXX)',
+            'g_tag_manager_active' => 'Stato',
             'google_oauth_client_id' => 'Google Client ID',
             'google_oauth_client_secret' => 'Google Client Secret',
             'google_oauth_redirect_uri' => 'Google Redirect URI',
@@ -90,6 +92,8 @@ final class SecurityResource extends SingletonResource
             FormField::key('g_recaptcha_badge')->select(['true' => 'Visibile', 'false' => 'Nascosto'])->value('true')->required(),
             FormField::key('g_maps_place_id')->text(),
             FormField::key('g_maps_map_id')->text(),
+            FormField::key('g_tag_manager_id')->text(),
+            FormField::key('g_tag_manager_active')->select(['true' => 'Attivo', 'false' => 'Spento'])->value('true')->required(),
 
             FormField::key('google_oauth_client_id')->text(),
             FormField::key('google_oauth_client_secret')->password()->autocomplete('new-password'),
@@ -229,7 +233,7 @@ final class SecurityResource extends SingletonResource
     {
         return NavigationSchema::for(static::class)
             ->inSection('dev')
-            ->inGroup('api-services')
+            ->group('api-services', 'API e servizi', 30)
             ->title('Credenziali')
             ->order(20)
             ->authority(['admin']);
