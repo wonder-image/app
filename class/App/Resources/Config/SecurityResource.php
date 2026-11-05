@@ -3,14 +3,17 @@
 namespace Wonder\App\Resources\Config;
 
 use InvalidArgumentException;
+use Wonder\App\Credentials;
 use Wonder\App\Integrations\Integrations;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Models\Config\Security;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\Inputs\InputPassword;
 use Wonder\App\ResourceSchema\NavigationSchema;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\Resources\Support\SingletonResource;
+use Wonder\App\Security\SecretCipher;
 use Wonder\Http\Route;
 
 final class SecurityResource extends SingletonResource
@@ -149,8 +152,10 @@ final class SecurityResource extends SingletonResource
 
     /**
      * Ogni modal salva una sola integrazione: passano solo i suoi campi, mai
-     * quelli del `.env`, quelli in sola lettura o le password lasciate vuote
-     * (restano quelle salvate). Il resto della riga non si tocca.
+     * quelli del `.env`, quelli in sola lettura o i segreti lasciati vuoti
+     * (restano quelli salvati). I segreti escono cifrati con
+     * `APP_ENCRYPTION_KEY` ({@see Credentials::encryptSecurityValues()}).
+     * Il resto della riga non si tocca.
      */
     public static function mutateRequestValues(
         array $values,
@@ -184,14 +189,60 @@ final class SecurityResource extends SingletonResource
                 continue;
             }
 
-            if ($field instanceof InputPassword && trim((string) $values[$column]) === '') {
+            $secret = $field instanceof InputPassword || in_array($column, Security::SECRET_COLUMNS, true);
+
+            if ($secret && trim((string) $values[$column]) === '') {
                 continue;
             }
 
             $filtered[$column] = $values[$column];
         }
 
-        return $filtered;
+        return Credentials::encryptSecurityValues($filtered);
+    }
+
+    /**
+     * Avvisi sulla cifratura dei segreti: chiave assente o non valida,
+     * sodium mancante, valori che non si decifrano più. Mai valori o testo
+     * cifrato nei messaggi.
+     *
+     * @return list<array{level: string, message: string}>
+     */
+    public static function formNotices(array $values, string $mode): array
+    {
+        $cipher = Credentials::secretCipher();
+        $notices = [];
+
+        foreach ($cipher->invalidKeys() as $name) {
+            $notices[] = [
+                'level' => 'danger',
+                'message' => $name.' non è valida (servono 64 caratteri esadecimali): correggila nel .env.',
+            ];
+        }
+
+        if (!$cipher->sodium()) {
+            $notices[] = [
+                'level' => 'danger',
+                'message' => 'Estensione PHP sodium mancante: i segreti non si cifrano né si decifrano.',
+            ];
+        } elseif (!$cipher->available() && !in_array(SecretCipher::ENV_KEY, $cipher->invalidKeys(), true)) {
+            $notices[] = [
+                'level' => 'warning',
+                'message' => SecretCipher::ENV_KEY.' non impostata: i segreti vengono salvati in chiaro. Esegui php forge config o recuperala da Bitwarden.',
+            ];
+        }
+
+        $unreadable = Credentials::unreadableSecurityColumns();
+
+        if ($unreadable !== []) {
+            $notices[] = [
+                'level' => 'danger',
+                'message' => 'Alcuni segreti non si decifrano con la chiave attuale e valgono come non impostati ('
+                    .implode(', ', $unreadable).'): ripristina la chiave giusta o salvali di nuovo.',
+            ];
+        }
+
+        return $notices;
     }
 
     /** Campo in sola lettura o disabilitato nel `formSchema()`: non si scrive dal modal. */

@@ -11,6 +11,7 @@ use Wonder\App\Module\ModuleDependencySorter;
 use Wonder\App\Module\Registry as ModuleRegistry;
 use Wonder\App\Support\AnalyticsToCredentialsMigration;
 use Wonder\App\Support\ApiActivityTokenMigration;
+use Wonder\App\Support\SecurityEncryptionMigration;
 use Wonder\App\Support\DatabaseBackup;
 use Wonder\App\Support\DefaultRows;
 use Wonder\App\Support\SocietyLocationsMigration;
@@ -116,6 +117,7 @@ class UpdateRunner
                 'rows' => 0,
                 'api_activity_tokens' => 0,
                 'analytics_credentials' => 0,
+                'security_encryption' => 0,
                 'society_locations' => false,
                 'sync_import' => false,
                 'update' => 0,
@@ -164,6 +166,7 @@ class UpdateRunner
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
             $result->stats->analytics_credentials = AnalyticsToCredentialsMigration::run($this->connection);
             $result->stats->rows = $this->runFiles($this->rowDirectories());
+            $result->stats->security_encryption = SecurityEncryptionMigration::run($this->connection);
             $result->stats->society_locations = SocietyLocationsMigration::runIfNeeded();
             $result->stats->sync_import = $this->runSyncImport();
             $result->stats->update = $this->runFiles($this->updateDirectories());

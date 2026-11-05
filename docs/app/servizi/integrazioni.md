@@ -27,7 +27,11 @@ campi della sua integrazione:
   modal ha solo **Chiudi**;
 - le password restano vuote: un campo lasciato vuoto non modifica il valore
   salvato;
-- un campo `integration` sconosciuto nel POST fa fallire il salvataggio.
+- un campo `integration` sconosciuto nel POST fa fallire il salvataggio;
+- chiavi, password e token si salvano cifrati con `APP_ENCRYPTION_KEY`: vedi
+  [Segreti in `security`](../piattaforma/sicurezza.md#segreti-in-security).
+  La pagina avvisa se la chiave manca o non è valida e se un segreto salvato
+  non si decifra.
 
 SMTP e Brevo sono due card distinte. `mail_service` è un campo di modalità:
 compare in entrambe ma non conta per lo stato. **Invia email di prova** è nei

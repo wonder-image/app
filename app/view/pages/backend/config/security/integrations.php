@@ -1,9 +1,10 @@
 <?php
 
+use Wonder\App\Credentials;
 use Wonder\App\Integrations\Integration;
 use Wonder\App\Integrations\Integrations;
 use Wonder\App\Integrations\IntegrationStatus;
-use Wonder\App\ResourceSchema\Inputs\InputPassword;
+use Wonder\App\Models\Config\Security;
 use Wonder\App\Resources\Config\SecurityResource;
 use Wonder\Elements\Components\Badge;
 use Wonder\Elements\Components\Button;
@@ -15,7 +16,8 @@ use Wonder\Elements\Components\Text;
 
 \Wonder\View\View::layout('backend.form');
 
-$row = (array) ($VALUES ?? []);
+// Lo stato si calcola sui segreti decifrati: uno che non si apre vale vuoto.
+$row = Credentials::decryptSecurityRow((array) ($VALUES ?? []));
 $readonly = (bool) ($READONLY ?? false);
 $integrations = Integrations::all();
 $statuses = Integrations::statuses($integrations, $row);
@@ -82,9 +84,8 @@ $modal = static function (Integration $integration, IntegrationStatus $status) u
 
         $field = (clone $fields[$column])->columnSpan(max(1, min(12, (int) $width)));
         $env = in_array($column, $status->env, true);
-        $password = $field instanceof InputPassword;
-
-        if ($password) {
+        // I segreti non tornano mai nella pagina, qualunque sia il campo.
+        if (in_array($column, Security::SECRET_COLUMNS, true)) {
             $field->value('')->placeholder($env ? 'Impostata nel .env' : 'Lascia vuoto per non modificarla');
         } elseif ($env) {
             $field->value((string) ($values[$column] ?? ''));

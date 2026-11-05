@@ -177,6 +177,7 @@ class LocalStart extends LocalEnvironmentCommand
         $updatedKeys = array_merge($updatedKeys, $this->completeEnvValues($lines, $keyToIndex, [
             'APP_ENV' => \Wonder\App\Environment::LOCAL,
             'APP_KEY' => bin2hex(random_bytes(32)),
+            \Wonder\App\Security\SecretCipher::ENV_KEY => \Wonder\App\Security\SecretCipher::generateKey(),
             'USER_PASSWORD' => \Wonder\App\SeedDefaults::adminPassword(),
         ]));
 

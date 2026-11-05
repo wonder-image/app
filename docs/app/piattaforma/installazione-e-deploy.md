@@ -118,7 +118,7 @@ BWS_DEV_SHARED_PROJECT_ID=<uuid-del-project>
 
 L'override vince sull'auto-discovery per nome.
 
-**Chiavi sempre ignorate.** Il framework filtra automaticamente alcuni nomi che NON devono mai stare in `dev-shared` (`BWS_*`, `APP_KEY`, `APP_DOMAIN`, `DB_*`, `FTP_*`, `USER_*`, `APP_DEPLOY_TOKEN`, ecc.): sono per definizione project-specific o ricorsive. Se per errore le metti in `dev-shared`, vengono ignorate con un warning.
+**Chiavi sempre ignorate.** Il framework filtra automaticamente alcuni nomi che NON devono mai stare in `dev-shared` (`BWS_*`, `APP_KEY`, `APP_ENCRYPTION_KEY*`, `APP_DOMAIN`, `DB_*`, `FTP_*`, `USER_*`, `APP_DEPLOY_TOKEN`, ecc.): sono per definizione project-specific o ricorsive. Se per errore le metti in `dev-shared`, vengono ignorate con un warning.
 
 **Mai in produzione.** Il deploy CI legge il `.env` di prod **solo** dal project Bitwarden del singolo sito, mai da `dev-shared`. La separazione locale/produzione resta netta.
 
@@ -637,7 +637,7 @@ bws secret edit --value "nuova-password-admin" "$SECRET_ID" --output json
 Nota:
 
 - il workflow GitHub Actions carica tutti i secret presenti nel project Bitwarden dentro `.env` e `$GITHUB_ENV` (i nomi `FTP_*` e `BWS_*` sono comunque mascherati e non finiscono nel `.env` deployato)
-- `php forge provision` sincronizza automaticamente: `APP_KEY`, `DB_HOSTNAME`/`DB_HOST`, `DB_USERNAME`/`DB_USER`, `DB_PASSWORD`, `DB_DATABASE`/`DB_NAME`, `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_PATH`, `USER_USERNAME`, `USER_PASSWORD`
+- `php forge provision` sincronizza automaticamente: `APP_KEY`, `APP_ENCRYPTION_KEY`, `DB_HOSTNAME`/`DB_HOST`, `DB_USERNAME`/`DB_USER`, `DB_PASSWORD`, `DB_DATABASE`/`DB_NAME`, `FTP_HOST`, `FTP_USER`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_PATH`, `USER_USERNAME`, `USER_PASSWORD`. `APP_KEY` e `APP_ENCRYPTION_KEY` si generano solo se mancano e non si sovrascrivono mai; la seconda cifra i segreti di Credenziali (vedi [Segreti in `security`](sicurezza.md#segreti-in-security))
 - secret extra (es. `GITHUB_API_TOKEN`) vanno aggiunti manualmente con `bws secret create` o `gh secret set`
 - reCAPTCHA in produzione: servono `GCP_PROJECT_ID`, `GCP_API_KEY` (reCAPTCHA Enterprise API abilitata) e le chiavi del sito `G_RECAPTCHA_SITE_KEY` / `G_RECAPTCHA_SCORE_SITE_KEY`. Login, registrazione, completamento della registrazione, recupero e reimpostazione della password sono fail-closed: con Google irraggiungibile o con una chiave API sbagliata (401/403) rispondono `617`. Le chiavi sono un requisito: senza, in produzione queste cinque azioni rispondono sempre `617` (`reason: invalid`) e nessuno riesce ad accedere o registrarsi. Non impostare mai `APP_ENV=local` in produzione per aggirare il problema: salta il reCAPTCHA e moltiplica per 10 i limiti del throttle di login. `G_RECAPTCHA_SECRET_KEY` è deprecata e non serve più (vedi [reCAPTCHA](../servizi/recaptcha.md))
 

@@ -12,6 +12,33 @@ final class Security extends Model
     public static string $folder = 'app/config/credentials';
     public static string $icon = 'bi bi-key';
 
+    /**
+     * Le colonne cifrate a riposo (`Credentials::encryptSecurityValues()`).
+     * `api_key` resta fuori: identifica il sito presso api.wonderimage.it e un
+     * errore di decifratura ne farebbe generare un'altra.
+     *
+     * @var list<string>
+     */
+    public const SECRET_COLUMNS = [
+        'gcp_api_key',
+        'google_oauth_client_secret',
+        'g_recaptcha_secret_key',
+        'apple_oauth_private_key',
+        'brevo_api_key',
+        'mail_password',
+        'klaviyo_api_key',
+        'ipinfo_api_key',
+        'stripe_test_key',
+        'stripe_private_key',
+        'stripe_webhook_secret',
+        'stripe_test_webhook_secret',
+        'paypal_client_secret',
+        'nexi_api_key',
+        'nexi_mac_key',
+        'fatture_in_cloud_client_secret',
+        'fatture_in_cloud_token',
+    ];
+
     public static function tableSchema(): array
     {
         return [

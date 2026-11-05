@@ -57,7 +57,7 @@ try {
     $render(__t('stripe.connect.error', ['message' => $e->getMessage()]));
 }
 
-sqlModify('security', [Connect::secretColumn($env) => $secret], 'id', 1);
+sqlModify('security', \Wonder\App\Credentials::encryptSecurityValues([Connect::secretColumn($env) => $secret]), 'id', 1);
 
 header('Location: '.$credentials);
 exit;

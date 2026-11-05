@@ -99,6 +99,7 @@ APP_DEBUG=true
 APP_DOMAIN=
 APP_URL=
 APP_KEY=
+APP_ENCRYPTION_KEY=
 
 # Assets
 ASSETS_VERSION=0.0
@@ -385,7 +386,7 @@ ENV;
     protected function redactUpdatedKeys(array $updatedKeys): array
     {
         return array_map(
-            fn ($key) => in_array($key, ['DB_PASSWORD', 'USER_PASSWORD', 'APP_KEY'], true) ? $key.'=***' : $key,
+            fn ($key) => in_array($key, ['DB_PASSWORD', 'USER_PASSWORD', 'APP_KEY', 'APP_ENCRYPTION_KEY', 'APP_ENCRYPTION_KEY_PREVIOUS'], true) ? $key.'=***' : $key,
             $updatedKeys
         );
     }

@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Dotenv\Dotenv;
+use Wonder\App\Security\SecretCipher;
 
 
 class Config extends Command
@@ -138,6 +139,16 @@ class Config extends Command
 
             $output->writeln('<info>✅ APP_KEY generata e scritta nel .env</info>');
 
+        }
+
+        // APP_ENCRYPTION_KEY cifra i segreti della tabella `security`. Si
+        // genera solo in locale e solo se manca: una chiave esistente non si
+        // tocca mai (cambiarla rende illeggibili i segreti già cifrati) e in
+        // CI non si inventa, perché quella di produzione arriva da Bitwarden.
+        if (!$isCi && trim((string) ($_ENV[SecretCipher::ENV_KEY] ?? '')) === '') {
+            $lines = $this->withGeneratedEnvLine($lines, SecretCipher::ENV_KEY, SecretCipher::generateKey(), 'APP_KEY');
+            file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
+            $output->writeln('<info>✅ '.SecretCipher::ENV_KEY.' generata e scritta nel .env (conservala: senza, i segreti cifrati non si leggono)</info>');
         }
 
         $keyToIndex = $this->envKeyToIndex($lines);
@@ -491,12 +502,19 @@ class Config extends Command
         }
 
         $updated = [];
+        $autoGenKeys = $this->bitwardenAutoGenKeys();
 
         foreach ($map as $envKey => $secretKeys) {
+            $isAutoGen = in_array($envKey, $autoGenKeys, true);
+
             // 1) chiavi "remote-only" (vivono solo in Bitwarden / GitHub
             //    Secrets, non nel .env locale): leggi da $remoteValues;
             // 2) chiavi normali: leggi dal .env.
-            $value = $remoteValues[$envKey] ?? $this->envValue($lines, $keyToIndex, $envKey);
+            // Le auto-generate arrivano solo da $remoteValues: il valore
+            // locale (dev) non deve mai finire in produzione.
+            $value = $isAutoGen
+                ? (string) ($remoteValues[$envKey] ?? '')
+                : ($remoteValues[$envKey] ?? $this->envValue($lines, $keyToIndex, $envKey));
 
             if ($value === '') {
                 continue;
@@ -504,6 +522,14 @@ class Config extends Command
 
             foreach ($secretKeys as $secretKey) {
                 $secretId = $existingSecrets[$secretKey] ?? '';
+
+                // Una chiave auto-generata già presente in Bitwarden non si
+                // sovrascrive mai: per APP_ENCRYPTION_KEY renderebbe
+                // illeggibili i segreti cifrati in produzione. Si crea solo
+                // quando manca; la rotazione è manuale (docs).
+                if ($isAutoGen && $secretId !== '') {
+                    continue;
+                }
 
                 if ($secretId !== '') {
                     $result = $this->runCommand(
@@ -634,7 +660,7 @@ class Config extends Command
 
         if (count($updatedEnv) > 0) {
             $safe = array_map(
-                fn ($k) => str_starts_with($k, 'DB_PASSWORD') || str_starts_with($k, 'FTP_PASSWORD') || str_starts_with($k, 'USER_PASSWORD') || str_starts_with($k, 'APP_KEY')
+                fn ($k) => str_starts_with($k, 'DB_PASSWORD') || str_starts_with($k, 'FTP_PASSWORD') || str_starts_with($k, 'USER_PASSWORD') || str_starts_with($k, 'APP_KEY') || str_starts_with($k, 'APP_ENCRYPTION_KEY')
                     ? preg_replace('/^(\w+)/', '$1 [hidden]', $k)
                     : $k,
                 $updatedEnv
@@ -726,6 +752,7 @@ class Config extends Command
     {
         return [
             'APP_KEY'         => ['APP_KEY'],
+            'APP_ENCRYPTION_KEY' => ['APP_ENCRYPTION_KEY'],
             'DB_HOST'         => ['DB_HOST'],
             'DB_USER'         => ['DB_USER'],
             'DB_PASSWORD'     => ['DB_PASSWORD'],
@@ -771,6 +798,9 @@ class Config extends Command
      *
      * `APP_KEY` di produzione è qui dentro: deve essere stabile e diversa da
      * quella locale (che vive nel `.env` locale gestito da `forge config`).
+     * `APP_ENCRYPTION_KEY` di produzione cifra i segreti della tabella
+     * `security`: una volta creata non si cambia mai da qui (la rotazione
+     * passa da `APP_ENCRYPTION_KEY_PREVIOUS`, vedi docs sicurezza).
      *
      * @return string[]
      */
@@ -778,6 +808,7 @@ class Config extends Command
     {
         return [
             'APP_KEY',
+            'APP_ENCRYPTION_KEY',
         ];
     }
 
@@ -848,7 +879,8 @@ class Config extends Command
      * Categorie:
      * - Bootstrap Bitwarden (BWS_*): ricorsivi, vanno nel .env locale
      *   tramite `forge credentials` o `forge provision`.
-     * - Identità del progetto (APP_DOMAIN, APP_URL, APP_KEY): per
+     * - Identità del progetto (APP_DOMAIN, APP_URL, APP_KEY,
+     *   APP_ENCRYPTION_KEY): per
      *   definizione diverse tra progetti.
      * - Secret di solo produzione (FTP_*, APP_DEPLOY_TOKEN, ecc.): mai
      *   in locale.
@@ -864,6 +896,8 @@ class Config extends Command
             'BWS_PROJECT_ID',
             'BWS_DEV_SHARED_PROJECT_ID',
             'APP_KEY',
+            'APP_ENCRYPTION_KEY',
+            'APP_ENCRYPTION_KEY_PREVIOUS',
             'APP_DOMAIN',
             'APP_URL',
             'APP_DEPLOY_TOKEN',
@@ -1184,6 +1218,43 @@ class Config extends Command
         return true;
     }
 
+    /**
+     * Scrive `KEY=value` nelle righe del .env: sostituisce una riga vuota o
+     * esistente, altrimenti la inserisce sotto `$after`, altrimenti in coda.
+     * Aggiorna anche `$_ENV` / `putenv()`.
+     */
+    protected function withGeneratedEnvLine(array $lines, string $key, string $value, string $after): array
+    {
+        $done = false;
+
+        foreach ($lines as $i => $line) {
+            if (str_starts_with((string) $line, $key.'=')) {
+                $lines[$i] = $key.'='.$value;
+                $done = true;
+                break;
+            }
+        }
+
+        if (!$done) {
+            foreach ($lines as $i => $line) {
+                if (str_starts_with((string) $line, $after.'=')) {
+                    array_splice($lines, $i + 1, 0, $key.'='.$value);
+                    $done = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$done) {
+            $lines[] = $key.'='.$value;
+        }
+
+        $_ENV[$key] = $value;
+        putenv($key.'='.$value);
+
+        return $lines;
+    }
+
     protected function envKeyToIndex(array $lines): array
     {
         $keyToIndex = [];
@@ -1355,8 +1426,11 @@ class Config extends Command
 
         $payload = json_decode($result['stdout'], true);
 
+        // Una risposta illeggibile non vale "nessun secret": porterebbe a
+        // rigenerare (e sovrascrivere) le chiavi auto-generate.
         if (!is_array($payload)) {
-            return [];
+            $output->writeln('<error>❌ Risposta di Bitwarden non valida durante la lettura dei secret.</error>');
+            return null;
         }
 
         $values = [];
