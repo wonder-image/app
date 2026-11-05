@@ -58,7 +58,7 @@
      - `type`: `text`, `number` (`decimals`), `money`, `boolean`, `date` / `datetime`, `list` (separatore), `path` (separatore `›`), `url`, `enum` (mappa valore → etichetta).
    - Il `type` porta nel core le conversioni che oggi stanno in `CatalogCells`, `yes()`, `' | '` e `' › '`. Ogni tipo sa **formattare** un valore per l'export e **leggerlo** per l'import, quindi il round trip export→import diventa generico.
    - `Import\Column` resta come sottoclasse o alias deprecato, con lo stesso costruttore. `CatalogLayout` e i Layout dei moduli continuano a funzionare.
-   - `TableLayoutSchema::downloadColumns()` accetta anche le nuove `Column`, oltre agli array `['label', 'value']` (con `key` e `type` facoltativi, punto 4). `ContactExport` passa al nuovo formato senza cambiare l'output.
+   - `TableLayoutSchema::downloadColumns()` accetta anche le nuove `Column`, oltre agli array `['label', 'value']` (con `key` e `type` facoltativi; `fileColumns()` con alias `downloadColumns()`, punto 4). `ContactExport` passa al nuovo formato senza cambiare l'output.
 
 3. **La sorgente è un contratto del core: `Wonder\App\Dataset\Source`.**
    - Metodi:
@@ -71,21 +71,34 @@
    - `Import\Layout` diventa una classe astratta che implementa `Source` e `Importable`, così i Layout esistenti valgono come sorgenti senza modifiche. `rows()` di default restituisce nulla, e un Layout senza `rows()` resta solo import.
    - Il registro è `Sources`, con lo stesso modello di `Layouts`, `HomeStatus` e `Integrations`: core, poi moduli (config `dataset.sources`, dove `false` toglie una sorgente), poi sito (`Sources::set()`). `import.layouts` resta letto come alias deprecato.
 
-4. **Una sorgente generica per qualsiasi Resource, attivata con `download()` (opt-in).**
-   - Una Resource è sorgente se la sua lista dichiara `download()`; le sue colonne sono quelle di `downloadColumns()`. Non serve una seconda configurazione: l'export della lista dice già quali Resource sono esportabili e con quali campi. Una Resource senza `download()` non compare fra le sorgenti, a meno che un modulo non la registri in `dataset.sources`. Così tabelle come `user`, `api_users` e `import_jobs` restano fuori.
-   - `ResourceSource::for(SomeResource::class)` costruisce la sorgente da `tableLayoutSchema()`:
-     - colonne da `downloadColumns()`, convertite in `Dataset\Column`; senza `downloadColumns()`, le stesse colonne di default dell'export di oggi;
-     - righe con le stesse query, filtri e `RowVisibility::for($user)` dell'export della lista, passate a `decorate()` e a `Model::translated()` se il Model è traducibile;
-     - permesso `Resource::allows($authorities, 'list')`;
-     - mai `public()`.
-   - `downloadColumns()` si allarga, e gli array di oggi restano validi:
+4. **Tracciati pronti e tracciati custom, come i cron job.**
+   - **Tracciati pronti (origine `code`).**
+     - Vengono dalle sorgenti dei moduli (punto 5) e da ogni Resource con un Model: per ognuna c'è un tracciato pronto con le colonne di `fileColumns()`, oppure con tutti i campi non sensibili del Model se la Resource non le dichiara.
+     - `forge update` li sincronizza in `data_layouts` come `ConfiguredTask` fa con i task. Dal backend si riordinano, si rinominano, si programmano e si duplicano, ma non si eliminano; il codice aggiornato non sovrascrive ciò che è stato salvato.
+   - **Tracciati custom (origine `backend`).**
+     - Si sceglie una tabella di partenza e si aggiungono colonne seguendo le foreign key dichiarate con `Column::foreign()` in `Model::tableSchema()`. Una relazione non dichiarata non si può collegare.
+     - Le relazioni si percorrono nei due versi:
+       - **verso la tabella collegata** (molti-a-uno): `prezzi.prodotto_id → prodotti` dà colonne semplici come `prodotto.nome`;
+       - **verso le tabelle che puntano a quella di partenza** (uno-a-molti): partendo da `prodotti`, la tabella `prezzi` è raggiungibile perché `prezzi.prodotto_id` ha `foreign('prodotti')`. Il core le trova scorrendo i `tableSchema()` di tutti i Model registrati.
+     - Per una relazione uno-a-molti il tracciato sceglie come portarla nel file:
+       - **lista** in una colonna (`10,00 | 12,50`), con separatore e ordinamento;
+       - **primo o ultimo** elemento secondo un ordinamento (per esempio il prezzo più recente);
+       - **una riga per elemento**, ripetendo i campi della tabella di partenza. Si può fare per una sola relazione per tracciato, per non moltiplicare le righe.
+     - Profondità massima di default due salti, configurabile.
+     - Si modificano ed eliminano liberamente.
+   - **Sicurezza.**
+     - I campi sensibili (password, token, hash, segreti) sono segnati nel Model con `Column::sensitive()` e non compaiono mai fra le colonne, né nei tracciati pronti né in quelli custom. La fase che introduce i tracciati custom segna quelli del core (`user`, `api_users`, `auth_one_time_tokens`, `api_activity`...).
+     - Una tabella compare solo se ha una Resource e l'utente può vederne la lista (`Resource::allows($authorities, 'list')`), a ogni salto di relazione. `RowVisibility::for($user)` si applica a ogni tabella collegata.
+     - Creare e modificare tracciati custom è riservato agli admin.
+     - I tracciati pronti delle Resource e quelli custom non sono mai `public()`: l'uscita `file` a URL pubblico resta per le sorgenti di modulo che lo dichiarano, come il catalogo.
+   - **Colonne dichiarate dalle Resource.** `fileColumns()` in `tableLayoutSchema()` (alias deprecato `downloadColumns()`, gli array di oggi restano validi) e `fileRows()` per cambiare le righe:
      - `key` facoltativa e stabile, perché un tracciato salvato non si rompa se cambia l'etichetta o la lingua. Se manca vale il campo quando `value` è una stringa, altrimenti l'etichetta normalizzata;
-     - `type` facoltativo (punto 2), per le trasformazioni del tracciato e per un eventuale import;
-     - `value` accetta anche un percorso di relazione (`brand.name`), risolto da `Column::foreign()` in `tableSchema()`.
-   - Nuovo hook `TableLayoutSchema::downloadRows(callable $rows)`: riceve le righe a blocchi e ne restituisce altre, per esempio una riga per partecipante invece che per risposta. Vale per l'export della lista e per i tracciati.
-   - Le colonne condizionali o dinamiche (dipendenti da impostazioni o campi personalizzati) restano codice in `downloadColumns()`, come oggi.
-   - Una colonna con `value` callable si esporta ma non si rilegge in import: per quella il tracciato è solo in uscita.
-   - **Esempio di migrazione: rsvp.** `ResponseResource` oggi sostituisce la rotta dell'export (`registerBackendRoutes()`, `/participants-export/{format}/`) e `ResponseExporter` rilegge le colonne e scrive il file solo per espandere le righe. Con `downloadRows(fn ($rows) => ResponseExporter::expandRows($rows))` la rotta personalizzata sparisce, `ResponseExporter` si riduce a `expandRows()` e il file resta lo stesso.
+     - `type` facoltativo (punto 2);
+     - `value` accetta anche un percorso di relazione (`brand.name`);
+     - le colonne condizionali o dinamiche restano codice, come oggi;
+     - una colonna con `value` callable si esporta ma non si rilegge in import.
+     - `download(['xlsx', 'csv'])` resta e decide solo i formati del pulsante della lista.
+   - **Esempio di migrazione: rsvp.** `ResponseResource` oggi sostituisce la rotta dell'export (`registerBackendRoutes()`, `/participants-export/{format}/`) e `ResponseExporter` rilegge le colonne e scrive il file solo per espandere le righe. Con `fileRows(fn ($rows) => ResponseExporter::expandRows($rows))` la rotta personalizzata sparisce, `ResponseExporter` si riduce a `expandRows()` e il file resta lo stesso.
    - L'import generico per qualsiasi Resource (crea/aggiorna via `Model::validate()` / `prepare()` / `createUpdate()` per chiave) è una possibilità futura, non in questa spec: ogni tabella ha regole di unicità e di sicurezza proprie.
 
 5. **Sorgenti di dominio nei moduli.**
@@ -144,7 +157,7 @@
     | Pezzo | Dove |
     |---|---|
     | `Dataset\Column`, tipi, `Transforms`, `Source`, `Importable`, `Sources`, `Query` | app (core) |
-    | `ResourceSource`, `downloadColumns()` allargato, `downloadRows()` | app |
+    | `ResourceSource`, tracciati pronti e custom, percorsi di foreign key, `Column::sensitive()`, `fileColumns()` / `fileRows()` | app |
     | Destinazioni `csv`, `xlsx`, `json`, `xml-feed`, writer da `Support/Export` | app (spostati dal gestionale) |
     | Tracciati (Model, Resource, pagina), `DatasetExport`, task `wonder.exports`, uscite `file` ed `email` | app |
     | Motore di import (`Importer`, `Mapping`, `Reader`, `Store`) | app, invariato salvo leggere i nuovi `type` |
@@ -169,17 +182,18 @@
     4. **F4, core: consegna automatica.** Task `wonder.exports`, `schedule`, uscite `file` ed `email`, `owner_id`, regola `public()`, avviso in home, incrementale `since` / `last_cursor`.
     5. **F5, core e gestionale: feed.** Destinazione `xml-feed` nel core; `google-merchant` e `meta-catalog` come destinazioni a schema fisso con preset; migrazione dei due feed con URL invariati; `ProductFeedsTask` delega.
     6. **F6, gestionale: ordini.** Sorgenti `orders` / `order_items` con `since`, preset per i programmi gestionali più comuni dei clienti.
-    7. **F7, core: `ResourceSource`.** Sorgente da `download()` / `downloadColumns()`, `key` e `type` sulle colonne, `downloadRows()`, relazioni da `Column::foreign()`, campi tradotti. Test: export di una lista invariato byte per byte. Migrazione di rsvp nel modulo, nella stessa fase. È l'ultima perché si appoggia su tutto il resto; può anticipare F6 se la priorità cambia (decisione aperta).
+    7. **F7, core: tracciati pronti e custom.** Tracciato pronto per ogni Resource, sincronizzazione con origine `code`, `fileColumns()` / `fileRows()` con `key` e `type`, `Column::sensitive()` sui campi del core, costruttore di percorsi di foreign key nei due versi (lista, primo/ultimo, una riga per elemento), permessi e `RowVisibility` per ogni tabella, campi tradotti, pagina per scegliere le relazioni. Test: export di una lista invariato byte per byte, nessun campo sensibile esportabile, permesso negato su una tabella collegata. Migrazione di rsvp nel modulo, nella stessa fase. È la fase più grossa e l'ultima perché si appoggia su tutto il resto; può anticipare F6 se la priorità cambia (decisione aperta).
 
 ## Fuori ambito
 
-- Import generico per qualsiasi Resource (punto 4).
+- Import generico per qualsiasi Resource e per i tracciati custom: si importa solo con le sorgenti che lo dichiarano.
+- Relazioni non dichiarate con `Column::foreign()`.
 - SFTP / FTP (punto 8, fase successiva).
 - Template liberi o espressioni nelle colonne: solo trasformazioni da elenco chiuso.
 - API di Google Content e Meta Graph per l'invio diretto: i feed restano file letti dai Merchant Center.
 
 ## Decisioni aperte per l'utente
 
-Tutto il resto della spec è deciso. Le sorgenti generiche sono opt-in tramite `download()` / `downloadColumns()` (punto 4). Resta una scelta:
+Tutto il resto della spec è deciso. Tracciati pronti nel codice e tracciati custom dal backend su foreign key dichiarate (punto 4). Resta una scelta:
 
 1. **Priorità dopo F2-F3.** Prima i feed Google e Meta configurabili dai tracciati (F5), oppure prima gli export di anagrafiche e ordini, anche incrementali, per i programmi dei clienti (F6 + F7)? L'ordine proposto è F4 → F5 → F6 → F7.
