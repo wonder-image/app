@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Aggiunto
+- **Segreti di Credenziali cifrati.** Le chiavi, le password e i token della
+  tabella `security` (`Security::SECRET_COLUMNS`) si salvano cifrati con
+  `APP_ENCRYPTION_KEY`, chiave dedicata distinta da `APP_KEY`
+  (XChaCha20-Poly1305, `enc:v1:<kid>:...`, rotazione con
+  `APP_ENCRYPTION_KEY_PREVIOUS`). `forge update` cifra i valori esistenti
+  (`SecurityEncryptionMigration`) e salta con un avviso se la chiave manca; la
+  pagina Credenziali segnala chiave mancante o non valida e segreti
+  illeggibili. Serve l'estensione `sodium`. Per i progetti già in produzione:
+  `php forge provision`, poi deploy. Vedi
+  `docs/app/piattaforma/sicurezza.md#segreti-in-security` (#196).
 - **Caricamento da file.** Motore generico `.xlsx`/`.csv` in `class/App/Import`
   (file → colonne → anteprima → scrittura a blocchi → annullamento), pagina
   `ImportResource`, task `wonder.import` e Set-up → Tracciati file; i tracciati
@@ -20,6 +30,12 @@
   `fileRows()` e `importLayout()`. Vedi `docs/app/concetti/tracciati.md`.
 
 ### Cambiato
+- **`forge provision` non sovrascrive le chiavi auto-generate.** `APP_KEY` e
+  `APP_ENCRYPTION_KEY` già presenti in Bitwarden restano come sono (anche con
+  valore vuoto) e se la lettura dei secret Bitwarden fallisce il comando si
+  ferma senza modificare nulla. `forge config`, `db:init` e `start` generano
+  `APP_ENCRYPTION_KEY` nel `.env` locale solo se manca; la chiave è esclusa da
+  `dev-shared`.
 - **Liste Resource: bottone «File».** Un solo bottone apre una finestra con le
   schede Esporta e Importa al posto del menu «Esporta» e del bottone
   «Importa» (`ResourceFileModal`). L'export è un form GET verso la rotta

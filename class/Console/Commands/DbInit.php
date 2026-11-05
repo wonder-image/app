@@ -196,6 +196,12 @@ class DbInit extends LocalEnvironmentCommand
             $resolvedAppKey = bin2hex(random_bytes(32));
         }
 
+        // Si genera solo se manca: una chiave esistente non si cambia mai.
+        $resolvedEncryptionKey = $this->envValue($lines, $keyToIndex, \Wonder\App\Security\SecretCipher::ENV_KEY);
+        if ($this->isMissingEnvValue($resolvedEncryptionKey, \Wonder\App\Security\SecretCipher::ENV_KEY)) {
+            $resolvedEncryptionKey = \Wonder\App\Security\SecretCipher::generateKey();
+        }
+
         $resolvedUserPassword = $this->envValue($lines, $keyToIndex, 'USER_PASSWORD');
         if ($this->isMissingEnvValue($resolvedUserPassword, 'USER_PASSWORD')) {
             $resolvedUserPassword = SeedDefaults::adminPassword();
@@ -220,6 +226,7 @@ class DbInit extends LocalEnvironmentCommand
         $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, 'APP_DOMAIN', $appDomain, $appDomainOption !== ''));
         $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, 'APP_URL', $resolvedAppUrl));
         $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, 'APP_KEY', $resolvedAppKey));
+        $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, \Wonder\App\Security\SecretCipher::ENV_KEY, $resolvedEncryptionKey));
         $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, 'DB_HOSTNAME', $dbHostname, $dbHostnameOption !== ''));
         $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, 'DB_USERNAME', $resolvedAppDbUsername, $appDbUsernameOption !== ''));
         $updatedKeys = array_merge($updatedKeys, $this->syncEnvValue($lines, $keyToIndex, 'DB_PASSWORD', $resolvedAppDbPassword, $appDbPasswordOption !== ''));

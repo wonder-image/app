@@ -275,6 +275,75 @@ scritti dal codice. Restano SQL grezzo scritto dal codice anche gli
 `$attributes` di `Select()`, `$order`, la `$column` di `Sum()` e `Count()` e
 tabelle e chiavi di `JoinTable()`: mai valori presi dalla richiesta.
 
+## Segreti in `security`
+
+Le chiavi API, le password e i token salvati da Set-up → Credenziali sono
+cifrati nel database. Le colonne cifrate sono `Security::SECRET_COLUMNS`
+(Stripe, PayPal, Nexi, Brevo, SMTP, Klaviyo, IPinfo, GCP, reCAPTCHA, OAuth
+Google e Apple, Fatture in Cloud). Gli identificativi pubblici restano in
+chiaro, e così `api_key`, che serve a wonderimage.it.
+
+**Chiave.** `APP_ENCRYPTION_KEY` è una chiave dedicata, 64 caratteri
+esadecimali (32 byte). Non deriva da `APP_KEY` e non va mai riusata altrove:
+`APP_KEY` viaggia verso wonderimage.it e può cambiare, mentre questa chiave
+deve restare la stessa per tutta la vita dei dati che ha cifrato.
+
+- In produzione la chiave vive **solo** nel project Bitwarden del sito.
+  `php forge provision` la crea se manca e non la sovrascrive mai, nemmeno
+  quando il secret esiste con valore vuoto; il deploy la scrive nel `.env` del
+  server insieme agli altri secret. Non impostarla mai a mano sul server: il
+  deploy successivo ricostruisce il `.env` da Bitwarden e la sostituirebbe.
+- In locale `php forge config`, `db:init` e `start` la generano nel `.env`
+  solo se manca. Ogni sviluppatore e ogni ambiente ha la sua: non sta mai in
+  `dev-shared`.
+- Serve l'estensione PHP `sodium` (inclusa di default da PHP 7.2).
+
+**Formato.** Ogni valore è `enc:v1:<kid>:<payload>`: XChaCha20-Poly1305
+(libsodium) con nonce casuale, `kid` = primi 8 caratteri esadecimali dello
+SHA-256 della chiave, dati associati `security:<colonna>`. Un valore copiato
+in un'altra colonna, alterato o cifrato con un'altra chiave non si decifra.
+
+**Dove si cifra.** Solo dentro `Credentials`: `encryptSecurityValues()` prima
+di scrivere (il salvataggio del modal Credenziali, il collegamento Stripe
+Connect) e la decifratura alla lettura della riga. Il resto del codice vede
+sempre i valori in chiaro e non deve cifrare o decifrare da sé. Nel modal un
+campo segreto lasciato vuoto non modifica il valore salvato.
+
+**Quando qualcosa non va.**
+
+- Senza chiave (o senza `sodium`) i segreti si salvano in chiaro, con un
+  avviso nel log, e la pagina Credenziali mostra un avviso.
+- Con una chiave non valida la pagina mostra un errore.
+- Un valore che non si decifra finisce nel log con colonna e `kid`, mai col
+  valore: l'integrazione risulta non configurata e la pagina lo segnala.
+  Reinserire il segreto dal modal lo riscrive con la chiave corrente.
+
+**Migrazione.** `forge update` esegue `SecurityEncryptionMigration` dopo le
+righe di seed: cifra i segreti ancora in chiaro e ricifra quelli scritti con
+`APP_ENCRYPTION_KEY_PREVIOUS`. È idempotente, aggiorna la riga in una
+transazione e verifica ogni valore prima di salvarlo. Senza chiave valida
+salta con un avviso e non ne genera mai una. Un progetto già in produzione
+prima di questa versione deve rilanciare `php forge provision` e poi
+deployare: fino ad allora i segreti restano in chiaro.
+
+**Rotazione.**
+
+1. In Bitwarden copia la chiave attuale in `APP_ENCRYPTION_KEY_PREVIOUS`.
+2. Metti in `APP_ENCRYPTION_KEY` una chiave nuova
+   (`php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'`).
+3. Deploya: `forge update` ricifra tutto con la chiave nuova.
+4. Quando la pagina Credenziali non segnala segreti illeggibili, togli
+   `APP_ENCRYPTION_KEY_PREVIOUS` e deploya di nuovo.
+
+**Backup e copie del database.** Un dump di `security` si legge solo con la
+chiave dell'ambiente che l'ha scritto. Conserva la chiave insieme ai backup
+(Bitwarden), mai nello stesso archivio del dump. `security` non è tra le
+tabelle di `forge export` / `import`; se copi a mano la riga tra ambienti con
+chiavi diverse, i segreti risultano illeggibili e vanno reinseriti.
+
+**Perdere la chiave** significa perdere i segreti cifrati: vanno reinseriti
+da Credenziali. Il resto del sito non ne dipende.
+
 ## Log
 
 `Logger` scrive in `ROOT/storage/logs/` e non usa mai la cartella corrente.

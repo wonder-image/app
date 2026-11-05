@@ -52,7 +52,7 @@ var che il framework legge:
 | Brevo | `BREVO_API_KEY` |
 
 > Le **chiavi escluse** dal merge dev-shared sono quelle che devono
-> essere project-specific anche localmente (`BWS_*`, `APP_KEY`, `APP_DOMAIN`,
+> essere project-specific anche localmente (`BWS_*`, `APP_KEY`, `APP_ENCRYPTION_KEY*`, `APP_DOMAIN`,
 > `DB_*`, `FTP_*`, `USER_*`, `APP_DEPLOY_TOKEN`, `ASSETS_VERSION`). Se per
 > errore le metti in `dev-shared` vengono semplicemente ignorate, con un
 > warning a console.
@@ -178,5 +178,7 @@ php forge credentials --refresh-token
 - **Credenziali database** (`DB_*`) e FTP (`FTP_*`) → comunque ignorate
   dal merge, ma per chiarezza non metterle.
 - **APP_KEY** → diversa per ambiente, mai shared.
+- **APP_ENCRYPTION_KEY** → cifra i segreti di Credenziali, diversa per
+  ambiente, mai shared.
 - **Token deploy** (`APP_DEPLOY_TOKEN`) → vive solo nei GitHub Secrets della
   repo.

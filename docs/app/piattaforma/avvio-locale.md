@@ -173,7 +173,7 @@ Il comando:
 - abilita `/update/` anche in sviluppo locale
 - sincronizza `APP_DOMAIN` dalla cartella progetto ricostruendo il dominio completo (`wonderimage-it` → `wonderimage.it`)
 - sincronizza `APP_URL` con `https://wonderimage.test` su Herd oppure con host/porta locali in fallback
-- completa automaticamente `.env` per gli altri valori locali non DB critici (`APP_KEY`, `USER_PASSWORD`)
+- completa automaticamente `.env` per gli altri valori locali non DB critici (`APP_KEY`, `APP_ENCRYPTION_KEY`, `USER_PASSWORD`), generati solo se mancano
 - fa un check DB iniziale
 
 Puoi forzare il driver o la versione PHP:

@@ -23,8 +23,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  * - **Cloudflare** (solo con `APP_PROXY=cloudflare`): `CLOUDFLARE_API_TOKEN`,
  *   `CLOUDFLARE_ZONE_ID` e `CLOUDFLARE_ACCOUNT_ID` nel progetto Bitwarden,
  *   poi `forge cloudflare:security`.
- * - **Bitwarden Secrets Manager**: `APP_KEY` di produzione (auto-gen,
- *   diversa da quella locale), `DB_*`/`FTP_*`/`USER_*` di produzione.
+ * - **Bitwarden Secrets Manager**: `APP_KEY` e `APP_ENCRYPTION_KEY` di
+ *   produzione (auto-gen solo se mancano, mai sovrascritte, diverse da
+ *   quelle locali), `DB_*`/`FTP_*`/`USER_*` di produzione.
  *
  * Il wizard mostra come default i valori esistenti (in Bitwarden o in
  * GitHub Variables): premendo Enter si conferma, digitando un nuovo valore
@@ -276,10 +277,17 @@ class Provision extends Config
         }
 
         // 8. Wizard Bitwarden: per ogni secret della map, mostra default da
-        //    Bitwarden esistente. APP_KEY è in `bitwardenAutoGenKeys`: se
-        //    manca viene generata random, se esiste viene mantenuta. Niente
-        //    di tutto questo finisce mai nel .env locale per i remote-only.
-        $existingBitwarden = $this->bitwardenProjectSecretsWithValues($bwProjectId, $bwAccessToken, $output) ?? [];
+        //    Bitwarden esistente. APP_KEY e APP_ENCRYPTION_KEY sono in
+        //    `bitwardenAutoGenKeys`: se mancano vengono generate random, se
+        //    esistono vengono mantenute. Niente di tutto questo finisce mai
+        //    nel .env locale per i remote-only. Se la lettura fallisce ci si
+        //    ferma: trattarla come "nessun secret" rigenererebbe le chiavi.
+        $existingBitwarden = $this->bitwardenProjectSecretsWithValues($bwProjectId, $bwAccessToken, $output);
+
+        if ($existingBitwarden === null) {
+            $output->writeln('<error>❌ Secret Bitwarden non leggibili: provisioning interrotto senza modificare nulla.</error>');
+            return Command::FAILURE;
+        }
 
         $remoteValues = [
             // canale interno per passare la mappa "valori esistenti" al

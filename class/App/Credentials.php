@@ -4,7 +4,11 @@
 
     use Dotenv\Dotenv;
 
+    use RuntimeException;
     use Throwable;
+    use Wonder\App\Models\Config\Security;
+    use Wonder\App\Security\SecretCipher;
+    use Wonder\App\Security\SecretCipherException;
     use Wonder\Sql\Connection;
     use Wonder\Sql\Query;
     use Wonder\Support\Text\Random;
@@ -17,6 +21,8 @@
         protected static $MAIL;
         protected static $appKey; # Chiave per la codifica
         protected static $appToken; # Utilizzato per le chiamate API interne
+        protected static ?SecretCipher $cipher = null;
+        protected static bool $plaintextWarned = false;
 
         public static function loadEnv()
         {
@@ -36,6 +42,8 @@
         {
 
             self::$ENV = null;
+            self::$cipher = null;
+            self::$plaintextWarned = false;
             EnvCompat::reset();
 
         }
@@ -554,7 +562,189 @@
         private static function safeSecurityRow(): array
         {
 
-            return self::safeRow('security', [ 'id' => 1 ]);
+            return self::decryptSecurityRow(self::safeRow('security', [ 'id' => 1 ]));
+
+        }
+
+        /**
+         * La riga di `security` con i segreti decifrati, come la legge
+         * `api()`. Un segreto che non si decifra vale `''` (integrazione non
+         * configurata) e finisce nel log con colonna e `kid`, mai il valore.
+         *
+         * @return array<string, mixed>
+         */
+        public static function securityRow(): array
+        {
+
+            self::loadEnv();
+
+            return self::safeSecurityRow();
+
+        }
+
+        /** Il cifrario dei segreti, dalle chiavi del `.env`. */
+        public static function secretCipher(): SecretCipher
+        {
+
+            if (self::$cipher === null) {
+
+                self::loadEnv();
+                self::$cipher = SecretCipher::fromEnv();
+
+                foreach (self::$cipher->invalidKeys() as $name) {
+                    self::logSecret(new RuntimeException($name.' non valida: servono 64 caratteri esadecimali.'), 'key', 'ERROR', [ 'variable' => $name ]);
+                }
+
+            }
+
+            return self::$cipher;
+
+        }
+
+        /**
+         * Decifra le colonne segrete di una riga di `security`. I valori in
+         * chiaro (non ancora migrati) restano come sono.
+         *
+         * @param array<string, mixed> $row
+         * @return array<string, mixed>
+         */
+        public static function decryptSecurityRow(array $row): array
+        {
+
+            foreach (Security::SECRET_COLUMNS as $column) {
+
+                $value = $row[$column] ?? null;
+
+                if (!SecretCipher::isEncrypted($value)) {
+                    continue;
+                }
+
+                try {
+                    $row[$column] = self::decryptSecurityValue($column, $value);
+                } catch (SecretCipherException $exception) {
+                    $row[$column] = '';
+                    self::logSecret($exception, 'decrypt', 'ERROR', [ 'column' => $column, 'kid' => SecretCipher::kidOf($value) ]);
+                }
+
+            }
+
+            return $row;
+
+        }
+
+        /**
+         * Le colonne segrete della riga salvata che non si decifrano con le
+         * chiavi attuali.
+         *
+         * @return list<string>
+         */
+        public static function unreadableSecurityColumns(?array $row = null): array
+        {
+
+            $row ??= self::safeRow('security', [ 'id' => 1 ]);
+            $cipher = self::secretCipher();
+            $columns = [];
+
+            foreach (Security::SECRET_COLUMNS as $column) {
+
+                $value = $row[$column] ?? null;
+
+                if (!SecretCipher::isEncrypted($value)) {
+                    continue;
+                }
+
+                try {
+                    $cipher->decrypt($value, self::secretContext($column));
+                } catch (SecretCipherException) {
+                    $columns[] = $column;
+                }
+
+            }
+
+            return $columns;
+
+        }
+
+        /**
+         * Cifra le colonne segrete non vuote di un insieme di valori da
+         * salvare in `security`. Senza chiave (o senza sodium) i valori
+         * restano in chiaro e il log lo segnala; un valore già cifrato non si
+         * cifra due volte.
+         *
+         * @param array<string, mixed> $values
+         * @return array<string, mixed>
+         */
+        public static function encryptSecurityValues(array $values): array
+        {
+
+            foreach ($values as $column => $value) {
+
+                if (!is_string($column) || !in_array($column, Security::SECRET_COLUMNS, true)) {
+                    continue;
+                }
+
+                $value = trim((string) $value);
+
+                if ($value === '') {
+                    continue;
+                }
+
+                if (SecretCipher::isEncrypted($value)) {
+                    self::logSecret(new RuntimeException('Valore già cifrato: salvato senza ricifrarlo.'), 'encrypt', 'WARNING', [ 'column' => $column ]);
+                    $values[$column] = $value;
+                    continue;
+                }
+
+                if (!self::secretCipher()->available()) {
+
+                    if (!self::$plaintextWarned) {
+                        self::$plaintextWarned = true;
+                        self::logSecret(new RuntimeException('APP_ENCRYPTION_KEY non impostata o sodium mancante: segreti salvati in chiaro.'), 'encrypt', 'WARNING');
+                    }
+
+                    $values[$column] = $value;
+                    continue;
+                }
+
+                $values[$column] = self::encryptSecurityValue($column, $value);
+
+            }
+
+            return $values;
+
+        }
+
+        /** Cifra un segreto di `security` con la chiave corrente. */
+        public static function encryptSecurityValue(string $column, string $plaintext): string
+        {
+
+            return self::secretCipher()->encrypt($plaintext, self::secretContext($column));
+
+        }
+
+        /** Decifra un segreto di `security`; il chiaro torna com'è. */
+        public static function decryptSecurityValue(string $column, string $value): string
+        {
+
+            return self::secretCipher()->decrypt($value, self::secretContext($column));
+
+        }
+
+        /** Il dato associato di una colonna: un valore copiato altrove non si decifra. */
+        public static function secretContext(string $column): string
+        {
+
+            return 'security:'.$column;
+
+        }
+
+        private static function logSecret(Throwable $exception, string $action, string $level, array $context = []): void
+        {
+
+            try {
+                Logger::log($exception, 'credentials', 'secret-'.$action, $level, 'error', $context, false);
+            } catch (Throwable) {
+            }
 
         }
 

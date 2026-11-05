@@ -509,6 +509,24 @@ php forge start
   `HomeStatus`: core `Integrations::CORE`, modules `backend.integrations`
   (`false` removes), site `Integrations::set()`; failures are logged and skipped.
   See `docs/app/servizi/integrazioni.md`.
+- Secrets in `security` (`Security::SECRET_COLUMNS`; `api_key` and public
+  ids stay plain) are encrypted at rest with the dedicated
+  `APP_ENCRYPTION_KEY` (64 hex, never derived from or reused as `APP_KEY`)
+  through `Wonder\App\Security\SecretCipher`: XChaCha20-Poly1305, random
+  nonce, `enc:v1:<kid>:<payload>`, associated data `security:<column>`
+  (`Credentials::secretContext()`), rotation via
+  `APP_ENCRYPTION_KEY_PREVIOUS`. Encrypt/decrypt only inside `Credentials`
+  (`encryptSecurityValues()` before every write of a secret column,
+  row decryption on read); never cipher elsewhere or log values. An empty
+  secret field keeps the saved value. A value that fails to decrypt is
+  logged with column and kid and reads as `''` (integration not
+  configured). Production key lives only in Bitwarden: `forge provision`
+  creates it when missing and never overwrites an existing auto-gen secret;
+  local `config`/`db:init`/`start` generate it only when missing; never in
+  `dev-shared`. `SecurityEncryptionMigration` (in `forge update`, after seed
+  rows) encrypts plaintext and re-encrypts PREVIOUS values, idempotent, and
+  skips with a warning without a valid key: it never generates one. See
+  `docs/app/piattaforma/sicurezza.md#segreti-in-security`.
 - Email credentials test: "Invia email di prova" is a `formaction` submit in the
   SMTP / Brevo modal posting to route `mail-test` in `registerBackendRoutes()`
   (CSRF, `update` permissions); it tests the modal values without saving them
