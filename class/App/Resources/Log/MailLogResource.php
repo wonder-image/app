@@ -33,6 +33,8 @@ final class MailLogResource extends Resource
     {
         return [
             'to_email' => 'Email',
+            'cc_email' => 'Copia (CC)',
+            'bcc_email' => 'Copia nascosta (CCN)',
             'subject' => 'Oggetto',
             'service' => 'Servizio',
             'status' => 'Stato',
@@ -64,7 +66,7 @@ final class MailLogResource extends Resource
             ->results()
             ->hideButtonAdd()
             ->filters()
-            ->searchFields(['from_email', 'reply_to_email', 'to_email', 'subject'])
+            ->searchFields(['from_email', 'reply_to_email', 'to_email', 'cc_email', 'bcc_email', 'subject'])
             ->filterRadio('Servizio', 'service', [
                 '' => 'Tutti',
                 'phpmailer' => 'PHPMailer',

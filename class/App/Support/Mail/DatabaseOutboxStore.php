@@ -39,6 +39,8 @@ class DatabaseOutboxStore implements OutboxStore
 
         $id = mailLogInsert([
             'to_email' => $message['to'],
+            'cc_email' => Recipients::format($message['options']['cc'] ?? []),
+            'bcc_email' => Recipients::format($message['options']['bcc'] ?? []),
             'reply_to_email' => $message['from'],
             'subject' => $message['subject'],
             'template' => $message['template'],

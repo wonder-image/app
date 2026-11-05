@@ -44,6 +44,35 @@ Cosa succede alla conferma:
 La rotta è `POST backend.resource.app-config-credentials.mail-test`, protetta
 da CSRF e dagli stessi permessi di modifica della risorsa.
 
+## Copia (CC) e copia nascosta (CCN)
+
+`sendMail()`, `queueMail()` e `mailDeliver()` accettano in fondo
+`array $options = []` con le chiavi `cc` e `bcc`. Passalo per nome, così non
+servono gli argomenti intermedi:
+
+```php
+sendMail($from, $cliente, $oggetto, $corpo, options: [
+    'cc' => [$emailAzienda, ...$contattiCheRicevonoDocumenti],
+    'bcc' => 'archivio@example.it',
+]);
+
+queueMail($from, $cliente, $oggetto, $corpo, $allegati, options: ['cc' => $emailAzienda]);
+```
+
+- Ogni chiave accetta una stringa (anche più indirizzi separati da `,` o `;`)
+  o una lista.
+- Gli indirizzi non validi vengono scartati senza errore; i doppioni (anche
+  con maiuscole diverse) restano una volta sola.
+- Il destinatario `$to` esce dai CC; `$to` e i CC escono dai CCN: nessuno
+  riceve la stessa email due volte.
+- Una chiave diversa da `cc` e `bcc` lancia `InvalidArgumentException`: è un
+  errore di chi chiama, non un invio fallito.
+- PHPMailer usa `addCC()` / `addBCC()`, Brevo `TransactionalEmail::cc()` /
+  `bcc()`.
+- Il log delle email salva gli indirizzi in `cc_email` e `bcc_email`, li
+  mostra nel dettaglio (**Copia (CC)**, **Copia nascosta (CCN)**) e li usa
+  nella ricerca della lista.
+
 ## Coda di invio
 
 `sendMail()` spedisce subito, dentro la richiesta: se il server SMTP è lento o
@@ -75,8 +104,8 @@ imposta `Mailer::$transport = 'queueMail'`).
 - **Allegati.** In coda si salvano i percorsi, non i file: devono esistere
   ancora quando il cron spedisce. Non mettere in coda allegati temporanei che
   la richiesta cancella subito dopo.
-- **Corpo.** Il messaggio originale (mittente, destinatari, oggetto, corpo,
-  allegati, template) sta nella colonna `payload` finché l'email non è inviata
+- **Corpo.** Il messaggio originale (mittente, destinatari, CC e CCN, oggetto,
+  corpo, allegati, template) sta nella colonna `payload` finché l'email non è inviata
   o fallita, poi viene svuotato; il log mostra il corpo spedito come per
   `sendMail()`.
 - **Backend.** Il log delle email filtra anche per **In coda** e **In invio**.
@@ -111,5 +140,15 @@ imposta `Mailer::$transport = 'queueMail'`).
   usano uno store in memoria. `process()` riceve la funzione che spedisce
   (`mailDeliver()`, lo stesso invio di `sendMail()` senza la riga di log),
   così un modulo può sostituire trasporto o archivio senza toccare le regole.
-- `mail_log` ha le colonne `attempts`, `next_attempt_at` (UTC) e `payload`
+- `Wonder\App\Support\Mail\Recipients` normalizza CC e CCN
+  (`normalize()`, `options($options, $to)`, `format()`), senza rete né
+  database. Un'opzione nuova di `sendMail()` si aggiunge a
+  `Recipients::OPTIONS` e passa da `$options`, senza allungare la firma.
+  `mailDeliver()` restituisce anche `cc` e `bcc` già normalizzati.
+- `Outbox::message()` salva `options` nel `payload`; `Outbox::arguments()`
+  rende gli argomenti posizionali di `sendMail()` / `mailDeliver()`
+  (`$credentials` null, poi `$options`). Le righe accodate prima di questa
+  versione, senza `options`, partono con CC e CCN vuoti.
+- `mail_log` ha le colonne `cc_email`, `bcc_email` (`TEXT`, indirizzi separati
+  da `, `), `attempts`, `next_attempt_at` (UTC) e `payload`
   (JSON grezzo, scritto con prepared statement); `forge update` le aggiunge.
