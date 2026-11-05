@@ -182,7 +182,7 @@
     4. **F4, core: consegna automatica.** Task `wonder.exports`, `schedule`, uscite `file` ed `email`, `owner_id`, regola `public()`, avviso in home, incrementale `since` / `last_cursor`.
     5. **F5, core e gestionale: feed.** Destinazione `xml-feed` nel core; `google-merchant` e `meta-catalog` come destinazioni a schema fisso con preset; migrazione dei due feed con URL invariati; `ProductFeedsTask` delega.
     6. **F6, gestionale: ordini.** Sorgenti `orders` / `order_items` con `since`, preset per i programmi gestionali più comuni dei clienti.
-    7. **F7, core: tracciati pronti e custom.** Tracciato pronto per ogni Resource, sincronizzazione con origine `code`, `fileColumns()` / `fileRows()` con `key` e `type`, `Column::sensitive()` sui campi del core, costruttore di percorsi di foreign key nei due versi (lista, primo/ultimo, una riga per elemento), permessi e `RowVisibility` per ogni tabella, campi tradotti, pagina per scegliere le relazioni. Test: export di una lista invariato byte per byte, nessun campo sensibile esportabile, permesso negato su una tabella collegata. Migrazione di rsvp nel modulo, nella stessa fase. È la fase più grossa e l'ultima perché si appoggia su tutto il resto; può anticipare F6 se la priorità cambia (decisione aperta).
+    7. **F7, core: tracciati pronti e custom.** Tracciato pronto per ogni Resource, sincronizzazione con origine `code`, `fileColumns()` / `fileRows()` con `key` e `type`, `Column::sensitive()` sui campi del core, costruttore di percorsi di foreign key nei due versi (lista, primo/ultimo, una riga per elemento), permessi e `RowVisibility` per ogni tabella, campi tradotti, pagina per scegliere le relazioni. Test: export di una lista invariato byte per byte, nessun campo sensibile esportabile, permesso negato su una tabella collegata. Migrazione di rsvp nel modulo, nella stessa fase. È la fase più grossa e l'ultima perché si appoggia su tutto il resto.
 
 ## Fuori ambito
 
@@ -192,8 +192,7 @@
 - Template liberi o espressioni nelle colonne: solo trasformazioni da elenco chiuso.
 - API di Google Content e Meta Graph per l'invio diretto: i feed restano file letti dai Merchant Center.
 
-## Decisioni aperte per l'utente
+## Decisioni prese con l'utente
 
-Tutto il resto della spec è deciso. Tracciati pronti nel codice e tracciati custom dal backend su foreign key dichiarate (punto 4). Resta una scelta:
-
-1. **Priorità dopo F2-F3.** Prima i feed Google e Meta configurabili dai tracciati (F5), oppure prima gli export di anagrafiche e ordini, anche incrementali, per i programmi dei clienti (F6 + F7)? L'ordine proposto è F4 → F5 → F6 → F7.
+1. **Sorgenti generiche:** tracciati pronti nel codice e tracciati custom dal backend su foreign key dichiarate, nei due versi (punto 4).
+2. **Priorità:** dopo F2-F3 vengono prima i feed Google e Meta. Ordine: F4 → F5 → F6 → F7.
