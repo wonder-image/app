@@ -235,7 +235,7 @@ query, per esempio `near '...'`.
   fidato solo se `REMOTE_ADDR` è nella lista; senza lista vale il solo
   `APP_TRUST_PROXY=true`, che si fida di chiunque si colleghi. La regola sta in
   `Wonder\Http\TrustedProxies`. Vedi [Multi-ambiente](multi-ambiente.md#proxy-fidati).
-- **Analitica.** Prima di GTM il layout frontend nega il consenso di default
+- **Statistiche.** Prima di GTM il layout frontend nega il consenso di default
   (Consent Mode) e passa al dataLayer solo un hash dell'id utente. Vedi
   [Google Tag Manager](../servizi/google-tag-manager/configurazione.md#consenso-e-datalayer).
 

@@ -9,7 +9,7 @@ $root = dirname(__DIR__, 2);
 $head = (string) file_get_contents($root.'/app/view/components/frontend/layout/head.php');
 
 // Testo del sorgente: head.php richiede l'intero bootstrap frontend. Il ramo
-// «Pixel attivo» non esiste più, quindi nessun valore di `analytics` lo stampa.
+// «Pixel attivo» non esiste più e l'impostazione è stata tolta con la pagina Analitica.
 check('head.php: nessun fbq, fbevents.js o facebook.com/tr', fn () =>
     !str_contains($head, 'fbq') && !str_contains($head, 'connect.facebook.net')
     && !str_contains($head, 'facebook.com/tr'));
@@ -28,17 +28,7 @@ foreach (['app', 'class'] as $dir) {
 }
 check('core: nessun file PHP emette fbq(', fn () => $coreHits === []);
 
-$resource = (string) file_get_contents($root.'/class/App/Resources/Config/AnalyticsResource.php');
-check('AnalyticsResource: campo pixel_facebook mantenuto con il testo di aiuto', fn () =>
-    str_contains($resource, "FormField::key('pixel_facebook')")
-    && str_contains($resource, "__t('analytics.pixel.deprecated')"));
-
-foreach (['it', 'en'] as $locale) {
-    check("lang {$locale}: analytics.pixel.deprecated presente", function () use ($root, $locale) {
-        $json = json_decode((string) file_get_contents($root."/resources/lang/{$locale}/analytics.json"), true);
-
-        return is_string($json['pixel']['deprecated'] ?? null) && str_contains($json['pixel']['deprecated'], 'Tag Manager');
-    });
-}
+check('head.php: $ANALYTICS->pixel resta uno stub spento', fn () =>
+    str_contains($head, '$ANALYTICS->pixel = (object) [\'id\' => \'\', \'active\' => false];'));
 
 summary();

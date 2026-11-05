@@ -17,14 +17,14 @@ spl_autoload_register(static function (string $class): void {
 }, true, true);
 
 use Wonder\App\ResourceRouteRegistrar;
-use Wonder\App\Resources\Config\{ AnalyticsResource, SeoResource };
+use Wonder\App\Resources\Config\SeoResource;
 use Wonder\App\Resources\Media\LogoResource;
 
 # Le Resource singleton del core espongono via API solo show/update, come
 # SingletonResource; le azioni di scrittura readonly non passano dal controllo
 # dei permessi (niente log per route che non verrebbero registrate).
 
-foreach ([SeoResource::class, AnalyticsResource::class, LogoResource::class] as $class) {
+foreach ([SeoResource::class, LogoResource::class] as $class) {
     check(basename(str_replace('\\', '/', $class)).': apiSchema() espone solo show e update', function () use ($class) {
         $routes = array_keys(array_filter((array) $class::apiSchema()->get('routes')));
 

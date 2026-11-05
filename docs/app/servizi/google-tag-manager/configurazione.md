@@ -9,9 +9,23 @@ Link di accesso  \[ [https://tagmanager.google.com](https://tagmanager.google.co
 1. **Accedi al Pannello di Controllo:** Effettua l'accesso per creare un nuovo account.
 2. **Copia il Codice del Contenitore:** Assicurati di copiare correttamente il codice fornito.
 3. **Accedi al Backend del Sito Web:**
-   * Vai alla sezione `Dev > API e servizi > Analitica`.
-   * Incolla il codice nell'input appropriato.
-4. **Attivazione:** Decidi se attivare immediatamente il codice incollato.
+   * Vai in `Dev > API e servizi > Credenziali` e apri la card **Google Tag Manager**.
+   * Incolla l'ID del contenitore (`GTM-XXXXXXX`).
+4. **Attivazione:** scegli **Attivo** o **Spento** e salva. Con **Spento**
+   la card resta connessa con la nota «Spento» e il sito non carica GTM.
+
+L'ID si può anche dare dal `.env` con `G_TAG_MANAGER_ID` (e
+`G_TAG_MANAGER_ACTIVE=false` per spegnerlo): il `.env` vince sul backend,
+come per le altre credenziali. Il codice lo legge da
+`Credentials::api()->g_tag_manager_id`; il tag parte solo se il visitatore ha
+accettato le statistiche.
+
+{% hint style="info" %}
+Fino a questa versione l'ID stava nella pagina `Dev > API e servizi >
+Analitica`, ora tolta. `php forge update` copia l'ID e lo stato dalla vecchia
+tabella `analytics` in Credenziali, solo se lì l'ID è ancora vuoto. La tabella
+`analytics` resta nel database.
+{% endhint %}
 
 Segui attentamente questi passaggi per garantire una configurazione corretta.
 
@@ -68,9 +82,8 @@ più `user` e resta l'hash del core.
 
 ### Meta Pixel in GTM
 
-Il core non emette più il Meta Pixel: il campo `ID Pixel` in
-`Dev > API e servizi > Analitica` resta, ma il layout frontend non lo legge.
-Per tracciare con il Pixel lo si configura in GTM, dietro il consenso:
+Il core non emette più il Meta Pixel e non ha più un campo per il suo ID
+(`$ANALYTICS->pixel` resta, sempre spento, per gli override dei siti). Per tracciare con il Pixel lo si configura in GTM, dietro il consenso:
 
 1. **Tag:** in GTM crea un tag dal modello della galleria «Facebook Pixel»
    (oppure un tag *HTML personalizzato* con il codice base di Meta,

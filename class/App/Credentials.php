@@ -336,6 +336,8 @@
                 self::recaptcha(self::$API, $row);
                 self::$API->g_maps_place_id              = self::envOrRow('G_MAPS_PLACE_ID',                  $row, 'g_maps_place_id',                  self::$API->g_maps_place_id);
                 self::$API->g_maps_map_id                = self::envOrRow('G_MAPS_MAP_ID',                    $row, 'g_maps_map_id',                    self::$API->g_maps_map_id);
+                self::$API->g_tag_manager_id             = self::envOrRow('G_TAG_MANAGER_ID',                 $row, 'g_tag_manager_id',                 self::$API->g_tag_manager_id);
+                self::$API->g_tag_manager_active         = self::envOrRow('G_TAG_MANAGER_ACTIVE',             $row, 'g_tag_manager_active',             self::$API->g_tag_manager_active);
                 self::$API->klaviyo_api_key              = self::envOrRow('KLAVIYO_API_KEY',                  $row, 'klaviyo_api_key',                  self::$API->klaviyo_api_key);
                 self::$API->ipinfo_api_key               = self::envOrRow('IPINFO_API_KEY',                   $row, 'ipinfo_api_key',                   self::$API->ipinfo_api_key);
 
@@ -516,6 +518,8 @@
                 'g_recaptcha_badge' => 'true',
                 'g_maps_place_id' => '',
                 'g_maps_map_id' => '',
+                'g_tag_manager_id' => '',
+                'g_tag_manager_active' => 'true',
                 'klaviyo_api_key' => '',
                 'ipinfo_api_key' => '',
                 'stripe_test' => false,
