@@ -2,6 +2,8 @@
 
 namespace Wonder\App\Import;
 
+use Wonder\App\Dataset\Column;
+use Wonder\App\Dataset\Source;
 use Throwable;
 use Wonder\App\Models\Import\ImportLayout;
 use Wonder\App\Models\Import\ImportLayoutColumn;
@@ -15,21 +17,22 @@ final class Profile
 {
     /**
      * Le colonne del tracciato salvato (`$importLayoutId`, o il predefinito),
-     * con le sue intestazioni; null quando non ce n'è uno.
+     * con le sue intestazioni; null quando non ce n'è uno o quando il
+     * tracciato è di un'altra fonte.
      *
      * @return list<Column>|null
      */
-    public static function for(Layout $layout, ?int $importLayoutId = null): ?array
+    public static function for(Source $source, ?int $importLayoutId = null): ?array
     {
-        $id = $importLayoutId ?? self::defaultId($layout::key());
+        $id = $importLayoutId ?? self::defaultId($source->id());
 
-        if ($id <= 0) {
+        if ($id <= 0 || ($importLayoutId !== null && !self::belongs($id, $source->id()))) {
             return null;
         }
 
         $byKey = [];
 
-        foreach ($layout->columns() as $column) {
+        foreach ($source->columns() as $column) {
             $byKey[$column->key] = $column;
         }
 
@@ -52,7 +55,7 @@ final class Profile
      *
      * @return array<string, string>
      */
-    public static function preferred(Layout $layout, ?int $importLayoutId = null): array
+    public static function preferred(Source $layout, ?int $importLayoutId = null): array
     {
         $preferred = [];
 
@@ -96,6 +99,18 @@ final class Profile
         }
 
         return $options;
+    }
+
+    /** Il tracciato `$id` esiste ed è della fonte `$sourceId`. */
+    private static function belongs(int $id, string $sourceId): bool
+    {
+        try {
+            $rows = self::list(ImportLayout::find(['id' => $id, 'deleted' => 'false'], 1));
+        } catch (Throwable) {
+            return false;
+        }
+
+        return (string) ($rows[0]['layout'] ?? '') === $sourceId;
     }
 
     /** @return list<array<string, mixed>> */

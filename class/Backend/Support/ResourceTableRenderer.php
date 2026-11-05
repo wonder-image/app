@@ -4,12 +4,18 @@ namespace Wonder\Backend\Support;
 
 use Closure;
 use RuntimeException;
+use Throwable;
+use Wonder\App\Import\Layouts;
+use Wonder\App\Import\Profile;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
+use Wonder\App\Resources\Config\ImportResource;
+use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\Reorder;
 use Wonder\Backend\Table\Table;
 use Wonder\Elements\Components\Button;
+use Wonder\Elements\Components\ButtonGroup;
 use Wonder\Elements\Components\Dropdown;
 use Wonder\Sql\Query;
 
@@ -121,42 +127,99 @@ final class ResourceTableRenderer
         $this->applyButtonAdd($table);
         $this->applyButtonsCustom($table);
         $this->applyButtonDocs($table);
-        $this->applyButtonDownload($table);
+        $this->applyButtonData($table);
         $this->applyReorder($table);
         $this->applyColumns($table);
 
         return $table;
     }
 
-    private function applyButtonDownload(Table $table): void
+    /**
+     * «Esporta» (un formato per voce, poi i tracciati salvati della Resource)
+     * e «Importa» (con `importLayout()`, se l'utente può usare il tracciato),
+     * in un solo gruppo nel posto del vecchio bottone di export.
+     */
+    private function applyButtonData(Table $table): void
+    {
+        $buttons = array_values(array_filter([$this->exportDropdown(), $this->importButton()]));
+
+        if ($buttons === []) {
+            return;
+        }
+
+        if (count($buttons) === 1) {
+            $buttons[0]->schema('inline', true);
+        }
+
+        $html = count($buttons) === 1
+            ? $buttons[0]->render('bootstrap')
+            : (new ButtonGroup($buttons))->label('Esporta e importa')->size('sm')->render('bootstrap');
+
+        $table->buttonDataHtml($html);
+    }
+
+    private function exportDropdown(): ?Dropdown
     {
         $download = (array) ($this->tableLayoutSchema['download'] ?? []);
-
-        if (empty($download['enabled'])) {
-            return;
-        }
-
         $formats = (array) ($download['formats'] ?? []);
 
-        if ($formats === []) {
-            return;
+        if (empty($download['enabled']) || $formats === []) {
+            return null;
         }
 
-        // Endpoint custom Resource-aware: il controller applica colonne +
-        // callable dichiarati in tableLayoutSchema. Trailing slash importante
-        // perché Table costruisce `{endpoint}{format}/`.
+        // Il controller costruisce il file: `{endpoint}{formato}/`.
         try {
-            $endpoint = __r('backend.resource.'.$this->slug.'.export', ['format' => '__FMT__']);
-            $endpoint = (string) str_replace('__FMT__/', '', $endpoint);
-        } catch (\Throwable) {
-            $endpoint = '';
+            $endpoint = (string) str_replace('__FMT__/', '', __r('backend.resource.'.$this->slug.'.export', ['format' => '__FMT__']));
+        } catch (Throwable) {
+            return null;
         }
 
-        $label = isset($download['label']) && is_string($download['label']) && trim($download['label']) !== ''
-            ? trim($download['label'])
-            : null;
+        $label = is_string($download['label'] ?? null) && trim($download['label']) !== '' ? trim($download['label']) : 'Esporta';
+        $dropdown = Dropdown::make($label)->variant('secondary')->size('sm')->align('end');
 
-        $table->buttonDownload(true, $formats, $endpoint, $label);
+        foreach ($formats as $format => $formatLabel) {
+            $dropdown->item((string) $formatLabel, $endpoint.rawurlencode((string) $format).'/');
+        }
+
+        // Con un `downloadUsing()` il file lo fa il sito: niente tracciati.
+        $profiles = is_callable($download['handler'] ?? null) ? [] : Profile::options($this->slug);
+
+        if ($profiles !== []) {
+            $dropdown->divider()->header('Tracciati');
+
+            foreach ($profiles as $id => $name) {
+                foreach ($formats as $format => $formatLabel) {
+                    $dropdown->item($name.' · '.$formatLabel, $endpoint.rawurlencode((string) $format).'/?'.http_build_query(['layout' => $id]));
+                }
+            }
+        }
+
+        return $dropdown;
+    }
+
+    private function importButton(): ?Button
+    {
+        $import = $this->tableLayoutSchema['import'] ?? null;
+        $key = is_array($import) ? (string) ($import['layout'] ?? '') : '';
+        $user = RowVisibility::currentUser();
+
+        if ($key === '' || $user === null || $this->resourceClass::isReadonly()) {
+            return null;
+        }
+
+        try {
+            $layout = Layouts::find($key);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if ($layout === null || !$layout->permits($user)) {
+            return null;
+        }
+
+        return Button::to(ImportResource::url(['layout' => $key]), (string) ($import['label'] ?? null ?: 'Importa'))
+            ->variant('secondary')
+            ->size('sm');
     }
 
     private function applyLinks(Table $table): void

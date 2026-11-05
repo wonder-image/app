@@ -2,6 +2,8 @@
 
 namespace Wonder\App\Import;
 
+use Wonder\App\Dataset\Column;
+
 /**
  * Abbina le intestazioni di un file alle colonne di un tracciato.
  *

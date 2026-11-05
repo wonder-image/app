@@ -2,6 +2,7 @@
 
 namespace Wonder\App\Import;
 
+use Wonder\App\Dataset\Column;
 use Throwable;
 use Wonder\App\Support\NamedLock;
 use Wonder\Sql\Transaction;
