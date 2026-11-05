@@ -174,6 +174,7 @@ la cornice attorno alla tabella. Si costruisce con
 | `download($formats = true, $label = null)` | export (CSV/…); `$label` è il titolo della scheda Esporta nella finestra del bottone «File» |
 | `fileColumns(array $columns)` | colonne dell'export: nomi di campo, `Dataset\Column` o `['field', 'label', 'value']` (vedi [Tracciati](../tracciati.md)); `downloadColumns()` è l'alias deprecato |
 | `fileRows(callable $rows)` | righe dell'export al posto di quelle del Model: riceve la condizione già ristretta alla visibilità per riga |
+| `feeds(array $feeds)` | scheda «Feed prodotti» nella finestra del bottone «File»: feed a indirizzo fisso (`format`, `label`, `url`, `updated_at`, `every`), il cui formato esce da Esporta (vedi [Tracciati](../tracciati.md)) |
 | `importLayout(?string $layout, ?string $label = null)` | scheda «Importa» nella finestra del bottone «File», verso il caricamento con quel tracciato; il titolo della scheda è sempre «Importa», `$label` non si vede più |
 | `downloadFileName(string $filename)` | nome file export |
 | `downloadUsing(callable $handler)` | export con un gestore proprio: riceve il formato e invia il file |

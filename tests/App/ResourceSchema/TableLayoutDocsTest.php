@@ -67,4 +67,18 @@ check('il renderer accetta un layout su misura', function () {
         && (TableLayoutDocsResource::tableLayoutSchema()->get('docs')['enabled'] ?? null) === true;
 });
 
+check('TableLayoutSchema::feeds normalizza e toglie i doppioni', function () {
+    $feeds = TableLayoutSchema::for(TableLayoutDocsResource::class)->feeds([
+        ['format' => ' META ', 'url' => ' https://x.it/f.csv ', 'updated_at' => 0, 'every' => ''],
+        ['format' => 'meta', 'label' => 'Catalogo Meta', 'updated_at' => '1700000000'],
+        ['format' => ''],
+        'rotto',
+    ])->get('feeds');
+
+    return $feeds === [[
+        'format' => 'meta', 'label' => 'Catalogo Meta', 'url' => '',
+        'updated_at' => 1700000000, 'every' => null,
+    ]];
+});
+
 summary();

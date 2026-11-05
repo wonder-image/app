@@ -75,6 +75,8 @@ final class TableLayoutSchema
                 'text' => false,
                 'formula_safe' => true,
             ],
+            // Feed a indirizzo fisso della scheda «Feed prodotti» (vedi `feeds()`).
+            'feeds' => [],
             // Bottone "Importa" accanto a "Esporta": la chiave del tracciato
             // di caricamento (`import.layouts`) e la sua etichetta.
             'import' => null,
@@ -478,6 +480,53 @@ final class TableLayoutSchema
     public function fileRows(callable $rows): self
     {
         $this->schema['download']['rows'] = $rows;
+
+        return $this;
+    }
+
+    /**
+     * I feed a indirizzo fisso della lista (es. Catalogo Meta, Google
+     * Merchant): la finestra «File» li mostra nella scheda «Feed prodotti»,
+     * con l'indirizzo da copiare, l'ultimo aggiornamento e «Scarica ora».
+     * `format` è un formato di `download()`: non compare più tra le scelte
+     * di Esporta, ma resta il file di «Scarica ora». Un feed con un formato
+     * che `download()` non concede non si mostra.
+     *
+     * ```php
+     * ->feeds([[
+     *     'format' => 'meta',
+     *     'label' => 'Catalogo Meta',
+     *     'url' => 'https://negozio.it/shared/feeds/catalogo-meta.csv',
+     *     'updated_at' => 1762351200, // null: non ancora generato
+     *     'every' => 'Ogni 6 ore',
+     * ]])
+     * ```
+     *
+     * @param list<array{format: string, label?: string, url?: string, updated_at?: ?int, every?: ?string}> $feeds
+     */
+    public function feeds(array $feeds): self
+    {
+        $normalized = [];
+
+        foreach ($feeds as $feed) {
+            $format = is_array($feed) ? strtolower(trim((string) ($feed['format'] ?? ''))) : '';
+
+            if ($format === '') {
+                continue;
+            }
+
+            $updated = $feed['updated_at'] ?? null;
+            $every = trim((string) ($feed['every'] ?? ''));
+            $normalized[$format] = [
+                'format' => $format,
+                'label' => trim((string) ($feed['label'] ?? '')) ?: strtoupper($format),
+                'url' => trim((string) ($feed['url'] ?? '')),
+                'updated_at' => is_numeric($updated) && (int) $updated > 0 ? (int) $updated : null,
+                'every' => $every !== '' ? $every : null,
+            ];
+        }
+
+        $this->schema['feeds'] = array_values($normalized);
 
         return $this;
     }
