@@ -12,6 +12,10 @@
   (`Column::required()`). Vedi `docs/app/concetti/importazione.md`.
 
 ### Corretto
+- **Errore 500 in Set-up → Credenziali.** La card Google Cloud elencava la
+  Cloud Translation API senza la sua descrizione in `google.json`, e la chiave
+  mancante fermava la pagina. Aggiunta `google.apis.translation.purpose` in
+  italiano e inglese.
 - **Titolo della scheda vuoto nelle pagine con layout annidati.** I dati di
   `View::layout()` (per esempio `TITLE`) non arrivavano ai layout aperti dal
   layout stesso, così `backend.base` scriveva `<title></title>` nelle pagine
