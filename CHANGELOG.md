@@ -12,6 +12,11 @@
   (`Column::required()`). Vedi `docs/app/concetti/importazione.md`.
 
 ### Corretto
+- **Titolo della scheda vuoto nelle pagine con layout annidati.** I dati di
+  `View::layout()` (per esempio `TITLE`) non arrivavano ai layout aperti dal
+  layout stesso, così `backend.base` scriveva `<title></title>` nelle pagine
+  `backend.show` personalizzate, come Catalogo → Etichette del gestionale.
+  `View::end()` passa ai layout annidati i dati di quello che li apre.
 - **Errori fatali dei processi dello scheduler invisibili nel registro esecuzioni.**
   Con `display_errors` spento nel PHP CLI dell'hosting, un fatal del crawler
   sitemap, del worker o di uno script pianificato lasciava solo «terminato con

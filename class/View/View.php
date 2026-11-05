@@ -10,6 +10,8 @@ class View
 {
     private static array $layoutStack = [];
     private static array $dataStack = [];
+    // Dati dei layout in esecuzione: un layout aperto dentro un altro li eredita.
+    private static array $renderingLayoutStack = [];
     private static array $globalStack = [];
     private static array $headEntries = [];
 
@@ -104,8 +106,13 @@ class View
         }
 
         $content = ob_get_clean();
+        $parentLayoutData = end(self::$renderingLayoutStack);
+        $parentLayoutData = is_array($parentLayoutData) ? $parentLayoutData : [];
+        unset($parentLayoutData['PAGE_CONTENT']);
+
         $layoutData = array_merge(
             self::currentData(),
+            $parentLayoutData,
             is_array($context['data'] ?? null) ? $context['data'] : []
         );
 
@@ -117,7 +124,13 @@ class View
         extract(self::runtimeData(), EXTR_SKIP);
         extract($layoutData, EXTR_SKIP);
 
-        include self::resolveLayoutPath((string) ($context['layout'] ?? ''), (string) $ROOT, (string) $ROOT_APP);
+        self::$renderingLayoutStack[] = $layoutData;
+
+        try {
+            include self::resolveLayoutPath((string) ($context['layout'] ?? ''), (string) $ROOT, (string) $ROOT_APP);
+        } finally {
+            array_pop(self::$renderingLayoutStack);
+        }
     }
 
     private static function runtimeData(): array
