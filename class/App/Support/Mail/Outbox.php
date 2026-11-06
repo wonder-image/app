@@ -37,8 +37,9 @@ final class Outbox
 
     /**
      * `$message`: `from`, `to`, `subject`, `body`, `attachments`, `template`
-     * (gli argomenti di `sendMail()`). `$send` riceve gli stessi argomenti
-     * in ordine; di default è `sendMail()`.
+     * e `options` (`cc`, `bcc`): gli argomenti di `sendMail()`. `$send`
+     * riceve gli stessi argomenti in ordine (`arguments()`); di default è
+     * `sendMail()`.
      */
     public static function queue(array $message, ?OutboxStore $store = null, ?callable $send = null, ?int $now = null): bool
     {
@@ -58,7 +59,7 @@ final class Outbox
             __log($exception, '[outbox]', '[queueMail]');
         }
 
-        return (bool) $send(...array_values($message));
+        return (bool) $send(...self::arguments($message));
     }
 
     /**
@@ -85,7 +86,7 @@ final class Outbox
             $attempts = (int) $claim['attempts'] + 1;
 
             try {
-                $delivery = $deliver(...array_values(self::message((array) $claim['message'])));
+                $delivery = $deliver(...self::arguments((array) $claim['message']));
             } catch (Throwable $exception) {
                 $delivery = ['sent' => false, 'error' => $exception->getMessage()];
             }
@@ -155,6 +156,21 @@ final class Outbox
             'body' => (string) ($message['body'] ?? ''),
             'attachments' => $message['attachments'] ?? null,
             'template' => (string) ($message['template'] ?? 'basic'),
+            // Le righe accodate prima dei CC non hanno `options`: liste vuote.
+            'options' => Recipients::options((array) ($message['options'] ?? []), (string) ($message['to'] ?? '')),
         ];
+    }
+
+    /**
+     * Argomenti posizionali di `sendMail()` / `mailDeliver()`: `$credentials`
+     * resta null (la coda usa sempre quelle salvate), poi `$options`.
+     */
+    public static function arguments(array $message): array
+    {
+        $message = self::message($message);
+        $options = $message['options'];
+        unset($message['options']);
+
+        return [...array_values($message), null, $options];
     }
 }

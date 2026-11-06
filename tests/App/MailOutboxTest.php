@@ -98,7 +98,7 @@ check('senza heartbeat dello scheduler queue() spedisce subito con sendMail()', 
     $store = new MemoriaOutbox(null);
 
     return Outbox::queue($message, $store, $sync, $now) && $store->rows === [] && count($spedite) === 1
-        && $spedite[0] === array_values(Outbox::message($message));
+        && $spedite[0] === Outbox::arguments($message);
 });
 
 check('con un heartbeat vecchio queue() spedisce subito', static function () use ($message, $sync, &$spedite, $now): bool {
@@ -130,8 +130,47 @@ check('il worker riceve il messaggio identico a quello accodato e svuota il payl
     $ricevuto = null;
     $result = Outbox::process($store, static function (...$args) use (&$ricevuto): array { $ricevuto = $args; return ['sent' => true, 'service' => 'brevo', 'error' => '']; }, null, $now);
 
-    return $ricevuto === array_values(Outbox::message($message)) && $result['sent'] === 1
+    return $ricevuto === Outbox::arguments($message) && $result['sent'] === 1
         && $store->rows[1]['status'] === 'sent' && $store->rows[1]['attempts'] === 1 && $store->rows[1]['payload'] === null;
+});
+
+check('gli argomenti della coda sono quelli di sendMail(): credenziali null, poi le opzioni', static fn (): bool =>
+    Outbox::arguments($message) === ['negozio@example.test', 'cliente@example.test', 'Ordine', $message['body'], ['/tmp/fattura.pdf'], 'basic', null, ['cc' => [], 'bcc' => []]]
+);
+
+check('CC e BCC accodati tornano al worker normalizzati', static function () use ($message, $now): bool {
+    $store = new MemoriaOutbox(gmdate('Y-m-d H:i:s', $now));
+    Outbox::queue($message + ['options' => ['cc' => 'azienda@example.test; Cliente@example.test', 'bcc' => ['archivio@example.test', 'azienda@example.test']]], $store, null, $now);
+    $ricevuto = null;
+    Outbox::process($store, static function (...$args) use (&$ricevuto): array { $ricevuto = $args; return ['sent' => true, 'service' => 'brevo', 'error' => '']; }, null, $now);
+
+    return ($ricevuto[7] ?? null) === ['cc' => ['azienda@example.test'], 'bcc' => ['archivio@example.test']];
+});
+
+check('il fallback senza scheduler passa CC e BCC a sendMail()', static function () use ($message, $sync, &$spedite, $now): bool {
+    $spedite = [];
+    Outbox::queue($message + ['options' => ['cc' => 'azienda@example.test']], new MemoriaOutbox(null), $sync, $now);
+
+    return count($spedite[0] ?? []) === 8 && $spedite[0][6] === null && ($spedite[0][7]['cc'] ?? null) === ['azienda@example.test'];
+});
+
+check('una riga accodata prima dei CC (payload senza options) parte con liste vuote', static function () use ($message, $now): bool {
+    $store = new MemoriaOutbox(gmdate('Y-m-d H:i:s', $now));
+    $store->rows[1] = ['status' => 'queued', 'attempts' => 0, 'next' => Outbox::time($now), 'payload' => json_encode($message), 'error' => '', 'service' => ''];
+    $ricevuto = null;
+    Outbox::process($store, static function (...$args) use (&$ricevuto): array { $ricevuto = $args; return ['sent' => true, 'service' => 'brevo', 'error' => '']; }, null, $now);
+
+    return ($ricevuto[7] ?? null) === ['cc' => [], 'bcc' => []] && $store->rows[1]['status'] === 'sent';
+});
+
+check('queueMail con un\'opzione sconosciuta è un errore di chi chiama', static function () use ($message, $now): bool {
+    try {
+        Outbox::queue($message + ['options' => ['ccn' => 'a@example.test']], new MemoriaOutbox(gmdate('Y-m-d H:i:s', $now)), null, $now);
+    } catch (InvalidArgumentException) {
+        return true;
+    }
+
+    return false;
 });
 
 check('un errore temporaneo riprova con attese crescenti fino a MAX_ATTEMPTS', static function () use ($message, $now, $errore): bool {

@@ -106,8 +106,13 @@
 
     }
 
-    /** `$credentials` sostituisce `Credentials::mail()` per questo invio (la prova del backend). */
-    function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic', ?object $credentials = null){
+    /**
+     * `$credentials` sostituisce `Credentials::mail()` per questo invio (la
+     * prova del backend). `$options`: `cc` e `bcc`, stringa o lista di
+     * indirizzi (vedi `Wonder\App\Support\Mail\Recipients`); passalo per
+     * nome: `sendMail($from, $to, $oggetto, $corpo, options: ['cc' => $copia])`.
+     */
+    function sendMail($from, $to, $object, $body, $attachments = null, $template = 'basic', ?object $credentials = null, array $options = []){
 
         // I test girano sul database di un sito vero, con indirizzi veri:
         // lì non parte niente.
@@ -115,7 +120,7 @@
             return true;
         }
 
-        $DELIVERY = mailDeliver($from, $to, $object, $body, $attachments, $template, $credentials);
+        $DELIVERY = mailDeliver($from, $to, $object, $body, $attachments, $template, $credentials, $options);
 
         $GLOBALS['MAIL_LAST_ERROR'] = $DELIVERY['error'];
 
@@ -123,6 +128,8 @@
             'from_email' => $DELIVERY['from_email'],
             'reply_to_email' => $DELIVERY['reply_to_email'],
             'to_email' => (string) $to,
+            'cc_email' => Wonder\App\Support\Mail\Recipients::format($DELIVERY['cc']),
+            'bcc_email' => Wonder\App\Support\Mail\Recipients::format($DELIVERY['bcc']),
             'subject' => (string) $object,
             'template' => (string) $template,
             'body_raw' => $DELIVERY['body_raw'],
@@ -142,9 +149,10 @@
      * `queued`) e parte al prossimo giro del task `wonder.mail-outbox`.
      * Senza heartbeat recente dello scheduler, o se la coda non è
      * scrivibile, spedisce subito con `sendMail()`. Vedi
-     * `Wonder\App\Support\Mail\Outbox`.
+     * `Wonder\App\Support\Mail\Outbox`. `$options` come in `sendMail()`
+     * (`cc`, `bcc`): passalo per nome, `options: [...]`.
      */
-    function queueMail($from, $to, $object, $body, $attachments = null, $template = 'basic'){
+    function queueMail($from, $to, $object, $body, $attachments = null, $template = 'basic', array $options = []){
 
         if (defined('WONDER_NO_MAIL') && WONDER_NO_MAIL === true) {
             return true;
@@ -157,6 +165,7 @@
             'body' => (string) $body,
             'attachments' => $attachments,
             'template' => (string) $template,
+            'options' => $options,
         ]);
 
     }
@@ -199,9 +208,10 @@
     /**
      * Spedisce una mail con il servizio configurato, senza scrivere
      * `mail_log`: lo fanno `sendMail()` (riga nuova) e la coda (riga già
-     * accodata). Ritorna esito, servizio, errore e i dati da registrare.
+     * accodata). Ritorna esito, servizio, errore e i dati da registrare,
+     * compresi i `cc` e `bcc` normalizzati. `$options` come in `sendMail()`.
      */
-    function mailDeliver($from, $to, $object, $body, $attachments = null, $template = 'basic', ?object $credentials = null): array
+    function mailDeliver($from, $to, $object, $body, $attachments = null, $template = 'basic', ?object $credentials = null, array $options = []): array
     {
 
         global $SOCIETY;
@@ -213,6 +223,8 @@
         $CREDENTIALS = null;
         $replyTo = trim((string) $from);
         $MAIL_SERVICE_SENT = 'phpmailer';
+        // Una chiave sconosciuta in `$options` è un errore di chi chiama: eccezione, non invio fallito.
+        $RECIPIENTS = Wonder\App\Support\Mail\Recipients::options($options, $to);
 
         try {
 
@@ -245,6 +257,9 @@
 
                     $BREVO->sender($CREDENTIALS->username, $SOCIETY_NAME)
                         ->to($to);
+
+                    foreach ($RECIPIENTS['cc'] as $address) { $BREVO->cc($address); }
+                    foreach ($RECIPIENTS['bcc'] as $address) { $BREVO->bcc($address); }
 
                     if ($replyTo !== '') {
                         $BREVO->replyTo($replyTo, $SOCIETY_NAME);
@@ -291,6 +306,8 @@
                     
                     # Header
                         $MAIL->addAddress($to);
+                        foreach ($RECIPIENTS['cc'] as $address) { $MAIL->addCC($address); }
+                        foreach ($RECIPIENTS['bcc'] as $address) { $MAIL->addBCC($address); }
                         $MAIL->setFrom($CREDENTIALS->username, $SOCIETY_NAME);
                         if ($replyTo !== '') { $MAIL->addReplyTo($replyTo, $SOCIETY_NAME); }
                 
@@ -339,6 +356,8 @@
             'reply_to_email' => $replyTo !== '' ? $replyTo : null,
             'body_raw' => $BODY_RAW,
             'body_text' => $BODY_TEXT,
+            'cc' => $RECIPIENTS['cc'],
+            'bcc' => $RECIPIENTS['bcc'],
         ];
 
     }

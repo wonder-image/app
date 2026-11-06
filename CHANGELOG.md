@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Aggiunto
+- **CC e CCN nelle email.** `sendMail()`, `queueMail()` e `mailDeliver()`
+  accettano in fondo `array $options = []` con `cc` e `bcc` (stringa o lista),
+  da passare per nome (`options: ['cc' => ...]`): le chiamate esistenti non
+  cambiano. `Wonder\App\Support\Mail\Recipients` scarta gli indirizzi non
+  validi, i doppioni e il destinatario; PHPMailer usa `addCC()` / `addBCC()`,
+  Brevo `cc()` / `bcc()`. La coda salva e ripassa le opzioni
+  (`Outbox::arguments()`); `mail_log` ha le colonne `cc_email` e `bcc_email`,
+  mostrate nel log delle email e cercabili. (#201)
 - **Segreti di Credenziali cifrati.** Le chiavi, le password e i token della
   tabella `security` (`Security::SECRET_COLUMNS`) si salvano cifrati con
   `APP_ENCRYPTION_KEY`, chiave dedicata distinta da `APP_KEY`

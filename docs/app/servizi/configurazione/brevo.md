@@ -258,7 +258,7 @@ $activity = (new Account())
 
 ## Note pratiche
 
-- Se usi `sendMail()` con servizio `brevo`, il framework usa internamente `TransactionalEmail`.
+- Se usi `sendMail()` con servizio `brevo`, il framework usa internamente `TransactionalEmail`; le opzioni `cc` e `bcc` di `sendMail()` diventano `cc()` e `bcc()` (vedi [Email](email.md#copia-cc-e-copia-nascosta-ccn)).
 - Per le email HTML puoi passare direttamente tag come `<br>`, `<b>` e `<a>`.
 - Per i contatti, gli attributi personalizzati devono esistere gia su Brevo.
 

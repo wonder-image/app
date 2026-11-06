@@ -38,6 +38,8 @@ echo ResourceFormLayoutRenderer::renderLayout(
                     .'Mittente: <b>'.$esc((string) ($mail->from_email ?? '')).'</b><br>'
                     .'Risposta: <b>'.$esc((string) ($mail->reply_to_email ?? '')).'</b><br>'
                     .'Destinatario: <b>'.$esc((string) ($mail->to_email ?? '')).'</b><br>'
+                    .(($mail->cc_email ?? '') !== '' ? 'Copia (CC): <b>'.$esc((string) $mail->cc_email).'</b><br>' : '')
+                    .(($mail->bcc_email ?? '') !== '' ? 'Copia nascosta (CCN): <b>'.$esc((string) $mail->bcc_email).'</b><br>' : '')
                     .'Template: <b>'.$esc((string) ($mail->template ?? '')).'</b>'
                 .'</div>',
             ])->columnSpan(12),

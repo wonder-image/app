@@ -551,6 +551,16 @@ php forge start
   `mail_queue` warns when the oldest due mail waits over 15 min. Opt-in only:
   never switch existing `sendMail()` callers. See
   `docs/app/servizi/configurazione/email.md#coda-di-invio`.
+- Mail CC/BCC: `sendMail()`, `queueMail()` and `mailDeliver()` take a trailing
+  `array $options = []` (`cc`, `bcc`: string or list), passed by name
+  (`options: [...]`) so positional calls (`$credentials` 7th) never change.
+  `App\Support\Mail\Recipients` is the only normalizer (valid only,
+  case-insensitive dedupe, `to` out of CC, `to`+CC out of BCC; unknown key
+  throws `InvalidArgumentException`); new mail options go in
+  `Recipients::OPTIONS`, never as new positional parameters. The outbox keeps
+  `options` in `payload` and calls the transports through
+  `Outbox::arguments()`; `mail_log.cc_email` / `bcc_email` hold
+  `Recipients::format()`. See `email.md#copia-cc-e-copia-nascosta-ccn`.
 - `Resource::formNotices($values, $mode)` returns `{level, message}` alerts
   printed above the backend form, outside the `<form>` (`FORM_NOTICES` in
   `ResourcePagePresenter`), for external state such as Google differences.
