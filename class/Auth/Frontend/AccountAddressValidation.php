@@ -15,7 +15,7 @@ class AccountAddressValidation
         $country = is_scalar($values[$key('country')] ?? null) ? (string) $values[$key('country')]
             : (string) (($address->formSchema()[$key('country')] ?? null)?->get('value') ?? '');
         if (function_exists('states') && states($country) !== []) { $required[] = 'province'; }
-        if (($values[$key('type')] ?? 'private') === 'business') {
+        if (($address->fixedType() ?? $values[$key('type')] ?? 'private') === 'business') {
             $required[] = 'business_name';
         } else {
             $required = [...$required, 'name', 'surname'];
