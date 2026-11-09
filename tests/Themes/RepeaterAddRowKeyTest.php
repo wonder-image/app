@@ -89,10 +89,33 @@ check('la chiave della riga va anche negli id e nei for, come nei name', functio
 
     return str_contains($html, 'id="radio-products[__ROW_KEY__][preferred]-1"')
         && str_contains($html, 'for="radio-products[__ROW_KEY__][preferred]-1"')
-        && str_contains($js, "fragment.querySelectorAll('[id*=\"__ROW_KEY__\"]')")
-        && str_contains($js, "element.id = element.id.replaceAll('__ROW_KEY__', rowKey);")
-        && str_contains($js, "fragment.querySelectorAll('label[for*=\"__ROW_KEY__\"]')")
-        && str_contains($js, "label.htmlFor = label.htmlFor.replaceAll('__ROW_KEY__', rowKey);");
+        && str_contains($js, "Array.from(element.attributes)")
+        && str_contains($js, "attribute.value.replaceAll('__ROW_KEY__', rowKey)");
+});
+
+// Anche il campo semplice: con l'id fisso del template, due righe aggiunte
+// avevano lo stesso id e la creazione rapida riempiva sempre la prima.
+check('il campo della riga modello porta la chiave nell\'id', function () use ($script) {
+    $field = new class {
+        public array $schema = [];
+    };
+
+    $field->schema = [
+        'id' => 'people',
+        'name' => 'people',
+        'label' => 'Referenti',
+        'value' => ['row_1' => ['person_id' => '']],
+        'columns' => [RepeaterColumn::key('person_id')->select(['1' => 'Mario'])->label('Persona')],
+        'context' => ['nested' => true],
+    ];
+
+    $html = (new Repeater)->render($field);
+    $template = substr($html, (int) strpos($html, '<template'));
+    $rows = substr($html, 0, (int) strpos($html, '<template'));
+
+    return preg_match('/<select[^>]+id="field_[a-z]+-__ROW_KEY__"/', $template) === 1
+        && preg_match('/<select[^>]+id="field_[a-z]+"/', $rows) === 1
+        && str_contains($script(), 'window.wiQuickCreateDetach()');
 });
 
 summary();

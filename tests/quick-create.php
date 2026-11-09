@@ -182,4 +182,13 @@ $check(str_contains($script, 'defaultValue'), 'resetFields restores the defaults
 $check(QuickCreateController::responseItem(['id' => 9, 'name' => 'Polo'], ['name' => 'Polo', 'parent_id' => '4']) === ['name' => 'Polo', 'parent_id' => '4', 'id' => 9], 'responseItem merges posted values under the stored row');
 $check(QuickCreateController::responseItem(['id' => 9], ['tags' => ['a', 'b']]) === ['id' => 9], 'responseItem keeps only scalar posted values');
 
+// Una Resource che crea da sé (QuickCreateStore): risposta e avviso.
+$made = QuickCreateController::fromStore(['id' => 7, 'label' => 'Rossi', 'message' => "C'era già"]);
+$check($made['success'] === true && $made['id'] === 7 && $made['label'] === 'Rossi', 'fromStore passes id and label');
+$check($made['message'] === "C'era già" && $made['item'] === ['id' => 7], 'fromStore keeps the message and the id in item');
+$failed = QuickCreateController::fromStore(['error' => 'Doppione non visibile']);
+$check($failed['success'] === false && $failed['error'] === 'Doppione non visibile' && $failed['status'] === 422, 'fromStore without id is an error');
+$check(str_contains($script, 'window.wiQuickCreateDetach = detachModals'), 'the detach is exposed for added rows');
+$check(str_contains($script, 'made.message'), 'the client shows the handler message');
+
 echo "OK: {$checks} checks passed\n";

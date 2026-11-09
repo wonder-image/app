@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Aggiunto
+- **Creazione rapida dentro il processo.** Una Resource che implementa
+  `Wonder\Backend\Support\QuickCreateStore` crea la riga del "+" da sé,
+  con l'utente della sessione, invece di passare dallo store API come
+  `@system`: serve a chi deve cercare doppioni o assegnare la riga. Il
+  `message` della risposta compare come avviso dopo la selezione. Vedi
+  `docs/app/concetti/form/quick-create.md`.
 - **`WelcomeMail`.** La mail di benvenuto di un utente backend (link
   `password_set`, `auth_log` `welcome_mail`) esce da
   `UserManagementPageController` in `Wonder\Backend\Support\WelcomeMail::send()`,
@@ -101,6 +107,13 @@
   come prima.
 
 ### Corretto
+- **Creazione rapida nelle righe aggiunte di un repeater.** La riga modello
+  dava a tutte le righe nuove lo stesso id del campo: il "+" di una riga
+  riempiva la prima e il suo modale restava dentro il form, con i campi
+  postati insieme alla scheda. Ora l'id della riga modello porta
+  `-__ROW_KEY__`, `wiRepeaterAddRow` lo sostituisce in ogni attributo e
+  chiama `window.wiQuickCreateDetach()`. Vedi
+  `docs/app/concetti/form/repeater.md#righe-che-nascono-da-fuori`.
 - **Righe del repeater con solo i default.** Una riga che ha solo i valori di
   default delle colonne (es. nazione `IT`, o la prima opzione di una tendina mai scelta) ora è vuota e non si salva:
   `Repeater::columnDefaults()` e il quarto argomento di `rowsFromRequest()`.
