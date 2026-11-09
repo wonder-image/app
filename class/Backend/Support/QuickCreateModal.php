@@ -329,6 +329,9 @@ final class QuickCreateModal
     }
   }
 
+  // Anche per le righe aggiunte dopo (repeater): le chiama `wiRepeaterAddRow`.
+  window.wiQuickCreateDetach = detachModals;
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', detachModals);
   } else {
@@ -424,6 +427,8 @@ final class QuickCreateModal
           optionInto(targetInput(modal.getAttribute('data-wi-qc-input')), modal.getAttribute('data-wi-qc-family'), made.id, made.label, modal.getAttribute('data-wi-qc-resource'), made.item, trigger);
           resetFields(form);
           var box = modal.querySelector('.wi-qc-alert'); if (box) box.innerHTML = '';
+          // Un avviso del gestore (es. «c'era già, l'ho selezionata»).
+          if (made.message && window.alertToast) { window.alertToast('custom', 'info', 'Creazione rapida', made.message); }
           if (window.bootstrap && window.bootstrap.Modal) {
             var m = window.bootstrap.Modal.getInstance(modal) || new window.bootstrap.Modal(modal);
             m.hide();

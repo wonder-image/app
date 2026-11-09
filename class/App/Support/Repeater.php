@@ -3,6 +3,8 @@
 namespace Wonder\App\Support;
 
 use Wonder\App\LegacyGlobals;
+use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputSelect;
 use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\Table;
 
@@ -13,7 +15,11 @@ final class Repeater
         return is_array($post[$name] ?? null) || is_array($files[$name]['name'] ?? null);
     }
 
-    public static function rowsFromRequest(string $name, array $post, array $files = []): array
+    /**
+     * @param array<string, string> $defaults Valori di default delle colonne
+     *        ({@see columnDefaults()}): una riga che ha solo quelli è vuota.
+     */
+    public static function rowsFromRequest(string $name, array $post, array $files = [], array $defaults = []): array
     {
         $rows = is_array($post[$name] ?? null) ? $post[$name] : [];
         $fileRows = static::filesFromRequest($name, $files);
@@ -30,8 +36,47 @@ final class Repeater
 
         return array_values(array_filter(
             $rows,
-            static fn ($row) => is_array($row) && !static::isEmptyRow($row)
+            static fn ($row) => is_array($row) && !static::isEmptyRow($row, $defaults)
         ));
+    }
+
+    /**
+     * I valori di default (`->value()`) delle colonne di un repeater.
+     *
+     * Una colonna precompilata, come la nazione su `IT`, posta il suo valore
+     * anche nella riga che nessuno ha toccato: senza saperlo, quella riga
+     * passava per piena e si salvava.
+     *
+     * @return array<string, string>
+     */
+    public static function columnDefaults(object $field): array
+    {
+        if (!method_exists($field, 'get')) {
+            return [];
+        }
+
+        $context = (array) ($field->get('context') ?? []);
+        $defaults = [];
+
+        foreach ((array) ($context['columns'] ?? []) as $column) {
+            if (!$column instanceof Input) {
+                continue;
+            }
+
+            $value = $column->get('value');
+
+            // Una tendina senza scelta posta comunque la sua prima opzione.
+            if (($value === null || $value === '') && $column instanceof InputSelect && !$column->get('multiple')) {
+                $options = (array) ($column->get('options') ?? []);
+                $value = $options !== [] ? (string) array_key_first($options) : null;
+            }
+
+            if (is_scalar($value) && trim((string) $value) !== '') {
+                $defaults[$column->name] = trim((string) $value);
+            }
+        }
+
+        return $defaults;
     }
 
     /**
@@ -338,9 +383,18 @@ final class Repeater
         return $prepared;
     }
 
-    protected static function isEmptyRow(array $row): bool
+    protected static function isEmptyRow(array $row, array $defaults = []): bool
     {
         foreach ($row as $key => $value) {
+            if (
+                is_string($key)
+                && is_scalar($value)
+                && array_key_exists($key, $defaults)
+                && trim((string) $value) === $defaults[$key]
+            ) {
+                continue;
+            }
+
             // Il campo file porta con sé l'elenco dei file già caricati, e
             // quando non ce n'è nessuno vale la stringa `[]`: presa per un
             // valore qualsiasi, teneva in piedi righe senza niente dentro.

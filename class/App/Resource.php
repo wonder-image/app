@@ -447,7 +447,7 @@ abstract class Resource
             $relation = $entry['relation'];
             $rows = static::prepareRepeaterRows(
                 $inputName,
-                Repeater::rowsFromRequest($inputName, $post, $files),
+                Repeater::rowsFromRequest($inputName, $post, $files, Repeater::columnDefaults($entry['field'])),
                 $action,
                 $context
             );
@@ -517,7 +517,7 @@ abstract class Resource
             }
 
             if (Repeater::hasRowsInRequest($inputName, $post, $files)) {
-                $values[$inputName] = Repeater::rowsFromRequest($inputName, $post, $files);
+                $values[$inputName] = Repeater::rowsFromRequest($inputName, $post, $files, Repeater::columnDefaults($field));
                 continue;
             }
 

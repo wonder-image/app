@@ -14,7 +14,7 @@ $result = \Wonder\Http\Csrf::verify()
 
 $status = (int) ($result['status'] ?? 200);
 $payload = !empty($result['success'])
-    ? Envelope::success(['id' => $result['id'], 'label' => $result['label'], 'item' => $result['item']], $status)
+    ? Envelope::success(['id' => $result['id'], 'label' => $result['label'], 'item' => $result['item'], 'message' => (string) ($result['message'] ?? '')], $status)
     : Envelope::error((string) ($result['error'] ?? ''), $status);
 
 http_response_code($status);
