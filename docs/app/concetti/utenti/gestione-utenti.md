@@ -65,9 +65,15 @@ Il form non contiene né stampa alcuna password. Un nuovo utente backend viene
 creato **senza password** e la welcome mail porta il link
 `/backend/account/password-set/?token=…`: un token monouso di scopo
 `password_set` emesso con
-`(new OneTimeToken('password_set', UserManagementPageController::WELCOME_TOKEN_TTL))->issue($userId)`
+`(new OneTimeToken('password_set', WelcomeMail::TOKEN_TTL))->issue($userId)`
 (72 ore). Le credenziali non viaggiano mai in mail. Un utente già esistente
 che ha una password riceve solo il link di accesso.
+
+La mail la manda `Wonder\Backend\Support\WelcomeMail::send($post, $user)`,
+con `$post` (`name`, `username`, `email`, `authority`) e l'utente restituito da
+`user()`; torna se è partita. La usano la gestione utenti e i moduli che creano
+utenti del backend da una loro pagina (per esempio i commerciali del
+gestionale). `UserManagementPageController::WELCOME_TOKEN_TTL` resta come alias.
 
 L'esito finisce in `auth_log` con l'evento `welcome_mail` (`success` 0 e
 `reason` `mail_failed` o `token_failed` quando qualcosa non va). Se la mail non

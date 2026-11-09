@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Aggiunto
+- **`WelcomeMail`.** La mail di benvenuto di un utente backend (link
+  `password_set`, `auth_log` `welcome_mail`) esce da
+  `UserManagementPageController` in `Wonder\Backend\Support\WelcomeMail::send()`,
+  così i moduli che creano utenti la riusano. Il controller la chiama come
+  prima. Vedi `docs/app/concetti/utenti/gestione-utenti.md`.
 - **Fatturazione a tipo fisso.** `AddressExtension::asPrivate()` (nome,
   cognome, codice fiscale) e `asBusiness()` (ragione sociale, CF, P.IVA, SDI,
   PEC) tolgono la scelta del tipo per le tabelle che sono già una persona o
