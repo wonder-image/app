@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Aggiunto
+- **`WelcomeMail`.** La mail di benvenuto di un utente backend (link
+  `password_set`, `auth_log` `welcome_mail`) esce da
+  `UserManagementPageController` in `Wonder\Backend\Support\WelcomeMail::send()`,
+  così i moduli che creano utenti la riusano. Il controller la chiama come
+  prima. Vedi `docs/app/concetti/utenti/gestione-utenti.md`.
 - **Fatturazione a tipo fisso.** `AddressExtension::asPrivate()` (nome,
   cognome, codice fiscale) e `asBusiness()` (ragione sociale, CF, P.IVA, SDI,
   PEC) tolgono la scelta del tipo per le tabelle che sono già una persona o
@@ -96,6 +101,10 @@
   come prima.
 
 ### Corretto
+- **Righe del repeater con solo i default.** Una riga che ha solo i valori di
+  default delle colonne (es. nazione `IT`, o la prima opzione di una tendina mai scelta) ora è vuota e non si salva:
+  `Repeater::columnDefaults()` e il quarto argomento di `rowsFromRequest()`.
+  Vedi `docs/app/concetti/form/repeater.md#righe-vuote`.
 - **Bottone «File» delle liste.** Con uno slug che dopo la pulizia resta vuoto
   l'id della finestra e delle schede era `wi-file-`: ora è `wi-file-resource`.
   Se `$_SESSION['wi_resource_export']` non era un array, ricordare l'ultima
