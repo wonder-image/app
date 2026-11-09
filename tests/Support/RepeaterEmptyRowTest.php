@@ -5,6 +5,8 @@ declare(strict_types=1);
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../harness.php';
 
+use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\Support\Repeater;
 
 $righe = static fn (array $post): array => Repeater::rowsFromRequest('images', $post);
@@ -61,6 +63,29 @@ check('con un file già caricato la riga resta', function () use ($righe) {
     ]]]);
 
     return count($rows) === 1;
+});
+
+check('una riga con solo i valori di default delle colonne non si salva', function () {
+    // La nazione precompilata su IT posta il suo valore anche nella riga mai toccata.
+    $field = FormField::key('addresses')->repeater()->columns([
+        RepeaterColumn::key('street')->text(),
+        RepeaterColumn::key('is_default')->select(['false' => 'No', 'true' => 'Sì']),
+        RepeaterColumn::key('country')->text()->value('IT'),
+    ]);
+    $defaults = Repeater::columnDefaults($field);
+    $post = ['addresses' => ['row_1' => ['id' => '', 'street' => '', 'is_default' => 'false', 'country' => 'IT']]];
+
+    return $defaults === ['is_default' => 'false', 'country' => 'IT']
+        && Repeater::rowsFromRequest('addresses', $post, [], $defaults) === [];
+});
+
+check('ma se il default è cambiato o c\'è altro la riga resta', function () {
+    $defaults = ['country' => 'IT'];
+    $estero = ['addresses' => ['row_1' => ['street' => '', 'country' => 'FR']]];
+    $piena = ['addresses' => ['row_1' => ['street' => 'Via Roma 1', 'country' => 'IT']]];
+
+    return count(Repeater::rowsFromRequest('addresses', $estero, [], $defaults)) === 1
+        && count(Repeater::rowsFromRequest('addresses', $piena, [], $defaults)) === 1;
 });
 
 summary();

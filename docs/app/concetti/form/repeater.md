@@ -162,6 +162,16 @@ Con le righe annullabili il contenitore stampa anche una sentinella nascosta
 chiave del repeater, e chi a valle controlla «c'è ma è vuoto» non avrebbe più
 niente da guardare. Non è un array, quindi le righe non la vedono.
 
+## Righe vuote
+
+Una riga senza niente dentro non si salva: `Repeater::rowsFromRequest()` la
+scarta prima del sync. Conta come vuota anche la riga che ha solo i valori di
+default delle colonne (`->value()`): una nazione precompilata su `IT` posta il
+suo valore anche nella riga mai toccata, e una tendina senza `->value()` posta la sua prima opzione, che quindi conta come default. `Resource` passa i default da solo
+con `Repeater::columnDefaults($field)`; chi chiama `rowsFromRequest()` a mano
+li passa come quarto argomento. Se l'utente cambia il default (per esempio
+`FR`) o scrive altro, la riga resta.
+
 ## Informazioni avanzate
 
 Una riga chiede tutto quello che si può sapere, ma quasi nessuno lo sa nel

@@ -96,6 +96,10 @@
   come prima.
 
 ### Corretto
+- **Righe del repeater con solo i default.** Una riga che ha solo i valori di
+  default delle colonne (es. nazione `IT`, o la prima opzione di una tendina mai scelta) ora è vuota e non si salva:
+  `Repeater::columnDefaults()` e il quarto argomento di `rowsFromRequest()`.
+  Vedi `docs/app/concetti/form/repeater.md#righe-vuote`.
 - **Bottone «File» delle liste.** Con uno slug che dopo la pulizia resta vuoto
   l'id della finestra e delle schede era `wi-file-`: ora è `wi-file-resource`.
   Se `$_SESSION['wi_resource_export']` non era un array, ricordare l'ultima
