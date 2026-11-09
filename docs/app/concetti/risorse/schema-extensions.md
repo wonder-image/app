@@ -128,12 +128,34 @@ Supporta:
 - default paese coerente anche sul select `country`
 - filtro paesi ammessi con `allowedCountries([...])`
 - campi obbligatori con `requiredFields([...])`
+- tipo di fatturazione fisso con `asPrivate()` / `asBusiness()`
 - autocompletamento Google sulla via, place ID e coordinate con `withGeo()`
 
 I profili disponibili sono:
 
 - `AddressExtension::simple(...)`
 - `AddressExtension::billing(...)`
+
+## Fatturazione di una persona o di un'azienda
+
+`billing()` fa scegliere il tipo (`private`/`business`) e porta tutti i campi.
+Quando il tipo è già noto dalla tabella (una persona o un'azienda), si fissa:
+
+```php
+AddressExtension::billing()->asPrivate();   // name, surname, cf
+AddressExtension::billing()->asBusiness();  // business_name, cf, pi, sdi, pec
+```
+
+- Nessuno dei due crea la colonna `type`, né mette il select nel form.
+- `fixedType()` rende `private`, `business` o null se il tipo si sceglie.
+- `AccountAddressValidation` usa il tipo fisso: con `asBusiness()` serve la
+  ragione sociale, con `asPrivate()` nome e cognome.
+- `decorate()` scrive il tipo fisso nella riga, così l'indirizzo formattato
+  mostra l'intestazione giusta.
+
+Per comporre a mano: `withCompanyData(bool)` accende o spegne ragione sociale,
+P.IVA, SDI e PEC; `withTaxCode(bool)` il codice fiscale. In `billing()` sono
+accesi tutti e due, e l'ordine delle colonne resta quello di sempre.
 
 ## Paese di default e paesi ammessi
 

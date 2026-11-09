@@ -29,6 +29,8 @@ final class AddressExtension
     private bool $withContactName = false;
     private bool $withType = false;
     private bool $withCompanyData = false;
+    private bool $withTaxCode = false;
+    private ?string $fixedType = null;
     private bool $withGeo = false;
     private ?string $placeIdKey = null;
     private bool $withNameSearch = false;
@@ -55,6 +57,7 @@ final class AddressExtension
             $this->withContactName = true;
             $this->withType = true;
             $this->withCompanyData = true;
+            $this->withTaxCode = true;
         }
     }
 
@@ -121,6 +124,61 @@ final class AddressExtension
         $clone->withType = $enabled;
 
         return $clone;
+    }
+
+    /** Ragione sociale, P.IVA, SDI e PEC; il codice fiscale ha `withTaxCode()`. */
+    public function withCompanyData(bool $enabled = true): self
+    {
+        $clone = clone $this;
+        $clone->withCompanyData = $enabled;
+
+        return $clone;
+    }
+
+    public function withTaxCode(bool $enabled = true): self
+    {
+        $clone = clone $this;
+        $clone->withTaxCode = $enabled;
+
+        return $clone;
+    }
+
+    /**
+     * Fatturazione di una persona: nome, cognome e codice fiscale, senza
+     * scelta del tipo né dati da società.
+     */
+    public function asPrivate(): self
+    {
+        $clone = clone $this;
+        $clone->withType = false;
+        $clone->withCompanyData = false;
+        $clone->withContactName = true;
+        $clone->withTaxCode = true;
+        $clone->fixedType = 'private';
+
+        return $clone;
+    }
+
+    /**
+     * Fatturazione di un'azienda: dati da società sempre presenti, senza
+     * scelta del tipo né nome e cognome.
+     */
+    public function asBusiness(): self
+    {
+        $clone = clone $this;
+        $clone->withType = false;
+        $clone->withCompanyData = true;
+        $clone->withContactName = false;
+        $clone->withTaxCode = true;
+        $clone->fixedType = 'business';
+
+        return $clone;
+    }
+
+    /** `private` o `business` se il tipo è fisso, altrimenti null. */
+    public function fixedType(): ?string
+    {
+        return $this->fixedType;
     }
 
     /**
@@ -209,7 +267,13 @@ final class AddressExtension
 
         if ($this->withCompanyData) {
             $labels[$this->key('business_name')] = __t('components.forms.fields.business_name.label');
+        }
+
+        if ($this->withTaxCode) {
             $labels[$this->key('cf')] = __t('components.forms.fields.cf.label');
+        }
+
+        if ($this->withCompanyData) {
             $labels[$this->key('pi')] = __t('components.forms.fields.pi.label');
             $labels[$this->key('sdi')] = __t('components.forms.fields.sdi.label');
             $labels[$this->key('pec')] = __t('components.forms.fields.pec.label');
@@ -253,12 +317,18 @@ final class AddressExtension
 
         if ($this->withCompanyData) {
             $fields[] = $this->dataField(Field::key($this->key('business_name'))->text(), 'business_name');
+        }
+
+        if ($this->withTaxCode) {
             $fields[] = $this->dataField(
                 Field::key($this->key('cf'))->tin()
                     ->countryField($this->key('country'))
                     ->type('all'),
                 'cf'
             );
+        }
+
+        if ($this->withCompanyData) {
             $fields[] = $this->dataField(
                 Field::key($this->key('pi'))->vat()
                     ->countryField($this->key('country')),
@@ -315,7 +385,13 @@ final class AddressExtension
 
         if ($this->withCompanyData) {
             $columns[] = Column::key($this->key('business_name'));
+        }
+
+        if ($this->withTaxCode) {
             $columns[] = Column::key($this->key('cf'));
+        }
+
+        if ($this->withCompanyData) {
             $columns[] = Column::key($this->key('pi'));
             $columns[] = Column::key($this->key('sdi'));
             $columns[] = Column::key($this->key('pec'));
@@ -357,7 +433,13 @@ final class AddressExtension
 
         if ($this->withCompanyData) {
             $schema[$this->key('business_name')] = $this->formField(FormField::key($this->key('business_name'))->text(), 'business_name');
+        }
+
+        if ($this->withTaxCode) {
             $schema[$this->key('cf')] = $this->formField(FormField::key($this->key('cf'))->text(), 'cf');
+        }
+
+        if ($this->withCompanyData) {
             $schema[$this->key('pi')] = $this->formField(FormField::key($this->key('pi'))->text(), 'pi');
             $schema[$this->key('sdi')] = $this->formField(FormField::key($this->key('sdi'))->text(), 'sdi');
             $schema[$this->key('pec')] = $this->formField(FormField::key($this->key('pec'))->email(), 'pec');
@@ -436,6 +518,10 @@ final class AddressExtension
 
     public function decorate(array $row): array
     {
+        if ($this->fixedType !== null) {
+            $row[$this->key('type')] = $this->fixedType;
+        }
+
         $address = PrettifyAddress::prettifyRow(
             $row,
             $this->prefix !== '' ? $this->prefix : null,
@@ -461,7 +547,7 @@ final class AddressExtension
             'prettyPDF' => $this->computedKey('prettyPDF'),
         ];
 
-        if ($this->withPhone || $this->withContactName || $this->withType || $this->withCompanyData) {
+        if ($this->withPhone || $this->withContactName || $this->withType || $this->withCompanyData || $this->withTaxCode) {
             $keys['prettyPhone'] = $this->computedKey('prettyPhone');
         }
 

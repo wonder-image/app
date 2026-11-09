@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Aggiunto
+- **Fatturazione a tipo fisso.** `AddressExtension::asPrivate()` (nome,
+  cognome, codice fiscale) e `asBusiness()` (ragione sociale, CF, P.IVA, SDI,
+  PEC) tolgono la scelta del tipo per le tabelle che sono già una persona o
+  un'azienda; `fixedType()` lo dichiara e `AccountAddressValidation` lo usa.
+  Nuovi `withCompanyData(bool)` e `withTaxCode(bool)`. `billing()` non cambia.
+  Vedi `docs/app/concetti/risorse/schema-extensions.md`.
 - **CC e CCN nelle email.** `sendMail()`, `queueMail()` e `mailDeliver()`
   accettano in fondo `array $options = []` con `cc` e `bcc` (stringa o lista),
   da passare per nome (`options: ['cc' => ...]`): le chiamate esistenti non
