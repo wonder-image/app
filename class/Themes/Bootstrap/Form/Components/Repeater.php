@@ -280,11 +280,32 @@ HTML;
         $this->inheritRelationUploadDirectory($field, $columnName, $context);
 
         return [
-            $field->render('bootstrap'),
+            $rowKey === '__ROW_KEY__' ? $this->renderTemplateField($field) : $field->render('bootstrap'),
             $field instanceof InputHidden,
             $this->resolvedColumnClass($field),
             $this->conditionalContainerAttributes($field),
         ];
+    }
+
+    /**
+     * Il campo della riga modello, con `__ROW_KEY__` nell'id.
+     *
+     * Ogni riga aggiunta copia il modello: con un id fisso due righe nuove
+     * avrebbero lo stesso id, e chi cerca il campo per id (la creazione
+     * rapida, le label) troverebbe sempre la prima. `wiRepeaterAddRow`
+     * sostituisce la chiave in ogni attributo.
+     */
+    private function renderTemplateField(Input $field): string
+    {
+        $element = $field->compile();
+
+        if ($element === null) {
+            return $field->render('bootstrap');
+        }
+
+        $element->id($element->id.'-__ROW_KEY__');
+
+        return $element->render('bootstrap');
     }
 
     /**
@@ -625,22 +646,16 @@ HTML;
             row.classList.remove('d-none');
             row.setAttribute('data-wi-row-key', rowKey);
         }
-        fragment.querySelectorAll('[name]').forEach((input) => {
-            input.name = input.name.replaceAll('__ROW_KEY__', rowKey);
-        });
-        // Anche gli `id` e i `for`: le pillole hanno l'id fatto dal `name`,
-        // e l'etichetta è l'unica cosa da cliccare. Con lo stesso id in due
-        // righe aggiunte, il clic sulla seconda spunterebbe la prima.
-        fragment.querySelectorAll('[id*="__ROW_KEY__"]').forEach((element) => {
-            element.id = element.id.replaceAll('__ROW_KEY__', rowKey);
-        });
-        fragment.querySelectorAll('label[for*="__ROW_KEY__"]').forEach((label) => {
-            label.htmlFor = label.htmlFor.replaceAll('__ROW_KEY__', rowKey);
-        });
-        fragment.querySelectorAll('[data-wi-row-key]').forEach((element) => {
-            if (element.getAttribute('data-wi-row-key') === '__ROW_KEY__') {
-                element.setAttribute('data-wi-row-key', rowKey);
-            }
+        // La chiave in ogni attributo: `name`, `id`, `for`, ma anche chi
+        // punta a un id (la creazione rapida, `data-bs-target`, `aria-*`).
+        // Con lo stesso id in due righe aggiunte, il clic sulla seconda
+        // agirebbe sulla prima.
+        fragment.querySelectorAll('*').forEach((element) => {
+            Array.from(element.attributes).forEach((attribute) => {
+                if (attribute.value.includes('__ROW_KEY__')) {
+                    element.setAttribute(attribute.name, attribute.value.replaceAll('__ROW_KEY__', rowKey));
+                }
+            });
         });
         container.appendChild(fragment);
 
@@ -650,6 +665,10 @@ HTML;
         if (row && typeof window.setInput === 'function') {
             window.setInput(row);
         }
+
+        // La finestra della creazione rapida esce dalla riga, e quindi dal
+        // form: i suoi campi non vanno postati col record.
+        if (typeof window.wiQuickCreateDetach === 'function') window.wiQuickCreateDetach();
 
         // I numeri della riga nuova (prezzi, giacenze) si formattano come
         // quelli delle righe già in pagina. Le lib recenti lo fanno dentro

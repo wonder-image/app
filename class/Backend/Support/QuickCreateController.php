@@ -9,6 +9,7 @@ use Wonder\App\ResourceRegistry;
  * Proxy backend della creazione rapida: autorizza, ripulisce il payload dai
  * campi di controllo, chiama lo store API del target come @system (token solo server-side)
  * e restituisce {id, label} letti dall'item creato dalla risposta dello store.
+ * Una Resource che implementa {@see QuickCreateStore} crea invece da sé.
  * Vedi docs/app/concetti/form/quick-create.md.
  */
 final class QuickCreateController
@@ -95,6 +96,10 @@ final class QuickCreateController
             ];
         }
 
+        if (is_subclass_of($resourceClass, QuickCreateStore::class)) {
+            return self::fromStore($resourceClass::quickCreateStore($values, $labelField));
+        }
+
         $token = self::systemToken();
 
         if ($token === '') {
@@ -122,6 +127,33 @@ final class QuickCreateController
             'id' => $id,
             'label' => self::deriveLabel($item, $labelField, $values, $id),
             'item' => self::responseItem($item, $values),
+        ];
+    }
+
+    /**
+     * La risposta di una Resource che crea da sé ({@see QuickCreateStore}).
+     *
+     * @param array<string,mixed> $result
+     * @return array<string,mixed>
+     */
+    public static function fromStore(array $result): array
+    {
+        $id = (int) ($result['id'] ?? 0);
+
+        if ($id <= 0) {
+            $error = trim((string) ($result['error'] ?? ''));
+
+            return ['success' => false, 'error' => $error !== '' ? $error : 'Creazione non riuscita.', 'status' => 422];
+        }
+
+        $item = (array) ($result['item'] ?? []);
+
+        return [
+            'success' => true,
+            'id' => $id,
+            'label' => (string) ($result['label'] ?? ($item['name'] ?? $id)),
+            'item' => $item + ['id' => $id],
+            'message' => trim((string) ($result['message'] ?? '')),
         ];
     }
 

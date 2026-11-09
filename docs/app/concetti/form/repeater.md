@@ -348,9 +348,15 @@ FormField::key('products')
   quando la riga corrisponde a qualcosa che ha già un nome altrove. Viene
   ripulita di tutto ciò che non è lettera, cifra, trattino o underscore, e una
   chiave già presente non crea una seconda riga (nel posting si fonderebbero).
-  La chiave va al posto di `__ROW_KEY__` nei `name`, negli `id` e nei `for`
-  delle etichette: le pillole hanno l'id fatto dal `name`, e con l'id del
-  template in due righe il clic sulla seconda spunterebbe la prima.
+  La chiave va al posto di `__ROW_KEY__` in ogni attributo della riga
+  (`name`, `id`, `for`, `data-*`, `aria-*`): le pillole hanno l'id fatto dal
+  `name`, e con l'id del template in due righe il clic sulla seconda
+  spunterebbe la prima. Nella riga modello anche l'id dei campi porta
+  `-__ROW_KEY__`, così ogni riga aggiunta ha il suo id e i suoi agganci.
+- Una colonna con la [creazione rapida](quick-create.md) funziona anche nelle
+  righe aggiunte: il modale di ogni riga ha l'id della riga, e dopo
+  l'aggiunta `wiRepeaterAddRow` chiama `window.wiQuickCreateDetach()`, che lo
+  sposta nel `body` (i suoi campi non devono partire con il form).
 - Il contenitore esterno porta `data-wi-repeater="<nome del campo>"`: è la
   maniglia per trovarlo senza dipendere dall'id, che cambia a ogni render.
 

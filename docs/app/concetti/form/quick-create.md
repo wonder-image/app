@@ -212,6 +212,30 @@ permesso **API** per quell'authority, non un ruolo backend. Senza
 Il controllo dei permessi dell'utente backend è sul **bottone** (visibile solo
 a chi può creare quella risorsa) e ripetuto nel proxy server-side.
 
+### Creazione dentro il processo: `QuickCreateStore`
+
+Quando la creazione deve fare di più di uno store (cercare un doppione,
+assegnare la riga all'utente, toccare altre tabelle), la Resource target
+implementa `Wonder\Backend\Support\QuickCreateStore`:
+
+```php
+final class CompanyBrandResource extends Resource implements QuickCreateStore
+{
+    public static function quickCreateStore(array $values, string $labelField): array
+    {
+        // ... crea o ritrova la riga
+        return ['id' => $id, 'label' => $name, 'item' => ['name' => $name],
+                'message' => $existing ? 'Esisteva già: l\'ho selezionata.' : ''];
+    }
+}
+```
+
+Il controller la chiama al posto dello store API, nella stessa richiesta e
+con l'utente della sessione (non `@system`): lo store API e il permesso per
+`api_internal_user` qui non servono. Un id mancante o zero diventa un `422`
+con `error` (o «Creazione non riuscita.»). Un `message` non vuoto arriva al
+modale e si vede come avviso (`alertToast`) dopo la selezione.
+
 ## Come funziona (flusso)
 
 1. Il renderer Bootstrap emette il "+" e un modal **solo** se l'utente backend
