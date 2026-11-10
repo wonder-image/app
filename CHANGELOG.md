@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Cambiato
+- `extra.wonder.lib` e `package.json` richiedono `wonder-image@^2.1.2-alpha.41`:
+  condizioni dentro le righe del repeater, `data-wi-place-name` ed evento
+  `wi:place`.
+
 ### Aggiunto
 - **Nome dell'attività dall'autocompletamento.**
   `AddressExtension::withNameSearch(bool $enabled = true, ?string $nameKey = null)`:
