@@ -196,6 +196,17 @@ class InputRepeater extends Input
     }
 
     /**
+     * Il numero minimo di righe: quando ne restano tante, il bottone che
+     * elimina si spegne. Serve dove un record senza righe non ha senso (una
+     * scheda senza nessun contatto). È un aiuto a schermo: la regola vera la
+     * controlla chi salva.
+     */
+    public function repeaterMinRows(int $rows): static
+    {
+        return $this->context('min_rows', max(0, $rows));
+    }
+
+    /**
      * Le colonne che stanno dietro «compila le informazioni avanzate».
      *
      * Una riga chiede tutto quello che si può sapere, ma quasi nessuno lo
