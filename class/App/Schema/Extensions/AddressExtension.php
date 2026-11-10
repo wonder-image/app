@@ -34,6 +34,7 @@ final class AddressExtension
     private bool $withGeo = false;
     private ?string $placeIdKey = null;
     private bool $withNameSearch = false;
+    private ?string $placeNameKey = null;
 
     private function __construct(
         ?string $prefix = null,
@@ -203,11 +204,17 @@ final class AddressExtension
     /**
      * L'autocompletamento cerca anche le attività per nome (es. un negozio),
      * così place ID e link puntano alla scheda Google dell'attività.
+     *
+     * Con $nameKey (chiave senza prefisso, es. `business_name`) il nome
+     * dell'attività scelta va nel campo `<prefisso><chiave>`, solo se è
+     * vuoto: lo scrive la lib (`data-wi-place-name`), che dopo la scelta
+     * emette anche l'evento `wi:place` sulla via.
      */
-    public function withNameSearch(bool $enabled = true): self
+    public function withNameSearch(bool $enabled = true, ?string $nameKey = null): self
     {
         $clone = clone $this;
         $clone->withNameSearch = $enabled;
+        $clone->placeNameKey = $enabled && $nameKey !== null ? ($this->normalizeFieldName($nameKey) ?: null) : null;
 
         return $clone;
     }
@@ -563,8 +570,9 @@ final class AddressExtension
 
     /**
      * Attributi letti da `places.js` della lib: il prefisso dei campi
-     * dell'indirizzo, il campo del place ID se non è `<prefisso>place_id` e
-     * il campo del link di Maps.
+     * dell'indirizzo, il campo del place ID se non è `<prefisso>place_id`,
+     * il campo del link di Maps e, con la ricerca per nome, il campo che
+     * riceve il nome dell'attività (chiave senza prefisso).
      */
     private function placeAttributes(): string
     {
@@ -581,6 +589,10 @@ final class AddressExtension
 
         if ($this->withNameSearch) {
             $attributes .= ' data-wi-place-names';
+
+            if ($this->placeNameKey !== null) {
+                $attributes .= ' data-wi-place-name="'.$this->placeNameKey.'"';
+            }
         }
 
         return $attributes;

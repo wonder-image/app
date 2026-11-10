@@ -30,6 +30,34 @@ class InputText extends Input
         return $this;
     }
 
+    /**
+     * La via di un indirizzo con l'autocompletamento di Google (`places.js`
+     * della lib), per i campi che non passano da `AddressExtension`, come la
+     * colonna di un repeater.
+     *
+     * $prefix è il prefisso dei campi fratelli (`''`, `shipping_`); in una
+     * riga di repeater finisce con `[` (`addresses[`) e la lib legge la riga
+     * dal nome della via. Con $names cerca anche le attività per nome; con
+     * $nameKey (chiave senza prefisso) il nome dell'attività scelta va in quel
+     * campo della stessa riga o gruppo, solo se è vuoto.
+     */
+    public function placeSearch(string $prefix = '', bool $names = false, ?string $nameKey = null): static
+    {
+        $attributes = 'data-wi-place="'.htmlspecialchars($prefix, ENT_QUOTES).'"';
+
+        if ($names) {
+            $attributes .= ' data-wi-place-names';
+        }
+
+        $nameKey = trim((string) $nameKey);
+
+        if ($nameKey !== '') {
+            $attributes .= ' data-wi-place-name="'.htmlspecialchars($nameKey, ENT_QUOTES).'"';
+        }
+
+        return $this->attribute($attributes);
+    }
+
     protected function element(): ElementField
     {
         $element = new TextElement($this->name);
