@@ -29,7 +29,8 @@
         "section": "Personal information",
         "name": "Name",
         "phone": "Mobile",
-        "modal_title": "Edit details"
+        "modal_title": "Edit details",
+        "not_set": "Not provided"
     },
     "email": {
         "label": "Email",

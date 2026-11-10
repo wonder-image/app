@@ -19,7 +19,8 @@ class DataItem extends Component
         $attributes = $this->renderAttributes($schema['attributes'] ?? null);
 
         if (trim($value) === '') {
-            $body = '<span class="text-muted">'.$this->escape((string) ($schema['placeholder'] ?? '—')).'</span>';
+            $placeholder = (string) ($schema['placeholder'] ?? '');
+            $body = $placeholder === '' ? '' : '<span class="text-muted">'.$this->escape($placeholder).'</span>';
         } else {
             $body = $raw ? $value : $this->escape($value);
         }

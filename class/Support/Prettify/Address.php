@@ -54,9 +54,9 @@ class Address
             $return->pretty = "$street, $city ($province)";
             $return->prettyPDF = "$street, $city ($province)";
         } else {
-            $return->line = "--";
-            $return->pretty = "--";
-            $return->prettyPDF = "--";
+            $return->line = "";
+            $return->pretty = "";
+            $return->prettyPDF = "";
         }
 
         return $return;
@@ -142,9 +142,9 @@ class Address
         }
 
         if ($htmlLines === []) {
-            $return->line = '--';
-            $return->pretty = '--';
-            $return->prettyPDF = '--';
+            $return->line = '';
+            $return->pretty = '';
+            $return->prettyPDF = '';
 
             return $return;
         }
@@ -240,7 +240,7 @@ class Address
         string $province
     ): string {
         if ($street === '' || $city === '' || $province === '') {
-            return '--';
+            return '';
         }
 
         $line = $street;

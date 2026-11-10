@@ -57,7 +57,7 @@
         }
 
         foreach ([
-            'prettyAddress' => '--',
+            'prettyAddress' => '',
             'prettyLegal' => '',
             'gmaps' => '',
             'tel' => '',

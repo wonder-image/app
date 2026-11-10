@@ -64,7 +64,7 @@ class MetricCard extends AbstractValueCard
             return [
                 'color' => 'body-secondary',
                 'icon' => 'bi-dash',
-                'label' => '--',
+                'label' => '',
                 'previous' => $previousLabel,
             ];
         }

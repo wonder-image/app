@@ -66,7 +66,7 @@ final class GoogleCloud extends Integration
                 ->link($api->consoleUrl($projectId), $api->getName(), ['blank' => true])
                 ->append(' · '.__t('google.credentials.key_types.'.$api->getKeyType()))
                 ->append(' · '.__t($api->isRequired() ? 'google.credentials.required' : 'google.credentials.optional'))
-                ->append(' — '.__t($api->getPurpose()))
+                ->append(' · '.__t($api->getPurpose()))
                 ->small()
                 ->columnSpan(12);
         }

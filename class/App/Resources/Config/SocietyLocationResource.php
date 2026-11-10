@@ -268,7 +268,7 @@ class SocietyLocationResource extends Resource
 
                 (new Card)->components([
                     SectionTitle::make('Orari e chiusure')
-                        ->tooltip('Più fasce nello stesso giorno sono più righe (es. 9–13 e 15–19). Per chiudere dopo la mezzanotte scegli il giorno dopo; per chiudere a mezzanotte usa 00:00. Senza orario di chiusura la sede è sempre aperta. Le chiusure possono durare più giorni; un\'apertura straordinaria vale un giorno e vale per gli orari regolari. Una sede senza orari propri usa orari e chiusure della predefinita.')
+                        ->tooltip('Più fasce nello stesso giorno sono più righe (es. dalle 9 alle 13 e dalle 15 alle 19). Per chiudere dopo la mezzanotte scegli il giorno dopo; per chiudere a mezzanotte usa 00:00. Senza orario di chiusura la sede è sempre aperta. Le chiusure possono durare più giorni; un\'apertura straordinaria vale un giorno e vale per gli orari regolari. Una sede senza orari propri usa orari e chiusure della predefinita.')
                         ->columnSpan(12),
                     static::getInput('hours')->columnSpan(12),
                     static::getInput('special_hours')->columnSpan(12),

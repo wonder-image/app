@@ -143,8 +143,8 @@ use Wonder\Elements\Components\InfoCard;
     ]);
 ```
 
-Solo `null` e una stringa vuota usano il placeholder `--`: `0` e `'0'`
-restano valori validi. Il placeholder e il livello del valore sono
+Solo `null` e una stringa vuota usano il placeholder, vuoto se non lo
+imposti: `0` e `'0'` restano valori validi. Il placeholder e il livello del valore sono
 configurabili con `->placeholder('n/d')` e `->valueLevel(4)`.
 
 Per un KPI usa `MetricCard`, che ha preso il posto di `wiCardStats()` (rimosso):
@@ -168,7 +168,7 @@ MetricCard::make('Churn', 4.2)
 permette di presentarne una versione gia formattata. `higherIsBetter()` e il
 default, mentre `lowerIsBetter()` inverte solo il significato del colore: la
 freccia continua a rappresentare la direzione reale. Una baseline pari a zero
-non causa divisioni per zero e mostra un delta non definito (`--`). Valore,
+non causa divisioni per zero e mostra un delta non definito (solo l'icona, senza percentuale). Valore,
 titolo, unita, tooltip e attributi vengono sempre escapati.
 
 Entrambe le card sono componenti backend Bootstrap e supportano

@@ -535,9 +535,9 @@ final class AddressExtension
             $this->mode,
         );
 
-        $row[$this->computedKey('address')] = $address->line ?? '--';
-        $row[$this->computedKey('prettyAddress')] = $address->pretty ?? '--';
-        $row[$this->computedKey('prettyPDF')] = $address->prettyPDF ?? '--';
+        $row[$this->computedKey('address')] = $address->line ?? '';
+        $row[$this->computedKey('prettyAddress')] = $address->pretty ?? '';
+        $row[$this->computedKey('prettyPDF')] = $address->prettyPDF ?? '';
 
         if (property_exists($address, 'prettyPhone')) {
             $row[$this->computedKey('prettyPhone')] = $address->prettyPhone ?? '';

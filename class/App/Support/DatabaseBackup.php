@@ -269,7 +269,7 @@ final class DatabaseBackup
                         throw $throwable;
                     }
 
-                    throw new RuntimeException('Backup non riuscito né con mysqldump né con il dump PHP. mysqldump: '.$fallback.' — dump PHP: '.$throwable->getMessage(), 0, $throwable);
+                    throw new RuntimeException('Backup non riuscito né con mysqldump né con il dump PHP. mysqldump: '.$fallback.'; dump PHP: '.$throwable->getMessage(), 0, $throwable);
                 }
             }
 

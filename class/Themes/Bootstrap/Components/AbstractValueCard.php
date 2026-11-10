@@ -41,7 +41,7 @@ abstract class AbstractValueCard extends Component
             : ($schema['value'] ?? null);
 
         if ($value === null || (is_string($value) && trim($value) === '')) {
-            $value = (string) ($schema['placeholder'] ?? '--');
+            $value = (string) ($schema['placeholder'] ?? '');
         }
 
         return $this->escape($this->scalarToString($value));

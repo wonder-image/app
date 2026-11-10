@@ -16,7 +16,7 @@ use Wonder\Elements\Concerns\Renderer;
  * A differenza di `InfoCard` non ha riquadro né intestazione: sta dentro a una
  * `Card` insieme ad altri, ognuno con la sua `columnSpan`. Il valore si
  * escapa; con `html()` si dichiara che è già markup fidato. Dove manca il
- * valore compare il segnaposto (un trattino).
+ * valore compare il segnaposto, vuoto se non lo si imposta.
  */
 class DataItem extends Component
 {
@@ -26,7 +26,7 @@ class DataItem extends Component
     {
         $this->label($label);
         $this->value($value);
-        $this->placeholder('—');
+        $this->placeholder('');
     }
 
     public static function make(string $label = '', string|int|float|null $value = null): static
@@ -50,7 +50,7 @@ class DataItem extends Component
         return $this->schema('html', $html);
     }
 
-    public function placeholder(string $placeholder = '—'): static
+    public function placeholder(string $placeholder = ''): static
     {
         return $this->schema('placeholder', $placeholder);
     }

@@ -116,7 +116,7 @@ $list = static function (?string $json): array {
 
 <?php if ($STEP === 2) {
     $mapping = Importer::mapping($JOB);
-    $options = ['' => '— non caricare —'];
+    $options = ['' => 'Non caricare'];
 
     foreach (Profile::for($LAYOUT, (int) ($JOB['import_layout_id'] ?? 0) ?: null) ?? $LAYOUT->columns() as $column) {
         $options[$column->key] = $column->header;

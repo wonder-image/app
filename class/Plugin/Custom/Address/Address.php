@@ -81,7 +81,7 @@
             $addressMore = empty($RETURN->more) ? "" : "<br>$RETURN->more";
             $addressMorePDF = empty($RETURN->more) ? "" : "\n$RETURN->more";
     
-            $RETURN->prettyAddress = "--";
+            $RETURN->prettyAddress = "";
             $RETURN->address = "$RETURN->street $RETURN->number, $RETURN->cap $RETURN->city ($RETURN->province)";
     
             $RETURN->phone_prefix = $RETURN->phone_prefix ?? "";
@@ -211,8 +211,8 @@
                 
             } else {
                 
-                $return["{$this->prefix}prettyAddress"] = '--';
-                $return["{$this->prefix}prettyPDF"] = '--';
+                $return["{$this->prefix}prettyAddress"] = '';
+                $return["{$this->prefix}prettyPDF"] = '';
                 
             }
 
