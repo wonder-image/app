@@ -139,6 +139,62 @@ check('un campo vuoto non scrive regole', function () {
     return FormField::key('unit')->text()->visibleWhen('  ', 'number')->conditionalAttributes() === [];
 });
 
+check('la regola usa il nome corto della colonna: la lib lo cerca nella stessa riga', function () {
+    $field = new class {
+        public array $schema = [
+            'id' => 'contacts',
+            'name' => 'contact_points',
+            'label' => '',
+            'value' => ['row_3' => ['kind' => 'phone']],
+            'context' => ['nested' => true],
+        ];
+    };
+    $field->schema['columns'] = [
+        RepeaterColumn::key('kind')->select(['email' => 'Email', 'phone' => 'Telefono']),
+        RepeaterColumn::key('email')->email()->visibleWhen('kind', 'email'),
+        RepeaterColumn::key('phone')->tel()->visibleWhen('kind', 'phone'),
+    ];
+    $html = (new Repeater)->render($field);
+    $modello = substr($html, (int) strpos($html, '<template'));
+
+    return str_contains($html, 'name="contact_points[row_3][kind]"')
+        && str_contains($html, '<div class="col-11" data-visible-when="kind" data-visible-when-values="email" data-wi-conditional-container="true">')
+        && str_contains($modello, 'name="contact_points[__ROW_KEY__][kind]"')
+        && str_contains($modello, 'data-visible-when="kind" data-visible-when-values="phone" data-wi-conditional-container="true"')
+        && !str_contains($html, 'data-visible-when="contact_points');
+});
+
+check('placeSearch() su una colonna: data-wi-place, ricerca per nome e campo del nome nella riga', function () {
+    $field = new class {
+        public array $schema = [
+            'id' => 'addresses',
+            'name' => 'addresses',
+            'label' => '',
+            'value' => ['row_2' => []],
+            'context' => ['nested' => true],
+        ];
+    };
+    $field->schema['columns'] = [
+        RepeaterColumn::key('business_name')->text(),
+        RepeaterColumn::key('street')->text()->placeSearch('addresses[', true, 'business_name'),
+    ];
+    $html = (new Repeater)->render($field);
+    $modello = substr($html, (int) strpos($html, '<template'));
+    $attributi = 'data-wi-place="addresses[" data-wi-place-names data-wi-place-name="business_name"';
+
+    return str_contains($html, 'name="addresses[row_2][street]"')
+        && str_contains(substr($html, 0, (int) strpos($html, '<template')), $attributi)
+        && str_contains($modello, $attributi)
+        && str_contains($modello, 'name="addresses[__ROW_KEY__][street]"');
+});
+
+check('placeSearch() senza argomenti: solo data-wi-place vuoto', function () {
+    $attribute = (string) FormField::key('street')->text()->placeSearch()->get('attribute');
+
+    return $attribute === 'data-wi-place=""'
+        && str_contains((string) FormField::key('street')->text()->placeSearch('shipping_')->get('attribute'), 'data-wi-place="shipping_"');
+});
+
 check('fuori dal repeater la regola resta sull\'input, senza contenitore', function () {
     $html = FormField::key('unit')->select(['g' => 'Grammi'])->visibleWhen('type', ['number', 'text'])->render('bootstrap');
 

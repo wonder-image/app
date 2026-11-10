@@ -140,6 +140,18 @@ check('ricerca per nome: spenta di base, data-wi-place-names quando accesa', fun
         && !str_contains(streetAttribute(AddressExtension::simple()->withNameSearch()->withNameSearch(false)), 'data-wi-place-names');
 });
 
+check('ricerca per nome con il campo del nome: data-wi-place-name con la chiave senza prefisso', function () {
+    $billing = streetAttribute(AddressExtension::billing('billing')->withNameSearch(nameKey: 'business_name'), 'billing_street');
+    $plain = streetAttribute(AddressExtension::simple()->withNameSearch(true, ' Business Name '));
+
+    return str_contains($billing, 'data-wi-place="billing_"')
+        && str_contains($billing, 'data-wi-place-names data-wi-place-name="business_name"')
+        && str_contains($plain, 'data-wi-place-name="business_name"')
+        && !str_contains(streetAttribute(AddressExtension::simple()->withNameSearch()), 'data-wi-place-name=')
+        && !str_contains(streetAttribute(AddressExtension::simple()->withNameSearch(false, 'business_name')), 'data-wi-place-name')
+        && !str_contains(streetAttribute(AddressExtension::simple()->withNameSearch(nameKey: 'business_name')->withNameSearch(false)), 'data-wi-place-name');
+});
+
 check('sedi: ricerca per nome sull\'indirizzo, non sulla sede legale', function () {
     return str_contains(streetAttribute(Wonder\App\Models\Config\SocietyLocation::address()), 'data-wi-place-names')
         && !str_contains(streetAttribute(Wonder\App\Models\Config\SocietyLocation::legalAddress(), 'legal_street'), 'data-wi-place-names');

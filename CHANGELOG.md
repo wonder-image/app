@@ -3,6 +3,22 @@
 ## Unreleased
 
 ### Aggiunto
+- **Nome dell'attività dall'autocompletamento.**
+  `AddressExtension::withNameSearch(bool $enabled = true, ?string $nameKey = null)`:
+  con `nameKey` (senza prefisso, es. `business_name`) la via porta
+  `data-wi-place-name` e la lib scrive il nome dell'attività scelta in
+  `<prefisso><chiave>` se è vuoto, poi emette `wi:place`. Per le vie fuori da
+  `AddressExtension` (colonne di repeater) `InputText::placeSearch($prefix,
+  $names, $nameKey)` stampa `data-wi-place`, `data-wi-place-names` e
+  `data-wi-place-name`. Richiede la lib `2.1.2-alpha.41`. Vedi
+  `docs/app/concetti/risorse/schema-extensions.md`.
+- **Colonne di repeater che dipendono dalla stessa riga.** Nessun cambio nel
+  core: `RepeaterColumn::key('email')->visibleWhen('kind', 'email')` stampava già
+  la regola col nome corto; con la lib `2.1.2-alpha.41` la regola
+  cerca `kind` nella riga (`contact_points[row_3][kind]`) e una colonna nascosta
+  di un repeater `nested()` non viene validata né inviata. Documentato in
+  `docs/app/concetti/form/repeater.md`; test in
+  `tests/Themes/RepeaterColumnConditionalTest.php`.
 - **Creazione rapida dentro il processo.** Una Resource che implementa
   `Wonder\Backend\Support\QuickCreateStore` crea la riga del "+" da sé,
   con l'utente della sessione, invece di passare dallo store API come

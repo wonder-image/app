@@ -200,6 +200,35 @@ AddressExtension::simple(linkKey: 'gmaps')->withGeo('google_place_id');
 - `withNameSearch()` fa cercare anche le attività per nome (es. un negozio): place ID
   e link puntano alla scheda Google dell'attività. La via porta `data-wi-place-names`
   (lib dalla 2.1.2-alpha.26). È accesa solo sull'indirizzo delle sedi (`SocietyLocation`).
+- `withNameSearch(nameKey: 'business_name')` scrive anche il nome dell'attività scelta
+  nel campo `<prefisso>business_name`, solo se è vuoto (un nome scritto a mano resta, un
+  indirizzo non scrive niente). La via porta `data-wi-place-name="business_name"`: la
+  chiave è senza prefisso, la lib aggiunge quello del gruppo (anche `billing_`,
+  `shipping_`). Il nome è il testo del suggerimento, nessun campo a pagamento di
+  Places. Dopo ogni scelta la via emette l'evento `wi:place` con
+  `detail: { placeId, name, types }`, per chi deve reagire senza leggere gli interni
+  della lib. Serve la lib `2.1.2-alpha.41`.
+
+```php
+AddressExtension::billing('billing')->asBusiness()->withGeo()
+    ->withNameSearch(nameKey: 'business_name');
+```
+
+```html
+<input name="billing_street" data-wi-place="billing_" data-wi-place-names data-wi-place-name="business_name">
+```
+
+Fuori da `AddressExtension` (la via nella colonna di un repeater) gli stessi attributi
+li stampa `->text()->placeSearch($prefisso, $perNome, $campoNome)`:
+
+```php
+RepeaterColumn::key('street')->text()->placeSearch('addresses[', true, 'business_name');
+// data-wi-place="addresses[" data-wi-place-names data-wi-place-name="business_name"
+```
+
+Con un prefisso che finisce per `[` la lib legge la riga dal nome della via
+(`addresses[row_2][street]`) e cerca `addresses[row_2][business_name]`, anche nelle
+righe aggiunte dopo.
 
 ## Campi obbligatori
 

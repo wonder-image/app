@@ -281,6 +281,12 @@ base `Input`:
 `.hiddenWhen(...)`, `.error($s)`, `.columnSpan($n)`, `.columnFill($b = true)`,
 `.prepare($k, $v)`, `.context($k, $v)`, `.storeAs($s)`, `.inputName($s)`.
 
+Sul solo testo (`->text()`), `.placeSearch($prefisso = '', $perNome = false,
+$campoNome = null)` stampa gli attributi dell'autocompletamento di Google
+(`data-wi-place`, `data-wi-place-names`, `data-wi-place-name`) per una via che non
+passa da `AddressExtension`, come la colonna di un repeater (vedi
+[Schema extensions](../risorse/schema-extensions.md#autocompletamento-google-e-geo)).
+
 `.conditionalAttributes()` non modifica: restituisce le regole di
 `visibleWhen()` / `hiddenWhen()` come data-attribute, per i renderer che le
 devono ripetere su un contenitore. `.columnFill()` conta solo nelle colonne di

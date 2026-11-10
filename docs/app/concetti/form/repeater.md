@@ -133,9 +133,32 @@ FormField::key('values')->repeater([
 <div class="col">…</div>
 ```
 
+Il campo di riferimento si scrive col **nome corto della colonna** della stessa
+riga: in un repeater `nested()` il nome vero (`contact_points[row_3][kind]`) non si
+conosce quando si dichiara la regola, e non serve. La lib cerca prima nella riga
+il controllo che si chiama `kind`, `kind[]` o finisce con `[kind]`, poi nel form:
+due righe con scelte diverse non si toccano, e valgono anche le righe aggiunte dopo
+e quelle spostate.
+
+```php
+FormField::key('contact_points')->repeater([
+    RepeaterColumn::key('kind')->select(['email' => 'Email', 'phone' => 'Telefono'])->columnSpan(3),
+    RepeaterColumn::key('email')->email()->required()->visibleWhen('kind', 'email')->columnFill(),
+    RepeaterColumn::key('phone')->tel()->visibleWhen('kind', 'phone')->columnFill(),
+])->nested();
+```
+
 Una colonna nascosta non lascia buchi: la colonna che riempie si prende il suo
-spazio. I valori delle colonne nascoste vengono comunque inviati. Le colonne
-scritte come array (`['col' => 4, ...]`) non hanno né regole né riempimento.
+spazio. Perde `required` e, nelle righe con nomi a chiave (`nested()`), i suoi
+campi vengono anche disabilitati: il browser non li valida (un'email storta
+nascosta non blocca l'invio) e **non li invia**, e tengono il valore per quando la
+colonna torna visibile. Al salvataggio una colonna che non arriva non viene
+scritta: la riga esistente tiene il valore che aveva. Nei repeater con nomi a
+indice (`colonna[]`, senza `nested()`) i campi nascosti restano abilitati e
+vengono inviati, altrimenti le colonne si sfaserebbero. Serve la lib
+`2.1.2-alpha.41`; con le lib precedenti la regola cercava il campo in tutto il
+form e le colonne nascoste venivano inviate. Le colonne scritte come array
+(`['col' => 4, ...]`) non hanno né regole né riempimento.
 
 ## Righe che si possono rimettere
 
