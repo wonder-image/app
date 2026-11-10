@@ -54,7 +54,7 @@ final class AccountPersonal
         return [
             ['key' => 'personal', 'columns' => [
                 ['label' => (string) __t('account.personal.name'), 'value' => trim((string) ($user->name ?? '').' '.(string) ($user->surname ?? ''))],
-                ['label' => (string) __t('account.personal.phone'), 'value' => trim((string) ($user->phone ?? '')) ?: '—'],
+                ['label' => (string) __t('account.personal.phone'), 'value' => trim((string) ($user->phone ?? '')) ?: (string) __t('account.personal.not_set')],
             ], 'action' => $edit('account-personal')],
             // Il cambio email chiede la password attuale: senza, niente «Modifica», solo la nota.
             ['key' => 'email', 'columns' => [['label' => (string) __t('account.email.label'), 'value' => (string) ($user->email ?? '')]], 'action' => $hasPassword

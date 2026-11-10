@@ -86,7 +86,7 @@
                     <?=e($PAGE->domain ?? '')?>
                 </div>
 
-                <?php if (($SOCIETY->prettyAddress ?? '--') !== '--') : ?>
+                <?php if (trim((string) ($SOCIETY->prettyAddress ?? '')) !== '') : ?>
                 <div class="text-small mt-6">
                     DOVE SIAMO?
                 </div>

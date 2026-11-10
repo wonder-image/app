@@ -29,7 +29,8 @@
         "section": "Informazioni personali",
         "name": "Nome",
         "phone": "Cellulare",
-        "modal_title": "Modifica dati"
+        "modal_title": "Modifica dati",
+        "not_set": "Non indicato"
     },
     "email": {
         "label": "Email",

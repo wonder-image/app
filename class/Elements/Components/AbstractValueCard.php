@@ -16,7 +16,7 @@ abstract class AbstractValueCard extends Component
     ) {
         $this->title($title);
         $this->value($value);
-        $this->placeholder('--');
+        $this->placeholder('');
     }
 
     public static function make(
@@ -36,7 +36,7 @@ abstract class AbstractValueCard extends Component
         return $this->schema('value', $value);
     }
 
-    public function placeholder(string $placeholder = '--'): static
+    public function placeholder(string $placeholder = ''): static
     {
         return $this->schema('placeholder', $placeholder);
     }

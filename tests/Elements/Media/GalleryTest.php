@@ -235,7 +235,8 @@ has('InfoCard conserva gli style', $infoCard, 'style="min-height: 8rem;"');
 same('InfoCard non crea wrapper di span', str_starts_with($infoCard, '<div class="col-span-1"><div') ? 'wrapped' : 'direct', 'direct');
 
 $missingInfo = InfoCard::make('Bagni', null)->render('bootstrap');
-has('InfoCard usa il placeholder solo per valori mancanti', $missingInfo, '<h5 class="card-title mb-0">--</h5>');
+has('InfoCard senza valore resta vuota', $missingInfo, '<h5 class="card-title mb-0"></h5>');
+has('InfoCard usa il placeholder scelto per valori mancanti', InfoCard::make('Bagni', null)->placeholder('n/d')->render('bootstrap'), '<h5 class="card-title mb-0">n/d</h5>');
 
 $infoGrid = ResourceFormLayoutRenderer::renderLayout(
     (new Container())
@@ -289,7 +290,7 @@ $metricZeroBaseline = MetricCard::make('Ordini', 10)
     ->compareTo(0)
     ->render('bootstrap');
 has('MetricCard evita divisione per zero', $metricZeroBaseline, 'text-body-secondary');
-has('MetricCard segnala percentuale non definita', $metricZeroBaseline, '> --</h6>');
+has('MetricCard segnala percentuale non definita con la sola icona', $metricZeroBaseline, 'bi-dash" aria-hidden="true"></i> </h6>');
 
 $metricSmallDelta = MetricCard::make('Conversione', 105)
     ->compareTo(100)

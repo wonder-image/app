@@ -27,9 +27,9 @@ $quarter = ['default' => 12, 'md' => 6, 'xl' => 3];
 $third = ['default' => 12, 'md' => 4];
 echo Layout::renderLayout((new Container())->columns(12)->components([
     (new MetricCard('Esecuzioni', $runs))->columnSpan($quarter),
-    (new MetricCard('Riuscite', $runs ? $format(100 * $successes / $runs).'%' : '--'))->columnSpan($quarter),
+    (new MetricCard('Riuscite', $runs ? $format(100 * $successes / $runs).'%' : ''))->columnSpan($quarter),
     (new MetricCard('Fallite o interrotte', $runs - $successes))->columnSpan($quarter),
-    (new MetricCard('Durata media', $measured ? $format($total / $measured, 1000).' s' : '--'))->columnSpan($quarter),
+    (new MetricCard('Durata media', $measured ? $format($total / $measured, 1000).' s' : ''))->columnSpan($quarter),
     (new MetricCard('Email inviate', $LOG_COUNTS['emails_sent']))->columnSpan($third),
     (new MetricCard('Accessi riusciti', $LOG_COUNTS['logins']))->columnSpan($third),
     (new MetricCard('Ultimo contatto scheduler (UTC)', $HEARTBEAT ?: 'Mai ricevuto'))->columnSpan($third),

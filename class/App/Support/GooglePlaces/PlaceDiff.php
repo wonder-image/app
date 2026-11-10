@@ -120,7 +120,7 @@ final class PlaceDiff
         }
 
         return implode(', ', array_map(
-            static fn (array $period): string => $period['open'].'–'.$period['close'].($period['overnight'] ? ' (giorno dopo)' : ''),
+            static fn (array $period): string => 'dalle '.$period['open'].' alle '.$period['close'].($period['overnight'] ? ' (giorno dopo)' : ''),
             $periods
         ));
     }

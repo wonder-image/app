@@ -31,13 +31,13 @@ check('con html() il valore resta markup', function () {
     return str_contains($html, '<span class="badge">Attiva</span>');
 });
 
-check('senza valore compare il segnaposto, anche se è solo spazi', function () {
+check('senza valore il dato resta vuoto, anche se è solo spazi; il segnaposto si sceglie', function () {
     $vuoto = DataItem::make('Telefono')->render('bootstrap');
     $spazi = DataItem::make('Telefono', '   ')->render('bootstrap');
     $altro = DataItem::make('Telefono')->placeholder('n/d')->render('bootstrap');
 
-    return str_contains($vuoto, '<span class="text-muted">—</span>')
-        && str_contains($spazi, '<span class="text-muted">—</span>')
+    return str_contains($vuoto, '<div></div>') && !str_contains($vuoto, '<span class="text-muted">')
+        && str_contains($spazi, '<div></div>')
         && str_contains($altro, '<span class="text-muted">n/d</span>');
 });
 

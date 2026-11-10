@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Cambiato
+- **Niente trattini a schermo.** Dove manca un valore `DataItem`, `InfoCard` e
+  `MetricCard` restano vuoti (il segnaposto si sceglie con `placeholder()`), il
+  delta di `MetricCard` su base zero mostra solo l'icona, gli indirizzi
+  incompleti (`Prettify\Address`, `AddressExtension`, plugin `Address`, `$SOCIETY->prettyAddress`)
+  valgono `''` invece di `--`, l'area account scrive «Non indicato»
+  (`account.personal.not_set`, it/en). Separatori con «·», parentesi o «dalle … alle …»
+  (credenziali Google, metodo dello scheduler, orari Google Places, aiuto delle sedi),
+  opzione vuota dell'import «Non caricare», percorsi di `parentTree()` uniti da «›».
+
 ## 2.4.0-beta.7 — 2026-11-10
 
 ### Cambiato

@@ -9,7 +9,7 @@ final class AccountOverview
 {
     public static function rows(AccountPanel $panel, object $user): array
     {
-        $value = static fn (string $text): string => trim($text) !== '' ? trim($text) : '—';
+        $value = static fn (string $text): string => trim($text) !== '' ? trim($text) : (string) __t('account.personal.not_set');
         $rows = [];
 
         if ($panel->enabled('personal')) {

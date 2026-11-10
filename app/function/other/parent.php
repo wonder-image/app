@@ -100,7 +100,7 @@
 
                         $RETURN->array = $PARENT_TREE->array;
                         $RETURN->badge .= $PARENT_TREE->badge;
-                        $RETURN->text .= $PARENT_TREE->text.' - ';
+                        $RETURN->text .= $PARENT_TREE->text.' › ';
 
                     }
 
@@ -114,7 +114,7 @@
                     if ($row['parent_id'] == '0') {
 
                         $RETURN->badge .= '<span class="badge bg-secondary">'.strtoupper($row['name']).'</span> ';
-                        $RETURN->text .= $row['name'].' - ';
+                        $RETURN->text .= $row['name'].' › ';
 
                     } else {
 
