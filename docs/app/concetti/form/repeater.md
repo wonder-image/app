@@ -86,7 +86,7 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`,
 `repeaterGroupFixed($colonna)`,
 `repeaterGroupFiles($campo, $colonnaChiave, $etichetta = 'Foto')`,
-`repeaterAddButton($b = true)`,
+`repeaterAddButton($b = true)`, `repeaterMinRows($n)`,
 `repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
 `repeaterAdvancedLabel($s)`, `repeaterUndoDelete($b = true)`,
 `repeaterUndoLabel($etichetta, $testo = '')`.
@@ -185,6 +185,27 @@ Con le righe annullabili il contenitore stampa anche una sentinella nascosta
 chiave del repeater, e chi a valle controlla «c'è ma è vuoto» non avrebbe più
 niente da guardare. Non è un array, quindi le righe non la vedono.
 
+## Righe minime
+
+`repeaterMinRows($n)` dice quante righe devono restare: quando ne restano
+`$n`, il bottone che elimina si spegne su tutte, e si riaccende appena se ne
+aggiunge una. Serve dove un record senza righe non ha senso, come una scheda
+senza nessun contatto:
+
+```php
+FormField::key('contact_points')
+    ->repeater([...])
+    ->repeaterMinRows(1)
+```
+
+Il contenitore porta `data-wi-repeater-min="1"`; `wiRepeaterSyncMin()` tiene
+spenti i bottoni dopo ogni aggiunta, eliminazione o ripristino, e
+`wiRepeaterRemoveRow()` non toglie l'ultima riga nemmeno se chiamata a mano. Le
+righe nascoste o annullate non contano. È **un aiuto a schermo**: un repeater
+che parte vuoto resta vuoto, e la regola vera (rifiutare un salvataggio senza
+righe) la controlla chi salva. Solo nel tema Bootstrap, come tutto il
+repeater.
+
 ## Righe vuote
 
 Una riga senza niente dentro non si salva: `Repeater::rowsFromRequest()` la
@@ -193,7 +214,9 @@ default delle colonne (`->value()`): una nazione precompilata su `IT` posta il
 suo valore anche nella riga mai toccata, e una tendina senza `->value()` posta la sua prima opzione, che quindi conta come default. `Resource` passa i default da solo
 con `Repeater::columnDefaults($field)`; chi chiama `rowsFromRequest()` a mano
 li passa come quarto argomento. Se l'utente cambia il default (per esempio
-`FR`) o scrive altro, la riga resta.
+`FR`) o scrive altro, la riga resta. Una colonna `phonePrefix()` senza
+`->value()` ha come default il prefisso di casa (`Phone::$defaultCountryCode`,
+`+39`), quello che mostra: la riga con il solo prefisso resta vuota.
 
 ## Informazioni avanzate
 

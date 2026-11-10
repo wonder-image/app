@@ -4,9 +4,11 @@ namespace Wonder\App\Support;
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\InputPhonePrefix;
 use Wonder\App\ResourceSchema\Inputs\InputSelect;
 use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\Table;
+use Wonder\Support\Prettify\Phone;
 
 final class Repeater
 {
@@ -69,6 +71,11 @@ final class Repeater
             if (($value === null || $value === '') && $column instanceof InputSelect && !$column->get('multiple')) {
                 $options = (array) ($column->get('options') ?? []);
                 $value = $options !== [] ? (string) array_key_first($options) : null;
+            }
+
+            // Il prefisso vuoto parte da quello di casa (`InputPhonePrefix`).
+            if (($value === null || $value === '') && $column instanceof InputPhonePrefix) {
+                $value = Phone::$defaultCountryCode;
             }
 
             if (is_scalar($value) && trim((string) $value) !== '') {

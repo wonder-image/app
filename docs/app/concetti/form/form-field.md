@@ -254,6 +254,10 @@ sceglie la voce nuova.
 `country($stateField = null)`, `states($country = null)`, `phonePrefix()`,
 `googleAddress($restriction = [], $alias = null)`.
 
+`phonePrefix()` senza valore parte dal prefisso del paese di casa
+(`Phone::$defaultCountryCode`, `+39`), come la nazione negli indirizzi, non
+dal primo dell'elenco; anche nelle colonne di un repeater.
+
 ### File
 
 `file($accept = 'image')` (upload classico),

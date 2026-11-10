@@ -3,11 +3,21 @@
 ## Unreleased
 
 ### Cambiato
+- **Prefisso telefonico di casa.** `InputPhonePrefix` senza valore parte da
+  `Phone::$defaultCountryCode` (`+39`) invece che dalla prima voce
+  dell'elenco, come la nazione negli indirizzi; `Repeater::columnDefaults()`
+  lo tratta come default, così una riga con il solo prefisso resta vuota.
 - `extra.wonder.lib` e `package.json` richiedono `wonder-image@^2.1.2-alpha.41`:
   condizioni dentro le righe del repeater, `data-wi-place-name` ed evento
   `wi:place`.
 
 ### Aggiunto
+- **Righe minime nel repeater.** `FormField::repeaterMinRows(int $n)` (context
+  `min_rows`, attributo `data-wi-repeater-min`): quando restano `$n` righe il
+  bottone che elimina si spegne, e `wiRepeaterRemoveRow()` non toglie l'ultima.
+  Aiuto a schermo, la regola la controlla chi salva. JS `wiRepeaterSyncMin()` e
+  `wiRepeaterMinRows()`. Vedi `docs/app/concetti/form/repeater.md#righe-minime`;
+  test in `tests/Themes/RepeaterMinRowsTest.php`.
 - **Nome dell'attività dall'autocompletamento.**
   `AddressExtension::withNameSearch(bool $enabled = true, ?string $nameKey = null)`:
   con `nameKey` (senza prefisso, es. `business_name`) la via porta

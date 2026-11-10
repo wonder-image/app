@@ -120,7 +120,10 @@ class Repeater extends Field
         // Senza il bottone la riga resta una sola per sempre: la guardia che
         // impedisce di svuotare il contenitore non ha più senso, perché
         // nessuno potrebbe rimetterne una.
-        $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"');
+        $minRows = max(0, (int) ($context['min_rows'] ?? 0));
+        $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"')
+            .($minRows > 0 ? ' data-wi-repeater-min="'.$minRows.'"' : '');
+        $minInitHtml = $minRows > 0 ? "<script>window.wiRepeaterSyncMin(document.getElementById('{$rowId}'));</script>" : '';
         // Il nome del campo sul contenitore: chi genera righe da fuori trova
         // il repeater senza dipendere da un id che cambia a ogni render.
         $nameAttr = $this->escape($name);
@@ -148,6 +151,7 @@ class Repeater extends Field
     {$addButtonHtml}
     {$this->script()}
     {$groupInitHtml}
+    {$minInitHtml}
 </div>
 HTML;
     }
@@ -680,8 +684,28 @@ HTML;
             window.wiRepeaterGroupRefresh(container);
         }
 
+        if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
+
         // Chi ha chiesto la riga la vuole anche riempire.
         return row;
+    };
+
+    // Con `repeaterMinRows()` il bottone che elimina si spegne quando restano
+    // le righe minime, e si riaccende quando se ne aggiunge una.
+    window.wiRepeaterMinRows = window.wiRepeaterMinRows || function (container) {
+        if (!container || typeof container.getAttribute !== 'function') return 0;
+        return parseInt(container.getAttribute('data-wi-repeater-min') || '0', 10) || 0;
+    };
+
+    window.wiRepeaterSyncMin = window.wiRepeaterSyncMin || function (container) {
+        const min = window.wiRepeaterMinRows(container);
+        if (!(min > 0)) return;
+        const rows = container.querySelectorAll(':scope > .wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)');
+        rows.forEach(function (row) {
+            row.querySelectorAll('.wi-repeater-delete').forEach(function (button) {
+                if (button.closest('.wi-repeater-row') === row) button.disabled = rows.length <= min;
+            });
+        });
     };
 
     window.wiRepeaterEnsureDeleteModal = window.wiRepeaterEnsureDeleteModal || function (config = {}) {
@@ -761,6 +785,8 @@ HTML;
         const row = button.closest('.wi-repeater-row');
         const container = row ? row.parentElement : null;
         if (!row || !container) return;
+        const min = typeof window.wiRepeaterMinRows === 'function' ? window.wiRepeaterMinRows(container) : 0;
+        if (min > 0 && container.querySelectorAll(':scope > .wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)').length <= min) return;
         const deleteConfig = {
             title: button.getAttribute('data-wi-delete-title') || 'Conferma eliminazione',
             text: button.getAttribute('data-wi-delete-text') || "Confermi l'eliminazione della riga?",
@@ -786,6 +812,8 @@ HTML;
                     window.wiRepeaterGroupRefresh(container);
                 }
 
+                if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
+
                 return;
             }
 
@@ -810,6 +838,8 @@ HTML;
             if (typeof window.wiRepeaterGroupRefresh === 'function') {
                 window.wiRepeaterGroupRefresh(container);
             }
+
+            if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
         }, deleteConfig);
     };
 
@@ -827,6 +857,8 @@ HTML;
         if (typeof window.wiRepeaterGroupRefresh === 'function') {
             window.wiRepeaterGroupRefresh(container);
         }
+
+        if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
     };
 
     window.wiRepeaterMoveRowUp = window.wiRepeaterMoveRowUp || function (button) {
