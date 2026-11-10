@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0-beta.7 — 2026-11-10
+
 ### Cambiato
 - **Prefisso telefonico di casa.** `InputPhonePrefix` senza valore parte da
   `Phone::$defaultCountryCode` (`+39`) invece che dalla prima voce
