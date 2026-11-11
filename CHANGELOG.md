@@ -26,6 +26,11 @@
   più select della stessa risorsa nella pagina la voce creata compariva solo
   in quello da cui si era partiti. Ora entra anche negli altri con le stesse
   scelte e nei modelli di riga dei repeater, senza essere selezionata.
+- **Repeater con creazione rapida: «Salva» restava spento dopo «Aggiungi».**
+  La riga nuova contava tra i campi obbligatori anche quelli della finestra
+  di creazione rapida, prima che uscisse dal form: il bottone di invio si
+  spegneva e non si riaccendeva finché non si toccava un altro campo. Ora si
+  riconta appena la finestra è fuori.
 
 ### Cambiato
 - **Repeater: maniglia per riordinare e cestino piccolo.** Con

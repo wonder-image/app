@@ -440,7 +440,9 @@ FormField::key('products')
 - Una colonna con la [creazione rapida](quick-create.md) funziona anche nelle
   righe aggiunte: il modale di ogni riga ha l'id della riga, e dopo
   l'aggiunta `wiRepeaterAddRow` chiama `window.wiQuickCreateDetach()`, che lo
-  sposta nel `body` (i suoi campi non devono partire con il form).
+  sposta nel `body` (i suoi campi non devono partire con il form) e poi
+  riconta il bottone di invio con `check()`: i campi obbligatori del modale
+  non devono tenerlo spento.
 - Il contenitore esterno porta `data-wi-repeater="<nome del campo>"`: è la
   maniglia per trovarlo senza dipendere dall'id, che cambia a ogni render.
 

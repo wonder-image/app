@@ -781,6 +781,11 @@ HTML;
         // form: i suoi campi non vanno postati col record.
         if (typeof window.wiQuickCreateDetach === 'function') window.wiQuickCreateDetach();
 
+        // `setInput` ha già contato i campi obbligatori, finestra compresa:
+        // ora che è uscita dal form il bottone di invio va ricontato, o
+        // resta spento per un campo che non verrà mai postato.
+        if (typeof window.check === 'function') window.check();
+
         // I numeri della riga nuova (prezzi, giacenze) si formattano come
         // quelli delle righe già in pagina. Le lib recenti lo fanno dentro
         // `setInput`; qui è per quelle più vecchie, e non si avvia due
