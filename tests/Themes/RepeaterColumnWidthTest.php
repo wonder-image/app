@@ -52,20 +52,20 @@ $riga = ['row_1' => ['option' => 'S', 'price' => '19.90', 'note' => '', 'sku' =>
 check('una casella che chiede un dodicesimo ne prende uno', function () use ($render, $markup, $riga) {
     $html = $markup($render($riga, []));
 
-    return str_contains($html, '<div class="col-1">')
-        && substr_count($html, '<div class="col-1">') >= 1;
+    return str_contains($html, '<div class="col-1" style=')
+        && substr_count($html, '<div class="col-1" style=') >= 1;
 });
 
 check('chi non dichiara niente prende tutto lo spazio che resta', function () use ($render, $markup, $riga) {
-    return str_contains($markup($render($riga, [])), '<div class="col-11">');
+    return str_contains($markup($render($riga, [])), '<div class="col-11" style=');
 });
 
 check('le altre larghezze restano quelle dichiarate', function () use ($render, $markup, $riga) {
     $html = $markup($render($riga, []));
 
-    return str_contains($html, '<div class="col-3">')
-        && str_contains($html, '<div class="col-4">')
-        && str_contains($html, '<div class="col-12">');
+    return str_contains($html, '<div class="col-3" style=')
+        && str_contains($html, '<div class="col-4" style=')
+        && str_contains($html, '<div class="col-12" style=');
 });
 
 check('senza colonne avanzate non compare nessun bottone', function () use ($render, $markup, $riga) {
@@ -135,8 +135,8 @@ check('una casella che riempie prende lo spazio che resta: col', function () {
     $html = substr($html, 0, (int) strpos($html, '<template'));
 
     return substr_count($html, '<div class="col">') === 2
-        && str_contains($html, '<div class="col-3">')
-        && !str_contains($html, '<div class="col-4">');
+        && str_contains($html, '<div class="col-3" style=')
+        && !str_contains($html, '<div class="col-4" style=');
 });
 
 check('senza columnFill le larghezze non cambiano', function () use ($render, $markup, $riga) {

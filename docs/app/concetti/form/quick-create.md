@@ -45,6 +45,20 @@ FormField::key('category_id')
   tecnico e il campo uno più chiaro: `button: 'Aggiungi opzione'` su un elenco
   di valori d'attributo.
 
+In un campo stretto (la colonna di un repeater) `->quickCreateCompact()`, dopo
+`quickCreate()`, lascia solo il "+": il testo del bottone passa nel titolo e
+nell'`aria-label`. Vale per il "+" attaccato a `select` / `selectSearch` /
+`searchRemote`.
+
+In un repeater lo script condiviso non resta mai nel modello di riga: se il
+primo "+" della pagina nasce lì (repeater ancora vuoto) il repeater lo stampa
+subito dopo il `<template>`, dove gira.
+
+Quando la stessa risorsa ha più `select` nella pagina (un "Tipo ufficio" per
+riga, in più repeater) la voce creata entra in tutti: scelta in quello da cui
+si è partiti, solo disponibile negli altri e nei modelli di riga. Vale per i
+select che elencavano le stesse scelte: un elenco filtrato non viene toccato.
+
 Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
 `Inputs\Concerns\HasQuickCreate`.

@@ -2,7 +2,48 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Creazione rapida compatta.** `->quickCreateCompact()`, dopo
+  `quickCreate()`, lascia solo il "+" accanto al campo (testo nel titolo e
+  nell'`aria-label`): per le colonne strette di un repeater.
+- **Righe a scheda richiudibile nel repeater.**
+  `FormField::repeaterCollapsible($titolo, $sottotitolo = [])` e
+  `repeaterCollapsibleEmptyLabel($s)` (context `collapsible`,
+  `collapsible_empty`): una riga salvata si chiude su un riassunto (colonne
+  del titolo, poi quelle del sottotitolo unite da «·»; di una select multipla
+  tutte le scelte) e si apre con un clic.
+  I campi di una riga chiusa sono nascosti, non spenti, quindi vengono
+  postati. Righe nuove, senza titolo o rese dopo un `POST` nascono aperte; un
+  campo non valido apre la sua scheda. JS `wiRepeaterToggleRow()`,
+  `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
+
+### Corretto
+- **Creazione rapida in un repeater vuoto.** Se il primo "+" della pagina
+  nasceva nel modello di riga di un repeater senza righe, lo script condiviso
+  finiva nel `<template>` e non girava: il modal si apriva ma «Salva» non
+  faceva niente. Ora il repeater lo stampa fuori dal modello.
+- **Creazione rapida: la voce nuova in tutti i select della risorsa.** Con
+  più select della stessa risorsa nella pagina la voce creata compariva solo
+  in quello da cui si era partiti. Ora entra anche negli altri con le stesse
+  scelte e nei modelli di riga dei repeater, senza essere selezionata.
+- **Repeater con creazione rapida: «Salva» restava spento dopo «Aggiungi».**
+  La riga nuova contava tra i campi obbligatori anche quelli della finestra
+  di creazione rapida, prima che uscisse dal form: il bottone di invio si
+  spegneva e non si riaccendeva finché non si toccava un altro campo. Ora si
+  riconta appena la finestra è fuori.
+
 ### Cambiato
+- **Repeater: maniglia per riordinare e cestino piccolo.** Con
+  `repeaterSortable()` i due bottoni su e giù lasciano il posto a una maniglia
+  (`.wi-repeater-handle`) a sinistra della riga: si trascina, e con il fuoco
+  sopra le frecce della tastiera spostano la riga di un posto. Il cestino è
+  un'icona a destra. Le colonne continuano a dichiararsi su undici (nove con il
+  riordino) e si allargano in proporzione a tutta la riga: nessun form deve
+  cambiare gli span. In una scheda richiudibile maniglia e cestino stanno sul
+  riassunto. Il `fieldset` della riga non è più la griglia (`row g-2`): la
+  griglia è un `div` al suo interno. `.wi-repeater-move-up` e
+  `.wi-repeater-move-down` non si stampano più; `wiRepeaterMoveRowUp()` e
+  `wiRepeaterMoveRowDown()` restano.
 - **Niente trattini a schermo.** Dove manca un valore `DataItem`, `InfoCard` e
   `MetricCard` restano vuoti (il segnaposto si sceglie con `placeholder()`), il
   delta di `MetricCard` su base zero mostra solo l'icona, gli indirizzi

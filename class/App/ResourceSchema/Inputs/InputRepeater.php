@@ -82,6 +82,10 @@ class InputRepeater extends Input
         return $this->context('delete_modal_confirm_class', trim($class));
     }
 
+    /**
+     * Le righe si riordinano: una maniglia a sinistra si trascina, e con il
+     * fuoco sopra le frecce su e giù spostano la riga di un posto.
+     */
     public function repeaterSortable(bool $sortable = true): static
     {
         return $this->context('sortable', $sortable);
@@ -158,8 +162,8 @@ class InputRepeater extends Input
      * leggendo. Per questo la tendina non si stampa: non c'è niente da
      * scegliere.
      *
-     * Con il raggruppamento fisso il riordino a mano si spegne: le frecce
-     * spostano una riga dentro un ordine che i gruppi hanno già deciso.
+     * Con il raggruppamento fisso il riordino a mano si spegne: la maniglia
+     * sposterebbe una riga dentro un ordine che i gruppi hanno già deciso.
      */
     public function repeaterGroupFixed(string $columnKey): static
     {
@@ -240,6 +244,42 @@ class InputRepeater extends Input
     public function repeaterAdvancedLabel(string $label): static
     {
         return $this->context('advanced_label', trim($label));
+    }
+
+    /**
+     * Le righe diventano schede che si chiudono su un riassunto.
+     *
+     * Una riga salvata si legge in una riga sola (il nome, poi il resto in
+     * piccolo) e si apre con un clic per modificarla. Le colonne del titolo
+     * si uniscono con uno spazio, quelle del sottotitolo con «·»; di una
+     * select si legge l'etichetta scelta. Una riga nuova, o senza titolo,
+     * nasce aperta, come quelle che tornano da un salvataggio rifiutato.
+     *
+     * I campi di una riga chiusa sono nascosti, non spenti: vengono postati
+     * come sempre.
+     *
+     * @param string|list<string> $title
+     * @param string|list<string> $subtitle
+     */
+    public function repeaterCollapsible(string|array $title, string|array $subtitle = []): static
+    {
+        $keys = static fn (string|array $columns): array => array_values(array_unique(array_filter(
+            array_map(static fn ($key): string => trim((string) $key), (array) $columns),
+            static fn (string $key): bool => $key !== ''
+        )));
+
+        $title = $keys($title);
+
+        return $title === [] ? $this : $this->context('collapsible', [
+            'title' => $title,
+            'subtitle' => $keys($subtitle),
+        ]);
+    }
+
+    /** Il titolo di una scheda che non ha ancora niente da riassumere. */
+    public function repeaterCollapsibleEmptyLabel(string $label): static
+    {
+        return $this->context('collapsible_empty', trim($label));
     }
 
     /**

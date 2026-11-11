@@ -52,21 +52,21 @@ $markup = static fn (string $html): string => substr($html, 0, (int) strpos($htm
 check('la regola va sul contenitore della colonna, marcato come tale', function () use ($render, $markup) {
     return str_contains(
         $markup($render()),
-        '<div class="col-2" data-visible-when="type" data-visible-when-values="pattern" data-wi-conditional-container="true">'
+        '<div class="col-2" data-visible-when="type" data-visible-when-values="pattern" data-wi-conditional-container="true"'
     );
 });
 
 check('più valori si scrivono separati da virgola', function () use ($render, $markup) {
     return str_contains(
         $markup($render()),
-        '<div class="col-3" data-visible-when="type" data-visible-when-values="color,pattern" data-wi-conditional-container="true">'
+        '<div class="col-3" data-visible-when="type" data-visible-when-values="color,pattern" data-wi-conditional-container="true"'
     );
 });
 
 check('hiddenWhen usa le sue chiavi', function () use ($render, $markup) {
     return str_contains(
         $markup($render()),
-        '<div class="col-4" data-hidden-when="type" data-hidden-when-values="text" data-wi-conditional-container="true">'
+        '<div class="col-4" data-hidden-when="type" data-hidden-when-values="text" data-wi-conditional-container="true"'
     );
 });
 
@@ -107,7 +107,7 @@ check('una colonna avanzata porta la regola nel blocco', function () use ($rende
 
     return str_contains(
         $blocco,
-        '<div class="col-12" data-visible-when="type" data-visible-when-values="select" data-wi-conditional-container="true">'
+        '<div class="col-12" data-visible-when="type" data-visible-when-values="select" data-wi-conditional-container="true"'
     );
 });
 
@@ -158,7 +158,7 @@ check('la regola usa il nome corto della colonna: la lib lo cerca nella stessa r
     $modello = substr($html, (int) strpos($html, '<template'));
 
     return str_contains($html, 'name="contact_points[row_3][kind]"')
-        && str_contains($html, '<div class="col-11" data-visible-when="kind" data-visible-when-values="email" data-wi-conditional-container="true">')
+        && str_contains($html, '<div class="col-11" data-visible-when="kind" data-visible-when-values="email" data-wi-conditional-container="true"')
         && str_contains($modello, 'name="contact_points[__ROW_KEY__][kind]"')
         && str_contains($modello, 'data-visible-when="kind" data-visible-when-values="phone" data-wi-conditional-container="true"')
         && !str_contains($html, 'data-visible-when="contact_points');

@@ -118,4 +118,13 @@ check('il campo della riga modello porta la chiave nell\'id', function () use ($
         && str_contains($script(), 'window.wiQuickCreateDetach()');
 });
 
+check('uscita la finestra dal form, il bottone di invio si riconta', function () use ($script) {
+    $js = $script();
+    $detach = strpos($js, 'window.wiQuickCreateDetach()');
+    $check = strpos($js, 'window.check()');
+
+    return $detach !== false && $check !== false && $check > $detach
+        && strpos($js, 'window.setInput(row)') < $detach;
+});
+
 summary();

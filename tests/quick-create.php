@@ -124,6 +124,11 @@ $check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family
 $check(str_contains($html, 'class="btn btn-outline-secondary" data-wi-quick-create'), 'select attaches the "+" in the input-group');
 $check(str_contains($html, 'input-group') && str_contains($html, 'form-floating'), 'select keeps the floating input inside the input-group');
 
+// Compatto: solo il "+", con il testo nel titolo.
+$compactHtml = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name', button: 'Nuova categoria')->quickCreateCompact()->render('bootstrap');
+$check(str_contains($compactHtml, 'title="Nuova categoria" aria-label="Nuova categoria"><i class="bi bi-plus-lg"></i></button>'), 'quickCreateCompact: il "+" senza scritta, con titolo');
+$check(str_contains($html, '<i class="bi bi-plus-lg"></i> Aggiungi</button>'), 'senza compact resta «+ Aggiungi»');
+
 // Placement checkbox = testata "Aggiungi <Nome>" in alto a destra (position-absolute),
 // non più un bottone sotto.
 $checkHtml = FormField::key('tags')->checkbox()->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');
@@ -190,5 +195,35 @@ $failed = QuickCreateController::fromStore(['error' => 'Doppione non visibile'])
 $check($failed['success'] === false && $failed['error'] === 'Doppione non visibile' && $failed['status'] === 422, 'fromStore without id is an error');
 $check(str_contains($script, 'window.wiQuickCreateDetach = detachModals'), 'the detach is exposed for added rows');
 $check(str_contains($script, 'made.message'), 'the client shows the handler message');
+
+// Repeater ancora vuoto: il primo «+» della pagina nasce nel modello, e lo
+// script non deve restare nel `<template>` (lì non gira).
+$emitted = new ReflectionProperty(\Wonder\Backend\Support\QuickCreateModal::class, 'scriptEmitted');
+$emitted->setValue(null, false);
+$emptyRepeater = new class($targetClass) {
+    public array $schema;
+
+    public function __construct(string $targetClass)
+    {
+        $this->schema = [
+            'id' => 'points',
+            'name' => 'points',
+            'label' => '',
+            'value' => [],
+            'columns' => [\Wonder\App\ResourceSchema\RepeaterColumn::key('type_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name')],
+            'context' => ['nested' => true, 'start_empty' => true],
+        ];
+    }
+};
+$repeaterHtml = (new \Wonder\Themes\Bootstrap\Form\Components\Repeater)->render($emptyRepeater);
+$templateEnd = strpos($repeaterHtml, '</template>');
+$scriptAt = strpos($repeaterHtml, 'wiQuickCreateReady');
+$check($scriptAt !== false && substr_count($repeaterHtml, 'wiQuickCreateReady = true') === 1, 'an empty repeater still prints the quick-create script once');
+$check($templateEnd !== false && $scriptAt > $templateEnd, 'the quick-create script is outside the row template');
+$check(strpos($repeaterHtml, 'data-wi-qc-endpoint') < $templateEnd, 'the modal stays in the row template');
+
+// La voce creata entra anche negli altri select della stessa risorsa.
+$source = \Wonder\Backend\Support\QuickCreateModal::scriptSource();
+$check(str_contains($source, 'function twinSelects(') && str_contains($source, "document.querySelectorAll('template')"), 'the new option reaches the twin selects and the row templates');
 
 echo "OK: {$checks} checks passed\n";

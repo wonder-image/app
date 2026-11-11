@@ -133,13 +133,13 @@ check('fisso, i gruppi ci sono anche con una riga sola', function () use ($rende
         && str_contains($html, 'data-wi-group-label-product_variant_id="Blu"');
 });
 
-check('fisso, le frecce di riordino non si stampano', function () use ($render, $markup, $righe) {
-    // Solo il markup: il blocco <script> nomina le frecce in ogni caso.
+check('fisso, la maniglia di riordino non si stampa', function () use ($render, $markup, $righe) {
+    // Solo il markup: il blocco <script> nomina la maniglia in ogni caso.
     $html = $markup($render($righe, ['group_fixed' => 'product_variant_id', 'sortable' => true]));
 
-    // Niente frecce e niente colonna larga tre a tenere il loro posto vuoto.
-    return !str_contains($html, 'wi-repeater-move-up')
-        && !str_contains($html, 'col-3 d-flex align-items-stretch');
+    // Niente maniglia, e le colonne tornano a contare su undici.
+    return !str_contains($html, 'wi-repeater-handle')
+        && !str_contains($html, 'bi-grip-vertical');
 });
 
 check('una colonna fissa che non esiste non raggruppa niente', function () use ($render, $markup, $righe) {

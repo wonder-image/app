@@ -8,6 +8,7 @@ use Wonder\App\ResourceSchema\Inputs\InputFile;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\Support\RepeaterGroups;
+use Wonder\Backend\Support\QuickCreateModal;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class Repeater extends Field
@@ -110,6 +111,12 @@ class Repeater extends Field
         }
 
         $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
+        // Lo script della creazione rapida esce una volta sola per pagina: se
+        // il primo «+» è nel modello (repeater ancora vuoto) finirebbe nel
+        // `<template>`, dove non gira. Lo si sposta fuori.
+        $quickScript = QuickCreateModal::scriptSource();
+        $templateHtml = str_replace($quickScript, '', $templateHtml, $quickScriptMoved);
+        $quickScriptHtml = $quickScriptMoved > 0 ? $quickScript : '';
         $addButton = ($context['add_button'] ?? true) !== false;
         $addButtonHtml = $addButton
             ? '<div class="mt-2 d-flex justify-content-end">'
@@ -124,6 +131,9 @@ class Repeater extends Field
         $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"')
             .($minRows > 0 ? ' data-wi-repeater-min="'.$minRows.'"' : '');
         $minInitHtml = $minRows > 0 ? "<script>window.wiRepeaterSyncMin(document.getElementById('{$rowId}'));</script>" : '';
+        $summaryInitHtml = $this->collapsibleConfig($context) !== null
+            ? "<script>window.wiRepeaterSummaryInit('{$rowId}');</script>"
+            : '';
         // Il nome del campo sul contenitore: chi genera righe da fuori trova
         // il repeater senza dipendere da un id che cambia a ogni render.
         $nameAttr = $this->escape($name);
@@ -147,11 +157,13 @@ class Repeater extends Field
         {$rowsHtml}
     </div>
     <template id="{$templateId}">{$templateHtml}</template>
+    {$quickScriptHtml}
     {$groupTemplateHtml}
     {$addButtonHtml}
     {$this->script()}
     {$groupInitHtml}
     {$minInitHtml}
+    {$summaryInitHtml}
 </div>
 HTML;
     }
@@ -190,10 +202,37 @@ HTML;
         // arrivare al salvataggio.
         $undoDelete = ($context['undo_delete'] ?? false) === true;
 
-        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}>";
-        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
-            .'<fieldset class="row g-2 align-items-start border-0 p-0 m-0">';
+        // Scheda richiudibile: il riassunto sta sopra, i campi si nascondono
+        // (mai spenti: un fieldset spento non viene postato).
+        $collapsible = $this->collapsibleConfig($context);
+        $collapsed = $collapsible !== null && !$template && $this->rowStartsCollapsed($rowValue, $collapsible['title']);
+        $collapsibleAttr = $collapsible !== null ? ' data-wi-collapsible="true"' : '';
 
+        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}{$collapsibleAttr}>";
+        // La maniglia e il cestino: piccoli, ai lati della riga. In una
+        // scheda richiudibile stanno sul riassunto, che resta visibile anche
+        // a scheda chiusa.
+        $sortLabel = $this->escape((string) ($context['sort_label'] ?? 'Trascina per riordinare'));
+        $handleHtml = $sortable
+            ? '<button type="button" class="btn btn-sm btn-link text-body-secondary px-1 flex-shrink-0 wi-repeater-handle"'
+                .' style="cursor:grab;touch-action:none"'
+                .' title="'.$sortLabel.'" aria-label="'.$sortLabel.'">'
+                .'<i class="bi bi-grip-vertical"></i></button>'
+            : '';
+        $deleteLabel = $this->escape((string) ($context['delete_modal_confirm_label'] ?? 'Elimina'));
+        $deleteHtml = '<button type="button" class="btn btn-sm btn-link text-danger px-1 flex-shrink-0 wi-repeater-delete"'
+            .' title="'.$deleteLabel.'" aria-label="'.$deleteLabel.'"'
+            .' onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
+
+        // Le colonne si dichiarano su undici (nove con il riordino), come
+        // quando le azioni occupavano il resto: qui si allargano a tutta la riga.
+        $budget = $sortable ? 9 : 11;
+
+        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
+            .($collapsible !== null ? $this->renderSummary($collapsible, $collapsed, $handleHtml, $deleteHtml) : '')
+            .'<fieldset class="border-0 p-0 m-0'.($collapsed ? ' d-none' : '').'">';
+
+        $cellsHtml = '';
         $advancedHtml = '';
 
         foreach ($columns as $column) {
@@ -204,39 +243,36 @@ HTML;
                 continue;
             }
 
-            $cell = '<div class="'.$colClass.'"'.$colAttrs.'>'.$fieldHtml.'</div>';
             $key = $this->columnKey($column);
 
             if ($key !== '' && in_array($key, $advanced, true)) {
-                $advancedHtml .= $cell;
+                $advancedHtml .= '<div class="'.$colClass.'"'.$colAttrs.'>'.$fieldHtml.'</div>';
 
                 continue;
             }
 
-            $html .= $cell;
+            $width = preg_match('/^col-(\d+)$/', $colClass, $match) === 1
+                ? ' style="width:'.round(min(1, (int) $match[1] / $budget) * 100, 4).'%"'
+                : '';
+            $cellsHtml .= '<div class="'.$colClass.'"'.$colAttrs.$width.'>'.$fieldHtml.'</div>';
         }
 
-        $actionColumnClass = $sortable ? 'col-3' : 'col-1';
-        $html .= "<div class=\"{$actionColumnClass} d-flex align-items-stretch\"><div class=\"d-flex flex-row gap-2 w-100\">";
-
-        if ($sortable) {
-            $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-up" onclick="window.wiRepeaterMoveRowUp(this)"><i class="bi bi-chevron-up"></i></button>';
-            $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-down" onclick="window.wiRepeaterMoveRowDown(this)"><i class="bi bi-chevron-down"></i></button>';
-        }
-
-        $html .= '<button type="button" class="btn btn-danger flex-fill wi-repeater-delete" onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
-        $html .= '</div></div>';
+        $html .= '<div class="d-flex align-items-center gap-2">'
+            .($collapsible === null ? $handleHtml : '')
+            .'<div class="flex-grow-1" style="min-width:0"><div class="row g-2 align-items-start">'.$cellsHtml.'</div></div>'
+            .($collapsible === null ? $deleteHtml : '')
+            .'</div>';
 
         if ($advancedHtml !== '') {
             $label = trim((string) ($context['advanced_label'] ?? '')) ?: 'Compila le informazioni avanzate';
 
-            $html .= '<div class="col-12">'
+            $html .= '<div class="mt-2">'
                 .'<button type="button" class="btn btn-link btn-sm px-0 text-decoration-none wi-repeater-advanced-toggle"'
                 .' onclick="window.wiRepeaterToggleAdvanced(this)">'
                 .'<i class="bi bi-chevron-down me-1"></i>'.$this->escape($label)
                 .'</button>'
                 .'</div>';
-            $html .= '<div class="col-12 wi-repeater-advanced d-none"><div class="row g-2 align-items-start">'
+            $html .= '<div class="wi-repeater-advanced d-none mt-2"><div class="row g-2 align-items-start">'
                 .$advancedHtml
                 .'</div></div>';
         }
@@ -258,6 +294,77 @@ HTML;
         $html .= '</div></div></div>';
 
         return $html;
+    }
+
+    /**
+     * @return array{title: list<string>, subtitle: list<string>, empty: string}|null
+     */
+    private function collapsibleConfig(array $context): ?array
+    {
+        $config = is_array($context['collapsible'] ?? null) ? $context['collapsible'] : [];
+        $keys = static fn (mixed $columns): array => array_values(array_filter(
+            array_map(static fn ($key): string => trim((string) $key), (array) $columns),
+            static fn (string $key): bool => $key !== ''
+        ));
+        $title = $keys($config['title'] ?? []);
+
+        if ($title === []) {
+            return null;
+        }
+
+        return [
+            'title' => $title,
+            'subtitle' => $keys($config['subtitle'] ?? []),
+            'empty' => trim((string) ($context['collapsible_empty'] ?? '')) ?: 'Nuova riga',
+        ];
+    }
+
+    /**
+     * Chiusa solo la riga che ha già un titolo e non torna da un invio: dopo
+     * un salvataggio rifiutato l'errore sta in una riga, e deve vedersi.
+     *
+     * @param list<string> $titleColumns
+     */
+    private function rowStartsCollapsed(array $rowValue, array $titleColumns): bool
+    {
+        if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
+            return false;
+        }
+
+        foreach ($titleColumns as $key) {
+            $value = $rowValue[$key] ?? null;
+
+            if (is_scalar($value) && trim((string) $value) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Il riassunto è un bottone a tutta larghezza; le parole le scrive lo
+     * script, che conosce l'etichetta scelta in una select.
+     *
+     * @param array{title: list<string>, subtitle: list<string>, empty: string} $collapsible
+     */
+    private function renderSummary(array $collapsible, bool $collapsed, string $handleHtml = '', string $deleteHtml = ''): string
+    {
+        return '<div class="wi-repeater-summary d-flex align-items-center gap-1'.($collapsed ? '' : ' mb-3').'">'
+            .$handleHtml
+            .'<button type="button" class="btn btn-link text-reset text-decoration-none p-0 flex-grow-1 d-flex align-items-center gap-2 text-start wi-repeater-summary-toggle"'
+            .' style="min-width:0"'
+            .' aria-expanded="'.($collapsed ? 'false' : 'true').'"'
+            .' data-wi-summary-title="'.$this->escape(implode(',', $collapsible['title'])).'"'
+            .' data-wi-summary-subtitle="'.$this->escape(implode(',', $collapsible['subtitle'])).'"'
+            .' data-wi-summary-empty="'.$this->escape($collapsible['empty']).'"'
+            .' onclick="window.wiRepeaterToggleRow(this)">'
+            .'<i class="bi '.($collapsed ? 'bi-chevron-right' : 'bi-chevron-down').'"></i>'
+            .'<span class="fw-semibold text-truncate wi-repeater-summary-title">'.$this->escape($collapsible['empty']).'</span>'
+            .'<span class="small text-body-secondary text-truncate wi-repeater-summary-subtitle"></span>'
+            .'</button>'
+            .$deleteHtml
+            .'</div>';
     }
 
     private function columnKey(Input $column): string
@@ -674,6 +781,11 @@ HTML;
         // form: i suoi campi non vanno postati col record.
         if (typeof window.wiQuickCreateDetach === 'function') window.wiQuickCreateDetach();
 
+        // `setInput` ha già contato i campi obbligatori, finestra compresa:
+        // ora che è uscita dal form il bottone di invio va ricontato, o
+        // resta spento per un campo che non verrà mai postato.
+        if (typeof window.check === 'function') window.check();
+
         // I numeri della riga nuova (prezzi, giacenze) si formattano come
         // quelli delle righe già in pagina. Le lib recenti lo fanno dentro
         // `setInput`; qui è per quelle più vecchie, e non si avvia due
@@ -765,6 +877,94 @@ HTML;
         }
     };
 
+    /*
+     * Schede richiudibili (`repeaterCollapsible()`).
+     *
+     * Chiudere nasconde i campi, non li spegne: una riga chiusa viene postata
+     * come una aperta.
+     */
+    window.wiRepeaterSummaryToggle = window.wiRepeaterSummaryToggle || function (row) {
+        const toggle = row ? row.querySelector('.wi-repeater-summary-toggle') : null;
+        return toggle && toggle.closest('.wi-repeater-row') === row ? toggle : null;
+    };
+
+    window.wiRepeaterSummaryRefresh = window.wiRepeaterSummaryRefresh || function (row) {
+        const toggle = window.wiRepeaterSummaryToggle(row);
+        if (!toggle) return '';
+        // Una colonna a scelta multipla si riassume con tutte le voci scelte.
+        const labelOf = function (key) {
+            const multiple = row.querySelector('select[multiple][name$="[' + key + '][]"]');
+            if (!multiple) return String(window.wiRepeaterGroupValue(row, key).label || '').trim();
+            return Array.prototype.map.call(multiple.selectedOptions, function (option) {
+                return option.textContent.trim();
+            }).filter(function (text) { return text !== ''; }).join(', ');
+        };
+        const read = function (attribute, separator) {
+            return (toggle.getAttribute(attribute) || '').split(',').map(function (key) {
+                return key === '' ? '' : labelOf(key);
+            }).filter(function (text) { return text !== ''; }).join(separator);
+        };
+        const title = read('data-wi-summary-title', ' ');
+        const titleEl = toggle.querySelector('.wi-repeater-summary-title');
+        const subtitleEl = toggle.querySelector('.wi-repeater-summary-subtitle');
+        if (titleEl) titleEl.textContent = title === '' ? (toggle.getAttribute('data-wi-summary-empty') || '') : title;
+        if (subtitleEl) subtitleEl.textContent = read('data-wi-summary-subtitle', ' · ');
+        return title;
+    };
+
+    window.wiRepeaterSetRowOpen = window.wiRepeaterSetRowOpen || function (row, open) {
+        const toggle = window.wiRepeaterSummaryToggle(row);
+        const fieldset = row ? row.querySelector('fieldset') : null;
+        if (!toggle || !fieldset) return;
+        fieldset.classList.toggle('d-none', !open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (toggle.parentElement) toggle.parentElement.classList.toggle('mb-3', open);
+        const icon = toggle.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('bi-chevron-right', !open);
+            icon.classList.toggle('bi-chevron-down', open);
+        }
+    };
+
+    window.wiRepeaterToggleRow = window.wiRepeaterToggleRow || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        if (!row) return;
+        window.wiRepeaterSummaryRefresh(row);
+        window.wiRepeaterSetRowOpen(row, button.getAttribute('aria-expanded') !== 'true');
+    };
+
+    window.wiRepeaterSummaryInit = window.wiRepeaterSummaryInit || function (rowsId) {
+        const container = document.getElementById(rowsId);
+        if (!container) return;
+        const refresh = function () {
+            container.querySelectorAll(':scope > .wi-repeater-row[data-wi-collapsible]').forEach(function (row) {
+                // Senza titolo non c'è niente da riassumere: la riga resta aperta.
+                if (window.wiRepeaterSummaryRefresh(row) === '') window.wiRepeaterSetRowOpen(row, true);
+            });
+        };
+        refresh();
+        // Le select con ricerca prendono la loro etichetta a pagina pronta.
+        window.addEventListener('loaded', refresh, { once: true });
+
+        if (window.wiRepeaterSummaryBound) return;
+        window.wiRepeaterSummaryBound = true;
+
+        const rowOf = function (target) {
+            return target && target.closest ? target.closest('.wi-repeater-row[data-wi-collapsible]') : null;
+        };
+        ['input', 'change'].forEach(function (type) {
+            document.addEventListener(type, function (event) {
+                const row = rowOf(event.target);
+                if (row) window.wiRepeaterSummaryRefresh(row);
+            });
+        });
+        // Un campo non valido dentro una scheda chiusa non si vedrebbe: la si apre.
+        document.addEventListener('invalid', function (event) {
+            const row = rowOf(event.target);
+            if (row) window.wiRepeaterSetRowOpen(row, true);
+        }, true);
+    };
+
     window.wiRepeaterConfirmDelete = window.wiRepeaterConfirmDelete || function (onConfirm, config = {}) {
         if (!window.bootstrap || !window.bootstrap.Modal) {
             const fallbackText = config.text || "Confermi l'eliminazione della riga?";
@@ -785,6 +985,8 @@ HTML;
         const row = button.closest('.wi-repeater-row');
         const container = row ? row.parentElement : null;
         if (!row || !container) return;
+        // In una scheda il cestino sta fuori dal fieldset: una riga già spenta non si elimina due volte.
+        if (row.classList && row.classList.contains('wi-repeater-row-deleted')) return;
         const min = typeof window.wiRepeaterMinRows === 'function' ? window.wiRepeaterMinRows(container) : 0;
         if (min > 0 && container.querySelectorAll(':scope > .wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)').length <= min) return;
         const deleteConfig = {
@@ -861,19 +1063,102 @@ HTML;
         if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
     };
 
+    /*
+     * Riordino (`repeaterSortable()`): la maniglia si trascina, e con il
+     * fuoco sopra le frecce su e giù spostano la riga di un posto.
+     *
+     * Si sposta sempre la riga vicina, mai quella trascinata: togliere dal
+     * DOM la riga sotto il puntatore le farebbe perdere presa e fuoco.
+     */
+    window.wiRepeaterRowSibling = window.wiRepeaterRowSibling || function (row, direction) {
+        let other = row;
+        do {
+            other = direction < 0 ? other.previousElementSibling : other.nextElementSibling;
+        } while (other && !(other.classList.contains('wi-repeater-row') && !other.classList.contains('d-none')));
+        return other;
+    };
+
+    window.wiRepeaterRowMoved = window.wiRepeaterRowMoved || function (row) {
+        const container = row.parentElement;
+        row.dispatchEvent(new CustomEvent('wi-repeater-row-move', { bubbles: true }));
+        if (container && typeof window.wiRepeaterGroupRefresh === 'function') window.wiRepeaterGroupRefresh(container);
+    };
+
+    window.wiRepeaterSwapRow = window.wiRepeaterSwapRow || function (row, direction) {
+        const other = row ? window.wiRepeaterRowSibling(row, direction) : null;
+        if (!other) return false;
+        row.parentElement.insertBefore(other, direction < 0 ? row.nextSibling : row);
+        return true;
+    };
+
     window.wiRepeaterMoveRowUp = window.wiRepeaterMoveRowUp || function (button) {
         const row = button.closest('.wi-repeater-row');
-        const previous = row ? row.previousElementSibling : null;
-        if (!row || !previous) return;
-        row.parentElement.insertBefore(row, previous);
+        if (window.wiRepeaterSwapRow(row, -1)) window.wiRepeaterRowMoved(row);
     };
 
     window.wiRepeaterMoveRowDown = window.wiRepeaterMoveRowDown || function (button) {
         const row = button.closest('.wi-repeater-row');
-        const next = row ? row.nextElementSibling : null;
-        if (!row || !next) return;
-        row.parentElement.insertBefore(next, row);
+        if (window.wiRepeaterSwapRow(row, 1)) window.wiRepeaterRowMoved(row);
     };
+
+    if (!window.wiRepeaterDragBound) {
+        window.wiRepeaterDragBound = true;
+        let drag = null;
+
+        const handleOf = function (target) {
+            const handle = target && target.closest ? target.closest('.wi-repeater-handle') : null;
+            return handle && !handle.disabled ? handle : null;
+        };
+
+        const stop = function (event) {
+            if (!drag || (event && event.pointerId !== drag.pointerId)) return;
+            const done = drag;
+            drag = null;
+            done.row.classList.remove('wi-repeater-row-dragging', 'opacity-75');
+            done.handle.style.cursor = 'grab';
+            if (done.moved) window.wiRepeaterRowMoved(done.row);
+        };
+
+        document.addEventListener('pointerdown', function (event) {
+            const handle = handleOf(event.target);
+            const row = handle ? handle.closest('.wi-repeater-row') : null;
+            if (!row || (event.pointerType === 'mouse' && event.button !== 0)) return;
+            // Niente selezione del testo mentre si trascina.
+            event.preventDefault();
+            handle.focus();
+            drag = { row: row, handle: handle, pointerId: event.pointerId, moved: false };
+            row.classList.add('wi-repeater-row-dragging', 'opacity-75');
+            handle.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('pointermove', function (event) {
+            if (!drag || event.pointerId !== drag.pointerId) return;
+            // Si scambia quando il puntatore passa la metà della riga vicina.
+            [-1, 1].some(function (direction) {
+                const other = window.wiRepeaterRowSibling(drag.row, direction);
+                if (!other) return false;
+                const box = other.getBoundingClientRect();
+                const middle = box.top + box.height / 2;
+                if (direction < 0 ? event.clientY >= middle : event.clientY <= middle) return false;
+                window.wiRepeaterSwapRow(drag.row, direction);
+                drag.moved = true;
+                return true;
+            });
+        });
+
+        document.addEventListener('pointerup', stop);
+        document.addEventListener('pointercancel', stop);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            const handle = handleOf(event.target);
+            if (!handle) return;
+            event.preventDefault();
+            if (event.key === 'ArrowUp') window.wiRepeaterMoveRowUp(handle);
+            else window.wiRepeaterMoveRowDown(handle);
+            handle.focus();
+        });
+    }
     /*
      * Righe raggruppate.
      *
@@ -932,7 +1217,7 @@ HTML;
         rows.forEach(function (row) {
             row.style.order = '';
             row.style.display = '';
-            row.querySelectorAll('.wi-repeater-move-up, .wi-repeater-move-down').forEach(function (button) {
+            row.querySelectorAll('.wi-repeater-handle').forEach(function (button) {
                 button.classList.toggle('d-none', columnKey !== '');
             });
         });

@@ -88,16 +88,25 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupFiles($campo, $colonnaChiave, $etichetta = 'Foto')`,
 `repeaterAddButton($b = true)`, `repeaterMinRows($n)`,
 `repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
-`repeaterAdvancedLabel($s)`, `repeaterUndoDelete($b = true)`,
+`repeaterAdvancedLabel($s)`, `repeaterCollapsible($titolo, $sottotitolo = [])`,
+`repeaterCollapsibleEmptyLabel($s)`, `repeaterUndoDelete($b = true)`,
 `repeaterUndoLabel($etichetta, $testo = '')`.
 
 ## Larghezza delle colonne
 
 La riga è una griglia da dodici: `->columnSpan(n)` su una `RepeaterColumn` le
 assegna `n` dodicesimi, **uno compreso**. Una colonna che non dichiara niente
-prende undici dodicesimi — lo spazio che resta accanto ai bottoni. L'ultima
-colonna, quella di elimina e riordino, è sempre in coda e vale uno (tre con
-`repeaterSortable()`): le colonne dichiarate devono stare in undici.
+prende undici dodicesimi. Le colonne dichiarate devono stare in undici (in
+nove con `repeaterSortable()`): è il conto di quando elimina e riordino
+occupavano il resto della griglia. Oggi sono due icone ai lati della riga (la
+maniglia a sinistra, il cestino a destra) e le colonne si allargano in
+proporzione fino a riempirla, quindi le dichiarazioni esistenti non cambiano.
+
+Con `repeaterSortable()` la maniglia si trascina su e giù; con il fuoco sopra,
+le frecce della tastiera spostano la riga di un posto. A ogni spostamento la
+riga emette `wi-repeater-row-move`. In una scheda richiudibile
+(`repeaterCollapsible()`) maniglia e cestino stanno sul riassunto, così si
+riordina e si elimina anche a scheda chiusa.
 
 Una colonna con `->columnSpan(12)` va a capo e si prende la riga intera: è il
 modo di dare respiro a un campo che non si legge stretto, come un'area di
@@ -266,6 +275,35 @@ FormField::key('products')
 Ogni riga ha il suo bottone e la sua didascalia, anche la riga modello che il
 bottone «Aggiungi» clona.
 
+## Righe a scheda richiudibile
+
+Dove una riga è una cosa intera (un referente, una sede) e ha molti campi,
+`repeaterCollapsible()` la rende una scheda: chiusa mostra un riassunto in una
+riga sola, un clic la apre per modificarla.
+
+```php
+FormField::key('people')
+    ->repeater([
+        RepeaterColumn::key('person_id')->selectSearch($persone)->columnSpan(6),
+        RepeaterColumn::key('job_title')->text()->columnSpan(5),
+        RepeaterColumn::key('email')->email()->columnSpan(6),
+    ])
+    ->repeaterCollapsible('person_id', ['job_title', 'email'])
+    ->repeaterCollapsibleEmptyLabel('Nuovo referente');
+```
+
+Il primo argomento sono le colonne del titolo (unite da uno spazio), il secondo
+quelle del sottotitolo (unite da «·»); di una select si legge l'etichetta
+scelta, di una select multipla tutte le scelte unite da una virgola. Il riassunto lo scrive lo script (`wiRepeaterSummaryRefresh()`) e si
+aggiorna mentre si compila. Nasce chiusa solo la riga che ha già un valore in
+una colonna del titolo: una riga nuova, una senza titolo e tutte quelle di una
+pagina resa in risposta a un `POST` (un salvataggio rifiutato) sono aperte, e
+un campo non valido apre la sua scheda (evento `invalid`).
+
+Chiudere nasconde i campi (`d-none` sul `fieldset`), non li spegne: una riga
+chiusa viene postata come una aperta. Si combina con `repeaterAdvanced()` e
+`repeaterUndoDelete()`; il bottone che elimina sta dentro la scheda aperta.
+
 ## Righe raggruppate
 
 Con molte righe la griglia diventa un muro. Dichiarando una o più colonne
@@ -302,8 +340,8 @@ Quello che v1 **non** fa:
 - raggruppare per più colonne insieme: una per volta;
 - raggruppare per una colonna senza valori enumerabili — serve una `select` (o
   una colonna di testo, che si etichetta da sé);
-- convivere con il riordino: con un gruppo attivo le frecce spariscono, perché
-  "sposta su" dentro un gruppo non vuol dire niente. Tornano con "Nessuno".
+- convivere con il riordino: con un gruppo attivo la maniglia sparisce, perché
+  "sposta su" dentro un gruppo non vuol dire niente. Torna con "Nessuno".
 
 Il selettore compare solo se le righe sono più di una, e la scelta si ricorda
 in `localStorage` sul **nome del campo** (l'id del repeater lo genera il
@@ -402,7 +440,9 @@ FormField::key('products')
 - Una colonna con la [creazione rapida](quick-create.md) funziona anche nelle
   righe aggiunte: il modale di ogni riga ha l'id della riga, e dopo
   l'aggiunta `wiRepeaterAddRow` chiama `window.wiQuickCreateDetach()`, che lo
-  sposta nel `body` (i suoi campi non devono partire con il form).
+  sposta nel `body` (i suoi campi non devono partire con il form) e poi
+  riconta il bottone di invio con `check()`: i campi obbligatori del modale
+  non devono tenerlo spento.
 - Il contenitore esterno porta `data-wi-repeater="<nome del campo>"`: è la
   maniglia per trovarlo senza dipendere dall'id, che cambia a ogni render.
 
@@ -442,7 +482,7 @@ payload di una riga prima del salvataggio:
   `repeaterGroupBy()` non esiste fra quelle del repeater, oppure la riga è una
   sola.
 - **Colonne larghe quanto la riga, una sotto l'altra** → la somma degli span
-  supera undici, e Bootstrap manda a capo. Si contano le colonne dichiarate,
+  supera undici (nove con il riordino), e Bootstrap manda a capo. Si contano le colonne dichiarate,
   non quelle nascoste.
 - **`repeaterAdvanced()` che non nasconde niente** → il nome passato non è
   quello di una colonna del repeater: la chiave è la stessa di

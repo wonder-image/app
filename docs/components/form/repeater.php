@@ -60,6 +60,27 @@ return ComponentDoc::for(Repeater::class)
                 ->label('Domini consentiti')
                 ->value([['domain' => 'wonderimage.it'], ['domain' => 'example.com']])
             PHP)
-            ->description('`repeaterSortable()` aggiunge la maniglia di trascinamento; i metodi `repeater*()` di `InputRepeater` governano etichette, conferma di eliminazione, raggruppamenti e colonne avanzate.')
+            ->description('`repeaterSortable()` aggiunge la maniglia a sinistra della riga: si trascina, o si sposta con le frecce della tastiera; a destra resta il cestino; i metodi `repeater*()` di `InputRepeater` governano etichette, conferma di eliminazione, raggruppamenti e colonne avanzate.')
             ->height(300)
+    )
+    ->example(
+        Example::make('Schede richiudibili')
+            ->code(<<<'PHP'
+            FormField::key('people')
+                ->repeater([
+                    RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(6),
+                    RepeaterColumn::key('job_title')->text()->label('Mansione')->columnSpan(5),
+                    RepeaterColumn::key('email')->email()->label('Email')->columnSpan(11),
+                ])
+                ->repeaterCollapsible('name', ['job_title', 'email'])
+                ->repeaterCollapsibleEmptyLabel('Nuovo referente')
+                ->repeaterAddLabel('Aggiungi referente')
+                ->label('Referenti')
+                ->value([
+                    ['name' => 'Giulia Bianchi', 'job_title' => 'Acquisti', 'email' => 'giulia@example.com'],
+                    ['name' => 'Marco Verdi', 'job_title' => 'Amministrazione', 'email' => 'marco@example.com'],
+                ])
+            PHP)
+            ->description('`repeaterCollapsible($titolo, $sottotitolo)` chiude le righe salvate su un riassunto; un clic le apre. Le righe nuove nascono aperte, e i campi di una riga chiusa vengono postati lo stesso.')
+            ->height(360)
     );

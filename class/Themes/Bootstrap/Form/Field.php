@@ -68,8 +68,12 @@ abstract class Field extends AbstractFieldRenderer
         // attaccato all'input a destra, dentro un `input-group`. Col floating il
         // label sta dentro il `form-floating`; senza (noFloating), sopra.
         if ($quick !== null && in_array($quick['family'], ['select', 'searchremote'], true)) {
-            $button = '<button type="button" class="btn btn-outline-secondary" '.$quick['attributes'].'>'
-                .'<i class="bi bi-plus-lg"></i> Aggiungi</button>';
+            // Compatto (`quickCreateCompact()`): solo il "+", il testo va nel titolo.
+            $compact = !empty($this->schema['context']['quick_create']['compact']);
+            $hint = $this->escape($quick['button_label']);
+            $button = '<button type="button" class="btn btn-outline-secondary" '.$quick['attributes']
+                .($compact ? ' title="'.$hint.'" aria-label="'.$hint.'"' : '').'>'
+                .'<i class="bi bi-plus-lg"></i>'.($compact ? '' : ' Aggiungi').'</button>';
 
             if ($floating) {
                 $control = '<div class="input-group">'
