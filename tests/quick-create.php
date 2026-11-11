@@ -196,4 +196,30 @@ $check($failed['success'] === false && $failed['error'] === 'Doppione non visibi
 $check(str_contains($script, 'window.wiQuickCreateDetach = detachModals'), 'the detach is exposed for added rows');
 $check(str_contains($script, 'made.message'), 'the client shows the handler message');
 
+// Repeater ancora vuoto: il primo «+» della pagina nasce nel modello, e lo
+// script non deve restare nel `<template>` (lì non gira).
+$emitted = new ReflectionProperty(\Wonder\Backend\Support\QuickCreateModal::class, 'scriptEmitted');
+$emitted->setValue(null, false);
+$emptyRepeater = new class($targetClass) {
+    public array $schema;
+
+    public function __construct(string $targetClass)
+    {
+        $this->schema = [
+            'id' => 'points',
+            'name' => 'points',
+            'label' => '',
+            'value' => [],
+            'columns' => [\Wonder\App\ResourceSchema\RepeaterColumn::key('type_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name')],
+            'context' => ['nested' => true, 'start_empty' => true],
+        ];
+    }
+};
+$repeaterHtml = (new \Wonder\Themes\Bootstrap\Form\Components\Repeater)->render($emptyRepeater);
+$templateEnd = strpos($repeaterHtml, '</template>');
+$scriptAt = strpos($repeaterHtml, 'wiQuickCreateReady');
+$check($scriptAt !== false && substr_count($repeaterHtml, 'wiQuickCreateReady = true') === 1, 'an empty repeater still prints the quick-create script once');
+$check($templateEnd !== false && $scriptAt > $templateEnd, 'the quick-create script is outside the row template');
+$check(strpos($repeaterHtml, 'data-wi-qc-endpoint') < $templateEnd, 'the modal stays in the row template');
+
 echo "OK: {$checks} checks passed\n";

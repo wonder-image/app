@@ -8,6 +8,7 @@ use Wonder\App\ResourceSchema\Inputs\InputFile;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\Support\RepeaterGroups;
+use Wonder\Backend\Support\QuickCreateModal;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class Repeater extends Field
@@ -110,6 +111,12 @@ class Repeater extends Field
         }
 
         $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
+        // Lo script della creazione rapida esce una volta sola per pagina: se
+        // il primo «+» è nel modello (repeater ancora vuoto) finirebbe nel
+        // `<template>`, dove non gira. Lo si sposta fuori.
+        $quickScript = QuickCreateModal::scriptSource();
+        $templateHtml = str_replace($quickScript, '', $templateHtml, $quickScriptMoved);
+        $quickScriptHtml = $quickScriptMoved > 0 ? $quickScript : '';
         $addButton = ($context['add_button'] ?? true) !== false;
         $addButtonHtml = $addButton
             ? '<div class="mt-2 d-flex justify-content-end">'
@@ -150,6 +157,7 @@ class Repeater extends Field
         {$rowsHtml}
     </div>
     <template id="{$templateId}">{$templateHtml}</template>
+    {$quickScriptHtml}
     {$groupTemplateHtml}
     {$addButtonHtml}
     {$this->script()}

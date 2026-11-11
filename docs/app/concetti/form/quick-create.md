@@ -50,6 +50,10 @@ In un campo stretto (la colonna di un repeater) `->quickCreateCompact()`, dopo
 nell'`aria-label`. Vale per il "+" attaccato a `select` / `selectSearch` /
 `searchRemote`.
 
+In un repeater lo script condiviso non resta mai nel modello di riga: se il
+primo "+" della pagina nasce lì (repeater ancora vuoto) il repeater lo stampa
+subito dopo il `<template>`, dove gira.
+
 Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
 `Inputs\Concerns\HasQuickCreate`.

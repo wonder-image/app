@@ -16,6 +16,12 @@
   campo non valido apre la sua scheda. JS `wiRepeaterToggleRow()`,
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
+### Corretto
+- **Creazione rapida in un repeater vuoto.** Se il primo "+" della pagina
+  nasceva nel modello di riga di un repeater senza righe, lo script condiviso
+  finiva nel `<template>` e non girava: il modal si apriva ma «Salva» non
+  faceva niente. Ora il repeater lo stampa fuori dal modello.
+
 ### Cambiato
 - **Repeater: maniglia per riordinare e cestino piccolo.** Con
   `repeaterSortable()` i due bottoni su e giù lasciano il posto a una maniglia
