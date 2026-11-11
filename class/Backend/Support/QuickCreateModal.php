@@ -287,7 +287,7 @@ final class QuickCreateModal
         var id = triggers[i].getAttribute('data-wi-qc-input');
         var select = id ? roots[r].querySelector('select[id="' + id.replace(/"/g, '\\"') + '"]') : null;
         if (!select || select === input || found.indexOf(select) !== -1) continue;
-        if (select.matches('[data-wi-select-search]') || optionKey(select) !== key) continue;
+        if (optionKey(select) !== key) continue;
         found.push(select);
       }
     }
@@ -313,10 +313,14 @@ final class QuickCreateModal
    */
   function optionInto(input, family, id, label, resource, item, trigger) {
     if (input) {
-      if (input.tagName === 'SELECT' && !input.matches('[data-wi-select-search]')) {
+      // Anche per i select della lib (select2): leggono le opzioni dal DOM.
+      if (input.tagName === 'SELECT') {
         var twins = twinSelects(input, resource);
-        appendOption(input, id, label);
         for (var t = 0; t < twins.length; t++) { twins[t].appendChild(new Option(label, id)); }
+      }
+
+      if (input.tagName === 'SELECT' && !input.matches('[data-wi-select-search]')) {
+        appendOption(input, id, label);
       } else if (family === 'checkbox') {
         appendCheck(input.closest('[data-wi-qc-group]') || input, id, label);
       }
