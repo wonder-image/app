@@ -21,6 +21,10 @@
   nasceva nel modello di riga di un repeater senza righe, lo script condiviso
   finiva nel `<template>` e non girava: il modal si apriva ma «Salva» non
   faceva niente. Ora il repeater lo stampa fuori dal modello.
+- **Creazione rapida: la voce nuova in tutti i select della risorsa.** Con
+  più select della stessa risorsa nella pagina la voce creata compariva solo
+  in quello da cui si era partiti. Ora entra anche negli altri con le stesse
+  scelte e nei modelli di riga dei repeater, senza essere selezionata.
 
 ### Cambiato
 - **Repeater: maniglia per riordinare e cestino piccolo.** Con

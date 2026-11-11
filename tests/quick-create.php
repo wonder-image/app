@@ -222,4 +222,8 @@ $check($scriptAt !== false && substr_count($repeaterHtml, 'wiQuickCreateReady = 
 $check($templateEnd !== false && $scriptAt > $templateEnd, 'the quick-create script is outside the row template');
 $check(strpos($repeaterHtml, 'data-wi-qc-endpoint') < $templateEnd, 'the modal stays in the row template');
 
+// La voce creata entra anche negli altri select della stessa risorsa.
+$source = \Wonder\Backend\Support\QuickCreateModal::scriptSource();
+$check(str_contains($source, 'function twinSelects(') && str_contains($source, "document.querySelectorAll('template')"), 'the new option reaches the twin selects and the row templates');
+
 echo "OK: {$checks} checks passed\n";

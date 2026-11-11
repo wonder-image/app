@@ -255,6 +255,46 @@ final class QuickCreateModal
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  /** Le scelte di un select, senza la voce vuota: dicono se due elenchi coincidono. */
+  function optionKey(select) {
+    var values = [];
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].value !== '') values.push(select.options[i].value);
+    }
+    return values.sort().join('|');
+  }
+
+  /*
+   * Gli altri select della pagina che elencano le stesse righe: stessa
+   * risorsa e stesse scelte di quello in cui si è creato. La voce nuova ci
+   * entra senza essere scelta. Si guarda anche nei `<template>` (i modelli
+   * di riga dei repeater), così la trova pure una riga aggiunta dopo. Un
+   * select con scelte diverse (un elenco filtrato) resta com'è.
+   */
+  function twinSelects(input, resource) {
+    var found = [];
+    if (!resource) return found;
+
+    var key = optionKey(input);
+    var roots = [document];
+    var templates = document.querySelectorAll('template');
+    for (var t = 0; t < templates.length; t++) { if (templates[t].content) roots.push(templates[t].content); }
+
+    for (var r = 0; r < roots.length; r++) {
+      var triggers = roots[r].querySelectorAll('[data-wi-quick-create][data-wi-qc-input]');
+      for (var i = 0; i < triggers.length; i++) {
+        if (triggers[i].getAttribute('data-wi-qc-resource') !== resource) continue;
+        var id = triggers[i].getAttribute('data-wi-qc-input');
+        var select = id ? roots[r].querySelector('select[id="' + id.replace(/"/g, '\\"') + '"]') : null;
+        if (!select || select === input || found.indexOf(select) !== -1) continue;
+        if (select.matches('[data-wi-select-search]') || optionKey(select) !== key) continue;
+        found.push(select);
+      }
+    }
+
+    return found;
+  }
+
   /*
    * Inserimento "baseline", che funziona senza wonder-image/lib:
    *   - <select> semplice: aggiunge e seleziona l'opzione;
@@ -274,7 +314,9 @@ final class QuickCreateModal
   function optionInto(input, family, id, label, resource, item, trigger) {
     if (input) {
       if (input.tagName === 'SELECT' && !input.matches('[data-wi-select-search]')) {
+        var twins = twinSelects(input, resource);
         appendOption(input, id, label);
+        for (var t = 0; t < twins.length; t++) { twins[t].appendChild(new Option(label, id)); }
       } else if (family === 'checkbox') {
         appendCheck(input.closest('[data-wi-qc-group]') || input, id, label);
       }

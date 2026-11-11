@@ -54,6 +54,11 @@ In un repeater lo script condiviso non resta mai nel modello di riga: se il
 primo "+" della pagina nasce lì (repeater ancora vuoto) il repeater lo stampa
 subito dopo il `<template>`, dove gira.
 
+Quando la stessa risorsa ha più `select` nella pagina (un "Tipo ufficio" per
+riga, in più repeater) la voce creata entra in tutti: scelta in quello da cui
+si è partiti, solo disponibile negli altri e nei modelli di riga. Vale per i
+select che elencavano le stesse scelte: un elenco filtrato non viene toccato.
+
 Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
 `Inputs\Concerns\HasQuickCreate`.
