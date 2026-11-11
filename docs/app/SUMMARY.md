@@ -21,6 +21,7 @@
 * [Sedi](concetti/sedi.md)
 * [Iframe e contenuti differiti](elementi/deferred-media.md)
 * [Immagini di Swiper e Gallery](elementi/responsive-media.md)
+* [Coda dei ridimensionamenti](concetti/coda-ridimensionamenti.md)
 * [Button con lightbox](elementi/button-lightbox.md)
 * [Codici a barre](elementi/codici-a-barre.md)
 * [Etichette in PDF](elementi/etichette.md)

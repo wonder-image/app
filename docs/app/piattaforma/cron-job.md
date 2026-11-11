@@ -331,6 +331,13 @@ Gli identificativi di inizializzazione e l'ultimo contatto sono stato operativo.
   Profile con OAuth, non incluso. Le credenziali Google sono distinte dal
   token Wonder `@system`.
 
+- **Ridimensionamento immagini**: `Tasks\MediaResizeTask`
+  (`wonder.media-resize`), sempre attiva, ogni minuto. Genera le misure
+  responsive che `uploadFiles()` ha messo in coda in `image_resizes`, per 40
+  secondi e 50 file al massimo. Presa in carico atomica, tre tentativi, poi
+  `failed`; da terminale `php forge media:resize`. Dettagli in
+  [Coda dei ridimensionamenti](../concetti/coda-ridimensionamenti.md).
+
 - **Coda email**: `Tasks\MailOutboxTask` (`wonder.mail-outbox`), sempre attiva,
   ogni minuto. Spedisce le email messe in coda con `queueMail()` (righe
   `queued` di `mail_log` con `next_attempt_at` scaduto), al massimo 50 per

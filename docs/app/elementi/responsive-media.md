@@ -19,6 +19,8 @@ Gallery ricava sizes dalle colonne: breakpoint Wonder 768/992px, Bootstrap md/xl
 
 Entrambi i temi usano il renderer Image del tema esplicito. Gli URL remoti non ricevono varianti inventate; per le immagini locali entrano nel `srcset` (e nella `<source>` webp) solo le varianti presenti su disco. Se manca la misura di default si usa la più piccola esistente non inferiore, altrimenti la più grande; se non esiste nessuna variante (resize ancora in coda) resta il file originale. `Image::url()` segue la stessa regola. Il rendering non converte né scarica immagini.
 
+Le misure responsive non si generano più dentro il salvataggio: `uploadFiles()` le mette in coda e lo scheduler le prepara entro un minuto. Vedi [Coda dei ridimensionamenti](../concetti/coda-ridimensionamenti.md).
+
 ## Immagine mancante
 
 Ogni `<img>` di `Image` (e quindi di `__i()`, `__ri()`, Swiper e Gallery)

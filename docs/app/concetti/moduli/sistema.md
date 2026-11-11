@@ -148,8 +148,9 @@ Ogni voce della fascia di stato è una classe che implementa
 
 Le voci hanno una chiave. Il core registra `scheduler`
 (`Wonder\Backend\Home\SchedulerStatus`), `errors`
-(`Wonder\Backend\Home\ErrorStatus`) e `mail_queue`
-(`Wonder\Backend\Home\MailQueueStatus`). Un modulo aggiunge, sostituisce o toglie
+(`Wonder\Backend\Home\ErrorStatus`), `mail_queue`
+(`Wonder\Backend\Home\MailQueueStatus`) e `media_resize`
+(`Wonder\Backend\Home\MediaResizeStatus`). Un modulo aggiunge, sostituisce o toglie
 voci nella propria configurazione:
 
 ```php
