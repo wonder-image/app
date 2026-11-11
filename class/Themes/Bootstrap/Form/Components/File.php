@@ -2,6 +2,7 @@
 
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
+use Wonder\App\Media\MediaTypes;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class File extends Field
@@ -124,8 +125,13 @@ HTML;
             'pdf' => 'application/pdf',
             'png' => 'image/png',
             'ico' => 'image/ico, image/x-icon',
-            'media' => 'image/png, image/jpeg, image/webp, application/pdf',
+            'svg' => 'image/svg+xml',
+            // Documenti della libreria Media: per estensione, i MIME di Office cambiano da browser a browser.
+            'document' => $this->extensionList(MediaTypes::extensions(MediaTypes::DOCUMENT)),
+            'media' => 'image/png, image/jpeg, image/webp, image/svg+xml, '.$this->extensionList(MediaTypes::extensions(MediaTypes::DOCUMENT)),
             'video' => 'video/mp4',
+            // Video della libreria Media: mp4, webm e mov.
+            'media-video' => 'video/mp4, video/webm, video/quicktime',
             // Foto e video insieme: un catalogo ha bisogno di tutti e due, e
             // un campo per tipo vorrebbe dire due caselle da spiegare.
             'gallery' => 'image/png, image/jpeg, image/webp, video/mp4',
@@ -136,13 +142,21 @@ HTML;
         };
     }
 
+    /** @param list<string> $extensions */
+    private function extensionList(array $extensions): string
+    {
+        return implode(', ', array_map(static fn (string $extension): string => '.'.$extension, $extensions));
+    }
+
     private function acceptLabelByType(string $file): string
     {
         return match ($file) {
             'image', 'png', 'ico', 'jpg' => 'la tua immagine',
+            'svg' => 'la tua icona',
             'pdf' => 'il tuo PDF',
+            'document' => 'il tuo documento',
             'media' => 'i tuoi file',
-            'video' => 'il tuo video',
+            'video', 'media-video' => 'il tuo video',
             'gallery' => 'le tue foto e i tuoi video',
             'font' => 'il tuo font',
             'spreadsheet' => 'il tuo foglio',
