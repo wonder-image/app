@@ -213,6 +213,15 @@ check('cartella non protetta (scrittura negata): nessun backup', function () use
     $dir = $base.'/readonly';
     mkdir($dir);
     chmod($dir, 0500);
+
+    // root scrive comunque: i permessi non si possono provare.
+    if (is_writable($dir)) {
+        chmod($dir, 0700);
+        echo "    (saltato: l'utente scrive anche in una cartella 0500)\n";
+
+        return true;
+    }
+
     $binary = $script('readonly', "echo 'SELECT 1;'\necho ".escapeshellarg(MARKER));
 
     try {

@@ -2,6 +2,10 @@
 
 // Run only against a disposable site and a local test database.
 $ROOT = $argv[1] ?? '';
+if ($ROOT === '') {
+    echo "Saltato: serve la cartella di un sito usa e getta wonder-scheduler-*.\n";
+    exit(0);
+}
 if (!str_starts_with(basename($ROOT), 'wonder-scheduler-') || !is_file($ROOT.'/vendor/autoload.php')) {
     throw new RuntimeException('Provide a disposable wonder-scheduler-* site directory.');
 }

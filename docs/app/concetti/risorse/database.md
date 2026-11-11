@@ -405,6 +405,84 @@ Convenzione architetturale:
 - `Wonder\App\RuntimeDefaults` resta riservato ai fallback runtime
   (rendering, config in memoria, asset/style defaults letti a runtime).
 
+## Colonne vettoriali (MariaDB VECTOR)
+
+Per la ricerca per similarità (embedding) il framework usa il tipo `VECTOR`
+di MariaDB, senza un secondo database. Serve **MariaDB 11.7 o successivo**:
+su MySQL o su MariaDB più vecchi `forge update` si ferma con un errore che
+indica la tabella e la versione del server.
+
+Tieni gli embedding in una tabella dedicata, una riga per contenuto
+indicizzato, collegata alla riga di origine:
+
+```php
+use Wonder\Sql\TableSchema as Column;
+
+public static function tableSchema(): array
+{
+    return [
+        Column::key('source_table')->varchar()->length(100)->null(false),
+        Column::key('source_id')->int()->null(false),
+        Column::key('embedding')->vector(1536),
+        Column::key('vec_embedding')->vectorIndex('embedding', 'cosine'),
+    ];
+}
+```
+
+- `vector($dimensioni)` crea `VECTOR(n) NOT NULL` (da 1 a 16383). Le
+  dimensioni sono quelle del modello di embedding e non cambiano dopo.
+- `vectorIndex($colonna, $distanza, $m)` crea l'indice HNSW; la chiave è il
+  nome dell'indice. Distanza `cosine` (default) o `euclidean`, `$m` da 3 a
+  200 (null = default del server). MariaDB ammette un solo indice vettoriale
+  per tabella.
+
+Scrittura, lettura e ricerca passano da `Wonder\Sql\Vector`:
+
+```php
+use Wonder\Sql\Vector;
+
+sqlInsert('doc_embeddings', [
+    'source_table' => 'articles',
+    'source_id' => 12,
+    'embedding' => new Vector($floats),
+]);
+
+$distance = Vector::distance('embedding', $queryFloats);
+
+$rows = sqlSelect(
+    'doc_embeddings',
+    ['source_table' => 'articles', 'deleted' => 'false'],
+    10,
+    $distance,
+    'ASC',
+    "source_id, $distance AS distance"
+)->row;
+
+$floats = Vector::fromBinary($row['embedding'])->toArray();
+```
+
+Regole:
+
+- Un vettore si scrive solo come oggetto `Vector` (accettato da
+  `sqlInsert()`, `sqlModify()` e `sqlBind()`): contiene solo numeri finiti e
+  diventa `VEC_FromText('[...]')`. Un array semplice resta JSON.
+- `Vector::distance()` va in `$order` e `$attributes`. Il nome della colonna
+  è scritto dal codice; i numeri possono arrivare da fuori.
+- L'indice viene usato solo con `ORDER BY <distanza> LIMIT n` e con la stessa
+  metrica dell'indice. Le condizioni `WHERE` vengono applicate mentre il
+  server scorre l'indice: le righe tornano comunque, ma un filtro molto
+  selettivo lo fa scorrere più a lungo.
+- La colonna si legge in binario: non selezionarla se non serve.
+- Aggiungere una colonna `VECTOR NOT NULL` a una tabella che ha già righe le
+  riempie di zeri: un altro motivo per usare una tabella dedicata.
+- Ogni `forge update` ricostruisce gli indici della tabella, anche quello
+  vettoriale: su tabelle grandi richiede tempo.
+- Non mettere una tabella di embedding tra quelle sincronizzate da
+  `TableSync`: sono dati derivati e si rigenerano.
+
+Il framework non calcola gli embedding: li produce il sito o il modulo con
+il proprio fornitore.
+
 ## Multi-database
 
 `DB_DATABASE` accetta più database con chiavi:

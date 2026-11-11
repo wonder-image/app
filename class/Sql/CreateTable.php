@@ -122,6 +122,10 @@
         private function isColumnDefinition(array $options): bool
         {
 
+            if (isset($options['vector_index'])) {
+                return false;
+            }
+
             $columnKeys = [
                 'type',
                 'length',
@@ -344,9 +348,49 @@
 
         }
 
+        private function usesVector(array $columns): bool
+        {
+
+            foreach ($columns as $options) {
+
+                if (!is_array($options)) {
+                    continue;
+                }
+
+                if (isset($options['vector_index']) || strtoupper((string) ($options['type'] ?? '')) === 'VECTOR') {
+                    return true;
+                }
+
+            }
+
+            return false;
+
+        }
+
         private function TableColumn( $name, $options, $action = false ) {
 
-            if (isset($options['index']) && !empty($options['index'])) {
+            if (isset($options['vector_index']) && is_array($options['vector_index'])) {
+
+                # Se bisogna creare un indice vettoriale
+
+                $vectorIndex = $options['vector_index'];
+                $vectorColumns = $this->normalizeColumnList($vectorIndex['column'] ?? null);
+
+                if (count($vectorColumns) !== 1) {
+                    return '';
+                }
+
+                $indexSql = "VECTOR INDEX `$name` (".$this->columnListToSql($vectorColumns).")";
+
+                if (!empty($vectorIndex['m'])) {
+                    $indexSql .= " M=".(int) $vectorIndex['m'];
+                }
+
+                $indexSql .= " DISTANCE=".Vector::metric((string) ($vectorIndex['distance'] ?? 'cosine'));
+
+                $return = $this->buildConstraintSql($indexSql, $action);
+
+            } elseif (isset($options['index']) && !empty($options['index'])) {
 
                 # Se bisogna creare un INDEX
                 
@@ -639,6 +683,12 @@
 
             $columns = array_merge($beforeColumns, $columns, $afterColumns);
             $columns = $this->appendConstraints($columns, $constraints);
+
+            if ($this->usesVector($columns) && !Vector::supported($this->mysqli)) {
+                throw new \RuntimeException(
+                    "Tabella `$name`: le colonne VECTOR richiedono MariaDB ".Vector::MIN_SERVER." o successivo (server: ".$this->mysqli->server_info.")."
+                );
+            }
 
             if ($SQL->TableExists($name)) {
                 
