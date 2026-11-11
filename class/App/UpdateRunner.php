@@ -5,6 +5,7 @@ namespace Wonder\App;
 use mysqli;
 use Throwable;
 use RuntimeException;
+use Wonder\App\Media\RasterIconMigration;
 use Wonder\App\Module\Contracts\ModuleDefaults;
 use Wonder\App\Module\Contracts\ModuleMigration;
 use Wonder\App\Module\ModuleDependencySorter;
@@ -116,6 +117,7 @@ class UpdateRunner
                 'tables' => 0,
                 'rows' => 0,
                 'api_activity_tokens' => 0,
+                'media_raster_icons' => [],
                 'analytics_credentials' => 0,
                 'security_encryption' => 0,
                 'society_locations' => false,
@@ -164,6 +166,7 @@ class UpdateRunner
             $result->stats->module_migrations = $this->runModuleMigrations();
             $result->stats->tables = $this->runTables();
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
+            $result->stats->media_raster_icons = RasterIconMigration::run($this->connection);
             $result->stats->analytics_credentials = AnalyticsToCredentialsMigration::run($this->connection);
             $result->stats->rows = $this->runFiles($this->rowDirectories());
             $result->stats->security_encryption = SecurityEncryptionMigration::run($this->connection);
