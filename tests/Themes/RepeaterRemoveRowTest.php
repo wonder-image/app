@@ -96,7 +96,7 @@ function remove(visibleRows) {
   var row = {
     parentElement: container,
     querySelector: function () { return null; },
-    querySelectorAll: function () { return fields; },
+    querySelectorAll: function (selector) { return selector === '.wi-repeater-row' ? [] : fields; },
     remove: function () { removed++; }
   };
   window.wiRepeaterRemoveRow({ closest: function () { return row; }, getAttribute: function () { return null; } });

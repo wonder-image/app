@@ -5,6 +5,7 @@ namespace Wonder\App\Support;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputPhonePrefix;
+use Wonder\App\ResourceSchema\Inputs\InputRepeater;
 use Wonder\App\ResourceSchema\Inputs\InputSelect;
 use Wonder\App\ResourceSchema\RepeaterRelation;
 use Wonder\App\Table;
@@ -18,8 +19,10 @@ final class Repeater
     }
 
     /**
-     * @param array<string, string> $defaults Valori di default delle colonne
-     *        ({@see columnDefaults()}): una riga che ha solo quelli è vuota.
+     * @param array<string, string|array<string, string>> $defaults Valori di
+     *        default delle colonne ({@see columnDefaults()}): una riga che ha
+     *        solo quelli è vuota. Sotto la chiave di un repeater interno
+     *        stanno i default delle sue colonne.
      */
     public static function rowsFromRequest(string $name, array $post, array $files = [], array $defaults = []): array
     {
@@ -36,10 +39,28 @@ final class Repeater
             }
         }
 
-        return array_values(array_filter(
+        $rows = array_values(array_filter(
             $rows,
             static fn ($row) => is_array($row) && !static::isEmptyRow($row, $defaults)
         ));
+
+        // Anche le righe vuote di un repeater interno si scartano.
+        foreach ($defaults as $column => $innerDefaults) {
+            if (!is_array($innerDefaults)) {
+                continue;
+            }
+
+            foreach ($rows as $index => $row) {
+                if (is_array($row[$column] ?? null)) {
+                    $rows[$index][$column] = array_values(array_filter(
+                        $row[$column],
+                        static fn ($innerRow) => is_array($innerRow) && !static::isEmptyRow($innerRow, $innerDefaults)
+                    ));
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /**
@@ -49,7 +70,7 @@ final class Repeater
      * anche nella riga che nessuno ha toccato: senza saperlo, quella riga
      * passava per piena e si salvava.
      *
-     * @return array<string, string>
+     * @return array<string, string|array<string, string>>
      */
     public static function columnDefaults(object $field): array
     {
@@ -62,6 +83,14 @@ final class Repeater
 
         foreach ((array) ($context['columns'] ?? []) as $column) {
             if (!$column instanceof Input) {
+                continue;
+            }
+
+            // Un repeater interno porta i default delle sue colonne: servono
+            // a riconoscere le sue righe vuote.
+            if ($column instanceof InputRepeater) {
+                $defaults[$column->name] = static::columnDefaults($column);
+
                 continue;
             }
 
@@ -410,6 +439,17 @@ final class Repeater
 
                 if (is_array($decoded) && $decoded !== []) {
                     return false;
+                }
+
+                continue;
+            }
+
+            // Le righe di un repeater interno: vuote se lo è ognuna.
+            if (is_string($key) && is_array($value) && is_array($defaults[$key] ?? null)) {
+                foreach ($value as $innerRow) {
+                    if (is_array($innerRow) ? !static::isEmptyRow($innerRow, $defaults[$key]) : trim((string) $innerRow) !== '') {
+                        return false;
+                    }
                 }
 
                 continue;

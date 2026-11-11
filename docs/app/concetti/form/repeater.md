@@ -304,6 +304,63 @@ Chiudere nasconde i campi (`d-none` sul `fieldset`), non li spegne: una riga
 chiusa viene postata come una aperta. Si combina con `repeaterAdvanced()` e
 `repeaterUndoDelete()`; il bottone che elimina sta dentro la scheda aperta.
 
+## Repeater dentro una riga
+
+Una colonna può essere a sua volta un repeater: i recapiti di un referente,
+le fasce di un listino. Si dichiara con lo stesso `->repeater([...])`, sulla
+colonna; il repeater esterno deve avere `nested()`.
+
+```php
+FormField::key('contact_people')
+    ->repeater([
+        RepeaterColumn::key('id')->hidden(),
+        RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(12),
+        RepeaterColumn::key('points')
+            ->repeater([
+                RepeaterColumn::key('kind')
+                    ->select(['email' => 'Email', 'phone' => 'Telefono', 'mobile' => 'Cellulare'])
+                    ->label('Tipo')->columnSpan(3),
+                RepeaterColumn::key('email')->email()->label('Email')
+                    ->columnFill()->visibleWhen('kind', 'email'),
+                RepeaterColumn::key('phone_prefix')->phonePrefix()->label('Prefisso')
+                    ->columnSpan(3)->visibleWhen('kind', ['phone', 'mobile']),
+                RepeaterColumn::key('phone')->text()->label('Telefono')
+                    ->columnFill()->visibleWhen('kind', ['phone', 'mobile']),
+            ])
+            ->label('Recapiti')
+            ->repeaterAddLabel('Aggiungi recapito')
+            ->columnSpan(12),
+    ])
+    ->nested()
+    ->repeaterCollapsible('name')
+    ->label('Referenti');
+```
+
+I campi interni si chiamano `contact_people[RIGA][points][RIGA_INTERNA][kind]`:
+nel POST `$riga['points']` è un array di righe, e lo stesso array, messo nel
+valore della riga esterna, le ripopola. Salvarlo (una colonna JSON, una
+tabella figlia) tocca a chi salva la riga esterna.
+
+Il repeater interno è volutamente corto:
+
+- parte vuoto e vuoto può tornare: nessuna riga di cortesia, l'ultima si
+  toglie invece di svuotarsi;
+- tiene solo `label()`, `columnSpan()`, `repeaterAddLabel()`,
+  `repeaterAddButton()`, `repeaterButtonClass()` e i testi
+  `repeaterDelete*()`; ordinamento, gruppi, schede, avanzate, righe minime e
+  annullamento si ignorano;
+- senza `label()` non ha titolo;
+- `visibleWhen()` fra le sue colonne guarda la riga interna;
+- un solo livello: un repeater dentro un repeater interno lancia
+  `LogicException`, e così una colonna repeater senza `nested()` su quello
+  esterno.
+
+`Repeater::columnDefaults()` porta anche i default delle colonne interne
+(sotto la chiave della colonna), e `rowsFromRequest()` li usa: le righe
+interne mai toccate si scartano, e una riga esterna che ha solo quelle resta
+vuota. Le colonne file dentro il repeater interno non sono gestite. Solo tema
+Bootstrap.
+
 ## Righe raggruppate
 
 Con molte righe la griglia diventa un muro. Dichiarando una o più colonne

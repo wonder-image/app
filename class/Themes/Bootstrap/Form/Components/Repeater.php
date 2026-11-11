@@ -6,13 +6,26 @@ use Wonder\App\Model;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputFile;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
+use Wonder\App\ResourceSchema\Inputs\InputRepeater;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\Support\RepeaterGroups;
 use Wonder\Backend\Support\QuickCreateModal;
+use LogicException;
 use Wonder\Themes\Bootstrap\Form\Field;
 
 class Repeater extends Field
 {
+    /** Segnaposto della chiave di riga nel modello: uno per livello. */
+    private const ROW_PLACEHOLDER = '__ROW_KEY__';
+
+    private const INNER_PLACEHOLDER = '__SUB_KEY__';
+
+    /** Quello che un repeater interno tiene del proprio `context`. */
+    private const INNER_CONTEXT = [
+        'add_label', 'add_button', 'add_button_class', 'delete_modal_title', 'delete_modal_text',
+        'delete_modal_cancel_label', 'delete_modal_confirm_label', 'delete_modal_confirm_class',
+    ];
+
     public function render($class): string
     {
         $this->schema = (array) ($class->schema ?? []);
@@ -22,16 +35,26 @@ class Repeater extends Field
 
     public function renderInput(): string
     {
-        $id = $this->escape((string) ($this->schema['id'] ?? ''));
         $name = (string) ($this->schema['name'] ?? '');
         $label = $this->escape($this->resolvedLabel());
         $value = $this->normalizeRows($this->schema['value'] ?? null);
         $context = is_array($this->schema['context'] ?? null) ? $this->schema['context'] : [];
+        // Repeater dentro la riga di un altro: solo righe, bottone e testi.
+        // Parte vuoto e non stampa script: li porta quello esterno.
+        $inner = is_array($context['inner'] ?? null) ? $context['inner'] : null;
+
+        if ($inner !== null) {
+            $context = array_intersect_key($context, array_flip(self::INNER_CONTEXT))
+                + ['nested' => true, 'start_empty' => true, 'inner' => $inner];
+        }
+
+        $placeholder = $inner !== null ? self::INNER_PLACEHOLDER : self::ROW_PLACEHOLDER;
+        $id = $this->escape((string) ($this->schema['id'] ?? '').(string) ($inner['id_suffix'] ?? ''));
         $columns = is_array($this->schema['columns'] ?? null) ? $this->schema['columns'] : [];
         $rowId = $id.'-rows';
         $templateId = $id.'-template';
         $addLabel = $this->escape((string) ($context['add_label'] ?? 'Aggiungi linea'));
-        $addButtonClass = $this->escape((string) ($context['add_button_class'] ?? 'btn btn-secondary'));
+        $addButtonClass = $this->escape((string) ($context['add_button_class'] ?? ($inner !== null ? 'btn btn-sm btn-outline-secondary' : 'btn btn-secondary')));
 
         $columns = $columns === []
             ? [RepeaterColumn::key($name)->text()]
@@ -110,7 +133,7 @@ class Repeater extends Field
             );
         }
 
-        $templateHtml = $this->renderRow($columns, $name, [], '__ROW_KEY__', true, $context);
+        $templateHtml = $this->renderRow($columns, $name, [], $placeholder, true, $context);
         // Lo script della creazione rapida esce una volta sola per pagina: se
         // il primo «+» è nel modello (repeater ancora vuoto) finirebbe nel
         // `<template>`, dove non gira. Lo si sposta fuori.
@@ -129,6 +152,7 @@ class Repeater extends Field
         // nessuno potrebbe rimetterne una.
         $minRows = max(0, (int) ($context['min_rows'] ?? 0));
         $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"')
+            .($inner !== null ? ' data-wi-allow-empty="true"' : '')
             .($minRows > 0 ? ' data-wi-repeater-min="'.$minRows.'"' : '');
         $minInitHtml = $minRows > 0 ? "<script>window.wiRepeaterSyncMin(document.getElementById('{$rowId}'));</script>" : '';
         $summaryInitHtml = $this->collapsibleConfig($context) !== null
@@ -147,6 +171,20 @@ class Repeater extends Field
         // Senza etichetta niente titolo: il riquadro che contiene il repeater
         // ha già il suo, e due titoli uguali di fila si leggono male.
         $heading = trim($label) === '' ? '' : "<h6>{$label}</h6>";
+
+        if ($inner !== null) {
+            return <<<HTML
+<div id="{$id}" class="w-100 wi-input-repeater" data-wi-repeater="{$nameAttr}" data-wi-repeater-inner="true">
+    {$heading}
+    <div id="{$rowId}" class="row g-2"{$rowsAttrs}>
+        {$rowsHtml}
+    </div>
+    <template id="{$templateId}" data-wi-row-placeholder="{$placeholder}">{$templateHtml}</template>
+    {$quickScriptHtml}
+    {$addButtonHtml}
+</div>
+HTML;
+        }
 
         return <<<HTML
 <div id="{$id}" class="w-100 wi-input-repeater" data-wi-repeater="{$nameAttr}">
@@ -228,7 +266,9 @@ HTML;
         // quando le azioni occupavano il resto: qui si allargano a tutta la riga.
         $budget = $sortable ? 9 : 11;
 
-        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
+        $html .= (isset($context['inner'])
+                ? '<div class="card border-0 bg-body"><div class="card-body p-2">'
+                : '<div class="card border-0 bg-light-subtle"><div class="card-body">')
             .($collapsible !== null ? $this->renderSummary($collapsible, $collapsed, $handleHtml, $deleteHtml) : '')
             .'<fieldset class="border-0 p-0 m-0'.($collapsed ? ' d-none' : '').'">';
 
@@ -386,12 +426,36 @@ HTML;
         $inputName = !empty($context['nested'])
             ? "{$name}[{$rowKey}][{$columnName}]"
             : $columnName.'[]';
+        // Nel modello gli id portano la chiave della riga; in quello di un
+        // repeater interno anche quella della riga esterna che lo contiene.
+        $isTemplate = $rowKey === self::ROW_PLACEHOLDER || $rowKey === self::INNER_PLACEHOLDER;
+        $idSuffix = (string) ($context['inner']['id_suffix'] ?? '').($isTemplate ? '-'.$rowKey : '');
+
+        if ($field instanceof InputRepeater) {
+            if (isset($context['inner'])) {
+                throw new LogicException("Repeater «{$columnName}»: un repeater interno non può contenerne un altro (un solo livello di annidamento).");
+            }
+
+            if (empty($context['nested'])) {
+                throw new LogicException("Repeater «{$columnName}»: un repeater dentro una riga richiede nested() sul repeater esterno.");
+            }
+
+            // Senza etichetta dichiarata niente titolo: quello derivato dal
+            // nome sarebbe il name intero, chiavi comprese.
+            if (!$field->hasDeclaredLabel()) {
+                $field->label('');
+            }
+
+            $field->nested()->context('inner', ['id_suffix' => $idSuffix]);
+        }
 
         $field->inputName($inputName)->value($fieldValue);
         $this->inheritRelationUploadDirectory($field, $columnName, $context);
 
         return [
-            $rowKey === '__ROW_KEY__' ? $this->renderTemplateField($field) : $field->render('bootstrap'),
+            $idSuffix !== '' && !$field instanceof InputRepeater
+                ? $this->renderTemplateField($field, $idSuffix)
+                : $field->render('bootstrap'),
             $field instanceof InputHidden,
             $this->resolvedColumnClass($field),
             $this->conditionalContainerAttributes($field),
@@ -399,14 +463,15 @@ HTML;
     }
 
     /**
-     * Il campo della riga modello, con `__ROW_KEY__` nell'id.
+     * Il campo della riga modello, con `__ROW_KEY__` nell'id (`__SUB_KEY__`
+     * nel modello di un repeater interno).
      *
      * Ogni riga aggiunta copia il modello: con un id fisso due righe nuove
      * avrebbero lo stesso id, e chi cerca il campo per id (la creazione
      * rapida, le label) troverebbe sempre la prima. `wiRepeaterAddRow`
      * sostituisce la chiave in ogni attributo.
      */
-    private function renderTemplateField(Input $field): string
+    private function renderTemplateField(Input $field, string $idSuffix = '-'.self::ROW_PLACEHOLDER): string
     {
         $element = $field->compile();
 
@@ -414,7 +479,7 @@ HTML;
             return $field->render('bootstrap');
         }
 
-        $element->id($element->id.'-__ROW_KEY__');
+        $element->id($element->id.$idSuffix);
 
         return $element->render('bootstrap');
     }
@@ -747,7 +812,7 @@ HTML;
 
         // Due righe con la stessa chiave si fondono già dentro il posting: la
         // seconda cancellerebbe la prima senza che nessuno se ne accorga.
-        if (container.querySelector('.wi-repeater-row[data-wi-row-key="' + rowKey + '"]')) {
+        if (container.querySelector(':scope > .wi-repeater-row[data-wi-row-key="' + rowKey + '"]')) {
             return null;
         }
 
@@ -761,13 +826,22 @@ HTML;
         // punta a un id (la creazione rapida, `data-bs-target`, `aria-*`).
         // Con lo stesso id in due righe aggiunte, il clic sulla seconda
         // agirebbe sulla prima.
-        fragment.querySelectorAll('*').forEach((element) => {
-            Array.from(element.attributes).forEach((attribute) => {
-                if (attribute.value.includes('__ROW_KEY__')) {
-                    element.setAttribute(attribute.name, attribute.value.replaceAll('__ROW_KEY__', rowKey));
-                }
+        // Ogni livello ha il suo segnaposto: il modello di un repeater
+        // interno usa `__SUB_KEY__`, così la riga esterna nuova non tocca le
+        // chiavi delle righe interne. Il contenuto di un `<template>`
+        // annidato non è fra i discendenti: ci si entra a mano.
+        const placeholder = (template.dataset || {}).wiRowPlaceholder || '__ROW_KEY__';
+        const fill = function (root) {
+            root.querySelectorAll('*').forEach((element) => {
+                Array.from(element.attributes).forEach((attribute) => {
+                    if (attribute.value.includes(placeholder)) {
+                        element.setAttribute(attribute.name, attribute.value.replaceAll(placeholder, rowKey));
+                    }
+                });
+                if (element.content) fill(element.content);
             });
-        });
+        };
+        fill(fragment);
         container.appendChild(fragment);
 
         // La riga nuova è solo HTML: senza questo i campi che diventano un
@@ -1021,9 +1095,12 @@ HTML;
 
             // Svuotare invece di togliere ha senso finché si può aggiungerne
             // un'altra: senza il bottone resterebbe una riga vuota per sempre.
-            const canAddRows = container.dataset.wiAddButton !== 'false';
+            // Un repeater interno parte vuoto e vuoto può tornare.
+            const canAddRows = container.dataset.wiAddButton !== 'false' && container.dataset.wiAllowEmpty !== 'true';
 
-            if (canAddRows && container.querySelectorAll('.wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)').length <= 1) {
+            if (canAddRows && container.querySelectorAll(':scope > .wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)').length <= 1) {
+                // Le righe di un repeater interno non si svuotano: se ne vanno.
+                row.querySelectorAll('.wi-repeater-row').forEach((inner) => inner.remove());
                 row.querySelectorAll('input, textarea, select').forEach((input) => {
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         input.checked = false;
@@ -1168,7 +1245,11 @@ HTML;
      * il raggruppamento è azzerare due proprietà.
      */
     window.wiRepeaterGroupValue = window.wiRepeaterGroupValue || function (row, columnKey) {
-        const field = row.querySelector('[name$="[' + columnKey + ']"], [name="' + columnKey + '[]"]');
+        // Il campo di una riga interna appartiene a quella, non a questa.
+        const field = Array.prototype.find.call(
+            row.querySelectorAll('[name$="[' + columnKey + ']"], [name="' + columnKey + '[]"]'),
+            function (candidate) { return candidate.closest('.wi-repeater-row') === row; }
+        );
 
         if (field) {
             const value = String(field.value === null || field.value === undefined ? '' : field.value);

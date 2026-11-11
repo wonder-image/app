@@ -90,7 +90,7 @@ check('la chiave della riga va anche negli id e nei for, come nei name', functio
     return str_contains($html, 'id="radio-products[__ROW_KEY__][preferred]-1"')
         && str_contains($html, 'for="radio-products[__ROW_KEY__][preferred]-1"')
         && str_contains($js, "Array.from(element.attributes)")
-        && str_contains($js, "attribute.value.replaceAll('__ROW_KEY__', rowKey)");
+        && str_contains($js, "attribute.value.replaceAll(placeholder, rowKey)");
 });
 
 // Anche il campo semplice: con l'id fisso del template, due righe aggiunte

@@ -3,6 +3,17 @@
 ## Unreleased
 
 ### Aggiunto
+- **Repeater dentro la riga di un repeater.** Una colonna può essere
+  `RepeaterColumn::key('points')->repeater([...])` (repeater esterno con
+  `nested()`, tema Bootstrap): i campi si chiamano
+  `esterno[RIGA][points][RIGA_INTERNA][campo]` e `$riga['points']` ripopola
+  le righe interne. Nel modello la chiave interna ha il suo segnaposto
+  (`__SUB_KEY__`, attributo `data-wi-row-placeholder`) e gli id del repeater
+  interno portano la chiave della riga esterna. Il repeater interno parte
+  vuoto e tiene solo etichetta, larghezza, bottone e testi di eliminazione;
+  un secondo livello lancia `LogicException`. `Repeater::columnDefaults()`
+  porta i default delle colonne interne e `rowsFromRequest()` scarta le righe
+  interne mai toccate.
 - **Creazione rapida compatta.** `->quickCreateCompact()`, dopo
   `quickCreate()`, lascia solo il "+" accanto al campo (testo nel titolo e
   nell'`aria-label`): per le colonne strette di un repeater.
