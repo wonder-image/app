@@ -335,6 +335,10 @@
                 return "'".$this->escapeString($this->protectLatin1String($value))."'";
             }
 
+            if ($value instanceof Vector) {
+                return $value->toSql();
+            }
+
             throw new RuntimeException('Query::bind: tipo '.get_debug_type($value).' non supportato.');
 
         }
@@ -547,6 +551,10 @@
 
             if ($value === null || ($emptyStringAsNull && $value === '')) {
                 return "NULL";
+            }
+
+            if ($value instanceof Vector) {
+                return $value->toSql();
             }
 
             if (is_int($value) || is_float($value)) {

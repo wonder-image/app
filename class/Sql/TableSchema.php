@@ -51,6 +51,21 @@
             public function float(): self { return $this->type('FLOAT'); }
 
             /**
+             * Colonna VECTOR (MariaDB 11.7+) per embedding. NOT NULL di
+             * default perché un indice vettoriale non ammette NULL.
+             */
+            public function vector(int $dimensions): self
+            {
+
+                if ($dimensions < 1 || $dimensions > Vector::MAX_DIMENSIONS) {
+                    throw new \InvalidArgumentException('TableSchema: dimensioni VECTOR da 1 a '.Vector::MAX_DIMENSIONS.'.');
+                }
+
+                return $this->type('VECTOR')->length($dimensions)->null(false);
+
+            }
+
+            /**
              * Colonna ENUM con lista valori ammessi.
              *
              * @param array<int|string, mixed> $values
@@ -155,6 +170,31 @@
         {
 
             return $this->schema('index', $column);
+
+        }
+
+        /**
+         * Indice vettoriale (HNSW) su una colonna VECTOR NOT NULL; la chiave
+         * è il nome dell'indice. MariaDB ne ammette uno per tabella.
+         *
+         * Esempio: Column::key('vec_embedding')->vectorIndex('embedding')
+         *
+         * @param string $distance `cosine` o `euclidean`: la stessa metrica
+         *                         va usata nella ricerca.
+         * @param int|null $m Connessioni per nodo (3-200); null = default del server.
+         */
+        public function vectorIndex( string $column, string $distance = 'cosine', ?int $m = null ): self
+        {
+
+            if ($m !== null && ($m < 3 || $m > 200)) {
+                throw new \InvalidArgumentException('TableSchema: M dell\'indice vettoriale da 3 a 200.');
+            }
+
+            return $this->schema('vector_index', [
+                'column' => $column,
+                'distance' => Vector::metric($distance),
+                'm' => $m,
+            ]);
 
         }
 
