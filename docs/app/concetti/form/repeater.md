@@ -88,7 +88,8 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupFiles($campo, $colonnaChiave, $etichetta = 'Foto')`,
 `repeaterAddButton($b = true)`, `repeaterMinRows($n)`,
 `repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
-`repeaterAdvancedLabel($s)`, `repeaterUndoDelete($b = true)`,
+`repeaterAdvancedLabel($s)`, `repeaterCollapsible($titolo, $sottotitolo = [])`,
+`repeaterCollapsibleEmptyLabel($s)`, `repeaterUndoDelete($b = true)`,
 `repeaterUndoLabel($etichetta, $testo = '')`.
 
 ## Larghezza delle colonne
@@ -265,6 +266,35 @@ FormField::key('products')
 
 Ogni riga ha il suo bottone e la sua didascalia, anche la riga modello che il
 bottone «Aggiungi» clona.
+
+## Righe a scheda richiudibile
+
+Dove una riga è una cosa intera (un referente, una sede) e ha molti campi,
+`repeaterCollapsible()` la rende una scheda: chiusa mostra un riassunto in una
+riga sola, un clic la apre per modificarla.
+
+```php
+FormField::key('people')
+    ->repeater([
+        RepeaterColumn::key('person_id')->selectSearch($persone)->columnSpan(6),
+        RepeaterColumn::key('job_title')->text()->columnSpan(5),
+        RepeaterColumn::key('email')->email()->columnSpan(6),
+    ])
+    ->repeaterCollapsible('person_id', ['job_title', 'email'])
+    ->repeaterCollapsibleEmptyLabel('Nuovo referente');
+```
+
+Il primo argomento sono le colonne del titolo (unite da uno spazio), il secondo
+quelle del sottotitolo (unite da «·»); di una select si legge l'etichetta
+scelta. Il riassunto lo scrive lo script (`wiRepeaterSummaryRefresh()`) e si
+aggiorna mentre si compila. Nasce chiusa solo la riga che ha già un valore in
+una colonna del titolo: una riga nuova, una senza titolo e tutte quelle di una
+pagina resa in risposta a un `POST` (un salvataggio rifiutato) sono aperte, e
+un campo non valido apre la sua scheda (evento `invalid`).
+
+Chiudere nasconde i campi (`d-none` sul `fieldset`), non li spegne: una riga
+chiusa viene postata come una aperta. Si combina con `repeaterAdvanced()` e
+`repeaterUndoDelete()`; il bottone che elimina sta dentro la scheda aperta.
 
 ## Righe raggruppate
 

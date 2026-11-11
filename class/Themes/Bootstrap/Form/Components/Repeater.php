@@ -124,6 +124,9 @@ class Repeater extends Field
         $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"')
             .($minRows > 0 ? ' data-wi-repeater-min="'.$minRows.'"' : '');
         $minInitHtml = $minRows > 0 ? "<script>window.wiRepeaterSyncMin(document.getElementById('{$rowId}'));</script>" : '';
+        $summaryInitHtml = $this->collapsibleConfig($context) !== null
+            ? "<script>window.wiRepeaterSummaryInit('{$rowId}');</script>"
+            : '';
         // Il nome del campo sul contenitore: chi genera righe da fuori trova
         // il repeater senza dipendere da un id che cambia a ogni render.
         $nameAttr = $this->escape($name);
@@ -152,6 +155,7 @@ class Repeater extends Field
     {$this->script()}
     {$groupInitHtml}
     {$minInitHtml}
+    {$summaryInitHtml}
 </div>
 HTML;
     }
@@ -190,9 +194,16 @@ HTML;
         // arrivare al salvataggio.
         $undoDelete = ($context['undo_delete'] ?? false) === true;
 
-        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}>";
+        // Scheda richiudibile: il riassunto sta sopra, i campi si nascondono
+        // (mai spenti: un fieldset spento non viene postato).
+        $collapsible = $this->collapsibleConfig($context);
+        $collapsed = $collapsible !== null && !$template && $this->rowStartsCollapsed($rowValue, $collapsible['title']);
+        $collapsibleAttr = $collapsible !== null ? ' data-wi-collapsible="true"' : '';
+
+        $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}{$collapsibleAttr}>";
         $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
-            .'<fieldset class="row g-2 align-items-start border-0 p-0 m-0">';
+            .($collapsible !== null ? $this->renderSummary($collapsible, $collapsed) : '')
+            .'<fieldset class="row g-2 align-items-start border-0 p-0 m-0'.($collapsed ? ' d-none' : '').'">';
 
         $advancedHtml = '';
 
@@ -258,6 +269,74 @@ HTML;
         $html .= '</div></div></div>';
 
         return $html;
+    }
+
+    /**
+     * @return array{title: list<string>, subtitle: list<string>, empty: string}|null
+     */
+    private function collapsibleConfig(array $context): ?array
+    {
+        $config = is_array($context['collapsible'] ?? null) ? $context['collapsible'] : [];
+        $keys = static fn (mixed $columns): array => array_values(array_filter(
+            array_map(static fn ($key): string => trim((string) $key), (array) $columns),
+            static fn (string $key): bool => $key !== ''
+        ));
+        $title = $keys($config['title'] ?? []);
+
+        if ($title === []) {
+            return null;
+        }
+
+        return [
+            'title' => $title,
+            'subtitle' => $keys($config['subtitle'] ?? []),
+            'empty' => trim((string) ($context['collapsible_empty'] ?? '')) ?: 'Nuova riga',
+        ];
+    }
+
+    /**
+     * Chiusa solo la riga che ha già un titolo e non torna da un invio: dopo
+     * un salvataggio rifiutato l'errore sta in una riga, e deve vedersi.
+     *
+     * @param list<string> $titleColumns
+     */
+    private function rowStartsCollapsed(array $rowValue, array $titleColumns): bool
+    {
+        if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
+            return false;
+        }
+
+        foreach ($titleColumns as $key) {
+            $value = $rowValue[$key] ?? null;
+
+            if (is_scalar($value) && trim((string) $value) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Il riassunto è un bottone a tutta larghezza; le parole le scrive lo
+     * script, che conosce l'etichetta scelta in una select.
+     *
+     * @param array{title: list<string>, subtitle: list<string>, empty: string} $collapsible
+     */
+    private function renderSummary(array $collapsible, bool $collapsed): string
+    {
+        return '<div class="wi-repeater-summary'.($collapsed ? '' : ' mb-3').'">'
+            .'<button type="button" class="btn btn-link text-reset text-decoration-none p-0 w-100 d-flex align-items-center gap-2 text-start wi-repeater-summary-toggle"'
+            .' aria-expanded="'.($collapsed ? 'false' : 'true').'"'
+            .' data-wi-summary-title="'.$this->escape(implode(',', $collapsible['title'])).'"'
+            .' data-wi-summary-subtitle="'.$this->escape(implode(',', $collapsible['subtitle'])).'"'
+            .' data-wi-summary-empty="'.$this->escape($collapsible['empty']).'"'
+            .' onclick="window.wiRepeaterToggleRow(this)">'
+            .'<i class="bi '.($collapsed ? 'bi-chevron-right' : 'bi-chevron-down').'"></i>'
+            .'<span class="fw-semibold text-truncate wi-repeater-summary-title">'.$this->escape($collapsible['empty']).'</span>'
+            .'<span class="small text-body-secondary text-truncate wi-repeater-summary-subtitle"></span>'
+            .'</button>'
+            .'</div>';
     }
 
     private function columnKey(Input $column): string
@@ -763,6 +842,86 @@ HTML;
             icona.classList.toggle('bi-chevron-down', !aperto);
             icona.classList.toggle('bi-chevron-up', aperto);
         }
+    };
+
+    /*
+     * Schede richiudibili (`repeaterCollapsible()`).
+     *
+     * Chiudere nasconde i campi, non li spegne: una riga chiusa viene postata
+     * come una aperta.
+     */
+    window.wiRepeaterSummaryToggle = window.wiRepeaterSummaryToggle || function (row) {
+        const toggle = row ? row.querySelector('.wi-repeater-summary-toggle') : null;
+        return toggle && toggle.closest('.wi-repeater-row') === row ? toggle : null;
+    };
+
+    window.wiRepeaterSummaryRefresh = window.wiRepeaterSummaryRefresh || function (row) {
+        const toggle = window.wiRepeaterSummaryToggle(row);
+        if (!toggle) return '';
+        const read = function (attribute, separator) {
+            return (toggle.getAttribute(attribute) || '').split(',').map(function (key) {
+                return key === '' ? '' : String(window.wiRepeaterGroupValue(row, key).label || '').trim();
+            }).filter(function (text) { return text !== ''; }).join(separator);
+        };
+        const title = read('data-wi-summary-title', ' ');
+        const titleEl = toggle.querySelector('.wi-repeater-summary-title');
+        const subtitleEl = toggle.querySelector('.wi-repeater-summary-subtitle');
+        if (titleEl) titleEl.textContent = title === '' ? (toggle.getAttribute('data-wi-summary-empty') || '') : title;
+        if (subtitleEl) subtitleEl.textContent = read('data-wi-summary-subtitle', ' · ');
+        return title;
+    };
+
+    window.wiRepeaterSetRowOpen = window.wiRepeaterSetRowOpen || function (row, open) {
+        const toggle = window.wiRepeaterSummaryToggle(row);
+        const fieldset = row ? row.querySelector('fieldset') : null;
+        if (!toggle || !fieldset) return;
+        fieldset.classList.toggle('d-none', !open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (toggle.parentElement) toggle.parentElement.classList.toggle('mb-3', open);
+        const icon = toggle.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('bi-chevron-right', !open);
+            icon.classList.toggle('bi-chevron-down', open);
+        }
+    };
+
+    window.wiRepeaterToggleRow = window.wiRepeaterToggleRow || function (button) {
+        const row = button.closest('.wi-repeater-row');
+        if (!row) return;
+        window.wiRepeaterSummaryRefresh(row);
+        window.wiRepeaterSetRowOpen(row, button.getAttribute('aria-expanded') !== 'true');
+    };
+
+    window.wiRepeaterSummaryInit = window.wiRepeaterSummaryInit || function (rowsId) {
+        const container = document.getElementById(rowsId);
+        if (!container) return;
+        const refresh = function () {
+            container.querySelectorAll(':scope > .wi-repeater-row[data-wi-collapsible]').forEach(function (row) {
+                // Senza titolo non c'è niente da riassumere: la riga resta aperta.
+                if (window.wiRepeaterSummaryRefresh(row) === '') window.wiRepeaterSetRowOpen(row, true);
+            });
+        };
+        refresh();
+        // Le select con ricerca prendono la loro etichetta a pagina pronta.
+        window.addEventListener('loaded', refresh, { once: true });
+
+        if (window.wiRepeaterSummaryBound) return;
+        window.wiRepeaterSummaryBound = true;
+
+        const rowOf = function (target) {
+            return target && target.closest ? target.closest('.wi-repeater-row[data-wi-collapsible]') : null;
+        };
+        ['input', 'change'].forEach(function (type) {
+            document.addEventListener(type, function (event) {
+                const row = rowOf(event.target);
+                if (row) window.wiRepeaterSummaryRefresh(row);
+            });
+        });
+        // Un campo non valido dentro una scheda chiusa non si vedrebbe: la si apre.
+        document.addEventListener('invalid', function (event) {
+            const row = rowOf(event.target);
+            if (row) window.wiRepeaterSetRowOpen(row, true);
+        }, true);
     };
 
     window.wiRepeaterConfirmDelete = window.wiRepeaterConfirmDelete || function (onConfirm, config = {}) {
