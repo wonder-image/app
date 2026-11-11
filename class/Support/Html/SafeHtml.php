@@ -261,6 +261,10 @@ final class SafeHtml
         return str_replace(["\r\n", "\r"], "\n", $html);
     }
 
+    private const CDATA_PATTERN = '~<(textarea|title)\\b[^>]*>.*?</\\1\\b[^>]*>'
+        .'|<[a-zA-Z/](?:"[^"]*"|\'[^\']*\'|[^\'">])*>'
+        .'|(?<cdata><!\\[CDATA\\[[^>]*(?:>|$))~is';
+
     private static function parse(string $html): ?DOMElement
     {
         $document = new DOMDocument('1.0', 'UTF-8');
@@ -290,6 +294,18 @@ final class SafeHtml
         if ((int) LIBXML_LOADED_VERSION < 21400) {
             $passes[] = [self::UNKNOWN_VOID_PATTERN, self::UNKNOWN_VOID_RENAMES];
             $renames += self::UNKNOWN_VOID_RENAMES;
+        }
+
+        // Fuori da SVG e MathML un `<![CDATA[` in HTML5 è un commento che
+        // finisce al primo `>`, e libxml dalla 2.14 lo legge così. Prima lo
+        // tiene come testo: qui si toglie, saltando i tag (un attributo può
+        // contenerlo) e il testo di `textarea` e `title`, dove resta testo.
+        if ((int) LIBXML_LOADED_VERSION < 21400 && stripos($html, '<![CDATA[') !== false) {
+            $html = preg_replace_callback(
+                self::CDATA_PATTERN,
+                static fn (array $match): string => isset($match['cdata']) ? '' : $match[0],
+                $html
+            ) ?? $html;
         }
 
         $marker = null;

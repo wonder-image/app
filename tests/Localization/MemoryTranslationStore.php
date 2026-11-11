@@ -1,5 +1,8 @@
 <?php
 
+// Di supporto ai test: eseguito da solo carica l'autoload e non fa altro.
+require_once __DIR__.'/../../vendor/autoload.php';
+
 use Wonder\Localization\Content\{TranslationStore, Translations};
 
 /**

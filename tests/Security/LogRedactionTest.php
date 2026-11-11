@@ -127,6 +127,15 @@ check('M8: append rifiuta un nome file con .., niente scrittura fuori da storage
 check('Logger: cartella non scrivibile, nessuna eccezione', function () {
     $dir = sys_get_temp_dir() . '/wi-log-ro-' . bin2hex(random_bytes(4));
     mkdir($dir, 0500);
+
+    // root scrive comunque: i permessi non si possono provare.
+    if (is_writable($dir)) {
+        rmdir($dir);
+        echo "    (saltato: l'utente scrive anche in una cartella 0500)\n";
+
+        return true;
+    }
+
     $GLOBALS['ROOT'] = $dir;
     $prevLog = ini_set('error_log', '/dev/null');
     try {
