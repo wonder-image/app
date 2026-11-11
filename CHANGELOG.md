@@ -14,6 +14,17 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Cambiato
+- **Repeater: maniglia per riordinare e cestino piccolo.** Con
+  `repeaterSortable()` i due bottoni su e giù lasciano il posto a una maniglia
+  (`.wi-repeater-handle`) a sinistra della riga: si trascina, e con il fuoco
+  sopra le frecce della tastiera spostano la riga di un posto. Il cestino è
+  un'icona a destra. Le colonne continuano a dichiararsi su undici (nove con il
+  riordino) e si allargano in proporzione a tutta la riga: nessun form deve
+  cambiare gli span. In una scheda richiudibile maniglia e cestino stanno sul
+  riassunto. Il `fieldset` della riga non è più la griglia (`row g-2`): la
+  griglia è un `div` al suo interno. `.wi-repeater-move-up` e
+  `.wi-repeater-move-down` non si stampano più; `wiRepeaterMoveRowUp()` e
+  `wiRepeaterMoveRowDown()` restano.
 - **Niente trattini a schermo.** Dove manca un valore `DataItem`, `InfoCard` e
   `MetricCard` restano vuoti (il segnaposto si sceglie con `placeholder()`), il
   delta di `MetricCard` su base zero mostra solo l'icona, gli indirizzi

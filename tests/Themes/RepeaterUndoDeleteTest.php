@@ -54,7 +54,7 @@ check('senza il modificatore il markup non cambia', function () use ($render, $m
 check('i campi della riga stanno in un fieldset', function () use ($render, $markup) {
     $html = $markup($render(['undo_delete' => true]));
 
-    return str_contains($html, '<fieldset class="row g-2 align-items-start border-0 p-0 m-0">')
+    return str_contains($html, '<fieldset class="border-0 p-0 m-0">')
         && str_contains($html, '</fieldset>');
 });
 

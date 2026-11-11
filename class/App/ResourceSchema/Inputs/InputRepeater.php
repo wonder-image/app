@@ -82,6 +82,10 @@ class InputRepeater extends Input
         return $this->context('delete_modal_confirm_class', trim($class));
     }
 
+    /**
+     * Le righe si riordinano: una maniglia a sinistra si trascina, e con il
+     * fuoco sopra le frecce su e giù spostano la riga di un posto.
+     */
     public function repeaterSortable(bool $sortable = true): static
     {
         return $this->context('sortable', $sortable);
@@ -158,8 +162,8 @@ class InputRepeater extends Input
      * leggendo. Per questo la tendina non si stampa: non c'è niente da
      * scegliere.
      *
-     * Con il raggruppamento fisso il riordino a mano si spegne: le frecce
-     * spostano una riga dentro un ordine che i gruppi hanno già deciso.
+     * Con il raggruppamento fisso il riordino a mano si spegne: la maniglia
+     * sposterebbe una riga dentro un ordine che i gruppi hanno già deciso.
      */
     public function repeaterGroupFixed(string $columnKey): static
     {

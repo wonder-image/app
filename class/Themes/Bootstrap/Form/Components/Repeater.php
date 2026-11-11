@@ -201,10 +201,30 @@ HTML;
         $collapsibleAttr = $collapsible !== null ? ' data-wi-collapsible="true"' : '';
 
         $html = "<div class=\"col-12 wi-repeater-row{$rowClass}\" data-wi-row-key=\"{$this->escape($rowKey)}\"{$groupAttrs}{$collapsibleAttr}>";
-        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
-            .($collapsible !== null ? $this->renderSummary($collapsible, $collapsed) : '')
-            .'<fieldset class="row g-2 align-items-start border-0 p-0 m-0'.($collapsed ? ' d-none' : '').'">';
+        // La maniglia e il cestino: piccoli, ai lati della riga. In una
+        // scheda richiudibile stanno sul riassunto, che resta visibile anche
+        // a scheda chiusa.
+        $sortLabel = $this->escape((string) ($context['sort_label'] ?? 'Trascina per riordinare'));
+        $handleHtml = $sortable
+            ? '<button type="button" class="btn btn-sm btn-link text-body-secondary px-1 flex-shrink-0 wi-repeater-handle"'
+                .' style="cursor:grab;touch-action:none"'
+                .' title="'.$sortLabel.'" aria-label="'.$sortLabel.'">'
+                .'<i class="bi bi-grip-vertical"></i></button>'
+            : '';
+        $deleteLabel = $this->escape((string) ($context['delete_modal_confirm_label'] ?? 'Elimina'));
+        $deleteHtml = '<button type="button" class="btn btn-sm btn-link text-danger px-1 flex-shrink-0 wi-repeater-delete"'
+            .' title="'.$deleteLabel.'" aria-label="'.$deleteLabel.'"'
+            .' onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
 
+        // Le colonne si dichiarano su undici (nove con il riordino), come
+        // quando le azioni occupavano il resto: qui si allargano a tutta la riga.
+        $budget = $sortable ? 9 : 11;
+
+        $html .= '<div class="card border-0 bg-light-subtle"><div class="card-body">'
+            .($collapsible !== null ? $this->renderSummary($collapsible, $collapsed, $handleHtml, $deleteHtml) : '')
+            .'<fieldset class="border-0 p-0 m-0'.($collapsed ? ' d-none' : '').'">';
+
+        $cellsHtml = '';
         $advancedHtml = '';
 
         foreach ($columns as $column) {
@@ -215,39 +235,36 @@ HTML;
                 continue;
             }
 
-            $cell = '<div class="'.$colClass.'"'.$colAttrs.'>'.$fieldHtml.'</div>';
             $key = $this->columnKey($column);
 
             if ($key !== '' && in_array($key, $advanced, true)) {
-                $advancedHtml .= $cell;
+                $advancedHtml .= '<div class="'.$colClass.'"'.$colAttrs.'>'.$fieldHtml.'</div>';
 
                 continue;
             }
 
-            $html .= $cell;
+            $width = preg_match('/^col-(\d+)$/', $colClass, $match) === 1
+                ? ' style="width:'.round(min(1, (int) $match[1] / $budget) * 100, 4).'%"'
+                : '';
+            $cellsHtml .= '<div class="'.$colClass.'"'.$colAttrs.$width.'>'.$fieldHtml.'</div>';
         }
 
-        $actionColumnClass = $sortable ? 'col-3' : 'col-1';
-        $html .= "<div class=\"{$actionColumnClass} d-flex align-items-stretch\"><div class=\"d-flex flex-row gap-2 w-100\">";
-
-        if ($sortable) {
-            $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-up" onclick="window.wiRepeaterMoveRowUp(this)"><i class="bi bi-chevron-up"></i></button>';
-            $html .= '<button type="button" class="btn btn-outline-secondary flex-fill wi-repeater-move-down" onclick="window.wiRepeaterMoveRowDown(this)"><i class="bi bi-chevron-down"></i></button>';
-        }
-
-        $html .= '<button type="button" class="btn btn-danger flex-fill wi-repeater-delete" onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
-        $html .= '</div></div>';
+        $html .= '<div class="d-flex align-items-center gap-2">'
+            .($collapsible === null ? $handleHtml : '')
+            .'<div class="flex-grow-1" style="min-width:0"><div class="row g-2 align-items-start">'.$cellsHtml.'</div></div>'
+            .($collapsible === null ? $deleteHtml : '')
+            .'</div>';
 
         if ($advancedHtml !== '') {
             $label = trim((string) ($context['advanced_label'] ?? '')) ?: 'Compila le informazioni avanzate';
 
-            $html .= '<div class="col-12">'
+            $html .= '<div class="mt-2">'
                 .'<button type="button" class="btn btn-link btn-sm px-0 text-decoration-none wi-repeater-advanced-toggle"'
                 .' onclick="window.wiRepeaterToggleAdvanced(this)">'
                 .'<i class="bi bi-chevron-down me-1"></i>'.$this->escape($label)
                 .'</button>'
                 .'</div>';
-            $html .= '<div class="col-12 wi-repeater-advanced d-none"><div class="row g-2 align-items-start">'
+            $html .= '<div class="wi-repeater-advanced d-none mt-2"><div class="row g-2 align-items-start">'
                 .$advancedHtml
                 .'</div></div>';
         }
@@ -323,10 +340,12 @@ HTML;
      *
      * @param array{title: list<string>, subtitle: list<string>, empty: string} $collapsible
      */
-    private function renderSummary(array $collapsible, bool $collapsed): string
+    private function renderSummary(array $collapsible, bool $collapsed, string $handleHtml = '', string $deleteHtml = ''): string
     {
-        return '<div class="wi-repeater-summary'.($collapsed ? '' : ' mb-3').'">'
-            .'<button type="button" class="btn btn-link text-reset text-decoration-none p-0 w-100 d-flex align-items-center gap-2 text-start wi-repeater-summary-toggle"'
+        return '<div class="wi-repeater-summary d-flex align-items-center gap-1'.($collapsed ? '' : ' mb-3').'">'
+            .$handleHtml
+            .'<button type="button" class="btn btn-link text-reset text-decoration-none p-0 flex-grow-1 d-flex align-items-center gap-2 text-start wi-repeater-summary-toggle"'
+            .' style="min-width:0"'
             .' aria-expanded="'.($collapsed ? 'false' : 'true').'"'
             .' data-wi-summary-title="'.$this->escape(implode(',', $collapsible['title'])).'"'
             .' data-wi-summary-subtitle="'.$this->escape(implode(',', $collapsible['subtitle'])).'"'
@@ -336,6 +355,7 @@ HTML;
             .'<span class="fw-semibold text-truncate wi-repeater-summary-title">'.$this->escape($collapsible['empty']).'</span>'
             .'<span class="small text-body-secondary text-truncate wi-repeater-summary-subtitle"></span>'
             .'</button>'
+            .$deleteHtml
             .'</div>';
     }
 
@@ -944,6 +964,8 @@ HTML;
         const row = button.closest('.wi-repeater-row');
         const container = row ? row.parentElement : null;
         if (!row || !container) return;
+        // In una scheda il cestino sta fuori dal fieldset: una riga già spenta non si elimina due volte.
+        if (row.classList && row.classList.contains('wi-repeater-row-deleted')) return;
         const min = typeof window.wiRepeaterMinRows === 'function' ? window.wiRepeaterMinRows(container) : 0;
         if (min > 0 && container.querySelectorAll(':scope > .wi-repeater-row:not(.d-none):not(.wi-repeater-row-deleted)').length <= min) return;
         const deleteConfig = {
@@ -1020,19 +1042,102 @@ HTML;
         if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
     };
 
+    /*
+     * Riordino (`repeaterSortable()`): la maniglia si trascina, e con il
+     * fuoco sopra le frecce su e giù spostano la riga di un posto.
+     *
+     * Si sposta sempre la riga vicina, mai quella trascinata: togliere dal
+     * DOM la riga sotto il puntatore le farebbe perdere presa e fuoco.
+     */
+    window.wiRepeaterRowSibling = window.wiRepeaterRowSibling || function (row, direction) {
+        let other = row;
+        do {
+            other = direction < 0 ? other.previousElementSibling : other.nextElementSibling;
+        } while (other && !(other.classList.contains('wi-repeater-row') && !other.classList.contains('d-none')));
+        return other;
+    };
+
+    window.wiRepeaterRowMoved = window.wiRepeaterRowMoved || function (row) {
+        const container = row.parentElement;
+        row.dispatchEvent(new CustomEvent('wi-repeater-row-move', { bubbles: true }));
+        if (container && typeof window.wiRepeaterGroupRefresh === 'function') window.wiRepeaterGroupRefresh(container);
+    };
+
+    window.wiRepeaterSwapRow = window.wiRepeaterSwapRow || function (row, direction) {
+        const other = row ? window.wiRepeaterRowSibling(row, direction) : null;
+        if (!other) return false;
+        row.parentElement.insertBefore(other, direction < 0 ? row.nextSibling : row);
+        return true;
+    };
+
     window.wiRepeaterMoveRowUp = window.wiRepeaterMoveRowUp || function (button) {
         const row = button.closest('.wi-repeater-row');
-        const previous = row ? row.previousElementSibling : null;
-        if (!row || !previous) return;
-        row.parentElement.insertBefore(row, previous);
+        if (window.wiRepeaterSwapRow(row, -1)) window.wiRepeaterRowMoved(row);
     };
 
     window.wiRepeaterMoveRowDown = window.wiRepeaterMoveRowDown || function (button) {
         const row = button.closest('.wi-repeater-row');
-        const next = row ? row.nextElementSibling : null;
-        if (!row || !next) return;
-        row.parentElement.insertBefore(next, row);
+        if (window.wiRepeaterSwapRow(row, 1)) window.wiRepeaterRowMoved(row);
     };
+
+    if (!window.wiRepeaterDragBound) {
+        window.wiRepeaterDragBound = true;
+        let drag = null;
+
+        const handleOf = function (target) {
+            const handle = target && target.closest ? target.closest('.wi-repeater-handle') : null;
+            return handle && !handle.disabled ? handle : null;
+        };
+
+        const stop = function (event) {
+            if (!drag || (event && event.pointerId !== drag.pointerId)) return;
+            const done = drag;
+            drag = null;
+            done.row.classList.remove('wi-repeater-row-dragging', 'opacity-75');
+            done.handle.style.cursor = 'grab';
+            if (done.moved) window.wiRepeaterRowMoved(done.row);
+        };
+
+        document.addEventListener('pointerdown', function (event) {
+            const handle = handleOf(event.target);
+            const row = handle ? handle.closest('.wi-repeater-row') : null;
+            if (!row || (event.pointerType === 'mouse' && event.button !== 0)) return;
+            // Niente selezione del testo mentre si trascina.
+            event.preventDefault();
+            handle.focus();
+            drag = { row: row, handle: handle, pointerId: event.pointerId, moved: false };
+            row.classList.add('wi-repeater-row-dragging', 'opacity-75');
+            handle.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('pointermove', function (event) {
+            if (!drag || event.pointerId !== drag.pointerId) return;
+            // Si scambia quando il puntatore passa la metà della riga vicina.
+            [-1, 1].some(function (direction) {
+                const other = window.wiRepeaterRowSibling(drag.row, direction);
+                if (!other) return false;
+                const box = other.getBoundingClientRect();
+                const middle = box.top + box.height / 2;
+                if (direction < 0 ? event.clientY >= middle : event.clientY <= middle) return false;
+                window.wiRepeaterSwapRow(drag.row, direction);
+                drag.moved = true;
+                return true;
+            });
+        });
+
+        document.addEventListener('pointerup', stop);
+        document.addEventListener('pointercancel', stop);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            const handle = handleOf(event.target);
+            if (!handle) return;
+            event.preventDefault();
+            if (event.key === 'ArrowUp') window.wiRepeaterMoveRowUp(handle);
+            else window.wiRepeaterMoveRowDown(handle);
+            handle.focus();
+        });
+    }
     /*
      * Righe raggruppate.
      *
@@ -1091,7 +1196,7 @@ HTML;
         rows.forEach(function (row) {
             row.style.order = '';
             row.style.display = '';
-            row.querySelectorAll('.wi-repeater-move-up, .wi-repeater-move-down').forEach(function (button) {
+            row.querySelectorAll('.wi-repeater-handle').forEach(function (button) {
                 button.classList.toggle('d-none', columnKey !== '');
             });
         });

@@ -60,7 +60,7 @@ return ComponentDoc::for(Repeater::class)
                 ->label('Domini consentiti')
                 ->value([['domain' => 'wonderimage.it'], ['domain' => 'example.com']])
             PHP)
-            ->description('`repeaterSortable()` aggiunge la maniglia di trascinamento; i metodi `repeater*()` di `InputRepeater` governano etichette, conferma di eliminazione, raggruppamenti e colonne avanzate.')
+            ->description('`repeaterSortable()` aggiunge la maniglia a sinistra della riga: si trascina, o si sposta con le frecce della tastiera; a destra resta il cestino; i metodi `repeater*()` di `InputRepeater` governano etichette, conferma di eliminazione, raggruppamenti e colonne avanzate.')
             ->height(300)
     )
     ->example(
