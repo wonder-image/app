@@ -45,6 +45,11 @@ FormField::key('category_id')
   tecnico e il campo uno più chiaro: `button: 'Aggiungi opzione'` su un elenco
   di valori d'attributo.
 
+In un campo stretto (la colonna di un repeater) `->quickCreateCompact()`, dopo
+`quickCreate()`, lascia solo il "+": il testo del bottone passa nel titolo e
+nell'`aria-label`. Vale per il "+" attaccato a `select` / `selectSearch` /
+`searchRemote`.
+
 Input supportati (v1): `select` / `selectSearch`, `checkbox` / `checkTree`,
 `searchRemote`, `dynamicCheck`. Il metodo `quickCreate()` vive sul concern
 `Inputs\Concerns\HasQuickCreate`.

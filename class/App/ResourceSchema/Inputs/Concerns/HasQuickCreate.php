@@ -35,4 +35,15 @@ trait HasQuickCreate
             'button'   => $button,
         ]);
     }
+
+    /**
+     * Il "+" senza la scritta «Aggiungi», per i campi stretti (le colonne di
+     * un repeater). Vale per il "+" attaccato al campo; va dopo `quickCreate()`.
+     */
+    public function quickCreateCompact(bool $compact = true): static
+    {
+        $config = $this->schema['context']['quick_create'] ?? null;
+
+        return is_array($config) ? $this->context('quick_create', ['compact' => $compact] + $config) : $this;
+    }
 }

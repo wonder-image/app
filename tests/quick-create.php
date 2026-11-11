@@ -124,6 +124,11 @@ $check(str_contains($html, 'data-wi-qc-family="select"'), 'tags the input family
 $check(str_contains($html, 'class="btn btn-outline-secondary" data-wi-quick-create'), 'select attaches the "+" in the input-group');
 $check(str_contains($html, 'input-group') && str_contains($html, 'form-floating'), 'select keeps the floating input inside the input-group');
 
+// Compatto: solo il "+", con il testo nel titolo.
+$compactHtml = FormField::key('category_id')->select(['1' => 'A'])->quickCreate($targetClass, ['name'], label: 'name', button: 'Nuova categoria')->quickCreateCompact()->render('bootstrap');
+$check(str_contains($compactHtml, 'title="Nuova categoria" aria-label="Nuova categoria"><i class="bi bi-plus-lg"></i></button>'), 'quickCreateCompact: il "+" senza scritta, con titolo');
+$check(str_contains($html, '<i class="bi bi-plus-lg"></i> Aggiungi</button>'), 'senza compact resta «+ Aggiungi»');
+
 // Placement checkbox = testata "Aggiungi <Nome>" in alto a destra (position-absolute),
 // non più un bottone sotto.
 $checkHtml = FormField::key('tags')->checkbox()->quickCreate($targetClass, ['name'], label: 'name')->render('bootstrap');

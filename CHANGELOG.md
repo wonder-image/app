@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Aggiunto
+- **Creazione rapida compatta.** `->quickCreateCompact()`, dopo
+  `quickCreate()`, lascia solo il "+" accanto al campo (testo nel titolo e
+  nell'`aria-label`): per le colonne strette di un repeater.
 - **Righe a scheda richiudibile nel repeater.**
   `FormField::repeaterCollapsible($titolo, $sottotitolo = [])` e
   `repeaterCollapsibleEmptyLabel($s)` (context `collapsible`,
