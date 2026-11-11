@@ -2,6 +2,7 @@
 
 namespace Wonder\App\ResourceSchema\Inputs;
 
+use Wonder\App\Media\Variants;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\Concerns\HasUpload;
 use Wonder\Elements\Form\Components\File as FileElement;
@@ -28,16 +29,24 @@ class InputFile extends Input
     protected function element(): ElementField
     {
         $format = $this->fileFormat();
+        $directory = $this->fileDirectory(isset($format['dir']) ? (string) $format['dir'] : null);
+        $sizeBefore = (bool) ($format['size_before'] ?? false);
+        $minSizeImage = isset($format['min_size_image']) ? (string) $format['min_size_image'] : null;
+
+        // Misure ancora in coda (`ResizeQueue`): l'anteprima usa gli originali.
+        if ($minSizeImage !== null && !$sizeBefore) {
+            $minSizeImage = Variants::suffix($directory, $this->schema['value'] ?? null, $minSizeImage);
+        }
 
         return (new FileElement($this->name))
             ->file((string) ($this->schema['file'] ?? 'image'))
             ->uploader((string) ($this->schema['uploader'] ?? 'classic'))
             ->maxFile((int) ($format['max_file'] ?? 1))
             ->maxSize((int) ($format['max_size'] ?? 5))
-            ->directory($this->fileDirectory(isset($format['dir']) ? (string) $format['dir'] : null))
+            ->directory($directory)
             ->fileValue($this->schema['value'] ?? null)
-            ->sizeBefore((bool) ($format['size_before'] ?? false))
-            ->minSizeImage(isset($format['min_size_image']) ? (string) $format['min_size_image'] : null);
+            ->sizeBefore($sizeBefore)
+            ->minSizeImage($minSizeImage);
     }
 
     /**
