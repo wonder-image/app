@@ -333,7 +333,8 @@ implementazioni base sono no-op):
 | `formPageValues(): array` | `[]` | valori del form di una pagina-form |
 | `submitFormPage(array $values): string` | `''` | salva la pagina-form e restituisce il messaggio mostrato come toast dopo il redirect (vedi [Notifiche](../notifiche.md)) |
 | `editableWhenReadonly(): array` | `[]` | campi che restano modificabili quando la pagina è in sola lettura: la route `update` resta registrata, gli altri campi sono disabilitati e il salvataggio accetta solo questi |
-| `assertDeletable(int\|string $id): void` | nessun vincolo | lancia `RuntimeException` con un messaggio per vietare l'eliminazione; vale anche per il pulsante "Elimina" dell'elenco (`api/backend/delete`, risposta 422 mostrata come avviso da `wonder-image/lib`) |
+| `assertDeletable(int\|string $id): void` | nessun vincolo | lancia `RuntimeException` con un messaggio per vietare l'eliminazione; vale anche per il pulsante "Elimina" dell'elenco (`api/backend/delete`, risposta 422 mostrata come avviso da `wonder-image/lib`), per la pagina della Resource (si torna alla scheda con l'avviso) e per le API generate (422 con il motivo in `errors.delete`) |
+| `assertFileDeletable(int\|string $id, string $column): void` | nessun vincolo | come `assertDeletable()`, per il file tolto da una colonna dall'elenco (`api/backend/file/delete`) |
 | `deleteRecord(int\|string $id): object` | chiama `assertDeletable()`, poi cancellazione logica con `keepIds()`, altrimenti `Model::delete()` | usato dai controller backend e API |
 | `exportSyncData(): void` | `TableSync::autoExport()` per i Model sincronizzati | chiamato dopo store, update e delete |
 

@@ -214,6 +214,17 @@ final class ResourceApiController
         }
 
         $values = $this->resourceRow($id, $this->visibilityUser($endpoint));
+
+        // Eliminazione vietata dalla Resource: 422 con il motivo, non un 500.
+        try {
+            $this->resourceClass::assertDeletable($id);
+        } catch (RuntimeException $exception) {
+            return $endpoint->response(
+                $this->presenter->validationErrorPayload(['delete' => $exception->getMessage()]),
+                422
+            );
+        }
+
         $result = $this->resourceClass::deleteRecord($id);
         $this->resourceClass::afterDelete($id, $result, $values);
         $this->resourceClass::exportSyncData();

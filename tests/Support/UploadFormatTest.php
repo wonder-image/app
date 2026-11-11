@@ -136,15 +136,16 @@ check('estensione con spazio, tab, \x0B o punto finale rifiutata (921), anche vi
 
 $format = static fn (string $resource, string $key): array => $resource::prepareSchema()[$key]['input']['format'] ?? [];
 
-check('ImageResource e IconResource: png/jpg/jpeg/webp, niente gif e svg', function () use ($format) {
-    $expected = ['png', 'jpg', 'jpeg', 'webp'];
-    return $format(ImageResource::class, 'file')['extensions'] === $expected
-        && $format(IconResource::class, 'file')['extensions'] === $expected
+check('ImageResource: png/jpg/jpeg/webp; IconResource solo svg', function () use ($format) {
+    return $format(ImageResource::class, 'file')['extensions'] === ['png', 'jpg', 'jpeg', 'webp']
+        && $format(IconResource::class, 'file')['extensions'] === ['svg']
         && $format(ImageResource::class, 'file')['max_size'] === 5;
 });
 
-check('DocumentResource resta pdf; Logo tiene le estensioni del modello', function () use ($format) {
-    return $format(DocumentResource::class, 'file')['extensions'] === ['pdf']
+check('DocumentResource: pdf e documenti comuni; Logo tiene le estensioni del modello', function () use ($format) {
+    $documents = $format(DocumentResource::class, 'file')['extensions'];
+    return in_array('pdf', $documents, true) && in_array('docx', $documents, true)
+        && array_intersect($documents, ['png', 'svg', 'zip', 'html']) === []
         && $format(LogoResource::class, 'main')['extensions'] === ['png']
         && $format(LogoResource::class, 'favicon')['extensions'] === ['ico']
         && $format(LogoResource::class, 'app_icon')['extensions'] === ['png', 'jpg', 'jpeg'];

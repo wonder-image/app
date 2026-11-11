@@ -144,8 +144,8 @@ Le regole sopra valgono per i server pubblici.
   (che finfo legge come sorgente C) è accettato.
 
 `gif` e `svg` non sono più ammessi di serie: vanno dichiarati in
-`extensions`. Le Resource Media `ImageResource` e `IconResource` accettano
-`png`, `jpg`, `jpeg`, `webp`.
+`extensions`. Nella [libreria Media](../concetti/media.md) `ImageResource`
+accetta `png`, `jpg`, `jpeg`, `webp` e `IconResource` solo `svg`.
 
 ### SVG
 

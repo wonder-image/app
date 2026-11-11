@@ -262,7 +262,8 @@ dal primo dell'elenco; anche nelle colonne di un repeater.
 
 `file($accept = 'image')` (upload classico),
 `fileDragDrop($accept = 'image', $uploader = 'classic')` (Filepond drag&drop).
-`$accept` è la categoria (`image`, `pdf`, `video`, `font`, `media`).
+`$accept` è la categoria (`image`, `pdf`, `video`, `font`, `media`, e per la
+[libreria Media](../media.md) `svg`, `document`, `media-video`).
 
 ### Ripetibili
 

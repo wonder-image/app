@@ -233,6 +233,17 @@ final class ResourcePageController
         }
 
         $values = $this->resourceRow($id);
+
+        // Eliminazione vietata dalla Resource: si torna alla scheda con il
+        // motivo, invece di una pagina d'errore.
+        try {
+            $this->resourceClass::assertDeletable($id);
+        } catch (RuntimeException $exception) {
+            FlashAlert::custom('Non eliminato', nl2br(htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8')), 'warning');
+            header('Location: '.$this->presenter->redirectUrl('update', $id));
+            exit();
+        }
+
         $result = $this->resourceClass::deleteRecord($id);
         $this->resourceClass::afterDelete($id, $result, $values);
         $this->resourceClass::exportSyncData();
