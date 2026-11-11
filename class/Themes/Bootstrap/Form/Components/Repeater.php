@@ -886,9 +886,17 @@ HTML;
     window.wiRepeaterSummaryRefresh = window.wiRepeaterSummaryRefresh || function (row) {
         const toggle = window.wiRepeaterSummaryToggle(row);
         if (!toggle) return '';
+        // Una colonna a scelta multipla si riassume con tutte le voci scelte.
+        const labelOf = function (key) {
+            const multiple = row.querySelector('select[multiple][name$="[' + key + '][]"]');
+            if (!multiple) return String(window.wiRepeaterGroupValue(row, key).label || '').trim();
+            return Array.prototype.map.call(multiple.selectedOptions, function (option) {
+                return option.textContent.trim();
+            }).filter(function (text) { return text !== ''; }).join(', ');
+        };
         const read = function (attribute, separator) {
             return (toggle.getAttribute(attribute) || '').split(',').map(function (key) {
-                return key === '' ? '' : String(window.wiRepeaterGroupValue(row, key).label || '').trim();
+                return key === '' ? '' : labelOf(key);
             }).filter(function (text) { return text !== ''; }).join(separator);
         };
         const title = read('data-wi-summary-title', ' ');

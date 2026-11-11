@@ -98,4 +98,8 @@ check('repeaterCollapsible() scrive il context e ignora un titolo vuoto', functi
         && !isset($contextOf($vuoto)['collapsible']);
 });
 
+check('il riassunto legge tutte le scelte di una select multipla', function () use ($render, $righe, $scheda) {
+    return str_contains($render($righe, $scheda), 'select[multiple][name$="[\' + key + \'][]"]');
+});
+
 summary();

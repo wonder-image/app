@@ -294,7 +294,7 @@ FormField::key('people')
 
 Il primo argomento sono le colonne del titolo (unite da uno spazio), il secondo
 quelle del sottotitolo (unite da «·»); di una select si legge l'etichetta
-scelta. Il riassunto lo scrive lo script (`wiRepeaterSummaryRefresh()`) e si
+scelta, di una select multipla tutte le scelte unite da una virgola. Il riassunto lo scrive lo script (`wiRepeaterSummaryRefresh()`) e si
 aggiorna mentre si compila. Nasce chiusa solo la riga che ha già un valore in
 una colonna del titolo: una riga nuova, una senza titolo e tutte quelle di una
 pagina resa in risposta a un `POST` (un salvataggio rifiutato) sono aperte, e

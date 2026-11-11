@@ -10,7 +10,8 @@
   `FormField::repeaterCollapsible($titolo, $sottotitolo = [])` e
   `repeaterCollapsibleEmptyLabel($s)` (context `collapsible`,
   `collapsible_empty`): una riga salvata si chiude su un riassunto (colonne
-  del titolo, poi quelle del sottotitolo unite da «·») e si apre con un clic.
+  del titolo, poi quelle del sottotitolo unite da «·»; di una select multipla
+  tutte le scelte) e si apre con un clic.
   I campi di una riga chiusa sono nascosti, non spenti, quindi vengono
   postati. Righe nuove, senza titolo o rese dopo un `POST` nascono aperte; un
   campo non valido apre la sua scheda. JS `wiRepeaterToggleRow()`,
