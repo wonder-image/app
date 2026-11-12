@@ -76,6 +76,8 @@ var events = [];
 var setCalls = [];
 var cleared = 0;
 var removed = 0;
+var removedEvents = [];
+if (typeof CustomEvent === 'undefined') { globalThis.CustomEvent = function (type) { this.type = type; }; }
 window.wiRepeaterConfirmDelete = function (onConfirm) { onConfirm(); };
 window.AutoNumeric = { getAutoNumericElement: function (field) { return field.numeric || null; } };
 var setFieldValue = window.wiRepeaterSetFieldValue;
@@ -92,7 +94,8 @@ function remove(visibleRows) {
       dispatchEvent: function (event) { events.push(type + ':' + event.type + ':' + event.bubbles); }
     };
   });
-  var container = { dataset: {}, querySelectorAll: function () { return new Array(visibleRows); } };
+  // La riga tolta si annuncia sul contenitore (`wi-repeater-row-removed`): non è un change.
+  var container = { dataset: {}, querySelectorAll: function () { return new Array(visibleRows); }, dispatchEvent: function (event) { removedEvents.push(event.type); } };
   var row = {
     parentElement: container,
     querySelector: function () { return null; },
@@ -143,7 +146,7 @@ check('P14 togliere una riga che non e l\'ultima: nessun change in piu', functio
     $data = $run($code.$dom.<<<'JS'
 
 var values = remove(2);
-console.log(JSON.stringify({ values: values, events: events, setCalls: setCalls, removed: removed }));
+console.log(JSON.stringify({ values: values, events: events, setCalls: setCalls, removed: removed, removedEvents: removedEvents }));
 JS);
 
     if ($data === null) { echo "    (node non trovato: prova saltata)\n"; return true; }
@@ -153,6 +156,7 @@ JS);
         'events' => [],
         'setCalls' => [],
         'removed' => 1,
+        'removedEvents' => ['wi-repeater-row-removed'],
     ];
 });
 

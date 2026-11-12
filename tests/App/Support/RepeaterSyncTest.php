@@ -59,4 +59,26 @@ check('righe esistenti aggiornate e non cancellate (id numerici)', function () {
         && in_array(['modify', '3', ['deleted' => 'true']], $GLOBALS['__writes'], true);
 });
 
+check('soft delete: una riga cancellata che torna si riapre anche se lo schema dati non ha `deleted`', function () {
+    if (!function_exists('formToArray')) {
+        // Come quella vera: tiene solo le chiavi dello schema.
+        function formToArray($table, $post, $schema, $old = null): array { return array_intersect_key($post, $schema); }
+    }
+
+    \Wonder\App\Table::key('reopen_rows')->setSchema(['parent_id' => [], 'value' => [], 'position' => []]);
+    $GLOBALS['__rows'] = [];
+    $GLOBALS['__writes'] = [];
+
+    Repeater::syncRelatedRows(
+        RepeaterRelation::make('reopen_rows', 'parent_id')->positionKey('position')->softDelete(true),
+        5,
+        [['id' => '7', 'value' => 'torna'], ['value' => 'nuova']]
+    );
+
+    return $GLOBALS['__writes'] === [
+        ['modify', '7', ['value' => 'torna', 'parent_id' => 5, 'position' => 0, 'deleted' => 'false']],
+        ['insert', null, ['value' => 'nuova', 'parent_id' => 5, 'position' => 1, 'deleted' => 'false']],
+    ];
+});
+
 summary();

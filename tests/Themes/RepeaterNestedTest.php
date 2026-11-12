@@ -78,7 +78,7 @@ check('nel modello esterno i due segnaposto restano distinti', function () use (
 
 check('nel modello esterno gli id del repeater interno portano la chiave della riga', function () use ($modelloEsterno) {
     return preg_match('/data-wi-repeater-inner="true"/', $modelloEsterno) === 1
-        && preg_match('/<div id="(field_[a-z]+)-__ROW_KEY__" class="w-100 wi-input-repeater"/', $modelloEsterno, $m) === 1
+        && preg_match('/<div id="(field_[a-z]+)-__ROW_KEY__" class="w-100 wi-input-repeater my-3"/', $modelloEsterno, $m) === 1
         && str_contains($modelloEsterno, 'id="'.$m[1].'-__ROW_KEY__-rows"')
         && str_contains($modelloEsterno, '<template id="'.$m[1].'-__ROW_KEY__-template" data-wi-row-placeholder="__SUB_KEY__">')
         && str_contains($modelloEsterno, "window.wiRepeaterAddRow('{$m[1]}-__ROW_KEY__-rows', '{$m[1]}-__ROW_KEY__-template')")
@@ -104,6 +104,25 @@ check('il repeater interno non ristampa lo script né maniglie o riassunti', fun
 check('le colonne condizionali interne tengono la regola sul contenitore', function () use ($righeSalvate) {
     return str_contains($righeSalvate, 'data-visible-when="kind" data-visible-when-values="email"')
         && str_contains($righeSalvate, 'data-visible-when="kind" data-visible-when-values="phone,mobile"');
+});
+
+check('il repeater interno si stacca dai campi vicini e il titolo dalle righe', function () {
+    $html = FormField::key('contact_people')
+        ->repeater([RepeaterColumn::key('points')->repeater([RepeaterColumn::key('kind')->text()])->label('Recapiti')])
+        ->nested()
+        ->render('bootstrap');
+
+    return str_contains($html, 'wi-input-repeater my-3" data-wi-repeater="contact_people[')
+        && str_contains($html, '<h6 class="mb-3">Recapiti</h6>');
+});
+
+check('lo stato vuoto del repeater interno parte all\'altezza della prima riga', function () {
+    $html = FormField::key('contact_people')
+        ->repeater([RepeaterColumn::key('points')->repeater([RepeaterColumn::key('kind')->text()])->repeaterEmptyState()])
+        ->nested()
+        ->render('bootstrap');
+
+    return str_contains($html, 'text-center p-2 mt-2');
 });
 
 check('senza etichetta dichiarata il repeater interno non ha titolo', function () {

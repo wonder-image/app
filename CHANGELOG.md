@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Aggiunto
+- **Stato vuoto del repeater.** `InputRepeater::repeaterEmptyState($b = true)`
+  (context `empty_state`): senza righe, al posto della riga vuota, un
+  riquadro tratteggiato con il bottone «Aggiungi» al centro; al primo clic
+  nasce la riga e il bottone torna in fondo, tolta l'ultima torna il riquadro.
+  Vale anche per il repeater dentro una riga; non ha effetto con
+  `repeaterMinRows()` o `repeaterAddButton(false)`. L'ultima riga si toglie
+  davvero (`data-wi-allow-empty`): chi salva tratta la chiave assente come
+  elenco vuoto. Nuove funzioni `wiRepeaterSyncEmpty()` e
+  `wiRepeaterAddFirstRow()`, nuovo evento `wi-repeater-row-removed` sul
+  contenitore quando una riga esce dal DOM.
 - **Repeater senza cestino.** `InputRepeater::repeaterDeleteButton($b = true)`
   (context `delete_button`), simmetrico a `repeaterAddButton()`: con `false`
   il bottone che elimina non si stampa, né nelle righe né nel modello, anche
@@ -103,6 +113,12 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Repeater annidato: più aria attorno al blocco.** Dentro una riga il repeater interno (per esempio «Contatti aziendali» nella riga di un referente) era attaccato ai campi sopra, alle proprie righe e al campo che segue. Ora il blocco ha un margine sopra e sotto (`my-3`) e il titolo è staccato dalle righe (`mb-3`) e lo stato vuoto parte alla stessa altezza della prima riga (`mt-2`), solo nel tema Bootstrap e solo per i repeater interni.
+- **Repeater con soft delete: una riga cancellata che torna si riapre.**
+  `Repeater::syncRelatedRows()` perdeva `deleted` nella preparazione dei dati
+  quando lo schema dati della tabella non ha la colonna: la riga ripostata
+  con il suo `id` veniva aggiornata ma restava cancellata. Ora la colonna si
+  scrive sempre.
 - **Media eliminati dall'elenco: via riga e file.** Il cestino dell'elenco
   (`api/backend/delete`) segnava solo `deleted` e lasciava i file su disco.
   Con `Resource::listDeletesRecord()` (falso di default, vero in

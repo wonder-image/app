@@ -88,7 +88,7 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupFiles($campo, $colonnaChiave, $etichetta = 'Foto')`,
 `repeaterAddButton($b = true)`, `repeaterDeleteButton($b = true)`,
 `repeaterMinRows($n)`,
-`repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
+`repeaterStartEmpty($b = true)`, `repeaterEmptyState($b = true)`, `repeaterAdvanced(...$colonne)`,
 `repeaterAdvancedLabel($s)`, `repeaterCollapsible($titolo, $sottotitolo = [])`,
 `repeaterCollapsibleEmptyLabel($s)`, `repeaterUndoDelete($b = true)`,
 `repeaterUndoLabel($etichetta, $testo = '')`.
@@ -215,6 +215,41 @@ righe nascoste o annullate non contano. È **un aiuto a schermo**: un repeater
 che parte vuoto resta vuoto, e la regola vera (rifiutare un salvataggio senza
 righe) la controlla chi salva. Solo nel tema Bootstrap, come tutto il
 repeater.
+
+## Stato vuoto
+
+Dove le righe sono facoltative (referenti, brand, contatti in più) una riga
+vuota sempre aperta sembra un campo da compilare. `repeaterEmptyState()` la
+toglie: senza righe c'è un riquadro tratteggiato con il bottone «Aggiungi» al
+centro (l'etichetta è quella di `repeaterAddLabel()`); al primo clic nasce la
+riga, il fuoco va sul suo primo campo e il bottone torna in fondo alle righe,
+a destra; tolta l'ultima riga torna il riquadro.
+
+```php
+FormField::key('contact_people')
+    ->repeater([...])
+    ->repeaterAddLabel('Aggiungi referente')
+    ->repeaterEmptyState()
+```
+
+- Vale anche per il repeater dentro una riga (`RepeaterColumn::...->repeater()`).
+- Non ha effetto con `repeaterMinRows()` né con `repeaterAddButton(false)`:
+  lì una riga ci deve essere, o non se ne può aggiungere una.
+- L'ultima riga si toglie davvero, non si svuota: il contenitore porta
+  `data-wi-allow-empty="true"`. Senza righe il browser non posta più la
+  chiave del repeater: **chi salva tratta la chiave assente come elenco
+  vuoto** (un campo nascosto del form dice che il repeater c'era), oppure usa
+  `repeaterUndoDelete()`, che porta la sentinella `__wi_present`.
+- Il riquadro è `[data-wi-repeater-empty]`, il bottone in fondo sta in
+  `[data-wi-repeater-add]`; `wiRepeaterSyncEmpty(contenitore)` li tiene
+  allineati dopo ogni aggiunta ed eliminazione, anche per le righe aggiunte
+  da fuori con `wiRepeaterAddRow()`. Una riga tolta dal DOM emette
+  `wi-repeater-row-removed` sul contenitore delle righe (con `bubbles`).
+- Il tratteggio è una variabile di Bootstrap sul riquadro
+  (`--bs-border-style`), senza colori: una classe per i riquadri tratteggiati
+  nella lib non c'è ancora.
+
+Solo tema Bootstrap, come tutto il repeater.
 
 ## Righe vuote
 
@@ -347,7 +382,7 @@ Il repeater interno è volutamente corto:
 - parte vuoto e vuoto può tornare: nessuna riga di cortesia, l'ultima si
   toglie invece di svuotarsi;
 - tiene solo `label()`, `columnSpan()`, `repeaterAddLabel()`,
-  `repeaterAddButton()`, `repeaterDeleteButton()`, `repeaterButtonClass()` e i testi
+  `repeaterAddButton()`, `repeaterEmptyState()`, `repeaterDeleteButton()`, `repeaterButtonClass()` e i testi
   `repeaterDelete*()`; ordinamento, gruppi, schede, avanzate, righe minime e
   annullamento si ignorano;
 - senza `label()` non ha titolo;
