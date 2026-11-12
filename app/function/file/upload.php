@@ -136,6 +136,14 @@
 
                         $NEW_PATH = $PATH_UPLOAD.$NEW_NAME.'.'.$EXTENSION;
 
+                        # Un file che arriva su un nome già usato (nome fisso,
+                        # es. lo slug di un media) non deve trovare le misure
+                        # e il webp del file di prima: fino a quando la coda
+                        # non le rigenera il sito mostrerebbe la vecchia foto.
+                        if (empty($ALERT)) {
+                            \Wonder\App\Support\MediaFileManager::deleteDerived($PATH_UPLOAD, $NEW_NAME.'.'.$EXTENSION, $FORMAT);
+                        }
+
                         if (empty($ALERT) && move_uploaded_file($TEMPORARY, $NEW_PATH)) {
 
                             if ($SVG_CONTENT !== null && @file_put_contents($NEW_PATH, $SVG_CONTENT) === false) {

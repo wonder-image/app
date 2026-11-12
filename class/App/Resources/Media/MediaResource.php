@@ -2,10 +2,12 @@
 
 namespace Wonder\App\Resources\Media;
 
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 use Wonder\App\Media\MediaTypes;
 use Wonder\App\Media\MediaUsages;
+use Wonder\App\Media\ResizeQueue;
 use Wonder\App\Models\Media\Media;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
@@ -30,7 +32,26 @@ abstract class MediaResource extends Resource
 {
     public static string $model = Media::class;
 
+    /** La Resource di ogni tipo: chi crea o sostituisce un media passa da qui. */
+    private const TYPE_RESOURCES = [
+        MediaTypes::IMAGE => ImageResource::class,
+        MediaTypes::ICON => IconResource::class,
+        MediaTypes::DOCUMENT => DocumentResource::class,
+        MediaTypes::VIDEO => VideoResource::class,
+    ];
+
     abstract protected static function mediaType(): string;
+
+    /**
+     * La Resource che valida e salva i media di `$type`.
+     *
+     * @return class-string<MediaResource>
+     */
+    public static function forType(string $type): string
+    {
+        return self::TYPE_RESOURCES[$type]
+            ?? throw new InvalidArgumentException("Tipo di media sconosciuto: {$type}");
+    }
 
     /** Vero se il tipo ha il testo alternativo nel form e nelle API. */
     protected static function hasAlt(): bool
@@ -168,22 +189,33 @@ abstract class MediaResource extends Resource
         return is_array($existing) && $existing !== [] ? $existing : null;
     }
 
+    /**
+     * Lo slug nasce con il media e non cambia più: con lui restano il nome
+     * del file e quindi il suo indirizzo, anche quando il file viene
+     * sostituito o il media rinominato. In creazione viene dal nome, o
+     * dallo slug dato da chi crea il media dal campo di un form
+     * (`MediaInputs`); l'unicità la garantisce il Model.
+     */
     public static function mutateRequestValues(
         array $values,
         string $action,
         string $context = 'backend',
         ?array $oldValues = null
     ): array {
-        $hasNewUpload = MediaFileManager::hasUploadedFiles($values['file'] ?? null);
+        $oldSlug = trim((string) ($oldValues['slug'] ?? ''));
 
-        if (!empty($values['name'])) {
-            if ($action === 'update' && !$hasNewUpload && !empty($oldValues['slug'])) {
-                $values['slug'] = (string) $oldValues['slug'];
-            } else {
+        if ($action === 'update' && $oldSlug !== '') {
+            $values['slug'] = $oldSlug;
+        } else {
+            $slug = is_scalar($values['slug'] ?? null) ? trim((string) $values['slug']) : '';
+
+            if ($slug !== '') {
+                $values['slug'] = $slug;
+            } elseif (!empty($values['name'])) {
                 $values['slug'] = (string) $values['name'];
+            } else {
+                unset($values['slug']);
             }
-        } elseif ($action === 'update' && !empty($oldValues['slug'])) {
-            $values['slug'] = (string) $oldValues['slug'];
         }
 
         $values['type'] = static::mediaType();
@@ -213,7 +245,10 @@ abstract class MediaResource extends Resource
         static::assertDeletable($id);
     }
 
-    /** Avviso nella scheda: dove è usato il media, se lo è. */
+    /**
+     * Avvisi nella scheda: per le immagini lo stato delle misure, poi dove
+     * è usato il media, se lo è.
+     */
     public static function formNotices(array $values, string $mode): array
     {
         $id = $values['id'] ?? null;
@@ -222,14 +257,63 @@ abstract class MediaResource extends Resource
             return [];
         }
 
+        $notices = static::resizeNotices($values);
+
         try {
             $where = MediaUsages::message($id);
         } catch (Throwable) {
             // Registro non ancora creato (prima di `forge update`): niente avviso.
+            $where = '';
+        }
+
+        if ($where !== '') {
+            $notices[] = ['level' => 'info', 'message' => $where];
+        }
+
+        return $notices;
+    }
+
+    /**
+     * Lo stato delle misure responsive dei file del media, letto dalla coda
+     * (`ResizeQueue`). Solo per i tipi che le generano.
+     *
+     * @return list<array{level: string, message: string}>
+     */
+    public static function resizeNotices(array $values, ?string $root = null): array
+    {
+        $root ??= defined('ROOT') ? (string) ROOT : null;
+
+        if ($root === null || !MediaTypes::resizes(static::mediaType())) {
             return [];
         }
 
-        return $where === '' ? [] : [['level' => 'info', 'message' => $where]];
+        $directory = rtrim($root, '/').'/'.ResizeQueue::UPLOAD.trim(static::legacyFolder(), '/').'/';
+        $notices = [];
+
+        try {
+            foreach (MediaFileManager::decodeStoredFiles($values['file'] ?? null) as $file) {
+                $status = ResizeQueue::status($directory.$file);
+
+                if ($status === ResizeQueue::PENDING) {
+                    $notices[] = [
+                        'level' => 'info',
+                        'message' => 'Le misure di questa immagine sono in preparazione: finché non sono pronte il sito mostra il file originale.',
+                    ];
+                } elseif ($status === ResizeQueue::FAILED) {
+                    $error = trim((string) ResizeQueue::error($directory.$file));
+                    $notices[] = [
+                        'level' => 'warning',
+                        'message' => 'Le misure di questa immagine non si sono generate: il sito mostra il file originale. Carica di nuovo il file per riprovare.'
+                            .($error !== '' ? "\nMotivo: ".$error : ''),
+                    ];
+                }
+            }
+        } catch (Throwable) {
+            // Coda non ancora creata (prima di `forge update`): niente avviso.
+            return [];
+        }
+
+        return $notices;
     }
 
     public static function afterDelete(int|string $id, object $result, array $values = []): void

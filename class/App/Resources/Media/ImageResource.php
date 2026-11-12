@@ -41,6 +41,7 @@ final class ImageResource extends MediaResource
         return [
             'file' => 'Immagine',
             'name' => 'File',
+            'alt' => 'Testo alternativo',
             'slug' => 'Slug',
             'actions' => 'Azioni',
         ];
@@ -58,5 +59,10 @@ final class ImageResource extends MediaResource
     protected static function mediaType(): string
     {
         return MediaTypes::IMAGE;
+    }
+
+    protected static function hasAlt(): bool
+    {
+        return true;
     }
 }

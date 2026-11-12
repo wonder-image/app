@@ -111,24 +111,25 @@ check('solo ImageResource ridimensiona e converte in webp', function () use ($fo
         && empty($format(VideoResource::class)['resize']) && empty($format(VideoResource::class)['webp']);
 });
 
-check('percorsi e campi API di prima non cambiano', function () {
+check('percorsi di prima non cambiano; immagini e icone espongono alt nelle API', function () {
     $fields = static fn (string $resource, string $action): array => (array) $resource::apiSchema()->get('fields')[$action];
 
     return ImageResource::path() === 'app/media/images'
         && IconResource::path() === 'app/media/icons'
         && DocumentResource::path() === 'app/media/documents'
-        && $fields(ImageResource::class, 'index') === ['id', 'name', 'slug', 'type', 'file']
-        && $fields(ImageResource::class, 'store') === ['name', 'file']
+        && $fields(ImageResource::class, 'index') === ['id', 'name', 'slug', 'alt', 'type', 'file']
+        && $fields(ImageResource::class, 'store') === ['name', 'alt', 'file']
         && $fields(IconResource::class, 'show') === ['id', 'name', 'slug', 'alt', 'type', 'file']
         && $fields(IconResource::class, 'update') === ['name', 'alt', 'file']
         && $fields(DocumentResource::class, 'update') === ['name', 'file'];
 });
 
-check('solo le icone hanno il campo alt nel form', function () use ($resources) {
+check('immagini e icone hanno il campo alt nel form, documenti e video no', function () use ($resources) {
     $keys = static fn (string $resource): array => array_map(static fn ($input) => $input->name, $resource::formSchema());
 
     return $keys(IconResource::class) === ['file', 'name', 'alt']
-        && $keys(ImageResource::class) === ['file', 'name']
+        && $keys(ImageResource::class) === ['file', 'name', 'alt']
+        && $keys(DocumentResource::class) === ['file', 'name']
         && $keys(VideoResource::class) === ['file', 'name'];
 });
 
