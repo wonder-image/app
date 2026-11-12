@@ -164,7 +164,7 @@ class Repeater extends Field
         // Il bottone al centro aggiunge la prima riga e ci porta il fuoco:
         // sparendo lui, la tastiera resterebbe senza un posto dove stare.
         $emptyHtml = $emptyState
-            ? '<div class="border rounded text-center '.($inner !== null ? 'p-2' : 'p-4').($value === [] ? '' : ' d-none').'"'
+            ? '<div class="border rounded text-center '.($inner !== null ? 'p-2 mt-2' : 'p-4').($value === [] ? '' : ' d-none').'"'
                 .' style="--bs-border-style:dashed" data-wi-repeater-empty>'
                 .'<button type="button" class="btn '.($inner !== null ? 'btn-sm ' : '').'btn-outline-secondary"'
                 ." onclick=\"window.wiRepeaterAddFirstRow('{$rowId}', '{$templateId}')\">"
