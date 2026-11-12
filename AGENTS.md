@@ -541,6 +541,67 @@ php forge start
   (`logCheckFailure()`: `failed` row in `mail_log` plus `__log()`, never
   throws); `sendMailError()` exposes the last `sendMail()` error.
   See `docs/app/servizi/configurazione/email.md`.
+- Image resize queue (`class/App/Media`): `uploadFiles()` no longer generates
+  responsive widths in the request. When `$FORMAT['convert']` is empty and
+  `ResizeQueue::queueable($FORMAT['resize'])` holds (a plain list of integer
+  widths, or `[]` with `webp`), it calls `ResizeQueue::enqueue($absolutePath,
+  $widths, $webp, $quality, $deleteWhenReady)`, which stores one row per file
+  in `image_resizes` (`Models\System\ImageResize`, outside `TableSync`; path
+  relative to `ROOT`, unique `path_hash`; widths saved in the row because
+  `RESPONSIVE_IMAGE_SIZES` does not exist in the scheduler). `enqueue()`
+  returns false, and the caller resizes immediately with `imageResize()`,
+  when the table is missing, the scheduler heartbeat is stale
+  (`Outbox::alive()`, never a second check) or the write throws: sites
+  without a cron must behave as before. Sizes declared with `width`
+  (`resizeToWidth()`, `resizeToWidths()`, `responsive()`), `convertTo()`
+  fields and `deferResize()` keep their current behavior; `uploadFiles()`
+  never wrote `WxH-name` files. The always-on task `wonder.media-resize`
+  and `forge media:resize [--failed]` both call `ResizeQueue::drain()`
+  (`NamedLock`, 40s budget for the task): atomic claim by token, attempt
+  counted at claim, stale claims released after 10 min, retries after 1 and
+  5 min, 3 attempts then `failed`; a missing source closes with
+  `ResizeQueue::MISSING` without retry and is not reported. A `finish()`
+  whose token no longer matches (file re-enqueued meanwhile) leaves the row
+  `pending`. `deleteWhenReady` paths must stay under `ROOT/assets/upload/`
+  (validated at enqueue and again with `realpath` before unlink) and are
+  removed only after `ready`. Storage sits behind `ResizeStore`
+  (`DatabaseResizeStore`, prepared statements only; `MemoryResizeStore` and
+  `ResizeQueue::useStore()` / `useRoot()` for tests, never a database).
+  Rendering needs no hook: frontend renderers already list only variants on
+  disk; backend previews must build a width variant through
+  `Media\Variants::url()` / `suffix()`, never by hand. Home status item
+  `media_resize` (`MediaResizeStatus`, gated by `ScheduleResource`) warns on
+  rows pending over 15 min or failed in the last 7 days. See
+  `docs/app/concetti/coda-ridimensionamenti.md`; test
+  `tests/App/Media/ResizeQueueTest.php`.
+- Media library (`class/App/Media`, `class/App/Resources/Media`): public
+  backend files live in `media`, referenced by Media id, never by path.
+  `MediaTypes` is the only source of types (`image` png/jpg/jpeg/webp with
+  responsive sizes; `icon` svg only, through `SvgSanitizer`; `document`
+  pdf and office formats; `video` mp4/webm/mov, 100 MB, no sizes or
+  thumbnails): extensions, upload folder, input category and max size. Type
+  Resources extend `MediaResource` (shared form, list, API, permissions)
+  and declare only path, texts, navigation and `mediaType()`; never copy a
+  type Resource. Usages go through `MediaUsages` (`media_usages`, outside
+  `TableSync`): whoever stores a Media id calls `sync($table, $rowId,
+  $column, $ids)` after saving and `forget($table, $rowId)` when the owner
+  row is deleted (soft deletes included); `inUse()`, `of()` and `message()`
+  read it. Storage sits behind `MediaUsageStore` (`DatabaseMediaUsageStore`,
+  prepared statements, lazy connection, no own transaction;
+  `MemoryMediaUsageStore` with `MediaUsages::useStore()` /
+  `describeUsing()` in tests): no query unless called. A used media cannot
+  be deleted: `MediaResource::assertDeletable()` (page: flash alert and back
+  to the record; generated API: 422 `errors.delete`; list: 422) and
+  `assertFileDeletable()` for `api/backend/file/delete`; an unreadable
+  registry blocks the deletion. The lists' "Utilizzo" filter is a
+  `filterQuery()` on `MediaUsages::filterCondition()`, never a column.
+  `RasterIconMigration` (in `forge update` after `runTables()`) turns
+  non-svg icons into images following the pure `RasterIconPlan`: files are
+  copied from `icons/` to `images/`, never moved, overwritten or deleted, a
+  taken name becomes `name-icona`, the row changes type only after its
+  files are in place, a second run is a no-op. Input categories `svg`,
+  `document`, `media-video` exist for `fileDragDrop()`; `video` stays
+  mp4-only. See `docs/app/concetti/media.md`; tests `tests/App/Media/*`.
 - Mail outbox: `queueMail()` (same signature as `sendMail()`, which stays
   synchronous) stores a `queued` `mail_log` row with the raw arguments in
   `payload` (JSON, prepared statement, never `sanitize()`); the always-on

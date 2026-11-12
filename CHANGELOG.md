@@ -3,6 +3,39 @@
 ## Unreleased
 
 ### Aggiunto
+- **Coda dei ridimensionamenti.** Caricare un'immagine non fa più aspettare
+  il salvataggio: `uploadFiles()` scrive l'originale e mette in coda le
+  larghezze responsive (tabella `image_resizes`, una riga per file, legata al
+  percorso e non a Media, quindi vale per ogni campo file). Il task sempre
+  attivo `wonder.media-resize` («Ridimensionamento immagini», ogni minuto)
+  genera le misure e le copie webp; finché non gira, sito e backend mostrano
+  l'originale. Restano immediate le misure dichiarate con `width`
+  (`resizeToWidth()`, `resizeToWidths()`, `responsive()`), i campi con
+  `convertTo()` e ogni caricamento su un sito senza tabella o con lo
+  scheduler fermo da più di 5 minuti: lì tutto funziona come prima.
+  Tre tentativi (dopo 1 e 5 minuti), poi `failed` con l'errore; un file
+  cancellato prima del giro chiude senza riprovare. Da terminale
+  `php forge media:resize` svuota la coda e `--failed` riprova i falliti.
+  Nella home del backend la card **Immagini** compare solo se un
+  ridimensionamento aspetta da oltre 15 minuti o è fallito negli ultimi 7
+  giorni. Da codice: `Wonder\App\Media\ResizeQueue::enqueue()`, `status()`,
+  `error()`. Serve `forge update` per creare la tabella. Vedi
+  `docs/app/concetti/coda-ridimensionamenti.md`.
+- **Libreria Media: registro degli utilizzi.** `Wonder\App\Media\MediaUsages`
+  tiene in `media_usages` chi usa quale media: `sync($tabella, $id, $colonna,
+  $mediaIds)` dopo il salvataggio, `forget($tabella, $id)` quando il record
+  viene eliminato, `inUse($mediaId)`, `of($mediaId)` e `message($mediaId)`
+  per sapere dove è usato. Nessuna query finché non viene chiamato. Vedi
+  `docs/app/concetti/media.md`.
+- **Libreria Media: sezione Video.** `VideoResource` (`app/media/videos`):
+  mp4, webm e mov fino a 100 MB, salvati come sono, senza misure né
+  miniature. I video si caricano uno alla volta, non dall'upload di massa.
+- **Filtro «usata / non usata» negli elenchi di Media.** Il filtro Utilizzo
+  legge il registro degli utilizzi.
+- **Tipi di input file `svg`, `document`, `media-video`** per
+  `file()` / `fileDragDrop()`; `video` resta solo mp4.
+- **`Resource::assertFileDeletable($id, $colonna)`**: vieta di togliere un
+  file dall'elenco (`api/backend/file/delete`), come `assertDeletable()`.
 - **Creazione rapida compatta.** `->quickCreateCompact()`, dopo
   `quickCreate()`, lascia solo il "+" accanto al campo (testo nel titolo e
   nell'`aria-label`): per le colonne strette di un repeater.
@@ -18,6 +51,12 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Anteprime del backend senza misura.** Il campo file e la miniatura delle
+  liste componevano sempre `nome-240.ext`: se la misura non era su disco
+  l'immagine risultava rotta. Ora usano l'originale finché la misura manca.
+- **Eliminazione vietata da una Resource.** Dalla pagina si torna alla
+  scheda con l'avviso e dalle API arriva un 422 con il motivo, invece di una
+  pagina d'errore o di un 500 (`assertDeletable()`).
 - **Creazione rapida in un repeater vuoto.** Se il primo "+" della pagina
   nasceva nel modello di riga di un repeater senza righe, lo script condiviso
   finiva nel `<template>` e non girava: il modal si apriva ma «Salva» non
@@ -33,6 +72,23 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Un media in uso non si elimina.** Pagina, API ed elenco rispondono con
+  il messaggio che dice dove è usato; nemmeno il suo file si toglie
+  dall'elenco. La scheda di un media in uso mostra dove è usato.
+- **Icone solo vettoriali.** `IconResource` accetta solo svg, ripulito da
+  `SvgSanitizer`, senza misure. Con `forge update` le icone raster
+  diventano immagini: i file si copiano da `assets/upload/icons` a
+  `assets/upload/images` (gli originali restano, niente viene sovrascritto;
+  a parità di nome l'icona diventa `nome-icona`) e la riga passa a
+  `type = 'image'` con lo stesso id. Chi legge `media` con `type = 'icon'`
+  non trova più le icone raster.
+- **Documenti della libreria Media.** `DocumentResource` accetta pdf, doc,
+  docx, xls, xlsx, ppt, pptx, odt e ods (prima solo pdf).
+- **Upload di massa.** Accetta anche svg e documenti.
+- **Tipi di Media in un posto solo.** `Wonder\App\Media\MediaTypes`
+  (estensioni, cartella, peso); le Resource di Media condividono form,
+  elenco, API e permessi in `MediaResource`. Percorsi, campi API e permessi
+  non cambiano.
 - **Repeater: maniglia per riordinare e cestino piccolo.** Con
   `repeaterSortable()` i due bottoni su e giù lasciano il posto a una maniglia
   (`.wi-repeater-handle`) a sinistra della riga: si trascina, e con il fuoco
