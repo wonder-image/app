@@ -635,7 +635,11 @@ php forge start
   lets its upload key through (`MediaInputs::uploadKeys()`).
   Controllers call `sync()` after store/update and `forget()` on delete
   (page, generated API, `api/backend/delete`); a Resource without media
-  inputs runs no query. `MediaLibrary::useStore()` swaps the `MediaStore`
+  inputs runs no query. The list trash (`api/backend/delete`) soft-deletes
+  unless the Resource returns true from `listDeletesRecord()`
+  (`MediaResource` does): then it runs `deleteRecord()` + `afterDelete()`
+  like the page, so media lose row and files. The media slug is shown
+  read-only in the form. `MediaLibrary::useStore()` swaps the `MediaStore`
   (`MemoryMediaStore` in tests). The picker reads
   `POST api/backend/media/search/` (`guarded()`, `permit([])`,
   `MediaLibrary::search()`: type whitelisted against `MediaTypes`, bound

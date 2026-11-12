@@ -336,6 +336,7 @@ implementazioni base sono no-op):
 | `assertDeletable(int\|string $id): void` | nessun vincolo | lancia `RuntimeException` con un messaggio per vietare l'eliminazione; vale anche per il pulsante "Elimina" dell'elenco (`api/backend/delete`, risposta 422 mostrata come avviso da `wonder-image/lib`), per la pagina della Resource (si torna alla scheda con l'avviso) e per le API generate (422 con il motivo in `errors.delete`) |
 | `assertFileDeletable(int\|string $id, string $column): void` | nessun vincolo | come `assertDeletable()`, per il file tolto da una colonna dall'elenco (`api/backend/file/delete`) |
 | `deleteRecord(int\|string $id): object` | chiama `assertDeletable()`, poi cancellazione logica con `keepIds()`, altrimenti `Model::delete()` | usato dai controller backend e API |
+| `listDeletesRecord(): bool` | `false` | con `true` il cestino dell'elenco (`api/backend/delete`) elimina come la scheda: `deleteRecord()`, `afterDelete()` ed export, invece della sola cancellazione logica (`deleted = 'true'`). Lo usano i media, che così perdono anche i file |
 | `exportSyncData(): void` | `TableSync::autoExport()` per i Model sincronizzati | chiamato dopo store, update e delete |
 
 In sola lettura le route di modifica non vengono registrate, i campi sono disabilitati, la tabella non mostra "Aggiungi" né "Elimina" e le pagine mostrano l'avviso.

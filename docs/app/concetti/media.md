@@ -58,6 +58,12 @@ resta solo mp4.
 Immagini e icone hanno il **testo alternativo** (`alt`) nella scheda e nelle
 API generate; documenti e video no.
 
+La scheda mette il file a sinistra e, a destra, uno sotto l'altro: **Nome**
+(il nome del media, da cui nasce lo slug), il testo alternativo e lo
+**slug**, solo da leggere. L'anteprima del file usa la misura più piccola
+(`<slug>-240.<estensione>`) quando è già su disco, altrimenti l'originale;
+"Scarica" scarica sempre l'originale.
+
 ## Slug e nome del file stabili
 
 Lo slug di un media nasce con lui e **non cambia più**. Il file si chiama
@@ -359,6 +365,15 @@ ferma: meglio un media in più che un'immagine sparita da una pagina.
 
 La scheda di un media in uso mostra in alto dove è usato. Caricare un file
 nuovo dalla scheda resta possibile: è il modo per sostituirlo ovunque.
+
+## Eliminazione vera
+
+Un media eliminato perde la riga e i file (originale, misure e webp), da
+qualunque strada: la scheda e l'API generata usano `deleteRecord()` e
+`afterDelete()`; il cestino dell'elenco (`api/backend/delete`), che per le
+altre tabelle segna solo `deleted`, fa lo stesso perché `MediaResource`
+risponde `true` a `Resource::listDeletesRecord()`. Una Resource che tiene
+file o dati fuori dalla riga può fare altrettanto.
 
 ## Filtro "usata / non usata"
 

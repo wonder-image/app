@@ -44,8 +44,8 @@ final class IconResource extends MediaResource
     {
         return [
             'file' => 'Icona',
-            'name' => 'File',
-            'alt' => 'Alt',
+            'name' => 'Nome',
+            'alt' => 'Testo alternativo',
             'slug' => 'Slug',
             'actions' => 'Azioni',
         ];

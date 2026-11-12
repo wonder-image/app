@@ -55,6 +55,14 @@ check('deleteRecord() si ferma prima del database', function () use ($refused) {
     return str_contains((string) $refused(static fn () => ImageResource::deleteRecord(12)), 'non si può eliminare');
 });
 
+check('il cestino dell\'elenco elimina davvero i media, non le altre Resource', function () {
+    return ImageResource::listDeletesRecord()
+        && IconResource::listDeletesRecord()
+        && DocumentResource::listDeletesRecord()
+        && VideoResource::listDeletesRecord()
+        && !\Wonder\App\Resource::listDeletesRecord();
+});
+
 check('nemmeno il file di un media usato si toglie dall\'elenco', function () use ($refused) {
     return str_contains((string) $refused(static fn () => ImageResource::assertFileDeletable(12, 'file')), 'non si può eliminare');
 });
@@ -119,5 +127,15 @@ check('il filtro legge il registro, non una colonna', function () use ($filter) 
 
 MediaUsages::useStore(null);
 MediaUsages::describeUsing(null);
+
+check('stessa tabella, tipi diversi: cartella e testi dal tipo della riga', function () {
+    $forRow = new ReflectionMethod(DocumentResource::class, 'forRow');
+
+    // L'elenco risolve `media` sulla prima Resource registrata: un'immagine
+    // eliminata da lì deve comunque perdere i file in images/.
+    return $forRow->invoke(null, ['type' => 'image']) === ImageResource::class
+        && $forRow->invoke(null, ['type' => 'video']) === VideoResource::class
+        && $forRow->invoke(null, ['type' => '']) === DocumentResource::class;
+});
 
 summary();

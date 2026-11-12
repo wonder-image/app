@@ -40,7 +40,7 @@ final class ImageResource extends MediaResource
     {
         return [
             'file' => 'Immagine',
-            'name' => 'File',
+            'name' => 'Nome',
             'alt' => 'Testo alternativo',
             'slug' => 'Slug',
             'actions' => 'Azioni',
