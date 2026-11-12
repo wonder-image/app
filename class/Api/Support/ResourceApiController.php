@@ -5,6 +5,7 @@ namespace Wonder\Api\Support;
 use RuntimeException;
 use Wonder\Api\Endpoint;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Media\MediaInputs;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
@@ -16,6 +17,7 @@ final class ResourceApiController
 {
     private string $resourceClass;
     private ResourceApiPresenter $presenter;
+    private ?MediaInputs $mediaInputs = null;
 
     private function __construct(string $resourceClass)
     {
@@ -101,6 +103,11 @@ final class ResourceApiController
         }
 
         $values = $this->preparedValues($endpoint, $targetId > 0 ? 'update' : 'store', $existingValues);
+
+        if ($this->mediaInputs()->errors() !== []) {
+            return $this->mediaErrors($endpoint);
+        }
+
         $result = $targetId > 0
             ? $modelClass::update($values, $targetId)
             : $modelClass::create($values);
@@ -120,6 +127,7 @@ final class ResourceApiController
                 'update',
                 'api'
             );
+            $this->mediaInputs()->sync($targetId, $values);
             $fields = $this->presenter->fieldsFor('show', ['*']);
             $item = $this->resourceRow($targetId, null, $fields);
             $this->resourceClass::afterUpdate($targetId, $result, $values);
@@ -136,6 +144,7 @@ final class ResourceApiController
                 'store',
                 'api'
             );
+            $this->mediaInputs()->sync((int) $result->insert_id, $values);
         }
 
         $this->resourceClass::afterStore($result, $values);
@@ -178,6 +187,11 @@ final class ResourceApiController
         $modelClass = $this->resourceClass::modelClass();
         $existingValues = $this->resourceRow($id, $this->visibilityUser($endpoint));
         $values = $this->preparedValues($endpoint, 'update', $existingValues);
+
+        if ($this->mediaInputs()->errors() !== []) {
+            return $this->mediaErrors($endpoint);
+        }
+
         $result = $modelClass::update($values, $id);
 
         if (empty($result->success)) {
@@ -195,6 +209,7 @@ final class ResourceApiController
             'api'
         );
 
+        $this->mediaInputs()->sync($id, $values);
         $this->resourceClass::afterUpdate($id, $result, $values);
         $this->resourceClass::exportSyncData();
 
@@ -214,7 +229,23 @@ final class ResourceApiController
         }
 
         $values = $this->resourceRow($id, $this->visibilityUser($endpoint));
+
+        // Eliminazione vietata dalla Resource: 422 con il motivo, non un 500.
+        try {
+            $this->resourceClass::assertDeletable($id);
+        } catch (RuntimeException $exception) {
+            return $endpoint->response(
+                $this->presenter->validationErrorPayload(['delete' => $exception->getMessage()]),
+                422
+            );
+        }
+
         $result = $this->resourceClass::deleteRecord($id);
+
+        if (!empty($result->success)) {
+            $this->mediaInputs()->forget($id);
+        }
+
         $this->resourceClass::afterDelete($id, $result, $values);
         $this->resourceClass::exportSyncData();
 
@@ -240,6 +271,20 @@ final class ResourceApiController
         return $endpoint;
     }
 
+    private function mediaInputs(): MediaInputs
+    {
+        return $this->mediaInputs ??= $this->resourceClass::mediaInputs();
+    }
+
+    /** Un campo media rifiutato: 422 con il motivo sotto il nome del campo. */
+    private function mediaErrors(Endpoint $endpoint): array
+    {
+        return $endpoint->response(
+            ['message' => 'Validation failed.', 'errors' => $this->mediaInputs()->errors()],
+            422
+        );
+    }
+
     private function guardPositiveId(int $id): void
     {
         if ($id <= 0) {
@@ -262,6 +307,14 @@ final class ResourceApiController
             'api',
             $oldValues
         );
+
+        // Campi media: l'id o il file inviato diventano l'id da scrivere.
+        // Con un errore ci si ferma qui: chi chiama risponde 422.
+        $values = $this->mediaInputs()->resolve($values, $oldValues);
+
+        if ($this->mediaInputs()->errors() !== []) {
+            return $values;
+        }
 
         LegacyGlobals::set('NAME', (object) [
             'table' => $tableName,

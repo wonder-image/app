@@ -63,9 +63,39 @@ final class MediaFileManager
 
         $newByIndex = $uploadIndexes === [] ? [] : array_combine($uploadIndexes, $newFiles);
         $result = array_map(static fn ($entry) => is_int($entry) ? $newByIndex[$entry] : $entry, $order);
-        self::deleteFiles($pathDir, $format, array_values(array_diff($oldFiles, $result)));
+        self::deleteReplacedFiles($pathDir, $format, array_values(array_diff($oldFiles, $result)), $newFiles);
 
         return json_encode($result, JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Toglie i file che non servono più dopo che quelli nuovi sono già al
+     * loro posto. Un file vecchio che ha lo stesso nome base di uno nuovo
+     * (stesso nome fisso, estensione diversa) perde solo l'originale e le
+     * misure con la sua estensione: i `.webp` con quel nome sono già del
+     * file nuovo.
+     *
+     * @param list<string> $removedFiles
+     * @param list<string> $newFiles
+     */
+    public static function deleteReplacedFiles(string $pathDir, array $format, array $removedFiles, array $newFiles): void
+    {
+        $newNames = array_map(static fn (string $file): string => (string) pathinfo($file, PATHINFO_FILENAME), $newFiles);
+
+        foreach ($removedFiles as $removedFile) {
+            $shared = in_array((string) pathinfo($removedFile, PATHINFO_FILENAME), $newNames, true);
+
+            self::deleteFile($pathDir, $shared ? array_replace($format, ['webp' => false]) : $format, $removedFile);
+        }
+    }
+
+    /**
+     * Toglie le misure e il webp di `$fileName` in `$directory`, non il
+     * file: per chi sta per scrivere un file nuovo su quel nome.
+     */
+    public static function deleteDerived(string $directory, string $fileName, array $format): void
+    {
+        self::deleteDerivedFiles(rtrim($directory, '/'), $fileName, $format);
     }
 
     public static function hasUploadedFiles(mixed $files): bool

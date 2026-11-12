@@ -49,6 +49,16 @@ if (!RowVisibility::visible($table, $rowId, RowVisibility::currentUser())) {
     ApiRequest::error('Riga non trovata.', 404);
 }
 
+$resourceClass = \Wonder\App\ResourceRegistry::resolveByTable($table);
+
+if ($resourceClass !== null) {
+    try {
+        $resourceClass::assertFileDeletable($rowId, $column);
+    } catch (RuntimeException $exception) {
+        ApiRequest::error($exception->getMessage(), 422);
+    }
+}
+
 $query = sqlSelect($table, ['id' => $rowId], 1);
 
 if (!($query->exists ?? false)) {

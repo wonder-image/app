@@ -79,6 +79,11 @@ if (sqlColumnExists($table, 'active')) {
 
 sqlModify($table, $values, 'id', $id);
 
+// Il record eliminato non usa più i media dei suoi campi media.
+if ($resourceClass !== null) {
+    $resourceClass::mediaInputs()->forget($id);
+}
+
 if ($position !== null && sqlColumnExists($table, 'position')) {
     if ($filter !== null && $filterId !== null) {
         $sql = sqlSelect($table, [$filter => $filterId, 'deleted' => 'false']);

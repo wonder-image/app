@@ -21,6 +21,7 @@
                 \Wonder\Console\Commands\Update::class,
                 \Wonder\Console\Commands\Build::class,
                 \Wonder\Console\Commands\ScheduleRun::class,
+                \Wonder\Console\Commands\MediaResize::class,
                 \Wonder\Console\Commands\DbInit::class,
                 \Wonder\Console\Commands\DbBackup::class,
                 \Wonder\Console\Commands\LocalStart::class,

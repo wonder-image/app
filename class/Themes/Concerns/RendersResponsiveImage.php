@@ -29,6 +29,11 @@
         public function renderResponsiveImage($class): string
         {
 
+            // `Image::fromMedia()` di un media che non c'è più: niente tag.
+            if (($class->schema['media-missing'] ?? false) === true) {
+                return '';
+            }
+
             $this->init($class);
 
             if ($this->webp && $this->extension != 'webp') {

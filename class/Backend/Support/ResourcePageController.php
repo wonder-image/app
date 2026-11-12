@@ -5,6 +5,7 @@ namespace Wonder\Backend\Support;
 use RuntimeException;
 use Throwable;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Media\MediaInputs;
 use Wonder\App\Resource;
 use Wonder\App\ResourceRegistry;
 use Wonder\App\Table;
@@ -24,6 +25,7 @@ final class ResourcePageController
 
     private string $resourceClass;
     private ResourcePagePresenter $presenter;
+    private ?MediaInputs $mediaInputs = null;
 
     private function __construct(string $resourceClass)
     {
@@ -113,6 +115,7 @@ final class ResourcePageController
                     'update',
                     'backend'
                 );
+                $this->mediaInputs()->sync($targetId, $values);
                 $this->resourceClass::afterUpdate($targetId, $result, $values);
             } else {
                 $insertId = (int) ($result->insert_id ?? 0);
@@ -126,6 +129,7 @@ final class ResourcePageController
                         'store',
                         'backend'
                     );
+                    $this->mediaInputs()->sync($insertId, $values);
                 }
 
                 $this->resourceClass::afterStore($result, $values);
@@ -149,7 +153,7 @@ final class ResourcePageController
         }
 
         $errors = !empty($ALERT) ? ['alert' => (string) $ALERT] : (array) ($result->response ?? []);
-        $this->renderForm('create', $values, $errors);
+        $this->renderForm('create', $values, $errors + $this->mediaInputs()->errors());
     }
 
     private function view(int $id): void
@@ -213,13 +217,14 @@ final class ResourcePageController
                 'update',
                 'backend'
             );
+            $this->mediaInputs()->sync($id, $values);
             $this->resourceClass::afterUpdate($id, $result, $values);
             $this->resourceClass::exportSyncData();
             $this->redirectToConfiguredPage('update', $id);
         }
 
         $errors = !empty($ALERT) ? ['alert' => (string) $ALERT] : (array) ($result->response ?? []);
-        $this->renderForm('edit', $values, $errors, $id);
+        $this->renderForm('edit', $values, $errors + $this->mediaInputs()->errors(), $id);
     }
 
     private function delete(int $id): never
@@ -233,7 +238,23 @@ final class ResourcePageController
         }
 
         $values = $this->resourceRow($id);
+
+        // Eliminazione vietata dalla Resource: si torna alla scheda con il
+        // motivo, invece di una pagina d'errore.
+        try {
+            $this->resourceClass::assertDeletable($id);
+        } catch (RuntimeException $exception) {
+            FlashAlert::custom('Non eliminato', nl2br(htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8')), 'warning');
+            header('Location: '.$this->presenter->redirectUrl('update', $id));
+            exit();
+        }
+
         $result = $this->resourceClass::deleteRecord($id);
+
+        if (!empty($result->success)) {
+            $this->mediaInputs()->forget($id);
+        }
+
         $this->resourceClass::afterDelete($id, $result, $values);
         $this->resourceClass::exportSyncData();
 
@@ -302,7 +323,10 @@ final class ResourcePageController
             return $values;
         }
 
-        return ReadonlyFields::filter($values, $this->editableWhenReadonly());
+        $editable = $this->editableWhenReadonly();
+
+        // Il file di un campo media modificabile viaggia in una chiave sua.
+        return ReadonlyFields::filter($values, [...$editable, ...$this->resourceClass::mediaInputs()->uploadKeys($editable)]);
     }
 
     /** @return list<string> */
@@ -325,6 +349,16 @@ final class ResourcePageController
             return $requestValues;
         }
 
+        // Campi media: l'id scelto o il file caricato diventano l'id da
+        // scrivere. Un errore ferma il salvataggio prima degli altri upload.
+        $requestValues = $this->mediaInputs()->resolve($requestValues, $oldValues);
+
+        foreach ($this->mediaInputs()->errors() as $field => $message) {
+            $label = trim((string) $this->resourceClass::getLabel($field));
+            $GLOBALS['ALERT'] = ($label !== '' ? $label.': ' : '').$message;
+            break;
+        }
+
         $resourceSchemaName = $this->resourceClass::prepareSchemaName();
 
         if (Table::has($resourceSchemaName)) {
@@ -336,6 +370,11 @@ final class ResourcePageController
         }
 
         return $requestValues;
+    }
+
+    private function mediaInputs(): MediaInputs
+    {
+        return $this->mediaInputs ??= $this->resourceClass::mediaInputs();
     }
 
     private function renderListTable(): string

@@ -4,18 +4,20 @@ namespace Wonder\Backend\Support;
 
 use Throwable;
 use Wonder\App\Logger;
+use Wonder\App\Media\ResizeQueue;
 use Wonder\App\Module\ConfigRepository;
 use Wonder\App\Support\Mail\Outbox;
 use Wonder\Backend\Contracts\HomeStatusItem;
 use Wonder\Backend\Home\ErrorStatus;
 use Wonder\Backend\Home\MailQueueStatus;
+use Wonder\Backend\Home\MediaResizeStatus;
 use Wonder\Backend\Home\SchedulerStatus;
 use Wonder\Elements\Components\StatusCard;
 
 /**
  * Fascia di stato in cima alla home del backend. Le voci sono classi
  * `HomeStatusItem` indicizzate per chiave: il core registra `scheduler`,
- * `errors` e `mail_queue`, i moduli abilitati aggiungono, sostituiscono o tolgono (`false`)
+ * `errors`, `mail_queue` e `media_resize`, i moduli abilitati aggiungono, sostituiscono o tolgono (`false`)
  * voci con `backend.home_status` nella propria configurazione e il sito ha
  * l'ultima parola con `HomeStatus::set()`. Ogni voce decide da sé chi la
  * vede; se una voce solleva un'eccezione sparisce, la home resta.
@@ -30,6 +32,7 @@ final class HomeStatus
         'scheduler' => SchedulerStatus::class,
         'errors' => ErrorStatus::class,
         'mail_queue' => MailQueueStatus::class,
+        'media_resize' => MediaResizeStatus::class,
     ];
 
     /** @var array<string, class-string<HomeStatusItem>|false> */
@@ -129,6 +132,23 @@ final class HomeStatus
         }
 
         return self::card('bi-envelope-exclamation', 'Coda email', 'Ferma', 'Email in attesa dal '.gmdate('d/m/Y H:i', (int) strtotime($oldestDue.' UTC')).' UTC', 'warning', $href);
+    }
+
+    /**
+     * Card solo se ci sono ridimensionamenti falliti o se la coda è ferma
+     * (vedi `ResizeQueue::stuck()`), altrimenti null.
+     */
+    public static function mediaResize(?string $oldestPending, int $failed, int $now, string $href): ?StatusCard
+    {
+        if ($failed > 0) {
+            return self::card('bi-images', 'Immagini', (string) $failed, ($failed === 1 ? 'Ridimensionamento non riuscito' : 'Ridimensionamenti non riusciti').' negli ultimi 7 giorni', 'warning', $href);
+        }
+
+        if (!ResizeQueue::stuck($oldestPending, $now)) {
+            return null;
+        }
+
+        return self::card('bi-images', 'Immagini', 'In attesa', 'Ridimensionamenti in coda dal '.gmdate('d/m/Y H:i', (int) strtotime($oldestPending.' UTC')).' UTC', 'warning', $href);
     }
 
     private static function card(string $icon, string $title, string $value, string $detail, string $variant, string $href): StatusCard

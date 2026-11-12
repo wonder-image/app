@@ -2,6 +2,7 @@
 
 namespace Wonder\App\ResourceSchema;
 
+use Wonder\App\Media\MediaTypes;
 use Wonder\App\ResourceSchema\Inputs\Concerns\NormalizesExtensions;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesNumberConfig;
 use Wonder\App\ResourceSchema\Inputs\Concerns\WritesPasswordRules;
@@ -22,6 +23,7 @@ use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
 use Wonder\App\ResourceSchema\Inputs\InputGoogleAddress;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\ResourceSchema\Inputs\InputIcon;
+use Wonder\App\ResourceSchema\Inputs\InputMedia;
 use Wonder\App\ResourceSchema\Inputs\InputNumber;
 use Wonder\App\ResourceSchema\Inputs\InputPassword;
 use Wonder\App\ResourceSchema\Inputs\InputPercentige;
@@ -307,6 +309,36 @@ class FormField extends Input
         return $this->morphInto(InputFileDragDrop::class)
             ->accept($accept)
             ->uploader($uploader);
+    }
+
+    /**
+     * Un media della libreria: la colonna tiene il suo id. `$type` è uno dei
+     * tipi di `MediaTypes`; di solito si usano `mediaImage()`,
+     * `mediaIcon()`, `mediaDocument()` e `mediaVideo()`. Solo backend.
+     */
+    public function media(string $type = MediaTypes::IMAGE): InputMedia
+    {
+        return $this->morphInto(InputMedia::class)->mediaType($type);
+    }
+
+    public function mediaImage(): InputMedia
+    {
+        return $this->media(MediaTypes::IMAGE);
+    }
+
+    public function mediaIcon(): InputMedia
+    {
+        return $this->media(MediaTypes::ICON);
+    }
+
+    public function mediaDocument(): InputMedia
+    {
+        return $this->media(MediaTypes::DOCUMENT);
+    }
+
+    public function mediaVideo(): InputMedia
+    {
+        return $this->media(MediaTypes::VIDEO);
     }
 
     public function country(?string $stateField = null): InputCountry

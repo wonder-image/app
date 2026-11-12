@@ -11,8 +11,10 @@
     {
 
         public string $imagePath, $imageName, $extension, $directory, $directoryUrl;
-        public array $sizes = RESPONSIVE_IMAGE_SIZES;
-        public bool $webp = RESPONSIVE_IMAGE_WEBP;
+        public array $sizes = [];
+        public bool $webp = true;
+        /** Qualità delle copie webp. */
+        public int $quality = 80;
 
         public function __construct($imagePath)
         {
@@ -21,6 +23,11 @@
                 throw new ErrorException("L'immagine $imagePath non esiste!", 751);
             }
             
+            # Fuori da una richiesta web (scheduler, `forge`) le costanti del
+            # sito non esistono: chi chiama passa le misure.
+            if (defined('RESPONSIVE_IMAGE_SIZES')) { $this->sizes = RESPONSIVE_IMAGE_SIZES; }
+            if (defined('RESPONSIVE_IMAGE_WEBP')) { $this->webp = (bool) RESPONSIVE_IMAGE_WEBP; }
+
             $this->imagePath = $imagePath;
             $this->extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
             $this->imageName = pathinfo($imagePath, PATHINFO_FILENAME);
@@ -65,7 +72,7 @@
             if ($this->webp && $this->extension !== 'webp') {
                 $webpPath = sprintf('%s%s.webp', $this->directory, $this->imageName);
                 $webpImage = clone $sourceImage;
-                $webpImage->toWebp(80)->save($webpPath);
+                $webpImage->toWebp($this->quality)->save($webpPath);
                 $baseWebpPath = $webpPath;
             }
             
@@ -89,7 +96,7 @@
                 if ($baseWebpPath !== null) {
                     $webpPath = sprintf('%s%s-%d.webp', $this->directory, $this->imageName, $size);
                     $webpImage = clone $resizedImage;
-                    $webpImage->toWebp(80)->save($webpPath);
+                    $webpImage->toWebp($this->quality)->save($webpPath);
                 }
 
             }

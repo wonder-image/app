@@ -2,6 +2,7 @@
 
     namespace Wonder\Elements\Media;
 
+    use Wonder\App\Media\MediaFile;
     use Wonder\Elements\Concerns\HasMediaFit;
     use Wonder\App\Path;
     use Wonder\App\Support\Asset;
@@ -25,6 +26,21 @@
         {
 
             return new self($src);
+
+        }
+
+        /**
+         * L'immagine di un media della libreria, dal suo id o da un
+         * `MediaFile` già letto: indirizzo, testo alternativo e misure del
+         * sito. Un media che non c'è più, o che non è un'immagine, non
+         * stampa niente.
+         */
+        public static function fromMedia( mixed $media ): self
+        {
+
+            $media = $media instanceof MediaFile ? $media : MediaFile::find($media);
+
+            return $media?->image() ?? (new self(''))->schema('media-missing', true);
 
         }
 
