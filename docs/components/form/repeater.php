@@ -64,6 +64,25 @@ return ComponentDoc::for(Repeater::class)
             ->height(300)
     )
     ->example(
+        Example::make('Righe che non si aggiungono né si tolgono')
+            ->code(<<<'PHP'
+            FormField::key('addresses')
+                ->repeater([
+                    RepeaterColumn::key('company')->text()->readonly()->label('Azienda')->columnSpan(4),
+                    RepeaterColumn::key('street')->text()->label('Via')->columnSpan(7),
+                ])
+                ->repeaterAddButton(false)
+                ->repeaterDeleteButton(false)
+                ->label('Indirizzi')
+                ->value([
+                    ['company' => 'Rossi srl', 'street' => 'Via Roma 1'],
+                    ['company' => 'Bianchi spa', 'street' => 'Via Milano 12'],
+                ])
+            PHP)
+            ->description('`repeaterAddButton(false)` toglie il bottone che aggiunge, `repeaterDeleteButton(false)` il cestino di ogni riga: per le righe che arrivano da altrove e qui si correggono soltanto. I due si spengono anche uno per volta.')
+            ->height(300)
+    )
+    ->example(
         Example::make('Schede richiudibili')
             ->code(<<<'PHP'
             FormField::key('people')
@@ -83,4 +102,37 @@ return ComponentDoc::for(Repeater::class)
             PHP)
             ->description('`repeaterCollapsible($titolo, $sottotitolo)` chiude le righe salvate su un riassunto; un clic le apre. Le righe nuove nascono aperte, e i campi di una riga chiusa vengono postati lo stesso.')
             ->height(360)
+    )
+    ->example(
+        Example::make('Repeater dentro una riga')
+            ->code(<<<'PHP'
+            FormField::key('contact_people')
+                ->repeater([
+                    RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(12),
+                    RepeaterColumn::key('points')
+                        ->repeater([
+                            RepeaterColumn::key('kind')
+                                ->select(['email' => 'Email', 'phone' => 'Telefono'])
+                                ->label('Tipo')->columnSpan(3),
+                            RepeaterColumn::key('email')->email()->label('Email')
+                                ->columnFill()->visibleWhen('kind', 'email'),
+                            RepeaterColumn::key('phone')->text()->label('Telefono')
+                                ->columnFill()->visibleWhen('kind', 'phone'),
+                        ])
+                        ->label('Recapiti')
+                        ->repeaterAddLabel('Aggiungi recapito')
+                        ->columnSpan(12),
+                ])
+                ->nested()
+                ->repeaterAddLabel('Aggiungi referente')
+                ->label('Referenti')
+                ->value([
+                    'row_1' => ['name' => 'Giulia Bianchi', 'points' => [
+                        'row_1' => ['kind' => 'email', 'email' => 'giulia@example.com'],
+                        'row_2' => ['kind' => 'phone', 'phone' => '0212345678'],
+                    ]],
+                ])
+            PHP)
+            ->description('Una colonna può essere un repeater: `RepeaterColumn::key(...)->repeater([...])`, con `nested()` su quello esterno. I campi si chiamano `contact_people[RIGA][points][RIGA_INTERNA][kind]`; il repeater interno parte vuoto, tiene solo etichetta, larghezza, bottone e testi di eliminazione, e non ne contiene un altro. Solo tema Bootstrap.')
+            ->height(460)
     );

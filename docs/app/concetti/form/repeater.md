@@ -86,7 +86,8 @@ Sul `FormField` che chiama `->repeater(...)`:
 `repeaterGroupCollapsed($b = true)`, `repeaterGroupCountLabel($sing, $plur)`,
 `repeaterGroupFixed($colonna)`,
 `repeaterGroupFiles($campo, $colonnaChiave, $etichetta = 'Foto')`,
-`repeaterAddButton($b = true)`, `repeaterMinRows($n)`,
+`repeaterAddButton($b = true)`, `repeaterDeleteButton($b = true)`,
+`repeaterMinRows($n)`,
 `repeaterStartEmpty($b = true)`, `repeaterAdvanced(...$colonne)`,
 `repeaterAdvancedLabel($s)`, `repeaterCollapsible($titolo, $sottotitolo = [])`,
 `repeaterCollapsibleEmptyLabel($s)`, `repeaterUndoDelete($b = true)`,
@@ -304,6 +305,63 @@ Chiudere nasconde i campi (`d-none` sul `fieldset`), non li spegne: una riga
 chiusa viene postata come una aperta. Si combina con `repeaterAdvanced()` e
 `repeaterUndoDelete()`; il bottone che elimina sta dentro la scheda aperta.
 
+## Repeater dentro una riga
+
+Una colonna può essere a sua volta un repeater: i recapiti di un referente,
+le fasce di un listino. Si dichiara con lo stesso `->repeater([...])`, sulla
+colonna; il repeater esterno deve avere `nested()`.
+
+```php
+FormField::key('contact_people')
+    ->repeater([
+        RepeaterColumn::key('id')->hidden(),
+        RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(12),
+        RepeaterColumn::key('points')
+            ->repeater([
+                RepeaterColumn::key('kind')
+                    ->select(['email' => 'Email', 'phone' => 'Telefono', 'mobile' => 'Cellulare'])
+                    ->label('Tipo')->columnSpan(3),
+                RepeaterColumn::key('email')->email()->label('Email')
+                    ->columnFill()->visibleWhen('kind', 'email'),
+                RepeaterColumn::key('phone_prefix')->phonePrefix()->label('Prefisso')
+                    ->columnSpan(3)->visibleWhen('kind', ['phone', 'mobile']),
+                RepeaterColumn::key('phone')->text()->label('Telefono')
+                    ->columnFill()->visibleWhen('kind', ['phone', 'mobile']),
+            ])
+            ->label('Recapiti')
+            ->repeaterAddLabel('Aggiungi recapito')
+            ->columnSpan(12),
+    ])
+    ->nested()
+    ->repeaterCollapsible('name')
+    ->label('Referenti');
+```
+
+I campi interni si chiamano `contact_people[RIGA][points][RIGA_INTERNA][kind]`:
+nel POST `$riga['points']` è un array di righe, e lo stesso array, messo nel
+valore della riga esterna, le ripopola. Salvarlo (una colonna JSON, una
+tabella figlia) tocca a chi salva la riga esterna.
+
+Il repeater interno è volutamente corto:
+
+- parte vuoto e vuoto può tornare: nessuna riga di cortesia, l'ultima si
+  toglie invece di svuotarsi;
+- tiene solo `label()`, `columnSpan()`, `repeaterAddLabel()`,
+  `repeaterAddButton()`, `repeaterDeleteButton()`, `repeaterButtonClass()` e i testi
+  `repeaterDelete*()`; ordinamento, gruppi, schede, avanzate, righe minime e
+  annullamento si ignorano;
+- senza `label()` non ha titolo;
+- `visibleWhen()` fra le sue colonne guarda la riga interna;
+- un solo livello: un repeater dentro un repeater interno lancia
+  `LogicException`, e così una colonna repeater senza `nested()` su quello
+  esterno.
+
+`Repeater::columnDefaults()` porta anche i default delle colonne interne
+(sotto la chiave della colonna), e `rowsFromRequest()` li usa: le righe
+interne mai toccate si scartano, e una riga esterna che ha solo quelle resta
+vuota. Le colonne file dentro il repeater interno non sono gestite. Solo tema
+Bootstrap.
+
 ## Righe raggruppate
 
 Con molte righe la griglia diventa un muro. Dichiarando una o più colonne
@@ -424,6 +482,14 @@ FormField::key('products')
   toglierla esiste perché se ne possa aggiungere un'altra.
   Svuotare vuol dire anche dirlo ad AutoNumeric (`clear()`): con il solo
   `value = ''` il numero vecchio torna all'invio.
+- `repeaterDeleteButton(false)` toglie il cestino da ogni riga, modello
+  compreso (context `delete_button`). Serve quando levare la riga dal form
+  non cancella niente: le righe arrivano da altrove e chi salva le aggiorna
+  soltanto. È indipendente da `repeaterAddButton()`: si spengono uno per
+  volta o tutti e due. Il repeater dentro una riga decide per sé, e la scelta
+  di quello esterno non lo tocca. Con `repeaterCollapsible()` il riassunto
+  resta senza cestino; `repeaterMinRows()` e `repeaterUndoDelete()` non hanno
+  più niente da governare.
 - `repeaterStartEmpty()` non stampa la riga vuota di cortesia. Senza, quella
   riga viene postata comunque e a valle diventa un record senza niente dentro.
 - `window.wiRepeaterAddRow(contenitoreId, templateId, chiave)` aggiunge una

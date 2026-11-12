@@ -189,7 +189,7 @@ var container = { dataset: {}, querySelectorAll: function () { return [row]; } }
 var row = {
   parentElement: container,
   querySelector: function () { return null; },
-  querySelectorAll: function () { return [label, price, flag]; },
+  querySelectorAll: function (selector) { return selector === '.wi-repeater-row' ? [] : [label, price, flag]; },
   remove: function () { removed = true; },
 };
 var button = { closest: function () { return row; }, getAttribute: function () { return null; } };
@@ -211,7 +211,7 @@ var container = { dataset: {}, querySelectorAll: function () { return [row]; } }
 var row = {
   parentElement: container,
   querySelector: function () { return null; },
-  querySelectorAll: function () { return [label]; },
+  querySelectorAll: function (selector) { return selector === '.wi-repeater-row' ? [] : [label]; },
   remove: function () {},
 };
 var button = { closest: function () { return row; }, getAttribute: function () { return null; } };

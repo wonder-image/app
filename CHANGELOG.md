@@ -3,6 +3,23 @@
 ## Unreleased
 
 ### Aggiunto
+- **Repeater senza cestino.** `InputRepeater::repeaterDeleteButton($b = true)`
+  (context `delete_button`), simmetrico a `repeaterAddButton()`: con `false`
+  il bottone che elimina non si stampa, né nelle righe né nel modello, anche
+  nel riassunto delle schede richiudibili. Per le righe che arrivano da
+  altrove e nel form si correggono soltanto. Vale anche per il repeater
+  dentro una riga, che decide per sé.
+- **Repeater dentro la riga di un repeater.** Una colonna può essere
+  `RepeaterColumn::key('points')->repeater([...])` (repeater esterno con
+  `nested()`, tema Bootstrap): i campi si chiamano
+  `esterno[RIGA][points][RIGA_INTERNA][campo]` e `$riga['points']` ripopola
+  le righe interne. Nel modello la chiave interna ha il suo segnaposto
+  (`__SUB_KEY__`, attributo `data-wi-row-placeholder`) e gli id del repeater
+  interno portano la chiave della riga esterna. Il repeater interno parte
+  vuoto e tiene solo etichetta, larghezza, bottone e testi di eliminazione;
+  un secondo livello lancia `LogicException`. `Repeater::columnDefaults()`
+  porta i default delle colonne interne e `rowsFromRequest()` scarta le righe
+  interne mai toccate.
 - **Migrazioni dei moduli dopo l'allineamento delle tabelle.**
   `database.migrations_after_tables` in `module.json`: stesso contratto di
   `database.migrations`, ma `forge update` le esegue dopo aver creato e
