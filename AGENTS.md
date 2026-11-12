@@ -359,7 +359,7 @@ php forge start
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
 - Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars. `Registry::routeFiles()` loads them in alphabetical path order, not dependency order.
-- Structural module migrations go in `module.json` `database.migrations`: classes implementing `ModuleMigration` (`static run(mysqli): array`, idempotent), run by `forge update` in dependency order before table alignment. Rename legacy tables with `Support\LegacyTableRenames` (one atomic `RENAME TABLE`, stops when both names exist); never drop or merge. See `docs/app/concetti/moduli/manifest.md`.
+- Structural module migrations go in `module.json` `database.migrations`: classes implementing `ModuleMigration` (`static run(mysqli): array`, idempotent), run by `forge update` in dependency order before table alignment. Rename legacy tables with `Support\LegacyTableRenames` (one atomic `RENAME TABLE`, stops when both names exist); never drop or merge. Data migrations that need tables created or aligned in the same update (core tables included) go in `database.migrations_after_tables`: same contract, run after `runTables()`. See `docs/app/concetti/moduli/manifest.md`.
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
@@ -564,7 +564,9 @@ php forge start
   whose token no longer matches (file re-enqueued meanwhile) leaves the row
   `pending`. `deleteWhenReady` paths must stay under `ROOT/assets/upload/`
   (validated at enqueue and again with `realpath` before unlink) and are
-  removed only after `ready`. Storage sits behind `ResizeStore`
+  removed only after `ready`. `enqueue(..., withoutScheduler: true)` skips
+  only the heartbeat check, for work that can wait (migrations, seed data).
+  Storage sits behind `ResizeStore`
   (`DatabaseResizeStore`, prepared statements only; `MemoryResizeStore` and
   `ResizeQueue::useStore()` / `useRoot()` for tests, never a database).
   Rendering needs no hook: frontend renderers already list only variants on
@@ -629,6 +631,8 @@ php forge start
   `-2`, `-3`); `mediaAlt('{name}')` sets the alt at creation and follows
   the owner only while the stored alt still equals the template filled
   with the previous values (written in `sync()`, after a successful save).
+  A read-only page that lists the field in `editableWhenReadonly()` also
+  lets its upload key through (`MediaInputs::uploadKeys()`).
   Controllers call `sync()` after store/update and `forget()` on delete
   (page, generated API, `api/backend/delete`); a Resource without media
   inputs runs no query. `MediaLibrary::useStore()` swaps the `MediaStore`

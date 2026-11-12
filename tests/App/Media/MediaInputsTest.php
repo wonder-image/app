@@ -467,6 +467,18 @@ check('MediaUpload porta il file del form e quello delle API alla stessa forma',
         && MediaUpload::lost($upload('x.jpg', UPLOAD_ERR_FORM_SIZE));
 });
 
+check('sola lettura: con il campo modificabile passa anche il suo file', function () {
+    $media = new MediaInputs('gst_product', ['image_id' => ['type' => 'image', 'slug' => '', 'alt' => '']]);
+    $editable = ['image_id', 'title'];
+    $posted = ['image_id' => '', 'image_id__wi_media_upload' => ['name' => 'a.jpg'], 'title' => 'x', 'price' => '1', 'price__wi_media_upload' => 'no'];
+
+    $kept = \Wonder\Backend\Support\ReadonlyFields::filter($posted, [...$editable, ...$media->uploadKeys($editable)]);
+
+    return $media->uploadKeys($editable) === ['image_id__wi_media_upload']
+        && array_keys($kept) === ['image_id', 'image_id__wi_media_upload', 'title']
+        && $media->uploadKeys(['title']) === [];
+});
+
 MediaLibrary::useStore(null);
 MediaUsages::useStore(null);
 

@@ -70,7 +70,7 @@ final class ResizeQueue
      *
      * Falso se la coda non è utilizzabile: chi chiama ridimensiona subito.
      */
-    public static function enqueue(string $absolutePath, array $widths, bool $webp, ?int $quality = null, array $deleteWhenReady = []): bool
+    public static function enqueue(string $absolutePath, array $widths, bool $webp, ?int $quality = null, array $deleteWhenReady = [], bool $withoutScheduler = false): bool
     {
         try {
             $path = self::relative($absolutePath);
@@ -83,7 +83,9 @@ final class ResizeQueue
             $store = self::store();
             $now = time();
 
-            if (!$store->usable() || !Outbox::alive($store->heartbeat(), $now)) {
+            // `$withoutScheduler`: chi consegna un lavoro che può aspettare (una
+            // migrazione, dati di prova) accoda anche a scheduler fermo.
+            if (!$store->usable() || (!$withoutScheduler && !Outbox::alive($store->heartbeat(), $now))) {
                 return false;
             }
 

@@ -118,6 +118,7 @@ class UpdateRunner
                 'rows' => 0,
                 'api_activity_tokens' => 0,
                 'media_raster_icons' => [],
+                'module_migrations_after_tables' => [],
                 'analytics_credentials' => 0,
                 'security_encryption' => 0,
                 'society_locations' => false,
@@ -167,6 +168,8 @@ class UpdateRunner
             $result->stats->tables = $this->runTables();
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
             $result->stats->media_raster_icons = RasterIconMigration::run($this->connection);
+            // Le migrazioni dei dati dei moduli che leggono tabelle appena create o allineate.
+            $result->stats->module_migrations_after_tables = $this->runModuleMigrations(true);
             $result->stats->analytics_credentials = AnalyticsToCredentialsMigration::run($this->connection);
             $result->stats->rows = $this->runFiles($this->rowDirectories());
             $result->stats->security_encryption = SecurityEncryptionMigration::run($this->connection);
@@ -513,12 +516,12 @@ class UpdateRunner
      *
      * @return array<string, array>
      */
-    private function runModuleMigrations(): array
+    private function runModuleMigrations(bool $afterTables = false): array
     {
         $summary = [];
 
         foreach (ModuleDependencySorter::sortManifests(ModuleRegistry::enabled()) as $manifest) {
-            foreach ($manifest->migrationClasses() as $migrationClass) {
+            foreach ($afterTables ? $manifest->migrationClassesAfterTables() : $manifest->migrationClasses() as $migrationClass) {
                 if (!is_subclass_of($migrationClass, ModuleMigration::class)) {
                     throw new RuntimeException($migrationClass.' deve implementare '.ModuleMigration::class);
                 }

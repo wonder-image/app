@@ -323,7 +323,10 @@ final class ResourcePageController
             return $values;
         }
 
-        return ReadonlyFields::filter($values, $this->editableWhenReadonly());
+        $editable = $this->editableWhenReadonly();
+
+        // Il file di un campo media modificabile viaggia in una chiave sua.
+        return ReadonlyFields::filter($values, [...$editable, ...$this->resourceClass::mediaInputs()->uploadKeys($editable)]);
     }
 
     /** @return list<string> */

@@ -286,6 +286,19 @@ final class Manifest
     }
 
     /**
+     * Migrazioni dei dati che vogliono le tabelle già allineate
+     * (`database.migrations_after_tables`): girano dopo `runTables()`.
+     *
+     * @return list<string>
+     */
+    public function migrationClassesAfterTables(): array
+    {
+        $classes = $this->get('database.migrations_after_tables', []);
+
+        return is_array($classes) ? array_values(array_map('trim', array_filter($classes, 'is_string'))) : [];
+    }
+
+    /**
      * Comandi `forge` dichiarati dal modulo (`console.commands`).
      *
      * @return list<string>

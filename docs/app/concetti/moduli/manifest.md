@@ -74,6 +74,7 @@ Inoltre, i **percorsi** dichiarati devono stare **dentro** la radice del modulo
 | `resourcesPath()` | default `src/Resources` |
 | `defaultsClass()` | da `database.defaults`, `null` se assente |
 | `migrationClasses()` | da `database.migrations`, lista vuota se assente |
+| `migrationClassesAfterTables()` | da `database.migrations_after_tables`, lista vuota se assente |
 | `consoleCommands()` | da `console.commands`, lista vuota se assente |
 | `handlersPath()`, `viewsPath()`, `assetsPath()`, `langPath()`, `testsPath()` | da `paths.*` |
 | `routeFile($area)` | da `paths.routes.<area>` |
@@ -113,6 +114,24 @@ eseguiti in ordine di dipendenza. Per rinominare tabelle legacy c'è
 un solo `RENAME TABLE` atomico che conserva ID, righe e chiavi esterne, salta le
 tabelle già migrate e si ferma senza toccare nulla se esistono entrambi i nomi.
 Niente drop né merge: una migrazione distruttiva non va in questo gancio.
+
+### `database.migrations_after_tables`
+
+Migrazioni dei dati che hanno bisogno delle tabelle già create o allineate,
+anche quelle del core arrivate con lo stesso aggiornamento (per esempio
+`media_usages` o `image_resizes`): `forge update` le esegue dopo
+l'allineamento delle tabelle ai Model.
+
+```json
+"database": {
+    "migrations_after_tables": ["Wonder\\Plugin\\Gestionale\\Migrations\\CatalogMediaMigration"]
+}
+```
+
+Stesso contratto e stesse regole di `database.migrations`: `ModuleMigration`,
+idempotente, in ordine di dipendenza tra i moduli. Le rinomine di tabelle
+legacy restano in `database.migrations`, perché devono precedere
+l'allineamento.
 
 ### `console.commands`
 

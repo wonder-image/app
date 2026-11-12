@@ -71,6 +71,27 @@ final class MediaInputs
         return $this->fields === [];
     }
 
+    /**
+     * Le chiavi di caricamento (`<campo>__wi_media_upload`) dei campi media
+     * tra quelli dati: una pagina in sola lettura che lascia modificare il
+     * campo deve lasciar passare anche il suo file.
+     *
+     * @param list<string> $names
+     * @return list<string>
+     */
+    public function uploadKeys(array $names): array
+    {
+        $keys = [];
+
+        foreach ($names as $name) {
+            if (is_string($name) && isset($this->fields[$name])) {
+                $keys[] = $name.self::UPLOAD_SUFFIX;
+            }
+        }
+
+        return $keys;
+    }
+
     /** @return array<string, string> campo => errore dell'ultimo `resolve()` */
     public function errors(): array
     {

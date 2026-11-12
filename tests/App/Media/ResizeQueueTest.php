@@ -47,6 +47,18 @@ check('senza heartbeat dello scheduler enqueue() rifiuta: chi chiama ridimension
     return ResizeQueue::enqueue($foto, [480, 960], true) === false && $store->rows === [];
 });
 
+check('chi può aspettare accoda anche a scheduler fermo, ma non senza tabella', static function () use ($coda, $foto): bool {
+    $store = $coda(new MemoryResizeStore(null));
+    $accodato = ResizeQueue::enqueue($foto, [480], true, withoutScheduler: true);
+    $righe = count($store->rows);
+
+    $senzaTabella = $coda(new MemoryResizeStore(null));
+    $senzaTabella->usable = false;
+
+    return $accodato === true && $righe === 1
+        && ResizeQueue::enqueue($foto, [480], true, withoutScheduler: true) === false;
+});
+
 check('con un heartbeat vecchio enqueue() rifiuta', static function () use ($coda, $foto): bool {
     $store = $coda(new MemoryResizeStore(gmdate('Y-m-d H:i:s', time() - HomeStatus::HEARTBEAT_TOLERANCE - 5)));
 

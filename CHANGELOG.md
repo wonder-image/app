@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Aggiunto
+- **Migrazioni dei moduli dopo l'allineamento delle tabelle.**
+  `database.migrations_after_tables` in `module.json`: stesso contratto di
+  `database.migrations`, ma `forge update` le esegue dopo aver creato e
+  allineato le tabelle, anche quelle del core arrivate con lo stesso
+  aggiornamento. Una migrazione dei dati non deve più aspettare un secondo
+  update.
+- **`ResizeQueue::enqueue(..., withoutScheduler: true)`**: accoda anche a
+  scheduler fermo, per migrazioni e dati di prova che possono aspettare.
 - **Coda dei ridimensionamenti.** Caricare un'immagine non fa più aspettare
   il salvataggio: `uploadFiles()` scrive l'originale e mette in coda le
   larghezze responsive (tabella `image_resizes`, una riga per file, legata al
@@ -78,6 +86,9 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Campo media in una pagina in sola lettura.** Con il campo dichiarato in
+  `editableWhenReadonly()` il file caricato veniva scartato: passava solo la
+  scelta dalla libreria. Ora passa anche il file.
 - **Immagine sostituita con lo stesso nome: niente misure della foto di
   prima.** Un file che arrivava su un nome già usato trovava ancora le
   misure e il webp del file precedente, e il sito le mostrava finché non
