@@ -40,7 +40,7 @@ final class DocumentResource extends MediaResource
     {
         return [
             'file' => 'Documento',
-            'name' => 'Nome file',
+            'name' => 'Nome',
             'slug' => 'Slug',
             'actions' => 'Azioni',
         ];

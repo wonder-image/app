@@ -77,11 +77,33 @@ if (sqlColumnExists($table, 'active')) {
     ];
 }
 
-sqlModify($table, $values, 'id', $id);
+if ($resourceClass !== null && $resourceClass::listDeletesRecord()) {
+    // Come dalla scheda: `deleteRecord()` (riga cancellata davvero, salvo
+    // tabelle sincronizzate con id fissi) e `afterDelete()`, che per i media
+    // toglie anche i file.
+    $row = sqlSelect($table, ['id' => $id], 1);
 
-// Il record eliminato non usa più i media dei suoi campi media.
-if ($resourceClass !== null) {
+    if (!($row->exists ?? false)) {
+        ApiRequest::error('Riga non trovata.', 404);
+    }
+
+    $rowValues = (array) $row->row;
+    $result = $resourceClass::deleteRecord($id);
+
+    if (empty($result->success)) {
+        ApiRequest::error('Eliminazione non riuscita.', 500);
+    }
+
     $resourceClass::mediaInputs()->forget($id);
+    $resourceClass::afterDelete($id, $result, $rowValues);
+    $resourceClass::exportSyncData();
+} else {
+    sqlModify($table, $values, 'id', $id);
+
+    // Il record eliminato non usa più i media dei suoi campi media.
+    if ($resourceClass !== null) {
+        $resourceClass::mediaInputs()->forget($id);
+    }
 }
 
 if ($position !== null && sqlColumnExists($table, 'position')) {
