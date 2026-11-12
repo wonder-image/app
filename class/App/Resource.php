@@ -806,6 +806,16 @@ abstract class Resource
     {
     }
 
+    /**
+     * `true` quando il cestino dell'elenco deve eliminare come la scheda
+     * (`deleteRecord()` + `afterDelete()`) invece di segnare `deleted`.
+     * Serve a chi tiene file o dati fuori dalla riga, come i media.
+     */
+    public static function listDeletesRecord(): bool
+    {
+        return false;
+    }
+
     public static function findStoreExistingValues(array $requestValues, string $context = 'backend'): ?array
     {
         return null;

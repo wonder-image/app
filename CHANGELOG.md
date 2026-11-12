@@ -119,6 +119,14 @@
   quando lo schema dati della tabella non ha la colonna: la riga ripostata
   con il suo `id` veniva aggiornata ma restava cancellata. Ora la colonna si
   scrive sempre.
+- **Media eliminati dall'elenco: via riga e file.** Il cestino dell'elenco
+  (`api/backend/delete`) segnava solo `deleted` e lasciava i file su disco.
+  Con `Resource::listDeletesRecord()` (falso di default, vero in
+  `MediaResource`) usa `deleteRecord()` e `afterDelete()` come la scheda. I
+  media già eliminati prima di questa versione restano in tabella con i loro
+  file. Il blocco dei media in uso resta su tutte le strade. I quattro tipi
+  condividono la tabella `media`: cartella dei file e messaggio ("Questa
+  immagine…") vengono dal tipo della riga, non dalla prima Resource trovata.
 - **Campo media in una pagina in sola lettura.** Con il campo dichiarato in
   `editableWhenReadonly()` il file caricato veniva scartato: passava solo la
   scelta dalla libreria. Ora passa anche il file.
@@ -148,6 +156,11 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Scheda dei media.** Accanto al file, uno sotto l'altro: Nome (prima
+  "File" o "Nome file"), testo alternativo e slug, che ora si vede in sola
+  lettura. L'anteprima dell'uploader del backend carica la misura piccola e
+  "Scarica" scarica l'originale: `extra.wonder.lib` e `package.json`
+  richiedono `wonder-image@^2.1.2-alpha.42`.
 - **Lo slug di un media non cambia più.** Prima, caricando un file nuovo
   dalla scheda, lo slug veniva ricalcolato dal nome e con lui cambiavano il
   nome del file e il suo indirizzo. Ora slug e nome del file restano quelli

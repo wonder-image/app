@@ -19,6 +19,7 @@ use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\Data\Formatters\String\SlugFormatter;
 use Wonder\Elements\Components\Card;
+use Wonder\Elements\Components\Container;
 use Wonder\Elements\Form\Form;
 
 /**
@@ -91,17 +92,25 @@ abstract class MediaResource extends Resource
                 ->required(),
             FormField::key('name')->text()->required(),
             static::hasAlt() ? FormField::key('alt')->text() : null,
+            // Solo da leggere: lo slug nasce dal nome e non cambia
+            // (`mutateRequestValues()` ignora quello inviato in modifica).
+            FormField::key('slug')->text()
+                ->readonly()
+                ->placeholder('Si crea dal nome al primo salvataggio'),
         ]));
     }
 
     public static function formLayoutSchema(): ?Form
     {
         return (new Form)->components([
-            (new Card)->components(array_values(array_filter([
+            (new Card)->components([
                 static::getInput('file')->columnSpan(4),
-                static::getInput('name')->columnSpan(8),
-                static::hasAlt() ? static::getInput('alt')->columnSpan(8) : null,
-            ])))->columns(12)->columnSpan(9),
+                (new Container)->components(array_values(array_filter([
+                    static::getInput('name'),
+                    static::hasAlt() ? static::getInput('alt') : null,
+                    static::getInput('slug'),
+                ])))->columns(1)->columnSpan(8),
+            ])->columns(12)->columnSpan(9),
         ])->columns(12);
     }
 
@@ -232,8 +241,30 @@ abstract class MediaResource extends Resource
         $where = MediaUsages::message($id);
 
         if ($where !== '') {
-            throw new RuntimeException(static::inUseMessage($where));
+            throw new RuntimeException(static::forRow($id)::inUseMessage($where));
         }
+    }
+
+    /**
+     * I quattro tipi stanno nella stessa tabella: l'elenco risolve la
+     * Resource dalla tabella e può prendere quella di un altro tipo.
+     * Cartella, formato e testi vanno presi dal tipo della riga.
+     *
+     * @param int|string|array<string, mixed> $row
+     * @return class-string<MediaResource>
+     */
+    protected static function forRow(int|string|array $row): string
+    {
+        if (!is_array($row)) {
+            try {
+                $query = sqlSelect('media', ['id' => $row], 1);
+                $row = ($query->exists ?? false) ? (array) $query->row : [];
+            } catch (Throwable) {
+                $row = [];
+            }
+        }
+
+        return self::TYPE_RESOURCES[(string) ($row['type'] ?? '')] ?? static::class;
     }
 
     /**
@@ -316,15 +347,23 @@ abstract class MediaResource extends Resource
         return $notices;
     }
 
+    /** Un media eliminato dall'elenco perde riga e file, come dalla scheda. */
+    public static function listDeletesRecord(): bool
+    {
+        return true;
+    }
+
     public static function afterDelete(int|string $id, object $result, array $values = []): void
     {
         if (empty($result->success) || empty($values['file'])) {
             return;
         }
 
+        $resource = static::forRow($values);
+
         MediaFileManager::deleteFiles(
-            ROOT.'/assets/upload/'.trim(static::legacyFolder(), '/'),
-            static::fileCleanupFormat(),
+            ROOT.'/assets/upload/'.trim($resource::legacyFolder(), '/'),
+            $resource::fileCleanupFormat(),
             MediaFileManager::decodeStoredFiles($values['file'])
         );
     }

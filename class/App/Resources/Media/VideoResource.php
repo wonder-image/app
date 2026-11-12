@@ -41,7 +41,7 @@ final class VideoResource extends MediaResource
     {
         return [
             'file' => 'Video',
-            'name' => 'Nome file',
+            'name' => 'Nome',
             'slug' => 'Slug',
             'actions' => 'Azioni',
         ];

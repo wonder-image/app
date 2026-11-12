@@ -127,10 +127,11 @@ check('percorsi di prima non cambiano; immagini e icone espongono alt nelle API'
 check('immagini e icone hanno il campo alt nel form, documenti e video no', function () use ($resources) {
     $keys = static fn (string $resource): array => array_map(static fn ($input) => $input->name, $resource::formSchema());
 
-    return $keys(IconResource::class) === ['file', 'name', 'alt']
-        && $keys(ImageResource::class) === ['file', 'name', 'alt']
-        && $keys(DocumentResource::class) === ['file', 'name']
-        && $keys(VideoResource::class) === ['file', 'name'];
+    // Lo slug c'è per tutti, solo da leggere.
+    return $keys(IconResource::class) === ['file', 'name', 'alt', 'slug']
+        && $keys(ImageResource::class) === ['file', 'name', 'alt', 'slug']
+        && $keys(DocumentResource::class) === ['file', 'name', 'slug']
+        && $keys(VideoResource::class) === ['file', 'name', 'slug'];
 });
 
 check('VideoResource: sezione Media, percorso e permessi come gli altri tipi', function () {
