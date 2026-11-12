@@ -116,6 +116,15 @@ check('il repeater interno si stacca dai campi vicini e il titolo dalle righe', 
         && str_contains($html, '<h6 class="mb-3">Recapiti</h6>');
 });
 
+check('lo stato vuoto del repeater interno parte all\'altezza della prima riga', function () {
+    $html = FormField::key('contact_people')
+        ->repeater([RepeaterColumn::key('points')->repeater([RepeaterColumn::key('kind')->text()])->repeaterEmptyState()])
+        ->nested()
+        ->render('bootstrap');
+
+    return str_contains($html, 'text-center p-2 mt-2');
+});
+
 check('senza etichetta dichiarata il repeater interno non ha titolo', function () {
     $html = FormField::key('contact_people')
         ->repeater([RepeaterColumn::key('points')->repeater([RepeaterColumn::key('kind')->text()])])
