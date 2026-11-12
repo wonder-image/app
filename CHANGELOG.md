@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Aggiunto
+- **Repeater senza cestino.** `InputRepeater::repeaterDeleteButton($b = true)`
+  (context `delete_button`), simmetrico a `repeaterAddButton()`: con `false`
+  il bottone che elimina non si stampa, né nelle righe né nel modello, anche
+  nel riassunto delle schede richiudibili. Per le righe che arrivano da
+  altrove e nel form si correggono soltanto. Vale anche per il repeater
+  dentro una riga, che decide per sé.
 - **Repeater dentro la riga di un repeater.** Una colonna può essere
   `RepeaterColumn::key('points')->repeater([...])` (repeater esterno con
   `nested()`, tema Bootstrap): i campi si chiamano

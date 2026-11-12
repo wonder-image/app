@@ -22,7 +22,7 @@ class Repeater extends Field
 
     /** Quello che un repeater interno tiene del proprio `context`. */
     private const INNER_CONTEXT = [
-        'add_label', 'add_button', 'add_button_class', 'delete_modal_title', 'delete_modal_text',
+        'add_label', 'add_button', 'add_button_class', 'delete_button', 'delete_modal_title', 'delete_modal_text',
         'delete_modal_cancel_label', 'delete_modal_confirm_label', 'delete_modal_confirm_class',
     ];
 
@@ -258,9 +258,12 @@ HTML;
                 .'<i class="bi bi-grip-vertical"></i></button>'
             : '';
         $deleteLabel = $this->escape((string) ($context['delete_modal_confirm_label'] ?? 'Elimina'));
-        $deleteHtml = '<button type="button" class="btn btn-sm btn-link text-danger px-1 flex-shrink-0 wi-repeater-delete"'
-            .' title="'.$deleteLabel.'" aria-label="'.$deleteLabel.'"'
-            .' onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>';
+        // Senza cestino la riga non si toglie a mano: `repeaterDeleteButton(false)`.
+        $deleteHtml = ($context['delete_button'] ?? true) !== false
+            ? '<button type="button" class="btn btn-sm btn-link text-danger px-1 flex-shrink-0 wi-repeater-delete"'
+                .' title="'.$deleteLabel.'" aria-label="'.$deleteLabel.'"'
+                .' onclick="window.wiRepeaterRemoveRow(this)"'.$deleteAttrs.'><i class="bi bi-trash3"></i></button>'
+            : '';
 
         // Le colonne si dichiarano su undici (nove con il riordino), come
         // quando le azioni occupavano il resto: qui si allargano a tutta la riga.

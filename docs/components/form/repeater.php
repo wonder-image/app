@@ -64,6 +64,25 @@ return ComponentDoc::for(Repeater::class)
             ->height(300)
     )
     ->example(
+        Example::make('Righe che non si aggiungono né si tolgono')
+            ->code(<<<'PHP'
+            FormField::key('addresses')
+                ->repeater([
+                    RepeaterColumn::key('company')->text()->readonly()->label('Azienda')->columnSpan(4),
+                    RepeaterColumn::key('street')->text()->label('Via')->columnSpan(7),
+                ])
+                ->repeaterAddButton(false)
+                ->repeaterDeleteButton(false)
+                ->label('Indirizzi')
+                ->value([
+                    ['company' => 'Rossi srl', 'street' => 'Via Roma 1'],
+                    ['company' => 'Bianchi spa', 'street' => 'Via Milano 12'],
+                ])
+            PHP)
+            ->description('`repeaterAddButton(false)` toglie il bottone che aggiunge, `repeaterDeleteButton(false)` il cestino di ogni riga: per le righe che arrivano da altrove e qui si correggono soltanto. I due si spengono anche uno per volta.')
+            ->height(300)
+    )
+    ->example(
         Example::make('Schede richiudibili')
             ->code(<<<'PHP'
             FormField::key('people')

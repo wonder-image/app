@@ -187,6 +187,18 @@ class InputRepeater extends Input
     }
 
     /**
+     * Il cestino che toglie una riga.
+     *
+     * Si toglie quando levare la riga dal form non cancella niente: le righe
+     * arrivano da altrove e chi salva le aggiorna soltanto. Senza cestino
+     * non si stampa né nelle righe né nel modello.
+     */
+    public function repeaterDeleteButton(bool $visible = true): static
+    {
+        return $this->context('delete_button', $visible);
+    }
+
+    /**
      * Senza righe da mostrare, il repeater ne stampa una vuota: con questo
      * non la stampa.
      *
