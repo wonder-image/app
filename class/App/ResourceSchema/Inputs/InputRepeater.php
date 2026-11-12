@@ -212,6 +212,21 @@ class InputRepeater extends Input
     }
 
     /**
+     * Senza righe, al posto della riga vuota, un riquadro tratteggiato con il
+     * bottone «Aggiungi» al centro: al primo clic nasce la riga e il bottone
+     * torna in fondo; tolta l'ultima, torna il riquadro.
+     *
+     * Serve dove le righe sono facoltative (referenti, brand, contatti in
+     * più): una riga vuota sempre aperta sembra un campo da compilare. Vale
+     * anche per un repeater dentro la riga di un altro. Non ha effetto con
+     * `repeaterMinRows()` o senza il bottone che aggiunge.
+     */
+    public function repeaterEmptyState(bool $enabled = true): static
+    {
+        return $this->context('empty_state', $enabled);
+    }
+
+    /**
      * Il numero minimo di righe: quando ne restano tante, il bottone che
      * elimina si spegne. Serve dove un record senza righe non ha senso (una
      * scheda senza nessun contatto). È un aiuto a schermo: la regola vera la

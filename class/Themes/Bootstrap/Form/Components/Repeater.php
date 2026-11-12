@@ -22,7 +22,7 @@ class Repeater extends Field
 
     /** Quello che un repeater interno tiene del proprio `context`. */
     private const INNER_CONTEXT = [
-        'add_label', 'add_button', 'add_button_class', 'delete_button', 'delete_modal_title', 'delete_modal_text',
+        'add_label', 'add_button', 'add_button_class', 'empty_state', 'delete_button', 'delete_modal_title', 'delete_modal_text',
         'delete_modal_cancel_label', 'delete_modal_confirm_label', 'delete_modal_confirm_class',
     ];
 
@@ -68,7 +68,14 @@ class Repeater extends Field
         // Un form che si compila a mano parte con una riga pronta; uno che le
         // righe le riceve da altrove parte vuoto, o quella riga finta viene
         // postata e a valle diventa un record senza niente dentro.
-        if ($value === [] && ($context['start_empty'] ?? false) !== true) {
+        // Lo stato vuoto: senza righe un riquadro con il bottone al centro, al
+        // posto della riga finta. Non vale dove una riga ci deve sempre
+        // essere (`min_rows`) o dove non se ne possono aggiungere.
+        $emptyState = ($context['empty_state'] ?? false) === true
+            && ($context['add_button'] ?? true) !== false
+            && (int) ($context['min_rows'] ?? 0) <= 0;
+
+        if ($value === [] && !$emptyState && ($context['start_empty'] ?? false) !== true) {
             $value = ['row_1' => []];
         }
 
@@ -142,7 +149,7 @@ class Repeater extends Field
         $quickScriptHtml = $quickScriptMoved > 0 ? $quickScript : '';
         $addButton = ($context['add_button'] ?? true) !== false;
         $addButtonHtml = $addButton
-            ? '<div class="mt-2 d-flex justify-content-end">'
+            ? '<div class="mt-2 d-flex justify-content-end'.($emptyState && $value === [] ? ' d-none' : '').'" data-wi-repeater-add>'
                 .'<button type="button" class="'.$addButtonClass.'"'
                 ." onclick=\"window.wiRepeaterAddRow('{$rowId}', '{$templateId}')\">"
                 .'<i class="bi bi-plus-lg"></i> '.$addLabel.'</button></div>'
@@ -152,8 +159,17 @@ class Repeater extends Field
         // nessuno potrebbe rimetterne una.
         $minRows = max(0, (int) ($context['min_rows'] ?? 0));
         $rowsAttrs = $groupAttrs.($addButton ? '' : ' data-wi-add-button="false"')
-            .($inner !== null ? ' data-wi-allow-empty="true"' : '')
+            .($inner !== null || $emptyState ? ' data-wi-allow-empty="true"' : '')
             .($minRows > 0 ? ' data-wi-repeater-min="'.$minRows.'"' : '');
+        // Il bottone al centro aggiunge la prima riga e ci porta il fuoco:
+        // sparendo lui, la tastiera resterebbe senza un posto dove stare.
+        $emptyHtml = $emptyState
+            ? '<div class="border rounded text-center '.($inner !== null ? 'p-2' : 'p-4').($value === [] ? '' : ' d-none').'"'
+                .' style="--bs-border-style:dashed" data-wi-repeater-empty>'
+                .'<button type="button" class="btn '.($inner !== null ? 'btn-sm ' : '').'btn-outline-secondary"'
+                ." onclick=\"window.wiRepeaterAddFirstRow('{$rowId}', '{$templateId}')\">"
+                .'<i class="bi bi-plus-lg"></i> '.$addLabel.'</button></div>'
+            : '';
         $minInitHtml = $minRows > 0 ? "<script>window.wiRepeaterSyncMin(document.getElementById('{$rowId}'));</script>" : '';
         $summaryInitHtml = $this->collapsibleConfig($context) !== null
             ? "<script>window.wiRepeaterSummaryInit('{$rowId}');</script>"
@@ -179,6 +195,7 @@ class Repeater extends Field
     <div id="{$rowId}" class="row g-2"{$rowsAttrs}>
         {$rowsHtml}
     </div>
+    {$emptyHtml}
     <template id="{$templateId}" data-wi-row-placeholder="{$placeholder}">{$templateHtml}</template>
     {$quickScriptHtml}
     {$addButtonHtml}
@@ -194,6 +211,7 @@ HTML;
         {$sentinel}
         {$rowsHtml}
     </div>
+    {$emptyHtml}
     <template id="{$templateId}">{$templateHtml}</template>
     {$quickScriptHtml}
     {$groupTemplateHtml}
@@ -874,8 +892,28 @@ HTML;
         }
 
         if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
+        if (typeof window.wiRepeaterSyncEmpty === 'function') window.wiRepeaterSyncEmpty(container);
 
         // Chi ha chiesto la riga la vuole anche riempire.
+        return row;
+    };
+
+    // Lo stato vuoto (`repeaterEmptyState()`): senza righe si vede il
+    // riquadro con il bottone al centro, con almeno una il bottone in fondo.
+    window.wiRepeaterSyncEmpty = window.wiRepeaterSyncEmpty || function (container) {
+        const wrap = container ? container.parentElement : null;
+        const empty = wrap ? wrap.querySelector(':scope > [data-wi-repeater-empty]') : null;
+        if (!empty) return;
+        const filled = container.querySelector(':scope > .wi-repeater-row:not(.d-none)') !== null;
+        empty.classList.toggle('d-none', filled);
+        const add = wrap.querySelector(':scope > [data-wi-repeater-add]');
+        if (add) add.classList.toggle('d-none', !filled);
+    };
+
+    window.wiRepeaterAddFirstRow = window.wiRepeaterAddFirstRow || function (containerId, templateId) {
+        const row = window.wiRepeaterAddRow(containerId, templateId);
+        const field = row ? row.querySelector('input:not([type="hidden"]), select, textarea') : null;
+        if (field && typeof field.focus === 'function') field.focus();
         return row;
     };
 
@@ -1116,10 +1154,14 @@ HTML;
                 return;
             }
             row.remove();
+            // La riga non c'è più: chi conta le righe del form lo sa da qui.
+            container.dispatchEvent(new CustomEvent('wi-repeater-row-removed', { bubbles: true }));
 
             if (typeof window.wiRepeaterGroupRefresh === 'function') {
                 window.wiRepeaterGroupRefresh(container);
             }
+
+            if (typeof window.wiRepeaterSyncEmpty === 'function') window.wiRepeaterSyncEmpty(container);
 
             if (typeof window.wiRepeaterSyncMin === 'function') window.wiRepeaterSyncMin(container);
         }, deleteConfig);

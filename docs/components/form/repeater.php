@@ -64,6 +64,21 @@ return ComponentDoc::for(Repeater::class)
             ->height(300)
     )
     ->example(
+        Example::make('Stato vuoto')
+            ->code(<<<'PHP'
+            FormField::key('contact_people')
+                ->repeater([
+                    RepeaterColumn::key('name')->text()->label('Nome')->columnSpan(6),
+                    RepeaterColumn::key('job_title')->text()->label('Ruolo')->columnSpan(5),
+                ])
+                ->repeaterAddLabel('Aggiungi referente')
+                ->repeaterEmptyState()
+                ->label('Referenti')
+            PHP)
+            ->description('Con `repeaterEmptyState()` un repeater senza righe non mostra la riga vuota ma un riquadro tratteggiato con il bottone al centro: al primo clic nasce la riga e il bottone torna in fondo; tolta l\'ultima torna il riquadro. Per le righe facoltative; vale anche per un repeater dentro una riga.')
+            ->height(220)
+    )
+    ->example(
         Example::make('Righe che non si aggiungono né si tolgono')
             ->code(<<<'PHP'
             FormField::key('addresses')

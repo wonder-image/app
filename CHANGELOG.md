@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Aggiunto
+- **Stato vuoto del repeater.** `InputRepeater::repeaterEmptyState($b = true)`
+  (context `empty_state`): senza righe, al posto della riga vuota, un
+  riquadro tratteggiato con il bottone «Aggiungi» al centro; al primo clic
+  nasce la riga e il bottone torna in fondo, tolta l'ultima torna il riquadro.
+  Vale anche per il repeater dentro una riga; non ha effetto con
+  `repeaterMinRows()` o `repeaterAddButton(false)`. L'ultima riga si toglie
+  davvero (`data-wi-allow-empty`): chi salva tratta la chiave assente come
+  elenco vuoto. Nuove funzioni `wiRepeaterSyncEmpty()` e
+  `wiRepeaterAddFirstRow()`, nuovo evento `wi-repeater-row-removed` sul
+  contenitore quando una riga esce dal DOM.
 - **Repeater senza cestino.** `InputRepeater::repeaterDeleteButton($b = true)`
   (context `delete_button`), simmetrico a `repeaterAddButton()`: con `false`
   il bottone che elimina non si stampa, né nelle righe né nel modello, anche
