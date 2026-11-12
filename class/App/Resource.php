@@ -424,6 +424,17 @@ abstract class Resource
         return $relations;
     }
 
+    /**
+     * I campi media del form (`FormField::mediaImage()`, ...). Chi salva il
+     * record ci passa i valori della richiesta dopo
+     * {@see mutateRequestValues()} (`resolve()`), poi aggiorna il registro
+     * degli utilizzi (`sync()`, `forget()`). Senza campi media non fa niente.
+     */
+    public static function mediaInputs(): Media\MediaInputs
+    {
+        return Media\MediaInputs::for(static::class);
+    }
+
     public static function stripRelationInputValues(array $values): array
     {
         foreach (array_keys(static::repeaterRelations()) as $inputName) {
