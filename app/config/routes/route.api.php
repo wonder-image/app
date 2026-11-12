@@ -127,6 +127,13 @@ Route::area('api')
                     ->guarded()
                     ->permit([]);
 
+                // Selettore del campo media: chi modifica un record deve
+                // poter scegliere dalla libreria, quindi ogni utente backend.
+                Route::post('/media/search/', $ROOT_APP.'/http/api/backend/media-search.php')
+                    ->name('media.search')
+                    ->guarded()
+                    ->permit([]);
+
                 // Revoca di una connessione OAuth: la proprietà del grant si
                 // controlla nell'handler, ogni utente backend revoca le sue.
                 if (\Wonder\OAuth\OAuth::enabled()) {

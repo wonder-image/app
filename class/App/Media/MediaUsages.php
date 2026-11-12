@@ -94,6 +94,19 @@ final class MediaUsages
     }
 
     /**
+     * Chi usa il media, senza la descrizione per le persone: nessuna
+     * lettura delle Resource e dei record.
+     *
+     * @return list<array{table: string, id: string, column: string}>
+     */
+    public static function owners(int|string $mediaId): array
+    {
+        $mediaId = self::id($mediaId);
+
+        return $mediaId === null ? [] : self::store()->owners($mediaId);
+    }
+
+    /**
      * Dove è usato il media. Ogni riga ha `table`, `id`, `column` e la
      * descrizione per le persone: `resource` (classe o null), `label` (nome
      * della Resource, altrimenti la tabella), `name` (nome del record,
