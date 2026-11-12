@@ -21,6 +21,33 @@
   giorni. Da codice: `Wonder\App\Media\ResizeQueue::enqueue()`, `status()`,
   `error()`. Serve `forge update` per creare la tabella. Vedi
   `docs/app/concetti/coda-ridimensionamenti.md`.
+- **Campo media nei form: un file della libreria, per id.**
+  `FormField::key('image_id')->mediaImage()` (e `mediaIcon()`,
+  `mediaDocument()`, `mediaVideo()`) lega un record a un media: la colonna
+  tiene l'id. Dal form si sceglie un media già in libreria, con la ricerca, o
+  si carica un file nuovo, che diventa un media di quel tipo quando si salva
+  il record; un form abbandonato non lascia media orfani. Caricando un altro
+  file su un campo già pieno, il media usato solo da quel record cambia file
+  e tiene id, slug e testo alternativo; se è condiviso con altri record
+  nasce un media nuovo. `mediaSlug('{slug}')` dà al media creato dal campo
+  lo slug (e il nome del file) del record, con `-2`, `-3` se è già preso;
+  `mediaAlt('{name}')` il testo alternativo, che segue il record finché
+  nessuno lo corregge a mano in libreria. Un id sconosciuto, di un altro
+  tipo o un file rifiutato fermano il salvataggio con l'errore sul campo
+  (422 dalle API). Il registro degli utilizzi si aggiorna da solo, anche
+  quando il record viene eliminato. Solo backend; i campi file esistenti e i
+  file privati non cambiano. Vedi `docs/app/concetti/media.md`.
+- **Leggere un media dal sito.** `Wonder\App\Media\MediaFile::find($id)` e
+  `many($ids)` (una lettura sola) danno indirizzo, testo alternativo, tipo e
+  nome del file; `Image::fromMedia($id)` l'immagine responsive con le misure
+  del sito. Un media che non c'è più dà `null` e non stampa niente.
+- **Testo alternativo delle immagini.** Le immagini della libreria hanno il
+  campo `alt` nella scheda e nelle API generate, come le icone.
+- **Stato delle misure nella scheda di un'immagine.** Un avviso dice se le
+  misure sono ancora in preparazione o non si sono generate.
+- **Ricerca nella libreria per il backend.** `POST /api/backend/media/search/`
+  (`type`, `term`, `page`): per ogni utente del backend, solo id, nome, slug,
+  testo alternativo, tipo e anteprima.
 - **Libreria Media: registro degli utilizzi.** `Wonder\App\Media\MediaUsages`
   tiene in `media_usages` chi usa quale media: `sync($tabella, $id, $colonna,
   $mediaIds)` dopo il salvataggio, `forget($tabella, $id)` quando il record
@@ -51,6 +78,11 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Immagine sostituita con lo stesso nome: niente misure della foto di
+  prima.** Un file che arrivava su un nome già usato trovava ancora le
+  misure e il webp del file precedente, e il sito le mostrava finché non
+  venivano rigenerate (mai, per le larghezze più grandi della foto nuova).
+  Ora `uploadFiles()` le toglie prima di scrivere il file.
 - **Anteprime del backend senza misura.** Il campo file e la miniatura delle
   liste componevano sempre `nome-240.ext`: se la misura non era su disco
   l'immagine risultava rotta. Ora usano l'originale finché la misura manca.
@@ -72,6 +104,16 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Lo slug di un media non cambia più.** Prima, caricando un file nuovo
+  dalla scheda, lo slug veniva ricalcolato dal nome e con lui cambiavano il
+  nome del file e il suo indirizzo. Ora slug e nome del file restano quelli
+  della creazione, anche se il media viene rinominato: l'indirizzo non
+  cambia e link esterni, feed e motori di ricerca continuano a funzionare
+  (la cache la rinnova già `?v=`). Se il file nuovo ha un'altra estensione
+  cambia solo quella. Chi contava sullo slug uguale al nome corrente del
+  media deve leggere il nome.
+- **API delle immagini della libreria.** `app/media/images` espone e accetta
+  anche `alt`.
 - **Un media in uso non si elimina.** Pagina, API ed elenco rispondono con
   il messaggio che dice dove è usato; nemmeno il suo file si toglie
   dall'elenco. La scheda di un media in uso mostra dove è usato.

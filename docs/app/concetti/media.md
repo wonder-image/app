@@ -9,9 +9,9 @@ Restano fuori i file privati (fatture, allegati degli ordini, documenti dei
 clienti, foto profilo): la libreria è condivisa e pubblica, quelli sono campi
 file normali.
 
-Questa pagina descrive i tipi, il registro degli utilizzi e la migrazione
-delle icone. Il campo del form che sceglie o carica un media arriva in un
-passo successivo e userà quello che è descritto qui.
+Questa pagina descrive i tipi, lo slug stabile, il campo dei form che sceglie
+o carica un media, la lettura dal sito, il registro degli utilizzi e la
+migrazione delle icone.
 
 ## Tipi
 
@@ -54,6 +54,222 @@ e permessi comuni. Un tipo dichiara solo percorso, testi, voce di menu e
 Per i form fuori dalla libreria, `fileDragDrop()` conosce tre categorie in
 più: `svg`, `document` e `media-video` (mp4, webm, mov). La categoria `video`
 resta solo mp4.
+
+Immagini e icone hanno il **testo alternativo** (`alt`) nella scheda e nelle
+API generate; documenti e video no.
+
+## Slug e nome del file stabili
+
+Lo slug di un media nasce con lui e **non cambia più**. Il file si chiama
+come lo slug (`assets/upload/images/<slug>.<estensione>`), quindi anche il suo
+indirizzo resta lo stesso quando:
+
+- si sostituisce il file dalla scheda del media o dal campo di un record;
+- si cambia il nome del media in libreria.
+
+Motori di ricerca, feed e link esterni continuano a funzionare; la cache del
+browser la rinnova già `Asset::version()` con `?v=<data di modifica>`. Se il
+file nuovo ha un'altra estensione (`.jpg` → `.png`) il nome base resta e
+cambia solo l'estensione.
+
+Lo slug è unico in tutta la tabella. Viene dal nome dato al media al momento
+della creazione, oppure dal modello del campo che lo crea (vedi sotto).
+
+{% hint style="info" %}
+Rinominare un file su richiesta, con un reindirizzamento dal vecchio
+indirizzo, non esiste: è un lavoro a parte.
+{% endhint %}
+
+### Niente misure della foto di prima
+
+Con il nome che resta, il file nuovo arriva dove c'era quello vecchio. Prima
+di scriverlo `uploadFiles()` toglie le misure (`<slug>-<larghezza>`) e il
+webp che trova su quel nome (`MediaFileManager::deleteDerived()`): finché la
+[coda dei ridimensionamenti](coda-ridimensionamenti.md) non le rigenera, il
+sito mostra l'originale nuovo, mai una misura della foto di prima. Quando
+cambia l'estensione, il file vecchio se ne va con le misure della sua
+estensione e i `.webp` restano quelli del file nuovo
+(`MediaFileManager::deleteReplacedFiles()`).
+
+La scheda di un'immagine avvisa in alto quando le misure sono ancora in
+preparazione o non si sono generate (`MediaResource::resizeNotices()`, da
+`ResizeQueue::status()` ed `error()`).
+
+## Il campo media nei form
+
+Un record sceglie un media con un campo dedicato: la colonna tiene l'id.
+
+```php
+use Wonder\App\ResourceSchema\FormField;
+
+FormField::key('image_id')->mediaImage()
+    ->mediaSlug('{slug}')   // slug e nome del file del media creato dal campo
+    ->mediaAlt('{name}');   // il suo testo alternativo
+
+FormField::key('icon_id')->mediaIcon();
+FormField::key('manual_id')->mediaDocument();
+FormField::key('spot_id')->mediaVideo();
+```
+
+I quattro type-helper sono `media($tipo)` con un tipo di `MediaTypes`: da lì
+arrivano estensioni e peso massimo. Nel Model la colonna è un intero che può
+essere vuoto:
+
+```php
+// tableSchema()
+Column::key('image_id')->int()->null(),
+
+// dataSchema()
+Field::key('image_id')->number(),
+```
+
+Nel form il campo mostra l'anteprima del media scelto (la miniatura per
+immagini e icone, il nome per documenti e video) e tre azioni: **Scegli dalla
+libreria** (una finestra con la ricerca), **Carica un file**, **Togli**.
+
+Il campo esiste solo nel backend (tema Bootstrap), come il Repeater: nel tema
+Wonder `render()` lancia un'eccezione. Non è previsto dentro le righe di un
+repeater. I campi file esistenti non cambiano da soli: restano `file()` e
+`fileDragDrop()` finché non li si sostituisce.
+
+### Cosa succede al salvataggio
+
+La scelta si risolve sul server quando si salva il record, non con un upload
+a parte: un form abbandonato non lascia media orfani. Il campo invia l'id del
+media scelto, oppure un file, oppure niente (campo svuotato). Lo legge
+`Wonder\App\Media\MediaInputs`, che i controller delle Resource chiamano dopo
+`mutateRequestValues()` e prima della preparazione dei valori, sia dalla
+pagina del backend sia dalle API generate:
+
+| Arriva | Succede |
+|---|---|
+| l'id di un media | deve esistere, non essere eliminato ed essere del tipo del campo; altrimenti errore sul campo |
+| un file, e il campo era vuoto | nasce un media del tipo del campo; la colonna prende il suo id |
+| un file, e il media di prima è usato **solo** da questa colonna di questo record | il file del media viene sostituito: id, slug e testo alternativo restano |
+| un file, e il media di prima è usato anche altrove | nasce un media nuovo e il record punta a quello; il media condiviso non si tocca |
+| il campo vuoto | la colonna si svuota |
+| niente (il campo non è nella richiesta) | il record tiene il suo valore |
+
+"Usato solo da questo record" lo dice il [registro degli
+utilizzi](#registro-degli-utilizzi); se il registro non risponde vale la
+strada prudente, un media nuovo.
+
+Il media nasce e si sostituisce con la stessa strada della sua sezione in
+libreria (`mutateRequestValues()` e `prepareFor()` della Resource del tipo,
+quindi `uploadFiles()`): stessi controlli su estensione, contenuto e peso,
+svg ripulito, misure in coda.
+
+Un file rifiutato, un id sconosciuto o del tipo sbagliato **fermano il
+salvataggio** con il motivo sotto il campo; nella colonna non entra mai un id
+non valido. Dalle API la risposta è 422 con `errors.<campo>`.
+
+Nel form il file viaggia nel campo `<campo>__wi_media_upload`. Dalle API si
+manda `image_id` con l'id, oppure un file multipart con lo stesso nome della
+colonna (che deve essere fra i campi scrivibili di `apiSchema()`).
+
+{% hint style="info" %}
+Il media viene creato prima che il record sia validato. Se poi il record non
+si salva per un altro errore, il media resta in libreria come "non usato" e
+il form lo ripropone già scelto: non serve ricaricare il file.
+{% endhint %}
+
+### Slug dal record
+
+`mediaSlug('{slug}')` dà al media creato dal campo lo slug, e quindi il nome
+del file, presi dai valori del record: l'immagine del prodotto `scarpa-rossa`
+si chiama `scarpa-rossa.jpg`. Tra graffe va il nome di una colonna del
+record; si possono comporre (`{slug}-retro`).
+
+- Vale **solo alla creazione** del media dal campo. Uno slug non segue mai il
+  record: se il prodotto cambia slug, il media tiene il suo.
+- Se lo slug è già di un altro media prende `-2`, `-3`, ...
+- Senza modello lo slug viene dal nome del file caricato, come in libreria.
+- I valori sono quelli della richiesta, prima della formattazione del
+  record; una colonna che non è nella richiesta vale quella salvata.
+
+### Testo alternativo dal record
+
+`mediaAlt('{name}')` dà il testo alternativo al media creato dal campo.
+
+- Alla sostituzione del file il testo alternativo resta.
+- Quando il record viene salvato con valori diversi (prodotto rinominato) il
+  testo alternativo lo **segue solo se nessuno lo ha scritto a mano**: se è
+  ancora quello che il modello dava con i valori di prima, diventa quello dei
+  valori nuovi. Non serve una colonna in più: si confronta il testo salvato
+  con il modello riempito dai valori precedenti.
+- Un testo alternativo corretto a mano in libreria non viene più toccato.
+
+### Registro aggiornato da solo
+
+Dopo un salvataggio riuscito i controller chiamano `MediaUsages::sync()` per
+ogni campo media del form; quando il record viene eliminato (pagina, API
+generate, bottone "Elimina" dell'elenco) chiamano `MediaUsages::forget()`.
+Chi usa i campi media non deve fare niente. Una Resource senza campi media
+non fa nessuna query in più.
+
+Chi salva un record fuori dai controller delle Resource fa lo stesso a mano:
+
+```php
+$media = ProductResource::mediaInputs();
+$values = $media->resolve($values, $oldValues);   // prima di preparare i valori
+
+if ($media->errors() !== []) {
+    // campo => motivo: non salvare
+}
+
+// ... salvataggio riuscito ...
+$media->sync($id, $values);
+
+// ... record eliminato ...
+ProductResource::mediaInputs()->forget($id);
+```
+
+### La ricerca della finestra
+
+La finestra legge `POST /api/backend/media/search/` (rotta
+`api.backend.media.search`, protetta, con token CSRF): parametri `type` (uno
+di `MediaTypes`, altrimenti 422), `term` e `page`. Ogni utente del backend può
+chiamarla, perché chi modifica un record deve poter scegliere un media.
+Risponde con 24 media per pagina e solo `id`, `name`, `slug`, `alt`, `type` e
+`thumbnail` dei media non eliminati di quel tipo
+(`MediaLibrary::search()`).
+
+CSS e script del campo escono una volta per pagina da
+`Themes\Support\PageAssets`, con il contratto `data-wi-media*`
+(`data-wi-media` sulla radice con il tipo, `-value`, `-upload`, `-choose`,
+`-remove`, `-preview`, `-search`), che `wonder-image/lib` può prendere in
+carico senza cambiare il markup.
+
+## Leggere un media nel sito
+
+`Wonder\App\Media\MediaFile` legge un media dal suo id:
+
+```php
+use Wonder\App\Media\MediaFile;
+use Wonder\Elements\Media\Image;
+
+$cover = MediaFile::find($product['image_id']);   // null se non c'è
+
+$cover?->url();       // indirizzo con la versione
+$cover?->alt;         // testo semplice
+$cover?->type;        // 'image'
+$cover?->fileName();  // 'scarpa-rossa.jpg'
+
+// Più record: una lettura sola.
+$covers = MediaFile::many(array_column($products, 'image_id'));
+$covers[$product['image_id']] ?? null;
+
+// Immagine responsive, con il testo alternativo e le misure del sito.
+echo Image::fromMedia($product['image_id'])->displaySizes('(min-width: 768px) 50vw, 100vw');
+echo Image::fromMedia($covers[$product['image_id']] ?? null);
+
+// Documenti e video: l'indirizzo.
+echo MediaFile::find($product['manual_id'])?->url();
+```
+
+Un id vuoto, sconosciuto o di un media eliminato dà `null`, e
+`Image::fromMedia()` non stampa niente: una pagina pubblica non si rompe per
+un media tolto. `alt` e `name` sono testo semplice, da stampare con `e()`.
 
 ## Registro degli utilizzi
 
@@ -100,8 +316,10 @@ media per id non paga niente.
 
 {% hint style="warning" %}
 Il registro sa solo quello che gli viene detto. Un record che smette di usare
-un media senza `sync()` o `forget()` lo lascia bloccato. Chi elimina un record
-dall'elenco (cancellazione logica) deve chiamare `forget()` nel suo
+un media senza `sync()` o `forget()` lo lascia bloccato. I [campi
+media](#il-campo-media-nei-form) delle Resource lo aggiornano da soli; chi
+salva l'id di un media in un altro modo (una colonna scritta a mano, una riga
+di un repeater) chiama `sync()` dopo il salvataggio e `forget()` nel suo
 `afterDelete()` o dove gestisce l'eliminazione.
 {% endhint %}
 
@@ -193,8 +411,7 @@ in `tests/App/Media/RasterIconPlanTest.php`.
   a funzionare, perché lo slug resta (tranne nel caso di collisione qui
   sopra).
 - Le API generate `app/media/icons` elencano solo gli svg; le icone raster
-  compaiono in `app/media/images`, che non espone `alt`. Il valore di `alt`
-  resta nella riga.
+  compaiono in `app/media/images`, con il loro `alt`.
 
 ## Test
 
@@ -204,4 +421,21 @@ php tests/App/Media/MediaUsagesTest.php
 php tests/App/Media/MediaDeleteGuardTest.php
 php tests/App/Media/RasterIconPlanTest.php
 php tests/App/Media/RasterIconMigrationTest.php
+php tests/App/Media/MediaStableSlugTest.php
+php tests/App/Media/MediaInputsTest.php
+php tests/App/Media/MediaFileTest.php
+php tests/Themes/MediaPickerTest.php
 ```
+
+Libreria e registro sono sostituibili insieme:
+
+```php
+use Wonder\App\Media\MediaLibrary;
+use Wonder\App\Media\MemoryMediaStore;
+
+MediaLibrary::useStore(new MemoryMediaStore([
+    ['id' => 10, 'type' => 'image', 'slug' => 'scarpa', 'name' => 'Scarpa', 'file' => 'scarpa.jpg'],
+]));
+```
+
+`useStore(null)` torna al database (`DatabaseMediaStore`).

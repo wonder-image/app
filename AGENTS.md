@@ -602,6 +602,46 @@ php forge start
   files are in place, a second run is a no-op. Input categories `svg`,
   `document`, `media-video` exist for `fileDragDrop()`; `video` stays
   mp4-only. See `docs/app/concetti/media.md`; tests `tests/App/Media/*`.
+  A Media slug never changes after creation (`MediaResource::
+  mutateRequestValues()`): the file is named after the slug, so replacing
+  the file or renaming the media keeps its URL (only the extension may
+  change); never re-derive it on update. `uploadFiles()` clears the widths
+  and webp found on the destination name before writing
+  (`MediaFileManager::deleteDerived()`, `deleteReplacedFiles()` for the
+  manifest route), so a replaced image never shows variants of the old
+  picture. Images and icons have `alt` (form and API). Media fields of
+  other Resources are `FormField::mediaImage()` / `mediaIcon()` /
+  `mediaDocument()` / `mediaVideo()` (`Inputs\InputMedia`, Element
+  `MediaPicker`, Bootstrap only like `Repeater`, not inside repeaters):
+  the column holds the Media id (`int()->null()`), private files keep
+  `file()`. The choice is resolved server side at owner save by
+  `Media\MediaInputs` (`Resource::mediaInputs()`), which both Resource
+  controllers call after `mutateRequestValues()` and before prepare:
+  posted id validated (exists, not deleted, right type), an uploaded file
+  (`<field>__wi_media_upload`, or the column key from the API) creates a
+  Media or, when `MediaUsages::owners()` says the current one is used only
+  by this row and column, replaces its file in place; shared media are
+  never touched. Creation and replacement go through the type Resource
+  (`MediaResource::forType()`, `DatabaseMediaStore`: `mutateRequestValues()`
+  + `prepareFor()`, hence `uploadFiles()`), never a second upload path.
+  Errors fail the save (`errors()`: field error on the page, 422 from the
+  API). `mediaSlug('{slug}')` applies only at creation (taken slug gets
+  `-2`, `-3`); `mediaAlt('{name}')` sets the alt at creation and follows
+  the owner only while the stored alt still equals the template filled
+  with the previous values (written in `sync()`, after a successful save).
+  Controllers call `sync()` after store/update and `forget()` on delete
+  (page, generated API, `api/backend/delete`); a Resource without media
+  inputs runs no query. `MediaLibrary::useStore()` swaps the `MediaStore`
+  (`MemoryMediaStore` in tests). The picker reads
+  `POST api/backend/media/search/` (`guarded()`, `permit([])`,
+  `MediaLibrary::search()`: type whitelisted against `MediaTypes`, bound
+  term, 24 per page, only id/name/slug/alt/type/thumbnail); modal, CSS and
+  JS come once per page from `PageAssets` with the `data-wi-media*`
+  contract. Frontend reads go through `MediaFile::find()` / `many()` (one
+  query per batch, null for missing or deleted, never an exception) and
+  `Image::fromMedia()`, which renders nothing for a missing media. The
+  image edit page reports pending/failed resizes through `formNotices()`
+  (`MediaResource::resizeNotices()`).
 - Mail outbox: `queueMail()` (same signature as `sendMail()`, which stays
   synchronous) stores a `queued` `mail_log` row with the raw arguments in
   `payload` (JSON, prepared statement, never `sanitize()`); the always-on
