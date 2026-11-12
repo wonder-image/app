@@ -189,8 +189,11 @@ class Repeater extends Field
         $heading = trim($label) === '' ? '' : "<h6>{$label}</h6>";
 
         if ($inner !== null) {
+            // Dentro una riga il repeater sta fra altri campi: stacca il titolo dalle righe e il blocco dai vicini.
+            $heading = trim($label) === '' ? '' : "<h6 class=\"mb-3\">{$label}</h6>";
+
             return <<<HTML
-<div id="{$id}" class="w-100 wi-input-repeater" data-wi-repeater="{$nameAttr}" data-wi-repeater-inner="true">
+<div id="{$id}" class="w-100 wi-input-repeater my-3" data-wi-repeater="{$nameAttr}" data-wi-repeater-inner="true">
     {$heading}
     <div id="{$rowId}" class="row g-2"{$rowsAttrs}>
         {$rowsHtml}

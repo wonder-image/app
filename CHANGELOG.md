@@ -113,6 +113,7 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Repeater annidato: più aria attorno al blocco.** Dentro una riga il repeater interno (per esempio «Contatti aziendali» nella riga di un referente) era attaccato ai campi sopra, alle proprie righe e al campo che segue. Ora il blocco ha un margine sopra e sotto (`my-3`) e il titolo è staccato dalle righe (`mb-3`), solo nel tema Bootstrap e solo per i repeater interni.
 - **Repeater con soft delete: una riga cancellata che torna si riapre.**
   `Repeater::syncRelatedRows()` perdeva `deleted` nella preparazione dei dati
   quando lo schema dati della tabella non ha la colonna: la riga ripostata
