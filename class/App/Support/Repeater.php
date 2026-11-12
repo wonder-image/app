@@ -340,11 +340,18 @@ final class Repeater
                 );
             }
 
+            $deleted = $relation->softDelete ? ($payload[$relation->deletedColumn] ?? 'false') : null;
+
             $payload = static::preparePayload(
                 $relation,
                 $payload,
                 $hasId ? ($existingById[(string) $rawId] ?? null) : null
             );
+
+            // Lo schema dati non ha la colonna: una riga cancellata che torna resterebbe cancellata.
+            if ($deleted !== null) {
+                $payload[$relation->deletedColumn] = $deleted;
+            }
 
             unset($payload[$rowKey]);
 

@@ -113,6 +113,11 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Repeater con soft delete: una riga cancellata che torna si riapre.**
+  `Repeater::syncRelatedRows()` perdeva `deleted` nella preparazione dei dati
+  quando lo schema dati della tabella non ha la colonna: la riga ripostata
+  con il suo `id` veniva aggiornata ma restava cancellata. Ora la colonna si
+  scrive sempre.
 - **Campo media in una pagina in sola lettura.** Con il campo dichiarato in
   `editableWhenReadonly()` il file caricato veniva scartato: passava solo la
   scelta dalla libreria. Ora passa anche il file.
