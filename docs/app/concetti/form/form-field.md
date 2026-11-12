@@ -262,7 +262,33 @@ dal primo dell'elenco; anche nelle colonne di un repeater.
 
 `file($accept = 'image')` (upload classico),
 `fileDragDrop($accept = 'image', $uploader = 'classic')` (Filepond drag&drop).
-`$accept` è la categoria (`image`, `pdf`, `video`, `font`, `media`).
+`$accept` è la categoria (`image`, `pdf`, `video`, `font`, `media`, e per la
+[libreria Media](../media.md) `svg`, `document`, `media-video`).
+
+### Media dalla libreria
+
+`mediaImage()`, `mediaIcon()`, `mediaDocument()`, `mediaVideo()` (tutti
+`media($tipo)` con un tipo di `MediaTypes`): la colonna tiene l'**id** di un
+media della [libreria Media](../media.md#il-campo-media-nei-form). Dal form si
+sceglie un media già in libreria o si carica un file nuovo, che diventa un
+media di quel tipo quando si salva il record.
+
+```php
+FormField::key('image_id')->mediaImage()
+    ->mediaSlug('{slug}')   // slug e nome del file del media creato dal campo
+    ->mediaAlt('{name}');   // il suo testo alternativo
+```
+
+| Modificatore | Cosa fa |
+|---|---|
+| `mediaSlug($modello)` | slug del media creato dal campo, dai valori del record (`{slug}`, `{slug}-retro`); solo alla creazione, con `-2`, `-3`, ... se è già preso |
+| `mediaAlt($modello)` | testo alternativo del media creato dal campo; segue il record finché nessuno lo scrive a mano in libreria |
+
+Il tipo `InputMedia` esiste solo nel backend (tema Bootstrap), come il
+repeater, e non è previsto fra le colonne di un repeater. Usalo per i file
+pubblici; fatture, allegati e documenti dei clienti restano `file()`. Il
+salvataggio, gli errori e il registro degli utilizzi sono descritti nella
+pagina della libreria.
 
 ### Ripetibili
 

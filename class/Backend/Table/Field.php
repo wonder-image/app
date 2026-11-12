@@ -764,7 +764,8 @@
                                 } else {
                                     $extension = pathinfo($VALUE[0], PATHINFO_EXTENSION);
                                     $name = pathinfo($VALUE[0], PATHINFO_FILENAME);
-                                    $VALUE = $fileBase.$imageDir.$name.$imageSize.'.'.$extension;
+                                    // Misura ancora in coda: la lista mostra l'originale.
+                                    $VALUE = \Wonder\App\Media\Variants::url($fileBase.$imageDir.$name.$imageSize.'.'.$extension, $fileBase.$imageDir.$VALUE[0]);
                                 }
                             } else {
                                 $VALUE = "";

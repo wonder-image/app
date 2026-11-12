@@ -359,7 +359,7 @@ php forge start
 - External modules are enabled by the consumer in `custom/config/modules.php`.
 - External module entrypoints should implement `Wonder\\App\\Module\\Contracts\\ModuleInterface`.
 - Module routes should live in `config/routes/route.frontend.php`, `route.backend.php`, `route.api.php` inside the module package and be loaded by the core registrars. `Registry::routeFiles()` loads them in alphabetical path order, not dependency order.
-- Structural module migrations go in `module.json` `database.migrations`: classes implementing `ModuleMigration` (`static run(mysqli): array`, idempotent), run by `forge update` in dependency order before table alignment. Rename legacy tables with `Support\LegacyTableRenames` (one atomic `RENAME TABLE`, stops when both names exist); never drop or merge. See `docs/app/concetti/moduli/manifest.md`.
+- Structural module migrations go in `module.json` `database.migrations`: classes implementing `ModuleMigration` (`static run(mysqli): array`, idempotent), run by `forge update` in dependency order before table alignment. Rename legacy tables with `Support\LegacyTableRenames` (one atomic `RENAME TABLE`, stops when both names exist); never drop or merge. Data migrations that need tables created or aligned in the same update (core tables included) go in `database.migrations_after_tables`: same contract, run after `runTables()`. See `docs/app/concetti/moduli/manifest.md`.
 - Module view publish uses `php forge publish:module <slug>` from the site root. It copies the module `paths.views` tree into `custom/modules/<slug>/view/`; modules that want runtime override support must resolve views from that custom path before falling back to the package view path.
 - The core preloads a minimal translation context before model discovery, so module extensions and dynamic schema code may safely call `__t()` during early bootstrap.
 - Auth bearer flows use `Wonder\Auth\OneTimeToken`: store only validator hashes, consume atomically, scope by purpose, and sanitize every consumer-provided continue/return URL.
@@ -541,6 +541,111 @@ php forge start
   (`logCheckFailure()`: `failed` row in `mail_log` plus `__log()`, never
   throws); `sendMailError()` exposes the last `sendMail()` error.
   See `docs/app/servizi/configurazione/email.md`.
+- Image resize queue (`class/App/Media`): `uploadFiles()` no longer generates
+  responsive widths in the request. When `$FORMAT['convert']` is empty and
+  `ResizeQueue::queueable($FORMAT['resize'])` holds (a plain list of integer
+  widths, or `[]` with `webp`), it calls `ResizeQueue::enqueue($absolutePath,
+  $widths, $webp, $quality, $deleteWhenReady)`, which stores one row per file
+  in `image_resizes` (`Models\System\ImageResize`, outside `TableSync`; path
+  relative to `ROOT`, unique `path_hash`; widths saved in the row because
+  `RESPONSIVE_IMAGE_SIZES` does not exist in the scheduler). `enqueue()`
+  returns false, and the caller resizes immediately with `imageResize()`,
+  when the table is missing, the scheduler heartbeat is stale
+  (`Outbox::alive()`, never a second check) or the write throws: sites
+  without a cron must behave as before. Sizes declared with `width`
+  (`resizeToWidth()`, `resizeToWidths()`, `responsive()`), `convertTo()`
+  fields and `deferResize()` keep their current behavior; `uploadFiles()`
+  never wrote `WxH-name` files. The always-on task `wonder.media-resize`
+  and `forge media:resize [--failed]` both call `ResizeQueue::drain()`
+  (`NamedLock`, 40s budget for the task): atomic claim by token, attempt
+  counted at claim, stale claims released after 10 min, retries after 1 and
+  5 min, 3 attempts then `failed`; a missing source closes with
+  `ResizeQueue::MISSING` without retry and is not reported. A `finish()`
+  whose token no longer matches (file re-enqueued meanwhile) leaves the row
+  `pending`. `deleteWhenReady` paths must stay under `ROOT/assets/upload/`
+  (validated at enqueue and again with `realpath` before unlink) and are
+  removed only after `ready`. `enqueue(..., withoutScheduler: true)` skips
+  only the heartbeat check, for work that can wait (migrations, seed data).
+  Storage sits behind `ResizeStore`
+  (`DatabaseResizeStore`, prepared statements only; `MemoryResizeStore` and
+  `ResizeQueue::useStore()` / `useRoot()` for tests, never a database).
+  Rendering needs no hook: frontend renderers already list only variants on
+  disk; backend previews must build a width variant through
+  `Media\Variants::url()` / `suffix()`, never by hand. Home status item
+  `media_resize` (`MediaResizeStatus`, gated by `ScheduleResource`) warns on
+  rows pending over 15 min or failed in the last 7 days. See
+  `docs/app/concetti/coda-ridimensionamenti.md`; test
+  `tests/App/Media/ResizeQueueTest.php`.
+- Media library (`class/App/Media`, `class/App/Resources/Media`): public
+  backend files live in `media`, referenced by Media id, never by path.
+  `MediaTypes` is the only source of types (`image` png/jpg/jpeg/webp with
+  responsive sizes; `icon` svg only, through `SvgSanitizer`; `document`
+  pdf and office formats; `video` mp4/webm/mov, 100 MB, no sizes or
+  thumbnails): extensions, upload folder, input category and max size. Type
+  Resources extend `MediaResource` (shared form, list, API, permissions)
+  and declare only path, texts, navigation and `mediaType()`; never copy a
+  type Resource. Usages go through `MediaUsages` (`media_usages`, outside
+  `TableSync`): whoever stores a Media id calls `sync($table, $rowId,
+  $column, $ids)` after saving and `forget($table, $rowId)` when the owner
+  row is deleted (soft deletes included); `inUse()`, `of()` and `message()`
+  read it. Storage sits behind `MediaUsageStore` (`DatabaseMediaUsageStore`,
+  prepared statements, lazy connection, no own transaction;
+  `MemoryMediaUsageStore` with `MediaUsages::useStore()` /
+  `describeUsing()` in tests): no query unless called. A used media cannot
+  be deleted: `MediaResource::assertDeletable()` (page: flash alert and back
+  to the record; generated API: 422 `errors.delete`; list: 422) and
+  `assertFileDeletable()` for `api/backend/file/delete`; an unreadable
+  registry blocks the deletion. The lists' "Utilizzo" filter is a
+  `filterQuery()` on `MediaUsages::filterCondition()`, never a column.
+  `RasterIconMigration` (in `forge update` after `runTables()`) turns
+  non-svg icons into images following the pure `RasterIconPlan`: files are
+  copied from `icons/` to `images/`, never moved, overwritten or deleted, a
+  taken name becomes `name-icona`, the row changes type only after its
+  files are in place, a second run is a no-op. Input categories `svg`,
+  `document`, `media-video` exist for `fileDragDrop()`; `video` stays
+  mp4-only. See `docs/app/concetti/media.md`; tests `tests/App/Media/*`.
+  A Media slug never changes after creation (`MediaResource::
+  mutateRequestValues()`): the file is named after the slug, so replacing
+  the file or renaming the media keeps its URL (only the extension may
+  change); never re-derive it on update. `uploadFiles()` clears the widths
+  and webp found on the destination name before writing
+  (`MediaFileManager::deleteDerived()`, `deleteReplacedFiles()` for the
+  manifest route), so a replaced image never shows variants of the old
+  picture. Images and icons have `alt` (form and API). Media fields of
+  other Resources are `FormField::mediaImage()` / `mediaIcon()` /
+  `mediaDocument()` / `mediaVideo()` (`Inputs\InputMedia`, Element
+  `MediaPicker`, Bootstrap only like `Repeater`, not inside repeaters):
+  the column holds the Media id (`int()->null()`), private files keep
+  `file()`. The choice is resolved server side at owner save by
+  `Media\MediaInputs` (`Resource::mediaInputs()`), which both Resource
+  controllers call after `mutateRequestValues()` and before prepare:
+  posted id validated (exists, not deleted, right type), an uploaded file
+  (`<field>__wi_media_upload`, or the column key from the API) creates a
+  Media or, when `MediaUsages::owners()` says the current one is used only
+  by this row and column, replaces its file in place; shared media are
+  never touched. Creation and replacement go through the type Resource
+  (`MediaResource::forType()`, `DatabaseMediaStore`: `mutateRequestValues()`
+  + `prepareFor()`, hence `uploadFiles()`), never a second upload path.
+  Errors fail the save (`errors()`: field error on the page, 422 from the
+  API). `mediaSlug('{slug}')` applies only at creation (taken slug gets
+  `-2`, `-3`); `mediaAlt('{name}')` sets the alt at creation and follows
+  the owner only while the stored alt still equals the template filled
+  with the previous values (written in `sync()`, after a successful save).
+  A read-only page that lists the field in `editableWhenReadonly()` also
+  lets its upload key through (`MediaInputs::uploadKeys()`).
+  Controllers call `sync()` after store/update and `forget()` on delete
+  (page, generated API, `api/backend/delete`); a Resource without media
+  inputs runs no query. `MediaLibrary::useStore()` swaps the `MediaStore`
+  (`MemoryMediaStore` in tests). The picker reads
+  `POST api/backend/media/search/` (`guarded()`, `permit([])`,
+  `MediaLibrary::search()`: type whitelisted against `MediaTypes`, bound
+  term, 24 per page, only id/name/slug/alt/type/thumbnail); modal, CSS and
+  JS come once per page from `PageAssets` with the `data-wi-media*`
+  contract. Frontend reads go through `MediaFile::find()` / `many()` (one
+  query per batch, null for missing or deleted, never an exception) and
+  `Image::fromMedia()`, which renders nothing for a missing media. The
+  image edit page reports pending/failed resizes through `formNotices()`
+  (`MediaResource::resizeNotices()`).
 - Mail outbox: `queueMail()` (same signature as `sendMail()`, which stays
   synchronous) stores a `queued` `mail_log` row with the raw arguments in
   `payload` (JSON, prepared statement, never `sanitize()`); the always-on

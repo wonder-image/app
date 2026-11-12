@@ -546,8 +546,11 @@
             'pdf' => '.pdf',
             'png' => '.png',
             'ico' => '.ico',
-            'media' => '.png, .jpg, .jpeg, .webp, .pdf',
+            'svg' => '.svg',
+            'document' => '.'.implode(', .', \Wonder\App\Media\MediaTypes::extensions('document')),
+            'media' => '.png, .jpg, .jpeg, .webp, .svg, .'.implode(', .', \Wonder\App\Media\MediaTypes::extensions('document')),
             'video' => '.mp4',
+            'media-video' => '.'.implode(', .', \Wonder\App\Media\MediaTypes::extensions('video')),
             'jpg' => '.jpg - .jpeg',
             'font' => '.ttf',
             default => '',
@@ -656,6 +659,8 @@
                     $extension = pathinfo($fileName, PATHINFO_EXTENSION);
                     $baseName = pathinfo($fileName, PATHINFO_FILENAME);
                     $link = $PATH->upload.'/'.$NAME->folder.$dir.$baseName.$imageSize.'.'.$extension;
+                    // Misura ancora in coda: l'anteprima usa l'originale.
+                    $link = \Wonder\App\Media\Variants::url($link, $linkDownload);
                 }
             }
 
@@ -771,6 +776,9 @@
         }
 
         if (is_array($value)) { $value = ""; }
+
+        // Misure ancora in coda: FilePond mostra gli originali.
+        if (!$sizeBefore) { $imageSize = \Wonder\App\Media\Variants::suffix($dir, $value, $imageSize); }
 
         return (new FileElement($name))
             ->label((string) $label)

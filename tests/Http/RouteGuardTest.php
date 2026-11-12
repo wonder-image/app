@@ -18,6 +18,7 @@ $guarded = [
     '/api/backend/list/table/',
     '/api/backend/editorjs/file/',
     '/api/backend/editorjs/image/',
+    '/api/backend/media/search/',
 ];
 
 foreach ($guarded as $path) {

@@ -75,16 +75,19 @@ final class ManifestValidator
             }
         }
 
-        $migrations = $manifest->get('database.migrations', []);
+        foreach (['database.migrations', 'database.migrations_after_tables'] as $migrationsKey) {
+            $migrations = $manifest->get($migrationsKey, []);
 
-        if (!is_array($migrations)) {
-            $errors[] = 'database.migrations deve essere una lista di classi';
-        } else {
+            if (!is_array($migrations)) {
+                $errors[] = $migrationsKey.' deve essere una lista di classi';
+                continue;
+            }
+
             foreach ($migrations as $class) {
                 if (!is_string($class) || trim($class) === '') {
-                    $errors[] = 'database.migrations: nome della classe non valido';
+                    $errors[] = $migrationsKey.': nome della classe non valido';
                 } elseif (!class_exists(trim($class))) {
-                    $errors[] = 'Classe database.migrations non autoloadabile: '.trim($class);
+                    $errors[] = 'Classe '.$migrationsKey.' non autoloadabile: '.trim($class);
                 } elseif (!is_subclass_of(trim($class), ModuleMigration::class)) {
                     $errors[] = trim($class).' deve implementare '.ModuleMigration::class;
                 }

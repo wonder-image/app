@@ -213,6 +213,12 @@ all'originale (`nome-480.png`, `nome-960.png`, ...). Le opzioni principali:
 | `->deferResize()` | Scrive solo l'originale: le misure le genera qualcun altro |
 | `->convertTo('png')` | Riscrive il file nel formato indicato, qualunque sia quello caricato |
 
+Le larghezze responsive (una lista di numeri, quelle del sito o le tue) non
+si generano durante il salvataggio: finiscono nella
+[coda dei ridimensionamenti](../coda-ridimensionamenti.md) e lo scheduler le
+prepara entro un minuto. Le misure dichiarate con `width` e i campi con
+`convertTo()` si generano subito.
+
 `convertTo()` serve quando un campo deve accettare più estensioni ma
 conservarne una sola. L'icona app è il caso tipico: arriva quasi sempre in
 JPG, ma sul sito deve restare un PNG, perché i `<link rel="apple-touch-icon">`

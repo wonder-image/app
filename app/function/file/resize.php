@@ -37,19 +37,14 @@
 
     }
 
-    function imageResize($imagePath, array $sizes = RESPONSIVE_IMAGE_SIZES, bool $webp = true)
+    function imageResize($imagePath, array $sizes = RESPONSIVE_IMAGE_SIZES, bool $webp = true, ?int $quality = null)
     {
 
         global $ALERT;
 
         try {
 
-            $image = Wonder\Plugin\Custom\Image\ResponsiveImage::path($imagePath);
-
-            $image->sizes = $sizes;
-            $image->webp = $webp;
-
-            $image->generate();
+            Wonder\App\Media\ResizeQueue::resize($imagePath, $sizes, $webp, $quality);
 
         } catch (\Throwable $th) {
 

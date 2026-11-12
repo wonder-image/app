@@ -23,6 +23,10 @@
         $WEBP = $FORMAT['webp'] ?? false;
         $RESET = $FORMAT['reset'] ?? false;
         $CONVERT = \Wonder\App\Support\ImageConverter::normalizeFormat($FORMAT['convert'] ?? '');
+        $QUALITY = isset($FORMAT['quality']) && is_numeric($FORMAT['quality']) ? (int) $FORMAT['quality'] : null;
+        # In coda vanno solo le larghezze responsive; misure fisse (`width`) e
+        # file convertiti si generano subito, come chi li legge si aspetta.
+        $QUEUE_RESIZE = $CONVERT === '' && \Wonder\App\Media\ResizeQueue::queueable($RESIZE);
 
         if ($RESIZE === true) {
             $RESIZE = null;
@@ -132,6 +136,14 @@
 
                         $NEW_PATH = $PATH_UPLOAD.$NEW_NAME.'.'.$EXTENSION;
 
+                        # Un file che arriva su un nome già usato (nome fisso,
+                        # es. lo slug di un media) non deve trovare le misure
+                        # e il webp del file di prima: fino a quando la coda
+                        # non le rigenera il sito mostrerebbe la vecchia foto.
+                        if (empty($ALERT)) {
+                            \Wonder\App\Support\MediaFileManager::deleteDerived($PATH_UPLOAD, $NEW_NAME.'.'.$EXTENSION, $FORMAT);
+                        }
+
                         if (empty($ALERT) && move_uploaded_file($TEMPORARY, $NEW_PATH)) {
 
                             if ($SVG_CONTENT !== null && @file_put_contents($NEW_PATH, $SVG_CONTENT) === false) {
@@ -166,7 +178,12 @@
                                 $NEW_FILE[$N_OLD_FILE] = $NEW_NAME.'.'.$EXTENSION;
 
                                 if ((!empty($RESIZE) || $WEBP) && in_array($EXTENSION, ['jpg', 'jpeg', 'png', 'webp'])) {
-                                    imageResize($NEW_PATH, $RESIZE, $WEBP);
+
+                                    # Coda non utilizzabile (tabella assente, scheduler fermo): subito, come sempre.
+                                    if (!$QUEUE_RESIZE || !\Wonder\App\Media\ResizeQueue::enqueue($NEW_PATH, $RESIZE, $WEBP, $QUALITY)) {
+                                        imageResize($NEW_PATH, $RESIZE, $WEBP, $QUALITY);
+                                    }
+
                                 }
 
                             }

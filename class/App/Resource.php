@@ -424,6 +424,17 @@ abstract class Resource
         return $relations;
     }
 
+    /**
+     * I campi media del form (`FormField::mediaImage()`, ...). Chi salva il
+     * record ci passa i valori della richiesta dopo
+     * {@see mutateRequestValues()} (`resolve()`), poi aggiorna il registro
+     * degli utilizzi (`sync()`, `forget()`). Senza campi media non fa niente.
+     */
+    public static function mediaInputs(): Media\MediaInputs
+    {
+        return Media\MediaInputs::for(static::class);
+    }
+
     public static function stripRelationInputValues(array $values): array
     {
         foreach (array_keys(static::repeaterRelations()) as $inputName) {
@@ -726,10 +737,20 @@ abstract class Resource
      */
     /**
      * Vieta l'eliminazione di un record lanciando `RuntimeException` con un
-     * messaggio per l'utente. Vale per la pagina della Resource e per
-     * l'eliminazione dall'elenco (`api/backend/delete`).
+     * messaggio per l'utente. Vale per la pagina della Resource (avviso e
+     * ritorno alla scheda), per le API generate (422) e per l'eliminazione
+     * dall'elenco (`api/backend/delete`).
      */
     public static function assertDeletable(int|string $id): void
+    {
+    }
+
+    /**
+     * Vieta di togliere un file da una colonna del record dall'elenco
+     * (`api/backend/file/delete`) lanciando `RuntimeException` con un
+     * messaggio per l'utente.
+     */
+    public static function assertFileDeletable(int|string $id, string $column): void
     {
     }
 
@@ -994,6 +1015,8 @@ abstract class Resource
             'image' => ['png', 'jpg', 'jpeg', 'webp'],
             'video' => ['mp4'],
             'gallery' => ['png', 'jpg', 'jpeg', 'webp', 'mp4'],
+            'document' => Media\MediaTypes::extensions(Media\MediaTypes::DOCUMENT),
+            'media-video' => Media\MediaTypes::extensions(Media\MediaTypes::VIDEO),
             default => [],
         };
     }

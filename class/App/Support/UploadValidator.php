@@ -44,6 +44,8 @@ final class UploadValidator
         'gif' => ['image/gif'],
         'svg' => ['image/svg+xml', 'text/xml', 'application/xml', 'text/plain'],
         'mp4' => ['video/mp4', 'application/mp4', 'video/x-m4v', 'video/quicktime'],
+        'webm' => ['video/webm', 'video/x-matroska', 'application/x-matroska'],
+        'mov' => ['video/quicktime', 'video/mp4'],
         'ico' => ['image/vnd.microsoft.icon', 'image/x-icon', 'image/ico'],
     ];
 
