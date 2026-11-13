@@ -71,7 +71,7 @@ eq('funzione globale non registrata NON invocata come formatter', $got, '');
 // Colonne immagine: il formatter fornisce la SORGENTE (src), non l'intera
 // cella; il framework la avvolge nel medesimo <img> del tipo image nativo.
 $imgTag = static fn (string $src): string =>
-    "<img src='".htmlspecialchars($src, ENT_QUOTES)."' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
+    "<img src='".htmlspecialchars($src, ENT_QUOTES)."' class='border rounded object-fit-cover' style='width: calc(61.5px - 1rem) !important; height: calc(61.5px - 1rem) !important;'>";
 
 ColumnFormatterRegistry::register('immobili.image', static fn (array $row): string =>
     (string) ($row['cover'] ?? ''));

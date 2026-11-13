@@ -897,7 +897,7 @@
         # src). Il src è sempre escaped: può arrivare da dati non fidati (feed).
         private function imageTag(string $src): string
         {
-            return "<img src='".htmlspecialchars(Asset::version($src), ENT_QUOTES)."' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
+            return "<img src='".htmlspecialchars(Asset::version($src), ENT_QUOTES)."' class='border rounded object-fit-cover' style='width: calc(61.5px - 1rem) !important; height: calc(61.5px - 1rem) !important;'>";
         }
 
         private function setBadgeValue($format, $COLUMN_VALUE) {
