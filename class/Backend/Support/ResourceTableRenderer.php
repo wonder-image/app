@@ -15,6 +15,7 @@ use Wonder\App\Visibility\RowVisibility;
 use Wonder\Backend\Table\BulkActions;
 use Wonder\Backend\Table\Reorder;
 use Wonder\Backend\Table\Table;
+use Wonder\Backend\Table\TableAuthorization;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Dropdown;
 use Wonder\Sql\Query;
@@ -491,7 +492,12 @@ final class ResourceTableRenderer
      */
     private function applyBulkActions(Table $table): bool
     {
-        $actions = BulkActions::normalize($this->tableLayoutSchema['bulk_actions'] ?? []);
+        // Come l'endpoint: solo le azioni che l'utente può usare.
+        $actions = BulkActions::allowedActions(
+            BulkActions::normalize($this->tableLayoutSchema['bulk_actions'] ?? []),
+            $this->resourceClass,
+            TableAuthorization::authoritiesOf(LegacyGlobals::get('USER'))
+        );
 
         if ($actions === [] || $this->resourceClass::isReadonly()) {
             return false;

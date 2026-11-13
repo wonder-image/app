@@ -265,6 +265,32 @@ final class BulkActions
         return self::result($value, $ids);
     }
 
+    /**
+     * L'utente può usare l'azione? Il permesso lo dà la Resource indicata
+     * in `permission()`, altrimenti quella della lista.
+     *
+     * @param list<string> $authorities
+     */
+    public static function allowed(BulkAction $action, string $resourceClass, array $authorities): bool
+    {
+        $owner = $action->getPermissionResource() ?? $resourceClass;
+
+        return is_subclass_of($owner, \Wonder\App\Resource::class)
+            && $owner::allows($authorities, $action->getPermission());
+    }
+
+    /**
+     * Solo le azioni che l'utente può usare.
+     *
+     * @param array<string, BulkAction> $actions
+     * @param list<string> $authorities
+     * @return array<string, BulkAction>
+     */
+    public static function allowedActions(array $actions, string $resourceClass, array $authorities): array
+    {
+        return array_filter($actions, static fn (BulkAction $action): bool => self::allowed($action, $resourceClass, $authorities));
+    }
+
     private static function text(string $key, string $fallback): string
     {
         if (!function_exists('__t')) {

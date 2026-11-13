@@ -66,7 +66,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
 | `->label($text)` | testo del bottone (senza, la chiave) |
 | `->icon('bi bi-eye')` | icona prima del testo |
 | `->variant('danger')` | colore Bootstrap del bottone (`btn-outline-*`): primary, secondary, success, danger, warning, info, light, dark; predefinito dark |
-| `->permission('update' \| 'delete')` | permesso della Resource richiesto (predefinito `update`) |
+| `->permission('update' \| 'delete', ?Resource::class)` | permesso richiesto (predefinito `update`), della Resource della lista o di quella indicata: per gli ordini, `OrderActionResource::class`, la stessa dei bottoni della scheda |
 | `->confirm($text)` | chiede conferma prima di partire (finestra della lib); con `danger` la conferma è rossa |
 | `->handle(fn (array $ids, string $resourceClass, ?object $user): array\|int)` | il gestore |
 | `->transaction(false)` | il gestore non gira in una transazione (chi apre le sue, come le azioni degli ordini) |
@@ -111,10 +111,17 @@ l'eccezione annulla anche le scritture già fatte.
 | Resource sconosciuta | 404 |
 | azione inesistente o id non validi (nessuno, più di 500) | 422 |
 | lista in sola lettura o tabella sincronizzata letta in questo ambiente | 403 |
-| permesso mancante (`update`/`delete` di `TableAuthorization`) | 403 |
+| permesso mancante (`update`/`delete` della Resource, o di quella di `permission()`) | 403 |
 | nessuna riga visibile fra quelle mandate | 404 |
 
-In sola lettura la colonna e la barra non si stampano proprio.
+In sola lettura la colonna e la barra non si stampano proprio. La barra
+mostra solo le azioni che l'utente può usare (lo stesso controllo
+dell'endpoint); senza nessuna, niente barra e niente colonna.
+
+Attenzione: in `PermissionSchema` un'azione che la Resource non limita resta
+aperta a tutti. Una lista con `access(area, ['list', 'view'])` concede quindi
+`update` a chiunque: in quel caso indica in `permission()` la Resource che
+protegge davvero l'azione.
 
 ## Errori comuni
 

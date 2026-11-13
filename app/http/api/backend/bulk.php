@@ -44,8 +44,8 @@ if ($resourceClass::isReadonly() || SyncedTables::isReadonly($table)) {
     ApiRequest::error(__t('bulk.errors.readonly'), 403);
 }
 
-// Permessi per tabella prima di qualsiasi query.
-if (!TableAuthorization::make()->allows($table, $action->getPermission(), TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
+// Permesso della Resource (o di quella indicata dall'azione) prima di qualsiasi query.
+if (!BulkActions::allowed($action, $resourceClass, TableAuthorization::authoritiesOf(LegacyGlobals::get('USER')))) {
     ApiRequest::error(__t('bulk.errors.forbidden'), 403);
 }
 

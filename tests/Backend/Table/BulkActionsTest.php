@@ -7,6 +7,7 @@ require __DIR__ . '/../../harness.php';
 require __DIR__ . '/../../../app/function/backend/plugin.php';
 
 use Wonder\App\Resource;
+use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\Backend\Table\BulkAction;
 use Wonder\Backend\Table\BulkActions;
@@ -15,6 +16,23 @@ use Wonder\Backend\Table\ListProvider;
 
 final class BulkActionsTestResource extends Resource
 {
+}
+
+// La lista concede `update` solo all'amministratore: le azioni le dà un'altra Resource.
+final class BulkActionsListOnlyResource extends Resource
+{
+    public static function permissionSchema(): PermissionSchema
+    {
+        return PermissionSchema::for(static::class)->backend(['list', 'view'], ['vendite'])->backend(['update'], ['admin']);
+    }
+}
+
+final class BulkActionsOwnerResource extends Resource
+{
+    public static function permissionSchema(): PermissionSchema
+    {
+        return PermissionSchema::for(static::class)->backend(['update'], ['vendite']);
+    }
 }
 
 $throws = static function (callable $fn): bool {
@@ -133,6 +151,19 @@ check('toggle() e delete() hanno permesso e aspetto giusti', function () {
         && $delete->getPermission() === 'delete'
         && $delete->getVariant() === 'danger'
         && $delete->key() === 'delete';
+});
+
+check('il permesso è della Resource della lista o di quella indicata', function () use ($throws) {
+    $own = BulkAction::make('a');
+    $other = BulkAction::make('b')->permission('update', BulkActionsOwnerResource::class);
+    $actions = ['a' => $own, 'b' => $other];
+
+    return !BulkActions::allowed($own, BulkActionsListOnlyResource::class, ['vendite'])
+        && BulkActions::allowed($other, BulkActionsListOnlyResource::class, ['vendite'])
+        && !BulkActions::allowed($other, BulkActionsListOnlyResource::class, ['catalogo'])
+        && array_keys(BulkActions::allowedActions($actions, BulkActionsListOnlyResource::class, ['vendite'])) === ['b']
+        && $other->getPermissionResource() === BulkActionsOwnerResource::class
+        && $throws(fn () => BulkAction::make('c')->permission('update', stdClass::class));
 });
 
 summary();

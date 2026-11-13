@@ -9,7 +9,9 @@
   `transaction`): colonna di checkbox `row-select` con «seleziona tutto»
   (dopo maniglia e segnali di riga) e barra delle azioni sopra la tabella.
   Nuovo endpoint `POST /api/backend/bulk/` (`backend.bulk`): CSRF, permesso
-  `update`/`delete`, sola lettura, al massimo 500 id filtrati per condizione
+  `update`/`delete` della Resource della lista o di quella indicata in
+  `permission('update', Altra::class)` (la barra mostra solo le azioni
+  concesse), sola lettura, al massimo 500 id filtrati per condizione
   della lista e visibilità per riga; risposta `{done, failed, messages}`.
   `Table::beforeTable()` stampa HTML sopra la tabella. Testi in
   `resources/lang/{it,en}/bulk.json`. Il JS è nella lib (`backend/js/bulk.js`).

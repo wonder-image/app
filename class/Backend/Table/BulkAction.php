@@ -27,6 +27,8 @@ final class BulkAction
     private string $icon = '';
     private string $variant = 'dark';
     private string $permission = self::UPDATE;
+    /** @var class-string|null la Resource che concede il permesso; null = quella della lista */
+    private ?string $permissionResource = null;
     private ?string $confirm = null;
     private ?Closure $handler = null;
     private bool $transaction = true;
@@ -118,14 +120,25 @@ final class BulkAction
         return $this;
     }
 
-    /** Il permesso della Resource che serve: `update` o `delete`. */
-    public function permission(string $permission): self
+    /**
+     * Il permesso che serve: `update` o `delete`, della Resource della lista
+     * o di `$resource` (es. la Resource delle azioni sugli ordini, quando la
+     * lista è in sola lettura per i campi ma le azioni hanno una loro pagina).
+     *
+     * @param class-string|null $resource
+     */
+    public function permission(string $permission, ?string $resource = null): self
     {
         if (!in_array($permission, [self::UPDATE, self::DELETE], true)) {
             throw new RuntimeException("Permesso non valido per BulkAction: {$permission}");
         }
 
+        if ($resource !== null && !is_subclass_of($resource, \Wonder\App\Resource::class)) {
+            throw new RuntimeException("Resource non valida per BulkAction: {$resource}");
+        }
+
         $this->permission = $permission;
+        $this->permissionResource = $resource;
 
         return $this;
     }
@@ -180,6 +193,12 @@ final class BulkAction
     public function getPermission(): string
     {
         return $this->permission;
+    }
+
+    /** @return class-string|null */
+    public function getPermissionResource(): ?string
+    {
+        return $this->permissionResource;
     }
 
     public function getConfirm(): ?string
