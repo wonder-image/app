@@ -44,6 +44,85 @@ Cosa succede alla conferma:
 La rotta è `POST backend.resource.app-config-credentials.mail-test`, protetta
 da CSRF e dagli stessi permessi di modifica della risorsa.
 
+## Aspetto delle email
+
+Ogni email passa dal template `basic` (`emailTemplate($body, 'basic')`, che
+delega a `Wonder\App\Support\Mail\MailLayout::render()`):
+
+- impaginazione a tabelle larga 600 px, il formato che i client di posta
+  (Gmail, Apple Mail, Outlook) rendono in modo più uniforme;
+- in alto il logo principale del sito (`$PATH->logo`, con la versione
+  bianca `logoWhite` nel tema scuro) o, senza logo, il nome della società,
+  con una riga nel colore primario;
+- il colore primario viene da `css_color` (`var = primary`): se è troppo
+  chiaro per uno sfondo bianco diventa un grigio scuro, e il testo dei
+  pulsanti prende il colore di contrasto leggibile;
+- tema scuro per i client che lo supportano (`prefers-color-scheme`), solo per i corpi del builder: un corpo scritto a mano può avere colori inline scuri e resta in tema chiaro;
+- piè di pagina tradotto con ragione sociale, indirizzo, P.IVA / C.F.,
+  email e telefono della società (le voci vuote non compaiono);
+- una versione solo testo (`AltBody`) ricavata dall'HTML.
+
+Un sito o un test può fissare i colori con
+`MailLayout::useBrand('#c2410c', '#ffffff')`; `useBrand(null)` torna alla
+lettura da `css_color`.
+
+### Scrivere una email con i blocchi
+
+`Wonder\App\Support\Mail\MailMessage` compone il corpo senza scrivere HTML.
+Tutti i testi passano da `htmlspecialchars()`; gli a capo diventano `<br>`.
+
+```php
+use Wonder\App\Support\Mail\MailMessage;
+
+$corpo = MailMessage::make()
+    ->preheader('Arriverà entro 2-3 giorni lavorativi.')
+    ->heading('Il tuo ordine è stato spedito')
+    ->text("Ciao {$nome},\nil tuo ordine #{$numero} è partito oggi.")
+    ->button('Traccia la spedizione', $urlTracking)
+    ->details([
+        'Ordine' => '#'.$numero,
+        'Corriere' => $corriere,
+        'Totale' => $totale,
+    ], 'Riepilogo')
+    ->notice('Il pacco richiede una firma alla consegna.', 'warning')
+    ->divider()
+    ->small('Se non hai effettuato tu questo ordine, rispondi a questa mail.');
+
+sendMail($from, $cliente, 'Ordine spedito', $corpo);
+```
+
+| Metodo | Cosa produce |
+| --- | --- |
+| `preheader($testo)` | Anteprima mostrata dal client accanto all'oggetto, nascosta nel corpo. |
+| `heading($testo)` | Titolo. |
+| `text($testo)` | Paragrafo. |
+| `html($html)` | HTML già pronto, **non** sanificato: solo markup scritto dal codice. |
+| `button($etichetta, $url, $fallback = true)` | Pulsante nel colore primario e, sotto, il link da copiare. Un URL che non sia `http(s)://`, `mailto:`, `tel:` o un path `/...` stampa solo l'etichetta. |
+| `details($righe, $titolo)` | Elenco etichetta / valore (riepiloghi, dati di un form). |
+| `notice($testo, $livello)` | Riquadro `info`, `success`, `warning` o `danger`. |
+| `divider()` | Linea di separazione. |
+| `small($testo)` | Nota in piccolo. |
+
+`sendMail()`, `queueMail()` e `mailDeliver()` accettano il `MailMessage`
+così com'è (lo convertono in stringa), quindi la firma non cambia e la coda
+salva il corpo già composto.
+
+Nella versione testo il pulsante diventa `Etichetta: URL`, le righe di
+`details()` diventano `Etichetta: valore` e preheader e link di riserva non
+compaiono.
+
+### Email scritte prima del builder
+
+Un corpo HTML scritto a mano continua a funzionare come prima: passa ancora
+da `sanitizeEcho()` e finisce nella stessa cornice (logo, colori, piè di
+pagina). Non serve migrarlo; conviene farlo quando lo si tocca, per avere
+pulsanti e riepiloghi coerenti.
+
+Il builder segna il proprio output con il commento `<!--wi-mail:v1-->`
+(`MailMessage::MARKER`): solo quel corpo salta `sanitizeEcho()`, perché è già
+stato sanificato blocco per blocco. Un template diverso da `basic` restituisce
+una stringa vuota, come prima.
+
 ## Copia (CC) e copia nascosta (CCN)
 
 `sendMail()`, `queueMail()` e `mailDeliver()` accettano in fondo

@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Aggiunto
+- **Email composte a blocchi.** `Wonder\App\Support\Mail\MailMessage`
+  (`preheader()`, `heading()`, `text()`, `button()`, `details()`, `notice()`,
+  `divider()`, `small()`, `html()`) compone il corpo senza scrivere HTML e si
+  passa così com'è a `sendMail()` / `queueMail()`, che non cambiano firma.
+  Recupero e cambio password del backend lo usano già.
 - **Azioni di massa nel menu di riga.** `BulkAction::row(?fn (array $row): bool)`
   mostra l'azione anche nel menu a 3 puntini di ogni riga, sulle righe per cui
   la funzione dice sì; la voce (`data-wi-bulk-row`, lib 2.1.2-alpha.44) manda
@@ -192,6 +197,13 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Nuovo aspetto del template email `basic`.** `MailLayout::render()`
+  impagina ogni email a tabelle (600 px) con logo o nome della società, il
+  colore primario di `css_color` (reso più scuro se illeggibile), tema scuro (solo per i corpi del builder: quelli scritti a mano restano chiari)
+  e un piè di pagina tradotto con i dati della società. La versione solo
+  testo salta preheader e link di riserva e scrive i riepiloghi come
+  «Etichetta: valore». I corpi HTML scritti a mano restano validi: passano
+  ancora da `sanitizeEcho()` e prendono la nuova cornice.
 - **Scheda dei media.** Accanto al file, uno sotto l'altro: Nome (prima
   "File" o "Nome file"), testo alternativo e slug, che ora si vede in sola
   lettura. L'anteprima dell'uploader del backend carica la misura piccola e
