@@ -43,6 +43,7 @@ final class VideoResource extends MediaResource
             'file' => 'Video',
             'name' => 'Nome',
             'slug' => 'Slug',
+            'usage_tables' => 'In uso in',
             'actions' => 'Azioni',
         ];
     }

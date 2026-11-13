@@ -3,6 +3,23 @@
 ## Unreleased
 
 ### Aggiunto
+- **Media: dove è in uso e libreria per sezione.** Gli elenchi di Immagini,
+  Icone, Documenti e Video hanno la colonna «In uso in» (un badge per
+  sezione, `MediaResource::usageBadges()`, dalla colonna calcolata
+  `MediaUsages::tablesSelect()`) e il filtro «Sezione»
+  (`MediaUsages::sections()`, `sectionCondition()`). Nuova colonna
+  `media.source`: la tabella da cui un campo media ha caricato il file
+  (`MediaInputs`). «Scegli dalla libreria» parte dai media caricati o usati
+  nella sezione del record, con l'interruttore «Solo i file di …» per tutta
+  la libreria: `InputMedia::mediaScope()` (impostata da `Resource` con tabella
+  e nome plurale, `mediaScope('')` la spegne), `MediaPicker::scope()`,
+  parametro `scope` di `api/backend/media/search`. **Rottura per chi
+  implementa le interfacce:** `MediaUsageStore::tables()` è nuovo e
+  `MediaStore::search()` prende `string $scope = ''`; `InputMedia::mediaConfig()`
+  ha in più `scope` e `scope_label` (chi confronta l'array intero va
+  aggiornato). Serve
+  `php forge update --local` per la colonna; prima la ricerca usa solo gli
+  utilizzi.
 - **Stato vuoto del repeater.** `InputRepeater::repeaterEmptyState($b = true)`
   (context `empty_state`): senza righe, al posto della riga vuota, un
   riquadro tratteggiato con il bottone «Aggiungi» al centro; al primo clic
@@ -113,6 +130,12 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Skill AI: avviso sulle copie globali.** `php forge skills` e `php forge config`,
+  dopo la sincronizzazione, avvisano se esiste `~/.claude/skills/wi-app` o
+  `wi-site`: Claude Code preferisce la skill personale a quella del progetto,
+  quindi una copia globale vecchia nasconde quella aggiornata. AGENTS.md e la
+  guida descrivono l'installazione per progetto in `.claude/skills/`, senza
+  `.agents/`.
 - **Repeater annidato: più aria attorno al blocco.** Dentro una riga il repeater interno (per esempio «Contatti aziendali» nella riga di un referente) era attaccato ai campi sopra, alle proprie righe e al campo che segue. Ora il blocco ha un margine sopra e sotto (`my-3`) e il titolo è staccato dalle righe (`mb-3`) e lo stato vuoto parte alla stessa altezza della prima riga (`mt-2`), solo nel tema Bootstrap e solo per i repeater interni.
 - **Repeater con soft delete: una riga cancellata che torna si riapre.**
   `Repeater::syncRelatedRows()` perdeva `deleted` nella preparazione dei dati

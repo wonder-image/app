@@ -283,6 +283,7 @@ FormField::key('image_id')->mediaImage()
 |---|---|
 | `mediaSlug($modello)` | slug del media creato dal campo, dai valori del record (`{slug}`, `{slug}-retro`); solo alla creazione, con `-2`, `-3`, ... se è già preso |
 | `mediaAlt($modello)` | testo alternativo del media creato dal campo; segue il record finché nessuno lo scrive a mano in libreria |
+| `mediaScope($tabella, $etichetta)` | sezione della finestra "Scegli dalla libreria": all'apertura mostra solo i media caricati o usati in quella tabella, con un interruttore per vedere tutta la libreria. Nei form di una Resource è già la tabella del Model; `mediaScope('')` la toglie. Le colonne media di un repeater non la ricevono da sole: chiamala sulla colonna |
 
 Il tipo `InputMedia` esiste solo nel backend (tema Bootstrap), come il
 repeater, e non è previsto fra le colonne di un repeater. Usalo per i file

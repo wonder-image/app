@@ -908,6 +908,7 @@ abstract class Resource
         }
 
         static::inheritModelUploadDirectory($clone, $name);
+        static::inheritMediaScope($clone);
 
         $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
         // `->label('')` è una scelta, non un campo lasciato in bianco: vuol dire
@@ -930,6 +931,23 @@ abstract class Resource
         }
 
         return $clone;
+    }
+
+    /**
+     * Un campo media sa da quale sezione viene: il selettore della libreria
+     * parte dai media caricati o usati qui. Una sezione scelta a mano resta.
+     */
+    private static function inheritMediaScope(object $field): void
+    {
+        if (!$field instanceof \Wonder\App\ResourceSchema\Inputs\InputMedia || $field->hasMediaScope()) {
+            return;
+        }
+
+        try {
+            $field->mediaScope((string) static::modelTable(), trim((string) static::titlePluralLabel()));
+        } catch (\Throwable) {
+            // Resource senza Model: il selettore mostra tutta la libreria.
+        }
     }
 
     /**

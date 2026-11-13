@@ -30,6 +30,9 @@ final class MediaUsages
     private static ?MediaUsageStore $store = null;
     private static ?Closure $describer = null;
 
+    /** @var array<string, string> */
+    private static array $sectionLabels = [];
+
     public static function store(): MediaUsageStore
     {
         return self::$store ??= self::$factory !== null ? (self::$factory)() : new DatabaseMediaUsageStore();
@@ -187,6 +190,103 @@ final class MediaUsages
         $exists = "EXISTS (SELECT 1 FROM `{$usages}` WHERE `{$usages}`.`media_id` = `{$mediaTable}`.`id`)";
 
         return $used ? $exists : 'NOT '.$exists;
+    }
+
+    /**
+     * Le sezioni che usano media (di `$mediaType`, se dato): tabella =>
+     * nome della sezione. Vuoto se il registro non risponde.
+     *
+     * @return array<string, string>
+     */
+    public static function sections(?string $mediaType = null): array
+    {
+        try {
+            $tables = self::store()->tables($mediaType);
+        } catch (Throwable) {
+            return [];
+        }
+
+        $sections = [];
+
+        foreach ($tables as $table) {
+            $table = trim((string) $table);
+
+            if (self::validTable($table)) {
+                $sections[$table] = self::sectionLabel($table);
+            }
+        }
+
+        return $sections;
+    }
+
+    /** Il nome della sezione di una tabella: la Resource al plurale, altrimenti la tabella. */
+    public static function sectionLabel(string $table): string
+    {
+        if (array_key_exists($table, self::$sectionLabels)) {
+            return self::$sectionLabels[$table];
+        }
+
+        $label = $table;
+
+        try {
+            $resourceClass = ResourceRegistry::resolveByTable($table);
+
+            if ($resourceClass !== null) {
+                $plural = trim((string) $resourceClass::pluralLabel());
+                $label = $plural !== '' ? (function_exists('mb_strtoupper')
+                    ? mb_strtoupper(mb_substr($plural, 0, 1)).mb_substr($plural, 1)
+                    : ucfirst($plural)) : $table;
+            }
+        } catch (Throwable) {
+        }
+
+        return self::$sectionLabels[$table] = $label;
+    }
+
+    /**
+     * Condizione SQL per il filtro "Sezione" di un elenco di Media: i media
+     * usati da almeno una delle tabelle scelte. Passano solo le tabelle di
+     * `$allowed` (le opzioni del filtro); nessuna, nessun filtro.
+     *
+     * @param array<int, string> $values
+     * @param array<int, string> $allowed
+     */
+    public static function sectionCondition(array $values, array $allowed, string $mediaTable = 'media'): string
+    {
+        $tables = array_values(array_filter(
+            array_unique(array_map(static fn ($value): string => is_scalar($value) ? trim((string) $value) : '', $values)),
+            static fn (string $table): bool => in_array($table, $allowed, true) && self::validTable($table)
+        ));
+
+        if ($tables === []) {
+            return '';
+        }
+
+        $usages = \Wonder\App\Models\Media\MediaUsage::$table;
+        $mediaTable = str_replace('`', '', $mediaTable);
+        $list = implode(', ', array_map(static fn (string $table): string => "'{$table}'", $tables));
+
+        return "EXISTS (SELECT 1 FROM `{$usages}` WHERE `{$usages}`.`media_id` = `{$mediaTable}`.`id` AND `{$usages}`.`owner_table` IN ({$list}))";
+    }
+
+    /**
+     * Colonna calcolata per l'elenco di Media: le tabelle che usano il
+     * media, separate da virgola (NULL se nessuna).
+     */
+    public static function tablesSelect(string $alias, string $mediaTable = 'media'): string
+    {
+        $usages = \Wonder\App\Models\Media\MediaUsage::$table;
+        $mediaTable = str_replace('`', '', $mediaTable);
+        $alias = preg_replace('/[^A-Za-z0-9_]/', '', $alias);
+
+        return "(SELECT GROUP_CONCAT(DISTINCT `{$usages}`.`owner_table` ORDER BY `{$usages}`.`owner_table` SEPARATOR ',') "
+            ."FROM `{$usages}` WHERE `{$usages}`.`media_id` = `{$mediaTable}`.`id`) AS `{$alias}`";
+    }
+
+    /** Solo nomi di tabella semplici: finiscono dentro una query. */
+    private static function validTable(string $table): bool
+    {
+        return preg_match('/^[A-Za-z0-9_]{1,64}$/D', $table) === 1;
     }
 
     /** @return array{resource: ?string, label: string, name: string, field: string, url: ?string} */

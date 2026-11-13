@@ -6,7 +6,8 @@ use Wonder\App\Support\ApiRequest;
 // Ricerca del selettore del campo media: ogni utente backend che modifica
 // un record deve poter scegliere un media, quindi nessuna autorità oltre
 // alla sessione. Escono solo id, nome, slug, testo alternativo, tipo e
-// anteprima dei media non eliminati del tipo chiesto.
+// anteprima dei media non eliminati del tipo chiesto; con `scope` (una
+// tabella) solo quelli caricati da quella sezione o usati lì.
 
 if (!ApiRequest::isPost()) {
     ApiRequest::error('Metodo non consentito.', 405);
@@ -16,7 +17,8 @@ try {
     $result = MediaLibrary::search(
         ApiRequest::input('type'),
         ApiRequest::input('term', ''),
-        ApiRequest::input('page', 1)
+        ApiRequest::input('page', 1),
+        ApiRequest::input('scope', '')
     );
 } catch (Throwable $exception) {
     __log($exception, 'media', 'search');

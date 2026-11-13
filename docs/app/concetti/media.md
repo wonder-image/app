@@ -240,11 +240,30 @@ Risponde con 24 media per pagina e solo `id`, `name`, `slug`, `alt`, `type` e
 `thumbnail` dei media non eliminati di quel tipo
 (`MediaLibrary::search()`).
 
+Con `scope` (il nome di una tabella) la ricerca tiene solo i media
+**caricati da quella sezione** (colonna `media.source`) **o usati lì**
+(registro `media_usages`); uno `scope` che non è un nome di tabella risponde
+422. La finestra lo manda finché l'interruttore **Solo i file di …** resta
+acceso, e parte acceso:
+
+- `Resource::formFields()` dà a ogni `InputMedia` la tabella del Model e
+  `titlePluralLabel()` della Resource (`mediaScope($table, $label)`);
+- `->mediaScope('')` sul campo spegne la sezione: la finestra mostra subito
+  tutta la libreria, senza interruttore;
+- fuori dalle Resource, `MediaPicker::scope('gst_product', 'Prodotti')`.
+
+`media.source` lo scrive solo `MediaInputs` quando un campo carica un file
+nuovo (la tabella del record); i media caricati dall'elenco Media o prima di
+questa colonna l'hanno vuota e contano solo gli utilizzi. Chi salva un media
+dal suo form non può impostarla (`MediaResource::mutateRequestValues()` la
+toglie). Finché `php forge update --local` non crea la colonna,
+`DatabaseMediaStore` non la scrive e la ricerca guarda solo gli utilizzi.
+
 CSS e script del campo escono una volta per pagina da
 `Themes\Support\PageAssets`, con il contratto `data-wi-media*`
 (`data-wi-media` sulla radice con il tipo, `-value`, `-upload`, `-choose`,
-`-remove`, `-preview`, `-search`), che `wonder-image/lib` può prendere in
-carico senza cambiare il markup.
+`-remove`, `-preview`, `-search`, `-scope`, `-scope-label`), che
+`wonder-image/lib` può prendere in carico senza cambiare il markup.
 
 ## Leggere un media nel sito
 
@@ -385,6 +404,25 @@ Gli elenchi di Media hanno il filtro **Utilizzo**, con i testi `full` ed
 MediaUsages::filterCondition(['used']);
 // EXISTS (SELECT 1 FROM `media_usages` WHERE `media_usages`.`media_id` = `media`.`id`)
 ```
+
+
+## Colonna "In uso in" e filtro "Sezione"
+
+Gli elenchi di Media mostrano la colonna **In uso in**: un badge per ogni
+sezione che usa il media (il nome plurale della Resource della tabella,
+`MediaUsages::sectionLabel()`), vuota se il media non è usato. Le tabelle
+arrivano con la stessa query dell'elenco, da una colonna calcolata:
+
+```php
+MediaUsages::tablesSelect('usage_tables');
+// (SELECT GROUP_CONCAT(DISTINCT owner_table ...) FROM media_usages WHERE media_id = media.id) AS `usage_tables`
+```
+
+Il filtro **Sezione** (caselle) elenca le tabelle che usano almeno un media
+di quel tipo (`MediaUsages::sections($type)`, che legge
+`MediaUsageStore::tables()`) e tiene i media usati in una di quelle scelte
+(`MediaUsages::sectionCondition()`: solo tabelle dell'elenco e con un nome
+valido). Senza utilizzi registrati il filtro non compare.
 
 ## Migrazione delle icone raster
 

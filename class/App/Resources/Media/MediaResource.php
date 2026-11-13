@@ -18,6 +18,7 @@ use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\Data\Formatters\String\SlugFormatter;
+use Wonder\Elements\Components\Badge;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
 use Wonder\Elements\Form\Form;
@@ -120,6 +121,8 @@ abstract class MediaResource extends Resource
             static::hasPreview() ? TableColumn::key('file')->image()->link('edit')->size('little') : null,
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('slug')->text(),
+            // Calcolata da `tableLayoutSchema()->select()`: le sezioni che usano il media.
+            TableColumn::key('usage_tables')->text()->formatter(static fn (array $row): string => static::usageBadges($row['usage_tables'] ?? null)),
             TableColumn::key('actions')->button()->actions(['edit', 'delete']),
         ]));
     }
@@ -128,11 +131,12 @@ abstract class MediaResource extends Resource
     {
         $table = static::modelTable();
 
-        return TableLayoutSchema::for(static::class)
+        $layout = TableLayoutSchema::for(static::class)
             ->title('Lista '.static::pluralLabel())
             ->results()
             ->buttonAdd('Aggiungi '.static::label())
             ->filters()
+            ->select(MediaUsages::tablesSelect('usage_tables', $table))
             ->filterQuery(
                 'Utilizzo',
                 'usage',
@@ -144,6 +148,50 @@ abstract class MediaResource extends Resource
                 static fn (array $values): string => MediaUsages::filterCondition($values, $table),
                 'radio'
             );
+
+        // Una opzione per ogni sezione che usa media di questo tipo.
+        $sections = MediaUsages::sections(static::mediaType());
+
+        if ($sections !== []) {
+            $allowed = array_keys($sections);
+            $layout->filterQuery(
+                'Sezione',
+                'usage_section',
+                $sections,
+                static fn (array $values): string => MediaUsages::sectionCondition($values, $allowed, $table),
+                'checkbox'
+            );
+        }
+
+        return $layout;
+    }
+
+    /**
+     * Un badge per ogni sezione che usa il media; cella vuota se nessuna.
+     * `$tables` sono le tabelle separate da virgola della colonna calcolata.
+     */
+    public static function usageBadges(mixed $tables): string
+    {
+        if (!is_string($tables) || trim($tables) === '') {
+            return '';
+        }
+
+        $labels = [];
+
+        foreach (explode(',', $tables) as $table) {
+            $table = trim($table);
+
+            if ($table !== '') {
+                $labels[MediaUsages::sectionLabel($table)] = true;
+            }
+        }
+
+        $badges = array_map(
+            static fn (string $label): string => Badge::make($label)->variant('secondary')->inline()->render('bootstrap'),
+            array_keys($labels)
+        );
+
+        return '<div class="d-flex flex-wrap gap-1">'.implode('', $badges).'</div>';
     }
 
     public static function pageSchema(): PageSchema
@@ -228,6 +276,8 @@ abstract class MediaResource extends Resource
         }
 
         $values['type'] = static::mediaType();
+        // L'origine la scrive solo chi crea il media da un campo (`DatabaseMediaStore`).
+        unset($values['source']);
 
         return $values;
     }

@@ -4,12 +4,13 @@ namespace Wonder\App\Media;
 
 /**
  * Media in memoria, con le stesse regole di `DatabaseMediaStore`: per i
- * test, senza database e senza file. `$failWith` fa fallire la prossima
+ * test, senza database e senza file. La ricerca per sezione legge gli
+ * utilizzi da `MediaUsages`. `$failWith` fa fallire la prossima
  * scrittura di un file con quel motivo.
  */
 final class MemoryMediaStore implements MediaStore
 {
-    /** @var array<int, array{id: int, type: string, slug: string, name: string, alt: string, file: string, deleted?: bool}> */
+    /** @var array<int, array{id: int, type: string, slug: string, name: string, alt: string, file: string, source?: string, deleted?: bool}> */
     public array $rows = [];
 
     public string $failWith = '';
@@ -77,6 +78,7 @@ final class MemoryMediaStore implements MediaStore
             'slug' => (string) $values['slug'],
             'name' => (string) $values['name'],
             'alt' => (string) $values['alt'],
+            'source' => (string) ($values['source'] ?? ''),
             'file' => $values['slug'].'.'.MediaTypes::extension(MediaUpload::fileName($upload)),
         ]), 'error' => ''];
     }
@@ -99,12 +101,17 @@ final class MemoryMediaStore implements MediaStore
         $this->rows[$id]['alt'] = $alt;
     }
 
-    public function search(string $type, string $term, int $limit, int $offset): array
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array
     {
         $found = [];
 
         foreach (array_reverse($this->rows, true) as $row) {
             if ($row['type'] !== $type || !empty($row['deleted'])) {
+                continue;
+            }
+
+            if ($scope !== '' && ($row['source'] ?? '') !== $scope
+                && !in_array($scope, array_column(MediaUsages::owners($row['id']), 'table'), true)) {
                 continue;
             }
 

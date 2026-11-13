@@ -62,7 +62,27 @@ class InputMedia extends Input
         return $this;
     }
 
-    /** @return array{type: string, slug: string, alt: string} */
+    /**
+     * La sezione del campo: il selettore della libreria parte dai media
+     * caricati da `$table` o usati lì, e `$label` dà il nome all'opzione.
+     * La Resource la imposta da sola con la sua tabella; `''` mostra
+     * subito tutta la libreria.
+     */
+    public function mediaScope(string $table, string $label = ''): static
+    {
+        $this->schema['media']['scope'] = trim($table);
+        $this->schema['media']['scope_label'] = trim($label);
+
+        return $this;
+    }
+
+    /** Vero se la sezione è stata scelta, anche vuota. */
+    public function hasMediaScope(): bool
+    {
+        return array_key_exists('scope', (array) ($this->schema['media'] ?? []));
+    }
+
+    /** @return array{type: string, slug: string, alt: string, scope: string, scope_label: string} */
     public function mediaConfig(): array
     {
         $media = (array) ($this->schema['media'] ?? []);
@@ -71,17 +91,21 @@ class InputMedia extends Input
             'type' => (string) ($media['type'] ?? MediaTypes::IMAGE),
             'slug' => (string) ($media['slug'] ?? ''),
             'alt' => (string) ($media['alt'] ?? ''),
+            'scope' => (string) ($media['scope'] ?? ''),
+            'scope_label' => (string) ($media['scope_label'] ?? ''),
         ];
     }
 
     protected function element(): ElementField
     {
-        $type = $this->mediaConfig()['type'];
+        $config = $this->mediaConfig();
+        $type = $config['type'];
         $media = MediaFile::find($this->schema['value'] ?? null);
 
         return (new MediaPicker($this->name))
             ->mediaType($type)
             ->searchUrl(rtrim(defined('APP_URL') ? (string) APP_URL : '', '/').'/api/backend/media/search/')
+            ->scope($config['scope'], $config['scope_label'])
             ->media($media !== null && $media->type === $type ? $media->summary() : null);
     }
 
