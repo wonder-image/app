@@ -137,7 +137,7 @@ class ResourceSource implements Exportable
 
             $arr = method_exists($column, 'toArray') ? (array) $column->toArray() : [];
 
-            if (($arr['type'] ?? null) !== 'button') {
+            if (($arr['type'] ?? null) !== 'button' && ($arr['exportable'] ?? true) !== false) {
                 $columns[] = ['field' => (string) $column->name, 'label' => null, 'value' => null];
             }
         }

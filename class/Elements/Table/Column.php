@@ -50,6 +50,12 @@ abstract class Column extends Component
         return $this->schema('sortable', $sortable);
     }
 
+    /** Con false la colonna resta fuori dall'export che ripiega su `tableSchema()`. */
+    public function exportable(bool $exportable = true): self
+    {
+        return $this->schema('exportable', $exportable);
+    }
+
     public function formatter(string|\Closure $formatter): self
     {
         return $this->schema('formatter', is_string($formatter) ? trim($formatter) : $formatter);
