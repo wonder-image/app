@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Aggiunto
+- **Email: righe d'ordine e tabelle.** `MailMessage::items($righe,
+  $totali, $titolo)` elenca prodotti o servizi con anteprima, nome,
+  descrizione, quantità, prezzo (con il prezzo pieno barrato quando c'è uno
+  sconto) e totale di riga, poi i totali con l'ultimo in evidenza.
+  `MailMessage::table($colonne, $righe, $titolo, $aDestra)` stampa una
+  tabella semplice con intestazione. Testi escapati, anteprime solo
+  `http(s)` o path, tema scuro e versione solo testo leggibile.
 - **Email composte a blocchi.** `Wonder\App\Support\Mail\MailMessage`
   (`preheader()`, `heading()`, `text()`, `button()`, `details()`, `notice()`,
   `divider()`, `small()`, `html()`) compone il corpo senza scrivere HTML e si
@@ -160,6 +167,7 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Angoli della card email.** In `MailLayout::render()` la card è una tabella con `border-collapse:separate`: prima il bordo grigio restava squadrato sotto lo sfondo arrotondato. La linea colorata in alto ora è dritta (angoli superiori squadrati, arrotondati solo quelli inferiori). In tema scuro la linea in alto mantiene il colore del brand.
 - **Miniature quadrate nelle tabelle del backend.** Le colonne immagine
   mostrano la miniatura quadrata, senza il padding di `img-thumbnail`, con
   l'immagine ritagliata (`object-fit-cover`) invece che contenuta.
@@ -207,6 +215,11 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Email: quadratino del brand solo senza logo.** L'intestazione mostra il
+  logo PNG caricato in Media → Logo; il nome della società, con il
+  quadratino nel colore primario, compare solo quando il logo manca. Un
+  logo SVG non va nelle mail (Gmail e Outlook non lo mostrano): al suo
+  posto resta il nome.
 - **Nuovo aspetto del template email `basic`.** `MailLayout::render()`
   impagina ogni email a tabelle (600 px) con logo o nome della società, il
   colore primario di `css_color` (reso più scuro se illeggibile), tema scuro (solo per i corpi del builder: quelli scritti a mano restano chiari)

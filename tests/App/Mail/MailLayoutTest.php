@@ -166,4 +166,67 @@ check('un corpo scritto a mano resta in tema chiaro, quello del builder no', sta
         && str_contains($new, 'prefers-color-scheme:dark');
 });
 
+check('senza logo il nome ha il quadratino del brand, con il logo no', static function (): bool {
+    unset($GLOBALS['PATH']);
+    $without = emailTemplate((string) MailMessage::make()->text('x'));
+    $GLOBALS['PATH'] = (object) ['logo' => 'https://cdn.test/logo.png'];
+    $with = emailTemplate((string) MailMessage::make()->text('x'));
+    unset($GLOBALS['PATH']);
+
+    return str_contains($without, 'class="wi-mail-mark"')
+        && !str_contains($with, 'class="wi-mail-mark"')
+        && str_contains($with, 'src="https://cdn.test/logo.png"');
+});
+
+check('un logo SVG non va nella mail: resta il nome', static function (): bool {
+    $GLOBALS['PATH'] = (object) ['logo' => 'https://cdn.test/logo.svg?v=2'];
+    $html = emailTemplate((string) MailMessage::make()->text('x'));
+    unset($GLOBALS['PATH']);
+
+    return !str_contains($html, 'logo.svg') && str_contains($html, 'class="wi-mail-mark"');
+});
+
+$order = MailMessage::make()->items([
+    ['name' => 'Tazza <b>blu</b>', 'description' => 'Blu, 350 ml', 'image' => 'https://cdn.test/tazza.jpg',
+     'quantity' => 2, 'price' => '€ 10,00', 'original_price' => '€ 12,00', 'total' => '€ 20,00'],
+    ['name' => 'Piattino', 'image' => 'javascript:alert(1)', 'quantity' => 1, 'price' => '€ 5,00', 'total' => '€ 5,00'],
+    ['name' => ''],
+], ['Subtotale' => '€ 25,00', 'Spedizione' => 'Gratis', 'Totale' => '€ 25,00'], 'Il tuo ordine');
+$orderHtml = emailTemplate((string) $order);
+$orderText = htmlToText($orderHtml);
+
+check('items: righe escapate, prezzo pieno barrato, immagini solo http(s)', static fn (): bool =>
+    str_contains($orderHtml, 'Tazza &lt;b&gt;blu&lt;/b&gt;')
+    && str_contains($orderHtml, 'text-decoration:line-through;">€ 12,00</span>')
+    && str_contains($orderHtml, 'src="https://cdn.test/tazza.jpg"')
+    && !str_contains($orderHtml, 'javascript:')
+    && str_contains($orderHtml, 'wi-mail-item-placeholder')
+    && substr_count($orderHtml, 'class="wi-mail-item-row" width="64"') === 2
+);
+
+check('items: il totale finale è in evidenza e il testo si legge', static fn (): bool =>
+    str_contains($orderHtml, 'wi-mail-heading wi-mail-total')
+    && str_contains($orderText, 'Quantità: 2 · € 10,00')
+    && !str_contains($orderText, '€ 12,00')
+    && str_contains($orderText, 'Totale: € 25,00')
+    && str_contains($orderText, 'Spedizione: Gratis')
+);
+
+check('items senza immagini non ha la colonna anteprima; vuoto non stampa nulla', static function (): bool {
+    $plain = (string) MailMessage::make()->items([['name' => 'Servizio', 'total' => '€ 1,00']]);
+    $empty = (string) MailMessage::make()->items([]);
+
+    return !str_contains($plain, 'width="64"') && str_contains($plain, 'Servizio')
+        && $empty === (string) MailMessage::make();
+});
+
+check('table: intestazione, colonne a destra, celle escapate', static function (): bool {
+    $html = (string) MailMessage::make()->table(['Scadenza', 'Importo'], [['31/12', '€ 1.<i>0</i>']], 'Rate', [1]);
+
+    return str_contains($html, '>Scadenza</th>')
+        && str_contains($html, 'align="right"')
+        && str_contains($html, '€ 1.&lt;i&gt;0&lt;/i&gt;')
+        && (string) MailMessage::make()->table(['A'], []) === (string) MailMessage::make();
+});
+
 summary();
