@@ -1,7 +1,9 @@
 # Segnali di riga
 
 Un pallino nella prima colonna della lista segnala le righe da sistemare.
-Il motivo compare nel tooltip.
+Il motivo compare nel tooltip. Il pallino è piccolo (circa metà del testo) e semitrasparente
+per non pesare sulla lista: solo classi Bootstrap (`p-1 rounded-circle
+bg-{livello} opacity-50`).
 
 - **Giallo** (`RowSignal::warning`): manca un dato, per esempio l'email o i
   dati di fatturazione.

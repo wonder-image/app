@@ -65,7 +65,7 @@ check('fromRow: solo i codici accesi e conosciuti', function () use ($defaults) 
 check('dot: vuoto senza segnali, giallo con i motivi', function () use ($defaults) {
     $html = RowSignals::dot($defaults);
     return RowSignals::dot([]) === ''
-        && str_contains($html, 'text-warning')
+        && str_contains($html, 'bg-warning') && str_contains($html, 'opacity-50')
         && str_contains($html, 'data-bs-toggle="tooltip"')
         && str_contains($html, 'Manca l&amp;#039;email&lt;br&gt;Manca la città')
         && str_contains($html, 'visually-hidden');
@@ -73,7 +73,7 @@ check('dot: vuoto senza segnali, giallo con i motivi', function () use ($default
 
 check('dot: rosso se c\'è un danger, e il rosso viene prima', function () use ($defaults) {
     $html = RowSignals::dot([$defaults[0], RowSignal::danger('twin', '1 = 1', 'Doppione')]);
-    return str_contains($html, 'text-danger') && !str_contains($html, 'text-warning')
+    return str_contains($html, 'bg-danger') && !str_contains($html, 'bg-warning')
         && strpos($html, 'Doppione') < strpos($html, 'Manca');
 });
 
@@ -98,7 +98,7 @@ check('column: prima colonna senza etichetta, fuori dall\'export, legge i segnal
     $first = ($schema['formatter'])(['row_signals' => 'missing_email']);
     $second = ($schema['formatter'])(['row_signals' => '']);
     return $schema['name'] === 'row_signals' && $schema['label'] === '' && $schema['exportable'] === false
-        && str_contains($first, 'text-warning') && $second === '' && $calls === 1;
+        && str_contains($first, 'bg-warning') && $second === '' && $calls === 1;
 });
 
 final class RowSignalsExportResource

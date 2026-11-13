@@ -141,7 +141,8 @@ final class RowSignals
 
         return '<span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="'
             .htmlspecialchars($tooltip, ENT_QUOTES).'">'
-            .'<i class="bi bi-circle-fill text-'.$level.' small" aria-hidden="true"></i>'
+            // Pallino piccolo e semitrasparente: solo classi Bootstrap.
+            .'<span class="d-inline-block p-1 rounded-circle bg-'.$level.' opacity-50 align-middle" aria-hidden="true"></span>'
             .'<span class="visually-hidden">'.htmlspecialchars(implode('. ', $messages), ENT_QUOTES).'</span>'
             .'</span>';
     }
