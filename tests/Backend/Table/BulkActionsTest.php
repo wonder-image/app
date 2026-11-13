@@ -137,8 +137,11 @@ check('la colonna delle checkbox legge l\'id della riga', function () {
     );
     $column = ListProvider::buildColumns([['name' => BulkActions::COLUMN, 'other' => []]], false, 1, $field)[0];
 
+    // Come la lista vera: SSP passa 2 argomenti quando il formato è vuoto.
+    $out = \Wonder\Backend\Table\SSP::data_output([$column], [['id' => 42]]);
+
     return $column['db'] === 'id'
-        && str_contains(($column['formatter'])(['id' => 42], 'id', $column['format']), 'data-wi-bulk-id="42"');
+        && str_contains((string) ($out[0][0] ?? ''), 'data-wi-bulk-id="42"');
 });
 
 check('toggle() e delete() hanno permesso e aspetto giusti', function () {
