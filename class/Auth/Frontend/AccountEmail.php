@@ -2,6 +2,7 @@
 
 namespace Wonder\Auth\Frontend;
 
+use Wonder\App\Support\Mail\MailMessage;
 use Wonder\Auth\OneTimeToken;
 use Wonder\Sql\Transaction;
 
@@ -40,7 +41,13 @@ final class AccountEmail
         $issued = $tokens->issue($userId, $userId, null, ['email' => $email]);
         $url = $confirmUrl.'?token='.rawurlencode($issued->token);
         $mailer ??= static fn (string $to, string $subject, string $body) => \sendMail((string) ($GLOBALS['SOCIETY']->email ?? ''), $to, $subject, $body);
-        $sent = $mailer($email, (string) __t('account.email.mail_subject'), (string) __t('account.email.mail_body', ['url' => $url]));
+        $subject = (string) __t('account.email.mail_subject');
+        $body = MailMessage::make()
+            ->heading($subject)
+            ->text((string) __t('account.email.mail_text'))
+            ->button((string) __t('account.email.mail_button'), $url)
+            ->small((string) __t('account.email.mail_ignore'));
+        $sent = $mailer($email, $subject, (string) $body);
         if ($sent === false) {
             $tokens->revokeOpenForSubject($userId);
             return (object) ['success' => false, 'errors' => ['mail' => 'send']];

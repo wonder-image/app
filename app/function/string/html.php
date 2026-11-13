@@ -64,6 +64,11 @@
         $text = stripHtmlNonTextBlocks($text);
         $text = stripHtmlComments($text);
 
+        // Blocchi solo grafici di `MailMessage` (preheader, link di riserva
+        // del pulsante) e celle etichetta dei dettagli: "Etichetta: valore".
+        $text = pregReplaceSafe('#<(div|p|span)\b[^>]*data-wi-mail-text-skip[^>]*>.*?</\1>#is', '', $text);
+        $text = pregReplaceSafe('#<td\b[^>]*data-wi-mail-label[^>]*>(.*?)</td>#is', '$1: ', $text);
+
         // Converte i link html in "testo (url)" prima di rimuovere i tag.
         $text = pregReplaceCallbackSafe(
             '#<a\s[^>]*href\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^>\s]+))[^>]*>(.*?)</a>#is',
@@ -89,6 +94,7 @@
 
         $text = pregReplaceSafe('#<(br|/p|/div|/li|/tr|/h[1-6])\s*/?>#i', "\n", $text);
         $text = pregReplaceSafe('#<li[^>]*>#i', '- ', $text);
+        $text = pregReplaceSafe('#</t[dh]\s*>#i', ' ', $text);
 
         $text = strip_tags($text);
         $text = \Wonder\Support\Html\Entity::decode($text);

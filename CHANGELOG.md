@@ -20,6 +20,60 @@
   aggiornato). Serve
   `php forge update --local` per la colonna; prima la ricerca usa solo gli
   utilizzi.
+- **Email: righe d'ordine e tabelle.** `MailMessage::items($righe,
+  $totali, $titolo)` elenca prodotti o servizi con anteprima, nome,
+  descrizione, quantità, prezzo (con il prezzo pieno barrato quando c'è uno
+  sconto) e totale di riga, poi i totali con l'ultimo in evidenza.
+  `MailMessage::table($colonne, $righe, $titolo, $aDestra)` stampa una
+  tabella semplice con intestazione. Testi escapati, anteprime solo
+  `http(s)` o path, tema scuro e versione solo testo leggibile.
+- **Email composte a blocchi.** `Wonder\App\Support\Mail\MailMessage`
+  (`preheader()`, `heading()`, `text()`, `button()`, `details()`, `notice()`,
+  `divider()`, `small()`, `html()`) compone il corpo senza scrivere HTML e si
+  passa così com'è a `sendMail()` / `queueMail()`, che non cambiano firma.
+  Tutte le email del pacchetto lo usano: recupero, impostazione e cambio
+  password del backend, benvenuto dello staff, reset, accesso federato e
+  account già esistente del frontend, cambio e verifica email, token API,
+  segnalazione errori ed email di prova delle credenziali. Le chiavi
+  `auth.email.{reset,federated,existing}_body` e `account.email.mail_body`
+  (it, en) sono sostituite dai blocchi `*_text`, `*_button`, `*_ignore`
+  (`existing_recovery*` per il secondo pulsante); chi le sovrascrive nel
+  `lang` del sito deve spostare il testo sulle chiavi nuove.
+- **Azioni di massa nel menu di riga.** `BulkAction::row(?fn (array $row): bool)`
+  mostra l'azione anche nel menu a 3 puntini di ogni riga, sulle righe per cui
+  la funzione dice sì; la voce (`data-wi-bulk-row`, lib 2.1.2-alpha.45) manda
+  la stessa richiesta con il solo id. `{{rows}}` nel messaggio di una riga
+  fallita diventa «1 riga» / «N righe» (`bulk.rows_one` / `bulk.rows_many`).
+- **Azioni di massa nelle liste backend.** `TableLayoutSchema::bulkActions([...])`
+  con `Wonder\Backend\Table\BulkAction` (`make()`, `toggle()`, `delete()`;
+  `label`, `icon`, `variant`, `permission`, `confirm`, `handle`,
+  `transaction`): colonna di checkbox `row-select` con «seleziona tutto»
+  (dopo maniglia e segnali di riga) e barra delle azioni sopra la tabella.
+  Nuovo endpoint `POST /api/backend/bulk/` (`backend.bulk`): CSRF, permesso
+  `update`/`delete` della Resource della lista o di quella indicata in
+  `permission('update', Altra::class)` (la barra mostra solo le azioni
+  concesse), sola lettura, al massimo 500 id filtrati per condizione
+  della lista e visibilità per riga; risposta `{done, failed, messages}`.
+  `Table::beforeTable()` stampa HTML sopra la tabella. Testi in
+  `resources/lang/{it,en}/bulk.json`. Il JS è nella lib (`backend/js/bulk.js`).
+- **Segnali di riga nelle liste.**
+  - `Wonder\Backend\Table\RowSignal` è un pallino nella prima colonna:
+    - `warning` è giallo e indica un dato mancante;
+    - `danger` è rosso e indica un dato da verificare.
+  - Il segnale si accende con una condizione SQL e mostra il motivo nel
+    tooltip.
+  - `RowSignals` offre:
+    - `resolve()`: i predefiniti della Resource con le modifiche di siti e
+      moduli, fatte con `add()` e `remove()` per lista;
+    - `selectSql()`;
+    - `whereAny()` per il filtro;
+    - `fromRow()`;
+    - `dot()`;
+    - `column()`.
+  - `RowSignal::when()` accende il segnale solo se una funzionalità è attiva.
+  - Documentazione in `docs/app/concetti/tabelle/segnali-riga.md`.
+- **`Column::exportable(false)`.** La colonna resta fuori dall'export che
+  ripiega su `tableSchema()`.
 - **Stato vuoto del repeater.** `InputRepeater::repeaterEmptyState($b = true)`
   (context `empty_state`): senza righe, al posto della riga vuota, un
   riquadro tratteggiato con il bottone «Aggiungi» al centro; al primo clic
@@ -136,6 +190,11 @@
   quindi una copia globale vecchia nasconde quella aggiornata. AGENTS.md e la
   guida descrivono l'installazione per progetto in `.claude/skills/`, senza
   `.agents/`.
+- **Angoli della card email.** In `MailLayout::render()` la card è una tabella con `border-collapse:separate`: prima il bordo grigio restava squadrato sotto lo sfondo arrotondato. La linea colorata in alto ora è dritta (angoli superiori squadrati, arrotondati solo quelli inferiori). In tema scuro la linea in alto mantiene il colore del brand.
+- **Miniature quadrate nelle tabelle del backend.** Le colonne immagine
+  mostrano la miniatura quadrata, senza il padding di `img-thumbnail`, con
+  l'immagine ritagliata (`object-fit-cover`) invece che contenuta.
+- **Liste con azioni di massa: errore 500 al caricamento.** La colonna delle checkbox ha il formato vuoto, quindi `SSP::data_output()` chiamava il suo formatter con due argomenti e la closure ne voleva tre. Ora i formatter di `ListProvider::buildColumns()` hanno `$column` e `$format` facoltativi; il test passa da `SSP` come la lista vera.
 - **Repeater annidato: più aria attorno al blocco.** Dentro una riga il repeater interno (per esempio «Contatti aziendali» nella riga di un referente) era attaccato ai campi sopra, alle proprie righe e al campo che segue. Ora il blocco ha un margine sopra e sotto (`my-3`) e il titolo è staccato dalle righe (`mb-3`) e lo stato vuoto parte alla stessa altezza della prima riga (`mt-2`), solo nel tema Bootstrap e solo per i repeater interni.
 - **Repeater con soft delete: una riga cancellata che torna si riapre.**
   `Repeater::syncRelatedRows()` perdeva `deleted` nella preparazione dei dati
@@ -179,6 +238,18 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Email: quadratino del brand solo senza logo.** L'intestazione mostra il
+  logo PNG caricato in Media → Logo; il nome della società, con il
+  quadratino nel colore primario, compare solo quando il logo manca. Un
+  logo SVG non va nelle mail (Gmail e Outlook non lo mostrano): al suo
+  posto resta il nome.
+- **Nuovo aspetto del template email `basic`.** `MailLayout::render()`
+  impagina ogni email a tabelle (600 px) con logo o nome della società, il
+  colore primario di `css_color` (reso più scuro se illeggibile), tema scuro (solo per i corpi del builder: quelli scritti a mano restano chiari)
+  e un piè di pagina tradotto con i dati della società. La versione solo
+  testo salta preheader e link di riserva e scrive i riepiloghi come
+  «Etichetta: valore». I corpi HTML scritti a mano restano validi: passano
+  ancora da `sanitizeEcho()` e prendono la nuova cornice.
 - **Scheda dei media.** Accanto al file, uno sotto l'altro: Nome (prima
   "File" o "Nome file"), testo alternativo e slug, che ora si vede in sola
   lettura. L'anteprima dell'uploader del backend carica la misura piccola e

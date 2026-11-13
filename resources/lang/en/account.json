@@ -10,7 +10,11 @@
     "saved": "Your changes have been saved.",
     "notice_title": "Done",
     "error_title": "Check your details",
-    "validation": { "required": "{{field}}: this field is required.", "invalid": "{{field}}: invalid value.", "hint": "Fields marked with * are required." },
+    "validation": {
+        "required": "{{field}}: this field is required.",
+        "invalid": "{{field}}: invalid value.",
+        "hint": "Fields marked with * are required."
+    },
     "not_configured": "Not configured yet",
     "errors": {
         "save": "The changes could not be saved. Check the details and try again.",
@@ -40,7 +44,9 @@
         "password": "Password",
         "sent": "We sent a link to {{email}}: open it to confirm your new email.",
         "mail_subject": "Confirm your new email",
-        "mail_body": "To confirm your new email open this link within 24 hours: {{url}}",
+        "mail_text": "To confirm your new email use the button below within 24 hours.",
+        "mail_button": "Confirm your new email",
+        "mail_ignore": "If you didn’t ask for this change, ignore this email: your address stays the same.",
         "confirm_title": "Confirm your new email",
         "confirm_intro": "You are about to use {{email}} as your account email. Confirm with the button below.",
         "confirm_button": "Confirm your new email",

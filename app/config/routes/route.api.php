@@ -112,6 +112,12 @@ Route::area('api')
                     ->guarded()
                     ->permit([]);
 
+                // Le azioni sulle righe selezionate di una lista (`bulkActions()`).
+                Route::post('/bulk/', $ROOT_APP.'/http/api/backend/bulk.php')
+                    ->name('bulk')
+                    ->guarded()
+                    ->permit([]);
+
                 Route::post('/file/delete/', $ROOT_APP.'/http/api/backend/file-delete.php')
                     ->name('file.delete')
                     ->guarded()

@@ -67,13 +67,14 @@ if (isset($_POST['set-password']) && !Csrf::verify()) {
             exit;
         }
 
-        $content = "La tua password è stata impostata con successo! <br>
-        <a href='".__r('backend.account.login')."'>Accedi</a><br>
-        <br>
-        Se non sei stato tu a richiederlo contattaci: info@wonderimage.it";
+        $content = Wonder\App\Support\Mail\MailMessage::make()
+            ->heading('Password impostata')
+            ->text('La tua password è stata impostata con successo!')
+            ->button('Accedi', __r('backend.account.login'))
+            ->small('Se non sei stato tu a richiederlo contattaci: info@wonderimage.it');
 
         $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
-        $mailSent = sendMail($from, $USER->email, 'Password impostata', $content);
+        $mailSent = sendMail($from, $USER->email, 'Password impostata', (string) $content);
         Wonder\Auth\AuthLog::write('password_set', (int) $USER->id, 'backend', true, $mailSent ? [] : [
             'reason' => 'mail_failed',
         ]);

@@ -3,5 +3,9 @@
         "subject": "Confirma tu correo para completar el registro",
         "text": "Para continuar con el registro, confirma tu correo electrónico con el siguiente enlace.",
         "button": "Confirmar correo"
+    },
+    "layout": {
+        "rights": "Todos los derechos reservados.",
+        "button_fallback": "Si el botón no funciona, copia este enlace en tu navegador:"
     }
 }

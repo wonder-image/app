@@ -214,8 +214,9 @@ final class CredentialsTest
     {
         $via = $service === 'brevo' ? 'Brevo' : 'SMTP '.$host.($username !== '' ? ' ('.$username.')' : '');
 
-        return '<p>Questa è un\'email di prova inviata dal backend, pagina Credenziali, il '
-            .date('d/m/Y').' alle '.date('H:i').' tramite '.$via.'.</p>'
-            .'<p>Se la leggi, le credenziali email salvate funzionano.</p>';
+        return (string) MailMessage::make()
+            ->heading(self::SUBJECT)
+            ->notice('Se la leggi, le credenziali email funzionano.', 'success')
+            ->details(['Inviata da' => 'Backend, pagina Credenziali', 'Data' => date('d/m/Y H:i'), 'Tramite' => $via]);
     }
 }

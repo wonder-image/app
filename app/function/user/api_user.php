@@ -81,12 +81,13 @@
         ) {
             try {
 
-                $body = "
-                Buongiorno <b>$USER->name</b>, <br>
-                ecco il tuo Bearer token da includere nell'header di tutte le tue chiamate API:<br>
-                <b>{$VALUES['token']}</b>";
+                $body = \Wonder\App\Support\Mail\MailMessage::make()
+                    ->heading('Credenziali API')
+                    ->text('Buongiorno '.$USER->name.', ecco il tuo Bearer token da includere nell\'header di tutte le tue chiamate API.')
+                    ->details(['Bearer token' => (string) $VALUES['token']])
+                    ->small('Tienilo riservato: chi lo conosce può chiamare le API al posto tuo.');
 
-                sendMail($SOCIETY->email, $USER->email, "Credenziali API", $body);
+                sendMail($SOCIETY->email, $USER->email, "Credenziali API", (string) $body);
 
             } catch (Throwable $e) {
                 error_log('[apiUser] sendMail fallito ma il token è già stato salvato: '.$e->getMessage());

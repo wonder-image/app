@@ -3,5 +3,9 @@
         "subject": "Confirmez votre e-mail pour finaliser l'inscription",
         "text": "Pour continuer votre inscription, confirmez votre adresse e-mail via le lien suivant.",
         "button": "Confirmer l'e-mail"
+    },
+    "layout": {
+        "rights": "Tous droits réservés.",
+        "button_fallback": "Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :"
     }
 }

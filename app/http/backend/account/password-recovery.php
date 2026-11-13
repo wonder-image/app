@@ -44,10 +44,12 @@ if (isset($_POST['recovery']) && !Csrf::verify()) {
     if ($VERIFY->response && $issued !== null) {
         $link = __r('backend.account.password.restore').'?token='.rawurlencode($issued->token);
 
-        $content = "Ecco il link per modificare la tua password.<br>
-        <a href='{$link}'>Clicca qui</a><br>
-        <br>
-        Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
+        $content = Wonder\App\Support\Mail\MailMessage::make()
+            ->preheader('Il link vale 30 minuti.')
+            ->heading('Recupero password')
+            ->text('Ecco il link per modificare la tua password.')
+            ->button('Modifica password', $link)
+            ->small('Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it');
 
         $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
 

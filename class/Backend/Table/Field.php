@@ -305,6 +305,7 @@
         public function actionButton($actionArray) {
 
             $BUTTONS = "";
+            $bulkDivider = false;
 
             if (!empty($actionArray)) {
                 
@@ -353,6 +354,18 @@
                             }
 
                         }
+
+                    } elseif (is_array($link) && isset($link['bulk'])) {
+
+                        # Azione di massa per questa sola riga (BulkAction::row()).
+                        $item = \Wonder\Backend\Table\BulkActions::rowMenuItem($link, (array) $this->row);
+
+                        if ($item !== '' && !$bulkDivider && $BUTTONS !== '') {
+                            $item = "<div class='dropdown-divider'></div>".$item;
+                        }
+
+                        $bulkDivider = $bulkDivider || $item !== '';
+                        $BUTTONS .= $item;
 
                     } elseif (is_array($link)) {
 
@@ -884,7 +897,7 @@
         # src). Il src è sempre escaped: può arrivare da dati non fidati (feed).
         private function imageTag(string $src): string
         {
-            return "<img src='".htmlspecialchars(Asset::version($src), ENT_QUOTES)."' class='img-thumbnail object-fit-contain' style='max-width: calc(((61.5px - 1rem) / 2) * 3) !important;width: calc(((61.5px - 1rem) / 2) * 3) !important; height: calc(61.5px - 1rem) !important;'>";
+            return "<img src='".htmlspecialchars(Asset::version($src), ENT_QUOTES)."' class='border rounded object-fit-cover' style='width: calc(61.5px - 1rem) !important; height: calc(61.5px - 1rem) !important;'>";
         }
 
         private function setBadgeValue($format, $COLUMN_VALUE) {

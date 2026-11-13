@@ -111,6 +111,9 @@
         # Script dopo quello di DataTables (es. il riordino delle righe)
             private $afterScript = "";
 
+        # HTML sopra la tabella (es. la barra delle azioni di massa)
+            private $beforeTable = "";
+
         # Utilità
             private $id = [];
             private $columnId = 0;
@@ -720,6 +723,7 @@
 
             $RETURN = '';
             $RETURN .= '<div class="col-12">';
+            $RETURN .= $this->beforeTable;
             $RETURN .= '<table id="'.$this->id['table'].'" class="table table-hover w-100">';
             $RETURN .= '<thead></thead>';
             $RETURN .= '<tbody class="table-group-divider"></tbody>';
@@ -846,6 +850,15 @@
         public function tableId(): string {
 
             return (string) ($this->id['table'] ?? '');
+
+        }
+
+        /** HTML da stampare sopra la tabella, nella sua stessa colonna. */
+        public function beforeTable( string $html ): self {
+
+            $this->beforeTable .= $html;
+
+            return $this;
 
         }
 

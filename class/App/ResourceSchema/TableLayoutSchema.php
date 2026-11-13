@@ -5,6 +5,8 @@ namespace Wonder\App\ResourceSchema;
 use Closure;
 use Wonder\App\Dataset\Column;
 use RuntimeException;
+use Wonder\Backend\Table\BulkAction;
+use Wonder\Backend\Table\BulkActions;
 use Wonder\App\Resource;
 use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Dropdown;
@@ -80,6 +82,8 @@ final class TableLayoutSchema
             // Bottone "Importa" accanto a "Esporta": la chiave del tracciato
             // di caricamento (`import.layouts`) e la sua etichetta.
             'import' => null,
+            // Azioni sulle righe selezionate (vedi `bulkActions()`).
+            'bulk_actions' => [],
         ];
     }
 
@@ -247,6 +251,20 @@ final class TableLayoutSchema
         }
 
         $this->schema['reorder'] = ['column' => $column, 'group' => $group];
+
+        return $this;
+    }
+
+    /**
+     * Checkbox a sinistra di ogni riga e una barra con le azioni da
+     * applicare a tutte le righe scelte della pagina (vedi
+     * `Wonder\Backend\Table\BulkAction`). Vuoto le toglie.
+     *
+     * @param list<BulkAction> $actions
+     */
+    public function bulkActions(array $actions): self
+    {
+        $this->schema['bulk_actions'] = array_values(BulkActions::normalize($actions));
 
         return $this;
     }

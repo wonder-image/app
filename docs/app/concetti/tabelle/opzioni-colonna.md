@@ -108,6 +108,17 @@ TableColumn::key('name')->text()->sortable();
 
 Rende la colonna ordinabile dall'header.
 
+## `exportable` — fuori dall'export
+
+```php
+TableColumn::key('row_signals')->text()->exportable(false);
+```
+
+Senza `downloadColumns()`, l'export usa le colonne di `tableSchema()`.
+Con `exportable(false)` la colonna resta fuori dall'export, come i bottoni.
+Serve per le colonne che hanno senso solo a video, per esempio i
+[segnali di riga](segnali-riga.md).
+
 ## `class` — classi CSS
 
 ```php

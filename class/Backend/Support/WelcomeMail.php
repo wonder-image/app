@@ -4,6 +4,7 @@ namespace Wonder\Backend\Support;
 
 use RuntimeException;
 use Wonder\App\LegacyGlobals;
+use Wonder\App\Support\Mail\MailMessage;
 use Wonder\Auth\AuthLog;
 use Wonder\Auth\OneTimeToken;
 
@@ -38,7 +39,8 @@ final class WelcomeMail
         $authority = permissions($authorityKey);
         $authorityName = is_object($authority) ? (string) ($authority->name ?? $authorityKey) : $authorityKey;
         $backendPath = (string) LegacyGlobals::get('PATH')->backend;
-        $access = "Link accesso: <a href='{$backendPath}'>Clicca qui</a> <br>";
+        $button = ['Accedi', $backendPath];
+        $expires = '';
 
         // Un utente esistente con password continua a usare la sua.
         if (empty($user->password)) {
@@ -51,20 +53,22 @@ final class WelcomeMail
             }
 
             $link = __r('backend.account.password.set').'?token='.rawurlencode($token->token);
-            $access = "Imposta la tua password: <a href='{$link}'>Clicca qui</a> (il link scade tra ".intdiv(self::TOKEN_TTL, 3600)." ore) <br>";
+            $button = ['Imposta la tua password', $link];
+            $expires = 'Il link per impostare la password scade tra '.intdiv(self::TOKEN_TTL, 3600).' ore.';
         }
 
-        $content = "
-        Ciao {$name}, benvenuto/a nello staff. <br>
-        <br>
-        {$access}
-        Username: <b>{$username}</b> <br>
-        <br>
-        Autorizzazione: <b>{$authorityName}</b>
-        ";
+        $content = MailMessage::make()
+            ->heading('Benvenuto nello staff')
+            ->text(trim('Ciao '.$name).', benvenuto/a nello staff.')
+            ->details(['Username' => $username, 'Autorizzazione' => $authorityName])
+            ->button($button[0], $button[1]);
+
+        if ($expires !== '') {
+            $content->small($expires);
+        }
 
         $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
-        $mailSent = (bool) sendMail($from, $email, 'Benvenuto nello staff', $content);
+        $mailSent = (bool) sendMail($from, $email, 'Benvenuto nello staff', (string) $content);
         AuthLog::write('welcome_mail', $userId, 'backend', $mailSent, $mailSent ? [] : ['reason' => 'mail_failed']);
 
         return $mailSent;

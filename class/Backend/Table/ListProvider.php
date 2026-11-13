@@ -31,24 +31,30 @@ final class ListProvider
                 $arrowDir   = $columnName === 'position-up' ? 'position_arrow_up' : 'position_arrow_down';
                 $columnName = 'id';
                 $format     = ['visible' => $arrow, 'lines' => $lineCount];
-                $formatter  = static function ($row, $column, $format) use ($renderer, $arrowDir) {
+                $formatter  = static function ($row, $column = null, $format = []) use ($renderer, $arrowDir) {
                     return $renderer->newField($row, $arrowDir, $format);
                 };
             } elseif ($columnName === Reorder::COLUMN) {
                 $columnName = 'id';
                 $format     = ['reorder' => $reorder];
-                $formatter  = static function ($row, $column, $format) {
+                $formatter  = static function ($row, $column = null, $format = []) {
                     return !empty($format['reorder']) ? Reorder::handle($row['id'] ?? 0) : '';
+                };
+            } elseif ($columnName === BulkActions::COLUMN) {
+                $columnName = 'id';
+                $format     = [];
+                $formatter  = static function ($row, $column = null, $format = []) {
+                    return BulkActions::checkbox($row['id'] ?? 0);
                 };
             } elseif ($columnName === 'menu') {
                 $columnName = 'id';
                 $format     = $other;
-                $formatter  = static function ($row, $column, $format) use ($renderer) {
+                $formatter  = static function ($row, $column = null, $format = []) use ($renderer) {
                     return $renderer->newField($row, 'action_button', $format);
                 };
             } else {
                 $format    = empty($other) ? $format : $other;
-                $formatter = static function ($row, $column, $format) use ($renderer) {
+                $formatter = static function ($row, $column = null, $format = []) use ($renderer) {
                     return $renderer->newField($row, $column, $format);
                 };
             }
@@ -216,9 +222,9 @@ final class ListProvider
         $custom->order_column    = $request['order'][0]['name'] ?? ($request['default']['order'] ?? '');
         $custom->order_direction = $request['order'][0]['dir']  ?? ($request['default']['order_direction'] ?? '');
 
-        // La maniglia non è una colonna del database: ordinare per lei vuol
+        // Maniglia e checkbox non sono colonne del database: ordinare per loro vuol
         // dire l'ordine di partenza della lista.
-        if ($custom->order_column === Reorder::COLUMN) {
+        if ($custom->order_column === Reorder::COLUMN || $custom->order_column === BulkActions::COLUMN) {
             $custom->order_column    = $request['default']['order'] ?? '';
             $custom->order_direction = $request['default']['order_direction'] ?? '';
         }
