@@ -15,6 +15,24 @@
   della lista e visibilità per riga; risposta `{done, failed, messages}`.
   `Table::beforeTable()` stampa HTML sopra la tabella. Testi in
   `resources/lang/{it,en}/bulk.json`. Il JS è nella lib (`backend/js/bulk.js`).
+- **Segnali di riga nelle liste.**
+  - `Wonder\Backend\Table\RowSignal` è un pallino nella prima colonna:
+    - `warning` è giallo e indica un dato mancante;
+    - `danger` è rosso e indica un dato da verificare.
+  - Il segnale si accende con una condizione SQL e mostra il motivo nel
+    tooltip.
+  - `RowSignals` offre:
+    - `resolve()`: i predefiniti della Resource con le modifiche di siti e
+      moduli, fatte con `add()` e `remove()` per lista;
+    - `selectSql()`;
+    - `whereAny()` per il filtro;
+    - `fromRow()`;
+    - `dot()`;
+    - `column()`.
+  - `RowSignal::when()` accende il segnale solo se una funzionalità è attiva.
+  - Documentazione in `docs/app/concetti/tabelle/segnali-riga.md`.
+- **`Column::exportable(false)`.** La colonna resta fuori dall'export che
+  ripiega su `tableSchema()`.
 - **Stato vuoto del repeater.** `InputRepeater::repeaterEmptyState($b = true)`
   (context `empty_state`): senza righe, al posto della riga vuota, un
   riquadro tratteggiato con il bottone «Aggiungi» al centro; al primo clic
