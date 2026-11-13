@@ -37,11 +37,12 @@ if (isset($_POST['restore']) && !Csrf::verify()) {
         exit;
     }
 
-    $content = "La tua password è stata modificata con successo! <br>
-    <br>
-    È possibile cambiare la tua password in qualsiasi momento in Login -> Account -> Modifica password oppure premi <br><a href='".__r('backend.account.index')."'>qui</a><br>
-    <br>
-    Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it";
+    $content = Wonder\App\Support\Mail\MailMessage::make()
+        ->heading('Password modificata')
+        ->text('La tua password è stata modificata con successo!')
+        ->text('È possibile cambiare la tua password in qualsiasi momento in Login -> Account -> Modifica password.')
+        ->button('Vai al tuo account', __r('backend.account.index'))
+        ->small('Se non sei stato tu a richiederlo contattaci: marinoni@wonderimage.it');
 
     $from = (string) ($GLOBALS['SOCIETY']->email ?? '') ?: 'noreply@wonderimage.it';
     $mailSent = sendMail($from, $USER->email, 'Password modificata', $content);

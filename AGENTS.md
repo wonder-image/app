@@ -673,6 +673,18 @@ php forge start
   `options` in `payload` and calls the transports through
   `Outbox::arguments()`; `mail_log.cc_email` / `bcc_email` hold
   `Recipients::format()`. See `email.md#copia-cc-e-copia-nascosta-ccn`.
+- Mail look: `emailTemplate($body, 'basic')` delegates to
+  `App\Support\Mail\MailLayout::render()` (600px tables, logo or society
+  name, primary from `css_color` darkened when unreadable, dark mode (builder bodies only: hand-written ones stay light),
+  translated society footer; `useBrand()` for sites/tests). New mails are
+  composed with `MailMessage::make()->heading()->text()->button()->details()
+  ->notice()->small()` and passed as-is to `sendMail()` / `queueMail()`
+  (string cast, signatures unchanged); every block escapes its text, only
+  `html()` is trusted. Its output starts with `MailMessage::MARKER` and only
+  that body skips `sanitizeEcho()`: hand-written bodies keep the old path
+  and must keep working. `htmlToText()` drops `data-wi-mail-text-skip`
+  elements and writes `data-wi-mail-label` cells as `Label: `. See
+  `email.md#aspetto-delle-email`; test `tests/App/Mail/MailLayoutTest.php`.
 - `Resource::formNotices($values, $mode)` returns `{level, message}` alerts
   printed above the backend form, outside the `<form>` (`FORM_NOTICES` in
   `ResourcePagePresenter`), for external state such as Google differences.

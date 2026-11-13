@@ -3,5 +3,9 @@
         "subject": "Confirm your email to complete registration",
         "text": "To continue your registration, confirm your email address using the link below.",
         "button": "Confirm email"
+    },
+    "layout": {
+        "rights": "All rights reserved.",
+        "button_fallback": "If the button doesn't work, copy this link into your browser:"
     }
 }
