@@ -418,11 +418,6 @@
         $bodyText = (string) __t('emails.email_verification.text');
         $button = (string) __t('emails.email_verification.button');
 
-        $safeVerificationUrl = htmlspecialchars($verificationUrl, ENT_QUOTES, 'UTF-8');
-        $safeButtonLabel = htmlspecialchars($button, ENT_QUOTES, 'UTF-8');
-        $safeSubject = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
-        $safeBodyText = htmlspecialchars($bodyText, ENT_QUOTES, 'UTF-8');
-
         $text = $bodyText."\n\n";
         $text .= $button.": ".$verificationUrl."\n";
 
@@ -430,18 +425,19 @@
             $text .= "\n".$expiresLine."\n";
         }
 
-        $html = "<p>{$safeBodyText}</p>";
-        $html .= "<p><a href=\"{$safeVerificationUrl}\" target=\"_blank\" rel=\"noopener noreferrer\">{$safeButtonLabel}</a></p>";
+        $html = \Wonder\App\Support\Mail\MailMessage::make()
+            ->heading($subject)
+            ->text($bodyText)
+            ->button($button, $verificationUrl);
 
         if ($expiresLine !== '') {
-            $safeExpiresLine = htmlspecialchars($expiresLine, ENT_QUOTES, 'UTF-8');
-            $html .= "<p>{$safeExpiresLine}</p>";
+            $html->small($expiresLine);
         }
 
         return [
             'subject' => $subject,
             'text' => $text,
-            'html' => "<div><h3>{$safeSubject}</h3>{$html}</div>",
+            'html' => (string) $html,
         ];
 
     }

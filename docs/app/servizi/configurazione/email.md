@@ -118,6 +118,15 @@ da `sanitizeEcho()` e finisce nella stessa cornice (logo, colori, piè di
 pagina). Non serve migrarlo; conviene farlo quando lo si tocca, per avere
 pulsanti e riepiloghi coerenti.
 
+Le email spedite dal pacchetto (account backend e frontend, benvenuto dello
+staff, verifica email, token API, segnalazione errori, email di prova) sono
+già scritte con `MailMessage`. I loro testi tradotti sono divisi per blocco:
+`auth.email.reset_text` / `reset_button` / `reset_ignore`,
+`federated_text` / `federated_button`, `existing_text` / `existing_button` /
+`existing_recovery` / `existing_recovery_button` / `existing_ignore` e
+`account.email.mail_text` / `mail_button` / `mail_ignore`; l'URL lo mette il
+pulsante, non il testo.
+
 Il builder segna il proprio output con il commento `<!--wi-mail:v1-->`
 (`MailMessage::MARKER`): solo quel corpo salta `sanitizeEcho()`, perché è già
 stato sanificato blocco per blocco. Un template diverso da `basic` restituisce

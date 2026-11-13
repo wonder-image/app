@@ -4,6 +4,7 @@ namespace Wonder\App\Support\Errors;
 
 use Throwable;
 use Wonder\App\Models\System\ErrorReport;
+use Wonder\App\Support\Mail\MailMessage;
 
 /**
  * Raccoglie gli errori ripetuti che non hanno un documento su cui restare.
@@ -172,17 +173,22 @@ final class ErrorReporter
         }
 
         $subject = '['.$service.'] '.$action;
-        $body = '<p>'.htmlspecialchars($message, ENT_QUOTES, 'UTF-8').'</p>';
+        $body = MailMessage::make()
+            ->notice($message, 'danger')
+            ->details(['Servizio' => $service, 'Azione' => $action, 'Occorrenze' => (string) $occurrences]);
 
         if ($context !== []) {
-            $body .= '<pre>'.htmlspecialchars(
-                (string) json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                ENT_QUOTES,
-                'UTF-8'
-            ).'</pre>';
+            $body->html(
+                '<pre style="margin:0 0 16px;padding:12px;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background-color:#f4f4f5;border-radius:6px;">'
+                .htmlspecialchars(
+                    (string) json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    ENT_QUOTES,
+                    'UTF-8'
+                ).'</pre>'
+            );
         }
 
-        $body .= '<p>Occorrenze: '.$occurrences.'</p>';
+        $body = (string) $body;
         $sent = false;
 
         foreach ($recipients as $recipient) {

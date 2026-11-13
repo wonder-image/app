@@ -4,6 +4,7 @@ namespace Wonder\Auth\Frontend;
 
 use Wonder\App\Credentials;
 use Wonder\App\Security\RecaptchaGuard;
+use Wonder\App\Support\Mail\MailMessage;
 use Wonder\Auth\Federated\Bridge\LegacySessionLoginAdapter;
 use Wonder\Auth\Federated\FederatedIdentityRepository;
 use Wonder\Auth\Federated\FederatedLoginService;
@@ -270,7 +271,13 @@ final class AuthController
                     ->issueForUser($userId, $this->route('login'));
                 $url = $this->absolute($this->route('password.restore').'?token='.rawurlencode($issued->token));
                 $from = (string) ($GLOBALS['SOCIETY']->email ?? '');
-                $mailSent = (bool) \sendMail($from, $email, (string) __t('auth.email.reset_subject'), (string) __t('auth.email.reset_body', ['url' => $url]));
+                $subject = (string) __t('auth.email.reset_subject');
+                $body = MailMessage::make()
+                    ->heading($subject)
+                    ->text((string) __t('auth.email.reset_text'))
+                    ->button((string) __t('auth.email.reset_button'), $url)
+                    ->small((string) __t('auth.email.reset_ignore'));
+                $mailSent = (bool) \sendMail($from, $email, $subject, (string) $body);
             }
 
             AuthLog::write('recovery_request', $userId, $area, $mailSent, ['identifier' => $email]);
@@ -417,12 +424,13 @@ final class AuthController
             return;
         }
 
-        \sendMail(
-            (string) ($GLOBALS['SOCIETY']->email ?? ''),
-            (string) $user['email'],
-            (string) __t('auth.email.federated_subject'),
-            (string) __t('auth.email.federated_body', ['provider' => ucfirst($provider), 'url' => $this->absolute($this->route('login'))])
-        );
+        $subject = (string) __t('auth.email.federated_subject');
+        $body = MailMessage::make()
+            ->heading($subject)
+            ->text((string) __t('auth.email.federated_text', ['provider' => ucfirst($provider)]))
+            ->button((string) __t('auth.email.federated_button'), $this->absolute($this->route('login')));
+
+        \sendMail((string) ($GLOBALS['SOCIETY']->email ?? ''), (string) $user['email'], $subject, (string) $body);
     }
 
     private function mailExistingAccount(string $email): void
@@ -441,15 +449,15 @@ final class AuthController
         $mailSent = false;
         if (($user->exists ?? false) && $this->profile->gateway()->canAccessArea((int) $user->id, $area, $this->profile->authorities())) {
             $userId = (int) $user->id;
-            $mailSent = (bool) \sendMail(
-                (string) ($GLOBALS['SOCIETY']->email ?? ''),
-                $email,
-                (string) __t('auth.email.existing_subject'),
-                (string) __t('auth.email.existing_body', [
-                    'login' => $this->absolute($this->route('login')),
-                    'recovery' => $this->absolute($this->route('password.recovery')),
-                ])
-            );
+            $subject = (string) __t('auth.email.existing_subject');
+            $body = MailMessage::make()
+                ->heading($subject)
+                ->text((string) __t('auth.email.existing_text'))
+                ->button((string) __t('auth.email.existing_button'), $this->absolute($this->route('login')))
+                ->text((string) __t('auth.email.existing_recovery'))
+                ->button((string) __t('auth.email.existing_recovery_button'), $this->absolute($this->route('password.recovery')))
+                ->small((string) __t('auth.email.existing_ignore'));
+            $mailSent = (bool) \sendMail((string) ($GLOBALS['SOCIETY']->email ?? ''), $email, $subject, (string) $body);
         }
 
         AuthLog::write('signup_existing', $userId, $area, $mailSent, ['identifier' => $email]);
