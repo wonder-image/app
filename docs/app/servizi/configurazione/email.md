@@ -52,8 +52,10 @@ delega a `Wonder\App\Support\Mail\MailLayout::render()`):
 - impaginazione a tabelle larga 600 px, il formato che i client di posta
   (Gmail, Apple Mail, Outlook) rendono in modo più uniforme;
 - in alto il logo principale del sito (`$PATH->logo`, con la versione
-  bianca `logoWhite` nel tema scuro) o, senza logo, il nome della società,
-  con una riga nel colore primario;
+  bianca `logoWhite` nel tema scuro) sotto una riga nel colore primario.
+  Il logo si carica in Media → Logo (solo PNG). Senza logo compare il nome
+  della società preceduto da un quadratino nel colore primario; un logo SVG
+  non viene usato, perché Gmail e Outlook non lo mostrano;
 - il colore primario viene da `css_color` (`var = primary`): se è troppo
   chiaro per uno sfondo bianco diventa un grigio scuro, e il testo dei
   pulsanti prende il colore di contrasto leggibile;
@@ -99,6 +101,8 @@ sendMail($from, $cliente, 'Ordine spedito', $corpo);
 | `html($html)` | HTML già pronto, **non** sanificato: solo markup scritto dal codice. |
 | `button($etichetta, $url, $fallback = true)` | Pulsante nel colore primario e, sotto, il link da copiare. Un URL che non sia `http(s)://`, `mailto:`, `tel:` o un path `/...` stampa solo l'etichetta. |
 | `details($righe, $titolo)` | Elenco etichetta / valore (riepiloghi, dati di un form). |
+| `items($righe, $totali, $titolo)` | Righe di un ordine: anteprima, nome, descrizione, quantità, prezzo (barrato se c'è `original_price`) e totale di riga; sotto i totali, l'ultimo in evidenza. |
+| `table($colonne, $righe, $titolo, $aDestra)` | Tabella con intestazione; `$aDestra` elenca gli indici delle colonne da allineare a destra (importi). |
 | `notice($testo, $livello)` | Riquadro `info`, `success`, `warning` o `danger`. |
 | `divider()` | Linea di separazione. |
 | `small($testo)` | Nota in piccolo. |
@@ -107,8 +111,22 @@ sendMail($from, $cliente, 'Ordine spedito', $corpo);
 così com'è (lo convertono in stringa), quindi la firma non cambia e la coda
 salva il corpo già composto.
 
+Ogni riga di `items()` è un array con `name` (obbligatorio), e se servono
+`description`, `image` (URL `http(s)` o path `/...`, mostrata a 64 px),
+`url` (link sul nome), `quantity`, `price`, `original_price` e `total`. I
+prezzi arrivano già formattati: il blocco non fa conti.
+
+```php
+->items([
+    ['name' => 'Tazza', 'description' => 'Blu, 350 ml', 'image' => $urlFoto,
+     'quantity' => 2, 'price' => '€ 10,00', 'original_price' => '€ 12,00',
+     'total' => '€ 20,00'],
+], ['Subtotale' => '€ 20,00', 'Spedizione' => 'Gratis', 'Totale' => '€ 20,00'], 'Il tuo ordine')
+```
+
 Nella versione testo il pulsante diventa `Etichetta: URL`, le righe di
-`details()` diventano `Etichetta: valore` e preheader e link di riserva non
+`details()` e i totali di `items()` diventano `Etichetta: valore`, il prezzo
+pieno barrato non compare e preheader e link di riserva non
 compaiono.
 
 ### Email scritte prima del builder

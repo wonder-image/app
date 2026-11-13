@@ -65,9 +65,11 @@ final class MailLayout
             .'<table role="presentation" class="wi-mail-bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#f4f4f5;">'
             .'<tr><td align="center" style="padding:32px 12px;">'
             .'<table role="presentation" class="wi-mail-container" width="'.self::WIDTH.'" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:'.self::WIDTH.'px;">'
-            .self::header($society)
-            .'<tr><td class="wi-mail-card" style="background-color:#ffffff;border:1px solid #e4e4e7;border-top:3px solid '.$brand['primary'].';border-radius:12px;">'
-            .'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>'
+            .self::header($society, $brand)
+            // Con `border-collapse:collapse` il bordo di una cella ignora
+            // `border-radius`: la card è una tabella separata a sé.
+            .'<tr><td>'
+            .'<table role="presentation" class="wi-mail-card" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;background-color:#ffffff;border:1px solid #e4e4e7;border-top:3px solid '.$brand['primary'].';border-radius:0 0 12px 12px;"><tr>'
             .'<td class="wi-mail-body" style="padding:36px 40px 20px;font-family:'.self::FONT.';font-size:15px;line-height:1.6;color:#3f3f46;word-break:break-word;">'
             .$body
             .'</td></tr></table>'
@@ -168,15 +170,24 @@ final class MailLayout
             .$preheader.str_repeat('&#847;&zwnj;&nbsp;', 40).'</div>';
     }
 
-    /** @param array<string, string> $society */
-    private static function header(array $society): string
+    /**
+     * Logo del sito; senza logo, il nome preceduto da un quadrato nel colore
+     * primario.
+     *
+     * @param array<string, string> $society
+     * @param array{primary: string, contrast: string} $brand
+     */
+    private static function header(array $society, array $brand): string
     {
         $name = self::escape($society['name']);
         $logo = self::logo('logo');
         $logoWhite = $logo === null ? null : self::logo('logoWhite');
 
         if ($logo === null) {
-            $content = '<span class="wi-mail-heading" style="font-family:'.self::FONT.';font-size:20px;font-weight:700;color:#18181b;">'.$name.'</span>';
+            $content = '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+                .'<td class="wi-mail-mark" width="28" height="28" bgcolor="'.$brand['primary'].'" style="width:28px;height:28px;border-radius:6px;background-color:'.$brand['primary'].';font-size:1px;line-height:1px;">&nbsp;</td>'
+                .'<td style="padding-left:10px;"><span class="wi-mail-heading" style="font-family:'.self::FONT.';font-size:20px;line-height:28px;font-weight:700;color:#18181b;">'.$name.'</span></td>'
+                .'</tr></table>';
         } else {
             $content = '<img class="wi-mail-logo" src="'.self::escape($logo).'" alt="'.$name.'" height="40" style="display:block;height:40px;width:auto;max-width:220px;border:0;outline:none;text-decoration:none;">';
 
@@ -240,14 +251,16 @@ final class MailLayout
 
         // In tema scuro un primario scuro sparisce sul fondo: pulsante chiaro.
         $darkButton = self::luminance($brand['primary']) < 0.12
-            ? '.wi-mail-button{background-color:#fafafa!important}.wi-mail-button-link{color:#18181b!important}'
+            ? '.wi-mail-button,.wi-mail-mark{background-color:#fafafa!important}.wi-mail-button-link{color:#18181b!important}'
             : '';
 
         $darkRules = '.wi-mail-bg{background-color:#09090b!important}'
-            .'.wi-mail-card{background-color:#18181b!important;border-color:#27272a!important}'
+            .'.wi-mail-card{background-color:#18181b!important;border-right-color:#27272a!important;border-bottom-color:#27272a!important;border-left-color:#27272a!important}'
             .'.wi-mail-body,.wi-mail-detail-row,.wi-mail-heading{color:#f4f4f5!important}'
             .'.wi-mail-detail{background-color:#27272a!important}'
-            .'.wi-mail-detail-row{border-color:#3f3f46!important}'
+            .'.wi-mail-detail-row,.wi-mail-items,.wi-mail-item-row,.wi-mail-total{border-color:#3f3f46!important}'
+            .'.wi-mail-item-placeholder{background-color:#27272a!important}'
+            .'.wi-mail-sale{color:#f87171!important}'
             .'.wi-mail-rule{background-color:#3f3f46!important}'
             .'.wi-mail-muted,.wi-mail-muted a{color:#a1a1aa!important}'
             .'.wi-mail-body a:not(.wi-mail-button-link){color:#f4f4f5!important}'
@@ -278,7 +291,8 @@ final class MailLayout
         $path = $GLOBALS['PATH'] ?? null;
         $url = is_object($path) ? (string) ($path->{$property} ?? '') : '';
 
-        if ($url === '') {
+        // Gmail e Outlook non mostrano gli SVG: meglio il nome.
+        if ($url === '' || preg_match('#\.svgz?(?:[?\#]|$)#i', $url) === 1) {
             return null;
         }
 

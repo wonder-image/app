@@ -121,14 +121,7 @@ final class MailMessage implements \Stringable
             return $this;
         }
 
-        $html = '';
-
-        if ($title !== null && trim($title) !== '') {
-            $html .= '<p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:#71717a;" class="wi-mail-muted">'
-                .self::escape($title).'</p>';
-        }
-
-        $html .= '<table role="presentation" class="wi-mail-detail" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 24px;border-collapse:separate;background-color:#f4f4f5;border-radius:8px;">';
+        $html = self::title($title).'<table role="presentation" class="wi-mail-detail" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 24px;border-collapse:separate;background-color:#f4f4f5;border-radius:8px;">';
 
         $last = count($rows) - 1;
         $index = 0;
@@ -140,6 +133,182 @@ final class MailMessage implements \Stringable
                 .'<td class="wi-mail-detail-row" valign="top" style="padding:12px 16px;'.$border.'font-size:14px;font-weight:600;color:#18181b;word-break:break-word;">'.self::lines((string) $value).'</td>'
                 .'</tr>';
             $index++;
+        }
+
+        return $this->block($html.'</table>');
+    }
+
+    /**
+     * Righe di un ordine o di un preventivo: anteprima, nome, descrizione
+     * (variante, taglia), quantità per prezzo e totale di riga. Con
+     * `original_price` il prezzo pieno compare barrato accanto a quello
+     * scontato. I prezzi arrivano già formattati da chi chiama (valuta,
+     * decimali): il blocco non fa conti. Sotto, i `$totals` (subtotale,
+     * spedizione, sconto, ...): l'ultimo è il totale e va in evidenza.
+     *
+     *     ->items([
+     *         ['name' => 'Tazza', 'description' => 'Blu, 350 ml', 'image' => $url,
+     *          'quantity' => 2, 'price' => '€ 10,00', 'original_price' => '€ 12,00',
+     *          'total' => '€ 20,00'],
+     *     ], ['Subtotale' => '€ 20,00', 'Spedizione' => 'Gratis', 'Totale' => '€ 20,00'])
+     *
+     * @param list<array{name: string, description?: ?string, image?: ?string, url?: ?string, quantity?: int|float|string|null, price?: ?string, original_price?: ?string, total?: ?string}> $items
+     * @param array<string, scalar|null> $totals
+     */
+    public function items(array $items, array $totals = [], ?string $title = null): self
+    {
+        $items = array_values(array_filter($items, static fn ($item): bool => is_array($item) && trim((string) ($item['name'] ?? '')) !== ''));
+
+        if ($items === [] && $totals === []) {
+            return $this;
+        }
+
+        $html = self::title($title);
+        $images = false;
+
+        foreach ($items as $item) {
+            if (self::imageUrl($item['image'] ?? null) !== null) {
+                $images = true;
+                break;
+            }
+        }
+
+        if ($items !== []) {
+            $html .= '<table role="presentation" class="wi-mail-items" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 '.($totals === [] ? '24' : '0').'px;border-top:1px solid #e4e4e7;">';
+            $quantityLabel = MailLayout::translate('emails.layout.quantity', 'Quantità');
+
+            foreach ($items as $item) {
+                $border = 'border-bottom:1px solid #e4e4e7;';
+                $html .= '<tr>';
+
+                if ($images) {
+                    $image = self::imageUrl($item['image'] ?? null);
+                    $html .= '<td class="wi-mail-item-row" width="64" valign="top" style="width:64px;padding:16px 0;'.$border.'">'
+                        .($image === null
+                            ? '<div class="wi-mail-item-placeholder" style="width:64px;height:64px;border-radius:8px;background-color:#f4f4f5;"></div>'
+                            : '<img src="'.self::escape($image).'" alt="" width="64" height="64" style="display:block;width:64px;height:64px;object-fit:cover;border-radius:8px;border:0;">')
+                        .'</td>';
+                }
+
+                $name = self::escape(trim((string) $item['name']));
+                $url = trim((string) ($item['url'] ?? ''));
+
+                if ($url !== '' && self::safeUrl($url)) {
+                    $name = '<a href="'.self::escape($url).'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">'.$name.'</a>';
+                }
+
+                $lines = ['<span class="wi-mail-heading" style="font-size:15px;font-weight:600;color:#18181b;">'.$name.'</span>'];
+                $description = trim((string) ($item['description'] ?? ''));
+
+                if ($description !== '') {
+                    $lines[] = '<span class="wi-mail-muted" style="font-size:13px;color:#71717a;">'.self::lines($description).'</span>';
+                }
+
+                $quantity = trim((string) ($item['quantity'] ?? ''));
+                $price = trim((string) ($item['price'] ?? ''));
+                $original = trim((string) ($item['original_price'] ?? ''));
+                $meta = [];
+
+                if ($quantity !== '') {
+                    $meta[] = self::escape($quantityLabel).': '.self::escape($quantity);
+                }
+
+                if ($price !== '') {
+                    $priceHtml = '';
+
+                    if ($original !== '' && $original !== $price) {
+                        $priceHtml .= '<span '.self::TEXT_SKIP.' class="wi-mail-muted" style="color:#a1a1aa;text-decoration:line-through;">'.self::escape($original).'</span> ';
+                        $priceHtml .= '<span class="wi-mail-sale" style="color:#b91c1c;font-weight:600;">'.self::escape($price).'</span>';
+                    } else {
+                        $priceHtml .= self::escape($price);
+                    }
+
+                    $meta[] = $priceHtml;
+                }
+
+                if ($meta !== []) {
+                    $lines[] = '<span class="wi-mail-muted" style="font-size:13px;color:#71717a;">'.implode(' &middot; ', $meta).'</span>';
+                }
+
+                $total = trim((string) ($item['total'] ?? ''));
+
+                $html .= '<td class="wi-mail-item-row" valign="top" style="padding:16px 12px 16px '.($images ? '14' : '0').'px;'.$border.'line-height:1.5;">'.implode('<br>', $lines).'</td>'
+                    .'<td class="wi-mail-item-row wi-mail-heading" valign="top" align="right" style="padding:16px 0;'.$border.'font-size:15px;font-weight:600;color:#18181b;white-space:nowrap;">'.self::escape($total).'</td>'
+                    .'</tr>';
+            }
+
+            $html .= '</table>';
+        }
+
+        if ($totals !== []) {
+            $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 24px;">';
+            $last = count($totals) - 1;
+            $index = 0;
+
+            foreach ($totals as $label => $value) {
+                $grand = $index === $last && $index > 0;
+                $top = $grand ? 'border-top:1px solid #e4e4e7;padding-top:12px;' : 'padding-top:'.($index === 0 ? '14' : '4').'px;';
+                $size = $grand ? 'font-size:17px;font-weight:700;color:#18181b;' : 'font-size:14px;color:#71717a;';
+                $class = $grand ? 'wi-mail-heading wi-mail-total' : 'wi-mail-muted';
+
+                $html .= '<tr>'
+                    .'<td '.self::LABEL.' class="'.$class.'" align="right" style="'.$top.'padding-bottom:4px;'.$size.'">'.self::escape((string) $label).'</td>'
+                    .'<td class="'.$class.'" align="right" width="120" style="width:120px;'.$top.'padding-bottom:4px;padding-left:16px;white-space:nowrap;'.$size.($grand ? '' : 'color:#18181b;').'">'.self::escape((string) $value).'</td>'
+                    .'</tr>';
+                $index++;
+            }
+
+            $html .= '</table>';
+        }
+
+        return $this->block($html);
+    }
+
+    /**
+     * Tabella semplice con intestazione (scadenze, appuntamenti, righe di un
+     * estratto conto). Le colonne il cui nome è in `$alignRight` vanno a
+     * destra, utile per importi e quantità.
+     *
+     * @param list<string> $columns
+     * @param list<list<scalar|null>> $rows
+     * @param list<int> $alignRight indici delle colonne allineate a destra
+     */
+    public function table(array $columns, array $rows, ?string $title = null, array $alignRight = []): self
+    {
+        if ($rows === []) {
+            return $this;
+        }
+
+        $count = max(count($columns), ...array_map(static fn ($row): int => is_array($row) ? count($row) : 0, $rows));
+        $align = static fn (int $index): string => in_array($index, $alignRight, true) ? 'right' : 'left';
+
+        $html = self::title($title)
+            .'<table role="presentation" class="wi-mail-detail" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 24px;border-collapse:separate;background-color:#f4f4f5;border-radius:8px;">';
+
+        if ($columns !== []) {
+            $html .= '<tr>';
+
+            for ($i = 0; $i < $count; $i++) {
+                $html .= '<th class="wi-mail-muted wi-mail-detail-row" align="'.$align($i).'" style="padding:10px 16px;border-bottom:1px solid #e4e4e7;font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:#71717a;text-align:'.$align($i).';">'
+                    .self::escape((string) ($columns[$i] ?? '')).'</th>';
+            }
+
+            $html .= '</tr>';
+        }
+
+        $last = count($rows) - 1;
+
+        foreach (array_values($rows) as $index => $row) {
+            $row = array_values(is_array($row) ? $row : [$row]);
+            $border = $index < $last ? 'border-bottom:1px solid #e4e4e7;' : '';
+            $html .= '<tr>';
+
+            for ($i = 0; $i < $count; $i++) {
+                $html .= '<td class="wi-mail-detail-row" align="'.$align($i).'" valign="top" style="padding:10px 16px;'.$border.'font-size:14px;color:#18181b;text-align:'.$align($i).';word-break:break-word;">'
+                    .self::lines((string) ($row[$i] ?? '')).'</td>';
+            }
+
+            $html .= '</tr>';
         }
 
         return $this->block($html.'</table>');
@@ -198,6 +367,24 @@ final class MailMessage implements \Stringable
         $this->blocks[] = $html;
 
         return $this;
+    }
+
+    private static function title(?string $title): string
+    {
+        if ($title === null || trim($title) === '') {
+            return '';
+        }
+
+        return '<p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:#71717a;" class="wi-mail-muted">'
+            .self::escape($title).'</p>';
+    }
+
+    /** Solo http(s) o un path `/...`: niente `data:` o `javascript:` nelle anteprime. */
+    private static function imageUrl(mixed $url): ?string
+    {
+        $url = is_string($url) ? trim($url) : '';
+
+        return $url !== '' && preg_match('#^(https?://|/(?![/\\\\]))#i', $url) === 1 ? $url : null;
     }
 
     private static function safeUrl(string $url): bool

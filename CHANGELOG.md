@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Aggiunto
+- **Email: righe d'ordine e tabelle.** `MailMessage::items($righe,
+  $totali, $titolo)` elenca prodotti o servizi con anteprima, nome,
+  descrizione, quantità, prezzo (con il prezzo pieno barrato quando c'è uno
+  sconto) e totale di riga, poi i totali con l'ultimo in evidenza.
+  `MailMessage::table($colonne, $righe, $titolo, $aDestra)` stampa una
+  tabella semplice con intestazione. Testi escapati, anteprime solo
+  `http(s)` o path, tema scuro e versione solo testo leggibile.
 - **Email composte a blocchi.** `Wonder\App\Support\Mail\MailMessage`
   (`preheader()`, `heading()`, `text()`, `button()`, `details()`, `notice()`,
   `divider()`, `small()`, `html()`) compone il corpo senza scrivere HTML e si
@@ -160,6 +167,7 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Angoli della card email.** In `MailLayout::render()` la card è una tabella con `border-collapse:separate`: prima il bordo grigio restava squadrato sotto lo sfondo arrotondato. La linea colorata in alto ora è dritta (angoli superiori squadrati, arrotondati solo quelli inferiori). In tema scuro la linea in alto mantiene il colore del brand.
 - **Liste con azioni di massa: errore 500 al caricamento.** La colonna delle checkbox ha il formato vuoto, quindi `SSP::data_output()` chiamava il suo formatter con due argomenti e la closure ne voleva tre. Ora i formatter di `ListProvider::buildColumns()` hanno `$column` e `$format` facoltativi; il test passa da `SSP` come la lista vera.
 - **Repeater annidato: più aria attorno al blocco.** Dentro una riga il repeater interno (per esempio «Contatti aziendali» nella riga di un referente) era attaccato ai campi sopra, alle proprie righe e al campo che segue. Ora il blocco ha un margine sopra e sotto (`my-3`) e il titolo è staccato dalle righe (`mb-3`) e lo stato vuoto parte alla stessa altezza della prima riga (`mt-2`), solo nel tema Bootstrap e solo per i repeater interni.
 - **Repeater con soft delete: una riga cancellata che torna si riapre.**
@@ -204,6 +212,11 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Email: quadratino del brand solo senza logo.** L'intestazione mostra il
+  logo PNG caricato in Media → Logo; il nome della società, con il
+  quadratino nel colore primario, compare solo quando il logo manca. Un
+  logo SVG non va nelle mail (Gmail e Outlook non lo mostrano): al suo
+  posto resta il nome.
 - **Nuovo aspetto del template email `basic`.** `MailLayout::render()`
   impagina ogni email a tabelle (600 px) con logo o nome della società, il
   colore primario di `css_color` (reso più scuro se illeggibile), tema scuro (solo per i corpi del builder: quelli scritti a mano restano chiari)
