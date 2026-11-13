@@ -11,6 +11,9 @@ final class MemoryMediaUsageStore implements MediaUsageStore
     /** @var list<array{media: int, table: string, id: string, column: string}> */
     public array $rows = [];
 
+    /** @var array<int, string> tipo di ogni media, per `tables()` con un tipo */
+    public array $types = [];
+
     public function replace(string $table, string $rowId, string $column, array $mediaIds): void
     {
         $this->rows = array_values(array_filter(
@@ -47,5 +50,21 @@ final class MemoryMediaUsageStore implements MediaUsageStore
         }
 
         return $owners;
+    }
+
+    public function tables(?string $mediaType = null): array
+    {
+        $tables = [];
+
+        foreach ($this->rows as $row) {
+            if ($mediaType === null || ($this->types[$row['media']] ?? null) === $mediaType) {
+                $tables[$row['table']] = true;
+            }
+        }
+
+        $tables = array_keys($tables);
+        sort($tables);
+
+        return $tables;
     }
 }

@@ -45,6 +45,17 @@ return ComponentDoc::for(MediaPicker::class)
             ->height(240)
     )
     ->example(
+        Example::make('Libreria della sezione')
+            ->code(<<<'PHP'
+            (new MediaPicker('image_id'))
+                ->label('Immagine')
+                ->mediaType('image')
+                ->scope('gst_product', 'Prodotti')
+            PHP)
+            ->description('`scope()` fa partire "Scegli dalla libreria" dai media caricati da quella tabella o usati lì, con l\'interruttore "Solo i file di Prodotti" per vedere tutta la libreria. Nelle Resource lo imposta da sola con la sua tabella e il suo nome; `mediaScope(\'\')` sul campo mostra subito tutto.')
+            ->height(240)
+    )
+    ->example(
         Example::make('Documento')
             ->code(<<<'PHP'
             (new MediaPicker('manual_id'))

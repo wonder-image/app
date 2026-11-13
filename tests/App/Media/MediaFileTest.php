@@ -139,12 +139,12 @@ check('un\'icona svg esce come immagine, senza misure', function () {
 
 // --- Ricerca del selettore ---------------------------------------------------
 
-check('la ricerca dà solo id, nome, slug, alt, tipo e anteprima del tipo chiesto', function () {
+check('la ricerca dà solo id, nome, slug, alt, tipo, file, indirizzi e anteprima del tipo chiesto', function () {
     $result = MediaLibrary::search('image');
     $ids = array_column($result['items'], 'id');
 
     return $ids === [16, 15, 10]
-        && array_keys($result['items'][0]) === ['id', 'name', 'slug', 'alt', 'type', 'thumbnail']
+        && array_keys($result['items'][0]) === ['id', 'name', 'slug', 'alt', 'type', 'file', 'url', 'thumbnail']
         && $result['total'] === 3 && $result['page'] === 1 && $result['pages'] === 1;
 });
 
@@ -191,7 +191,7 @@ check('il testo cercato è accorciato', function () {
         public function create(string $type, array $values, array $upload): array { return ['id' => 0, 'error' => '']; }
         public function replaceFile(int $id, array $upload): string { return ''; }
         public function setAlt(int $id, string $alt): void {}
-        public function search(string $type, string $term, int $limit, int $offset): array
+        public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array
         {
             $this->seen = $term;
 
@@ -202,6 +202,25 @@ check('il testo cercato è accorciato', function () {
     MediaLibrary::search('image', str_repeat('a', 500));
 
     return strlen((string) $seen) === MediaLibrary::TERM_LENGTH;
+});
+
+check('la ricerca per sezione: caricati da lì o usati lì, e una sezione non valida non cerca', function () {
+    $scoped = new MemoryMediaStore([
+        ['id' => 1, 'type' => 'image', 'slug' => 'a', 'name' => 'A', 'file' => 'a.jpg', 'source' => 'gst_product'],
+        ['id' => 2, 'type' => 'image', 'slug' => 'b', 'name' => 'B', 'file' => 'b.jpg', 'source' => 'gst_brand'],
+        ['id' => 3, 'type' => 'image', 'slug' => 'c', 'name' => 'C', 'file' => 'c.jpg'],
+    ]);
+    MediaLibrary::useStore($scoped);
+    \Wonder\App\Media\MediaUsages::useStore(new \Wonder\App\Media\MemoryMediaUsageStore());
+    \Wonder\App\Media\MediaUsages::sync('gst_product', 9, 'image_id', [3]);
+    $ids = array_column(MediaLibrary::search('image', '', 1, 'gst_product')['items'], 'id');
+    sort($ids);
+    $all = MediaLibrary::search('image', '', 1, ' ')['total'];
+    $array = MediaLibrary::search('image', '', 1, ['gst_product'])['total'];
+    $bad = MediaLibrary::search('image', '', 1, "gst_product' OR 1");
+    \Wonder\App\Media\MediaUsages::useStore(null);
+
+    return $ids === [1, 3] && $all === 3 && $array === 3 && $bad === null;
 });
 
 MediaLibrary::useStore(null);

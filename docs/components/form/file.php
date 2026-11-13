@@ -13,7 +13,7 @@ return ComponentDoc::for(File::class)
     ->description('Il campo di caricamento. `file()` sceglie il tipo accettato (`image`, `document`, ...), `maxFile()` quanti file, `maxSize()` il peso massimo in MB, `directory()` dove vanno; `mode(\'classic\')` è l\'`<input type="file">` nativo, il default è il drag and drop di FilePond con `uploader()` e `fileValue()` per i file già caricati. Nelle Resource: `FormField::key(\'nome\')->file()` e `->fileDragDrop()`.')
     ->uses(FormField::class)
     ->docs('concetti/form/form-field.md', 'FormField')
-    ->related('image', 'gallery')
+    ->related('image', 'gallery', 'media-picker')
     ->note('bootstrap', 'Il drag and drop usa FilePond con `data-wi-file-references="true"`: la lib manda solo i file nuovi più il manifesto `<campo>__wi_files`, che `MediaFileManager::syncFiles()` confronta con i nomi vecchi.')
     ->note('wonder', 'Il frontend rende l\'input nativo vestito dalla lib, senza FilePond.')
     ->example('Base', <<<'PHP'
@@ -46,4 +46,16 @@ return ComponentDoc::for(File::class)
     PHP)
     ->example('Dal DSL delle Resource', <<<'PHP'
     FormField::key('cover')->fileDragDrop('image')->label('Copertina')
-    PHP);
+    PHP)
+    ->example(
+        Example::make('Collegato alla libreria media')
+            ->code(<<<'PHP'
+            FormField::key('logo_id')
+                ->fileDragDrop('image')
+                ->mediaLibrary()
+                ->mediaTypes('image', 'icon')
+                ->label('Logo')
+            PHP)
+            ->description('Con `mediaLibrary()` la colonna tiene l\'id del media (o la lista JSON degli id con `maxFile()` > 1): ogni file trascinato diventa un media della libreria quando si salva il record, passa dal ridimensionatore e compare fra gli utilizzi. "Scegli dalla libreria" apre la ricerca, con l\'interruttore "Solo i file di..." sulla sezione della Resource. Solo nel backend.')
+            ->height(260)
+    );

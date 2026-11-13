@@ -60,6 +60,11 @@ Route::area('backend')
                 Route::post('/upload-massive/', $ROOT_APP.'/http/backend/media/upload-massive.php')
                     ->permit(['admin']);
 
+                // Zip dell'originale e delle misure di un media: card «File generati».
+                Route::get('/{id}/zip/', $ROOT_APP.'/http/backend/media/zip.php')
+                    ->name('zip')
+                    ->permit(['admin']);
+
             });
 
         Route::name('config.')

@@ -101,6 +101,56 @@ La scheda di un'immagine avvisa in alto quando le misure sono ancora in
 preparazione o non si sono generate (`MediaResource::resizeNotices()`, da
 `ResizeQueue::status()` ed `error()`).
 
+## Il drag & drop collegato alla libreria
+
+Il modo consigliato per un campo che carica file pubblici è il drag & drop di
+FilePond collegato alla libreria:
+
+```php
+FormField::key('logo_id')
+    ->fileDragDrop('image')
+    ->mediaLibrary()              // salva media, con "Scegli dalla libreria"
+    ->mediaTypes('image', 'icon') // tipi ammessi (default: dal tipo di accept)
+    ->mediaSlug('{slug}')
+    ->mediaAlt('{name}');
+
+FormField::key('gallery')->fileDragDrop('image')->maxFile(10)->mediaLibrary();
+```
+
+- **Colonna**: con un solo file tiene l'id del media; con `maxFile()` > 1 la
+  lista JSON degli id, nell'ordine del form (`InputFileDragDrop::mediaIds()`
+  la legge). Vuota è `''`. Nel Model è un testo (o un intero per il file
+  singolo), mai un campo `File`: se il Model dichiara la colonna come file,
+  `Resource::prepareSchema()` lancia un `LogicException`.
+- **Caricamento**: ogni file trascinato diventa un media quando si salva il
+  record, con `source` uguale alla tabella della Resource, slug e testo
+  alternativo dai modelli, ridimensionamento dalla coda `ResizeQueue` (ogni
+  minuto) e riga nel registro degli utilizzi. Il tipo è il primo di
+  `mediaTypes()` che accetta l'estensione (un `.svg` va in `icon`).
+- **Sostituzione**: un campo a file singolo che riceve un file nuovo al posto
+  di un media usato solo lì ne cambia il file e tiene l'id; un media usato
+  anche altrove resta com'è e ne nasce uno nuovo.
+- **Scegli dalla libreria**: apre la stessa finestra di ricerca del selettore,
+  con l'interruttore "Solo i file di..." sulla sezione della Resource
+  (`mediaScope()`); il media scelto entra nella lista con il suo id, senza
+  copie.
+- **Cosa manda il form**: la lib invia i file nuovi più il manifesto
+  `<campo>__wi_files` (nomi dei file già salvati e posizioni dei nuovi); il
+  renderer aggiunge `<campo>__wi_picks` (gli id scelti dalla libreria) e
+  `<campo>__wi_media` (nome del file → id). `MediaInputs` tiene un nome solo
+  se è davvero il file di un media del record e del tipo giusto: un nome
+  manomesso viene scartato. `MediaInputs::fieldName()` costruisce questi nomi
+  anche dentro le parentesi (`values[logo__wi_media]`).
+- **API**: il campo accetta un id, una lista (array o JSON, anche con il
+  prefisso `media:`), `''` per svuotarlo, oppure un file caricato.
+- **Errori**: un file perso, un tipo sbagliato o un media sparito fermano il
+  salvataggio con l'errore sul campo (422 dalle API); i media già creati
+  restano nel form inviato di nuovo.
+
+Senza `mediaLibrary()` il drag & drop resta il campo file di sempre.
+`mediaImage()` e gli altri tre type-helper qui sotto restano finché i campi
+che li usano non passano al drag & drop.
+
 ## Il campo media nei form
 
 Un record sceglie un media con un campo dedicato: la colonna tiene l'id.
@@ -240,11 +290,30 @@ Risponde con 24 media per pagina e solo `id`, `name`, `slug`, `alt`, `type` e
 `thumbnail` dei media non eliminati di quel tipo
 (`MediaLibrary::search()`).
 
+Con `scope` (il nome di una tabella) la ricerca tiene solo i media
+**caricati da quella sezione** (colonna `media.source`) **o usati lì**
+(registro `media_usages`); uno `scope` che non è un nome di tabella risponde
+422. La finestra lo manda finché l'interruttore **Solo i file di …** resta
+acceso, e parte acceso:
+
+- `Resource::formFields()` dà a ogni `InputMedia` la tabella del Model e
+  `titlePluralLabel()` della Resource (`mediaScope($table, $label)`);
+- `->mediaScope('')` sul campo spegne la sezione: la finestra mostra subito
+  tutta la libreria, senza interruttore;
+- fuori dalle Resource, `MediaPicker::scope('gst_product', 'Prodotti')`.
+
+`media.source` lo scrive solo `MediaInputs` quando un campo carica un file
+nuovo (la tabella del record); i media caricati dall'elenco Media o prima di
+questa colonna l'hanno vuota e contano solo gli utilizzi. Chi salva un media
+dal suo form non può impostarla (`MediaResource::mutateRequestValues()` la
+toglie). Finché `php forge update --local` non crea la colonna,
+`DatabaseMediaStore` non la scrive e la ricerca guarda solo gli utilizzi.
+
 CSS e script del campo escono una volta per pagina da
 `Themes\Support\PageAssets`, con il contratto `data-wi-media*`
 (`data-wi-media` sulla radice con il tipo, `-value`, `-upload`, `-choose`,
-`-remove`, `-preview`, `-search`), che `wonder-image/lib` può prendere in
-carico senza cambiare il markup.
+`-remove`, `-preview`, `-search`, `-scope`, `-scope-label`), che
+`wonder-image/lib` può prendere in carico senza cambiare il markup.
 
 ## Leggere un media nel sito
 
@@ -386,6 +455,136 @@ MediaUsages::filterCondition(['used']);
 // EXISTS (SELECT 1 FROM `media_usages` WHERE `media_usages`.`media_id` = `media`.`id`)
 ```
 
+
+## Colonna "Dove si usa" e filtro "Sezione"
+
+Gli elenchi di Media mostrano la colonna **Dove si usa**: un badge per ogni
+sezione che usa il media (il nome plurale della Resource della tabella,
+`MediaUsages::sectionLabel()`), vuota se il media non è usato. Le tabelle
+arrivano con la stessa query dell'elenco, da una colonna calcolata:
+
+```php
+MediaUsages::tablesSelect('usage_tables');
+// (SELECT GROUP_CONCAT(DISTINCT owner_table ...) FROM media_usages WHERE media_id = media.id) AS `usage_tables`
+```
+
+Il filtro **Sezione** (caselle) elenca le tabelle che usano almeno un media
+di quel tipo (`MediaUsages::sections($type)`, che legge
+`MediaUsageStore::tables()`) e tiene i media usati in una di quelle scelte
+(`MediaUsages::sectionCondition()`: solo tabelle dell'elenco e con un nome
+valido). Senza utilizzi registrati il filtro non compare.
+
+## Card "File generati"
+
+La scheda di un media in modifica ha, a destra, la card **File generati**
+(`MediaResource::generatedFilesCard()`): una riga per l'originale e una per
+ogni misura, con formato, dimensioni in pixel e peso. Una riga con un file
+solo ha il bottone di download; con più formati (jpg e webp) un menu
+**Scarica**. **Scarica tutto (.zip)** compare se i file sono più di uno e
+PHP ha `ZipArchive`: punta alla rotta `backend.media.zip`
+(`GET /app/media/{id}/zip/`, solo `admin`).
+
+I file arrivano da `MediaDownloads::of(MediaFile $media, ?string $root)`,
+che legge la cartella, non la configurazione: restano scaricabili anche le
+misure di una configurazione precedente. Una misura che `RESPONSIVE_IMAGE_SIZES`
+non conosce conta solo se l'immagine è larga quanto dice il nome, così
+`foto-2024.jpg` (un altro media) non diventa una misura di `foto.jpg`.
+Con le misure in coda (`ResizeQueue`) la card scrive «In preparazione: le
+misure arrivano entro un minuto.». Video e documenti hanno solo l'originale.
+
+```php
+$downloads = MediaDownloads::of(MediaFile::find(12));
+// ['groups' => [['label' => 'Originale', 'width' => null, 'files' => [...]], ['label' => '240 px', ...]],
+//  'pending' => false, 'error' => null]
+MediaDownloads::files($downloads); // tutti i file in fila, per lo zip
+MediaDownloads::size(38 * 1024);   // "38 KB"
+```
+
+La card entra nel layout con `FromValues` (vedi
+[Resource](risorse/resource.md#layout-che-dipende-dal-record)).
+
+## Campi media di un modello: `HasMedia`
+
+Un modello con campi che salvano media usa il tratto
+`Wonder\App\Media\HasMedia` e dichiara i campi in `mediaFields()`:
+
+```php
+use Wonder\App\Media\HasMedia;
+
+class Brand extends Model
+{
+    use HasMedia;
+
+    public static function mediaFields(): array
+    {
+        return [
+            'logo' => [
+                'columns' => ['image' => 'logo_id', 'icon' => 'logo_id'], // tipo => colonna con l'id
+                'slug' => 'marchio-{slug}',  // modello, valori della riga
+                'alt' => 'Logo {name}',
+                'name' => 'Logo {name}',     // facoltativo, di base {name}
+                'legacy' => 'brands',        // cartella dei file di prima
+            ],
+        ];
+    }
+}
+```
+
+Il tratto dà:
+
+- `mediaInput('logo')`: il drag & drop già collegato alla libreria
+  (`mediaLibrary()`, tipi, slug e alt dai modelli);
+- `mediaColumns()`, `mediaTableColumns()`, `mediaDataFields()`: le colonne
+  con l'id da mettere in `tableSchema()` e `dataSchema()`;
+- `mediaId()`, `media()`, `mediaMany()`, `mediaUrl()`: la lettura nel sito,
+  con il ripiego sul file di prima (`legacyMediaUrl()`) per le righe non
+  ancora migrate;
+- `legacyMediaDefinitions()`: le definizioni per la migrazione.
+
+## Migrazione dei file di prima
+
+`LegacyMediaMigration::run($connection, $definitions)` porta nella libreria
+i file salvati in una colonna di prima (l'elenco JSON di `uploadFiles()`):
+per ogni riga nasce un media, la riga ne prende l'id, la colonna di prima si
+svuota e l'utilizzo entra nel registro, in una transazione sola. Il file si
+**copia**: l'originale resta e gli indirizzi vecchi continuano a rispondere.
+Le misure delle immagini vanno alla coda di ridimensionamento. Idempotente,
+gira in `forge update` dopo l'allineamento delle tabelle.
+
+Le decisioni (tipo, slug libero, file mancanti) sono codice puro in
+`LegacyMediaPlan::plan()`, provato in `tests/App/Media/LegacyMediaPlanTest.php`.
+I moduli passano le loro definizioni (il gestionale con
+`CatalogMediaMigration`, che delega al core).
+
+### I loghi del sito
+
+Logo, logo nero e bianco, icona, icona nera e bianca (Set-up → Loghi) sono
+media della libreria (`main_id` ... `icon_white_id`), caricati o scelti con
+il drag & drop. `CoreMediaMigration` porta i file di `assets/upload/logos`
+nella libreria al primo `forge update` (risultato in `stats.media_core`).
+`infoSociety()` legge gli indirizzi con `Logo::urls()`, quindi `$SOCIETY->logo`
+e `$PATH->logo` restano quelli di sempre, anche nelle email.
+
+- L'icona app resta un file in `assets/upload/logos`: si converte in png e ha
+  misure fisse (`RuntimeDefaults::appIconSizes()`).
+- Il favicon `.ico` non c'è più: il `<head>` usa l'icona app. La colonna
+  `favicon` e `Path::$favicon` restano, deprecati.
+- Le colonne con i nomi dei file (`main`, `black`, ...) restano, deprecate.
+
+### I popup
+
+L'immagine di un popup (Comunicazioni → Popup) è un media della libreria
+(`image_id`), con slug `{slug}-popup` e testo alternativo dal titolo.
+`CoreMediaMigration` porta i file di `assets/upload/popups/images` e la
+colonna `images` resta, deprecata. Si legge con `Popup::imageUrl($riga)`
+(indirizzo senza versione, per `__ri()`); la lista del backend mostra la
+miniatura con una colonna `image()` e un `formatter()` che dà l'indirizzo.
+
+### I Model del core
+
+`CoreMediaMigration::MODELS` elenca i Model del core con `HasMedia`; un
+Model nuovo si aggiunge lì e la sua migrazione gira con le altre.
+
 ## Migrazione delle icone raster
 
 Prima di questa versione `IconResource` accettava png, jpg, jpeg e webp. Con
@@ -439,6 +638,8 @@ php tests/App/Media/RasterIconMigrationTest.php
 php tests/App/Media/MediaStableSlugTest.php
 php tests/App/Media/MediaInputsTest.php
 php tests/App/Media/MediaFileTest.php
+php tests/App/Media/MediaDownloadsTest.php
+php tests/App/Media/LegacyMediaPlanTest.php
 php tests/Themes/MediaPickerTest.php
 ```
 

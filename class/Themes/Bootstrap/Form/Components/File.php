@@ -2,8 +2,10 @@
 
 namespace Wonder\Themes\Bootstrap\Form\Components;
 
+use Wonder\App\Media\MediaInputs;
 use Wonder\App\Media\MediaTypes;
 use Wonder\Themes\Bootstrap\Form\Field;
+use Wonder\Themes\Support\PageAssets;
 
 class File extends Field
 {
@@ -54,7 +56,8 @@ class File extends Field
         }
         $visibility = $visibility === [] ? '' : ' '.$this->renderAttributes($visibility);
         $attributes = $this->renderAttributes($attributes);
-        $accept = $this->acceptByType($file);
+        $media = is_array($this->schema['media'] ?? null) ? $this->schema['media'] : null;
+        $accept = $media !== null ? $this->acceptByExtensions((array) ($media['extensions'] ?? [])) : $this->acceptByType($file);
         $acceptLabel = $this->acceptLabelByType($file);
         $multiple = $maxFile > 1 ? 'multiple' : '';
         $class = $maxFile > 1 ? ' filepond--multiple' : '';
@@ -70,13 +73,145 @@ class File extends Field
             $class .= ' mt-1';
         }
 
+        $mediaRoot = '';
+        $mediaHtml = '';
+        $assets = '';
+
+        if ($media !== null) {
+            [$mediaRoot, $mediaHtml, $assets] = $this->mediaParts($media, (string) ($this->schema['name'] ?? ''), $attributes);
+        }
+
         return <<<HTML
-<div id="container-{$id}" class="w-100"{$visibility}>
+<div id="container-{$id}" class="w-100"{$visibility}{$mediaRoot}>
     {$labelHtml}
     <div class="w-100{$class}">
         <input id="{$id}" type="file" accept="{$accept}" name="{$nameArray}" data-max-file-size="{$maxSize}MB" data-min-size-image="{$imageSize}" data-size-before="{$sizeBefore}" data-max-files="{$maxFile}" data-wi-dir="{$directory}" data-wi-value="{$value}" data-wi-uploader="{$this->escape($uploader)}" data-wi-uploader-label="{$this->escape($acceptLabel)}" data-wi-check="true" {$multiple} {$attributes}>
-    </div>
-</div>
+    </div>{$mediaHtml}
+</div>{$assets}
+HTML;
+    }
+
+    /**
+     * Il campo che salva media della libreria: la mappa nome → id dei file
+     * salvati, il nome per le scelte dalla libreria e, se serve, il bottone
+     * "Scegli dalla libreria" con la finestra di `MediaPicker`.
+     *
+     * @param array<string, mixed> $media
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function mediaParts(array $media, string $name, string $attributes): array
+    {
+        $map = (array) ($media['map'] ?? []);
+        $types = array_values(array_filter((array) ($media['types'] ?? []), MediaTypes::has(...)));
+        $types = $types !== [] ? $types : [MediaTypes::IMAGE];
+        $root = ' data-wi-media="'.$this->escape($types[0]).'" data-wi-media-files="'.$this->escape(MediaInputs::fieldName($name, MediaInputs::PICKS_SUFFIX)).'"'
+            .' data-wi-media-types="'.$this->escape(implode(',', $types)).'"';
+        $html = '<input type="hidden" name="'.$this->escape(MediaInputs::fieldName($name, MediaInputs::MAP_SUFFIX)).'"'
+            .' value="'.$this->escape(json_encode($map === [] ? new \stdClass : $map, JSON_THROW_ON_ERROR)).'">';
+        $assets = PageAssets::once('wi-media-files', static fn (): string => self::filesScript());
+
+        if (empty($media['library'])) {
+            return [$root, $html, $assets];
+        }
+
+        $scope = trim((string) ($media['scope'] ?? ''));
+        $root .= ' data-wi-media-search="'.$this->escape((string) ($media['search_url'] ?? '')).'"'
+            .' data-wi-media-title="Scegli dalla libreria"';
+
+        if ($scope !== '') {
+            $root .= ' data-wi-media-scope="'.$this->escape($scope).'"'
+                .' data-wi-media-scope-label="'.$this->escape(trim((string) ($media['scope_label'] ?? ''))).'"';
+        }
+
+        $locked = str_contains($attributes, ' disabled') || str_contains($attributes, 'readonly');
+        $html .= '<div class="mt-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-wi-media-choose'.($locked ? ' disabled' : '').'>'
+            .'<i class="bi bi-images" aria-hidden="true"></i> Scegli dalla libreria</button></div>';
+        $assets .= PageAssets::once('wi-media-field', static fn (): string => MediaPicker::modal().MediaPicker::style().MediaPicker::script());
+
+        return [$root, $html, $assets];
+    }
+
+    /** @param list<string> $extensions */
+    private function acceptByExtensions(array $extensions): string
+    {
+        $accept = [];
+
+        foreach ($extensions as $extension) {
+            // I documenti per estensione: i MIME di Office cambiano da browser a browser.
+            $accept[] = self::MIME[$extension] ?? '.'.$extension;
+        }
+
+        return implode(', ', array_values(array_unique($accept)));
+    }
+
+    private const MIME = [
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'webp' => 'image/webp',
+        'svg' => 'image/svg+xml',
+        'pdf' => 'application/pdf',
+        'mp4' => 'video/mp4',
+        'webm' => 'video/webm',
+        'mov' => 'video/quicktime',
+    ];
+
+    /**
+     * Un media scelto dalla libreria entra nell'uploader come file leggero
+     * (l'anteprima) con `wiMediaId`; all'invio `<campo>__wi_picks` dice, per
+     * ogni file dell'uploader, l'id scelto o `null`. Il server usa l'id e
+     * ignora il contenuto del file.
+     */
+    public static function filesScript(): string
+    {
+        $mime = json_encode(self::MIME, JSON_THROW_ON_ERROR);
+
+        return <<<HTML
+<script data-wi-media-files-script>
+(function () {
+    if (window.wiMediaFilesBound) { return; }
+    window.wiMediaFilesBound = true;
+
+    var MIME = {$mime};
+    var pondOf = function (field) {
+        var root = field.querySelector('.filepond--root');
+        return root && window.FilePond ? window.FilePond.find(root) : null;
+    };
+
+    document.addEventListener('wi:media-pick', function (event) {
+        var field = event.target instanceof Element ? event.target.closest('[data-wi-media-files]') : null;
+        var item = event.detail || {};
+        var pond = field ? pondOf(field) : null;
+        if (!pond || !item.id || !item.file) { return; }
+        var already = pond.getFiles().some(function (file) { return file.getMetadata('wiMediaId') === item.id; });
+        if (already) { return; }
+        var extension = String(item.file).split('.').pop().toLowerCase();
+        var type = MIME[extension] || '';
+        var add = function (blob) {
+            var file = new File([blob], item.file, { type: type });
+            if (Number(pond.maxFiles) <= 1 && pond.getFiles().length) { pond.removeFiles(); }
+            pond.addFile(file, { metadata: { wiMediaId: item.id, wiOriginal: item.url || '' } });
+        };
+        if (!item.thumbnail) { add(new Blob([], { type: type })); return; }
+        fetch(item.thumbnail, { credentials: 'same-origin' })
+            .then(function (response) { return response.ok ? response.blob() : Promise.reject(new Error('media')); })
+            .then(add)
+            .catch(function () { add(new Blob([], { type: type })); });
+    });
+
+    // formdata non risale: si ascolta in cattura.
+    document.addEventListener('formdata', function (event) {
+        var form = event.target;
+        if (!(form instanceof HTMLFormElement)) { return; }
+        form.querySelectorAll('[data-wi-media-files]').forEach(function (field) {
+            var pond = pondOf(field);
+            if (!pond || pond.disabled || field.closest('fieldset:disabled')) { return; }
+            var picks = pond.getFiles().map(function (file) { return file.getMetadata('wiMediaId') || null; });
+            event.formData.set(field.getAttribute('data-wi-media-files'), JSON.stringify(picks));
+        });
+    }, true);
+})();
+</script>
 HTML;
     }
 

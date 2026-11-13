@@ -5,6 +5,7 @@ namespace Wonder\App\Media;
 use mysqli;
 use mysqli_stmt;
 use RuntimeException;
+use Wonder\App\Models\Media\Media;
 use Wonder\App\Models\Media\MediaUsage;
 use Wonder\Sql\Connection;
 
@@ -78,6 +79,21 @@ final class DatabaseMediaUsageStore implements MediaUsageStore
             'id' => (string) $row['owner_id'],
             'column' => (string) $row['owner_column'],
         ], $rows);
+    }
+
+    public function tables(?string $mediaType = null): array
+    {
+        $sql = 'SELECT DISTINCT u.`owner_table` FROM `'.MediaUsage::$table.'` u';
+        $parameters = [];
+
+        if ($mediaType !== null) {
+            $sql .= ' INNER JOIN `'.Media::$table.'` m ON m.`id` = u.`media_id` WHERE m.`type` = ?';
+            $parameters[] = $mediaType;
+        }
+
+        $rows = $this->execute($sql.' ORDER BY u.`owner_table`', $parameters)->get_result()->fetch_all(MYSQLI_NUM);
+
+        return array_map(static fn (array $row): string => (string) $row[0], $rows);
     }
 
     /** La connessione si apre alla prima operazione, non alla costruzione. */

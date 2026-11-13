@@ -39,7 +39,7 @@ che applica lo stesso schema `?v=`.
   non è risolvibile, `__inline_css()` ricade sul `<link>` versionato.
 - `Wonder\App\Dependencies::generate()` — tutte le librerie emesse
   (jquery, swiper, wi-lib, ...) sono versionate.
-- Media, favicon, icone, immagini social, upload del backend ed editor: l'elenco
+- Media, icone, immagini social, upload del backend ed editor: l'elenco
   completo è in [Prestazioni frontend](../concetti/frontend-performance.md).
 
 ## Ridurre il render-blocking (LCP)

@@ -18,7 +18,9 @@ use Wonder\App\Resources\Media\ImageResource;
 use Wonder\App\Resources\Media\VideoResource;
 use Wonder\Backend\Filter\FilterCustom;
 
-MediaUsages::useStore(new MemoryMediaUsageStore());
+$usageStore = new MemoryMediaUsageStore();
+$usageStore->types = [12 => 'image'];
+MediaUsages::useStore($usageStore);
 MediaUsages::describeUsing(static fn (array $owner): array => ['label' => 'categoria', 'name' => 'Estate', 'field' => 'Immagine']);
 MediaUsages::sync('gst_category', 7, 'image_id', [12]);
 
@@ -82,6 +84,7 @@ check('registro che non risponde: l\'eliminazione si ferma', function () use ($r
         public function forget(string $table, string $rowId): void {}
         public function used(int $mediaId): bool { throw new RuntimeException('registro giù'); }
         public function owners(int $mediaId): array { throw new RuntimeException('registro giù'); }
+        public function tables(?string $mediaType = null): array { throw new RuntimeException('registro giù'); }
     });
     $message = $refused(static fn () => ImageResource::assertDeletable(99));
     $notices = ImageResource::formNotices(['id' => 99], 'edit');
@@ -123,6 +126,27 @@ check('il filtro legge il registro, non una colonna', function () use ($filter) 
         && FilterCustom::condition($image, 'unused') === '(NOT '.$exists.') '
         && FilterCustom::condition($image, '') === ''
         && FilterCustom::condition($image, "used' OR '1'='1") === '';
+});
+
+check('la colonna "Dove si usa" mostra una sezione per badge, escapata', function () {
+    $html = ImageResource::usageBadges('gst_category,<b>x</b>,gst_category');
+
+    return ImageResource::usageBadges(null) === '' && ImageResource::usageBadges('') === ''
+        && substr_count($html, 'badge') >= 2
+        && !str_contains($html, '<b>x</b>');
+});
+
+check('il filtro Sezione elenca le tabelle che usano quel tipo e filtra solo quelle', function () {
+    foreach (ImageResource::tableLayoutSchema()->all()['custom_filters'] as $filter) {
+        if ($filter['column'] === 'usage_section') {
+            return array_key_exists('gst_category', (array) $filter['array'])
+                && str_contains(FilterCustom::condition($filter, ['gst_category']), "IN ('gst_category')")
+                && FilterCustom::condition($filter, ["gst_category') OR 1=1 -- "]) === ''
+                && FilterCustom::condition($filter, []) === '';
+        }
+    }
+
+    return false;
 });
 
 MediaUsages::useStore(null);

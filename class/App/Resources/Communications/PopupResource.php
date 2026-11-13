@@ -7,6 +7,7 @@ use Throwable;
 use Wonder\App\Permission\Access;
 use Wonder\App\Resource;
 use Wonder\App\RuntimeDefaults;
+use Wonder\App\Models\Communications\Popup;
 use Wonder\App\Models\Css\CssColor;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormField;
@@ -62,7 +63,7 @@ final class PopupResource extends Resource
             'url_label' => 'Etichetta CTA',
             'pages' => 'Pagine',
             'view' => 'N° Visualizzazioni',
-            'images' => 'Immagine',
+            'image_id' => 'Immagine',
             'visible' => 'Stato',
             'position' => 'Ordine',
             'actions' => 'Azioni',
@@ -97,8 +98,7 @@ final class PopupResource extends Resource
             FormField::key('view')
                 ->number()
                 ->attribute('min="0" step="1"'),
-            FormField::key('images')
-                ->fileDragDrop('image'),
+            Popup::mediaInput('images'),
             FormField::key('visible')
                 ->select([
                     'true' => 'Visibile',
@@ -115,7 +115,7 @@ final class PopupResource extends Resource
 
             (new Card)->components([
                 (new Container)->components([
-                    static::getInput('images')->columnSpan(2)
+                    static::getInput('image_id')->columnSpan(2)
                 ])->columns(1)->columnSpan(4),
                 (new Container)->components([
                     static::getInput('name')->columnSpan(1),
@@ -139,7 +139,9 @@ final class PopupResource extends Resource
     public static function tableSchema(): array
     {
         return [
-            TableColumn::key('images')->image()->link('edit')->size('little'),
+            // L'immagine sta nella libreria Media: il formatter dà l'indirizzo.
+            TableColumn::key('image_id')->image()->link('edit')->size('little')
+                ->formatter(static fn ($row) => Popup::mediaUrl($row, 'images')),
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('title')->text(),
             TableColumn::key('visible')
@@ -168,9 +170,9 @@ final class PopupResource extends Resource
     public static function apiSchema(): ApiSchema
     {
         return ApiSchema::for(static::class)
-            ->fields('index', ['id', 'slug', 'name', 'title', 'bg_color', 'url', 'url_label', 'view', 'images', 'pages', 'position', 'visible'])
+            ->fields('index', ['id', 'slug', 'name', 'title', 'bg_color', 'url', 'url_label', 'view', 'image_id', 'pages', 'position', 'visible'])
             // Senza campi scrivibili lo store API (e QuickCreate) salvava una riga
-            // vuota. `images` resta fuori: l'upload passa dal form backend.
+            // vuota. `image_id` resta fuori: l'upload passa dal form backend.
             ->fields('store', ['name', 'title', 'bg_color', 'tx_color', 'url', 'url_label', 'pages', 'view', 'visible'])
             ->fields('update', ['name', 'title', 'bg_color', 'tx_color', 'url', 'url_label', 'pages', 'view', 'visible']);
     }
