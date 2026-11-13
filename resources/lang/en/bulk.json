@@ -9,6 +9,8 @@
     "delete_failed": "Delete failed.",
     "failed": "Operation failed.",
     "done": "Rows updated: {{count}}.",
+    "rows_one": "1 row",
+    "rows_many": "{{count}} rows",
     "errors": {
         "method": "Method not allowed.",
         "csrf": "Session expired: reload the page and try again.",

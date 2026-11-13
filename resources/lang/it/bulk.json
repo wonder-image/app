@@ -9,6 +9,8 @@
     "delete_failed": "Eliminazione non riuscita.",
     "failed": "Operazione non riuscita.",
     "done": "Righe aggiornate: {{count}}.",
+    "rows_one": "1 riga",
+    "rows_many": "{{count}} righe",
     "errors": {
         "method": "Metodo non consentito.",
         "csrf": "Sessione scaduta: ricarica la pagina e riprova.",

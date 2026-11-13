@@ -32,6 +32,8 @@ final class BulkAction
     private ?string $confirm = null;
     private ?Closure $handler = null;
     private bool $transaction = true;
+    private bool $row = false;
+    private ?Closure $rowWhen = null;
 
     private function __construct(private readonly string $key)
     {
@@ -168,6 +170,44 @@ final class BulkAction
         $this->transaction = $enabled;
 
         return $this;
+    }
+
+    /**
+     * L'azione anche nel menu a 3 puntini di ogni riga, per quella sola riga.
+     * `$when` riceve la riga della lista e dice se la voce si vede (es. lo
+     * stato dell'ordine); senza, si vede sempre. L'esito resta del gestore.
+     *
+     * @param (callable(array<string, mixed>): bool)|null $when
+     */
+    public function row(?callable $when = null): self
+    {
+        $this->row = true;
+        $this->rowWhen = $when === null ? null : Closure::fromCallable($when);
+
+        return $this;
+    }
+
+    public function inRow(): bool
+    {
+        return $this->row;
+    }
+
+    /** @param array<string, mixed> $row */
+    public function showsInRow(array $row): bool
+    {
+        if (!$this->row) {
+            return false;
+        }
+
+        if ($this->rowWhen === null) {
+            return true;
+        }
+
+        try {
+            return (bool) ($this->rowWhen)($row);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function key(): string

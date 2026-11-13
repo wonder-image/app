@@ -70,6 +70,7 @@ public static function tableLayoutSchema(): TableLayoutSchema
 | `->confirm($text)` | chiede conferma prima di partire (finestra della lib); con `danger` la conferma è rossa |
 | `->handle(fn (array $ids, string $resourceClass, ?object $user): array\|int)` | il gestore |
 | `->transaction(false)` | il gestore non gira in una transazione (chi apre le sue, come le azioni degli ordini) |
+| `->row(?fn (array $row): bool)` | l'azione anche nel menu a 3 puntini di ogni riga, per quella sola riga; la funzione decide su quali righe si vede (senza, su tutte) |
 | `BulkAction::toggle($key, $column, $bool)` | mette `$column` a `'true'`/`'false'` su tutte le righe |
 | `BulkAction::delete($key = 'delete')` | elimina come il bottone della lista: `assertDeletable()`, poi `deleteRecord()` o il soft delete; permesso `delete`, con conferma |
 
@@ -78,6 +79,11 @@ Il gestore riceve gli id già filtrati e restituisce:
 - `['done' => int[], 'failed' => [id => messaggio]]`: gli id fuori da quelli
   ricevuti si scartano, un messaggio vuoto diventa «Operazione non riuscita.»;
 - un intero (o niente): tutte le righe fatte.
+
+Nel messaggio di una riga fallita `{{rows}}` diventa «1 riga» / «N righe»
+(chiavi `bulk.rows_one` / `bulk.rows_many`): «Azione non disponibile per
+{{rows}} per lo stato dell'ordine.» arriva come «... per 3 righe ...». Senza
+segnaposto, i messaggi uguali si raggruppano con il conteggio in coda: «No (3)».
 
 Un'eccezione del gestore fa fallire tutte le righe: con una `RuntimeException`
 il messaggio è il suo, altrimenti quello generico. Dentro la transazione,
@@ -98,7 +104,12 @@ l'eccezione annulla anche le scritture già fatte.
   `querySchema()['condition']` (di solito le righe non cancellate) e
   l'utente vede (visibilità per riga); gli altri spariscono senza errore.
 - Risposta: `{done, failed, messages}`; il browser mostra l'esito in un toast
-  (con i messaggi delle righe fallite, raggruppati) e ricarica la lista.
+  (un messaggio per riga, dopo «Righe aggiornate: N.») e ricarica la lista.
+- Con `->row()` la voce compare nel menu a 3 puntini, dopo una linea, sulle
+  righe per cui la funzione dice sì. Nel POST della lista viaggiano solo slug
+  e chiave: azione, permesso e condizione li rilegge il server. La voce manda
+  la stessa richiesta della barra con il solo id della riga. Se la
+  tableSchema non ha una colonna bottoni, il menu va in fondo.
 - Se qualcosa è stato fatto su una tabella sincronizzata, il server riesporta
   i dati come dopo un salvataggio.
 
