@@ -170,6 +170,7 @@ la cornice attorno alla tabella. Si costruisce con
 | `filterRadio($label, $column, $options, $search = false, $value = null)` | filtro radio |
 | `filterQuery($label, $key, $options, Closure $where, $input = 'select', $search = false, $value = null)` | filtro con una condizione propria |
 | `reorderable($column = 'position', $group = null)` | righe da riordinare trascinandole; `$group` divide le righe in elenchi con le loro posizioni (`parent_id`) |
+| `bulkActions(array $actions)` | selezione multipla con la barra delle azioni (`BulkAction`): vedi [Azioni di massa](azioni-massa.md) |
 | `cleanHeader()` | header pulito |
 | `download($formats = true, $label = null)` | export (CSV/…); `$label` è il titolo della scheda Esporta nella finestra del bottone «File» |
 | `fileColumns(array $columns)` | colonne dell'export: nomi di campo, `Dataset\Column` o `['field', 'label', 'value']` (vedi [Tracciati](../tracciati.md)); `downloadColumns()` è l'alias deprecato |

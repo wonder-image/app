@@ -1,0 +1,20 @@
+{
+    "select_row": "Select row",
+    "select_all": "Select all rows on this page",
+    "selected_one": "1 selected",
+    "selected_many": "{{count}} selected",
+    "clear": "Clear selection",
+    "delete": "Delete",
+    "delete_confirm": "Delete the selected rows?",
+    "delete_failed": "Delete failed.",
+    "failed": "Operation failed.",
+    "done": "Rows updated: {{count}}.",
+    "errors": {
+        "method": "Method not allowed.",
+        "csrf": "Session expired: reload the page and try again.",
+        "not_found": "Rows not found.",
+        "invalid": "Invalid parameters.",
+        "readonly": "Table is read-only in this environment.",
+        "forbidden": "Operation not allowed."
+    }
+}

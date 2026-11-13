@@ -48,6 +48,7 @@
 * [Render delle tabelle](concetti/tabelle/README.md)
   * [TableColumn e tableLayoutSchema](concetti/tabelle/tablecolumn.md)
   * [Opzioni colonna (size, hiddenDevice, format)](concetti/tabelle/opzioni-colonna.md)
+  * [Azioni di massa](concetti/tabelle/azioni-massa.md)
   * [Appendice: Table legacy](concetti/tabelle/legacy.md)
 * [Utenti e Permessi](concetti/utenti/README.md)
   * [Builder permessi (Area / Permission)](concetti/utenti/permessi.md)

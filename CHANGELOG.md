@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Aggiunto
+- **Azioni di massa nelle liste backend.** `TableLayoutSchema::bulkActions([...])`
+  con `Wonder\Backend\Table\BulkAction` (`make()`, `toggle()`, `delete()`;
+  `label`, `icon`, `variant`, `permission`, `confirm`, `handle`,
+  `transaction`): colonna di checkbox `row-select` con «seleziona tutto»
+  (dopo maniglia e segnali di riga) e barra delle azioni sopra la tabella.
+  Nuovo endpoint `POST /api/backend/bulk/` (`backend.bulk`): CSRF, permesso
+  `update`/`delete`, sola lettura, al massimo 500 id filtrati per condizione
+  della lista e visibilità per riga; risposta `{done, failed, messages}`.
+  `Table::beforeTable()` stampa HTML sopra la tabella. Testi in
+  `resources/lang/{it,en}/bulk.json`. Il JS è nella lib (`backend/js/bulk.js`).
 - **Stato vuoto del repeater.** `InputRepeater::repeaterEmptyState($b = true)`
   (context `empty_state`): senza righe, al posto della riga vuota, un
   riquadro tratteggiato con il bottone «Aggiungi» al centro; al primo clic

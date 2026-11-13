@@ -40,6 +40,12 @@ final class ListProvider
                 $formatter  = static function ($row, $column, $format) {
                     return !empty($format['reorder']) ? Reorder::handle($row['id'] ?? 0) : '';
                 };
+            } elseif ($columnName === BulkActions::COLUMN) {
+                $columnName = 'id';
+                $format     = [];
+                $formatter  = static function ($row, $column, $format) {
+                    return BulkActions::checkbox($row['id'] ?? 0);
+                };
             } elseif ($columnName === 'menu') {
                 $columnName = 'id';
                 $format     = $other;
@@ -216,9 +222,9 @@ final class ListProvider
         $custom->order_column    = $request['order'][0]['name'] ?? ($request['default']['order'] ?? '');
         $custom->order_direction = $request['order'][0]['dir']  ?? ($request['default']['order_direction'] ?? '');
 
-        // La maniglia non è una colonna del database: ordinare per lei vuol
+        // Maniglia e checkbox non sono colonne del database: ordinare per loro vuol
         // dire l'ordine di partenza della lista.
-        if ($custom->order_column === Reorder::COLUMN) {
+        if ($custom->order_column === Reorder::COLUMN || $custom->order_column === BulkActions::COLUMN) {
             $custom->order_column    = $request['default']['order'] ?? '';
             $custom->order_direction = $request['default']['order_direction'] ?? '';
         }

@@ -12,6 +12,7 @@ use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\App\Resources\Config\ImportResource;
 use Wonder\App\Visibility\RowVisibility;
+use Wonder\Backend\Table\BulkActions;
 use Wonder\Backend\Table\Reorder;
 use Wonder\Backend\Table\Table;
 use Wonder\Elements\Components\Button;
@@ -484,9 +485,45 @@ final class ResourceTableRenderer
         $table->appendScript(Reorder::script($table->tableId(), $endpoint, $this->slug));
     }
 
+    /**
+     * Con `bulkActions()` la barra sopra la tabella; true se la colonna
+     * delle checkbox va montata. In sola lettura niente.
+     */
+    private function applyBulkActions(Table $table): bool
+    {
+        $actions = BulkActions::normalize($this->tableLayoutSchema['bulk_actions'] ?? []);
+
+        if ($actions === [] || $this->resourceClass::isReadonly()) {
+            return false;
+        }
+
+        try {
+            $endpoint = (string) __r('backend.bulk');
+        } catch (\Throwable) {
+            return false;
+        }
+
+        if ($endpoint === '') {
+            return false;
+        }
+
+        $table->beforeTable(BulkActions::bar($table->tableId(), $endpoint, $this->slug, $actions));
+
+        return true;
+    }
+
     private function applyColumns(Table $table): void
     {
+        $bulk = $this->applyBulkActions($table);
+        $bulkAt = BulkActions::position(array_keys($this->tableSchema));
+        $index = 0;
+
         foreach ($this->tableSchema as $key => $config) {
+            if ($bulk && $index++ === $bulkAt) {
+                $table->addColumn(BulkActions::header(), BulkActions::COLUMN, false, '', '', 'little');
+                $bulk = false;
+            }
+
             if (($config['type'] ?? null) === 'button') {
                 $size = (string) ($config['size'] ?? 'little');
                 $actions = $this->resolvedActions($config);
@@ -505,6 +542,11 @@ final class ResourceTableRenderer
             $format = $this->legacyColumnFormat($config);
 
             $table->addColumn($label, (string) $key, $orderable, '', $hiddenDevice, $size, $format);
+        }
+
+        // Schema con la sola colonna dei segnali: le checkbox vanno in fondo.
+        if ($bulk) {
+            $table->addColumn(BulkActions::header(), BulkActions::COLUMN, false, '', '', 'little');
         }
     }
 

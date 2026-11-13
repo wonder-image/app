@@ -97,6 +97,8 @@ fuori dalla config, che e' anche il corpo delle richieste successive.
 - [TableColumn e tableLayoutSchema](tablecolumn.md) — tutti i metodi.
 - [Opzioni colonna](opzioni-colonna.md) — `size`, `hiddenDevice`, `function`,
   `link`.
+- [Azioni di massa](azioni-massa.md) — selezione multipla e barra delle
+  azioni (`bulkActions()`).
 - [Appendice: Table legacy](legacy.md) — la vecchia API e il ponte
   `ResourceTableRenderer`.
 
