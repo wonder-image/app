@@ -265,6 +265,10 @@ final class ResourcePagePresenter
             return null;
         }
 
+        if ($layout instanceof \Wonder\App\ResourceSchema\FromValues) {
+            return $this->hydrateLayout($layout->resolve($values, $mode), $values, $errors, $mode, $placeholders);
+        }
+
         $clone = clone $layout;
 
         if (!property_exists($clone, 'components') || !is_array($clone->components ?? null)) {
@@ -274,7 +278,12 @@ final class ResourcePagePresenter
         $components = [];
 
         foreach ($clone->components as $component) {
-            $components[] = $this->hydrateLayout($component, $values, $errors, $mode, $placeholders);
+            $hydrated = $this->hydrateLayout($component, $values, $errors, $mode, $placeholders);
+
+            // Un `FromValues` che non mostra niente sparisce dal layout.
+            if ($hydrated !== null) {
+                $components[] = $hydrated;
+            }
         }
 
         $clone->components = $components;

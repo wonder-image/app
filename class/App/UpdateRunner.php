@@ -5,6 +5,7 @@ namespace Wonder\App;
 use mysqli;
 use Throwable;
 use RuntimeException;
+use Wonder\App\Media\CoreMediaMigration;
 use Wonder\App\Media\RasterIconMigration;
 use Wonder\App\Module\Contracts\ModuleDefaults;
 use Wonder\App\Module\Contracts\ModuleMigration;
@@ -118,6 +119,7 @@ class UpdateRunner
                 'rows' => 0,
                 'api_activity_tokens' => 0,
                 'media_raster_icons' => [],
+                'media_core' => [],
                 'module_migrations_after_tables' => [],
                 'analytics_credentials' => 0,
                 'security_encryption' => 0,
@@ -168,6 +170,7 @@ class UpdateRunner
             $result->stats->tables = $this->runTables();
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
             $result->stats->media_raster_icons = RasterIconMigration::run($this->connection);
+            $result->stats->media_core = CoreMediaMigration::run($this->connection);
             // Le migrazioni dei dati dei moduli che leggono tabelle appena create o allineate.
             $result->stats->module_migrations_after_tables = $this->runModuleMigrations(true);
             $result->stats->analytics_credentials = AnalyticsToCredentialsMigration::run($this->connection);

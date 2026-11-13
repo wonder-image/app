@@ -43,6 +43,7 @@
         public $logoWhite = self::UPLOAD.'/logos/Logo-White.png';
         public $logoBlack = self::UPLOAD.'/logos/Logo-Black.png';
         public $logoIcon = self::UPLOAD.'/logos/Logo-Icon.png';
+        /** @deprecated il favicon .ico non si usa più: c'è l'icona app. */
         public $favicon = self::UPLOAD.'/favicon.ico';
         public $appIcon = self::UPLOAD.'/logos/App-Icon.png';
 

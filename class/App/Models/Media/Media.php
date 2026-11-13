@@ -20,6 +20,7 @@ final class Media extends Model
                 'name',
                 'alt',
                 'type',
+                'source',
             ]),
             Column::key('file')->json(),
         ];
@@ -32,6 +33,8 @@ final class Media extends Model
             Field::key('name')->text()->required()->sanitizeFirst(),
             Field::key('alt')->text(),
             Field::key('type')->text()->required(),
+            // Tabella della sezione da cui è stato caricato (campo media di un form); vuota dalla libreria.
+            Field::key('source')->text(),
             Field::key('file')->file()->required(),
         ];
     }

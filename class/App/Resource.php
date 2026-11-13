@@ -7,6 +7,7 @@ use RuntimeException;
 use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
 use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
 use Wonder\App\ResourceSchema\Inputs\InputReCaptcha;
 use Wonder\App\ResourceSchema\Inputs\InputRepeater;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
@@ -210,6 +211,10 @@ abstract class Resource
                 static::prepareFormatFromInput($inputs[$key] ?? null)
             );
             $format = static::withTypeExtensions($format, $inputs[$key] ?? null);
+
+            if (($inputs[$key] ?? null) instanceof InputFileDragDrop && $inputs[$key]->isMedia()) {
+                $format = static::mediaFormat((string) $key, $format, $fields[$key] ?? null);
+            }
 
             if ($format !== []) {
                 $entry['input']['format'] = $format;
@@ -908,6 +913,7 @@ abstract class Resource
         }
 
         static::inheritModelUploadDirectory($clone, $name);
+        static::inheritMediaScope($clone);
 
         $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
         // `->label('')` è una scelta, non un campo lasciato in bianco: vuol dire
@@ -930,6 +936,26 @@ abstract class Resource
         }
 
         return $clone;
+    }
+
+    /**
+     * Un campo media sa da quale sezione viene: il selettore della libreria
+     * parte dai media caricati o usati qui. Una sezione scelta a mano resta.
+     */
+    private static function inheritMediaScope(object $field): void
+    {
+        $media = $field instanceof \Wonder\App\ResourceSchema\Inputs\InputMedia
+            || ($field instanceof InputFileDragDrop && $field->isMedia());
+
+        if (!$media || $field->hasMediaScope()) {
+            return;
+        }
+
+        try {
+            $field->mediaScope((string) static::modelTable(), trim((string) static::titlePluralLabel()));
+        } catch (\Throwable) {
+            // Resource senza Model: il selettore mostra tutta la libreria.
+        }
     }
 
     /**
@@ -992,6 +1018,26 @@ abstract class Resource
         }
 
         return $prepare;
+    }
+
+    /**
+     * Un campo drag & drop media salva id: i file li scrive la libreria
+     * (`MediaInputs`), la colonna non passa da `uploadFiles()`.
+     */
+    private static function mediaFormat(string $key, array $format, mixed $field): array
+    {
+        if (!empty(static::modelClass()::prepareFormatFromField($field)['file'])) {
+            throw new \LogicException(static::class.": la colonna `{$key}` è un campo file del Model ma il campo è `mediaLibrary()`: deve tenere id di media, non file.");
+        }
+
+        foreach (['file', 'reset', 'max_size', 'max_file', 'extensions', 'dir', 'resize', 'webp'] as $option) {
+            unset($format[$option]);
+        }
+
+        // La lista JSON degli id non va toccata.
+        $format['sanitize'] = false;
+
+        return $format;
     }
 
     /** Whitelist del tipo di input solo se né modello né input dichiarano `extensions`. */

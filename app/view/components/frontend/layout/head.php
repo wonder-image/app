@@ -29,7 +29,6 @@
 
     foreach ([
         'name' => '',
-        'favicon' => '',
         'appIcon' => '',
     ] as $field => $value) {
         if (!isset($SOCIETY->$field)) {
@@ -56,7 +55,6 @@
     $seoLang = \Wonder\Localization\LanguageContext::getLang();
     $seoOgType = trim((string) ($SEO->ogType ?? '')) ?: 'website';
     $seoOgMeta = is_array($SEO->ogMeta ?? null) ? $SEO->ogMeta : [];
-    $faviconPath = (string) ($PATH->favicon ?? '');
 
     // GTM sta in Credenziali (Dev → API e servizi); parte solo col consenso alle statistiche.
     $gtmApi = \Wonder\App\Credentials::api();
@@ -166,12 +164,6 @@ window.dataLayer.push(<?=json_encode($authEvent, $dataLayerFlags)?>);
 ?>
 
 <?php
-
-    if (!empty($SOCIETY->favicon)) {
-
-        echo "<link rel='icon' href='".e($faviconPath)."'>";
-
-    }
 
     if (!empty($SOCIETY->appIcon)) {
 

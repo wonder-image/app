@@ -47,6 +47,7 @@ final class IconResource extends MediaResource
             'name' => 'Nome',
             'alt' => 'Testo alternativo',
             'slug' => 'Slug',
+            'usage_tables' => 'Dove si usa',
             'actions' => 'Azioni',
         ];
     }
