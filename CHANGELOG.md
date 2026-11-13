@@ -168,6 +168,9 @@
 
 ### Corretto
 - **Angoli della card email.** In `MailLayout::render()` la card è una tabella con `border-collapse:separate`: prima il bordo grigio restava squadrato sotto lo sfondo arrotondato. La linea colorata in alto ora è dritta (angoli superiori squadrati, arrotondati solo quelli inferiori). In tema scuro la linea in alto mantiene il colore del brand.
+- **Miniature quadrate nelle tabelle del backend.** Le colonne immagine
+  mostrano la miniatura quadrata, senza il padding di `img-thumbnail`, con
+  l'immagine ritagliata (`object-fit-cover`) invece che contenuta.
 - **Liste con azioni di massa: errore 500 al caricamento.** La colonna delle checkbox ha il formato vuoto, quindi `SSP::data_output()` chiamava il suo formatter con due argomenti e la closure ne voleva tre. Ora i formatter di `ListProvider::buildColumns()` hanno `$column` e `$format` facoltativi; il test passa da `SSP` come la lista vera.
 - **Repeater annidato: più aria attorno al blocco.** Dentro una riga il repeater interno (per esempio «Contatti aziendali» nella riga di un referente) era attaccato ai campi sopra, alle proprie righe e al campo che segue. Ora il blocco ha un margine sopra e sotto (`my-3`) e il titolo è staccato dalle righe (`mb-3`) e lo stato vuoto parte alla stessa altezza della prima riga (`mt-2`), solo nel tema Bootstrap e solo per i repeater interni.
 - **Repeater con soft delete: una riga cancellata che torna si riapre.**
