@@ -3,6 +3,18 @@
 ## Unreleased
 
 ### Aggiunto
+- **Azioni di massa nelle liste backend.** `TableLayoutSchema::bulkActions([...])`
+  con `Wonder\Backend\Table\BulkAction` (`make()`, `toggle()`, `delete()`;
+  `label`, `icon`, `variant`, `permission`, `confirm`, `handle`,
+  `transaction`): colonna di checkbox `row-select` con «seleziona tutto»
+  (dopo maniglia e segnali di riga) e barra delle azioni sopra la tabella.
+  Nuovo endpoint `POST /api/backend/bulk/` (`backend.bulk`): CSRF, permesso
+  `update`/`delete` della Resource della lista o di quella indicata in
+  `permission('update', Altra::class)` (la barra mostra solo le azioni
+  concesse), sola lettura, al massimo 500 id filtrati per condizione
+  della lista e visibilità per riga; risposta `{done, failed, messages}`.
+  `Table::beforeTable()` stampa HTML sopra la tabella. Testi in
+  `resources/lang/{it,en}/bulk.json`. Il JS è nella lib (`backend/js/bulk.js`).
 - **Segnali di riga nelle liste.**
   - `Wonder\Backend\Table\RowSignal` è un pallino nella prima colonna:
     - `warning` è giallo e indica un dato mancante;

@@ -1,0 +1,20 @@
+{
+    "select_row": "Seleziona la riga",
+    "select_all": "Seleziona tutte le righe della pagina",
+    "selected_one": "1 selezionato",
+    "selected_many": "{{count}} selezionati",
+    "clear": "Deseleziona",
+    "delete": "Elimina",
+    "delete_confirm": "Eliminare le righe selezionate?",
+    "delete_failed": "Eliminazione non riuscita.",
+    "failed": "Operazione non riuscita.",
+    "done": "Righe aggiornate: {{count}}.",
+    "errors": {
+        "method": "Metodo non consentito.",
+        "csrf": "Sessione scaduta: ricarica la pagina e riprova.",
+        "not_found": "Righe non trovate.",
+        "invalid": "Parametri non validi.",
+        "readonly": "Tabella in sola lettura in questo ambiente.",
+        "forbidden": "Operazione non consentita."
+    }
+}
