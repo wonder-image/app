@@ -10,7 +10,7 @@
   Recupero e cambio password del backend lo usano già.
 - **Azioni di massa nel menu di riga.** `BulkAction::row(?fn (array $row): bool)`
   mostra l'azione anche nel menu a 3 puntini di ogni riga, sulle righe per cui
-  la funzione dice sì; la voce (`data-wi-bulk-row`, lib 2.1.2-alpha.44) manda
+  la funzione dice sì; la voce (`data-wi-bulk-row`, lib 2.1.2-alpha.45) manda
   la stessa richiesta con il solo id. `{{rows}}` nel messaggio di una riga
   fallita diventa «1 riga» / «N righe» (`bulk.rows_one` / `bulk.rows_many`).
 - **Azioni di massa nelle liste backend.** `TableLayoutSchema::bulkActions([...])`
