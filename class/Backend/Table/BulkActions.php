@@ -4,6 +4,8 @@ namespace Wonder\Backend\Table;
 
 use RuntimeException;
 use Throwable;
+use Wonder\App\LegacyGlobals;
+use Wonder\App\ResourceRegistry;
 use Wonder\App\Visibility\RowVisibility;
 use Wonder\Sql\Transaction;
 
@@ -25,6 +27,9 @@ final class BulkActions
 
     /** Righe al massimo per richiesta (come il riordino). */
     public const MAX = 500;
+
+    /** Prefisso delle voci di riga nella colonna `menu`. */
+    public const ROW_PREFIX = 'bulk:';
 
     /** La colonna dei segnali di riga, se c'è, resta la prima. */
     private const LEADING = 'row_signals';
@@ -135,6 +140,82 @@ final class BulkActions
     }
 
     /**
+     * Le voci del menu di riga per le azioni con `row()`, pronte per la
+     * colonna `menu`: viaggiano nel POST della lista, quindi solo chiave e
+     * slug, l'azione la ritrova {@see rowMenuItem()} sul server.
+     *
+     * @param array<string, BulkAction> $actions già filtrate per permesso
+     * @return array<string, array{bulk: string, resource: string}>
+     */
+    public static function rowEntries(array $actions, string $resource): array
+    {
+        $entries = [];
+
+        foreach ($actions as $action) {
+            if ($action instanceof BulkAction && $action->inRow()) {
+                $entries[self::ROW_PREFIX.$action->key()] = ['bulk' => $action->key(), 'resource' => $resource];
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * La voce del menu di riga, se l'azione esiste, l'utente la può usare e
+     * `row()` la mostra per questa riga; altrimenti ''.
+     *
+     * @param array<string, mixed> $entry una voce di {@see rowEntries()}
+     * @param array<string, mixed> $row
+     */
+    public static function rowMenuItem(array $entry, array $row): string
+    {
+        $action = self::rowAction((string) ($entry['resource'] ?? ''), (string) ($entry['bulk'] ?? ''));
+
+        return $action !== null && $action->showsInRow($row) ? self::rowItem($action, $row['id'] ?? 0) : '';
+    }
+
+    /** La voce del dropdown: bulk.js la manda con la barra della tabella. */
+    public static function rowItem(BulkAction $action, int|string $id): string
+    {
+        $confirm = $action->getConfirm() !== null
+            ? ' data-wi-confirm="'.self::e($action->getConfirm()).'"'.($action->getVariant() === 'danger' ? ' data-wi-confirm-variant="danger"' : '')
+            : '';
+        $color = $action->getVariant() === 'danger' ? ' text-danger' : '';
+        $icon = $action->getIcon() !== '' ? '<i class="'.self::e($action->getIcon()).' me-1"></i>' : '';
+
+        return '<a class="dropdown-item'.$color.'" role="button" href="#"'
+            .' data-wi-bulk-row="'.(int) $id.'" data-wi-bulk-action="'.self::e($action->key()).'"'.$confirm.'>'
+            .$icon.self::e($action->getLabel()).'</a>';
+    }
+
+    /** @var array<string, array<string, BulkAction>> azioni di riga permesse, per slug */
+    private static array $rowActions = [];
+
+    /** Azione di riga di una Resource, se l'utente corrente la può usare. */
+    private static function rowAction(string $slug, string $key): ?BulkAction
+    {
+        if (!isset(self::$rowActions[$slug])) {
+            self::$rowActions[$slug] = [];
+
+            try {
+                $resourceClass = ResourceRegistry::resolve($slug);
+
+                if (!$resourceClass::isReadonly()) {
+                    self::$rowActions[$slug] = self::allowedActions(
+                        self::normalize($resourceClass::tableLayoutSchema()->get('bulk_actions')),
+                        $resourceClass,
+                        TableAuthorization::authoritiesOf(LegacyGlobals::get('USER'))
+                    );
+                }
+            } catch (Throwable) {
+                // Resource sconosciuta o schema rotto: nessuna voce.
+            }
+        }
+
+        return self::$rowActions[$slug][$key] ?? null;
+    }
+
+    /**
      * Il ritorno del gestore, ridotto agli id chiesti: un intero (o null)
      * vuol dire tutti fatti; gli id né fatti né falliti contano come fatti
      * solo se il gestore non ha restituito un elenco.
@@ -172,7 +253,8 @@ final class BulkActions
 
     /**
      * La risposta per il browser: quante fatte, quante no, e i messaggi
-     * delle fallite (uno per testo, con quante volte).
+     * delle fallite, uno per testo. `{{rows}}` nel messaggio diventa
+     * «1 riga» / «N righe»; senza segnaposto il conteggio va in coda, «(N)».
      *
      * @param array{done: list<int>, failed: array<int, string>} $result
      * @return array{done: int, failed: int, messages: list<string>}
@@ -188,7 +270,13 @@ final class BulkActions
         $list = [];
 
         foreach ($messages as $message => $count) {
-            $list[] = $count > 1 ? $message.' ('.$count.')' : (string) $message;
+            $message = (string) $message;
+
+            if (str_contains($message, '{{rows}}')) {
+                $list[] = str_replace('{{rows}}', self::rows($count), $message);
+            } else {
+                $list[] = $count > 1 ? $message.' ('.$count.')' : $message;
+            }
         }
 
         return [
@@ -196,6 +284,19 @@ final class BulkActions
             'failed' => count($result['failed']),
             'messages' => $list,
         ];
+    }
+
+    /** «1 riga» / «N righe», dalle traduzioni se ci sono. */
+    private static function rows(int $count): string
+    {
+        $key = $count === 1 ? 'bulk.rows_one' : 'bulk.rows_many';
+        $text = function_exists('__t') ? (string) __t($key, ['count' => (string) $count]) : '';
+
+        if ($text === '' || $text === $key) {
+            $text = $count === 1 ? '1 riga' : '{{count}} righe';
+        }
+
+        return str_replace('{{count}}', (string) $count, $text);
     }
 
     /**

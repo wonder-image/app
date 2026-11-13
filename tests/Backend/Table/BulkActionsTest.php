@@ -92,6 +92,58 @@ check('la risposta conta e raggruppa i messaggi uguali', fn () =>
         === ['done' => 2, 'failed' => 3, 'messages' => ['No (2)', 'Altro']]
 );
 
+check('{{rows}} nel messaggio diventa il numero di righe', function () {
+    $messages = BulkActions::response(['done' => [], 'failed' => [
+        3 => 'Non disponibile per {{rows}}.', 4 => 'Non disponibile per {{rows}}.', 5 => 'Sparito per {{rows}}.',
+    ]])['messages'];
+
+    return count($messages) === 2
+        && str_starts_with($messages[0], 'Non disponibile per 2 ')
+        && !str_contains($messages[0], '{{')
+        && !str_contains($messages[0], '(2)')
+        && str_starts_with($messages[1], 'Sparito per 1 ');
+});
+
+check('row(): la voce di riga segue la condizione, che non può rompere il menu', function () {
+    $always = BulkAction::make('a')->row();
+    $when = BulkAction::make('b')->row(static fn (array $row): bool => ($row['status'] ?? '') === 'pending');
+    $broken = BulkAction::make('c')->row(static function (): bool {
+        throw new RuntimeException('x');
+    });
+
+    return !BulkAction::make('d')->inRow()
+        && !BulkAction::make('d')->showsInRow([])
+        && $always->showsInRow([])
+        && $when->showsInRow(['status' => 'pending'])
+        && !$when->showsInRow(['status' => 'confirmed'])
+        && !$broken->showsInRow(['status' => 'pending']);
+});
+
+check('le voci di riga: solo le azioni con row(), con chiave e slug', fn () =>
+    BulkActions::rowEntries([
+        'a' => BulkAction::make('a')->row(),
+        'b' => BulkAction::make('b'),
+    ], 'ordini') === ['bulk:a' => ['bulk' => 'a', 'resource' => 'ordini']]
+);
+
+check('la voce del menu porta riga, azione e conferma, tutto escapato', function () {
+    $html = BulkActions::rowItem(
+        BulkAction::make('cancel')->label('Annulla <b>')->variant('danger')->icon('bi bi-x')->confirm('Sicuro "davvero"?'),
+        '7"'
+    );
+    $plain = BulkActions::rowItem(BulkAction::make('ok')->label('Conferma'), 9);
+
+    return str_contains($html, 'class="dropdown-item text-danger"')
+        && str_contains($html, 'data-wi-bulk-row="7" data-wi-bulk-action="cancel"')
+        && str_contains($html, 'data-wi-confirm="Sicuro &quot;davvero&quot;?" data-wi-confirm-variant="danger"')
+        && str_contains($html, '<i class="bi bi-x me-1"></i>Annulla &lt;b&gt;</a>')
+        && $plain === '<a class="dropdown-item" role="button" href="#" data-wi-bulk-row="9" data-wi-bulk-action="ok">Conferma</a>';
+});
+
+check('una voce di una Resource sconosciuta non si vede', fn () =>
+    BulkActions::rowMenuItem(['bulk' => 'a', 'resource' => 'non-esiste'], ['id' => 1]) === ''
+);
+
 check('un gestore che lancia fa fallire tutte le righe con il suo messaggio', function () {
     $action = BulkAction::make('x')->transaction(false)->handle(static function (): never {
         throw new RuntimeException('Bloccato');

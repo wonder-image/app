@@ -305,6 +305,7 @@
         public function actionButton($actionArray) {
 
             $BUTTONS = "";
+            $bulkDivider = false;
 
             if (!empty($actionArray)) {
                 
@@ -353,6 +354,18 @@
                             }
 
                         }
+
+                    } elseif (is_array($link) && isset($link['bulk'])) {
+
+                        # Azione di massa per questa sola riga (BulkAction::row()).
+                        $item = \Wonder\Backend\Table\BulkActions::rowMenuItem($link, (array) $this->row);
+
+                        if ($item !== '' && !$bulkDivider && $BUTTONS !== '') {
+                            $item = "<div class='dropdown-divider'></div>".$item;
+                        }
+
+                        $bulkDivider = $bulkDivider || $item !== '';
+                        $BUTTONS .= $item;
 
                     } elseif (is_array($link)) {
 

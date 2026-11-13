@@ -24,6 +24,8 @@ final class ResourceTableRenderer
 {
     private array $tableSchema;
     private array $tableLayoutSchema;
+    /** @var array<string, array{bulk: string, resource: string}> voci di riga delle azioni di massa */
+    private array $bulkRowEntries = [];
     private array $pageSchema;
     private array $querySchema;
     private string $modelClass;
@@ -492,6 +494,8 @@ final class ResourceTableRenderer
      */
     private function applyBulkActions(Table $table): bool
     {
+        $this->bulkRowEntries = [];
+
         // Come l'endpoint: solo le azioni che l'utente può usare.
         $actions = BulkActions::allowedActions(
             BulkActions::normalize($this->tableLayoutSchema['bulk_actions'] ?? []),
@@ -514,6 +518,7 @@ final class ResourceTableRenderer
         }
 
         $table->beforeTable(BulkActions::bar($table->tableId(), $endpoint, $this->slug, $actions));
+        $this->bulkRowEntries = BulkActions::rowEntries($actions, $this->slug);
 
         return true;
     }
@@ -532,7 +537,8 @@ final class ResourceTableRenderer
 
             if (($config['type'] ?? null) === 'button') {
                 $size = (string) ($config['size'] ?? 'little');
-                $actions = $this->resolvedActions($config);
+                $actions = $this->resolvedActions($config) + $this->bulkRowEntries;
+                $this->bulkRowEntries = [];
 
                 if ($actions !== []) {
                     $table->addColumn('', 'menu', false, '', $config['hidden-device'] ?? '', $size, $actions);
@@ -553,6 +559,12 @@ final class ResourceTableRenderer
         // Schema con la sola colonna dei segnali: le checkbox vanno in fondo.
         if ($bulk) {
             $table->addColumn(BulkActions::header(), BulkActions::COLUMN, false, '', '', 'little');
+        }
+
+        // Azioni di riga senza una colonna bottoni nella tableSchema: il menu in fondo.
+        if ($this->bulkRowEntries !== []) {
+            $table->addColumn('', 'menu', false, '', '', 'little', $this->bulkRowEntries);
+            $this->bulkRowEntries = [];
         }
     }
 
