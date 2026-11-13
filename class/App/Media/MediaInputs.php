@@ -359,6 +359,7 @@ final class MediaInputs
                 'name' => $title !== '' ? $title : $slug,
                 'slug' => self::uniqueSlug($slug !== '' ? $slug : $title, $store->slugTaken(...)),
                 'alt' => $config['alt'] !== '' ? self::fill($config['alt'], $source) : '',
+                'source' => $this->table,
             ], $upload);
         } catch (Throwable $exception) {
             self::log($exception, 'upload');

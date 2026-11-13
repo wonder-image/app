@@ -47,6 +47,20 @@ class MediaPicker extends Field
         return $this->schema('media', $media);
     }
 
+    /**
+     * La sezione del record: il selettore mostra prima i media caricati da
+     * `$table` o usati lì, con un interruttore per vedere tutta la
+     * libreria. `$label` è il nome della sezione (es. "Prodotti"). Una
+     * tabella vuota mostra subito tutto.
+     */
+    public function scope(string $table, string $label = ''): self
+    {
+        $table = trim($table);
+
+        return $this->schema('scope', preg_match('/^[A-Za-z0-9_]{1,64}$/D', $table) === 1 ? $table : '')
+            ->schema('scope_label', trim($label));
+    }
+
     /** Indirizzo della ricerca nella libreria (`api/backend/media/search`). */
     public function searchUrl(string $url): self
     {

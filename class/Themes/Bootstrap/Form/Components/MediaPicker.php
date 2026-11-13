@@ -69,6 +69,9 @@ class MediaPicker extends Field
         )));
         $formats = $this->escape(implode(', ', MediaTypes::extensions($type)).'. Peso massimo '.MediaTypes::maxSize($type).' MB.');
         $search = $this->escape((string) ($this->schema['search_url'] ?? ''));
+        $scope = trim((string) ($this->schema['scope'] ?? ''));
+        $scopeAttributes = $scope === '' ? '' : ' data-wi-media-scope="'.$this->escape($scope).'"'
+            .' data-wi-media-scope-label="'.$this->escape(trim((string) ($this->schema['scope_label'] ?? ''))).'"';
         $disabled = $locked ? ' disabled' : '';
 
         $labelHtml = $label !== ''
@@ -84,7 +87,7 @@ class MediaPicker extends Field
         return $labelHtml
             .'<div class="'.$this->escape(trim(implode(' ', array_filter($root)))).'" data-wi-media="'.$this->escape($type).'"'
             .' data-wi-media-search="'.$search.'" data-wi-media-title="'.$this->escape($this->pickerTitle($type)).'"'
-            .($required ? ' data-wi-media-required="true"' : '').'>'
+            .$scopeAttributes.($required ? ' data-wi-media-required="true"' : '').'>'
             .'<input type="hidden" class="'.$this->fieldClass('wi-media-value').'" id="'.$id.'" name="'.$name.'"'
             .' value="'.$this->escape($value).'" data-wi-media-value'.$this->fieldAttributes($this->hiddenWritten()).'>'
             .'<div class="wi-media-preview" data-wi-media-preview>'
@@ -146,6 +149,11 @@ class MediaPicker extends Field
         $body = '<div class="col-12" data-wi-media-picker>'
             .'<input type="search" class="form-control" placeholder="Cerca per nome" aria-label="Cerca nella libreria"'
             .' autocomplete="off" data-wi-media-term>'
+            .'<div class="form-check form-switch" data-wi-media-scope-box hidden>'
+            .'<input class="form-check-input" type="checkbox" role="switch" id="'.self::MODAL_ID.'-scope" data-wi-media-scope-only checked>'
+            .'<label class="form-check-label" for="'.self::MODAL_ID.'-scope" data-wi-media-scope-name'
+            .' data-wi-media-scope-text="Solo i file di {section}" data-wi-media-scope-fallback="questa sezione"></label>'
+            .'</div>'
             .'<div class="wi-media-grid" data-wi-media-results></div>'
             .'<p class="wi-media-message" data-wi-media-message data-wi-media-empty-text="Nessun media trovato."'
             .' data-wi-media-loading-text="Caricamento in corso" data-wi-media-error-text="La libreria non risponde: riprova." hidden></p>'
@@ -185,6 +193,7 @@ class MediaPicker extends Field
 .wi-media-note:empty{display:none}
 .wi-media-field.is-invalid .wi-media-note{color:var(--bs-form-invalid-color)}
 .wi-media-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+[data-wi-media-scope-box]{margin-top:.75rem}
 .wi-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.75rem;margin-top:1rem}
 .wi-media-grid:empty{display:none}
 .wi-media-item{display:flex;flex-direction:column;gap:.375rem;padding:.5rem;border:1px solid var(--bs-border-color);border-radius:var(--bs-border-radius);background:var(--bs-body-bg);color:inherit;text-align:left;min-width:0}
@@ -337,6 +346,9 @@ HTML;
         body.append('type', active.getAttribute('data-wi-media') || '');
         body.append('term', term ? term.value : '');
         body.append('page', String(page));
+        var only = find(box, '[data-wi-media-scope-only]');
+        var scope = active.getAttribute('data-wi-media-scope') || '';
+        if (scope !== '' && only && only.checked) { body.append('scope', scope); }
         message(box, 'loading');
 
         fetch(active.getAttribute('data-wi-media-search') || '', {
@@ -380,6 +392,17 @@ HTML;
         active = field;
         if (title) { title.textContent = field.getAttribute('data-wi-media-title') || title.textContent; }
         if (term) { term.value = ''; }
+        // Si parte dai file della sezione; l'interruttore apre tutta la libreria.
+        var scopeBox = find(box, '[data-wi-media-scope-box]');
+        var only = find(box, '[data-wi-media-scope-only]');
+        var scopeName = find(box, '[data-wi-media-scope-name]');
+        var scoped = (field.getAttribute('data-wi-media-scope') || '') !== '';
+        if (scopeBox) { scopeBox.hidden = !scoped; }
+        if (only) { only.checked = scoped; }
+        if (scopeName && scoped) {
+            scopeName.textContent = (scopeName.getAttribute('data-wi-media-scope-text') || '').replace('{section}',
+                field.getAttribute('data-wi-media-scope-label') || scopeName.getAttribute('data-wi-media-scope-fallback') || '');
+        }
         window.bootstrap.Modal.getOrCreateInstance(box).show();
         load(1);
     };
@@ -408,7 +431,8 @@ HTML;
 
     document.addEventListener('change', function (event) {
         var input = event.target instanceof Element ? event.target.closest('[data-wi-media-upload]') : null;
-        if (input) { uploaded(input.closest('[data-wi-media]'), input); }
+        if (input) { uploaded(input.closest('[data-wi-media]'), input); return; }
+        if (event.target instanceof Element && event.target.closest('[data-wi-media-scope-only]')) { load(1); }
     });
 
     document.addEventListener('input', function (event) {

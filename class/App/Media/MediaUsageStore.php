@@ -26,4 +26,12 @@ interface MediaUsageStore
      *         che usano il media, nell'ordine in cui sono stati registrati
      */
     public function owners(int $mediaId): array;
+
+    /**
+     * Le tabelle che usano almeno un media, in ordine alfabetico; con
+     * `$mediaType` solo quelle che usano media di quel tipo.
+     *
+     * @return list<string>
+     */
+    public function tables(?string $mediaType = null): array;
 }
