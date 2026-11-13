@@ -10,7 +10,11 @@
     "saved": "Le modifiche sono state salvate.",
     "notice_title": "Operazione completata",
     "error_title": "Controlla i dati",
-    "validation": { "required": "{{field}}: campo obbligatorio.", "invalid": "{{field}}: valore non valido.", "hint": "I campi indicati con * sono obbligatori." },
+    "validation": {
+        "required": "{{field}}: campo obbligatorio.",
+        "invalid": "{{field}}: valore non valido.",
+        "hint": "I campi indicati con * sono obbligatori."
+    },
     "not_configured": "Non ancora configurato",
     "errors": {
         "save": "Non è stato possibile salvare le modifiche. Controlla i dati e riprova.",
@@ -40,7 +44,9 @@
         "password": "Password",
         "sent": "Ti abbiamo mandato un link a {{email}}: aprilo per confermare la nuova email.",
         "mail_subject": "Conferma la tua nuova email",
-        "mail_body": "Per confermare la nuova email apri questo link entro 24 ore: {{url}}",
+        "mail_text": "Per confermare la nuova email usa il pulsante qui sotto entro 24 ore.",
+        "mail_button": "Conferma la nuova email",
+        "mail_ignore": "Se non hai chiesto tu il cambio, ignora questa email: l’indirizzo resta quello di prima.",
         "confirm_title": "Conferma la nuova email",
         "confirm_intro": "Stai per usare {{email}} come email del tuo account. Conferma con il bottone qui sotto.",
         "confirm_button": "Conferma la nuova email",

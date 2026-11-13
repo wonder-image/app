@@ -7,7 +7,14 @@
   (`preheader()`, `heading()`, `text()`, `button()`, `details()`, `notice()`,
   `divider()`, `small()`, `html()`) compone il corpo senza scrivere HTML e si
   passa così com'è a `sendMail()` / `queueMail()`, che non cambiano firma.
-  Recupero e cambio password del backend lo usano già.
+  Tutte le email del pacchetto lo usano: recupero, impostazione e cambio
+  password del backend, benvenuto dello staff, reset, accesso federato e
+  account già esistente del frontend, cambio e verifica email, token API,
+  segnalazione errori ed email di prova delle credenziali. Le chiavi
+  `auth.email.{reset,federated,existing}_body` e `account.email.mail_body`
+  (it, en) sono sostituite dai blocchi `*_text`, `*_button`, `*_ignore`
+  (`existing_recovery*` per il secondo pulsante); chi le sovrascrive nel
+  `lang` del sito deve spostare il testo sulle chiavi nuove.
 - **Azioni di massa nel menu di riga.** `BulkAction::row(?fn (array $row): bool)`
   mostra l'azione anche nel menu a 3 puntini di ogni riga, sulle righe per cui
   la funzione dice sì; la voce (`data-wi-bulk-row`, lib 2.1.2-alpha.44) manda
