@@ -975,20 +975,26 @@ The repo uses **AI skills** managed via `npx skills` — prompt-driven
 helpers invoked at *development time* by AI assistants (Claude Code,
 Cursor, Codex, etc.) when you chat with them.
 
-Skills are installed under `.agents/skills/<slug>/` (universal folder,
-symlinked into `.claude/skills/`, `.cursor/`, etc. by the installer).
-Both `.agents/` and `.claude/` are gitignored — the skills are managed
-by an external CLI and auto-updated, not source code.
+Skills are installed per project with `--agent claude-code`: real
+directories under `.claude/skills/<slug>/`, tracked by `skills-lock.json`.
+There is no `.agents/` folder. `.claude/`, `.agents/` and
+`skills-lock.json` are gitignored — the skills are managed by an external
+CLI, not source code.
 
 Install / manage:
 
 ```bash
-php forge skills                      # installs/updates Wonder-recommended skills locally
-npx skills add wonder-image/skills    # manual alternative for Wonder skills
+npx skills add wonder-image/skills --skill wi-app --agent claude-code -y   # this package and modules
+php forge skills                      # consumer sites: installs/updates every Wonder skill
 npx skills list                       # list installed
-npx skills update                     # auto-update all installed skills
 npx skills remove <slug>
 ```
+
+Never install `wi-app` or `wi-site` globally (`-g`): Claude Code prefers a
+personal skill in `~/.claude/skills` over a project skill with the same
+name, so a stale global copy hides the project one. Remove it with
+`npx skills remove wi-app -g`; `php forge skills` warns when one exists.
+Only the external design skills listed by wi-site stay global.
 
 `php forge config` prova anche a sincronizzare automaticamente le skill
 raccomandate per Wonder dalla sola sorgente `wonder-image/skills`, come
@@ -998,7 +1004,7 @@ risincronizzarle manualmente, usa `php forge skills`.
 The skills are not versioned in this repo (intentional): updates flow
 through the external CLI, not through git.
 
-Do not commit `.agents/` or hand-edit files inside it. If a skill needs
+Do not commit `.claude/skills/` or hand-edit files inside it. If a skill needs
 project-specific customization, fork it under a different slug rather
 than patching the installed copy.
 
@@ -1006,7 +1012,7 @@ If an architectural change alters conventions, extension points,
 directory layout, bootstrap flow, or developer workflow, updating the
 relevant skill is mandatory. Treat the change as incomplete until the
 skill source/fork has been updated to reflect the new architecture and
-the repo documentation has been aligned. Do not patch `.agents/` in
+the repo documentation has been aligned. Do not patch `.claude/skills/` in
 place; update the maintained skill source/fork and then reinstall or
 sync it through `npx skills`.
 

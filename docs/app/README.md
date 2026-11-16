@@ -106,6 +106,6 @@ Spiegato in [Architettura in 5 minuti](introduzione/architettura.md).
 bootstrap/runtime, layout strutturale, convenzioni per sviluppatori o punti di
 estensione, il lavoro non è completo finché non vengono aggiornati **insieme**:
 la documentazione pertinente sotto `docs/app/*`, `AGENTS.md` e la skill AI
-rilevante. Non modificare `.agents/` a mano: aggiorna la skill alla sorgente e
-poi risincronizza con `npx skills`.
+rilevante. Non modificare `.claude/skills/` a mano: aggiorna la skill alla
+sorgente e poi risincronizza con `npx skills` (mai `-g` per wi-app e wi-site).
 {% endhint %}

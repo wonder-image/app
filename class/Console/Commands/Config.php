@@ -1980,7 +1980,33 @@ class Config extends Command
 
         $output->writeln('<info>✅ Raccolta di skill Wonder sincronizzata.</info>');
 
+        $this->warnShadowingGlobalSkills($output);
+
         return true;
+    }
+
+    /**
+     * Claude Code preferisce una skill personale (`~/.claude/skills`) a una di
+     * progetto con lo stesso nome: una copia globale di wi-app/wi-site
+     * nasconderebbe quella appena sincronizzata nel progetto.
+     */
+    protected function warnShadowingGlobalSkills(OutputInterface $output): void
+    {
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '');
+
+        if ($home === '') {
+            return;
+        }
+
+        foreach (['wi-app', 'wi-site'] as $slug) {
+            $path = rtrim($home, '/').'/.claude/skills/'.$slug;
+
+            if (!file_exists($path) && !is_link($path)) {
+                continue;
+            }
+
+            $output->writeln('<comment>⚠️ Trovata la skill globale '.$path.': Claude Code la usa al posto di quella del progetto. Rimuovila con `npx skills remove '.$slug.' -g`.</comment>');
+        }
     }
 
     protected function installWithBrew(string $formula, OutputInterface $output): bool
