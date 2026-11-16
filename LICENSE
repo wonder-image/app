@@ -1,0 +1,106 @@
+**BOZZA in attesa di parere legale. Testo non definitivo e non ancora in vigore: non unire questo ramo. I punti fra parentesi quadre sono da definire.**
+
+---
+
+## Licenza software proprietaria Wonder Image — versione [0.1-bozza]
+
+**Licenzante:** [RAGIONE SOCIALE / DITTA INDIVIDUALE], titolare [TITOLARE], P.IVA [P.IVA], C.F. [C.F.], sede in [INDIRIZZO SEDE], di seguito «Wonder Image».
+
+**Licenziatario:** il soggetto indicato nel contratto o nell'ordine concluso con Wonder Image, di seguito «Licenziatario».
+
+### 1. Definizioni
+
+1.1 «Software»: i pacchetti, le librerie, i moduli, i modelli di sito (boilerplate), gli script, la documentazione e ogni altro materiale distribuito da Wonder Image con questa licenza, compresi, a titolo indicativo, `wonder-image/app`, `customer-account`, `gestionale`, `ecommerce`, `immobili`, `rsvp`, la libreria `wonder-image` (npm) e i relativi aggiornamenti. [Elenco da confermare e allegare come Allegato A.]
+
+1.2 «Contratto»: il contratto, l'ordine o il preventivo accettato fra Wonder Image e il Licenziatario che identifica il Software concesso, l'ambito d'uso e il corrispettivo.
+
+1.3 «Installazione»: una singola istanza in esecuzione del Software, collegata a un ambiente di produzione identificato nel Contratto. [Da definire con il legale e con il modello commerciale: per installazione, per dominio, per tenant, per utente.]
+
+1.4 «Tenant»: un'organizzazione cliente finale che usa il Software all'interno di una Installazione multi-tenant. [Definizione da allineare al prodotto.]
+
+1.5 «Componenti di Terzi»: software, librerie, font, icone o altro materiale non di titolarità di Wonder Image, inclusi i pacchetti open source richiamati come dipendenze.
+
+1.6 «Versioni MIT»: le versioni del Software che Wonder Image ha già reso disponibili pubblicamente con dichiarazione di licenza MIT, come descritto all'articolo 8.
+
+### 2. Titolarità e riserva dei diritti
+
+2.1 Il Software e tutti i diritti di proprietà intellettuale su di esso (diritto d'autore, diritti sul codice sorgente, sulla documentazione, sulla struttura e sull'organizzazione, marchi, denominazioni) appartengono a Wonder Image [o ai suoi licenzianti]. Il Software è tutelato dalla legge sul diritto d'autore (L. 22 aprile 1941, n. 633, e in particolare le norme sul software) e dalle norme applicabili. [Da confermare con il legale: titolarità effettiva, anche rispetto a eventuale codice generato con strumenti di intelligenza artificiale e a eventuali apporti di terzi.]
+
+2.2 Tutti i diritti non espressamente concessi sono riservati. Nessuna disposizione di questa licenza trasferisce al Licenziatario la titolarità del Software o dei marchi Wonder Image.
+
+2.3 Il nome «Wonder Image», i loghi e i segni distintivi non sono concessi in licenza, salvo quanto previsto nel Contratto. [Marchio da verificare/registrare: domanda al legale.]
+
+### 3. Concessione d'uso
+
+3.1 Alle condizioni di questa licenza e per la durata del Contratto, Wonder Image concede al Licenziatario una licenza d'uso **limitata, non esclusiva, non trasferibile, non sublicenziabile e revocabile** (nei casi previsti all'articolo 9), per usare il Software nell'ambito e nei limiti indicati nel Contratto.
+
+3.2 L'uso è consentito esclusivamente: (a) per le Installazioni e i domini indicati nel Contratto; (b) per le finalità interne al Licenziatario o per l'erogazione del proprio sito o servizio ai propri utenti, nei limiti del Contratto; (c) [numero massimo di Tenant / utenti / ambienti: da definire].
+
+3.3 Il Licenziatario può modificare il Software nella misura necessaria a personalizzarlo per le proprie Installazioni, mantenendo gli avvisi di cui all'articolo 4. Le modifiche restano soggette a questa licenza. [Titolarità delle personalizzazioni sviluppate da Wonder Image per il Licenziatario: da regolare nel Contratto e da confermare con il legale.]
+
+3.3-bis Il Licenziatario può fare le copie di sicurezza e di backup necessarie all'uso consentito, nei limiti inderogabili di legge.
+
+3.4 [Uso in modalità SaaS / multi-tenant: se Wonder Image ospita il Software e lo eroga come servizio, l'ambito e i diritti del Licenziatario sono quelli del relativo contratto di servizio. Se invece il Licenziatario intende offrire a terzi, a sua volta, un servizio basato sul Software, serve un accordo scritto specifico. Clausola da formulare con il legale.]
+
+### 4. Divieti
+
+Salvo autorizzazione scritta di Wonder Image o diversa previsione inderogabile di legge, il Licenziatario non può, e non può consentire a terzi di:
+
+a) copiare, ridistribuire, pubblicare, vendere, noleggiare, prestare o altrimenti mettere a disposizione di terzi il Software o parti di esso, anche in repository pubblici o privati accessibili a terzi, o in registri di pacchetti;
+b) concedere sublicenze o trasferire la licenza o il Contratto;
+c) rimuovere, alterare o occultare avvisi di copyright, di titolarità, marchi o riferimenti alla licenza;
+d) usare il Software, o parti di esso, per sviluppare, addestrare o fornire prodotti o servizi che siano concorrenti rispetto al Software o ai prodotti Wonder Image [formulazione da verificare con il legale per liceità e proporzionalità];
+e) effettuare reverse engineering, decompilare o disassemblare il Software, salvo nei limiti in cui la legge lo consente inderogabilmente (in particolare per ottenere l'interoperabilità, art. 64-quater L. 633/1941) [da confermare con il legale];
+f) aggirare o disattivare meccanismi tecnici di controllo della licenza, dell'accesso o delle installazioni;
+g) usare il Software oltre i limiti di Installazioni, domini, Tenant o utenti previsti dal Contratto;
+h) usare il Software in violazione di norme di legge o diritti di terzi.
+
+### 5. Componenti di terzi e open source
+
+5.1 I Componenti di Terzi restano soggetti alle rispettive licenze, che prevalgono su questa licenza per quanto riguarda tali componenti. Nulla in questa licenza limita i diritti che il Licenziatario ha su tali componenti in base alla loro licenza.
+
+5.2 Wonder Image mette a disposizione, su richiesta o nella documentazione, l'elenco dei principali Componenti di Terzi e delle relative licenze. [Allegato B, da generare dai file di lock delle dipendenze e da verificare con il legale, in particolare per le dipendenze con licenza copyleft/LGPL.]
+
+5.3 Il Licenziatario è tenuto a rispettare gli obblighi di tali licenze (ad esempio attribuzione e conservazione degli avvisi) quando distribuisce o usa i Componenti di Terzi.
+
+### 6. Aggiornamenti, supporto e riservatezza
+
+6.1 Gli aggiornamenti, i correttivi e le nuove versioni sono forniti nei limiti e per la durata previsti nel Contratto. [Da definire.]
+
+6.2 Il codice sorgente, se messo a disposizione, e la documentazione non pubblica sono informazioni riservate di Wonder Image. Il Licenziatario le tratta con diligenza e non le comunica a terzi, salvo collaboratori e fornitori che ne abbiano necessità per l'uso consentito e siano vincolati da analogo obbligo. [Da integrare con il legale.]
+
+### 7. Garanzia e limitazione di responsabilità
+
+7.1 Fatto salvo quanto previsto da norme inderogabili e da quanto eventualmente stabilito nel Contratto, il Software è fornito «così com'è», senza garanzie espresse o implicite di idoneità a uno scopo particolare, di assenza di errori o di funzionamento ininterrotto.
+
+7.2 Nei limiti consentiti dalla legge italiana, Wonder Image non risponde dei danni indiretti, del mancato guadagno, della perdita di dati o di avviamento derivanti dall'uso o dall'impossibilità di uso del Software. [Eventuale tetto massimo alla responsabilità, es. pari ai corrispettivi pagati nei [12] mesi precedenti: da decidere con il legale.]
+
+7.3 Nulla in questa licenza esclude o limita la responsabilità che per legge non può essere esclusa o limitata, in particolare in caso di dolo o colpa grave (art. 1229 c.c.) e per i diritti inderogabili del consumatore, ove applicabili. [Da confermare con il legale, anche per le clausole che richiedono specifica approvazione per iscritto ai sensi degli artt. 1341-1342 c.c.]
+
+### 8. Versioni già distribuite con licenza MIT
+
+8.1 [CLAUSOLA NEUTRA, DA DECIDERE COL LEGALE.] Questa licenza si applica alle versioni del Software [rilasciate a partire dal [DATA / VERSIONE]] e a tutto il materiale nuovo. Per le Versioni MIT già pubblicate resta ferma la licenza con cui sono state distribuite per le copie ottenute secondo quei termini, [nei limiti e con gli effetti che il legale confermerà]. [Da stabilire: se e come chiarire che le versioni successive non sono coperte dalla MIT; come trattare le copie già scaricate, i fork e il codice derivato.]
+
+8.2 [Nessuna rinuncia: la distribuzione passata di versioni sotto MIT non comporta, di per sé, la concessione di diritti sulle versioni future. Affermazione da confermare con il legale.]
+
+### 9. Durata e risoluzione
+
+9.1 La licenza ha la durata prevista dal Contratto [o: a tempo indeterminato finché il Contratto è in vigore e i corrispettivi sono pagati].
+
+9.2 Wonder Image può risolvere o sospendere la licenza, con le modalità previste dal Contratto e dalla legge, in caso di violazione degli articoli 3 o 4, di mancato pagamento dopo diffida o di cessazione del Contratto. [Termini di preavviso e di sanatoria: da definire.]
+
+9.3 Alla cessazione, il Licenziatario cessa l'uso del Software e cancella le copie in suo possesso, salvo quanto previsto nel Contratto per il periodo di transizione o di esportazione dei dati. Gli articoli 2, 4, 5, 7, 10 e 11 restano in vigore. [Sorte dei siti già consegnati in produzione e dei dati del Licenziatario: da regolare.]
+
+### 10. Legge applicabile e foro
+
+10.1 Questa licenza è regolata dalla legge italiana.
+
+10.2 Per ogni controversia è competente in via [esclusiva] il Foro di [FORO], salvo il foro inderogabile del consumatore, ove applicabile. [Da confermare con il legale.]
+
+### 11. Disposizioni generali
+
+11.1 In caso di contrasto fra questa licenza e il Contratto prevale il Contratto, salvo diversa indicazione espressa. 11.2 Se una clausola risulta nulla o inefficace, le altre restano valide. 11.3 Ogni modifica deve avvenire per iscritto. [Altre clausole di rito: da completare con il legale.]
+
+### 12. Contatti
+
+Per richieste di licenza, autorizzazioni o segnalazioni: [INDIRIZZO EMAIL CONTATTI LICENZE], [PEC], [INDIRIZZO SEDE].
