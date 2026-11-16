@@ -3,8 +3,58 @@
 ## Unreleased
 
 ### Aggiunto
+- **Testate dei gruppi con la libreria media.** `repeaterGroupFiles()` accetta
+  un campo con `mediaLibrary()`: il valore è `chiave → id dei media`, la
+  testata ha «Scegli dalla libreria» e `Repeater::groupFilesFromRequest()`
+  restituisce anche `picks` e `map` di ogni gruppo.
+- **`PageAssets::capture()`.** Esegue un render tenendo a parte i frammenti
+  "una volta sola", così chi stampa un `<template>` li mette fuori. Il
+  repeater lo usa per il modello delle righe e per quello delle testate: la
+  finestra della libreria media non resta più dentro il `<template>`, dove il
+  suo script non girava e «Scegli dalla libreria» non si apriva.
+  `InputFileDragDrop::mediaValue()` dà nomi e mappa di una lista di id.
+- **Campi media dei modelli nel core.** Il tratto `Wonder\App\Media\HasMedia`
+  (`mediaFields()`, `mediaInput()`, `mediaUrl()`, ...) e la migrazione
+  `LegacyMediaMigration` / `LegacyMediaPlan`, che porta nella libreria i file
+  di una colonna di prima copiandoli, vengono dal gestionale e ora li usano
+  core e moduli.
+- **Loghi del sito nella libreria media.** Set-up → Loghi usa il drag & drop
+  con la libreria per i sei loghi e icone (colonne `main_id` ...
+  `icon_white_id`); `CoreMediaMigration` copia i file di
+  `assets/upload/logos` al primo `forge update` (`stats.media_core`).
+  `infoSociety()` legge gli indirizzi con `Logo::urls()`.
+  Loghi e icone accettano solo png, nel caricamento e nella scelta dalla
+  libreria (`extensions` in `Logo::mediaFields()`), perché le email li usano.
+- **Immagine dei popup nella libreria media.** Comunicazioni → Popup usa il
+  drag & drop con la libreria (colonna `image_id`, slug `{slug}-popup`, alt
+  dal titolo); `CoreMediaMigration` copia i file di
+  `assets/upload/popups/images`. La colonna `images` resta, deprecata, e la
+  lista dei popup mostra la miniatura dal media. Il popup del sito riceve
+  l'indirizzo completo (`Popup::imageUrl()`), non più il solo nome del file.
+  **Rottura:** l'API index dei popup dà `image_id` al posto di `images`.
+- **Drag & drop collegato alla libreria media.** `fileDragDrop($accept)->mediaLibrary()`
+  salva l'id del media (o la lista JSON degli id con `maxFile()` > 1): ogni
+  file caricato diventa un media al salvataggio, con `source`, slug e alt dai
+  modelli, coda di ridimensionamento e registro degli utilizzi; «Scegli dalla
+  libreria» apre la ricerca. `mediaTypes(...)` sceglie i tipi ammessi (il
+  file va nel primo che ne accetta l'estensione). Il form manda
+  `<campo>__wi_files`, `__wi_picks` e `__wi_media`
+  (`MediaInputs::fieldName()`, `uploadKeys()`); le API accettano un id, una
+  lista, `''` o un file. Nuovi `MediaUpload::split()` e
+  `InputFileDragDrop::mediaIds()`. Una colonna dichiarata `File` nel Model
+  con `mediaLibrary()` lancia `LogicException`. **Rottura:** `InputMedia::mediaConfig()`
+  ha in più `input`, `types` e `multiple`; la ricerca della libreria
+  (`MediaFile::summary()`) restituisce anche `file` e `url`.
+- **Media: card «File generati».** La scheda di un media mostra a destra
+  l'originale e le misure create dal ridimensionatore, con formato, pixel e
+  peso, da scaricare uno per uno (menu «Scarica» per jpg e webp) o tutti in
+  uno zip (rotta `backend.media.zip`, solo con `ZipArchive`). Nuova classe
+  `Wonder\App\Media\MediaDownloads` (legge i file dalla cartella).
+- **`FromValues` nel layout del form.** `Wonder\App\ResourceSchema\FromValues::make(fn ($values, $mode) => ...)`
+  mette in `formLayoutSchema()` un pezzo che dipende dal record; `null`
+  non mostra niente.
 - **Media: dove è in uso e libreria per sezione.** Gli elenchi di Immagini,
-  Icone, Documenti e Video hanno la colonna «In uso in» (un badge per
+  Icone, Documenti e Video hanno la colonna «Dove si usa» (un badge per
   sezione, `MediaResource::usageBadges()`, dalla colonna calcolata
   `MediaUsages::tablesSelect()`) e il filtro «Sezione»
   (`MediaUsages::sections()`, `sectionCondition()`). Nuova colonna
@@ -184,6 +234,9 @@
   `wiRepeaterSetRowOpen()`, `wiRepeaterSummaryRefresh()`.
 
 ### Corretto
+- **Miniature quadrate nelle tabelle del backend.** Le colonne immagine
+  mostrano la miniatura quadrata, senza il padding di `img-thumbnail`, con
+  l'immagine ritagliata (`object-fit-cover`) invece che contenuta.
 - **Skill AI: avviso sulle copie globali.** `php forge skills` e `php forge config`,
   dopo la sincronizzazione, avvisano se esiste `~/.claude/skills/wi-app` o
   `wi-site`: Claude Code preferisce la skill personale a quella del progetto,
@@ -250,6 +303,9 @@
   testo salta preheader e link di riserva e scrive i riepiloghi come
   «Etichetta: valore». I corpi HTML scritti a mano restano validi: passano
   ancora da `sanitizeEcho()` e prendono la nuova cornice.
+- **Favicon `.ico` tolto.** Il form dei loghi, l'API e il `<head>` non lo
+  usano più: resta l'icona app. La colonna `favicon` e `Path::$favicon`
+  restano, deprecati; le colonne con i nomi dei file dei loghi anche.
 - **Scheda dei media.** Accanto al file, uno sotto l'altro: Nome (prima
   "File" o "Nome file"), testo alternativo e slug, che ora si vede in sola
   lettura. L'anteprima dell'uploader del backend carica la misura piccola e

@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use Wonder\App\Media\MediaFile;
 use Wonder\App\Media\MediaTypes;
 use Wonder\App\ResourceSchema\Input;
+use Wonder\App\ResourceSchema\Inputs\Concerns\HasMediaLibrary;
 use Wonder\Elements\Form\Components\MediaPicker;
 use Wonder\Elements\Form\Field as ElementField;
 
@@ -28,6 +29,8 @@ use Wonder\Elements\Form\Field as ElementField;
  */
 class InputMedia extends Input
 {
+    use HasMediaLibrary;
+
     protected string $helper = 'media';
 
     /** Uno dei tipi di `MediaTypes`. */
@@ -42,53 +45,25 @@ class InputMedia extends Input
         return $this;
     }
 
-    /**
-     * Modello dello slug del media creato dal campo, es. `{slug}` o
-     * `{slug}-retro`. Se lo slug è già di un altro media prende `-2`,
-     * `-3`, ... Senza modello lo slug viene dal nome del file caricato.
-     */
-    public function mediaSlug(string $template): static
+    /** Sempre vero: il campo salva l'id di un media. */
+    public function isMedia(): bool
     {
-        $this->schema['media']['slug'] = trim($template);
-
-        return $this;
-    }
-
-    /** Modello del testo alternativo del media creato dal campo, es. `{name}`. */
-    public function mediaAlt(string $template): static
-    {
-        $this->schema['media']['alt'] = trim($template);
-
-        return $this;
+        return true;
     }
 
     /**
-     * La sezione del campo: il selettore della libreria parte dai media
-     * caricati da `$table` o usati lì, e `$label` dà il nome all'opzione.
-     * La Resource la imposta da sola con la sua tabella; `''` mostra
-     * subito tutta la libreria.
+     * @return array{input: string, type: string, types: list<string>, multiple: bool, slug: string, alt: string, scope: string, scope_label: string}
      */
-    public function mediaScope(string $table, string $label = ''): static
-    {
-        $this->schema['media']['scope'] = trim($table);
-        $this->schema['media']['scope_label'] = trim($label);
-
-        return $this;
-    }
-
-    /** Vero se la sezione è stata scelta, anche vuota. */
-    public function hasMediaScope(): bool
-    {
-        return array_key_exists('scope', (array) ($this->schema['media'] ?? []));
-    }
-
-    /** @return array{type: string, slug: string, alt: string, scope: string, scope_label: string} */
     public function mediaConfig(): array
     {
-        $media = (array) ($this->schema['media'] ?? []);
+        $media = $this->mediaSchema();
+        $type = (string) ($media['type'] ?? MediaTypes::IMAGE);
 
         return [
-            'type' => (string) ($media['type'] ?? MediaTypes::IMAGE),
+            'input' => 'picker',
+            'type' => $type,
+            'types' => [$type],
+            'multiple' => false,
             'slug' => (string) ($media['slug'] ?? ''),
             'alt' => (string) ($media['alt'] ?? ''),
             'scope' => (string) ($media['scope'] ?? ''),

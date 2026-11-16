@@ -379,6 +379,28 @@ public static function pageSchema(): PageSchema
 
 `formNotices(array $values, string $mode): array` restituisce avvisi da mostrare sopra il form, fuori dal `<form>`: una lista di `['level' => 'info'|'warning'|'danger', 'message' => '...']`, con il testo escapato e gli a capo conservati. Il presenter li espone come `FORM_NOTICES`; servono per stati esterni al record, per esempio le differenze con Google in `SocietyLocationResource`. Non sostituiscono `$ALERT` né la validazione.
 
+### Layout che dipende dal record
+
+`formLayoutSchema()` è statico e non vede il record. Per un pezzo che
+dipende dai valori usa `FromValues`: la pagina del form chiama la funzione
+con valori e modalità (`create`, `edit`, `form`) e mette al suo posto quello
+che torna; `null` non mostra niente e il pezzo sparisce dal layout.
+
+```php
+use Wonder\App\ResourceSchema\FromValues;
+
+return (new Form)->components([
+    (new Card)->components([...])->columnSpan(9),
+    FromValues::make(static fn (array $values, string $mode) => $mode === 'edit'
+        ? (new Card)->components([Text::make('Creato il '.$values['creation'])])->columnSpan(3)
+        : null),
+])->columns(12);
+```
+
+I campi dentro il pezzo restituito si idratano come gli altri. Fuori dalla
+pagina del form `FromValues` non stampa niente. Esempio: la card «File
+generati» di `MediaResource`.
+
 Se `mutateRequestValues()` imposta `$ALERT` con un testo (non un codice numerico), il record non viene salvato e il form mostra quel testo. `prepareRepeaterRows(string $inputName, array $rows, string $action, string $context): array` normalizza o scarta le righe di un repeater con relazione prima del salvataggio.
 
 ## Estendere oltre il CRUD

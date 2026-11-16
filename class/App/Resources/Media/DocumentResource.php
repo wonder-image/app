@@ -42,7 +42,7 @@ final class DocumentResource extends MediaResource
             'file' => 'Documento',
             'name' => 'Nome',
             'slug' => 'Slug',
-            'usage_tables' => 'In uso in',
+            'usage_tables' => 'Dove si usa',
             'actions' => 'Azioni',
         ];
     }

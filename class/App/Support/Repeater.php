@@ -204,7 +204,7 @@ final class Repeater
      * gruppo senza manifesto non compare: il suo campo non era in pagina, e
      * trattarlo come svuotato cancellerebbe i suoi file.
      *
-     * @return array<string, array{manifest: list<mixed>, files: array<string, array<int|string, mixed>>|null}>
+     * @return array<string, array{manifest: list<mixed>, files: array<string, array<int|string, mixed>>|null, picks: mixed, map: mixed}>
      */
     public static function groupFilesFromRequest(string $name, array $post = [], array $files = []): array
     {
@@ -234,6 +234,9 @@ final class Repeater
             $groups[$groupKey] = [
                 'manifest' => array_values($decoded),
                 'files' => static::groupFileBag($bag, $groupKey),
+                // Con la libreria: le scelte e la mappa nome => id del gruppo.
+                'picks' => $posted[$groupKey.'__wi_picks'] ?? null,
+                'map' => $posted[$groupKey.'__wi_media'] ?? null,
             ];
         }
 

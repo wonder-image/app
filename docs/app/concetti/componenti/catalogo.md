@@ -54,7 +54,9 @@ Due Element nuovi, usabili ovunque:
   `Preview::make('Titolo')->source('bootstrap', 'Bootstrap', $url, ['schemes' => true])`.
 
 Entrambi esistono nei due temi; CSS e script escono una volta per pagina da
-`Themes\Support\PageAssets`.
+`Themes\Support\PageAssets`. Chi stampa dentro un `<template>` (dove uno
+script non gira) avvolge il render in `PageAssets::capture(fn () => ...)`:
+riceve `[html, frammenti]` e stampa i frammenti fuori, come fa il repeater.
 
 ## E GitBook?
 

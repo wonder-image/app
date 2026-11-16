@@ -113,8 +113,11 @@ $filter = static function (string $resource): array {
 };
 
 check('gli elenchi di Media hanno il filtro usata / non usata con i testi della Resource', function () use ($filter) {
-    return $filter(ImageResource::class)['array'] === ['' => 'Tutte', 'used' => 'Usata', 'unused' => 'Non usata']
-        && $filter(DocumentResource::class)['array'] === ['' => 'Tutti', 'used' => 'Usato', 'unused' => 'Non usato']
+    $library = 'Solo libreria, non in uso';
+
+    return $filter(ImageResource::class)['array'] === ['' => 'Tutte', 'library' => $library, 'used' => 'Usata', 'unused' => 'Non usata']
+        && $filter(DocumentResource::class)['array'] === ['' => 'Tutti', 'library' => $library, 'used' => 'Usato', 'unused' => 'Non usato']
+        && $filter(ImageResource::class)['value'] === 'library' && $filter(DocumentResource::class)['value'] === ''
         && $filter(IconResource::class) !== [] && $filter(VideoResource::class) !== [];
 });
 
@@ -128,7 +131,7 @@ check('il filtro legge il registro, non una colonna', function () use ($filter) 
         && FilterCustom::condition($image, "used' OR '1'='1") === '';
 });
 
-check('la colonna "In uso in" mostra una sezione per badge, escapata', function () {
+check('la colonna "Dove si usa" mostra una sezione per badge, escapata', function () {
     $html = ImageResource::usageBadges('gst_category,<b>x</b>,gst_category');
 
     return ImageResource::usageBadges(null) === '' && ImageResource::usageBadges('') === ''

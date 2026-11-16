@@ -179,7 +179,7 @@ final class MediaFile
     /**
      * I dati che il selettore del backend mostra di un media.
      *
-     * @return array{id: int, name: string, slug: string, alt: string, type: string, thumbnail: string}
+     * @return array{id: int, name: string, slug: string, alt: string, type: string, file: string, url: string, thumbnail: string}
      */
     public function summary(): array
     {
@@ -189,6 +189,8 @@ final class MediaFile
             'slug' => $this->slug,
             'alt' => $this->alt,
             'type' => $this->type,
+            'file' => $this->file,
+            'url' => $this->url(),
             'thumbnail' => $this->thumbnailUrl(),
         ];
     }

@@ -171,23 +171,28 @@ final class MediaUsages
     }
 
     /**
-     * Condizione SQL per il filtro "usata / non usata" di un elenco di Media.
-     * Riceve solo `used` e `unused`; con tutti e due, o nessuno, non filtra.
+     * Condizione SQL per il filtro "Utilizzo" di un elenco di Media.
+     * `used` / `unused`: usata o no (con tutti e due, o nessuno, non filtra).
+     * `library`: caricata dalla libreria (senza `source`) e non usata.
      *
      * @param array<int, string> $values
      */
     public static function filterCondition(array $values, string $mediaTable = 'media'): string
     {
+        $usages = \Wonder\App\Models\Media\MediaUsage::$table;
+        $mediaTable = str_replace('`', '', $mediaTable);
+        $exists = "EXISTS (SELECT 1 FROM `{$usages}` WHERE `{$usages}`.`media_id` = `{$mediaTable}`.`id`)";
+
+        if (in_array('library', $values, true)) {
+            return "(`{$mediaTable}`.`source` IS NULL OR `{$mediaTable}`.`source` = '') AND NOT ".$exists;
+        }
+
         $used = in_array('used', $values, true);
         $unused = in_array('unused', $values, true);
 
         if ($used === $unused) {
             return '';
         }
-
-        $usages = \Wonder\App\Models\Media\MediaUsage::$table;
-        $mediaTable = str_replace('`', '', $mediaTable);
-        $exists = "EXISTS (SELECT 1 FROM `{$usages}` WHERE `{$usages}`.`media_id` = `{$mediaTable}`.`id`)";
 
         return $used ? $exists : 'NOT '.$exists;
     }
@@ -301,6 +306,32 @@ final class MediaUsages
         ];
     }
 
+    /**
+     * L'etichetta del campo. Una colonna di repeater (`values.image_id`)
+     * si legge «Immagine (Valori)».
+     */
+    private static function fieldLabel(string $resourceClass, string $column): string
+    {
+        if (!str_contains($column, '.')) {
+            return (string) $resourceClass::getLabel($column);
+        }
+
+        [$input, $inner] = explode('.', $column, 2);
+        $field = $resourceClass::safeFormFieldsByKey()[$input] ?? null;
+        $repeater = (string) $resourceClass::getLabel($input)
+            ?: (is_object($field) && method_exists($field, 'get') ? trim((string) ($field->get('label') ?? '')) : '');
+        $label = $inner;
+
+        foreach (is_object($field) && method_exists($field, 'get') ? (array) (((array) ($field->get('context') ?? []))['columns'] ?? []) : [] as $item) {
+            if (is_object($item) && ($item->name ?? null) === $inner && method_exists($item, 'get')) {
+                $label = trim((string) ($item->get('label') ?? '')) ?: $inner;
+                break;
+            }
+        }
+
+        return $repeater !== '' ? $label.' ('.$repeater.')' : $label;
+    }
+
     /** Descrizione dalla Resource della tabella; vuota se non c'è o se fallisce. */
     private static function describe(array $owner): array
     {
@@ -314,7 +345,7 @@ final class MediaUsages
             $description = [
                 'resource' => $resourceClass,
                 'label' => (string) $resourceClass::label(),
-                'field' => (string) $resourceClass::getLabel((string) $owner['column']),
+                'field' => self::fieldLabel($resourceClass, (string) $owner['column']),
             ];
 
             $row = $resourceClass::modelClass()::findById($owner['id']);

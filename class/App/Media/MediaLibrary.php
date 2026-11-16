@@ -44,7 +44,7 @@ final class MediaLibrary
      *
      * @return array{items: list<array{id: int, name: string, slug: string, alt: string, type: string, thumbnail: string}>, page: int, pages: int, total: int}|null
      */
-    public static function search(mixed $type, mixed $term = '', mixed $page = 1, mixed $scope = ''): ?array
+    public static function search(mixed $type, mixed $term = '', mixed $page = 1, mixed $scope = '', mixed $extensions = ''): ?array
     {
         if (!is_string($type) || !MediaTypes::has($type)) {
             return null;
@@ -57,11 +57,15 @@ final class MediaLibrary
             return null;
         }
 
+        // Estensioni separate da virgola: solo quelle del tipo.
+        $extensions = is_string($extensions) ? array_map(static fn (string $v): string => strtolower(trim($v)), explode(',', $extensions)) : [];
+        $extensions = array_values(array_intersect(array_unique(array_filter($extensions)), MediaTypes::extensions($type)));
+
         $term = is_scalar($term) ? trim((string) $term) : '';
         $term = function_exists('mb_substr') ? mb_substr($term, 0, self::TERM_LENGTH) : substr($term, 0, self::TERM_LENGTH);
         $page = max(1, is_numeric($page) ? (int) $page : 1);
 
-        $found = self::store()->search($type, $term, self::PAGE_SIZE, ($page - 1) * self::PAGE_SIZE, $scope);
+        $found = self::store()->search($type, $term, self::PAGE_SIZE, ($page - 1) * self::PAGE_SIZE, $scope, $extensions);
         $items = [];
 
         foreach ($found['rows'] as $row) {

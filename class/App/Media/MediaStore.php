@@ -53,5 +53,5 @@ interface MediaStore
      *
      * @return array{rows: list<array{id: int, type: string, slug: string, name: string, alt: string, file: string}>, total: int}
      */
-    public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array;
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array;
 }

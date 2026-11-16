@@ -31,6 +31,14 @@ class MediaPicker extends Field
         MediaTypes::VIDEO => 'bi-film',
     ];
 
+    /** Le voci del tipo nella finestra, per i campi che accettano più tipi. */
+    private const TYPE_LABELS = [
+        MediaTypes::IMAGE => 'Immagini',
+        MediaTypes::ICON => 'Icone',
+        MediaTypes::DOCUMENT => 'Documenti',
+        MediaTypes::VIDEO => 'Video',
+    ];
+
     public function render($class): string
     {
         $this->schema = (array) ($class->schema ?? []);
@@ -147,10 +155,15 @@ class MediaPicker extends Field
     public static function modal(): string
     {
         $body = '<div class="col-12" data-wi-media-picker>'
+            .'<div class="wi-media-search">'
             .'<input type="search" class="form-control" placeholder="Cerca per nome" aria-label="Cerca nella libreria"'
             .' autocomplete="off" data-wi-media-term>'
+            .'<select class="form-select" aria-label="Tipo di file" data-wi-media-type-choice hidden'
+            .' data-wi-media-type-labels="'.htmlspecialchars(json_encode(self::TYPE_LABELS, JSON_THROW_ON_ERROR), ENT_QUOTES).'"></select>'
+            .'</div>'
+            .'<p class="wi-media-only" data-wi-media-only data-wi-media-only-text="Qui trovi solo i file {extensions}: gli altri non vanno bene per questo campo." hidden></p>'
             .'<div class="form-check form-switch" data-wi-media-scope-box hidden>'
-            .'<input class="form-check-input" type="checkbox" role="switch" id="'.self::MODAL_ID.'-scope" data-wi-media-scope-only checked>'
+            .'<input class="form-check-input" type="checkbox" role="switch" id="'.self::MODAL_ID.'-scope" data-wi-media-scope-only>'
             .'<label class="form-check-label" for="'.self::MODAL_ID.'-scope" data-wi-media-scope-name'
             .' data-wi-media-scope-text="Solo i file di {section}" data-wi-media-scope-fallback="questa sezione"></label>'
             .'</div>'
@@ -194,6 +207,15 @@ class MediaPicker extends Field
 .wi-media-field.is-invalid .wi-media-note{color:var(--bs-form-invalid-color)}
 .wi-media-actions{display:flex;flex-wrap:wrap;gap:.5rem}
 [data-wi-media-scope-box]{margin-top:.75rem}
+.wi-media-search{display:flex;gap:.5rem}
+.wi-media-search [data-wi-media-term]{flex:1 1 auto;min-width:0}
+.wi-media-search [data-wi-media-type-choice]{flex:0 0 auto;width:auto}
+.filepond--drop-label:has(.wi-media-drop){height:auto}
+.wi-media-drop{display:flex;flex-direction:column;align-items:center;gap:.125rem;padding:.5rem 0;line-height:1.5;font-weight:400}
+.wi-media-drop .wi-media-drop-action{padding:0;border:0;background:none;font:inherit;color:inherit;text-decoration:underline;text-decoration-color:var(--bs-secondary-color);text-underline-offset:.2em;cursor:pointer;pointer-events:auto}
+.wi-media-drop .wi-media-drop-action:hover{text-decoration-color:currentColor}
+.wi-media-drop .wi-media-drop-action:disabled{text-decoration:none;cursor:default;opacity:.6}
+.wi-media-only{margin:.5rem 0 0;font-size:.875em;color:var(--bs-secondary-color)}
 .wi-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.75rem;margin-top:1rem}
 .wi-media-grid:empty{display:none}
 .wi-media-item{display:flex;flex-direction:column;gap:.375rem;padding:.5rem;border:1px solid var(--bs-border-color);border-radius:var(--bs-border-radius);background:var(--bs-body-bg);color:inherit;text-align:left;min-width:0}
@@ -343,12 +365,13 @@ HTML;
         var body = new FormData();
         var request = ++state.request;
 
-        body.append('type', active.getAttribute('data-wi-media') || '');
+        body.append('type', active.wiMediaType || active.getAttribute('data-wi-media') || '');
         body.append('term', term ? term.value : '');
         body.append('page', String(page));
         var only = find(box, '[data-wi-media-scope-only]');
         var scope = active.getAttribute('data-wi-media-scope') || '';
         if (scope !== '' && only && only.checked) { body.append('scope', scope); }
+        body.append('extensions', active.getAttribute('data-wi-media-extensions') || '');
         message(box, 'loading');
 
         fetch(active.getAttribute('data-wi-media-search') || '', {
@@ -392,13 +415,37 @@ HTML;
         active = field;
         if (title) { title.textContent = field.getAttribute('data-wi-media-title') || title.textContent; }
         if (term) { term.value = ''; }
-        // Si parte dai file della sezione; l'interruttore apre tutta la libreria.
+        // Un campo con più tipi (es. immagini e icone) li sceglie dalla tendina.
+        var types = (field.getAttribute('data-wi-media-types') || '').split(',').filter(Boolean);
+        var choice = find(box, '[data-wi-media-type-choice]');
+        field.wiMediaType = types[0] || field.getAttribute('data-wi-media') || '';
+        if (choice) {
+            var labels = {};
+            try { labels = JSON.parse(choice.getAttribute('data-wi-media-type-labels') || '{}'); } catch (error) { labels = {}; }
+            choice.textContent = '';
+            types.forEach(function (type) {
+                var option = document.createElement('option');
+                option.value = type;
+                option.textContent = labels[type] || type;
+                choice.appendChild(option);
+            });
+            choice.hidden = types.length < 2;
+        }
+        // Il campo accetta solo alcune estensioni: chi cerca deve saperlo.
+        var onlyNote = find(box, '[data-wi-media-only]');
+        var extensions = (field.getAttribute('data-wi-media-extensions') || '').split(',').filter(Boolean);
+        if (onlyNote) {
+            onlyNote.hidden = extensions.length === 0;
+            onlyNote.textContent = extensions.length === 0 ? ''
+                : (onlyNote.getAttribute('data-wi-media-only-text') || '').replace('{extensions}', extensions.join(', '));
+        }
+        // Si parte da tutta la libreria; l'interruttore restringe alla sezione.
         var scopeBox = find(box, '[data-wi-media-scope-box]');
         var only = find(box, '[data-wi-media-scope-only]');
         var scopeName = find(box, '[data-wi-media-scope-name]');
         var scoped = (field.getAttribute('data-wi-media-scope') || '') !== '';
         if (scopeBox) { scopeBox.hidden = !scoped; }
-        if (only) { only.checked = scoped; }
+        if (only) { only.checked = false; }
         if (scopeName && scoped) {
             scopeName.textContent = (scopeName.getAttribute('data-wi-media-scope-text') || '').replace('{section}',
                 field.getAttribute('data-wi-media-scope-label') || scopeName.getAttribute('data-wi-media-scope-fallback') || '');
@@ -412,14 +459,24 @@ HTML;
         if (!target) { return; }
 
         var chooser = target.closest('[data-wi-media-choose]');
-        if (chooser) { open(chooser.closest('[data-wi-media]')); return; }
+        if (chooser) {
+            // Dentro l'etichetta di FilePond il clic aprirebbe anche la ricerca dei file.
+            event.preventDefault();
+            if (!chooser.disabled) { open(chooser.closest('[data-wi-media]')); }
+            return;
+        }
 
         var remover = target.closest('[data-wi-media-remove]');
         if (remover) { clear(remover.closest('[data-wi-media]')); return; }
 
         var pick = target.closest('[data-wi-media-pick]');
         if (pick && active && pick.wiMediaItem) {
-            choose(active, pick.wiMediaItem);
+            // I campi drag&drop ricevono la scelta come evento.
+            if (active.hasAttribute('data-wi-media-files')) {
+                active.dispatchEvent(new CustomEvent('wi:media-pick', { bubbles: true, detail: pick.wiMediaItem }));
+            } else {
+                choose(active, pick.wiMediaItem);
+            }
             var box = modal();
             if (box && window.bootstrap && window.bootstrap.Modal) { window.bootstrap.Modal.getOrCreateInstance(box).hide(); }
             return;
@@ -432,7 +489,9 @@ HTML;
     document.addEventListener('change', function (event) {
         var input = event.target instanceof Element ? event.target.closest('[data-wi-media-upload]') : null;
         if (input) { uploaded(input.closest('[data-wi-media]'), input); return; }
-        if (event.target instanceof Element && event.target.closest('[data-wi-media-scope-only]')) { load(1); }
+        if (event.target instanceof Element && event.target.closest('[data-wi-media-scope-only]')) { load(1); return; }
+        var choice = event.target instanceof Element ? event.target.closest('[data-wi-media-type-choice]') : null;
+        if (choice && active) { active.wiMediaType = choice.value; load(1); }
     });
 
     document.addEventListener('input', function (event) {

@@ -172,6 +172,12 @@ check('filterCondition(): usata, non usata, tutte', function () {
         && MediaUsages::filterCondition(["used' OR 1=1"]) === '';
 });
 
+check('filterCondition(library): caricate dalla libreria e non usate', function () {
+    $exists = 'EXISTS (SELECT 1 FROM `media_usages` WHERE `media_usages`.`media_id` = `media`.`id`)';
+
+    return MediaUsages::filterCondition(['library']) === "(`media`.`source` IS NULL OR `media`.`source` = '') AND NOT ".$exists;
+});
+
 check('sections(): le tabelle che usano media, filtrate per tipo', function () use ($fresh) {
     $store = $fresh();
     $store->types = [12 => 'image', 13 => 'document'];

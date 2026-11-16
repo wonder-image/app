@@ -5,11 +5,13 @@ namespace Wonder\Themes\Bootstrap\Form\Components;
 use Wonder\App\Model;
 use Wonder\App\ResourceSchema\Input;
 use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
 use Wonder\App\ResourceSchema\Inputs\InputHidden;
 use Wonder\App\ResourceSchema\Inputs\InputRepeater;
 use Wonder\App\ResourceSchema\RepeaterColumn;
 use Wonder\App\Support\RepeaterGroups;
 use Wonder\Backend\Support\QuickCreateModal;
+use Wonder\Themes\Support\PageAssets;
 use LogicException;
 use Wonder\Themes\Bootstrap\Form\Field;
 
@@ -116,7 +118,10 @@ class Repeater extends Field
         $groupBarHtml = $groupable && $groupFixed === ''
             ? $this->renderGroupBar($id, $rowId, $groupTemplateId, $columns, $groupBy)
             : '';
-        $groupTemplateHtml = $groupable ? $this->renderGroupTemplate($groupTemplateId, $context, $groupFixed !== '') : '';
+        // I frammenti "una volta sola" non devono finire nei `<template>`: escono a parte.
+        [$groupTemplateHtml, $templateAssets] = $groupable
+            ? PageAssets::capture(fn (): string => $this->renderGroupTemplate($groupTemplateId, $context, $groupFixed !== ''))
+            : ['', ''];
         // La scelta si ricorda sul **nome** del campo, non sull'id: l'id del
         // repeater lo genera il render, cambia a ogni caricamento, e una
         // memoria con una chiave nuova ogni volta non ricorda niente.
@@ -140,13 +145,16 @@ class Repeater extends Field
             );
         }
 
-        $templateHtml = $this->renderRow($columns, $name, [], $placeholder, true, $context);
-        // Lo script della creazione rapida esce una volta sola per pagina: se
+        [$templateHtml, $rowAssets] = PageAssets::capture(fn (): string => $this->renderRow($columns, $name, [], $placeholder, true, $context));
+        $quickScriptHtml = $templateAssets.$rowAssets;
+
+        // Lo script della creazione rapida ha un suo segno "già stampato": se
         // il primo «+» è nel modello (repeater ancora vuoto) finirebbe nel
         // `<template>`, dove non gira. Lo si sposta fuori.
         $quickScript = QuickCreateModal::scriptSource();
-        $templateHtml = str_replace($quickScript, '', $templateHtml, $quickScriptMoved);
-        $quickScriptHtml = $quickScriptMoved > 0 ? $quickScript : '';
+        $templateHtml = str_replace($quickScript, '', $templateHtml, $moved);
+        $groupTemplateHtml = str_replace($quickScript, '', $groupTemplateHtml, $movedGroup);
+        $quickScriptHtml .= $moved + $movedGroup > 0 ? $quickScript : '';
         $addButton = ($context['add_button'] ?? true) !== false;
         $addButtonHtml = $addButton
             ? '<div class="mt-2 d-flex justify-content-end'.($emptyState && $value === [] ? ' d-none' : '').'" data-wi-repeater-add>'
@@ -793,7 +801,17 @@ HTML;
         $fieldName = trim((string) $field->name);
         $values = [];
 
+        // Un campo della libreria ha per valore gli id dei media: per gruppo
+        // servono i nomi da mostrare e la mappa nome => id.
+        $media = $field instanceof InputFileDragDrop && $field->isMedia();
+
         foreach ((array) ($field->get('value') ?? []) as $key => $names) {
+            if ($media) {
+                $values[(string) $key] = InputFileDragDrop::mediaValue($names);
+
+                continue;
+            }
+
             $values[(string) $key] = array_values(array_filter(
                 array_map('strval', is_array($names) ? $names : [$names]),
                 static fn (string $name): bool => $name !== ''
@@ -1458,10 +1476,22 @@ HTML;
 
         let values = {};
         try { values = JSON.parse(template.dataset.wiGroupFilesValues || '{}') || {}; } catch (error) {}
-        const names = Array.isArray(values[fileKey]) ? values[fileKey] : [];
+        // Un campo della libreria manda `{names, map}`, gli altri i nomi.
+        const value = values[fileKey];
+        const names = Array.isArray(value) ? value : (value && Array.isArray(value.names) ? value.names : []);
+        const map = value && !Array.isArray(value) && value.map && typeof value.map === 'object' ? value.map : {};
 
-        panel.querySelectorAll('[name]').forEach(function (element) {
-            element.name = element.name.replaceAll('__GROUP_KEY__', fileKey);
+        // La chiave in ogni attributo, non solo nei `name`: la libreria
+        // tiene in `data-wi-media-files` il nome delle sue scelte.
+        panel.querySelectorAll('*').forEach(function (element) {
+            Array.from(element.attributes).forEach(function (attribute) {
+                if (attribute.name !== 'id' && attribute.name !== 'for' && attribute.value.includes('__GROUP_KEY__')) {
+                    element.setAttribute(attribute.name, attribute.value.replaceAll('__GROUP_KEY__', fileKey));
+                }
+            });
+        });
+        panel.querySelectorAll('input[type="hidden"][name$="__wi_media]"]').forEach(function (element) {
+            element.value = JSON.stringify(map);
         });
         panel.querySelectorAll('[id]').forEach(function (element) {
             element.id = element.id + '-' + fileKey;

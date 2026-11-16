@@ -139,12 +139,12 @@ check('un\'icona svg esce come immagine, senza misure', function () {
 
 // --- Ricerca del selettore ---------------------------------------------------
 
-check('la ricerca dà solo id, nome, slug, alt, tipo e anteprima del tipo chiesto', function () {
+check('la ricerca dà solo id, nome, slug, alt, tipo, file, indirizzi e anteprima del tipo chiesto', function () {
     $result = MediaLibrary::search('image');
     $ids = array_column($result['items'], 'id');
 
     return $ids === [16, 15, 10]
-        && array_keys($result['items'][0]) === ['id', 'name', 'slug', 'alt', 'type', 'thumbnail']
+        && array_keys($result['items'][0]) === ['id', 'name', 'slug', 'alt', 'type', 'file', 'url', 'thumbnail']
         && $result['total'] === 3 && $result['page'] === 1 && $result['pages'] === 1;
 });
 
@@ -191,7 +191,7 @@ check('il testo cercato è accorciato', function () {
         public function create(string $type, array $values, array $upload): array { return ['id' => 0, 'error' => '']; }
         public function replaceFile(int $id, array $upload): string { return ''; }
         public function setAlt(int $id, string $alt): void {}
-        public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array
+        public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array
         {
             $this->seen = $term;
 
@@ -221,6 +221,18 @@ check('la ricerca per sezione: caricati da lì o usati lì, e una sezione non va
     \Wonder\App\Media\MediaUsages::useStore(null);
 
     return $ids === [1, 3] && $all === 3 && $array === 3 && $bad === null;
+});
+
+check('la ricerca per estensione: solo quelle del tipo, le altre si ignorano', function () {
+    MediaLibrary::useStore(new MemoryMediaStore([
+        ['id' => 1, 'type' => 'image', 'slug' => 'a', 'name' => 'A', 'file' => 'a.png'],
+        ['id' => 2, 'type' => 'image', 'slug' => 'b', 'name' => 'B', 'file' => 'b.JPG'],
+    ]));
+
+    return array_column(MediaLibrary::search('image', '', 1, '', 'png')['items'], 'id') === [1]
+        && array_column(MediaLibrary::search('image', '', 1, '', 'jpg, png')['items'], 'id') === [2, 1]
+        && MediaLibrary::search('image', '', 1, '', 'exe')['total'] === 2
+        && MediaLibrary::search('image', '', 1, '', ['png'])['total'] === 2;
 });
 
 MediaLibrary::useStore(null);

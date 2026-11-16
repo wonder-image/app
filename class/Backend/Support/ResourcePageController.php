@@ -26,6 +26,8 @@ final class ResourcePageController
     private string $resourceClass;
     private ResourcePagePresenter $presenter;
     private ?MediaInputs $mediaInputs = null;
+    /** @var list<string> */
+    private array $mediaWarnings = [];
 
     private function __construct(string $resourceClass)
     {
@@ -108,13 +110,13 @@ final class ResourcePageController
 
         if (!empty($result->success)) {
             if ($targetId > 0) {
-                $this->resourceClass::syncRepeaterRelations(
+                $this->noteRepeaterMedia($this->resourceClass::syncRepeaterRelations(
                     $targetId,
                     $_POST,
                     $_FILES,
                     'update',
                     'backend'
-                );
+                ));
                 $this->mediaInputs()->sync($targetId, $values);
                 $this->resourceClass::afterUpdate($targetId, $result, $values);
             } else {
@@ -122,13 +124,13 @@ final class ResourcePageController
                 $recordId = $insertId;
 
                 if ($insertId > 0) {
-                    $this->resourceClass::syncRepeaterRelations(
+                    $this->noteRepeaterMedia($this->resourceClass::syncRepeaterRelations(
                         $insertId,
                         $_POST,
                         $_FILES,
                         'store',
                         'backend'
-                    );
+                    ));
                     $this->mediaInputs()->sync($insertId, $values);
                 }
 
@@ -210,13 +212,13 @@ final class ResourcePageController
         }
 
         if (!empty($result->success)) {
-            $this->resourceClass::syncRepeaterRelations(
+            $this->noteRepeaterMedia($this->resourceClass::syncRepeaterRelations(
                 $id,
                 $readonly ? ReadonlyFields::filter($_POST, $editable) : $_POST,
                 $readonly ? ReadonlyFields::filter($_FILES, $editable) : $_FILES,
                 'update',
                 'backend'
-            );
+            ));
             $this->mediaInputs()->sync($id, $values);
             $this->resourceClass::afterUpdate($id, $result, $values);
             $this->resourceClass::exportSyncData();
@@ -386,11 +388,24 @@ final class ResourcePageController
         }
     }
 
+    /** @param array<string, array<string, mixed>> $summary */
+    private function noteRepeaterMedia(array $summary): void
+    {
+        // Il record è salvato: un'immagine di riga non caricata diventa un avviso.
+        $this->mediaWarnings = $this->resourceClass::repeaterMediaErrors($summary);
+    }
+
     private function redirectToConfiguredPage(string $action, int|string|null $id = null): never
     {
         // Salvataggio o eliminazione andati a buon fine: il toast lo mostra
         // la pagina dove arriviamo dopo il redirect.
-        FlashAlert::code(650);
+        if ($action !== 'delete' && $this->mediaWarnings !== []) {
+            FlashAlert::savedWithWarning(
+                implode('<br>', array_map(static fn (string $message): string => htmlspecialchars($message, ENT_QUOTES), $this->mediaWarnings))
+            );
+        } else {
+            FlashAlert::code(650);
+        }
 
         header('Location: '.$this->presenter->redirectUrl($action, $id));
         exit();

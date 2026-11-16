@@ -68,7 +68,7 @@ final class MediaInputsUntouchable implements MediaStore, MediaUsageStore
     public function create(string $type, array $values, array $upload): array { throw new LogicException('scritto'); }
     public function replaceFile(int $id, array $upload): string { throw new LogicException('scritto'); }
     public function setAlt(int $id, string $alt): void { throw new LogicException('scritto'); }
-    public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array { throw new LogicException('letto'); }
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array { throw new LogicException('letto'); }
     public function replace(string $table, string $rowId, string $column, array $mediaIds): void { throw new LogicException('scritto'); }
     public function forget(string $table, string $rowId): void { throw new LogicException('scritto'); }
     public function used(int $mediaId): bool { throw new LogicException('letto'); }
@@ -123,7 +123,7 @@ check('un tipo sconosciuto non si dichiara', function () {
 
 check('i modelli di slug e testo alternativo arrivano alla configurazione', function () {
     return FormField::key('image_id')->mediaImage()->mediaSlug(' {slug} ')->mediaAlt('{name}')->mediaConfig()
-        === ['type' => 'image', 'slug' => '{slug}', 'alt' => '{name}', 'scope' => '', 'scope_label' => ''];
+        === ['input' => 'picker', 'type' => 'image', 'types' => ['image'], 'multiple' => false, 'slug' => '{slug}', 'alt' => '{name}', 'scope' => '', 'scope_label' => ''];
 });
 
 check('una Resource senza campi media non legge e non scrive niente', function () {

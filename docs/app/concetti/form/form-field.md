@@ -267,6 +267,12 @@ dal primo dell'elenco; anche nelle colonne di un repeater.
 
 ### Media dalla libreria
 
+`fileDragDrop($accept)->mediaLibrary()` è il drag & drop che salva media
+della libreria: la colonna tiene l'id (o la lista JSON degli id con
+`maxFile()` > 1), ogni file caricato diventa un media al salvataggio e il
+pulsante "Scegli dalla libreria" apre la ricerca. `mediaTypes(...)` sceglie i
+tipi ammessi. Dettagli in [libreria Media](../media.md#il-drag--drop-collegato-alla-libreria).
+
 `mediaImage()`, `mediaIcon()`, `mediaDocument()`, `mediaVideo()` (tutti
 `media($tipo)` con un tipo di `MediaTypes`): la colonna tiene l'**id** di un
 media della [libreria Media](../media.md#il-campo-media-nei-form). Dal form si

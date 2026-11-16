@@ -43,7 +43,7 @@ final class ImageResource extends MediaResource
             'name' => 'Nome',
             'alt' => 'Testo alternativo',
             'slug' => 'Slug',
-            'usage_tables' => 'In uso in',
+            'usage_tables' => 'Dove si usa',
             'actions' => 'Azioni',
         ];
     }
@@ -65,5 +65,11 @@ final class ImageResource extends MediaResource
     protected static function hasAlt(): bool
     {
         return true;
+    }
+
+    /** All'apertura: solo le immagini caricate da qui e non ancora usate. */
+    protected static function defaultUsageFilter(): string
+    {
+        return 'library';
     }
 }

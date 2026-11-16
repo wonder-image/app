@@ -101,7 +101,7 @@ final class MemoryMediaStore implements MediaStore
         $this->rows[$id]['alt'] = $alt;
     }
 
-    public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array
     {
         $found = [];
 
@@ -112,6 +112,10 @@ final class MemoryMediaStore implements MediaStore
 
             if ($scope !== '' && ($row['source'] ?? '') !== $scope
                 && !in_array($scope, array_column(MediaUsages::owners($row['id']), 'table'), true)) {
+                continue;
+            }
+
+            if ($extensions !== [] && !in_array(strtolower(pathinfo((string) ($row['file'] ?? ''), PATHINFO_EXTENSION)), $extensions, true)) {
                 continue;
             }
 

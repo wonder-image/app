@@ -60,6 +60,17 @@ Route::area('backend')
                 Route::post('/upload-massive/', $ROOT_APP.'/http/backend/media/upload-massive.php')
                     ->permit(['admin']);
 
+                // L'originale di un media: voce «Scarica originale» della lista.
+                Route::get('/{id}/original/', $ROOT_APP.'/http/backend/media/original.php')
+                    ->name('original')
+                    ->permit(['admin'])
+                    ->where('id', '[0-9]+');
+
+                // Zip dell'originale e delle misure di un media: card «File generati».
+                Route::get('/{id}/zip/', $ROOT_APP.'/http/backend/media/zip.php')
+                    ->name('zip')
+                    ->permit(['admin']);
+
             });
 
         Route::name('config.')

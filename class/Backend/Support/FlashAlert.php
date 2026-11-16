@@ -56,6 +56,12 @@ final class FlashAlert
         self::custom(self::title('650', 'Modificato'), $text);
     }
 
+    /** Salvato, ma con qualcosa da guardare (es. un'immagine non caricata). */
+    public static function savedWithWarning(string $text): void
+    {
+        self::custom(self::title('650', 'Modificato'), $text, 'warning');
+    }
+
     /** Legge e svuota la coda. @return array<string, string> */
     public static function pull(): array
     {

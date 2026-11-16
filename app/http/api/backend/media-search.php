@@ -18,7 +18,8 @@ try {
         ApiRequest::input('type'),
         ApiRequest::input('term', ''),
         ApiRequest::input('page', 1),
-        ApiRequest::input('scope', '')
+        ApiRequest::input('scope', ''),
+        ApiRequest::input('extensions', '')
     );
 } catch (Throwable $exception) {
     __log($exception, 'media', 'search');

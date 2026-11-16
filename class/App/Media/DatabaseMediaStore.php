@@ -115,7 +115,7 @@ final class DatabaseMediaStore implements MediaStore
             : $text;
     }
 
-    public function search(string $type, string $term, int $limit, int $offset, string $scope = ''): array
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array
     {
         $where = "`deleted` = 'false' AND `type` = ?";
         $parameters = [$type];
@@ -131,6 +131,15 @@ final class DatabaseMediaStore implements MediaStore
             } else {
                 $where .= ' AND '.$used;
                 $parameters[] = $scope;
+            }
+        }
+
+        if ($extensions !== []) {
+            // `file` è salvato come JSON (`["logo.png"]`) o, nelle righe vecchie, come testo.
+            $where .= ' AND ('.implode(' OR ', array_fill(0, count($extensions) * 2, 'LOWER(`file`) LIKE ?')).')';
+
+            foreach ($extensions as $extension) {
+                array_push($parameters, '%.'.$extension, '%.'.$extension.'"%');
             }
         }
 
