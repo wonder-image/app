@@ -53,10 +53,10 @@ Nessun componente di terzi (package-lock.json contiene solo un pacchetto dello s
 Componenti inclusi nel repository
 class/Password.php                        phpass (Openwall)  licenza da verificare
 docs/class/css/normalize.css              v3.0.2             MIT (intestazione del file)
-resources/assets/font/AmericanTypewriter  -                  licenza da verificare
-resources/assets/font/EBGaramond          -                  licenza da verificare
-resources/assets/font/Montserrat          -                  licenza da verificare
-resources/assets/font/NunitoSans          -                  licenza da verificare
+resources/assets/font/AmericanTypewriter  -                  licenza da verificare (nel file: Digitized data (c) Copyright 1997 E+F Designstudios; ITC American Typewriter, marchio di International Typeface Corporation)
+resources/assets/font/EBGaramond          -                  OFL-1.1 (SIL Open Font License 1.1) - Copyright 2017 The EB Garamond Project Authors (https://github.com/octaviopardo/EBGaramond12)
+resources/assets/font/Montserrat          -                  OFL-1.1 (SIL Open Font License 1.1) - Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)
+resources/assets/font/NunitoSans          -                  OFL-1.1 (SIL Open Font License 1.1) - Copyright 2016 The Nunito Sans Project Authors (https://github.com/Fonthausen/NunitoSans)
 resources/assets/font/web/DMSans          Fontsource 5.3.0   OFL-1.1 (SIL Open Font License 1.1, file LICENSE nella cartella)
 resources/assets/font/web/Inter           Fontsource 5.3.0   OFL-1.1 (SIL Open Font License 1.1, file LICENSE nella cartella)
 resources/assets/font/web/Lato            Fontsource 5.3.0   OFL-1.1 (SIL Open Font License 1.1, file LICENSE nella cartella)
@@ -66,7 +66,7 @@ resources/assets/font/web/OpenSans        Fontsource 5.3.0   OFL-1.1 (SIL Open F
 resources/assets/font/web/Poppins         Fontsource 5.3.0   OFL-1.1 (SIL Open Font License 1.1, file LICENSE nella cartella)
 resources/assets/font/web/Roboto          Fontsource 5.3.0   OFL-1.1 (SIL Open Font License 1.1, file LICENSE nella cartella)
 resources/assets/font/web/WorkSans        Fontsource 5.3.0   OFL-1.1 (SIL Open Font License 1.1, file LICENSE nella cartella)
-vendor-static/xml-sitemaps                v8.2               licenza commerciale del produttore, acquistata dal Titolare; vedi license.html nella cartella
+vendor-static/xml-sitemaps                v8.2               Standalone XML Sitemap Generator - Copyright XML Sitemaps. Software proprietario del produttore, licenza singola acquistata dal Titolare. Non è concesso alcun diritto a terzi: la licenza del produttore ne vieta copia, distribuzione, sublicenza e modifica e ne limita l'uso ai siti del licenziatario. Condizioni complete: license.html nella cartella
 
 Solo sviluppo, non distribuiti
 Nessuno.
