@@ -9,9 +9,12 @@
      * 
      * Utilizza la libreria {@link http://www.fpdf.org/ FPDF}
      * 
+     * Copyright (c) 2023-2027 Andrea Marinoni. Tutti i diritti riservati.
+     * Software proprietario: uso consentito solo con contratto scritto con il titolare.
+     * Vedi il file LICENSE.
+     * SPDX-License-Identifier: LicenseRef-Proprietary
+     * 
      * @author andreamarinoni <marinoni@wonderimage.it>
-     * @copyright 2024 andreamarinoni
-     * @license MIT
      * 
      */
 

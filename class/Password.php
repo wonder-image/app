@@ -9,7 +9,6 @@
      * 
      * @author andreamarinoni <marinoni@wonderimage.it>
      * @copyright 2024 andreamarinoni
-     * @license MIT
      * 
      */
 

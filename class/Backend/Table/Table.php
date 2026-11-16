@@ -24,9 +24,12 @@
      * 
      * La classe Table viene utilizzata per la creazione di tabelle dinamiche. Utilizza la libreria {@link https://datatables.net/ DataTables}.
      * 
+     * Copyright (c) 2023-2027 Andrea Marinoni. Tutti i diritti riservati.
+     * Software proprietario: uso consentito solo con contratto scritto con il titolare.
+     * Vedi il file LICENSE.
+     * SPDX-License-Identifier: LicenseRef-Proprietary
+     * 
      * @author andreamarinoni <marinoni@wonderimage.it>
-     * @copyright 2024 andreamarinoni
-     * @license MIT
      * 
      */
 
