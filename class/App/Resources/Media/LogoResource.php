@@ -2,6 +2,7 @@
 
 namespace Wonder\App\Resources\Media;
 
+use Wonder\App\Models\Media\Logo;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormField;
 use Wonder\App\ResourceSchema\NavigationSchema;
@@ -11,7 +12,7 @@ use Wonder\Elements\Form\Form;
 
 final class LogoResource extends SingletonResource
 {
-    public static string $model = \Wonder\App\Models\Media\Logo::class;
+    public static string $model = Logo::class;
 
     public static function legacyFolder(): string
     {
@@ -35,13 +36,12 @@ final class LogoResource extends SingletonResource
     public static function labelSchema(): array
     {
         return [
-            'main' => 'Logo',
-            'black' => 'Logo nero',
-            'white' => 'Logo bianco',
-            'icon' => 'Icona',
-            'icon_black' => 'Icona nera',
-            'icon_white' => 'Icona bianca',
-            'favicon' => 'Favicon',
+            'main_id' => 'Logo',
+            'black_id' => 'Logo nero',
+            'white_id' => 'Logo bianco',
+            'icon_id' => 'Icona',
+            'icon_black_id' => 'Icona nera',
+            'icon_white_id' => 'Icona bianca',
             'app_icon' => 'Icona app',
         ];
     }
@@ -49,14 +49,16 @@ final class LogoResource extends SingletonResource
     public static function formSchema(): array
     {
         return [
-            FormField::key('main')->fileDragDrop('png'),
-            FormField::key('black')->fileDragDrop('png'),
-            FormField::key('white')->fileDragDrop('png'),
-            FormField::key('icon')->fileDragDrop('png'),
-            FormField::key('icon_black')->fileDragDrop('png'),
-            FormField::key('icon_white')->fileDragDrop('png'),
+            // Loghi e icone: media della libreria, caricati o scelti. Solo png:
+            // le email usano il logo e Gmail/Outlook non mostrano gli svg.
+            Logo::mediaInput('main')->extensions('png'),
+            Logo::mediaInput('black')->extensions('png'),
+            Logo::mediaInput('white')->extensions('png'),
+            Logo::mediaInput('icon')->extensions('png'),
+            Logo::mediaInput('icon_black')->extensions('png'),
+            Logo::mediaInput('icon_white')->extensions('png'),
+            // L'icona app resta un file: si converte in png e ha misure fisse.
             FormField::key('app_icon')->fileDragDrop('image'),
-            FormField::key('favicon')->fileDragDrop('ico'),
         ];
     }
 
@@ -64,16 +66,15 @@ final class LogoResource extends SingletonResource
     {
         return (new Form)->components([
             (new Card)->components([
-                static::getInput('main')->columnSpan(4),
-                static::getInput('black')->columnSpan(4),
-                static::getInput('white')->columnSpan(4),
-                static::getInput('icon')->columnSpan(4),
-                static::getInput('icon_black')->columnSpan(4),
-                static::getInput('icon_white')->columnSpan(4),
+                static::getInput('main_id')->columnSpan(4),
+                static::getInput('black_id')->columnSpan(4),
+                static::getInput('white_id')->columnSpan(4),
+                static::getInput('icon_id')->columnSpan(4),
+                static::getInput('icon_black_id')->columnSpan(4),
+                static::getInput('icon_white_id')->columnSpan(4),
             ])->columns(12)->columnSpan(8),
             (new Card)->components([
                 static::getInput('app_icon'),
-                static::getInput('favicon'),
             ])->columns(1)->columnSpan(4),
         ])->columns(12);
     }
@@ -82,8 +83,8 @@ final class LogoResource extends SingletonResource
     {
         return ApiSchema::for(static::class)
             ->only(['show', 'update'])
-            ->fields('show', ['id', 'main', 'black', 'white', 'icon', 'icon_black', 'icon_white', 'favicon', 'app_icon'])
-            ->fields('update', ['main', 'black', 'white', 'icon', 'icon_black', 'icon_white', 'favicon', 'app_icon']);
+            ->fields('show', ['id', 'main_id', 'black_id', 'white_id', 'icon_id', 'icon_black_id', 'icon_white_id', 'app_icon'])
+            ->fields('update', ['main_id', 'black_id', 'white_id', 'icon_id', 'icon_black_id', 'icon_white_id', 'app_icon']);
     }
 
     public static function navigationSchema(): NavigationSchema

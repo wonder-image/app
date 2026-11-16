@@ -7,6 +7,7 @@ use RuntimeException;
 use Throwable;
 use Wonder\App\ResourceSchema\ApiSchema as ResourceApiSchema;
 use Wonder\App\ResourceSchema\Inputs\InputFile;
+use Wonder\App\ResourceSchema\Inputs\InputFileDragDrop;
 use Wonder\App\ResourceSchema\Inputs\InputReCaptcha;
 use Wonder\App\ResourceSchema\Inputs\InputRepeater;
 use Wonder\App\ResourceSchema\NavigationSchema as ResourceNavigationSchema;
@@ -210,6 +211,10 @@ abstract class Resource
                 static::prepareFormatFromInput($inputs[$key] ?? null)
             );
             $format = static::withTypeExtensions($format, $inputs[$key] ?? null);
+
+            if (($inputs[$key] ?? null) instanceof InputFileDragDrop && $inputs[$key]->isMedia()) {
+                $format = static::mediaFormat((string) $key, $format, $fields[$key] ?? null);
+            }
 
             if ($format !== []) {
                 $entry['input']['format'] = $format;
@@ -463,22 +468,109 @@ abstract class Resource
                 $context
             );
 
+            // Le colonne media passano dalla libreria riga per riga; gli
+            // utilizzi si registrano sul padre (`<repeater>.<colonna>`).
+            $mediaColumns = static::repeaterMediaColumns($entry['field']);
+            $media = $mediaColumns === [] ? null : new Media\MediaInputs($relation->table, $mediaColumns);
+            $mediaIds = array_fill_keys(array_keys($mediaColumns), []);
+            $mediaErrors = [];
+
             $summary[$inputName] = Repeater::syncRelatedRows(
                 $relation,
                 $parentId,
                 $rows,
-                fn (array $payload, array $row, ?array $existingRow): array => static::prepareRepeaterRelationRow(
-                    $inputName,
-                    $payload,
-                    $row,
-                    $existingRow,
-                    $action,
-                    $context
-                )
+                function (array $payload, array $row, ?array $existingRow) use ($inputName, $action, $context, $media, $mediaColumns, &$mediaIds, &$mediaErrors): array {
+                    if ($media !== null) {
+                        $payload = $media->resolve($payload, $existingRow);
+                        $media->commitAlts();
+
+                        foreach ($media->errors() as $message) {
+                            $mediaErrors[] = $message;
+                        }
+
+                        foreach (array_keys($mediaColumns) as $column) {
+                            $value = array_key_exists($column, $payload) ? $payload[$column] : ($existingRow[$column] ?? null);
+                            array_push($mediaIds[$column], ...InputFileDragDrop::mediaIds($value));
+                        }
+                    }
+
+                    return static::prepareRepeaterRelationRow($inputName, $payload, $row, $existingRow, $action, $context);
+                }
             );
+
+            foreach ($mediaIds as $column => $ids) {
+                try {
+                    Media\MediaUsages::sync(static::modelTable(), $parentId, $inputName.'.'.$column, array_values(array_unique($ids)));
+                } catch (Throwable) {
+                    // Le righe sono già salvate: un registro che non risponde non le annulla.
+                }
+            }
+
+            $summary[$inputName]['media_errors'] = array_values(array_unique($mediaErrors));
         }
 
         return $summary;
+    }
+
+    /**
+     * Le colonne media (drag & drop della libreria) delle righe di un
+     * repeater: colonna => configurazione di {@see Media\MediaInputs}.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function repeaterMediaColumns(object $field): array
+    {
+        if (!method_exists($field, 'get')) {
+            return [];
+        }
+
+        $columns = [];
+
+        foreach ((array) (((array) ($field->get('context') ?? []))['columns'] ?? []) as $column) {
+            if ($column instanceof \Wonder\App\ResourceSchema\Inputs\InputMedia || ($column instanceof InputFileDragDrop && $column->isMedia())) {
+                $columns[(string) $column->name] = $column->mediaConfig();
+            }
+        }
+
+        return $columns;
+    }
+
+    /** Il padre ha immagini nelle righe dei suoi repeater. */
+    public static function hasRepeaterMedia(): bool
+    {
+        foreach (static::repeaterRelations() as $entry) {
+            if (static::repeaterMediaColumns($entry['field']) !== []) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Gli errori dei media dei repeater raccolti da
+     * {@see syncRepeaterRelations()}, come «Etichetta: messaggio».
+     *
+     * @param array<string, array<string, mixed>> $summary
+     * @return list<string>
+     */
+    public static function repeaterMediaErrors(array $summary): array
+    {
+        $messages = [];
+
+        $fields = static::safeFormFieldsByKey();
+
+        foreach ($summary as $inputName => $result) {
+            $field = $fields[$inputName] ?? null;
+            $label = (string) static::getLabel((string) $inputName)
+                ?: (is_object($field) && method_exists($field, 'get') ? trim((string) ($field->get('label') ?? '')) : (string) $inputName);
+
+            foreach ((array) ($result['media_errors'] ?? []) as $message) {
+                $messages[] = $label.': '.$message;
+            }
+        }
+
+        return $messages;
     }
 
     public static function appendRepeaterRelationsToItem(array $item): array
@@ -908,6 +1000,7 @@ abstract class Resource
         }
 
         static::inheritModelUploadDirectory($clone, $name);
+        static::inheritMediaScope($clone);
 
         $label = method_exists($clone, 'get') ? (string) ($clone->get('label') ?? '') : '';
         // `->label('')` è una scelta, non un campo lasciato in bianco: vuol dire
@@ -930,6 +1023,26 @@ abstract class Resource
         }
 
         return $clone;
+    }
+
+    /**
+     * Un campo media sa da quale sezione viene: il selettore della libreria
+     * parte dai media caricati o usati qui. Una sezione scelta a mano resta.
+     */
+    private static function inheritMediaScope(object $field): void
+    {
+        $media = $field instanceof \Wonder\App\ResourceSchema\Inputs\InputMedia
+            || ($field instanceof InputFileDragDrop && $field->isMedia());
+
+        if (!$media || $field->hasMediaScope()) {
+            return;
+        }
+
+        try {
+            $field->mediaScope((string) static::modelTable(), trim((string) static::titlePluralLabel()));
+        } catch (\Throwable) {
+            // Resource senza Model: il selettore mostra tutta la libreria.
+        }
     }
 
     /**
@@ -992,6 +1105,26 @@ abstract class Resource
         }
 
         return $prepare;
+    }
+
+    /**
+     * Un campo drag & drop media salva id: i file li scrive la libreria
+     * (`MediaInputs`), la colonna non passa da `uploadFiles()`.
+     */
+    private static function mediaFormat(string $key, array $format, mixed $field): array
+    {
+        if (!empty(static::modelClass()::prepareFormatFromField($field)['file'])) {
+            throw new \LogicException(static::class.": la colonna `{$key}` è un campo file del Model ma il campo è `mediaLibrary()`: deve tenere id di media, non file.");
+        }
+
+        foreach (['file', 'reset', 'max_size', 'max_file', 'extensions', 'dir', 'resize', 'webp'] as $option) {
+            unset($format[$option]);
+        }
+
+        // La lista JSON degli id non va toccata.
+        $format['sanitize'] = false;
+
+        return $format;
     }
 
     /** Whitelist del tipo di input solo se né modello né input dichiarano `extensions`. */

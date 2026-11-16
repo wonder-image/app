@@ -28,7 +28,8 @@ interface MediaStore
      * della sua sezione in libreria (controlli, nome del file, svg
      * ripulito, misure in coda).
      *
-     * @param array{name: string, slug: string, alt: string} $values
+     * @param array{name: string, slug: string, alt: string, source?: string} $values
+     *        `source`: la tabella della sezione da cui arriva il file
      * @param array<string, mixed> $upload una voce di `$_FILES` con un file
      * @return array{id: int, error: string} `id` 0 e il motivo se non riesce
      */
@@ -47,9 +48,10 @@ interface MediaStore
 
     /**
      * I media di `$type` che contengono `$term` in nome, slug o testo
-     * alternativo, dal più recente.
+     * alternativo, dal più recente. Con `$scope` (una tabella) solo quelli
+     * caricati da quella sezione o usati lì.
      *
      * @return array{rows: list<array{id: int, type: string, slug: string, name: string, alt: string, file: string}>, total: int}
      */
-    public function search(string $type, string $term, int $limit, int $offset): array;
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array;
 }

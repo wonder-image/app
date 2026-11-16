@@ -490,6 +490,12 @@ FormField::key('products')
   restituisce, per chiave, `['manifest' => [...], 'files' => busta|null]`, con
   il manifesto già decodificato. Un gruppo senza manifesto non compare: il suo
   campo non era in pagina, e trattarlo come svuotato cancellerebbe i suoi file.
+- **Con un campo della libreria** (`mediaLibrary()`) il valore è
+  `chiave → id dei media`: la testata stampa nomi e mappa nome → id
+  (`InputFileDragDrop::mediaValue()`) e posta anche
+  `group_images[12__wi_picks]` e `group_images[12__wi_media]`.
+  `groupFilesFromRequest()` li restituisce come `picks` e `map` (stringhe JSON,
+  `null` se mancano), da passare a `MediaInputs` con il manifesto e la busta.
 - **Solo con `repeaterGroupFixed()`**: con una colonna scelta da chi guarda, un
   gruppo potrebbe mescolare righe di chiavi diverse.
 

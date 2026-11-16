@@ -5,6 +5,8 @@ namespace Wonder\App\Resources\Media;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
+use Wonder\App\Media\MediaDownloads;
+use Wonder\App\Media\MediaFile;
 use Wonder\App\Media\MediaTypes;
 use Wonder\App\Media\MediaUsages;
 use Wonder\App\Media\ResizeQueue;
@@ -12,14 +14,20 @@ use Wonder\App\Models\Media\Media;
 use Wonder\App\Resource;
 use Wonder\App\ResourceSchema\ApiSchema;
 use Wonder\App\ResourceSchema\FormField;
+use Wonder\App\ResourceSchema\FromValues;
 use Wonder\App\ResourceSchema\PageSchema;
 use Wonder\App\ResourceSchema\PermissionSchema;
 use Wonder\App\ResourceSchema\TableColumn;
 use Wonder\App\ResourceSchema\TableLayoutSchema;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\Data\Formatters\String\SlugFormatter;
+use Wonder\Elements\Components\Badge;
+use Wonder\Elements\Components\Button;
 use Wonder\Elements\Components\Card;
 use Wonder\Elements\Components\Container;
+use Wonder\Elements\Components\Dropdown;
+use Wonder\Elements\Components\RichText;
+use Wonder\Elements\Components\SectionTitle;
 use Wonder\Elements\Form\Form;
 
 /**
@@ -111,7 +119,106 @@ abstract class MediaResource extends Resource
                     static::getInput('slug'),
                 ])))->columns(1)->columnSpan(8),
             ])->columns(12)->columnSpan(9),
+            FromValues::make(static fn (array $values, string $mode): ?Card => static::generatedFilesCard($values, $mode)),
         ])->columns(12);
+    }
+
+    /**
+     * La card «File generati» della scheda: l'originale e le misure che il
+     * ridimensionatore ha creato, ognuno da scaricare, più lo zip di tutti.
+     */
+    public static function generatedFilesCard(array $values, string $mode, ?string $root = null): ?Card
+    {
+        $file = MediaFileManager::decodeStoredFiles($values['file'] ?? null)[0] ?? '';
+
+        if ($mode !== 'edit' || $file === '' || (int) ($values['id'] ?? 0) <= 0) {
+            return null;
+        }
+
+        $media = new MediaFile(
+            (int) $values['id'],
+            static::mediaType(),
+            (string) ($values['slug'] ?? ''),
+            (string) ($values['name'] ?? ''),
+            (string) ($values['alt'] ?? ''),
+            $file,
+        );
+        $downloads = MediaDownloads::of($media, $root);
+
+        if ($downloads['groups'] === []) {
+            return null;
+        }
+
+        $components = [SectionTitle::make('File generati')->level(5)];
+
+        if ($downloads['pending']) {
+            $components[] = RichText::make('<p class="small text-body-secondary mb-0"><i class="bi bi-hourglass-split me-1"></i>In preparazione: le misure arrivano entro un minuto.</p>');
+        } elseif ($downloads['error'] !== null) {
+            $components[] = RichText::make('<p class="small text-warning-emphasis mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Le misure non si sono generate: carica di nuovo il file per riprovare.</p>');
+        }
+
+        $rows = '';
+
+        foreach ($downloads['groups'] as $group) {
+            $rows .= static::downloadRow($group);
+        }
+
+        $components[] = RichText::make('<ul class="list-group list-group-flush">'.$rows.'</ul>')->tag('div');
+        $files = MediaDownloads::files($downloads);
+
+        if (count($files) > 1 && class_exists('ZipArchive') && function_exists('__r')) {
+            $components[] = Button::make('Scarica tutto (.zip)', __r('backend.media.zip', ['id' => $media->id]))
+                ->icon('bi bi-file-earmark-zip', 'start')
+                ->outline()
+                ->size('sm')
+                ->block();
+        }
+
+        return (new Card)->components($components)->columns(1)->columnSpan(3);
+    }
+
+    /** Una riga della card: misura, formati e peso, e il bottone per scaricarla. */
+    private static function downloadRow(array $group): string
+    {
+        $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        $first = $group['files'][0];
+        $size = $first['width'] !== null && $first['height'] !== null
+            ? $first['width'].' × '.$first['height'].' px'
+            : null;
+        $meta = implode(' · ', array_filter([
+            implode(', ', array_map(static fn (array $file): string => $file['format'], $group['files'])),
+            $size,
+        ]));
+
+        if (count($group['files']) === 1) {
+            $action = Button::make('', $first['url'])
+                ->icon('bi bi-download', 'start')
+                ->title('Scarica '.$first['name'].' ('.MediaDownloads::size($first['bytes']).')')
+                ->attr('aria-label', 'Scarica '.$first['name'])
+                ->download($first['name'])
+                ->outline()
+                ->size('sm')
+                ->schema('inline', true)
+                ->render('bootstrap');
+            $meta .= ' · '.MediaDownloads::size($first['bytes']);
+        } else {
+            $dropdown = Dropdown::make('Scarica')->outline()->size('sm')->align('end');
+
+            foreach ($group['files'] as $file) {
+                $dropdown->item($file['format'].' · '.MediaDownloads::size($file['bytes']), $file['url'], [
+                    'icon' => 'bi bi-download',
+                    'attributes' => ['download' => $file['name'], 'title' => $file['name']],
+                ]);
+            }
+
+            $action = $dropdown->render('bootstrap');
+        }
+
+        return '<li class="list-group-item d-flex align-items-center justify-content-between gap-2 px-0">'
+            .'<div class="min-w-0"><div class="fw-semibold">'.$escape($group['label']).'</div>'
+            .'<div class="small text-body-secondary text-truncate">'.$escape($meta).'</div></div>'
+            .'<div class="flex-shrink-0">'.$action.'</div>'
+            .'</li>';
     }
 
     public static function tableSchema(): array
@@ -120,30 +227,102 @@ abstract class MediaResource extends Resource
             static::hasPreview() ? TableColumn::key('file')->image()->link('edit')->size('little') : null,
             TableColumn::key('name')->text()->link('edit'),
             TableColumn::key('slug')->text(),
-            TableColumn::key('actions')->button()->actions(['edit', 'delete']),
+            // Calcolata da `tableLayoutSchema()->select()`: le sezioni che usano il media.
+            TableColumn::key('usage_tables')->text()->formatter(static fn (array $row): string => static::usageBadges($row['usage_tables'] ?? null)),
+            TableColumn::key('actions')->button()->actions([
+                'edit',
+                'original' => ['label' => 'Scarica originale', 'href' => static::originalUrl()],
+                'delete',
+            ]),
         ]));
+    }
+
+    /** L'indirizzo per scaricare l'originale, con `{id}` che la tabella riempie riga per riga. */
+    protected static function originalUrl(): string
+    {
+        $url = __r('backend.media.original', ['id' => '0']);
+
+        return $url === '' ? '' : (string) preg_replace('#/0/original/#', '/{id}/original/', $url, 1);
+    }
+
+    /**
+     * Il valore del filtro "Utilizzo" all'apertura della lista: vuoto per
+     * tutti, `library` per i soli caricati qui e non usati. Le Resource dei
+     * tipi lo cambiano.
+     */
+    protected static function defaultUsageFilter(): string
+    {
+        return '';
     }
 
     public static function tableLayoutSchema(): TableLayoutSchema
     {
         $table = static::modelTable();
 
-        return TableLayoutSchema::for(static::class)
+        $layout = TableLayoutSchema::for(static::class)
             ->title('Lista '.static::pluralLabel())
             ->results()
             ->buttonAdd('Aggiungi '.static::label())
             ->filters()
+            ->select(MediaUsages::tablesSelect('usage_tables', $table))
             ->filterQuery(
                 'Utilizzo',
                 'usage',
                 [
                     '' => ucfirst((string) static::getText('all')),
+                    'library' => 'Solo libreria, non in uso',
                     'used' => ucfirst((string) static::getText('full')),
                     'unused' => ucfirst((string) static::getText('empty')),
                 ],
                 static fn (array $values): string => MediaUsages::filterCondition($values, $table),
-                'radio'
+                'radio',
+                false,
+                static::defaultUsageFilter()
             );
+
+        // Una opzione per ogni sezione che usa media di questo tipo.
+        $sections = MediaUsages::sections(static::mediaType());
+
+        if ($sections !== []) {
+            $allowed = array_keys($sections);
+            $layout->filterQuery(
+                'Sezione',
+                'usage_section',
+                $sections,
+                static fn (array $values): string => MediaUsages::sectionCondition($values, $allowed, $table),
+                'checkbox'
+            );
+        }
+
+        return $layout;
+    }
+
+    /**
+     * Un badge per ogni sezione che usa il media; cella vuota se nessuna.
+     * `$tables` sono le tabelle separate da virgola della colonna calcolata.
+     */
+    public static function usageBadges(mixed $tables): string
+    {
+        if (!is_string($tables) || trim($tables) === '') {
+            return '';
+        }
+
+        $labels = [];
+
+        foreach (explode(',', $tables) as $table) {
+            $table = trim($table);
+
+            if ($table !== '') {
+                $labels[MediaUsages::sectionLabel($table)] = true;
+            }
+        }
+
+        $badges = array_map(
+            static fn (string $label): string => Badge::make($label)->variant('secondary')->inline()->render('bootstrap'),
+            array_keys($labels)
+        );
+
+        return '<div class="d-flex flex-wrap gap-1">'.implode('', $badges).'</div>';
     }
 
     public static function pageSchema(): PageSchema
@@ -228,6 +407,8 @@ abstract class MediaResource extends Resource
         }
 
         $values['type'] = static::mediaType();
+        // L'origine la scrive solo chi crea il media da un campo (`DatabaseMediaStore`).
+        unset($values['source']);
 
         return $values;
     }

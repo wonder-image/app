@@ -148,27 +148,23 @@
         $RETURN->google = $LOCATION->google ?? null;
         $RETURN->reviews = (array) ($LOCATION->reviews ?? []);
 
-        $LOGOS = sqlSelect('logos', [ 'id' => '1'], 1)->row;
+        $LOGOS = (array) sqlSelect('logos', [ 'id' => '1'], 1)->row;
 
-        $LOGO = [];
+        // Loghi e icone: media della libreria, o il file di prima se non migrato.
+        $LOGO = \Wonder\App\Models\Media\Logo::urls($LOGOS);
 
-        foreach ((array) $LOGOS as $key => $value) {
-            if (!empty($value) && !empty(json_decode($value)) && is_array(json_decode($value))) {
-                $logo = json_decode($value)[0];
-                $LOGO[$key] = $logo;
-            }
-        }
+        $RETURN->logo = $LOGO['main'];
+        $RETURN->logoBlack = $LOGO['black'];
+        $RETURN->logoWhite = $LOGO['white'];
 
-        $RETURN->logo = isset($LOGO['main']) ? $PATH->upload.'/logos/'.$LOGO['main'] : "";
-        $RETURN->logoBlack = isset($LOGO['black']) ? $PATH->upload.'/logos/'.$LOGO['black'] : "";
-        $RETURN->logoWhite = isset($LOGO['white']) ? $PATH->upload.'/logos/'.$LOGO['white'] : "";
-        
-        $RETURN->icon = isset($LOGO['icon']) ? $PATH->upload.'/logos/'.$LOGO['icon'] : "";
-        $RETURN->iconBlack = isset($LOGO['icon_black']) ? $PATH->upload.'/logos/'.$LOGO['icon_black'] : "";
-        $RETURN->iconWhite = isset($LOGO['icon_white']) ? $PATH->upload.'/logos/'.$LOGO['icon_white'] : "";
+        $RETURN->icon = $LOGO['icon'];
+        $RETURN->iconBlack = $LOGO['icon_black'];
+        $RETURN->iconWhite = $LOGO['icon_white'];
 
-        $RETURN->favicon = isset($LOGO['favicon']) ? $PATH->site.'/'.$LOGO['favicon'] : "";
-        $RETURN->appIcon = isset($LOGO['app_icon']) ? $PATH->upload.'/logos/'.$LOGO['app_icon'] : "";
+        $appIcon = json_decode((string) ($LOGOS['app_icon'] ?? ''), true);
+        $RETURN->appIcon = is_array($appIcon) && !empty($appIcon[0]) ? $PATH->upload.'/logos/'.$appIcon[0] : "";
+        // Deprecato: il favicon .ico non si usa più, resta vuoto per i template vecchi.
+        $RETURN->favicon = '';
 
         return $RETURN;
 

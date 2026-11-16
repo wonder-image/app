@@ -2,13 +2,21 @@
 
 namespace Wonder\App\Models\Communications;
 
+use Wonder\App\Media\HasMedia;
 use Wonder\App\Model;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\Query;
 use Wonder\Sql\TableSchema as Column;
 
+/**
+ * L'immagine del popup sta nella libreria Media: la riga ne tiene l'id
+ * (`image_id`, {@see HasMedia}). La colonna `images` di prima resta,
+ * deprecata: la migrazione la svuota e si legge solo come ripiego.
+ */
 final class Popup extends Model
 {
+    use HasMedia;
+
     public const ALL_PAGES_KEY = '__all__';
 
     public static string $table = 'popup';
@@ -32,7 +40,9 @@ final class Popup extends Model
                 'visible',
             ]),
             Column::key('pages')->json(),
+            // Deprecata: il file di prima della libreria Media.
             Column::key('images')->json(),
+            ...static::mediaTableColumns(),
         ];
     }
 
@@ -50,15 +60,34 @@ final class Popup extends Model
             Field::key('view')->text(),
             Field::key('visible')->text(),
             Field::key('pages')->json(),
-            Field::key('images')
-                ->image()
-                ->extensions(['png', 'jpg', 'jpeg'])
-                ->maxSize(2)
-                ->maxFile(1)
-                ->dir('/images/')
-                ->name('{slug}')
-                ->responsive(),
+            ...static::mediaDataFields(),
         ];
+    }
+
+    public static function mediaFields(): array
+    {
+        return [
+            'images' => [
+                'columns' => ['image' => 'image_id'],
+                'slug' => '{slug}-popup',
+                'alt' => '{title}',
+                'name' => 'Popup {name}',
+                'legacy' => static::$folder.'/images',
+            ],
+        ];
+    }
+
+    /**
+     * L'indirizzo dell'immagine senza versione (serve a `__ri()` per le
+     * misure): dal media se c'è, altrimenti dal file di prima.
+     */
+    public static function imageUrl(array $popup): string
+    {
+        if (static::mediaId($popup, 'images') > 0) {
+            return (string) static::media($popup, 'images')?->path();
+        }
+
+        return static::legacyMediaUrl($popup, 'images');
     }
 
     public static function currentForPageKey(string $pageKey): ?array
@@ -97,8 +126,7 @@ final class Popup extends Model
             return null;
         }
 
-        $images = json_decode((string) ($popup['images'] ?? ''), true);
-        $image = is_array($images) ? ($images[0] ?? null) : null;
+        $image = static::imageUrl($popup);
         $bgColor = static::normalizeThemeColorVar($popup['bg_color'] ?? 'white');
         $txColor = static::normalizeThemeColorVar($popup['tx_color'] ?? 'black');
 
@@ -109,7 +137,7 @@ final class Popup extends Model
             'url' => trim((string) ($popup['url'] ?? '')),
             'url_label' => trim((string) ($popup['url_label'] ?? '')),
             'view' => trim((string) ($popup['view'] ?? '')),
-            'image' => is_string($image) ? trim($image) : null,
+            'image' => $image !== '' ? $image : null,
             'bg_color' => $bgColor,
             'tx_color' => $txColor,
             'content_class' => 'bg-'.$bgColor.' tx-'.$txColor,

@@ -267,6 +267,12 @@ dal primo dell'elenco; anche nelle colonne di un repeater.
 
 ### Media dalla libreria
 
+`fileDragDrop($accept)->mediaLibrary()` è il drag & drop che salva media
+della libreria: la colonna tiene l'id (o la lista JSON degli id con
+`maxFile()` > 1), ogni file caricato diventa un media al salvataggio e il
+pulsante "Scegli dalla libreria" apre la ricerca. `mediaTypes(...)` sceglie i
+tipi ammessi. Dettagli in [libreria Media](../media.md#il-drag--drop-collegato-alla-libreria).
+
 `mediaImage()`, `mediaIcon()`, `mediaDocument()`, `mediaVideo()` (tutti
 `media($tipo)` con un tipo di `MediaTypes`): la colonna tiene l'**id** di un
 media della [libreria Media](../media.md#il-campo-media-nei-form). Dal form si
@@ -283,6 +289,7 @@ FormField::key('image_id')->mediaImage()
 |---|---|
 | `mediaSlug($modello)` | slug del media creato dal campo, dai valori del record (`{slug}`, `{slug}-retro`); solo alla creazione, con `-2`, `-3`, ... se è già preso |
 | `mediaAlt($modello)` | testo alternativo del media creato dal campo; segue il record finché nessuno lo scrive a mano in libreria |
+| `mediaScope($tabella, $etichetta)` | sezione della finestra "Scegli dalla libreria": all'apertura mostra solo i media caricati o usati in quella tabella, con un interruttore per vedere tutta la libreria. Nei form di una Resource è già la tabella del Model; `mediaScope('')` la toglie. Le colonne media di un repeater non la ricevono da sole: chiamala sulla colonna |
 
 Il tipo `InputMedia` esiste solo nel backend (tema Bootstrap), come il
 repeater, e non è previsto fra le colonne di un repeater. Usalo per i file

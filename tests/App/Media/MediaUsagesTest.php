@@ -93,6 +93,7 @@ check('inUse() e of() con un id non valido rispondono no, senza interrogare lo s
         public function forget(string $table, string $rowId): void {}
         public function used(int $mediaId): bool { throw new RuntimeException('store interrogato'); }
         public function owners(int $mediaId): array { throw new RuntimeException('store interrogato'); }
+        public function tables(?string $mediaType = null): array { throw new RuntimeException('store interrogato'); }
     });
 
     return !MediaUsages::inUse('abc') && !MediaUsages::inUse(0) && MediaUsages::of('1; DROP') === [] && MediaUsages::message('') === '';
@@ -169,6 +170,52 @@ check('filterCondition(): usata, non usata, tutte', function () {
         && MediaUsages::filterCondition([]) === ''
         && MediaUsages::filterCondition(['used', 'unused']) === ''
         && MediaUsages::filterCondition(["used' OR 1=1"]) === '';
+});
+
+check('filterCondition(library): caricate dalla libreria e non usate', function () {
+    $exists = 'EXISTS (SELECT 1 FROM `media_usages` WHERE `media_usages`.`media_id` = `media`.`id`)';
+
+    return MediaUsages::filterCondition(['library']) === "(`media`.`source` IS NULL OR `media`.`source` = '') AND NOT ".$exists;
+});
+
+check('sections(): le tabelle che usano media, filtrate per tipo', function () use ($fresh) {
+    $store = $fresh();
+    $store->types = [12 => 'image', 13 => 'document'];
+    MediaUsages::sync('gst_product', 1, 'image_id', [12]);
+    MediaUsages::sync('gst_brand', 1, 'manual_id', [13]);
+
+    return array_keys(MediaUsages::sections()) === ['gst_brand', 'gst_product']
+        && array_keys(MediaUsages::sections('image')) === ['gst_product']
+        && MediaUsages::sections()['gst_product'] === 'gst_product';
+});
+
+check('sections() con il registro giù: nessuna sezione, nessun errore', function () {
+    MediaUsages::useStore(new class implements MediaUsageStore {
+        public function replace(string $table, string $rowId, string $column, array $mediaIds): void {}
+        public function forget(string $table, string $rowId): void {}
+        public function used(int $mediaId): bool { return false; }
+        public function owners(int $mediaId): array { return []; }
+        public function tables(?string $mediaType = null): array { throw new RuntimeException('giù'); }
+    });
+
+    return MediaUsages::sections() === [];
+});
+
+check('sectionCondition(): solo tabelle ammesse e con un nome valido', function () {
+    $allowed = ['gst_product', 'gst_brand'];
+    $sql = MediaUsages::sectionCondition(['gst_product', "gst_brand') OR 1=1 -- ", 'altra'], $allowed);
+
+    return str_contains($sql, "IN ('gst_product')")
+        && !str_contains($sql, 'OR 1=1')
+        && MediaUsages::sectionCondition(['altra'], $allowed) === ''
+        && MediaUsages::sectionCondition([], $allowed) === '';
+});
+
+check('tablesSelect(): una colonna calcolata con le tabelle', function () {
+    $sql = MediaUsages::tablesSelect('usage_tables');
+
+    return str_contains($sql, 'GROUP_CONCAT(DISTINCT') && str_ends_with($sql, 'AS `usage_tables`')
+        && str_ends_with(MediaUsages::tablesSelect('x`; DROP'), 'AS `xDROP`');
 });
 
 check('useStore(null) torna allo store del database, senza aprire connessioni', function () {

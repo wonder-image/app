@@ -149,4 +149,42 @@ check('un manifesto illeggibile si salta', function () {
     return RepeaterSupport::groupFilesFromRequest('group_images', ['group_images' => ['10__wi_files' => '{rotto']], []) === [];
 });
 
+check('con la libreria: scelte e mappa del gruppo', function () {
+    $groups = RepeaterSupport::groupFilesFromRequest('group_images', ['group_images' => [
+        '10__wi_files' => '["image/blu.jpg","media:7"]',
+        '10__wi_picks' => '[7]',
+        '10__wi_media' => '{"image/blu.jpg":3}',
+        '11__wi_files' => '[]',
+    ]], []);
+
+    return $groups['10']['picks'] === '[7]'
+        && $groups['10']['map'] === '{"image/blu.jpg":3}'
+        && $groups['11']['picks'] === null
+        && $groups['11']['map'] === null;
+});
+
+check('un valore di media senza id dà nomi e mappa vuoti', function () {
+    return \Wonder\App\ResourceSchema\Inputs\InputFileDragDrop::mediaValue([]) === ['names' => [], 'map' => []];
+});
+
+check('con la libreria la finestra e gli script escono dal modello della testata', function () use ($render) {
+    \Wonder\Themes\Support\PageAssets::reset();
+    $libreria = FormField::key('group_images')->fileDragDrop('image')->maxFile(10)->mediaLibrary()->value([]);
+    $html = $render([
+        'group_fixed' => 'group',
+        'group_files' => ['field' => $libreria, 'key_column' => 'group_value'],
+    ]);
+    $templates = '';
+    preg_match_all('/<template\b.*?<\/template>/s', $html, $found);
+    foreach ($found[0] as $template) {
+        $templates .= $template;
+    }
+    $modale = 'id="'.\Wonder\Themes\Bootstrap\Form\Components\MediaPicker::MODAL_ID.'"';
+
+    return str_contains($templates, 'data-wi-media-search')
+        && !str_contains($templates, $modale)
+        && !str_contains($templates, '<script')
+        && substr_count($html, $modale) === 1;
+});
+
 summary();

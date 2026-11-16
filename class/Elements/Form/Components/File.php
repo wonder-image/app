@@ -65,6 +65,19 @@
         }
 
         /**
+         * Il campo salva media della libreria: estensioni ammesse, mappa
+         * nome del file → id del media, tipi, sezione e ricerca.
+         *
+         * @param array<string, mixed> $media
+         */
+        public function media(array $media): self
+        {
+
+            return $this->schema('media', $media);
+
+        }
+
+        /**
          * Modalità di rendering. Default `dragdrop` (Filepond, drag&drop UI
          * usata da `inputFileDragDrop`). `classic` produce l'UI dell'admin
          * storico (form-control + info-block "File ammessi/massimi/peso" +

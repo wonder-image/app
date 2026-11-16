@@ -83,7 +83,7 @@ così un file sostituito con lo stesso nome si aggiorna senza aspettare la cache
 - `Video`: src, source WebM e poster (nel renderer, non nei getter dell'Element);
 - `Button::lightbox()`: href del primo elemento e degli elementi nascosti;
 - `OptionVisual::of()`: l'immagine delle opzioni di select e check;
-- `<head>` del frontend: favicon (`$PATH->favicon`), apple-touch-icon, icone app
+- `<head>` del frontend: apple-touch-icon, icone app
   per dimensione (`AppIconLinks::sized()`), `og:image` e `twitter:image`, il
   `<link>` di ripiego dei font locali;
 - CSS inlinati (`Asset::inlineStyle()`, `__inline_css()`): gli `url()` relativi

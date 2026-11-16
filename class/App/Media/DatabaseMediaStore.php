@@ -8,6 +8,7 @@ use RuntimeException;
 use Throwable;
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Models\Media\Media;
+use Wonder\App\Models\Media\MediaUsage;
 use Wonder\App\Resources\Media\MediaResource;
 use Wonder\App\Support\MediaFileManager;
 use Wonder\App\Table;
@@ -25,6 +26,9 @@ final class DatabaseMediaStore implements MediaStore
     private const COLUMNS = '`id`, `type`, `slug`, `name`, `alt`, `file`';
 
     private ?mysqli $connection;
+
+    /** Se `media` ha già la colonna `source` (dopo `forge update`). */
+    private ?bool $hasSource = null;
 
     public function __construct(?mysqli $connection = null)
     {
@@ -66,12 +70,13 @@ final class DatabaseMediaStore implements MediaStore
 
     public function create(string $type, array $values, array $upload): array
     {
+        $source = trim((string) ($values['source'] ?? ''));
         $result = $this->save(MediaResource::forType($type), [
             'name' => (string) $values['name'],
             'slug' => (string) $values['slug'],
             'alt' => (string) $values['alt'],
             'file' => $upload,
-        ], null);
+        ], null, $source !== '' && $this->hasSource() ? $source : '');
 
         return ['id' => (int) ($result['id'] ?? 0), 'error' => $result['error']];
     }
@@ -110,10 +115,33 @@ final class DatabaseMediaStore implements MediaStore
             : $text;
     }
 
-    public function search(string $type, string $term, int $limit, int $offset): array
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array
     {
         $where = "`deleted` = 'false' AND `type` = ?";
         $parameters = [$type];
+
+        if ($scope !== '') {
+            // Caricati da quella sezione o usati lì.
+            $media = Media::$table;
+            $used = 'EXISTS (SELECT 1 FROM `'.MediaUsage::$table.'` u WHERE u.`media_id` = `'.$media.'`.`id` AND u.`owner_table` = ?)';
+
+            if ($this->hasSource()) {
+                $where .= ' AND (`source` = ? OR '.$used.')';
+                array_push($parameters, $scope, $scope);
+            } else {
+                $where .= ' AND '.$used;
+                $parameters[] = $scope;
+            }
+        }
+
+        if ($extensions !== []) {
+            // `file` è salvato come JSON (`["logo.png"]`) o, nelle righe vecchie, come testo.
+            $where .= ' AND ('.implode(' OR ', array_fill(0, count($extensions) * 2, 'LOWER(`file`) LIKE ?')).')';
+
+            foreach ($extensions as $extension) {
+                array_push($parameters, '%.'.$extension, '%.'.$extension.'"%');
+            }
+        }
 
         if ($term !== '') {
             // `%` e `_` scritti da chi cerca sono testo, non caratteri jolly.
@@ -139,9 +167,10 @@ final class DatabaseMediaStore implements MediaStore
      * chi sta salvando il record proprietario non deve accorgersene.
      *
      * @param class-string<MediaResource> $resourceClass
+     * @param string $source la sezione da cui arriva il file (solo in creazione)
      * @return array{id: int, error: string}
      */
-    private function save(string $resourceClass, array $request, ?array $old): array
+    private function save(string $resourceClass, array $request, ?array $old, string $source = ''): array
     {
         $previousAlert = $GLOBALS['ALERT'] ?? '';
         $previousName = LegacyGlobals::get('NAME');
@@ -157,6 +186,11 @@ final class DatabaseMediaStore implements MediaStore
             ]);
 
             $values = $resourceClass::mutateRequestValues($request, $old === null ? 'store' : 'update', 'backend', $old);
+
+            if ($source !== '') {
+                $values['source'] = $source;
+            }
+
             $values = Table::key(Table::has($schema) ? $schema : $table)->prepareFor($table, $values, $old);
             $alert = $GLOBALS['ALERT'] ?? '';
 
@@ -190,6 +224,20 @@ final class DatabaseMediaStore implements MediaStore
             $GLOBALS['ALERT'] = $previousAlert;
             LegacyGlobals::set('NAME', $previousName);
         }
+    }
+
+    private function hasSource(): bool
+    {
+        if ($this->hasSource === null) {
+            try {
+                $result = $this->connection()->query("SHOW COLUMNS FROM `".Media::$table."` LIKE 'source'");
+                $this->hasSource = $result !== false && $result !== true && $result->num_rows > 0;
+            } catch (Throwable) {
+                $this->hasSource = false;
+            }
+        }
+
+        return $this->hasSource;
     }
 
     /** Il testo di un codice di `notifications.json`, senza tag. */

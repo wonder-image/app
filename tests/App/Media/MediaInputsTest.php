@@ -35,6 +35,11 @@ final class MediaInputsProductResource extends Resource
 {
     public static string $model = MediaInputsProduct::class;
 
+    public static function textSchema(): array
+    {
+        return ['label' => 'prodotto', 'plural_label' => 'prodotti'];
+    }
+
     public static function formSchema(): array
     {
         return [
@@ -63,11 +68,12 @@ final class MediaInputsUntouchable implements MediaStore, MediaUsageStore
     public function create(string $type, array $values, array $upload): array { throw new LogicException('scritto'); }
     public function replaceFile(int $id, array $upload): string { throw new LogicException('scritto'); }
     public function setAlt(int $id, string $alt): void { throw new LogicException('scritto'); }
-    public function search(string $type, string $term, int $limit, int $offset): array { throw new LogicException('letto'); }
+    public function search(string $type, string $term, int $limit, int $offset, string $scope = '', array $extensions = []): array { throw new LogicException('letto'); }
     public function replace(string $table, string $rowId, string $column, array $mediaIds): void { throw new LogicException('scritto'); }
     public function forget(string $table, string $rowId): void { throw new LogicException('scritto'); }
     public function used(int $mediaId): bool { throw new LogicException('letto'); }
     public function owners(int $mediaId): array { throw new LogicException('letto'); }
+    public function tables(?string $mediaType = null): array { throw new LogicException('letto'); }
 }
 
 $upload = static fn (string $name = 'Foto Mare.JPG', int $error = UPLOAD_ERR_OK): array => [
@@ -117,7 +123,7 @@ check('un tipo sconosciuto non si dichiara', function () {
 
 check('i modelli di slug e testo alternativo arrivano alla configurazione', function () {
     return FormField::key('image_id')->mediaImage()->mediaSlug(' {slug} ')->mediaAlt('{name}')->mediaConfig()
-        === ['type' => 'image', 'slug' => '{slug}', 'alt' => '{name}'];
+        === ['input' => 'picker', 'type' => 'image', 'types' => ['image'], 'multiple' => false, 'slug' => '{slug}', 'alt' => '{name}', 'scope' => '', 'scope_label' => ''];
 });
 
 check('una Resource senza campi media non legge e non scrive niente', function () {
@@ -477,6 +483,35 @@ check('sola lettura: con il campo modificabile passa anche il suo file', functio
     return $media->uploadKeys($editable) === ['image_id__wi_media_upload']
         && array_keys($kept) === ['image_id', 'image_id__wi_media_upload', 'title']
         && $media->uploadKeys(['title']) === [];
+});
+
+// --- Sezione di provenienza ------------------------------------------------
+
+check('un file caricato ricorda la sezione da cui arriva', function () use ($inputs, $library, $upload) {
+    $store = $library();
+    $values = $inputs()->resolve(['name' => 'Borsa', 'slug' => 'borsa', 'image_id' => '', 'image_id__wi_media_upload' => $upload()]);
+
+    return $store->rows[(int) $values['image_id']]['source'] === 'gst_product';
+});
+
+check('i campi media della Resource sanno la loro sezione, una scelta a mano resta', function () {
+    $fields = MediaInputsProductResource::formFieldsByKey();
+    $image = $fields['image_id']->mediaConfig();
+    $manual = (clone $fields['manual_id'])->mediaScope('');
+
+    return $image['scope'] === 'gst_product' && $image['scope_label'] === 'Prodotti'
+        && $manual->hasMediaScope() && $manual->mediaConfig()['scope'] === '';
+});
+
+check('il selettore riceve la sezione, mai un nome di tabella non valido', function () {
+    $html = (new \Wonder\Elements\Form\Components\MediaPicker('image_id'))
+        ->mediaType('image')->scope('gst_product', 'Prodotti <b>')->render('bootstrap');
+    $bad = (new \Wonder\Elements\Form\Components\MediaPicker('image_id'))
+        ->mediaType('image')->scope("gst' OR 1", 'X')->render('bootstrap');
+
+    return str_contains($html, 'data-wi-media-scope="gst_product"')
+        && str_contains($html, 'data-wi-media-scope-label="Prodotti &lt;b&gt;"')
+        && !str_contains($bad, 'data-wi-media-scope=');
 });
 
 MediaLibrary::useStore(null);

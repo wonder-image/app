@@ -142,12 +142,12 @@ check('ImageResource: png/jpg/jpeg/webp; IconResource solo svg', function () use
         && $format(ImageResource::class, 'file')['max_size'] === 5;
 });
 
-check('DocumentResource: pdf e documenti comuni; Logo tiene le estensioni del modello', function () use ($format) {
+check('DocumentResource: pdf e documenti comuni; Logo: media della libreria e icona app png/jpg', function () use ($format) {
     $documents = $format(DocumentResource::class, 'file')['extensions'];
     return in_array('pdf', $documents, true) && in_array('docx', $documents, true)
         && array_intersect($documents, ['png', 'svg', 'zip', 'html']) === []
-        && $format(LogoResource::class, 'main')['extensions'] === ['png']
-        && $format(LogoResource::class, 'favicon')['extensions'] === ['ico']
+        && LogoResource::getInput('main_id')->mediaConfig()['library'] === true
+        && !isset(LogoResource::prepareSchema()['favicon'])
         && $format(LogoResource::class, 'app_icon')['extensions'] === ['png', 'jpg', 'jpeg'];
 });
 

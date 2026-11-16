@@ -42,6 +42,44 @@ final class MediaUpload
     }
 
     /**
+     * Tutti i file di una voce di `$_FILES`, per posizione: un file
+     * arrivato diventa una voce come quella di `from()`, uno perso `false`.
+     * Le posizioni senza file restano fuori.
+     *
+     * @return array<int, array<string, list<mixed>>|false>
+     */
+    public static function split(mixed $value): array
+    {
+        if (!is_array($value) || !isset($value['error'])) {
+            return [];
+        }
+
+        $uploads = [];
+
+        foreach ((array) $value['error'] as $index => $error) {
+            $error = is_numeric($error) ? (int) $error : UPLOAD_ERR_NO_FILE;
+
+            if ($error === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            $upload = [];
+
+            foreach (self::KEYS as $key) {
+                $entry = $value[$key] ?? null;
+                $upload[$key] = [is_array($entry) ? ($entry[$index] ?? null) : $entry];
+            }
+
+            $temporary = $upload['tmp_name'][0];
+            $uploads[(int) $index] = $error === UPLOAD_ERR_OK && is_string($temporary) && trim($temporary) !== ''
+                ? $upload
+                : false;
+        }
+
+        return $uploads;
+    }
+
+    /**
      * Vero se il browser ha provato a mandare un file che PHP non ha
      * ricevuto (troppo pesante, caricamento interrotto): non è "nessun file".
      */
