@@ -147,9 +147,9 @@ check('come colonna di repeater ogni riga ha la sua didascalia', function () use
 
 check('come colonna avanzata il bottone sta nel blocco che si apre', function () use ($repeater, $righe) {
     $html = $repeater($righe, ['advanced' => ['cost_summary']]);
-    $blocco = substr($html, (int) strpos($html, 'wi-repeater-advanced d-none"'));
+    $blocco = substr($html, (int) strpos($html, 'wi-repeater-advanced d-none'));
 
-    return str_contains($html, 'wi-repeater-advanced d-none"')
+    return str_contains($html, 'wi-repeater-advanced d-none')
         && str_contains($blocco, 'data-wi-button-caption>Filati Nord · 12,00 €</span>')
         && !str_contains($html, '[cost_summary]');
 });

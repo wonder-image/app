@@ -35,7 +35,9 @@ $coda = static function (?MemoryResizeStore $store = null) use ($vivo): MemoryRe
 
     return $store;
 };
-$now = time();
+// enqueue() scrive con l'orologio vero, process() con questo: lo si tiene in avanti
+// perché un cambio di secondo a metà file non renda la riga «non ancora scaduta».
+$now = time() + 60;
 $riesce = static function (...$args): void {};
 $fallisce = static function (...$args): void { throw new RuntimeException('GD senza memoria'); };
 

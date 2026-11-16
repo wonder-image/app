@@ -237,3 +237,5 @@ check('il sito ha l\'ultima parola e una voce che fallisce sparisce', function (
         && array_map(static fn (StatusCard $card) => $card->getSchema('title'), $items) === ['Ordini']
         && !array_key_exists('broken', HomeStatus::sources([]));
 });
+
+summary();

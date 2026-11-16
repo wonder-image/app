@@ -23,6 +23,7 @@ example/
 !/tests/account-pagination.php
 !/tests/scheduler.php
 !/tests/scheduler-integration.php
+!/tests/run.php
 /bin/release.php
 node_modules/
 

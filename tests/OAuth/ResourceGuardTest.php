@@ -79,9 +79,11 @@ check('last_used_at aggiornato al massimo una volta al minuto', function () use 
     $t = $mint();
     [$sel] = TokenIssuer::parse($t, 'wio_at_');
     $gid = $store->findToken('access', $sel)['grant_id'];
-    $store->tables['grants'][$gid]['last_used_at'] = date('Y-m-d H:i:s', time() - 30);
+    // Il valore atteso si calcola una volta sola: due date() a cavallo del secondo darebbero stringhe diverse.
+    $recente = date('Y-m-d H:i:s', time() - 30);
+    $store->tables['grants'][$gid]['last_used_at'] = $recente;
     ResourceGuard::authenticate('/api/gestionale/mcp', $auth($t));
-    $unchanged = $store->tables['grants'][$gid]['last_used_at'] === date('Y-m-d H:i:s', time() - 30);
+    $unchanged = $store->tables['grants'][$gid]['last_used_at'] === $recente;
     $store->tables['grants'][$gid]['last_used_at'] = date('Y-m-d H:i:s', time() - 120);
     ResourceGuard::authenticate('/api/gestionale/mcp', $auth($t));
     return $unchanged && strtotime($store->tables['grants'][$gid]['last_used_at']) >= time() - 2;

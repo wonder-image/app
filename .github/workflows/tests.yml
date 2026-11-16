@@ -1,0 +1,68 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Una nuova spinta sulla stessa ref annulla la run ancora in corso.
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # 8.2 è il minimo dichiarato in composer.json; 8.4 è la versione corrente dei siti.
+        php: ['8.2', '8.4']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Solo le estensioni che il codice o i test usano davvero.
+      # Il database non serve: RowVisibilityTest usa SQLite in memoria.
+      - name: PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, fileinfo, gd, intl, mbstring, openssl, pdo_sqlite, simplexml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Cartella della cache di Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache di Composer
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php${{ matrix.php }}-
+
+      # vendor/ non è nel repository e i test caricano vendor/autoload.php.
+      - name: Composer
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # Il test con 8.2 intercetta anche la sintassi più recente usata per errore.
+      - name: Sintassi (php -l)
+        run: |
+          git ls-files -z -- 'class/*.php' 'app/*.php' 'bin/*.php' wonder-image.php \
+            | xargs -0 -n1 -P4 php -l > "$RUNNER_TEMP/lint.log" 2>&1 \
+            || { grep -v '^No syntax errors' "$RUNNER_TEMP/lint.log"; exit 1; }
+          echo "Sintassi corretta in $(git ls-files -- 'class/*.php' 'app/*.php' 'bin/*.php' wonder-image.php | wc -l) file."
+
+      # Ogni test è uno script a sé: tests/run.php ne lancia uno per file, con un tempo
+      # massimo, e fallisce se anche uno solo esce con codice diverso da 0.
+      - name: Test
+        run: php tests/run.php --jobs=2 --timeout=120
