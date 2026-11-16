@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www./shared/sitemap/xml-sitemaps/pages/mods/sitemap_nb.xsl"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xhtml="http://www.w3.org/1999/xhtml"
+      xsi:schemaLocation="
+            http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+
+  <url>
+       <loc>https://www.illuna.it/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>1.0000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/cerca/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/cerca/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/cerca/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotti/sieri-booster/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotti/sieri-booster/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotti/sieri-booster/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotti/creme-maschere/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotti/creme-maschere/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotti/creme-maschere/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotti/detergenti-struccanti/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotti/detergenti-struccanti/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotti/detergenti-struccanti/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotti/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotti/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotti/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/somnia-maschera-notte/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/somnia-maschera-notte/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/somnia-maschera-notte/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/alba-crema-giorno/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/alba-crema-giorno/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/alba-crema-giorno/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/revia-booster-anti-age/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/revia-booster-anti-age/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/revia-booster-anti-age/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/tag/giorno/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/tag/giorno/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/tag/giorno/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/tag/notte/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/tag/notte/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/tag/notte/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/legal/privacy-policy/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/legal/privacy-policy/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/legal/privacy-policy/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/legal/cookie-policy/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/legal/cookie-policy/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/legal/cookie-policy/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/legal/terms-conditions/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/legal/terms-conditions/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/legal/terms-conditions/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/assets/upload/documents/condizioni-vendita.pdf</loc>
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/assets/upload/documents/politica-resi.pdf</loc>
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.8000</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/vespera-crema-notte/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/vespera-crema-notte/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/vespera-crema-notte/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/aeria-mousse-detergente/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/aeria-mousse-detergente/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/aeria-mousse-detergente/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/seta-olio-struccante/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/seta-olio-struccante/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/seta-olio-struccante/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/aurea-siero-illuminante/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/aurea-siero-illuminante/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/aurea-siero-illuminante/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.6400</priority>
+  </url>
+  <url>
+       <loc>https://www.illuna.it/prodotto/nuvia-siero-idratante/</loc>
+       <xhtml:link rel="alternate" hreflang="x-default" href="https://www.illuna.it/prodotto/nuvia-siero-idratante/" />
+       <xhtml:link rel="alternate" hreflang="it" href="https://www.illuna.it/prodotto/nuvia-siero-idratante/" />
+       <lastmod>2026-11-04T09:08:32+00:00</lastmod>
+       <changefreq>daily</changefreq>
+       <priority>0.6400</priority>
+  </url>
+</urlset>
