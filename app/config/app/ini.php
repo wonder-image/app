@@ -4,7 +4,7 @@
         ini_set('session.gc_maxlifetime', 14400); # 4 Ore
         session_set_cookie_params(\Wonder\Http\Cookie::sessionOptions(14400)); # 4 Ore, SameSite=Lax, HttpOnly, Secure su HTTPS
 
-    # Registro tutti gli errori; via web a schermo solo con debug (APP_DEBUG o APP_ENV=local)
+    # Registro tutti gli errori; via web a schermo solo con debug (APP_DEBUG, oppure APP_ENV=local se APP_DEBUG manca)
         error_reporting(E_ALL);
         if (PHP_SAPI !== 'cli') {
             ini_set('display_errors', \Wonder\App\Debug::enabled() ? '1' : '0');

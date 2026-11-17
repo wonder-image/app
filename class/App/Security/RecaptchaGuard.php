@@ -40,7 +40,8 @@ use Wonder\Plugin\Google\Security\reCAPTCHA;
  * (fail-open) con una riga di log; con {@see failClosed()} attivo dà invece
  * 617. Un 401/403 di Google è un errore di configurazione (chiave API o
  * progetto): 617, mai salto. Con `APP_ENV=local` la verifica si salta sempre,
- * con una riga di log.
+ * con una riga di log. In `staging` la verifica è attiva e, con `failClosed(null)`,
+ * chiusa come in produzione.
  */
 final class RecaptchaGuard
 {
@@ -81,7 +82,7 @@ final class RecaptchaGuard
     /** Chiavi `checkbox`/`score`; null = lazy dalle credenziali. */
     private ?array $siteKeys = null;
 
-    /** Google non raggiungibile → 617 invece del salto; null = `Environment::isProduction()`. */
+    /** Google non raggiungibile → 617 invece del salto; null = chiuso fuori da `local` (anche in staging). */
     private ?bool $failClosed = false;
 
     private function __construct(string $expectedAction)
@@ -376,7 +377,7 @@ final class RecaptchaGuard
 
     private function closed(): bool
     {
-        return $this->failClosed ?? Environment::isProduction();
+        return $this->failClosed ?? !Environment::isLocal();
     }
 
     private function markChallenge(string $action): void

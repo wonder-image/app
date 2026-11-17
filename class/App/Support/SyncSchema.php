@@ -18,7 +18,7 @@ namespace Wonder\App\Support;
  * - `->keepIds()` — export con `id` e `deleted`; import che inserisce o
  *   aggiorna per `id` senza svuotare la tabella e segna `deleted = 'true'`
  *   le righe assenti dal file (per tabelle referenziate da chiavi esterne);
- * - `->localOnly()` — la tabella si modifica solo con `APP_ENV=local`;
+ * - `->localOnly()` — la tabella si modifica solo con `APP_ENV=local` (in staging e produzione è in sola lettura);
  *   altrove le Resource dei suoi Model sono in sola lettura.
  */
 final class SyncSchema
@@ -80,7 +80,7 @@ final class SyncSchema
     }
 
     /**
-     * Tabella modificabile solo con `APP_ENV=local`.
+     * Tabella modificabile solo con `APP_ENV=local`; in staging e produzione è in sola lettura.
      */
     public function localOnly(): self
     {

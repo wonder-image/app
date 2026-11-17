@@ -511,7 +511,7 @@ class UpdateRunner
 
     /**
      * Righe precaricate del pacchetto app, poi dei moduli abilitati in
-     * ordine di dipendenza. Chiamato solo con APP_ENV=local.
+     * ordine di dipendenza. Chiamato solo con APP_ENV=local (non in staging né in produzione).
      */
     /**
      * Le migrazioni dichiarate dai moduli abilitati (`database.migrations`),

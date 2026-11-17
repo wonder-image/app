@@ -327,7 +327,7 @@ implementazioni base sono no-op):
 
 | Metodo | Default | Uso |
 |---|---|---|
-| `isReadonly(): bool` | `true` se il Model dichiara `SyncSchema::...->localOnly()` e `APP_ENV` non è `local`; `false` per le Resource senza Model | sovrascrivibile, es. un modulo che rende locale una Resource del core |
+| `isReadonly(): bool` | `true` se il Model dichiara `SyncSchema::...->localOnly()` e `APP_ENV` non è `local` (quindi anche in `staging`); `false` per le Resource senza Model | sovrascrivibile, es. un modulo che rende locale una Resource del core |
 | `readonlyNotice(): string` | `Si modifica in locale e si pubblica con il deploy.` | testo dell'avviso |
 | `isFormPage(): bool` | `false` | la pagina è un solo form senza record: il core registra `GET /` e `POST /` sul percorso della Resource e usa `formSchema()` e `formLayoutSchema()` |
 | `formPageValues(): array` | `[]` | valori del form di una pagina-form |

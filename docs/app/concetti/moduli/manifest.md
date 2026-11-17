@@ -93,7 +93,7 @@ Classe delle righe precaricate del modulo:
 }
 ```
 
-La classe implementa `Wonder\App\Module\Contracts\ModuleDefaults` (vedi [Contratto](contratto.md)). Il validator segnala classi inesistenti o che non implementano il contratto. Eseguita solo da `forge update` con `APP_ENV=local`.
+La classe implementa `Wonder\App\Module\Contracts\ModuleDefaults` (vedi [Contratto](contratto.md)). Il validator segnala classi inesistenti o che non implementano il contratto. Eseguita solo da `forge update` con `APP_ENV=local` (non in staging né in produzione).
 
 ### `database.migrations`
 

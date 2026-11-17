@@ -68,7 +68,7 @@ non passa da `error_reports`. La risposta al browser è sempre la stessa,
 `{"error":"Errore nel caricamento della tabella."}`, senza query né messaggio
 del database. Il dettaglio finisce in `storage/logs/error.log` tramite
 `Logger::log()`, con servizio `backend` e azione `list.table`. Solo con il
-debug attivo (`Debug::enabled()`: `APP_DEBUG`, o `APP_ENV=local`) la risposta
+debug attivo (`Debug::enabled()`: `APP_DEBUG`, o `APP_ENV=local` se `APP_DEBUG` manca) la risposta
 aggiunge la chiave `detail` con il messaggio.
 
 Prima di qualsiasi query, COUNT compreso, `ListProvider::fetch()` verifica la

@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Ambiente `staging` e `Environment::isStaging()`.** `APP_ENV` ammette ora
+  `local`, `staging` e `production`. Dove non è deciso diversamente lo staging
+  si comporta come la produzione: debug spento senza `APP_DEBUG`, tabelle
+  `localOnly()` in sola lettura, reCAPTCHA attivo e fail-closed (con
+  `failClosed(null)` il default ora è `!Environment::isLocal()`), limiti del
+  login di produzione.
+
+### Cambiato
+- **`APP_ENV` è obbligatorio (modifica incompatibile).** Se manca o non è
+  valido (per esempio `prod`) il sito non ripiega più su `production`: lancia
+  `Wonder\App\EnvironmentException` e si ferma all'avvio. Via web risponde
+  `500` con un messaggio generico (JSON sotto `/api/`) e scrive nell'`error_log`
+  il valore trovato, i valori ammessi e dove impostarlo; da console i comandi
+  che caricano `wonder-image.php` (`update`, `db:backup`, `export`, `import`,
+  `media:resize`, `schedule:run`) escono con codice 1. `forge start`, `db:init`,
+  `config`, `credentials`, `provision`, `build` e gli altri comandi che non
+  avviano il sito funzionano anche senza `APP_ENV`. `Debug::enabled()` non
+  lancia mai: senza `APP_ENV` valido e senza `APP_DEBUG` resta spento.
+
+  **Per aggiornare un sito:** prima di installare questa versione ogni `.env`
+  deve avere `APP_ENV`: `production` in produzione, `staging` in staging,
+  `local` in locale (lo scrive `php forge start`). Il workflow di deploy deve
+  scrivere `APP_ENV` nel `.env` che genera, con il valore dell'ambiente di
+  destinazione: senza, il primo avvio dopo il deploy (anche la chiamata a
+  `POST /api/app/update/`) risponde `500`. Per tornare operativi basta
+  aggiungere `APP_ENV` al `.env` sul server.
+
 ## 2.4.1 — 2026-11-17
 
 ### Corretto

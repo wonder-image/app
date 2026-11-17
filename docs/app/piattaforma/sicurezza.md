@@ -194,7 +194,8 @@ cambia: le celle sono scritte con il loro tipo e mai come formula.
 
 1. Se c'è `APP_DEBUG`, decide lui: `1`, `true`, `on` o `yes` lo accendono,
    qualsiasi altro valore lo spegne.
-2. Altrimenti il debug è acceso solo con `APP_ENV=local`.
+2. Altrimenti il debug è acceso solo con `APP_ENV=local`; in `staging` e
+   `production` è spento. `APP_ENV` è obbligatorio: se manca il sito non parte.
 
 Una richiesta da localhost o da una rete privata non accende più il debug.
 Fuori dalla CLI, `display_errors` vale `1` solo con il debug acceso.

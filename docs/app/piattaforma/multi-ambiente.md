@@ -16,19 +16,31 @@ Le soluzioni introdotte coprono tre aree: **media**, **sincronizzazione dati** e
 
 ## Ambiente: `APP_ENV`
 
-Il framework distingue locale e produzione con `APP_ENV` (`local` o `production`).
-Se la variabile manca o non è valida vale `production`. `php forge start` scrive
-`APP_ENV=local` nel `.env` locale; i boilerplate la dichiarano in `.env.example`.
+Il framework distingue tre ambienti con `APP_ENV`: `local`, `staging` e
+`production`. La variabile è obbligatoria: se manca o ha un altro valore
+(per esempio `prod`) il sito non parte. Via web risponde `500` con un
+messaggio generico e scrive nell'`error_log` quale valore ha trovato, quali sono
+ammessi e dove impostarlo; da console i comandi che avviano il sito (`update`,
+`db:backup`, `export`, `import`, `media:resize`, `schedule:run`) escono con
+codice 1. I comandi che creano o preparano il `.env` (`start`, `db:init`,
+`config`, `credentials`, `provision`, `build`) funzionano anche senza `APP_ENV`.
+`php forge start` scrive `APP_ENV=local` nel `.env` locale; il deploy scrive
+`staging` o `production`; i boilerplate la dichiarano in `.env.example`.
 
 ```php
 use Wonder\App\Environment;
 
 Environment::isLocal();      // true solo con APP_ENV=local
+Environment::isStaging();    // true solo con APP_ENV=staging
 Environment::isProduction();
 ```
 
+Dove non è deciso diversamente lo staging si comporta come la produzione: debug
+spento senza `APP_DEBUG`, tabelle `localOnly()` in sola lettura, reCAPTCHA
+attivo e fail-closed, limiti del login di produzione. Solo `local` è permissivo.
+
 `Debug::enabled()` segue `APP_DEBUG` quando è presente; altrimenti è acceso
-solo con `APP_ENV=local`. Una richiesta da localhost non accende più il debug.
+solo con `APP_ENV=local` (spento in staging e produzione). Una richiesta da localhost non accende più il debug.
 `display_errors` segue il debug. `APP_HSTS=true` attiva
 `Strict-Transport-Security` sulle risposte HTTPS: impostalo solo in
 produzione e solo quando tutto il dominio è in HTTPS. Vedi
@@ -230,11 +242,11 @@ Le tabelle senza `keepIds()` mantengono il comportamento storico (svuotate e rei
 return SyncSchema::multiRow()->keepIds()->localOnly();
 ```
 
-Fuori da `APP_ENV=local` le Resource di questi Model sono in sola lettura: nessuna route di creazione, salvataggio o eliminazione (anche API), campi disabilitati e avviso "Si modifica in locale e si pubblica con il deploy." Anche gli endpoint generici `api/backend/*` che ricevono `table` rispondono 403.
+Fuori da `APP_ENV=local` (quindi anche in staging) le Resource di questi Model sono in sola lettura: nessuna route di creazione, salvataggio o eliminazione (anche API), campi disabilitati e avviso "Si modifica in locale e si pubblica con il deploy." Anche gli endpoint generici `api/backend/*` che ricevono `table` rispondono 403.
 
 #### Righe precaricate dei moduli
 
-Con `APP_ENV=local`, `forge update` dà lo slug ai font che non lo hanno e aggiunge per slug i font predefiniti mancanti in `css_font` (`Wonder\App\AppDefaults`), poi esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe o danno slug, riscrive `shared/sync-data.json` da committare. In produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
+Con `APP_ENV=local`, `forge update` dà lo slug ai font che non lo hanno e aggiunge per slug i font predefiniti mancanti in `css_font` (`Wonder\App\AppDefaults`), poi esegue le classi `database.defaults` dei moduli abilitati in ordine di dipendenza e, se aggiungono righe o danno slug, riscrive `shared/sync-data.json` da committare. In staging e in produzione non crea righe: arrivano dal file. Vedi [Manifest](../concetti/moduli/manifest.md) e [Contratto](../concetti/moduli/contratto.md).
 
 #### Export dopo il salvataggio
 

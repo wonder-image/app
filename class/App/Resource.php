@@ -762,7 +762,8 @@ abstract class Resource
     }
 
     /**
-     * Sola lettura: Model con `SyncSchema::localOnly()` fuori da APP_ENV=local.
+     * Sola lettura: Model con `SyncSchema::localOnly()` fuori da APP_ENV=local
+     * (quindi anche in staging).
      * Le Resource senza Model (es. navigation-only) sono sempre modificabili.
      * Sovrascrivibile (es. un modulo che rende locale una Resource del core).
      */
