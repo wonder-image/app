@@ -467,7 +467,7 @@ class Config extends Command
             }
         }
 
-        $output->writeln('<info>✅ Repository secrets GitHub aggiornati: BWS_ACCESS_TOKEN, BWS_PROJECT_ID</info>');
+        $output->writeln('<info>✅ Repository secrets GitHub aggiornati: '.implode(', ', array_keys($secrets)).'</info>');
 
         return true;
     }

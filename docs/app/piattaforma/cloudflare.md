@@ -39,8 +39,13 @@ secret del project Bitwarden. Per questo provision controlla i workflow in
 
 ## Token
 
-Il token lo crea l'utente in Cloudflare (My Profile › API Tokens › Create
-Token › Custom token), limitato alla zona del sito, con questi permessi:
+Il token lo crea l'utente in Cloudflare. `php forge provision` lo chiede
+insieme agli altri token (dopo dominio e proxy, prima di DB, FTP e utente) e
+stampa un link che apre il modulo con nome e permessi precompilati. Nel
+modulo restano da fare a mano: limitare **Zone Resources** alla zona del sito
+(il link propone tutte le zone) e lasciare vuoto il **TTL**, così il token
+non scade. A mano si crea da My Profile › API Tokens › Create Token › Custom
+token. I permessi:
 
 | Permesso | Serve per |
 |---|---|
@@ -51,6 +56,11 @@ Token › Custom token), limitato alla zona del sito, con questi permessi:
 | Zone › Page Shield › Edit | Attivare Page Shield |
 | Zone › SSL and Certificates › Read | Stato dei certificati |
 | Zone › DNS › Read | Record @ e www (verifica origine e avvisi), DNSSEC |
+
+Il link precompila di sicuro Zone, Zone Settings, SSL and Certificates e
+DNS (chiavi documentate da Cloudflare). Per Zone WAF, Bot Management e Page
+Shield usa chiavi non documentate: se nel modulo mancano, vanno aggiunte a
+mano.
 
 Un permesso mancante non blocca gli altri passi: il passo fallisce con il
 messaggio `Permesso del token da verificare: …` e il comando esce con errore.
