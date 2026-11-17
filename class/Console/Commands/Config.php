@@ -919,6 +919,7 @@ class Config extends Command
             'APP_URL',
             'APP_DEPLOY_TOKEN',
             'GITHUB_API_TOKEN',
+            'NPM_GITHUB_TOKEN', // solo GitHub Secrets / CI: mai nel .env locale.
             'ASSETS_VERSION',
             'DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME',
             'DB_HOSTNAME', 'DB_USERNAME', 'DB_DATABASE',
