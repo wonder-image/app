@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 use Wonder\Console\Commands\Config;
 use Wonder\Console\Commands\LocalEnvironmentCommand;
+use Wonder\Console\Commands\LocalStart;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -37,6 +38,32 @@ final class LocalEnvProbe extends LocalEnvironmentCommand
     public function call(string $method, ...$args)
     {
         return $this->$method(...$args);
+    }
+}
+
+/** Espone i metodi protetti/privati di LocalStart per il test. */
+final class LocalStartProbe extends LocalStart
+{
+    public function call(string $method, ...$args)
+    {
+        return $this->$method(...$args);
+    }
+
+    /** Esegue `ensureEnv()` (privato) su una cartella e ritorna le coppie del `.env`. */
+    public function runEnsureEnv(string $cwd, string $driver = 'herd'): array
+    {
+        $method = new ReflectionMethod(LocalStart::class, 'ensureEnv');
+        $method->invoke($this, $cwd, '127.0.0.1', 8088, $driver, new \Symfony\Component\Console\Output\BufferedOutput());
+
+        $values = [];
+
+        foreach (file($cwd . '/.env', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+            if (preg_match('/^([A-Z0-9_]+)=(.*)$/', $line, $m) === 1) {
+                $values[$m[1]] = trim($m[2], '"');
+            }
+        }
+
+        return $values;
     }
 }
 
@@ -191,6 +218,64 @@ check('updateComposerName: scrive wonder-image/acme-shop-com (kebab con TLD)', f
 
     assertSame(true, $ok, 'updateComposerName deve avere successo');
     assertSame('wonder-image/acme-shop-com', $written['name'] ?? null);
+});
+
+// --- forge start: APP_DOMAIN già impostato non va riscritto dalla cartella ---
+
+$start = new LocalStartProbe();
+
+check('startAppDomain: ecommerce.test in cartella ecommerce-site resta ecommerce.test', function () use ($start) {
+    assertSame('ecommerce.test', $start->call('startAppDomain', 'ecommerce.test', '/x/ecommerce-site'));
+});
+
+check('startAppDomain: dominio di produzione diverso dalla cartella resta invariato', function () use ($start) {
+    assertSame('cliente.it', $start->call('startAppDomain', 'cliente.it', '/x/ecommerce-site'));
+});
+
+check('startAppDomain: vuoto → dedotto dalla cartella', function () use ($start) {
+    assertSame('wonderimage.it', $start->call('startAppDomain', '', '/x/wonderimage-it'));
+});
+
+check('startAppDomain: segnaposto example.local → dedotto dalla cartella', function () use ($start) {
+    assertSame('wonderimage.it', $start->call('startAppDomain', 'example.local', '/x/wonderimage-it'));
+});
+
+check('startAppDomain: legacy senza estensione (wonderimage) → migrato', function () use ($start) {
+    assertSame('wonderimage.it', $start->call('startAppDomain', 'wonderimage', '/x/wonderimage-it'));
+});
+
+check('startAppDomain: legacy senza estensione e cartella senza TLD → resta com\'è', function () use ($start) {
+    assertSame('acme', $start->call('startAppDomain', 'acme', '/x/acme-foo'));
+});
+
+check('forge start (ensureEnv): non riscrive APP_DOMAIN=ecommerce.test nel .env', function () use ($start) {
+    $dir = sys_get_temp_dir() . '/wi-start-' . getmypid() . '-' . uniqid() . '/ecommerce-site';
+    mkdir($dir, 0777, true);
+    file_put_contents($dir . '/.env', "APP_DOMAIN=ecommerce.test\nAPP_URL=https://ecommerce.test\n");
+
+    $env = $start->runEnsureEnv($dir);
+
+    @unlink($dir . '/.env');
+    @rmdir($dir);
+    @rmdir(dirname($dir));
+
+    assertSame('ecommerce.test', $env['APP_DOMAIN'] ?? null);
+    assertSame('https://ecommerce.test', $env['APP_URL'] ?? null);
+});
+
+check('forge start (ensureEnv): APP_DOMAIN=example.local viene compilato dalla cartella', function () use ($start) {
+    $dir = sys_get_temp_dir() . '/wi-start-' . getmypid() . '-' . uniqid() . '/wonderimage-it';
+    mkdir($dir, 0777, true);
+    file_put_contents($dir . '/.env', "APP_DOMAIN=example.local\nAPP_URL=http://127.0.0.1:8088\n");
+
+    $env = $start->runEnsureEnv($dir);
+
+    @unlink($dir . '/.env');
+    @rmdir($dir);
+    @rmdir(dirname($dir));
+
+    assertSame('wonderimage.it', $env['APP_DOMAIN'] ?? null);
+    assertSame('https://wonderimage.test', $env['APP_URL'] ?? null);
 });
 
 echo "\n";

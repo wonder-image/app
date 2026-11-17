@@ -158,19 +158,18 @@ class LocalStart extends LocalEnvironmentCommand
 
         $keyToIndex = $this->envKeyToIndex($lines);
         // APP_DOMAIN è il dominio COMPLETO con estensione (`wonderimage.it`).
-        // Confronto like-for-like (dominio vs dominio): un valore legacy
-        // strippato/dash (`wonderimage` o `wonderimage-com`) differisce dal
-        // nuovo default `wonderimage.it`, quindi il messaggio di sync segnala
-        // solo le migrazioni reali e non scatta a ogni `forge start`.
+        // Un valore già impostato dall'utente NON va toccato: la cartella
+        // serve solo a compilare un APP_DOMAIN mancante, segnaposto o legacy
+        // (vedi `startAppDomain()`).
         $existingAppDomain = $this->normalizeDomain($this->envValue($lines, $keyToIndex, 'APP_DOMAIN'));
-        $appDomain = $this->defaultAppDomain($cwd);
+        $appDomain = $this->startAppDomain($existingAppDomain, $cwd);
 
         if ($appDomain !== '' && $appDomain !== $existingAppDomain) {
             $output->writeln('<info>✅ APP_DOMAIN sincronizzato dalla cartella progetto: '.$appDomain.'</info>');
         }
 
         $updatedKeys = $this->completeEnvValues($lines, $keyToIndex, [
-            'APP_DOMAIN' => $appDomain !== '' ? $appDomain : null,
+            'APP_DOMAIN' => $appDomain !== '' && $appDomain !== $existingAppDomain ? $appDomain : null,
             'APP_URL' => $appDomain !== '' ? $this->resolveLocalAppUrl($appDomain, $host, $port, $driver) : null,
         ], true);
 
@@ -186,6 +185,30 @@ class LocalStart extends LocalEnvironmentCommand
         }
 
         return $this->writeEnvLines($cwd, $lines, $output, $updatedKeys);
+    }
+
+    /**
+     * APP_DOMAIN che `forge start` deve lasciare nel `.env`.
+     *
+     * Un dominio già impostato (con estensione, es. `ecommerce.test`) resta
+     * com'è: prima veniva riscritto a ogni avvio con quello dedotto dalla
+     * cartella (`ecommerce-site` → `ecommerce.site`). Il nome cartella si usa
+     * solo quando il valore manca, è il segnaposto di `.env.example`
+     * (`example.local`) o è un valore legacy senza estensione
+     * (`wonderimage`, `wonderimage-com`).
+     */
+    protected function startAppDomain(string $existingAppDomain, string $cwd): string
+    {
+        $existing = strtolower(trim($existingAppDomain));
+        $isPlaceholder = $existing === '' || $existing === 'example.local' || $this->isMissingEnvValue($existing, 'APP_DOMAIN');
+
+        if (!$isPlaceholder && str_contains($existing, '.')) {
+            return $existingAppDomain;
+        }
+
+        $fromFolder = $this->defaultAppDomain($cwd);
+
+        return $fromFolder !== '' || $isPlaceholder ? $fromFolder : $existingAppDomain;
     }
 
     private function printEnvHints(OutputInterface $output, string $expectedAppUrl): void
