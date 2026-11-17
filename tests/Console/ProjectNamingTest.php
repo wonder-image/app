@@ -260,7 +260,8 @@ check('forge start (ensureEnv): non riscrive APP_DOMAIN=ecommerce.test nel .env'
     @rmdir(dirname($dir));
 
     assertSame('ecommerce.test', $env['APP_DOMAIN'] ?? null);
-    assertSame('https://ecommerce.test', $env['APP_URL'] ?? null);
+    // Senza Herd (CI) il driver ricade su host:porta: l'atteso segue il driver reale.
+    assertSame($start->call('resolveLocalAppUrl', 'ecommerce.test', '127.0.0.1', 8088, 'herd'), $env['APP_URL'] ?? null);
 });
 
 check('forge start (ensureEnv): APP_DOMAIN=example.local viene compilato dalla cartella', function () use ($start) {
@@ -275,7 +276,7 @@ check('forge start (ensureEnv): APP_DOMAIN=example.local viene compilato dalla c
     @rmdir(dirname($dir));
 
     assertSame('wonderimage.it', $env['APP_DOMAIN'] ?? null);
-    assertSame('https://wonderimage.test', $env['APP_URL'] ?? null);
+    assertSame($start->call('resolveLocalAppUrl', 'wonderimage.it', '127.0.0.1', 8088, 'herd'), $env['APP_URL'] ?? null);
 });
 
 echo "\n";
