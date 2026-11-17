@@ -171,7 +171,7 @@ Il comando:
 - in fallback avvia il server PHP locale su `http://127.0.0.1:8088`
 - gestisce route directory (`/backend/`)
 - abilita `/update/` anche in sviluppo locale
-- sincronizza `APP_DOMAIN` dalla cartella progetto ricostruendo il dominio completo (`wonderimage-it` → `wonderimage.it`)
+- compila `APP_DOMAIN` dalla cartella progetto (`wonderimage-it` → `wonderimage.it`) solo se manca, è il segnaposto `example.local` o è un valore legacy senza estensione; un dominio già impostato (es. `ecommerce.test`) non viene riscritto
 - sincronizza `APP_URL` con `https://wonderimage.test` su Herd oppure con host/porta locali in fallback
 - completa automaticamente `.env` per gli altri valori locali non DB critici (`APP_KEY`, `APP_ENCRYPTION_KEY`, `USER_PASSWORD`), generati solo se mancano
 - fa un check DB iniziale
