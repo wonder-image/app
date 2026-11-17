@@ -15,7 +15,7 @@ use Wonder\View\View;
 /**
  * Il catalogo dei componenti senza un sito: `php bin/docs.php` avvia il
  * server PHP integrato con questo router, che serve le pagine del catalogo e
- * gli asset di `wonder-image/lib` da `node_modules/wonder-image` (installata
+ * gli asset di `wonder-image/lib` da `node_modules/@wonder-image/lib` (installata
  * con `npm install` nella radice del pacchetto).
  *
  * Niente database, sessione o `.env`: le costanti che i renderer si aspettano
@@ -72,7 +72,7 @@ final class Server
         $address = trim((string) ($argv[1] ?? self::DEFAULT_ADDRESS));
 
         if (in_array($address, ['-h', '--help', 'help'], true)) {
-            fwrite(STDOUT, "Uso: php bin/docs.php [host:porta]\n\nAvvia il catalogo dei componenti su http://".self::DEFAULT_ADDRESS."/ (o sull'indirizzo dato).\nServe prima `npm install` nella radice del pacchetto, per gli asset di wonder-image/lib.\n");
+            fwrite(STDOUT, "Uso: php bin/docs.php [host:porta]\n\nAvvia il catalogo dei componenti su http://".self::DEFAULT_ADDRESS."/ (o sull'indirizzo dato).\nServe prima `npm install` nella radice del pacchetto, per gli asset di wonder-image/lib (pacchetto privato: serve prima `npm login --scope=@wonder-image --registry=https://npm.pkg.github.com`, con un token `read:packages`).\n");
 
             return 0;
         }
@@ -93,7 +93,7 @@ final class Server
         $minimum = LibVersion::minimum();
 
         if ($installed !== null && $minimum !== null && !LibVersion::satisfies($installed, $minimum)) {
-            fwrite(STDERR, "wonder-image/lib {$installed} è più vecchia del minimo {$minimum}: esegui `npm install ".LibVersion::PACKAGE."@^{$minimum}`.\n");
+            fwrite(STDERR, "wonder-image/lib {$installed} è più vecchia del minimo {$minimum}: esegui `".LibVersion::installCommand($minimum)."`.\n");
         }
 
         fwrite(STDOUT, "Catalogo dei componenti su http://{$address}/ (Ctrl+C per fermare)\n");

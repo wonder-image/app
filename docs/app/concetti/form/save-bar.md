@@ -194,10 +194,10 @@ La descrizione completa, con stati, fascia e token CSS, è in
 - **`.offcanvas-{bp}`** non si esclude da solo: sui suoi bottoni serve
   `data-wi-save-bar-ignore`.
 - **Aggiornare un sito** alla lib 2.1.2-alpha.19:
-  - se `package.json` ha già `wonder-image` in `^2.1.2-alpha.*`, basta
+  - se `package.json` ha già `@wonder-image/lib` in `^2.1.2-alpha.*`, basta
     `composer update`, perché `forge config` esegue `npm install`;
   - se è fuori range (`^2.1.1-alpha.*`, `^2.0.x`, `^2.1.0`), si esegue
-    `npm install wonder-image@^2.1.2-alpha.19` e si fa il commit di
+    `npm install '@wonder-image/lib@^2.1.2-alpha.19'` e si fa il commit di
     `package.json` e `package-lock.json`, perché la CI usa `npm ci`.
 
 ## Dove si trova nel codice

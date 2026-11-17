@@ -37,7 +37,8 @@ class Config extends Command
         'wonder-image/skills' => "npx skills add wonder-image/skills --skill '*' --agent claude-code -y",
     ];
     protected const NPM_PACKAGE = [
-        'wonder-image' => 'npm install wonder-image',
+        'lib' => "npm install '@wonder-image/lib'",
+        'legacy-uninstall' => 'npm uninstall wonder-image',
         'project' => 'npm install',
     ];
 
@@ -57,7 +58,7 @@ class Config extends Command
     protected function configure(): void
     {
         $this->setName($this->name);
-        $this->setDescription('Configura il progetto per locale o CI, installa wonder-image lato NPM e prova a sincronizzare le skills AI');
+        $this->setDescription('Configura il progetto per locale o CI, installa @wonder-image/lib lato NPM e prova a sincronizzare le skills AI');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -245,14 +246,30 @@ class Config extends Command
         }
 
         if (!$isCi) {
-            // 1) Aggiunge/aggiorna il package `wonder-image` in
+            // 1) Aggiunge/aggiorna il package `@wonder-image/lib` in
             //    package.json + node_modules. NOTA: `npm install <pkg>`
             //    NON esegue i lifecycle script del progetto consumer
             //    (il `postinstall` di package.json che copia
-            //    `node_modules/wonder-image/dist/` in
+            //    `node_modules/@wonder-image/lib/dist/` in
             //    `assets/lib/wonder-image/dist/`).
-            if (!$this->runPassthruCommand(self::NPM_PACKAGE['wonder-image'], $output, 'Impossibile installare wonder-image lato NPM.')) {
+            if (!$this->runPassthruCommand(self::NPM_PACKAGE['lib'], $output, 'Impossibile installare @wonder-image/lib lato NPM.')) {
+                $output->writeln('<comment>   Il pacchetto è privato su GitHub Packages: se l\'errore è di autenticazione (401/403), esegui `npm login --scope=@wonder-image --registry=https://npm.pkg.github.com` con un token che abbia il permesso `read:packages`, poi rilancia.</comment>');
+                $output->writeln('<comment>   Controlla anche che il `.npmrc` del progetto contenga `@wonder-image:registry=https://npm.pkg.github.com`.</comment>');
                 return Command::FAILURE;
+            }
+
+            // Siti nati con il pacchetto pubblico `wonder-image`: dopo aver
+            // installato `@wonder-image/lib` si toglie la dipendenza vecchia
+            // da package.json (e node_modules), così non restano due copie.
+            if ($this->hasLegacyNpmDependency($packageJsonPath)) {
+                $output->writeln('<comment>ℹ️ package.json dichiara ancora il pacchetto npm `wonder-image`: lo rimuovo (ora si usa `@wonder-image/lib`).</comment>');
+                if (!$this->runPassthruCommand(self::NPM_PACKAGE['legacy-uninstall'], $output, 'Impossibile rimuovere il pacchetto npm `wonder-image` dalle dipendenze.')) {
+                    return Command::FAILURE;
+                }
+            }
+
+            if ($this->packageJsonReferencesLegacyPath($packageJsonPath)) {
+                $output->writeln('<error>⚠️ package.json (scripts) usa ancora `node_modules/wonder-image`: la cartella ora è `node_modules/@wonder-image/lib`. Aggiorna lo script (per esempio il postinstall) prima di proseguire.</error>');
             }
 
             // 2) Esegue `npm install` (senza argomenti) per innescare il
@@ -273,7 +290,7 @@ class Config extends Command
             // il fix può essere rilanciato con `php forge skills`.
             $this->installRecommendedSkills($output, false);
         } else {
-            $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto '.self::NPM_PACKAGE['wonder-image'].' (il workflow esegue npm ci che innesca da solo il postinstall).</comment>');
+            $output->writeln('<comment>ℹ️ Ambiente CI rilevato: salto '.self::NPM_PACKAGE['lib'].' (il workflow esegue npm ci che innesca da solo il postinstall).</comment>');
         }
 
         if (!$isCi) {
@@ -1835,8 +1852,8 @@ class Config extends Command
     /**
      * Verifica che la versione di `node` sul PATH sia >= $minMajor.
      *
-     * Il package npm `wonder-image` ha `engines.node >= 20`: senza Node 20+
-     * `npm install wonder-image` (invocato da `forge config`) emette warning
+     * Il package npm `@wonder-image/lib` ha `engines.node >= 20`: senza Node 20+
+     * `npm install @wonder-image/lib` (invocato da `forge config`) emette warning
      * `EBADENGINE` e il sito può rompersi a runtime (build ES2022 non
      * compilabili da toolchain più vecchie).
      *
@@ -1865,8 +1882,8 @@ class Config extends Command
         }
 
         $output->writeln('<error>❌ Node '.$raw.' rilevato. Wonder Image richiede Node >= '.$minMajor.'.</error>');
-        $output->writeln('<error>   Il package npm `wonder-image` ha "engines": { "node": ">='.$minMajor.'" }: con questa versione</error>');
-        $output->writeln('<error>   `npm install wonder-image` emette EBADENGINE e la toolchain può rompersi a runtime.</error>');
+        $output->writeln('<error>   Il package npm `@wonder-image/lib` ha "engines": { "node": ">='.$minMajor.'" }: con questa versione</error>');
+        $output->writeln('<error>   `npm install @wonder-image/lib` emette EBADENGINE e la toolchain può rompersi a runtime.</error>');
         $output->writeln('');
         $output->writeln('<comment>   Soluzioni rapide:</comment>');
         $output->writeln('<comment>     • Herd:  aggiorna Herd alla versione più recente (Node '.$minMajor.'+ è di default)</comment>');
@@ -1949,9 +1966,9 @@ class Config extends Command
             return false;
         }
 
-        // Node 20+ è obbligatorio: il package npm `wonder-image` ha
+        // Node 20+ è obbligatorio: il package npm `@wonder-image/lib` ha
         // `"engines": { "node": ">=20" }`. Con Node 16/18 `npm install
-        // wonder-image` emette `EBADENGINE` e l'install funziona solo
+        // @wonder-image/lib` emette `EBADENGINE` e l'install funziona solo
         // per fortuna (build target ES2022 può rompersi a runtime).
         // Lo stesso requisito vale per `npx skills`.
         return $this->ensureNodeMinimumVersion(self::NODE_MINIMUM_MAJOR, $output);
@@ -2101,6 +2118,34 @@ class Config extends Command
     protected function buildShellCommand(array $command): string
     {
         return implode(' ', array_map('escapeshellarg', $command));
+    }
+
+    /** True se package.json ha ancora la dipendenza del vecchio pacchetto pubblico `wonder-image`. */
+    protected function hasLegacyNpmDependency(string $packageJsonPath): bool
+    {
+        $package = is_file($packageJsonPath) ? json_decode((string) file_get_contents($packageJsonPath), true) : null;
+
+        foreach (['dependencies', 'devDependencies', 'optionalDependencies'] as $section) {
+            if (is_array($package) && is_array($package[$section] ?? null) && array_key_exists('wonder-image', $package[$section])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** True se uno script di package.json punta ancora a `node_modules/wonder-image`. */
+    protected function packageJsonReferencesLegacyPath(string $packageJsonPath): bool
+    {
+        $package = is_file($packageJsonPath) ? json_decode((string) file_get_contents($packageJsonPath), true) : null;
+
+        foreach (is_array($package) && is_array($package['scripts'] ?? null) ? $package['scripts'] : [] as $script) {
+            if (is_string($script) && str_contains($script, 'node_modules/wonder-image')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function runPassthruCommand(string $command, OutputInterface $output, string $errorMessage): bool

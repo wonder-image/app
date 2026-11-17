@@ -11,7 +11,7 @@ procedura completa (deploy, GitHub Actions, Bitwarden) vedi
 ## Prerequisiti
 
 - **PHP 8.2+** e **Composer**
-- **Node 20+** (il pacchetto npm `wonder-image` richiede Node ≥ 20)
+- **Node 20+** (il pacchetto npm `@wonder-image/lib` richiede Node ≥ 20)
 - **MySQL / MariaDB** locale (per `php forge db:init`)
 - Consigliato: **Laravel Herd** per servire il sito su `https://nome.test`
 
@@ -109,7 +109,7 @@ Il codice attuale di `forge config`, richiamato anche da `composer update`, cons
 
 ## Dipendenze npm
 
-`forge config` esegue `npm install wonder-image` e poi `npm install`: può aggiornare il pacchetto `wonder-image`, `package.json` e `package-lock.json`. Non esegue un aggiornamento esplicito del programma npm; se Node/npm mancano, il setup può installare Node tramite Homebrew, includendo npm.
+`forge config` esegue `npm install '@wonder-image/lib'` e poi `npm install` (se `package.json` ha ancora la vecchia dipendenza `wonder-image`, la rimuove con `npm uninstall wonder-image`): può aggiornare il pacchetto `@wonder-image/lib`, `package.json` e `package-lock.json`. Non esegue un aggiornamento esplicito del programma npm; se Node/npm mancano, il setup può installare Node tramite Homebrew, includendo npm.
 
 ## Comandi forge essenziali
 

@@ -105,14 +105,14 @@ Va alzata nello stesso lavoro in cui il framework inizia a dipendere da una
 novità della lib. Conta solo come minimo: l'operatore iniziale viene ignorato.
 
 `php forge update` (con o senza `--local`) confronta il minimo con
-`node_modules/wonder-image/package.json` del sito. Se la lib installata è più
+`node_modules/@wonder-image/lib/package.json` del sito. Se la lib installata è più
 vecchia, il comando si ferma prima di applicare l'update e indica cosa lanciare:
 
 ```bash
-npm install 'wonder-image@^2.1.2-alpha.27'
+npm install '@wonder-image/lib@^2.1.2-alpha.27'
 ```
 
-Il vincolo è esplicito perché `npm install wonder-image` risolve il dist-tag
+Il vincolo è esplicito perché `npm install '@wonder-image/lib'` risolve il dist-tag
 `latest`, che può essere più vecchio di una pre-release. Dopo l'installazione
 rilancia `php forge update`.
 

@@ -20,8 +20,8 @@ function libRoot(?string $packageJson): string
     mkdir($root, 0777, true);
 
     if ($packageJson !== null) {
-        mkdir($root . '/node_modules/wonder-image', 0777, true);
-        file_put_contents($root . '/node_modules/wonder-image/package.json', $packageJson);
+        mkdir($root . '/node_modules/@wonder-image/lib', 0777, true);
+        file_put_contents($root . '/node_modules/@wonder-image/lib/package.json', $packageJson);
     }
 
     return $root;
@@ -73,14 +73,14 @@ check('la stabile precedente non soddisfa', fn () =>
 check('prefisso v e metadati di build vengono ignorati', fn () =>
     LibVersion::satisfies('v2.1.2-alpha.23+abc123', '2.1.2-alpha.23'));
 
-check('installed() legge node_modules/wonder-image/package.json', fn () =>
-    LibVersion::installed(libRoot('{"name":"wonder-image","version":"2.1.2-alpha.15"}')) === '2.1.2-alpha.15');
+check('installed() legge node_modules/@wonder-image/lib/package.json', fn () =>
+    LibVersion::installed(libRoot('{"name":"@wonder-image/lib","version":"2.1.2-alpha.15"}')) === '2.1.2-alpha.15');
 
 check('installed() è null senza node_modules', fn () => LibVersion::installed(libRoot(null)) === null);
 
 check('installed() è null con package.json illeggibile o senza versione', fn () =>
     LibVersion::installed(libRoot('{non json')) === null
-    && LibVersion::installed(libRoot('{"name":"wonder-image"}')) === null
+    && LibVersion::installed(libRoot('{"name":"@wonder-image/lib"}')) === null
     && LibVersion::installed(libRoot('{"version":"latest"}')) === null);
 
 check('check() è null quando la lib manca: il controllo non blocca', fn () =>
@@ -95,7 +95,7 @@ check('check() descrive il problema e il comando da lanciare', function () {
     return $result === [
         'installed' => '2.1.2-alpha.15',
         'minimum' => '2.1.2-alpha.23',
-        'command' => "npm install 'wonder-image@^2.1.2-alpha.23'",
+        'command' => "npm install '@wonder-image/lib@^2.1.2-alpha.23'",
     ];
 });
 

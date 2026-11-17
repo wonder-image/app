@@ -18,7 +18,7 @@ return ComponentDoc::for(Code::class)
     PHP, 'Senza `title()` l\'intestazione mostra il linguaggio.')
     ->example('Terminale e altri linguaggi', <<<'PHP'
     (new Container())->gap(3)->components([
-        Code::make("npm install wonder-image\nphp bin/docs.php", 'bash')->title('Terminal'),
+        Code::make("npm install\nphp bin/docs.php", 'bash')->title('Terminal'),
         Code::make('<div class="card"><!-- contenuto --><a href="/x">Link</a></div>', 'html')->title('index.html'),
         Code::make('{"name": "wonder-image", "private": true, "version": 2}', 'json')->title('package.json'),
     ])
