@@ -74,7 +74,9 @@ Fa questo:
 - sincronizza secrets e variables GitHub
 - chiede i valori mancanti (DB, FTP, USER) e li sincronizza nel project Bitwarden
 - **auto-genera** `GITHUB_API_TOKEN` (random hex 64 char) se non presente, lo salva sia in Bitwarden sia nei GitHub Secrets della repo
-- se un workflow usa `secrets.NPM_GITHUB_TOKEN`, gestisce `NPM_GITHUB_TOKEN` (vedi la tabella dei GitHub Secrets): stampa il link di creazione precompilato, chiede il token e lo salva nei GitHub Secrets (e in Bitwarden, se nessun workflow lo copierebbe nel `.env` di produzione)
+- se un workflow usa `secrets.NPM_GITHUB_TOKEN`, gestisce `NPM_GITHUB_TOKEN` (vedi la tabella dei GitHub Secrets): stampa il link di creazione precompilato, chiede il token (senza scadenza) e lo salva nei GitHub Secrets (e in Bitwarden, se nessun workflow lo copierebbe nel `.env` di produzione)
+- con proxy `cloudflare` chiede `CLOUDFLARE_API_TOKEN` subito dopo, con il link di creazione precompilato (vedi [Cloudflare](cloudflare.md#token)); `cloudflare:security` parte alla fine
+- ordine delle richieste: `BWS_ACCESS_TOKEN`, dominio e proxy, `NPM_GITHUB_TOKEN`, `CLOUDFLARE_API_TOKEN`, poi DB, FTP e utente
 - popola il `.env` locale dal layer `dev-shared` (vedi sotto)
 
 In CI viene saltato.

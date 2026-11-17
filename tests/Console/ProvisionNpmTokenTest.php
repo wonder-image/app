@@ -115,11 +115,52 @@ check('npm: il filtro in uno script richiamato dal workflow vale', function (): 
     removeSite($dir);
 });
 
-check('npm: link di creazione con scope e descrizione codificata', function (): void {
+check('npm: link di creazione con scope, nessuna scadenza e descrizione codificata', function (): void {
     assertSame(
-        'https://github.com/settings/tokens/new?scopes=read:packages&description=npm%20wonder-image%2Fnew-site',
+        'https://github.com/settings/tokens/new?scopes=read:packages&default_expires_at=none&description=npm%20wonder-image%2Fnew-site',
         Provision::npmTokenCreationUrl('wonder-image/new-site')
     );
+});
+
+check('cloudflare: link con i sette permessi, nome e tutte le zone', function (): void {
+    $url = Provision::cloudflareTokenCreationUrl('www.Esempio.it');
+    assertSame('https://dash.cloudflare.com/profile/api-tokens', strtok($url, '?'));
+
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+    assertSame('*', $query['accountId']);
+    assertSame('all', $query['zoneId']);
+    assertSame('esempio.it', $query['name']);
+    assertSame([
+        ['key' => 'zone', 'type' => 'read'],
+        ['key' => 'zone_settings', 'type' => 'edit'],
+        ['key' => 'zone_waf', 'type' => 'edit'],
+        ['key' => 'bot_management', 'type' => 'edit'],
+        ['key' => 'page_shield', 'type' => 'edit'],
+        ['key' => 'ssl_and_certificates', 'type' => 'read'],
+        ['key' => 'dns', 'type' => 'read'],
+    ], json_decode($query['permissionGroupKeys'], true));
+});
+
+check('cloudflare: le istruzioni elencano link, permessi, zona e scadenza', function (): void {
+    $text = implode("\n", Provision::cloudflareTokenInstructions('www.esempio.it'));
+    foreach ([Provision::cloudflareTokenCreationUrl('www.esempio.it'), 'Specific zone › la zona di esempio.it', 'non scade', ...array_keys(Provision::CLOUDFLARE_TOKEN_PERMISSIONS)] as $needle) {
+        assertSame(true, str_contains($text, $needle), $needle);
+    }
+});
+
+check('provision: i token si chiedono prima del wizard, cloudflare:security resta in fondo', function (): void {
+    $source = (string) file_get_contents(__DIR__.'/../../class/Console/Commands/Provision.php');
+    $order = array_map(static fn (string $needle): int => (int) strpos($source, $needle), [
+        "'Inserisci BWS_ACCESS_TOKEN Bitwarden:'",
+        '$this->provisionNpmToken(',
+        '$this->provisionCloudflareToken(',
+        '$this->ensureBitwardenProjectEnvValues(',
+        '$this->runCloudflareSecurity(',
+    ]);
+    $sorted = $order;
+    sort($sorted);
+    assertSame($sorted, $order);
+    assertSame(false, in_array(0, $order, true));
 });
 
 echo "\n";

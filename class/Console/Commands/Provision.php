@@ -269,6 +269,19 @@ class Provision extends Config
             $output->writeln('<comment>⚠️  NPM_GITHUB_TOKEN non gestito: '.$e->getMessage().'. Rilancia provision per riprovare.</comment>');
         }
 
+        // 6c. CLOUDFLARE_API_TOKEN: chiesto e salvato qui, insieme agli altri
+        //     token e prima del wizard (Cloudflare lo mostra una volta sola).
+        //     `cloudflare:security` resta in fondo. Un errore non ferma il
+        //     provisioning.
+        $cloudflareReady = false;
+        if ($proxy === 'cloudflare') {
+            try {
+                $cloudflareReady = $this->provisionCloudflareToken($input, $output, $appDomain, $bwProjectId, $bwAccessToken);
+            } catch (\Throwable $e) {
+                $output->writeln('<comment>⚠️  CLOUDFLARE_API_TOKEN non gestito: '.$e->getMessage().'. Rilancia provision per riprovare.</comment>');
+            }
+        }
+
         // 7. GitHub Variables: APP_DOMAIN, ASSETS_VERSION, FORCE_WWW, APP_TRUST_PROXY, APP_PROXY.
         $assetsVersion = $existingGhVars['ASSETS_VERSION'] ?? '';
         if ($assetsVersion === '') {
@@ -319,17 +332,23 @@ class Provision extends Config
 
         $output->writeln('<info>✅ Provisioning GitHub e Bitwarden completato.</info>');
 
-        // 10. Cloudflare: token e ID nel progetto Bitwarden (mai nel .env di
-        //     produzione), poi `cloudflare:security`. Un errore qui non
-        //     invalida il provisioning appena completato.
-        if ($proxy === 'cloudflare') {
-            $this->provisionCloudflare($input, $output, $appDomain, $bwProjectId, $bwAccessToken);
+        // 10. Cloudflare: il token è già in Bitwarden (passo 6c), qui si
+        //     lancia `cloudflare:security`. Un errore qui non invalida il
+        //     provisioning appena completato.
+        if ($cloudflareReady) {
+            $this->runCloudflareSecurity($input, $output, $appDomain);
         }
 
         return Command::SUCCESS;
     }
 
-    private function provisionCloudflare(InputInterface $input, OutputInterface $output, string $appDomain, string $bwProjectId, string $bwAccessToken): void
+    /**
+     * Chiede `CLOUDFLARE_API_TOKEN` e lo salva nel progetto Bitwarden con gli
+     * ID di zona e account (mai nel .env di produzione).
+     *
+     * @return bool true se token e ID sono disponibili per `cloudflare:security`
+     */
+    private function provisionCloudflareToken(InputInterface $input, OutputInterface $output, string $appDomain, string $bwProjectId, string $bwAccessToken): bool
     {
         // Un workflow vecchio copia nel .env di produzione ogni secret di Bitwarden
         $unsafe = self::workflowsLeakingCloudflare(getcwd() ?: '.');
@@ -338,11 +357,17 @@ class Provision extends Config
                 $output->writeln('<error>❌ '.$file.' scrive i secret di Bitwarden nel .env senza escludere CLOUDFLARE_*: il token finirebbe in produzione.</error>');
             }
             $output->writeln('<comment>ℹ️  Aggiungi CLOUDFLARE_* a FTP_*|BWS_*) e lo step «☁️ Cloudflare» (vedi docs/app/piattaforma/cloudflare.md), poi rilancia provision. Token Cloudflare non salvato.</comment>');
-            return;
+            return false;
         }
 
         $existing = $this->bitwardenProjectSecretsWithValues($bwProjectId, $bwAccessToken, $output) ?? [];
         $current = (string) ($existing['CLOUDFLARE_API_TOKEN'] ?? '');
+
+        if ($current === '' && $input->isInteractive()) {
+            foreach (self::cloudflareTokenInstructions($appDomain) as $line) {
+                $output->writeln('<comment>'.$line.'</comment>');
+            }
+        }
 
         $token = $this->askWithDefault(
             $input,
@@ -354,20 +379,20 @@ class Provision extends Config
         );
 
         if ($token === '') {
-            $output->writeln('<comment>ℹ️  Nessun CLOUDFLARE_API_TOKEN: crea un token con i permessi indicati in docs/app/piattaforma/cloudflare.md e rilancia provision.</comment>');
-            return;
+            $output->writeln('<comment>ℹ️  Nessun CLOUDFLARE_API_TOKEN: `cloudflare:security` saltato. Rilancia provision per aggiungerlo (permessi in docs/app/piattaforma/cloudflare.md).</comment>');
+            return false;
         }
 
         try {
             $zone = (new \Wonder\Cloudflare\Client($token))->findZone($appDomain);
         } catch (\Throwable $e) {
             $output->writeln('<error>❌ Cloudflare: '.$e->getMessage().'</error>');
-            return;
+            return false;
         }
 
         if ($zone === null) {
             $output->writeln('<error>❌ Nessuna zona Cloudflare per '.$appDomain.' visibile con questo token: non salvato.</error>');
-            return;
+            return false;
         }
 
         $values = [
@@ -389,7 +414,7 @@ class Provision extends Config
 
             if ($result['exitCode'] !== 0) {
                 $output->writeln('<error>❌ '.$key.' non salvato in Bitwarden.</error>');
-                return;
+                return false;
             }
             $output->writeln('<info>✅ '.$key.' salvato in Bitwarden.</info>');
         }
@@ -399,6 +424,11 @@ class Provision extends Config
             $_ENV[$key] = $value;
         }
 
+        return true;
+    }
+
+    private function runCloudflareSecurity(InputInterface $input, OutputInterface $output, string $appDomain): void
+    {
         $command = $this->getApplication()?->find('cloudflare:security');
         if ($command === null) {
             return;
@@ -473,6 +503,7 @@ class Provision extends Config
             $output->writeln('<comment>   Crea un token classic con il solo scope read:packages, con l\'account proprietario del pacchetto:</comment>');
         }
         $output->writeln('<comment>   '.self::npmTokenCreationUrl($repoName).'</comment>');
+        $output->writeln('<comment>   Expiration: scegli «No expiration» (se il link non l\'ha già selezionata).</comment>');
 
         $token = trim($this->askWithDefault($input, $output, 'NPM_GITHUB_TOKEN', 'NPM_GITHUB_TOKEN (Enter = salta):', '', true));
         if ($token === '') {
@@ -532,7 +563,67 @@ class Provision extends Config
     /** Link di creazione del token classic, con scope e descrizione precompilati. */
     public static function npmTokenCreationUrl(string $repoName): string
     {
-        return 'https://github.com/settings/tokens/new?scopes=read:packages&description='.rawurlencode('npm '.$repoName);
+        return 'https://github.com/settings/tokens/new?scopes=read:packages&default_expires_at=none&description='.rawurlencode('npm '.$repoName);
+    }
+
+    /**
+     * Permessi del token Cloudflare usati da `cloudflare:security`:
+     * etichetta nel modulo => [chiave del link, livello].
+     * Documentate da Cloudflare: zone, zone_settings, ssl_and_certificates,
+     * dns. Le altre tre seguono lo stesso schema ma non sono documentate: se
+     * Cloudflare non le riconosce le scarta, e vanno aggiunte nel modulo.
+     */
+    public const CLOUDFLARE_TOKEN_PERMISSIONS = [
+        'Zone › Zone › Read' => ['zone', 'read'],
+        'Zone › Zone Settings › Edit' => ['zone_settings', 'edit'],
+        'Zone › Zone WAF › Edit' => ['zone_waf', 'edit'],
+        'Zone › Bot Management › Edit' => ['bot_management', 'edit'],
+        'Zone › Page Shield › Edit' => ['page_shield', 'edit'],
+        'Zone › SSL and Certificates › Read' => ['ssl_and_certificates', 'read'],
+        'Zone › DNS › Read' => ['dns', 'read'],
+    ];
+
+    /** Link di creazione del token Cloudflare, con nome e permessi precompilati. */
+    public static function cloudflareTokenCreationUrl(string $appDomain): string
+    {
+        $groups = [];
+        foreach (self::CLOUDFLARE_TOKEN_PERMISSIONS as [$key, $type]) {
+            $groups[] = ['key' => $key, 'type' => $type];
+        }
+
+        return 'https://dash.cloudflare.com/profile/api-tokens'
+            .'?permissionGroupKeys='.rawurlencode((string) json_encode($groups))
+            .'&accountId='.rawurlencode('*')
+            .'&zoneId=all'
+            .'&name='.rawurlencode(self::cloudflareZoneName($appDomain));
+    }
+
+    /** Dominio senza `www.`: è il nome della zona da scegliere nel modulo. */
+    public static function cloudflareZoneName(string $appDomain): string
+    {
+        return (string) preg_replace('/^www\./', '', strtolower(trim($appDomain)));
+    }
+
+    /**
+     * Righe stampate prima di chiedere il token: link e cosa controllare nel
+     * modulo (il link non può scegliere la zona né la scadenza).
+     *
+     * @return string[]
+     */
+    public static function cloudflareTokenInstructions(string $appDomain): array
+    {
+        $lines = [
+            'ℹ️  Cloudflare è davanti al sito: serve CLOUDFLARE_API_TOKEN. Crealo da questo link (nome e permessi precompilati):',
+            '   '.self::cloudflareTokenCreationUrl($appDomain),
+            '   Nel modulo controlla che ci siano questi permessi (aggiungi quelli mancanti):',
+        ];
+        foreach (array_keys(self::CLOUDFLARE_TOKEN_PERMISSIONS) as $label) {
+            $lines[] = '     - '.$label;
+        }
+        $lines[] = '   Zone Resources: Include › Specific zone › la zona di '.self::cloudflareZoneName($appDomain).' (il link propone tutte le zone).';
+        $lines[] = '   TTL: lascia vuote le date, così il token non scade.';
+
+        return $lines;
     }
 
     /** Suffissi a due livelli più comuni: `esempio.co.uk` è un dominio principale. */
