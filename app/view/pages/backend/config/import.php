@@ -52,7 +52,7 @@ foreach (['Scegli il file', 'Abbina le colonne', 'Controlla e carica'] as $i => 
         $n === 2 => $STATUS === 'validated' ? ImportResource::url(['layout' => $KEY, 'job' => (int) $JOB['id'], 'step' => 2]) : null,
         default => $STATUS === 'validated' ? $JOB_URL : null,
     };
-    $STEPS->step("{$n}. {$label}", $href, $n < $STEP ? 'done' : ($n === $STEP ? 'current' : 'todo'));
+    $STEPS->step($label, $href, $n < $STEP ? 'done' : ($n === $STEP ? 'current' : 'todo'));
 }
 
 $hidden = static fn (array $values): array => array_map(
@@ -70,11 +70,9 @@ $list = static function (?string $json): array {
 \Wonder\View\View::layout('backend.show', [
     'TITLE' => 'Carica da file',
     'SUBTITLE' => $LAYOUT->label(),
+    'BACK_URL' => $LAYOUT->backUrl(),
 ]);
 ?>
-<?php if ($LAYOUT->backUrl() !== null) { ?>
-<div class="mb-3"><?= Button::make('Torna alla lista', $LAYOUT->backUrl())->variant('light')->size('sm')->render('bootstrap') ?></div>
-<?php } ?>
 <div class="mb-3"><?= $STEPS->render('bootstrap') ?></div>
 
 <?php if ($JOB === null) {

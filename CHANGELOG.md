@@ -291,6 +291,14 @@
   riconta appena la finestra è fuori.
 
 ### Cambiato
+- **Steps in Bootstrap: uno stepper, non più un breadcrumb.** Ogni passo ha
+  il numero in un badge tondo (spunta su quelli fatti), l'etichetta e una
+  linea verso il passo dopo, con le sole classi di Bootstrap. Le pagine di
+  caricamento da file e di import delle traduzioni non scrivono più il
+  numero nell'etichetta.
+- **Caricamento da file: la freccia accanto al titolo.** `Layout::backUrl()`
+  diventa la freccia del layout `backend.show`, come nelle altre pagine; il
+  bottone «Torna alla lista» non c'è più.
 - **Email: quadratino del brand solo senza logo.** L'intestazione mostra il
   logo PNG caricato in Media → Logo; il nome della società, con il
   quadratino nel colore primario, compare solo quando il logo manca. Un

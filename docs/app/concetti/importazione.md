@@ -66,6 +66,7 @@ final class BrandLayout extends Layout
     public static function key(): string { return 'brands'; }
     public function label(): string { return 'Marchi'; }
     public function permits(object $user): bool { return BrandResource::allows($user->authority, 'update'); }
+    // La freccia accanto al titolo della pagina di caricamento porta qui.
     public function backUrl(): ?string { return BrandResource::listUrl(); }
 
     public function columns(): array
