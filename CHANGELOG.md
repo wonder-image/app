@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 2.4.1 — 2026-11-17
+
+### Corretto
+- **`php forge start` non riscrive più un `APP_DOMAIN` già impostato.** Il
+  comando ricalcolava `APP_DOMAIN` dal nome della cartella a ogni avvio e lo
+  sovrascriveva nel `.env`: in una cartella `ecommerce-site` un
+  `APP_DOMAIN=ecommerce.test` diventava `ecommerce.site`. Ora la cartella serve
+  solo a compilare un valore mancante, il segnaposto `example.local` o un
+  valore legacy senza estensione (`wonderimage`, `wonderimage-com`); `APP_URL`
+  e il sito Herd seguono l'`APP_DOMAIN` conservato.
+
+### Cambiato
+- **Aggiornamento di sicurezza delle dipendenze (`composer.lock`).** `symfony/http-foundation`
+  da v7.4.19 a v7.4.23 e `symfony/routing` da v7.4.18 a v7.4.23, che chiudono
+  i cinque avvisi di sicurezza segnalati da `composer audit` (CVE-2026-121619,
+  CVE-2026-118514 e CVE-2026-118516, più due senza CVE).
+
 ## 2.4.0 — 2026-11-17
 
 ### Aggiunto
