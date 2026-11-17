@@ -658,7 +658,9 @@ Steps::make('Checkout')
 
   L'etichetta di `make()` diventa l'`aria-label` del `<nav>`.
 - **Tema `wonder`**: usa `.wi-choice`, `.wi-choice-group` e `.wi-steps` della lib, che bisogna aggiornare insieme.
-- **Tema `bootstrap`**: rende un `form-check` dentro una `card` e un `breadcrumb`.
+- **Tema `bootstrap`**: rende un `form-check` dentro una `card` e uno stepper con le sole classi
+  di Bootstrap: numero in un badge tondo (spunta sui passi fatti), etichetta e una linea verso il
+  passo dopo. Il numero lo mette il tema: l'etichetta non lo ripete.
 - **Pagina unica del checkout**:
   - `ChoiceGroup::variant('segmented')` mette le scelte in riga, unite (Spedisci / Ritiro);
     `variant('list')` le impila unite, con i bordi in comune (metodi di spedizione e di

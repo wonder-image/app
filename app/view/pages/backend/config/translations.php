@@ -44,7 +44,7 @@ $steps = Steps::make('Passi dell\'import');
 foreach (['Cosa tradurre', 'Scarica e carica', 'Controlla e applica'] as $i => $label) {
     $n = $i + 1;
     $href = match ($n) { 1 => TranslationsResource::url($SELECTION + ['step' => 1]), 2 => TranslationsResource::url($SELECTION), default => null };
-    $steps->step("{$n}. {$label}", $href, $n < $STEP ? 'done' : ($n === $STEP ? 'current' : 'todo'));
+    $steps->step($label, $href, $n < $STEP ? 'done' : ($n === $STEP ? 'current' : 'todo'));
 }
 ?>
 <?php if ($STEP === 0) { ?>

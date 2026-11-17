@@ -25,7 +25,7 @@ foreach (['wonder', 'bootstrap'] as $theme) {
         $html = $percorso()->render($theme);
 
         return substr_count($html, '<a ') === 1
-            && str_contains($html, '<a href="/cart/">Carrello</a>')
+            && preg_match('/<a href="\/cart\/"( class="[^"]*")?>Carrello<\/a>/', $html) === 1
             && !str_contains($html, 'href="/checkout/"')
             && !str_contains($html, 'href="/checkout/payment/"');
     });
@@ -34,11 +34,11 @@ foreach (['wonder', 'bootstrap'] as $theme) {
         $html = $percorso()->render($theme);
 
         return substr_count($html, 'aria-current="step"') === 1
-            && preg_match('/aria-current="step">Spedizione &amp; ritiro<\/li>/', $html) === 1;
+            && preg_match('/aria-current="step">(<span[^>]*>\d<\/span><span class="fw-semibold">)?Spedizione &amp; ritiro</', $html) === 1;
     });
 
     check("{$theme}: il passo da fare è spento e non cliccabile", fn () =>
-        preg_match('/aria-disabled="true">Pagamento<\/li>/', $percorso()->render($theme)) === 1
+        preg_match('/aria-disabled="true">(<span[^>]*>\d<\/span><span class="text-body-tertiary">)?Pagamento</', $percorso()->render($theme)) === 1
     );
 
     check("{$theme}: stato sconosciuto vale todo, done senza href è solo testo", function () use ($theme) {
@@ -46,13 +46,13 @@ foreach (['wonder', 'bootstrap'] as $theme) {
 
         return !str_contains($html, '<a ')
             && !str_contains($html, 'aria-label')
-            && preg_match('/aria-disabled="true">Due<\/li>/', $html) === 1
-            && str_contains($html, '>Uno</li>');
+            && preg_match('/aria-disabled="true">(<span[^>]*>\d<\/span><span class="text-body-tertiary">)?Due</', $html) === 1
+            && preg_match('/>Uno(<\/li>|<span class="flex-grow-1 border-top")/', $html) === 1;
     });
 
     check("{$theme}: classi e attributi dati vanno sull'ol", function () use ($percorso, $theme) {
         $html = $percorso()->class('mb-4')->attr('data-x', '1')->render($theme);
-        $base = $theme === 'wonder' ? 'wi-steps' : 'breadcrumb mb-0';
+        $base = $theme === 'wonder' ? 'wi-steps' : 'd-flex flex-wrap align-items-center gap-2 list-unstyled mb-0 small';
 
         return str_contains($html, '<ol class="'.$base.' mb-4" data-x="1">');
     });
@@ -70,12 +70,14 @@ check('wonder: le classi della lib', function () use ($percorso) {
         && str_contains($html, '<li class="wi-steps__item is-disabled" aria-disabled="true">');
 });
 
-check('bootstrap: il breadcrumb', function () use ($percorso) {
+check('bootstrap: uno stepper, non un breadcrumb', function () use ($percorso) {
     $html = $percorso()->render('bootstrap');
 
-    return str_contains($html, '<li class="breadcrumb-item"><a href="/cart/">')
-        && str_contains($html, '<li class="breadcrumb-item active" aria-current="step">')
-        && str_contains($html, '<li class="breadcrumb-item text-body-tertiary" aria-disabled="true">');
+    return !str_contains($html, 'breadcrumb')
+        && str_contains($html, 'text-bg-success" aria-hidden="true"><i class="bi bi-check-lg"></i></span><a href="/cart/"')
+        && str_contains($html, '<span class="badge rounded-pill text-bg-primary" aria-hidden="true">2</span>')
+        && str_contains($html, 'aria-hidden="true">3</span><span class="text-body-tertiary">Pagamento</span></li>')
+        && substr_count($html, 'border-top') === 2;
 });
 
 check('la guida dei componenti e il CHANGELOG raccontano Choice, ChoiceGroup e Steps', function () {
