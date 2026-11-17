@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.4.0 — 2026-11-17
+
 ### Aggiunto
 - **Testate dei gruppi con la libreria media.** `repeaterGroupFiles()` accetta
   un campo con `mediaLibrary()`: il valore è `chiave → id dei media`, la
