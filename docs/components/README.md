@@ -15,7 +15,7 @@ tema scelto (Wonder o Bootstrap, quest'ultimo anche in modalità scura).
 
 Il server autonomo (`Wonder\Docs\Server`) non usa database, sessione né
 `.env`: definisce da sé le costanti che i renderer si aspettano, serve gli
-asset della lib da `node_modules/wonder-image` e rende il tema Wonder con i
+asset della lib da `node_modules/@wonder-image/lib` e rende il tema Wonder con i
 token di default del framework (`Wonder\View\CssTokens::defaultRoot()`, gli
 stessi che `cssRoot()` scrive in un sito nuovo).
 

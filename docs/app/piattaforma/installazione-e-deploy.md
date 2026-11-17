@@ -31,8 +31,8 @@ Fa questo:
 - normalizza `APP_DOMAIN`, `APP_URL`, `ASSETS_VERSION`
 - aggiorna il `name` in `composer.json`
 - crea `package.json` se manca
-- in locale esegue `npm install wonder-image`
-- in CI **non** esegue `npm install wonder-image`
+- in locale esegue `npm install '@wonder-image/lib'`
+- in CI **non** esegue `npm install '@wonder-image/lib'`
 
 Non fa più:
 
@@ -385,7 +385,7 @@ Il codice attuale di `forge config`, richiamato anche da `composer update`, cons
 
 ## Dipendenze npm
 
-`forge config` esegue `npm install wonder-image` e poi `npm install`: può aggiornare il pacchetto `wonder-image`, `package.json` e `package-lock.json`. Non esegue un aggiornamento esplicito del programma npm; se Node/npm mancano, il setup può installare Node tramite Homebrew, includendo npm.
+`forge config` esegue `npm install '@wonder-image/lib'` e poi `npm install` (se `package.json` ha ancora la vecchia dipendenza `wonder-image`, la rimuove con `npm uninstall wonder-image`): può aggiornare il pacchetto `@wonder-image/lib`, `package.json` e `package-lock.json`. Non esegue un aggiornamento esplicito del programma npm; se Node/npm mancano, il setup può installare Node tramite Homebrew, includendo npm.
 
 ## Import progetto legacy già esistente
 
@@ -963,25 +963,25 @@ poi chiami tu i comandi giusti.
 - `composer.json` è già corretto
 - `package.json` è già presente
 - il provisioning GitHub/Bitwarden non serve
-- `npm install wonder-image` non deve partire
+- `npm install '@wonder-image/lib'` non deve partire
 
 ## Nota importante sugli asset
 
 Se il progetto continua a servire asset da:
 
 ```text
-/node_modules/wonder-image/
+/node_modules/@wonder-image/lib/
 ```
 
-e in GitHub Actions non esegui `npm install wonder-image`, quella cartella nel deploy **non esisterà**.
+e in GitHub Actions non esegui `npm install '@wonder-image/lib'`, quella cartella nel deploy **non esisterà**.
 
 Quindi hai solo tre strade:
 
-1. tieni `npm install wonder-image` nel deploy
+1. tieni `npm install '@wonder-image/lib'` nel deploy
 2. committi o pubblichi gli asset in altro modo
 3. smetti di leggere asset runtime da `node_modules`
 
-Ad oggi il codice del package usa ancora `node_modules/wonder-image`, quindi questo punto va tenuto sotto controllo.
+Ad oggi il codice del package usa ancora `node_modules/@wonder-image/lib`, quindi questo punto va tenuto sotto controllo.
 
 ## Errori comuni
 

@@ -3,7 +3,7 @@
 namespace Wonder\App;
 
 /**
- * Versione minima di `wonder-image/lib` (npm) richiesta dal framework.
+ * Versione minima di `@wonder-image/lib` (pacchetto npm privato su GitHub Packages) richiesta dal framework.
  *
  * I renderer emettono markup (`data-wi-confirm`, `data-wi-save-bar`, header
  * CSRF, ...) che funziona solo se il JS della lib lo gestisce: il minimo si
@@ -13,7 +13,7 @@ namespace Wonder\App;
  */
 final class LibVersion
 {
-    public const PACKAGE = 'wonder-image';
+    public const PACKAGE = '@wonder-image/lib';
 
     /**
      * Minimo dichiarato in `extra.wonder.lib` (es. `^2.1.2-alpha.23`), oppure
@@ -85,7 +85,7 @@ final class LibVersion
     }
 
     /**
-     * Il vincolo è esplicito perché `npm install wonder-image` risolve il
+     * Il vincolo è esplicito perché `npm install @wonder-image/lib` risolve il
      * dist-tag `latest`, che può essere più vecchio di una pre-release.
      */
     public static function installCommand(string $minimum): string
