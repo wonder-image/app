@@ -74,6 +74,7 @@ Fa questo:
 - sincronizza secrets e variables GitHub
 - chiede i valori mancanti (DB, FTP, USER) e li sincronizza nel project Bitwarden
 - **auto-genera** `GITHUB_API_TOKEN` (random hex 64 char) se non presente, lo salva sia in Bitwarden sia nei GitHub Secrets della repo
+- se un workflow usa `secrets.NPM_GITHUB_TOKEN`, gestisce `NPM_GITHUB_TOKEN` (vedi la tabella dei GitHub Secrets): stampa il link di creazione precompilato, chiede il token e lo salva nei GitHub Secrets (e in Bitwarden, se nessun workflow lo copierebbe nel `.env` di produzione)
 - popola il `.env` locale dal layer `dev-shared` (vedi sotto)
 
 In CI viene saltato.
@@ -670,6 +671,7 @@ Secrets richiesti dal workflow:
 | `BWS_ACCESS_TOKEN` | Bitwarden Secrets Manager | Access token per leggere il project Bitwarden |
 | `BWS_PROJECT_ID` | Bitwarden Secrets Manager | UUID del project Bitwarden del sito |
 | `GITHUB_API_TOKEN` | App target (vedi sotto) | **Bearer del sito**, non un PAT GitHub. Usato da `Authorization: Bearer ...` nello step `🗄️ Update App` per chiamare `/api/app/update/` sull'host di produzione. Deve coincidere con il valore restituito da `Wonder\App\Credentials::appToken()` sull'app target. |
+| `NPM_GITHUB_TOKEN` | GitHub (token personale *classic*) | Solo `read:packages`: serve a `npm ci` per scaricare il pacchetto privato `@wonder-image/lib` da GitHub Packages. GitHub non permette di crearlo via API: `php forge provision` stampa il link precompilato (da aprire con l'account proprietario del pacchetto), chiede il valore e lo salva. |
 
 ```bash
 gh secret set BWS_ACCESS_TOKEN --repo "$REPO_FULL_NAME" --body "$BWS_ACCESS_TOKEN"

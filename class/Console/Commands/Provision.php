@@ -16,7 +16,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  * solo su:
  *
  * - **GitHub Secrets** della repo: `BWS_ACCESS_TOKEN`, `BWS_PROJECT_ID`,
- *   `APP_DEPLOY_TOKEN` (auto-generato).
+ *   `APP_DEPLOY_TOKEN` (auto-generato) e `NPM_GITHUB_TOKEN` (token classic
+ *   con solo `read:packages`, per `npm ci` del pacchetto privato
+ *   `@wonder-image/lib`: solo se un workflow lo usa; lo chiede l'utente).
  * - **GitHub Variables** della repo: `APP_DOMAIN` di produzione,
  *   `ASSETS_VERSION`, `FORCE_WWW`, `APP_TRUST_PROXY` e `APP_PROXY`
  *   (`nessuno`, `cloudflare`, `altro`).
@@ -89,6 +91,8 @@ class Provision extends Config
         //    più avanti).
         $bwAccessToken = $this->envValue($lines, $keyToIndex, 'BWS_ACCESS_TOKEN');
         if ($bwAccessToken === '') {
+            $output->writeln('<comment>ℹ️  Si crea in Bitwarden → Secrets Manager → Machine accounts → il machine account → Access tokens → «Create access token».</comment>');
+            $output->writeln('<comment>   Link: https://vault.bitwarden.com/#/sm (guida: https://bitwarden.com/help/access-tokens/)</comment>');
             $bwAccessToken = $this->askRequiredValue($input, $output, 'BWS_ACCESS_TOKEN', 'Inserisci BWS_ACCESS_TOKEN Bitwarden:', true);
             if ($bwAccessToken === '') {
                 return Command::FAILURE;
@@ -257,6 +261,14 @@ class Provision extends Config
             $output->writeln('<comment>   gh secret delete GITHUB_API_TOKEN --repo '.$repoName.'</comment>');
         }
 
+        // 6b. NPM_GITHUB_TOKEN: solo se un workflow lo usa. Un errore qui non
+        //     ferma il provisioning (come Cloudflare): si avvisa e si prosegue.
+        try {
+            $this->provisionNpmToken($input, $output, $repoName, $bwProjectId, $bwAccessToken, $existingGhSecrets);
+        } catch (\Throwable $e) {
+            $output->writeln('<comment>⚠️  NPM_GITHUB_TOKEN non gestito: '.$e->getMessage().'. Rilancia provision per riprovare.</comment>');
+        }
+
         // 7. GitHub Variables: APP_DOMAIN, ASSETS_VERSION, FORCE_WWW, APP_TRUST_PROXY, APP_PROXY.
         $assetsVersion = $existingGhVars['ASSETS_VERSION'] ?? '';
         if ($assetsVersion === '') {
@@ -397,6 +409,132 @@ class Provision extends Config
         $command->run($cloudflareInput, $output);
     }
 
+    /**
+     * `NPM_GITHUB_TOKEN`: token GitHub classic (solo `read:packages`) con cui
+     * `npm ci` scarica `@wonder-image/lib` da GitHub Packages. GitHub non
+     * permette di crearlo via API: lo crea l'utente, qui si chiede e si salva.
+     *
+     * @param string[] $existingGhSecrets nomi dei GitHub Secrets già presenti
+     */
+    private function provisionNpmToken(InputInterface $input, OutputInterface $output, string $repoName, string $bwProjectId, string $bwAccessToken, array $existingGhSecrets): void
+    {
+        $cwd = getcwd() ?: '.';
+
+        if (self::workflowsUsingNpmToken($cwd) === []) {
+            return;
+        }
+
+        // Una lettura fallita non vale "assente": si rischierebbe un doppione.
+        $existing = $this->bitwardenProjectSecretsWithValues($bwProjectId, $bwAccessToken, $output);
+        if ($existing === null) {
+            $output->writeln('<comment>⚠️  Project Bitwarden non leggibile: NPM_GITHUB_TOKEN saltato. Rilancia provision per riprovare.</comment>');
+            return;
+        }
+
+        // Workflow che copierebbero il token nel .env di produzione.
+        $unsafe = self::workflowsLeakingKey($cwd, 'NPM_GITHUB_TOKEN');
+        $warnUnsafe = static function () use ($unsafe, $output): void {
+            foreach ($unsafe as $file) {
+                $output->writeln('<comment>⚠️  '.$file.' scrive i secret di Bitwarden nel .env senza escludere NPM_GITHUB_TOKEN: il token finirebbe in produzione.</comment>');
+                $output->writeln('<comment>   Aggiungi NPM_GITHUB_TOKEN alle chiavi escluse (elenco FTP_*|BWS_*) e rilancia provision.</comment>');
+            }
+        };
+
+        // 1. Già in Bitwarden: si sincronizza nei GitHub Secrets.
+        $fromBitwarden = (string) ($existing['NPM_GITHUB_TOKEN'] ?? '');
+        if ($fromBitwarden !== '') {
+            if ($this->syncGithubRepositorySecrets($repoName, ['NPM_GITHUB_TOKEN' => $fromBitwarden], $output)) {
+                $output->writeln('<info>↺ NPM_GITHUB_TOKEN preso da Bitwarden e sincronizzato in GitHub Secrets ('.$repoName.').</info>');
+            }
+            $warnUnsafe();
+            return;
+        }
+
+        // 2. Solo nei GitHub Secrets: il valore non è leggibile. Si richiede
+        //    soltanto se lo si può salvare in Bitwarden senza rischi.
+        $inGithub = in_array('NPM_GITHUB_TOKEN', $existingGhSecrets, true);
+        if ($inGithub && ($unsafe !== [] || !$input->isInteractive())) {
+            $output->writeln('<info>↺ NPM_GITHUB_TOKEN già presente in GitHub Secrets ('.$repoName.'), mantenuto invariato (non è in Bitwarden).</info>');
+            $warnUnsafe();
+            return;
+        }
+
+        // 3. Manca: serve crearlo a mano.
+        if (!$input->isInteractive()) {
+            $output->writeln('<comment>ℹ️  NPM_GITHUB_TOKEN manca: senza, il deploy si ferma a `npm ci`. Rilancia `php forge provision` in modalità interattiva.</comment>');
+            return;
+        }
+
+        if ($inGithub) {
+            $output->writeln('<comment>ℹ️  NPM_GITHUB_TOKEN è nei GitHub Secrets ma non in Bitwarden (un GitHub Secret non si può leggere).</comment>');
+            $output->writeln('<comment>   Per salvarlo anche in Bitwarden incollalo di nuovo, oppure creane uno nuovo (classic, solo read:packages):</comment>');
+        } else {
+            $output->writeln('<comment>ℹ️  Il deploy scarica @wonder-image/lib da GitHub Packages e serve NPM_GITHUB_TOKEN.</comment>');
+            $output->writeln('<comment>   Crea un token classic con il solo scope read:packages, con l\'account proprietario del pacchetto:</comment>');
+        }
+        $output->writeln('<comment>   '.self::npmTokenCreationUrl($repoName).'</comment>');
+
+        $token = trim($this->askWithDefault($input, $output, 'NPM_GITHUB_TOKEN', 'NPM_GITHUB_TOKEN (Enter = salta):', '', true));
+        if ($token === '') {
+            if (!$inGithub) {
+                $output->writeln('<comment>⚠️  Nessun NPM_GITHUB_TOKEN: il deploy si fermerà a `npm ci` finché il secret manca. Rilancia provision per aggiungerlo.</comment>');
+            }
+            return;
+        }
+
+        if (!$this->syncGithubRepositorySecrets($repoName, ['NPM_GITHUB_TOKEN' => $token], $output)) {
+            return;
+        }
+
+        // Bitwarden solo se nessun workflow lo copierebbe nel .env di produzione.
+        if ($unsafe !== []) {
+            $warnUnsafe();
+            $output->writeln('<comment>ℹ️  NPM_GITHUB_TOKEN salvato solo in GitHub Secrets, non in Bitwarden.</comment>');
+            return;
+        }
+
+        $ids = $this->bitwardenProjectSecrets($bwProjectId, $bwAccessToken, $output);
+        if ($ids === null) {
+            $output->writeln('<error>❌ NPM_GITHUB_TOKEN non salvato in Bitwarden (è comunque in GitHub Secrets).</error>');
+            return;
+        }
+        $command = isset($ids['NPM_GITHUB_TOKEN'])
+            ? ['bws', 'secret', 'edit', '--value', $token, $ids['NPM_GITHUB_TOKEN'], '--output', 'json']
+            : ['bws', 'secret', 'create', 'NPM_GITHUB_TOKEN', $token, $bwProjectId, '--output', 'json'];
+        $result = $this->runCommand($command, ['BWS_ACCESS_TOKEN' => $bwAccessToken]);
+
+        if ($result['exitCode'] !== 0) {
+            $output->writeln('<error>❌ NPM_GITHUB_TOKEN non salvato in Bitwarden (è comunque in GitHub Secrets).</error>');
+            return;
+        }
+        $output->writeln('<info>✅ NPM_GITHUB_TOKEN salvato in Bitwarden e in GitHub Secrets.</info>');
+    }
+
+    /**
+     * Workflow GitHub che usano `secrets.NPM_GITHUB_TOKEN` (riga non commentata).
+     *
+     * @return string[] percorsi relativi
+     */
+    public static function workflowsUsingNpmToken(string $cwd): array
+    {
+        $files = glob(rtrim($cwd, '/').'/.github/workflows/*.{yml,yaml}', GLOB_BRACE) ?: [];
+        $using = [];
+
+        foreach ($files as $file) {
+            if (preg_match('/^[ \t]*[^#\n]*secrets\.NPM_GITHUB_TOKEN\b/m', (string) file_get_contents($file))) {
+                $using[] = '.github/workflows/'.basename($file);
+            }
+        }
+
+        return $using;
+    }
+
+    /** Link di creazione del token classic, con scope e descrizione precompilati. */
+    public static function npmTokenCreationUrl(string $repoName): string
+    {
+        return 'https://github.com/settings/tokens/new?scopes=read:packages&description='.rawurlencode('npm '.$repoName);
+    }
+
     /** Suffissi a due livelli più comuni: `esempio.co.uk` è un dominio principale. */
     private const TWO_LEVEL_SUFFIXES = ['co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'com.au', 'net.au', 'org.au', 'co.nz', 'com.br', 'co.jp', 'co.za', 'com.mx', 'com.ar', 'com.tr'];
 
@@ -453,6 +591,18 @@ class Provision extends Config
      */
     public static function workflowsLeakingCloudflare(string $cwd): array
     {
+        return self::workflowsLeakingKey($cwd, 'CLOUDFLARE_*');
+    }
+
+    /**
+     * Workflow GitHub che scrivono nel `.env` senza escludere `$pattern`
+     * (testo letterale, es. `NPM_GITHUB_TOKEN`) in un pattern del `case`,
+     * nel workflow stesso o in uno script `.github/scripts/*.sh` che richiama.
+     *
+     * @return string[] percorsi relativi
+     */
+    public static function workflowsLeakingKey(string $cwd, string $pattern): array
+    {
         $files = glob(rtrim($cwd, '/').'/.github/workflows/*.{yml,yaml}', GLOB_BRACE) ?: [];
         $unsafe = [];
 
@@ -461,7 +611,17 @@ class Provision extends Config
             if (!preg_match('/>>\s*\.env\b/', $content)) {
                 continue;
             }
-            if (!preg_match('/^[ \t]*[^#\n]*\bCLOUDFLARE_\*[^\n]*\)[ \t]*$/m', $content)) {
+            // Il filtro può stare in uno script richiamato dal workflow
+            // (es. `.github/scripts/secrets-to-env.sh`): si legge anche quello.
+            if (preg_match_all('#\.github/scripts/[\w.-]+\.sh#', $content, $scripts)) {
+                foreach (array_unique($scripts[0]) as $script) {
+                    $path = rtrim($cwd, '/').'/'.$script;
+                    if (is_file($path)) {
+                        $content .= "\n".(string) file_get_contents($path);
+                    }
+                }
+            }
+            if (!preg_match('/^[ \t]*[^#\n]*'.preg_quote($pattern, '/').'[^\n]*\)[ \t]*(;;)?[ \t]*$/m', $content)) {
                 $unsafe[] = '.github/workflows/'.basename($file);
             }
         }
