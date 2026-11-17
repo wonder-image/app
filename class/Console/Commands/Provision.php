@@ -90,16 +90,35 @@ class Provision extends Config
         //    .env locale (e sarà sincronizzato anche nei GitHub Secrets
         //    più avanti).
         $bwAccessToken = $this->envValue($lines, $keyToIndex, 'BWS_ACCESS_TOKEN');
-        if ($bwAccessToken === '') {
-            $output->writeln('<comment>ℹ️  Si crea in Bitwarden → Secrets Manager → Machine accounts → il machine account → Access tokens → «Create access token».</comment>');
-            $output->writeln('<comment>   Link: https://vault.bitwarden.com/#/sm (guida: https://bitwarden.com/help/access-tokens/)</comment>');
-            $bwAccessToken = $this->askRequiredValue($input, $output, 'BWS_ACCESS_TOKEN', 'Inserisci BWS_ACCESS_TOKEN Bitwarden:', true);
+        $bwTokenAttempts = 0;
+        while (true) {
             if ($bwAccessToken === '') {
+                $output->writeln('<comment>ℹ️  Si crea in Bitwarden → Secrets Manager → Machine accounts → il machine account → Access tokens → «Create access token».</comment>');
+                $output->writeln('<comment>   Link: https://vault.bitwarden.com/#/sm (guida: https://bitwarden.com/help/access-tokens/)</comment>');
+                $bwAccessToken = $this->askRequiredValue($input, $output, 'BWS_ACCESS_TOKEN', 'Inserisci BWS_ACCESS_TOKEN Bitwarden:', true);
+                if ($bwAccessToken === '') {
+                    return Command::FAILURE;
+                }
+                $this->setEnvValue($lines, $keyToIndex, 'BWS_ACCESS_TOKEN', $bwAccessToken);
+                file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL);
+                $output->writeln('<info>✅ Salvato BWS_ACCESS_TOKEN nel .env locale</info>');
+            }
+
+            // Un token revocato o scaduto farebbe fallire in silenzio i
+            // passi successivi (e finirebbe nei GitHub Secrets): si
+            // verifica subito e, se Bitwarden lo rifiuta, se ne chiede uno nuovo.
+            $bwCheck = $this->runCommand(['bws', 'project', 'list', '--output', 'json'], ['BWS_ACCESS_TOKEN' => $bwAccessToken]);
+            if ($bwCheck['exitCode'] === 0 || !self::bitwardenTokenRejected($bwCheck['stderr'].' '.$bwCheck['stdout'])) {
+                break;
+            }
+
+            $bwTokenAttempts++;
+            $output->writeln('<error>❌ Bitwarden rifiuta il BWS_ACCESS_TOKEN (revocato, scaduto o errato).</error>');
+            if (!$input->isInteractive() || $bwTokenAttempts >= 3) {
+                $output->writeln('<error>   Crea un nuovo access token e rilancia `php forge provision` in modalità interattiva.</error>');
                 return Command::FAILURE;
             }
-            $this->setEnvValue($lines, $keyToIndex, 'BWS_ACCESS_TOKEN', $bwAccessToken);
-            file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL);
-            $output->writeln('<info>✅ Salvato BWS_ACCESS_TOKEN nel .env locale</info>');
+            $bwAccessToken = '';
         }
 
         // dev-shared layer (locale): se l'utente ha un project Bitwarden
@@ -596,6 +615,15 @@ class Provision extends Config
             .'&accountId='.rawurlencode('*')
             .'&zoneId=all'
             .'&name='.rawurlencode(self::cloudflareZoneName($appDomain));
+    }
+
+    /**
+     * Riconosce dall'output di `bws` un access token rifiutato da Bitwarden
+     * (revocato, scaduto o malformato), distinto da un errore di rete.
+     */
+    public static function bitwardenTokenRejected(string $bwsOutput): bool
+    {
+        return preg_match('/invalid_client|invalid_grant|access token is not in a valid format|doesn\'t contain a decryption key|401 Unauthorized/i', $bwsOutput) === 1;
     }
 
     /** Dominio senza `www.`: è il nome della zona da scegliere nel modulo. */

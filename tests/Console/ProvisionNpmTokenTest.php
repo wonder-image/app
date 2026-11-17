@@ -163,6 +163,25 @@ check('provision: i token si chiedono prima del wizard, cloudflare:security rest
     assertSame(false, in_array(0, $order, true));
 });
 
+check('riconosce il token Bitwarden rifiutato', function (): void {
+    $rejected = "Error:\n   0: Received error message from server: [400 Bad Request] {\"error\":\"invalid_client\"}";
+    assertSame(true, Provision::bitwardenTokenRejected($rejected));
+    assertSame(true, Provision::bitwardenTokenRejected('Access token is not in a valid format'));
+    assertSame(true, Provision::bitwardenTokenRejected("Error:\n   0: Doesn't contain a decryption key"));
+    assertSame(false, Provision::bitwardenTokenRejected('error sending request: dns error: failed to lookup address'));
+    assertSame(false, Provision::bitwardenTokenRejected(''));
+});
+
+check('provision verifica il token Bitwarden prima di usarlo', function (): void {
+    $source = file_get_contents(__DIR__.'/../../class/Console/Commands/Provision.php');
+    $verify = strpos($source, "self::bitwardenTokenRejected(");
+    $devShared = strpos($source, '$this->applyDevSharedToLocalEnv(');
+    $secrets = strpos($source, "'BWS_ACCESS_TOKEN' => \$bwAccessToken,");
+    assertSame(true, $verify !== false && $devShared !== false && $secrets !== false);
+    assertSame(true, $verify < $devShared, 'verifica prima di dev-shared');
+    assertSame(true, $verify < $secrets, 'verifica prima dei GitHub Secrets');
+});
+
 echo "\n";
 echo "Totale: {$tests}, fallimenti: {$failures}\n";
 
