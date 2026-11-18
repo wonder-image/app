@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Avviso se manca la chiave di cifratura a runtime.** `Environment::bootGuard()`
+  scrive una riga in `error_log` (una volta per processo, mai il valore) quando
+  `APP_ENCRYPTION_KEY` è assente o non valida, fuori da `local` e via web. Senza la
+  chiave i segreti cifrati nel database (`enc:v1:`) non si leggono e quelli nuovi
+  si salvano in chiaro. È solo un avviso: non blocca l'avvio e non apre il
+  database; da riga di comando non scrive nulla. Nuovo
+  `Environment::warnIfEncryptionKeyMissing()`, test in `tests/App/EnvironmentTest.php`.
+
 ## 2.6.1 — 2026-11-18
 
 ### Corretto

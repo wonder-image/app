@@ -128,4 +128,99 @@ check('il .env del sito viene letto anche se nessuno lo ha ancora caricato', fun
     return $letto === 'local';
 });
 
+/** Esegue $fn con `error_log` su un file temporaneo e ritorna le righe scritte. */
+function captureErrorLog(callable $fn): string {
+    $file = sys_get_temp_dir().'/wi-errlog-'.bin2hex(random_bytes(4));
+    $previous = ini_get('error_log');
+    ini_set('error_log', $file);
+
+    try {
+        $fn();
+    } finally {
+        ini_set('error_log', (string) $previous);
+    }
+
+    $log = is_file($file) ? (string) file_get_contents($file) : '';
+    @unlink($file);
+
+    return $log;
+}
+
+function withEncryptionKey(?string $value): void {
+    unset($_ENV['APP_ENCRYPTION_KEY'], $_ENV['APP_ENCRYPTION_KEY_PREVIOUS']);
+
+    if ($value !== null) {
+        $_ENV['APP_ENCRYPTION_KEY'] = $value;
+    }
+}
+
+check('chiave di cifratura assente in production via web: avviso nel log, nessun blocco', function () {
+    withAppEnv('production');
+    withEncryptionKey(null);
+    $terminated = false;
+
+    $log = captureErrorLog(function () use (&$terminated) {
+        Environment::bootGuard(function () use (&$terminated) { $terminated = true; }, 'fpm-fcgi');
+    });
+
+    return !$terminated
+        && str_contains($log, 'APP_ENCRYPTION_KEY assente o non valida')
+        && str_contains($log, 'enc:v1:');
+});
+
+check('l\'avviso si scrive una volta per processo', function () {
+    withAppEnv('production');
+    withEncryptionKey(null);
+
+    $first = captureErrorLog(fn () => Environment::bootGuard(fn () => null, 'fpm-fcgi'));
+    $second = captureErrorLog(fn () => Environment::bootGuard(fn () => null, 'fpm-fcgi'));
+
+    return $first !== '' && $second === '';
+});
+
+check('chiave non valida (non 64 esadecimali) vale come assente, senza scrivere il valore', function () {
+    withAppEnv('staging');
+    withEncryptionKey('troppo-corta-segreto-finto');
+
+    $log = captureErrorLog(fn () => Environment::bootGuard(fn () => null, 'fpm-fcgi'));
+
+    return str_contains($log, 'assente o non valida') && !str_contains($log, 'troppo-corta-segreto-finto');
+});
+
+check('chiave valida: nessun avviso', function () {
+    withAppEnv('production');
+    withEncryptionKey(str_repeat('ab', 32));
+
+    $log = captureErrorLog(fn () => Environment::bootGuard(fn () => null, 'fpm-fcgi'));
+    withEncryptionKey(null);
+
+    return $log === '';
+});
+
+check('in local e da riga di comando non avvisa', function () {
+    withEncryptionKey(null);
+    withAppEnv('local');
+    $local = captureErrorLog(fn () => Environment::bootGuard(fn () => null, 'fpm-fcgi'));
+
+    withAppEnv('production');
+    $cli = captureErrorLog(fn () => Environment::bootGuard(fn () => null, 'cli'));
+
+    return $local === '' && $cli === '';
+});
+
+check('con APP_ENV non valido resta l\'errore di prima e non si avvisa sulla chiave', function () {
+    withAppEnv('prod');
+    withEncryptionKey(null);
+    $terminated = null;
+
+    $log = captureErrorLog(function () use (&$terminated) {
+        Environment::bootGuard(function (int $code) use (&$terminated) { $terminated = $code; }, 'cli');
+    });
+
+    return $terminated === 1 && str_contains($log, 'APP_ENV non valido') && !str_contains($log, 'APP_ENCRYPTION_KEY');
+});
+
+withEncryptionKey(null);
+withAppEnv('production');
+
 summary();

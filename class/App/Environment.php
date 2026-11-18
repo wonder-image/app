@@ -2,6 +2,8 @@
 
 namespace Wonder\App;
 
+use Wonder\App\Security\SecretCipher;
+
 /**
  * Ambiente dell'applicazione letto da `APP_ENV`: `local`, `staging` o
  * `production`.
@@ -28,6 +30,9 @@ final class Environment
     public const ALLOWED = [self::LOCAL, self::STAGING, self::PRODUCTION];
 
     private static ?string $current = null;
+
+    /** L'avviso sulla chiave di cifratura si scrive una volta per processo. */
+    private static bool $encryptionKeyWarned = false;
 
     public static function current(): string
     {
@@ -79,11 +84,15 @@ final class Environment
      *
      * `$terminate` e `$sapi` servono ai test; di default chiude con `exit` e
      * usa `PHP_SAPI`.
+     *
+     * Se `APP_ENV` è valido, fuori da `local` e via web controlla anche la
+     * chiave di cifratura: vedi `warnIfEncryptionKeyMissing()` (solo avviso).
      */
     public static function bootGuard(?callable $terminate = null, ?string $sapi = null): void
     {
         try {
             self::assertConfigured();
+            self::warnIfEncryptionKeyMissing($sapi);
 
             return;
         } catch (EnvironmentException $exception) {
@@ -126,6 +135,33 @@ final class Environment
         $terminate(1);
     }
 
+    /**
+     * Avviso, non errore: fuori da `local` e via web, se `APP_ENCRYPTION_KEY`
+     * manca o non è valida scrive una riga in `error_log` (una volta per
+     * processo). Senza la chiave i segreti cifrati nel database (`enc:v1:`) non
+     * si leggono e quelli nuovi si salvano in chiaro. Non apre il database e non
+     * scrive mai il valore della chiave. Ritorna `true` se ha scritto l'avviso.
+     *
+     * Da riga di comando non scrive nulla (cron e `forge` stamperebbero
+     * l'avviso a ogni esecuzione). `$sapi` serve ai test.
+     */
+    public static function warnIfEncryptionKeyMissing(?string $sapi = null): bool
+    {
+        if (self::$encryptionKeyWarned || ($sapi ?? PHP_SAPI) === 'cli' || self::isLocal()) {
+            return false;
+        }
+
+        if (SecretCipher::fromEnv()->currentKid() !== null) {
+            return false;
+        }
+
+        self::$encryptionKeyWarned = true;
+
+        @error_log('[wonder-image] '.SecretCipher::ENV_KEY.' assente o non valida: i segreti cifrati nel database (enc:v1:) non si leggono e quelli nuovi si salvano in chiaro. Imposta la chiave (64 caratteri esadecimali) nell\'ambiente del processo o nel .env.');
+
+        return true;
+    }
+
     public static function isLocal(): bool
     {
         return self::current() === self::LOCAL;
@@ -145,5 +181,6 @@ final class Environment
     public static function reset(): void
     {
         self::$current = null;
+        self::$encryptionKeyWarned = false;
     }
 }
