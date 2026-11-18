@@ -10,6 +10,7 @@ foreach (['RESPONSIVE_IMAGE_WEBP' => true, 'RESPONSIVE_IMAGE_SIZES' => [240, 480
 }
 
 use Wonder\App\Media\MediaTypes;
+use Wonder\App\Media\MemoryMediaStore;
 use Wonder\App\Media\MediaUsages;
 use Wonder\App\Media\MemoryMediaUsageStore;
 use Wonder\App\Media\MemoryResizeStore;
@@ -30,16 +31,54 @@ use Wonder\App\Support\MediaFileManager;
 $upload = ['name' => ['Tramonto.png'], 'type' => ['image/png'], 'tmp_name' => ['/tmp/php123'], 'error' => [0], 'size' => [10]];
 $old = ['id' => 7, 'slug' => 'scarpa-rossa', 'name' => 'Scarpa Rossa', 'type' => 'image', 'file' => '["scarpa-rossa.jpg"]'];
 
+// La tabella `media` com'è: l'indice unico su `slug` vale per tutte le righe.
+$table = new MemoryMediaStore();
+MediaResource::useSlugTakenResolver($table->slugTaken(...));
+
 check('in creazione lo slug viene dal nome', function () use ($upload) {
     $values = ImageResource::mutateRequestValues(['name' => 'Scarpa Rossa', 'file' => $upload], 'store');
 
-    return $values['slug'] === 'Scarpa Rossa' && $values['type'] === 'image';
+    return $values['slug'] === 'scarpa-rossa' && $values['type'] === 'image';
 });
 
 check('in creazione uno slug dato vince sul nome (campo del form con il suo modello)', function () use ($upload) {
     $values = ImageResource::mutateRequestValues(['name' => 'Tramonto', 'slug' => 'scarpa-rossa', 'file' => $upload], 'store');
 
     return $values['slug'] === 'scarpa-rossa';
+});
+
+check('slug già di un media cestinato: il nuovo prende -2 (niente errore 1062)', function () use ($upload, $table) {
+    $table->add(['id' => 50, 'type' => MediaTypes::IMAGE, 'slug' => 'affitta-il-tuo-immobile', 'deleted' => true]);
+    $values = ImageResource::mutateRequestValues(['name' => 'Affitta il tuo immobile', 'file' => $upload], 'store');
+
+    return $values['slug'] === 'affitta-il-tuo-immobile-2';
+});
+
+check('slug già di un media di un altro tipo: il nuovo prende -2', function () use ($upload, $table) {
+    $table->add(['id' => 51, 'type' => MediaTypes::DOCUMENT, 'slug' => 'listino']);
+    $values = ImageResource::mutateRequestValues(['name' => 'Listino', 'file' => $upload], 'store');
+
+    return $values['slug'] === 'listino-2';
+});
+
+check('i suffissi proseguono: -2 occupato, si passa a -3', function () use ($upload, $table) {
+    $table->add(['id' => 52, 'type' => MediaTypes::IMAGE, 'slug' => 'listino-2', 'deleted' => true]);
+    $values = ImageResource::mutateRequestValues(['name' => 'Listino', 'file' => $upload], 'store');
+
+    return $values['slug'] === 'listino-3';
+});
+
+check('slug dato e già occupato (anche da un cestinato): prende il suffisso', function () use ($upload) {
+    $values = ImageResource::mutateRequestValues(['name' => 'Altro', 'slug' => 'affitta-il-tuo-immobile', 'file' => $upload], 'store');
+
+    return $values['slug'] === 'affitta-il-tuo-immobile-2';
+});
+
+check('in modifica lo slug di un media esistente non prende mai il suffisso', function () use ($upload, $table) {
+    $table->add(['id' => 53, 'type' => MediaTypes::IMAGE, 'slug' => 'duplicato']);
+    $values = ImageResource::mutateRequestValues(['name' => 'Duplicato', 'file' => $upload], 'update', 'backend', ['id' => 53, 'slug' => 'duplicato']);
+
+    return $values['slug'] === 'duplicato';
 });
 
 check('file sostituito: lo slug resta quello di prima', function () use ($upload, $old) {
@@ -197,5 +236,6 @@ check('in creazione nessun avviso', function () {
 ResizeQueue::useStore(null);
 ResizeQueue::useRoot(null);
 MediaUsages::useStore(null);
+MediaResource::useSlugTakenResolver(null);
 
 summary();

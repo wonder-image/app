@@ -6,7 +6,9 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 use Wonder\App\Media\MediaDownloads;
+use Wonder\App\Media\DatabaseMediaStore;
 use Wonder\App\Media\MediaFile;
+use Wonder\App\Media\MediaInputs;
 use Wonder\App\Media\MediaTypes;
 use Wonder\App\Media\MediaUsages;
 use Wonder\App\Media\ResizeQueue;
@@ -377,6 +379,23 @@ abstract class MediaResource extends Resource
         return is_array($existing) && $existing !== [] ? $existing : null;
     }
 
+    /** @var (callable(string): bool)|null per i test: al posto della lettura dalla tabella */
+    private static $slugTakenResolver = null;
+
+    /** @param (callable(string): bool)|null $resolver null torna alla tabella `media` */
+    public static function useSlugTakenResolver(?callable $resolver): void
+    {
+        self::$slugTakenResolver = $resolver;
+    }
+
+    /** Lo slug è di un media qualsiasi della tabella (anche cestinato o di un altro tipo). */
+    public static function slugTaken(string $slug): bool
+    {
+        return self::$slugTakenResolver !== null
+            ? (bool) (self::$slugTakenResolver)($slug)
+            : (new DatabaseMediaStore())->slugTaken($slug);
+    }
+
     /**
      * Lo slug nasce con il media e non cambia più: con lui restano il nome
      * del file e quindi il suo indirizzo, anche quando il file viene
@@ -397,10 +416,15 @@ abstract class MediaResource extends Resource
         } else {
             $slug = is_scalar($values['slug'] ?? null) ? trim((string) $values['slug']) : '';
 
+            if ($slug === '' && !empty($values['name'])) {
+                $slug = (string) $values['name'];
+            }
+
             if ($slug !== '') {
-                $values['slug'] = $slug;
-            } elseif (!empty($values['name'])) {
-                $values['slug'] = (string) $values['name'];
+                // L'indice unico di `media.slug` vale per tutta la tabella:
+                // lo slug nuovo prende `-2`, `-3`... se è già di un media
+                // qualsiasi, anche cestinato o di un altro tipo.
+                $values['slug'] = MediaInputs::uniqueSlug($slug, static::slugTaken(...));
             } else {
                 unset($values['slug']);
             }

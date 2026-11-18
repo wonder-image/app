@@ -59,7 +59,7 @@ final class MemoryMediaStore implements MediaStore
     public function slugTaken(string $slug): bool
     {
         foreach ($this->rows as $row) {
-            if ($row['slug'] === $slug && empty($row['deleted'])) {
+            if ($row['slug'] === $slug) {
                 return true;
             }
         }
