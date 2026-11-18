@@ -84,12 +84,12 @@
          * precedenza di `TableColumn()`, perché i DROP in produzione toccano solo
          * ciò che la stessa query ricrea.
          *
-         * @return array{indexes: array<int, string>, primary: bool, foreign: bool}
+         * @return array{indexes: array<int, string>, primary: bool, foreign: bool, foreign_columns: array<int, string>}
          */
         private function declaredKeys(array $columns): array
         {
 
-            $declared = [ 'indexes' => [], 'primary' => false, 'foreign' => false ];
+            $declared = [ 'indexes' => [], 'primary' => false, 'foreign' => false, 'foreign_columns' => [] ];
 
             foreach ($columns as $name => $options) {
 
@@ -97,7 +97,8 @@
                     continue;
                 }
 
-                $name = strtolower((string) $name);
+                $originalName = (string) $name;
+                $name = strtolower($originalName);
 
                 if (isset($options['vector_index']) && is_array($options['vector_index'])) {
 
@@ -131,6 +132,7 @@
 
                     if (!empty($options['foreign_table'])) {
                         $declared['foreign'] = true;
+                        $declared['foreign_columns'][] = $originalName;
                     }
 
                 }
@@ -805,13 +807,24 @@
                 $destructive = $this->destructiveAllowed();
                 $declared = $this->declaredKeys($columns);
 
-                # Elimino tutte le FOREIGN KEY. In produzione solo se lo schema ne
-                # dichiara: la stessa query le ricrea (i nomi li assegna MySQL).
+                # Elimino tutte le FOREIGN KEY. In produzione solo quelle delle
+                # colonne per cui lo schema dichiara una FK (la stessa query le
+                # ricrea; i nomi li assegna MySQL): le altre si saltano e si segnalano.
+                    $recreatedForeign = [];
+
+                    if (!$destructive) {
+                        foreach ($declared['foreign_columns'] as $foreignColumn) {
+                            foreach ($SQL->ColumnForeign($name, $foreignColumn) as $foreignName) {
+                                $recreatedForeign[(string) $foreignName] = true;
+                            }
+                        }
+                    }
+
                     foreach (array_values(array_unique($SQL->ColumnForeign($name))) as $foreignKey) { 
 
                         if (!empty($foreignKey) && $foreignKey != "PRIMARY") {
 
-                            if ($destructive || $declared['foreign']) {
+                            if ($destructive || isset($recreatedForeign[(string) $foreignKey])) {
                                 $query .= "DROP FOREIGN KEY `$foreignKey`, "; 
                             } else {
                                 $this->skip($name, 'foreign_key', (string) $foreignKey);
@@ -1009,7 +1022,7 @@
         {
 
             foreach ($this->skipped as $item) {
-                @error_log('[wonder-image] DROP saltato in produzione: '.$item['kind'].' `'.$item['name'].'` della tabella `'.$item['table'].'` (serve una migrazione esplicita).');
+                @error_log('[wonder-image] DROP saltato (ambiente non locale): '.$item['kind'].' `'.$item['name'].'` della tabella `'.$item['table'].'` (serve una migrazione esplicita).');
             }
 
         }

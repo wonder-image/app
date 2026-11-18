@@ -16,11 +16,11 @@ use Wonder\Sql\CreateTable;
  * `ind_titolo` (dichiarato), `ind_a_mano` (aggiunto a mano) e la chiave
  * primaria. Registra gli ALTER emessi.
  */
-$fake = static fn () => new class extends mysqli {
+$fake = static fn (bool $withForeign = false) => new class($withForeign) extends mysqli {
     /** @var string[] */
     public array $alters = [];
 
-    public function __construct() {}
+    public function __construct(private bool $withForeign = false) {}
 
     #[\ReturnTypeWillChange]
     public function real_escape_string($string) { return addslashes($string); }
@@ -39,11 +39,16 @@ $fake = static fn () => new class extends mysqli {
             str_starts_with($query, 'SHOW TABLES LIKE') => [['articoli']],
             str_starts_with($query, 'SHOW COLUMNS FROM') => [['x']],
             str_starts_with($query, 'SELECT DATABASE()') => [['db' => 'test']],
+            str_contains($query, 'key_column_usage') && $this->withForeign => str_contains($query, "`column_name` = 'cliente'")
+                ? [['cName' => 'articoli_ibfk_1']]
+                : [['cName' => 'articoli_ibfk_1'], ['cName' => 'fk_a_mano']],
             str_contains($query, 'key_column_usage') => [],
             str_contains($query, 'statistics') => [['iName' => 'PRIMARY'], ['iName' => 'ind_titolo'], ['iName' => 'ind_a_mano']],
             str_contains($query, 'columns') && str_contains($query, 'cName') => array_map(
                 fn ($c) => ['cName' => $c],
-                ['id', 'titolo', 'vecchia', 'deleted', 'last_modified', 'creation']
+                $this->withForeign
+                    ? ['id', 'titolo', 'vecchia', 'cliente', 'deleted', 'last_modified', 'creation']
+                    : ['id', 'titolo', 'vecchia', 'deleted', 'last_modified', 'creation']
             ),
             default => [],
         };
@@ -64,17 +69,21 @@ $schema = [
     'ind_titolo' => ['index' => 'titolo'],
 ];
 
-$run = function (?string $env, ?bool $force = null) use ($fake, $schema): array {
+$schemaWithForeign = $schema + [
+    'cliente' => ['type' => 'INT', 'length' => 11, 'foreign_table' => 'clienti'],
+];
+
+$run = function (?string $env, ?bool $force = null, bool $withForeign = false) use ($fake, $schema, $schemaWithForeign): array {
     $previous = $_ENV['APP_ENV'];
     $_ENV['APP_ENV'] = $env ?? 'production';
     putenv('APP_ENV='.$_ENV['APP_ENV']);
     Environment::reset();
 
     try {
-        $mysqli = $fake();
+        $mysqli = $fake($withForeign);
         $table = new CreateTable($mysqli);
         $table->allowDestructive = $force;
-        $result = $table->Table('articoli', $schema);
+        $result = $table->Table('articoli', $withForeign ? $schemaWithForeign : $schema);
     } finally {
         $_ENV['APP_ENV'] = $previous;
         putenv('APP_ENV='.$previous);
@@ -134,6 +143,22 @@ check('staging: come production (nessun DROP COLUMN, voce segnalata)', function 
     [$alters, $skipped] = $run('staging');
 
     return !str_contains($alters[0], 'DROP COLUMN') && $skipped !== [];
+});
+
+check('production: la FK dichiarata si ricrea, quella messa a mano resta e si segnala', function () use ($run) {
+    [$alters, $skipped] = $run(null, null, true);
+
+    return str_contains($alters[0], 'DROP FOREIGN KEY `articoli_ibfk_1`')
+        && !str_contains($alters[0], 'fk_a_mano')
+        && in_array(['table' => 'articoli', 'kind' => 'foreign_key', 'name' => 'fk_a_mano'], $skipped, true);
+});
+
+check('local: con le FK si droppano tutte (invariato)', function () use ($run) {
+    [$alters, $skipped] = $run('local', null, true);
+
+    return str_contains($alters[0], 'DROP FOREIGN KEY `articoli_ibfk_1`')
+        && str_contains($alters[0], 'DROP FOREIGN KEY `fk_a_mano`')
+        && $skipped === [];
 });
 
 summary();

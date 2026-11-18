@@ -7,7 +7,7 @@
   dalle tabelle esistenti, nemmeno in `staging`.** `CreateTable::Table()` con
   `APP_ENV=production` o `staging` salta `DROP COLUMN` (colonne non più dichiarate), `DROP INDEX`/`DROP PRIMARY
   KEY` di indici non dichiarati (gli indici dichiarati si ricreano come prima,
-  nella stessa query) e `DROP FOREIGN KEY` quando lo schema non ne dichiara. Ogni
+  nella stessa query) e `DROP FOREIGN KEY` delle colonne per cui lo schema non dichiara una chiave esterna. Ogni
   operazione saltata finisce in `error_log`, in `stats.skipped_drops` del
   risultato dell'update e in `skipped` del risultato di `Table()`. Vale anche per
   `staging`, che deve comportarsi come produzione; in `local` il comportamento
