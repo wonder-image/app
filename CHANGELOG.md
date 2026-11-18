@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 2.5.0 — 2026-11-18
+
+> **Avviso operativo prima di aggiornare un sito a questa versione:** `APP_ENV`
+> è obbligatorio (`local`, `staging` o `production`). I siti il cui deploy
+> costruisce il `.env` con un `deploy.yml` proprio che non scrive `APP_ENV`
+> rispondono `500` al primo avvio dopo l'aggiornamento: vanno adeguati prima
+> di aggiornare il `composer.lock`, passando al workflow riusabile
+> `deploy-sito-app-build.yml@v1` (che scrive `APP_ENV=production` se manca) o
+> aggiungendo la riga al `deploy.yml`. Pubblicare questa versione non cambia
+> nessun sito: i deploy installano dal `composer.lock`.
+
 ### Aggiunto
 - **Ambiente `staging` e `Environment::isStaging()`.** `APP_ENV` ammette ora
   `local`, `staging` e `production`. Dove non è deciso diversamente lo staging
