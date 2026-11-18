@@ -29,6 +29,9 @@
 
             if (empty(self::$ENV)) {
 
+                // Ambiente reale del processo prima del .env: Dotenv non lo sovrascrive.
+                EnvProcess::hydrate();
+
                 self::$ENV = Dotenv::createImmutable(self::envRoot());
                 self::$ENV->safeLoad();
                 EnvCompat::apply();

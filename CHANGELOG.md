@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Ambiente reale del processo e `.env` facoltativo.** Prima di caricare il
+  `.env`, il framework porta in `$_ENV` le variabili d'ambiente reali del
+  processo (`getenv()` e `$_SERVER`), anche con `variables_order` senza `E` o
+  PHP-FPM con `clear_env`. Vale per il web (`app/config/array/env.php`) e per la
+  console (`forge`, scheduler: `Credentials::loadEnv()`). Si copiano solo i nomi
+  di un elenco chiuso o con un prefisso noto (`EnvProcess::NAMES` e
+  `EnvProcess::PREFIXES`); `FTP_*`, `BWS_*`, `CLOUDFLARE_*` e `NPM_GITHUB_TOKEN`
+  restano fuori. Un valore vuoto vale «non impostato» e non si sovrascrive mai
+  un valore non vuoto già in `$_ENV`. Nuovo test `tests/App/EnvProcessTest.php`.
+
+### Cambiato
+- **Precedenza: l'ambiente del processo vince sul `.env`.** Se la stessa chiave
+  è in entrambi, vale quella dell'ambiente. Chi ha sull'host una variabile con
+  un nome ammesso e un valore diverso dal `.env` vedrà ora il valore dell'host.
+  Il deploy continua a scrivere il `.env`: nessun sito cambia comportamento
+  senza una variabile reale nel processo.
+
 ## 2.5.0 — 2026-11-18
 
 > **Avviso operativo prima di aggiornare un sito a questa versione:** `APP_ENV`

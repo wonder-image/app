@@ -809,6 +809,32 @@ perché vuoi materializzare:
 - non lo lanci a ogni `composer install`
 - non dipendi da `gh` e `bws` sempre disponibili
 
+## Segreti letti dall'ambiente del processo
+
+Il `.env` è facoltativo. All'avvio, prima di leggere il `.env`, il framework
+porta in `$_ENV` le variabili d'ambiente reali del processo (per esempio
+avviato con `bws run`, con `fastcgi_param` di nginx o `env[...]` di PHP-FPM),
+anche quando `variables_order` non contiene `E` o PHP-FPM ha `clear_env`.
+Vale per il web e per la console (`forge`, scheduler).
+
+- **Precedenza:** se la stessa chiave è nell'ambiente e nel `.env`, vince
+  l'ambiente. Il `.env` resta caricato per le chiavi che l'ambiente non ha.
+- **Valore vuoto = non impostato:** una variabile vuota nell'ambiente non
+  impedisce al `.env` di valorizzare la chiave.
+- **Solo nomi noti:** si copiano i nomi di un elenco chiuso (`API_KEY`,
+  `ASSETS_VERSION`, `GITHUB_API_TOKEN`, `IMAGE_MISSING_LABEL`,
+  `QUERY_COUNTER_TOP`, `SYNC_AUTO_EXPORT`, `SYNC_TABLES`, `USER_*`) o con un
+  prefisso noto (`APP_`, `DB_`, `MAIL_`, `BREVO_`, `GOOGLE_`, `APPLE_`,
+  `G_RECAPTCHA_`, `G_MAPS_`, `G_TAG_MANAGER_`, `GCP_`, `KLAVIYO_`, `IPINFO_`,
+  `STRIPE_`, `PAYPAL_`, `NEXI_`, `FATTURE_IN_CLOUD_`, `OAUTH_`,
+  `MEMORY_PROFILE_`). `FTP_*`, `BWS_*`, `CLOUDFLARE_*` e `NPM_GITHUB_TOKEN`
+  sono credenziali di deploy e non entrano mai in `$_ENV` a runtime.
+- **Attenzione:** una variabile dell'host con uno dei nomi ammessi e un valore
+  diverso da quello del `.env` ora prevale sul `.env`.
+
+Il deploy attuale continua a scrivere il `.env`: questa modifica non lo
+cambia.
+
 ## Deploy GitHub Actions consigliato
 
 Su GitHub Actions il punto corretto è questo:
