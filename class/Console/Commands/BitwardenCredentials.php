@@ -65,6 +65,10 @@ class BitwardenCredentials extends Config
         Dotenv::createImmutable($cwd)->safeLoad();
         \Wonder\App\EnvCompat::apply();
 
+        if ($this->ensureAppEnv($lines, $envPath, $output) === 'failed') {
+            return Command::FAILURE;
+        }
+
         $keyToIndex = $this->envKeyToIndex($lines);
         $storedToken = $this->envValue($lines, $keyToIndex, 'BWS_ACCESS_TOKEN');
         $persistToken = false;

@@ -19,14 +19,23 @@
   che caricano `wonder-image.php` (`update`, `db:backup`, `export`, `import`,
   `media:resize`, `schedule:run`) escono con codice 1. `forge start`, `db:init`,
   `config`, `credentials`, `provision`, `build` e gli altri comandi che non
-  avviano il sito funzionano anche senza `APP_ENV`. `Debug::enabled()` non
-  lancia mai: senza `APP_ENV` valido e senza `APP_DEBUG` resta spento.
+  avviano il sito funzionano anche senza `APP_ENV`. Quelli che creano o
+  riscrivono il `.env` di sviluppo (`start`, `db:init`, `config`, `credentials`,
+  `provision`) ora lo garantiscono: se `APP_ENV` manca o è vuoto scrivono
+  `APP_ENV=local` e lo dicono a console; un valore valido (`local`, `staging`,
+  `production`) non lo toccano mai; un valore non valido (per esempio `prod`)
+  lo lasciano com'è e avvisano che il sito non partirebbe. Con `config` in CI
+  non scrivono nulla (il valore lo decide il workflow di deploy), e non lo
+  scrivono se `APP_ENV` arriva già dall'ambiente del processo. Coperto da
+  `tests/Console/AppEnvEnsureTest.php`. `Debug::enabled()` non lancia mai:
+  senza `APP_ENV` valido e senza `APP_DEBUG` resta spento.
 
   **Per aggiornare un sito:** prima di installare questa versione ogni `.env`
   deve avere `APP_ENV`: `production` in produzione, `staging` in staging,
-  `local` in locale (lo scrive `php forge start`). Il workflow di deploy deve
-  scrivere `APP_ENV` nel `.env` che genera, con il valore dell'ambiente di
-  destinazione: senza, il primo avvio dopo il deploy (anche la chiamata a
+  `local` in locale (lo scrivono `php forge start`, `db:init`, `config`,
+  `credentials` e `provision` se manca: in sviluppo basta rilanciarne uno). Il
+  workflow di deploy deve scrivere `APP_ENV` nel `.env` che genera, con il
+  valore dell'ambiente di destinazione: senza, il primo avvio dopo il deploy (anche la chiamata a
   `POST /api/app/update/`) risponde `500`. Per tornare operativi basta
   aggiungere `APP_ENV` al `.env` sul server.
 

@@ -31,6 +31,10 @@ abstract class LocalEnvironmentCommand extends Config
             return null;
         }
 
+        if ($this->ensureAppEnv($lines, $envPath, $output) === 'failed') {
+            return null;
+        }
+
         return $lines;
     }
 

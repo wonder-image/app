@@ -24,8 +24,11 @@ ammessi e dove impostarlo; da console i comandi che avviano il sito (`update`,
 `db:backup`, `export`, `import`, `media:resize`, `schedule:run`) escono con
 codice 1. I comandi che creano o preparano il `.env` (`start`, `db:init`,
 `config`, `credentials`, `provision`, `build`) funzionano anche senza `APP_ENV`.
-`php forge start` scrive `APP_ENV=local` nel `.env` locale; il deploy scrive
-`staging` o `production`; i boilerplate la dichiarano in `.env.example`.
+`php forge start`, `db:init`, `config` (fuori dalla CI), `credentials` e
+`provision` garantiscono `APP_ENV` nel `.env` locale: se manca o è vuoto
+scrivono `APP_ENV=local` e lo dicono a console, un valore valido non lo toccano
+mai e uno non valido (per esempio `prod`) lo lasciano e avvisano. Il deploy
+scrive `staging` o `production`; i boilerplate la dichiarano in `.env.example`.
 
 ```php
 use Wonder\App\Environment;
