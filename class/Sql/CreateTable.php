@@ -29,8 +29,8 @@
         /**
          * Operazioni distruttive (DROP COLUMN, DROP di indici, chiavi esterne e
          * chiave primaria non dichiarati) su una tabella che esiste già.
-         * `null` = decide l'ambiente: vietate in `production` (e se `APP_ENV`
-         * non è leggibile), permesse in `local` e `staging`. `true`/`false`
+         * `null` = decide l'ambiente: vietate in `production` e `staging` (e se
+         * `APP_ENV` non è leggibile), permesse solo in `local`. `true`/`false`
          * forzano il comportamento: lo userà una migrazione esplicita.
          */
         public ?bool $allowDestructive = null;
@@ -70,7 +70,7 @@
             }
 
             try {
-                return Environment::current() !== Environment::PRODUCTION;
+                return Environment::current() === Environment::LOCAL;
             } catch (EnvironmentException) {
                 # Ambiente sconosciuto: nel dubbio non si distrugge nulla.
                 return false;

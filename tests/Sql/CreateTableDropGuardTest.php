@@ -130,10 +130,10 @@ check('local: comportamento invariato (DROP COLUMN emesso)', function () use ($r
     return str_contains($alters[0], 'DROP COLUMN vecchia') && $skipped === [];
 });
 
-check('staging: comportamento invariato (DROP COLUMN emesso)', function () use ($run) {
+check('staging: come production (nessun DROP COLUMN, voce segnalata)', function () use ($run) {
     [$alters, $skipped] = $run('staging');
 
-    return str_contains($alters[0], 'DROP COLUMN vecchia') && $skipped === [];
+    return !str_contains($alters[0], 'DROP COLUMN') && $skipped !== [];
 });
 
 summary();
