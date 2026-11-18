@@ -81,7 +81,10 @@ credenziali di deploy e non entrano mai in `$_ENV` a runtime.
 ## Chiave di cifratura
 
 `APP_ENCRYPTION_KEY` (64 caratteri esadecimali) segue le stesse regole: può
-arrivare dal processo o dal `.env`. Se a runtime manca o non è valida, fuori da
+arrivare dal processo o dal `.env`.
+
+**Per pubblicare serve la chiave:** il deploy la richiede e si ferma se
+`APP_ENCRYPTION_KEY` manca o non è valida (64 caratteri esadecimali). Se a runtime manca o non è valida, fuori da
 `local` e via web il framework scrive una riga nell'`error_log` (una volta per
 processo, senza mai il valore). Non è un errore bloccante: senza la chiave i
 segreti cifrati nel database (`enc:v1:`) non si leggono e quelli nuovi si
