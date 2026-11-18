@@ -33,6 +33,8 @@
                 \Wonder\Console\Commands\Export::class,
                 \Wonder\Console\Commands\Import::class,
                 \Wonder\Console\Commands\CloudflareSecurity::class,
+                \Wonder\Console\Commands\DeployPrepare::class,
+                \Wonder\Console\Commands\DeployActivate::class,
             ];
 
         }
