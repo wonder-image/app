@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Aggiunto
+- **`forge sync:from-production --dry-run`: scheletro del comando di
+  sincronizzazione produzione → staging, solo prova a secco.** Rifiuta di
+  partire se `APP_ENV` non è `staging` e fallisce se una tabella non è
+  classificata; elenca le tabelle che verrebbero copiate (contenuto), quelle
+  che arrivano dal codice e quelle di ambiente. Non apre connessioni alla
+  produzione e non copia niente. Test in `tests/App/Support/SyncPlanTest.php`.
 - **Classificazione delle tabelle per la sincronizzazione tra ambienti
   (`SyncSchema::code()`, `content()`, `environment()`).** Ogni Model dichiara
   con `syncClass()` se la sua tabella è di *codice* (arriva dal repo), di
