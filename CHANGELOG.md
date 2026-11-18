@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.6.0 — 2026-11-18
+
+> **Nota prima di aggiornare un sito a questa versione:** se l'host del sito
+> definisce già variabili d'ambiente con un nome ammesso (`EnvProcess::NAMES` o
+> un prefisso di `EnvProcess::PREFIXES`, per esempio `API_KEY`, `USER_*`, `APP_*`,
+> `DB_*`, `MAIL_*`), il loro valore prevale sul `.env`. Se non ce ne sono,
+> nessun sito cambia comportamento. Pubblicare questa versione non cambia
+> nessun sito: i deploy installano dal `composer.lock`.
+
 ### Aggiunto
 - **Ambiente reale del processo e `.env` facoltativo.** Prima di caricare il
   `.env`, il framework porta in `$_ENV` le variabili d'ambiente reali del
