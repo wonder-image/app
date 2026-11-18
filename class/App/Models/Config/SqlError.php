@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -11,6 +13,11 @@ final class SqlError extends Model
     public static string $table = 'sql_error';
     public static string $folder = 'app/config/sql-error';
     public static string $icon = 'bi bi-database-exclamation';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
+    }
 
     public static function tableSchema(): array
     {

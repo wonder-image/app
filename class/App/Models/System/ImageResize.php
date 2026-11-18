@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\System;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -25,6 +26,11 @@ final class ImageResize extends Model
     public static function syncSchema(): ?SyncSchema
     {
         return null;
+    }
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
     }
 
     public static function tableSchema(): array

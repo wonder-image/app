@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -19,6 +21,11 @@ final class SocietyLocationSpecialHour extends Model
     public static string $table = 'society_location_special_hours';
     public static string $folder = 'app/config/locations';
     public static string $icon = 'bi bi-calendar-x';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
+    }
 
     public static function tableSchema(): array
     {

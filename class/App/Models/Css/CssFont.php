@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 
@@ -16,6 +17,11 @@ final class CssFont extends Model
     {
         // Gli id restano gli stessi in ogni ambiente: le impostazioni puntano ai font per id.
         return SyncSchema::multiRow()->keepIds();
+    }
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::code();
     }
 
     public static function tableSchema(): array
