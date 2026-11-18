@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Cambiato
+- **In produzione `forge update` e `/api/app/update/` non eliminano più nulla
+  dalle tabelle esistenti.** `CreateTable::Table()` con `APP_ENV=production`
+  salta `DROP COLUMN` (colonne non più dichiarate), `DROP INDEX`/`DROP PRIMARY
+  KEY` di indici non dichiarati (gli indici dichiarati si ricreano come prima,
+  nella stessa query) e `DROP FOREIGN KEY` quando lo schema non ne dichiara. Ogni
+  operazione saltata finisce in `error_log`, in `stats.skipped_drops` del
+  risultato dell'update e in `skipped` del risultato di `Table()`. In `local` e
+  `staging` il comportamento non cambia. Se `APP_ENV` non è leggibile, nel dubbio
+  non si elimina nulla. `CreateTable::$allowDestructive` forza il comportamento
+  (per le migrazioni esplicite che arriveranno).
+
 ## 2.6.1 — 2026-11-18
 
 ### Corretto
