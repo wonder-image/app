@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-> Destinata alla 2.6.1.
+## 2.6.1 — 2026-11-18
 
 ### Corretto
 - **Caricare un media con un nome già usato non dà più l'errore 1062.** Il
