@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Storage astratto (solo base, nessun cambio di comportamento).** Nuovo
+  namespace `Wonder\App\Storage`: interfaccia `Storage`, driver su disco
+  `LocalStorage`, `StorageScope` (tenant e ambiente), `PathResolver` (layout
+  `flat` predefinito, uguale a oggi, oppure `scoped` con `{tenant}/{ambiente}/`
+  davanti) e `StorageManager` (dischi `public` su `assets/upload` e `private` su
+  `storage`). Nessun punto del framework lo usa ancora: percorsi e indirizzi
+  dei siti esistenti restano quelli di sempre. Variabili opzionali
+  `STORAGE_LAYOUT` e `STORAGE_TENANT`. Test in `tests/App/Storage/`.
+
 ## 2.6.1 — 2026-11-18
 
 ### Corretto
