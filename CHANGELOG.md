@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+> Destinata alla 2.6.1.
+
+### Corretto
+- **Caricare un media con un nome già usato non dà più l'errore 1062.** Il
+  caricamento di un'immagine (o di un documento, icona, video) con un nome il
+  cui slug era già di un media cestinato o di un altro tipo falliva con
+  `Duplicate entry '…' for key 'media.__unique_uniq_slug'`: l'indice unico su
+  `media.slug` vale per tutta la tabella, mentre i controlli guardavano solo i
+  media non cestinati (e del tipo giusto). Ora ogni creazione (pagina del
+  backend, API, caricamento massivo, campi media dei form) conta tutte le righe
+  e dà allo slug nuovo il suffisso `-2`, `-3`… (`MediaInputs::uniqueSlug()`).
+  Un media con lo stesso nome e lo stesso tipo non cestinato continua a essere
+  aggiornato come prima, e lo slug di un media esistente non cambia. Nessuna
+  modifica a schema, indice o righe esistenti. Test in
+  `tests/App/Media/MediaStableSlugTest.php`.
+
 ## 2.6.0 — 2026-11-18
 
 > **Nota prima di aggiornare un sito a questa versione:** se l'host del sito

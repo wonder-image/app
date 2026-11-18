@@ -58,10 +58,11 @@ final class DatabaseMediaStore implements MediaStore
         return $rows;
     }
 
+    /** Conta tutte le righe, anche cestinate o di un altro tipo: l'indice unico le vede. */
     public function slugTaken(string $slug): bool
     {
         $row = $this->execute(
-            'SELECT 1 FROM `'.Media::$table."` WHERE `deleted` = 'false' AND `slug` = ? LIMIT 1",
+            'SELECT 1 FROM `'.Media::$table.'` WHERE `slug` = ? LIMIT 1',
             [$slug]
         )->get_result()->fetch_row();
 
