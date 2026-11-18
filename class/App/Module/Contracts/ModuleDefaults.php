@@ -6,7 +6,7 @@ use Wonder\App\Support\DefaultRows;
 
 /**
  * Righe precaricate di un modulo, dichiarate in `module.json` con
- * `database.defaults`. Eseguite da `forge update` solo con `APP_ENV=local`,
+ * `database.defaults`. Eseguite da `forge update` solo con `APP_ENV=local` (non in staging né in produzione),
  * in ordine di dipendenza. Non devono mai modificare righe esistenti:
  * usare sempre `DefaultRows`.
  */

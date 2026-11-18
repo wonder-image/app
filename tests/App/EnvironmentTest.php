@@ -18,9 +18,45 @@ function withAppEnv(?string $value): void {
     Environment::reset();
 }
 
-check('senza APP_ENV vale production', function () {
+/** Esegue $fn e ritorna il messaggio di EnvironmentException, o null se non lancia. */
+function environmentError(callable $fn): ?string {
+    try {
+        $fn();
+    } catch (\Wonder\App\EnvironmentException $e) {
+        return $e->getMessage();
+    }
+
+    return null;
+}
+
+check('senza APP_ENV lancia EnvironmentException (niente ripiego su production)', function () {
     withAppEnv(null);
-    return Environment::current() === 'production' && Environment::isProduction() && !Environment::isLocal();
+    $message = environmentError(fn () => Environment::current());
+
+    return $message !== null
+        && str_contains($message, 'assente')
+        && str_contains($message, 'local, staging, production')
+        && str_contains($message, 'APP_ENV')
+        && str_contains($message, '.env');
+});
+
+check('APP_ENV vuoto lancia come se mancasse', function () {
+    withAppEnv('   ');
+    return environmentError(fn () => Environment::isLocal()) !== null;
+});
+
+check('assertConfigured() lancia senza APP_ENV e ritorna il valore se valido', function () {
+    withAppEnv(null);
+    $lancia = environmentError(fn () => Environment::assertConfigured()) !== null;
+    withAppEnv('staging');
+    return $lancia && Environment::assertConfigured() === 'staging';
+});
+
+check('dopo un errore nulla è memorizzato: con APP_ENV valido risponde', function () {
+    withAppEnv(null);
+    environmentError(fn () => Environment::current());
+    $_ENV['APP_ENV'] = 'production';
+    return Environment::current() === 'production';
 });
 
 check('APP_ENV=local', function () {
@@ -33,9 +69,24 @@ check('maiuscole e spazi normalizzati', function () {
     return Environment::isLocal();
 });
 
-check('valore non valido vale production', function () {
+check('APP_ENV=staging', function () {
     withAppEnv('staging');
-    return Environment::current() === 'production';
+    return Environment::current() === 'staging' && Environment::isStaging()
+        && !Environment::isLocal() && !Environment::isProduction();
+});
+
+check('APP_ENV=production: isStaging() è falso', function () {
+    withAppEnv('production');
+    return Environment::isProduction() && !Environment::isStaging() && !Environment::isLocal();
+});
+
+check('valore non valido (prod) lancia e il messaggio riporta il valore trovato', function () {
+    withAppEnv('prod');
+    $message = environmentError(fn () => Environment::current());
+
+    return $message !== null
+        && str_contains($message, '"prod"')
+        && str_contains($message, 'local, staging, production');
 });
 
 check('letto anche da $_SERVER', function () {

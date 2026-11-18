@@ -71,9 +71,24 @@ check('localOnly in produzione: sola lettura', function () {
     return ReadonlyTestLocalOnlyResource::isReadonly() === true;
 });
 
-check('localOnly senza APP_ENV: sola lettura', function () {
-    withEnvironment(null);
+check('localOnly in staging: sola lettura', function () {
+    withEnvironment('staging');
     return ReadonlyTestLocalOnlyResource::isReadonly() === true;
+});
+
+check('tabella sincronizzata senza localOnly in staging: modificabile', function () {
+    withEnvironment('staging');
+    return ReadonlyTestSyncedResource::isReadonly() === false;
+});
+
+check('localOnly senza APP_ENV: errore esplicito, non sola lettura silenziosa', function () {
+    withEnvironment(null);
+    try {
+        ReadonlyTestLocalOnlyResource::isReadonly();
+    } catch (\Wonder\App\EnvironmentException) {
+        return true;
+    }
+    return false;
 });
 
 check('localOnly in locale: modificabile', function () {

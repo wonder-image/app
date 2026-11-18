@@ -81,6 +81,11 @@ class Config extends Command
         $ENV_FILE->safeLoad();
         \Wonder\App\EnvCompat::apply();
 
+        // In CI/deploy il valore lo scrive il workflow: qui non si inventa `local`.
+        if (!$isCi && $this->ensureAppEnv($lines, $envPath, $output) === 'failed') {
+            return Command::FAILURE;
+        }
+
         if (!$isCi) {
             if (!$this->ensureWonderNodeToolchain($output, true)) {
                 return Command::FAILURE;
@@ -1271,6 +1276,54 @@ class Config extends Command
         putenv($key.'='.$value);
 
         return $lines;
+    }
+
+    /**
+     * Garantisce `APP_ENV` nel `.env` di sviluppo locale.
+     *
+     * - manca o è vuoto (e non arriva dall'ambiente del processo): scrive
+     *   `APP_ENV=local` e lo dice a console;
+     * - ha un valore ammesso (`local`, `staging`, `production`): non lo tocca;
+     * - ha un valore non ammesso (es. `prod`): non lo sovrascrive, avvisa che
+     *   il sito non partirebbe.
+     *
+     * Non si usa mai in CI né nei deploy: lì il valore lo decide il workflow.
+     * Aggiorna `$lines` per riferimento, così un salvataggio successivo del
+     * comando non lo perde, e scrive subito il file se aggiunge la riga.
+     *
+     * @return string `present` | `added` | `invalid` | `failed`
+     */
+    protected function ensureAppEnv(array &$lines, string $envPath, OutputInterface $output): string
+    {
+        $keyToIndex = $this->envKeyToIndex($lines);
+        $existing = trim($this->envValue($lines, $keyToIndex, 'APP_ENV'));
+
+        if ($existing === '') {
+            $fromProcess = $_ENV['APP_ENV'] ?? getenv('APP_ENV');
+
+            if (is_string($fromProcess) && trim($fromProcess) !== '') {
+                return 'present';
+            }
+
+            $this->setEnvValue($lines, $keyToIndex, 'APP_ENV', \Wonder\App\Environment::LOCAL);
+
+            if (file_put_contents($envPath, implode(PHP_EOL, $lines).PHP_EOL) === false) {
+                $output->writeln('<error>❌ Impossibile scrivere APP_ENV nel file .env</error>');
+                return 'failed';
+            }
+
+            $output->writeln('<info>✅ APP_ENV=local aggiunto al .env (manca o era vuoto: senza il sito non parte; in staging e in produzione lo scrive il deploy).</info>');
+
+            return 'added';
+        }
+
+        if (!in_array(strtolower($existing), \Wonder\App\Environment::ALLOWED, true)) {
+            $output->writeln('<comment>⚠️  APP_ENV="'.$existing.'" nel .env non è valido: il sito non partirebbe. Valori ammessi: '.implode(', ', \Wonder\App\Environment::ALLOWED).'. Non lo modifico.</comment>');
+
+            return 'invalid';
+        }
+
+        return 'present';
     }
 
     protected function envKeyToIndex(array $lines): array

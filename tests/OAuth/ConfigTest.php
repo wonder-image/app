@@ -85,7 +85,7 @@ check('issuer http fuori dal locale → 500', function () use ($set) {
     Environment::reset();
     try { Config::issuer(); return false; }
     catch (OAuthException $e) { return $e->status === 500 && $e->error === 'server_error'; }
-    finally { $set('APP_ENV', null); Environment::reset(); }
+    finally { $set('APP_ENV', 'production'); Environment::reset(); }
 });
 
 check('issuer http in locale ammesso', function () use ($set) {
@@ -93,7 +93,7 @@ check('issuer http in locale ammesso', function () use ($set) {
     $set('APP_ENV', 'local');
     Environment::reset();
     $ok = Config::issuer() === 'http://sito.test';
-    $set('APP_ENV', null);
+    $set('APP_ENV', 'production');
     Environment::reset();
     return $ok;
 });

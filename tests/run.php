@@ -125,6 +125,9 @@ $open = static function (string $file) use ($root): array {
         [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]],
         $pipes,
         $root,
+        // APP_ENV è obbligatorio: i test che non lo impostano da sé girano come
+        // `production`, il valore che prima valeva per default.
+        getenv('APP_ENV') === false ? getenv() + ['APP_ENV' => 'production'] : null,
     );
     stream_set_blocking($pipes[1], false);
     return ['file' => $file, 'proc' => $proc, 'pipe' => $pipes[1], 'out' => '', 'start' => microtime(true)];

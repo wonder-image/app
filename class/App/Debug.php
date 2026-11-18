@@ -5,8 +5,11 @@ namespace Wonder\App;
 /**
  * Gate di debug condiviso: unica fonte di verità per il debug.
  *
- * `APP_DEBUG` impostato vince sempre (anche `false`); se manca vale
- * `APP_ENV=local`. Nessun fallback su `REMOTE_ADDR`/`SERVER_NAME`: dietro
+ * `APP_DEBUG` impostato vince sempre (anche `false`); se manca è acceso solo
+ * con `APP_ENV=local`, quindi spento in `staging` e `production`. Se `APP_ENV`
+ * manca o non è valido il debug resta spento (senza memorizzarlo): l'errore
+ * vero lo lancia `Environment::bootGuard()` all'avvio e il gestore degli errori
+ * non deve fallire a sua volta. Nessun fallback su `REMOTE_ADDR`/`SERVER_NAME`: dietro
  * un reverse proxy la richiesta arriva da 127.0.0.1 anche in produzione.
  */
 final class Debug
@@ -36,7 +39,11 @@ final class Debug
             return self::$enabled = in_array($envValue, ['1', 'true', 'on', 'yes'], true);
         }
 
-        return self::$enabled = Environment::isLocal();
+        try {
+            return self::$enabled = Environment::isLocal();
+        } catch (EnvironmentException) {
+            return false;
+        }
     }
 
     /** Azzera la memoizzazione (uso nei test). */

@@ -462,8 +462,26 @@ check('38. dietro proxy fidato il log registra l\'IP del client (ClientIp)', fun
     assertTrue(str_contains($log, '"remote_addr":"203.0.113.7"'), 'remote_addr = ultima voce di X-Forwarded-For');
 });
 
-check('39. APP_ENV assente o non valido → produzione: niente salto, failClosed() chiude', function () use ($valid, $logFile) {
-    foreach ([null, 'staging'] as $value) {
+check('39. staging come produzione: niente salto, failClosed() chiude', function () use ($valid, $logFile) {
+    unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+    putenv('APP_ENV');
+    $_ENV['APP_ENV'] = 'staging';
+    \Wonder\App\Environment::reset();
+    try {
+        @unlink($logFile);
+        $engine = new FakeEngine(valid: false);
+        assert617(fn () => guard()->withRequest([])->withEngine($engine)->verify());
+        assertTrue($engine->calls === 0 && !str_contains((string) @file_get_contents($logFile), 'local_env'), 'nessun salto locale');
+        // Google non raggiungibile: in staging chiude (non salta), come in produzione.
+        assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(throws: true))->failClosed()->verify());
+    } finally {
+        $_ENV['APP_ENV'] = 'production';
+        \Wonder\App\Environment::reset();
+    }
+});
+
+check('39b. APP_ENV assente o non valido: errore esplicito, non un ripiego su produzione', function () use ($valid) {
+    foreach ([null, 'prod'] as $value) {
         unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
         putenv('APP_ENV');
         if ($value !== null) {
@@ -471,11 +489,13 @@ check('39. APP_ENV assente o non valido → produzione: niente salto, failClosed
         }
         \Wonder\App\Environment::reset();
         try {
-            @unlink($logFile);
-            $engine = new FakeEngine(valid: false);
-            assert617(fn () => guard()->withRequest([])->withEngine($engine)->verify());
-            assertTrue($engine->calls === 0 && !str_contains((string) @file_get_contents($logFile), 'local_env'), 'nessun salto locale');
-            assert617(fn () => guard()->withRequest($valid)->withEngine(new FakeEngine(throws: true))->failClosed()->verify());
+            $lanciato = false;
+            try {
+                guard()->withRequest($valid)->withEngine(new FakeEngine(valid: true))->verify();
+            } catch (\Wonder\App\EnvironmentException) {
+                $lanciato = true;
+            }
+            assertTrue($lanciato, 'EnvironmentException per ' . var_export($value, true));
         } finally {
             $_ENV['APP_ENV'] = 'production';
             \Wonder\App\Environment::reset();

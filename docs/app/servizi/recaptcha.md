@@ -145,7 +145,9 @@ API o progetto GCP sbagliati (o API Enterprise non abilitata): `617` con
 **In locale si salta.** Con `APP_ENV=local` la verifica si salta sempre, prima
 di leggere il token, con una riga `INFO` `reason: local_env`: i login su
 `*.test` funzionano anche con le chiavi GCP valorizzate e senza widget.
-`APP_ENV` assente o con un valore diverso da `local` vale `production`.
+In `staging` e `production` la verifica è attiva e fail-closed. `APP_ENV` è
+obbligatorio: se manca o non è valido il sito non parte (vedi
+[Ambiente](../piattaforma/multi-ambiente.md)).
 Attenzione: `APP_ENV=local` su un server di produzione disattiva il reCAPTCHA
 su tutte le azioni e moltiplica per 10 i limiti di `LoginThrottle`.
 

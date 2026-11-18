@@ -45,6 +45,10 @@
 
     require_once $ROOT."/vendor/autoload.php";
 
+    // APP_ENV è obbligatorio: se manca o non è valido si chiude subito (500
+    // generico via web, errore su STDERR da console), prima di leggere altro.
+    \Wonder\App\Environment::bootGuard();
+
     $APP_VERSION = \Wonder\App\Version::get();
 
     $legacyRuntime = \Wonder\App\LegacyGlobals::scope();

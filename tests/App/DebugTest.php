@@ -65,11 +65,28 @@ check('nessun APP_DEBUG + APP_ENV=local abilita (caso ecommerce-site)', function
     return $a === true && Debug::enabled() === true;
 });
 
-check('nessun APP_DEBUG + APP_ENV=production o assente disabilita', function () {
+check('nessun APP_DEBUG + APP_ENV=production disabilita', function () {
     withEnv(['APP_ENV' => 'production'], ['REMOTE_ADDR' => '127.0.0.1']);
-    $a = Debug::enabled();
+    return Debug::enabled() === false;
+});
+
+check('nessun APP_DEBUG + APP_ENV=staging disabilita (staging come produzione)', function () {
+    withEnv(['APP_ENV' => 'staging'], []);
+    return Debug::enabled() === false;
+});
+
+check('APP_DEBUG=true acceso anche in staging', function () {
+    withEnv(['APP_DEBUG' => 'true', 'APP_ENV' => 'staging'], []);
+    return Debug::enabled() === true;
+});
+
+check('nessun APP_DEBUG + APP_ENV assente: debug spento, senza lanciare e senza memorizzare', function () {
     withEnv([], []);
-    return $a === false && Debug::enabled() === false;
+    $a = Debug::enabled();
+    $_ENV['APP_ENV'] = 'local';
+    Environment::reset();
+    // Non memorizzato: appena APP_ENV è valido il debug si rilegge.
+    return $a === false && Debug::enabled() === true;
 });
 
 check('APP_DEBUG=false esplicito vince su APP_ENV=local', function () {
