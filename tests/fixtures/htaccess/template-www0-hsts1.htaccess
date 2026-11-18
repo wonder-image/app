@@ -1,0 +1,124 @@
+# ----------------------------------------------------------------------
+# Apache options (necessari su molti shared hosting per il RewriteRule)
+# ----------------------------------------------------------------------
+Options +FollowSymLinks -MultiViews -Indexes
+AddDefaultCharset UTF-8
+DefaultLanguage it
+
+# WONDER SECURITY START
+<IfModule mod_headers.c>
+  Header always unset X-Powered-By
+  Header unset X-Powered-By
+  # Solo file statici: per le pagine PHP gli header arrivano dal bootstrap.
+  <FilesMatch "(?i)^(?!.*\.php$)">
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Content-Security-Policy "frame-ancestors 'self'"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+    Header set Strict-Transport-Security "max-age=31536000" env=HTTPS
+  </FilesMatch>
+</IfModule>
+
+<FilesMatch "(?i)^(\.env.*|\.git.*|\.ht.*|.*\.log(\.\d+)?|.*\.sql(\.gz)?|.*\.(bak|old|orig|swp)|.*~|composer\.(json|lock)|package(-lock)?\.json|skills-lock\.json|sync-data\.json|generator\.conf|forge)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(\.git|\.audit|storage|state|tests|docs|node_modules|lang|handler/storage)(/|$) - [F,L,NC]
+  # Archivi e backup negati ovunque tranne nei file caricati.
+  RewriteRule ^(?!assets/upload/).*\.(zip|tgz|tar(\.gz)?)$ - [F,L,NC]
+  # vendor/ negata, tranne gli asset statici dei pacchetti e il generatore xml-sitemaps.
+  RewriteRule ^vendor(/|$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\.(?:php\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\.|$))[^/]+\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)$|wonder-image/app/vendor-static/xml-sitemaps(/|$)) - [F,L,NC]
+</IfModule>
+# WONDER SECURITY END
+
+# ----------------------------------------------------------------------
+# Routing
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Passa Authorization/Bearer (CGI/FastCGI mangiano l'header senza questo)
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # Forza HTTPS fuori dall'ambiente locale
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+
+  # Le cartelle runtime /backend e /api esistono fisicamente, ma devono
+  # comunque passare sempre dal router.
+  RewriteCond %{REQUEST_URI} ^/(backend|api|oauth|\.well-known/oauth-[a-z-]+)(?:/.*)?$ [NC]
+  RewriteRule ^ handler/index.php [L,QSA]
+
+  # La homepage deve sempre entrare nel router anche se la document root
+  # esiste fisicamente come directory.
+  RewriteRule ^$ handler/index.php [L,QSA]
+
+  # Aggiunge slash finale se mancante (solo per URL senza estensione)
+  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteCond %{REQUEST_URI} !\.[^./]+$
+  RewriteRule ^(.*)$ /$1/ [R=301,L]
+
+  # Router Wonder: tutto ciò che non è file/directory esistente va al
+  # front controller handler/index.php
+  RewriteCond %{REQUEST_URI} !^/handler(?:/.*)?$ [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ handler/index.php [L,QSA]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Cache ottimizzata
+# ----------------------------------------------------------------------
+# WONDER PERFORMANCE START
+<IfModule mod_headers.c>
+  <FilesMatch "\.(jpe?g|png|gif|webp|avif|svg|ico|pdf|mp4|webm|ogg|woff2?|js|css)$">
+    Header set Cache-Control "public, max-age=86400, must-revalidate"
+    Header set Cache-Control "public, max-age=31536000, immutable" "expr=%{QUERY_STRING} =~ m#(^|&)v=[0-9]+(&|$)#"
+  </FilesMatch>
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+FileETag MTime Size
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpeg "access plus 1 day"
+  ExpiresByType image/png "access plus 1 day"
+  ExpiresByType image/gif "access plus 1 day"
+  ExpiresByType image/webp "access plus 1 day"
+  ExpiresByType image/avif "access plus 1 day"
+  ExpiresByType image/svg+xml "access plus 1 day"
+  ExpiresByType text/css "access plus 1 day"
+  ExpiresByType application/javascript "access plus 1 day"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/json
+  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-gzip dont-vary
+</IfModule>
+
+<IfModule mod_brotli.c>
+  BrotliCompressionQuality 5
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json
+  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-brotli dont-vary
+</IfModule>
+# WONDER PERFORMANCE END
