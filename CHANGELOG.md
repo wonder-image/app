@@ -17,6 +17,30 @@
   applica dopo le `ModuleMigration` esistenti (che restano com'erano) e prima
   dell'allineamento delle tabelle; l'esito è in `stats.versioned_migrations`.
   `UpdateRunner::runSchema()` espone il solo allineamento dello schema.
+- **`forge sync:from-dump --dump=<file> --dry-run`: scheletro del comando che
+  porta in staging il contenuto di un backup di produzione, solo prova a
+  secco.** Non si collega mai alla produzione: parte da un dump già fatto.
+  Rifiuta di partire se `APP_ENV` non è `staging`, fallisce se una tabella (del
+  framework o presente nel dump) non è classificata; elenca le tabelle che
+  verrebbero caricate (contenuto), quelle dal codice e quelle di ambiente.
+  Non legge righe e non copia niente. Test in
+  `tests/App/Support/SyncPlanTest.php`.
+- **Classificazione delle tabelle per la sincronizzazione tra ambienti
+  (`SyncSchema::code()`, `content()`, `environment()`).** Ogni Model dichiara
+  con `syncClass()` se la sua tabella è di *codice* (arriva dal repo), di
+  *contenuto* (si copia da produzione a staging) o di *ambiente* (non si copia
+  mai: segreti, utenti, log, code, consensi). Le 57 tabelle dei Model del
+  framework più `app_update_runs` sono classificate. Un Model non classificato
+  ritorna `null` e a runtime non cambia niente: `forge export`/`import` e
+  `syncSchema()` restano com'erano (le stesse 10 tabelle di prima). La
+  classificazione si controlla con `SyncClassification::assertComplete()`, che
+  fallisce per tabelle non classificate, dichiarate due volte con classi
+  diverse o di ambiente con `syncSchema()`. `user` e `scheduler_schedules` sono contenuto: gli utenti si copiano in
+  staging solo anonimizzati (`Model::syncAnonymize()` con le regole di
+  `SyncAnonymize`; per `user`: nome, cognome, email, telefono, username,
+  immagine e password) e i job pianificati arrivano copiati. Test in
+  `tests/App/Support/SyncClassificationTest.php`. Nessuna modifica a schema o
+  dati.
 
 ### Cambiato
 - **In produzione `forge update` e `/api/app/update/` non eliminano più nulla

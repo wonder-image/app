@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -38,6 +40,11 @@ final class Security extends Model
         'fatture_in_cloud_client_secret',
         'fatture_in_cloud_token',
     ];
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
+    }
 
     public static function tableSchema(): array
     {

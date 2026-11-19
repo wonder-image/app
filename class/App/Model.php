@@ -8,6 +8,8 @@ use Wonder\App\Diagnostics\MemoryProfiler;
 use Wonder\App\Path;
 use Wonder\App\Support\ImageConverter;
 use Wonder\App\Support\MediaFileManager;
+use Wonder\App\Support\SyncAnonymize;
+use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\Fields\Field as DataField;
 use Wonder\Data\Fields\Number as NumberField;
@@ -52,6 +54,35 @@ abstract class Model
     public static function syncSchema(): ?SyncSchema
     {
         return null;
+    }
+
+    /**
+     * Che cosa fa questa tabella nella sincronizzazione produzione → staging:
+     * `SyncSchema::code()`, `SyncSchema::content()` o `SyncSchema::environment()`.
+     *
+     * È un'altra cosa rispetto a {@see syncSchema()}: quello dice se la tabella
+     * finisce in `shared/sync-data.json`, questo come la tratta la copia fra
+     * ambienti. Restituire `null` (default) vuol dire «non classificata»: a
+     * runtime non cambia niente, ma il comando di sincronizzazione e il test
+     * `SyncClassificationTest` la rifiutano, così una tabella nuova non viene
+     * copiata (o saltata) senza che qualcuno abbia deciso.
+     */
+    public static function syncClass(): ?SyncClass
+    {
+        return null;
+    }
+
+    /**
+     * Colonne con dati personali da anonimizzare quando la tabella (`content()`)
+     * viene copiata da produzione a staging: `['email' => SyncAnonymize::Email]`.
+     * Vuoto = nessuna anonimizzazione. A runtime non cambia niente: la usa solo
+     * il comando di sincronizzazione.
+     *
+     * @return array<string, SyncAnonymize>
+     */
+    public static function syncAnonymize(): array
+    {
+        return [];
     }
 
     public static function tableOptions(): array

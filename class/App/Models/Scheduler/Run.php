@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Scheduler;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Sql\TableSchema as Column;
 
 class Run extends Model
@@ -10,6 +12,11 @@ class Run extends Model
     public static string $table = 'scheduler_runs';
     public static string $folder = 'app/scheduler/runs';
     public static string $icon = 'bi bi-journal-text';
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
+    }
+
     public static function tableSchema(): array
     {
         return [

@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 
 /**
@@ -14,6 +16,11 @@ final class SocietySocial extends Model
     public static string $table = 'society_social';
     public static string $folder = 'app/config/corporate-data';
     public static string $icon = 'bi bi-share';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
+    }
 
     public static function tableSchema(): array
     {

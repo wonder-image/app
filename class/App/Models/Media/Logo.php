@@ -5,6 +5,8 @@ namespace Wonder\App\Models\Media;
 use Wonder\App\Media\HasMedia;
 use Wonder\App\Media\MediaFile;
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\App\RuntimeDefaults;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -24,6 +26,11 @@ final class Logo extends Model
     public static string $table = 'logos';
     public static string $folder = 'app/media/logos';
     public static string $icon = 'bi bi-badge-ad';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
+    }
 
     public static function tableSchema(): array
     {
