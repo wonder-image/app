@@ -129,6 +129,43 @@ public static function syncSchema(): ?SyncSchema
 
 I Model vengono scoperti via `ModelRegistry` -- framework, moduli e sito contribuiscono ciascuno le proprie tabelle sincronizzabili.
 
+### Classe di sincronizzazione: `syncClass()`
+
+`syncSchema()` decide cosa finisce in `shared/sync-data.json`. È un altro asse
+la *classe* della tabella, che dice come la tratta la sincronizzazione
+produzione → staging:
+
+| Classe | Significato | Esempi |
+|---|---|---|
+| `SyncSchema::code()` | arriva dal repo, non si copia da produzione | `css_*` |
+| `SyncSchema::content()` | si copia da produzione; le modifiche di staging si perdono | `society`, `seo`, `translations`, `media`, `user` (anonimizzato) |
+| `SyncSchema::environment()` | non si tocca mai | `security`, `auth_*`, `oauth_*`, log, consensi |
+
+```php
+public static function syncClass(): ?SyncClass
+{
+    return SyncSchema::content();
+}
+```
+
+Ogni Model (del framework, di un modulo o di un sito) deve dichiararla; una
+tabella senza Model si registra con `SyncClassification::register()`. Un Model
+senza classe ritorna `null`: non rompe l'avvio, ma `SyncClassification::assertComplete()`
+(usato dai test e dal futuro comando di sincronizzazione) lo rifiuta, così una
+tabella nuova non viene copiata né saltata in silenzio. Una tabella `environment()`
+non può avere `syncSchema()`: finirebbe in git.
+
+Una tabella `content()` con dati personali dichiara le colonne da anonimizzare
+con `syncAnonymize()` (regole in `SyncAnonymize`): la regola vale solo nella
+copia verso staging, a runtime non cambia niente.
+
+```php
+public static function syncAnonymize(): array
+{
+    return ['email' => SyncAnonymize::Email, 'password' => SyncAnonymize::Clear];
+}
+```
+
 ### Tabelle sincronizzabili nel framework
 
 | Tabella | Tipo | Contenuto |

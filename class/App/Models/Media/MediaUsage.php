@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Media;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -15,6 +17,11 @@ final class MediaUsage extends Model
 {
     public static string $table = 'media_usages';
     public static string $icon = 'bi bi-link-45deg';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
+    }
 
     public static function tableSchema(): array
     {
