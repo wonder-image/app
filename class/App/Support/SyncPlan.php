@@ -7,7 +7,7 @@ use Wonder\App\Environment;
 /**
  * Prova a secco della sincronizzazione produzione → staging.
  *
- * Non apre connessioni, non legge né scrive righe: dice solo quali tabelle
+ * Non apre connessioni, non legge né scrive righe del database: dice solo quali tabelle
  * verrebbero copiate, quali no e perché, e se la classificazione è completa.
  * La copia vera non esiste ancora (punto 6, PR successive).
  */
@@ -27,14 +27,17 @@ final class SyncPlan
     }
 
     /**
+     * @param list<string>|null $dumpTables nomi di tabella trovati nel dump (SyncDump::tables), se c'è
      * @return array{
      *   copy: list<string>,
      *   skipCode: list<string>,
      *   skipEnvironment: list<string>,
-     *   blocking: list<string>
+     *   blocking: list<string>,
+     *   unknownInDump: list<string>,
+     *   missingFromDump: list<string>
      * }
      */
-    public static function build(): array
+    public static function build(?array $dumpTables = null): array
     {
         $report = SyncClassification::report();
 
@@ -51,8 +54,20 @@ final class SyncPlan
             ),
         );
 
+        $copy = self::names(SyncClass::Content, $report['classes']);
+        $unknown = $dumpTables === null ? [] : array_values(array_diff($dumpTables, array_keys($report['classes'])));
+        $missing = $dumpTables === null ? [] : array_values(array_diff($copy, $dumpTables));
+        sort($unknown);
+
+        // Una tabella del dump che nessuno ha classificato blocca: non si copia né si salta in silenzio.
+        foreach ($unknown as $table) {
+            $blocking[] = $table.' è nel dump ma non è classificata';
+        }
+
         return [
-            'copy' => self::names(SyncClass::Content, $report['classes']),
+            'unknownInDump' => $unknown,
+            'missingFromDump' => $missing,
+            'copy' => $copy,
             'skipCode' => self::names(SyncClass::Code, $report['classes']),
             'skipEnvironment' => self::names(SyncClass::Environment, $report['classes']),
             'blocking' => $blocking,
