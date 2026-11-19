@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Classificazione delle tabelle per la sincronizzazione tra ambienti
+  (`SyncSchema::code()`, `content()`, `environment()`).** Ogni Model dichiara
+  con `syncClass()` se la sua tabella è di *codice* (arriva dal repo), di
+  *contenuto* (si copia da produzione a staging) o di *ambiente* (non si copia
+  mai: segreti, utenti, log, code, consensi). Le 57 tabelle dei Model del
+  framework più `app_update_runs` sono classificate. Un Model non classificato
+  ritorna `null` e a runtime non cambia niente: `forge export`/`import` e
+  `syncSchema()` restano com'erano (le stesse 10 tabelle di prima). La
+  classificazione si controlla con `SyncClassification::assertComplete()`, che
+  fallisce per tabelle non classificate, dichiarate due volte con classi
+  diverse o di ambiente con `syncSchema()`. `user` e `scheduler_schedules` sono contenuto: gli utenti si copiano in
+  staging solo anonimizzati (`Model::syncAnonymize()` con le regole di
+  `SyncAnonymize`; per `user`: nome, cognome, email, telefono, username,
+  immagine e password) e i job pianificati arrivano copiati. Test in
+  `tests/App/Support/SyncClassificationTest.php`. Nessuna modifica a schema o
+  dati.
+
 ## 2.6.1 — 2026-11-18
 
 ### Corretto

@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Localization;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -35,6 +36,11 @@ class TranslationTerm extends Model
     public static function syncSchema(): ?SyncSchema
     {
         return null;
+    }
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
     }
 
     public static function tableSchema(): array
