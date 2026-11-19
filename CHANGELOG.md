@@ -13,6 +13,21 @@
   `STORAGE_LAYOUT` e `STORAGE_TENANT`. Test in `tests/App/Storage/`.
 
 
+
+- **Migrazioni versionate.** Un file PHP per migrazione in
+  `database/migrations/` (pacchetto `app`, ogni modulo con
+  `database.migrations_dir`, sito), registro `app_migrations`, solo in avanti
+  (nessun `down()`). Ordine: `app`, moduli, sito. Comandi `forge migrate`
+  (`--pretend`, `--force`, `--check`), `forge migrate:status [--json]`,
+  `forge migrate:make <nome> [--destructive]`. `dropColumn` e `dropIndex`
+  esistono solo in migrazioni che dichiarano `destructive()`; fuori da `local`
+  partono solo con `--force`. Punto d'ingresso
+  `Wonder\App\Migrations\Migrator` (`pending()`, `runPending()`, `status()`,
+  `check()`), con lock `GET_LOCK`. Al primo avvio le migrazioni di `app` si
+  registrano come già applicate senza eseguirle. `UpdateRunner::execute()` le
+  applica dopo le `ModuleMigration` esistenti (che restano com'erano) e prima
+  dell'allineamento delle tabelle; l'esito è in `stats.versioned_migrations`.
+  `UpdateRunner::runSchema()` espone il solo allineamento dello schema.
 - **`forge sync:from-dump --dump=<file> --dry-run`: scheletro del comando che
   porta in staging il contenuto di un backup di produzione, solo prova a
   secco.** Non si collega mai alla produzione: parte da un dump già fatto.
