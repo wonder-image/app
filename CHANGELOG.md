@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Aggiunto
+- **Migrazioni versionate.** Un file PHP per migrazione in
+  `database/migrations/` (pacchetto `app`, ogni modulo con
+  `database.migrations_dir`, sito), registro `app_migrations`, solo in avanti
+  (nessun `down()`). Ordine: `app`, moduli, sito. Comandi `forge migrate`
+  (`--pretend`, `--force`, `--check`), `forge migrate:status [--json]`,
+  `forge migrate:make <nome> [--destructive]`. `dropColumn` e `dropIndex`
+  esistono solo in migrazioni che dichiarano `destructive()`; fuori da `local`
+  partono solo con `--force`. Punto d'ingresso
+  `Wonder\App\Migrations\Migrator` (`pending()`, `runPending()`, `status()`,
+  `check()`), con lock `GET_LOCK`. Al primo avvio le migrazioni di `app` si
+  registrano come già applicate senza eseguirle. `UpdateRunner::execute()` le
+  applica dopo le `ModuleMigration` esistenti (che restano com'erano) e prima
+  dell'allineamento delle tabelle; l'esito è in `stats.versioned_migrations`.
+  `UpdateRunner::runSchema()` espone il solo allineamento dello schema.
+
 ### Cambiato
 - **In produzione `forge update` e `/api/app/update/` non eliminano più nulla
   dalle tabelle esistenti, nemmeno in `staging`.** `CreateTable::Table()` con
