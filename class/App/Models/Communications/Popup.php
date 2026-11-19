@@ -4,6 +4,8 @@ namespace Wonder\App\Models\Communications;
 
 use Wonder\App\Media\HasMedia;
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\Query;
 use Wonder\Sql\TableSchema as Column;
@@ -22,6 +24,11 @@ final class Popup extends Model
     public static string $table = 'popup';
     public static string $folder = 'popups';
     public static string $icon = 'bi bi-window-stack';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
+    }
 
     public static function tableSchema(): array
     {

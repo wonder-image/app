@@ -846,6 +846,8 @@ Vale per il web e per la console (`forge`, scheduler).
 Il deploy attuale continua a scrivere il `.env`: questa modifica non lo
 cambia.
 
+Guida completa, con esempi per `bws run`, nginx e PHP-FPM: [Segreti nel processo](segreti-nel-processo.md).
+
 ## Deploy GitHub Actions consigliato
 
 Su GitHub Actions il punto corretto è questo:

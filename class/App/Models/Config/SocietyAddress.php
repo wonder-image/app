@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -16,6 +18,11 @@ final class SocietyAddress extends Model
     public static string $table = 'society_address';
     public static string $folder = 'app/config/corporate-data';
     public static string $icon = 'bi bi-geo-alt';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
+    }
 
     public static function tableSchema(): array
     {

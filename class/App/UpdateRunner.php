@@ -116,6 +116,8 @@ class UpdateRunner
             'message' => '',
             'stats' => (object) [
                 'tables' => 0,
+                'skipped_drops' => [],
+                'versioned_migrations' => [],
                 'rows' => 0,
                 'api_activity_tokens' => 0,
                 'media_raster_icons' => [],
@@ -167,7 +169,16 @@ class UpdateRunner
             // Le rinomine legacy precedono runTables(): creata vuota la tabella nuova, la vecchia non si migrerebbe più.
             $result->stats->external_references = SharedContactTablesMigration::run($this->connection);
             $result->stats->module_migrations = $this->runModuleMigrations();
+            $versioned = (new \Wonder\App\Migrations\Migrator($this->connection))
+                ->runPending(['run_id' => $runId > 0 ? $runId : null]);
+            $result->stats->versioned_migrations = $versioned->toArray();
+
+            if (!$versioned->success) {
+                throw new RuntimeException('Migrazioni versionate: '.($versioned->error ?? $versioned->status));
+            }
+
             $result->stats->tables = $this->runTables();
+            $result->stats->skipped_drops = $this->skippedDrops;
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
             $result->stats->media_raster_icons = RasterIconMigration::run($this->connection);
             $result->stats->media_core = CoreMediaMigration::run($this->connection);
@@ -459,8 +470,28 @@ class UpdateRunner
         return $run->success && $run->exists;
     }
 
+    /** DROP saltati da `CreateTable` (produzione), raccolti da `runTables()`. @var array<int, array{table: string, kind: string, name: string}> */
+    private array $skippedDrops = [];
+
+    /**
+     * Solo l'allineamento dello schema dichiarato (aggiunte, più i DROP ammessi
+     * dall'ambiente): è il passo che `Migrator::runPending(['with_schema' => true])`
+     * esegue dopo le migrazioni.
+     *
+     * @return array{tables: int, skipped_drops: array}
+     */
+    public function runSchema(): array
+    {
+        $this->loadTableSchemas();
+        $tables = $this->runTables();
+
+        return ['tables' => $tables, 'skipped_drops' => $this->skippedDrops];
+    }
+
     private function runTables(): int
     {
+        $this->skippedDrops = [];
+
         global $TABLE;
 
         $count = 0;
@@ -472,7 +503,12 @@ class UpdateRunner
 
             foreach ($pending as $table => $value) {
                 try {
-                    sqlTable(strtolower((string) $table), $value);
+                    $done = sqlTable(strtolower((string) $table), $value);
+
+                    if (is_object($done) && !empty($done->skipped)) {
+                        array_push($this->skippedDrops, ...$done->skipped);
+                    }
+
                     unset($pending[$table]);
                     $count++;
                     $progress = true;

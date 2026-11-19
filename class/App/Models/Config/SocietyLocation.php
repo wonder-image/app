@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Config;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
 use Wonder\App\Schema\Extensions\AddressExtension;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
@@ -52,6 +53,11 @@ final class SocietyLocation extends Model
     public static function legalAddress(): AddressExtension
     {
         return AddressExtension::simple(prefix: 'legal', linkKey: 'gmaps')->withGeo();
+    }
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::content();
     }
 
     public static function tableSchema(): array

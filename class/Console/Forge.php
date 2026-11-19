@@ -19,6 +19,9 @@
                 \Wonder\Console\Commands\BitwardenCredentials::class,
                 \Wonder\Console\Commands\Provision::class,
                 \Wonder\Console\Commands\Update::class,
+                \Wonder\Console\Commands\Migrate::class,
+                \Wonder\Console\Commands\MigrateStatus::class,
+                \Wonder\Console\Commands\MigrateMake::class,
                 \Wonder\Console\Commands\Build::class,
                 \Wonder\Console\Commands\ScheduleRun::class,
                 \Wonder\Console\Commands\MediaResize::class,
@@ -32,6 +35,7 @@
                 \Wonder\Console\Commands\PublishModule::class,
                 \Wonder\Console\Commands\Export::class,
                 \Wonder\Console\Commands\Import::class,
+                \Wonder\Console\Commands\SyncFromDump::class,
                 \Wonder\Console\Commands\CloudflareSecurity::class,
             ];
 

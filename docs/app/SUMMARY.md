@@ -80,6 +80,7 @@
 * [API](piattaforma/api.md)
 * [OAuth per le risorse MCP](piattaforma/oauth.md)
 * [Installazione e Deploy](piattaforma/installazione-e-deploy.md)
+* [Segreti nel processo](piattaforma/segreti-nel-processo.md)
 * [Sicurezza HTTP, errori e log](piattaforma/sicurezza.md)
 * [Cloudflare](piattaforma/cloudflare.md)
 * [Versioni e release](piattaforma/versioni-e-release.md)

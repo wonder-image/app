@@ -3,6 +3,8 @@
     namespace Wonder\Sql;
 
     use Wonder\App\Credentials;
+    use Wonder\App\Environment;
+    use Wonder\App\EnvironmentException;
     use Wonder\Sql\{ Connection, Query };
     use Wonder\Sql\Utility\Error;
 
@@ -24,6 +26,23 @@
 
         public array $SQL_VAR = [ 'PRIMARY KEY', 'CURRENT_TIMESTAMP', 'AUTO_INCREMENT' ];
 
+        /**
+         * Operazioni distruttive (DROP COLUMN, DROP di indici, chiavi esterne e
+         * chiave primaria non dichiarati) su una tabella che esiste già.
+         * `null` = decide l'ambiente: vietate in `production` e `staging` (e se
+         * `APP_ENV` non è leggibile), permesse solo in `local`. `true`/`false`
+         * forzano il comportamento: lo userà una migrazione esplicita.
+         */
+        public ?bool $allowDestructive = null;
+
+        /**
+         * Operazioni distruttive saltate dall'ultima `Table()`, una per voce:
+         * `['table' => , 'kind' => 'column'|'index'|'foreign_key'|'primary_key', 'name' => ]`.
+         *
+         * @var array<int, array{table: string, kind: string, name: string}>
+         */
+        public array $skipped = [];
+
         public function __construct( ?mysqli $connection = null ) {
 
             $this->mysqli = ($connection === null) ? Connection::Connect() : $connection;
@@ -40,6 +59,95 @@
         public function debug(bool $debug = true): void 
         {
             $this->debug = $debug;
+        }
+
+        /** Vero se `Table()` può emettere DROP su una tabella esistente. */
+        public function destructiveAllowed(): bool
+        {
+
+            if ($this->allowDestructive !== null) {
+                return $this->allowDestructive;
+            }
+
+            try {
+                return Environment::current() === Environment::LOCAL;
+            } catch (EnvironmentException) {
+                # Ambiente sconosciuto: nel dubbio non si distrugge nulla.
+                return false;
+            }
+
+        }
+
+        /**
+         * Cosa dichiara lo schema: nomi degli indici (minuscoli), se c'è una
+         * chiave primaria e se ci sono chiavi esterne. Segue lo stesso ordine di
+         * precedenza di `TableColumn()`, perché i DROP in produzione toccano solo
+         * ciò che la stessa query ricrea.
+         *
+         * @return array{indexes: array<int, string>, primary: bool, foreign: bool, foreign_columns: array<int, string>}
+         */
+        private function declaredKeys(array $columns): array
+        {
+
+            $declared = [ 'indexes' => [], 'primary' => false, 'foreign' => false, 'foreign_columns' => [] ];
+
+            foreach ($columns as $name => $options) {
+
+                if (!is_array($options)) {
+                    continue;
+                }
+
+                $originalName = (string) $name;
+                $name = strtolower($originalName);
+
+                if (isset($options['vector_index']) && is_array($options['vector_index'])) {
+
+                    if (count($this->normalizeColumnList($options['vector_index']['column'] ?? null)) === 1) {
+                        $declared['indexes'][] = $name;
+                    }
+
+                } elseif (isset($options['index']) && !empty($options['index'])) {
+
+                    if (!empty($this->normalizeColumnList($options['index'], $name))) {
+                        $declared['indexes'][] = $name;
+                    }
+
+                } elseif (isset($options['unique'])) {
+
+                    if (!empty($this->normalizeColumnList($options['unique'], $name))) {
+                        $declared['indexes'][] = $name;
+                    }
+
+                } elseif (isset($options['primary']) && is_array($options['primary'])) {
+
+                    if (!empty($this->normalizeColumnList($options['primary']))) {
+                        $declared['primary'] = true;
+                    }
+
+                } else {
+
+                    if (isset($options['primary']) && $options['primary'] == true) {
+                        $declared['primary'] = true;
+                    }
+
+                    if (!empty($options['foreign_table'])) {
+                        $declared['foreign'] = true;
+                        $declared['foreign_columns'][] = $originalName;
+                    }
+
+                }
+
+            }
+
+            return $declared;
+
+        }
+
+        private function skip(string $table, string $kind, string $name): void
+        {
+
+            $this->skipped[] = [ 'table' => $table, 'kind' => $kind, 'name' => $name ];
+
         }
 
         /**
@@ -627,6 +735,7 @@
         public function Table( $name, $columns ) {
 
             $SQL = new Query($this->mysqli);
+            $this->skipped = [];
 
             $name = strtolower($name);
 
@@ -695,11 +804,32 @@
                 $query = "";
                 $columnBefore = $tableOptions['auto_id'] ? "id" : null;
 
-                # Elimino tutte le FOREIGN KEY
+                $destructive = $this->destructiveAllowed();
+                $declared = $this->declaredKeys($columns);
+
+                # Elimino tutte le FOREIGN KEY. In produzione solo quelle delle
+                # colonne per cui lo schema dichiara una FK (la stessa query le
+                # ricrea; i nomi li assegna MySQL): le altre si saltano e si segnalano.
+                    $recreatedForeign = [];
+
+                    if (!$destructive) {
+                        foreach ($declared['foreign_columns'] as $foreignColumn) {
+                            foreach ($SQL->ColumnForeign($name, $foreignColumn) as $foreignName) {
+                                $recreatedForeign[(string) $foreignName] = true;
+                            }
+                        }
+                    }
+
                     foreach (array_values(array_unique($SQL->ColumnForeign($name))) as $foreignKey) { 
 
                         if (!empty($foreignKey) && $foreignKey != "PRIMARY") {
-                            $query .= "DROP FOREIGN KEY `$foreignKey`, "; 
+
+                            if ($destructive || isset($recreatedForeign[(string) $foreignKey])) {
+                                $query .= "DROP FOREIGN KEY `$foreignKey`, "; 
+                            } else {
+                                $this->skip($name, 'foreign_key', (string) $foreignKey);
+                            }
+
                         }
                     
                     }
@@ -709,6 +839,19 @@
                         
                         if (empty($indexName)) {
                             continue;
+                        }
+
+                        # In produzione si tolgono solo gli indici che la stessa
+                        # query ricrea: gli altri (aggiunti a mano) restano.
+                        if (!$destructive) {
+
+                            $isPrimary = ($indexName == 'PRIMARY');
+
+                            if ($isPrimary ? !$declared['primary'] : !in_array(strtolower((string) $indexName), $declared['indexes'], true)) {
+                                $this->skip($name, $isPrimary ? 'primary_key' : 'index', (string) $indexName);
+                                continue;
+                            }
+
                         }
                         
                         $query .= "DROP "; 
@@ -753,7 +896,13 @@
                 # Elimina colonne tolte dall'array
                     foreach ($SQL->TableColumn($name) as $key => $column) {
                         if (!array_key_exists($column, $columns) && !in_array($column, [ 'id', 'deleted', 'last_modified', 'creation' ])) {
-                            $query .= "DROP COLUMN $column, ";
+
+                            if ($destructive) {
+                                $query .= "DROP COLUMN $column, ";
+                            } else {
+                                $this->skip($name, 'column', (string) $column);
+                            }
+
                         }
                     }
 
@@ -833,6 +982,8 @@
                         $RETURN =  (object) array();
                         $RETURN->table = $name;
                         $RETURN->query = $query;
+                        $RETURN->skipped = $this->skipped;
+                        $this->reportSkipped();
 
                         return $RETURN;
 
@@ -848,6 +999,30 @@
 
                 }
 
+            }
+
+            # Nessun ALTER da eseguire, ma qualcosa è stato saltato: va comunque segnalato.
+            if (empty($query) && !empty($this->skipped)) {
+
+                $this->reportSkipped();
+
+                $RETURN = (object) array();
+                $RETURN->table = $name;
+                $RETURN->query = '';
+                $RETURN->skipped = $this->skipped;
+
+                return $RETURN;
+
+            }
+
+        }
+
+        /** Una riga di log per ogni operazione distruttiva saltata (non contiene dati, solo nomi). */
+        private function reportSkipped(): void
+        {
+
+            foreach ($this->skipped as $item) {
+                @error_log('[wonder-image] DROP saltato (ambiente non locale): '.$item['kind'].' `'.$item['name'].'` della tabella `'.$item['table'].'` (serve una migrazione esplicita).');
             }
 
         }

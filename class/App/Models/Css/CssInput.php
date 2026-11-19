@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\Css;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -16,6 +17,11 @@ final class CssInput extends Model
     public static function syncSchema(): ?SyncSchema
     {
         return SyncSchema::singleton();
+    }
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::code();
     }
 
     public static function tableSchema(): array
