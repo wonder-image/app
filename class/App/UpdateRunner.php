@@ -116,6 +116,7 @@ class UpdateRunner
             'message' => '',
             'stats' => (object) [
                 'tables' => 0,
+                'skipped_drops' => [],
                 'rows' => 0,
                 'api_activity_tokens' => 0,
                 'media_raster_icons' => [],
@@ -168,6 +169,7 @@ class UpdateRunner
             $result->stats->external_references = SharedContactTablesMigration::run($this->connection);
             $result->stats->module_migrations = $this->runModuleMigrations();
             $result->stats->tables = $this->runTables();
+            $result->stats->skipped_drops = $this->skippedDrops;
             $result->stats->api_activity_tokens = ApiActivityTokenMigration::run($this->connection);
             $result->stats->media_raster_icons = RasterIconMigration::run($this->connection);
             $result->stats->media_core = CoreMediaMigration::run($this->connection);
@@ -459,8 +461,13 @@ class UpdateRunner
         return $run->success && $run->exists;
     }
 
+    /** DROP saltati da `CreateTable` (produzione), raccolti da `runTables()`. @var array<int, array{table: string, kind: string, name: string}> */
+    private array $skippedDrops = [];
+
     private function runTables(): int
     {
+        $this->skippedDrops = [];
+
         global $TABLE;
 
         $count = 0;
@@ -472,7 +479,12 @@ class UpdateRunner
 
             foreach ($pending as $table => $value) {
                 try {
-                    sqlTable(strtolower((string) $table), $value);
+                    $done = sqlTable(strtolower((string) $table), $value);
+
+                    if (is_object($done) && !empty($done->skipped)) {
+                        array_push($this->skippedDrops, ...$done->skipped);
+                    }
+
                     unset($pending[$table]);
                     $count++;
                     $progress = true;
