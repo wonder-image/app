@@ -8,6 +8,7 @@ use Wonder\App\Diagnostics\MemoryProfiler;
 use Wonder\App\Path;
 use Wonder\App\Support\ImageConverter;
 use Wonder\App\Support\MediaFileManager;
+use Wonder\App\Support\SyncAnonymize;
 use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\Fields\Field as DataField;
@@ -69,6 +70,19 @@ abstract class Model
     public static function syncClass(): ?SyncClass
     {
         return null;
+    }
+
+    /**
+     * Colonne con dati personali da anonimizzare quando la tabella (`content()`)
+     * viene copiata da produzione a staging: `['email' => SyncAnonymize::Email]`.
+     * Vuoto = nessuna anonimizzazione. A runtime non cambia niente: la usa solo
+     * il comando di sincronizzazione.
+     *
+     * @return array<string, SyncAnonymize>
+     */
+    public static function syncAnonymize(): array
+    {
+        return [];
     }
 
     public static function tableOptions(): array

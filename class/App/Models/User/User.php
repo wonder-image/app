@@ -3,6 +3,7 @@
 namespace Wonder\App\Models\User;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncAnonymize;
 use Wonder\App\Support\SyncClass;
 use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
@@ -16,7 +17,21 @@ final class User extends Model
 
     public static function syncClass(): ?SyncClass
     {
-        return SyncSchema::environment();
+        return SyncSchema::content();
+    }
+
+    /** Utenti, anche clienti del frontend: copiati in staging solo anonimizzati. */
+    public static function syncAnonymize(): array
+    {
+        return [
+            'name' => SyncAnonymize::Name,
+            'surname' => SyncAnonymize::Surname,
+            'email' => SyncAnonymize::Email,
+            'phone' => SyncAnonymize::Phone,
+            'username' => SyncAnonymize::Username,
+            'profile_picture' => SyncAnonymize::Clear,
+            'password' => SyncAnonymize::Clear,
+        ];
     }
 
     public static function tableSchema(): array

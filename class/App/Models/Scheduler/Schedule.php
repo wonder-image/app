@@ -16,7 +16,7 @@ class Schedule extends Model
 
     public static function syncClass(): ?SyncClass
     {
-        return SyncSchema::environment();
+        return SyncSchema::content();
     }
 
     public static function tableSchema(): array

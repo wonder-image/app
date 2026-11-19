@@ -126,6 +126,55 @@ final class SyncClassification
         ];
     }
 
+    /**
+     * Regole `syncAnonymize()` su colonne che non esistono o su tabelle che non
+     * sono `content()` (una tabella copiata è l'unica che serve anonimizzare).
+     *
+     * @param array<string, SyncClass> $classes
+     * @return list<string>
+     */
+    public static function invalidAnonymization(array $classes): array
+    {
+        $problems = [];
+
+        foreach (ModelRegistry::concreteClasses() as $model) {
+            $rules = $model::syncAnonymize();
+
+            if ($rules === []) {
+                continue;
+            }
+
+            $table = $model::$table;
+
+            if (($classes[$table] ?? null) !== SyncClass::Content) {
+                $problems[] = "{$table}: regole di anonimizzazione su una tabella non content";
+                continue;
+            }
+
+            $columns = array_keys($model::getColumns());
+
+            foreach (array_keys($rules) as $column) {
+                if (!in_array($column, $columns, true)) {
+                    $problems[] = "{$table}.{$column}: colonna inesistente";
+                }
+            }
+        }
+
+        return $problems;
+    }
+
+    /** Le regole di anonimizzazione di una tabella (column => regola), vuoto se non ce ne sono. */
+    public static function anonymizationOf(string $table): array
+    {
+        foreach (ModelRegistry::concreteClasses() as $model) {
+            if ($model::$table === $table && $model::syncAnonymize() !== []) {
+                return $model::syncAnonymize();
+            }
+        }
+
+        return [];
+    }
+
     /** La classe di una tabella, o null se non è classificata (o è in conflitto). */
     public static function classOf(string $table): ?SyncClass
     {
@@ -172,6 +221,12 @@ final class SyncClassification
         if ($report['inconsistent'] !== []) {
             $problems[] = 'Tabelle environment con syncSchema() (finirebbero in shared/sync-data.json): '
                 .implode(', ', $report['inconsistent']);
+        }
+
+        $invalid = self::invalidAnonymization($report['classes']);
+
+        if ($invalid !== []) {
+            $problems[] = 'Regole di anonimizzazione non valide: '.implode('; ', $invalid);
         }
 
         if ($problems !== []) {

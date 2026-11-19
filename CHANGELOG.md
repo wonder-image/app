@@ -13,7 +13,10 @@
   `syncSchema()` restano com'erano (le stesse 10 tabelle di prima). La
   classificazione si controlla con `SyncClassification::assertComplete()`, che
   fallisce per tabelle non classificate, dichiarate due volte con classi
-  diverse o di ambiente con `syncSchema()`. Test in
+  diverse o di ambiente con `syncSchema()`. `user` e `scheduler_schedules` sono contenuto: gli utenti si copiano in
+  staging solo anonimizzati (`Model::syncAnonymize()` con le regole di
+  `SyncAnonymize`; per `user`: nome, cognome, email, telefono, username,
+  immagine e password) e i job pianificati arrivano copiati. Test in
   `tests/App/Support/SyncClassificationTest.php`. Nessuna modifica a schema o
   dati.
 
