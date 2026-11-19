@@ -207,7 +207,7 @@ check('activate con update riuscito sposta il link e salva lo stato', function (
     $dir = makeRelease($site, 'r1');
     [$code, $out, $probe] = runActivate(['--release-dir' => $dir]);
     assertSame(0, $code);
-    assertSame([['r1', true]], $probe->calls);
+    assertSame([['r1', false]], $probe->calls);
     assertSame($site.'/releases/r1', realpath($site.'/current'));
     assertSame('releases/r1', readlink($site.'/current'));
     assertSame('r1', (new ReleaseSwitcher($site.'/current'))->state()['current']);
@@ -254,11 +254,19 @@ check('activate è idempotente: rilancio dopo successo', function () {
     rrmdir($site);
 });
 
-check('activate passa --no-backup all\'update', function () {
+check('activate non fa il backup se non richiesto', function () {
     $site = tmpDir();
     $r1 = makeRelease($site, 'r1');
-    [, , $probe] = runActivate(['--release-dir' => $r1, '--no-backup' => true]);
+    [, , $probe] = runActivate(['--release-dir' => $r1]);
     assertSame([['r1', false]], $probe->calls);
+    rrmdir($site);
+});
+
+check('activate con --backup lo chiede all\'update', function () {
+    $site = tmpDir();
+    $r1 = makeRelease($site, 'r1');
+    [, , $probe] = runActivate(['--release-dir' => $r1, '--backup' => true]);
+    assertSame([['r1', true]], $probe->calls);
     rrmdir($site);
 });
 

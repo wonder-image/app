@@ -17,7 +17,7 @@ use Wonder\App\UpdateRunner;
  *
  * Attiva una release preparata con `forge deploy:prepare`:
  *  1. legge e valida `deploy-manifest.json` (senza, rifiuta);
- *  2. esegue l'update (backup, migrazioni, build/row, build/update) con il codice della release,
+ *  2. esegue l'update (migrazioni, build/row, build/update; backup solo con `--backup`) con il codice della release,
  *     usando `release_id` del manifesto: una release già applicata risulta `skipped`;
  *  3. solo se l'update è riuscito (o già applicato) sposta il link `current` in modo atomico.
  *
@@ -40,7 +40,7 @@ class DeployActivate extends Command
             ->setDescription('Attiva una release preparata: update, poi spostamento del link current')
             ->addOption('release-dir', null, InputOption::VALUE_REQUIRED, 'Cartella della release (default: cartella corrente)')
             ->addOption('current', null, InputOption::VALUE_REQUIRED, 'Link da spostare (default: <padre di releases>/current)')
-            ->addOption('no-backup', null, InputOption::VALUE_NONE, 'Salta il backup del database')
+            ->addOption('backup', null, InputOption::VALUE_NONE, 'Crea un backup del database prima dell\'update (a richiesta, di default no)')
             ->addOption('rollback', null, InputOption::VALUE_NONE, 'Torna alla release precedente (solo link, nessun update)')
             ->addOption('to', null, InputOption::VALUE_REQUIRED, 'Con --rollback: release di destinazione')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Controlla manifesto e link senza eseguire nulla');
@@ -77,7 +77,7 @@ class DeployActivate extends Command
         $update = null;
 
         if (!$rollback) {
-            $update = $this->runUpdate($releaseDir, $release, !$input->getOption('no-backup'), $output);
+            $update = $this->runUpdate($releaseDir, $release, (bool) $input->getOption('backup'), $output);
 
             if (!$update['success']) {
                 $output->writeln($this->json(['status' => $update['status'], 'release' => $release, 'switched' => false, 'message' => $update['message']]));

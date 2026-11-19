@@ -196,11 +196,11 @@ Sono i due tempi del deploy da riga di comando, pensati per i server con shell (
 **`php forge deploy:activate`** si lancia sul server, dalla cartella `<sito>/releases/<id>` (o con `--release-dir`):
 
 - legge il manifesto; senza, si ferma
-- esegue l'update con il codice della release (backup, migrazioni, `build/row`, `build/update`), con `release_id` del manifesto: una release già applicata risulta `skipped`
+- esegue l'update con il codice della release (migrazioni, `build/row`, `build/update`; il backup solo con `--backup`), con `release_id` del manifesto: una release già applicata risulta `skipped`
 - va lanciato col `forge` della release stessa (non da `current/forge`): se il codice dell'update caricato non sta nella cartella della release, si ferma senza fare nulla
 - solo se l'update è riuscito sposta in modo atomico il link `<sito>/current` (`--current=<link>` per un altro percorso) e aggiorna `deploy-state.json` con lo storico
 - se l'update fallisce, o un altro update è in corso (`locked`), il link non si sposta e il sito continua a servire la release precedente; rilanciare il comando è sicuro
-- `--no-backup` salta il backup del database; `--dry-run` controlla manifesto e link senza eseguire nulla
+- il backup del database è a richiesta: `--backup` lo crea prima dell'update (a differenza di `forge update`, qui di default non parte); `--dry-run` controlla manifesto e link senza eseguire nulla
 - `--rollback` (con `--to=<id>` per scegliere la release) sposta solo il link, senza toccare il database: funziona perché le migrazioni sono «prima aggiungi, poi rimuovi»
 
 L'endpoint `/api/app/update/` resta invariato: si ritira in una PR successiva, quando nessun sito ne dipende più.
