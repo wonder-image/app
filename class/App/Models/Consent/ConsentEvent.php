@@ -4,6 +4,8 @@ namespace Wonder\App\Models\Consent;
 
 use Wonder\App\LegacyGlobals;
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\App\ResourceRegistry;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
@@ -13,6 +15,11 @@ final class ConsentEvent extends Model
     public static string $table = 'consent_events';
     public static string $folder = 'app/log/consent';
     public static string $icon = 'bi bi-shield-check';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
+    }
 
     public static function tableSchema(): array
     {

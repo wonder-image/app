@@ -64,6 +64,32 @@ final class ModelRegistry
         return self::$models;
     }
 
+    /**
+     * Tutti i Model concreti scoperti, uno per classe, anche quando più classi
+     * dichiarano la stessa tabella (`all()` ne tiene una sola per tabella).
+     * Serve a chi deve accorgersi dei doppioni, come `SyncClassification`.
+     *
+     * @return list<class-string<Model>>
+     */
+    public static function concreteClasses(): array
+    {
+        $classes = [];
+
+        foreach (self::discoveredModels() as $modelClass) {
+            if (!class_exists($modelClass) || !is_subclass_of($modelClass, Model::class)) {
+                continue;
+            }
+
+            if ((new ReflectionClass($modelClass))->isAbstract()) {
+                continue;
+            }
+
+            $classes[] = $modelClass;
+        }
+
+        return $classes;
+    }
+
     public static function classes(): array
     {
         return array_values(self::all());

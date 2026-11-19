@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\User;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -11,6 +13,11 @@ final class ApiUser extends Model
     public static string $table = 'api_users';
     public static string $folder = 'app/config/api-users';
     public static string $icon = 'bi bi-key';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
+    }
 
     public static function tableSchema(): array
     {

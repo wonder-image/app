@@ -3,6 +3,8 @@
 namespace Wonder\App\Models\Consent;
 
 use Wonder\App\Model;
+use Wonder\App\Support\SyncClass;
+use Wonder\App\Support\SyncSchema;
 use Wonder\Data\UploadSchema as Field;
 use Wonder\Sql\TableSchema as Column;
 
@@ -11,6 +13,11 @@ final class UserConsentState extends Model
     public static string $table = 'user_consent_state';
     public static string $folder = 'app/log/consent';
     public static string $icon = 'bi bi-check2-square';
+
+    public static function syncClass(): ?SyncClass
+    {
+        return SyncSchema::environment();
+    }
 
     public static function tableSchema(): array
     {
