@@ -1,0 +1,31 @@
+# WONDER UPLOAD START
+Options -Indexes -ExecCGI
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
+<FilesMatch "(?i)(\.(php\d?|phtml|phar|phps|pht|cgi|pl|py|sh)(\.|$)|^\.ht)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>
+<FilesMatch "(?i)\.svgz?$">
+  <IfModule mod_headers.c>
+    Header set Content-Security-Policy "sandbox"
+  </IfModule>
+</FilesMatch>
+# WONDER UPLOAD END

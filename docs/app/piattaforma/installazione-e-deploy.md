@@ -140,16 +140,27 @@ Fa questo:
 - crea le cartelle di runtime se mancano (`handler/`, `api/`, `backend/`, `storage/`, ecc.)
 - pulisce endpoint legacy che ora vivono come route
 - genera `handler/index.php` (front controller)
-- genera `.htaccess` se non esiste (o con `--force` per sovrascrivere)
+- legge `APP_WEBSERVER` (`apache` o `nginx`; se manca vale `apache`) e genera la configurazione del web server:
+  - `apache`: genera `.htaccess` se non esiste (o con `--force` per sovrascrivere)
+  - `nginx`: scrive lo snippet nginx al posto del `.htaccess`
 - aggiorna i blocchi gestiti di `.htaccess` (`WONDER SECURITY`: header e deny
   dei file non pubblici) e scrive `assets/upload/.htaccess` (`WONDER UPLOAD`:
   niente esecuzione di script). Su nginx servono regole equivalenti: vedi
   [Sicurezza HTTP, errori e log](sicurezza.md)
+- con `--nginx` scrive lo snippet nginx anche quando `APP_WEBSERVER` è `apache`
 
 Opzioni:
 
 - `--force` (`-f`): sovrascrive `.htaccess` anche se esiste
-- `--force-www`: aggiunge la regola force-WWW al template `.htaccess`
+- `--force-www`: aggiunge la regola force-WWW al template `.htaccess` (e allo snippet nginx)
+- `--nginx[=PERCORSO]`: forza lo snippet nginx (default
+  `storage/generated/nginx/wonder.conf`) anche con `APP_WEBSERVER=apache`; il
+  `.htaccess` resta com'è. Con `APP_WEBSERVER=nginx` lo snippet si scrive
+  sempre e `--nginx=PERCORSO` ne cambia solo la destinazione
+
+Se `APP_WEBSERVER` manca, `forge build` si comporta come prima e i siti su
+Apache non cambiano. Un valore diverso da `apache`/`nginx` dà un avviso e vale
+`apache`.
 
 Pensato per essere eseguito sul runner di GitHub Actions **prima** del deploy FTP.
 

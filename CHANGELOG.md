@@ -13,6 +13,27 @@
   solo il link. L'endpoint `/api/app/update/` non cambia. Classi in
   `Wonder\App\Deploy` (`ReleaseManifest`, `ReleaseSwitcher`); test in
   `tests/Console/DeployCommandsTest.php`.
+- **`APP_WEBSERVER` sceglie la configurazione che `forge build` genera.** Con
+  `apache` (valore di default, anche se la variabile manca) `forge build` non
+  cambia: scrive `.htaccess`. Con `nginx` scrive lo snippet nginx al posto del
+  `.htaccess`. Un valore non riconosciuto dà un avviso e vale `apache`.
+- **`forge build --nginx[=PERCORSO]` genera la configurazione nginx.** Lo
+  snippet (`storage/generated/nginx/wonder.conf` di default) riproduce le regole
+  del `.htaccess` — cartelle e file negati, upload senza script, cache degli
+  asset, router, slash finale, force-www e HSTS opzionali — leggendo le stesse
+  liste di `Build` (`Wonder\Console\NginxConfig`). Con `APP_WEBSERVER` assente o `apache` `forge build`
+  non cambia e il `.htaccess` resta identico byte per byte (fotografia in
+  `tests/fixtures/htaccess/`). Test in `tests/Console/NginxConfigTest.php` e
+  `tests/Console/HtaccessIdentityTest.php`; `nginx -t` solo se nginx è già
+  installato.
+- **Storage astratto (solo base, nessun cambio di comportamento).** Nuovo
+  namespace `Wonder\App\Storage`: interfaccia `Storage`, driver su disco
+  `LocalStorage`, `StorageScope` (tenant e ambiente), `PathResolver` (layout
+  `flat` predefinito, uguale a oggi, oppure `scoped` con `{tenant}/{ambiente}/`
+  davanti) e `StorageManager` (dischi `public` su `assets/upload` e `private` su
+  `storage`). Nessun punto del framework lo usa ancora: percorsi e indirizzi
+  dei siti esistenti restano quelli di sempre. Variabili opzionali
+  `STORAGE_LAYOUT` e `STORAGE_TENANT`. Test in `tests/App/Storage/`.
 - **Migrazioni versionate.** Un file PHP per migrazione in
   `database/migrations/` (pacchetto `app`, ogni modulo con
   `database.migrations_dir`, sito), registro `app_migrations`, solo in avanti
