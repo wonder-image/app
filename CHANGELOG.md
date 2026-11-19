@@ -16,6 +16,14 @@
   `tests/fixtures/htaccess/`). Test in `tests/Console/NginxConfigTest.php` e
   `tests/Console/HtaccessIdentityTest.php`; `nginx -t` solo se nginx è già
   installato.
+- **Storage astratto (solo base, nessun cambio di comportamento).** Nuovo
+  namespace `Wonder\App\Storage`: interfaccia `Storage`, driver su disco
+  `LocalStorage`, `StorageScope` (tenant e ambiente), `PathResolver` (layout
+  `flat` predefinito, uguale a oggi, oppure `scoped` con `{tenant}/{ambiente}/`
+  davanti) e `StorageManager` (dischi `public` su `assets/upload` e `private` su
+  `storage`). Nessun punto del framework lo usa ancora: percorsi e indirizzi
+  dei siti esistenti restano quelli di sempre. Variabili opzionali
+  `STORAGE_LAYOUT` e `STORAGE_TENANT`. Test in `tests/App/Storage/`.
 - **Migrazioni versionate.** Un file PHP per migrazione in
   `database/migrations/` (pacchetto `app`, ogni modulo con
   `database.migrations_dir`, sito), registro `app_migrations`, solo in avanti

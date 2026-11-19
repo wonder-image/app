@@ -74,8 +74,11 @@ check('stringa vuota e caratteri non ASCII fanno il round trip', function () use
 check('valore alterato: eccezione, mai testo in chiaro', function () use ($new) {
     $c = new SecretCipher($new, null, true);
     $e = $c->encrypt('segreto', 'security:mail_password');
-    $last = substr($e, -1);
-    $tampered = substr($e, 0, -1).($last === 'A' ? 'B' : 'A');
+    // Si altera il primo carattere del payload (nonce): tutti i suoi 6 bit contano, quindi i
+    // byte decodificati cambiano sempre. L'ultimo carattere NON va bene: i suoi bit di
+    // riempimento sono ignorati dal decoder e in ~6% dei casi il valore resterebbe valido.
+    $pos = strlen(SecretCipher::PREFIX) + 9;
+    $tampered = substr($e, 0, $pos).(($e[$pos] === 'A') ? 'B' : 'A').substr($e, $pos + 1);
     return throwsCipher(fn () => $c->decrypt($tampered, 'security:mail_password'))
         && throwsCipher(fn () => $c->decrypt(SecretCipher::PREFIX.$c->currentKid().':', 'security:mail_password'))
         && throwsCipher(fn () => $c->decrypt(SecretCipher::PREFIX.$c->currentKid().':!!', 'security:mail_password'));
