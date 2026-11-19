@@ -45,6 +45,25 @@ final class SyncSchema
     }
 
     /**
+     * Classificazione di una tabella fra gli ambienti: da restituire da
+     * `Model::syncClass()`. Vedi {@see SyncClass}.
+     */
+    public static function code(): SyncClass
+    {
+        return SyncClass::Code;
+    }
+
+    public static function content(): SyncClass
+    {
+        return SyncClass::Content;
+    }
+
+    public static function environment(): SyncClass
+    {
+        return SyncClass::Environment;
+    }
+
+    /**
      * Tabella singleton: esporta solo la riga con id=1.
      */
     public static function singleton(): self

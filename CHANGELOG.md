@@ -13,6 +13,57 @@
   solo il link. L'endpoint `/api/app/update/` non cambia. Classi in
   `Wonder\App\Deploy` (`ReleaseManifest`, `ReleaseSwitcher`); test in
   `tests/Console/DeployCommandsTest.php`.
+- **Migrazioni versionate.** Un file PHP per migrazione in
+  `database/migrations/` (pacchetto `app`, ogni modulo con
+  `database.migrations_dir`, sito), registro `app_migrations`, solo in avanti
+  (nessun `down()`). Ordine: `app`, moduli, sito. Comandi `forge migrate`
+  (`--pretend`, `--force`, `--check`), `forge migrate:status [--json]`,
+  `forge migrate:make <nome> [--destructive]`. `dropColumn` e `dropIndex`
+  esistono solo in migrazioni che dichiarano `destructive()`; fuori da `local`
+  partono solo con `--force`. Punto d'ingresso
+  `Wonder\App\Migrations\Migrator` (`pending()`, `runPending()`, `status()`,
+  `check()`), con lock `GET_LOCK`. Al primo avvio le migrazioni di `app` si
+  registrano come già applicate senza eseguirle. `UpdateRunner::execute()` le
+  applica dopo le `ModuleMigration` esistenti (che restano com'erano) e prima
+  dell'allineamento delle tabelle; l'esito è in `stats.versioned_migrations`.
+  `UpdateRunner::runSchema()` espone il solo allineamento dello schema.
+- **`forge sync:from-dump --dump=<file> --dry-run`: scheletro del comando che
+  porta in staging il contenuto di un backup di produzione, solo prova a
+  secco.** Non si collega mai alla produzione: parte da un dump già fatto.
+  Rifiuta di partire se `APP_ENV` non è `staging`, fallisce se una tabella (del
+  framework o presente nel dump) non è classificata; elenca le tabelle che
+  verrebbero caricate (contenuto), quelle dal codice e quelle di ambiente.
+  Non legge righe e non copia niente. Test in
+  `tests/App/Support/SyncPlanTest.php`.
+- **Classificazione delle tabelle per la sincronizzazione tra ambienti
+  (`SyncSchema::code()`, `content()`, `environment()`).** Ogni Model dichiara
+  con `syncClass()` se la sua tabella è di *codice* (arriva dal repo), di
+  *contenuto* (si copia da produzione a staging) o di *ambiente* (non si copia
+  mai: segreti, utenti, log, code, consensi). Le 57 tabelle dei Model del
+  framework più `app_update_runs` sono classificate. Un Model non classificato
+  ritorna `null` e a runtime non cambia niente: `forge export`/`import` e
+  `syncSchema()` restano com'erano (le stesse 10 tabelle di prima). La
+  classificazione si controlla con `SyncClassification::assertComplete()`, che
+  fallisce per tabelle non classificate, dichiarate due volte con classi
+  diverse o di ambiente con `syncSchema()`. `user` e `scheduler_schedules` sono contenuto: gli utenti si copiano in
+  staging solo anonimizzati (`Model::syncAnonymize()` con le regole di
+  `SyncAnonymize`; per `user`: nome, cognome, email, telefono, username,
+  immagine e password) e i job pianificati arrivano copiati. Test in
+  `tests/App/Support/SyncClassificationTest.php`. Nessuna modifica a schema o
+  dati.
+
+### Cambiato
+- **In produzione `forge update` e `/api/app/update/` non eliminano più nulla
+  dalle tabelle esistenti, nemmeno in `staging`.** `CreateTable::Table()` con
+  `APP_ENV=production` o `staging` salta `DROP COLUMN` (colonne non più dichiarate), `DROP INDEX`/`DROP PRIMARY
+  KEY` di indici non dichiarati (gli indici dichiarati si ricreano come prima,
+  nella stessa query) e `DROP FOREIGN KEY` delle colonne per cui lo schema non dichiara una chiave esterna. Ogni
+  operazione saltata finisce in `error_log`, in `stats.skipped_drops` del
+  risultato dell'update e in `skipped` del risultato di `Table()`. Vale anche per
+  `staging`, che deve comportarsi come produzione; in `local` il comportamento
+  non cambia. Se `APP_ENV` non è leggibile, nel dubbio
+  non si elimina nulla. `CreateTable::$allowDestructive` forza il comportamento
+  (per le migrazioni esplicite che arriveranno).
 
 ## 2.6.1 — 2026-11-18
 
