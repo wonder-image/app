@@ -12,6 +12,15 @@
   dei siti esistenti restano quelli di sempre. Variabili opzionali
   `STORAGE_LAYOUT` e `STORAGE_TENANT`. Test in `tests/App/Storage/`.
 
+
+- **`forge sync:from-dump --dump=<file> --dry-run`: scheletro del comando che
+  porta in staging il contenuto di un backup di produzione, solo prova a
+  secco.** Non si collega mai alla produzione: parte da un dump già fatto.
+  Rifiuta di partire se `APP_ENV` non è `staging`, fallisce se una tabella (del
+  framework o presente nel dump) non è classificata; elenca le tabelle che
+  verrebbero caricate (contenuto), quelle dal codice e quelle di ambiente.
+  Non legge righe e non copia niente. Test in
+  `tests/App/Support/SyncPlanTest.php`.
 - **Classificazione delle tabelle per la sincronizzazione tra ambienti
   (`SyncSchema::code()`, `content()`, `environment()`).** Ogni Model dichiara
   con `syncClass()` se la sua tabella è di *codice* (arriva dal repo), di
