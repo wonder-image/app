@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Aggiunto
+- **`forge deploy:prepare` e `forge deploy:activate`**: il deploy da riga di
+  comando, senza FTP e senza endpoint HTTP. `deploy:prepare` (in CI) esegue
+  `forge build` e scrive `deploy-manifest.json` per ultimo; `deploy:activate`
+  (sul server) esegue l'update con il codice della release e, solo se riesce,
+  sposta in modo atomico il link `current`, tenendo lo storico in
+  `deploy-state.json`. Update fallito o in corso: il link non si sposta;
+  rilancio sicuro (`release_id` già applicata = `skipped`); `--rollback` sposta
+  solo il link. L'endpoint `/api/app/update/` non cambia. Classi in
+  `Wonder\App\Deploy` (`ReleaseManifest`, `ReleaseSwitcher`); test in
+  `tests/Console/DeployCommandsTest.php`.
 - **`APP_WEBSERVER` sceglie la configurazione che `forge build` genera.** Con
   `apache` (valore di default, anche se la variabile manca) `forge build` non
   cambia: scrive `.htaccess`. Con `nginx` scrive lo snippet nginx al posto del
