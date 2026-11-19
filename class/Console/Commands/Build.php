@@ -37,13 +37,76 @@ class Build extends Command
 {
     public $name = 'build';
 
+    /**
+     * Fonte unica delle regole di server: le leggono sia i blocchi Apache
+     * (`.htaccess`) sia il generatore nginx (`NginxConfig`). Cambiare una
+     * lista qui cambia entrambe le uscite.
+     */
+
+    /** Cartelle mai servite via HTTP (relative alla document root). */
+    public const PROTECTED_DIRECTORIES = ['.git', '.audit', 'storage', 'state', 'tests', 'docs', 'node_modules', 'lang', 'handler/storage'];
+
+    /** Nomi di file negati ovunque (alternative di regex, sul solo nome del file). */
+    public const DENIED_FILE_PATTERNS = [
+        '\.env.*', '\.git.*', '\.ht.*', '.*\.log(\.\d+)?', '.*\.sql(\.gz)?', '.*\.(bak|old|orig|swp)', '.*~',
+        'composer\.(json|lock)', 'package(-lock)?\.json', 'skills-lock\.json', 'sync-data\.json', 'generator\.conf', 'forge',
+    ];
+
+    /** Archivi negati ovunque tranne in `assets/upload/`. */
+    public const ARCHIVE_EXTENSIONS = 'zip|tgz|tar(\.gz)?';
+
+    /** Estensioni degli asset statici di `vendor/<v>/<p>/resources/assets/` ammessi. */
+    public const VENDOR_ASSET_EXTENSIONS = 'css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico';
+
+    /** Estensioni script-like escluse dagli asset di `vendor/`. */
+    public const VENDOR_SCRIPT_EXTENSIONS = 'php\d?|phtml|phar|pht|phps|cgi|pl|py|sh';
+
+    /** Estensioni mai eseguibili né servibili da `assets/upload/`. */
+    public const UPLOAD_EXECUTABLE_EXTENSIONS = 'php\d?|phtml|phar|phps|pht|cgi|pl|py|sh';
+
+    /** Header di sicurezza dei file statici (le risposte PHP li ricevono da `SecurityHeaders`). */
+    public const STATIC_SECURITY_HEADERS = [
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'SAMEORIGIN',
+        'Content-Security-Policy' => "frame-ancestors 'self'",
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(self)',
+    ];
+
+    public const HSTS_VALUE = 'max-age=31536000';
+
+    public const WEBSERVER_ENV = 'APP_WEBSERVER';
+    public const WEBSERVER_APACHE = 'apache';
+    public const WEBSERVER_NGINX = 'nginx';
+
+    /** Dove `forge build --nginx` scrive lo snippet (dentro `storage/`, già negata via HTTP). */
+    public const NGINX_DEFAULT_PATH = 'storage/generated/nginx/wonder.conf';
+
+    /** Estensioni degli asset con cache lunga. */
+    public const CACHE_ASSET_EXTENSIONS = 'jpe?g|png|gif|webp|avif|svg|ico|pdf|mp4|webm|ogg|woff2?|js|css';
+
+    public const CACHE_ASSET_CONTROL = 'public, max-age=86400, must-revalidate';
+
+    /** Asset versionati (`?v=123`): cache immutabile. */
+    public const CACHE_VERSIONED_CONTROL = 'public, max-age=31536000, immutable';
+
+    public const CACHE_HTML_CONTROL = 'no-cache, must-revalidate';
+
+    /** Cartelle e pattern di `vendor/` raggiungibili (asset dei pacchetti, generatore xml-sitemaps). */
+    public static function vendorAllowedPattern(): string
+    {
+        return '[^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\.(?:'.self::VENDOR_SCRIPT_EXTENSIONS.')(?:\.|$))[^/]+\.(?:'.self::VENDOR_ASSET_EXTENSIONS.')$'
+            .'|wonder-image/app/vendor-static/xml-sitemaps(/|$)';
+    }
+
     protected function configure(): void
     {
         $this
             ->setName($this->name)
-            ->setDescription('Genera handler/index.php e .htaccess senza richiedere DB. Per uso in CI prima del deploy.')
+            ->setDescription('Genera handler/index.php e la configurazione del web server (.htaccess o nginx, da APP_WEBSERVER) senza richiedere DB. Per uso in CI prima del deploy.')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Sovrascrive anche .htaccess se esiste già')
-            ->addOption('force-www', null, InputOption::VALUE_NONE, 'Aggiunge la regola force-WWW al template .htaccess (off di default: la maggior parte dei subdomain non ha www)');
+            ->addOption('force-www', null, InputOption::VALUE_NONE, 'Aggiunge la regola force-WWW al template .htaccess (off di default: la maggior parte dei subdomain non ha www)')
+            ->addOption('nginx', null, InputOption::VALUE_OPTIONAL, 'Forza lo snippet nginx anche con APP_WEBSERVER=apache (default: '.self::NGINX_DEFAULT_PATH.'; sempre sovrascritto). Il .htaccess resta com\'è', false);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -110,30 +173,54 @@ class Build extends Command
         }
         $output->writeln('<info>✅ Generato '.$handlerPath.'</info>');
 
-        // 4. Genera .htaccess. Default: solo se manca (rispetta override
-        //    dell'utente). Con --force lo sovrascrive sempre.
+        // 4. Configurazione del web server, secondo `APP_WEBSERVER`:
+        //    - apache (default, anche se la variabile manca): .htaccess.
+        //      Solo se manca (rispetta override dell'utente); con --force lo
+        //      sovrascrive sempre.
+        //    - nginx: snippet nginx (sempre riscritto) al posto del .htaccess.
+        //    `--nginx` forza lo snippet anche con apache, senza toccare il .htaccess.
         $webroot = is_dir($root.'/public') ? $root.'/public' : $root;
         $htaccessPath = $webroot.'/.htaccess';
 
         $force = (bool) $input->getOption('force');
         $forceWww = (bool) $input->getOption('force-www');
 
-        if (!file_exists($htaccessPath) || $force) {
-            $htaccessContent = self::htaccessTemplate($forceWww, self::hstsEnabled());
-            $written = file_put_contents($htaccessPath, $htaccessContent.PHP_EOL);
-            if ($written === false) {
-                $output->writeln('<error>❌ Impossibile scrivere '.$htaccessPath.'</error>');
-                return Command::FAILURE;
+        $configured = self::configuredWebServer();
+        if ($configured === null) {
+            $output->writeln('<comment>⚠️  '.self::WEBSERVER_ENV.' non riconosciuta (valori: apache, nginx): uso apache.</comment>');
+        }
+        $webServer = $configured ?? self::WEBSERVER_APACHE;
+        $nginx = $input->getOption('nginx');
+
+        if ($webServer === self::WEBSERVER_APACHE) {
+            if (!file_exists($htaccessPath) || $force) {
+                $htaccessContent = self::htaccessTemplate($forceWww, self::hstsEnabled());
+                $written = file_put_contents($htaccessPath, $htaccessContent.PHP_EOL);
+                if ($written === false) {
+                    $output->writeln('<error>❌ Impossibile scrivere '.$htaccessPath.'</error>');
+                    return Command::FAILURE;
+                }
+                $verb = file_exists($htaccessPath.'.bak') ? 'Sovrascritto' : 'Generato';
+                $output->writeln('<info>✅ '.$verb.' '.$htaccessPath.($forceWww ? ' (con force-www)' : '').'</info>');
+            } else {
+                $output->writeln('<comment>↺ '.$htaccessPath.' esiste già, nessuna modifica. Usa --force per sovrascrivere.</comment>');
             }
-            $verb = file_exists($htaccessPath.'.bak') ? 'Sovrascritto' : 'Generato';
-            $output->writeln('<info>✅ '.$verb.' '.$htaccessPath.($forceWww ? ' (con force-www)' : '').'</info>');
+
+            $uploadHtaccess = self::writeUploadHtaccess($root);
+            if ($uploadHtaccess !== null) {
+                $output->writeln('<info>✅ Aggiornato '.$uploadHtaccess.'</info>');
+            }
         } else {
-            $output->writeln('<comment>↺ '.$htaccessPath.' esiste già, nessuna modifica. Usa --force per sovrascrivere.</comment>');
+            $output->writeln('<comment>↺ '.self::WEBSERVER_ENV.'=nginx: .htaccess non generato.</comment>');
         }
 
-        $uploadHtaccess = self::writeUploadHtaccess($root);
-        if ($uploadHtaccess !== null) {
-            $output->writeln('<info>✅ Aggiornato '.$uploadHtaccess.'</info>');
+        if ($webServer === self::WEBSERVER_NGINX || $nginx !== false) {
+            $nginxPath = self::writeNginxConfig($root, is_string($nginx) && $nginx !== '' ? $nginx : null, $forceWww, self::hstsEnabled());
+            if ($nginxPath === null) {
+                $output->writeln('<error>❌ Impossibile scrivere lo snippet nginx</error>');
+                return Command::FAILURE;
+            }
+            $output->writeln('<info>✅ Generato '.$nginxPath.($forceWww ? ' (con force-www)' : '').'</info>');
         }
 
         $output->writeln('<info>🧱 Build completato.</info>');
@@ -282,15 +369,20 @@ PHP;
 
     public static function htaccessPerformanceBlock(): string
     {
-        return <<<'HTACCESS'
+        $assets = self::CACHE_ASSET_EXTENSIONS;
+        $assetControl = self::CACHE_ASSET_CONTROL;
+        $versionedControl = self::CACHE_VERSIONED_CONTROL;
+        $htmlControl = self::CACHE_HTML_CONTROL;
+
+        return <<<HTACCESS
 # WONDER PERFORMANCE START
 <IfModule mod_headers.c>
-  <FilesMatch "\.(jpe?g|png|gif|webp|avif|svg|ico|pdf|mp4|webm|ogg|woff2?|js|css)$">
-    Header set Cache-Control "public, max-age=86400, must-revalidate"
-    Header set Cache-Control "public, max-age=31536000, immutable" "expr=%{QUERY_STRING} =~ m#(^|&)v=[0-9]+(&|$)#"
+  <FilesMatch "\\.({$assets})\$">
+    Header set Cache-Control "{$assetControl}"
+    Header set Cache-Control "{$versionedControl}" "expr=%{QUERY_STRING} =~ m#(^|&)v=[0-9]+(&|\$)#"
   </FilesMatch>
-  <FilesMatch "\.(html|htm)$">
-    Header set Cache-Control "no-cache, must-revalidate"
+  <FilesMatch "\\.(html|htm)\$">
+    Header set Cache-Control "{$htmlControl}"
   </FilesMatch>
 </IfModule>
 
@@ -311,13 +403,13 @@ FileETag MTime Size
 
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/json
-  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-gzip dont-vary
+  SetEnvIfNoCase Request_URI "\\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)\$" no-gzip dont-vary
 </IfModule>
 
 <IfModule mod_brotli.c>
   BrotliCompressionQuality 5
   AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json
-  SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)$" no-brotli dont-vary
+  SetEnvIfNoCase Request_URI "\\.(?:gif|jpe?g|png|webp|avif|ico|pdf|mp4|mp3|mov|avi|zip|gz|woff2?)\$" no-brotli dont-vary
 </IfModule>
 # WONDER PERFORMANCE END
 HTACCESS;
@@ -347,6 +439,23 @@ HTACCESS;
         return str_ends_with(rtrim(str_replace('\\', '/', $dir), '/'), '/storage/logs') ? 0750 : 0755;
     }
 
+    /**
+     * Web server dichiarato dal sito con `APP_WEBSERVER`: `apache` (default se
+     * la variabile manca o è vuota) o `nginx`. `null` se il valore non è
+     * riconosciuto (il chiamante avvisa e usa apache).
+     */
+    public static function configuredWebServer(): ?string
+    {
+        $value = $_ENV[self::WEBSERVER_ENV] ?? $_SERVER[self::WEBSERVER_ENV] ?? getenv(self::WEBSERVER_ENV);
+        $value = strtolower(trim((string) $value));
+
+        return match ($value) {
+            '', self::WEBSERVER_APACHE => self::WEBSERVER_APACHE,
+            self::WEBSERVER_NGINX => self::WEBSERVER_NGINX,
+            default => null,
+        };
+    }
+
     /** `APP_HSTS=true` abilita Strict-Transport-Security (opt-in). */
     public static function hstsEnabled(): bool
     {
@@ -361,8 +470,17 @@ HTACCESS;
     public static function htaccessSecurityBlock(bool $hsts = false): string
     {
         $hstsLine = $hsts
-            ? "\n    Header set Strict-Transport-Security \"max-age=31536000\" env=HTTPS"
+            ? "\n    Header set Strict-Transport-Security \"".self::HSTS_VALUE."\" env=HTTPS"
             : '';
+        $staticHeaders = implode("\n", array_map(
+            static fn (string $name, string $value): string => '    Header set '.$name.' "'.$value.'"',
+            array_keys(self::STATIC_SECURITY_HEADERS),
+            self::STATIC_SECURITY_HEADERS
+        ));
+        $deniedFiles = implode('|', self::DENIED_FILE_PATTERNS);
+        $protectedDirs = implode('|', array_map(static fn (string $d): string => preg_quote($d), self::PROTECTED_DIRECTORIES));
+        $archives = self::ARCHIVE_EXTENSIONS;
+        $vendorAllowed = self::vendorAllowedPattern();
 
         return <<<HTACCESS
 # WONDER SECURITY START
@@ -371,15 +489,11 @@ HTACCESS;
   Header unset X-Powered-By
   # Solo file statici: per le pagine PHP gli header arrivano dal bootstrap.
   <FilesMatch "(?i)^(?!.*\\.php\$)">
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set Content-Security-Policy "frame-ancestors 'self'"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"$hstsLine
+$staticHeaders$hstsLine
   </FilesMatch>
 </IfModule>
 
-<FilesMatch "(?i)^(\\.env.*|\\.git.*|\\.ht.*|.*\\.log(\\.\\d+)?|.*\\.sql(\\.gz)?|.*\\.(bak|old|orig|swp)|.*~|composer\\.(json|lock)|package(-lock)?\\.json|skills-lock\\.json|sync-data\\.json|generator\\.conf|forge)\$">
+<FilesMatch "(?i)^({$deniedFiles})\$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -391,11 +505,11 @@ HTACCESS;
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^(\\.git|\\.audit|storage|state|tests|docs|node_modules|lang|handler/storage)(/|\$) - [F,L,NC]
+  RewriteRule ^({$protectedDirs})(/|\$) - [F,L,NC]
   # Archivi e backup negati ovunque tranne nei file caricati.
-  RewriteRule ^(?!assets/upload/).*\\.(zip|tgz|tar(\\.gz)?)\$ - [F,L,NC]
+  RewriteRule ^(?!assets/upload/).*\\.({$archives})\$ - [F,L,NC]
   # vendor/ negata, tranne gli asset statici dei pacchetti e il generatore xml-sitemaps.
-  RewriteRule ^vendor(/|\$)(?![^/]+/[^/]+/resources/assets/(?:[^/.]+/)*(?![^/]*\\.(?:php\\d?|phtml|phar|pht|phps|cgi|pl|py|sh)(?:\\.|\$))[^/]+\\.(?:css|js|map|woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|svg|ico)\$|wonder-image/app/vendor-static/xml-sitemaps(/|\$)) - [F,L,NC]
+  RewriteRule ^vendor(/|\$)(?!{$vendorAllowed}) - [F,L,NC]
 </IfModule>
 # WONDER SECURITY END
 HTACCESS;
@@ -514,7 +628,9 @@ HTACCESS;
     /** Blocco gestito di `assets/upload/.htaccess`: niente PHP, niente `.ht*`. */
     public static function uploadHtaccessBlock(): string
     {
-        return <<<'HTACCESS'
+        $executable = self::UPLOAD_EXECUTABLE_EXTENSIONS;
+
+        return <<<HTACCESS
 # WONDER UPLOAD START
 Options -Indexes -ExecCGI
 <IfModule mod_php.c>
@@ -528,7 +644,7 @@ Options -Indexes -ExecCGI
 </IfModule>
 RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
 RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
-<FilesMatch "(?i)(\.(php\d?|phtml|phar|phps|pht|cgi|pl|py|sh)(\.|$)|^\.ht)">
+<FilesMatch "(?i)(\\.({$executable})(\\.|\$)|^\\.ht)">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -540,7 +656,7 @@ RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .phps .pht
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
 </IfModule>
-<FilesMatch "(?i)\.svgz?$">
+<FilesMatch "(?i)\\.svgz?\$">
   <IfModule mod_headers.c>
     Header set Content-Security-Policy "sandbox"
   </IfModule>
@@ -594,6 +710,25 @@ HTACCESS;
         }
 
         return file_put_contents($path, $updated) === false ? null : $path;
+    }
+
+    /**
+     * Scrive lo snippet nginx (sempre sovrascritto: è interamente generato).
+     * `$path` relativo parte da `$root`. Ritorna il percorso scritto, `null`
+     * se la scrittura fallisce.
+     */
+    public static function writeNginxConfig(string $root, ?string $path = null, bool $forceWww = false, bool $hsts = false): ?string
+    {
+        $path ??= self::NGINX_DEFAULT_PATH;
+        if (!str_starts_with($path, '/')) {
+            $path = rtrim($root, '/').'/'.$path;
+        }
+        $dir = dirname($path);
+        if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+            return null;
+        }
+
+        return file_put_contents($path, \Wonder\Console\NginxConfig::render($forceWww, $hsts)) === false ? null : $path;
     }
 
     private static function removeDirectory(string $dir): void

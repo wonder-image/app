@@ -88,7 +88,16 @@ cartella: in quel caso chiedi all'hosting di abilitarlo.
 ## nginx e Herd
 
 nginx ignora `.htaccess`. Su nginx servono regole equivalenti nel server
-block. Lo snippet seguente non viene applicato da Forge:
+block. Con `APP_WEBSERVER=nginx` (o con `php forge build --nginx`) `forge build` le genera da solo, dalle stesse liste del
+`.htaccess`, in `storage/generated/nginx/wonder.conf` (o nel percorso dato:
+`--nginx=PERCORSO`); il file è riscritto a ogni build. Includilo dentro
+`server { }` **prima** della location dei `.php`, che deve rimandare al front
+controller se il file non esiste (`try_files $uri /handler/index.php;`). `root`,
+TLS, gzip e IP Cloudflare restano al vhost. Con `--force-www` e `APP_HSTS=true`
+il file contiene anche il redirect verso `www.` e l'header HSTS.
+
+Lo snippet seguente è la versione scritta a mano delle sole regole di
+sicurezza, utile per capire cosa fa il file generato:
 
 ```nginx
 location ~ /\.(?!well-known/) { deny all; }
